@@ -50,6 +50,7 @@ export * from './schemas/actTelemetry.schema.js';
 export * from './builtEnvironment.js';
 export * from './builtEnvironmentKinds.js';
 export * from './builtEnvironmentProjection.js';
+export * from './demand/structureDemand.js';
 
 // Utilities
 export * from './lib/caseTransform.js';

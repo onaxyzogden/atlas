@@ -46,6 +46,7 @@ import {
   projectToGates,
   projectToExistingDriveways,
   projectToDesignElementsByProject,
+  projectToStructures,
   canonicalizeKind,
   type ProjectedBuilding,
   type ProjectedWell,
@@ -55,13 +56,15 @@ import {
   type ProjectedFence,
   type ProjectedGate,
   type ProjectedExistingDriveway,
+  type ProjectedStructure,
   type BuiltEnvironmentEntity,
   type ProposedMetadata,
+  type StructureType,
 } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
 import { type DesignElement } from './designElementsStore.js';
 import { useLandDesignStore } from './landDesignStore.js';
-import { useStructureStore, type Structure } from './structureStore.js';
+import { type Structure } from './structureStore.js';
 import type { DesignCategory } from '../v3/plan/canvas/elementCatalog.js';
 import type { PhaseKey, PlanView } from '../v3/plan/types.js';
 
@@ -200,35 +203,135 @@ export function useExistingDrivewaysForProject(
 // ─────────────────────────────────────────────────────────────────────────
 // Phase 6.B — Structure + DesignElement project-filtered selectors
 //
-// Structure: still wraps the V1 `useStructureStore` facade because consumers
-// read a narrowed `Structure[]` with `type: StructureType`; the facade
-// restores that narrowing from V2's `type: string`. Reading direct from V2
-// would force every consumer to widen narrowing or local-cast. Retires when
-// `Structure` collapses into a shared `ProjectedStructure`.
+// Structure (since 2026-05-12 ProjectedStructure narrowing): reads direct
+// from V2 via `projectToStructures`. `Structure` is now an alias for
+// `ProjectedStructure` and `ProjectedStructure.type` is narrowed to
+// `StructureType`, so consumers get the same type safety they had through
+// the V1 facade without the facade's projection subscribe-dance.
 //
 // DesignElement (since 2026-05-12 landDesignStore extraction): merges V2
 // structure-class entities (projected here via `projectToDesignElementsByProject`)
 // with non-structure entries sourced directly from `useLandDesignStore`.
 // No longer routes through the V1 `useDesignElementsStore` facade — that
-// facade now exists only for legacy writer call sites until its writer
-// migration phase lands.
+// facade was deleted on the same date.
 // ─────────────────────────────────────────────────────────────────────────
 
 const EMPTY_DESIGN_ELEMENTS: DesignElement[] = [];
+const EMPTY_STRUCTURES: Structure[] = [];
 
 export function getStructuresForProject(projectId: string): Structure[] {
-  return useStructureStore
-    .getState()
-    .structures.filter((s) => s.projectId === projectId);
+  const entities = useBuiltEnvironmentStoreV2.getState().entities;
+  const projected = projectToStructures(entities).filter(
+    (s) => s.projectId === projectId,
+  );
+  return projected.length === 0 ? EMPTY_STRUCTURES : projected;
 }
 
 export function useStructuresForProject(projectId: string): Structure[] {
-  const structures = useStructureStore((s) => s.structures);
-  return useMemo(
-    () => structures.filter((s) => s.projectId === projectId),
-    [structures, projectId],
-  );
+  const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  return useMemo(() => {
+    const projected = projectToStructures(entities).filter(
+      (s) => s.projectId === projectId,
+    );
+    return projected.length === 0 ? EMPTY_STRUCTURES : projected;
+  }, [entities, projectId]);
 }
+
+/** Locate a structure by id across every project (ids are globally unique
+ *  within V2). Non-React; one-shot. */
+export function findStructureGlobal(
+  id: string,
+): { projectId: string; structure: Structure } | null {
+  const entities = useBuiltEnvironmentStoreV2.getState().entities;
+  const entity = entities.find((e) => e.id === id);
+  if (!entity) return null;
+  const projected = projectToStructures([entity])[0];
+  if (!projected) return null;
+  return { projectId: entity.projectId, structure: projected };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Structure writers — replicate the V1 facade's add/update/delete routing
+// so consumer call sites can migrate off `useStructureStore`. Same V1 → V2
+// kind translation logic as `structureStore.ts` (snake_case StructureType
+// → kebab-case V2 kind via `canonicalizeKind`).
+// ─────────────────────────────────────────────────────────────────────────
+
+function structureTypeToV2Kind(t: StructureType): string {
+  return canonicalizeKind(t) ?? canonicalizeKind(t.replace(/_/g, '-')) ?? t;
+}
+
+function buildProposedFromStructure(s: Partial<Structure>): ProposedMetadata {
+  const m: ProposedMetadata = {};
+  if (typeof s.rotationDeg === 'number') m.rotationDeg = s.rotationDeg;
+  if (typeof s.widthM === 'number') m.widthM = s.widthM;
+  if (typeof s.depthM === 'number') m.depthM = s.depthM;
+  if (typeof s.heightM === 'number') m.heightM = s.heightM;
+  if (typeof s.storiesCount === 'number') m.storiesCount = s.storiesCount;
+  if (typeof s.costEstimate === 'number') m.costEstimate = s.costEstimate;
+  if (typeof s.laborHoursEstimate === 'number') {
+    m.laborHoursEstimate = s.laborHoursEstimate;
+  }
+  if (typeof s.materialTonnageEstimate === 'number') {
+    m.materialTonnageEstimate = s.materialTonnageEstimate;
+  }
+  if (typeof s.demandWaterGalPerDay === 'number') {
+    m.demandWaterGalPerDay = s.demandWaterGalPerDay;
+  }
+  if (typeof s.demandKwhPerDay === 'number') m.demandKwhPerDay = s.demandKwhPerDay;
+  if (typeof s.occupantCount === 'number') m.occupantCount = s.occupantCount;
+  if (Array.isArray(s.infrastructureReqs)) m.infrastructureReqs = s.infrastructureReqs;
+  if (typeof s.isTemporary === 'boolean') m.isTemporary = s.isTemporary;
+  if (Array.isArray(s.seasonalMonths)) m.seasonalMonths = s.seasonalMonths;
+  if (typeof s.phase === 'string') m.phase = s.phase;
+  if (typeof s.enterprise === 'string') m.enterprise = s.enterprise;
+  return m;
+}
+
+/** Add a proposed structure to V2. Mirrors the V1 facade's `addStructure`. */
+export function addStructure(structure: Structure): void {
+  const v2 = useBuiltEnvironmentStoreV2.getState();
+  const proposed = buildProposedFromStructure(structure);
+  const input: Parameters<typeof v2.create>[0] = {
+    projectId: structure.projectId,
+    kind: structureTypeToV2Kind(structure.type),
+    state: 'proposed',
+    geometry: structure.geometry,
+    proposed,
+  };
+  if (structure.name !== undefined) input.label = structure.name;
+  if (structure.notes !== undefined) input.notes = structure.notes;
+  const created = v2.create(input);
+  if (structure.serverId !== undefined) {
+    v2.updateMetadata(created.id, { serverId: structure.serverId });
+  }
+}
+
+/** Patch a proposed structure in V2. Mirrors the V1 facade's
+ *  `updateStructure` (metadata + optional geometry). */
+export function updateStructure(
+  id: string,
+  updates: Partial<Structure>,
+): void {
+  const v2 = useBuiltEnvironmentStoreV2.getState();
+  const update: Parameters<typeof v2.updateMetadata>[1] = {};
+  if (updates.name !== undefined) update.label = updates.name;
+  if (updates.notes !== undefined) update.notes = updates.notes;
+  if (updates.serverId !== undefined) update.serverId = updates.serverId;
+  const proposed = buildProposedFromStructure(updates);
+  if (Object.keys(proposed).length > 0) update.proposed = proposed;
+  v2.updateMetadata(id, update);
+  if (updates.geometry) v2.updateGeometry(id, updates.geometry);
+}
+
+/** Delete a proposed structure from V2. */
+export function removeStructure(id: string): void {
+  useBuiltEnvironmentStoreV2.getState().delete(id);
+}
+
+// Re-export `ProjectedStructure` so consumers migrating off the V1 facade
+// can pick up the canonical type from a single import path.
+export type { ProjectedStructure };
 
 /** Project V2 structure-class entities to DesignElement shape for a single
  *  project. Mirrors the projection the V1 facade does internally. */

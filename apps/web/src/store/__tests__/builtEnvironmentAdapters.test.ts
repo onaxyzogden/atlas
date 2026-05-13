@@ -30,6 +30,13 @@ import {
 } from '../builtEnvironmentStore.js';
 import { useStructureStore, type Structure } from '../structureStore.js';
 import { useLandDesignStore } from '../landDesignStore.js';
+import {
+  addStructure,
+  updateStructure,
+  removeStructure,
+  findStructureGlobal,
+  getStructuresForProject,
+} from '../builtEnvironmentSelectors.js';
 
 const PROJECT = 'p-adapter';
 
@@ -249,6 +256,96 @@ describe('useStructureStore facade', () => {
     useStructureStore.getState().setPlacementMode('yurt');
     expect(useStructureStore.getState().placementMode).toBe('yurt');
     expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// Structure selectors (Phase 6.C) — selector-library helpers that bypass
+// the V1 facade, mirroring the DesignElement coverage above.
+// ─────────────────────────────────────────────────────────────────────────
+
+describe('Structure selector helpers (Phase 6.C)', () => {
+  function makeStructure(over: Partial<Structure> = {}): Structure {
+    return {
+      id: 's1',
+      projectId: PROJECT,
+      name: 'Barn A',
+      type: 'barn',
+      center: [0, 0],
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
+      },
+      rotationDeg: 0,
+      widthM: 10,
+      depthM: 10,
+      phase: 'building',
+      costEstimate: 50000,
+      infrastructureReqs: ['water', 'power'],
+      notes: '',
+      createdAt: '2026-05-10T00:00:00.000Z',
+      updatedAt: '2026-05-10T00:00:00.000Z',
+      ...over,
+    };
+  }
+
+  it('addStructure routes to V2 with proposed metadata', () => {
+    addStructure(makeStructure());
+    const v2 = useBuiltEnvironmentStoreV2.getState().entities;
+    expect(v2).toHaveLength(1);
+    expect(v2[0]?.kind).toBe('barn');
+    expect(v2[0]?.state).toBe('proposed');
+    expect(v2[0]?.proposed?.costEstimate).toBe(50000);
+  });
+
+  it('updateStructure patches metadata + geometry', () => {
+    addStructure(makeStructure());
+    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
+    const newGeom: GeoJSON.Polygon = {
+      type: 'Polygon',
+      coordinates: [[[0, 0], [20, 0], [20, 20], [0, 20], [0, 0]]],
+    };
+    updateStructure(id, { name: 'Barn B', costEstimate: 75000, geometry: newGeom });
+    const projected = getStructuresForProject(PROJECT)[0];
+    expect(projected?.name).toBe('Barn B');
+    expect(projected?.costEstimate).toBe(75000);
+    expect(projected?.geometry.coordinates[0]).toHaveLength(5);
+  });
+
+  it('removeStructure deletes from V2', () => {
+    addStructure(makeStructure());
+    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
+    removeStructure(id);
+    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
+    expect(getStructuresForProject(PROJECT)).toHaveLength(0);
+  });
+
+  it('findStructureGlobal locates by id with projectId', () => {
+    addStructure(makeStructure());
+    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
+    const hit = findStructureGlobal(id);
+    expect(hit).not.toBeNull();
+    expect(hit?.projectId).toBe(PROJECT);
+    expect(hit?.structure.type).toBe('barn');
+  });
+
+  it('findStructureGlobal returns null for unknown id', () => {
+    expect(findStructureGlobal('nope')).toBeNull();
+  });
+
+  it('getStructuresForProject returns stable empty-array reference', () => {
+    const a = getStructuresForProject('no-such-project');
+    const b = getStructuresForProject('also-empty');
+    expect(a).toBe(b); // same reference, not just equal
+  });
+
+  it('isolates structures across projects', () => {
+    addStructure(makeStructure({ projectId: 'p-a' }));
+    addStructure(makeStructure({ projectId: 'p-b', type: 'yurt' }));
+    expect(getStructuresForProject('p-a')).toHaveLength(1);
+    expect(getStructuresForProject('p-b')).toHaveLength(1);
+    expect(getStructuresForProject('p-a')[0]?.type).toBe('barn');
+    expect(getStructuresForProject('p-b')[0]?.type).toBe('yurt');
   });
 });
 

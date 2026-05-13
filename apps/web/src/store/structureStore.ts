@@ -33,64 +33,27 @@ import { create } from 'zustand';
 import {
   canonicalizeKind,
   projectToStructures,
-  type BuiltEnvironmentEntity,
+  type ProjectedStructure,
   type ProposedMetadata,
+  type StructureType,
 } from '@ogden/shared';
 import {
   useBuiltEnvironmentStoreV2,
   type BuiltEnvironmentV2State,
 } from './builtEnvironmentStoreV2.js';
 
-export type StructureType =
-  | 'cabin'
-  | 'yurt'
-  | 'pavilion'
-  | 'greenhouse'
-  | 'barn'
-  | 'workshop'
-  | 'prayer_space'
-  | 'bathhouse'
-  | 'classroom'
-  | 'storage'
-  | 'animal_shelter'
-  | 'compost_station'
-  | 'water_pump_house'
-  | 'tent_glamping'
-  | 'fire_circle'
-  | 'lookout'
-  | 'earthship'
-  | 'solar_array'
-  | 'well'
-  | 'water_tank';
+// `StructureType` lives in `@ogden/shared/demand/structureDemand.ts` and
+// is the canonical narrow union (20 snake_case literals). Re-exported
+// from here so existing consumers that import it from this path keep
+// working through the 144-site sweep.
+export type { StructureType };
 
-export interface Structure {
-  id: string;
-  projectId: string;
-  name: string;
-  type: StructureType;
-  center: [number, number]; // [lng, lat]
-  geometry: GeoJSON.Polygon;
-  rotationDeg: number;
-  widthM: number;
-  depthM: number;
-  phase: string;
-  costEstimate: number | null;
-  heightM?: number;
-  storiesCount?: number;
-  laborHoursEstimate?: number;
-  materialTonnageEstimate?: number;
-  infrastructureReqs: string[];
-  notes: string;
-  isTemporary?: boolean;
-  seasonalMonths?: number[];
-  demandWaterGalPerDay?: number;
-  demandKwhPerDay?: number;
-  occupantCount?: number;
-  enterprise?: string;
-  createdAt: string;
-  updatedAt: string;
-  serverId?: string;
-}
+// `Structure` is now a structural alias for `ProjectedStructure` — the
+// two interfaces are byte-identical after the 2026-05-12 narrowing of
+// `ProjectedStructure.type` to `StructureType`. The facade's V1→V2
+// projection helper (`projectV2ToStructures`) is deleted; readers
+// consume `projectToStructures` directly.
+export type Structure = ProjectedStructure;
 
 interface StructureState {
   structures: Structure[];
@@ -116,21 +79,6 @@ function structureTypeToV2Kind(t: StructureType): string {
   // Registry's canonicalizeKind handles both shapes (prayer_space →
   // prayer-pavilion via aliases, plus already-kebab kinds round-trip).
   return canonicalizeKind(t) ?? canonicalizeKind(t.replace(/_/g, '-')) ?? t;
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// V2 → V1 projection.
-// ─────────────────────────────────────────────────────────────────────────
-
-function projectV2ToStructures(entities: BuiltEnvironmentEntity[]): Structure[] {
-  // The shared projection helper already filters to `state === 'proposed'`
-  // and the legacy 20-StructureType set, computes polygon centroids, and
-  // restores snake_case `type`. We just cast its `type: string` to the
-  // legacy enum since we know the helper only emits values from the V1 set.
-  return projectToStructures(entities).map((s) => ({
-    ...s,
-    type: s.type as StructureType,
-  }));
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -170,7 +118,7 @@ function buildProposedFromStructure(s: Partial<Structure>): ProposedMetadata {
 // Facade store.
 // ─────────────────────────────────────────────────────────────────────────
 
-const initialStructures = projectV2ToStructures(
+const initialStructures = projectToStructures(
   useBuiltEnvironmentStoreV2.getState().entities,
 );
 
@@ -222,14 +170,19 @@ export const useStructureStore = create<StructureState>()((set) => ({
 
 useBuiltEnvironmentStoreV2.subscribe((s, prev) => {
   if (s.entities === prev.entities) return;
-  useStructureStore.setState({ structures: projectV2ToStructures(s.entities) });
+  useStructureStore.setState({ structures: projectToStructures(s.entities) });
 });
+
+// Note: `subscribe` only fires when the V2 state actually changes; the
+// rehydrate dance below seeds the facade with whatever V2 had on disk
+// (otherwise consumers that mount before rehydrate completes would see
+// an empty list).
 
 // V2's `persist` middleware runs rehydration asynchronously; trigger it
 // explicitly so the facade picks up any pre-existing entities, then
 // re-project.
 void Promise.resolve(useBuiltEnvironmentStoreV2.persist.rehydrate()).then(() => {
   useStructureStore.setState({
-    structures: projectV2ToStructures(useBuiltEnvironmentStoreV2.getState().entities),
+    structures: projectToStructures(useBuiltEnvironmentStoreV2.getState().entities),
   });
 });
