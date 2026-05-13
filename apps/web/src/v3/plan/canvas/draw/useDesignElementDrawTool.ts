@@ -20,7 +20,10 @@ import {
   addDesignElement,
   getDesignElementsForProject,
 } from '../../../../store/builtEnvironmentSelectors.js';
-import { findElementSpec } from '../elementCatalog.js';
+import {
+  findElementSpec,
+  type DesignElementSpec,
+} from '../elementCatalog.js';
 import {
   checkUtilityConflicts,
   depthTriggersVeto,
@@ -36,6 +39,52 @@ interface Args {
   kind: string;
   /** Called once after a successful draw + persist; canvas uses to clear active. */
   onComplete?: () => void;
+  /**
+   * Project parcel boundary, when known. Used as the spacing-snap
+   * outer clip — clicks outside it are rejected with reason
+   * "Outside parcel boundary". Omit to skip the parcel-boundary check
+   * (per-tree spacing still applies).
+   */
+  parcelBoundary?: GeoJSON.Polygon;
+}
+
+/** Validate a candidate point placement against parcel boundary + same-
+ *  category spacing. Returns the first violation reason, or `{ ok: true }`. */
+function validatePlacement(
+  lngLat: [number, number],
+  spec: DesignElementSpec,
+  projectId: string,
+  parcelBoundary: GeoJSON.Polygon | undefined,
+): { ok: true } | { ok: false; reason: string } {
+  if (parcelBoundary) {
+    const inside = turf.booleanPointInPolygon(
+      turf.point(lngLat),
+      turf.feature(parcelBoundary),
+    );
+    if (!inside) return { ok: false, reason: 'Outside parcel boundary' };
+  }
+  const radiusM = spec.defaultSpacingM;
+  if (radiusM && radiusM > 0) {
+    const neighbours = getDesignElementsForProject(projectId).filter(
+      (e) =>
+        e.category === spec.category &&
+        e.geometry.type === 'Point',
+    );
+    for (const n of neighbours) {
+      const coords = (n.geometry as GeoJSON.Point).coordinates as [
+        number,
+        number,
+      ];
+      const d = turf.distance(lngLat, coords, { units: 'meters' });
+      if (d < radiusM) {
+        return {
+          ok: false,
+          reason: `Too close to existing ${n.label}`,
+        };
+      }
+    }
+  }
+  return { ok: true };
 }
 
 /** Convert a polygon's area to acres via turf. */
@@ -81,6 +130,7 @@ export function useDesignElementDrawTool({
   projectId,
   kind,
   onComplete,
+  parcelBoundary,
 }: Args) {
   const spec = findElementSpec(kind);
   const currentView = usePlanView();
@@ -161,6 +211,18 @@ export function useDesignElementDrawTool({
   // since dblclick already means "finish polygon" there.
   const isPoint = (spec?.drawMode ?? 'draw_point') === 'draw_point';
 
+  // Spacing snap: only for point kinds with a `defaultSpacingM` in the
+  // catalog (today: oak / pine / apple / shrub). Non-spacing point kinds
+  // skip the ring + validation entirely.
+  const spacing =
+    isPoint && spec?.defaultSpacingM
+      ? {
+          radiusM: spec.defaultSpacingM,
+          validate: (lngLat: [number, number]) =>
+            validatePlacement(lngLat, spec, projectId, parcelBoundary),
+        }
+      : undefined;
+
   useContinuousPointDrawTool({
     map,
     enabled: isPoint,
@@ -173,6 +235,7 @@ export function useDesignElementDrawTool({
     onExit: useCallback(() => {
       onComplete?.();
     }, [onComplete]),
+    spacing,
   });
 
   useMapboxDrawTool({

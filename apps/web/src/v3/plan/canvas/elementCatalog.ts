@@ -70,6 +70,13 @@ export interface DesignElementSpec {
    * Per ADR 2026-05-10-plan-earthwork-utility-veto.md.
    */
   earthworkDepthCm?: number;
+  /**
+   * Approximate mature canopy / spread spacing (metres). Drives the
+   * spacing-snap preview ring + same-category overlap rejection in
+   * `useContinuousPointDrawTool` for point kinds. Omit when no
+   * meaningful spacing applies (e.g. line / polygon kinds).
+   */
+  defaultSpacingM?: number;
 }
 
 export interface DesignCategorySpec {
@@ -163,10 +170,10 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
     key: 'vegetation',
     label: 'Vegetation',
     elements: [
-      { kind: 'oak-tree',   category: 'vegetation', label: 'Oak Tree',   icon: TreeDeciduous, geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationOak },
-      { kind: 'pine-tree',  category: 'vegetation', label: 'Pine Tree',  icon: Trees,         geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationPine },
-      { kind: 'apple-tree', category: 'vegetation', label: 'Apple Tree', icon: TreeDeciduous, geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationApple },
-      { kind: 'shrub',      category: 'vegetation', label: 'Shrub',      icon: Leaf,          geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationShrub },
+      { kind: 'oak-tree',   category: 'vegetation', label: 'Oak Tree',   icon: TreeDeciduous, geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationOak,   defaultSpacingM: 10 },
+      { kind: 'pine-tree',  category: 'vegetation', label: 'Pine Tree',  icon: Trees,         geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationPine,  defaultSpacingM: 6  },
+      { kind: 'apple-tree', category: 'vegetation', label: 'Apple Tree', icon: TreeDeciduous, geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationApple, defaultSpacingM: 5  },
+      { kind: 'shrub',      category: 'vegetation', label: 'Shrub',      icon: Leaf,          geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationShrub, defaultSpacingM: 2  },
       { kind: 'hedgerow',   category: 'vegetation', label: 'Hedgerow',   icon: Trees,         geometry: 'line',  drawMode: 'draw_line_string', phase: 'trees', color: COLORS.vegetationHedge },
     ],
   },

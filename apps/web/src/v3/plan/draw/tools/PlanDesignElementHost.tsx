@@ -18,12 +18,14 @@ interface Props {
   map: MaplibreMap;
   projectId: string;
   kind: string;
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 export default function PlanDesignElementHost({
   map,
   projectId,
   kind,
+  parcelBoundary,
 }: Props) {
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   useDesignElementDrawTool({
@@ -31,6 +33,7 @@ export default function PlanDesignElementHost({
     projectId,
     kind,
     onComplete: () => setActiveTool(null),
+    parcelBoundary,
   });
   return null;
 }

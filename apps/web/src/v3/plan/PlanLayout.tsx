@@ -57,6 +57,7 @@ import PlanZoneRingsOverlay from './layers/PlanZoneRingsOverlay.js';
 import PlanSunPathOverlay from './layers/PlanSunPathOverlay.js';
 import PlanScheduledMovesOverlay from './layers/PlanScheduledMovesOverlay.js';
 import PlanSelectionFloater from './PlanSelectionFloater.js';
+import TreeRejectionToast from './draw/TreeRejectionToast.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -249,7 +250,7 @@ export default function PlanLayout() {
           />
           <PlanScheduledMovesOverlay map={map} projectId={id} />
           <PlanVertexEditHandler map={map} />
-          <PlanDrawHost map={map} projectId={id} />
+          <PlanDrawHost map={map} projectId={id} parcelBoundary={boundary} />
           <InlineFeaturePopover map={map} />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
@@ -281,6 +282,7 @@ export default function PlanLayout() {
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           {canvasContent}
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
+          <TreeRejectionToast />
         </div>
       }
       rightRail={

@@ -62,10 +62,23 @@ interface DrawHostProps {
   projectId: string;
   kind: string;
   onComplete: () => void;
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
-function DesignElementDrawHost({ map, projectId, kind, onComplete }: DrawHostProps) {
-  useDesignElementDrawTool({ map, projectId, kind, onComplete });
+function DesignElementDrawHost({
+  map,
+  projectId,
+  kind,
+  onComplete,
+  parcelBoundary,
+}: DrawHostProps) {
+  useDesignElementDrawTool({
+    map,
+    projectId,
+    kind,
+    onComplete,
+    parcelBoundary,
+  });
   return null;
 }
 
@@ -176,6 +189,7 @@ export default function VisionLayoutCanvas({
               projectId={projectId}
               kind={activeKind}
               onComplete={onDrawComplete}
+              parcelBoundary={boundary}
             />
           )}
           {beKind && (
