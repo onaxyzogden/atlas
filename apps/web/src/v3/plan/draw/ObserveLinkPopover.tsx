@@ -15,6 +15,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowUpRight } from 'lucide-react';
 import { useObserveLinkPopoverStore } from './observeLinkPopoverStore.js';
+import { getAnnotationRow } from '../../observe/components/AnnotationRegistry.js';
 import css from './InlineFeaturePopover.module.css';
 
 interface Props {
@@ -98,6 +99,24 @@ export default function ObserveLinkPopover({ map }: Props) {
     close();
   };
 
+  // Re-read the underlying record on every render so edits made in the
+  // Observe stage surface here without needing the popover to remount.
+  // Subscribe via Zustand's store APIs at the call sites in
+  // `getAnnotationRow`: each `useXStore.getState()` snapshot is read-only,
+  // and the popover already rerenders on map move/zoom + parent layout.
+  const row =
+    active.annoKind && active.annoId
+      ? getAnnotationRow(active.annoKind, active.annoId)
+      : null;
+  const createdLabel = row?.createdAt
+    ? (() => {
+        const d = new Date(row.createdAt);
+        return Number.isNaN(d.getTime())
+          ? null
+          : d.toLocaleString();
+      })()
+    : null;
+
   return (
     <div
       ref={popoverRef}
@@ -108,16 +127,67 @@ export default function ObserveLinkPopover({ map }: Props) {
       aria-label={`${active.label} — observed feature`}
     >
       <span className={css.title}>{active.label}</span>
-      <p
-        style={{
-          margin: 0,
-          fontSize: 11,
-          opacity: 0.75,
-          lineHeight: 1.4,
-        }}
-      >
-        Observed feature. Edits live in the Observe stage.
-      </p>
+      {row ? (
+        <>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 13,
+              fontWeight: 600,
+              lineHeight: 1.35,
+              color: '#f2ede3',
+            }}
+          >
+            {row.title}
+          </p>
+          {row.subtitle ? (
+            <p
+              style={{
+                margin: 0,
+                fontSize: 11,
+                opacity: 0.85,
+                lineHeight: 1.45,
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {row.subtitle}
+            </p>
+          ) : null}
+          {createdLabel ? (
+            <p
+              style={{
+                margin: 0,
+                fontSize: 10,
+                opacity: 0.6,
+                letterSpacing: '0.04em',
+              }}
+            >
+              Created · {createdLabel}
+            </p>
+          ) : null}
+          <p
+            style={{
+              margin: 0,
+              fontSize: 10,
+              opacity: 0.6,
+              lineHeight: 1.4,
+            }}
+          >
+            Read-only. Edits live in the Observe stage.
+          </p>
+        </>
+      ) : (
+        <p
+          style={{
+            margin: 0,
+            fontSize: 11,
+            opacity: 0.75,
+            lineHeight: 1.4,
+          }}
+        >
+          Observed feature. Edits live in the Observe stage.
+        </p>
+      )}
       <button
         type="button"
         onClick={onEditInObserve}

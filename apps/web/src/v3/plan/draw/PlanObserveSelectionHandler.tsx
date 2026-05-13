@@ -21,6 +21,7 @@ import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import type { BuiltEnvironmentEntity } from '@ogden/shared';
 import { useObserveLinkPopoverStore } from './observeLinkPopoverStore.js';
 import type { ObserveLinkKind } from './observeLinkPopoverStore.js';
+import type { AnnotationKind } from '../../observe/components/draw/annotationFieldSchemas.js';
 import { useInlineFormStore } from './inlineFormStore.js';
 import type { InlineFormPayload } from './inlineFormStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
@@ -164,7 +165,14 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
           ? props.id
           : typeof props.featureId === 'string'
             ? props.featureId
-            : undefined;
+            : typeof props.annoId === 'string'
+              ? props.annoId
+              : undefined;
+      const annoKind =
+        typeof props.annoKind === 'string'
+          ? (props.annoKind as AnnotationKind)
+          : undefined;
+      const annoId = typeof props.annoId === 'string' ? props.annoId : undefined;
 
       // Stop the click from also reaching Plan-stage layers / map
       // background. We're committing to the Observe selection.
@@ -196,6 +204,8 @@ export default function PlanObserveSelectionHandler({ map }: Props) {
         label: resolved.label,
         anchor,
         featureId,
+        annoKind,
+        annoId,
       });
     };
 
