@@ -18,6 +18,7 @@ import { useEffect } from 'react';
 import { Pencil, Trash2, X } from 'lucide-react';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import { useObserveSelectionStore } from '../../../store/observeSelectionStore.js';
+import { useAnnotationDetailStore } from '../../../store/annotationDetailStore.js';
 import { useAnnotationFormStore } from '../../../store/annotationFormStore.js';
 import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
 import {
@@ -37,6 +38,10 @@ export default function SelectionFloater({ projectId }: Props) {
   const selected = useObserveSelectionStore((s) => s.selected);
   const clear = useObserveSelectionStore((s) => s.clear);
   const openForm = useAnnotationFormStore((s) => s.open);
+  // Hide while the read-only `<AnnotationDetailPanel>` is open: it shows
+  // its own Edit / Delete buttons for the same record, so the floater
+  // would be redundant clutter on top of the panel.
+  const detailActive = useAnnotationDetailStore((s) => s.active);
   // Subscribed so the floater's sector-type label re-renders if the
   // underlying record's `type` is edited while selected (rare, but cheap).
   const sectors = useExternalForcesStore((s) => s.sectors);
@@ -58,6 +63,7 @@ export default function SelectionFloater({ projectId }: Props) {
   }, [selected.length, clear]);
 
   if (selected.length === 0) return null;
+  if (detailActive) return null;
 
   const single = selected.length === 1 ? selected[0] : null;
   const first = selected[0];

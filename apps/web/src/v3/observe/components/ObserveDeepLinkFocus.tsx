@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationDetailStore } from '../../../store/annotationDetailStore.js';
+import { useObserveSelectionStore } from '../../../store/observeSelectionStore.js';
 import type { AnnotationKind } from './draw/annotationFieldSchemas.js';
 import { getAnnotationRow } from './AnnotationRegistry.js';
 import SpotlightPulse from '../../components/overlays/SpotlightPulse.js';
@@ -44,6 +45,13 @@ export default function ObserveDeepLinkFocus({ map, activeModule, projectId }: P
     if (!getAnnotationRow(focusKind as AnnotationKind, focusId)) return;
 
     openAnnotationDetail({ kind: focusKind as AnnotationKind, id: focusId });
+    // Drive the halo selection so the feature itself gets the gold outline
+    // (`observe-anno-selection-line` / `-circle` in ObserveAnnotationLayers).
+    // Persists until `<AnnotationDetailPanel>` close clears the selection
+    // when it matches the focused record.
+    useObserveSelectionStore
+      .getState()
+      .set([{ kind: focusKind as AnnotationKind, id: focusId }]);
 
     const lng = typeof focusLng === 'string' ? Number(focusLng) : focusLng;
     const lat = typeof focusLat === 'string' ? Number(focusLat) : focusLat;
