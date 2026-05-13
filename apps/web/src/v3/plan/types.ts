@@ -180,13 +180,19 @@ export const MODULE_CARDS: Record<
     { label: 'Establishment sequence', sectionId: 'plan-plant-establishment-sequence' },
   ],
   'soil-fertility': [
+    // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
+    // tile cold-opens onto the readout that hosts the "Tune zones
+    // (advanced)" disclosure — the controller for the whole
+    // zoneThresholds family (6 cards). Every consumer points stewards
+    // back here, so making it the default closes the discoverability
+    // loop. Designer remains one tab away.
+    { label: 'Fertility colocation', sectionId: 'plan-fertility-colocation' },
     { label: 'Soil fertility designer', sectionId: 'plan-soil-fertility' },
     { label: 'Waste-to-resource vectors', sectionId: 'plan-waste-vectors' },
     { label: 'Closed-loop graph', sectionId: 'plan-closed-loop-graph' },
     { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
     { label: 'Greens & browns', sectionId: 'plan-soil-resources' },
     { label: 'Soil-building plan', sectionId: 'plan-soil-building-plan' },
-    { label: 'Fertility colocation', sectionId: 'plan-fertility-colocation' },
   ],
   'cross-section-solar': [
     { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },
