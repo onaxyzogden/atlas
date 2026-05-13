@@ -57,7 +57,8 @@ import PlanZoneRingsOverlay from './layers/PlanZoneRingsOverlay.js';
 import PlanSunPathOverlay from './layers/PlanSunPathOverlay.js';
 import PlanScheduledMovesOverlay from './layers/PlanScheduledMovesOverlay.js';
 import PlanSelectionFloater from './PlanSelectionFloater.js';
-import TreeRejectionToast from './draw/TreeRejectionToast.js';
+import PlanStampToast from './draw/PlanStampToast.js';
+import StampModePicker from './canvas/StampModePicker.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -282,7 +283,8 @@ export default function PlanLayout() {
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           {canvasContent}
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
-          <TreeRejectionToast />
+          <PlanStampToast />
+          <StampModePicker />
         </div>
       }
       rightRail={

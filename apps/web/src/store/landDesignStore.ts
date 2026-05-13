@@ -38,6 +38,7 @@ import type { DesignElement } from './designElementsStore.js';
 export interface LandDesignState {
   byProject: Record<string, DesignElement[]>;
   add: (projectId: string, el: DesignElement) => void;
+  addMany: (projectId: string, elements: DesignElement[]) => void;
   remove: (projectId: string, id: string) => void;
   clear: (projectId: string) => void;
   update: (
@@ -56,6 +57,20 @@ export const useLandDesignStore = create<LandDesignState>()(
           const list = s.byProject[projectId] ?? [];
           const next: DesignElement = { view: 'current', ...el };
           return { byProject: { ...s.byProject, [projectId]: [...list, next] } };
+        }),
+      addMany: (projectId, elements) =>
+        set((s) => {
+          if (elements.length === 0) return s;
+          const list = s.byProject[projectId] ?? [];
+          const stamped = elements.map(
+            (el) => ({ view: 'current', ...el }) as DesignElement,
+          );
+          return {
+            byProject: {
+              ...s.byProject,
+              [projectId]: [...list, ...stamped],
+            },
+          };
         }),
       remove: (projectId, id) =>
         set((s) => {

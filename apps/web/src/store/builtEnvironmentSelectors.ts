@@ -58,6 +58,7 @@ import {
   type ProjectedExistingDriveway,
   type ProjectedStructure,
   type BuiltEnvironmentEntity,
+  type CreateBuiltEnvironmentInput,
   type ProposedMetadata,
   type StructureType,
 } from '@ogden/shared';
@@ -448,6 +449,43 @@ export function addDesignElement(
     return;
   }
   useLandDesignStore.getState().add(projectId, el);
+}
+
+/** Bulk-add design elements. Splits the input by category routing
+ *  (structure-class → BE V2, everything else → landDesign) and writes
+ *  each store with a single `set()` so the canvas re-renders once per
+ *  category instead of N times. Used by the polygon-fill stamp path
+ *  in `useDesignElementDrawTool.ts`. */
+export function addDesignElements(
+  projectId: string,
+  elements: DesignElement[],
+): void {
+  if (elements.length === 0) return;
+  const v2Inputs: CreateBuiltEnvironmentInput[] = [];
+  const landInputs: DesignElement[] = [];
+  for (const el of elements) {
+    if (isStructureClassKind(el.kind)) {
+      const proposed: ProposedMetadata = {};
+      if (typeof el.phase === 'string') proposed.phase = el.phase;
+      const canonical = canonicalizeKind(el.kind) ?? el.kind;
+      v2Inputs.push({
+        projectId,
+        kind: canonical,
+        state: 'proposed',
+        geometry: el.geometry,
+        label: el.label,
+        proposed,
+      });
+    } else {
+      landInputs.push(el);
+    }
+  }
+  if (v2Inputs.length > 0) {
+    useBuiltEnvironmentStoreV2.getState().createMany(v2Inputs);
+  }
+  if (landInputs.length > 0) {
+    useLandDesignStore.getState().addMany(projectId, landInputs);
+  }
 }
 
 /** Remove a design element. Tries V2 first (structure-class); if the id

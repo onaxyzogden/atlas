@@ -58,6 +58,11 @@ export interface BuiltEnvironmentV2State {
 
   /** Create a new entity. Generates id + timestamps; returns the new entity. */
   create: (input: CreateBuiltEnvironmentInput) => BuiltEnvironmentEntity;
+  /** Bulk create. Single store update so the canvas re-renders once
+   *  rather than N times. Returns the newly created entities. */
+  createMany: (
+    inputs: CreateBuiltEnvironmentInput[],
+  ) => BuiltEnvironmentEntity[];
   /** Replace just the geometry of an entity. Bumps `updatedAt`. */
   updateGeometry: (id: string, geometry: BuiltEnvironmentGeometry) => void;
   /** Patch metadata fields (label, notes, existing/proposed blocks, serverId).
@@ -463,6 +468,19 @@ export const useBuiltEnvironmentStoreV2 = create<BuiltEnvironmentV2State>()(
           };
           set((s) => ({ entities: [...s.entities, entity] }));
           return entity;
+        },
+
+        createMany: (inputs) => {
+          if (inputs.length === 0) return [];
+          const now = nowIso();
+          const stamped: BuiltEnvironmentEntity[] = inputs.map((input) => ({
+            ...input,
+            id: genId(),
+            createdAt: now,
+            updatedAt: now,
+          }));
+          set((s) => ({ entities: [...s.entities, ...stamped] }));
+          return stamped;
         },
 
         updateGeometry: (id, geometry) => {
