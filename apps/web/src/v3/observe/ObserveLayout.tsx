@@ -25,6 +25,7 @@ import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useHomesteadStore } from '../../store/homesteadStore.js';
+import { useObserveTelemetry } from '../../lib/observeInteractionLog.js';
 import { useMapToolStore } from './components/measure/useMapToolStore.js';
 import TopographyOverlay from '../components/overlays/TopographyOverlay.js';
 import WaterOverlay from '../components/overlays/WaterOverlay.js';
@@ -88,6 +89,7 @@ export default function ObserveLayout() {
   const homestead = useHomesteadStore((s) => s.byProject[id]);
   const setHomestead = useHomesteadStore((s) => s.set);
   const clearHomestead = useHomesteadStore((s) => s.clear);
+  const recordObserve = useObserveTelemetry({ projectId: id });
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const armedDrawKind =
@@ -133,8 +135,21 @@ export default function ObserveLayout() {
           homestead={{
             enabled: true,
             hasHomestead: !!homestead,
-            onPlace: (p) => setHomestead(id, p),
-            onClear: () => clearHomestead(id),
+            onPlace: (p) => {
+              setHomestead(id, p);
+              recordObserve({
+                module: 'human-context',
+                eventType: 'homestead_explicit_set',
+                payload: { lng: p[0], lat: p[1] },
+              });
+            },
+            onClear: () => {
+              clearHomestead(id);
+              recordObserve({
+                module: 'human-context',
+                eventType: 'homestead_explicit_clear',
+              });
+            },
             legendNote: homestead
               ? 'Anchored at homestead'
               : 'Anchored at parcel centroid',

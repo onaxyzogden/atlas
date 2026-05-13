@@ -15,8 +15,8 @@ import {
   type SectorType,
   type SectorIntensity,
 } from '../../../../store/externalForcesStore.js';
-import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { useEffectiveHomestead } from '../../hooks/useEffectiveHomestead.js';
 import { bearingFromPoints } from '../../utils/sectorMath.js';
 import css from './ObserveDrawHost.module.css';
 
@@ -63,7 +63,10 @@ export default function SunWindWedgeTool({
 }: Props) {
   const addSector = useExternalForcesStore((s) => s.addSector);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  const homestead = useHomesteadStore((s) => s.byProject[projectId]);
+  // Reads through the effective hook so the wedge anchors at a single
+  // existing residence when no explicit homestead is placed (ADR
+  // wiki/decisions/2026-05-13-atlas-residence-zone0-derivation.md).
+  const { point: homestead } = useEffectiveHomestead(projectId);
 
   const defaults = TYPE_DEFAULTS[sectorType];
   const [bearingDeg, setBearingDeg] = useState(defaults.bearingDeg);

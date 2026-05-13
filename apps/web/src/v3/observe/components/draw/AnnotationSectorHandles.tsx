@@ -30,6 +30,8 @@ import * as turf from '@turf/turf';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
+import { resolveEffectiveHomestead } from '../../hooks/useEffectiveHomestead.js';
 import {
   bearingFromPoints,
   arcDegFromPointer,
@@ -112,9 +114,12 @@ export default function AnnotationSectorHandles({ map, projectId }: Props) {
       return;
     }
 
-    const homestead = useHomesteadStore.getState().byProject[projectId];
+    // Read through the effective resolver so a single existing residence
+    // supplies the apex when no explicit homestead is placed (ADR
+    // wiki/decisions/2026-05-13-atlas-residence-zone0-derivation.md).
+    const effective = resolveEffectiveHomestead(projectId);
     const center = map.getCenter();
-    const apex: [number, number] = homestead ?? [center.lng, center.lat];
+    const apex: [number, number] = effective.point ?? [center.lng, center.lat];
 
     const buildData = (
       apexNow: [number, number],
@@ -228,7 +233,7 @@ export default function AnnotationSectorHandles({ map, projectId }: Props) {
         .sectors.find((x) => x.id === sectorRecord.id);
       if (!rec) return;
       const liveHomestead =
-        useHomesteadStore.getState().byProject[projectId] ?? apex;
+        resolveEffectiveHomestead(projectId).point ?? apex;
 
       if (role === 'apex') {
         useHomesteadStore.getState().set(projectId, [lng, lat]);
@@ -317,7 +322,7 @@ export default function AnnotationSectorHandles({ map, projectId }: Props) {
         .getState()
         .sectors.find((x) => x.id === sectorRecord.id);
       if (!rec) return;
-      const hs = useHomesteadStore.getState().byProject[projectId];
+      const hs = resolveEffectiveHomestead(projectId).point;
       const apexNow: [number, number] = hs ?? apex;
       const src = map.getSource(SOURCE_ID) as
         | maplibregl.GeoJSONSource
@@ -326,11 +331,16 @@ export default function AnnotationSectorHandles({ map, projectId }: Props) {
     };
     const unsubSectors = useExternalForcesStore.subscribe(refresh);
     const unsubHomestead = useHomesteadStore.subscribe(refresh);
+    // BE store edits to the residence-kind entity (move, label, removal)
+    // change the derived centroid — refresh handles when no explicit
+    // homestead is placed so the wedge tracks the dwelling.
+    const unsubBE = useBuiltEnvironmentStoreV2.subscribe(refresh);
 
     return () => {
       try {
         unsubSectors();
         unsubHomestead();
+        unsubBE();
         map.off('mousedown', LAYER_ID, onLayerPointerDown);
         map.off('touchstart', LAYER_ID, onLayerPointerDown);
         map.off('mousemove', onPointerMove);

@@ -777,6 +777,21 @@ export const LEGACY_OBSERVE_BE_KINDS: ReadonlySet<string> = Object.freeze(
   ]),
 );
 
+/**
+ * Primary-dwelling kinds. Used by `useEffectiveHomestead` to derive a
+ * Mollison Zone 0 anchor lazily when the steward has not explicitly placed
+ * one (ADR 2026-05-13 residence→Zone-0 derivation). A site qualifies for
+ * derivation only when exactly one of these exists with state `existing`;
+ * multi-dwelling sites still require explicit Place-homestead.
+ *
+ * Bathhouse / workshop / prayer-pavilion etc. are not included — Zone 0 is
+ * the *seat of activity*, and the common case the derivation targets is
+ * "single residence on a smallholding."
+ */
+export const RESIDENCE_KINDS: ReadonlySet<string> = Object.freeze(
+  new Set(['building', 'cabin', 'yurt', 'tent-glamping', 'earthship']),
+);
+
 /** Reverse alias map — alias → canonical. Built once at module load. */
 const ALIAS_TO_CANONICAL: Readonly<Record<string, string>> = Object.freeze(
   Object.values(BUILT_ENVIRONMENT_KINDS).reduce<Record<string, string>>((acc, spec) => {

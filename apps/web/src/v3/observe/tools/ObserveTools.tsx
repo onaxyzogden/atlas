@@ -15,6 +15,8 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { useEffectiveHomestead } from '../hooks/useEffectiveHomestead.js';
+import { useObserveTelemetry } from '../../../lib/observeInteractionLog.js';
 import { useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
@@ -47,7 +49,6 @@ import {
   BE_TOOL_ITEMS,
   BE_TOOL_GROUPS,
 } from '../../_shared/builtEnvironmentTools.js';
-import { useHomesteadStore } from '../../../store/homesteadStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import {
   useMapToolStore,
@@ -148,8 +149,31 @@ export default function ObserveTools({
 
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  const homestead = useHomesteadStore((s) => s.byProject[projectId]);
-  const homesteadPlaced = Boolean(homestead);
+  // Effective anchor reads the explicit homestead first, then falls back
+  // to a single-residence centroid per ADR
+  // wiki/decisions/2026-05-13-atlas-residence-zone0-derivation.md (Option C).
+  const { point: effectivePoint, source: effectiveSource } =
+    useEffectiveHomestead(projectId);
+  const homesteadPlaced = effectivePoint !== null;
+
+  // Telemetry: emit homestead_gate_flip whenever the resolved (placed,
+  // source) pair changes so we can measure how often the derivation
+  // lands the gate without an explicit Place. Local-only v1 — flushes
+  // via console.debug in dev; backend wiring is a one-line swap later.
+  const recordObserve = useObserveTelemetry({ projectId });
+  const lastGateRef = useRef<{ placed: boolean; source: typeof effectiveSource } | null>(null);
+  useEffect(() => {
+    const prev = lastGateRef.current;
+    const next = { placed: homesteadPlaced, source: effectiveSource };
+    if (!prev || prev.placed !== next.placed || prev.source !== next.source) {
+      recordObserve({
+        module: 'sectors-zones',
+        eventType: 'homestead_gate_flip',
+        payload: { placed: next.placed, source: next.source },
+      });
+      lastGateRef.current = next;
+    }
+  }, [homesteadPlaced, effectiveSource, recordObserve]);
 
   // Auto-scroll the active module's section into the rail's viewport on
   // activeModule change. `block: 'nearest'` no-ops when the section is already

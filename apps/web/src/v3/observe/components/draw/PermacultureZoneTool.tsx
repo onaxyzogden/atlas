@@ -14,12 +14,12 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
-import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import {
   useHumanContextStore,
   type PermacultureZone,
 } from '../../../../store/humanContextStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { useEffectiveHomestead } from '../../hooks/useEffectiveHomestead.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -46,7 +46,11 @@ export default function PermacultureZoneTool({ map, projectId }: Props) {
     s.permacultureZones.find((z) => z.projectId === projectId),
   );
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  const homestead = useHomesteadStore((s) => s.byProject[projectId]);
+  // Reads through the effective hook so a single existing residence
+  // can supply the anchor when no explicit homestead is placed (ADR
+  // wiki/decisions/2026-05-13-atlas-residence-zone0-derivation.md).
+  const { point: homestead, source: anchorSource } =
+    useEffectiveHomestead(projectId);
 
   const [radii, setRadii] = useState<RadiiTuple>(
     existingZone?.ringRadiiM ?? DEFAULT_RADII_M,
@@ -75,6 +79,7 @@ export default function PermacultureZoneTool({ map, projectId }: Props) {
         projectId,
         ringRadiiM: radii,
         anchorPoint: homestead,
+        anchorSource: anchorSource === 'derived' ? 'derived' : 'explicit',
         createdAt: new Date().toISOString(),
       });
     }
