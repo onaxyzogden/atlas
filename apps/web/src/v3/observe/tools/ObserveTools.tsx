@@ -148,9 +148,7 @@ export default function ObserveTools({
 
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  const homestead = useHomesteadStore((s) =>
-    projectId ? s.byProject[projectId] : undefined,
-  );
+  const homestead = useHomesteadStore((s) => s.byProject[projectId]);
   const homesteadPlaced = Boolean(homestead);
 
   // Auto-scroll the active module's section into the rail's viewport on
@@ -186,7 +184,7 @@ export default function ObserveTools({
     setActiveTool(activeTool === toolId ? null : toolId);
   };
 
-  const canSelectModules = Boolean(onSelectModule && projectId);
+  const canSelectModules = Boolean(onSelectModule);
 
   return (
     <aside
@@ -262,7 +260,6 @@ export default function ObserveTools({
                       },
                       {
                         activeTool,
-                        projectId,
                         homesteadPlaced,
                         onToolClick,
                       },
@@ -299,7 +296,6 @@ export default function ObserveTools({
                       {groupItems.map((it) =>
                         renderToolButton(it, {
                           activeTool,
-                          projectId,
                           homesteadPlaced,
                           onToolClick,
                         }),
@@ -315,7 +311,6 @@ export default function ObserveTools({
                 {items.map((it) =>
                   renderToolButton(it, {
                     activeTool,
-                    projectId,
                     homesteadPlaced,
                     onToolClick,
                   }),
@@ -336,7 +331,6 @@ function renderToolButton(
   it: ToolItem,
   ctx: {
     activeTool: MapToolId | null;
-    projectId: string | null;
     homesteadPlaced: boolean;
     onToolClick: (
       e: React.MouseEvent<HTMLButtonElement>,
@@ -344,12 +338,11 @@ function renderToolButton(
     ) => void;
   },
 ) {
-  const { activeTool, projectId, homesteadPlaced, onToolClick } = ctx;
+  const { activeTool, homesteadPlaced, onToolClick } = ctx;
   const needsHomestead = it.id === 'permaculture';
-  const disabled = !projectId || (needsHomestead && !homesteadPlaced);
-  const title = !projectId
-    ? `${it.label} — open a project to use`
-    : needsHomestead && !homesteadPlaced
+  const disabled = needsHomestead && !homesteadPlaced;
+  const title =
+    needsHomestead && !homesteadPlaced
       ? `${it.label} — place homestead first via the map "Place homestead" control`
       : it.label;
   const isToolActive = activeTool === it.toolId;
