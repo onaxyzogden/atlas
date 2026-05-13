@@ -145,6 +145,11 @@ export const MODULE_CARDS: Record<
     { label: 'Catchments',     sectionId: 'plan-water-catchments' },
     { label: 'Storage & overflow', sectionId: 'plan-water-storage' },
     { label: 'Network & balance',  sectionId: 'plan-water-network' },
+    // Highest-potential water router (Rec #3 v1 from the permaculture-
+    // alignment backlog, 2026-04-28). Aspect-projected heuristic flags
+    // water-harvest elements placed below the parcel's median elevation
+    // with a numeric "head lost" estimate and a suggested upper-third coord.
+    { label: 'Highest-potential router', sectionId: 'plan-water-router' },
   ],
   'zone-circulation': [
     { label: 'Zone level layer', sectionId: 'plan-zone-level' },

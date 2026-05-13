@@ -10,7 +10,40 @@ the Permaculture Scholar (`5aa3dcf3-e1de-44ac-82b8-bad5e94e6c4b`).
 
 ---
 
-## Rec #3 — Highest-potential water router (P1)
+## Rec #3 — Highest-potential water router (P1) — v1 SHIPPED 2026-05-13
+
+**v1 status:** Shipped as a new sub-card in the Plan-stage water-management
+module (`apps/web/src/v3/plan/cards/water-management/WaterRouterCard.tsx`)
+backed by `waterRouterMath.ts`. The card flags water-harvest elements
+(`water-tank`, `pond`, `swale` from `landDesignStore`) placed below the
+parcel's median elevation with a numeric "potential gravity head lost"
+estimate and a suggested upper-third coordinate.
+
+**v1 elevation model — aspect-projected heuristic.** Atlas does not expose a
+per-point DEM sampler today (only `siteDataStore`'s min/max/predominant-
+aspect scalars and per-transect profiles). The math util projects each
+element centroid onto the uphill axis (`aspect + 180°`) within the parcel
+bbox, normalises to `t ∈ [0,1]`, and estimates `elev = min + t·(max−min)`.
+The `estimateElevationM` signature is the v2 swap point for a real DEM
+sample (Mapbox `queryTerrainElevation` or a server raster route) with no
+card-side changes.
+
+**Tier thresholds:** `excellent` < 0.5 m head lost, `adequate` 0.5–2 m,
+`low-potential` ≥ 2 m. Suggested coordinate = upper-third centroid along the
+uphill axis (bbox-aligned; not polygon-clipped in v1).
+
+**Deferred to v2:**
+- Map-canvas overlay drawing the uphill arrow + suggested-coord pin.
+- True per-point DEM sample (Mapbox terrain or Fastify raster route).
+- Flow-path vector overlay from highest points (rec's first bullet — v1
+  ships the scoring half only).
+- One-click "move element to suggested coord" action.
+- Wiring "head lost" into a principle score store (Holmgren P2 — Catch &
+  store energy).
+
+---
+
+### Original spec (preserved for v2 reference)
 
 **Principle:** Catch & Store Energy
 **Source:** *Permaculture Design for Water*, *Watershed Patterns*,

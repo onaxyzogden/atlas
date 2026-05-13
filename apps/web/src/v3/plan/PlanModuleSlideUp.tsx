@@ -24,6 +24,7 @@ const EnterprisesCard         = lazy(() => import('./cards/dynamic-layering/Ente
 const WaterCatchmentsCard     = lazy(() => import('./cards/water-management/WaterCatchmentsCard.js'));
 const WaterStorageCard        = lazy(() => import('./cards/water-management/WaterStorageCard.js'));
 const WaterNetworkCard        = lazy(() => import('./cards/water-management/WaterNetworkCard.js'));
+const WaterRouterCard         = lazy(() => import('./cards/water-management/WaterRouterCard.js'));
 const ZoneLevelLayer          = lazy(() => import('../../features/plan/ZoneLevelLayer.js'));
 const PathFrequencyEditor     = lazy(() => import('../../features/plan/PathFrequencyEditor.js'));
 const ZoneCirculationOverviewCard = lazy(() => import('./cards/zone-circulation/ZoneCirculationOverviewCard.js'));
@@ -78,6 +79,7 @@ function renderPlanCard(
     case 'plan-water-catchments':    return <WaterCatchmentsCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-storage':       return <WaterStorageCard project={project} onSwitchToMap={noop} />;
     case 'plan-water-network':       return <WaterNetworkCard project={project} onSwitchToMap={noop} />;
+    case 'plan-water-router':        return <WaterRouterCard project={project} onSwitchToMap={noop} />;
     case 'plan-zone-level':          return <ZoneLevelLayer project={project} onSwitchToMap={noop} />;
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
     case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
