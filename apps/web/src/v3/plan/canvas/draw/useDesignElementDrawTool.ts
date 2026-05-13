@@ -18,7 +18,7 @@ import {
 } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import {
   addDesignElement,
-  useDesignElementsForProject,
+  getDesignElementsForProject,
 } from '../../../../store/builtEnvironmentSelectors.js';
 import { findElementSpec } from '../elementCatalog.js';
 import {
@@ -27,6 +27,7 @@ import {
 } from '../../utils/utilityConflicts.js';
 import { useUtilityConflictStore } from '../../draw/utilityConflictStore.js';
 import { usePlanView } from '../../PlanViewContext.js';
+import { useContinuousPointDrawTool } from './useContinuousPointDrawTool.js';
 
 interface Args {
   map: MaplibreMap;
@@ -82,7 +83,6 @@ export function useDesignElementDrawTool({
   onComplete,
 }: Args) {
   const spec = findElementSpec(kind);
-  const list = useDesignElementsForProject(projectId);
   const currentView = usePlanView();
 
   const handleComplete = useCallback(
@@ -90,7 +90,12 @@ export function useDesignElementDrawTool({
       if (!spec) return;
       const acreage =
         geom.type === 'Polygon' ? polygonAcres(geom) : undefined;
-      const sameKindCount = list.filter((e) => e.kind === kind).length;
+      // Read live count from the store on every placement so continuous-
+      // point mode increments labels (A → B → C…) without depending on
+      // React render timing.
+      const sameKindCount = getDesignElementsForProject(projectId).filter(
+        (e) => e.kind === kind,
+      ).length;
       const label = `${spec.label} ${nextLetter(sameKindCount)}`;
 
       // Buried-utility safety check — ADR 2026-05-10-plan-earthwork-
@@ -147,12 +152,33 @@ export function useDesignElementDrawTool({
 
       persist({});
     },
-    [spec, list, kind, projectId, onComplete, currentView],
+    [spec, kind, projectId, onComplete, currentView],
   );
+
+  // Continuous-point flow for trees and other point design elements:
+  // every single click drops another, double-click (or Esc) exits.
+  // Polygon / line kinds keep the existing one-shot MapboxDraw flow,
+  // since dblclick already means "finish polygon" there.
+  const isPoint = (spec?.drawMode ?? 'draw_point') === 'draw_point';
+
+  useContinuousPointDrawTool({
+    map,
+    enabled: isPoint,
+    onPlace: useCallback(
+      (lngLat: [number, number]) => {
+        handleComplete({ type: 'Point', coordinates: lngLat });
+      },
+      [handleComplete],
+    ),
+    onExit: useCallback(() => {
+      onComplete?.();
+    }, [onComplete]),
+  });
 
   useMapboxDrawTool({
     map,
     mode: spec?.drawMode ?? 'draw_point',
     onComplete: handleComplete,
+    enabled: !isPoint,
   });
 }

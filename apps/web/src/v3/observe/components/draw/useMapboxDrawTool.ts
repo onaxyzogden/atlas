@@ -36,6 +36,8 @@ export interface UseMapboxDrawToolArgs<G extends DrawGeometry> {
   mode: DrawMode;
   /** Called once when the user completes a draw (create event). */
   onComplete: (geometry: G) => void;
+  /** When false, the hook is a no-op (no draw control mounted). Default true. */
+  enabled?: boolean;
 }
 
 export interface UseMapboxDrawToolReturn<G extends DrawGeometry> {
@@ -47,6 +49,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
   map,
   mode,
   onComplete,
+  enabled = true,
 }: UseMapboxDrawToolArgs<G>): UseMapboxDrawToolReturn<G> {
   const [geometry, setGeometry] = useState<G | null>(null);
   // Stash latest onComplete so the effect doesn't re-init on identity change.
@@ -56,6 +59,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
   }, [onComplete]);
 
   useEffect(() => {
+    if (!enabled) return;
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
@@ -107,7 +111,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
         /* map already disposed */
       }
     };
-  }, [map, mode]);
+  }, [map, mode, enabled]);
 
   return { geometry };
 }
