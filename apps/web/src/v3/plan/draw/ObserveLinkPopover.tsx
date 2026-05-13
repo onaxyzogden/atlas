@@ -92,9 +92,19 @@ export default function ObserveLinkPopover({ map }: Props) {
 
   const onEditInObserve = () => {
     if (!params.projectId) return;
+    // Phase 2: when the clicked feature is an annotation we know how to
+    // open in Observe's detail panel (`annoKind` + `annoId` were stamped
+    // by ObserveAnnotationLayers), forward them as search params so
+    // ObserveLayout can re-open the read-only `<AnnotationDetailPanel>`
+    // for the same record. Edit/Delete buttons live there.
+    const search =
+      active.annoKind && active.annoId
+        ? { focusKind: active.annoKind, focusId: active.annoId }
+        : {};
     navigate({
       to: '/v3/project/$projectId/observe/$module',
       params: { projectId: params.projectId, module: active.kind },
+      search,
     });
     close();
   };
