@@ -26,7 +26,6 @@ import { useZoneStore } from '../../store/zoneStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { usePathStore } from '../../store/pathStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
 import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { useUtilityRunStore } from '../../store/utilityRunStore.js';
@@ -36,6 +35,7 @@ import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.
 import {
   getDesignElementsForProject,
   removeDesignElement,
+  removeStructure,
 } from '../../store/builtEnvironmentSelectors.js';
 import * as turf from '@turf/turf';
 import { useInlineFormStore } from './draw/inlineFormStore.js';
@@ -95,7 +95,7 @@ function removeOne(item: PlanSelectionItem): void {
       usePathStore.getState().deletePath(item.id);
       return;
     case 'structure':
-      useStructureStore.getState().deleteStructure(item.id);
+      removeStructure(item.id);
       return;
     case 'fertility':
       useClosedLoopStore.getState().removeFertilityInfra(item.id);

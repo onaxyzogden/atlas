@@ -21,8 +21,11 @@ import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useAgribusinessStore } from '../../../store/agribusinessStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
-import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
+import {
+  useAllStructures,
+  getAllStructures,
+  updateStructure,
+} from '../../../store/builtEnvironmentSelectors.js';
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -213,7 +216,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const structures = useAllStructures();
-  const updateStructure = useStructureStore((s) => s.updateStructure);
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
   const updateUtilityRun = useUtilityRunStore((s) => s.updateRun);
@@ -1316,9 +1318,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       if (!f || f.properties?.kind !== 'structure') return;
       e.preventDefault();
       const id = String(f.properties.id);
-      const st0 = useStructureStore
-        .getState()
-        .structures.find((s) => s.id === id);
+      const st0 = getAllStructures().find((s) => s.id === id);
       if (!st0) return;
       const selItem = { kind: 'structure' as const, id };
       if (e.originalEvent.shiftKey) {
@@ -1398,9 +1398,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           return;
         }
         // Click (no drag) → open edit popover.
-        const st = useStructureStore
-          .getState()
-          .structures.find((s) => s.id === id);
+        const st = getAllStructures().find((s) => s.id === id);
         if (!st) return;
         const anchor: [number, number] =
           ev?.lngLat
@@ -2226,9 +2224,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           return r?.geometry ?? null;
         }
         case 'structure': {
-          const r = useStructureStore
-            .getState()
-            .structures.find((x) => x.id === id && x.projectId === projectId);
+          const r = getAllStructures().find(
+            (x) => x.id === id && x.projectId === projectId,
+          );
           return r?.geometry ?? null;
         }
         case 'path': {

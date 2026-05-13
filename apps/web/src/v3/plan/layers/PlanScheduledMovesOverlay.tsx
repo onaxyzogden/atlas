@@ -23,8 +23,10 @@ import * as turf from '@turf/turf';
 import { maplibregl } from '../../../lib/maplibre.js';
 import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
-import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
+import {
+  useAllStructures,
+  getAllStructures,
+} from '../../../store/builtEnvironmentSelectors.js';
 import {
   useScheduledLivestockMoveStore,
   plansByPaddock,
@@ -370,9 +372,9 @@ export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
         }
         destName = pd.name || 'paddock';
       } else {
-        const st = useStructureStore
-          .getState()
-          .structures.find((x) => x.id === destId && x.projectId === projectId);
+        const st = getAllStructures().find(
+          (x) => x.id === destId && x.projectId === projectId,
+        );
         if (!st) return;
         anchor = st.center;
         destName = st.name || st.type;

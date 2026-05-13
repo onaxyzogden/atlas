@@ -31,7 +31,7 @@
  */
 
 import { useMemo } from 'react';
-import { useStructureStore } from '../../store/structureStore.js';
+import { type Structure } from '../../store/structureStore.js';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -331,7 +331,7 @@ interface HotspotBundle {
 
 function buildHotspotBundle(
   project: LocalProject,
-  structures: ReturnType<typeof useStructureStore.getState>['structures'],
+  structures: Structure[],
   zones: ReturnType<typeof useZoneStore.getState>['zones'],
   paddocks: ReturnType<typeof useLivestockStore.getState>['paddocks'],
   crops: ReturnType<typeof useCropStore.getState>['cropAreas'],
@@ -390,7 +390,7 @@ interface CostModelBundle {
 }
 
 function buildCostModelBundle(
-  placed: ReturnType<typeof useStructureStore.getState>['structures'],
+  placed: Structure[],
 ): CostModelBundle {
   const counts = new Map<string, { count: number; totalLow: number; totalHigh: number; types: Set<string> }>();
   for (const s of placed) {

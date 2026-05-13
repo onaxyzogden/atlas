@@ -17,9 +17,13 @@ import { api } from './apiClient.js';
 import { syncQueue, type QueuedOperation } from './syncQueue.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
-import { useStructureStore, type Structure } from '../store/structureStore.js';
+import { type Structure } from '../store/structureStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../store/builtEnvironmentStoreV2.js';
-import { getAllStructures } from '../store/builtEnvironmentSelectors.js';
+import {
+  addStructure,
+  updateStructure,
+  getAllStructures,
+} from '../store/builtEnvironmentSelectors.js';
 import { projectToStructures } from '@ogden/shared';
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import { precacheProjectTiles } from './tilePrecache.js';
@@ -344,7 +348,7 @@ async function syncStructureCreate(structure: Structure) {
     const { data } = await api.designFeatures.create(projectServerId, input);
 
     isSyncing = true;
-    useStructureStore.getState().updateStructure(structure.id, { serverId: data.id });
+    updateStructure(structure.id, { serverId: data.id });
     isSyncing = false;
   } catch (err) {
     console.warn('[SYNC] Structure create failed, queuing:', err);
@@ -565,10 +569,10 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
       const existing = localStructureByServerId.get(ss.id);
       if (existing) {
         const merged = designFeatureToStructure(ss, project.id);
-        useStructureStore.getState().updateStructure(existing.id, { ...merged, id: existing.id });
+        updateStructure(existing.id, { ...merged, id: existing.id });
       } else {
         const newStructure = designFeatureToStructure(ss, project.id);
-        useStructureStore.getState().addStructure(newStructure);
+        addStructure(newStructure);
       }
     }
 
@@ -580,7 +584,7 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
       try {
         const input = structureToDesignFeature(structure, project.serverId);
         const { data } = await api.designFeatures.create(project.serverId, input);
-        useStructureStore.getState().updateStructure(structure.id, { serverId: data.id });
+        updateStructure(structure.id, { serverId: data.id });
       } catch (err) {
         console.warn(`[SYNC] Failed to push structure "${structure.name}":`, err);
       }

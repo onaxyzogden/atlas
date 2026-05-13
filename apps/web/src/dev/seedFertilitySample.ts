@@ -32,7 +32,11 @@
 
 import * as turf from '@turf/turf';
 import { useProjectStore } from '../store/projectStore.js';
-import { useStructureStore, type Structure } from '../store/structureStore.js';
+import { type Structure } from '../store/structureStore.js';
+import {
+  addStructure,
+  getAllStructures,
+} from '../store/builtEnvironmentSelectors.js';
 import {
   usePathStore,
   PATH_TYPE_CONFIG,
@@ -227,9 +231,9 @@ export function seedFertilitySample(projectId?: string): SeedResult {
   // Idempotency: refuse if any of the four target stores already holds
   // an entity for this project.
   const pid = target.id;
-  const existingStructures = useStructureStore
-    .getState()
-    .structures.filter((s) => s.projectId === pid).length;
+  const existingStructures = getAllStructures().filter(
+    (s) => s.projectId === pid,
+  ).length;
   const existingPaths = usePathStore.getState().paths.filter((p) => p.projectId === pid).length;
   const existingGuilds = usePolycultureStore.getState().guilds.filter((g) => g.projectId === pid)
     .length;
@@ -250,7 +254,6 @@ export function seedFertilitySample(projectId?: string): SeedResult {
       : `seed-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
 
   // ── Structures ────────────────────────────────────────────────────────
-  const addStructure = useStructureStore.getState().addStructure;
   for (const seed of STRUCTURE_SEEDS) {
     const center = offsetToLngLat(centroid, seed.offsetN, seed.offsetE);
     const geometry = makeSquarePolygon(center, Math.max(seed.widthM, seed.depthM));

@@ -20,10 +20,12 @@
 
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { getBuiltEnvironmentKind } from '@ogden/shared';
+import { type StructureType } from '../../../../store/structureStore.js';
 import {
-  useStructureStore,
-  type StructureType,
-} from '../../../../store/structureStore.js';
+  addStructure,
+  updateStructure,
+  removeStructure,
+} from '../../../../store/builtEnvironmentSelectors.js';
 import {
   STRUCTURE_TEMPLATES,
   createFootprintPolygon,
@@ -90,9 +92,6 @@ function midCost(type: StructureType): number {
 }
 
 export default function StructureTool({ map, projectId }: Props) {
-  const addStructure = useStructureStore((s) => s.addStructure);
-  const updateStructure = useStructureStore((s) => s.updateStructure);
-  const deleteStructure = useStructureStore((s) => s.deleteStructure);
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
@@ -178,7 +177,7 @@ export default function StructureTool({ map, projectId }: Props) {
             infrastructureReqs: [...nextTpl.infrastructureReqs],
           });
         },
-        onCancel: () => deleteStructure(id),
+        onCancel: () => removeStructure(id),
       });
     },
   });

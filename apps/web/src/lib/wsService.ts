@@ -10,8 +10,12 @@ import type { WsEvent, DesignFeatureSummary } from '@ogden/shared';
 import { setSyncGuard } from './syncService.js';
 import { designFeatureToZone, designFeatureToStructure } from './featureMapping.js';
 import { useZoneStore } from '../store/zoneStore.js';
-import { useStructureStore } from '../store/structureStore.js';
-import { getAllStructures } from '../store/builtEnvironmentSelectors.js';
+import {
+  addStructure,
+  updateStructure,
+  removeStructure,
+  getAllStructures,
+} from '../store/builtEnvironmentSelectors.js';
 import { usePresenceStore } from '../store/presenceStore.js';
 import { useProjectStore } from '../store/projectStore.js';
 import { api } from './apiClient.js';
@@ -110,7 +114,7 @@ function handleFeatureCreated(event: WsEvent) {
       const existing = getAllStructures().find((s) => s.serverId === payload.id);
       if (!existing) {
         const structure = designFeatureToStructure(payload, projectLocalId);
-        useStructureStore.getState().addStructure(structure);
+        addStructure(structure);
       }
     }
   } finally {
@@ -137,7 +141,7 @@ function handleFeatureUpdated(event: WsEvent) {
       const existing = getAllStructures().find((s) => s.serverId === payload.id);
       if (existing) {
         const merged = designFeatureToStructure(payload, projectLocalId);
-        useStructureStore.getState().updateStructure(existing.id, { ...merged, id: existing.id });
+        updateStructure(existing.id, { ...merged, id: existing.id });
       }
     }
   } finally {
@@ -161,7 +165,7 @@ function handleFeatureDeleted(event: WsEvent) {
     // Then structures
     const structure = getAllStructures().find((s) => s.serverId === featureId);
     if (structure) {
-      useStructureStore.getState().deleteStructure(structure.id);
+      removeStructure(structure.id);
     }
   } finally {
     setSyncGuard(false);
@@ -306,9 +310,9 @@ async function reconcileOnReconnect() {
         const existing = structures.find((s) => s.serverId === sf.id);
         if (existing) {
           const merged = designFeatureToStructure(sf, projectLocalId);
-          useStructureStore.getState().updateStructure(existing.id, { ...merged, id: existing.id });
+          updateStructure(existing.id, { ...merged, id: existing.id });
         } else {
-          useStructureStore.getState().addStructure(designFeatureToStructure(sf, projectLocalId));
+          addStructure(designFeatureToStructure(sf, projectLocalId));
         }
       }
     }

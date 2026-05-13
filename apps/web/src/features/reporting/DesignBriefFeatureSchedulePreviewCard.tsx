@@ -15,7 +15,6 @@
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';

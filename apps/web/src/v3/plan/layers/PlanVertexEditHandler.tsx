@@ -25,9 +25,9 @@ import {
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
-import { getAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import {
+  getAllStructures,
+  updateStructure,
   findDesignElementGlobal,
   updateDesignElement,
 } from '../../../store/builtEnvironmentSelectors.js';
@@ -118,7 +118,7 @@ function writePolygon(kind: string, id: string, geom: GeoJSON.Polygon): void {
   } catch {
     center = [0, 0];
   }
-  useStructureStore.getState().updateStructure(id, {
+  updateStructure(id, {
     geometry: geom,
     center,
   });

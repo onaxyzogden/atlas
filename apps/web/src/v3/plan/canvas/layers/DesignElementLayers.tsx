@@ -144,27 +144,23 @@ export default function DesignElementLayers({
     if (!map) return;
 
     let disposed = false;
-    let idlePending = false;
-    // Schedule a one-shot retry on the next `idle` event whenever apply()
-    // bails due to a not-yet-loaded style. This is the key to fixing the
-    // "previously drawn features don't appear until I draw a new one" bug:
-    // `isStyleLoaded()` flips back to false during basemap initial paint
-    // and mid-tile-load, so a `styledata` listener alone isn't enough —
-    // we may catch it in the "false" window and never re-try. Hooking
-    // `idle` on every bail guarantees a follow-up pass once the map settles.
-    const scheduleRetry = () => {
-      if (disposed || idlePending) return;
-      idlePending = true;
+    let idleRetryArmed = false;
+    const armIdleRetry = () => {
+      if (disposed || idleRetryArmed) return;
+      idleRetryArmed = true;
       map.once('idle', () => {
-        idlePending = false;
+        idleRetryArmed = false;
         if (!disposed) apply();
       });
     };
 
     const apply = () => {
       if (disposed) return;
-      if (!map.isStyleLoaded()) {
-        scheduleRetry();
+      // Don't gate on isStyleLoaded() — it flips back to false during
+      // tile loads and basemap swaps, which would suppress legitimate
+      // re-applies. Gate only on the style having been initialised at all.
+      if (!map.getStyle()) {
+        armIdleRetry();
         return;
       }
 
@@ -178,15 +174,28 @@ export default function DesignElementLayers({
         return sid;
       };
 
-      const polySid = ensureSource('poly', polyFC);
-      const lineSid = ensureSource('line', lineFC);
-      const pointSid = ensureSource('point', pointFC);
-      const labelSid = ensureSource('label', labelFC);
-      const conflictPolySid = ensureSource('utility-conflict-poly', conflictPolyFC);
-      const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
+      let polySid: string, lineSid: string, pointSid: string, labelSid: string;
+      let conflictPolySid: string, conflictLineSid: string;
+      try {
+        polySid = ensureSource('poly', polyFC);
+        lineSid = ensureSource('line', lineFC);
+        pointSid = ensureSource('point', pointFC);
+        labelSid = ensureSource('label', labelFC);
+        conflictPolySid = ensureSource('utility-conflict-poly', conflictPolyFC);
+        conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
+      } catch {
+        // Style not actually ready despite getStyle() returning a value
+        // (e.g. mid-setStyle interleaving). Retry on next idle.
+        armIdleRetry();
+        return;
+      }
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
-        if (!map.getLayer(spec.id)) map.addLayer(spec);
+        try {
+          if (!map.getLayer(spec.id)) map.addLayer(spec);
+        } catch {
+          armIdleRetry();
+        }
       };
 
       // Utility-conflict halos — added first so the `#c4422a` outline

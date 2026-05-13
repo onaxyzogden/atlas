@@ -14,7 +14,10 @@ import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
-import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
+import {
+  useAllStructures,
+  updateStructure,
+} from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES, createFootprintPolygon } from '../structures/footprints.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -347,7 +350,6 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   }, [map, isLoaded, activePhaseFilter, zones, structures, paddocks, cropAreas, designPaths, designUtilities]);
 
   // ── Structure drag-to-relocate ──
-  const updateStructure = useStructureStore((s) => s.updateStructure);
   const dragRef = useRef<{ structureId: string; startLng: number; startLat: number } | null>(null);
 
   useEffect(() => {
