@@ -28,6 +28,13 @@ project tsc clean; dev server renders without console errors.
 
 ADR: [wiki/decisions/2026-05-13-cancel-discards-provisional-entity.md](decisions/2026-05-13-cancel-discards-provisional-entity.md).
 
+Follow-up audit (same day): the 21st annotation kind, `sector`, was
+inspected and is intentionally out of scope. `SunWindWedgeTool` is a
+save-on-click popover (no provisional stub written before the steward
+presses Save), and the sector schema's `save` is edit-only — so the
+slide-up create path is structurally unreachable for sectors. No
+remediation needed; scope note appended to the ADR.
+
 ---
 
 ## 2026-05-13 — Steward / household pin unified as Zone 0 anchor surface

@@ -93,3 +93,35 @@ a new annotation kind without a matching remover is a build error.
   `discardOnCancel: true` in the post-draw `open({...})` call.
 - `apps/web/src/v3/observe/components/draw/__tests__/fieldRemovers.test.ts`
   — new vitest covering the dispatch contract.
+
+## Addendum (2026-05-13) — sector scope note
+
+The 21st annotation kind, **`sector`**, was audited as a follow-up and
+is intentionally **out of scope** for this fix.
+
+Sector creation lives in `SunWindWedgeTool.tsx` (lines 107–117) and is
+a save-on-click popover, not a `createWithDefaults`-then-edit flow:
+form values stay in local React state until the steward presses Save,
+and `addSector` is invoked only then. Closing the popover or switching
+tools discards local state without ever writing to the namespace
+store, so no provisional stub exists to discard. The sector schema's
+`save` is also explicitly edit-only
+(`annotationFieldSchemas.ts` — `if (!ctx.existingId) return;`),
+making the slide-up create path structurally unreachable for sectors.
+
+ADDENDUM 6's pre-allocate rationale (drawn polygon survives bridge
+failures; live on-map drag handles mutate the record mid-edit) does
+not apply here — sectors have no drawn geometry to lose, and the
+bearing-seed click is a one-shot local-state update.
+
+The edit-from-floater path is already covered: `FIELD_REMOVERS.sector`
+is wired to `useExternalForcesStore.getState().removeSector(id)`, and
+edit-mode Cancel correctly stays a no-op (no `discardOnCancel: true`
+passed) — same contract as the other 20 kinds' edit paths.
+
+If sectors ever migrate to a live on-map drag-handle creation pattern
+(e.g. rotate bearing by dragging the wedge edge), creation would need
+to move to `createWithDefaults` + the shared slide-up. At that point,
+pass `discardOnCancel: true` on the post-create `open({...})` call —
+the existing `FIELD_REMOVERS.sector` entry will service it without
+further changes.
