@@ -28,7 +28,7 @@ import {
   type Gate,
   type ExistingDriveway,
 } from '../builtEnvironmentStore.js';
-import { useStructureStore, type Structure } from '../structureStore.js';
+import { type Structure } from '../structureStore.js';
 import { useLandDesignStore } from '../landDesignStore.js';
 import {
   addStructure,
@@ -183,85 +183,9 @@ describe('useBuiltEnvironmentStore facade', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// Plan facade — useStructureStore
-// ─────────────────────────────────────────────────────────────────────────
-
-describe('useStructureStore facade', () => {
-  function makeStructure(over: Partial<Structure> = {}): Structure {
-    return {
-      id: 's1',
-      projectId: PROJECT,
-      name: 'Barn A',
-      type: 'barn',
-      center: [0, 0],
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]]],
-      },
-      rotationDeg: 0,
-      widthM: 10,
-      depthM: 10,
-      phase: 'building',
-      costEstimate: 50000,
-      infrastructureReqs: ['water', 'power'],
-      notes: '',
-      createdAt: '2026-05-10T00:00:00.000Z',
-      updatedAt: '2026-05-10T00:00:00.000Z',
-      ...over,
-    };
-  }
-
-  it('addStructure writes a v2 entity with state=proposed', () => {
-    useStructureStore.getState().addStructure(makeStructure());
-    const v2 = useBuiltEnvironmentStoreV2.getState().entities;
-    expect(v2).toHaveLength(1);
-    expect(v2[0]?.kind).toBe('barn');
-    expect(v2[0]?.state).toBe('proposed');
-    expect(v2[0]?.proposed?.costEstimate).toBe(50000);
-    expect(v2[0]?.proposed?.infrastructureReqs).toEqual(['water', 'power']);
-  });
-
-  it('snake_case StructureType (prayer_space) is canonicalised then restored', () => {
-    useStructureStore
-      .getState()
-      .addStructure(makeStructure({ type: 'prayer_space', name: 'Masjid' }));
-    const v2Kind = useBuiltEnvironmentStoreV2.getState().entities[0]?.kind;
-    expect(v2Kind).toBe('prayer-pavilion');
-    const proj = useStructureStore.getState().structures[0];
-    expect(proj?.type).toBe('prayer_space');
-    expect(proj?.name).toBe('Masjid');
-  });
-
-  it('updateStructure bumps proposed metadata and label', () => {
-    useStructureStore.getState().addStructure(makeStructure());
-    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
-    useStructureStore
-      .getState()
-      .updateStructure(id, { name: 'Barn B', costEstimate: 75000, heightM: 7 });
-    const s = useStructureStore.getState().structures[0];
-    expect(s?.name).toBe('Barn B');
-    expect(s?.costEstimate).toBe(75000);
-    expect(s?.heightM).toBe(7);
-  });
-
-  it('deleteStructure clears it from v2 and the facade', () => {
-    useStructureStore.getState().addStructure(makeStructure());
-    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
-    useStructureStore.getState().deleteStructure(id);
-    expect(useStructureStore.getState().structures).toHaveLength(0);
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-  });
-
-  it('placementMode stays local-only (does not touch v2)', () => {
-    useStructureStore.getState().setPlacementMode('yurt');
-    expect(useStructureStore.getState().placementMode).toBe('yurt');
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────
 // Structure selectors (Phase 6.C) — selector-library helpers that bypass
-// the V1 facade, mirroring the DesignElement coverage above.
+// the deleted V1 `useStructureStore` facade (deleted 2026-05-12 Phase 5).
+// Mirrors the DesignElement coverage above.
 // ─────────────────────────────────────────────────────────────────────────
 
 describe('Structure selector helpers (Phase 6.C)', () => {

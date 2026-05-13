@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ─── Hoisted mock objects (accessible from vi.mock factories) ───────────────
 
-const { mockApi, mockQueue, mockProjectStore, mockZoneStore, mockStructureStore } = vi.hoisted(() => {
+const { mockApi, mockQueue, mockProjectStore, mockZoneStore, mockBuiltEnvV2Store } = vi.hoisted(() => {
   const mockApi = {
     projects: {
       create: vi.fn().mockResolvedValue({ data: { id: 'srv-p1', name: 'Test' } }),
@@ -36,7 +36,7 @@ const { mockApi, mockQueue, mockProjectStore, mockZoneStore, mockStructureStore 
   const createMockStore = () => {
     const subscribers: ((state: unknown) => void)[] = [];
     return Object.assign(vi.fn(), {
-      getState: vi.fn(() => ({ projects: [], zones: [], structures: [] })),
+      getState: vi.fn(() => ({ projects: [], zones: [], entities: [] })),
       setState: vi.fn(),
       subscribe: vi.fn((cb: (state: unknown) => void) => {
         subscribers.push(cb);
@@ -54,7 +54,7 @@ const { mockApi, mockQueue, mockProjectStore, mockZoneStore, mockStructureStore 
     mockQueue,
     mockProjectStore: createMockStore(),
     mockZoneStore: createMockStore(),
-    mockStructureStore: createMockStore(),
+    mockBuiltEnvV2Store: createMockStore(),
   };
 });
 
@@ -64,7 +64,9 @@ vi.mock('../lib/apiClient.js', () => ({ api: mockApi }));
 vi.mock('../lib/syncQueue.js', () => ({ syncQueue: mockQueue }));
 vi.mock('../store/projectStore.js', () => ({ useProjectStore: mockProjectStore }));
 vi.mock('../store/zoneStore.js', () => ({ useZoneStore: mockZoneStore }));
-vi.mock('../store/structureStore.js', () => ({ useStructureStore: mockStructureStore }));
+vi.mock('../store/builtEnvironmentStoreV2.js', () => ({
+  useBuiltEnvironmentStoreV2: mockBuiltEnvV2Store,
+}));
 
 import { syncService } from '../lib/syncService.js';
 
@@ -86,7 +88,7 @@ beforeEach(() => {
   mockQueue.getPendingCount.mockClear().mockReturnValue(0);
   mockProjectStore.subscribe.mockClear();
   mockZoneStore.subscribe.mockClear();
-  mockStructureStore.subscribe.mockClear();
+  mockBuiltEnvV2Store.subscribe.mockClear();
 });
 
 afterEach(() => {
@@ -133,7 +135,7 @@ describe('store subscriptions', () => {
     await syncService.start();
     expect(mockProjectStore.subscribe).toHaveBeenCalled();
     expect(mockZoneStore.subscribe).toHaveBeenCalled();
-    expect(mockStructureStore.subscribe).toHaveBeenCalled();
+    expect(mockBuiltEnvV2Store.subscribe).toHaveBeenCalled();
   });
 });
 
