@@ -44,8 +44,8 @@ type Side = 'left' | 'right';
 export default function LandOsShell({ sidebar, rail, children }: LandOsShellProps) {
   const [sidebarW, setSidebarW] = useState(DEFAULT_SIDEBAR);
   const [railW, setRailW] = useState(DEFAULT_RAIL);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [railCollapsed, setRailCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [railCollapsed, setRailCollapsed] = useState(true);
 
   // Mirror state into a ref so the pointer handler closures always read the
   // latest value without re-attaching listeners every render.

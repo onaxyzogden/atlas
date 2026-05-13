@@ -10,7 +10,13 @@
 import { useEffect, useMemo } from 'react';
 import type { ExpressionSpecification, Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
-import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
+import {
+  getDesignElementsForProject,
+  updateDesignElement,
+  useDesignElementsForProject,
+} from '../../../../store/builtEnvironmentSelectors.js';
+import { usePlanSelectionStore } from '../../../../store/planSelectionStore.js';
+import { translateByDelta } from '../../layers/translateGeometry.js';
 import {
   PHASE_VIEW_CAP,
   phaseIndex,
@@ -29,6 +35,10 @@ interface Props {
    *  false when it leaves. Used by VisionLayoutCanvas to drive the
    *  hover-affordance cursor in Select mode. */
   onHoverChange?: (hovering: boolean) => void;
+  /** Notified when a design-element is selected (or selection cleared) via
+   *  a direct map click. Lets the parent mirror the local `selectedId` state
+   *  that drives the gold-outline feature-state highlight. */
+  onSelect?: (id: string | null) => void;
 }
 
 const SOURCE_PREFIX = 'design-el-';
@@ -40,6 +50,7 @@ export default function DesignElementLayers({
   view,
   selectedId,
   onHoverChange,
+  onSelect,
 }: Props) {
   const elements = useDesignElementsForProject(projectId);
 
@@ -331,6 +342,127 @@ export default function DesignElementLayers({
       }
     };
   }, [map, onHoverChange]);
+
+  // Direct-click selection + drag-to-translate. Brings design-element
+  // interaction parity with PlanDataLayers' per-kind handlers — without
+  // this, design-elements were only selectable via DesignToolRail's
+  // gated `select` mode and could not be moved at all.
+  //
+  // Respects the `editable` feature property (origin-view scoping): a
+  // current-origin element rendered on a non-current view stays
+  // read-only.
+  useEffect(() => {
+    if (!map) return;
+
+    const DRAG_THRESHOLD_PX = 4;
+    const layerIds = ['design-el-poly-fill', 'design-el-line', 'design-el-point'];
+
+    type DragState = {
+      id: string;
+      startX: number;
+      startY: number;
+      startLng: number;
+      startLat: number;
+      origGeom: GeoJSON.Geometry;
+      dragging: boolean;
+    };
+    let down: DragState | null = null;
+
+    const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      const props = f?.properties as { editable?: boolean } | undefined;
+      if (props?.editable === false) return;
+      map.getCanvas().style.cursor = 'move';
+    };
+    const onMouseLeave = () => {
+      if (!down?.dragging) map.getCanvas().style.cursor = '';
+    };
+
+    const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f) return;
+      const props = f.properties as
+        | { id?: string; editable?: boolean }
+        | undefined;
+      const id = props?.id;
+      if (!id) return;
+      // Skip read-only renders (current-origin element on a non-current view).
+      if (props?.editable === false) return;
+      e.preventDefault();
+
+      const list = getDesignElementsForProject(projectId);
+      const el = list.find((x) => x.id === id);
+      if (!el) return;
+
+      const selStore = usePlanSelectionStore.getState();
+      const selItem = {
+        kind: 'design-element' as const,
+        id,
+        projectId,
+      };
+      if (e.originalEvent.shiftKey) {
+        selStore.toggle(selItem);
+      } else {
+        selStore.set([selItem]);
+      }
+      onSelect?.(id);
+
+      down = {
+        id,
+        startX: e.point.x,
+        startY: e.point.y,
+        startLng: e.lngLat.lng,
+        startLat: e.lngLat.lat,
+        origGeom: el.geometry,
+        dragging: false,
+      };
+
+      const onMove = (ev: maplibregl.MapMouseEvent) => {
+        if (!down) return;
+        const dx = ev.point.x - down.startX;
+        const dy = ev.point.y - down.startY;
+        if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+          down.dragging = true;
+          map.dragPan.disable();
+          map.getCanvas().style.cursor = 'grabbing';
+        }
+        if (!down.dragging) return;
+        const dLng = ev.lngLat.lng - down.startLng;
+        const dLat = ev.lngLat.lat - down.startLat;
+        const next = translateByDelta(down.origGeom, dLng, dLat);
+        updateDesignElement(projectId, down.id, { geometry: next });
+      };
+
+      const onUp = () => {
+        map.off('mousemove', onMove);
+        map.off('mouseup', onUp);
+        down = null;
+        map.dragPan.enable();
+        map.getCanvas().style.cursor = '';
+      };
+
+      map.on('mousemove', onMove);
+      map.on('mouseup', onUp);
+    };
+
+    for (const id of layerIds) {
+      map.on('mouseenter', id, onMouseEnter);
+      map.on('mouseleave', id, onMouseLeave);
+      map.on('mousedown', id, onMouseDown);
+    }
+    return () => {
+      try {
+        for (const id of layerIds) {
+          map.off('mouseenter', id, onMouseEnter);
+          map.off('mouseleave', id, onMouseLeave);
+          map.off('mousedown', id, onMouseDown);
+        }
+        map.dragPan.enable();
+      } catch {
+        /* map disposed */
+      }
+    };
+  }, [map, projectId, onSelect]);
 
   // Drive feature-state highlight off selectedId. Re-runs on FC changes
   // because source.setData() wipes feature-state.

@@ -1219,6 +1219,13 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         `${LAYER_PREFIX}transect-line`,
         `${LAYER_PREFIX}setback-fill`,
         `${LAYER_PREFIX}setback-line`,
+        // Design-element layers (rendered by DesignElementLayers, prefix
+        // `design-el-`). Included here so background-click clearing
+        // doesn't wipe a selection that was just set by mousedown on
+        // one of these layers.
+        'design-el-poly-fill',
+        'design-el-line',
+        'design-el-point',
       ].filter((id) => map.getLayer(id));
       if (SELECTABLE_LAYERS.length === 0) return;
       try {

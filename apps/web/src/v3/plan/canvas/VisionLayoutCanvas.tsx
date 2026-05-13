@@ -116,6 +116,7 @@ export default function VisionLayoutCanvas({
             view={view}
             selectedId={selectedId}
             onHoverChange={setHovering}
+            onSelect={setSelectedId}
           />
           <DesignElementExtrusionLayer
             map={map}

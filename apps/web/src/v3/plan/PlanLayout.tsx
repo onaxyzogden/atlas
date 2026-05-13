@@ -237,6 +237,7 @@ export default function PlanLayout() {
             view="current"
             selectedId={currentSelectedId}
             onHoverChange={setCurrentHovering}
+            onSelect={setCurrentSelectedId}
           />
           <PlanContoursOverlay map={map} />
           <PlanZoneRingsOverlay map={map} projectId={id} />
