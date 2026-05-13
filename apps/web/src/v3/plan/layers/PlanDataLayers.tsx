@@ -1523,7 +1523,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       startY: number;
       startLng: number;
       startLat: number;
-      origGeom: GeoJSON.Geometry;
+      origGeom: GeoJSON.Polygon;
       origCenter: [number, number] | null;
       dragging: boolean;
     };
@@ -1672,29 +1672,32 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       map.on('mouseup', onUp);
     };
 
+    const asPolygon = (
+      g: GeoJSON.Geometry | undefined,
+    ): GeoJSON.Polygon | null => (g?.type === 'Polygon' ? g : null);
     const readRecordGeometry = (
       k: string,
       id: string,
-    ): GeoJSON.Geometry | null => {
+    ): GeoJSON.Polygon | null => {
       if (k === 'zone') {
         const r = useZoneStore.getState().zones.find((x) => x.id === id);
-        return r?.geometry ?? null;
+        return asPolygon(r?.geometry);
       }
       if (k === 'crop') {
         const r = useCropStore.getState().cropAreas.find((x) => x.id === id);
-        return r?.geometry ?? null;
+        return asPolygon(r?.geometry);
       }
       if (k === 'paddock') {
         const r = useLivestockStore
           .getState()
           .paddocks.find((x) => x.id === id);
-        return r?.geometry ?? null;
+        return asPolygon(r?.geometry);
       }
       if (k === 'water_catchment') {
         const r = useWaterSystemsStore
           .getState()
           .waterNodes.find((x) => x.id === id);
-        return r?.geometry ?? null;
+        return asPolygon(r?.geometry);
       }
       return null;
     };
