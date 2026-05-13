@@ -178,6 +178,10 @@ export const MODULE_CARDS: Record<
     { label: 'Guild builder',          sectionId: 'plan-guild-builder' },
     { label: 'Canopy simulator',       sectionId: 'plan-canopy-simulator' },
     { label: 'Establishment sequence', sectionId: 'plan-plant-establishment-sequence' },
+    // Edge & connectivity evaluator (Rec #4 from permaculture-alignment
+    // backlog, 2026-04-28). Polsby-Popper compactness audit on planting
+    // polygons; flags homogenized shapes with a textual prompt.
+    { label: 'Edge & connectivity',    sectionId: 'plan-edge-connectivity' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
