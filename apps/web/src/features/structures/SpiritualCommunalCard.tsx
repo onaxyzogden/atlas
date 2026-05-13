@@ -21,6 +21,7 @@
 
 import { useMemo } from 'react';
 import * as turf from '@turf/turf';
+import { getZoneThresholds } from '../../store/projectStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import {
   useStructureStore,
@@ -159,8 +160,9 @@ export default function SpiritualCommunalCard({ project }: Props) {
   const bathhouses = rollups.find((r) => r.config.type === 'bathhouse')?.instances ?? [];
 
   /* Adjacency advisory: for each prayer space, find the nearest bathhouse.
-     50 m is a comfortable wudu-walk; beyond that flag a hint. */
-  const ADJACENCY_THRESHOLD_M = 50;
+     A comfortable wudu-walk is Zone-2 reach — read the project's tuned
+     mediumM threshold (defaults to 75 m) rather than a hardcoded 50 m. */
+  const ADJACENCY_THRESHOLD_M = getZoneThresholds(project).mediumM;
   const prayerWithoutNearbyBathhouse = prayerSpaces.filter((p) => {
     if (bathhouses.length === 0) return true;
     const nearest = bathhouses.reduce<number>((min, b) => {

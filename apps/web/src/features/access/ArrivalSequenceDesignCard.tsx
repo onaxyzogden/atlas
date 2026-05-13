@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import css from './ArrivalSequenceDesignCard.module.css';
 import { usePathStore, type DesignPath } from '../../store/pathStore.js';
 import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { useProjectStore, getZoneThresholds, DEFAULT_ZONE_THRESHOLDS } from '../../store/projectStore.js';
 import { haversineM } from '../../lib/geo.js';
 
 interface ArrivalSequenceDesignCardProps {
@@ -20,7 +21,6 @@ const GUEST_FACING: ReadonlySet<StructureType> = new Set<StructureType>([
   'tent_glamping',
 ]);
 
-const MILESTONE_RADIUS_M = 30;
 const WALKING_PACE_MS = 1.4;
 const SLOW_DRIVE_MS = 4;
 
@@ -82,6 +82,12 @@ function formatTime(seconds: number): string {
 function ArrivalSequenceDesignCard({ projectId }: ArrivalSequenceDesignCardProps) {
   const allPaths = usePathStore((s) => s.paths);
   const allStructures = useStructureStore((s) => s.structures);
+  const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
+  // A guest-facing structure becomes a reveal milestone when it sits within
+  // Zone-1 reach of the arrival path. Read the project's tuned closeM
+  // (defaults to 25 m) so the steward's "Tune zones" choice on the
+  // FertilityColocationCard cascades to the arrival readout too.
+  const milestoneRadiusM = project ? getZoneThresholds(project).closeM : DEFAULT_ZONE_THRESHOLDS.closeM;
 
   const arrivalPaths = useMemo(
     () => allPaths.filter((p) => p.projectId === projectId && p.type === 'arrival_sequence'),
@@ -97,7 +103,7 @@ function ArrivalSequenceDesignCard({ projectId }: ArrivalSequenceDesignCardProps
     return arrivalPaths.map((path) => {
       const milestones = guestStructures
         .map((s) => ({ structure: s, distanceM: minDistanceToPath(s.center, path) }))
-        .filter((m) => m.distanceM <= MILESTONE_RADIUS_M)
+        .filter((m) => m.distanceM <= milestoneRadiusM)
         .sort((a, b) => a.distanceM - b.distanceM);
       const straightness = endpointStraightness(path);
       const tier = classifyTier(milestones.length, straightness, path.lengthM);
@@ -105,7 +111,7 @@ function ArrivalSequenceDesignCard({ projectId }: ArrivalSequenceDesignCardProps
       const driveSec = path.lengthM / SLOW_DRIVE_MS;
       return { path, milestones, tier, straightness, walkSec, driveSec };
     });
-  }, [arrivalPaths, guestStructures]);
+  }, [arrivalPaths, guestStructures, milestoneRadiusM]);
 
   const summary = useMemo(() => {
     const totalLengthM = rows.reduce((sum, r) => sum + r.path.lengthM, 0);
@@ -152,7 +158,7 @@ function ArrivalSequenceDesignCard({ projectId }: ArrivalSequenceDesignCardProps
         <div>
           <h4 className={css.cardTitle}>Arrival sequence design</h4>
           <p className={css.cardHint}>
-            For each arrival-type path, counts guest-facing structures within {MILESTONE_RADIUS_M} m as reveal
+            For each arrival-type path, counts guest-facing structures within {milestoneRadiusM} m as reveal
             milestones, classifies the approach tier from milestone count and endpoint straightness, and surfaces
             walking + slow-drive travel time.
           </p>
@@ -250,7 +256,7 @@ function ArrivalSequenceDesignCard({ projectId }: ArrivalSequenceDesignCardProps
                 )}
                 {milestones.length === 0 && tier === 'linear-march' && (
                   <div className={css.cautionNote}>
-                    Path is {(straightness * 100).toFixed(0)}% straight with no guest-facing structures within {MILESTONE_RADIUS_M} m.
+                    Path is {(straightness * 100).toFixed(0)}% straight with no guest-facing structures within {milestoneRadiusM} m.
                     Consider routing past a pavilion, prayer space, or lookout to break the march.
                   </div>
                 )}
@@ -259,7 +265,7 @@ function ArrivalSequenceDesignCard({ projectId }: ArrivalSequenceDesignCardProps
           </div>
 
           <div className={css.assumption}>
-            Milestone radius {MILESTONE_RADIUS_M} m around each path coordinate. Walking pace
+            Milestone radius {milestoneRadiusM} m (project Zone-1 reach) around each path coordinate. Walking pace
             {' '}{WALKING_PACE_MS} m/s ({Math.round(WALKING_PACE_MS * 3.6 * 10) / 10} km/h); slow drive
             {' '}{SLOW_DRIVE_MS} m/s. Tier rules: 0 milestones + length &gt; 100 m + straightness &gt; 85% =
             linear march; 1–2 = single reveal; 3–5 = curated; 6+ = crowded. Guest-facing structures =
