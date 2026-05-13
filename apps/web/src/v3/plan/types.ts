@@ -156,6 +156,11 @@ export const MODULE_CARDS: Record<
     { label: 'Path frequency',   sectionId: 'plan-path-frequency' },
     { label: 'Overview & validation', sectionId: 'plan-zone-overview' },
     { label: 'Sectors',          sectionId: 'plan-sector-overlay' },
+    // Social-node generator (Rec #6 v1 from the permaculture-alignment
+    // backlog, 2026-04-28). Path×path intersections inside Z1/Z2 zones
+    // surface as "social node opportunities"; existing amenity points
+    // within COVERED_RADIUS_M flip the row to "served."
+    { label: 'Social nodes',     sectionId: 'plan-social-nodes' },
   ],
   'structures-subsystems': [
     { label: 'Structures overview', sectionId: 'plan-structures-overview' },

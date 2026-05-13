@@ -29,6 +29,7 @@ const ZoneLevelLayer          = lazy(() => import('../../features/plan/ZoneLevel
 const PathFrequencyEditor     = lazy(() => import('../../features/plan/PathFrequencyEditor.js'));
 const ZoneCirculationOverviewCard = lazy(() => import('./cards/zone-circulation/ZoneCirculationOverviewCard.js'));
 const SectorOverlayCard           = lazy(() => import('./cards/zone-circulation/SectorOverlayCard.js'));
+const SocialNodesCard             = lazy(() => import('./cards/zone-circulation/SocialNodesCard.js'));
 const MachineryInventoryCard      = lazy(() => import('./cards/machinery/MachineryInventoryCard.js'));
 const MachineryAccessFitCard      = lazy(() => import('./cards/machinery/MachineryAccessFitCard.js'));
 const MachineryHousingFuelCard    = lazy(() => import('./cards/machinery/MachineryHousingFuelCard.js'));
@@ -84,6 +85,7 @@ function renderPlanCard(
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
     case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
     case 'plan-sector-overlay':      return <SectorOverlayCard project={project} onSwitchToMap={noop} />;
+    case 'plan-social-nodes':        return <SocialNodesCard project={project} onSwitchToMap={noop} />;
     case 'plan-machinery-inventory':        return <MachineryInventoryCard projectId={project.id} />;
     case 'plan-machinery-access-fit':       return <MachineryAccessFitCard projectId={project.id} />;
     case 'plan-machinery-housing-fuel':     return <MachineryHousingFuelCard projectId={project.id} />;

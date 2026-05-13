@@ -171,7 +171,33 @@ catalog (the unknown unknown).
 
 ---
 
-## Rec #6 — "Nets in the flow" social node generator (P2)
+## Rec #6 — "Nets in the flow" social node generator (P2) — v1 SHIPPED 2026-05-13
+
+**v1 status:** Shipped as a 5th sub-card in the Plan-stage zone-circulation
+module (`apps/web/src/v3/plan/cards/zone-circulation/SocialNodesCard.tsx`)
+backed by `socialNodesMath.ts`. The card detects pairwise path × path
+intersections, filters to those inside Z1/Z2 zones (via `zoneStore`
+`permacultureZone`), and flags each as either "covered" (an existing
+amenity point within 12 m) or "social node opportunity" (Scholar prompt).
+
+**Catalog scope (v1):** Counts existing `prayer-pavilion` and `fire-circle`
+amenity points as coverage. Bench / picnic table / shaded seat / signage
+post / gathering pavilion remain a v2 catalog dependency.
+
+**Density metric:** `socialNodeDensity = covered / total`. Tier cuts:
+`served` ≥ 0.66, `partial` 0.33–0.66, `unserved` < 0.33.
+
+**Deferred to v2:**
+- Map-canvas pin at each opportunity intersection.
+- Bench / picnic table / shaded seat / signage post / gathering pavilion
+  kinds added to `elementCatalog.ts` (with COLORS + icons).
+- One-click "place bench / place gathering area / dismiss" interaction
+  from the acceptance criterion.
+- Wiring `socialNodeDensity` into a People-Care principle score.
+
+---
+
+### Original spec (preserved for v2 reference)
 
 **Principle:** Integrate rather than segregate · People Care
 **Source:** *Building Community*, *Permaculture Zones*,
