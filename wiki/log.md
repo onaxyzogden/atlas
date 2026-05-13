@@ -33,8 +33,14 @@ utility).
 --noEmit -p .` from `apps/web` exits 0 for the first time in
 recent memory. Preview reload at
 `/v3/project/<id>/plan/principle-verification` clean — chip + audit
-mount, no error boundary. Future ADRs can drop the "tsc clean except
-this" caveat.
+mount, no error boundary.
+
+**Follow-up sweep.** Stripped the now-stale "tsc clean except
+`DesignElementLayers.tsx` …" caveat from the three same-day ADRs
+that carried it: `2026-05-13-atlas-temporal-slider.md`,
+`2026-05-13-atlas-needs-yields-status-gate.md`,
+`2026-05-13-atlas-plan-tree-spacing-snap.md`. Log entries left
+intact as session-historical records.
 
 
 ## 2026-05-13 — Plan: temporal slider (succession & maturity) v1
