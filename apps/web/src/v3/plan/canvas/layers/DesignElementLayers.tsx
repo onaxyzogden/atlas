@@ -15,6 +15,12 @@ import {
   updateDesignElement,
   useDesignElementsForProject,
 } from '../../../../store/builtEnvironmentSelectors.js';
+import { useTemporalScrubStore } from '../temporalScrubStore.js';
+import { canopyAtAge } from '@ogden/shared';
+import {
+  findOverlaps,
+  overlappingIds,
+} from '../../cards/plant-systems/temporalCoherenceMath.js';
 import { usePlanSelectionStore } from '../../../../store/planSelectionStore.js';
 import { translateByDelta } from '../../layers/translateGeometry.js';
 import {
@@ -265,15 +271,44 @@ export default function DesignElementLayers({
           'line-dasharray': [2, 1],
         },
       });
+      // Vegetation point trees use a feature-state-driven `canopyR` so
+      // the bottom-canvas TemporalScrubSlider can scale crowns live as
+      // the steward walks Year 1..50. Non-vegetation kinds keep
+      // canopyR=null, so `coalesce` falls back to the base 6 px and the
+      // overlap branch never fires (per the 2026-04-28 temporal-slider ADR).
+      const overlapFlag: ExpressionSpecification = [
+        'boolean',
+        ['feature-state', 'overlap5y'],
+        false,
+      ];
       ensureLayer({
         id: `${LAYER_PREFIX}point`,
         type: 'circle',
         source: pointSid,
         paint: {
-          'circle-radius': ['case', selFlag, 9, 6],
+          'circle-radius': [
+            'case',
+            selFlag,
+            9,
+            ['coalesce', ['feature-state', 'canopyR'], 6],
+          ],
           'circle-color': ['get', 'color'],
-          'circle-stroke-color': ['case', selFlag, SEL_GOLD, '#1f1d1a'],
-          'circle-stroke-width': ['case', selFlag, 3, 1.5],
+          'circle-stroke-color': [
+            'case',
+            selFlag,
+            SEL_GOLD,
+            overlapFlag,
+            '#8a4f3a',
+            '#1f1d1a',
+          ],
+          'circle-stroke-width': [
+            'case',
+            selFlag,
+            3,
+            overlapFlag,
+            2.5,
+            1.5,
+          ],
           'circle-opacity': 0.95,
         },
       });
@@ -488,6 +523,73 @@ export default function DesignElementLayers({
       /* sources not yet ready — next data effect will re-apply */
     }
   }, [map, selectedId, polyFC, lineFC, pointFC]);
+
+  // ── Temporal slider: per-vegetation-point canopyR + overlap5y ──
+  // Drives the live tree-radius scaling and fired-clay overlap stroke
+  // tied to `useTemporalScrubStore.currentYear`. Re-runs on year change,
+  // on zoom/pan (pixel radius depends on the camera), on element changes,
+  // and after the selection effect (which wipes feature-state) so the
+  // canopy state is always re-applied.
+  const currentYear = useTemporalScrubStore((s) => s.currentYear);
+  useEffect(() => {
+    if (!map) return;
+    const source = `${SOURCE_PREFIX}point`;
+    let rafId: number | null = null;
+    const apply = () => {
+      rafId = null;
+      try {
+        if (!map.getSource(source)) return;
+        const vegPoints = elements.filter(
+          (e) => e.category === 'vegetation' && e.geometry.type === 'Point',
+        );
+        const overlaps = findOverlaps(vegPoints, currentYear, 5);
+        const flagged = overlappingIds(overlaps);
+        for (const el of vegPoints) {
+          if (el.geometry.type !== 'Point') continue;
+          const [lng, lat] = el.geometry.coordinates as [number, number];
+          const canopyM = canopyAtAge(el.kind, currentYear).canopyM;
+          const radiusM = canopyM / 2;
+          // Project centre and a destination point `radiusM` north of
+          // it, then take the pixel-delta as the canopy radius. Cheap;
+          // accurate enough at permaculture scale.
+          const dest = turf.destination(
+            [lng, lat],
+            radiusM / 1000,
+            0,
+            { units: 'kilometers' },
+          ).geometry.coordinates as [number, number];
+          const pCentre = map.project([lng, lat]);
+          const pDest = map.project(dest);
+          const canopyR = Math.max(
+            3,
+            Math.hypot(pDest.x - pCentre.x, pDest.y - pCentre.y),
+          );
+          map.setFeatureState(
+            { source, id: el.id },
+            { canopyR, overlap5y: flagged.has(el.id) },
+          );
+        }
+      } catch {
+        /* source/style not ready — next dep change retries */
+      }
+    };
+    const schedule = () => {
+      if (rafId != null) return;
+      rafId = requestAnimationFrame(apply);
+    };
+    schedule();
+    map.on('moveend', schedule);
+    map.on('zoomend', schedule);
+    return () => {
+      if (rafId != null) cancelAnimationFrame(rafId);
+      try {
+        map.off('moveend', schedule);
+        map.off('zoomend', schedule);
+      } catch {
+        /* map disposed */
+      }
+    };
+  }, [map, currentYear, elements, selectedId, pointFC]);
 
   // Cleanup on unmount: remove our sources + layers so they don't bleed into
   // the Current Land view.

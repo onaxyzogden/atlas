@@ -192,6 +192,10 @@ export const MODULE_CARDS: Record<
     // backlog, 2026-04-28). Polsby-Popper compactness audit on planting
     // polygons; flags homogenized shapes with a textual prompt.
     { label: 'Edge & connectivity',    sectionId: 'plan-edge-connectivity' },
+    // Temporal coherence (Rec #2 from permaculture-alignment backlog,
+    // 2026-04-28). Canopy-overlap evaluator behind the bottom-canvas
+    // year scrubber; surfaces crowding pairs within next 5 y of cursor.
+    { label: 'Canopy maturity',        sectionId: 'plan-temporal-coherence' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil

@@ -59,6 +59,7 @@ import PlanScheduledMovesOverlay from './layers/PlanScheduledMovesOverlay.js';
 import PlanSelectionFloater from './PlanSelectionFloater.js';
 import PlanStampToast from './draw/PlanStampToast.js';
 import StampModePicker from './canvas/StampModePicker.js';
+import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -284,6 +285,7 @@ export default function PlanLayout() {
           {canvasContent}
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
           <PlanStampToast />
+          <TemporalScrubSlider />
           <StampModePicker />
         </div>
       }

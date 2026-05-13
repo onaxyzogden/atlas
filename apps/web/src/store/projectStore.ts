@@ -86,6 +86,25 @@ export function getZoneThresholds(
   return project.zoneThresholds ?? DEFAULT_ZONE_THRESHOLDS;
 }
 
+/**
+ * Default steward design-horizon (years). Drives the TemporalScrubSlider's
+ * "↺" snap target when no per-project override is set. Centralised so a
+ * future change to e.g. 25 years is one line.
+ */
+export const DEFAULT_DESIGN_HORIZON_YEARS = 20;
+
+/**
+ * Canonical accessor for a project's design-horizon. Falls back to
+ * DEFAULT_DESIGN_HORIZON_YEARS when the steward hasn't pinned one.
+ * Mirrors `getZoneThresholds`.
+ */
+export function getDesignHorizon(
+  project: Pick<LocalProject, 'metadata'>,
+): number {
+  const v = project.metadata?.designHorizonYears;
+  return typeof v === 'number' && v > 0 ? v : DEFAULT_DESIGN_HORIZON_YEARS;
+}
+
 export interface ProjectAttachment {
   id: string;
   filename: string;
