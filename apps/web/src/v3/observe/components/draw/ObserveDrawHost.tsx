@@ -29,6 +29,7 @@ import EcologyZoneTool from './EcologyZoneTool.js';
 import SunWindWedgeTool from './SunWindWedgeTool.js';
 import PermacultureZoneTool from './PermacultureZoneTool.js';
 import SwotTagTool from './SwotTagTool.js';
+import AdoptBasemapBuildingTool from './AdoptBasemapBuildingTool.js';
 import BuildingTool from './BuildingTool.js';
 import WellTool from './WellTool.js';
 import SepticTool from './SepticTool.js';
@@ -178,6 +179,9 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
       break;
     case 'observe.swot-synthesis.threat':
       tool = <SwotTagTool map={map} projectId={projectId} bucket="T" />;
+      break;
+    case 'observe.built-environment.adopt-basemap':
+      tool = <AdoptBasemapBuildingTool map={map} projectId={projectId} />;
       break;
     case 'observe.built-environment.building':
       tool = <BuildingTool map={map} projectId={projectId} />;

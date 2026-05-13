@@ -27,6 +27,7 @@ import {
   Pencil,
   Shield,
   ShieldAlert,
+  MousePointer,
   Skull,
   Snowflake,
   Sprout,
@@ -237,6 +238,33 @@ export default function ObserveTools({
               <span className={css.groupLabel}>{headerLabel}</span>
             </header>
             {mod === 'built-environment' ? (
+              <>
+                {/* Adopt-from-basemap tool — surfaces once at the top of the
+                 *  BE rail. Lets a steward click a 3D building the basemap
+                 *  already renders (OpenMapTiles `building` source-layer)
+                 *  and convert its footprint + height into a labeled
+                 *  existing-state BE entity. Not registry-driven because
+                 *  it is a meta-tool, not a kind. */}
+                <details className={css.subgroup} open>
+                  <summary className={css.subgroupHeader}>From map</summary>
+                  <div className={css.itemGrid}>
+                    {renderToolButton(
+                      {
+                        id: 'adopt-basemap',
+                        label: 'Adopt from map',
+                        Icon: MousePointer,
+                        toolId: 'observe.built-environment.adopt-basemap',
+                      },
+                      {
+                        activeTool,
+                        projectId,
+                        homesteadPlaced,
+                        onToolClick,
+                      },
+                    )}
+                  </div>
+                </details>
+                {
               // 31 kinds is too many for one flat 3-col grid — sub-group by
               // `BuiltEnvironmentCategory` via native <details> so the rail
               // stays scannable. All categories open by default for discovery;
@@ -275,6 +303,8 @@ export default function ObserveTools({
                   </details>
                 );
               })
+                }
+              </>
             ) : (
               <div className={css.itemGrid}>
                 {items.map((it) =>

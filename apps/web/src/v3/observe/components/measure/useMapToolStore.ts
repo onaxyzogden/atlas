@@ -26,6 +26,11 @@ export type MapToolId =
   | 'observe.human-context.steward'
   | 'observe.human-context.access-road'
   // Observe Module — Built Environment
+  // Adopt a building footprint that the basemap already renders as a 3D
+  // extrusion (OpenMapTiles `building` source-layer). One click on the map
+  // captures the footprint polygon + `render_height` as a `state: 'existing'`
+  // V2 entity and opens the inline edit form for labeling.
+  | 'observe.built-environment.adopt-basemap'
   | 'observe.built-environment.building'
   | 'observe.built-environment.well'
   | 'observe.built-environment.septic'
