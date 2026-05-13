@@ -74,6 +74,68 @@ const RESOURCE_LABEL: Record<ResourceType, string> = {
   surface_water: 'Surface water',
 };
 
+// Resource swatches — small coloured dots that flank a resource name in
+// the orphan / unmet hints. Hues picked to read on the Atlas dark panel:
+// browns/ambers for animal+fire flows, greens for soil+plant flows,
+// blues for water flows, violet for pollination.
+const RESOURCE_COLOR: Record<ResourceType, string> = {
+  manure:         '#a16a3c',
+  greywater:      '#7fb5d6',
+  compost:        '#6b5234',
+  biomass:        '#8a9a4a',
+  seed:           '#d4b663',
+  forage:         '#7fa05a',
+  mulch:          '#b58a5a',
+  heat:           '#d97455',
+  shade:          '#5a7390',
+  pollination:    '#a87bc6',
+  pest_predation: '#c4422a',
+  nutrient_uptake:'#4a8f5a',
+  surface_water:  '#5fb0c4',
+};
+
+function ResourceSwatch({ kind }: { kind: ResourceType }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        display: 'inline-block',
+        width: 8,
+        height: 8,
+        borderRadius: '50%',
+        background: RESOURCE_COLOR[kind],
+        marginRight: 4,
+        verticalAlign: 'middle',
+        boxShadow: '0 0 0 1px rgba(0,0,0,0.35)',
+      }}
+    />
+  );
+}
+
+function ResourceChip({ kind }: { kind: ResourceType }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '1px 8px 1px 6px',
+        marginRight: 6,
+        marginBottom: 4,
+        border: '1px solid rgba(232,220,200,0.18)',
+        borderRadius: 999,
+        background: 'rgba(232,220,200,0.04)',
+        fontSize: 11,
+        color: 'rgba(232,220,200,0.85)',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <ResourceSwatch kind={kind} />
+      {RESOURCE_LABEL[kind]}
+    </span>
+  );
+}
+
 function tierForScore(score: number): 'met' | 'partial' | 'unmet' {
   if (score >= 0.66) return 'met';
   if (score >= 0.33) return 'partial';
@@ -86,7 +148,7 @@ const TIER_LABEL: Record<'met' | 'partial' | 'unmet', string> = {
   unmet: 'LINEAR',
 };
 
-export default function NeedsYieldsAuditCard({ project }: Props) {
+export default function NeedsYieldsAuditCard({ project, onSwitchToMap }: Props) {
   const placed = useAllPlacedEntities();
   const edgesByProject = useRelationshipsStore((s) => s.edgesByProject);
 
@@ -219,6 +281,37 @@ export default function NeedsYieldsAuditCard({ project }: Props) {
           segregate. Edges are authored on the map canvas; this card
           summarises what the project already declares.
         </p>
+        <div style={{ marginTop: 12 }}>
+          <button
+            type="button"
+            onClick={onSwitchToMap}
+            style={{
+              padding: '7px 14px',
+              border: '1px solid rgba(212,182,99,0.5)',
+              borderRadius: 999,
+              background: 'rgba(212,182,99,0.12)',
+              color: 'rgba(232,220,200,0.95)',
+              font: 'inherit',
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+            }}
+          >
+            Open map editor →
+          </button>
+          <span
+            style={{
+              marginLeft: 10,
+              fontSize: 11,
+              color: 'rgba(232,220,200,0.55)',
+            }}
+          >
+            Close this panel and use the canvas socket flow to route
+            outputs into inputs.
+          </span>
+        </div>
       </header>
 
       {!hasInputs && (
@@ -374,21 +467,29 @@ export default function NeedsYieldsAuditCard({ project }: Props) {
                         {r.orphans.length > 0 && (
                           <div className={styles.hint}>
                             <strong>Orphan outputs:</strong>{' '}
-                            {r.orphans
-                              .map((r2) => RESOURCE_LABEL[r2])
-                              .join(', ')}{' '}
-                            — route to a downstream input on the map
-                            canvas to close the loop.
+                            <span style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
+                              {r.orphans.map((r2) => (
+                                <ResourceChip key={`o-${r2}`} kind={r2} />
+                              ))}
+                            </span>
+                            <span>
+                              — route to a downstream input on the map
+                              canvas to close the loop.
+                            </span>
                           </div>
                         )}
                         {r.unmet.length > 0 && (
                           <div className={styles.hint}>
                             <strong>Unmet inputs:</strong>{' '}
-                            {r.unmet
-                              .map((r2) => RESOURCE_LABEL[r2])
-                              .join(', ')}{' '}
-                            — supply from an upstream output rather than
-                            importing.
+                            <span style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
+                              {r.unmet.map((r2) => (
+                                <ResourceChip key={`u-${r2}`} kind={r2} />
+                              ))}
+                            </span>
+                            <span>
+                              — supply from an upstream output rather than
+                              importing.
+                            </span>
                           </div>
                         )}
                       </div>

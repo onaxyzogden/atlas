@@ -73,8 +73,10 @@ function renderPlanCard(
   sectionId: string,
   project: LocalProject,
   onSwitchModule?: (mod: PlanModule) => void,
+  onClose?: () => void,
 ) {
   const noop = () => {};
+  const closeSlideUp = onClose ?? noop;
   switch (sectionId) {
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
     case 'plan-permanence-ladder':   return <PermanenceLadderCard project={project} onSwitchToMap={noop} onSwitchModule={onSwitchModule} />;
@@ -126,7 +128,7 @@ function renderPlanCard(
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
     case 'plan-three-ethics-rollup': return <ThreeEthicsRollupCard project={project} onSwitchToMap={noop} />;
     case 'plan-principle-coverage-matrix': return <PrincipleCoverageMatrixCard project={project} onSwitchToMap={noop} />;
-    case 'plan-needs-yields':        return <NeedsYieldsAuditCard project={project} onSwitchToMap={noop} />;
+    case 'plan-needs-yields':        return <NeedsYieldsAuditCard project={project} onSwitchToMap={closeSlideUp} />;
     default: return null;
   }
 }
@@ -150,8 +152,8 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
   const label = module ? PLAN_MODULE_FULL_LABEL[module] : '';
 
   const renderCard = useCallback(
-    (sectionId: string) => renderPlanCard(sectionId, project, onSwitchModule),
-    [project, onSwitchModule],
+    (sectionId: string) => renderPlanCard(sectionId, project, onSwitchModule, onClose),
+    [project, onSwitchModule, onClose],
   );
 
   return (
