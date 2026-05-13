@@ -1,6 +1,19 @@
 # 2026-05-13 — Observe: residence → Zone 0 (homestead) anchor derivation
 
-**Status:** Accepted (decision only; implementation deferred)
+**Status:** Accepted (decision only; implementation deferred).
+**Addendum 2026-05-13 (Steward/Household unification):** The dedicated
+`<DiagnoseMap homestead={…}>` "Place / Move homestead" toolbar has been
+retired from `ObserveLayout`. The **Steward / household** annotation
+tool in `ObserveTools` is now the single UI surface for placing the
+Zone 0 anchor. Its `FIELD_SCHEMAS.household.save()` writes through to
+`homesteadStore.byProject[projectId]` so `HomesteadMarker`, sector
+handles, sun/wind wedges, and the Permaculture-zone tool all keep
+their existing read paths. `humanContextStore.removeHousehold` clears
+or promotes the next remaining household pin so the anchor never goes
+stale. `useEffectiveHomestead` gains a fallback that derives from a
+single household annotation for pre-unification persisted projects.
+The residence-centroid fallback documented below remains in place as
+the final tier (single existing residence BE entity → centroid).
 
 ## Context
 
