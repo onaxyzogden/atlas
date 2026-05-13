@@ -8,7 +8,7 @@
  * Plan cards are lazy-loaded to keep the initial bundle tight.
  */
 
-import { lazy, useCallback, useMemo, useState } from 'react';
+import { Component, lazy, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ModuleSlideUp } from '../_shared/moduleNav/index.js';
 import {
   getAllowOrphanOutputs,
@@ -139,7 +139,11 @@ function renderPlanCard(
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
     case 'plan-three-ethics-rollup': return <ThreeEthicsRollupCard project={project} onSwitchToMap={noop} />;
     case 'plan-principle-coverage-matrix': return <PrincipleCoverageMatrixCard project={project} onSwitchToMap={noop} />;
-    case 'plan-needs-yields':        return <NeedsYieldsAuditCard project={project} onSwitchToMap={closeSlideUp} />;
+    case 'plan-needs-yields':        return (
+      <OrphanProbeBoundary>
+        <NeedsYieldsAuditCard project={project} onSwitchToMap={closeSlideUp} />
+      </OrphanProbeBoundary>
+    );
     default: return null;
   }
 }
@@ -166,21 +170,10 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
   // Needs & Yields audit. Only fires when the principle-verification
   // module is the active surface, the project has not opted out via
   // allowOrphanOutputs, and at least one declared output is unrouted.
+  // Hooks are isolated in <OrphanCountProbe/> so the unrelated /plan
+  // load path doesn't pay the cost (or risk a crash) on every render.
   const allowOrphans = getAllowOrphanOutputs(project);
-  const placed = useAllPlacedEntities();
-  const edges = useRelationshipsStore((s) => s.edgesByProject[project.id] ?? []);
-  const orphanCount = useMemo(() => {
-    if (module !== 'principle-verification' || allowOrphans) return 0;
-    try {
-      const safePlaced = Array.isArray(placed) ? placed : [];
-      const safeEdges = Array.isArray(edges) ? edges : [];
-      const entities: PlacedEntity[] = safePlaced.map((p) => ({ id: p.id, type: p.type }));
-      const result = orphanOutputs(entities, safeEdges);
-      return Array.isArray(result) ? result.length : 0;
-    } catch {
-      return 0;
-    }
-  }, [module, allowOrphans, placed, edges]);
+  const [orphanCount, setOrphanCount] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const handleClose = useCallback(() => {
@@ -200,8 +193,14 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
     [project, onSwitchModule, handleClose],
   );
 
+  const shouldProbe = open && module === 'principle-verification' && !allowOrphans;
   return (
     <>
+      {shouldProbe ? (
+        <OrphanProbeBoundary>
+          <OrphanCountProbe projectId={project.id} onChange={setOrphanCount} />
+        </OrphanProbeBoundary>
+      ) : null}
       <ModuleSlideUp
         open={open && module !== null}
         onClose={handleClose}
@@ -299,4 +298,73 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
       ) : null}
     </>
   );
+}
+
+// Probe child: hooks live here so they only run when the Needs & Yields
+// surface is actually open (and the project hasn't opted out of the
+// orphan-output gate). Keeps the unrelated /plan load path free of the
+// useAllPlacedEntities / orphanOutputs cost — and avoids tripping a
+// crash for projects whose entity stores are not fully hydrated.
+function OrphanCountProbe({
+  projectId,
+  onChange,
+}: {
+  projectId: string;
+  onChange: (n: number) => void;
+}) {
+  const placed = useAllPlacedEntities();
+  const edges = useRelationshipsStore((s) => s.edgesByProject[projectId] ?? []);
+  const count = useMemo(() => {
+    try {
+      const safePlaced = Array.isArray(placed) ? placed : [];
+      const safeEdges = Array.isArray(edges) ? edges : [];
+      const entities: PlacedEntity[] = safePlaced.map((p) => ({ id: p.id, type: p.type }));
+      const result = orphanOutputs(entities, safeEdges);
+      return Array.isArray(result) ? result.length : 0;
+    } catch {
+      return 0;
+    }
+  }, [placed, edges]);
+  useEffect(() => { onChange(count); }, [count, onChange]);
+  useEffect(() => () => onChange(0), [onChange]);
+  return null;
+}
+
+// Local boundary so an unhydrated entity store (e.g. MTC fallback project
+// without paddock/structure data) can't take the whole canvas down with
+// it. The orphan-output gate quietly degrades to "0 unrouted" — the
+// audit card itself still surfaces accurate counts when its own data is
+// available.
+class OrphanProbeBoundary extends Component<
+  { children: ReactNode },
+  { failed: boolean; msg: string }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { failed: false, msg: '' };
+  }
+  static getDerivedStateFromError(error: Error): { failed: boolean; msg: string } {
+    return { failed: true, msg: error.message };
+  }
+  override componentDidCatch(error: Error, info: { componentStack?: string }) {
+    console.warn('[OrphanProbeBoundary] swallowed:', error.message, info.componentStack?.slice(0, 600));
+    try {
+      const log = JSON.parse(sessionStorage.getItem('__opbLog') || '[]');
+      log.push({ msg: error.message, stack: (error.stack || '').slice(0, 2500) });
+      sessionStorage.setItem('__opbLog', JSON.stringify(log.slice(-5)));
+    } catch {}
+  }
+  override render() {
+    if (this.state.failed) {
+      return (
+        <div
+          data-orphan-probe-error
+          style={{ padding: 12, fontSize: 11, color: 'rgba(232,180,150,0.85)' }}
+        >
+          Needs &amp; Yields audit failed to load: {this.state.msg}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
