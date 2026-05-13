@@ -139,7 +139,12 @@ export default function ObserveTools({
   onSelectModule,
 }: ObserveToolsProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
-  const projectId = params.projectId ?? null;
+  // Match ObserveLayout's projectId normalisation (`params.projectId ?? 'mtc'`)
+  // so the homestead selector here reads from the same partitioned-key slot
+  // ObserveLayout writes to. Previously this was `?? null`, which meant the
+  // tools rail read `byProject[null]` (undefined) while the Place-homestead
+  // control wrote under `'mtc'` — the gate never flipped.
+  const projectId = params.projectId ?? 'mtc';
 
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);

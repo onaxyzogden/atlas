@@ -151,7 +151,7 @@ export default function ActLayout() {
                 onBoundaryDrawn={handleBoundaryDrawn}
                 showBoundary={false}
               />
-              <BaseMapCard />
+              <BaseMapCard stage="act" />
               <ObserveAnnotationLayers
                 map={map}
                 projectId={params.projectId ?? null}

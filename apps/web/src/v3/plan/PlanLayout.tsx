@@ -177,7 +177,7 @@ export default function PlanLayout() {
             mode={currentMode}
             setMode={setCurrentMode}
           />
-          <BaseMapCard />
+          <BaseMapCard stage="plan" />
           <ObserveAnnotationLayers map={map} projectId={id} />
           {/* Plan Current mirrors Observe's 3D BE stack (existing-state only).
               Year 1–5 / Vision views layer proposed-state placements on top

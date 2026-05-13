@@ -24,6 +24,7 @@ import ObserveDeepLinkFocus from './components/ObserveDeepLinkFocus.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
 import { useProjectStore } from '../../store/projectStore.js';
+import { useHomesteadStore } from '../../store/homesteadStore.js';
 import { useMapToolStore } from './components/measure/useMapToolStore.js';
 import TopographyOverlay from '../components/overlays/TopographyOverlay.js';
 import WaterOverlay from '../components/overlays/WaterOverlay.js';
@@ -35,6 +36,7 @@ import MapToolbar from './components/MapToolbar.js';
 import DesignToolRail, { type ToolMode } from '../plan/canvas/DesignToolRail.js';
 import { MapCursorHost } from '../plan/canvas/useMapCursor.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
+import HomesteadMarker from '../components/overlays/HomesteadMarker.js';
 import PlanSelectionFloater from '../plan/PlanSelectionFloater.js';
 import ObserveDrawHost from './components/draw/ObserveDrawHost.js';
 import AnnotationDragHandler from './components/draw/AnnotationDragHandler.js';
@@ -83,6 +85,9 @@ export default function ObserveLayout() {
 
   const project = useV3Project(params.projectId);
   const updateProject = useProjectStore((s) => s.updateProject);
+  const homestead = useHomesteadStore((s) => s.byProject[id]);
+  const setHomestead = useHomesteadStore((s) => s.set);
+  const clearHomestead = useHomesteadStore((s) => s.clear);
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const armedDrawKind =
@@ -125,6 +130,15 @@ export default function ObserveLayout() {
         <DiagnoseMap
           centroid={FALLBACK_CENTROID}
           boundary={project?.location.boundary}
+          homestead={{
+            enabled: true,
+            hasHomestead: !!homestead,
+            onPlace: (p) => setHomestead(id, p),
+            onClear: () => clearHomestead(id),
+            legendNote: homestead
+              ? 'Anchored at homestead'
+              : 'Anchored at parcel centroid',
+          }}
         >
           {({ map }) => (
             <>
@@ -177,7 +191,10 @@ export default function ObserveLayout() {
                 mode={mode}
                 setMode={setMode}
               />
-              <BaseMapCard />
+              <BaseMapCard stage="observe" />
+              {homestead && (
+                <HomesteadMarker map={map} projectId={id} point={homestead} />
+              )}
               <ObserveAnnotationLayers
                 map={map}
                 projectId={id}

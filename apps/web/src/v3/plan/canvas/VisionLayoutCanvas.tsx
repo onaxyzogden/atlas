@@ -155,7 +155,7 @@ export default function VisionLayoutCanvas({
             mode={mode}
             setMode={setMode}
           />
-          <BaseMapCard />
+          <BaseMapCard stage="plan" />
           <CustomModelPalette />
           <MapToolbar
             map={map}
