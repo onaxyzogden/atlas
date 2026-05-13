@@ -34,13 +34,21 @@ export default function ActModuleBar({
     projectType: effectiveType,
   });
 
+  // First-click slide-up open (parity with Plan + Observe). Shared
+  // ModuleBar fires onSelectModule for inactive tiles; compose the open
+  // call so the sheet surfaces in a single render.
+  const handleSelect = (mod: ActModule | null) => {
+    onSelectModule(mod);
+    if (mod !== null) onOpenSlideUp();
+  };
+
   return (
     <ModuleBar<ActModule>
       modules={ACT_MODULES}
       labelFor={(m) => ACT_MODULE_LABEL[m]}
       activeModule={activeModule}
       slideUpOpen={slideUpOpen}
-      onSelectModule={onSelectModule}
+      onSelectModule={handleSelect}
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       toolbarLabel="Act modules"
