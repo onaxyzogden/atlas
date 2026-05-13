@@ -67,6 +67,7 @@ const MaterialSubstitutionsCard = lazy(() => import('./cards/phasing-budgeting/M
 const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenChecklistCard.js'));
 const ThreeEthicsRollupCard   = lazy(() => import('./cards/principle-verification/ThreeEthicsRollupCard.js'));
 const PrincipleCoverageMatrixCard = lazy(() => import('./cards/principle-verification/PrincipleCoverageMatrixCard.js'));
+const NeedsYieldsAuditCard       = lazy(() => import('./cards/principle-verification/NeedsYieldsAuditCard.js'));
 
 function renderPlanCard(
   sectionId: string,
@@ -125,6 +126,7 @@ function renderPlanCard(
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
     case 'plan-three-ethics-rollup': return <ThreeEthicsRollupCard project={project} onSwitchToMap={noop} />;
     case 'plan-principle-coverage-matrix': return <PrincipleCoverageMatrixCard project={project} onSwitchToMap={noop} />;
+    case 'plan-needs-yields':        return <NeedsYieldsAuditCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }

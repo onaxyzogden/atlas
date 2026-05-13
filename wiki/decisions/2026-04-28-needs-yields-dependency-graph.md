@@ -1,7 +1,7 @@
 # ADR: Needs & Yields dependency graph
 
 **Date:** 2026-04-28
-**Status:** accepted (all 3 phases shipped 2026-04-28 behind `FEATURE_RELATIONSHIPS`; integration weight 0 → 0.10 in computeOverallScore)
+**Status:** accepted (all 3 phases shipped 2026-04-28 behind `FEATURE_RELATIONSHIPS`; integration weight 0 → 0.10 in computeOverallScore; v3 Plan-stage `Needs & Yields audit` surface added 2026-05-13 under `principle-verification` module — unconditional, since the underlying data has been stable for two weeks of branch work)
 **Scope:** `packages/shared/src/demand/`, new `packages/shared/src/relationships/`, `apps/web/src/features/map/`, scoring engine
 
 ## Context

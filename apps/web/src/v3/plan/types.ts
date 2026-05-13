@@ -231,5 +231,11 @@ export const MODULE_CARDS: Record<
     { label: 'Holmgren checklist', sectionId: 'plan-holmgren-checklist' },
     { label: 'Three Ethics',       sectionId: 'plan-three-ethics-rollup' },
     { label: 'Coverage matrix',    sectionId: 'plan-principle-coverage-matrix' },
+    // Needs & Yields audit (Rec #1 ADR 2026-04-28; v3 Plan-stage surface
+    // added 2026-05-13). Promotes the orphan-output / unmet-input /
+    // closed-loop / integration-score readout from the legacy MapView
+    // RelationshipsRail into the Plan slide-up idiom alongside the
+    // other Holmgren P6 + P8 verifications.
+    { label: 'Needs & Yields',     sectionId: 'plan-needs-yields' },
   ],
 };
