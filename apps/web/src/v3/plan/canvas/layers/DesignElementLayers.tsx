@@ -398,7 +398,7 @@ export default function DesignElementLayers({
       startY: number;
       startLng: number;
       startLat: number;
-      origGeom: GeoJSON.Geometry;
+      origGeom: GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon;
       dragging: boolean;
     };
     let down: DragState | null = null;
@@ -464,7 +464,9 @@ export default function DesignElementLayers({
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
         const dLat = ev.lngLat.lat - down.startLat;
-        const next = translateByDelta(down.origGeom, dLng, dLat);
+        const next = translateByDelta<
+          GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon
+        >(down.origGeom, dLng, dLat);
         updateDesignElement(projectId, down.id, { geometry: next });
       };
 
