@@ -14,6 +14,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
+import { useHomesteadStore } from './homesteadStore.js';
 
 export interface NeighbourPin {
   id: string;
@@ -118,7 +119,35 @@ export const useHumanContextStore = create<HumanContextState>()(
           households: s.households.map((h) => (h.id === id ? { ...h, ...patch } : h)),
         })),
       removeHousehold: (id) =>
-        set((s) => ({ households: s.households.filter((h) => h.id !== id) })),
+        set((s) => {
+          const removed = s.households.find((h) => h.id === id);
+          const nextHouseholds = s.households.filter((h) => h.id !== id);
+          // Unification (2026-05-13): the household pin is the Zone 0
+          // anchor source. When the pin tied to the current explicit
+          // homestead is deleted, clear that anchor too so derived
+          // resolution (single residence centroid → none) can take over.
+          if (removed) {
+            const remaining = nextHouseholds.filter(
+              (h) => h.projectId === removed.projectId,
+            );
+            const homestead = useHomesteadStore.getState();
+            const explicit = homestead.byProject[removed.projectId];
+            if (
+              explicit &&
+              explicit[0] === removed.position[0] &&
+              explicit[1] === removed.position[1]
+            ) {
+              if (remaining.length > 0) {
+                // Promote the next remaining household as the anchor so
+                // Zone 0 doesn't blink to "none" between deletions.
+                homestead.set(removed.projectId, remaining[0]!.position);
+              } else {
+                homestead.clear(removed.projectId);
+              }
+            }
+          }
+          return { households: nextHouseholds };
+        }),
 
       addAccessRoad: (r) => set((s) => ({ accessRoads: [...s.accessRoads, r] })),
       updateAccessRoad: (id, patch) =>

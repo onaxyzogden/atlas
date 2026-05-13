@@ -14,6 +14,7 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
+import { BUILT_ENVIRONMENT_KINDS } from '@ogden/shared';
 import {
   useHumanContextStore,
   type PermacultureZone,
@@ -49,7 +50,7 @@ export default function PermacultureZoneTool({ map, projectId }: Props) {
   // Reads through the effective hook so a single existing residence
   // can supply the anchor when no explicit homestead is placed (ADR
   // wiki/decisions/2026-05-13-atlas-residence-zone0-derivation.md).
-  const { point: homestead, source: anchorSource } =
+  const { point: homestead, source: anchorSource, derivedFrom } =
     useEffectiveHomestead(projectId);
 
   const [radii, setRadii] = useState<RadiiTuple>(
@@ -174,6 +175,15 @@ export default function PermacultureZoneTool({ map, projectId }: Props) {
         <span className={css.hint}>{helperText}</span>
       ) : (
         <>
+          {anchorSource === 'derived' && derivedFrom ? (
+            <span className={css.hint}>
+              {`Anchored at ${
+                derivedFrom.label?.trim() ||
+                BUILT_ENVIRONMENT_KINDS[derivedFrom.kind]?.label ||
+                'residence'
+              } — derived from your only residence. Place a household pin to override.`}
+            </span>
+          ) : null}
           {existingZone ? (
             <span className={css.hint}>
               Drag the gold pin to relocate the centre, or the teal handles

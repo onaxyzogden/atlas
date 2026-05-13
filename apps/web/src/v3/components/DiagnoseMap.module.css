@@ -17,7 +17,8 @@
 .toolbar {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 6px;
   z-index: 2;

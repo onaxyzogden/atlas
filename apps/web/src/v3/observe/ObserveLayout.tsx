@@ -25,7 +25,6 @@ import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useHomesteadStore } from '../../store/homesteadStore.js';
-import { useObserveTelemetry } from '../../lib/observeInteractionLog.js';
 import { useMapToolStore } from './components/measure/useMapToolStore.js';
 import TopographyOverlay from '../components/overlays/TopographyOverlay.js';
 import WaterOverlay from '../components/overlays/WaterOverlay.js';
@@ -86,10 +85,10 @@ export default function ObserveLayout() {
 
   const project = useV3Project(params.projectId);
   const updateProject = useProjectStore((s) => s.updateProject);
+  // Read-only — the Steward / household annotation tool is now the
+  // single surface for placing the Zone 0 anchor; its save() writes to
+  // homesteadStore directly (see annotationFieldSchemas.ts).
   const homestead = useHomesteadStore((s) => s.byProject[id]);
-  const setHomestead = useHomesteadStore((s) => s.set);
-  const clearHomestead = useHomesteadStore((s) => s.clear);
-  const recordObserve = useObserveTelemetry({ projectId: id });
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const armedDrawKind =
@@ -132,28 +131,6 @@ export default function ObserveLayout() {
         <DiagnoseMap
           centroid={FALLBACK_CENTROID}
           boundary={project?.location.boundary}
-          homestead={{
-            enabled: true,
-            hasHomestead: !!homestead,
-            onPlace: (p) => {
-              setHomestead(id, p);
-              recordObserve({
-                module: 'human-context',
-                eventType: 'homestead_explicit_set',
-                payload: { lng: p[0], lat: p[1] },
-              });
-            },
-            onClear: () => {
-              clearHomestead(id);
-              recordObserve({
-                module: 'human-context',
-                eventType: 'homestead_explicit_clear',
-              });
-            },
-            legendNote: homestead
-              ? 'Anchored at homestead'
-              : 'Anchored at parcel centroid',
-          }}
         >
           {({ map }) => (
             <>

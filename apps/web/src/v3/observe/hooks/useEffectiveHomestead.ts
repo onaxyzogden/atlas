@@ -28,6 +28,7 @@ import type {
 } from '@ogden/shared';
 import { useHomesteadStore } from '../../../store/homesteadStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
+import { useHumanContextStore } from '../../../store/humanContextStore.js';
 
 export type EffectiveHomesteadSource = 'explicit' | 'derived' | 'none';
 
@@ -65,6 +66,22 @@ export function resolveEffectiveHomestead(
   if (explicit) {
     return { point: explicit, source: 'explicit', derivedFrom: null };
   }
+  // Unification (2026-05-13): Steward / household annotation pins are
+  // the canonical UI for placing the Zone 0 anchor. The schema save()
+  // writes through to homesteadStore, so the 'explicit' branch above
+  // normally fires. This fallback handles persisted projects whose
+  // households were created before the unification (no homesteadStore
+  // mirror) — a single household pin still derives the anchor.
+  const households = useHumanContextStore
+    .getState()
+    .households.filter((h) => h.projectId === projectId);
+  if (households.length === 1) {
+    return {
+      point: households[0]!.position,
+      source: 'derived',
+      derivedFrom: null,
+    };
+  }
   const entities = useBuiltEnvironmentStoreV2.getState().entities;
   const candidates = entities.filter(
     (e) =>
@@ -87,10 +104,20 @@ export function resolveEffectiveHomestead(
 export function useEffectiveHomestead(projectId: string): EffectiveHomestead {
   const explicit = useHomesteadStore((s) => s.byProject[projectId]);
   const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  const households = useHumanContextStore((s) => s.households);
 
   return useMemo<EffectiveHomestead>(() => {
     if (explicit) {
       return { point: explicit, source: 'explicit', derivedFrom: null };
+    }
+    // Fallback for pre-unification households (see resolveEffectiveHomestead).
+    const projectHouseholds = households.filter((h) => h.projectId === projectId);
+    if (projectHouseholds.length === 1) {
+      return {
+        point: projectHouseholds[0]!.position,
+        source: 'derived',
+        derivedFrom: null,
+      };
     }
     const candidates = entities.filter(
       (e) =>
@@ -107,5 +134,5 @@ export function useEffectiveHomestead(projectId: string): EffectiveHomestead {
       return { point: null, source: 'none', derivedFrom: null };
     }
     return { point: centroid, source: 'derived', derivedFrom: dwelling };
-  }, [explicit, entities, projectId]);
+  }, [explicit, entities, households, projectId]);
 }
