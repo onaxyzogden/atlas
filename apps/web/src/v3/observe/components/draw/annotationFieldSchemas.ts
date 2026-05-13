@@ -16,6 +16,7 @@
 
 import * as turf from '@turf/turf';
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
+import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
@@ -225,6 +226,11 @@ const household: FieldSchema = {
       notes: s(v.notes),
       createdAt: nowIso(),
     });
+    // Unification (2026-05-13): the Steward / household pin is now the
+    // single surface for placing the Mollison Zone 0 anchor. Mirror the
+    // dropped point into homesteadStore so HomesteadMarker, zone rings,
+    // sectors, and sun/wind wedges all pick it up without changes.
+    useHomesteadStore.getState().set(ctx.projectId, [lng, lat]);
   },
 };
 
@@ -1200,4 +1206,41 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   fence,
   gate,
   existingDriveway,
+};
+
+/**
+ * FIELD_REMOVERS — companion dispatch table to FIELD_SCHEMAS. Maps each
+ * AnnotationKind to its namespace store's remove fn. Used by the
+ * shared `<AnnotationFormSlideUp>` when an active form carries
+ * `discardOnCancel: true` (set by post-draw flows): Cancel then deletes
+ * the provisional stub `createWithDefaults` wrote, instead of leaving a
+ * default-labeled phantom in the namespace store.
+ *
+ * The `Record<AnnotationKind, …>` shape acts as an exhaustiveness check:
+ * adding a new kind to AnnotationKind without a remover is a build
+ * error. frostPocket reuses externalForces' `removeHazard` because its
+ * data lives in the hazards collection (see schema above).
+ */
+export const FIELD_REMOVERS: Readonly<Record<AnnotationKind, (id: string) => void>> = {
+  neighbourPin: (id) => useHumanContextStore.getState().removeNeighbour(id),
+  household: (id) => useHumanContextStore.getState().removeHousehold(id),
+  accessRoad: (id) => useHumanContextStore.getState().removeAccessRoad(id),
+  frostPocket: (id) => useExternalForcesStore.getState().removeHazard(id),
+  hazardZone: (id) => useExternalForcesStore.getState().removeHazard(id),
+  contourLine: (id) => useTopographyStore.getState().removeContour(id),
+  highPoint: (id) => useTopographyStore.getState().removeHighPoint(id),
+  drainageLine: (id) => useTopographyStore.getState().removeDrainageLine(id),
+  watercourse: (id) => useWaterSystemsStore.getState().removeWatercourse(id),
+  ecologyZone: (id) => useEcologyStore.getState().removeEcologyZone(id),
+  soilSample: (id) => useSoilSampleStore.getState().deleteSample(id),
+  swotTag: (id) => useSwotStore.getState().removeSwot(id),
+  sector: (id) => useExternalForcesStore.getState().removeSector(id),
+  building: (id) => useBuiltEnvironmentStore.getState().removeBuilding(id),
+  well: (id) => useBuiltEnvironmentStore.getState().removeWell(id),
+  septic: (id) => useBuiltEnvironmentStore.getState().removeSeptic(id),
+  powerLine: (id) => useBuiltEnvironmentStore.getState().removePowerLine(id),
+  buriedUtility: (id) => useBuiltEnvironmentStore.getState().removeBuriedUtility(id),
+  fence: (id) => useBuiltEnvironmentStore.getState().removeFence(id),
+  gate: (id) => useBuiltEnvironmentStore.getState().removeGate(id),
+  existingDriveway: (id) => useBuiltEnvironmentStore.getState().removeExistingDriveway(id),
 };

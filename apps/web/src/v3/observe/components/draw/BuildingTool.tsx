@@ -27,6 +27,7 @@ export default function BuildingTool({ map, projectId }: Props) {
           mode: 'edit',
           existingId: id,
           projectId,
+          discardOnCancel: true,
         });
     },
   });

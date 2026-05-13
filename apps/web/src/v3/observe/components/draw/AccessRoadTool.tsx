@@ -27,6 +27,7 @@ export default function AccessRoadTool({ map, projectId }: Props) {
           mode: 'edit',
           existingId: id,
           projectId,
+          discardOnCancel: true,
         });
     },
   });

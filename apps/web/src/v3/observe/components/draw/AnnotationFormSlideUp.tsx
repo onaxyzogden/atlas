@@ -26,6 +26,7 @@ import { useMapToolStore } from '../measure/useMapToolStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import {
   FIELD_SCHEMAS,
+  FIELD_REMOVERS,
   type FieldDef,
   type FieldSchema,
 } from './annotationFieldSchemas.js';
@@ -119,7 +120,23 @@ export default function AnnotationFormSlideUp() {
         // for dashboard-initiated edits (activeTool was already null).
         setActiveTool(null);
       }}
-      onCancel={close}
+      onCancel={() => {
+        // Post-draw tools set `discardOnCancel: true` because
+        // `createWithDefaults` wrote a provisional stub into the namespace
+        // store *before* the form opened (ADDENDUM 6). Without this, Cancel
+        // would leave a default-labeled phantom ("Adopted building",
+        // "Untitled sector", …) behind. Edit-from-dashboard /
+        // SelectionFloater paths leave the flag unset so their Cancel
+        // remains a no-op, preserving the record they were editing.
+        if (active.discardOnCancel && active.existingId) {
+          try {
+            FIELD_REMOVERS[active.kind](active.existingId);
+          } catch {
+            /* namespace remove fns are best-effort; never block close */
+          }
+        }
+        close();
+      }}
     />
   );
 }

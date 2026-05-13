@@ -4,6 +4,75 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-13 — V1 Observe draw: Cancel discards provisional entity
+
+Closed the broader provisional-entity leak across 20 V1 Observe draw
+tools (BuildingTool / WellTool / SepticTool / PowerLineTool /
+BuriedUtilityTool / FenceTool / GateTool / ExistingDrivewayTool /
+NeighbourPinTool / HouseholdPinTool / AccessRoadTool / FrostPocketTool
+/ HazardZoneTool / ContourLineTool / HighPointTool / DrainageLineTool
+/ WatercourseTool / EcologyZoneTool / SoilSampleTool / SwotTagTool).
+ADDENDUM 6 had moved the create call ahead of the form-open, so the
+slide-up's `close()`-on-Cancel left default-labeled phantoms behind.
+
+Approach: payload flag + dispatch table.
+`AnnotationFormActive.discardOnCancel?: boolean` set by post-draw
+flows; slide-up's onCancel looks up
+`FIELD_REMOVERS[kind](existingId)` when present. Edit-from-dashboard
+and SelectionFloater paths leave the flag unset (no-op Cancel).
+`FIELD_REMOVERS` is a `Record<AnnotationKind, (id) => void>` so adding
+a new kind without a remover is a build error.
+
+Verified: 10/10 new vitest cases pass for the dispatch contract; full
+project tsc clean; dev server renders without console errors.
+
+ADR: [wiki/decisions/2026-05-13-cancel-discards-provisional-entity.md](decisions/2026-05-13-cancel-discards-provisional-entity.md).
+
+---
+
+## 2026-05-13 — Steward / household pin unified as Zone 0 anchor surface
+
+**Closed.** Follow-on to the Option C derivation work below: the
+standalone "Place homestead" control in `ObserveLayout` was retired,
+and the Steward / household annotation pin is now the canonical UI for
+placing the Mollison Zone 0 anchor. The household pin's `save()`
+writes through to `homesteadStore` so `useEffectiveHomestead` still
+resolves the explicit branch first; deleting the household pin tied to
+the current anchor either promotes the next remaining pin or clears
+the anchor (no blink-to-none mid-deletion). `useEffectiveHomestead`
+and `resolveEffectiveHomestead` gain a third "single-household
+fallback" branch so projects whose households were created before the
+unification (no `homesteadStore` mirror) still derive an anchor from a
+lone household pin.
+
+**Changes.**
+- `apps/web/src/v3/observe/ObserveLayout.tsx` — dropped the
+  `homestead={…}` prop passed to `DiagnoseMap`; Place/Clear now
+  surfaces through the Steward / household annotation tool instead.
+- `apps/web/src/store/humanContextStore.ts` — `removeHousehold`
+  imports `useHomesteadStore` and syncs the anchor (promote next or
+  clear) when the deleted pin matched the explicit anchor.
+- `apps/web/src/v3/observe/components/draw/annotationFieldSchemas.ts`
+  — household save() pathway extended to mirror the pin position into
+  `homesteadStore`.
+- `apps/web/src/v3/observe/hooks/useEffectiveHomestead.ts` — both the
+  hook and its imperative twin gained the `households.length === 1`
+  derived branch (resolved after explicit, before the BE-residence
+  branch) plus a `useHumanContextStore` dependency.
+- 26 Observe draw-tool components + `AnnotationFormSlideUp` +
+  `annotationFormStore` + `DiagnoseMap.module.css` — small uniform
+  surface adjustments that fall out of the unification (annotation
+  field plumbing).
+
+**Verification.** Manual smoke pending. Recommended check: place a
+Steward / household pin → Permaculture-zone tile enables and the same
+pin appears as the legend's anchor; delete that pin → with another
+household pin remaining, anchor promotes silently; with none, anchor
+clears and tile disables (or derives from a single BE residence if
+present).
+
+---
+
 ## 2026-05-13 — Option C: residence → Zone-0 lazy derivation
 
 **Closed.** Realized the ADR

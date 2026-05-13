@@ -31,6 +31,7 @@ export default function NeighbourPinTool({ map, projectId }: Props) {
           mode: 'edit',
           existingId: id,
           projectId,
+          discardOnCancel: true,
         });
     },
   });

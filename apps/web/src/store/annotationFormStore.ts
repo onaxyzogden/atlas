@@ -37,6 +37,14 @@ export interface AnnotationFormActive {
   /** Project context so the schema's save handler can write into the
    *  right namespace partition. */
   projectId: string;
+  /** When true, Cancel deletes `existingId` via the kind's namespace-store
+   *  remove fn (see FIELD_REMOVERS in annotationFieldSchemas). Set by post-
+   *  draw flows where `createWithDefaults` wrote a provisional stub before
+   *  the form opened — Cancel should discard it so the steward isn't left
+   *  with a default-labeled phantom in the namespace store. Defaults to
+   *  false for edit-from-dashboard / SelectionFloater paths so those
+   *  Cancels stay no-ops. */
+  discardOnCancel?: boolean;
 }
 
 interface AnnotationFormState {

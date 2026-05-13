@@ -40,6 +40,7 @@ export default function SwotTagTool({ map, projectId, bucket }: Props) {
           mode: 'edit',
           existingId: id,
           projectId,
+          discardOnCancel: true,
         });
     },
   });
