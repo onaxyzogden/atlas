@@ -45,7 +45,29 @@ wiring; UI surface is small (badge + suggestion popover).
 
 ---
 
-## Rec #4 — Edge & connectivity evaluator (P1)
+## Rec #4 — Edge & connectivity evaluator (P1) — v1 SHIPPED 2026-05-12
+
+**v1 status:** Shipped as a new sub-card in the Plan-stage plant-systems
+module (`apps/web/src/v3/plan/cards/plant-systems/EdgeConnectivityCard.tsx`).
+Polsby-Popper compactness (4π·area ÷ perimeter²) is the metric;
+dimensionless 0..1, scale-invariant. Tier thresholds: `excellent` < 0.4,
+`adequate` 0.4–0.7, `homogenized` ≥ 0.7. Polygons below 2 000 m² skip the
+audit. Polygon source: `landDesignStore` filtered to planting-class kinds
+(orchard, silvopasture, pasture-mix, paddock).
+
+**Deferred to v2:**
+- Shape-variant generators (peninsula / scalloped / keyhole) — backlog
+  flagged these as the "biggest unknown"; isolated from v1 so the 0.5-
+  sprint estimate held.
+- Wiring the Diversity penalty into `principleCheckStore` for Holmgren P10
+  ("Use & value diversity") — depends on broader principle-scoring pipeline
+  work.
+- Polyculture guilds — they're points (no polygon), out of scope for an
+  edge-to-area metric.
+
+---
+
+### Original spec (preserved for v2 reference)
 
 **Principle:** Edges & Marginal · Diversity
 **Source:** *Permaculture Design by Sectors*, *Zones in the Matrix*,
