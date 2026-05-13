@@ -73,9 +73,8 @@ v2 tweak.
 
 ## Verification
 
-`tsc --noEmit -p .` passes for all touched files (one pre-existing
-`Geometry` width error in `DesignElementLayers.tsx:433` around
-`translateByDelta`, unrelated). Browser-canvas mouse-event verification
+`tsc --noEmit -p .` passes for all touched files.
+Browser-canvas mouse-event verification
 is blocked by the same preview-environment limitation noted in the
 2026-05-12 ADR — synthetic events don't reach MapLibre's pointer
 pipeline. Tool arms cleanly; manual end-to-end pass deferred to user.

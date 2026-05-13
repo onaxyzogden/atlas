@@ -101,8 +101,7 @@ chip snaps the cursor to that horizon.
 
 - `packages/shared`: `npx vitest run src/succession` → 8/8 pass.
 - `apps/web`: `npx vitest run temporalCoherenceMath` → 4/4 pass.
-- `apps/web` tsc: type-clean except the pre-existing
-  `DesignElementLayers.tsx` `Geometry`-width error (unchanged).
+- `apps/web` tsc: type-clean.
 
 ## References
 

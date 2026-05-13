@@ -121,9 +121,7 @@ and is dismissed automatically once orphans hit zero.
 ## Verification
 
 1. `cd packages/shared && npx vitest run src/tests/statusGate` — 4/4 pass.
-2. `cd apps/web && npx tsc --noEmit -p .` — passes (existing
-   `DesignElementLayers.tsx:468` `Geometry/MultiPoint→Point` error
-   remains; unchanged from pre-session).
+2. `cd apps/web && npx tsc --noEmit -p .` — passes.
 3. Dev-server smoke (manual): chip in canvas top-strip reads
    `Status · Draft`; opening the audit card surfaces the new
    row; ticking `Allow orphan outputs` enables the CTA and gains
