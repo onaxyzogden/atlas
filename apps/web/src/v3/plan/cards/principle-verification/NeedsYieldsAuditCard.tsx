@@ -33,13 +33,16 @@
  * the Plan slide-up.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import {
   useAllPlacedEntities,
   type PlacedEntityView,
 } from '../../../../lib/relationships/useAllPlacedEntities.js';
-import { useRelationshipsStore } from '../../../../store/relationshipsStore.js';
+import {
+  useRelationshipsStore,
+  type StoredEdge,
+} from '../../../../store/relationshipsStore.js';
 import {
   OUTPUTS_BY_TYPE,
   INPUTS_BY_TYPE,
@@ -148,9 +151,157 @@ const TIER_LABEL: Record<'met' | 'partial' | 'unmet', string> = {
   unmet: 'LINEAR',
 };
 
+function edgeKey(e: {
+  fromId: string;
+  fromOutput: string;
+  toId: string;
+  toInput: string;
+}) {
+  return `${e.fromId}>${e.fromOutput}>${e.toId}>${e.toInput}`;
+}
+
+function compatibleTargets(
+  placed: PlacedEntityView[],
+  fromId: string,
+  resource: ResourceType,
+): PlacedEntityView[] {
+  return placed.filter(
+    (p) =>
+      p.id !== fromId &&
+      (INPUTS_BY_TYPE[p.type as EntityType]?.includes(resource) ?? false),
+  );
+}
+
+function compatibleSources(
+  placed: PlacedEntityView[],
+  toId: string,
+  resource: ResourceType,
+): PlacedEntityView[] {
+  return placed.filter(
+    (p) =>
+      p.id !== toId &&
+      (OUTPUTS_BY_TYPE[p.type as EntityType]?.includes(resource) ?? false),
+  );
+}
+
+const connectBtnStyle: CSSProperties = {
+  padding: '3px 10px',
+  border: '1px solid rgba(212,182,99,0.5)',
+  borderRadius: 999,
+  background: 'rgba(212,182,99,0.12)',
+  color: 'rgba(232,220,200,0.95)',
+  font: 'inherit',
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.03em',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+};
+
+const connectBtnDisabledStyle: CSSProperties = {
+  ...connectBtnStyle,
+  opacity: 0.4,
+  cursor: 'not-allowed',
+};
+
+const inlineSelectStyle: CSSProperties = {
+  padding: '2px 6px',
+  border: '1px solid rgba(232,220,200,0.18)',
+  borderRadius: 4,
+  background: 'rgba(0,0,0,0.25)',
+  color: 'rgba(232,220,200,0.9)',
+  font: 'inherit',
+  fontSize: 11,
+  maxWidth: 220,
+};
+
+const removeBtnStyle: CSSProperties = {
+  padding: '2px 8px',
+  border: '1px solid rgba(232,220,200,0.18)',
+  borderRadius: 4,
+  background: 'transparent',
+  color: 'rgba(232,220,200,0.7)',
+  font: 'inherit',
+  fontSize: 11,
+  cursor: 'pointer',
+};
+
+function ConnectRow({
+  pickerKey,
+  candidates,
+  picked,
+  onPick,
+  onConnect,
+  flashDupe,
+  noMatchLabel,
+}: {
+  pickerKey: string;
+  candidates: PlacedEntityView[];
+  picked: string | undefined;
+  onPick: (id: string) => void;
+  onConnect: () => void;
+  flashDupe: boolean;
+  noMatchLabel: string;
+}) {
+  if (candidates.length === 0) {
+    return (
+      <span style={{ fontSize: 11, color: 'rgba(232,220,200,0.45)' }}>
+        ({noMatchLabel})
+      </span>
+    );
+  }
+  const effective = picked ?? candidates[0]!.id;
+  return (
+    <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+      <select
+        aria-label="Route to"
+        value={effective}
+        onChange={(ev) => onPick(ev.target.value)}
+        style={inlineSelectStyle}
+      >
+        {candidates.map((c) => (
+          <option key={`${pickerKey}-${c.id}`} value={c.id}>
+            {c.name} · {c.type}
+          </option>
+        ))}
+      </select>
+      <button type="button" onClick={onConnect} style={connectBtnStyle}>
+        Connect
+      </button>
+      {flashDupe && (
+        <span
+          style={{
+            fontSize: 11,
+            color: 'rgba(212,182,99,0.95)',
+            fontWeight: 600,
+          }}
+        >
+          Already routed
+        </span>
+      )}
+    </span>
+  );
+}
+
 export default function NeedsYieldsAuditCard({ project, onSwitchToMap }: Props) {
   const placed = useAllPlacedEntities();
   const edgesByProject = useRelationshipsStore((s) => s.edgesByProject);
+  const addEdge = useRelationshipsStore((s) => s.addEdge);
+  const removeEdge = useRelationshipsStore((s) => s.removeEdge);
+
+  const [picks, setPicks] = useState<Record<string, string>>({});
+  const [dupeFlash, setDupeFlash] = useState<Record<string, boolean>>({});
+
+  const flashDupe = (key: string) => {
+    setDupeFlash((p) => ({ ...p, [key]: true }));
+    window.setTimeout(() => {
+      setDupeFlash((p) => {
+        const n = { ...p };
+        delete n[key];
+        return n;
+      });
+    }, 2000);
+  };
 
   const entities = useMemo<PlacedEntity[]>(
     () => placed.map((p) => ({ id: p.id, type: p.type })),
@@ -377,6 +528,72 @@ export default function NeedsYieldsAuditCard({ project, onSwitchToMap }: Props) 
             </div>
           </div>
 
+          {edges.length > 0 && (
+            <div className={styles.section}>
+              <details>
+                <summary
+                  style={{
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(232,220,200,0.7)',
+                  }}
+                >
+                  Routed edges ({edges.length})
+                </summary>
+                <ul
+                  style={{
+                    margin: '8px 0 0 0',
+                    padding: 0,
+                    listStyle: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  {edges.map((e: StoredEdge) => {
+                    const from = placedById.get(e.fromId);
+                    const to = placedById.get(e.toId);
+                    const k = edgeKey(e);
+                    return (
+                      <li
+                        key={k}
+                        style={{
+                          display: 'flex',
+                          gap: 8,
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          fontSize: 11,
+                          color: 'rgba(232,220,200,0.8)',
+                        }}
+                      >
+                        <span>{from?.name ?? e.fromId}</span>
+                        <ResourceChip kind={e.fromOutput as ResourceType} />
+                        <span style={{ opacity: 0.6 }}>→</span>
+                        <span>{to?.name ?? e.toId}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removeEdge(
+                              project.id,
+                              (other) => edgeKey(other) === k,
+                            )
+                          }
+                          style={removeBtnStyle}
+                          aria-label="Remove this edge"
+                        >
+                          Remove
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </details>
+            </div>
+          )}
+
           {loops.length > 0 && (
             <div className={styles.section}>
               <h2 className={styles.sectionTitle}>Closed loops</h2>
@@ -466,30 +683,142 @@ export default function NeedsYieldsAuditCard({ project, onSwitchToMap }: Props) 
                         </div>
                         {r.orphans.length > 0 && (
                           <div className={styles.hint}>
-                            <strong>Orphan outputs:</strong>{' '}
-                            <span style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
-                              {r.orphans.map((r2) => (
-                                <ResourceChip key={`o-${r2}`} kind={r2} />
-                              ))}
-                            </span>
-                            <span>
-                              — route to a downstream input on the map
-                              canvas to close the loop.
-                            </span>
+                            <strong>Orphan outputs</strong> — route to a
+                            downstream input:
+                            <ul
+                              style={{
+                                margin: '4px 0 0 0',
+                                padding: 0,
+                                listStyle: 'none',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 4,
+                              }}
+                            >
+                              {r.orphans.map((r2) => {
+                                const key = `o:${r.id}:${r2}`;
+                                const candidates = compatibleTargets(
+                                  placed,
+                                  r.id,
+                                  r2,
+                                );
+                                const picked = picks[key];
+                                return (
+                                  <li
+                                    key={key}
+                                    style={{
+                                      display: 'flex',
+                                      gap: 8,
+                                      alignItems: 'center',
+                                      flexWrap: 'wrap',
+                                    }}
+                                  >
+                                    <ResourceChip kind={r2} />
+                                    <ConnectRow
+                                      pickerKey={key}
+                                      candidates={candidates}
+                                      picked={picked}
+                                      onPick={(id) =>
+                                        setPicks((p) => ({ ...p, [key]: id }))
+                                      }
+                                      onConnect={() => {
+                                        const toId =
+                                          picked ?? candidates[0]?.id;
+                                        if (!toId) return;
+                                        const edge = {
+                                          fromId: r.id,
+                                          fromOutput: r2,
+                                          toId,
+                                          toInput: r2,
+                                        };
+                                        const existing =
+                                          edgesByProject[project.id] ?? [];
+                                        const dupe = existing.some(
+                                          (e) => edgeKey(e) === edgeKey(edge),
+                                        );
+                                        if (dupe) {
+                                          flashDupe(key);
+                                          return;
+                                        }
+                                        addEdge(project.id, edge);
+                                      }}
+                                      flashDupe={Boolean(dupeFlash[key])}
+                                      noMatchLabel="no compatible inputs placed"
+                                    />
+                                  </li>
+                                );
+                              })}
+                            </ul>
                           </div>
                         )}
                         {r.unmet.length > 0 && (
                           <div className={styles.hint}>
-                            <strong>Unmet inputs:</strong>{' '}
-                            <span style={{ display: 'inline-flex', flexWrap: 'wrap' }}>
-                              {r.unmet.map((r2) => (
-                                <ResourceChip key={`u-${r2}`} kind={r2} />
-                              ))}
-                            </span>
-                            <span>
-                              — supply from an upstream output rather than
-                              importing.
-                            </span>
+                            <strong>Unmet inputs</strong> — supply from an
+                            upstream output:
+                            <ul
+                              style={{
+                                margin: '4px 0 0 0',
+                                padding: 0,
+                                listStyle: 'none',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 4,
+                              }}
+                            >
+                              {r.unmet.map((r2) => {
+                                const key = `u:${r.id}:${r2}`;
+                                const candidates = compatibleSources(
+                                  placed,
+                                  r.id,
+                                  r2,
+                                );
+                                const picked = picks[key];
+                                return (
+                                  <li
+                                    key={key}
+                                    style={{
+                                      display: 'flex',
+                                      gap: 8,
+                                      alignItems: 'center',
+                                      flexWrap: 'wrap',
+                                    }}
+                                  >
+                                    <ResourceChip kind={r2} />
+                                    <ConnectRow
+                                      pickerKey={key}
+                                      candidates={candidates}
+                                      picked={picked}
+                                      onPick={(id) =>
+                                        setPicks((p) => ({ ...p, [key]: id }))
+                                      }
+                                      onConnect={() => {
+                                        const fromId =
+                                          picked ?? candidates[0]?.id;
+                                        if (!fromId) return;
+                                        const edge = {
+                                          fromId,
+                                          fromOutput: r2,
+                                          toId: r.id,
+                                          toInput: r2,
+                                        };
+                                        const existing =
+                                          edgesByProject[project.id] ?? [];
+                                        const dupe = existing.some(
+                                          (e) => edgeKey(e) === edgeKey(edge),
+                                        );
+                                        if (dupe) {
+                                          flashDupe(key);
+                                          return;
+                                        }
+                                        addEdge(project.id, edge);
+                                      }}
+                                      flashDupe={Boolean(dupeFlash[key])}
+                                      noMatchLabel="no compatible outputs placed"
+                                    />
+                                  </li>
+                                );
+                              })}
+                            </ul>
                           </div>
                         )}
                       </div>
