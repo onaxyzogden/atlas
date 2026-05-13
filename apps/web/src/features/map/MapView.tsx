@@ -7,7 +7,7 @@ import type maplibregl from 'maplibre-gl';
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { LandZone } from '../../store/zoneStore.js';
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { SidebarView } from '../../components/IconSidebar.js';
 import MapCanvas from './MapCanvas.js';
 import { GaezOverlay, GaezMapControls } from './GaezOverlay.js';

@@ -11,7 +11,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { type Structure, type StructureType } from '../../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../../store/utilityStore.js';
 import { usePathStore, type DesignPath, type PathType } from '../../../store/pathStore.js';

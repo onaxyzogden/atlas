@@ -19,7 +19,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import { type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore, type DesignPath } from '../../store/pathStore.js';
 import { useUtilityStore, type Utility } from '../../store/utilityStore.js';

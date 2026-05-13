@@ -26,7 +26,7 @@
 
 import { useMemo } from 'react';
 import { usePathStore, type DesignPath, type PathType } from '../../store/pathStore.js';
-import { type Structure, type StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
 import css from './ParkingDeliveryAccessCard.module.css';

@@ -27,10 +27,7 @@
  */
 
 import { useMemo } from 'react';
-import {
-  type Structure,
-  type StructureType,
-} from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePhaseStore, type BuildPhase } from '../../store/phaseStore.js';
 import css from './PermitReadinessCard.module.css';

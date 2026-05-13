@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import css from './ArrivalSequenceDesignCard.module.css';
 import { usePathStore, type DesignPath } from '../../store/pathStore.js';
-import { type Structure, type StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useProjectStore, getZoneThresholds, DEFAULT_ZONE_THRESHOLDS } from '../../store/projectStore.js';
 import { haversineM } from '../../lib/geo.js';

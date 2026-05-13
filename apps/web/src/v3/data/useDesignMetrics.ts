@@ -34,7 +34,7 @@
 
 import { useMemo } from "react";
 import type { MockLayerResult } from "@ogden/shared/scoring";
-import { type Structure, type StructureType } from "../../store/structureStore.js";
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore, type Paddock } from "../../store/livestockStore.js";
 import { useSiteDataStore } from "../../store/siteDataStore.js";

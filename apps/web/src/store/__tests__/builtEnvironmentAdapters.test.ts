@@ -28,7 +28,7 @@ import {
   type Gate,
   type ExistingDriveway,
 } from '../builtEnvironmentStore.js';
-import { type Structure } from '../structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useLandDesignStore } from '../landDesignStore.js';
 import {
   addStructure,

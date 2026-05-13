@@ -30,7 +30,7 @@
 
 import { useMemo } from 'react';
 import type { LandZone } from '../../store/zoneStore.js';
-import { type StructureType } from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';

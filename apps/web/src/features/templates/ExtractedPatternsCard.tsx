@@ -24,7 +24,7 @@
 
 import { useMemo } from 'react';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
-import { type StructureType } from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore, type PathType, PATH_TYPE_CONFIG } from '../../store/pathStore.js';
 import { useLivestockStore, type LivestockSpecies } from '../../store/livestockStore.js';

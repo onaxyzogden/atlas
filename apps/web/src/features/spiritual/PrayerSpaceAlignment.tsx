@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { analyzePrayerSpaces } from './spiritualAnalysis.js';
 import p from '../../styles/panel.module.css';
 import s from './SpiritualPanel.module.css';

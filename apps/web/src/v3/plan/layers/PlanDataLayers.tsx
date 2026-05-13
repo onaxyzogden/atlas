@@ -50,7 +50,7 @@ import {
   STRUCTURE_TEMPLATES,
   createFootprintPolygon,
 } from '../../../features/structures/footprints.js';
-import type { StructureType } from '../../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { translateByDelta } from './translateGeometry.js';
 import { beginDragUndoWindow } from './dragUndo.js';

@@ -20,7 +20,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { type StructureType } from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';

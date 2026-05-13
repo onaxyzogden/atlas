@@ -22,7 +22,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { type StructureType } from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { deriveInfrastructureCost } from '../structures/footprints.js';

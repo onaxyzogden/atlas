@@ -21,7 +21,7 @@
 import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
-import { type StructureType } from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';
 import { useCropStore, type CropAreaType } from '../../store/cropStore.js';

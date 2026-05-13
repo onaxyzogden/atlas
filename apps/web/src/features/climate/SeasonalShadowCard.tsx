@@ -13,7 +13,7 @@
  */
 import { useMemo } from 'react';
 import { computeSunPath, summarizeSunPath } from '@ogden/shared';
-import { type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { estimateStructureHeightM } from '../structures/footprints.js';
 import css from './SeasonalShadowCard.module.css';
 

@@ -23,10 +23,7 @@ import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import { getZoneThresholds } from '../../store/projectStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
-import {
-  type Structure,
-  type StructureType,
-} from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';
 import { computeQibla, bearingToCardinal } from '../../lib/qibla.js';

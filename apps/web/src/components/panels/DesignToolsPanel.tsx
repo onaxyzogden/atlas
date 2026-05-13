@@ -13,10 +13,7 @@ import {
   type ZoneCategory,
   type LandZone,
 } from '../../store/zoneStore.js';
-import {
-  type StructureType,
-  type Structure,
-} from '../../store/structureStore.js';
+import type { StructureType, ProjectedStructure as Structure } from '@ogden/shared';
 import { useStructurePlacementStore } from '../../store/structurePlacementStore.js';
 import {
   useAllStructures,

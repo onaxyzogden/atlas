@@ -25,10 +25,7 @@
 import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import {
-  type Structure,
-  type StructureType,
-} from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import {
   useUtilityStore,

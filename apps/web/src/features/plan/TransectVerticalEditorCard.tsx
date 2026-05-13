@@ -25,7 +25,7 @@ import { useWaterSystemsStore, type Earthwork, type StorageInfra } from '../../s
 import { usePolycultureStore, type Guild, type SpeciesPick } from '../../store/polycultureStore.js';
 import { useClosedLoopStore, type FertilityInfra } from '../../store/closedLoopStore.js';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { PLANT_DATABASE } from '../../data/plantDatabase.js';
 import {
   newAnnotationId,

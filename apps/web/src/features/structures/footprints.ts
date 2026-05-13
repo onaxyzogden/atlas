@@ -5,7 +5,7 @@
  * At placement time, we translate to the target lat/lng using Turf.js.
  */
 
-import type { Structure, StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 
 export interface FootprintTemplate {
   widthM: number;

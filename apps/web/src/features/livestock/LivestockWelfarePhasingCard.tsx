@@ -33,7 +33,7 @@ import {
   type FenceType,
   type PastureQuality,
 } from '../../store/livestockStore.js';
-import { type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import {

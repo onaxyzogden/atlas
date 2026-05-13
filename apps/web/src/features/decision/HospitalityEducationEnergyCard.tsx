@@ -15,7 +15,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { type StructureType, type Structure } from '../../store/structureStore.js';
+import type { StructureType, ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility } from '../../store/utilityStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';

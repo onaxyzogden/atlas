@@ -39,7 +39,7 @@
 
 import { useMemo } from 'react';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import { type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
 import { usePathStore, type DesignPath, type PathType } from '../../store/pathStore.js';

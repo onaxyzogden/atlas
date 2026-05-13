@@ -20,7 +20,7 @@
 
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { getBuiltEnvironmentKind } from '@ogden/shared';
-import { type StructureType } from '../../../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import {
   addStructure,
   updateStructure,

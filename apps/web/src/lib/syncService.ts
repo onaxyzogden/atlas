@@ -17,7 +17,7 @@ import { api } from './apiClient.js';
 import { syncQueue, type QueuedOperation } from './syncQueue.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
-import { type Structure } from '../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from '../store/builtEnvironmentStoreV2.js';
 import {
   addStructure,

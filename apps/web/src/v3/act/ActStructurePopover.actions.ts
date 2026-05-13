@@ -13,7 +13,7 @@
  * removes the skeleton for true rollback.
  */
 
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import {
   useMaintenanceLogStore,
   type MaintenanceAction,

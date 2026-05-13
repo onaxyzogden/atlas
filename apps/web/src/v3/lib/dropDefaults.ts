@@ -20,7 +20,7 @@
  */
 
 import type { Paddock } from "../../store/livestockStore.js";
-import type { Structure, StructureType } from "../../store/structureStore.js";
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import {
   STRUCTURE_TEMPLATES,
   createFootprintPolygon,

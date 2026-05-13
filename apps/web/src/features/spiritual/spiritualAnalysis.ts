@@ -4,7 +4,7 @@
  */
 
 import * as turf from '@turf/turf';
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { LandZone } from '../../store/zoneStore.js';
 import type { DesignPath } from '../../store/pathStore.js';
 import type { SiteData } from '../../store/siteDataStore.js';

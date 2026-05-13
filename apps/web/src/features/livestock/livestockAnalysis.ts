@@ -11,7 +11,7 @@ import type {
   PastureQuality,
 } from '../../store/livestockStore.js';
 import type { LandZone } from '../../store/zoneStore.js';
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { DesignPath } from '../../store/pathStore.js';
 import { LIVESTOCK_SPECIES, type LivestockSpeciesInfo } from './speciesData.js';
 

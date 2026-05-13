@@ -32,7 +32,7 @@
 
 import * as turf from '@turf/turf';
 import { useProjectStore } from '../store/projectStore.js';
-import { type Structure } from '../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import {
   addStructure,
   getAllStructures,

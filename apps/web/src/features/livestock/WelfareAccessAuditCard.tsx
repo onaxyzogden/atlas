@@ -28,7 +28,7 @@
 
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
-import { type Structure, type StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../store/utilityStore.js';
 import s from './WelfareAccessAuditCard.module.css';

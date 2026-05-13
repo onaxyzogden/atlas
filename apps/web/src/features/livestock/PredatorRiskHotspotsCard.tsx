@@ -26,7 +26,7 @@
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock, type LivestockSpecies, type FenceType } from '../../store/livestockStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computePredatorRisk } from './livestockAnalysis.js';

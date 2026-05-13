@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { BUILT_IN_TEMPLATES, useTemplateStore, type ProjectTemplate, type ZoneTemplate, type StructureTemplate } from '../../store/templateStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
-import { type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { addStructure } from '../../store/builtEnvironmentSelectors.js';
 import TemplateMarketplace from './TemplateMarketplace.js';
 import ExtractedPatternsCard from './ExtractedPatternsCard.js';

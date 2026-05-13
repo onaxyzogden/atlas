@@ -21,7 +21,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { type Structure, type StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES, estimateStructureHeightM, formatCostShort } from './footprints.js';
 import css from './StructureFootprintLibraryCard.module.css';

@@ -18,7 +18,7 @@
  */
 
 import { useZoneStore, type LandZone } from './zoneStore.js';
-import { type Structure } from './structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { addStructure, getAllStructures } from './builtEnvironmentSelectors.js';
 import { useCropStore, type CropArea } from './cropStore.js';
 import { useLivestockStore, type Paddock } from './livestockStore.js';

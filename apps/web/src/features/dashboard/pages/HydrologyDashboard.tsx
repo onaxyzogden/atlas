@@ -7,7 +7,7 @@ import { useState, useMemo } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
-import { type Structure } from '../../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../../store/utilityStore.js';
 import { useCropStore } from '../../../store/cropStore.js';

@@ -31,7 +31,7 @@
  */
 
 import { useMemo } from 'react';
-import { type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';

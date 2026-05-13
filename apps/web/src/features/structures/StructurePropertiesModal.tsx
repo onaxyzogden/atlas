@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import type { StructureType, Structure } from '../../store/structureStore.js';
+import type { StructureType, ProjectedStructure as Structure } from '@ogden/shared';
 import { STRUCTURE_TEMPLATES } from './footprints.js';
 import { semantic, zIndex } from '../../lib/tokens.js';
 import {

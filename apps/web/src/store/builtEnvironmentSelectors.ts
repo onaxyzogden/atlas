@@ -64,7 +64,7 @@ import {
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
 import { type DesignElement } from './designElementsStore.js';
 import { useLandDesignStore } from './landDesignStore.js';
-import { type Structure } from './structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { DesignCategory } from '../v3/plan/canvas/elementCatalog.js';
 import type { PhaseKey, PlanView } from '../v3/plan/types.js';
 

@@ -19,7 +19,7 @@ import {
   type DesignPath,
   type PathType,
 } from '../../store/pathStore.js';
-import { type Structure, type StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../store/utilityStore.js';
 import { useZoneStore, type LandZone, type ZoneCategory } from '../../store/zoneStore.js';

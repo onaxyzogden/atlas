@@ -17,7 +17,7 @@ import {
   type DesignPath,
   type PathType,
 } from '../../store/pathStore.js';
-import { type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import css from './WayfindingPlanCard.module.css';
 

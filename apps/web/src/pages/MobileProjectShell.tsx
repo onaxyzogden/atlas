@@ -19,7 +19,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, FileText, Compass, Map as MapIcon, Brain, FileBarChart } from 'lucide-react';
 import type { LandZone } from '../store/zoneStore.js';
-import type { Structure } from '../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { LocalProject } from '../store/projectStore.js';
 import { useUIStore } from '../store/uiStore.js';
 import LandVerdictCard from '../features/dashboard/LandVerdictCard.js';

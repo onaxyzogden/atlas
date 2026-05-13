@@ -8,7 +8,7 @@
  * Greenhouses can be the target of a harvest log.
  */
 
-import type { StructureType } from '../../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 
 export type StructureActionKind =
   | 'maintenance'

@@ -22,7 +22,7 @@ import {
   type WindbreakCandidates,
 } from '@ogden/shared';
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
-import { type Structure, type StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import { deriveInfrastructureCost, formatCostShort, estimateStructureHeightM } from '../structures/footprints.js';
