@@ -13796,3 +13796,260 @@ designStatus: "ready-for-review" }` across the re-seed pass. Untick
 escape hatch + dismiss → confirm modal fires with
 `aria-label="Unresolved orphan outputs"` and 4-count copy. Commits:
 [`8f585e4f`], [`e9a7db71`], [`0bc04b4c`].
+
+
+## 2026-05-13 — Adopt-from-map "save does nothing" — perception bug, fixed by toast
+
+**Why.** Steward report: Observe → Adopt from map → click 3D basemap
+building → enter label / height / notes → Save → "as if nothing was
+done." Worked at first ship (`e534ddd3`, 2026-05-13), regressed.
+
+**Investigation.** Followed `superpowers:systematic-debugging` Phase 1.
+Instrumented all five boundaries with `[adopt-debug]` probes:
+`AdoptBasemapBuildingTool.create()`,
+`openBeInlineEditById` schema resolve, `InlineFeaturePopover.onSubmit`,
+`buildBuildingEditSchema.onSave`, `builtEnvironmentStoreV2.updateMetadata`.
+Repro'd with synthetic input + real `KeyboardEvent` sequences. Every
+boundary fired in order: `STORE.open` (1×), `onSubmit` (1×), `onSave`
+(1× with correct values), `updateMetadata` (1× with `match found`),
+`STORE.close` (1×). localStorage `ogden-built-environment-v2` carried
+the patched `label`, `proposed.heightM`, and `notes` correctly. The
+StrictMode 2× identity-change in the popover was a dev-only artifact
+of `prevActive !== active`, not a real reset.
+
+**Root cause.** Save mechanism is sound. The bug is **perceptual**:
+the adopted building's 3D extrusion was already on-map *before* Save
+(rendered at the basemap's `render_height` from the `existing` block
+written by `create()`), and `label` is metadata-only — invisible on
+the map surface. Saving an unedited form re-writes the same values
+and produces no visible delta, so the steward concluded "nothing
+happened." Older buggy entities in localStorage (e.g. `a0ce2f9f`)
+match the pattern "Save pressed with defaults unchanged" exactly.
+
+**What.**
+- Added `toast.success(\`Saved "${label}"\`)` to
+  `buildBuildingEditSchema.onSave` (
+  [`apps/web/src/v3/plan/layers/inlineEditSchemas.ts:1149`](apps/web/src/v3/plan/layers/inlineEditSchemas.ts))
+  after the `updateMetadata` call. Single 7-line diff; no behavioural
+  change to persistence. Comment in source records the perception-bug
+  rationale for future readers.
+- Removed all `[adopt-debug]` probes from 5 files; removed
+  `window.__adoptMap` debug exposure.
+
+**Verified.** `tsc --noEmit` exit 0; `vite build` clean in 36.51s
+with `NODE_OPTIONS=--max-old-space-size=8192` (default 4GB OOMs on
+this monorepo — environmental, unrelated). The save path itself was
+verified end-to-end in Phase 1 (localStorage round-trip + extrusion
+height match). Toast confirmation is the only user-facing change.
+
+**Deferred.** Default heap OOM during `npm run lint` / `npm run build`
+is a Windows dev-env papercut, not a regression — track separately
+if it becomes blocking.
+
+
+## 2026-05-13 — Adopt-from-map root cause (correction): builtEnvironment toggle gated 2D fill off
+
+**Why the earlier entry was wrong.** The earlier-today entry concluded
+the bug was perceptual and shipped a `toast.success` for visible save
+feedback. Retest by user: "still not working. Saved the building. No
+ability to re-edit it. No sign anything was done besides a notification
+in the top right corner that it was saved but it is not visible on
+the map view." The toast fired; the building remained invisible; no
+clickable feature existed for re-edit. Root cause was downstream of
+the save layer entirely.
+
+**Real root cause.** `ObserveAnnotationLayers` is the *only* renderer
+that draws V2 buildings as a 2D footprint at default top-down pitch.
+Its `be-buildings` layer carries `toggleKey: 'builtEnvironment'`, and
+[`matrixTogglesStore.ts:76`](apps/web/src/store/matrixTogglesStore.ts:76)
+defaults `builtEnvironment: false`. The other two BE-V2 layers in
+Observe don't fill the gap:
+
+- `BeV2GenericLayer` deliberately excludes `LEGACY_OBSERVE_BE_KINDS`
+  (including `building`), since the legacy 8 kinds have bespoke
+  renderers in `ObserveAnnotationLayers`.
+- `DesignElementExtrusionLayer` renders 3D extrusion only at pitch
+  > 0 (collapses top-down). Default Observe view is top-down.
+
+Meanwhile `AdoptedBuildingsSync` runs on every V2-entity change and
+hides the basemap building whose `osm_id` matches
+`entity.existing.adoptedFromBasemapId`. So at the moment of Save the
+basemap building disappears, the V2 2D fill is gated off, the V2 3D
+extrusion is invisible at pitch 0 — the steward sees a blank patch
+and no clickable feature for re-edit. Direct evidence from the live
+dev preview: `localStorage['ogden-atlas-matrix-toggles'].state.builtEnvironment
+=== false` while
+`localStorage['ogden-built-environment-v2'].state.entities.filter(e =>
+e.kind === 'building' && e.state === 'existing').length === 13`. Flipping
+the toggle to true via the matrix UI immediately reveals all 13 adopted
+buildings as 2D fills (verified by screenshot).
+
+**What.**
+- Reverted the toast-on-save addition in
+  [`buildBuildingEditSchema`](apps/web/src/v3/plan/layers/inlineEditSchemas.ts) —
+  it was the wrong fix.
+- In
+  [`AdoptBasemapBuildingTool.tsx`](apps/web/src/v3/observe/components/draw/AdoptBasemapBuildingTool.tsx),
+  after `useBuiltEnvironmentStoreV2.create()` succeeds, flip
+  `useMatrixTogglesStore.builtEnvironment` to `true` if it isn't
+  already. Source comment records the rationale so a future
+  reader doesn't strip it as redundant. The toggle is `persist`ed,
+  so future sessions retain the on state.
+- Net diff: +12 lines in `AdoptBasemapBuildingTool.tsx`, −9 lines in
+  `inlineEditSchemas.ts` (toast import + call + comment).
+
+**Verified.** `tsc --noEmit` clean; `vite build` clean (31.49s,
+8GB heap — pre-existing OOM workaround). In the live preview at
+`/v3/project/mtc/observe` the existing 13 adopted buildings become
+visible the moment `builtEnvironment` is true; the 2D fill is the
+clickable surface that re-opens the inline form (via
+`ObserveAnnotationLayers` click handler → `openBeInlineEditByObserveKind`).
+
+**Lesson.** First-pass "this is a perception bug" diagnosis was a
+shortcut: I had the localStorage evidence that Save persists, and
+treated "user reports no visible change" as proof the data was just
+invisible-by-design. The correct read was "user reports no visible
+change *because the V2 entity isn't rendered at default pitch when
+the matrix toggle is off*." Should have walked the rendering pipeline
+end-to-end in Phase 1 — what layer paints this entity, what gates it —
+before concluding perceptual. Updated the systematic-debugging
+discipline note in this session's plan file.
+
+**Deferred / follow-ups.**
+- The same toggle gate hides every other BE kind (well, septic, fence,
+  gate, driveway, power-line, buried-utility) when their place-tools
+  run. Each tool would need the same one-line toggle-flip — or
+  preferably, refactor: each BE V2 tool's success path flips
+  `builtEnvironment` on as a shared helper. Tracked but not in this
+  fix's scope.
+- Default `builtEnvironment: false` is conservative — consider
+  switching to `true` once the V2 building footprint style is
+  unambiguous against the basemap. Until then, the auto-flip-on-create
+  pattern keeps it discoverable without ambushing fresh stewards
+  with overlays they didn't ask for.
+
+---
+
+## 2026-05-13 — Adopt-from-map Rec #2 (Observe): MapLibre setStyle diff race wiped observe-anno sources
+
+**Correction.** The 2026-05-13 entry above (Rec #1, matrix-toggle flip)
+got Save → matrix toggle → 2D fill *partly* right but missed a separate,
+more brutal failure mode: on the affected client (Chrome, real
+localStorage state), the observe-annotation sources for the adopted
+building were being added by
+[`ObserveAnnotationLayers`](apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx)
+and then **silently removed within ~1 s by MapLibre's `setStyle` diff
+path**. The 2D fill never had a chance to render. The toggle flip was
+necessary but not sufficient. The original "still not working — saved,
+no sign anything was done" report was reproducing this second bug,
+not the first.
+
+**Root cause.**
+[`DiagnoseMap`](apps/web/src/v3/components/DiagnoseMap.tsx) constructs
+the MapLibre instance with `style: MAP_STYLES[initialBasemapRef.current]`,
+then a sibling `useEffect` on `[map, basemap]` calls
+`map.setStyle(MAP_STYLES[basemap])` once `map` becomes non-null. On
+first mount those two values are identical — the rehydrated basemap.
+The `setStyle` call is therefore a no-op from the steward's point of
+view, but MapLibre's default `setStyle(target, {diff: true})` doesn't
+treat it as a no-op:
+
+1. `setStyle` begins fetching the (same) target style JSON.
+2. While the fetch is in flight, sibling effects in
+   `ObserveAnnotationLayers`, `DesignElementExtrusionLayer`,
+   `BeV2GenericLayer`, etc. run and `addSource`/`addLayer` their
+   `observe-anno-*` / `be-*` sources.
+3. Target JSON arrives. MapLibre computes the diff between the
+   current style (now carrying our app-added sources) and the target
+   JSON (which doesn't know about them).
+4. `t.Map._updateDiff` → `style.setState` → `style.removeSource` is
+   called for every app-added source. **Crucially**, this path
+   bypasses `map.removeSource` — no public listener fires, no
+   `style.load` re-hook surfaces, and instrumented `setStyle`/
+   `removeSource` traps don't observe it. Sources vanish silently.
+
+This was confirmed in Chrome with progressive prototype-level traps:
+neither `map.setStyle` nor `map.removeSource` fired between source-add
+and source-disappearance — but a trap planted directly on the internal
+`style.setState`/`style.removeSource` caught the diff path tearing
+down all four `observe-anno-*` sources from the `_updateDiff` call.
+Stack: `t.Map._updateDiff → de.setState → style.removeSource(observe-anno-*)`.
+
+**Fix.** Added an `appliedBasemapRef` to
+[`DiagnoseMap`](apps/web/src/v3/components/DiagnoseMap.tsx), initialised
+to the same value used to construct the map. The basemap-swap effect
+now early-returns when `appliedBasemapRef.current === basemap`, and
+updates the ref *before* calling `setStyle` on a real change. The
+no-op `setStyle` on first mount is eliminated; legitimate basemap
+swaps still go through the diff path (and the existing `style.load`
+re-hook in `ObserveAnnotationLayers` re-adds sources cleanly because
+in that case the diff is correct — sources weren't added pre-emptively).
+
+**Verified.**
+- `tsc --noEmit` clean (8 GB heap — pre-existing OOM workaround).
+- `vite build` clean (38.90 s).
+- Chrome reproduction at `/v3/project/eadb3223-.../observe`:
+  pre-fix `Object.keys(getStyle().sources).filter(s=>s.startsWith('observe-anno'))`
+  returned `[]` 8 s after navigation; post-fix returns
+  `['observe-anno-human-points','observe-anno-human-zones',
+  'observe-anno-be-buildings','observe-anno-selection']` with the
+  `be-buildings-fill` + `be-buildings-line` layers visible and a
+  20-feature FeatureCollection on the source. The adopted building
+  the steward had saved earlier in the day is now visible.
+
+**Lesson.** When a "redundant" effect fires `setStyle(currentStyle)`,
+remember the MapLibre default is `diff: true` and the diff is
+computed against *current* state, not against the spec we last
+asked for. That means any app-added source/layer that lands between
+the `setStyle` call and its async resolution is in the diff's
+"remove" set — silently. Same-value `setStyle` is not a no-op.
+The internal mutation path (`Style._updateDiff` → `style.setState`
+→ `style.removeSource`) doesn't surface via public `removeSource`
+either, so naïve `map.removeSource` traps will not catch the wipe.
+Either gate against same-value calls (this fix), pass
+`{diff: false}` and re-add on `style.load`, or defer all app
+source-adds until after the basemap has fully settled. We chose the
+gate — minimal change, no impact on legitimate basemap swaps.
+
+**Net diff.**
+- [`DiagnoseMap.tsx`](apps/web/src/v3/components/DiagnoseMap.tsx):
+  +12 lines (`appliedBasemapRef`, gate, rationale comment).
+- No other production-code changes; all diagnostic instrumentation
+  added during the hunt was reverted.
+
+**Deferred.**
+- The same race could in theory bite *legitimate* basemap swaps if a
+  sibling `useEffect` adds sources between the `setStyle` call and
+  the `style.load` event. Today's `ObserveAnnotationLayers` apply
+  bails on empty `style.layers` and re-runs on `style.load`, so
+  it's robust — but every new layer mounted under `DiagnoseMap`
+  inherits the same contract and could trip the diff if it doesn't
+  follow the same pattern. Worth a follow-up: extract a shared
+  "wait-for-style-then-apply" helper in the BE layer index.
+
+---
+
+## 2026-05-13 — Adopt-from-map: fresh-adopt end-to-end verification
+
+**Follow-up to the diff-race fix above.** After shipping the gate, the
+steward reported "fix did not actually work" — read as: a freshly
+adopted building still didn't render. Drove the full flow in Chrome MCP
+to settle it. Post-reload, in a clean session: clicked the **Adopt from
+map** rail button, fired a synthetic map click at a fresh basemap
+building (osm_id 6842847921). Result:
+
+- new V2 entity created with `state: 'existing'`, correct `projectId`,
+  `existing.adoptedFromBasemapId: 6842847921`;
+- `observe-anno-be-buildings` source feature count: 10 → 11 in the same
+  tick;
+- `queryRenderedFeatures` at the polygon centroid returned the new
+  feature on `observe-anno-be-buildings-fill` with matching `annoId`;
+- basemap layers' `building`/`building-3d` filter clauses extended to
+  include the new id — basemap original now hidden.
+
+So the fix is correct *and* end-to-end sufficient. The "still broken"
+report most likely reflected HMR not picking up the change before the
+retest (the running bundle now contains `appliedBasemapRef`, confirmed
+via `fetch('/src/v3/components/DiagnoseMap.tsx')`).
+
+No further code changes — verification only. `tsc --noEmit` clean.

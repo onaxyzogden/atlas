@@ -89,6 +89,14 @@ export default function DiagnoseMap({
   const [placing, setPlacing] = useState(false);
   const basemap = useBasemapStore((s) => s.basemap);
   const initialBasemapRef = useRef(basemap);
+  // Tracks the basemap value most recently *applied* to the map. The
+  // basemap-swap effect compares against this so it can skip the no-op
+  // setStyle on first mount (when the map was just constructed with the
+  // rehydrated basemap). That no-op setStyle was triggering MapLibre's
+  // diff path, which removed app-added sources (observe-anno-*, BE
+  // layers) the steward had just placed — a Polygon/Building adopt would
+  // appear briefly and then vanish.
+  const appliedBasemapRef = useRef(basemap);
 
   // Derive viewport from boundary when available; fall back to props otherwise.
   const { initialCenter, effectiveCentroid } = useMemo(() => {
@@ -116,6 +124,7 @@ export default function DiagnoseMap({
       transformRequest: maptilerTransformRequest,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    if (import.meta.env.DEV) (window as unknown as { __atlasMap?: maplibregl.Map }).__atlasMap = m;
     setMap(m);
     return () => {
       setMap(null);
@@ -128,10 +137,25 @@ export default function DiagnoseMap({
   }, [zoom]);
 
   // Swap basemap style when the user picks a different basemap.
+  //
+  // CRITICAL: skip when `basemap` matches what's already applied. The map
+  // is constructed with `MAP_STYLES[initialBasemapRef.current]`, so on
+  // first mount this effect would otherwise call `setStyle` with the same
+  // style URL it was just built with. MapLibre's `setStyle` defaults to
+  // `{diff: true}`: it computes a diff between the *current* style (which
+  // at this point already includes our app-added sources/layers from any
+  // sibling effect that ran first — ObserveAnnotationLayers, BE layers,
+  // etc.) and the *new* style JSON, then removes everything in current
+  // that isn't in new via `style.setState` → `style.removeSource`. That
+  // path bypasses `map.removeSource`, fires no `style.load` event the
+  // app can re-hook from, and silently wipes adopted-building + annotation
+  // sources within a second of placement.
   useEffect(() => {
     if (!map) return;
+    if (appliedBasemapRef.current === basemap) return;
     const target = MAP_STYLES[basemap];
     if (!target) return;
+    appliedBasemapRef.current = basemap;
     map.setStyle(target);
   }, [map, basemap]);
 
