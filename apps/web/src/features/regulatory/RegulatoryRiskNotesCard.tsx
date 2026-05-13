@@ -18,7 +18,7 @@
  */
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
@@ -56,7 +56,7 @@ interface SoilsSummary {
 }
 
 export default function RegulatoryRiskNotesCard({ project }: RegulatoryRiskNotesCardProps) {
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allPaddocks = useLivestockStore((st) => st.paddocks);
   const allPaths = usePathStore((st) => st.paths);
   const allUtilities = useUtilityStore((st) => st.utilities);

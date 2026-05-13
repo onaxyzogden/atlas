@@ -6,7 +6,7 @@
 
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useMemo } from 'react';
 import p from '../../styles/panel.module.css';
 import { zone, confidence, semantic } from '../../lib/tokens.js';
@@ -17,7 +17,7 @@ interface MoontancePanelProps {
 
 export default function MoontrancePanel({ project }: MoontancePanelProps) {
   const zones = useZoneStore((s) => s.zones).filter((z) => z.projectId === project.id);
-  const structures = useStructureStore((s) => s.structures).filter((s) => s.projectId === project.id);
+  const structures = useAllStructures().filter((s) => s.projectId === project.id);
 
   const spiritualZones = useMemo(() => zones.filter((z) => z.category === 'spiritual'), [zones]);
   const retreatZones = useMemo(() => zones.filter((z) => z.category === 'retreat'), [zones]);

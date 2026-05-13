@@ -24,7 +24,7 @@
 
 import { useMemo, useCallback, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -68,7 +68,7 @@ function fmtPct(v: number | string | undefined): string | null {
 }
 
 export default function DesignBriefPitchCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allZones = useZoneStore((s) => s.zones);
   const allCropAreas = useCropStore((s) => s.cropAreas);

@@ -17,7 +17,8 @@ import {
   type DesignPath,
   type PathType,
 } from '../../store/pathStore.js';
-import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import { type Structure } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import css from './WayfindingPlanCard.module.css';
 
 /* ── Tunables ──────────────────────────────────────────────────────────── */
@@ -284,7 +285,7 @@ interface Props {
 
 export default function WayfindingPlanCard({ projectId }: Props) {
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const paths = useMemo(
     () => allPaths.filter((p) => p.projectId === projectId),

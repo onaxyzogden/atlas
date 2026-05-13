@@ -5,7 +5,7 @@
 
 import { useState, useMemo } from 'react';
 import { computeQibla } from '../../lib/qibla.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { type LocalProject } from '../../store/projectStore.js';
@@ -55,7 +55,7 @@ export default function SpiritualPanel({ project }: SpiritualPanelProps) {
   const qibla = useMemo(() => center ? computeQibla(center[1], center[0]) : null, [center]);
 
   // Store subscriptions
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => allStructures.filter((st) => st.projectId === project.id), [allStructures, project.id]);
 
   const allZones = useZoneStore((st) => st.zones);

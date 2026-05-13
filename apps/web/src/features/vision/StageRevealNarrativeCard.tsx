@@ -16,7 +16,7 @@
 import { useMemo, useState } from 'react';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useVisionStore, type PhaseKey } from '../../store/visionStore.js';
@@ -56,7 +56,7 @@ function visionKeyForOrder(order: number): PhaseKey {
 export default function StageRevealNarrativeCard({ projectId }: Props) {
   const cropAreas = useCropStore((s) => s.cropAreas);
   const paddocks = useLivestockStore((s) => s.paddocks);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const utilities = useUtilityStore((s) => s.utilities);
   const allPhases = usePhaseStore((s) => s.phases);
   const visionData = useVisionStore((s) => s.getVisionData(projectId));

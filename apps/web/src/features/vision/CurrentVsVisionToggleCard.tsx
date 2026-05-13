@@ -19,7 +19,7 @@
 import { useMemo } from 'react';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useCropStore } from '../../store/cropStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -53,7 +53,7 @@ function pct(n: number, d: number): number {
 export default function CurrentVsVisionToggleCard({ projectId }: Props) {
   const allPhases = usePhaseStore((s) => s.phases);
   const allCrops = useCropStore((s) => s.cropAreas);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const visionData = useVisionStore((s) => s.getVisionData(projectId));

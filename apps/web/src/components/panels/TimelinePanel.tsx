@@ -7,7 +7,7 @@ import { useState, useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useMapStore } from '../../store/mapStore.js';
@@ -48,7 +48,7 @@ export default function TimelinePanel({ project }: TimelinePanelProps) {
   usePhaseStore.getState().ensureDefaults(project.id);
   useVisionStore.getState().ensureDefaults(project.id);
 
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => allStructures.filter((st) => st.projectId === project.id), [allStructures, project.id]);
 
   const allPaths = usePathStore((st) => st.paths);

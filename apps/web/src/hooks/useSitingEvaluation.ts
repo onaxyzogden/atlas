@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../store/projectStore.js';
-import { useStructureStore } from '../store/structureStore.js';
+import { useAllStructures } from '../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../store/zoneStore.js';
 import { useLivestockStore } from '../store/livestockStore.js';
 import { useCropStore } from '../store/cropStore.js';
@@ -102,7 +102,7 @@ function computeCenterFromBoundary(geojson: unknown): [number, number] | null {
 
 export function useSitingEvaluation(project: LocalProject): SitingEvaluationResult {
   // Feature store subscriptions — filtered by projectId
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((s) => s.zones);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allCrops = useCropStore((s) => s.cropAreas);

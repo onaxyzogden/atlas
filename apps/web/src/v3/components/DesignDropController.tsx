@@ -20,6 +20,7 @@
 import { useEffect, useMemo } from "react";
 import { maplibregl } from "../../lib/maplibre.js";
 import { useStructureStore } from "../../store/structureStore.js";
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from "../../store/livestockStore.js";
 import { snapPoint, type SnapTargets } from "../lib/snapPoint.js";
 import { buildDrop } from "../lib/dropDefaults.js";
@@ -60,7 +61,7 @@ export default function DesignDropController({
 }: DesignDropControllerProps) {
   const addStructure = useStructureStore((s) => s.addStructure);
   const addPaddock = useLivestockStore((s) => s.addPaddock);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const paddocks = useLivestockStore((s) => s.paddocks);
 
   // Snap targets re-derive only when the project's placements change.

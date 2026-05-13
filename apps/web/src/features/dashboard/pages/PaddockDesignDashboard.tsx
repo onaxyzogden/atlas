@@ -9,7 +9,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { usePathStore } from '../../../store/pathStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import {
@@ -72,7 +72,7 @@ const ACTION_LABELS: Record<RotationEntry['suggestedAction'], string> = {
 export default function PaddockDesignDashboard({ project, onSwitchToMap }: PaddockDesignDashboardProps) {
   /* --- store subscriptions --- */
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPaths = usePathStore((s) => s.paths);
   const siteData = useSiteData(project.id);
 

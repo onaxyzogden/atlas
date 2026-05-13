@@ -237,6 +237,27 @@ export function useStructuresForProject(projectId: string): Structure[] {
   }, [entities, projectId]);
 }
 
+/** Read every structure across all projects. Non-React; one-shot. Used by
+ *  call sites that need to iterate / filter by something other than
+ *  projectId (e.g. by id, by kind, by bounding-box intersection). */
+export function getAllStructures(): Structure[] {
+  const entities = useBuiltEnvironmentStoreV2.getState().entities;
+  const projected = projectToStructures(entities);
+  return projected.length === 0 ? EMPTY_STRUCTURES : projected;
+}
+
+/** Subscribe to every structure across all projects. React hook. Use only
+ *  when a project-filtered read is genuinely not possible — otherwise
+ *  prefer `useStructuresForProject(projectId)` for narrower re-render
+ *  scope. */
+export function useAllStructures(): Structure[] {
+  const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  return useMemo(() => {
+    const projected = projectToStructures(entities);
+    return projected.length === 0 ? EMPTY_STRUCTURES : projected;
+  }, [entities]);
+}
+
 /** Locate a structure by id across every project (ids are globally unique
  *  within V2). Non-React; one-shot. */
 export function findStructureGlobal(

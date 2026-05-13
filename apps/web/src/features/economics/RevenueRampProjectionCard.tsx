@@ -32,7 +32,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import css from './RevenueRampProjectionCard.module.css';
@@ -94,7 +94,7 @@ function loadOverrides(projectId: string): Partial<Record<StreamId, number>> {
 }
 
 export default function RevenueRampProjectionCard({ projectId }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () => allStructures.filter((st) => st.projectId === projectId),
     [allStructures, projectId],

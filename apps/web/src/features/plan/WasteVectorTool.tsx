@@ -12,7 +12,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { newAnnotationId, type WasteVector, type WasteResourceType } from '../../store/site-annotations.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../store/cropStore.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
@@ -35,7 +35,7 @@ export default function WasteVectorTool({ project }: Props) {
   const removeVector = useClosedLoopStore((s) => s.removeWasteVector);
 
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allCrops = useCropStore((s) => s.cropAreas);
 
   const vectors = useMemo(() => allVectors.filter((v) => v.projectId === project.id), [allVectors, project.id]);

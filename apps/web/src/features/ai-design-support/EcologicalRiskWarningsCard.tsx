@@ -21,7 +21,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
@@ -95,7 +95,7 @@ function parsePct(v: number | string | undefined): number | null {
 }
 
 export default function EcologicalRiskWarningsCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () => allStructures.filter((st) => st.projectId === project.id),
     [allStructures, project.id],

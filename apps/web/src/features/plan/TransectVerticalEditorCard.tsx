@@ -24,7 +24,7 @@ import { useTopographyStore } from '../../store/topographyStore.js';
 import { useWaterSystemsStore, type Earthwork, type StorageInfra } from '../../store/waterSystemsStore.js';
 import { usePolycultureStore, type Guild, type SpeciesPick } from '../../store/polycultureStore.js';
 import { useClosedLoopStore, type FertilityInfra } from '../../store/closedLoopStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import type { Structure } from '../../store/structureStore.js';
 import { PLANT_DATABASE } from '../../data/plantDatabase.js';
 import {
@@ -108,7 +108,7 @@ export default function TransectVerticalEditorCard({ project }: Props) {
   const allGuilds        = usePolycultureStore((s) => s.guilds);
   const allSpecies       = usePolycultureStore((s) => s.species);
   const allFertility     = useClosedLoopStore((s) => s.fertilityInfra);
-  const allStructures    = useStructureStore((s) => s.structures);
+  const allStructures    = useAllStructures();
 
   const transects   = useMemo(() => allTransects.filter((t) => t.projectId === project.id), [allTransects, project.id]);
   const earthworks  = useMemo(() => allEarthworks.filter((e) => e.projectId === project.id), [allEarthworks, project.id]);

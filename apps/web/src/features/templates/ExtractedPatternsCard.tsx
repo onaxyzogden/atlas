@@ -24,7 +24,8 @@
 
 import { useMemo } from 'react';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import { type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore, type PathType, PATH_TYPE_CONFIG } from '../../store/pathStore.js';
 import { useLivestockStore, type LivestockSpecies } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -113,7 +114,7 @@ const SPECIES_LABEL: Record<LivestockSpecies, string> = {
 
 export default function ExtractedPatternsCard({ projectId }: ExtractedPatternsCardProps) {
   const zones = useZoneStore((st) => st.zones).filter((z) => z.projectId === projectId);
-  const structures = useStructureStore((st) => st.structures).filter((s2) => s2.projectId === projectId);
+  const structures = useAllStructures().filter((s2) => s2.projectId === projectId);
   const paths = usePathStore((st) => st.paths).filter((p2) => p2.projectId === projectId);
   const paddocks = useLivestockStore((st) => st.paddocks).filter((p2) => p2.projectId === projectId);
   const crops = useCropStore((st) => st.cropAreas).filter((c) => c.projectId === projectId);

@@ -1,7 +1,8 @@
 import { memo, useMemo } from 'react';
 import css from './ArrivalSequenceDesignCard.module.css';
 import { usePathStore, type DesignPath } from '../../store/pathStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { type Structure, type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useProjectStore, getZoneThresholds, DEFAULT_ZONE_THRESHOLDS } from '../../store/projectStore.js';
 import { haversineM } from '../../lib/geo.js';
 
@@ -81,7 +82,7 @@ function formatTime(seconds: number): string {
 
 function ArrivalSequenceDesignCard({ projectId }: ArrivalSequenceDesignCardProps) {
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
   // A guest-facing structure becomes a reveal milestone when it sits within
   // Zone-1 reach of the arrival path. Read the project's tuned closeM

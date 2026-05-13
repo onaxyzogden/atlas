@@ -21,7 +21,7 @@
  */
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { usePathStore } from '../../store/pathStore.js';
@@ -61,7 +61,7 @@ const KITCHEN_BEARING = new Set(['cabin', 'earthship']);
 const TONE_RANK: Record<Tone, number> = { good: 0, na: 0, fair: 1, poor: 2 };
 
 export default function SafetyBufferRulesCard({ project }: SafetyBufferRulesCardProps) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allPaths = usePathStore((s) => s.paths);

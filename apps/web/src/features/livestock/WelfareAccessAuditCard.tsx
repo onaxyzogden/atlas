@@ -28,7 +28,8 @@
 
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { type Structure, type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../store/utilityStore.js';
 import s from './WelfareAccessAuditCard.module.css';
 
@@ -214,7 +215,7 @@ function remediationFor(p: PaddockEval): string | null {
 
 export default function WelfareAccessAuditCard({ projectId }: Props) {
   const allPaddocks = useLivestockStore((st) => st.paddocks);
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((st) => st.utilities);
 
   const paddocks = useMemo(

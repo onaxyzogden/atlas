@@ -22,7 +22,8 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import { type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { deriveInfrastructureCost } from '../structures/footprints.js';
 import css from './TerrainConstructionDifficultyCard.module.css';
@@ -156,7 +157,7 @@ interface StructureRow {
 }
 
 export default function TerrainConstructionDifficultyCard({ project }: Props) {
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () => allStructures.filter((x) => x.projectId === project.id),
     [allStructures, project.id],

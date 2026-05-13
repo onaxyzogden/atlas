@@ -18,6 +18,9 @@ import { syncQueue, type QueuedOperation } from './syncQueue.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
 import { useStructureStore, type Structure } from '../store/structureStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../store/builtEnvironmentStoreV2.js';
+import { getAllStructures } from '../store/builtEnvironmentSelectors.js';
+import { projectToStructures } from '@ogden/shared';
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import { precacheProjectTiles } from './tilePrecache.js';
 import { FLAGS, type CreateDesignFeatureInput, type DesignFeatureSummary } from '@ogden/shared';
@@ -142,11 +145,11 @@ function subscribeToZones() {
 }
 
 function subscribeToStructures() {
-  let prevStructures = useStructureStore.getState().structures;
+  let prevStructures: Structure[] = getAllStructures();
 
-  return useStructureStore.subscribe((state) => {
+  return useBuiltEnvironmentStoreV2.subscribe((state) => {
     if (isSyncing) return;
-    const curr = state.structures;
+    const curr: Structure[] = projectToStructures(state.entities);
     const { added, removed, updated } = diffArrayById(curr, prevStructures);
     prevStructures = curr;
 
@@ -554,7 +557,7 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
 
     // Fetch structures from server
     const { data: serverStructures } = await api.designFeatures.list(project.serverId, 'structure');
-    const localStructures = useStructureStore.getState().structures.filter((s) => s.projectId === project.id);
+    const localStructures = getAllStructures().filter((s) => s.projectId === project.id);
     const localStructureByServerId = new Map(localStructures.filter((s) => s.serverId).map((s) => [s.serverId!, s]));
 
     // Merge server structures → local
@@ -570,7 +573,7 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
     }
 
     // Push unsynced local structures to server
-    const unsyncedStructures = useStructureStore.getState().structures.filter(
+    const unsyncedStructures = getAllStructures().filter(
       (s) => s.projectId === project.id && !s.serverId,
     );
     for (const structure of unsyncedStructures) {

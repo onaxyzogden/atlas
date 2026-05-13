@@ -30,7 +30,7 @@
 import { useMemo } from 'react';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { usePathStore } from '../../../../store/pathStore.js';
-import { useStructureStore } from '../../../../store/structureStore.js';
+import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
@@ -82,7 +82,7 @@ export function usePrincipleEvidenceVisibleIds(
 ): PrincipleEvidenceVisibleIds {
   const allZones = useZoneStore((s) => s.zones);
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allTransects = useTopographyStore((s) => s.transects);
   const allGuilds = usePolycultureStore((s) => s.guilds);
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);

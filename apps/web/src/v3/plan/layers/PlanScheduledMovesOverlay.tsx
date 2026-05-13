@@ -24,6 +24,7 @@ import { maplibregl } from '../../../lib/maplibre.js';
 import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import {
   useScheduledLivestockMoveStore,
   plansByPaddock,
@@ -74,7 +75,7 @@ interface Props {
 export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
   const visible = useMatrixTogglesStore((s) => s.scheduledMoves);
   const paddocks = useLivestockStore((s) => s.paddocks);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const plans = useScheduledLivestockMoveStore((s) => s.plans);
   const openForm = useInlineFormStore((s) => s.open);
 

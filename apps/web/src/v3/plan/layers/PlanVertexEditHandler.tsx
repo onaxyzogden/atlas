@@ -26,6 +26,7 @@ import { useZoneStore } from '../../../store/zoneStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
+import { getAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import {
   findDesignElementGlobal,
   updateDesignElement,
@@ -73,7 +74,7 @@ function readPolygon(kind: string, id: string): GeoJSON.Polygon | null {
       : null;
   }
   // structure
-  const r = useStructureStore.getState().structures.find((x) => x.id === id);
+  const r = getAllStructures().find((x) => x.id === id);
   return r?.geometry ?? null;
 }
 

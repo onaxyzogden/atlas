@@ -32,6 +32,7 @@
 
 import { useMemo } from 'react';
 import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -130,7 +131,7 @@ interface Props {
 }
 
 export default function RuleHotspotCostBundlesCard({ project }: Props) {
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const zones      = useZoneStore((s) => s.zones);
   const paddocks   = useLivestockStore((s) => s.paddocks);
   const crops      = useCropStore((s) => s.cropAreas);

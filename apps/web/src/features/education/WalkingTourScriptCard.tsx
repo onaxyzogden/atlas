@@ -15,7 +15,7 @@
  */
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { usePathStore } from '../../store/pathStore.js';
@@ -45,7 +45,7 @@ interface OrderedStop extends CandidateStop {
 const WATER_UTIL_TYPES = new Set(['water_tank', 'well_pump', 'rain_catchment', 'septic', 'greywater']);
 
 export default function WalkingTourScriptCard({ project }: WalkingTourScriptCardProps) {
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allPaddocks = useLivestockStore((st) => st.paddocks);
   const allCrops = useCropStore((st) => st.cropAreas);
   const allPaths = usePathStore((st) => st.paths);

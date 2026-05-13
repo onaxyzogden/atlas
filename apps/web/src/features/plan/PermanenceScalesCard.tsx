@@ -12,7 +12,7 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { usePathStore } from '../../store/pathStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { useEcologyStore } from '../../store/ecologyStore.js';
@@ -37,7 +37,7 @@ interface Scale {
 export default function PermanenceScalesCard({ project }: Props) {
   const allZones = useZoneStore((s) => s.zones);
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allCrops = useCropStore((s) => s.cropAreas);
   const allTransects = useTopographyStore((s) => s.transects);
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);

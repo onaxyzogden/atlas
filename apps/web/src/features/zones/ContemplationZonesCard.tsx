@@ -26,10 +26,10 @@ import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
 import {
-  useStructureStore,
   type Structure,
   type StructureType,
 } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import {
   useUtilityStore,
   type Utility,
@@ -138,7 +138,7 @@ const PER_ZONE_LIST_CAP = 5;
 
 export default function ContemplationZonesCard({ projectId }: Props) {
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
 
   const zones = useMemo(

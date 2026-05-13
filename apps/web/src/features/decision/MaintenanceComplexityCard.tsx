@@ -23,7 +23,8 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import { type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useCropStore, type CropAreaType } from '../../store/cropStore.js';
@@ -198,7 +199,7 @@ function fmtFte(h: number): string {
 }
 
 export default function MaintenanceComplexityCard({ project }: Props) {
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((st) => st.utilities);
   const allZones = useZoneStore((st) => st.zones);
   const allCrops = useCropStore((st) => st.cropAreas);

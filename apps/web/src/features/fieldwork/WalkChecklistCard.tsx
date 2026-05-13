@@ -19,7 +19,7 @@
  */
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -108,7 +108,7 @@ function saveObserved(projectId: string, observed: Record<string, ObservedEntry>
 
 export default function WalkChecklistCard({ projectId }: Props) {
   const project = useProjectStore((s) => s.projects.find((p) => p.id === projectId));
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allCropAreas = useCropStore((s) => s.cropAreas);
   const allPaddocks = useLivestockStore((s) => s.paddocks);

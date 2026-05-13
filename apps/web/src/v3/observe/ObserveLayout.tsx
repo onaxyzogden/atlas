@@ -31,8 +31,10 @@ import ObserveChecklistAside from './components/ObserveChecklistAside.js';
 import ObserveModuleBar from './components/ObserveModuleBar.js';
 import ModuleSlideUp from './components/ModuleSlideUp.js';
 import MapToolbar from './components/MapToolbar.js';
-import DesignToolRail from '../plan/canvas/DesignToolRail.js';
+import DesignToolRail, { type ToolMode } from '../plan/canvas/DesignToolRail.js';
+import { MapCursorHost } from '../plan/canvas/useMapCursor.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
+import PlanSelectionFloater from '../plan/PlanSelectionFloater.js';
 import ObserveDrawHost from './components/draw/ObserveDrawHost.js';
 import AnnotationDragHandler from './components/draw/AnnotationDragHandler.js';
 import AnnotationVertexEditHandler from './components/draw/AnnotationVertexEditHandler.js';
@@ -78,6 +80,9 @@ export default function ObserveLayout() {
     activeTool && activeTool.startsWith('observe.') ? activeTool : null;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
+  const [mode, setMode] = useState<ToolMode>('pan');
+  const [hovering, setHovering] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const handleSelectModule = (mod: ObserveModule | null) => {
     if (!params.projectId) return;
@@ -147,13 +152,21 @@ export default function ObserveLayout() {
                   });
                 }}
               />
+              <MapCursorHost
+                map={map}
+                drawArmed={armedDrawKind !== null}
+                mode={mode}
+                hovering={hovering}
+              />
               <DesignToolRail
                 map={map}
                 activeKind={armedDrawKind}
                 projectId={params.projectId ?? ''}
                 onDisarmDraw={() => setActiveTool(null)}
-                selectedId={null}
-                setSelectedId={() => {}}
+                selectedId={selectedId}
+                setSelectedId={setSelectedId}
+                mode={mode}
+                setMode={setMode}
               />
               <BaseMapCard />
               <ObserveAnnotationLayers
@@ -204,6 +217,7 @@ export default function ObserveLayout() {
                 projectId={params.projectId ?? null}
               />
               <SelectionFloater projectId={params.projectId ?? null} />
+              <PlanSelectionFloater />
               <InlineFeaturePopover map={map} />
               <ExportButton projectId={params.projectId ?? null} />
               <ImportSiteIntelButton projectId={params.projectId ?? null} />

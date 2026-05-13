@@ -21,7 +21,8 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import { type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -120,7 +121,7 @@ function drainageRank(cls: string | undefined): number | null {
 }
 
 export default function FeaturePlacementSuggestionsCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () => allStructures.filter((st) => st.projectId === project.id),
     [allStructures, project.id],

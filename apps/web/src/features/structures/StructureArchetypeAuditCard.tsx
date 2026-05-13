@@ -18,7 +18,8 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import { type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import css from './StructureArchetypeAuditCard.module.css';
 
 interface Props {
@@ -150,7 +151,7 @@ interface NeedRow {
 }
 
 export default function StructureArchetypeAuditCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const structures = useMemo(
     () => allStructures.filter((s) => s.projectId === project.id),

@@ -15,8 +15,7 @@
  * file does not need to import `@ogden/shared/relationships`. Consumers
  * that need exhaustive narrowing should cast at their boundary.
  */
-
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -52,7 +51,7 @@ function polygonCentroid(geom: GeoJSON.Polygon): { lat: number; lng: number } | 
 
 export function useAllPlacedEntities(): PlacedEntityView[] {
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const utilities = useUtilityStore((s) => s.utilities);
   const cropAreas = useCropStore((s) => s.cropAreas);
   const paddocks = useLivestockStore((s) => s.paddocks);

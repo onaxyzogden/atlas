@@ -18,6 +18,7 @@ import {
   type StructureType,
   type Structure,
 } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES, createFootprintPolygon } from '../../features/structures/footprints.js';
 import StructurePropertiesModal from '../../features/structures/StructurePropertiesModal.js';
 import LivestockPanel from '../../features/livestock/LivestockPanel.js';
@@ -68,7 +69,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
   const deleteZone = useZoneStore((zs) => zs.deleteZone);
 
   // Structure state
-  const allStructures = useStructureStore((ss) => ss.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => allStructures.filter((st) => st.projectId === projectId), [allStructures, projectId]);
   const addStructure = useStructureStore((ss) => ss.addStructure);
   const deleteStructure = useStructureStore((ss) => ss.deleteStructure);

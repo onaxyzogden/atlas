@@ -37,10 +37,10 @@ import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
 import {
-  useStructureStore,
   type Structure,
   type StructureType,
 } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import {
   useUtilityStore,
   type Utility,
@@ -191,7 +191,7 @@ const STATUS_CFG: Record<CheckStatus, { dot: string; cls: string }> = {
 
 export default function PrayerZoneReadinessCard({ project }: Props) {
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allPaths = usePathStore((s) => s.paths);
   const visionData = useVisionStore((s) => s.getVisionData(project.id));

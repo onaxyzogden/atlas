@@ -18,7 +18,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -83,7 +83,7 @@ function parseNum(v: number | string | undefined): number | null {
 }
 
 export default function PhasedBuildStrategyCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () => allStructures.filter((st) => st.projectId === project.id),
     [allStructures, project.id],

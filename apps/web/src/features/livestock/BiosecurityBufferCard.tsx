@@ -19,7 +19,8 @@
  * cross-checked against local ordinance before construction.
  */
 import { useMemo } from 'react';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { type Structure, type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import css from './BiosecurityBufferCard.module.css';
 
 const LIVESTOCK_TYPES: ReadonlySet<StructureType> = new Set(['barn', 'animal_shelter']);
@@ -134,7 +135,7 @@ function fmtM(m: number): string {
 }
 
 export default function BiosecurityBufferCard({ projectId, parcelBoundaryGeojson }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const projectStructures = useMemo(
     () => allStructures.filter((s) => s.projectId === projectId),
     [allStructures, projectId],

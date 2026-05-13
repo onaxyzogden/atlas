@@ -25,6 +25,10 @@ interface Props {
   view: PlanView;
   /** Currently selected design element id. Drives the feature-state highlight. */
   selectedId?: string | null;
+  /** Called with true when the pointer enters a design-element layer,
+   *  false when it leaves. Used by VisionLayoutCanvas to drive the
+   *  hover-affordance cursor in Select mode. */
+  onHoverChange?: (hovering: boolean) => void;
 }
 
 const SOURCE_PREFIX = 'design-el-';
@@ -35,6 +39,7 @@ export default function DesignElementLayers({
   projectId,
   view,
   selectedId,
+  onHoverChange,
 }: Props) {
   const elements = useDesignElementsForProject(projectId);
 
@@ -138,8 +143,30 @@ export default function DesignElementLayers({
   useEffect(() => {
     if (!map) return;
 
+    let disposed = false;
+    let idlePending = false;
+    // Schedule a one-shot retry on the next `idle` event whenever apply()
+    // bails due to a not-yet-loaded style. This is the key to fixing the
+    // "previously drawn features don't appear until I draw a new one" bug:
+    // `isStyleLoaded()` flips back to false during basemap initial paint
+    // and mid-tile-load, so a `styledata` listener alone isn't enough —
+    // we may catch it in the "false" window and never re-try. Hooking
+    // `idle` on every bail guarantees a follow-up pass once the map settles.
+    const scheduleRetry = () => {
+      if (disposed || idlePending) return;
+      idlePending = true;
+      map.once('idle', () => {
+        idlePending = false;
+        if (!disposed) apply();
+      });
+    };
+
     const apply = () => {
-      if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
+      if (disposed) return;
+      if (!map.isStyleLoaded()) {
+        scheduleRetry();
+        return;
+      }
 
       const ensureSource = (id: string, data: GeoJSON.FeatureCollection) => {
         const sid = `${SOURCE_PREFIX}${id}`;
@@ -252,15 +279,49 @@ export default function DesignElementLayers({
     apply();
     const onStyle = () => apply();
     map.on('style.load', onStyle);
+    map.on('load', onStyle);
+    // `styledata` fires on initial paint AND every basemap swap, where
+    // `style.load` is unreliable in some F5/setStyle interleavings (see
+    // ADDENDUM 7 in DiagnoseMap). Idempotent ensureSource/ensureLayer
+    // guards make repeated invocations safe.
+    map.on('styledata', onStyle);
 
     return () => {
+      disposed = true;
       try {
         map.off('style.load', onStyle);
+        map.off('load', onStyle);
+        map.off('styledata', onStyle);
       } catch {
         /* map already disposed */
       }
     };
   }, [map, polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC]);
+
+  // Pointer hover bookkeeping — report enter/leave on any of the three
+  // clickable design-element layers up to the canvas so the centralized
+  // cursor effect can show a `pointer` affordance in Select mode.
+  useEffect(() => {
+    if (!map || !onHoverChange) return;
+    const layerIds = ['design-el-poly-fill', 'design-el-line', 'design-el-point'];
+    const onEnter = () => onHoverChange(true);
+    const onLeave = () => onHoverChange(false);
+    for (const id of layerIds) {
+      map.on('mouseenter', id, onEnter);
+      map.on('mouseleave', id, onLeave);
+    }
+    return () => {
+      try {
+        for (const id of layerIds) {
+          map.off('mouseenter', id, onEnter);
+          map.off('mouseleave', id, onLeave);
+        }
+        onHoverChange(false);
+      } catch {
+        /* map disposed */
+      }
+    };
+  }, [map, onHoverChange]);
 
   // Drive feature-state highlight off selectedId. Re-runs on FC changes
   // because source.setData() wipes feature-state.

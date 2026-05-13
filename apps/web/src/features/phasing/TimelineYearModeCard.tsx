@@ -23,7 +23,7 @@ import { useMemo, useState } from 'react';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import css from './TimelineYearModeCard.module.css';
@@ -74,7 +74,7 @@ export default function TimelineYearModeCard({ projectId }: Props) {
   const allPhases = usePhaseStore((s) => s.phases);
   const allCrops = useCropStore((s) => s.cropAreas);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allZones = useZoneStore((s) => s.zones);
 

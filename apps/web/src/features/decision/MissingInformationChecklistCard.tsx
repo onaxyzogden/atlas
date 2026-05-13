@@ -13,7 +13,7 @@
  */
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -37,7 +37,7 @@ interface GapItem {
 }
 
 export default function MissingInformationChecklistCard({ project }: MissingInformationChecklistCardProps) {
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((st) => st.zones);
   const allPaddocks = useLivestockStore((st) => st.paddocks);
   const allCrops = useCropStore((st) => st.cropAreas);

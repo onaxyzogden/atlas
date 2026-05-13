@@ -29,7 +29,7 @@ import {
   useLivestockStore,
   type LivestockSpecies,
 } from '../../store/livestockStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import { getActionsForType } from '../../v3/act/data/structureActions.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
@@ -88,7 +88,7 @@ export default function LivestockMoveCard({ project }: Props) {
   const removeEvent = useLivestockMoveLogStore((s) => s.removeEvent);
 
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const paddocks = useMemo(
     () => allPaddocks.filter((p) => p.projectId === project.id),

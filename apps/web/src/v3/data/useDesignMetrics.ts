@@ -34,7 +34,8 @@
 
 import { useMemo } from "react";
 import type { MockLayerResult } from "@ogden/shared/scoring";
-import { useStructureStore, type Structure, type StructureType } from "../../store/structureStore.js";
+import { type Structure, type StructureType } from "../../store/structureStore.js";
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore, type Paddock } from "../../store/livestockStore.js";
 import { useSiteDataStore } from "../../store/siteDataStore.js";
 
@@ -142,7 +143,7 @@ export function useDesignMetrics(
   boundary?: GeoJSON.Polygon,
   lifecycleStage?: string,
 ): DesignMetrics {
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const paddocks = useLivestockStore((s) => s.paddocks);
   const layers = useSiteDataStore((s) => s.dataByProject[projectId]?.layers);
 

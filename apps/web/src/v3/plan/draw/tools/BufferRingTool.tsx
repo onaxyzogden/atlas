@@ -21,7 +21,7 @@ import {
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useCropStore } from '../../../../store/cropStore.js';
 import { useLivestockStore } from '../../../../store/livestockStore.js';
-import { useStructureStore } from '../../../../store/structureStore.js';
+import { getAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { usePathStore } from '../../../../store/pathStore.js';
 import { useUtilityRunStore } from '../../../../store/utilityRunStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
@@ -56,7 +56,7 @@ function hitTestPolygons(
   // Priority order — most-specific first. A click inside a crop area
   // sitting on top of a zone resolves as the crop area, since that's the
   // tighter context the steward is pointing at.
-  const structures = useStructureStore.getState().structures;
+  const structures = getAllStructures();
   for (const s of structures) {
     if (s.projectId !== projectId) continue;
     if (turf.booleanPointInPolygon(click, s.geometry)) {

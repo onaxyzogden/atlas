@@ -16,7 +16,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -326,7 +326,7 @@ const ALL_UTILITY_KEYS = Object.keys(UTILITY_EXPLAINERS).filter((k) => k !== 'ge
 const ALL_CROP_KEYS = Object.keys(CROP_EXPLAINERS);
 
 export default function EducationalExplainerCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allCropAreas = useCropStore((s) => s.cropAreas);
   const allPaddocks = useLivestockStore((s) => s.paddocks);

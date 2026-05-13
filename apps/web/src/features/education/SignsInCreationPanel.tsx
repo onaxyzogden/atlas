@@ -20,7 +20,8 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import { type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';
 import { useCropStore, type CropAreaType } from '../../store/cropStore.js';
@@ -235,7 +236,7 @@ interface SignsInCreationPanelProps {
 export default function SignsInCreationPanel({ project }: SignsInCreationPanelProps) {
   const [open, setOpen] = useState<boolean>(false);
 
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((s) => s.zones);
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allCropAreas = useCropStore((s) => s.cropAreas);

@@ -14,6 +14,7 @@ import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES, createFootprintPolygon } from '../structures/footprints.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -50,7 +51,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   // Render boundary + zones + structures on map. Re-adds after style changes.
   const allZones = useZoneStore((s) => s.zones);
   const zones = useMemo(() => projectId ? allZones.filter((z) => z.projectId === projectId) : [], [allZones, projectId]);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => projectId ? allStructures.filter((s) => s.projectId === projectId) : [], [allStructures, projectId]);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const paddocks = useMemo(() => projectId ? allPaddocks.filter((p) => p.projectId === projectId) : [], [allPaddocks, projectId]);

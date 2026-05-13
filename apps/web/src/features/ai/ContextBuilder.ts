@@ -8,7 +8,7 @@
 
 import { useProjectStore, type LocalProject } from '../../store/projectStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { getAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { usePathStore } from '../../store/pathStore.js';
@@ -24,7 +24,7 @@ export function buildProjectContext(projectId: string, layers: MockLayerResult[]
   if (!project) return 'No project found.';
 
   const zones = useZoneStore.getState().zones.filter((z) => z.projectId === projectId);
-  const structures = useStructureStore.getState().structures.filter((s) => s.projectId === projectId);
+  const structures = getAllStructures().filter((s) => s.projectId === projectId);
   const paddocks = useLivestockStore.getState().paddocks.filter((p) => p.projectId === projectId);
   const crops = useCropStore.getState().cropAreas.filter((c) => c.projectId === projectId);
   const paths = usePathStore.getState().paths.filter((p) => p.projectId === projectId);

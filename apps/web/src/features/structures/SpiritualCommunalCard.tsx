@@ -24,10 +24,10 @@ import * as turf from '@turf/turf';
 import { getZoneThresholds } from '../../store/projectStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import {
-  useStructureStore,
   type Structure,
   type StructureType,
 } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';
 import { computeQibla, bearingToCardinal } from '../../lib/qibla.js';
 import css from '../rules/SitingWarningsCard.module.css';
@@ -116,7 +116,7 @@ interface FacilityRollup {
 }
 
 export default function SpiritualCommunalCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
 
   const projectStructures = useMemo(

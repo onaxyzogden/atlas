@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { usePhaseStore } from '../../../store/phaseStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
 import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
@@ -59,7 +59,7 @@ export default function PhasingDashboard({ project, onSwitchToMap }: PhasingDash
     [allPhases, project.id],
   );
 
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allPaths = usePathStore((s) => s.paths);
   const allCropAreas = useCropStore((s) => s.cropAreas);

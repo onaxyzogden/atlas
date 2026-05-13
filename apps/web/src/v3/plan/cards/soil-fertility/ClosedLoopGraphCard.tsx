@@ -22,7 +22,7 @@ import {
   type FertilityInfraType,
 } from '../../../../store/closedLoopStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
-import { useStructureStore } from '../../../../store/structureStore.js';
+import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../../../store/cropStore.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
@@ -113,7 +113,7 @@ export default function ClosedLoopGraphCard({ project }: Props) {
   const allVectors = useClosedLoopStore((s) => s.wasteVectors);
   const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allCrops = useCropStore((s) => s.cropAreas);
 
   // Fertility infra is the only phase-tagged entity in this card.

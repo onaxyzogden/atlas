@@ -9,7 +9,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
@@ -48,7 +48,7 @@ const VERDICT_LABEL: Record<Verdict, string> = {
 };
 
 export default function DomainFeasibilityCard({ project }: Props) {
-  const structures = useStructureStore((s) => s.structures).filter((s) => s.projectId === project.id);
+  const structures = useAllStructures().filter((s) => s.projectId === project.id);
   const paddocks = useLivestockStore((s) => s.paddocks).filter((p) => p.projectId === project.id);
   const paths = usePathStore((s) => s.paths).filter((p) => p.projectId === project.id);
   const utilities = useUtilityStore((s) => s.utilities).filter((u) => u.projectId === project.id);

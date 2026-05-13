@@ -19,10 +19,10 @@
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import {
-  useStructureStore,
   type Structure,
   type StructureType,
 } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import {
   useZoneStore,
   type LandZone,
@@ -182,7 +182,7 @@ export default function SlideExportPreviewCard({ project }: Props) {
   const [showAll, setShowAll] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((s) => s.zones);
   const allUtilities = useUtilityStore((s) => s.utilities);
 

@@ -26,7 +26,8 @@
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock, type LivestockSpecies, type FenceType } from '../../store/livestockStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import { type Structure } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computePredatorRisk } from './livestockAnalysis.js';
 import s from './PredatorRiskHotspotsCard.module.css';
@@ -163,7 +164,7 @@ function nearestShelterDistanceM(p: Paddock, shelters: Structure[]): number | nu
 export default function PredatorRiskHotspotsCard({ projectId }: PredatorRiskHotspotsCardProps) {
   const paddocks = useLivestockStore((st) => st.paddocks).filter((p) => p.projectId === projectId);
   const zones = useZoneStore((st) => st.zones).filter((z) => z.projectId === projectId);
-  const structures = useStructureStore((st) => st.structures).filter((st2) => st2.projectId === projectId);
+  const structures = useAllStructures().filter((st2) => st2.projectId === projectId);
   const siteData = useSiteData(projectId);
   const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'landCover') : null;
   const canopyPct = typeof landCover?.tree_canopy_pct === 'number' ? landCover.tree_canopy_pct : 0;

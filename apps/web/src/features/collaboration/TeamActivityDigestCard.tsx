@@ -36,7 +36,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { useCommentStore } from '../../store/commentStore.js';
 import { useMemberStore } from '../../store/memberStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useScenarioStore } from '../../store/scenarioStore.js';
 import { api } from '../../lib/apiClient.js';
 import type { ActivityRecord, ActivityAction, ProjectRole } from '@ogden/shared';
@@ -167,7 +167,7 @@ export default function TeamActivityDigestCard({ project }: Props) {
   const members = useMemberStore((s) => s.members);
 
   const zones = useZoneStore((s) => s.zones).filter((z) => z.projectId === project.id);
-  const structures = useStructureStore((s) => s.structures).filter(
+  const structures = useAllStructures().filter(
     (st) => st.projectId === project.id,
   );
   const scenarios = useScenarioStore((s) => s.scenarios).filter(

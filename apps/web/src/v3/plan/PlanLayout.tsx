@@ -31,8 +31,9 @@ import PlanChecklistAside from './PlanChecklistAside.js';
 import PlanModuleBar from './PlanModuleBar.js';
 import PlanModuleSlideUp from './PlanModuleSlideUp.js';
 import PlanPhaseTabs from './canvas/PlanPhaseTabs.js';
-import DesignToolRail from './canvas/DesignToolRail.js';
+import DesignToolRail, { type ToolMode } from './canvas/DesignToolRail.js';
 import DesignElementLayers from './canvas/layers/DesignElementLayers.js';
+import { MapCursorHost } from './canvas/useMapCursor.js';
 import BaseMapCard from './canvas/BaseMapCard.js';
 import DeckOverlay from '../_shared/deck/DeckOverlay.js';
 import {
@@ -112,6 +113,9 @@ export default function PlanLayout() {
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   const [activeView, setActiveView] = useState<PlanView>('current');
+  const [currentMode, setCurrentMode] = useState<ToolMode>('pan');
+  const [currentHovering, setCurrentHovering] = useState(false);
+  const [currentSelectedId, setCurrentSelectedId] = useState<string | null>(null);
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const armedPlanDrawKind =
@@ -181,13 +185,21 @@ export default function PlanLayout() {
             onBoundaryDrawn={handleBoundaryDrawn}
             showBoundary={false}
           />
+          <MapCursorHost
+            map={map}
+            drawArmed={armedPlanDrawKind !== null}
+            mode={currentMode}
+            hovering={currentHovering}
+          />
           <DesignToolRail
             map={map}
             activeKind={armedPlanDrawKind}
             projectId={id}
             onDisarmDraw={() => setActiveTool(null)}
-            selectedId={null}
-            setSelectedId={() => {}}
+            selectedId={currentSelectedId}
+            setSelectedId={setCurrentSelectedId}
+            mode={currentMode}
+            setMode={setCurrentMode}
           />
           <BaseMapCard />
           <ObserveAnnotationLayers map={map} projectId={id} />
@@ -223,7 +235,8 @@ export default function PlanLayout() {
             map={map}
             projectId={id}
             view="current"
-            selectedId={null}
+            selectedId={currentSelectedId}
+            onHoverChange={setCurrentHovering}
           />
           <PlanContoursOverlay map={map} />
           <PlanZoneRingsOverlay map={map} projectId={id} />

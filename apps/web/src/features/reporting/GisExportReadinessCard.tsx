@@ -19,7 +19,8 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import { type Structure } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore, type DesignPath } from '../../store/pathStore.js';
 import { useUtilityStore, type Utility } from '../../store/utilityStore.js';
 import css from './GisExportReadinessCard.module.css';
@@ -148,7 +149,7 @@ const ELIG_LABEL: Record<Eligibility, string> = {
 
 export default function GisExportReadinessCard({ project }: Props) {
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPaths = usePathStore((s) => s.paths);
   const allUtilities = useUtilityStore((s) => s.utilities);
 

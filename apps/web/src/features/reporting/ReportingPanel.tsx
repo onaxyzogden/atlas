@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { ExportRecord } from '@ogden/shared';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { usePathStore } from '../../store/pathStore.js';
@@ -254,7 +254,7 @@ export default function ReportingPanel({ project, onOpenExport }: ReportingPanel
 
   // ── Store data for readiness checks ──
   const zones = useZoneStore((s) => s.zones).filter((z) => z.projectId === project.id);
-  const structures = useStructureStore((s) => s.structures).filter((s) => s.projectId === project.id);
+  const structures = useAllStructures().filter((s) => s.projectId === project.id);
   const paddocks = useLivestockStore((s) => s.paddocks).filter((pk) => pk.projectId === project.id);
   const crops = useCropStore((s) => s.cropAreas).filter((c) => c.projectId === project.id);
   const paths = usePathStore((s) => s.paths).filter((pa) => pa.projectId === project.id);

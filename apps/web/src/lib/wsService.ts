@@ -11,6 +11,7 @@ import { setSyncGuard } from './syncService.js';
 import { designFeatureToZone, designFeatureToStructure } from './featureMapping.js';
 import { useZoneStore } from '../store/zoneStore.js';
 import { useStructureStore } from '../store/structureStore.js';
+import { getAllStructures } from '../store/builtEnvironmentSelectors.js';
 import { usePresenceStore } from '../store/presenceStore.js';
 import { useProjectStore } from '../store/projectStore.js';
 import { api } from './apiClient.js';
@@ -106,7 +107,7 @@ function handleFeatureCreated(event: WsEvent) {
         useZoneStore.getState().addZone(zone);
       }
     } else if (payload.featureType === 'structure') {
-      const existing = useStructureStore.getState().structures.find((s) => s.serverId === payload.id);
+      const existing = getAllStructures().find((s) => s.serverId === payload.id);
       if (!existing) {
         const structure = designFeatureToStructure(payload, projectLocalId);
         useStructureStore.getState().addStructure(structure);
@@ -133,7 +134,7 @@ function handleFeatureUpdated(event: WsEvent) {
         useZoneStore.getState().updateZone(existing.id, { ...merged, id: existing.id });
       }
     } else if (payload.featureType === 'structure') {
-      const existing = useStructureStore.getState().structures.find((s) => s.serverId === payload.id);
+      const existing = getAllStructures().find((s) => s.serverId === payload.id);
       if (existing) {
         const merged = designFeatureToStructure(payload, projectLocalId);
         useStructureStore.getState().updateStructure(existing.id, { ...merged, id: existing.id });
@@ -158,7 +159,7 @@ function handleFeatureDeleted(event: WsEvent) {
       return;
     }
     // Then structures
-    const structure = useStructureStore.getState().structures.find((s) => s.serverId === featureId);
+    const structure = getAllStructures().find((s) => s.serverId === featureId);
     if (structure) {
       useStructureStore.getState().deleteStructure(structure.id);
     }
@@ -290,7 +291,7 @@ async function reconcileOnReconnect() {
     // Re-fetch features
     const { data: serverFeatures } = await api.designFeatures.list(currentProjectServerId);
     const zones = useZoneStore.getState().zones.filter((z) => z.projectId === projectLocalId);
-    const structures = useStructureStore.getState().structures.filter((s) => s.projectId === projectLocalId);
+    const structures = getAllStructures().filter((s) => s.projectId === projectLocalId);
 
     for (const sf of serverFeatures) {
       if (sf.featureType === 'zone') {

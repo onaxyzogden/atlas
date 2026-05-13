@@ -11,7 +11,7 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useExternalForcesStore } from '../../store/externalForcesStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useAppropriateTechStore } from '../../store/appropriateTechStore.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
@@ -22,7 +22,7 @@ export default function HazardPlansCard({ project }: Props) {
   const updateHazard = useExternalForcesStore((s) => s.updateHazard);
 
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allTech = useAppropriateTechStore((s) => s.items);
 
   const hazards = useMemo(

@@ -26,7 +26,8 @@
 
 import { useMemo } from 'react';
 import { usePathStore, type DesignPath, type PathType } from '../../store/pathStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { type Structure, type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
 import css from './ParkingDeliveryAccessCard.module.css';
 
@@ -334,7 +335,7 @@ const TYPE_LABEL: Record<StructureType, string> = {
 
 export default function ParkingDeliveryAccessCard({ projectId }: Props) {
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((s) => s.zones);
 
   const paths = useMemo(() => allPaths.filter((p) => p.projectId === projectId), [allPaths, projectId]);

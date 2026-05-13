@@ -16,6 +16,7 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -74,7 +75,7 @@ function groupCounts<T extends string>(items: { type: T }[]): Record<string, num
 
 export default function DesignBriefFeatureSchedulePreviewCard({ project }: Props) {
   const zones = useZoneStore((s) => s.zones);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const paths = usePathStore((s) => s.paths);
   const utilities = useUtilityStore((s) => s.utilities);
   const paddocks = useLivestockStore((s) => s.paddocks);

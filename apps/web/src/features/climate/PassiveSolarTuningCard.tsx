@@ -20,7 +20,8 @@
  * shared math, no map writes.
  */
 import { useMemo } from 'react';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { type Structure, type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import css from './PassiveSolarTuningCard.module.css';
 
 interface Props {
@@ -133,7 +134,7 @@ const TYPE_LABEL: Partial<Record<StructureType, string>> = {
 };
 
 export default function PassiveSolarTuningCard({ projectId, lat }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const habitable = useMemo(
     () =>
       allStructures.filter(

@@ -15,7 +15,8 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type StructureType, type Structure } from '../../store/structureStore.js';
+import { type StructureType, type Structure } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility } from '../../store/utilityStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import css from './HospitalityEducationEnergyCard.module.css';
@@ -243,7 +244,7 @@ function verdictLabel(v: string): string {
 }
 
 export default function HospitalityEducationEnergyCard({ project }: Props): React.ReactElement {
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((st) => st.utilities);
   const siteData = useSiteData(project.id);
 

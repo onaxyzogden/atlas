@@ -15,9 +15,9 @@
 
 import { useMemo } from 'react';
 import {
-  useStructureStore,
   type StructureType,
 } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from './footprints.js';
 import css from './GatheringRetreatCard.module.css';
 
@@ -66,7 +66,7 @@ interface SubtypeRow {
 }
 
 export default function GatheringRetreatCard({ projectId }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const { rows, totals } = useMemo(() => {
     const projectStructures = allStructures.filter((s) => s.projectId === projectId);

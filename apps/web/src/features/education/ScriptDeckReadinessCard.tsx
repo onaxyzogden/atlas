@@ -13,7 +13,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { usePathStore } from '../../store/pathStore.js';
@@ -63,7 +63,7 @@ function fmtRuntime(seconds: number): string {
 }
 
 export default function ScriptDeckReadinessCard({ project }: Props): JSX.Element {
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((st) => st.zones);
   const allUtilities = useUtilityStore((st) => st.utilities);
   const allPaths = usePathStore((st) => st.paths);

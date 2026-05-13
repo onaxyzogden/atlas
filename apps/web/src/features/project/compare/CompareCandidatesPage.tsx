@@ -26,7 +26,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearch, Link } from '@tanstack/react-router';
 import { api } from '../../../lib/apiClient.js';
 import { useProjectStore, type LocalProject } from '../../../store/projectStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { usePathStore } from '../../../store/pathStore.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
@@ -100,7 +100,7 @@ export default function CompareCandidatesPage() {
   );
 
   const projects = useProjectStore((s) => s.projects);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const zones = useZoneStore((s) => s.zones);
   const paths = usePathStore((s) => s.paths);
   const utilities = useUtilityStore((s) => s.utilities);

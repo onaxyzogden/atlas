@@ -19,7 +19,8 @@ import {
   type DesignPath,
   type PathType,
 } from '../../store/pathStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { type Structure, type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../store/utilityStore.js';
 import { useZoneStore, type LandZone, type ZoneCategory } from '../../store/zoneStore.js';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
@@ -324,7 +325,7 @@ interface Props {
 
 export default function EducationalRouteOverlaysCard({ project }: Props) {
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allZones = useZoneStore((s) => s.zones);
   const allCropAreas = useCropStore((s) => s.cropAreas);

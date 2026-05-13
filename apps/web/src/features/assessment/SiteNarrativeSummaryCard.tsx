@@ -18,7 +18,8 @@
  */
 import { useMemo } from 'react';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import { type Structure } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../store/utilityStore.js';
 import { usePathStore, type DesignPath } from '../../store/pathStore.js';
@@ -268,7 +269,7 @@ const BUCKET_ICON: Record<Bucket, string> = {
 
 export default function SiteNarrativeSummaryCard({ project }: Props) {
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allPaths = usePathStore((s) => s.paths);

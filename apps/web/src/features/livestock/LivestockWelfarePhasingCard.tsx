@@ -33,7 +33,8 @@ import {
   type FenceType,
   type PastureQuality,
 } from '../../store/livestockStore.js';
-import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import { type Structure } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import {
   computeShelterAccess,
@@ -97,7 +98,7 @@ interface PhaseRow {
 
 export default function LivestockWelfarePhasingCard({ projectId }: Props) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   // Empty-state pasture-quality picker. `typicalStocking` in the catalog is
   // calibrated for good pasture, so 'good' is the natural default — moving
   // the selector rescales the displayed stocking values in real time.

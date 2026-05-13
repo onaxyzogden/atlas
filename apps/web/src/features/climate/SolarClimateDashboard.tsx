@@ -22,7 +22,8 @@ import {
   type WindbreakCandidates,
 } from '@ogden/shared';
 import { useSiteData, getLayerSummary, getLayer } from '../../store/siteDataStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { type Structure, type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import { deriveInfrastructureCost, formatCostShort, estimateStructureHeightM } from '../structures/footprints.js';
 import type { WindRoseData } from '../../lib/layerFetcher.js';
@@ -131,7 +132,7 @@ export default function SolarClimateDashboard({ project, onSwitchToMap }: SolarC
   const microclimateStatus = siteData ? getLayer(siteData, 'microclimate')?.fetchStatus : undefined;
 
   // Placed features for §6 placement scoring — filtered to this project.
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const solarArrays = useMemo(
     () => allUtilities.filter((u) => u.projectId === project.id && u.type === 'solar_panel'),

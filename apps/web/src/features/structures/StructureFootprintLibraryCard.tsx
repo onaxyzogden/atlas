@@ -21,7 +21,8 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import { type Structure, type StructureType } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES, estimateStructureHeightM, formatCostShort } from './footprints.js';
 import css from './StructureFootprintLibraryCard.module.css';
 
@@ -138,7 +139,7 @@ function formatRatio(ratio: number): string {
 }
 
 export default function StructureFootprintLibraryCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const structures = useMemo(
     () => allStructures.filter((s) => s.projectId === project.id),

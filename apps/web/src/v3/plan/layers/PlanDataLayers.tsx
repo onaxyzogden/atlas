@@ -22,6 +22,7 @@ import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useAgribusinessStore } from '../../../store/agribusinessStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
 import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -211,7 +212,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const marketNodes = useAgribusinessStore((s) => s.marketNodes);
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const updateStructure = useStructureStore((s) => s.updateStructure);
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);

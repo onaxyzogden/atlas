@@ -19,7 +19,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import css from './EnterpriseRevenueMixCard.module.css';
@@ -99,7 +99,7 @@ function saveOverrides(
 }
 
 export default function EnterpriseRevenueMixCard({ projectId }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allCrops = useCropStore((s) => s.cropAreas);
 

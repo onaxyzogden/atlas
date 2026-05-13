@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from '@tanstack/react-router';
 import { useProjectStore } from '../store/projectStore.js';
 import { useZoneStore } from '../store/zoneStore.js';
-import { useStructureStore } from '../store/structureStore.js';
+import { useAllStructures } from '../store/builtEnvironmentSelectors.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useIsMobile } from '../hooks/useMediaQuery.js';
 import { useProjectRole } from '../hooks/useProjectRole.js';
@@ -33,7 +33,7 @@ export default function ProjectPage() {
 
   const allZones = useZoneStore((s) => s.zones);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === projectId), [allZones, projectId]);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => allStructures.filter((s) => s.projectId === projectId), [allStructures, projectId]);
 
   const [activeTab, setActiveTab] = useState<ProjectTab>('overview');
