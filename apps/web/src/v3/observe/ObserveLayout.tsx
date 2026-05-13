@@ -18,11 +18,9 @@
  * module).
  */
 
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
-import { useAnnotationDetailStore } from '../../store/annotationDetailStore.js';
-import type { AnnotationKind } from './components/draw/annotationFieldSchemas.js';
-import { getAnnotationRow } from './components/AnnotationRegistry.js';
+import { useState } from 'react';
+import { useNavigate, useParams } from '@tanstack/react-router';
+import ObserveDeepLinkFocus from './components/ObserveDeepLinkFocus.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
 import { useProjectStore } from '../../store/projectStore.js';
@@ -89,31 +87,6 @@ export default function ObserveLayout() {
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const armedDrawKind =
     activeTool && activeTool.startsWith('observe.') ? activeTool : null;
-
-  // Phase 2 deep-link: when the Plan-stage `<ObserveLinkPopover>` routes
-  // here with `?focusKind=…&focusId=…`, open the read-only
-  // `<AnnotationDetailPanel>` for that record so the steward lands on
-  // the same feature they clicked. Search params are stripped after the
-  // handoff so refresh / back-nav doesn't re-fire it.
-  const search = useSearch({ strict: false }) as {
-    focusKind?: string;
-    focusId?: string;
-  };
-  const openAnnotationDetail = useAnnotationDetailStore((s) => s.open);
-  useEffect(() => {
-    const { focusKind, focusId } = search;
-    if (!focusKind || !focusId) return;
-    if (!getAnnotationRow(focusKind as AnnotationKind, focusId)) return;
-    openAnnotationDetail({ kind: focusKind as AnnotationKind, id: focusId });
-    if (params.projectId && validModule) {
-      navigate({
-        to: '/v3/project/$projectId/observe/$module',
-        params: { projectId: params.projectId, module: validModule },
-        search: {},
-        replace: true,
-      });
-    }
-  }, [search, openAnnotationDetail, navigate, params.projectId, validModule]);
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   const [mode, setMode] = useState<ToolMode>('pan');
@@ -248,6 +221,11 @@ export default function ObserveLayout() {
               <AnnotationSectorHandles
                 map={map}
                 projectId={id}
+              />
+              <ObserveDeepLinkFocus
+                map={map}
+                activeModule={validModule}
+                projectId={params.projectId ?? null}
               />
               <SelectionFloater projectId={id} />
               <PlanSelectionFloater />

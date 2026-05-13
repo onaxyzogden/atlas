@@ -99,7 +99,12 @@ export default function ObserveLinkPopover({ map }: Props) {
     // for the same record. Edit/Delete buttons live there.
     const search =
       active.annoKind && active.annoId
-        ? { focusKind: active.annoKind, focusId: active.annoId }
+        ? {
+            focusKind: active.annoKind,
+            focusId: active.annoId,
+            focusLng: active.anchor[0],
+            focusLat: active.anchor[1],
+          }
         : {};
     navigate({
       to: '/v3/project/$projectId/observe/$module',
