@@ -233,6 +233,7 @@ export const useProjectStore = create<ProjectState>()(
           const allowedKeys: (keyof LocalProject)[] = [
             'parcelBoundaryGeojson',
             'hasParcelBoundary',
+            'metadata',
           ];
           const filtered = Object.fromEntries(
             Object.entries(updates).filter(([k]) =>
