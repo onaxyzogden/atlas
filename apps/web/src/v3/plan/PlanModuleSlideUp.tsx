@@ -8,9 +8,18 @@
  * Plan cards are lazy-loaded to keep the initial bundle tight.
  */
 
-import { lazy, useCallback } from 'react';
+import { lazy, useCallback, useMemo, useState } from 'react';
 import { ModuleSlideUp } from '../_shared/moduleNav/index.js';
-import type { LocalProject } from '../../store/projectStore.js';
+import {
+  getAllowOrphanOutputs,
+  type LocalProject,
+} from '../../store/projectStore.js';
+import { useRelationshipsStore } from '../../store/relationshipsStore.js';
+import { useAllPlacedEntities } from '../../lib/relationships/useAllPlacedEntities.js';
+import {
+  orphanOutputs,
+  type PlacedEntity,
+} from '@ogden/shared/relationships';
 import type { PlanModule } from './types.js';
 import { MODULE_CARDS, PLAN_MODULE_FULL_LABEL } from './types.js';
 import PlanViewBadge from './PlanViewBadge.js';
@@ -153,21 +162,141 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
   const cards = module ? MODULE_CARDS[module] : [];
   const label = module ? PLAN_MODULE_FULL_LABEL[module] : '';
 
+  // Rec #1 closeout (2026-05-13): confirm-on-close intercept for the
+  // Needs & Yields audit. Only fires when the principle-verification
+  // module is the active surface, the project has not opted out via
+  // allowOrphanOutputs, and at least one declared output is unrouted.
+  const allowOrphans = getAllowOrphanOutputs(project);
+  const placed = useAllPlacedEntities();
+  const edges = useRelationshipsStore((s) => s.edgesByProject[project.id] ?? []);
+  const orphanCount = useMemo(() => {
+    if (module !== 'principle-verification' || allowOrphans) return 0;
+    try {
+      const safePlaced = Array.isArray(placed) ? placed : [];
+      const safeEdges = Array.isArray(edges) ? edges : [];
+      const entities: PlacedEntity[] = safePlaced.map((p) => ({ id: p.id, type: p.type }));
+      const result = orphanOutputs(entities, safeEdges);
+      return Array.isArray(result) ? result.length : 0;
+    } catch {
+      return 0;
+    }
+  }, [module, allowOrphans, placed, edges]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const handleClose = useCallback(() => {
+    if (orphanCount > 0) {
+      setConfirmOpen(true);
+      return;
+    }
+    onClose();
+  }, [orphanCount, onClose]);
+  const closeAnyway = useCallback(() => {
+    setConfirmOpen(false);
+    onClose();
+  }, [onClose]);
+
   const renderCard = useCallback(
-    (sectionId: string) => renderPlanCard(sectionId, project, onSwitchModule, onClose),
-    [project, onSwitchModule, onClose],
+    (sectionId: string) => renderPlanCard(sectionId, project, onSwitchModule, handleClose),
+    [project, onSwitchModule, handleClose],
   );
 
   return (
-    <ModuleSlideUp
-      open={open && module !== null}
-      onClose={onClose}
-      eyebrow="Plan · module"
-      label={label}
-      cards={cards}
-      renderCard={renderCard}
-      ariaLabel={module ? `${label} — plan tools` : undefined}
-      headerExtra={module ? <PlanViewBadge module={module} /> : null}
-    />
+    <>
+      <ModuleSlideUp
+        open={open && module !== null}
+        onClose={handleClose}
+        eyebrow="Plan · module"
+        label={label}
+        cards={cards}
+        renderCard={renderCard}
+        ariaLabel={module ? `${label} — plan tools` : undefined}
+        headerExtra={module ? <PlanViewBadge module={module} /> : null}
+      />
+      {confirmOpen ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Unresolved orphan outputs"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            background: 'rgba(0,0,0,0.55)',
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          <div
+            style={{
+              maxWidth: 380,
+              padding: 18,
+              borderRadius: 10,
+              background: '#1a1714',
+              border: '1px solid rgba(212,182,99,0.45)',
+              color: 'rgba(232,220,200,0.95)',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+            }}
+          >
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 14,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: 'rgba(245,225,170,0.95)',
+              }}
+            >
+              {orphanCount} unrouted output{orphanCount === 1 ? '' : 's'}
+            </h2>
+            <p style={{ margin: '10px 0 18px', fontSize: 12, lineHeight: 1.5 }}>
+              The Needs &amp; Yields audit shows resources still going to
+              waste. Close this panel anyway, or stay and route them
+              through the audit card?
+            </p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                style={{
+                  padding: '7px 14px',
+                  border: '1px solid rgba(212,182,99,0.6)',
+                  borderRadius: 999,
+                  background: 'rgba(212,182,99,0.18)',
+                  color: 'rgba(245,225,170,0.95)',
+                  font: 'inherit',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                }}
+              >
+                Stay in audit
+              </button>
+              <button
+                type="button"
+                onClick={closeAnyway}
+                style={{
+                  padding: '7px 14px',
+                  border: '1px solid rgba(232,220,200,0.25)',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  color: 'rgba(232,220,200,0.85)',
+                  font: 'inherit',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                }}
+              >
+                Close anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
