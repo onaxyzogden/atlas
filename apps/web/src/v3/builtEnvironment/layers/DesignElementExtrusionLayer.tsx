@@ -29,11 +29,12 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import type { Map as MaplibreMap } from 'maplibre-gl';
+import type { Map as MaplibreMap, MapLayerMouseEvent } from 'maplibre-gl';
 import {
   useBuiltEnvironmentStoreV2,
   type BuiltEnvironmentV2State,
 } from '../../../store/builtEnvironmentStoreV2.js';
+import { openBeInlineEditById } from '../inline/openBeInlineEdit.js';
 import {
   PHASE_VIEW_CAP,
   phaseIndex,
@@ -120,11 +121,20 @@ export default function DesignElementExtrusionLayer({
 
       const colour =
         spec.color ?? findElementSpec(e.kind)?.color ?? '#888';
+      // Prefer the entity's recorded height when present — adopted basemap
+      // buildings capture the basemap's `render_height` onto
+      // `proposed.heightM`, and user-drawn structures may also tweak height
+      // via the inline edit form. Spec height is the fallback for kinds
+      // without per-entity sizing.
+      const entityHeightM =
+        typeof e.proposed?.heightM === 'number' && e.proposed.heightM > 0
+          ? e.proposed.heightM
+          : undefined;
       const props = {
         id: e.id,
         kind: e.kind,
         color: colour,
-        heightM: spec.heightM,
+        heightM: entityHeightM ?? spec.heightM,
         baseM: spec.baseM ?? 0,
       };
 
@@ -204,6 +214,42 @@ export default function DesignElementExtrusionLayer({
       }
     };
   }, [map, fc]);
+
+  // Click → inline-edit; hover → cursor pointer. Mirrors BeV2GenericLayer.
+  // Needed so adopted/extruded buildings remain selectable at non-top-down
+  // pitches, where the 3D extrusion intercepts clicks instead of letting
+  // them fall through to the flat 2D fill underneath.
+  useEffect(() => {
+    if (!map) return;
+
+    const onClick = (e: MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f) return;
+      const props = (f.properties ?? {}) as { id?: string };
+      const id = props.id;
+      if (!id) return;
+      openBeInlineEditById(id, [e.lngLat.lng, e.lngLat.lat]);
+    };
+    const onEnter = () => {
+      map.getCanvas().style.cursor = 'pointer';
+    };
+    const onLeave = () => {
+      map.getCanvas().style.cursor = '';
+    };
+
+    map.on('click', LAYER_ID, onClick);
+    map.on('mouseenter', LAYER_ID, onEnter);
+    map.on('mouseleave', LAYER_ID, onLeave);
+    return () => {
+      try {
+        map.off('click', LAYER_ID, onClick);
+        map.off('mouseenter', LAYER_ID, onEnter);
+        map.off('mouseleave', LAYER_ID, onLeave);
+      } catch {
+        /* map disposed */
+      }
+    };
+  }, [map]);
 
   // Cleanup on unmount.
   useEffect(() => {

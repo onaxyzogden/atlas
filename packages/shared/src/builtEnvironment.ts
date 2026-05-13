@@ -89,6 +89,12 @@ export const ExistingMetadata = z.object({
   surface: z.string().max(32).optional(),
   /** PowerLine placement — 'overhead' | 'buried'. */
   placement: z.enum(['overhead', 'buried']).optional(),
+  /** Tile feature id of the basemap building this entity was adopted from
+   *  (OpenMapTiles `building` source-layer). Set by the "Adopt from map"
+   *  tool so the basemap renderer can hide that feature via feature-state,
+   *  eliminating z-fight between the basemap extrusion and the project's
+   *  own extrusion. Buildings only. */
+  adoptedFromBasemapId: z.union([z.string(), z.number()]).optional(),
 });
 export type ExistingMetadata = z.infer<typeof ExistingMetadata>;
 

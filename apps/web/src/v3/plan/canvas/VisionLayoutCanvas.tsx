@@ -25,6 +25,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
 import {
+  AdoptedBuildingsSync,
   DesignElementExtrusionLayer,
   DesignElementScenegraphLayer,
   Terrain3DController,
@@ -131,6 +132,7 @@ export default function VisionLayoutCanvas({
             onHoverChange={setHovering}
             onSelect={setSelectedId}
           />
+          <AdoptedBuildingsSync map={map} projectId={projectId} />
           <DesignElementExtrusionLayer
             map={map}
             projectId={projectId}

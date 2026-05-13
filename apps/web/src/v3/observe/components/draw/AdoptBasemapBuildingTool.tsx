@@ -22,30 +22,12 @@ import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentSt
 import { useMapToolStore } from '../measure/useMapToolStore.js';
 import { openBeInlineEditById } from '../../../builtEnvironment/inline/openBeInlineEdit.js';
 import { toast } from '../../../../components/Toast.js';
+import { findBuildingLayerIds } from '../../../../features/map/adoptedBasemapBuildings.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
   projectId: string;
-}
-
-/** Find every style layer sourced from an OpenMapTiles `building`
- *  source-layer. Both 2D fills and 3D fill-extrusions count — we want to
- *  intercept clicks on either rendered representation. */
-function findBuildingLayerIds(map: MaplibreMap): string[] {
-  try {
-    const style = map.getStyle();
-    if (!style?.layers) return [];
-    return style.layers
-      .filter(
-        (l): l is typeof l & { 'source-layer': string } =>
-          typeof (l as { 'source-layer'?: unknown })['source-layer'] === 'string' &&
-          (l as { 'source-layer': string })['source-layer'] === 'building',
-      )
-      .map((l) => l.id);
-  } catch {
-    return [];
-  }
 }
 
 /** Coerce a Polygon or MultiPolygon GeoJSON into a single Polygon. For
@@ -103,18 +85,40 @@ export default function AdoptBasemapBuildingTool({ map, projectId }: Props) {
         areaM2 = undefined;
       }
 
+      // Stable id for the basemap tile feature — needed by v2 so the
+      // basemap sync (`adoptedBasemapBuildings.ts`) can hide the
+      // underlying extrusion via `setFeatureState` + a filter clause.
+      // MapTiler's OpenMapTiles source promotes osm_id onto `feature.id`
+      // for buildings, but we fall back to common property names just in
+      // case. If none resolve, the entity still saves; the basemap
+      // building just stays visible.
+      const props = hit.properties as Record<string, unknown> | null;
+      const rawId =
+        hit.id ??
+        (props && typeof props['osm_id'] !== 'undefined' ? props['osm_id'] : undefined) ??
+        (props && typeof props['id'] !== 'undefined' ? props['id'] : undefined);
+      const adoptedFromBasemapId =
+        typeof rawId === 'string' || typeof rawId === 'number' ? rawId : undefined;
+      if (adoptedFromBasemapId === undefined) {
+        toast.info('Adopted — basemap building couldn’t be hidden (no feature id).');
+      }
+
       // Height lives on `proposed.heightM` (the existing block has no height
       // slot in the V2 schema). DesignElementExtrusionLayer reads heightM
       // from `proposed`, so the adopted footprint extrudes correctly even
       // though the entity is `state: 'existing'`. Schema-wise both metadata
       // blocks are independently optional, so this is well-formed.
+      const existing = {
+        ...(areaM2 !== undefined ? { areaM2 } : {}),
+        ...(adoptedFromBasemapId !== undefined ? { adoptedFromBasemapId } : {}),
+      };
       const entity = useBuiltEnvironmentStoreV2.getState().create({
         projectId,
         kind: 'building',
         state: 'existing',
         geometry: polygon,
         label: 'Adopted building',
-        ...(areaM2 !== undefined ? { existing: { areaM2 } } : {}),
+        ...(Object.keys(existing).length > 0 ? { existing } : {}),
         ...(heightM !== undefined ? { proposed: { heightM } } : {}),
       });
 

@@ -76,6 +76,14 @@ export interface ElementHeightSpec {
  * the user pitches the camera.
  */
 export const ELEMENT_HEIGHTS: Record<string, ElementHeightSpec> = {
+  // ── Buildings (polygon) ───────────────────────────────────────────────
+  // No bespoke GLB — buildings are user-drawn polygons (BuildingTool) or
+  // adopted basemap footprints (AdoptBasemapBuildingTool). Extrudes the
+  // polygon at `proposed.heightM` if the entity has it (DesignElementExtrusionLayer
+  // prefers entity height when present); otherwise falls back to a
+  // conservative single-storey default.
+  building:         { mode: 'extrusion',                              heightM: 6.0, footprintM: 0,  category: 'structure' },
+
   // ── Structures (point) ────────────────────────────────────────────────
   yurt:             { mode: 'glb', glbUrl: MODEL('yurt'),             heightM: 3.5, footprintM: 6,  category: 'structure' },
   greenhouse:       { mode: 'glb', glbUrl: MODEL('greenhouse'),       heightM: 3.0, footprintM: 8,  category: 'structure' },

@@ -26,6 +26,8 @@ import { usePathStore, PATH_TYPE_CONFIG } from '../../store/pathStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import { useCommentStore } from '../../store/commentStore.js';
 import { map as mapTokens, zone as zoneTokens, structure as structureTokens, earth, group } from '../../lib/tokens.js';
+import { useBuiltEnvironmentStoreV2 } from '../../store/builtEnvironmentStoreV2.js';
+import { syncAdoptedHidings } from './adoptedBasemapBuildings.js';
 
 interface MapCanvasProps {
   projectId?: string;
@@ -254,6 +256,24 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       map.off('style.load', addAllLayers);
     };
   }, [map, isLoaded, boundaryGeojson, boundaryColor, zones, structures, paddocks, cropAreas, designPaths, designUtilities, mapComments]);
+
+  // ── Adopted basemap buildings — hide the OpenMapTiles `building`
+  // tile features the user has adopted as project entities so the
+  // basemap's own extrusion stops painting under the project's
+  // DesignElementExtrusionLayer rendering. The sync is idempotent;
+  // we run it on style.load (basemap swap) and on every change to
+  // the BE V2 entity set.
+  useEffect(() => {
+    if (!map || !isLoaded || !projectId) return;
+    const run = () => syncAdoptedHidings(map, projectId);
+    run();
+    map.on('style.load', run);
+    const unsub = useBuiltEnvironmentStoreV2.subscribe(run);
+    return () => {
+      map.off('style.load', run);
+      unsub();
+    };
+  }, [map, isLoaded, projectId]);
 
   // ── Basemap swap — owned here, not in useMaplibre, so the
   // `style.load` re-hydration listener registered above (line 245)

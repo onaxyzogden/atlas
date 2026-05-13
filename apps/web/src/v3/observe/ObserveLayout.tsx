@@ -45,6 +45,7 @@ import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
 import DeckOverlay from '../_shared/deck/DeckOverlay.js';
 import {
+  AdoptedBuildingsSync,
   BeV2GenericLayer,
   DesignElementExtrusionLayer,
   DesignElementScenegraphLayer,
@@ -67,6 +68,13 @@ export default function ObserveLayout() {
   };
   const navigate = useNavigate();
 
+  // Normalise the route projectId to `'mtc'` when absent. PlanLayout /
+  // ActLayout and every BE dashboard already apply this fallback; without
+  // it the Observe stage of the sample project (no `$projectId` in the
+  // route) was writing entities under `projectId: null` while every
+  // consumer was reading under `'mtc'`, so adopt-from-map + new BE
+  // placements silently failed to surface in the placed-features list.
+  const id = params.projectId ?? 'mtc';
   const moduleParam = params.module ?? '';
   const validModule: ObserveModule | null = isObserveModule(moduleParam)
     ? moduleParam
@@ -133,7 +141,7 @@ export default function ObserveLayout() {
               <WaterOverlay map={map} />
               <MapToolbar
                 map={map}
-                projectId={params.projectId ?? null}
+                projectId={id}
                 boundary={project?.location.boundary ?? null}
                 onBoundaryDrawn={(polygon) => {
                   if (!params.projectId) return;
@@ -161,7 +169,7 @@ export default function ObserveLayout() {
               <DesignToolRail
                 map={map}
                 activeKind={armedDrawKind}
-                projectId={params.projectId ?? ''}
+                projectId={id}
                 onDisarmDraw={() => setActiveTool(null)}
                 selectedId={selectedId}
                 setSelectedId={setSelectedId}
@@ -171,7 +179,7 @@ export default function ObserveLayout() {
               <BaseMapCard />
               <ObserveAnnotationLayers
                 map={map}
-                projectId={params.projectId ?? null}
+                projectId={id}
               />
               {/* 3D extrusion + GLB layers for Built-Environment entities
                   in the existing-state slice. Hidden top-down (pitch
@@ -181,46 +189,43 @@ export default function ObserveLayout() {
                   entities — so toggling pitch is the only affordance
                   needed. Phase 4.2 of ADR
                   2026-05-10-atlas-built-environment-unification.md */}
-              {params.projectId && (
-                <>
-                  <DesignElementExtrusionLayer
-                    map={map}
-                    projectId={params.projectId}
-                    stateFilter="existing"
-                  />
-                  <DeckOverlay map={map}>
-                    <DesignElementScenegraphLayer
-                      projectId={params.projectId}
-                      stateFilter="existing"
-                    />
-                  </DeckOverlay>
-                  {/* 2D top-down render + click-to-edit for the 23 BE
-                      kinds without bespoke per-kind layers in
-                      ObserveAnnotationLayers. The shared 3D layers above
-                      collapse to nothing top-down; this layer is the
-                      always-visible flat fallback. Phase 5.2.B. */}
-                  <BeV2GenericLayer
-                    map={map}
-                    projectId={params.projectId}
-                    stateFilter="existing"
-                  />
-                </>
-              )}
+              <AdoptedBuildingsSync map={map} projectId={id} />
+              <DesignElementExtrusionLayer
+                map={map}
+                projectId={id}
+                stateFilter="existing"
+              />
+              <DeckOverlay map={map}>
+                <DesignElementScenegraphLayer
+                  projectId={id}
+                  stateFilter="existing"
+                />
+              </DeckOverlay>
+              {/* 2D top-down render + click-to-edit for the 23 BE
+                  kinds without bespoke per-kind layers in
+                  ObserveAnnotationLayers. The shared 3D layers above
+                  collapse to nothing top-down; this layer is the
+                  always-visible flat fallback. Phase 5.2.B. */}
+              <BeV2GenericLayer
+                map={map}
+                projectId={id}
+                stateFilter="existing"
+              />
               <ObserveDrawHost
                 map={map}
-                projectId={params.projectId ?? null}
+                projectId={id}
               />
               <AnnotationDragHandler map={map} />
               <AnnotationVertexEditHandler map={map} />
               <AnnotationSectorHandles
                 map={map}
-                projectId={params.projectId ?? null}
+                projectId={id}
               />
-              <SelectionFloater projectId={params.projectId ?? null} />
+              <SelectionFloater projectId={id} />
               <PlanSelectionFloater />
               <InlineFeaturePopover map={map} />
-              <ExportButton projectId={params.projectId ?? null} />
-              <ImportSiteIntelButton projectId={params.projectId ?? null} />
+              <ExportButton projectId={id} />
+              <ImportSiteIntelButton projectId={id} />
             </>
           )}
         </DiagnoseMap>
@@ -251,7 +256,7 @@ export default function ObserveLayout() {
             onClose={() => setSlideUpOpen(false)}
           />
           <AnnotationFormSlideUp />
-          <AnnotationDetailPanel projectId={params.projectId ?? null} />
+          <AnnotationDetailPanel projectId={id} />
         </>
       }
     />
