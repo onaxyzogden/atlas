@@ -34,7 +34,14 @@
  */
 
 import { useMemo, useState, type CSSProperties } from 'react';
-import type { LocalProject } from '../../../../store/projectStore.js';
+import {
+  getDesignStatus,
+  getAllowOrphanOutputs,
+  useProjectStore,
+  type LocalProject,
+  type DesignStatus,
+} from '../../../../store/projectStore.js';
+import { useRelationshipsArmedStore } from '../../canvas/relationshipsArmedStore.js';
 import {
   useAllPlacedEntities,
   type PlacedEntityView,
@@ -50,6 +57,7 @@ import {
   unmetInputs,
   closedLoops,
   integrationScoreFromEdges,
+  canAdvanceToReadyForReview,
   type EntityType,
   type PlacedEntity,
   type ResourceType,
@@ -408,6 +416,69 @@ export default function NeedsYieldsAuditCard({ project, onSwitchToMap }: Props) 
   const tier = tierForScore(score);
   const hasInputs = entities.length > 0;
 
+  // Rec #1 closeout (2026-05-13): status-gate enforcement +
+  // allowOrphanOutputs flag UI. The validator is the single source of
+  // truth shared by this card's "Mark ready for review →" CTA and the
+  // project-header DesignStatusChip.
+  const designStatus = getDesignStatus(project);
+  const allowOrphanOutputs = getAllowOrphanOutputs(project);
+  const updateProject = useProjectStore((s) => s.updateProject);
+  const armRelationships = useRelationshipsArmedStore((s) => s.arm);
+  const gate = useMemo(
+    () => canAdvanceToReadyForReview(edges, entities, allowOrphanOutputs),
+    [edges, entities, allowOrphanOutputs],
+  );
+
+  const setAllowOrphanOutputs = (next: boolean) => {
+    updateProject(project.id, {
+      metadata: { ...(project.metadata ?? {}), allowOrphanOutputs: next },
+    });
+  };
+  const advanceToReadyForReview = () => {
+    if (!gate.ok) return;
+    updateProject(project.id, {
+      metadata: {
+        ...(project.metadata ?? {}),
+        designStatus: 'ready-for-review' as DesignStatus,
+      },
+    });
+  };
+  const resetToDraft = () => {
+    updateProject(project.id, {
+      metadata: {
+        ...(project.metadata ?? {}),
+        designStatus: 'draft' as DesignStatus,
+      },
+    });
+  };
+  const handleOpenVisualEditor = () => {
+    armRelationships();
+    onSwitchToMap();
+  };
+
+  const statusLabel: Record<DesignStatus, string> = {
+    'draft': 'Draft',
+    'ready-for-review': 'Ready for review',
+    'approved': 'Approved',
+  };
+  const statusTint: Record<DesignStatus, { bg: string; fg: string; bd: string }> = {
+    'draft': {
+      bg: 'rgba(232,220,200,0.08)',
+      fg: 'rgba(232,220,200,0.85)',
+      bd: 'rgba(232,220,200,0.25)',
+    },
+    'ready-for-review': {
+      bg: 'rgba(212,182,99,0.18)',
+      fg: 'rgba(245,225,170,0.95)',
+      bd: 'rgba(212,182,99,0.55)',
+    },
+    'approved': {
+      bg: 'rgba(138,200,172,0.18)',
+      fg: 'rgba(170,225,200,0.95)',
+      bd: 'rgba(138,200,172,0.55)',
+    },
+  };
+
   const tierClass =
     tier === 'met'
       ? (styles.pillMet ?? '')
@@ -432,10 +503,102 @@ export default function NeedsYieldsAuditCard({ project, onSwitchToMap }: Props) 
           segregate. Edges are authored on the map canvas; this card
           summarises what the project already declares.
         </p>
-        <div style={{ marginTop: 12 }}>
+        <div
+          style={{
+            marginTop: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            flexWrap: 'wrap',
+          }}
+        >
+          <span
+            aria-label={`Design status: ${statusLabel[designStatus]}`}
+            style={{
+              padding: '4px 10px',
+              borderRadius: 999,
+              background: statusTint[designStatus].bg,
+              border: `1px solid ${statusTint[designStatus].bd}`,
+              color: statusTint[designStatus].fg,
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+            }}
+          >
+            Status · {statusLabel[designStatus]}
+          </span>
+          {designStatus === 'draft' ? (
+            <button
+              type="button"
+              onClick={advanceToReadyForReview}
+              disabled={!gate.ok}
+              title={
+                gate.ok
+                  ? 'Advance design to ready-for-review'
+                  : `${gate.reason ?? 'Unrouted outputs remain'}. Route them, or tick "Allow orphan outputs".`
+              }
+              style={{
+                padding: '7px 14px',
+                border: `1px solid ${gate.ok ? 'rgba(212,182,99,0.7)' : 'rgba(232,220,200,0.2)'}`,
+                borderRadius: 999,
+                background: gate.ok ? 'rgba(212,182,99,0.18)' : 'rgba(232,220,200,0.04)',
+                color: gate.ok ? 'rgba(245,225,170,0.95)' : 'rgba(232,220,200,0.4)',
+                font: 'inherit',
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: gate.ok ? 'pointer' : 'not-allowed',
+              }}
+            >
+              Mark ready for review →
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={resetToDraft}
+              title="Reopen the design as a draft"
+              style={{
+                padding: '7px 14px',
+                border: '1px solid rgba(232,220,200,0.25)',
+                borderRadius: 999,
+                background: 'transparent',
+                color: 'rgba(232,220,200,0.85)',
+                font: 'inherit',
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              ↶ Return to draft
+            </button>
+          )}
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 11,
+              color: 'rgba(232,220,200,0.7)',
+              cursor: 'pointer',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={allowOrphanOutputs}
+              onChange={(e) => setAllowOrphanOutputs(e.target.checked)}
+              style={{ accentColor: 'rgba(138,79,58,0.95)' }}
+            />
+            Allow orphan outputs
+          </label>
+        </div>
+        <div style={{ marginTop: 10 }}>
           <button
             type="button"
-            onClick={onSwitchToMap}
+            onClick={handleOpenVisualEditor}
             style={{
               padding: '7px 14px',
               border: '1px solid rgba(212,182,99,0.5)',
@@ -450,7 +613,7 @@ export default function NeedsYieldsAuditCard({ project, onSwitchToMap }: Props) 
               cursor: 'pointer',
             }}
           >
-            Open map editor →
+            Open visual editor →
           </button>
           <span
             style={{
@@ -459,8 +622,8 @@ export default function NeedsYieldsAuditCard({ project, onSwitchToMap }: Props) 
               color: 'rgba(232,220,200,0.55)',
             }}
           >
-            Close this panel and use the canvas socket flow to route
-            outputs into inputs.
+            Arms canvas sockets so outputs can be dragged into inputs
+            directly.
           </span>
         </div>
       </header>

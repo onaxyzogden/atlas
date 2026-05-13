@@ -60,6 +60,7 @@ import PlanSelectionFloater from './PlanSelectionFloater.js';
 import PlanStampToast from './draw/PlanStampToast.js';
 import StampModePicker from './canvas/StampModePicker.js';
 import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
+import DesignStatusChip from './header/DesignStatusChip.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -283,6 +284,13 @@ export default function PlanLayout() {
       canvas={
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           {canvasContent}
+          <DesignStatusChip
+            project={project}
+            onOpenAudit={() => {
+              handleSelectModule('principle-verification');
+              setSlideUpOpen(true);
+            }}
+          />
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
           <PlanStampToast />
           <TemporalScrubSlider />

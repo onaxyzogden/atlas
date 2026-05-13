@@ -17,12 +17,14 @@ import {
   type PlacedEntity,
 } from '@ogden/shared/relationships';
 import { useRelationshipsStore } from '../../store/relationshipsStore.js';
+import { useRelationshipsArmedStore } from '../../v3/plan/canvas/relationshipsArmedStore.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useAllPlacedEntities } from '../../lib/relationships/useAllPlacedEntities.js';
 import { mapZIndex } from '../../lib/tokens.js';
 
 export default function RelationshipsRail() {
   const viewActive = useRelationshipsStore((s) => s.viewActive);
+  const armed = useRelationshipsArmedStore((s) => s.armed);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const edges = useRelationshipsStore((s) =>
     activeProjectId ? s.edgesByProject[activeProjectId] ?? [] : [],
@@ -37,7 +39,7 @@ export default function RelationshipsRail() {
   const orphans = useMemo(() => orphanOutputs(entities, edges), [entities, edges]);
   const score = useMemo(() => integrationScoreFromEdges(entities, edges), [entities, edges]);
 
-  if (!FLAGS.RELATIONSHIPS || !viewActive) return null;
+  if ((!FLAGS.RELATIONSHIPS && !armed) || !viewActive) return null;
 
   const namesById = new Map(placed.map((p) => [p.id, p.name]));
   const scorePct = Math.round(score * 100);

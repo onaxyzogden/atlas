@@ -105,6 +105,28 @@ export function getDesignHorizon(
   return typeof v === 'number' && v > 0 ? v : DEFAULT_DESIGN_HORIZON_YEARS;
 }
 
+/**
+ * Needs & Yields graph-edge authoring (Rec #1 closeout, 2026-05-13).
+ * `designStatus` defaults to 'draft' until the steward advances it via
+ * canAdvanceToReadyForReview. `allowOrphanOutputs` is the per-project
+ * escape hatch from the 2026-04-28 ADR — surfaced prominently in the
+ * project header when set so it remains a deliberate choice.
+ */
+export type DesignStatus = 'draft' | 'ready-for-review' | 'approved';
+export const DEFAULT_DESIGN_STATUS: DesignStatus = 'draft';
+
+export function getDesignStatus(
+  project: Pick<LocalProject, 'metadata'>,
+): DesignStatus {
+  return project.metadata?.designStatus ?? DEFAULT_DESIGN_STATUS;
+}
+
+export function getAllowOrphanOutputs(
+  project: Pick<LocalProject, 'metadata'>,
+): boolean {
+  return project.metadata?.allowOrphanOutputs ?? false;
+}
+
 export interface ProjectAttachment {
   id: string;
   filename: string;

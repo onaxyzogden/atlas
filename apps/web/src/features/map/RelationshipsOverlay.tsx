@@ -29,6 +29,7 @@ import {
 import { mapZIndex } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import { useRelationshipsStore } from '../../store/relationshipsStore.js';
+import { useRelationshipsArmedStore } from '../../v3/plan/canvas/relationshipsArmedStore.js';
 import { useRelationshipsSync } from './useRelationshipsSync.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import {
@@ -95,7 +96,8 @@ function socketPosition(
 export function RelationshipsToggle({ compact = false }: { compact?: boolean } = {}) {
   const viewActive = useRelationshipsStore((s) => s.viewActive);
   const setViewActive = useRelationshipsStore((s) => s.setViewActive);
-  if (!FLAGS.RELATIONSHIPS) return null;
+  const armed = useRelationshipsArmedStore((s) => s.armed);
+  if (!FLAGS.RELATIONSHIPS && !armed) return null;
 
   const button = (
     <button
@@ -160,6 +162,7 @@ interface DragState {
 
 export function RelationshipsOverlay({ map }: OverlayProps) {
   const viewActive = useRelationshipsStore((s) => s.viewActive);
+  const armed = useRelationshipsArmedStore((s) => s.armed);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const edges = useRelationshipsStore(
     (s) => (activeProjectId ? s.edgesByProject[activeProjectId] ?? [] : []),
@@ -236,7 +239,11 @@ export function RelationshipsOverlay({ map }: OverlayProps) {
     };
   }, [drag]);
 
-  if (!FLAGS.RELATIONSHIPS || !viewActive || !map || !activeProjectId) return null;
+  // Armed by audit-card CTA (per Rec #1 closeout, 2026-05-13). Either
+  // the legacy flag-gated path OR the per-session armed atom may surface
+  // sockets; viewActive remains the canvas-level on/off.
+  const visible = (FLAGS.RELATIONSHIPS || armed) && viewActive;
+  if (!visible || !map || !activeProjectId) return null;
 
   const handleOutputDown = (
     e: React.MouseEvent,
