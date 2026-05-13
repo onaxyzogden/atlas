@@ -220,6 +220,12 @@ export const MODULE_CARDS: Record<
     { label: 'Scale-of-permanence',    sectionId: 'plan-phasing-scale-matrix' },
     { label: 'Cumulative investment',  sectionId: 'plan-cumulative-investment' },
     { label: 'Equipment replacement',  sectionId: 'plan-equipment-replacement' },
+    // Material-substitution calculator (Rec #5 v1 from the permaculture-
+    // alignment backlog, 2026-04-28). Surfaces biological alternatives
+    // for conventional infrastructure cost line items; toggle writes
+    // through to `financialStore.costOverrides` so total investment
+    // recomputes. v1 ships 8 cited substitution pairs.
+    { label: 'Material substitutions', sectionId: 'plan-material-substitutions' },
   ],
   'principle-verification': [
     { label: 'Holmgren checklist', sectionId: 'plan-holmgren-checklist' },

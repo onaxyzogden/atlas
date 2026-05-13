@@ -136,7 +136,57 @@ suggestion-shape generator is the biggest unknown.
 
 ---
 
-## Rec #5 — Local/biological material substitution calculator (P2)
+## Rec #5 — Local/biological material substitution calculator (P2) — v1 SHIPPED 2026-05-13
+
+**v1 status:** Shipped as a 7th sub-card in the Plan-stage phasing-
+budgeting module (`apps/web/src/v3/plan/cards/phasing-budgeting/MaterialSubstitutionsCard.tsx`)
+backed by `substitutionCatalog.ts`. The card walks every
+`useFinancialModel().costLineItems` row, resolves its source primitive
+via the per-store array selectors (`livestockStore.paddocks`,
+`pathStore.paths`, `utilityStore.utilities`, `cropStore.cropAreas`), and
+surfaces a biological alternative when a catalog entry matches. The
+toggle writes a scaled `CostRange` into `financialStore.costOverrides`;
+the costEngine's existing `applyOverrides` picks it up, so total
+investment / cashflow / break-even / mission score all recompute live.
+
+**Catalog scope (v1):** 8 cited substitution pairs, each anchored to ≥1
+real bibliographic source (Mollison Designer's Manual, Crawford, Holzer,
+Stamets, Coleman, Lancaster, Yeomans, Drinkwater et al. *Nature* 1998,
+Bowles et al. *Agronomy Journal* 2017, USDA NRCS CPS-380).
+
+| # | Original (matcher) | Alternative | Cost mult (mid) |
+|---|---|---|---|
+| 1 | Woven-wire fence | Hawthorn/blackthorn hedge | 0.40 |
+| 2 | Post-wire perimeter | Multi-row shelterbelt hedge | 0.35 |
+| 3 | Pedestrian / service walkway | Wood-chip path + groundcover | 0.20 |
+| 4 | Farm lane (compacted) | Permeable native-grass track | 0.55 |
+| 5 | Annual garden bed (plastic mulch) | Comfrey chop-and-drop polyculture | 0.10 |
+| 6 | Row crop (synthetic N) | N-fixing cover crop rotation | 0.15 |
+| 7 | Manufactured windbreak panels | NRCS-380 living shelterbelt | 0.30 |
+| 8 | Concrete water tank | Earthen pond + roof catchment | 0.50 |
+
+**Cost behaviour:** `costMultiplier` is fractional, so the alternative
+scales with the steward's actual drawn quantity (50 m of fence vs. 5 km
+both honour the catalog ratio).
+
+**Store extension:** added `clearCostOverride(itemId)` to `financialStore`
+(per-item clear; bulk `clearOverrides()` retained for other UX). Five-
+line addition; no semantics change for existing override writers.
+
+**Deferred to v2:**
+- Establishment-time delta flowing into `cashflowEngine.ts` phase
+  scheduling (currently informational; pending months display only).
+- Mission-uplift wiring into `missionScoring.ts` (currently informational;
+  pending uplift display only — decision on which mission component
+  receives the bump is v2).
+- Catalog expansion past 8 pairs to the 10–15 target.
+- Per-region cost-multiplier tuning (single multiplier v1; split by
+  `CostRegion` is v2).
+- Map-canvas affordance (green tint on substituted elements).
+
+---
+
+### Original spec (preserved for v2 reference)
 
 **Principle:** Renewable Resources & Services · Small & Slow Solutions
 **Source:** *Permaculture Shelter Design*, *Permaculture Trees in Temperate

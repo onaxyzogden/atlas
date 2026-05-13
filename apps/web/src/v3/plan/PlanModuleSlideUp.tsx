@@ -63,6 +63,7 @@ const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudg
 const PhasingScaleMatrixCard  = lazy(() => import('./cards/phasing-budgeting/PhasingScaleMatrixCard.js'));
 const CumulativeInvestmentCard = lazy(() => import('./cards/phasing-budgeting/CumulativeInvestmentCard.js'));
 const EquipmentReplacementScheduleCard = lazy(() => import('./cards/phasing-budgeting/EquipmentReplacementScheduleCard.js'));
+const MaterialSubstitutionsCard = lazy(() => import('./cards/phasing-budgeting/MaterialSubstitutionsCard.js'));
 const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenChecklistCard.js'));
 const ThreeEthicsRollupCard   = lazy(() => import('./cards/principle-verification/ThreeEthicsRollupCard.js'));
 const PrincipleCoverageMatrixCard = lazy(() => import('./cards/principle-verification/PrincipleCoverageMatrixCard.js'));
@@ -120,6 +121,7 @@ function renderPlanCard(
     case 'plan-phasing-scale-matrix': return <PhasingScaleMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-cumulative-investment': return <CumulativeInvestmentCard project={project} onSwitchToMap={noop} />;
     case 'plan-equipment-replacement': return <EquipmentReplacementScheduleCard projectId={project.id} />;
+    case 'plan-material-substitutions': return <MaterialSubstitutionsCard project={project} onSwitchToMap={noop} />;
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;
     case 'plan-three-ethics-rollup': return <ThreeEthicsRollupCard project={project} onSwitchToMap={noop} />;
     case 'plan-principle-coverage-matrix': return <PrincipleCoverageMatrixCard project={project} onSwitchToMap={noop} />;
