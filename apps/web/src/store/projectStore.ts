@@ -415,8 +415,51 @@ export const useProjectStore = create<ProjectState>()(
 // directly (see partialize). The previous IDB-restore sequencing (ADDENDA
 // 3) is no longer needed — see ADDENDUM 6.
 useProjectStore.persist.onFinishHydration(() => {
+  seedMtcDemo();
   void hydrateBuiltins();
 });
+
+// Moontrance Creek demo project. The Plan and Act stages expose a
+// `/v3/project/mtc/...` route whose `projectId` is the literal slug
+// `'mtc'` — it predates the builtin-samples pipeline and is not a
+// real server project. Seed it on hydrate as an `isBuiltin` row keyed
+// by `'mtc'` so `updateProject('mtc', …)` writes route through the
+// builtin allowlist (parcel boundary + metadata) instead of silently
+// dropping. Idempotent.
+export const MTC_SEED: LocalProject = {
+  id: 'mtc',
+  name: 'Moontrance Creek',
+  description: null,
+  status: 'active',
+  projectType: null,
+  country: 'CA',
+  provinceState: 'ON',
+  conservationAuthId: null,
+  address: null,
+  parcelId: null,
+  acreage: null,
+  dataCompletenessScore: null,
+  hasParcelBoundary: false,
+  isBuiltin: true,
+  createdAt: '2026-05-13T00:00:00.000Z',
+  updatedAt: '2026-05-13T00:00:00.000Z',
+  parcelBoundaryGeojson: null,
+  ownerNotes: null,
+  zoningNotes: null,
+  accessNotes: null,
+  waterRightsNotes: null,
+  visionStatement: null,
+  units: 'metric',
+  attachments: [],
+};
+
+function seedMtcDemo(): void {
+  const existing = useProjectStore.getState().projects.find((p) => p.id === 'mtc');
+  if (existing) return;
+  useProjectStore.setState((state) => ({
+    projects: [...state.projects, MTC_SEED],
+  }));
+}
 
 // Local fallback used when the API is unreachable (e.g. dev server not
 // running, offline). Mirrors the canonical builtin from migration 017 so
@@ -614,6 +657,12 @@ function applyBuiltinsToStore(builtins: BuiltinRow[]): void {
     units: 'metric',
     attachments: [],
     serverId: sp.id,
+    // Preserve user-edited project metadata across the builtin re-seed
+    // (designStatus, allowOrphanOutputs, designHorizonYears, zone
+    // thresholds, etc.). Builtins API doesn't ship a metadata field, so
+    // dropping the existing copy here would silently reset every
+    // ProjectMetadata write on every reload.
+    metadata: existing?.metadata,
   };
   });
 

@@ -17,10 +17,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useProjectStore } from '../../store/projectStore.js';
+import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useServerMachineryInventory } from '../../hooks/useServerMachineryInventory.js';
-import type { LocalProject } from '../../store/projectStore.js';
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
@@ -64,33 +63,6 @@ import DesignStatusChip from './header/DesignStatusChip.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
-/** MTC fallback: PlanModuleSlideUp only needs project.id + store fields. */
-const MTC_FALLBACK: LocalProject = {
-  id: 'mtc',
-  name: 'Moontrance Creek',
-  description: null,
-  status: 'active',
-  projectType: null,
-  country: 'CA',
-  provinceState: 'ON',
-  conservationAuthId: null,
-  address: null,
-  parcelId: null,
-  acreage: null,
-  dataCompletenessScore: null,
-  hasParcelBoundary: false,
-  createdAt: '',
-  updatedAt: '',
-  parcelBoundaryGeojson: null,
-  ownerNotes: null,
-  zoningNotes: null,
-  accessNotes: null,
-  waterRightsNotes: null,
-  visionStatement: null,
-  units: 'metric',
-  attachments: [],
-};
-
 export default function PlanLayout() {
   const params = useParams({ strict: false }) as {
     projectId?: string;
@@ -109,7 +81,7 @@ export default function PlanLayout() {
   const v3Project = useV3Project(params.projectId);
 
   const project = useMemo(
-    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_FALLBACK,
+    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
     [projects, id],
   );
 
