@@ -313,7 +313,15 @@ function OrphanCountProbe({
   onChange: (n: number) => void;
 }) {
   const placed = useAllPlacedEntities();
-  const edges = useRelationshipsStore((s) => s.edgesByProject[projectId] ?? []);
+  // Subscribe to the dict, not a derived `?? []`, so the selector
+  // doesn't return a fresh array reference every render. Returning a
+  // new `[]` each call trips React's useSyncExternalStore stability
+  // check and infinite-loops the probe.
+  const edgesByProject = useRelationshipsStore((s) => s.edgesByProject);
+  const edges = useMemo(
+    () => edgesByProject[projectId] ?? [],
+    [edgesByProject, projectId],
+  );
   const count = useMemo(() => {
     try {
       const safePlaced = Array.isArray(placed) ? placed : [];
