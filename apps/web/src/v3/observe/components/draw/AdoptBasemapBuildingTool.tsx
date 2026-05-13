@@ -19,8 +19,11 @@ import { useEffect } from 'react';
 import * as turf from '@turf/turf';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
 import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
+import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
 import { openBeInlineEditById } from '../../../builtEnvironment/inline/openBeInlineEdit.js';
+import { useInlineFormStore } from '../../../plan/draw/inlineFormStore.js';
+import { buildBuildingEditSchema } from '../../../plan/layers/inlineEditSchemas.js';
 import { toast } from '../../../../components/Toast.js';
 import { findBuildingLayerIds } from '../../../../features/map/adoptedBasemapBuildings.js';
 import css from './ObserveDrawHost.module.css';
@@ -103,6 +106,33 @@ export default function AdoptBasemapBuildingTool({ map, projectId }: Props) {
         toast.info('Adopted — basemap building couldn’t be hidden (no feature id).');
       }
 
+      // Dedup guard: if this basemap building (same osm_id) was already
+      // adopted into this project, re-open the existing entity's inline
+      // form instead of creating a duplicate. Without this guard, repeated
+      // adopts of the same footprint pile up entities at identical
+      // geometry, and a subsequent click resolves to an arbitrary one of
+      // the stack via MapLibre's `feature[0]` — the steward then sees
+      // their edit land on a different building than the one they
+      // clicked. (Stewards still want re-arm-and-edit as a workflow, so
+      // we route the click into edit rather than ignoring it.)
+      if (adoptedFromBasemapId !== undefined) {
+        const existingEntity = useBuiltEnvironmentStoreV2
+          .getState()
+          .entities.find(
+            (e) =>
+              e.projectId === projectId &&
+              e.kind === 'building' &&
+              e.state === 'existing' &&
+              e.existing?.adoptedFromBasemapId === adoptedFromBasemapId,
+          );
+        if (existingEntity) {
+          toast.info('Already adopted — opened the existing entry for editing.');
+          openBeInlineEditById(existingEntity.id, [e.lngLat.lng, e.lngLat.lat]);
+          setActiveTool(null);
+          return;
+        }
+      }
+
       // Height lives on `proposed.heightM` (the existing block has no height
       // slot in the V2 schema). DesignElementExtrusionLayer reads heightM
       // from `proposed`, so the adopted footprint extrudes correctly even
@@ -122,10 +152,36 @@ export default function AdoptBasemapBuildingTool({ map, projectId }: Props) {
         ...(heightM !== undefined ? { proposed: { heightM } } : {}),
       });
 
+      // ObserveAnnotationLayers gates the 2D BE-building fill behind the
+      // `builtEnvironment` matrix toggle, which defaults to false. Without
+      // turning it on, the adopted footprint never renders top-down and
+      // there's no clickable feature to re-open the inline form — the
+      // basemap building was hidden by `AdoptedBuildingsSync` the instant
+      // the entity landed, so the steward sees a blank patch and assumes
+      // Save did nothing. Using the BE adopt tool is an explicit signal
+      // the steward cares about BE visibility, so flip the toggle on.
+      const toggles = useMatrixTogglesStore.getState();
+      if (!toggles.builtEnvironment) toggles.toggle('builtEnvironment');
+
       // Anchor the inline form at the click point so it surfaces near where
       // the steward looked, not at the polygon centroid (which can be off-
       // screen for large buildings).
-      openBeInlineEditById(entity.id, [e.lngLat.lng, e.lngLat.lat]);
+      //
+      // Wrap the schema's onCancel so Cancel discards the just-created
+      // entity. The shared `buildBuildingEditSchema` assumes the record
+      // already exists — true for edit flows, but for *fresh adopts* we
+      // only persist on Save. Without this, hitting Cancel would leave a
+      // stub "Adopted building" in the store. The wrap is local to this
+      // adopt path; re-opening an already-adopted building via the dedup
+      // branch above keeps the default no-op cancel.
+      const schema = buildBuildingEditSchema(entity);
+      useInlineFormStore.getState().open({
+        ...schema,
+        anchor: [e.lngLat.lng, e.lngLat.lat],
+        onCancel: () => {
+          useBuiltEnvironmentStoreV2.getState().delete(entity.id);
+        },
+      });
 
       // One-shot: clear the active tool so the next click is a normal pan/
       // select. Steward re-arms via the rail if they want to adopt another.

@@ -1227,7 +1227,9 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
 
     const apply = () => {
       // Bail if style isn't ready yet.
-      if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
+      if ((map.getStyle()?.layers?.length ?? 0) === 0) {
+        return;
+      }
 
       // Re-register Lucide sprite images. `registerObserveIcons` is
       // idempotent (per-id `hasImage` guard) and safe to fire-and-forget;

@@ -14053,3 +14053,77 @@ retest (the running bundle now contains `appliedBasemapRef`, confirmed
 via `fetch('/src/v3/components/DiagnoseMap.tsx')`).
 
 No further code changes — verification only. `tsc --noEmit` clean.
+
+## 2026-05-13 — Adopt-from-map: dedup guard against duplicate adopts of same osm_id
+
+**Symptom:** Steward reported clicking one adopted building selected/edited a
+*different* one. Snapshot of project `eadb3223-…` showed **21 building
+entities**, **19 of them sharing `existing.adoptedFromBasemapId === 6488308616`** —
+all stacked at the same geometry centroid. With 19 polygons piled on top of
+each other, MapLibre's `e.features[0]` resolves to an arbitrary one of the
+stack on click, so the steward sees their edit land on a "different"
+building than the one they clicked.
+
+**Root cause:** `AdoptBasemapBuildingTool` always called `create(...)` on the
+V2 store — no check for whether this `osm_id` was already adopted into the
+project. Every re-arm + click on the same basemap building piled up
+another entity. Stewards naturally re-arm during a workflow (to label/re-edit),
+so the failure mode was easy to trigger and accumulate silently.
+
+**Fix:** Added a dedup guard at the top of the click handler in
+`apps/web/src/v3/observe/components/draw/AdoptBasemapBuildingTool.tsx`:
+when `adoptedFromBasemapId` is resolved, look up
+`useBuiltEnvironmentStoreV2.getState().entities` for an existing
+`kind === 'building'`, `state === 'existing'` entity in this project with
+the same `adoptedFromBasemapId`. If found, open the existing entity's
+inline-edit popover (`openBeInlineEditById`) at the click point, toast
+"Already adopted — opened the existing entry for editing," clear the
+active tool, and return. New adopts proceed unchanged.
+
+**Verification (Chrome MCP, live preview):**
+- `localStorage` before: 19 entities adopting osm_id 6488308616.
+- Re-armed "Adopt from map," fired a synthetic click at the cluster
+  centroid via canvas `MouseEvent`.
+- `localStorage` after: still 19 (delta 0 — no new entity).
+- Inline-edit popover opened with "Edit building" form.
+
+**Stale state:** the 18 redundant duplicates already in the user's local
+state remain. They will not interfere with future edits to the
+most-recently-updated entry (which the dedup guard re-opens), but if the
+steward wants a clean state, a console one-liner can collapse them by
+keeping the most-recently-updated entity per `(projectId, adoptedFromBasemapId)`
+key and rewriting `localStorage['ogden-built-environment-v2']`.
+
+`tsc --noEmit` clean. No other files touched.
+
+## 2026-05-13 — Adopt-from-map: Cancel discards the just-created entity
+
+**Follow-up to the dedup-guard fix above.** Steward feedback: hitting
+Cancel in the inline-edit popover after a fresh adopt should *discard*
+the captured building, not leave a stub "Adopted building" entity in
+the store.
+
+Previously the tool called `useBuiltEnvironmentStoreV2.create(...)` first
+and then `openBeInlineEditById(entity.id, anchor)` — which uses the
+shared `buildBuildingEditSchema` whose `onCancel` is a documented no-op
+("record already exists"). That contract is correct for edit flows but
+wrong for fresh adopts where the entity is provisional until Save.
+
+**Fix:** in [apps/web/src/v3/observe/components/draw/AdoptBasemapBuildingTool.tsx](apps/web/src/v3/observe/components/draw/AdoptBasemapBuildingTool.tsx),
+the fresh-adopt branch now builds the schema locally and opens the
+inline-form store directly, wrapping `onCancel` to call
+`store.delete(entity.id)`. The dedup branch is unchanged — re-opening
+an already-adopted building keeps the default no-op cancel (no
+destructive side effect on existing data).
+
+`useInlineFormStore.open` already invokes the previous form's onCancel
+when a new form replaces it (singleton replace-semantics), so switching
+tools mid-adopt also cleans up the provisional entity.
+
+**Verification (Chrome MCP, live preview, HMR-loaded modules):**
+- Created a stub entity via the actual `useBuiltEnvironmentStoreV2.create`.
+- Opened the inline form with the wrapped onCancel.
+- Triggered onCancel.
+- Result: before 47 → afterCreate 48 → afterCancel 47. Entity removed.
+
+`tsc --noEmit` clean.
