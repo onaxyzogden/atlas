@@ -14,10 +14,10 @@ import {
   type LandZone,
 } from '../../store/zoneStore.js';
 import {
-  useStructureStore,
   type StructureType,
   type Structure,
 } from '../../store/structureStore.js';
+import { useStructurePlacementStore } from '../../store/structurePlacementStore.js';
 import {
   useAllStructures,
   addStructure,
@@ -76,8 +76,8 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
   // Structure state
   const allStructures = useAllStructures();
   const structures = useMemo(() => allStructures.filter((st) => st.projectId === projectId), [allStructures, projectId]);
-  const placementMode = useStructureStore((ss) => ss.placementMode);
-  const setPlacementMode = useStructureStore((ss) => ss.setPlacementMode);
+  const placementMode = useStructurePlacementStore((ss) => ss.placementMode);
+  const setPlacementMode = useStructurePlacementStore((ss) => ss.setPlacementMode);
   const [showStructureModal, setShowStructureModal] = useState(false);
   const [pendingStructureCenter, setPendingStructureCenter] = useState<[number, number] | null>(null);
   const [editingStructure, setEditingStructure] = useState<Structure | null>(null);

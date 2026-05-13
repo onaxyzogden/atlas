@@ -13,7 +13,7 @@ import MapLoadingIndicator from './MapLoadingIndicator.js';
 import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useStructurePlacementStore } from '../../store/structurePlacementStore.js';
 import {
   useAllStructures,
   updateStructure,
@@ -438,7 +438,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       // Don't allow editing for Viewer/Reviewer roles
       if (!canEdit) return;
       // Don't interfere with structure placement mode
-      if (useStructureStore.getState().placementMode) return;
+      if (useStructurePlacementStore.getState().placementMode) return;
 
       // Query all polygon fill layers at the click point
       const allFillLayers = [
