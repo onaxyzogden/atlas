@@ -398,8 +398,8 @@ export default function EarthWaterEcologyDashboard() {
         <AnnotationListCard
           title=""
           projectId={projectId ?? null}
-          kinds={['soilSample', 'watercourse', 'ecologyZone']}
-          emptyHint="No soil samples, watercourses, or ecology zones recorded yet — drop one with the tools panel."
+          kinds={['soilSample', 'watercourse', 'ecologyZone', 'pasture']}
+          emptyHint="No soil samples, watercourses, ecology zones, or pastures recorded yet — drop one with the tools panel."
         />
       </section>
     </div>

@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   Bird,
   Eye,
+  Fence,
   Flame,
   MapPin,
   Mountain,
@@ -115,6 +116,7 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'watercourse',     label: 'Watercourse',         Icon: Waves,    toolId: 'observe.earth-water-ecology.watercourse' },
     { id: 'soil-sample',     label: 'Soil sample',         Icon: TestTube, toolId: 'observe.earth-water-ecology.soil-sample' },
     { id: 'ecology-zone',    label: 'Ecology zone',        Icon: Sprout,   toolId: 'observe.earth-water-ecology.ecology-zone' },
+    { id: 'pasture',         label: 'Pasture / paddock',   Icon: Fence,    toolId: 'observe.earth-water-ecology.pasture' },
   ],
   'sectors-zones': [
     { id: 'sun-summer',      label: 'Sun (summer)',        Icon: Sun,      toolId: 'observe.sectors-zones.sun-summer' },

@@ -26,6 +26,7 @@ import DrainageLineTool from './DrainageLineTool.js';
 import WatercourseTool from './WatercourseTool.js';
 import SoilSampleTool from './SoilSampleTool.js';
 import EcologyZoneTool from './EcologyZoneTool.js';
+import PastureTool from './PastureTool.js';
 import SunWindWedgeTool from './SunWindWedgeTool.js';
 import PermacultureZoneTool from './PermacultureZoneTool.js';
 import SwotTagTool from './SwotTagTool.js';
@@ -104,6 +105,9 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
       break;
     case 'observe.earth-water-ecology.ecology-zone':
       tool = <EcologyZoneTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.earth-water-ecology.pasture':
+      tool = <PastureTool map={map} projectId={projectId} />;
       break;
     case 'observe.sectors-zones.sun-summer':
       tool = (

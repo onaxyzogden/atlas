@@ -23,6 +23,7 @@ import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { usePastureStore } from '../../../../store/pastureStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import {
@@ -276,6 +277,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const sectors = useExternalForcesStore((s) => s.sectors);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
+  const pastures = usePastureStore((s) => s.pastures);
   const swot = useSwotStore((s) => s.swot);
   const soilSamples = useSoilSampleStore((s) => s.samples);
   // Phase 6.B: read built-environment slices directly from V2 via the
@@ -828,6 +830,51 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
+    // ── Pasture / paddock ───────────────────────────────────────────────────
+    const PASTURE_COLOR: Record<string, string> = {
+      'open-pasture': '#c9a86a',
+      paddock: '#b58550',
+      hayfield: '#d4b878',
+    };
+    const pastureFeatures: GeoJSON.Feature[] = inProject(pastures).map((p) => ({
+      type: 'Feature',
+      properties: {
+        kind: p.kind,
+        color: PASTURE_COLOR[p.kind] ?? PASTURE_COLOR.paddock,
+        label: p.label ?? '',
+        annoKind: 'pasture',
+        annoId: p.id,
+      },
+      geometry: p.geometry,
+    }));
+    if (pastureFeatures.length) {
+      result.push({
+        id: 'pasture',
+        data: { type: 'FeatureCollection', features: pastureFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}pasture-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}pasture`,
+            paint: {
+              'fill-color': ['get', 'color'],
+              'fill-opacity': 0.22,
+            },
+          },
+          {
+            id: `${LAYER_PREFIX}pasture-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}pasture`,
+            paint: {
+              'line-color': ['get', 'color'],
+              'line-width': 1.5,
+              'line-opacity': 0.85,
+            },
+          },
+        ],
+      });
+    }
+
     // ── SWOT pins ──────────────────────────────────────────────────────────
     const swotFeatures: GeoJSON.Feature[] = inProject(swot)
       .filter((e) => !!e.position)
@@ -1097,6 +1144,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     sectors,
     watercourses,
     ecologyZones,
+    pastures,
     swot,
     soilSamples,
     buildings,

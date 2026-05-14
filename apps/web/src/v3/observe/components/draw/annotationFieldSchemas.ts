@@ -21,6 +21,7 @@ import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { usePastureStore, type PastureKind } from '../../../../store/pastureStore.js';
 import { useSwotStore, type SwotBucket } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import {
@@ -54,6 +55,7 @@ export type AnnotationKind =
   | 'drainageLine'
   | 'watercourse'
   | 'ecologyZone'
+  | 'pasture'
   | 'soilSample'
   | 'swotTag'
   | 'sector'
@@ -595,6 +597,55 @@ const ecologyZone: FieldSchema = {
       projectId: ctx.projectId,
       geometry: ctx.geometry,
       dominantStage: v.dominantStage as never,
+      label: s(v.label),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const pasture: FieldSchema = {
+  title: 'Pasture / paddock',
+  fields: [
+    {
+      name: 'kind',
+      label: 'Kind',
+      type: 'select',
+      options: [
+        { value: 'paddock', label: 'Paddock (fenced)' },
+        { value: 'open-pasture', label: 'Open pasture' },
+        { value: 'hayfield', label: 'Hayfield' },
+      ],
+    },
+    { name: 'label', label: 'Label', type: 'text', placeholder: 'North paddock' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { kind: 'paddock', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = usePastureStore.getState().pastures.find((p) => p.id === id);
+    if (!rec) return null;
+    return {
+      kind: rec.kind,
+      label: rec.label ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = usePastureStore.getState();
+    if (ctx.existingId) {
+      store.updatePasture(ctx.existingId, {
+        kind: v.kind as PastureKind,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    store.addPasture({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      kind: v.kind as PastureKind,
       label: s(v.label),
       notes: s(v.notes),
       createdAt: nowIso(),
@@ -1195,6 +1246,7 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   drainageLine,
   watercourse,
   ecologyZone,
+  pasture,
   soilSample,
   swotTag,
   sector,
@@ -1232,6 +1284,7 @@ export const FIELD_REMOVERS: Readonly<Record<AnnotationKind, (id: string) => voi
   drainageLine: (id) => useTopographyStore.getState().removeDrainageLine(id),
   watercourse: (id) => useWaterSystemsStore.getState().removeWatercourse(id),
   ecologyZone: (id) => useEcologyStore.getState().removeEcologyZone(id),
+  pasture: (id) => usePastureStore.getState().removePasture(id),
   soilSample: (id) => useSoilSampleStore.getState().deleteSample(id),
   swotTag: (id) => useSwotStore.getState().removeSwot(id),
   sector: (id) => useExternalForcesStore.getState().removeSector(id),

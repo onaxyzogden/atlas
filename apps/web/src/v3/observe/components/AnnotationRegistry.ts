@@ -20,6 +20,7 @@ import { useTopographyStore } from '../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../store/ecologyStore.js';
+import { usePastureStore } from '../../../store/pastureStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../store/soilSampleStore.js';
 import { useBuiltEnvironmentStore } from '../../../store/builtEnvironmentStore.js';
@@ -70,6 +71,7 @@ export const KIND_LABELS: Record<AnnotationKind, string> = {
   drainageLine: 'Drainage line',
   watercourse: 'Watercourse',
   ecologyZone: 'Ecology zone',
+  pasture: 'Pasture / paddock',
   soilSample: 'Soil sample',
   swotTag: 'SWOT tag',
   sector: 'Sector',
@@ -215,6 +217,18 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           createdAt: r.createdAt,
         }));
     }
+    case 'pasture': {
+      return usePastureStore
+        .getState()
+        .pastures.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || (r.kind === 'paddock' ? 'Paddock' : r.kind === 'hayfield' ? 'Hayfield' : 'Pasture'),
+          subtitle: `${r.kind}${r.notes ? ` · ${r.notes}` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
     case 'soilSample': {
       return useSoilSampleStore
         .getState()
@@ -355,6 +369,7 @@ export function useAnnotationsForKinds(
   const drainageLines = useTopographyStore((s) => s.drainageLines);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
+  const pastures = usePastureStore((s) => s.pastures);
   const samples = useSoilSampleStore((s) => s.samples);
   const swot = useSwotStore((s) => s.swot);
   // Phase 6.B: subscribe to V2 directly via the project-filtered hooks.
@@ -391,6 +406,7 @@ export function useAnnotationsForKinds(
     drainageLines,
     watercourses,
     ecologyZones,
+    pastures,
     samples,
     swot,
     buildings,
@@ -510,6 +526,17 @@ export function getAnnotationRow(
         createdAt: r.createdAt,
       };
     }
+    case 'pasture': {
+      const r = usePastureStore.getState().pastures.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: r.label || (r.kind === 'paddock' ? 'Paddock' : r.kind === 'hayfield' ? 'Hayfield' : 'Pasture'),
+        subtitle: r.notes,
+        createdAt: r.createdAt,
+      };
+    }
     case 'soilSample': {
       const r = useSoilSampleStore.getState().samples.find((x) => x.id === id);
       if (!r) return null;
@@ -616,6 +643,9 @@ export function removeAnnotation(kind: AnnotationKind, id: string): void {
       return;
     case 'ecologyZone':
       useEcologyStore.getState().removeEcologyZone(id);
+      return;
+    case 'pasture':
+      usePastureStore.getState().removePasture(id);
       return;
     case 'soilSample':
       useSoilSampleStore.getState().deleteSample(id);
