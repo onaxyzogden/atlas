@@ -35,6 +35,9 @@ import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
+import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import DimensionPanel from '../DimensionPanel.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -62,11 +65,10 @@ export default function FenceLineTool({ map, projectId }: Props) {
   const deleteFenceLine = useLivestockStore((s) => s.deleteFenceLine);
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimValues = useDimensionValues();
 
-  useMapboxDrawTool<GeoJSON.LineString>({
-    map,
-    mode: 'draw_line_string',
-    onComplete: (geom) => {
+  const handleComplete = (geom: GeoJSON.LineString) => {
       const id = newAnnotationId('fnc');
       const coords = geom.coordinates;
       const midIdx = Math.floor(coords.length / 2);
@@ -123,7 +125,21 @@ export default function FenceLineTool({ map, projectId }: Props) {
         },
         onCancel: () => deleteFenceLine(id),
       });
-    },
+    };
+
+  useMapboxDrawTool<GeoJSON.LineString>({
+    map,
+    mode: 'draw_line_string',
+    onComplete: handleComplete,
+    enabled: dimMode === 'freehand',
+  });
+
+  useDimensionDrawTool({
+    map,
+    shape: 'line',
+    values: dimValues,
+    enabled: dimMode === 'dimensions',
+    onComplete: (geom) => handleComplete(geom as GeoJSON.LineString),
   });
 
   return (
@@ -133,6 +149,7 @@ export default function FenceLineTool({ map, projectId }: Props) {
         Trace a fence line — pick fence type and whether it&rsquo;s a
         permanent perimeter or a moveable temporary-strip wire.
       </span>
+      <DimensionPanel allowedShapes={['line']} />
     </div>
   );
 }

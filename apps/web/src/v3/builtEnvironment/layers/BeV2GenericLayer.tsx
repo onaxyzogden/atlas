@@ -47,6 +47,7 @@ import {
   type BuiltEnvironmentEntity,
 } from '@ogden/shared';
 import { openBeInlineEditById } from '../inline/openBeInlineEdit.js';
+import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 
 export type StateFilter = 'existing' | 'proposed' | 'all';
 
@@ -224,6 +225,9 @@ export default function BeV2GenericLayer({
       // Use the click lng/lat as the popover anchor — matches Phase 4.4
       // behaviour for the bespoke 8.
       const anchor: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      usePlanSelectionStore.getState().set([
+        { kind: 'design-element', id, projectId },
+      ]);
       openBeInlineEditById(id, anchor);
     };
     const onEnter = () => {
@@ -249,7 +253,7 @@ export default function BeV2GenericLayer({
         }
       }
     };
-  }, [map]);
+  }, [map, projectId]);
 
   // Cleanup on unmount.
   useEffect(() => {

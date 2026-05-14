@@ -46,6 +46,7 @@ import AnnotationFormSlideUp from './components/draw/AnnotationFormSlideUp.js';
 import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import AnnotationDetailPanel from './components/AnnotationDetailPanel.js';
 import ObserveAnnotationLayers from './components/layers/ObserveAnnotationLayers.js';
+import PlanDataLayers from '../plan/layers/PlanDataLayers.js';
 import DeckOverlay from '../_shared/deck/DeckOverlay.js';
 import {
   AdoptedBuildingsSync,
@@ -191,6 +192,13 @@ export default function ObserveLayout() {
                 map={map}
                 projectId={id}
               />
+              {params.projectId ? (
+                <PlanDataLayers
+                  map={map}
+                  projectId={params.projectId}
+                  editable={false}
+                />
+              ) : null}
               {/* 3D extrusion + GLB layers for Built-Environment entities
                   in the existing-state slice. Hidden top-down (pitch
                   collapses extrusions); pitch the camera (or wire a

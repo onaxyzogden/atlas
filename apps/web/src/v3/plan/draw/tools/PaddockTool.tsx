@@ -32,6 +32,9 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import DimensionPanel from '../DimensionPanel.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -88,11 +91,11 @@ export default function PaddockTool({ map, projectId }: Props) {
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimShape = useDimensionDrawStore((s) => s.shape);
+  const dimValues = useDimensionValues();
 
-  useMapboxDrawTool<GeoJSON.Polygon>({
-    map,
-    mode: 'draw_polygon',
-    onComplete: (geom) => {
+  const handleComplete = (geom: GeoJSON.Polygon) => {
       const id = newAnnotationId('pad');
       const areaM2 = turf.area(geom);
       const anchor = turf.centroid(geom).geometry.coordinates as [number, number];
@@ -187,7 +190,21 @@ export default function PaddockTool({ map, projectId }: Props) {
         },
         onCancel: () => deletePaddock(id),
       });
-    },
+    };
+
+  useMapboxDrawTool<GeoJSON.Polygon>({
+    map,
+    mode: 'draw_polygon',
+    onComplete: handleComplete,
+    enabled: dimMode === 'freehand',
+  });
+
+  useDimensionDrawTool({
+    map,
+    shape: dimShape === 'line' ? 'rect' : dimShape,
+    values: dimValues,
+    enabled: dimMode === 'dimensions',
+    onComplete: (geom) => handleComplete(geom as GeoJSON.Polygon),
   });
 
   return (
@@ -197,6 +214,7 @@ export default function PaddockTool({ map, projectId }: Props) {
         Outline a paddock — pick primary species, fencing, and stocking
         density (head per ha).
       </span>
+      <DimensionPanel allowedShapes={['rect', 'circle']} />
     </div>
   );
 }

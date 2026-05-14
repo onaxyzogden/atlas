@@ -2202,7 +2202,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // moved off-project), the existing materialised geometry is preserved.
   useEffect(() => {
     if (!map) return;
-    if (!editable) return;
     if (activeTool !== null) return;
     const layerId = `${LAYER_PREFIX}setback-fill`;
 
@@ -2313,7 +2312,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // popover (name / kind / from-name / to-name / phase / enterprise).
   useEffect(() => {
     if (!map) return;
-    if (!editable) return;
     if (activeTool !== null) return;
     const layerId = `${LAYER_PREFIX}flow-line`;
 
@@ -2371,7 +2369,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // breaks the "this is the route I walk every <cadence>" semantics.
   useEffect(() => {
     if (!map) return;
-    if (!editable) return;
     if (activeTool !== null) return;
     const layerId = `${LAYER_PREFIX}transect-line`;
 
@@ -2423,6 +2420,71 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     openForm,
     editable,
   ]);
+
+  // Read-only click→selection. The 5 composite mousedown handlers above
+  // (guild, structure, polygon, line, point) each gate themselves on
+  // `editable` to keep drag-to-translate disabled in Observe / Act. To
+  // still surface the `PlanSelectionFloater` for those features in the
+  // read-only stages, register a parallel click-only listener that just
+  // writes to `usePlanSelectionStore`. In editable mode the existing
+  // mousedown path also writes selection — duplicate writes are
+  // idempotent. Catchment-centroid points are selected via their
+  // poly-fill, so the `water_catchment` point kind is intentionally not
+  // surfaced here.
+  useEffect(() => {
+    if (!map) return;
+    if (activeTool !== null) return;
+    const layerIds = [
+      `${LAYER_PREFIX}point`,
+      `${LAYER_PREFIX}poly-fill`,
+      `${LAYER_PREFIX}line`,
+    ];
+
+    const KIND_MAP: Record<string, PlanSelectionKind | undefined> = {
+      guild: 'guild',
+      structure: 'structure',
+      zone: 'zone',
+      crop: 'crop',
+      paddock: 'paddock',
+      water_catchment: 'water',
+      path: 'path',
+      water_swale: 'water',
+      utility: 'utility',
+      fertility: 'fertility',
+      water_storage: 'water',
+      water_sink: 'water',
+    };
+
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      const k = typeof f?.properties?.kind === 'string'
+        ? f.properties.kind
+        : null;
+      if (!k) return;
+      const planKind = KIND_MAP[k];
+      if (!planKind) return;
+      const id = String(f!.properties!.id);
+      const selItem = { kind: planKind, id };
+      if (e.originalEvent.shiftKey) {
+        usePlanSelectionStore.getState().toggle(selItem);
+      } else {
+        setSelection([selItem]);
+      }
+    };
+
+    for (const lid of layerIds) {
+      map.on('click', lid, onClick);
+    }
+    return () => {
+      for (const lid of layerIds) {
+        try {
+          map.off('click', lid, onClick);
+        } catch {
+          /* map already disposed */
+        }
+      }
+    };
+  }, [map, activeTool, setSelection]);
 
   // Cleanup on unmount.
   useEffect(() => {

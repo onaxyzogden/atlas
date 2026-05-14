@@ -18,6 +18,9 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import DimensionPanel from '../DimensionPanel.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -36,11 +39,10 @@ export default function UtilityRunTool({ map, projectId }: Props) {
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimValues = useDimensionValues();
 
-  useMapboxDrawTool<GeoJSON.LineString>({
-    map,
-    mode: 'draw_line_string',
-    onComplete: (geom) => {
+  const handleComplete = (geom: GeoJSON.LineString) => {
       const id = newAnnotationId('utility');
       const lengthM = turf.length(turf.feature(geom), { units: 'kilometers' }) * 1000;
       const coords = geom.coordinates;
@@ -102,7 +104,21 @@ export default function UtilityRunTool({ map, projectId }: Props) {
         },
         onCancel: () => deleteRun(id),
       });
-    },
+    };
+
+  useMapboxDrawTool<GeoJSON.LineString>({
+    map,
+    mode: 'draw_line_string',
+    onComplete: handleComplete,
+    enabled: dimMode === 'freehand',
+  });
+
+  useDimensionDrawTool({
+    map,
+    shape: 'line',
+    values: dimValues,
+    enabled: dimMode === 'dimensions',
+    onComplete: (geom) => handleComplete(geom as GeoJSON.LineString),
   });
 
   return (
@@ -111,6 +127,7 @@ export default function UtilityRunTool({ map, projectId }: Props) {
       <span className={css.hint}>
         Trace a trench / cable line — pick its kind (water, septic, power, data).
       </span>
+      <DimensionPanel allowedShapes={['line']} />
     </div>
   );
 }

@@ -27,6 +27,7 @@ import MapToolbar from '../observe/components/MapToolbar.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
 import PlanDataLayers from '../plan/layers/PlanDataLayers.js';
 import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
+import PlanSelectionFloater from '../plan/PlanSelectionFloater.js';
 import ActTools from './ActTools.js';
 import ActChecklistAside from './ActChecklistAside.js';
 import ActModuleBar from './ActModuleBar.js';
@@ -171,6 +172,7 @@ export default function ActLayout() {
               ) : null}
               <ActDrawHost map={map} projectId={params.projectId ?? null} />
               <InlineFeaturePopover map={map} />
+              <PlanSelectionFloater />
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
             </>
           )}
