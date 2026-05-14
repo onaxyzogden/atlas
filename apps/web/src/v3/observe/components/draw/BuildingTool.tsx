@@ -1,6 +1,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
+import DrawAreaReadout from './DrawAreaReadout.js';
 import { FIELD_SCHEMAS, createWithDefaults } from './annotationFieldSchemas.js';
 import {
   useDimensionDrawStore,
@@ -37,7 +38,7 @@ export default function BuildingTool({ map, projectId }: Props) {
       });
   };
 
-  useMapboxDrawTool<GeoJSON.Polygon>({
+  const { liveArea } = useMapboxDrawTool<GeoJSON.Polygon>({
     map,
     mode: 'draw_polygon',
     enabled: dimMode === 'freehand',
@@ -59,6 +60,15 @@ export default function BuildingTool({ map, projectId }: Props) {
         Outline the footprint (Freehand) or set Width × Depth / Radius (Dimensions).
       </span>
       <DimensionPanel allowedShapes={['rect', 'circle']} />
+      {liveArea !== null && (
+        <div className={css.readout}>
+          <DrawAreaReadout
+            m2={liveArea}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -13,6 +13,8 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useDesignElementDrawTool } from '../../canvas/draw/useDesignElementDrawTool.js';
 import { useMapToolStore } from '../../../observe/components/measure/useMapToolStore.js';
+import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
+import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
   map: MaplibreMap;
@@ -26,11 +28,23 @@ export default function PlantSystemsDesignElementHost({
   kind,
 }: Props) {
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  useDesignElementDrawTool({
+  const { liveArea } = useDesignElementDrawTool({
     map,
     projectId,
     kind,
     onComplete: () => setActiveTool(null),
   });
-  return null;
+  if (liveArea === null) return null;
+  return (
+    <div className={css.popover} role="status" aria-label={`${kind} area`}>
+      <span className={css.title}>{kind}</span>
+      <div className={css.readout}>
+        <DrawAreaReadout
+          m2={liveArea}
+          labelClassName={css.readoutLabel}
+          valueClassName={css.readoutValue}
+        />
+      </div>
+    </div>
+  );
 }

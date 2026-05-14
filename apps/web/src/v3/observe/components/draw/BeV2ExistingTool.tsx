@@ -32,6 +32,7 @@ import {
   type DrawMode,
   type DrawGeometry,
 } from './useMapboxDrawTool.js';
+import DrawAreaReadout from './DrawAreaReadout.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -65,7 +66,7 @@ export default function BeV2ExistingTool({
 
   const mode: DrawMode = spec ? GEOM_TO_MODE[spec.geometryType] : 'draw_point';
 
-  useMapboxDrawTool<DrawGeometry>({
+  const { liveArea } = useMapboxDrawTool<DrawGeometry>({
     map,
     mode,
     onComplete: (geom) => {
@@ -103,6 +104,15 @@ export default function BeV2ExistingTool({
     <div className={css.popover} role="dialog" aria-label={spec.label}>
       <span className={css.title}>{spec.label}</span>
       <span className={css.hint}>{GEOM_TO_HINT[spec.geometryType]}</span>
+      {spec.geometryType === 'polygon' && liveArea !== null && (
+        <div className={css.readout}>
+          <DrawAreaReadout
+            m2={liveArea}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
     </div>
   );
 }

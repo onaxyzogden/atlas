@@ -27,6 +27,7 @@ import {
 } from '../../../../store/cropStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -175,7 +176,7 @@ export default function CropAreaTool({ map, projectId }: Props) {
       });
     };
 
-  useMapboxDrawTool<GeoJSON.Polygon>({
+  const { liveArea } = useMapboxDrawTool<GeoJSON.Polygon>({
     map,
     mode: 'draw_polygon',
     onComplete: handleComplete,
@@ -198,6 +199,15 @@ export default function CropAreaTool({ map, projectId }: Props) {
         method.
       </span>
       <DimensionPanel allowedShapes={['rect', 'circle']} />
+      {liveArea !== null && (
+        <div className={css.readout}>
+          <DrawAreaReadout
+            m2={liveArea}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
     </div>
   );
 }
