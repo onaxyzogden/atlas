@@ -24,6 +24,7 @@ import { useExternalForcesStore } from '../../../../store/externalForcesStore.js
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { usePastureStore } from '../../../../store/pastureStore.js';
+import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import {
@@ -39,7 +40,10 @@ import {
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
+import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
+import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { openBeInlineEditByObserveKind } from '../../../builtEnvironment/inline/openBeInlineEdit.js';
 import { useProjectStore } from '../../../../store/projectStore.js';
 import { DEFAULT_SECTOR_RADIUS_M } from '../../lib/sectorRadius.js';
 import type {
@@ -278,6 +282,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
   const pastures = usePastureStore((s) => s.pastures);
+  const conventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
   const swot = useSwotStore((s) => s.swot);
   const soilSamples = useSoilSampleStore((s) => s.samples);
   // Phase 6.B: read built-environment slices directly from V2 via the
@@ -875,6 +880,54 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
+    // ── Conventional crop ──────────────────────────────────────────────────
+    const CROP_COLOR: Record<string, string> = {
+      'annual-row': '#a8854a',
+      'perennial-monoculture': '#8e7136',
+      'cover-cropped': '#9aa56b',
+      fallow: '#c4b89a',
+    };
+    const conventionalCropFeatures: GeoJSON.Feature[] = inProject(
+      conventionalCrops,
+    ).map((c) => ({
+      type: 'Feature',
+      properties: {
+        kind: c.kind,
+        color: CROP_COLOR[c.kind] ?? CROP_COLOR['annual-row'],
+        label: c.label ?? '',
+        annoKind: 'conventionalCrop',
+        annoId: c.id,
+      },
+      geometry: c.geometry,
+    }));
+    if (conventionalCropFeatures.length) {
+      result.push({
+        id: 'conventional-crop',
+        data: { type: 'FeatureCollection', features: conventionalCropFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}conventional-crop-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}conventional-crop`,
+            paint: {
+              'fill-color': ['get', 'color'],
+              'fill-opacity': 0.22,
+            },
+          },
+          {
+            id: `${LAYER_PREFIX}conventional-crop-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}conventional-crop`,
+            paint: {
+              'line-color': ['get', 'color'],
+              'line-width': 1.5,
+              'line-opacity': 0.85,
+            },
+          },
+        ],
+      });
+    }
+
     // ── SWOT pins ──────────────────────────────────────────────────────────
     const swotFeatures: GeoJSON.Feature[] = inProject(swot)
       .filter((e) => !!e.position)
@@ -1145,6 +1198,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     watercourses,
     ecologyZones,
     pastures,
+    conventionalCrops,
     swot,
     soilSamples,
     buildings,
@@ -1161,6 +1215,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   ]);
 
   const openDetail = useAnnotationDetailStore((s) => s.open);
+  const openForm = useAnnotationFormStore((s) => s.open);
   const selected = useObserveSelectionStore((s) => s.selected);
   const setSelection = useObserveSelectionStore((s) => s.set);
   const toggleSelection = useObserveSelectionStore((s) => s.toggle);
@@ -1231,8 +1286,28 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         if (!kind || !id) return;
         consumedAt = e.originalEvent.timeStamp;
         const shift = (e.originalEvent as MouseEvent).shiftKey;
-        if (shift) toggleSelection({ kind, id });
-        else setSelection([{ kind, id }]);
+        if (shift) {
+          toggleSelection({ kind, id });
+          return;
+        }
+        setSelection([{ kind, id }]);
+        // Reopen the same editable popup that appeared on first draw — BE
+        // kinds route to the floating inline popover (parity with Plan),
+        // others fall through to the slide-up form. Skip when a draw tool
+        // is active (mid-creation) or when the form is already showing
+        // this exact record (idempotent re-click).
+        if (useMapToolStore.getState().activeTool) return;
+        const active = useAnnotationFormStore.getState().active;
+        if (active?.existingId === id && active.kind === kind) return;
+        if (!projectId) return;
+        if (openBeInlineEditByObserveKind(kind, id)) return;
+        openForm({
+          kind,
+          geometry: null,
+          mode: 'edit',
+          existingId: id,
+          projectId,
+        });
       };
       const onDbl: LayerClick = (e) => {
         const f = e.features?.[0];
@@ -1472,10 +1547,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     viewsVisible,
     builtEnvironmentVisible,
     openDetail,
+    openForm,
     haloData,
     setSelection,
     toggleSelection,
     clearSelection,
+    projectId,
   ]);
 
   // Clean up everything when the component unmounts (route change).
