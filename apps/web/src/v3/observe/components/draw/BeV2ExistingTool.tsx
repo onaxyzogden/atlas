@@ -33,6 +33,7 @@ import {
   type DrawGeometry,
 } from './useMapboxDrawTool.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
+import DrawLengthReadout from './DrawLengthReadout.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -66,7 +67,7 @@ export default function BeV2ExistingTool({
 
   const mode: DrawMode = spec ? GEOM_TO_MODE[spec.geometryType] : 'draw_point';
 
-  const { liveArea } = useMapboxDrawTool<DrawGeometry>({
+  const { liveArea, liveLength } = useMapboxDrawTool<DrawGeometry>({
     map,
     mode,
     onComplete: (geom) => {
@@ -108,6 +109,15 @@ export default function BeV2ExistingTool({
         <div className={css.readout}>
           <DrawAreaReadout
             m2={liveArea}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
+      {spec.geometryType === 'line' && liveLength !== null && (
+        <div className={css.readout}>
+          <DrawLengthReadout
+            meters={liveLength}
             labelClassName={css.readoutLabel}
             valueClassName={css.readoutValue}
           />

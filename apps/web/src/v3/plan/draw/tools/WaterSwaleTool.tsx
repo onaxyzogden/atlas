@@ -18,6 +18,7 @@ import {
   depthTriggersVeto,
 } from '../../utils/utilityConflicts.js';
 import { useUtilityConflictStore } from '../utilityConflictStore.js';
+import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 /** Approximate swale excavation depth — drives the utility-veto gate. */
@@ -140,7 +141,7 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
       }
     };
 
-  useMapboxDrawTool<GeoJSON.LineString>({
+  const { liveLength } = useMapboxDrawTool<GeoJSON.LineString>({
     map,
     mode: 'draw_line_string',
     onComplete: handleComplete,

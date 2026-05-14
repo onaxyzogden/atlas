@@ -29,6 +29,7 @@ import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
+import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -132,7 +133,7 @@ export default function MonitoringTransectTool({ map, projectId }: Props) {
       });
     };
 
-  useMapboxDrawTool<GeoJSON.LineString>({
+  const { liveLength } = useMapboxDrawTool<GeoJSON.LineString>({
     map,
     mode: 'draw_line_string',
     onComplete: handleComplete,
@@ -156,6 +157,15 @@ export default function MonitoringTransectTool({ map, projectId }: Props) {
         the transect's log on each return visit.
       </span>
       <DimensionPanel allowedShapes={['line']} />
+      {liveLength !== null && (
+        <div className={css.readout}>
+          <DrawLengthReadout
+            meters={liveLength}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
     </div>
   );
 }

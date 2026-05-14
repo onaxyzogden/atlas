@@ -8,6 +8,7 @@ import {
 } from '../../../plan/draw/dimensionDrawStore.js';
 import { useDimensionDrawTool } from '../../../plan/draw/useDimensionDrawTool.js';
 import DimensionPanel from '../../../plan/draw/DimensionPanel.js';
+import DrawLengthReadout from './DrawLengthReadout.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -36,7 +37,7 @@ export default function PowerLineTool({ map, projectId }: Props) {
       });
   };
 
-  useMapboxDrawTool<GeoJSON.LineString>({
+  const { liveLength } = useMapboxDrawTool<GeoJSON.LineString>({
     map,
     mode: 'draw_line_string',
     enabled: dimMode === 'freehand',
@@ -58,6 +59,15 @@ export default function PowerLineTool({ map, projectId }: Props) {
         Trace the power line (Freehand) or set Length × Bearing (Dimensions).
       </span>
       <DimensionPanel allowedShapes={['line']} />
+      {liveLength !== null && (
+        <div className={css.readout}>
+          <DrawLengthReadout
+            meters={liveLength}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
     </div>
   );
 }

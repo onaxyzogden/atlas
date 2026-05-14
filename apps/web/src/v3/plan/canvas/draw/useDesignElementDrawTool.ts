@@ -351,12 +351,12 @@ export function useDesignElementDrawTool({
     spacing,
   });
 
-  const { liveArea } = useMapboxDrawTool({
+  const { liveArea, liveLength } = useMapboxDrawTool({
     map,
     mode: pointFillMode ? 'draw_polygon' : (spec?.drawMode ?? 'draw_point'),
     onComplete: pointFillMode ? handleFillComplete : handleComplete,
     enabled: !isPoint || pointFillMode,
   });
 
-  return { liveArea };
+  return { liveArea, liveLength };
 }

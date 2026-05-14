@@ -14,6 +14,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useDesignElementDrawTool } from '../../canvas/draw/useDesignElementDrawTool.js';
 import { useMapToolStore } from '../../../observe/components/measure/useMapToolStore.js';
 import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
+import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -30,23 +31,32 @@ export default function PlanDesignElementHost({
   parcelBoundary,
 }: Props) {
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  const { liveArea } = useDesignElementDrawTool({
+  const { liveArea, liveLength } = useDesignElementDrawTool({
     map,
     projectId,
     kind,
     onComplete: () => setActiveTool(null),
     parcelBoundary,
   });
-  if (liveArea === null) return null;
+  if (liveArea === null && liveLength === null) return null;
   return (
-    <div className={css.popover} role="status" aria-label={`${kind} area`}>
+    <div className={css.popover} role="status" aria-label={`${kind} readout`}>
       <span className={css.title}>{kind}</span>
       <div className={css.readout}>
-        <DrawAreaReadout
-          m2={liveArea}
-          labelClassName={css.readoutLabel}
-          valueClassName={css.readoutValue}
-        />
+        {liveArea !== null && (
+          <DrawAreaReadout
+            m2={liveArea}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        )}
+        {liveLength !== null && (
+          <DrawLengthReadout
+            meters={liveLength}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        )}
       </div>
     </div>
   );
