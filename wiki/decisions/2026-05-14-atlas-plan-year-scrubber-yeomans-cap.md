@@ -97,6 +97,20 @@ unreachable values.
 - Tick row positions in the DOM (verified via preview_eval):
   `1 @ 0%`, `5 @ 8.16%`, `15 @ 28.57%`, `30 @ 59.18%`, `50 @ 100%`.
 
+## Addendum — 2026-05-14 JSDoc sweep
+
+Follow-up doc-only pass over ten Plan-stage files swept stale
+`phase-1` / `phase-2` / "Year 1 / Year 5" wording from JSDoc headers,
+inline comments, and card lede prose to reference the year scrubber +
+`yeomansCapForYear(currentYear)` directly:
+`canvas/PlanPhaseTabs.tsx` (header rewritten: Five tabs → Three tabs +
+scrub toggle); `cards/principle-verification/usePrincipleEvidenceVisibleIds.ts`,
+`ThreeEthicsRollupCard.tsx`, `PrincipleCoverageMatrixCard.tsx`;
+`cards/water-management/WaterStorageCard.tsx`, `WaterNetworkCard.tsx`;
+`cards/soil-fertility/FertilityColocationCard.tsx`,
+`ClosedLoopGraphCard.tsx`; `cards/plant-systems/PlantEstablishmentSequenceCard.tsx`,
+`CanopySuccessionCard.tsx`. No logic changes.
+
 ## Related
 
 - `2026-05-13-atlas-temporal-slider.md` — original scrubber ADR.

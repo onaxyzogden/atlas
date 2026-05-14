@@ -53,8 +53,8 @@ export default function WaterStorageCard({ project }: Props) {
     [projectNodes],
   );
   // The ledger of visible storage/swale/sink nodes is capped by the
-  // active Plan view (Year 1 / Year 5) via the phaseStore→Yeomans
-  // adapter. `targets` for the overflow dropdown stays uncapped on
+  // year scrubber's `yeomansCapForYear(currentYear)` via the
+  // phaseStore→Yeomans adapter. `targets` for the overflow dropdown stays uncapped on
   // purpose: you can still wire overflow into a node that's hidden by
   // the current view — caps are presentational, not data-deletion.
   // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.

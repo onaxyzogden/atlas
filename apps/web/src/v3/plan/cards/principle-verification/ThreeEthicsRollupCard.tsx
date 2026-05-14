@@ -63,10 +63,10 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
   const byProject = usePrincipleCheckStore((s) => s.byProject);
   const checks = useMemo(() => byProject[project.id] ?? {}, [byProject, project.id]);
 
-  // Evidence depth is capped to features visible at the active Plan
-  // view: phase-tagged features (water nodes, paddocks, fertility
-  // infra) drop out on Year 1 / Year 5 when their BuildPhase's
-  // `yeomansCap` exceeds the view cap. The steward's `linkedFeatureIds`
+  // Evidence depth is capped to features visible at the active year
+  // scrubber position: phase-tagged features (water nodes, paddocks,
+  // fertility infra) drop out when their BuildPhase's `yeomansCap`
+  // exceeds `yeomansCapForYear(currentYear)`. The steward's `linkedFeatureIds`
   // narrative is preserved untouched — only the *count* shown here
   // reflects the view. See
   // wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
@@ -129,10 +129,10 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
           Permaculture's twelve principles serve three ethics. This view
           rolls your principle-by-principle assessment up to Earth Care,
           People Care, and Fair Share so you can see whether the design
-          honours all three — not just the ones that came easily. On
-          Year 1 / Year 5 views the evidence-depth counts reflect only
-          features visible at that view; your status pills and linked
-          features themselves are unchanged.
+          honours all three — not just the ones that came easily. The
+          evidence-depth counts reflect only features visible at the
+          year scrubber's current position; your status pills and
+          linked features themselves are unchanged.
         </p>
       </header>
 

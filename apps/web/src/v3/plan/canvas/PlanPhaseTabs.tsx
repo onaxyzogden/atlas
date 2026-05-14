@@ -1,11 +1,14 @@
 /**
  * PlanPhaseTabs — top tab strip for the Plan stage.
  *
- * Five tabs: Current Land, Vision Layout, two Yeomans-keyed phase tabs
- * (Year 1 / Year 5), and 3D Terrain.
+ * Three tabs: Current Land, Vision Layout, 3D Terrain — plus a summon
+ * toggle for the bottom-canvas year scrubber, which now drives the
+ * Yeomans Scale of Permanence cap via `yeomansCapForYear(currentYear)`
+ * (see 2026-05-14 ADR). The retired `phase-1` / `phase-2` "Year 1 /
+ * Year 5" pills were folded into that continuous Year 1..50 axis.
  *
  * 3D extrusions for placed design elements (`DesignElementExtrusionLayer`)
- * are mounted **always** in the Vision/Phase canvases — they're driven by
+ * are mounted **always** in the Vision canvas — they're driven by
  * camera pitch, not by tab. Top-down they collapse to nothing visually
  * and the flat layer underneath does the work; tilt the map (shift-drag)
  * and they read as 3D.

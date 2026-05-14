@@ -8,8 +8,9 @@
  * feature picker, scopes each to the active project, then runs each
  * project-scoped slice through the `usePhaseStoreCappedEntities`
  * adapter so phase-tagged entities (waterNodes, paddocks,
- * fertilityInfra, etc.) drop out on `phase-1` / `phase-2` views when
- * their BuildPhase's `yeomansCap` exceeds the view cap.
+ * fertilityInfra, etc.) drop out when the year scrubber's
+ * `yeomansCapForYear(currentYear)` is exceeded by their BuildPhase's
+ * `yeomansCap`.
  *
  * Entities whose store has no `phase?: string` field (zones, paths,
  * structures, transects, guilds, crops, ecology — observation /

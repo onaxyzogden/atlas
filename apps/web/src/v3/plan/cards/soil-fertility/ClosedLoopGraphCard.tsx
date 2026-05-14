@@ -117,8 +117,8 @@ export default function ClosedLoopGraphCard({ project }: Props) {
   const allCrops = useCropStore((s) => s.cropAreas);
 
   // Fertility infra is the only phase-tagged entity in this card.
-  // Capped by Plan view (Year 1 / Year 5) via the phaseStore→Yeomans
-  // adapter. Zones, structures, crops, and vectors stay uncapped:
+  // Capped by the year scrubber's `yeomansCapForYear(currentYear)` via
+  // the phaseStore→Yeomans adapter. Zones, structures, crops, and vectors stay uncapped:
   // they have no phase field, and caps are presentational — dangling
   // edges from a capped-out fertility node are accepted (matches the
   // principle established for WaterStorageCard overflow targets).

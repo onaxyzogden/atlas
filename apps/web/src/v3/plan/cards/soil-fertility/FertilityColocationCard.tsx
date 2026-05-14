@@ -21,8 +21,8 @@
  * Cap discipline (asymmetric rule, established Phase B):
  *   - This is a *readout* card. Both the guild slice and the
  *     fertility slice run through `usePhaseStoreCappedEntities`,
- *     so on `phase-1` / `phase-2` views entities whose BuildPhase's
- *     `yeomansCap` exceeds the view cap drop out.
+ *     so entities whose BuildPhase's `yeomansCap` exceeds the year
+ *     scrubber's `yeomansCapForYear(currentYear)` drop out.
  *   - Registration cards (GuildSpatialBuilderCard,
  *     SoilFertilityDesignerCard) stay uncapped.
  *
@@ -361,9 +361,9 @@ export default function FertilityColocationCard({ project }: Props) {
           (≤ {closeM} m) / Zone-2 ({closeM}–{mediumM} m) / Zone-3+
           (&gt; {mediumM} m). Guilds without a centroid, or guilds in
           a view with no fertility infrastructure placed, land in
-          <em> Unplaced or unpaired</em>. Year 1 / Year 5 views cap
-          both stores per the Scale of Permanence; Current / Vision
-          views show everything. The <em>Resilience</em> section
+          <em> Unplaced or unpaired</em>. The year scrubber caps both
+          stores per the Scale of Permanence (Year ≤ 2 → water;
+          Year ≤ 5 → buildings; Year 6+ uncapped). The <em>Resilience</em> section
           counts how many placed guilds have ≥ 2 fertility units
           within ≤ {mediumM} m (redundant) versus exactly one (single
           point of failure). The <em>By fertility unit</em> section

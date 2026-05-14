@@ -125,9 +125,10 @@ export default function CanopySuccessionCard({ project }: Props) {
     () => allGuilds.filter((g) => g.projectId === project.id),
     [allGuilds, project.id],
   );
-  // Cap the guild set by the active Plan view. On uncapped views
-  // this is identity; on phase-1 / phase-2 it drops guilds whose
-  // BuildPhase yeomansCap exceeds the view cap.
+  // Cap the guild set by the year scrubber's
+  // `yeomansCapForYear(currentYear)`. At Year 6+ this is identity;
+  // at Year ≤ 2 / Year ≤ 5 it drops guilds whose BuildPhase
+  // yeomansCap exceeds the active cap.
   const visibleGuilds = usePhaseStoreCappedEntities(projectGuilds);
 
   // Build (1) the set of speciesIds reachable through any visible
