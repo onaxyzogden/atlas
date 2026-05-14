@@ -22,6 +22,14 @@ import { useExternalForcesStore } from '../../../../store/externalForcesStore.js
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { usePastureStore, type PastureKind } from '../../../../store/pastureStore.js';
+import {
+  useConventionalCropStore,
+  type ConventionalCropKind,
+  type CompactionLevel,
+  type InputRegime,
+  type TillageRegime,
+  type IrrigationRegime,
+} from '../../../../store/conventionalCropStore.js';
 import { useSwotStore, type SwotBucket } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import {
@@ -56,6 +64,7 @@ export type AnnotationKind =
   | 'watercourse'
   | 'ecologyZone'
   | 'pasture'
+  | 'conventionalCrop'
   | 'soilSample'
   | 'swotTag'
   | 'sector'
@@ -648,6 +657,119 @@ const pasture: FieldSchema = {
       kind: v.kind as PastureKind,
       label: s(v.label),
       notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const CONVENTIONAL_CROP_KIND_OPTIONS = [
+  { value: 'annual-row', label: 'Annual row crop' },
+  { value: 'perennial-monoculture', label: 'Perennial monoculture' },
+  { value: 'cover-cropped', label: 'Cover-cropped' },
+  { value: 'fallow', label: 'Fallow' },
+];
+
+const COMPACTION_OPTIONS = [
+  { value: 'unknown', label: 'Unknown' },
+  { value: 'none', label: 'None' },
+  { value: 'mild', label: 'Mild' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'severe', label: 'Severe' },
+];
+
+const INPUTS_OPTIONS = [
+  { value: 'unknown', label: 'Unknown' },
+  { value: 'none', label: 'None' },
+  { value: 'synthetic', label: 'Synthetic' },
+  { value: 'organic', label: 'Organic' },
+  { value: 'mixed', label: 'Mixed' },
+];
+
+const TILLAGE_OPTIONS = [
+  { value: 'unknown', label: 'Unknown' },
+  { value: 'no-till', label: 'No-till' },
+  { value: 'reduced', label: 'Reduced' },
+  { value: 'conventional', label: 'Conventional' },
+  { value: 'intensive', label: 'Intensive' },
+];
+
+const IRRIGATION_OPTIONS = [
+  { value: 'unknown', label: 'Unknown' },
+  { value: 'none', label: 'None' },
+  { value: 'rainfed', label: 'Rainfed' },
+  { value: 'drip', label: 'Drip' },
+  { value: 'sprinkler', label: 'Sprinkler' },
+  { value: 'flood', label: 'Flood' },
+];
+
+const conventionalCrop: FieldSchema = {
+  title: 'Conventional crop',
+  fields: [
+    { name: 'kind', label: 'Kind', type: 'select', options: CONVENTIONAL_CROP_KIND_OPTIONS },
+    { name: 'primaryCrop', label: 'Primary crop', type: 'text', placeholder: 'Corn / Soy-wheat rotation' },
+    { name: 'compaction', label: 'Soil compaction', type: 'select', options: COMPACTION_OPTIONS },
+    { name: 'inputs', label: 'Inputs', type: 'select', options: INPUTS_OPTIONS },
+    { name: 'tillage', label: 'Tillage', type: 'select', options: TILLAGE_OPTIONS },
+    { name: 'irrigation', label: 'Irrigation', type: 'select', options: IRRIGATION_OPTIONS },
+    { name: 'lastPlanted', label: 'Last planted', type: 'date' },
+    { name: 'rotationNotes', label: 'Rotation notes', type: 'textarea', placeholder: 'Years, sequence, cover crops…' },
+    { name: 'label', label: 'Label', type: 'text', placeholder: 'East field' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: {
+    kind: 'annual-row',
+    primaryCrop: '',
+    compaction: 'unknown',
+    inputs: 'unknown',
+    tillage: 'unknown',
+    irrigation: 'unknown',
+    lastPlanted: '',
+    rotationNotes: '',
+    label: '',
+    notes: '',
+  },
+  loadDefaults: (id) => {
+    const rec = useConventionalCropStore
+      .getState()
+      .conventionalCrops.find((c) => c.id === id);
+    if (!rec) return null;
+    return {
+      kind: rec.kind,
+      primaryCrop: rec.primaryCrop ?? '',
+      compaction: rec.compaction ?? 'unknown',
+      inputs: rec.inputs ?? 'unknown',
+      tillage: rec.tillage ?? 'unknown',
+      irrigation: rec.irrigation ?? 'unknown',
+      lastPlanted: rec.lastPlanted ?? '',
+      rotationNotes: rec.rotationNotes ?? '',
+      label: rec.label ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useConventionalCropStore.getState();
+    const patch = {
+      kind: v.kind as ConventionalCropKind,
+      primaryCrop: s(v.primaryCrop),
+      compaction: v.compaction as CompactionLevel,
+      inputs: v.inputs as InputRegime,
+      tillage: v.tillage as TillageRegime,
+      irrigation: v.irrigation as IrrigationRegime,
+      lastPlanted: s(v.lastPlanted),
+      rotationNotes: s(v.rotationNotes),
+      label: s(v.label),
+      notes: s(v.notes),
+    };
+    if (ctx.existingId) {
+      store.updateConventionalCrop(ctx.existingId, patch);
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    store.addConventionalCrop({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      ...patch,
       createdAt: nowIso(),
     });
   },
@@ -1247,6 +1369,7 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   watercourse,
   ecologyZone,
   pasture,
+  conventionalCrop,
   soilSample,
   swotTag,
   sector,
@@ -1285,6 +1408,8 @@ export const FIELD_REMOVERS: Readonly<Record<AnnotationKind, (id: string) => voi
   watercourse: (id) => useWaterSystemsStore.getState().removeWatercourse(id),
   ecologyZone: (id) => useEcologyStore.getState().removeEcologyZone(id),
   pasture: (id) => usePastureStore.getState().removePasture(id),
+  conventionalCrop: (id) =>
+    useConventionalCropStore.getState().removeConventionalCrop(id),
   soilSample: (id) => useSoilSampleStore.getState().deleteSample(id),
   swotTag: (id) => useSwotStore.getState().removeSwot(id),
   sector: (id) => useExternalForcesStore.getState().removeSector(id),

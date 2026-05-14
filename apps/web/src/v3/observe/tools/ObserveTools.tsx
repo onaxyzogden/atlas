@@ -43,6 +43,7 @@ import {
   Users,
   Volume2,
   Waves,
+  Wheat,
   Wind,
   type LucideIcon,
 } from 'lucide-react';
@@ -140,6 +141,7 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'soil-sample',     label: 'Soil sample',         Icon: TestTube, toolId: 'observe.earth-water-ecology.soil-sample' },
     { id: 'ecology-zone',    label: 'Ecology zone',        Icon: Sprout,   toolId: 'observe.earth-water-ecology.ecology-zone' },
     { id: 'pasture',         label: 'Pasture / paddock',   Icon: Fence,    toolId: 'observe.earth-water-ecology.pasture' },
+    { id: 'conventional-crop', label: 'Conventional crop', Icon: Wheat,    toolId: 'observe.earth-water-ecology.conventional-crop' },
     // 2026-05-14 — Berm and Raised bed relocated from the Earthworks BE
     // category (dropped). Use BE toolIds so the existing BE draw pipeline
     // still handles persistence.

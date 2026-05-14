@@ -21,6 +21,7 @@ import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../store/ecologyStore.js';
 import { usePastureStore } from '../../../store/pastureStore.js';
+import { useConventionalCropStore } from '../../../store/conventionalCropStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../store/soilSampleStore.js';
 import { useBuiltEnvironmentStore } from '../../../store/builtEnvironmentStore.js';
@@ -72,6 +73,7 @@ export const KIND_LABELS: Record<AnnotationKind, string> = {
   watercourse: 'Watercourse',
   ecologyZone: 'Ecology zone',
   pasture: 'Pasture / paddock',
+  conventionalCrop: 'Conventional crop',
   soilSample: 'Soil sample',
   swotTag: 'SWOT tag',
   sector: 'Sector',
@@ -229,6 +231,18 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           createdAt: r.createdAt,
         }));
     }
+    case 'conventionalCrop': {
+      return useConventionalCropStore
+        .getState()
+        .conventionalCrops.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: r.label || 'Conventional crop',
+          subtitle: `${r.kind}${r.primaryCrop ? ` · ${r.primaryCrop}` : ''}${r.notes ? ` · ${r.notes}` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
     case 'soilSample': {
       return useSoilSampleStore
         .getState()
@@ -370,6 +384,7 @@ export function useAnnotationsForKinds(
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const ecologyZones = useEcologyStore((s) => s.ecologyZones);
   const pastures = usePastureStore((s) => s.pastures);
+  const conventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
   const samples = useSoilSampleStore((s) => s.samples);
   const swot = useSwotStore((s) => s.swot);
   // Phase 6.B: subscribe to V2 directly via the project-filtered hooks.
@@ -407,6 +422,7 @@ export function useAnnotationsForKinds(
     watercourses,
     ecologyZones,
     pastures,
+    conventionalCrops,
     samples,
     swot,
     buildings,
@@ -537,6 +553,19 @@ export function getAnnotationRow(
         createdAt: r.createdAt,
       };
     }
+    case 'conventionalCrop': {
+      const r = useConventionalCropStore
+        .getState()
+        .conventionalCrops.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: r.label || 'Conventional crop',
+        subtitle: `${r.kind}${r.primaryCrop ? ` · ${r.primaryCrop}` : ''}${r.notes ? ` · ${r.notes}` : ''}`,
+        createdAt: r.createdAt,
+      };
+    }
     case 'soilSample': {
       const r = useSoilSampleStore.getState().samples.find((x) => x.id === id);
       if (!r) return null;
@@ -646,6 +675,9 @@ export function removeAnnotation(kind: AnnotationKind, id: string): void {
       return;
     case 'pasture':
       usePastureStore.getState().removePasture(id);
+      return;
+    case 'conventionalCrop':
+      useConventionalCropStore.getState().removeConventionalCrop(id);
       return;
     case 'soilSample':
       useSoilSampleStore.getState().deleteSample(id);
