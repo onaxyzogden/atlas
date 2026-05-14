@@ -90,3 +90,37 @@ click already, and `DimensionPanel` has no point shape.
   (6×8 m rect, 5 m radius, 20 m line) apply uniformly.
 - Persisting the steward's last-used mode/shape across sessions — the
   store is in-memory and resets on reload.
+
+## 2026-05-14 follow-up — generic `BeV2ExistingTool` opts in
+
+Original rollout enumerated only the **bespoke** tools (Plan: 11; Observe:
+14). It missed the generic `BeV2ExistingTool` in
+[apps/web/src/v3/observe/components/draw/BeV2ExistingTool.tsx](../../apps/web/src/v3/observe/components/draw/BeV2ExistingTool.tsx),
+which is the actual placement surface for the 5 canonical agricultural BE
+kinds (`barn`, `greenhouse`, `shed`, `animal-shelter`, `compost`) and 18
+other non-bespoke kinds (`cabin`, `yurt`, `prayer-pavilion`, …). The same
+component serves both stages: Observe (state `existing`) and Plan
+(state `proposed`, dispatched from `PlanDrawHost` under the `be.<kind>`
+prefix). Result: stewards could not enter exact dimensions for a barn or
+greenhouse — only freehand polygon.
+
+Extension wires the same pattern into `BeV2ExistingTool`, gated by
+`spec.geometryType`:
+- `polygon` → `<DimensionPanel allowedShapes={['rect', 'circle']} />`
+- `line` → `<DimensionPanel allowedShapes={['line']} />`
+- `point` → no panel (single-click placement unchanged)
+
+The existing `useMapboxDrawTool` call is gated on
+`enabled: isPoint || dimMode === 'freehand'` so point kinds remain
+always-on; a parallel `useDimensionDrawTool` runs when
+`!isPoint && dimMode === 'dimensions'`. Both paths funnel through one
+`place(geom)` helper that calls
+`useBuiltEnvironmentStoreV2.create({...})` exactly as before — no store
+changes. Polygon/line hint strings updated to mention both modes; point
+hint kept as-is.
+
+Preview-verified: arming Barn / Greenhouse / Shed / Animal Shelter /
+Compost Station on the Plan rail each opens a popover labeled with the
+kind, the new dimensions-aware hint, and the `[Freehand] [Dimensions]`
+toggle. Observe rail shares the same component via `ObserveDrawHost`, so
+both stages benefit from one edit.

@@ -34,6 +34,12 @@ import {
 } from './useMapboxDrawTool.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
 import DrawLengthReadout from './DrawLengthReadout.js';
+import {
+  useDimensionDrawStore,
+  useDimensionValues,
+} from '../../../plan/draw/dimensionDrawStore.js';
+import { useDimensionDrawTool } from '../../../plan/draw/useDimensionDrawTool.js';
+import DimensionPanel from '../../../plan/draw/DimensionPanel.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -53,8 +59,9 @@ const GEOM_TO_MODE: Readonly<Record<BuiltEnvironmentGeometryType, DrawMode>> = {
 
 const GEOM_TO_HINT: Readonly<Record<BuiltEnvironmentGeometryType, string>> = {
   point: 'Click on the map to drop the marker.',
-  line: 'Click to add vertices, double-click to finish.',
-  polygon: 'Outline the footprint. Double-click to finish.',
+  line: 'Trace the line (Freehand) or set Length / Bearing (Dimensions).',
+  polygon:
+    'Outline the footprint (Freehand) or set Width × Depth / Radius (Dimensions).',
 };
 
 export default function BeV2ExistingTool({
@@ -66,30 +73,48 @@ export default function BeV2ExistingTool({
   const spec = getBuiltEnvironmentKind(kind);
 
   const mode: DrawMode = spec ? GEOM_TO_MODE[spec.geometryType] : 'draw_point';
+  const isPoint = !spec || spec.geometryType === 'point';
+  const isLine = spec?.geometryType === 'line';
+  const isPolygon = spec?.geometryType === 'polygon';
+
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimShape = useDimensionDrawStore((s) => s.shape);
+  const dimValues = useDimensionValues();
+
+  const place = (geom: DrawGeometry) => {
+    if (!spec) return;
+    // Geometry constraint: useBuiltEnvironmentStoreV2.create asserts the
+    // GeoJSON type matches the registry's geometryType. We've already
+    // selected `mode` from the registry so this is enforced upstream.
+    // Phase 6: when placing a `custom-glb`, stamp the active customModelId
+    // from `customDrawSelectionStore` so the scenegraph layer can resolve
+    // the right blob URL at render time.
+    const customId =
+      spec.kind === 'custom-glb'
+        ? useCustomDrawSelectionStore.getState().activeCustomModelId
+        : null;
+    useBuiltEnvironmentStoreV2.getState().create({
+      projectId,
+      kind: spec.kind,
+      state,
+      geometry: geom,
+      ...(customId ? { proposed: { customModelId: customId } } : {}),
+    });
+  };
 
   const { liveArea, liveLength } = useMapboxDrawTool<DrawGeometry>({
     map,
     mode,
-    onComplete: (geom) => {
-      if (!spec) return;
-      // Geometry constraint: useBuiltEnvironmentStoreV2.create asserts the
-      // GeoJSON type matches the registry's geometryType. We've already
-      // selected `mode` from the registry so this is enforced upstream.
-      // Phase 6: when placing a `custom-glb`, stamp the active customModelId
-      // from `customDrawSelectionStore` so the scenegraph layer can resolve
-      // the right blob URL at render time.
-      const customId =
-        spec.kind === 'custom-glb'
-          ? useCustomDrawSelectionStore.getState().activeCustomModelId
-          : null;
-      useBuiltEnvironmentStoreV2.getState().create({
-        projectId,
-        kind: spec.kind,
-        state,
-        geometry: geom,
-        ...(customId ? { proposed: { customModelId: customId } } : {}),
-      });
-    },
+    enabled: isPoint || dimMode === 'freehand',
+    onComplete: place,
+  });
+
+  useDimensionDrawTool({
+    map,
+    shape: isLine ? 'line' : dimShape === 'circle' ? 'circle' : 'rect',
+    values: dimValues,
+    enabled: !isPoint && dimMode === 'dimensions',
+    onComplete: (geom) => place(geom as DrawGeometry),
   });
 
   if (!spec) {
@@ -105,7 +130,9 @@ export default function BeV2ExistingTool({
     <div className={css.popover} role="dialog" aria-label={spec.label}>
       <span className={css.title}>{spec.label}</span>
       <span className={css.hint}>{GEOM_TO_HINT[spec.geometryType]}</span>
-      {spec.geometryType === 'polygon' && liveArea !== null && (
+      {isPolygon && <DimensionPanel allowedShapes={['rect', 'circle']} />}
+      {isLine && <DimensionPanel allowedShapes={['line']} />}
+      {isPolygon && liveArea !== null && (
         <div className={css.readout}>
           <DrawAreaReadout
             m2={liveArea}
@@ -114,7 +141,7 @@ export default function BeV2ExistingTool({
           />
         </div>
       )}
-      {spec.geometryType === 'line' && liveLength !== null && (
+      {isLine && liveLength !== null && (
         <div className={css.readout}>
           <DrawLengthReadout
             meters={liveLength}
