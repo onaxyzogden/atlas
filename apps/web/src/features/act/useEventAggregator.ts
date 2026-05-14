@@ -29,13 +29,15 @@ import { useLivestockMoveLogStore } from '../../store/livestockMoveLogStore.js';
 import { useScheduledLivestockMoveStore } from '../../store/scheduledLivestockMoveStore.js';
 import { useHarvestLogStore } from '../../store/harvestLogStore.js';
 import { useNurseryStore } from '../../store/nurseryStore.js';
+import { usePhaseStore } from '../../store/phaseStore.js';
 
 export type CalendarSource =
   | 'community'
   | 'task'
   | 'livestock'
   | 'harvest'
-  | 'nursery';
+  | 'nursery'
+  | 'phaseTask';
 
 export const CALENDAR_SOURCES: readonly CalendarSource[] = [
   'community',
@@ -43,6 +45,7 @@ export const CALENDAR_SOURCES: readonly CalendarSource[] = [
   'livestock',
   'harvest',
   'nursery',
+  'phaseTask',
 ] as const;
 
 export const CALENDAR_SOURCE_LABEL: Record<CalendarSource, string> = {
@@ -51,6 +54,7 @@ export const CALENDAR_SOURCE_LABEL: Record<CalendarSource, string> = {
   livestock: 'Livestock',
   harvest: 'Harvest',
   nursery: 'Nursery',
+  phaseTask: 'Plan tasks',
 };
 
 export interface CalendarEntry {
@@ -92,6 +96,7 @@ const SOURCE_ORDER: Record<CalendarSource, number> = {
   livestock: 2,
   harvest: 3,
   nursery: 4,
+  phaseTask: 5,
 };
 
 export function useEventAggregator(projectId: string): UseEventAggregatorResult {
@@ -102,6 +107,7 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
   const harvests = useHarvestLogStore((s) => s.entries);
   const nurseryBatches = useNurseryStore((s) => s.batches);
   const stockTransfers = useNurseryStore((s) => s.transfers);
+  const phases = usePhaseStore((s) => s.phases);
 
   return useMemo(() => {
     const all: CalendarEntry[] = [];
@@ -205,6 +211,31 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       }
     }
 
+    for (const phase of phases) {
+      if (phase.projectId !== projectId) continue;
+      for (const t of phase.tasks ?? []) {
+        if (!t.scheduledStart) continue;
+        const key = toDateKey(t.scheduledStart);
+        if (!key) continue;
+        const iso = `${t.scheduledStart}T09:00:00`;
+        const laborMeta = t.laborHrs ? `${t.laborHrs}h` : '';
+        const roleMeta = t.roleAccess && t.roleAccess.length > 0
+          ? t.roleAccess.join('/')
+          : '';
+        const meta = [phase.name, laborMeta, roleMeta]
+          .filter(Boolean)
+          .join(' · ');
+        all.push({
+          id: `phase-task:${t.id}`,
+          source: 'phaseTask',
+          dateKey: key,
+          iso,
+          title: t.title,
+          meta,
+        });
+      }
+    }
+
     for (const tr of stockTransfers) {
       if (tr.projectId !== projectId) continue;
       const key = toDateKey(tr.transferDate);
@@ -241,5 +272,6 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
     harvests,
     nurseryBatches,
     stockTransfers,
+    phases,
   ]);
 }

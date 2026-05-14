@@ -1,0 +1,353 @@
+/**
+ * Project-type-keyed Goal Compass templates.
+ *
+ * One template per PlanProjectTypeKey. Stewards pick on the Goal tree
+ * tab; criteria targets/deadlines are editable, but add/remove is gated
+ * behind an Advanced collapse to reduce decision fatigue.
+ *
+ * Homestead entry mirrors `homesteadGoalTree.ts` so the existing default
+ * stays consistent.
+ */
+
+import type { GoalTree } from './goalCompassTypes.js';
+import type { PlanProjectTypeKey } from './planProjectTypeTemplates.js';
+import { HOMESTEAD_GOAL_TREE_TEMPLATE } from './homesteadGoalTree.js';
+
+const REGENERATIVE_FARM: GoalTree = {
+  archetype: 'regenerative-farm',
+  parentGoal: {
+    id: 'regen-farm-profitable',
+    title: 'Profitable regenerative farm',
+    narrative:
+      'A commercially viable farm that produces cash crops and livestock ' +
+      'while rebuilding soil, cycling water, and increasing biodiversity ' +
+      'year over year.',
+  },
+  subGoals: [
+    {
+      id: 'cash-crop-yield',
+      title: 'Cash crop yield',
+      narrative: 'Marketable yield per acre at or above regional median.',
+      criteria: [
+        {
+          id: 'regen-yield-lbs-per-acre',
+          description: 'Average marketable yield per acre (lbs)',
+          unit: 'lbs',
+          target: 8000,
+          deadlineYear: 5,
+        },
+        {
+          id: 'regen-revenue-per-acre',
+          description: 'Annual gross revenue per acre (USD)',
+          unit: 'usd',
+          target: 2500,
+          deadlineYear: 5,
+        },
+      ],
+    },
+    {
+      id: 'soil-health',
+      title: 'Soil health',
+      criteria: [
+        {
+          id: 'regen-soil-om',
+          description: 'Average topsoil organic matter (%)',
+          unit: 'pct',
+          target: 4,
+          deadlineYear: 7,
+        },
+        {
+          id: 'regen-soil-cover',
+          description: '% of bare ground replaced by living cover',
+          unit: 'pct',
+          target: 90,
+          deadlineYear: 3,
+        },
+      ],
+    },
+    {
+      id: 'water-cycle',
+      title: 'Water cycle',
+      criteria: [
+        {
+          id: 'regen-water-infiltration',
+          description: '% of seasonal rainfall infiltrated on-property',
+          unit: 'pct',
+          target: 75,
+          deadlineYear: 5,
+        },
+      ],
+    },
+  ],
+};
+
+const RETREAT_CENTER: GoalTree = {
+  archetype: 'retreat',
+  parentGoal: {
+    id: 'retreat-thriving',
+    title: 'Thriving retreat center',
+    narrative:
+      'A landscape that hosts guests in restorative connection with the ' +
+      'land — clean water, varied habitat, contemplative paths, and ' +
+      'food grown within sight of the table.',
+  },
+  subGoals: [
+    {
+      id: 'guest-capacity',
+      title: 'Guest capacity',
+      criteria: [
+        {
+          id: 'retreat-annual-guest-nights',
+          description: 'Annual guest-nights hosted',
+          unit: 'count',
+          target: 1500,
+          deadlineYear: 5,
+        },
+      ],
+    },
+    {
+      id: 'on-site-food',
+      title: 'On-site food for guests',
+      criteria: [
+        {
+          id: 'retreat-food-pct',
+          description: '% of guest meals sourced from on-property',
+          unit: 'pct',
+          target: 40,
+          deadlineYear: 5,
+        },
+        {
+          id: 'retreat-fruit-lbs',
+          description: 'Annual perennial-fruit yield (lbs)',
+          unit: 'lbs',
+          target: 600,
+          deadlineYear: 7,
+        },
+      ],
+    },
+    {
+      id: 'sanctuary-acres',
+      title: 'Sanctuary & habitat',
+      criteria: [
+        {
+          id: 'retreat-undisturbed-pct',
+          description: '% of parcel in undisturbed wildlife habitat',
+          unit: 'pct',
+          target: 40,
+          deadlineYear: 5,
+        },
+      ],
+    },
+  ],
+};
+
+const EDUCATIONAL_FARM: GoalTree = {
+  archetype: 'education',
+  parentGoal: {
+    id: 'edu-farm-impact',
+    title: 'Active educational farm',
+    narrative:
+      'A working farm whose primary output is learning — practitioners, ' +
+      'students, and apprentices leave with literacy in regenerative ' +
+      'design and the skills to apply it.',
+  },
+  subGoals: [
+    {
+      id: 'learner-throughput',
+      title: 'Learner throughput',
+      criteria: [
+        {
+          id: 'edu-annual-learners',
+          description: 'Annual learners served (workshops + apprentices)',
+          unit: 'count',
+          target: 200,
+          deadlineYear: 3,
+        },
+        {
+          id: 'edu-apprentice-graduates',
+          description: 'Apprentices graduating per year',
+          unit: 'count',
+          target: 6,
+          deadlineYear: 5,
+        },
+      ],
+    },
+    {
+      id: 'demo-systems',
+      title: 'Demonstration systems',
+      criteria: [
+        {
+          id: 'edu-demo-count',
+          description: 'Distinct demonstration systems on display',
+          unit: 'count',
+          target: 8,
+          deadlineYear: 5,
+        },
+      ],
+    },
+    {
+      id: 'program-revenue',
+      title: 'Program revenue',
+      criteria: [
+        {
+          id: 'edu-program-usd',
+          description: 'Annual program revenue (USD)',
+          unit: 'usd',
+          target: 80000,
+          deadlineYear: 5,
+        },
+      ],
+    },
+  ],
+};
+
+const CONSERVATION: GoalTree = {
+  archetype: 'conservation',
+  parentGoal: {
+    id: 'conservation-thriving-habitat',
+    title: 'Thriving native habitat',
+    narrative:
+      'Land managed for ecological function and native biodiversity. ' +
+      'Stewardship interventions favor habitat restoration over yield.',
+  },
+  subGoals: [
+    {
+      id: 'native-vegetation',
+      title: 'Native vegetation cover',
+      criteria: [
+        {
+          id: 'cons-native-cover-pct',
+          description: '% of parcel under native plant cover',
+          unit: 'pct',
+          target: 80,
+          deadlineYear: 10,
+        },
+        {
+          id: 'cons-invasive-pct',
+          description: '% of parcel with active invasive infestation',
+          unit: 'pct',
+          target: 5,
+          deadlineYear: 5,
+        },
+      ],
+    },
+    {
+      id: 'wildlife-presence',
+      title: 'Wildlife presence',
+      criteria: [
+        {
+          id: 'cons-indicator-species-count',
+          description: 'Indicator species detected (annual surveys)',
+          unit: 'count',
+          target: 15,
+          deadlineYear: 7,
+        },
+      ],
+    },
+    {
+      id: 'watershed-function',
+      title: 'Watershed function',
+      criteria: [
+        {
+          id: 'cons-riparian-cover-pct',
+          description: '% of riparian zone with continuous canopy',
+          unit: 'pct',
+          target: 90,
+          deadlineYear: 7,
+        },
+      ],
+    },
+  ],
+};
+
+const MULTI_ENTERPRISE: GoalTree = {
+  archetype: 'multi-enterprise',
+  parentGoal: {
+    id: 'multi-enterprise-balanced',
+    title: 'Balanced multi-enterprise operation',
+    narrative:
+      'Several complementary revenue streams (cash crops, livestock, ' +
+      'agritourism, value-add) sharing land and labor — no single ' +
+      'enterprise carries the whole farm.',
+  },
+  subGoals: [
+    {
+      id: 'enterprise-diversity',
+      title: 'Enterprise diversity',
+      criteria: [
+        {
+          id: 'multi-enterprise-streams',
+          description: 'Distinct revenue streams operating year-round',
+          unit: 'count',
+          target: 4,
+          deadlineYear: 5,
+        },
+        {
+          id: 'multi-largest-enterprise-pct',
+          description: 'Share of revenue from the single largest stream (%)',
+          unit: 'pct',
+          target: 50,
+          deadlineYear: 5,
+        },
+      ],
+    },
+    {
+      id: 'gross-revenue',
+      title: 'Gross revenue',
+      criteria: [
+        {
+          id: 'multi-gross-revenue-usd',
+          description: 'Combined annual gross revenue (USD)',
+          unit: 'usd',
+          target: 200000,
+          deadlineYear: 7,
+        },
+      ],
+    },
+    {
+      id: 'land-use-balance',
+      title: 'Land use balance',
+      criteria: [
+        {
+          id: 'multi-production-pct',
+          description: '% of parcel in active production',
+          unit: 'pct',
+          target: 60,
+          deadlineYear: 5,
+        },
+        {
+          id: 'multi-rest-pct',
+          description: '% of parcel in habitat / rest / sanctuary',
+          unit: 'pct',
+          target: 25,
+          deadlineYear: 5,
+        },
+      ],
+    },
+  ],
+};
+
+export const GOAL_TREE_TEMPLATES: Record<PlanProjectTypeKey, GoalTree> = {
+  homestead: HOMESTEAD_GOAL_TREE_TEMPLATE,
+  regenerative_farm: REGENERATIVE_FARM,
+  retreat_center: RETREAT_CENTER,
+  educational_farm: EDUCATIONAL_FARM,
+  conservation: CONSERVATION,
+  multi_enterprise: MULTI_ENTERPRISE,
+};
+
+export const GOAL_TREE_TEMPLATE_LABEL: Record<PlanProjectTypeKey, string> = {
+  homestead: 'Homestead',
+  regenerative_farm: 'Regenerative farm',
+  retreat_center: 'Retreat center',
+  educational_farm: 'Educational farm',
+  conservation: 'Conservation',
+  multi_enterprise: 'Multi-enterprise',
+};
+
+export function getGoalTreeTemplate(key: string | null | undefined): GoalTree {
+  if (key && key in GOAL_TREE_TEMPLATES) {
+    return GOAL_TREE_TEMPLATES[key as PlanProjectTypeKey];
+  }
+  return HOMESTEAD_GOAL_TREE_TEMPLATE;
+}

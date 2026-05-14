@@ -62,6 +62,13 @@ export interface LocalProject {
    * different Zone-1 than flat ground.
    */
   zoneThresholds?: { closeM: number; mediumM: number };
+  /**
+   * Anchor date the Goal Compass scheduler uses to place generated
+   * phase tasks on concrete calendar dates. Optional — when unset,
+   * `scheduleTasksToCalendar` falls back to the first day of the
+   * current month at generation time. ISO YYYY-MM-DD.
+   */
+  startDate?: string | null;
 }
 
 /**

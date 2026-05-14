@@ -1,6 +1,6 @@
 /**
- * Goal Compass tab 3/4 — runs the sequencing engine and displays the
- * generated BuildPhase + PhaseTask rows, with an Impact Preview gate
+ * Goal Compass tab 3/5 — runs the sequencing engine and displays the
+ * proposal (BuildPhase + PhaseTask rows), with an Impact Preview gate
  * before any row deletion commits.
  *
  * Generated rows are written into the shared `phaseStore`, so they also
@@ -11,9 +11,11 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useGoalTreeStore } from '../../../../store/goalTreeStore.js';
 import { useSiteProfileStore } from '../../../../store/siteProfileStore.js';
+import { useProjectStore } from '../../../../store/projectStore.js';
 import { usePhaseStore } from '../../../../store/phaseStore.js';
 import { runSequencingEngine } from '../../engine/goalCompass/sequencingEngine.js';
 import type { SequencingResult } from '../../engine/goalCompass/sequencingEngine.js';
+import { scheduleTasksToCalendar } from '../../engine/goalCompass/scheduleTasksToCalendar.js';
 import { computeImpactPreview } from '../../engine/goalCompass/impactPreview.js';
 import type { ImpactPreview } from '../../engine/goalCompass/impactPreview.js';
 import { INTERVENTION_CATALOG } from '../../data/interventionCatalog.js';
@@ -41,6 +43,9 @@ export default function GeneratedPlanTab({ project }: Props) {
   );
   const replaceGoalCompassRows = usePhaseStore((s) => s.replaceGoalCompassRows);
   const allPhases = usePhaseStore((s) => s.phases);
+  const projectStartDate = useProjectStore(
+    (s) => s.projects.find((p) => p.id === project.id)?.startDate ?? null,
+  );
 
   const filteredCatalog = useMemo(() => {
     const excluded = new Set(excludedIds ?? []);
@@ -65,7 +70,12 @@ export default function GeneratedPlanTab({ project }: Props) {
     if (!goalTree || !siteProfile) return;
     const result = runSequencingEngine(goalTree, siteProfile, project.id, filteredCatalog);
     setLastResult(result);
-    replaceGoalCompassRows(project.id, result.generatedPhases, result.generatedTasks);
+    const scheduledTasks = scheduleTasksToCalendar(
+      result.generatedPhases,
+      result.generatedTasks,
+      projectStartDate,
+    );
+    replaceGoalCompassRows(project.id, result.generatedPhases, scheduledTasks);
   };
 
   const handleRequestRemove = (interventionId: string) => {
@@ -95,7 +105,12 @@ export default function GeneratedPlanTab({ project }: Props) {
     const nextCatalog = INTERVENTION_CATALOG.filter((i) => !nextExcluded.has(i.id));
     const result = runSequencingEngine(goalTree, siteProfile, project.id, nextCatalog);
     setLastResult(result);
-    replaceGoalCompassRows(project.id, result.generatedPhases, result.generatedTasks);
+    const scheduledTasks = scheduleTasksToCalendar(
+      result.generatedPhases,
+      result.generatedTasks,
+      projectStartDate,
+    );
+    replaceGoalCompassRows(project.id, result.generatedPhases, scheduledTasks);
     setPreview(null);
   };
 
@@ -104,18 +119,23 @@ export default function GeneratedPlanTab({ project }: Props) {
     clearExclusions(project.id);
     const result = runSequencingEngine(goalTree, siteProfile, project.id, INTERVENTION_CATALOG);
     setLastResult(result);
-    replaceGoalCompassRows(project.id, result.generatedPhases, result.generatedTasks);
+    const scheduledTasks = scheduleTasksToCalendar(
+      result.generatedPhases,
+      result.generatedTasks,
+      projectStartDate,
+    );
+    replaceGoalCompassRows(project.id, result.generatedPhases, scheduledTasks);
   };
 
   return (
     <div className={styles.page}>
       <div className={styles.hero} data-stage="plan">
-        <span className={styles.heroTag}>Goal Compass · 3 of 4</span>
-        <h2 className={styles.title}>Generated plan</h2>
+        <span className={styles.heroTag}>Goal Compass · 3 of 5</span>
+        <h2 className={styles.title}>Proposal</h2>
         <p className={styles.lede}>
           Deterministic sequencing engine reads the Goal tree + Site profile
-          against the curated intervention catalog and emits phased,
-          costed, labor-budgeted rows into the shared phase store.
+          against the curated intervention catalog and emits a phased,
+          costed, labor-budgeted proposal into the shared phase store.
         </p>
       </div>
 
@@ -127,7 +147,7 @@ export default function GeneratedPlanTab({ project }: Props) {
             disabled={!canGenerate}
             onClick={handleGenerate}
           >
-            Generate plan
+            Generate proposal
           </button>
           {excludedIds && excludedIds.length > 0 ? (
             <button
@@ -149,7 +169,7 @@ export default function GeneratedPlanTab({ project }: Props) {
 
       {generatedPhases.length === 0 ? (
         <div className={styles.empty}>
-          No generated phases yet — click <strong>Generate plan</strong>.
+          No proposal yet — click <strong>Generate proposal</strong>.
         </div>
       ) : (
         generatedPhases.map((phase) => (

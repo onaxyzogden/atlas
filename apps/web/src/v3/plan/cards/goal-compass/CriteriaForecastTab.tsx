@@ -37,7 +37,7 @@ export default function CriteriaForecastTab({ project }: Props) {
   return (
     <div className={styles.page}>
       <div className={styles.hero} data-stage="plan">
-        <span className={styles.heroTag}>Goal Compass · 4 of 4</span>
+        <span className={styles.heroTag}>Goal Compass · 5 of 5</span>
         <h2 className={styles.title}>Criteria forecast</h2>
         <p className={styles.lede}>
           Projected criterion values at Year 1 / 3 / 5 / 7 / 10 / 20 from the

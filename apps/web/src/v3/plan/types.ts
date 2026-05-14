@@ -144,7 +144,8 @@ export const MODULE_CARDS: Record<
   'goal-compass': [
     { label: 'Goal tree',         sectionId: 'plan-goal-tree' },
     { label: 'Site profile',      sectionId: 'plan-site-profile' },
-    { label: 'Generated plan',    sectionId: 'plan-generated-plan' },
+    { label: 'Proposal',          sectionId: 'plan-proposal' },
+    { label: 'Develop plan',      sectionId: 'plan-develop-plan' },
     { label: 'Criteria forecast', sectionId: 'plan-criteria-forecast' },
   ],
   'dynamic-layering': [

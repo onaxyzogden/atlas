@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { GoalTree, SubGoal, SuccessCriterion } from '../v3/plan/data/goalCompassTypes.js';
 import { HOMESTEAD_GOAL_TREE_TEMPLATE } from '../v3/plan/data/homesteadGoalTree.js';
+import { getGoalTreeTemplate } from '../v3/plan/data/goalTreeTemplates.js';
 
 interface GoalTreeState {
   goalTreesByProject: Record<string, GoalTree>;
@@ -17,7 +18,8 @@ interface GoalTreeState {
    */
   excludedInterventionsByProject: Record<string, string[]>;
 
-  ensureDefault: (projectId: string) => void;
+  ensureDefault: (projectId: string, projectType?: string | null) => void;
+  switchTemplate: (projectId: string, projectType: string) => void;
   getGoalTree: (projectId: string) => GoalTree | null;
   setParentGoal: (projectId: string, patch: Partial<GoalTree['parentGoal']>) => void;
   updateSubGoal: (projectId: string, subGoalId: string, patch: Partial<SubGoal>) => void;
@@ -34,8 +36,11 @@ interface GoalTreeState {
   clearExclusions: (projectId: string) => void;
 }
 
-function cloneTemplate(): GoalTree {
-  return JSON.parse(JSON.stringify(HOMESTEAD_GOAL_TREE_TEMPLATE)) as GoalTree;
+function cloneTemplate(projectType?: string | null): GoalTree {
+  const template = projectType
+    ? getGoalTreeTemplate(projectType)
+    : HOMESTEAD_GOAL_TREE_TEMPLATE;
+  return JSON.parse(JSON.stringify(template)) as GoalTree;
 }
 
 export const useGoalTreeStore = create<GoalTreeState>()(
@@ -44,12 +49,23 @@ export const useGoalTreeStore = create<GoalTreeState>()(
       goalTreesByProject: {},
       excludedInterventionsByProject: {},
 
-      ensureDefault: (projectId) => {
+      ensureDefault: (projectId, projectType) => {
         if (get().goalTreesByProject[projectId]) return;
         set((s) => ({
-          goalTreesByProject: { ...s.goalTreesByProject, [projectId]: cloneTemplate() },
+          goalTreesByProject: {
+            ...s.goalTreesByProject,
+            [projectId]: cloneTemplate(projectType),
+          },
         }));
       },
+
+      switchTemplate: (projectId, projectType) =>
+        set((s) => ({
+          goalTreesByProject: {
+            ...s.goalTreesByProject,
+            [projectId]: cloneTemplate(projectType),
+          },
+        })),
 
       excludeIntervention: (projectId, interventionId) =>
         set((s) => {

@@ -9,6 +9,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { phase } from '../lib/tokens';
 import type { PhaseKey } from '../v3/plan/types.js';
+import type { ProjectRole } from '@ogden/shared';
 
 export interface BuildPhase {
   id: string;
@@ -119,6 +120,19 @@ export interface PhaseTask {
    * the engine).
    */
   status?: 'generated' | 'overridden';
+  /**
+   * Concrete calendar window. Set by `scheduleTasksToCalendar` when the
+   * Goal Compass proposal is generated; null for user-authored tasks
+   * that haven't been placed on the calendar yet. ISO YYYY-MM-DD.
+   */
+  scheduledStart?: string | null;
+  scheduledEnd?: string | null;
+  /**
+   * Forward-compat role gate. Every generated task ships with all four
+   * roles populated so the field is non-empty and ready when role-gated
+   * views land. UI filtering is not wired yet.
+   */
+  roleAccess?: ProjectRole[];
 }
 
 interface PhaseState {
