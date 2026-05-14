@@ -17,8 +17,9 @@
  * terrain so the default Plan-stage open path stays cheap.
  */
 
-import { Mountain } from 'lucide-react';
+import { Clock4, Mountain } from 'lucide-react';
 import { PLAN_VIEWS, PLAN_VIEW_LABEL, type PlanView } from '../types.js';
+import { useTemporalScrubVisibilityStore } from './temporalScrubVisibilityStore.js';
 import css from './PlanPhaseTabs.module.css';
 
 interface Props {
@@ -27,6 +28,8 @@ interface Props {
 }
 
 export default function PlanPhaseTabs({ active, onChange }: Props) {
+  const scrubVisible = useTemporalScrubVisibilityStore((s) => s.visible);
+  const toggleScrub = useTemporalScrubVisibilityStore((s) => s.toggle);
   return (
     <div className={css.wrap} role="tablist" aria-label="Plan view">
       {PLAN_VIEWS.map((view) => {
@@ -48,6 +51,21 @@ export default function PlanPhaseTabs({ active, onChange }: Props) {
           </button>
         );
       })}
+      {/* Orthogonal toggle — summons the bottom-centre year scrubber on
+       *  demand instead of rendering it always. Not part of `PlanView`;
+       *  does not change the active phase tab. */}
+      <button
+        type="button"
+        aria-pressed={scrubVisible}
+        aria-label="Toggle year scrubber"
+        title="Toggle year scrubber"
+        className={css.tab}
+        data-active={scrubVisible}
+        onClick={toggleScrub}
+      >
+        <Clock4 size={13} strokeWidth={1.75} aria-hidden="true" />
+        <span>Year scrub</span>
+      </button>
     </div>
   );
 }

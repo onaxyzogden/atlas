@@ -65,30 +65,20 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'principle-verification': 'Holmgren Principle Verification',
 };
 
-// ── Vision-Layout canvas (added 2026-05-07) ──────────────────────────────────
+// ── Vision-Layout canvas (added 2026-05-07; phase tabs retired 2026-05-14) ───
 // Top-tab views for the Plan stage. `current` keeps the legacy module-driven
-// experience; `vision` opens the design-element canvas; phase tabs filter the
-// canvas by Yeomans Scale of Permanence index. `terrain3d` is a v1 placeholder.
-export type PlanView =
-  | 'current'
-  | 'vision'
-  | 'phase-1'
-  | 'phase-2'
-  | 'terrain3d';
+// experience; `vision` opens the design-element canvas; `terrain3d` is a v1
+// camera-preset placeholder. The former `phase-1` / `phase-2` Yeomans-cap
+// tabs were retired in favour of the bottom-canvas year scrubber — the cap
+// is now derived from `useTemporalScrubStore.currentYear` via
+// `yeomansCapForYear` below.
+export type PlanView = 'current' | 'vision' | 'terrain3d';
 
-export const PLAN_VIEWS: PlanView[] = [
-  'current',
-  'vision',
-  'phase-1',
-  'phase-2',
-  'terrain3d',
-];
+export const PLAN_VIEWS: PlanView[] = ['current', 'vision', 'terrain3d'];
 
 export const PLAN_VIEW_LABEL: Record<PlanView, string> = {
   current: 'Current Land',
   vision: 'Vision Layout',
-  'phase-1': 'Year 1',
-  'phase-2': 'Year 5',
   terrain3d: '3D Terrain',
 };
 
@@ -125,11 +115,22 @@ export function phaseIndex(p: PhaseKey): number {
   return PHASE_ORDER.indexOf(p);
 }
 
-/** Cap (inclusive) used to filter elements visible in each phase view tab. */
-export const PHASE_VIEW_CAP: Record<'phase-1' | 'phase-2', PhaseKey> = {
-  'phase-1': 'water',     // Year 1: climate → landshape → water
-  'phase-2': 'buildings', // Year 5: through buildings
-};
+/**
+ * Yeomans cap derived from the year scrubber's `currentYear` (1..50).
+ *
+ * Replaces the retired `PHASE_VIEW_CAP` lookup tied to the `phase-1` /
+ * `phase-2` tabs (2026-05-14). Thresholds chosen so behaviour at the two
+ * prior tab landings is identical:
+ *
+ * - Year 1..2  → `'water'`     (matches the old Year 1 tab)
+ * - Year 3..5  → `'buildings'` (matches the old Year 5 tab)
+ * - Year 6+    → `null`        (uncapped — same as `current` / `vision`)
+ */
+export function yeomansCapForYear(year: number): PhaseKey | null {
+  if (year <= 2) return 'water';
+  if (year <= 5) return 'buildings';
+  return null;
+}
 
 /** Each module maps to one or more plan card section IDs. */
 export const MODULE_CARDS: Record<

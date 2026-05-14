@@ -24,8 +24,8 @@ import {
 import { usePlanSelectionStore } from '../../../../store/planSelectionStore.js';
 import { translateByDelta } from '../../layers/translateGeometry.js';
 import {
-  PHASE_VIEW_CAP,
   phaseIndex,
+  yeomansCapForYear,
   type PlanView,
 } from '../../types.js';
 import { findElementSpec } from '../elementCatalog.js';
@@ -59,12 +59,14 @@ export default function DesignElementLayers({
   onSelect,
 }: Props) {
   const elements = useDesignElementsForProject(projectId);
+  // Yeomans cap is now derived from the year scrubber's currentYear
+  // (replaces the retired `phase-1` / `phase-2` view tabs, 2026-05-14).
+  // Also drives the per-vegetation canopy scaling effect below.
+  const currentYear = useTemporalScrubStore((s) => s.currentYear);
 
   const { polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC } = useMemo(() => {
-    const cap =
-      view === 'phase-1' || view === 'phase-2'
-        ? phaseIndex(PHASE_VIEW_CAP[view])
-        : Infinity;
+    const capKey = yeomansCapForYear(currentYear);
+    const cap = capKey ? phaseIndex(capKey) : Infinity;
 
     const visible = elements
       .filter((el) => phaseIndex(el.phase) <= cap)
@@ -155,7 +157,7 @@ export default function DesignElementLayers({
       conflictPolyFC: { type: 'FeatureCollection' as const, features: conflictPolys },
       conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
     };
-  }, [elements, view]);
+  }, [elements, view, currentYear]);
 
   useEffect(() => {
     if (!map) return;
@@ -531,8 +533,8 @@ export default function DesignElementLayers({
   // tied to `useTemporalScrubStore.currentYear`. Re-runs on year change,
   // on zoom/pan (pixel radius depends on the camera), on element changes,
   // and after the selection effect (which wipes feature-state) so the
-  // canopy state is always re-applied.
-  const currentYear = useTemporalScrubStore((s) => s.currentYear);
+  // canopy state is always re-applied. (`currentYear` is read once at
+  // component top alongside the Yeomans-cap subscription.)
   useEffect(() => {
     if (!map) return;
     const source = `${SOURCE_PREFIX}point`;

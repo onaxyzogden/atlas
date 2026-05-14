@@ -11,11 +11,13 @@
 
 import { useCallback } from 'react';
 import { useTemporalScrubStore } from './temporalScrubStore.js';
+import { useTemporalScrubVisibilityStore } from './temporalScrubVisibilityStore.js';
 import { useProjectStore, getDesignHorizon } from '../../../store/projectStore.js';
 
 const TICKS = [1, 5, 15, 30, 50];
 
 export default function TemporalScrubSlider() {
+  const visible = useTemporalScrubVisibilityStore((s) => s.visible);
   const currentYear = useTemporalScrubStore((s) => s.currentYear);
   const setYear = useTemporalScrubStore((s) => s.setYear);
   const project = useProjectStore((s) => s.activeProject);
@@ -31,6 +33,8 @@ export default function TemporalScrubSlider() {
   const snapToHorizon = useCallback(() => {
     setYear(horizon);
   }, [setYear, horizon]);
+
+  if (!visible) return null;
 
   return (
     <div
@@ -101,16 +105,26 @@ export default function TemporalScrubSlider() {
       />
       <div
         style={{
-          display: 'flex',
+          position: 'relative',
           width: '100%',
-          justifyContent: 'space-between',
+          height: 12,
           fontSize: 9,
           color: 'rgba(221, 209, 180, 0.55)',
         }}
         aria-hidden
       >
         {TICKS.map((y) => (
-          <span key={y}>{y}</span>
+          <span
+            key={y}
+            style={{
+              position: 'absolute',
+              left: `${((y - 1) / 49) * 100}%`,
+              transform: 'translateX(-50%)',
+              top: 0,
+            }}
+          >
+            {y}
+          </span>
         ))}
       </div>
     </div>

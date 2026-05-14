@@ -32,8 +32,8 @@ import {
   type BuiltEnvironmentV2State,
 } from '../../../store/builtEnvironmentStoreV2.js';
 import {
-  PHASE_VIEW_CAP,
   phaseIndex,
+  yeomansCapForYear,
   type PhaseKey,
   type PlanView,
 } from '../../plan/types.js';
@@ -158,10 +158,10 @@ export default function DesignElementScenegraphLayer({
   const currentYear = useTemporalScrubStore((s) => s.currentYear);
 
   const specs = useMemo<PlacedSpec[]>(() => {
-    const cap =
-      view === 'phase-1' || view === 'phase-2'
-        ? phaseIndex(PHASE_VIEW_CAP[view])
-        : Infinity;
+    // Yeomans cap is now derived from the year scrubber's currentYear
+    // (replaces the retired `phase-1` / `phase-2` view tabs, 2026-05-14).
+    const capKey = yeomansCapForYear(currentYear);
+    const cap = capKey ? phaseIndex(capKey) : Infinity;
 
     const customUrls: Record<string, string> = {};
     for (const [id, entry] of Object.entries(customEntries)) {

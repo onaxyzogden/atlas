@@ -4,6 +4,45 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-14 — Plan year scrubber subsumes Year 1 / Year 5 tabs
+
+The Plan-stage `PlanPhaseTabs` strip lost its `phase-1` ("Year 1") and
+`phase-2` ("Year 5") tabs. Their sole job — driving `PHASE_VIEW_CAP`,
+the Yeomans Scale of Permanence cap that filters canvas elements and
+module-card data — moved to a new `yeomansCapForYear(currentYear)`
+helper in `apps/web/src/v3/plan/types.ts`, driven by the bottom-canvas
+year scrubber's `useTemporalScrubStore.currentYear`. Thresholds were
+chosen to preserve bit-identical behaviour at the two prior tab
+landings (Year 1..2 → `water`, Year 3..5 → `buildings`, Year 6+
+uncapped). Five cap consumers migrated; `PlanView` shrinks to
+`current | vision | terrain3d`; `PlanViewBadge` now appends
+`Year N · capped at <key>` so the active cap stays legible after the
+tabs are gone.
+
+Also fixed in the same change: the scrubber's tick row
+(`[1, 5, 15, 30, 50]`) used to evenly distribute via
+`justify-content: space-between`, mis-aligning labels from their
+mathematical positions on the 1..50 axis. Replaced with absolute
+positioning at `((y - 1) / 49) * 100%`, so "5" now sits under the
+thumb at Year 5, "15" at 15, etc.
+
+See: [2026-05-14-atlas-plan-year-scrubber-yeomans-cap.md](decisions/2026-05-14-atlas-plan-year-scrubber-yeomans-cap.md)
+
+---
+
+## 2026-05-14 — Plan scrubber summoned from PlanPhaseTabs (not always-on)
+
+The bottom-canvas `TemporalScrubSlider` (year cursor for canopy
+maturity, landed 2026-05-13) was rendering on every Plan-stage canvas
+and overlapping other chrome. It now hides by default and is summoned
+by a dedicated "Year scrub" toggle on the top `PlanPhaseTabs` strip.
+Visibility lives in a new unpersisted Zustand store
+`apps/web/src/v3/plan/canvas/temporalScrubVisibilityStore.ts` — every
+Plan-stage entry starts hidden; the scrubbed `currentYear` itself is
+preserved within a session via the existing `temporalScrubStore`.
+
+---
+
 ## 2026-05-14 — BE category flatten in Observe & Plan rails
 
 Built Environment registry (31 kinds across 9 categories) was previously

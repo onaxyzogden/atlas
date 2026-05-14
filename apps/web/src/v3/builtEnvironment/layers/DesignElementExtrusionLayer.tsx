@@ -35,12 +35,14 @@ import {
   type BuiltEnvironmentV2State,
 } from '../../../store/builtEnvironmentStoreV2.js';
 import { openBeInlineEditById } from '../inline/openBeInlineEdit.js';
+import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 import {
-  PHASE_VIEW_CAP,
   phaseIndex,
+  yeomansCapForYear,
   type PhaseKey,
   type PlanView,
 } from '../../plan/types.js';
+import { useTemporalScrubStore } from '../../plan/canvas/temporalScrubStore.js';
 import { findElementSpec } from '../../plan/canvas/elementCatalog.js';
 import {
   getElementHeightSpec,
@@ -94,12 +96,13 @@ export default function DesignElementExtrusionLayer({
   view,
 }: Props) {
   const entities = useBuiltEnvironmentStoreV2(selectEntities);
+  // Yeomans cap is now derived from the year scrubber's currentYear
+  // (replaces the retired `phase-1` / `phase-2` view tabs, 2026-05-14).
+  const currentYear = useTemporalScrubStore((s) => s.currentYear);
 
   const fc = useMemo<GeoJSON.FeatureCollection>(() => {
-    const cap =
-      view === 'phase-1' || view === 'phase-2'
-        ? phaseIndex(PHASE_VIEW_CAP[view])
-        : Infinity;
+    const capKey = yeomansCapForYear(currentYear);
+    const cap = capKey ? phaseIndex(capKey) : Infinity;
 
     const features: GeoJSON.Feature[] = [];
     for (const e of entities) {
@@ -158,7 +161,7 @@ export default function DesignElementExtrusionLayer({
       // Lines intentionally skipped.
     }
     return { type: 'FeatureCollection', features };
-  }, [entities, projectId, stateFilter, view]);
+  }, [entities, projectId, stateFilter, view, currentYear]);
 
   // Apply source + layer; re-apply on style.load so basemap swaps
   // don't drop the extrusion.
@@ -228,6 +231,9 @@ export default function DesignElementExtrusionLayer({
       const props = (f.properties ?? {}) as { id?: string };
       const id = props.id;
       if (!id) return;
+      usePlanSelectionStore.getState().set([
+        { kind: 'design-element', id, projectId },
+      ]);
       openBeInlineEditById(id, [e.lngLat.lng, e.lngLat.lat]);
     };
     const onEnter = () => {
@@ -249,7 +255,7 @@ export default function DesignElementExtrusionLayer({
         /* map disposed */
       }
     };
-  }, [map]);
+  }, [map, projectId]);
 
   // Cleanup on unmount.
   useEffect(() => {

@@ -6,7 +6,7 @@
  * 1. `current` — legacy module-driven UI (PlanTools left, DiagnoseMap +
  *    MapToolbar + ObserveAnnotationLayers, PlanModuleBar bottom).
  *
- * 2. `vision` / `phase-1` / `phase-2` / `terrain3d` — Vision-Layout canvas:
+ * 2. `vision` / `terrain3d` — Vision-Layout canvas:
  *    design-element palette (left), VisionLayoutCanvas (centre, with
  *    DesignElementLayers + DesignToolRail + BaseMapCard), no module bar.
  *    Phase tabs filter by Yeomans Scale of Permanence index. `terrain3d`
@@ -137,10 +137,7 @@ export default function PlanLayout() {
   };
 
   const isVisionCanvas =
-    activeView === 'vision' ||
-    activeView === 'phase-1' ||
-    activeView === 'phase-2' ||
-    activeView === 'terrain3d';
+    activeView === 'vision' || activeView === 'terrain3d';
 
   // ── Canvas content ───────────────────────────────────────────────────────
   const canvasContent = isVisionCanvas ? (

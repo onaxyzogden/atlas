@@ -1,13 +1,14 @@
 /**
  * usePhaseCappedEntities — filter helper that mirrors the Yeomans-cap
  * logic used by `DesignElementScenegraphLayer` so Plan-module cards
- * show data scoped to the active view tab (Year 1 / Year 5).
+ * show data scoped to the temporal-scrubber's current year.
  *
  * Existing entities (`state !== 'proposed'`) always pass through —
- * only `proposed` entities are gated by the active phase cap.
+ * only `proposed` entities are gated by the active Yeomans cap.
  *
- * Views `current`, `vision`, and `terrain3d` are un-capped — same
- * scope as the full dataset.
+ * Cap source (2026-05-14): `yeomansCapForYear(currentYear)` from
+ * `useTemporalScrubStore`. Year 1..2 caps at `water`; Year 3..5 at
+ * `buildings`; Year 6+ is uncapped.
  *
  * Generic over any object that exposes `state` + optional
  * `proposed.phase`. Cards just pass their raw store array through and
@@ -15,8 +16,8 @@
  */
 
 import { useMemo } from 'react';
-import { usePlanView } from './PlanViewContext.js';
-import { PHASE_VIEW_CAP, phaseIndex, type PhaseKey } from './types.js';
+import { useTemporalScrubStore } from './canvas/temporalScrubStore.js';
+import { phaseIndex, yeomansCapForYear, type PhaseKey } from './types.js';
 
 interface PhaseCappable {
   state?: string;
@@ -26,17 +27,15 @@ interface PhaseCappable {
 export function usePhaseCappedEntities<T extends PhaseCappable>(
   entities: ReadonlyArray<T>,
 ): T[] {
-  const view = usePlanView();
+  const currentYear = useTemporalScrubStore((s) => s.currentYear);
   return useMemo(() => {
-    const cap =
-      view === 'phase-1' || view === 'phase-2'
-        ? phaseIndex(PHASE_VIEW_CAP[view])
-        : Infinity;
+    const capKey = yeomansCapForYear(currentYear);
+    const cap = capKey ? phaseIndex(capKey) : Infinity;
     if (cap === Infinity) return entities.slice();
     return entities.filter((e) => {
       if (e.state !== 'proposed') return true;
       const phase = (e.proposed?.phase ?? 'buildings') as PhaseKey;
       return phaseIndex(phase) <= cap;
     });
-  }, [entities, view]);
+  }, [entities, currentYear]);
 }
