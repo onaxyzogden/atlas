@@ -17,7 +17,33 @@ import {
   GuidanceCard,
   type GuidanceCardData,
 } from '../_shared/components/GuidanceCard.js';
+import {
+  BE_CATEGORY_GUIDANCE,
+  BE_CATEGORY_LABEL,
+  BE_TOOL_GROUPS,
+} from '../_shared/builtEnvironmentTools.js';
+import type { BuiltEnvironmentCategory } from '@ogden/shared';
 import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
+
+/**
+ * 2026-05-14 — BE flatten. Mirrors `BE_CATEGORY_TO_PLAN_MODULE` in
+ * `PlanTools.tsx`. Each BE category routes to a relevant pre-existing
+ * Plan module so click-to-activate opens the right slide-up.
+ */
+const BE_CATEGORY_TO_PLAN_MODULE: Record<
+  BuiltEnvironmentCategory,
+  PlanModule
+> = {
+  building: 'structures-subsystems',
+  agricultural: 'structures-subsystems',
+  utility: 'structures-subsystems',
+  infrastructure: 'zone-circulation',
+  machinery: 'machinery',
+  amenity: 'structures-subsystems',
+  vegetation: 'plant-systems',
+  earthworks: 'water-management',
+  'zone-marker': 'zone-circulation',
+};
 import PlanProjectTypeCard from './PlanProjectTypeCard.js';
 import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';
 import { PLAN_MODULE_DOT } from './data/planModulePalette.js';
@@ -211,18 +237,57 @@ export default function PlanChecklistAside({
         onSelectModule={onSelectModule}
         onOpenSlideUp={onOpenSlideUp}
       />
-      {PLAN_MODULES.map((mod) => (
-        <PlanGuidanceCard
-          key={mod}
-          module={mod}
-          active={activeModule === mod}
-          projectId={projectId}
-          slideUpOpen={slideUpOpen}
-          onSelectModule={onSelectModule}
-          onOpenSlideUp={onOpenSlideUp}
-          onCloseSlideUp={onCloseSlideUp}
-        />
-      ))}
+      {PLAN_MODULES.map((mod) => {
+        // 2026-05-14 — BE flatten: parent `structures-subsystems` card
+        // is replaced by 9 per-category cards rendered below.
+        if (mod === 'structures-subsystems') return null;
+        return (
+          <PlanGuidanceCard
+            key={mod}
+            module={mod}
+            active={activeModule === mod}
+            projectId={projectId}
+            slideUpOpen={slideUpOpen}
+            onSelectModule={onSelectModule}
+            onOpenSlideUp={onOpenSlideUp}
+            onCloseSlideUp={onCloseSlideUp}
+          />
+        );
+      })}
+      {BE_TOOL_GROUPS.map((group) => {
+        // 2026-05-14 — Vegetation BE kinds already surface under the
+        // `plant-systems` rail/guidance section; the BE category card
+        // is redundant in Plan.
+        if (group.category === 'vegetation') return null;
+        // 2026-05-14 — Earthworks BE category dropped from Plan rail;
+        // Berm / Raised bed / Terrace surface inside Water Management /
+        // Plant Systems / Amenities. No standalone guidance card.
+        if (group.category === 'earthworks') return null;
+        const routed = BE_CATEGORY_TO_PLAN_MODULE[group.category];
+        const guidance = BE_CATEGORY_GUIDANCE[group.category];
+        const active = activeModule === routed;
+        return (
+          <GuidanceCard
+            key={`be-${group.category}`}
+            moduleKey={`be-${group.category}` as `be-${BuiltEnvironmentCategory}`}
+            label={BE_CATEGORY_LABEL[group.category]}
+            dotColor={PLAN_MODULE_DOT[routed]}
+            active={active}
+            slideUpOpen={slideUpOpen}
+            guidance={guidance}
+            checkedList={EMPTY_CHECKS}
+            onToggle={() => {
+              /* BE category cards share their routed module's how-checks
+               * slot — disabling the UI affordance here keeps the parent
+               * module the single source of truth. */
+            }}
+            onSelect={() => onSelectModule(routed)}
+            onOpenSlideUp={onOpenSlideUp}
+            onCloseSlideUp={onCloseSlideUp}
+            checksDisabled
+          />
+        );
+      })}
     </div>
   );
 }

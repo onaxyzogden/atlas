@@ -50,6 +50,7 @@ import {
   BE_TOOL_ITEMS,
   BE_TOOL_GROUPS,
 } from '../../_shared/builtEnvironmentTools.js';
+import type { BuiltEnvironmentCategory } from '@ogden/shared';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import {
   useMapToolStore,
@@ -96,6 +97,28 @@ const BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
   toolId: `observe.built-environment.${it.kind}` as MapToolId,
 }));
 
+/**
+ * 2026-05-14 — BE flatten. Each `BuiltEnvironmentCategory` surfaces as its
+ * own top-level rail section; clicking it activates the routed Observe
+ * module below. Observe has fewer modules than Plan, so most categories
+ * fall back to `built-environment`; vegetation / earthworks / zone-markers
+ * route to ecology / topography / sectors-zones respectively.
+ */
+const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
+  BuiltEnvironmentCategory,
+  ObserveModule
+> = {
+  building: 'built-environment',
+  agricultural: 'built-environment',
+  utility: 'built-environment',
+  infrastructure: 'built-environment',
+  machinery: 'built-environment',
+  amenity: 'built-environment',
+  vegetation: 'earth-water-ecology',
+  earthworks: 'topography',
+  'zone-marker': 'sectors-zones',
+};
+
 const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
   'human-context': [
     { id: 'neighbour-pin',   label: 'Neighbour pin',       Icon: MapPin,   toolId: 'observe.human-context.neighbour-pin' },
@@ -117,6 +140,11 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'soil-sample',     label: 'Soil sample',         Icon: TestTube, toolId: 'observe.earth-water-ecology.soil-sample' },
     { id: 'ecology-zone',    label: 'Ecology zone',        Icon: Sprout,   toolId: 'observe.earth-water-ecology.ecology-zone' },
     { id: 'pasture',         label: 'Pasture / paddock',   Icon: Fence,    toolId: 'observe.earth-water-ecology.pasture' },
+    // 2026-05-14 — Berm and Raised bed relocated from the Earthworks BE
+    // category (dropped). Use BE toolIds so the existing BE draw pipeline
+    // still handles persistence.
+    { id: 'be-berm',         label: 'Berm',                Icon: Mountain, toolId: 'observe.built-environment.berm' as MapToolId },
+    { id: 'be-raised-bed',   label: 'Raised bed',          Icon: Sprout,   toolId: 'observe.built-environment.raised-bed' as MapToolId },
   ],
   'sectors-zones': [
     { id: 'sun-summer',      label: 'Sun (summer)',        Icon: Sun,      toolId: 'observe.sectors-zones.sun-summer' },
@@ -220,6 +248,11 @@ export default function ObserveTools({
       aria-label="Observe tools"
     >
       {OBSERVE_MODULES.map((mod) => {
+        // 2026-05-14 — BE flatten: the parent `built-environment` module
+        // is no longer rendered as a rail section; its kinds surface as
+        // 9 per-category sections appended after this loop. Slide-up is
+        // still reachable via the bottom-rail tile.
+        if (mod === 'built-environment') return null;
         const items = TOOL_GROUPS[mod];
         const isActive = mod === activeModule;
         const headerLabel = OBSERVE_MODULE_LABEL[mod];
@@ -266,83 +299,162 @@ export default function ObserveTools({
               <span className={css.dot} aria-hidden="true" />
               <span className={css.groupLabel}>{headerLabel}</span>
             </header>
-            {mod === 'built-environment' ? (
-              <>
-                {/* Adopt-from-basemap tool — surfaces once at the top of the
-                 *  BE rail. Lets a steward click a 3D building the basemap
-                 *  already renders (OpenMapTiles `building` source-layer)
-                 *  and convert its footprint + height into a labeled
-                 *  existing-state BE entity. Not registry-driven because
-                 *  it is a meta-tool, not a kind. */}
-                <details className={css.subgroup} open>
-                  <summary className={css.subgroupHeader}>From map</summary>
-                  <div className={css.itemGrid}>
-                    {renderToolButton(
-                      {
-                        id: 'adopt-basemap',
-                        label: 'Adopt from map',
-                        Icon: MousePointer,
-                        toolId: 'observe.built-environment.adopt-basemap',
-                      },
-                      {
-                        activeTool,
-                        homesteadPlaced,
-                        onToolClick,
-                      },
-                    )}
-                  </div>
-                </details>
-                {
-              // 31 kinds is too many for one flat 3-col grid — sub-group by
-              // `BuiltEnvironmentCategory` via native <details> so the rail
-              // stays scannable. All categories open by default for discovery;
-              // stewards collapse what they don't need.
-              BE_TOOL_GROUPS.map((group) => {
-                // Each sub-card mirrors the parent .group bento. Build the
-                // ToolItems on the fly so registry order is preserved per
-                // category and the rail stays a pure derivation of the
-                // registry — no manual maintenance.
-                const groupItems: ToolItem[] = group.items.map((bg) => ({
-                  id: bg.kind,
-                  label: bg.label,
-                  Icon: bg.Icon,
-                  toolId: `observe.built-environment.${bg.kind}` as MapToolId,
-                }));
-                if (groupItems.length === 0) return null;
-                return (
-                  <details
-                    key={group.category}
-                    className={css.subgroup}
-                    open
-                  >
-                    <summary className={css.subgroupHeader}>
-                      {group.label}
-                    </summary>
-                    <div className={css.itemGrid}>
-                      {groupItems.map((it) =>
-                        renderToolButton(it, {
-                          activeTool,
-                          homesteadPlaced,
-                          onToolClick,
-                        }),
-                      )}
-                    </div>
-                  </details>
-                );
-              })
+            <div className={css.itemGrid}>
+              {items.map((it) =>
+                renderToolButton(it, {
+                  activeTool,
+                  homesteadPlaced,
+                  onToolClick,
+                }),
+              )}
+            </div>
+          </section>
+        );
+      })}
+      {/* 2026-05-14 — Adopt-from-map meta-tool, formerly nested inside the
+       *  BE module section. Surfaces as its own leading "From map" section
+       *  now that BE is flattened — kept routed to `built-environment` so
+       *  click-to-activate still opens the parent BE slide-up. */}
+      {(() => {
+        const routed: ObserveModule = 'built-environment';
+        const isActive = routed === activeModule;
+        const onSectionActivate = () => {
+          if (!canSelectModules || !onSelectModule) return;
+          onSelectModule(isActive ? null : routed);
+        };
+        const sectionInteractionProps = canSelectModules
+          ? {
+              role: 'button' as const,
+              tabIndex: 0,
+              'aria-pressed': isActive,
+              title: isActive
+                ? 'Deselect Built Environment'
+                : 'Switch to Built Environment',
+              onClick: onSectionActivate,
+              onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSectionActivate();
                 }
-              </>
-            ) : (
-              <div className={css.itemGrid}>
-                {items.map((it) =>
-                  renderToolButton(it, {
-                    activeTool,
-                    homesteadPlaced,
-                    onToolClick,
-                  }),
-                )}
-              </div>
-            )}
+              },
+            }
+          : {};
+        const sectionClassName = [
+          css.group,
+          isActive ? css.groupActive : '',
+          canSelectModules ? css.groupClickable : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        return (
+          <section
+            key="be-from-map"
+            className={sectionClassName}
+            data-module={routed}
+            {...sectionInteractionProps}
+          >
+            <header className={css.groupHeader}>
+              <span className={css.dot} aria-hidden="true" />
+              <span className={css.groupLabel}>From map</span>
+            </header>
+            <div className={css.itemGrid}>
+              {renderToolButton(
+                {
+                  id: 'adopt-basemap',
+                  label: 'Adopt from map',
+                  Icon: MousePointer,
+                  toolId: 'observe.built-environment.adopt-basemap',
+                },
+                {
+                  activeTool,
+                  homesteadPlaced,
+                  onToolClick,
+                },
+              )}
+            </div>
+          </section>
+        );
+      })()}
+      {/* 2026-05-14 — Per-`BuiltEnvironmentCategory` top-level rail
+       *  sections. Each routes click-to-activate to a relevant
+       *  pre-existing Observe module (`BE_CATEGORY_TO_OBSERVE_MODULE`);
+       *  tool buttons still dispatch `observe.built-environment.<kind>`
+       *  toolIds — only the visual grouping is flat. */}
+      {BE_TOOL_GROUPS.map((group) => {
+        if (group.items.length === 0) return null;
+        // 2026-05-14 — Vegetation BE category suppressed in Observe;
+        // mature trees / shrubs are captured under the
+        // `earth-water-ecology` module's ecology workflow.
+        if (group.category === 'vegetation') return null;
+        // 2026-05-14 — Earthworks BE section dropped. Berm and Raised bed
+        // now appear inline under Earth-Water-Ecology above; Terrace is
+        // appended to the Amenities group below.
+        if (group.category === 'earthworks') return null;
+        const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
+        const isActive = routed === activeModule;
+        const onSectionActivate = () => {
+          if (!canSelectModules || !onSelectModule) return;
+          onSelectModule(isActive ? null : routed);
+        };
+        const sectionInteractionProps = canSelectModules
+          ? {
+              role: 'button' as const,
+              tabIndex: 0,
+              'aria-pressed': isActive,
+              title: isActive
+                ? `Deselect ${OBSERVE_MODULE_LABEL[routed]}`
+                : `Switch to ${OBSERVE_MODULE_LABEL[routed]}`,
+              onClick: onSectionActivate,
+              onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSectionActivate();
+                }
+              },
+            }
+          : {};
+        const sectionClassName = [
+          css.group,
+          isActive ? css.groupActive : '',
+          canSelectModules ? css.groupClickable : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        const sourceItems =
+          group.category === 'amenity'
+            ? [
+                ...group.items,
+                // 2026-05-14 — Terrace relocated from Earthworks BE category.
+                ...BE_TOOL_ITEMS.filter((i) => i.kind === 'terrace'),
+              ]
+            : group.items;
+        const groupItems: ToolItem[] = sourceItems.map((bg) => ({
+          id: bg.kind,
+          label: bg.label,
+          Icon: bg.Icon,
+          toolId: `observe.built-environment.${bg.kind}` as MapToolId,
+        }));
+        return (
+          <section
+            key={`be-${group.category}`}
+            className={sectionClassName}
+            data-module={routed}
+            data-be-category={group.category}
+            {...sectionInteractionProps}
+          >
+            <header className={css.groupHeader}>
+              <span className={css.dot} aria-hidden="true" />
+              <span className={css.groupLabel}>{group.label}</span>
+            </header>
+            <div className={css.itemGrid}>
+              {groupItems.map((it) =>
+                renderToolButton(it, {
+                  activeTool,
+                  homesteadPlaced,
+                  onToolClick,
+                }),
+              )}
+            </div>
           </section>
         );
       })}
