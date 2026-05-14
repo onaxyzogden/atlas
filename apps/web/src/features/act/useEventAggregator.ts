@@ -9,7 +9,10 @@
  *   2. task       — fieldTaskStore (uses dueAt, ignores status='done' for
  *                   the *upcoming* helper but still surfaces them on the
  *                   calendar grid for retrospective context)
- *   3. livestock  — livestockMoveLogStore
+ *   3. livestock  — livestockMoveLogStore (logged moves) +
+ *                   scheduledLivestockMoveStore (unfulfilled forward plans,
+ *                   surfaced with a "Planned:" title prefix and `planned · …`
+ *                   meta so the existing source filter / dot styling apply)
  *   4. harvest    — harvestLogStore
  *   5. nursery    — nurseryStore (sowDate AND expectedReadyDate emit
  *                   separate entries)
@@ -23,6 +26,7 @@ import { useMemo } from 'react';
 import { useCommunityEventStore } from '../../store/communityEventStore.js';
 import { useFieldTaskStore } from '../../store/fieldTaskStore.js';
 import { useLivestockMoveLogStore } from '../../store/livestockMoveLogStore.js';
+import { useScheduledLivestockMoveStore } from '../../store/scheduledLivestockMoveStore.js';
 import { useHarvestLogStore } from '../../store/harvestLogStore.js';
 import { useNurseryStore } from '../../store/nurseryStore.js';
 
@@ -94,6 +98,7 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
   const communityEvents = useCommunityEventStore((s) => s.events);
   const tasks = useFieldTaskStore((s) => s.tasks);
   const livestockMoves = useLivestockMoveLogStore((s) => s.events);
+  const scheduledMoves = useScheduledLivestockMoveStore((s) => s.plans);
   const harvests = useHarvestLogStore((s) => s.entries);
   const nurseryBatches = useNurseryStore((s) => s.batches);
   const stockTransfers = useNurseryStore((s) => s.transfers);
@@ -141,6 +146,22 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
         iso: m.date,
         title: `${head} · ${m.species}`,
         meta: m.direction.replace('_', ' '),
+      });
+    }
+
+    for (const p of scheduledMoves) {
+      if (p.projectId !== projectId) continue;
+      if (p.fulfilledByEventId) continue;
+      const key = toDateKey(p.plannedDate);
+      if (!key) continue;
+      const head = p.headCount != null ? `${p.headCount} head` : 'move';
+      all.push({
+        id: `scheduled-livestock:${p.id}`,
+        source: 'livestock',
+        dateKey: key,
+        iso: p.plannedDate,
+        title: `Planned: ${head} · ${p.species}`,
+        meta: `planned · ${p.direction.replace('_', ' ')}`,
       });
     }
 
@@ -216,6 +237,7 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
     communityEvents,
     tasks,
     livestockMoves,
+    scheduledMoves,
     harvests,
     nurseryBatches,
     stockTransfers,

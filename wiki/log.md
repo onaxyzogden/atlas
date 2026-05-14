@@ -4,6 +4,40 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-14 — Observe: Conventional-crop annotation (earth-water-ecology)
+
+New `conventionalCrop` annotation kind under the Earth-Water-Ecology
+Observe module, sibling to `pasture` and `ecologyZone`. Closes the gap
+where inherited conventionally-farmed cropland — row crops, perennial
+monocultures, cover-cropped fields, fallow paddocks — had no Observe-side
+note surface, so Plan and Act stages now have an anchor for what
+restoration is converting *from*. One polygon tool with rich agronomy
+schema (kind enum + primaryCrop, compaction, inputs, tillage, irrigation,
+lastPlanted, rotationNotes, label, notes) per steward preference for
+richer first-cut capture. Dedicated `conventionalCropStore` (persist key
+`ogden-conventional-crops`) keeps the schema isolated from `pastureStore`
+and `ecologyStore`. Distinct ochre palette (annual-row `#a8854a`,
+perennial-monoculture `#8e7136`, cover-cropped `#9aa56b`, fallow
+`#c4b89a`) so the visual read diverges at a glance from pasture's
+tan/buff. Mirrors the pasture template's 9-integration-point pattern
+(store, draw tool, schema, registry, switchboard, MapToolId union, rail
+entry, layer spec, dashboard list). Freehand + Dimensions (rect, circle)
+toggle inherited. `tsc --noEmit` clean (required 8GB heap), `npm run lint`
+exit 0, preview-verified end-to-end via store + DOM probes.
+
+Files: [apps/web/src/store/conventionalCropStore.ts](../apps/web/src/store/conventionalCropStore.ts),
+[apps/web/src/v3/observe/components/draw/ConventionalCropTool.tsx](../apps/web/src/v3/observe/components/draw/ConventionalCropTool.tsx),
+[annotationFieldSchemas.ts](../apps/web/src/v3/observe/components/draw/annotationFieldSchemas.ts),
+[AnnotationRegistry.ts](../apps/web/src/v3/observe/components/AnnotationRegistry.ts),
+[ObserveDrawHost.tsx](../apps/web/src/v3/observe/components/draw/ObserveDrawHost.tsx),
+[useMapToolStore.ts](../apps/web/src/v3/observe/components/measure/useMapToolStore.ts),
+[ObserveTools.tsx](../apps/web/src/v3/observe/tools/ObserveTools.tsx),
+[ObserveAnnotationLayers.tsx](../apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx),
+[EarthWaterEcologyDashboard.tsx](../apps/web/src/v3/observe/modules/earth-water-ecology/EarthWaterEcologyDashboard.tsx).
+Decision: [decisions/2026-05-14-atlas-observe-conventional-crop-annotation.md](decisions/2026-05-14-atlas-observe-conventional-crop-annotation.md).
+
+---
+
 ## 2026-05-14 — Observe: single-click reopens drawn feature's edit popup
 
 Closed a two-click gap in the Observe annotation flow: after the create popup
@@ -14560,3 +14594,29 @@ removed `projectId` from the three `renderToolButton` call-site ctx
 objects since the helper no longer reads it. `tsc --noEmit -p
 apps/web` clean. No behaviour change — every removed branch was
 unreachable.
+
+## 2026-05-14 — Act: scheduled livestock moves surface in event calendar
+
+User-reported bug: scheduling a livestock move in Plan stage did not
+appear in Act stage. Root cause:
+`apps/web/src/features/act/useEventAggregator.ts` only iterated
+`livestockMoveLogStore.events` (actual logged moves) and ignored
+`scheduledLivestockMoveStore.plans` (forward-looking, unfulfilled).
+Fix folds the scheduled store into the same aggregator under the
+existing `'livestock'` `CalendarSource` (no enum change → existing
+filter chip + dot styling + source-order map all keep working): hook
+adds `useScheduledLivestockMoveStore((s) => s.plans)`, the `useMemo`
+adds a loop after the logged-moves loop that skips fulfilled plans
+(`p.fulfilledByEventId`) and emits `{ id:
+'scheduled-livestock:${p.id}', source: 'livestock', dateKey,
+iso: p.plannedDate, title: 'Planned: ${head} · ${species}', meta:
+'planned · ${direction}' }`. The auto-fulfilment in
+`scheduledLivestockMoveStore` (±7 day match against logged events)
+handles the dedupe automatically — once a plan is fulfilled it
+disappears from the calendar and only the logged entry remains.
+Docblock updated to mention the new source. Verified end-to-end in
+the running preview against the seeded `slvm-future` plan
+(2026-06-20, sheep, 20 head, `move_in` → paddock `pad-test-C`): June
+20 cell now reads `aria-label="June 20th, 2026 — 1 entries"` and the
+agenda renders `Planned: 20 head · sheep · planned · move in`.
+
