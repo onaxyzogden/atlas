@@ -25,6 +25,7 @@ import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   earthwaterKpis,
   getCriticalHabitatLayer,
@@ -213,26 +214,20 @@ export default function EarthWaterEcologyDashboard() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Understand the living systems of your site. Diagnose soils, hydrology and ecology to
-              reveal opportunities, risks and patterns that inform wise design.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export earth · water · ecology report'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId="observe-earth-water-ecology-dashboard"
+        lede="Understand the living systems of your site. Diagnose soils, hydrology and ecology to reveal opportunities, risks and patterns that inform wise design."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generating…' : 'Export earth · water · ecology report'}
+        </button>
       </div>
 
       <section className={card.section}>

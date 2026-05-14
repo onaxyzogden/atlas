@@ -21,6 +21,7 @@ import PercGauge from './PercGauge.js';
 import WaterBalanceBar from './WaterBalanceBar.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   jprKpis,
   soilStats,
@@ -100,16 +101,10 @@ export default function JarPercRoofDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Soil texture testing, water infiltration testing, and roof runoff estimation to
-              inform practical water management.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-earth-water-ecology-jar-perc-roof"
+        lede="Soil texture testing, water infiltration testing, and roof runoff estimation to inform practical water management."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>

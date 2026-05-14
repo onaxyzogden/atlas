@@ -8,10 +8,10 @@ import {
   Leaf,
   Users,
 } from 'lucide-react';
-import heroLandscape from '../../assets/steward-survey/hero-landscape.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   archetypeFor,
   stewardCompleteness,
@@ -64,18 +64,10 @@ export default function StewardSurveyDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={hc.heroRow}>
-          <div>
-            <p className={card.lede}>
-              A protracted observation begins with the people. Capture who is stewarding
-              this land, what they bring, and what they hope to grow. All fields optional —
-              fill in what you have.
-            </p>
-          </div>
-          <img src={heroLandscape} alt="" aria-hidden="true" className={hc.heroArt} />
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-human-context-steward-survey"
+        lede="A protracted observation begins with the people. Capture who is stewarding this land, what they bring, and what they hope to grow. All fields optional — fill in what you have."
+      />
 
       <div>
           <FormSection number="1" title="Identity">

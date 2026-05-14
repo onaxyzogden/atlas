@@ -20,6 +20,7 @@ import SeasonalEcologyStrip from './SeasonalEcologyStrip.js';
 import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   ecologyDetailKpis,
   ecologyCounts,
@@ -115,16 +116,10 @@ export default function EcologicalDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Explore habitat conditions, species observations, guild indicators and ecosystem
-              health to guide regenerative design and stewardship.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-earth-water-ecology-ecological"
+        lede="Explore habitat conditions, species observations, guild indicators and ecosystem health to guide regenerative design and stewardship."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>

@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
-import heroTerrain from '../../assets/topography-dashboard/hero-terrain.png';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import {
   useTopographyStore,
@@ -30,6 +29,7 @@ import ElevationProfileChart from './ElevationProfileChart.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   featureCounts,
   getElevationLayer,
@@ -255,27 +255,20 @@ export default function TopographyDashboard() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Understand the shape of the land. Explore elevation, slope, aspect and cross-sections
-              to design with the terrain, not against it.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export terrain report'}
-              </button>
-            </div>
-          </div>
-          <img src={heroTerrain} alt="" aria-hidden="true" className={obsx.heroArt} />
-        </div>
+      <ObserveHero
+        sectionId="observe-topography-dashboard"
+        lede="Understand the shape of the land. Explore elevation, slope, aspect and cross-sections to design with the terrain, not against it."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generating…' : 'Export terrain report'}
+        </button>
       </div>
 
       <section className={card.section}>

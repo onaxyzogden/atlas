@@ -24,6 +24,7 @@ import HazardRiskMatrix from './HazardRiskMatrix.js';
 import HazardHotspotsMap from './HazardHotspotsMap.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   climateKpis,
   getClimateLayer,
@@ -150,27 +151,20 @@ export default function MacroclimateDashboard() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Understand the big-picture climate patterns and natural hazards that shape
-              your site. Use this foundation to design resilient systems that work with
-              your environment, not against it.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export macroclimate report'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId="observe-macroclimate-hazards-dashboard"
+        lede="Understand the big-picture climate patterns and natural hazards that shape your site. Use this foundation to design resilient systems that work with your environment, not against it."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generating…' : 'Export macroclimate report'}
+        </button>
       </div>
 
       <section className={card.section}>

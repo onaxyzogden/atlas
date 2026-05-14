@@ -18,6 +18,7 @@ import { swotCounts } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 
 const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
   S: 'Strength',
@@ -115,26 +116,20 @@ export default function SwotDashboard() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Synthesize insights from your journal and diagnosis to reveal strategic leverage
-              points and inform robust, regenerative design decisions.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export synthesis summary'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId="observe-swot-synthesis-dashboard"
+        lede="Synthesize insights from your journal and diagnosis to reveal strategic leverage points and inform robust, regenerative design decisions."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generating…' : 'Export synthesis summary'}
+        </button>
       </div>
 
       <section className={card.section}>

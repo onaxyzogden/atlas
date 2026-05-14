@@ -15,6 +15,7 @@ import { useVisionStore } from '../../../../store/visionStore.js';
 import { MoodboardUploader } from './MoodboardUploader.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 
 type PhaseKey = 'year1' | 'years2to3' | 'years4plus';
 
@@ -52,13 +53,10 @@ export default function VisionDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <p className={card.lede}>
-          Translate intention into a long-horizon direction. Clarify what this land is for,
-          how it should feel, what functions it must support, and what success looks like
-          over time.
-        </p>
-      </div>
+      <ObserveHero
+        sectionId="observe-human-context-vision"
+        lede="Translate intention into a long-horizon direction. Clarify what this land is for, how it should feel, what functions it must support, and what success looks like over time."
+      />
 
       <ConceptSection
         dataUrl={steward?.conceptImageDataUrl}

@@ -15,13 +15,13 @@ import {
 import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
-import heroLandscape from '../../assets/human-context-dashboard/hero-landscape.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   archetypeFor,
   healthLabel,
@@ -227,28 +227,20 @@ function HumanHero({ vision, onExport, exporting }: HumanHeroProps) {
 
   return (
     <>
-      <div className={card.hero} data-stage="observe">
-        <div className={hc.heroRow}>
-          <div>
-            <p className={card.lede}>
-              This module captures who is stewarding the land, the regional and cultural
-              context that shapes it, and the long-horizon vision that guides decisions
-              across time and generations.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={onExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export human-context report'}
-              </button>
-            </div>
-          </div>
-          <img src={heroLandscape} alt="" aria-hidden="true" className={hc.heroArt} />
-        </div>
+      <ObserveHero
+        sectionId="observe-human-context-dashboard"
+        lede="This module captures who is stewarding the land, the regional and cultural context that shapes it, and the long-horizon vision that guides decisions across time and generations."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={onExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generating…' : 'Export human-context report'}
+        </button>
       </div>
 
       <section className={card.section}>

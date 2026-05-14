@@ -15,6 +15,7 @@ import { journalMetrics, swotCounts, type MetricItem } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 
 const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
   S: 'Strengths',
@@ -99,26 +100,20 @@ export default function SwotJournal() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Capture observations and insights about your site using the SWOT framework. Tag
-              entries with the relevant quadrant and watch patterns emerge across the journal.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export journal'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId="observe-swot-synthesis-journal"
+        lede="Capture observations and insights about your site using the SWOT framework. Tag entries with the relevant quadrant and watch patterns emerge across the journal."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generating…' : 'Export journal'}
+        </button>
       </div>
 
       <section className={card.section}>

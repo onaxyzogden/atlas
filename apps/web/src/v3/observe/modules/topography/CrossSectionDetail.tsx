@@ -27,6 +27,7 @@ import SeasonalSolarStrip from './SeasonalSolarStrip.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   getElevationLayer,
   polygonCentroid,
@@ -107,17 +108,10 @@ export default function CrossSectionDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Analyze terrain profiles along transects to understand land form, place design
-              elements, evaluate solar geometry, and test section-based interventions with
-              confidence.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-topography-cross-section"
+        lede="Analyze terrain profiles along transects to understand land form, place design elements, evaluate solar geometry, and test section-based interventions with confidence."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>

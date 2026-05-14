@@ -18,6 +18,7 @@ import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import WaterBalanceBar from './WaterBalanceBar.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   hydrologyKpis,
   waterCounts,
@@ -142,16 +143,10 @@ export default function HydrologyDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Understand how water moves across your site. Analyze runoff, infiltration, drainage
-              patterns and harvesting opportunities to design with water, not against it.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-earth-water-ecology-hydrology"
+        lede="Understand how water moves across your site. Analyze runoff, infiltration, drainage patterns and harvesting opportunities to design with water, not against it."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>

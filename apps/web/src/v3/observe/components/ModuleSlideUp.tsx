@@ -74,7 +74,7 @@ function renderCard(sectionId: string): JSX.Element | null {
     // Sectors & Zones (Cartographic reused from topography/)
     case 'observe-sectors-zones-dashboard':            return <SectorsDashboard />;
     case 'observe-sectors-zones-sector-compass':       return <SectorCompassDetail />;
-    case 'observe-sectors-zones-cartographic':         return <CartographicDetail />;
+    case 'observe-sectors-zones-cartographic':         return <CartographicDetail moduleOverride="sectors-zones" sectionIdOverride="observe-sectors-zones-cartographic" />;
     // SWOT Synthesis
     case 'observe-swot-synthesis-dashboard':           return <SwotDashboard />;
     case 'observe-swot-synthesis-journal':             return <SwotJournal />;

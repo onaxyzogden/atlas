@@ -25,13 +25,20 @@ import SlopeLegendStrip from './SlopeLegendStrip.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
+import type { ObserveModule } from '../../types.js';
 import {
   featureCounts,
   getElevationLayer,
   slopeBand,
 } from './derivations.js';
 
-export default function CartographicDetail() {
+interface Props {
+  moduleOverride?: ObserveModule;
+  sectionIdOverride?: string;
+}
+
+export default function CartographicDetail({ moduleOverride, sectionIdOverride }: Props = {}) {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
   const project = useV3Project(id);
@@ -126,18 +133,13 @@ export default function CartographicDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Explore the full spatial context of your site. Toggle layers, interrogate patterns,
-              and understand how sectors, microclimates and zones work together.
-            </p>
-            <div className={card.btnRow}>
-              <button type="button" className={card.btn}>Project settings</button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId={sectionIdOverride ?? 'observe-topography-cartographic'}
+        moduleOverride={moduleOverride}
+        lede="Explore the full spatial context of your site. Toggle layers, interrogate patterns, and understand how sectors, microclimates and zones work together."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button type="button" className={card.btn}>Project settings</button>
       </div>
 
       <section className={card.section}>

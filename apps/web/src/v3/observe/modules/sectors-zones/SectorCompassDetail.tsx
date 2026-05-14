@@ -17,6 +17,7 @@ import { useV3Project } from '../../../data/useV3Project.js';
 import SectorCompassDiagram from './SectorCompassDiagram.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import { compassKpis, type KpiIconKey } from './derivations.js';
 import { polygonCentroid } from '../macroclimate-hazards/derivations.js';
 
@@ -100,17 +101,10 @@ export default function SectorCompassDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Map and analyse the external energies and influences shaping your site — wind,
-              sun, fire, noise, wildlife, and views. Arrows reveal direction and intensity so
-              you can place, protect, and buffer with confidence.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-sectors-zones-sector-compass"
+        lede="Map and analyse the external energies and influences shaping your site — wind, sun, fire, noise, wildlife, and views. Arrows reveal direction and intensity so you can place, protect, and buffer with confidence."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>
