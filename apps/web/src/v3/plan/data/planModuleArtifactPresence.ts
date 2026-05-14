@@ -119,6 +119,7 @@ export function usePlanModuleArtifactPresence(
       return hasNotes || hasTransects;
     case 'dynamic-layering':
     case 'cross-section-solar':
+    case 'goal-compass':
       return false;
     default: {
       const _exhaustive: never = module;

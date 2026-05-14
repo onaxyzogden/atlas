@@ -7,6 +7,7 @@
  */
 
 export type PlanModule =
+  | 'goal-compass'
   | 'dynamic-layering'
   | 'water-management'
   | 'zone-circulation'
@@ -20,6 +21,7 @@ export type PlanModule =
   | 'principle-verification';
 
 export const PLAN_MODULES: PlanModule[] = [
+  'goal-compass',
   'dynamic-layering',
   'water-management',
   'zone-circulation',
@@ -38,6 +40,7 @@ export function isPlanModule(s: string): s is PlanModule {
 }
 
 export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
+  'goal-compass':           'Compass',
   'dynamic-layering':       'Layering',
   'water-management':       'Water',
   'zone-circulation':       'Zones',
@@ -52,6 +55,7 @@ export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
 };
 
 export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
+  'goal-compass':           'Goal Compass',
   'dynamic-layering':       'Dynamic Layering & Permanence',
   'water-management':       'Water Management',
   'zone-circulation':       'Zone & Circulation',
@@ -137,6 +141,12 @@ export const MODULE_CARDS: Record<
   PlanModule,
   Array<{ label: string; sectionId: string; group?: string }>
 > = {
+  'goal-compass': [
+    { label: 'Goal tree',         sectionId: 'plan-goal-tree' },
+    { label: 'Site profile',      sectionId: 'plan-site-profile' },
+    { label: 'Generated plan',    sectionId: 'plan-generated-plan' },
+    { label: 'Criteria forecast', sectionId: 'plan-criteria-forecast' },
+  ],
   'dynamic-layering': [
     { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
     { label: 'Permanence ladder', sectionId: 'plan-permanence-ladder' },

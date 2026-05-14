@@ -53,6 +53,15 @@ export interface BuildPhase {
    * Decision:    `wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md`
    */
   yeomansCap?: PhaseKey;
+  /**
+   * Goal Compass provenance — `true` when this phase was produced by the
+   * sequencing engine. Goal Compass uses these flags to know which rows
+   * it owns and may safely regenerate; unflagged phases are user-authored
+   * and untouched by the engine.
+   */
+  generatedFromGoalCompass?: boolean;
+  /** Catalog version the engine ran when generating this phase. */
+  catalogVersion?: string;
 }
 
 /**
@@ -93,6 +102,23 @@ export interface PhaseTask {
    * the `PhasingScaleMatrixCard` row grouping. Omitted on legacy tasks.
    */
   designLayer?: DesignLayer;
+  /**
+   * Goal Compass provenance — id of the intervention that generated this
+   * task. Unset for user-authored tasks. When `status: 'overridden'` the
+   * engine treats this row as frozen and re-flows the rest of the plan
+   * around it.
+   */
+  generatedFromIntervention?: string;
+  /** Optional goal-criterion id this task is helping advance. */
+  goalCriterionId?: string;
+  /** Catalog version active when the engine generated this task. */
+  catalogVersion?: string;
+  /**
+   * Lifecycle flag — `'generated'` until a steward edits the row, then
+   * `'overridden'`. Undefined for user-authored tasks (never touched by
+   * the engine).
+   */
+  status?: 'generated' | 'overridden';
 }
 
 interface PhaseState {
@@ -104,6 +130,27 @@ interface PhaseState {
   deletePhase: (id: string) => void;
   togglePhaseCompleted: (id: string) => void;
   setActiveFilter: (filter: string) => void;
+  /**
+   * Goal Compass — replace all generated phases + their generated tasks
+   * for a project while preserving:
+   *   - user-authored phases (no `generatedFromGoalCompass` flag)
+   *   - generated tasks the steward has overridden (`status: 'overridden'`)
+   */
+  replaceGoalCompassRows: (
+    projectId: string,
+    newPhases: BuildPhase[],
+    newTasks: { phaseId: string; task: PhaseTask }[],
+  ) => void;
+  /**
+   * Goal Compass — mark a generated task as overridden so future
+   * regeneration leaves it untouched. Optional patch applies edits in
+   * the same write.
+   */
+  overrideGoalCompassTask: (
+    phaseId: string,
+    taskId: string,
+    patch?: Partial<PhaseTask>,
+  ) => void;
   /**
    * Returns a freshly-allocated, sorted array. **Do NOT call inside a
    * Zustand selector** — it produces a new snapshot every render and
@@ -160,6 +207,44 @@ export const usePhaseStore = create<PhaseState>()(
         })),
 
       setActiveFilter: (filter) => set({ activeFilter: filter }),
+
+      replaceGoalCompassRows: (projectId, newPhases, newTasks) =>
+        set((s) => {
+          const tasksByPhaseId = new Map<string, PhaseTask[]>();
+          for (const { phaseId, task } of newTasks) {
+            if (!phaseId) continue;
+            const list = tasksByPhaseId.get(phaseId) ?? [];
+            list.push(task);
+            tasksByPhaseId.set(phaseId, list);
+          }
+          const preservedOverridesById = new Map<string, PhaseTask[]>();
+          for (const p of s.phases) {
+            if (p.projectId !== projectId) continue;
+            if (!p.generatedFromGoalCompass) continue;
+            const overrides = (p.tasks ?? []).filter((t) => t.status === 'overridden');
+            if (overrides.length) preservedOverridesById.set(p.id, overrides);
+          }
+          const remaining = s.phases.filter(
+            (p) => p.projectId !== projectId || !p.generatedFromGoalCompass,
+          );
+          const replacements = newPhases.map((p) => {
+            const tasks = tasksByPhaseId.get(p.id) ?? [];
+            const preserved = preservedOverridesById.get(p.id) ?? [];
+            return { ...p, tasks: [...preserved, ...tasks] };
+          });
+          return { phases: [...remaining, ...replacements] };
+        }),
+
+      overrideGoalCompassTask: (phaseId, taskId, patch) =>
+        set((s) => ({
+          phases: s.phases.map((p) => {
+            if (p.id !== phaseId) return p;
+            const tasks = (p.tasks ?? []).map((t) =>
+              t.id === taskId ? { ...t, ...(patch ?? {}), status: 'overridden' as const } : t,
+            );
+            return { ...p, tasks };
+          }),
+        })),
 
       getProjectPhases: (projectId) =>
         get()

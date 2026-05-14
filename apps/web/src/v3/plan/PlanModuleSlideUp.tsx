@@ -25,6 +25,10 @@ import { MODULE_CARDS, PLAN_MODULE_FULL_LABEL } from './types.js';
 import PlanViewBadge from './PlanViewBadge.js';
 
 // All 16 plan cards lazy-loaded.
+const GoalTreeTab             = lazy(() => import('./cards/goal-compass/GoalTreeTab.js'));
+const SiteProfileTab          = lazy(() => import('./cards/goal-compass/SiteProfileTab.js'));
+const GeneratedPlanTab        = lazy(() => import('./cards/goal-compass/GeneratedPlanTab.js'));
+const CriteriaForecastTab     = lazy(() => import('./cards/goal-compass/CriteriaForecastTab.js'));
 const PermanenceScalesCard    = lazy(() => import('../../features/plan/PermanenceScalesCard.js'));
 // Dynamic Layering (Module 1) — additive ladder added per Permaculture Scholar
 // verdict 2026-05-07.
@@ -88,6 +92,10 @@ function renderPlanCard(
   const noop = () => {};
   const closeSlideUp = onClose ?? noop;
   switch (sectionId) {
+    case 'plan-goal-tree':           return <GoalTreeTab project={project} onSwitchToMap={noop} />;
+    case 'plan-site-profile':        return <SiteProfileTab project={project} onSwitchToMap={noop} />;
+    case 'plan-generated-plan':      return <GeneratedPlanTab project={project} onSwitchToMap={noop} />;
+    case 'plan-criteria-forecast':   return <CriteriaForecastTab project={project} onSwitchToMap={noop} />;
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;
     case 'plan-permanence-ladder':   return <PermanenceLadderCard project={project} onSwitchToMap={noop} onSwitchModule={onSwitchModule} />;
     case 'plan-enterprises':         return <EnterprisesCard project={project} onSwitchToMap={noop} />;

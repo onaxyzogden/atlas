@@ -25,6 +25,7 @@ import type { PlanModule, PlanView } from './types.js';
 export type PlanModuleScope = 'phased' | 'time-invariant';
 
 export const PLAN_MODULE_SCOPE: Record<PlanModule, PlanModuleScope> = {
+  'goal-compass':           'time-invariant',
   'dynamic-layering':       'phased',
   'water-management':       'phased',
   'zone-circulation':       'time-invariant',

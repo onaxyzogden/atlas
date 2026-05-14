@@ -52,6 +52,15 @@ import css from './PlanChecklistAside.module.css';
 const EMPTY_CHECKS: readonly number[] = [];
 
 const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
+  'goal-compass': {
+    why: 'Goal Compass lets the steward declare measurable success criteria and have a deterministic sequencing engine propose a phased, costed, labor-budgeted plan against a curated permaculture intervention catalog (Mollison, Yeomans, Holmgren P1: Observe & interact).',
+    how: [
+      'Edit the Goal tree — parent goal, sub-goals, and measurable criteria with deadline years.',
+      'Fill the Site profile facets; manual entries lower the forecast confidence until verified from Observe.',
+      'Click Generate to materialise BuildPhase + PhaseTask rows into the shared phase store.',
+      'Open Criteria forecast to see projected values at Year 1 / 3 / 5 / 7 / 10 / 20.',
+    ],
+  },
   'dynamic-layering': {
     why: 'Yeomans\' nine ranks decide order: Climate → Landform → Water → Access → Structures → Subsystems → Soil → Vegetation → Fauna. Per Permaculture Scholar (2026-05-07): collapsing Access + Structures is a Keyline violation; visualising ordering and warning when prerequisites are skipped is what the module must do (Mollison ch.5; Holmgren P8 Integrate rather than segregate).',
     how: [
