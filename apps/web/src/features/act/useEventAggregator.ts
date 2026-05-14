@@ -37,7 +37,8 @@ export type CalendarSource =
   | 'livestock'
   | 'harvest'
   | 'nursery'
-  | 'phaseTask';
+  | 'phaseTask'
+  | 'plantingCalendar';
 
 export const CALENDAR_SOURCES: readonly CalendarSource[] = [
   'community',
@@ -46,6 +47,7 @@ export const CALENDAR_SOURCES: readonly CalendarSource[] = [
   'harvest',
   'nursery',
   'phaseTask',
+  'plantingCalendar',
 ] as const;
 
 export const CALENDAR_SOURCE_LABEL: Record<CalendarSource, string> = {
@@ -55,6 +57,7 @@ export const CALENDAR_SOURCE_LABEL: Record<CalendarSource, string> = {
   harvest: 'Harvest',
   nursery: 'Nursery',
   phaseTask: 'Plan tasks',
+  plantingCalendar: 'Planting calendar',
 };
 
 export interface CalendarEntry {
@@ -97,6 +100,7 @@ const SOURCE_ORDER: Record<CalendarSource, number> = {
   harvest: 3,
   nursery: 4,
   phaseTask: 5,
+  plantingCalendar: 6,
 };
 
 export function useEventAggregator(projectId: string): UseEventAggregatorResult {
@@ -187,11 +191,14 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
 
     for (const b of nurseryBatches) {
       if (b.projectId !== projectId) continue;
+      const batchSource: CalendarSource = b.generatedFromPlantingCalendar
+        ? 'plantingCalendar'
+        : 'nursery';
       const sowKey = toDateKey(b.sowDate);
       if (sowKey) {
         all.push({
           id: `nursery-sow:${b.id}`,
-          source: 'nursery',
+          source: batchSource,
           dateKey: sowKey,
           iso: b.sowDate,
           title: `Sow ${b.species}`,
@@ -202,7 +209,7 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       if (readyKey && readyKey !== sowKey) {
         all.push({
           id: `nursery-ready:${b.id}`,
-          source: 'nursery',
+          source: batchSource,
           dateKey: readyKey,
           iso: b.expectedReadyDate,
           title: `Ready: ${b.species}`,
@@ -227,7 +234,7 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
           .join(' · ');
         all.push({
           id: `phase-task:${t.id}`,
-          source: 'phaseTask',
+          source: t.generatedFromPlantingCalendar ? 'plantingCalendar' : 'phaseTask',
           dateKey: key,
           iso,
           title: t.title,

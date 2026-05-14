@@ -208,6 +208,7 @@ export const MODULE_CARDS: Record<
     // 2026-04-28). Canopy-overlap evaluator behind the bottom-canvas
     // year scrubber; surfaces crowding pairs within next 5 y of cursor.
     { label: 'Canopy maturity',        sectionId: 'plan-temporal-coherence' },
+    { label: 'Annual planting schedule', sectionId: 'plan-planting-schedule' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil

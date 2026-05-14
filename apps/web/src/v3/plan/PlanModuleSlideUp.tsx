@@ -63,6 +63,7 @@ const CanopySuccessionCard       = lazy(() => import('./cards/plant-systems/Cano
 const PlantEstablishmentSequenceCard = lazy(() => import('./cards/plant-systems/PlantEstablishmentSequenceCard.js'));
 const EdgeConnectivityCard          = lazy(() => import('./cards/plant-systems/EdgeConnectivityCard.js'));
 const TemporalCoherenceCard         = lazy(() => import('./cards/plant-systems/TemporalCoherenceCard.js'));
+const AnnualPlantingCalendarCard    = lazy(() => import('./cards/plant-systems/AnnualPlantingCalendarCard.js'));
 const SoilFertilityDesignerCard = lazy(() => import('../../features/plan/SoilFertilityDesignerCard.js'));
 const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVectorTool.js'));
 const ClosedLoopGraphCard     = lazy(() => import('./cards/soil-fertility/ClosedLoopGraphCard.js'));
@@ -129,6 +130,7 @@ function renderPlanCard(
     case 'plan-plant-establishment-sequence': return <PlantEstablishmentSequenceCard project={project} onSwitchToMap={noop} />;
     case 'plan-edge-connectivity':   return <EdgeConnectivityCard project={project} onSwitchToMap={noop} />;
     case 'plan-temporal-coherence':  return <TemporalCoherenceCard project={project} onSwitchToMap={noop} />;
+    case 'plan-planting-schedule':   return <AnnualPlantingCalendarCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-fertility':      return <SoilFertilityDesignerCard project={project} onSwitchToMap={noop} />;
     case 'plan-waste-vectors':       return <WasteVectorTool project={project} onSwitchToMap={noop} />;
     case 'plan-closed-loop-graph':   return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;

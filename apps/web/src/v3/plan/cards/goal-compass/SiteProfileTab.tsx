@@ -63,6 +63,8 @@ export default function SiteProfileTab({ project }: Props) {
     profile.waterPosture,
     profile.hazards,
     profile.household,
+    profile.lastFrostDate,
+    profile.firstFrostDate,
   ];
   const filled = facetList.filter((f) => f.value !== null);
   const counts = {
@@ -82,7 +84,7 @@ export default function SiteProfileTab({ project }: Props) {
           forecast confidence until verified from Observe data.
         </p>
         <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(232,220,200,0.55)' }}>
-          {counts.filled} of 9 facets filled · {counts.manual} manual ·{' '}
+          {counts.filled} of 11 facets filled · {counts.manual} manual ·{' '}
           {counts.observe} from Observe
         </div>
         <div className={styles.btnRow} style={{ marginTop: 12 }}>
@@ -196,6 +198,28 @@ export default function SiteProfileTab({ project }: Props) {
             }
             prefillRef={candidates.hazards?.observeFieldRef}
             onPrefill={candidates.hazards ? () => applyOne('hazards') : undefined}
+          />
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Frost normals</h3>
+        <div className={styles.grid}>
+          <FacetTextField
+            label="Last frost (spring, YYYY-MM-DD)"
+            value={profile.lastFrostDate.value}
+            provenance={profile.lastFrostDate.provenance}
+            onChange={(v) => setFacet(project.id, 'lastFrostDate', v, 'manual')}
+            prefillRef={candidates.lastFrostDate?.observeFieldRef}
+            onPrefill={candidates.lastFrostDate ? () => applyOne('lastFrostDate') : undefined}
+          />
+          <FacetTextField
+            label="First frost (fall, YYYY-MM-DD)"
+            value={profile.firstFrostDate.value}
+            provenance={profile.firstFrostDate.provenance}
+            onChange={(v) => setFacet(project.id, 'firstFrostDate', v, 'manual')}
+            prefillRef={candidates.firstFrostDate?.observeFieldRef}
+            onPrefill={candidates.firstFrostDate ? () => applyOne('firstFrostDate') : undefined}
           />
         </div>
       </section>

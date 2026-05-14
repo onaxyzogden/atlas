@@ -32,6 +32,7 @@ import { useUtilityRunStore } from '../../store/utilityRunStore.js';
 import { useSetbackStore } from '../../store/setbackStore.js';
 import { useFlowConnectorStore } from '../../store/flowConnectorStore.js';
 import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.js';
+import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
 import {
   getDesignElementsForProject,
   removeDesignElement,
@@ -116,10 +117,7 @@ function removeOne(item: PlanSelectionItem): void {
       useMonitoringTransectStore.getState().deleteTransect(item.id);
       return;
     case 'water':
-      // Water nodes have a richer graph (catchment ↔ storage ↔ sink with
-      // overflow targeting); deletion routes through the WaterNetworkCard
-      // slide-up rather than the floater. Falling through here is
-      // intentional — the floater only clears the selection.
+      useWaterSystemsStore.getState().removeWaterNode(item.id);
       return;
     case 'design-element':
       if (!item.projectId) return;

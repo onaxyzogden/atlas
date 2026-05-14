@@ -35,7 +35,9 @@ export type PrefillFacetKey =
   | 'avgSlopePct'
   | 'waterPosture'
   | 'hazards'
-  | 'household';
+  | 'household'
+  | 'lastFrostDate'
+  | 'firstFrostDate';
 
 type CandidateValueMap = {
   acres: number;
@@ -44,6 +46,8 @@ type CandidateValueMap = {
   waterPosture: WaterPosture;
   hazards: string[];
   household: Household;
+  lastFrostDate: string;
+  firstFrostDate: string;
 };
 
 export type ObserveCandidate<K extends PrefillFacetKey> = {
@@ -75,25 +79,38 @@ export function deriveSiteProfileFromObserve(projectId: string): ObservePrefillR
   if (transects.length) {
     const longest = transects.reduce((best, t) => {
       const tDist = t.totalDistanceM ?? t.elevationProfileM?.length ?? 0;
-      const bDist = best.totalDistanceM ?? best.elevationProfileM?.length ?? 0;
-      return tDist > bDist ? t : best;
-    }, transects[0]);
+      const bDist = best!.totalDistanceM ?? best!.elevationProfileM?.length ?? 0;
+      return tDist > bDist ? t : best!;
+    }, transects[0]!);
     const stats = transectStats(longest);
     if (stats && stats.totalDistanceM && stats.totalDistanceM > 0) {
       out.avgSlopePct = {
         value: Math.round(stats.meanSlopePct * 10) / 10,
-        observeFieldRef: `topographyStore.transects[${longest.id}].meanSlopePct`,
+        observeFieldRef: `topographyStore.transects[${longest!.id}].meanSlopePct`,
       };
     }
   }
 
   // climateZone ← siteDataStore.layers.climate.summary.hardiness_zone
   const siteData = useSiteDataStore.getState().dataByProject[projectId];
-  const hardiness = getClimateLayer(siteData?.layers)?.summary.hardiness_zone;
+  const climateSummary = getClimateLayer(siteData?.layers)?.summary;
+  const hardiness = climateSummary?.hardiness_zone;
   if (hardiness) {
     out.climateZone = {
       value: hardiness,
       observeFieldRef: `siteDataStore.dataByProject[${projectId}].layers.climate.hardiness_zone`,
+    };
+  }
+  if (climateSummary?.last_frost_date) {
+    out.lastFrostDate = {
+      value: climateSummary.last_frost_date,
+      observeFieldRef: `siteDataStore.dataByProject[${projectId}].layers.climate.last_frost_date`,
+    };
+  }
+  if (climateSummary?.first_frost_date) {
+    out.firstFrostDate = {
+      value: climateSummary.first_frost_date,
+      observeFieldRef: `siteDataStore.dataByProject[${projectId}].layers.climate.first_frost_date`,
     };
   }
 

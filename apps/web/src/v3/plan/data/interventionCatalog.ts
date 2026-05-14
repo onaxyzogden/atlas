@@ -437,6 +437,9 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { criterionId: 'food-sov-protein-pct', contributionFixed: 18, appliesAtYearOffset: 2 },
       { criterionId: 'income-streams-count', contributionFixed: 1, appliesAtYearOffset: 2 },
       { criterionId: 'income-surplus-usd', contributionFixed: 2200, appliesAtYearOffset: 3 },
+      { criterionId: 'livestock-paddocks-active-count', contributionFixed: 4, appliesAtYearOffset: 2 },
+      { criterionId: 'livestock-protein-lbs', contributionFixed: 300, appliesAtYearOffset: 2 },
+      { criterionId: 'livestock-revenue-usd', contributionFixed: 2200, appliesAtYearOffset: 3 },
     ],
     designLayer: 'structures',
     sources: [
@@ -481,6 +484,10 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { criterionId: 'income-streams-count', contributionFixed: 1, appliesAtYearOffset: 3 },
       { criterionId: 'income-surplus-usd', contributionPerAcre: 350, appliesAtYearOffset: 5 },
       { criterionId: 'soil-cover-pct', contributionPerAcre: 3, appliesAtYearOffset: 2 },
+      { criterionId: 'livestock-paddocks-active-count', contributionFixed: 10, appliesAtYearOffset: 2 },
+      { criterionId: 'livestock-protein-lbs', contributionPerAcre: 50, appliesAtYearOffset: 3 },
+      { criterionId: 'livestock-revenue-usd', contributionPerAcre: 350, appliesAtYearOffset: 5 },
+      { criterionId: 'livestock-welfare-pass-pct', contributionFixed: 20, appliesAtYearOffset: 3 },
     ],
     spatialFootprintAcres: { minimum: 4 },
     designLayer: 'structures',
@@ -495,6 +502,203 @@ export const INTERVENTION_CATALOG: Intervention[] = [
         source: 'Smith, B. (1997). A Veterinary Guide for Animal Owners. Storey Publishing.',
         year: 1997,
         kind: 'practice-guide',
+      },
+    ],
+    region: 'global',
+  },
+
+  {
+    id: 'permanent-perimeter-fence',
+    name: 'Permanent perimeter fence',
+    description:
+      'Sound, livestock-grade perimeter (high-tensile woven wire or 5-strand ' +
+      'electric) around the grazing land. Enables every downstream rotational ' +
+      'grazing, water, and shelter intervention.',
+    category: 'access',
+    yeomansPhase: 'access',
+    prerequisites: [],
+    siteRequirements: [{ kind: 'minAcres', value: 5 }],
+    laborHrsPerAcre: 4,
+    costRangeUSD: { low: 800, mid: 1400, high: 2200, perAcre: true },
+    materials: [
+      { label: 'High-tensile woven wire', unit: 'meters' },
+      { label: 'Wood / steel posts', unit: 'lot' },
+      { label: 'Gates + bracing', unit: 'lot' },
+    ],
+    durationMonths: 3,
+    maturityCurve: [
+      { yearOffset: 1, functionalPct: 100 },
+    ],
+    criterionContributions: [],
+    designLayer: 'structures',
+    sources: [
+      {
+        source: 'USDA NRCS (2017). Conservation Practice Standard 382: Fence.',
+        year: 2017,
+        kind: 'practice-guide',
+      },
+    ],
+    region: 'global',
+  },
+
+  {
+    id: 'cattle-rotational-grazing',
+    name: 'Adaptive multi-paddock cattle grazing',
+    description:
+      'AMP grazing for a starter cattle herd across 10+ paddocks with mobile ' +
+      'electric subdivision over a sound perimeter. Long rest periods rebuild ' +
+      'pasture; short, dense grazes drive soil biology.',
+    category: 'livestock',
+    yeomansPhase: 'subdivision',
+    prerequisites: ['permanent-perimeter-fence', 'cover-crop-rebuild', 'keyline-access-track'],
+    siteRequirements: [
+      { kind: 'minAcres', value: 20 },
+      { kind: 'slopeMaxPct', value: 20 },
+    ],
+    laborHrsPerAcre: 18,
+    costRangeUSD: { low: 2500, mid: 4500, high: 7500, perAcre: true },
+    materials: [
+      { label: 'Portable electric subdivision', unit: 'lot' },
+      { label: 'Energizer + grounding', unit: 'unit' },
+      { label: 'Portable water troughs', unit: 'lot' },
+      { label: 'Starter herd (cow-calf pairs)', unit: 'head' },
+    ],
+    durationMonths: 12,
+    maturityCurve: [
+      { yearOffset: 1, functionalPct: 50 },
+      { yearOffset: 3, functionalPct: 100 },
+    ],
+    criterionContributions: [
+      { criterionId: 'livestock-paddocks-active-count', contributionFixed: 10, appliesAtYearOffset: 2 },
+      { criterionId: 'livestock-protein-lbs', contributionPerAcre: 80, appliesAtYearOffset: 3 },
+      { criterionId: 'livestock-revenue-usd', contributionPerAcre: 450, appliesAtYearOffset: 4 },
+      { criterionId: 'soil-cover-pct', contributionPerAcre: 4, appliesAtYearOffset: 3 },
+    ],
+    spatialFootprintAcres: { minimum: 20 },
+    designLayer: 'structures',
+    sources: [
+      {
+        source: 'Savory, A., & Butterfield, J. (2016). Holistic Management (3rd ed.). Island Press.',
+        year: 2016,
+        kind: 'book',
+        note: 'AMP / planned grazing for large ruminants.',
+      },
+      {
+        source: 'Gerrish, J. (2004). Management-intensive Grazing. Green Park Press.',
+        year: 2004,
+        kind: 'book',
+      },
+    ],
+    region: 'global',
+  },
+
+  {
+    id: 'paddock-water-network',
+    name: 'Paddock water network',
+    description:
+      'Tanks, buried supply lines, and portable troughs sized so every paddock ' +
+      'centroid sits within 100 m of a placed water source — directly satisfying ' +
+      'the welfare access audit water rule.',
+    category: 'water',
+    yeomansPhase: 'water',
+    prerequisites: ['permanent-perimeter-fence'],
+    siteRequirements: [{ kind: 'minAcres', value: 5 }],
+    laborHrsPerAcre: 6,
+    costRangeUSD: { low: 600, mid: 1200, high: 2000, perAcre: true },
+    materials: [
+      { label: 'Storage tank(s)', unit: 'unit' },
+      { label: 'Buried HDPE supply line', unit: 'meters' },
+      { label: 'Portable troughs + quick-couplers', unit: 'lot' },
+    ],
+    durationMonths: 4,
+    maturityCurve: [
+      { yearOffset: 1, functionalPct: 100 },
+    ],
+    criterionContributions: [
+      { criterionId: 'livestock-welfare-pass-pct', contributionFixed: 70, appliesAtYearOffset: 1 },
+      { criterionId: 'water-self-sufficient-pct', contributionPerAcre: 2, appliesAtYearOffset: 1 },
+    ],
+    designLayer: 'water',
+    sources: [
+      {
+        source: 'USDA NRCS (2020). Conservation Practice Standard 614: Watering Facility.',
+        year: 2020,
+        kind: 'practice-guide',
+      },
+    ],
+    region: 'global',
+  },
+
+  {
+    id: 'livestock-shelter-windbreak',
+    name: 'Livestock shelter & windbreak',
+    description:
+      'Multi-row shelterbelt on prevailing-wind edges plus portable shade ' +
+      'tarps for hot-season cells. Closes the shelter portion of the welfare ' +
+      'access audit and lifts living ground cover.',
+    category: 'vegetation',
+    yeomansPhase: 'trees',
+    prerequisites: ['permanent-perimeter-fence'],
+    siteRequirements: [],
+    laborHrsPerAcre: 8,
+    laborFixedHrs: 80,
+    costRangeUSD: { low: 1200, mid: 2400, high: 4000 },
+    materials: [
+      { label: 'Shelterbelt tree stock', unit: 'lot' },
+      { label: 'Portable shade tarps + frames', unit: 'lot' },
+    ],
+    durationMonths: 6,
+    maturityCurve: [
+      { yearOffset: 1, functionalPct: 60 },
+      { yearOffset: 3, functionalPct: 100 },
+    ],
+    criterionContributions: [
+      { criterionId: 'livestock-welfare-pass-pct', contributionFixed: 25, appliesAtYearOffset: 2 },
+      { criterionId: 'soil-cover-pct', contributionPerAcre: 1, appliesAtYearOffset: 3 },
+    ],
+    designLayer: 'vegetation',
+    sources: [
+      {
+        source: 'USDA NRCS (2018). Conservation Practice Standard 380: Windbreak/Shelterbelt Establishment.',
+        year: 2018,
+        kind: 'practice-guide',
+      },
+    ],
+    region: 'global',
+  },
+
+  {
+    id: 'pasture-renovation-overseed',
+    name: 'Pasture renovation & diverse overseed',
+    description:
+      'Frost-seed or no-till drill a diverse forage mix (legumes + cool/warm ' +
+      'season grasses + forbs) to lift pasture quality from fair to good, ' +
+      'raising stocking density and protein output.',
+    category: 'vegetation',
+    yeomansPhase: 'soil',
+    prerequisites: ['cover-crop-rebuild'],
+    siteRequirements: [{ kind: 'slopeMaxPct', value: 25 }],
+    laborHrsPerAcre: 3,
+    costRangeUSD: { low: 120, mid: 220, high: 400, perAcre: true },
+    materials: [
+      { label: 'Diverse forage seed mix', unit: 'lbs' },
+      { label: 'No-till drill rental / frost-seed pass', unit: 'lot' },
+    ],
+    durationMonths: 2,
+    maturityCurve: [
+      { yearOffset: 1, functionalPct: 70 },
+      { yearOffset: 2, functionalPct: 100 },
+    ],
+    criterionContributions: [
+      { criterionId: 'livestock-protein-lbs', contributionPerAcre: 40, appliesAtYearOffset: 2 },
+      { criterionId: 'livestock-revenue-usd', contributionPerAcre: 180, appliesAtYearOffset: 3 },
+    ],
+    designLayer: 'vegetation',
+    sources: [
+      {
+        source: 'Sanderson, M. A., et al. (2007). "Plant species diversity influences on forage production and performance of dairy cattle on pasture." Crop Science, 47(5).',
+        year: 2007,
+        kind: 'journal',
       },
     ],
     region: 'global',

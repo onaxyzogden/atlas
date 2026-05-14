@@ -26,7 +26,9 @@ type FacetKey =
   | 'soilCompaction'
   | 'waterPosture'
   | 'hazards'
-  | 'household';
+  | 'household'
+  | 'lastFrostDate'
+  | 'firstFrostDate';
 
 type FacetValueMap = {
   acres: number;
@@ -38,6 +40,8 @@ type FacetValueMap = {
   waterPosture: WaterPosture;
   hazards: string[];
   household: Household;
+  lastFrostDate: string;
+  firstFrostDate: string;
 };
 
 interface SiteProfileState {
@@ -116,6 +120,8 @@ export const useSiteProfileStore = create<SiteProfileState>()(
           p.waterPosture,
           p.hazards,
           p.household,
+          p.lastFrostDate,
+          p.firstFrostDate,
         ];
         const filled = facets.filter((f) => f.value !== null);
         return {

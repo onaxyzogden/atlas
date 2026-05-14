@@ -63,6 +63,12 @@ export interface BuildPhase {
   generatedFromGoalCompass?: boolean;
   /** Catalog version the engine ran when generating this phase. */
   catalogVersion?: string;
+  /**
+   * Annual planting calendar provenance — `true` when this phase was
+   * produced by `schedulePlantingFromAreas`. Replaced wholesale on
+   * regenerate; never touches user-authored or Goal-Compass rows.
+   */
+  generatedFromPlantingCalendar?: boolean;
 }
 
 /**
@@ -133,6 +139,12 @@ export interface PhaseTask {
    * views land. UI filtering is not wired yet.
    */
   roleAccess?: ProjectRole[];
+  /**
+   * Annual planting calendar provenance — composite id
+   * `<species>:<cropAreaId>:<year>` set by `schedulePlantingFromAreas`.
+   * Replaced wholesale on regenerate.
+   */
+  generatedFromPlantingCalendar?: string;
 }
 
 interface PhaseState {
@@ -151,6 +163,17 @@ interface PhaseState {
    *   - generated tasks the steward has overridden (`status: 'overridden'`)
    */
   replaceGoalCompassRows: (
+    projectId: string,
+    newPhases: BuildPhase[],
+    newTasks: { phaseId: string; task: PhaseTask }[],
+  ) => void;
+  /**
+   * Annual planting calendar — replace all planting-calendar phases +
+   * tasks for a project. Mirrors `replaceGoalCompassRows` but keyed on
+   * the `generatedFromPlantingCalendar` flag, so user-authored and
+   * Goal-Compass rows are left untouched.
+   */
+  replacePlantingCalendarRows: (
     projectId: string,
     newPhases: BuildPhase[],
     newTasks: { phaseId: string; task: PhaseTask }[],
@@ -246,6 +269,25 @@ export const usePhaseStore = create<PhaseState>()(
             const preserved = preservedOverridesById.get(p.id) ?? [];
             return { ...p, tasks: [...preserved, ...tasks] };
           });
+          return { phases: [...remaining, ...replacements] };
+        }),
+
+      replacePlantingCalendarRows: (projectId, newPhases, newTasks) =>
+        set((s) => {
+          const tasksByPhaseId = new Map<string, PhaseTask[]>();
+          for (const { phaseId, task } of newTasks) {
+            if (!phaseId) continue;
+            const list = tasksByPhaseId.get(phaseId) ?? [];
+            list.push(task);
+            tasksByPhaseId.set(phaseId, list);
+          }
+          const remaining = s.phases.filter(
+            (p) => p.projectId !== projectId || !p.generatedFromPlantingCalendar,
+          );
+          const replacements = newPhases.map((p) => ({
+            ...p,
+            tasks: tasksByPhaseId.get(p.id) ?? [],
+          }));
           return { phases: [...remaining, ...replacements] };
         }),
 

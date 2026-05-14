@@ -78,6 +78,45 @@ const REGENERATIVE_FARM: GoalTree = {
         },
       ],
     },
+    {
+      id: 'livestock-enterprise',
+      title: 'Livestock enterprise',
+      narrative:
+        'A rotated herd or flock that produces saleable protein, passes ' +
+        'welfare access audits (water within 100 m, shelter, sound ' +
+        'fencing), and earns its keep without degrading the pasture.',
+      criteria: [
+        {
+          id: 'livestock-paddocks-active-count',
+          description: 'Paddocks on planned rotation (count)',
+          unit: 'count',
+          target: 8,
+          deadlineYear: 3,
+        },
+        {
+          id: 'livestock-welfare-pass-pct',
+          description:
+            'Paddocks passing welfare access audit — water ≤100 m, shelter, fencing (%)',
+          unit: 'pct',
+          target: 100,
+          deadlineYear: 3,
+        },
+        {
+          id: 'livestock-protein-lbs',
+          description: 'Annual marketable protein yield (lbs)',
+          unit: 'lbs',
+          target: 5000,
+          deadlineYear: 5,
+        },
+        {
+          id: 'livestock-revenue-usd',
+          description: 'Annual gross revenue from livestock enterprise (USD)',
+          unit: 'usd',
+          target: 20000,
+          deadlineYear: 5,
+        },
+      ],
+    },
   ],
 };
 

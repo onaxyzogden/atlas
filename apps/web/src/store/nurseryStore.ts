@@ -25,6 +25,11 @@ export interface PropagationBatch {
   notes: string;
   createdAt: string;
   updatedAt: string;
+  /**
+   * Annual planting calendar provenance — composite id
+   * `<species>:<cropAreaId>:<year>`. Replaced wholesale on regenerate.
+   */
+  generatedFromPlantingCalendar?: string;
 }
 
 export interface StockTransfer {
@@ -44,6 +49,15 @@ interface NurseryState {
   addBatch: (batch: PropagationBatch) => void;
   updateBatch: (id: string, updates: Partial<PropagationBatch>) => void;
   deleteBatch: (id: string) => void;
+  /**
+   * Annual planting calendar — replace all batches stamped with
+   * `generatedFromPlantingCalendar` for this project. User-authored
+   * batches are untouched.
+   */
+  replacePlantingCalendarBatches: (
+    projectId: string,
+    newBatches: PropagationBatch[],
+  ) => void;
 
   addTransfer: (transfer: StockTransfer) => void;
   deleteTransfer: (id: string) => void;
@@ -67,6 +81,14 @@ export const useNurseryStore = create<NurseryState>()(
 
       deleteBatch: (id) =>
         set((s) => ({ batches: s.batches.filter((b) => b.id !== id) })),
+
+      replacePlantingCalendarBatches: (projectId, newBatches) =>
+        set((s) => {
+          const remaining = s.batches.filter(
+            (b) => b.projectId !== projectId || !b.generatedFromPlantingCalendar,
+          );
+          return { batches: [...remaining, ...newBatches] };
+        }),
 
       addTransfer: (transfer) =>
         set((s) => ({ transfers: [...s.transfers, transfer] })),

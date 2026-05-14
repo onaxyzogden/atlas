@@ -37,6 +37,8 @@ const SOURCE_ICON: Record<CalendarSource, LucideIcon> = {
   livestock: Beef,
   harvest: Sprout,
   nursery: Leaf,
+  phaseTask: ListChecks,
+  plantingCalendar: Sprout,
 };
 
 const SOURCE_LABEL: Record<CalendarSource, string> = {
@@ -45,6 +47,8 @@ const SOURCE_LABEL: Record<CalendarSource, string> = {
   livestock: 'Livestock',
   harvest: 'Harvest',
   nursery: 'Nursery',
+  phaseTask: 'Plan task',
+  plantingCalendar: 'Planting',
 };
 
 export default function UpcomingEvents({ projectId, onOpenSchedule }: Props) {

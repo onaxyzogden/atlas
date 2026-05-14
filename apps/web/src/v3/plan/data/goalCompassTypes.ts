@@ -143,6 +143,8 @@ export interface SiteProfile {
   waterPosture: Facet<WaterPosture>;
   hazards: Facet<string[]>;
   household: Facet<Household>;
+  lastFrostDate: Facet<string>;
+  firstFrostDate: Facet<string>;
 }
 
 export function emptyFacet<T>(): Facet<T> {
@@ -161,6 +163,8 @@ export function emptySiteProfile(projectId: string): SiteProfile {
     waterPosture: emptyFacet<WaterPosture>(),
     hazards: emptyFacet<string[]>(),
     household: emptyFacet<Household>(),
+    lastFrostDate: emptyFacet<string>(),
+    firstFrostDate: emptyFacet<string>(),
   };
 }
 

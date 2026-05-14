@@ -213,7 +213,8 @@ export default function PaddockTool({ map, projectId }: Props) {
       <span className={css.title}>Paddock</span>
       <span className={css.hint}>
         Outline a paddock — pick primary species, fencing, and stocking
-        density (head per ha).
+        density (head per ha). For welfare audit credit, place a water tank,
+        well, or rain catchment within 100 m of the paddock centroid.
       </span>
       <DimensionPanel allowedShapes={['rect', 'circle']} />
       {liveArea !== null && (

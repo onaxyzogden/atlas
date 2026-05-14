@@ -319,7 +319,7 @@ export function buildPaddockEditSchema(
   pd: Paddock,
   updatePaddock: (id: string, updates: Partial<Paddock>) => void,
 ): Omit<InlineFormPayload, 'anchor'> {
-  const primarySpecies = (pd.species[0] ?? 'sheep') as LivestockSpecies;
+  const primarySpecies = (pd.species?.[0] ?? 'sheep') as LivestockSpecies;
   return {
     title: 'Edit paddock',
     fields: [
@@ -362,9 +362,9 @@ export function buildPaddockEditSchema(
       },
     ],
     initial: {
-      name: pd.name,
+      name: pd.name ?? 'Paddock',
       species: primarySpecies,
-      fencing: pd.fencing,
+      fencing: pd.fencing ?? 'electric',
       pastureQuality: pd.pastureQuality ?? '',
       stockingRecommendation: formatPaddockStockingRecommendation(
         primarySpecies,
