@@ -10,6 +10,11 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useGoalTreeStore } from '../../../../store/goalTreeStore.js';
 import { useSiteProfileStore } from '../../../../store/siteProfileStore.js';
+import { useLivestockStore } from '../../../../store/livestockStore.js';
+import { useUtilityStore } from '../../../../store/utilityStore.js';
+import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
+import { welfareSummaryForProject } from '../../../../features/livestock/welfarePass.js';
 import { runSequencingEngine } from '../../engine/goalCompass/sequencingEngine.js';
 import {
   computeForecast,
@@ -27,12 +32,33 @@ export default function CriteriaForecastTab({ project }: Props) {
   const siteProfile = useSiteProfileStore(
     (s) => s.profilesByProject[project.id] ?? null,
   );
+  const allPaddocks = useLivestockStore((st) => st.paddocks);
+  const allUtilities = useUtilityStore((st) => st.utilities);
+  const allWaterNodes = useWaterSystemsStore((st) => st.waterNodes);
+  const allStructures = useAllStructures();
+
+  const currentValues = useMemo<Record<string, number>>(() => {
+    const paddocks = allPaddocks.filter((p) => p.projectId === project.id);
+    const utilities = allUtilities.filter((u) => u.projectId === project.id);
+    const waterNodes = allWaterNodes.filter((n) => n.projectId === project.id);
+    const structures = allStructures.filter((s2) => s2.projectId === project.id);
+    const { paddockCount, passPct } = welfareSummaryForProject(
+      paddocks,
+      utilities,
+      structures,
+      waterNodes,
+    );
+    return {
+      'livestock-paddocks-active-count': paddockCount,
+      'livestock-welfare-pass-pct': passPct,
+    };
+  }, [allPaddocks, allUtilities, allWaterNodes, allStructures, project.id]);
 
   const forecast = useMemo(() => {
     if (!goalTree || !siteProfile) return null;
     const result = runSequencingEngine(goalTree, siteProfile, project.id);
-    return computeForecast(result, goalTree, siteProfile);
-  }, [goalTree, siteProfile, project.id]);
+    return computeForecast(result, goalTree, siteProfile, currentValues);
+  }, [goalTree, siteProfile, project.id, currentValues]);
 
   return (
     <div className={styles.page}>

@@ -73,24 +73,30 @@ export function computeForecast(
   result: SequencingResult,
   goalTree: GoalTree,
   siteProfile: SiteProfile,
+  currentValues?: Record<string, number>,
 ): ForecastResult {
   const criteria: CriterionForecast[] = goalTree.subGoals.flatMap((sg) =>
     sg.criteria.map((cr) => {
+      const baseline = currentValues?.[cr.id] ?? 0;
       const points: CriterionForecastPoint[] = FORECAST_YEARS.map((year) => {
-        const value = result.selected.reduce(
-          (sum, s) => sum + contributionAtYear(s, cr.id, year),
-          0,
-        );
+        const value =
+          baseline +
+          result.selected.reduce(
+            (sum, s) => sum + contributionAtYear(s, cr.id, year),
+            0,
+          );
         return {
           year,
           value,
           pctOfTarget: cr.target > 0 ? Math.min(200, (value / cr.target) * 100) : 0,
         };
       });
-      const atDeadline = result.selected.reduce(
-        (sum, s) => sum + contributionAtYear(s, cr.id, cr.deadlineYear),
-        0,
-      );
+      const atDeadline =
+        baseline +
+        result.selected.reduce(
+          (sum, s) => sum + contributionAtYear(s, cr.id, cr.deadlineYear),
+          0,
+        );
       return {
         criterion: cr,
         points,
