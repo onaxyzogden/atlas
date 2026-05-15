@@ -232,6 +232,40 @@ export function resolveMembers(
   };
 }
 
+/**
+ * Flatten a resolved `SilvopastureMembers` into the bare entity-id sets,
+ * one bucket per map layer. Pure projection of `resolveMembers` output —
+ * no resolution logic. Used to drive the on-map member-outline
+ * feature-state when a host is selected.
+ */
+export function collectMemberIds(m: SilvopastureMembers): {
+  cropAreaIds: string[];
+  designElementIds: string[];
+  paddockIds: string[];
+  guildIds: string[];
+} {
+  return {
+    cropAreaIds: m.orchardsFromCrops.map((x) => x.entity.id),
+    designElementIds: m.orchardsFromDesign.map((x) => x.entity.id),
+    paddockIds: m.paddocks.map((x) => x.entity.id),
+    guildIds: m.guilds.map((x) => x.entity.id),
+  };
+}
+
+/**
+ * Host options for a re-pin selector: encoded id + display label with a
+ * source tag (`PLAN` for design-element, `CROP` for crop-area) matching
+ * `SilvopastureHostsCard` wording.
+ */
+export function listHostsForSelection(
+  hosts: SilvopastureHost[],
+): { value: string; label: string }[] {
+  return hosts.map((h) => ({
+    value: h.id,
+    label: `${h.name} (${h.source === 'design-element' ? 'PLAN' : 'CROP'})`,
+  }));
+}
+
 function pickPolygonMembers<T>(
   host: SilvopastureHost,
   allHosts: SilvopastureHost[],

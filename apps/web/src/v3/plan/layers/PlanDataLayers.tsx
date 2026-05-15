@@ -25,7 +25,12 @@ import {
   useAllStructures,
   getAllStructures,
   updateStructure,
+  getDesignElementsForProject,
 } from '../../../store/builtEnvironmentSelectors.js';
+import {
+  resolveSilvopastureHosts,
+  listHostsForSelection,
+} from '../../../features/agroforestry/silvopastureHosts.js';
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -67,6 +72,19 @@ import {
   buildFlowConnectorEditSchema,
   buildMonitoringTransectEditSchema,
 } from './inlineEditSchemas.js';
+
+/**
+ * Resolve the silvopasture-host re-pin options for the inline edit
+ * popover. Reads cropStore + design elements at call time so the option
+ * list always reflects the current set of silvopasture polygons.
+ */
+function silvopastureHostOptions(projectId: string) {
+  const cropAreas = useCropStore.getState().cropAreas;
+  const designElements = getDesignElementsForProject(projectId);
+  return listHostsForSelection(
+    resolveSilvopastureHosts(projectId, cropAreas, designElements),
+  );
+}
 
 interface Props {
   map: MaplibreMap;
@@ -1253,7 +1271,14 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           .getState()
           .guilds.find((x) => x.id === id2);
         if (!r2) return;
-        openForm({ ...buildGuildEditSchema(r2, updateGuild), anchor });
+        openForm({
+          ...buildGuildEditSchema(
+            r2,
+            updateGuild,
+            silvopastureHostOptions(projectId),
+          ),
+          anchor,
+        });
       };
       map.on('mousemove', onMove);
       map.on('mouseup', onUp);
@@ -1794,13 +1819,25 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
       if (k === 'crop') {
         const r = useCropStore.getState().cropAreas.find((x) => x.id === id);
-        return r ? buildCropEditSchema(r, updateCropArea) : null;
+        return r
+          ? buildCropEditSchema(
+              r,
+              updateCropArea,
+              silvopastureHostOptions(projectId),
+            )
+          : null;
       }
       if (k === 'paddock') {
         const r = useLivestockStore
           .getState()
           .paddocks.find((x) => x.id === id);
-        return r ? buildPaddockEditSchema(r, updatePaddock) : null;
+        return r
+          ? buildPaddockEditSchema(
+              r,
+              updatePaddock,
+              silvopastureHostOptions(projectId),
+            )
+          : null;
       }
       if (k === 'water_catchment') {
         const r = useWaterSystemsStore

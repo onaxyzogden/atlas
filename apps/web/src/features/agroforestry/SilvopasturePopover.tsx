@@ -2,10 +2,12 @@
  * SilvopasturePopover — bottom-anchored read-only inspector for the
  * currently-selected silvopasture polygon.
  *
- * Subscribes to `usePlanSelectionStore`; renders only when the active
- * selection is a `design-element` whose `kind === 'silvopasture'`. Lists
- * the resolved members (orchards, guilds, paddocks) so the steward can
- * see what they've enrolled.
+ * Subscribes to `usePlanSelectionStore`; renders when the active
+ * selection is a silvopasture host from either source — a
+ * `design-element` whose `kind === 'silvopasture'` or a `crop` area
+ * whose `type === 'silvopasture'`. Lists the resolved members
+ * (orchards, guilds, paddocks) so the steward can see what they've
+ * enrolled.
  *
  * Read-only by design — pinning / unpinning is intentionally deferred
  * to a follow-up. The card on the Plan dashboard already surfaces the
@@ -54,11 +56,19 @@ export default function SilvopasturePopover({ projectId }: Props) {
 
   const view = useMemo(() => {
     if (!selected) return null;
-    if (selected.kind !== 'design-element') return null;
-    const el = designElements.find((e) => e.id === selected.id);
-    if (!el || el.kind !== 'silvopasture') return null;
     const hosts = resolveSilvopastureHosts(projectId, cropAreas, designElements);
-    const hostId = encodeHostId('design-element', el.id);
+    let hostId: string | null = null;
+    if (selected.kind === 'design-element') {
+      const el = designElements.find((e) => e.id === selected.id);
+      if (!el || el.kind !== 'silvopasture') return null;
+      hostId = encodeHostId('design-element', el.id);
+    } else if (selected.kind === 'crop') {
+      const area = cropAreas.find((c) => c.id === selected.id);
+      if (!area || area.type !== 'silvopasture') return null;
+      hostId = encodeHostId('crop-area', area.id);
+    } else {
+      return null;
+    }
     const host = hosts.find((h) => h.id === hostId);
     if (!host) return null;
     const members = resolveMembers(

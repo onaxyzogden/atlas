@@ -17,7 +17,7 @@ import type {
   BuiltEnvironmentState,
 } from '@ogden/shared';
 import { getBuiltEnvironmentKind } from '@ogden/shared';
-import type { InlineFormPayload } from '../draw/inlineFormStore.js';
+import type { InlineFormPayload, FieldSpec } from '../draw/inlineFormStore.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { createFootprintPolygon } from '../../../features/structures/footprints.js';
 import {
@@ -88,6 +88,38 @@ import {
   STORAGE_LABEL,
   SURFACE_LABEL,
 } from '../cards/water-management/waterMath.js';
+
+// ---------- Silvopasture re-pin (shared) ----------
+//
+// Optional host selector appended to the crop / paddock / guild edit
+// schemas so a member can be explicitly re-pinned to a silvopasture
+// host (or set back to `Auto (spatial)` = unpinned). Options come from
+// `listHostsForSelection(resolveSilvopastureHosts(...))` at the call
+// site (the builders stay pure / store-free). When the host list is
+// empty the field is omitted entirely.
+
+export type SilvopastureHostOption = { value: string; label: string };
+
+function silvopastureField(hostOptions: SilvopastureHostOption[]): FieldSpec[] {
+  if (hostOptions.length === 0) return [];
+  return [
+    {
+      key: 'silvopastureId',
+      label: 'Silvopasture host',
+      kind: 'select',
+      options: [{ value: '', label: 'Auto (spatial)' }, ...hostOptions],
+    },
+  ];
+}
+
+function silvopastureSavePatch(
+  hostOptions: SilvopastureHostOption[],
+  values: Record<string, unknown>,
+): { silvopastureId?: string } {
+  if (hostOptions.length === 0) return {};
+  const raw = String(values.silvopastureId ?? '').trim();
+  return { silvopastureId: raw || undefined };
+}
 
 // ---------- Zone ----------
 
@@ -195,6 +227,7 @@ const CROP_IRRIGATION_OPTIONS = [
 export function buildCropEditSchema(
   c: CropArea,
   updateCropArea: (id: string, updates: Partial<CropArea>) => void,
+  hostOptions: SilvopastureHostOption[] = [],
 ): Omit<InlineFormPayload, 'anchor'> {
   return {
     title: 'Edit crop area',
@@ -221,12 +254,14 @@ export function buildCropEditSchema(
         required: true,
         options: CROP_IRRIGATION_OPTIONS,
       },
+      ...silvopastureField(hostOptions),
     ],
     initial: {
       name: c.name,
       type: c.type,
       waterDemand: c.waterDemand,
       irrigationType: c.irrigationType,
+      silvopastureId: c.silvopastureId ?? '',
     },
     onSave: (values) => {
       const t = values.type as CropAreaType;
@@ -241,6 +276,7 @@ export function buildCropEditSchema(
           | 'flood'
           | 'rain_fed'
           | 'none',
+        ...silvopastureSavePatch(hostOptions, values),
       });
     },
     onCancel: () => {
@@ -318,6 +354,7 @@ function formatPaddockStockingRecommendation(
 export function buildPaddockEditSchema(
   pd: Paddock,
   updatePaddock: (id: string, updates: Partial<Paddock>) => void,
+  hostOptions: SilvopastureHostOption[] = [],
 ): Omit<InlineFormPayload, 'anchor'> {
   const primarySpecies = (pd.species?.[0] ?? 'sheep') as LivestockSpecies;
   return {
@@ -360,6 +397,7 @@ export function buildPaddockEditSchema(
         kind: 'text',
         placeholder: 'e.g. 12',
       },
+      ...silvopastureField(hostOptions),
     ],
     initial: {
       name: pd.name ?? 'Paddock',
@@ -373,6 +411,7 @@ export function buildPaddockEditSchema(
       ),
       stockingDensity:
         pd.stockingDensity == null ? '' : String(pd.stockingDensity),
+      silvopastureId: pd.silvopastureId ?? '',
     },
     onValuesChange: (next, _prev, changed) => {
       if (changed.key !== 'species' && changed.key !== 'pastureQuality') {
@@ -409,6 +448,7 @@ export function buildPaddockEditSchema(
         fencing: values.fencing as FenceType,
         stockingDensity: density,
         pastureQuality: pq,
+        ...silvopastureSavePatch(hostOptions, values),
       });
     },
     onCancel: () => {
@@ -549,6 +589,7 @@ const GUILD_ANCHOR_OPTIONS = PLANT_DATABASE
 export function buildGuildEditSchema(
   g: Guild,
   updateGuild: (id: string, updates: Partial<Guild>) => void,
+  hostOptions: SilvopastureHostOption[] = [],
 ): Omit<InlineFormPayload, 'anchor'> {
   // Per-popover scratchpad — same idempotent guard as GuildTool. Tracks the
   // most recently autofilled values so the reactive hook only overwrites
@@ -578,12 +619,14 @@ export function buildGuildEditSchema(
         kind: 'text',
         placeholder: 'e.g. north hedgerow',
       },
+      ...silvopastureField(hostOptions),
     ],
     initial: {
       preset: '',
       name: g.name,
       anchorSpeciesId: g.anchorSpeciesId,
       notes: g.notes ?? '',
+      silvopastureId: g.silvopastureId ?? '',
     },
     onValuesChange: (_next, prev, changed) => {
       if (changed.key !== 'preset') return;
@@ -612,6 +655,7 @@ export function buildGuildEditSchema(
         name: String(values.name ?? g.name).trim() || g.name,
         anchorSpeciesId: String(values.anchorSpeciesId ?? g.anchorSpeciesId),
         notes: typedNotes || undefined,
+        ...silvopastureSavePatch(hostOptions, values),
         ...(preset
           ? {
               members: preset.members,

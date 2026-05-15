@@ -41,6 +41,10 @@ import {
 import * as turf from '@turf/turf';
 import { useInlineFormStore } from './draw/inlineFormStore.js';
 import { buildPaddockEditSchema } from './layers/inlineEditSchemas.js';
+import {
+  resolveSilvopastureHosts,
+  listHostsForSelection,
+} from '../../features/agroforestry/silvopastureHosts.js';
 import css from '../observe/components/SelectionFloater.module.css';
 
 const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
@@ -206,8 +210,15 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
     const centroid = turf.centroid(turf.feature(pd.geometry));
     const [lng, lat] = centroid.geometry.coordinates as [number, number];
     const updatePaddock = useLivestockStore.getState().updatePaddock;
+    const hostOptions = listHostsForSelection(
+      resolveSilvopastureHosts(
+        pd.projectId,
+        useCropStore.getState().cropAreas,
+        getDesignElementsForProject(pd.projectId),
+      ),
+    );
     useInlineFormStore.getState().open({
-      ...buildPaddockEditSchema(pd, updatePaddock),
+      ...buildPaddockEditSchema(pd, updatePaddock, hostOptions),
       anchor: [lng, lat],
     });
   };
