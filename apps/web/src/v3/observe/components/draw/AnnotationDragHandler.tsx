@@ -79,9 +79,14 @@ function isTouchEvent(
 
 export default function AnnotationDragHandler({ map }: Props) {
   const selected = useObserveSelectionStore((s) => s.selected);
+  const moveMode = useObserveSelectionStore((s) => s.moveMode);
 
   useEffect(() => {
     if (!map) return;
+
+    // Drag is opt-in: the steward must arm Move mode from the
+    // SelectionFloater. Selection alone never makes a point draggable.
+    if (!moveMode) return;
 
     // Only engage when exactly one point annotation is selected. Anything
     // else (zero, multi, or non-point single) → no listeners attached.
@@ -273,7 +278,7 @@ export default function AnnotationDragHandler({ map }: Props) {
       }
       setPreview(null);
     };
-  }, [map, selected]);
+  }, [map, selected, moveMode]);
 
   // Unmount-time cleanup of the preview source/layer (not just on selection
   // change — we want the preview gone for good when leaving the map).

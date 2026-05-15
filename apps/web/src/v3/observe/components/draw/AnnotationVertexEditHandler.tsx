@@ -41,10 +41,12 @@ interface Props {
 export default function AnnotationVertexEditHandler({ map }: Props) {
   const selected = useObserveSelectionStore((s) => s.selected);
   const clear = useObserveSelectionStore((s) => s.clear);
+  const moveMode = useObserveSelectionStore((s) => s.moveMode);
 
-  // Single-selection only; first-and-only entry becomes the vertex-edit target.
+  // Vertex edit is opt-in: only when Move mode is armed AND exactly one
+  // feature is selected. Selection alone never mounts MapboxDraw.
   const target: VertexEditTarget | null =
-    selected.length === 1 && selected[0]
+    moveMode && selected.length === 1 && selected[0]
       ? { kind: selected[0].kind, id: selected[0].id }
       : null;
 
