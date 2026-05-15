@@ -185,7 +185,7 @@ export default function InlineFeaturePopover({ map }: Props) {
               onChange={(e) => setVal(f.key, 'select', e.target.value)}
             >
               <option value="">— pick —</option>
-              {(f.options ?? []).map((opt) => (
+              {(f.optionsFor ? f.optionsFor(values) : (f.options ?? [])).map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>

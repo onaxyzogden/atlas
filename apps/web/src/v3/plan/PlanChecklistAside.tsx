@@ -37,12 +37,11 @@ const BE_CATEGORY_TO_PLAN_MODULE: Record<
   building: 'structures-subsystems',
   agricultural: 'structures-subsystems',
   utility: 'structures-subsystems',
-  infrastructure: 'zone-circulation',
+  infrastructure: 'structures-subsystems',
   machinery: 'machinery',
   amenity: 'structures-subsystems',
   vegetation: 'plant-systems',
   earthworks: 'water-management',
-  'zone-marker': 'zone-circulation',
 };
 import PlanProjectTypeCard from './PlanProjectTypeCard.js';
 import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';

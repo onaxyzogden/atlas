@@ -119,7 +119,6 @@ export const BE_CATEGORY_LABEL: Readonly<
   amenity: 'Amenities',
   vegetation: 'Vegetation',
   earthworks: 'Earthworks',
-  'zone-marker': 'Zone markers',
 };
 
 /** Category sub-grouping derived from the registry. Categories appear in
@@ -224,16 +223,6 @@ export const BE_CATEGORY_GUIDANCE: Readonly<
     ],
     pitfall:
       'Don’t cut earthworks before water is mapped — a misplaced berm can flood a downhill neighbour.',
-  },
-  'zone-marker': {
-    why: 'Permaculture Zones 0–5 are a frequency-of-visit ladder (Mollison ch.3), not land-use categories. Marking zone boundaries on the plan makes maintenance frequency visible — daily for Z1, weekly for Z2, etc. — so element placement can be audited against it.',
-    how: [
-      'Drop a Zone-0 marker at the dwelling — the seat of daily activity.',
-      'Place Zone-1 markers at the boundary of the daily-visit perimeter.',
-      'Continue outward through Zones 2–5, snapping to natural breaks in use frequency.',
-    ],
-    pitfall:
-      'Don’t treat Zones as land-use — Zone 3 isn’t "pasture," it’s "visited weekly." Tag by frequency, not function.',
   },
 };
 

@@ -45,7 +45,6 @@ export type DesignCategory =
   | 'amenity'
   | 'vegetation'
   | 'earthworks'
-  | 'zone-marker'
   | 'custom';
 
 export interface DesignElementSpec {
@@ -107,12 +106,6 @@ const COLORS = {
   earthworksBerm: '#8c6a4c',
   earthworksBed: '#735238',
   earthworksTerrace: '#806142',
-  zoneMarker0: '#d8d8d8',
-  zoneMarker1: '#f3c766',
-  zoneMarker2: '#a6d172',
-  zoneMarker3: '#73b366',
-  zoneMarker4: '#598c4c',
-  zoneMarker5: '#406640',
 } as const;
 
 export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
@@ -184,18 +177,6 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
       { kind: 'berm',       category: 'earthworks', label: 'Berm',       icon: Mountain, geometry: 'point', drawMode: 'draw_point', phase: 'landshape', color: COLORS.earthworksBerm,    earthworkDepthCm: 50 },
       { kind: 'raised-bed', category: 'earthworks', label: 'Raised bed', icon: Square,   geometry: 'point', drawMode: 'draw_point', phase: 'soil',      color: COLORS.earthworksBed },
       { kind: 'terrace',    category: 'earthworks', label: 'Terrace',    icon: Mountain, geometry: 'point', drawMode: 'draw_point', phase: 'landshape', color: COLORS.earthworksTerrace, earthworkDepthCm: 100 },
-    ],
-  },
-  {
-    key: 'zone-marker',
-    label: 'Zone Markers',
-    elements: [
-      { kind: 'zone-0', category: 'zone-marker', label: 'Zone 0', icon: Home,          geometry: 'point', drawMode: 'draw_point', phase: 'subdivision', color: COLORS.zoneMarker0 },
-      { kind: 'zone-1', category: 'zone-marker', label: 'Zone 1', icon: Sprout,        geometry: 'point', drawMode: 'draw_point', phase: 'subdivision', color: COLORS.zoneMarker1 },
-      { kind: 'zone-2', category: 'zone-marker', label: 'Zone 2', icon: TreeDeciduous, geometry: 'point', drawMode: 'draw_point', phase: 'subdivision', color: COLORS.zoneMarker2 },
-      { kind: 'zone-3', category: 'zone-marker', label: 'Zone 3', icon: Wheat,         geometry: 'point', drawMode: 'draw_point', phase: 'subdivision', color: COLORS.zoneMarker3 },
-      { kind: 'zone-4', category: 'zone-marker', label: 'Zone 4', icon: Trees,         geometry: 'point', drawMode: 'draw_point', phase: 'subdivision', color: COLORS.zoneMarker4 },
-      { kind: 'zone-5', category: 'zone-marker', label: 'Zone 5', icon: Leaf,          geometry: 'point', drawMode: 'draw_point', phase: 'subdivision', color: COLORS.zoneMarker5 },
     ],
   },
   {

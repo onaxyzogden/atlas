@@ -99,12 +99,11 @@ const BE_CATEGORY_TO_PLAN_MODULE: Record<
   building: 'structures-subsystems',
   agricultural: 'structures-subsystems',
   utility: 'structures-subsystems',
-  infrastructure: 'zone-circulation',
+  infrastructure: 'structures-subsystems',
   machinery: 'machinery',
   amenity: 'structures-subsystems',
   vegetation: 'plant-systems',
   earthworks: 'water-management',
-  'zone-marker': 'zone-circulation',
 };
 
 /** Modules with map-first draw tools. Others fall back to "Open module". */

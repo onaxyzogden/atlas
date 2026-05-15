@@ -284,8 +284,17 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     };
 
     // Zones (polygon) — Yeomans rank 4 (Access; activity proximity).
-    for (const z of zones) {
-      if (z.projectId !== projectId) continue;
+    // Stack by permaculture Z-level: Z0 on top, Z5 at the bottom, regardless
+    // of draw order. MapLibre renders later GeoJSON features on top, so we
+    // sort descending. Undefined Z defaults to 2 (typical "main activity").
+    const Z_DEFAULT = 2;
+    const orderedZones = [...zones]
+      .filter((z) => z.projectId === projectId)
+      .sort(
+        (a, b) =>
+          (b.permacultureZone ?? Z_DEFAULT) - (a.permacultureZone ?? Z_DEFAULT),
+      );
+    for (const z of orderedZones) {
       const props: Record<string, unknown> = {
         id: z.id,
         kind: 'zone',

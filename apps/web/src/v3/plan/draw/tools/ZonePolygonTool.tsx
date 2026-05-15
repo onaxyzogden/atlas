@@ -25,10 +25,6 @@ interface Props {
   projectId: string;
 }
 
-const CATEGORY_OPTIONS: { value: ZoneCategory; label: string }[] = (
-  Object.keys(ZONE_CATEGORY_CONFIG) as ZoneCategory[]
-).map((k) => ({ value: k, label: ZONE_CATEGORY_CONFIG[k].label }));
-
 const Z_OPTIONS = [
   { value: '0', label: 'Z0 — Home centre' },
   { value: '1', label: 'Z1 — Daily touch' },
@@ -37,6 +33,27 @@ const Z_OPTIONS = [
   { value: '4', label: 'Z4 — Forage / managed' },
   { value: '5', label: 'Z5 — Wilderness' },
 ];
+
+/**
+ * Which zone categories make permaculture sense at each Z-level.
+ * Z0 is the home centre (habitation, sacred, learning); intensity tapers
+ * outward to Z5 wilderness (conservation, buffer, water retention).
+ * `infrastructure` / `access` are admitted wherever they realistically appear.
+ */
+const Z_TO_CATEGORIES: Record<string, ZoneCategory[]> = {
+  '0': ['habitation', 'spiritual', 'education', 'infrastructure'],
+  '1': ['habitation', 'food_production', 'spiritual', 'education', 'infrastructure', 'access'],
+  '2': ['food_production', 'livestock', 'education', 'retreat', 'water_retention', 'infrastructure', 'access'],
+  '3': ['food_production', 'livestock', 'water_retention', 'access', 'buffer'],
+  '4': ['livestock', 'commons', 'conservation', 'water_retention', 'buffer', 'future_expansion', 'access'],
+  '5': ['conservation', 'commons', 'water_retention', 'buffer', 'future_expansion'],
+};
+
+const optionsForZ = (z: string | number | undefined): { value: ZoneCategory; label: string }[] => {
+  const key = String(z ?? '2');
+  const list = Z_TO_CATEGORIES[key] ?? (Object.keys(ZONE_CATEGORY_CONFIG) as ZoneCategory[]);
+  return list.map((k) => ({ value: k, label: ZONE_CATEGORY_CONFIG[k].label }));
+};
 
 export default function ZonePolygonTool({ map, projectId }: Props) {
   const addZone = useZoneStore((s) => s.addZone);
@@ -79,18 +96,18 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
         fields: [
           { key: 'name', label: 'Name', kind: 'text', required: true },
           {
-            key: 'category',
-            label: 'Category',
-            kind: 'select',
-            required: true,
-            options: CATEGORY_OPTIONS,
-          },
-          {
             key: 'permacultureZone',
             label: 'Z-level',
             kind: 'select',
             required: true,
             options: Z_OPTIONS,
+          },
+          {
+            key: 'category',
+            label: 'Category',
+            kind: 'select',
+            required: true,
+            optionsFor: (vals) => optionsForZ(vals.permacultureZone),
           },
           phaseField,
           enterpriseField,
@@ -101,6 +118,12 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
           permacultureZone: '2',
           phase: phaseDefault,
           enterprise: enterpriseDefault,
+        },
+        onValuesChange: (next, prev, changed) => {
+          if (changed.key !== 'permacultureZone') return null;
+          const allowed = optionsForZ(next.permacultureZone).map((o) => o.value);
+          if (allowed.includes(String(next.category) as ZoneCategory)) return null;
+          return { category: allowed[0] ?? prev.category };
         },
         onSave: (values) => {
           const cat = values.category as ZoneCategory;

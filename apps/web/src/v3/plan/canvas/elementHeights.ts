@@ -31,7 +31,6 @@ export const GENERIC_BOX_GLB_URL = '/models/structures/_generic_box.glb';
 const MODEL = (kind: string) => `/models/structures/${kind}.glb`;
 const VEG_MODEL = (kind: string) => `/models/vegetation/${kind}.glb`;
 const EARTH_MODEL = (kind: string) => `/models/earthworks/${kind}.glb`;
-const ZONE_MODEL = (kind: string) => `/models/zone-markers/${kind}.glb`;
 
 export interface ElementHeightSpec {
   /** Renderer to use for this kind. */
@@ -120,14 +119,6 @@ export const ELEMENT_HEIGHTS: Record<string, ElementHeightSpec> = {
   berm:             { mode: 'glb', glbUrl: EARTH_MODEL('berm'),       heightM: 1.5, footprintM: 8,  category: 'earthworks' },
   'raised-bed':     { mode: 'glb', glbUrl: EARTH_MODEL('raised-bed'), heightM: 0.6, footprintM: 2,  category: 'earthworks' },
   terrace:          { mode: 'glb', glbUrl: EARTH_MODEL('terrace'),    heightM: 1.2, footprintM: 10, category: 'earthworks' },
-
-  // ── Zone markers (point) — Phase 4 of ADR 2026-05-11. ─────────────────
-  'zone-0':         { mode: 'glb', glbUrl: ZONE_MODEL('zone-0'),      heightM: 2.5, footprintM: 1.5, category: 'zone-marker' },
-  'zone-1':         { mode: 'glb', glbUrl: ZONE_MODEL('zone-1'),      heightM: 2.5, footprintM: 1.5, category: 'zone-marker' },
-  'zone-2':         { mode: 'glb', glbUrl: ZONE_MODEL('zone-2'),      heightM: 2.5, footprintM: 1.5, category: 'zone-marker' },
-  'zone-3':         { mode: 'glb', glbUrl: ZONE_MODEL('zone-3'),      heightM: 2.5, footprintM: 1.5, category: 'zone-marker' },
-  'zone-4':         { mode: 'glb', glbUrl: ZONE_MODEL('zone-4'),      heightM: 2.5, footprintM: 1.5, category: 'zone-marker' },
-  'zone-5':         { mode: 'glb', glbUrl: ZONE_MODEL('zone-5'),      heightM: 2.5, footprintM: 1.5, category: 'zone-marker' },
 
   // ── Custom GLB upload (Phase 6 of ADR 2026-05-11) ─────────────────────
   // Spec is a placeholder — the scenegraph layer overrides `glbUrl` with the

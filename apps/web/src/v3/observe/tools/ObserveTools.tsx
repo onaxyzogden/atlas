@@ -102,8 +102,8 @@ const BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
  * 2026-05-14 — BE flatten. Each `BuiltEnvironmentCategory` surfaces as its
  * own top-level rail section; clicking it activates the routed Observe
  * module below. Observe has fewer modules than Plan, so most categories
- * fall back to `built-environment`; vegetation / earthworks / zone-markers
- * route to ecology / topography / sectors-zones respectively.
+ * fall back to `built-environment`; vegetation / earthworks route to
+ * ecology / topography respectively.
  */
 const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
   BuiltEnvironmentCategory,
@@ -117,7 +117,6 @@ const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
   amenity: 'built-environment',
   vegetation: 'earth-water-ecology',
   earthworks: 'topography',
-  'zone-marker': 'sectors-zones',
 };
 
 const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {

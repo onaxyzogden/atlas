@@ -40,10 +40,8 @@ export type BuiltEnvironmentCategory =
                     // wiring, layer rendering, and inline-edit schemas; forking a
                     // sibling registry would 3-5x the per-kind code without adding
                     // capability. The renderer pipeline doesn't distinguish.
-  | 'earthworks'    // berm, raised-bed, terrace — Phase 4 of ADR 2026-05-11.
+  | 'earthworks';   // berm, raised-bed, terrace — Phase 4 of ADR 2026-05-11.
                     // Shaped earth; low-profile GLBs read as ground-up forms.
-  | 'zone-marker';  // zone-0 .. zone-5 — Phase 4 of ADR 2026-05-11. Symbolic
-                    // pillars marking Permaculture Zone boundaries on the plan.
 
 export type BuiltEnvironmentGeometryType = 'point' | 'line' | 'polygon';
 export type BuiltEnvironmentRenderMode = 'glb' | 'extrusion' | 'flat';
@@ -631,92 +629,6 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       defaultFootprintM: 10,
       glbUrl: '/models/earthworks/terrace.glb',
       defaultPhase: 'landshape',
-    },
-
-    // ── Zone markers (Permaculture Zones 0–5) ────────────────────────────
-    'zone-0': {
-      kind: 'zone-0',
-      label: 'Zone 0',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Home',
-      color: '#d8d8d8',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-0.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-1': {
-      kind: 'zone-1',
-      label: 'Zone 1',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Sprout',
-      color: '#f3c766',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-1.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-2': {
-      kind: 'zone-2',
-      label: 'Zone 2',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'TreeDeciduous',
-      color: '#a6d172',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-2.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-3': {
-      kind: 'zone-3',
-      label: 'Zone 3',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Wheat',
-      color: '#73b366',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-3.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-4': {
-      kind: 'zone-4',
-      label: 'Zone 4',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Trees',
-      color: '#598c4c',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-4.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-5': {
-      kind: 'zone-5',
-      label: 'Zone 5',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Leaf',
-      color: '#406640',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-5.glb',
-      defaultPhase: 'subdivision',
     },
 
     // ── Custom GLB upload — Phase 6 of ADR 2026-05-11 ──────────────────────

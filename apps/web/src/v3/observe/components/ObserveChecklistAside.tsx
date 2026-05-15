@@ -50,7 +50,6 @@ const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
   amenity: 'built-environment',
   vegetation: 'earth-water-ecology',
   earthworks: 'topography',
-  'zone-marker': 'sectors-zones',
 };
 
 /**
