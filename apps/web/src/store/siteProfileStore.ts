@@ -133,8 +133,41 @@ export const useSiteProfileStore = create<SiteProfileState>()(
     }),
     {
       name: 'ogden-site-profiles',
-      version: 1,
+      version: 2,
       partialize: (state) => ({ profilesByProject: state.profilesByProject }),
+      migrate: (persisted: unknown, fromVersion: number) => {
+        if (fromVersion >= 2) return persisted as { profilesByProject: Record<string, SiteProfile> };
+        const state = (persisted as { profilesByProject?: Record<string, SiteProfile> }) ?? {};
+        const profilesByProject = state.profilesByProject ?? {};
+        const FACET_KEYS: FacetKey[] = [
+          'acres',
+          'climateZone',
+          'primaryLandform',
+          'avgSlopePct',
+          'currentLandCover',
+          'soilCompaction',
+          'waterPosture',
+          'hazards',
+          'household',
+          'lastFrostDate',
+          'firstFrostDate',
+        ];
+        const migrated: Record<string, SiteProfile> = {};
+        for (const [pid, profile] of Object.entries(profilesByProject)) {
+          const next = { ...emptySiteProfile(pid), ...profile, projectId: pid } as SiteProfile;
+          for (const k of FACET_KEYS) {
+            const cur = (next as unknown as Record<string, Facet<unknown> | undefined>)[k];
+            if (!cur || typeof cur !== 'object' || !('value' in cur)) {
+              (next as unknown as Record<string, Facet<unknown>>)[k] = {
+                value: null,
+                provenance: null,
+              };
+            }
+          }
+          migrated[pid] = next;
+        }
+        return { profilesByProject: migrated };
+      },
     },
   ),
 );
