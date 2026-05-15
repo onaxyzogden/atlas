@@ -31,6 +31,7 @@ import {
   Shield,
   ShieldAlert,
   MousePointer,
+  Paintbrush,
   Skull,
   Snowflake,
   Sprout,
@@ -141,6 +142,7 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'ecology-zone',    label: 'Ecology zone',        Icon: Sprout,   toolId: 'observe.earth-water-ecology.ecology-zone' },
     { id: 'pasture',         label: 'Pasture / paddock',   Icon: Fence,    toolId: 'observe.earth-water-ecology.pasture' },
     { id: 'conventional-crop', label: 'Conventional crop', Icon: Wheat,    toolId: 'observe.earth-water-ecology.conventional-crop' },
+    { id: 'ground-cover',    label: 'Ground cover',        Icon: Paintbrush, toolId: 'observe.earth-water-ecology.ground-cover' },
     // 2026-05-14 — Berm and Raised bed relocated from the Earthworks BE
     // category (dropped). Use BE toolIds so the existing BE draw pipeline
     // still handles persistence.

@@ -19,6 +19,7 @@ import { scheduleTasksToCalendar } from '../../engine/goalCompass/scheduleTasksT
 import { computeImpactPreview } from '../../engine/goalCompass/impactPreview.js';
 import type { ImpactPreview } from '../../engine/goalCompass/impactPreview.js';
 import { INTERVENTION_CATALOG } from '../../data/interventionCatalog.js';
+import GenerateSiteDesignBar from './GenerateSiteDesignBar.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -166,6 +167,8 @@ export default function GeneratedPlanTab({ project }: Props) {
           ) : null}
         </div>
       </section>
+
+      <GenerateSiteDesignBar project={project} />
 
       {generatedPhases.length === 0 ? (
         <div className={styles.empty}>
