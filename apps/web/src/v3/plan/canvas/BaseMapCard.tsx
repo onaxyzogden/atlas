@@ -45,9 +45,11 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
 // Per-stage overlay scoping: hide rows whose underlying layer isn't mounted on
 // that stage, so the legend never offers checkboxes that no-op. The "draw-on-
 // any-stage" toggles (sectors / wind / hazards / views / zones / water /
-// topography / builtEnvironment / observeAnnotations) gate steward-placed
-// annotations rendered by ObserveAnnotationLayers, which is mounted on
-// Observe + Plan + Act — those rows stay everywhere. Only the Plan-stage
+// topography / builtEnvironment) each independently gate their own
+// steward-placed annotation group in ObserveAnnotationLayers (they are NOT
+// ANDed with the `observeAnnotations` master — that master governs only the
+// untoggled steward-annotation specs such as points/notes). All are mounted
+// on Observe + Plan + Act — those rows stay everywhere. Only the Plan-stage
 // computed overlays (PlanSunPathOverlay, PlanZoneRingsOverlay,
 // PlanScheduledMovesOverlay) are stage-bound; hide them on Observe + Act.
 type Stage = 'observe' | 'plan' | 'act';
