@@ -40,36 +40,21 @@ export interface EcologyObservation {
   observedAt: string;
 }
 
-/**
- * OBSERVE Module 4 — distinct ecological patches (mature forest, disturbed
- * pasture, wetland edge, etc.) outlined on the map. The `dominantStage`
- * succession label is per-zone (vs. `successionStageByProject` which is a
- * site-wide rollup).
- */
-export interface EcologyZone {
-  id: string;
-  projectId: string;
-  geometry: GeoJSON.Polygon;
-  dominantStage: SuccessionStage;
-  label?: string;
-  notes?: string;
-  createdAt: string;
-}
+// NOTE: distinct vegetation patches (formerly `EcologyZone`) moved to
+// `vegetationStore` as `VegetationPatch` — one object now carries both
+// successional stage and structural ground cover (plan
+// what-type-of-zones-sleepy-comet.md). Legacy persisted `ecologyZones`
+// are absorbed there on first load.
 
 interface EcologyState {
   ecology: EcologyObservation[];
   /** Optional per-project succession-stage label; one entry per project. */
   successionStageByProject: Record<string, SuccessionStage>;
-  ecologyZones: EcologyZone[];
 
   addObservation: (o: EcologyObservation) => void;
   updateObservation: (id: string, patch: Partial<EcologyObservation>) => void;
   removeObservation: (id: string) => void;
   setSuccessionStage: (projectId: string, stage: SuccessionStage | undefined) => void;
-
-  addEcologyZone: (z: EcologyZone) => void;
-  updateEcologyZone: (id: string, patch: Partial<EcologyZone>) => void;
-  removeEcologyZone: (id: string) => void;
 }
 
 export const useEcologyStore = create<EcologyState>()(
@@ -77,7 +62,6 @@ export const useEcologyStore = create<EcologyState>()(
     temporal((set) => ({
       ecology: [],
       successionStageByProject: {},
-      ecologyZones: [],
 
       addObservation: (o) => set((s) => ({ ecology: [...s.ecology, o] })),
       updateObservation: (id, patch) =>
@@ -90,21 +74,16 @@ export const useEcologyStore = create<EcologyState>()(
           else next[projectId] = stage;
           return { successionStageByProject: next };
         }),
-
-      addEcologyZone: (z) => set((s) => ({ ecologyZones: [...s.ecologyZones, z] })),
-      updateEcologyZone: (id, patch) =>
-        set((s) => ({
-          ecologyZones: s.ecologyZones.map((z) => (z.id === id ? { ...z, ...patch } : z)),
-        })),
-      removeEcologyZone: (id) =>
-        set((s) => ({ ecologyZones: s.ecologyZones.filter((z) => z.id !== id) })),
     }), { limit: 200 }),
     {
       name: 'ogden-ecology',
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
-        const p = (persisted ?? {}) as Partial<EcologyState>;
-        return { ...p, ecologyZones: p.ecologyZones ?? [] } as EcologyState;
+        // v3: `ecologyZones` removed (absorbed by vegetationStore on
+        // first load). Drop the field if an old blob still carries it.
+        const p = (persisted ?? {}) as Record<string, unknown>;
+        delete p.ecologyZones;
+        return p as unknown as EcologyState;
       },
     },
   ),

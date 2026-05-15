@@ -15,7 +15,7 @@
  *   - contourLine         → useTopographyStore.removeContour
  *   - drainageLine        → useTopographyStore.removeDrainageLine
  *   - watercourse         → useWaterSystemsStore.removeWatercourse
- *   - ecologyZone         → useEcologyStore.removeEcologyZone
+ *   - vegetation          → useVegetationStore.removePatch
  *   - soilSample          → useSoilSampleStore.deleteSample
  *   - neighbourPin        → useHumanContextStore.removeNeighbour
  *
@@ -31,7 +31,7 @@ import { useSwotStore } from '../../../../../store/swotStore.js';
 import { useExternalForcesStore } from '../../../../../store/externalForcesStore.js';
 import { useTopographyStore } from '../../../../../store/topographyStore.js';
 import { useWaterSystemsStore } from '../../../../../store/waterSystemsStore.js';
-import { useEcologyStore } from '../../../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../../../store/vegetationStore.js';
 import { useSoilSampleStore } from '../../../../../store/soilSampleStore.js';
 import { useHumanContextStore } from '../../../../../store/humanContextStore.js';
 
@@ -110,10 +110,10 @@ describe('FIELD_REMOVERS — Cancel discard contract', () => {
     expect(useWaterSystemsStore.getState().watercourses.some((w) => w.id === 'wc-1')).toBe(false);
   });
 
-  it('ecologyZone → removes from ecologyStore.ecologyZones', () => {
-    inject((p) => useEcologyStore.setState(p as never), 'ecologyZones', 'ec-1');
-    FIELD_REMOVERS.ecologyZone('ec-1');
-    expect(useEcologyStore.getState().ecologyZones.some((e) => e.id === 'ec-1')).toBe(false);
+  it('vegetation → removes from vegetationStore.patches', () => {
+    inject((p) => useVegetationStore.setState(p as never), 'patches', 'ec-1');
+    FIELD_REMOVERS.vegetation('ec-1');
+    expect(useVegetationStore.getState().patches.some((e) => e.id === 'ec-1')).toBe(false);
   });
 
   it('soilSample → uses deleteSample (not remove)', () => {

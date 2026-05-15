@@ -16,6 +16,7 @@ import { useParams } from '@tanstack/react-router';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
@@ -61,7 +62,7 @@ export default function EarthWaterEcologyDashboard() {
   const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
 
   const allObservations = useEcologyStore((s) => s.ecology);
-  const allZones = useEcologyStore((s) => s.ecologyZones);
+  const allZones = useVegetationStore((s) => s.patches);
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
   const allStorage = useWaterSystemsStore((s) => s.storageInfra);
   const allWatercourses = useWaterSystemsStore((s) => s.watercourses);
@@ -155,7 +156,8 @@ export default function EarthWaterEcologyDashboard() {
               })),
               zones: zones.map((z) => ({
                 id: z.id,
-                dominantStage: z.dominantStage,
+                dominantStage: z.successionStage,
+                groundCover: z.groundCover,
                 ...pickTruthy(z, ['label', 'notes']),
                 createdAt: z.createdAt,
               })),
@@ -398,7 +400,7 @@ export default function EarthWaterEcologyDashboard() {
         <AnnotationListCard
           title=""
           projectId={projectId ?? null}
-          kinds={['soilSample', 'watercourse', 'ecologyZone', 'pasture', 'conventionalCrop']}
+          kinds={['soilSample', 'watercourse', 'vegetation', 'pasture', 'conventionalCrop']}
           emptyHint="No soil samples, watercourses, ecology zones, pastures, or conventional crop fields recorded yet — drop one with the tools panel."
         />
       </section>

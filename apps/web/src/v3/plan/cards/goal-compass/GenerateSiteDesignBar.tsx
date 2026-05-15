@@ -13,6 +13,8 @@ import type { LocalProject } from '../../../../store/projectStore.js';
 import { useGoalTreeStore } from '../../../../store/goalTreeStore.js';
 import { useSiteProfileStore } from '../../../../store/siteProfileStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
+import { useVegetationStore } from '../../../../store/vegetationStore.js';
+import { resolveZoneVegetation } from '../../engine/vegetationResolver.js';
 import { usePhaseStore } from '../../../../store/phaseStore.js';
 import { useGeneratorDraftStore } from '../../../../store/generatorDraftStore.js';
 import { runAutoDesign } from '../../engine/autoDesign/runAutoDesign.js';
@@ -33,6 +35,7 @@ export default function GenerateSiteDesignBar({ project }: Props) {
     (s) => s.profilesByProject[project.id] ?? null,
   );
   const zones = useZoneStore((s) => s.zones);
+  const vegetationPatches = useVegetationStore((s) => s.patches);
   const replaceGoalCompassRows = usePhaseStore((s) => s.replaceGoalCompassRows);
   const discard = useGeneratorDraftStore((s) => s.discard);
 
@@ -46,14 +49,20 @@ export default function GenerateSiteDesignBar({ project }: Props) {
   const generate = () => {
     if (!goalTree || !siteProfile) return;
     const generationId = `gen-${Date.now()}`;
-    const allocatorZones: AllocatorZone[] = projectZones.map((z) => ({
-      id: z.id,
-      category: z.category,
-      successionStage: z.successionStage ?? null,
-      groundCover: z.groundCover ?? null,
-      geometry: z.geometry,
-      areaM2: z.areaM2,
-    }));
+    const projectPatches = vegetationPatches.filter(
+      (p) => p.projectId === project.id,
+    );
+    const allocatorZones: AllocatorZone[] = projectZones.map((z) => {
+      const veg = resolveZoneVegetation(z, projectPatches);
+      return {
+        id: z.id,
+        category: z.category,
+        successionStage: veg.successionStage,
+        groundCover: veg.groundCover,
+        geometry: z.geometry,
+        areaM2: z.areaM2,
+      };
+    });
 
     const result = runAutoDesign({
       projectId: project.id,

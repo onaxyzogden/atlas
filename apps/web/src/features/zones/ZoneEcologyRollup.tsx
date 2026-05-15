@@ -20,6 +20,8 @@ import {
   type InvasivePressure,
   type SuccessionStage,
 } from '../../store/zoneStore.js';
+import { useVegetationStore } from '../../store/vegetationStore.js';
+import { resolveZoneVegetation } from '../../v3/plan/engine/vegetationResolver.js';
 import css from './ZoneEcologyRollup.module.css';
 
 interface Props {
@@ -30,9 +32,11 @@ const M2_PER_ACRE = 4046.8564224;
 
 export default function ZoneEcologyRollup({ projectId }: Props) {
   const allZones = useZoneStore((s) => s.zones);
+  const allPatches = useVegetationStore((s) => s.patches);
 
   const { totalAc, pressure, stage, zoneCount } = useMemo(() => {
     const zones = allZones.filter((z) => z.projectId === projectId);
+    const patches = allPatches.filter((p) => p.projectId === projectId);
 
     const total = zones.reduce((sum, z) => sum + (z.areaM2 ?? 0), 0) / M2_PER_ACRE;
 
@@ -44,9 +48,10 @@ export default function ZoneEcologyRollup({ projectId }: Props) {
       untagged: 0,
     };
     const stageAc: Record<SuccessionStage | 'untagged', number> = {
-      bare: 0,
+      disturbed: 0,
       pioneer: 0,
       mid: 0,
+      late: 0,
       climax: 0,
       untagged: 0,
     };
@@ -55,12 +60,13 @@ export default function ZoneEcologyRollup({ projectId }: Props) {
       const ac = (z.areaM2 ?? 0) / M2_PER_ACRE;
       if (z.invasivePressure) pressureAc[z.invasivePressure] += ac;
       else pressureAc.untagged += ac;
-      if (z.successionStage) stageAc[z.successionStage] += ac;
+      const resolvedStage = resolveZoneVegetation(z, patches).successionStage;
+      if (resolvedStage) stageAc[resolvedStage] += ac;
       else stageAc.untagged += ac;
     }
 
     return { totalAc: total, pressure: pressureAc, stage: stageAc, zoneCount: zones.length };
-  }, [allZones, projectId]);
+  }, [allZones, allPatches, projectId]);
 
   if (zoneCount === 0) {
     return (
@@ -99,14 +105,15 @@ export default function ZoneEcologyRollup({ projectId }: Props) {
       <div className={css.block}>
         <div className={css.blockHeader}>
           <span className={css.blockTitle}>Succession stage</span>
-          <span className={css.blockMeta}>Bare \u2192 Climax</span>
+          <span className={css.blockMeta}>Disturbed \u2192 Climax</span>
         </div>
         <StackedBar
           total={totalAc}
           segments={[
-            { key: 'bare', label: SUCCESSION_STAGE_LABELS.bare, acres: stage.bare, color: SUCCESSION_STAGE_COLORS.bare },
+            { key: 'disturbed', label: SUCCESSION_STAGE_LABELS.disturbed, acres: stage.disturbed, color: SUCCESSION_STAGE_COLORS.disturbed },
             { key: 'pioneer', label: SUCCESSION_STAGE_LABELS.pioneer, acres: stage.pioneer, color: SUCCESSION_STAGE_COLORS.pioneer },
             { key: 'mid', label: SUCCESSION_STAGE_LABELS.mid, acres: stage.mid, color: SUCCESSION_STAGE_COLORS.mid },
+            { key: 'late', label: SUCCESSION_STAGE_LABELS.late, acres: stage.late, color: SUCCESSION_STAGE_COLORS.late },
             { key: 'climax', label: SUCCESSION_STAGE_LABELS.climax, acres: stage.climax, color: SUCCESSION_STAGE_COLORS.climax },
             { key: 'untagged', label: 'Untagged', acres: stage.untagged, color: 'rgba(255,255,255,0.08)' },
           ]}

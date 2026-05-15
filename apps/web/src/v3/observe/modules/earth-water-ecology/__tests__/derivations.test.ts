@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { EcologyObservation, EcologyZone } from '../../../../../store/ecologyStore.js';
+import type { EcologyObservation } from '../../../../../store/ecologyStore.js';
 import type { Earthwork, StorageInfra, Watercourse } from '../../../../../store/waterSystemsStore.js';
 import type { SoilSample } from '../../../../../store/soilSampleStore.js';
 import {

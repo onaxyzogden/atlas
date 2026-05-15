@@ -1,6 +1,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
+import { DRAW_PREVIEW_COLORS } from './mapboxDrawStyles.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
 import { FIELD_SCHEMAS, createWithDefaults } from './annotationFieldSchemas.js';
 import {
@@ -43,6 +44,7 @@ export default function ConventionalCropTool({ map, projectId }: Props) {
     mode: 'draw_polygon',
     enabled: dimMode === 'freehand',
     onComplete: place,
+    previewColor: DRAW_PREVIEW_COLORS.conventionalCrop,
   });
 
   useDimensionDrawTool({

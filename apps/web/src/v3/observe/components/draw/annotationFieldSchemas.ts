@@ -20,7 +20,13 @@ import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
-import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import {
+  useVegetationStore,
+  SUCCESSION_STAGE_LABELS,
+  GROUND_COVER_LABELS,
+  type SuccessionStage,
+  type GroundCoverState,
+} from '../../../../store/vegetationStore.js';
 import { usePastureStore, type PastureKind } from '../../../../store/pastureStore.js';
 import {
   useConventionalCropStore,
@@ -62,7 +68,7 @@ export type AnnotationKind =
   | 'highPoint'
   | 'drainageLine'
   | 'watercourse'
-  | 'ecologyZone'
+  | 'vegetation'
   | 'pasture'
   | 'conventionalCrop'
   | 'soilSample'
@@ -562,50 +568,66 @@ const watercourse: FieldSchema = {
   },
 };
 
-const ecologyZone: FieldSchema = {
-  title: 'Ecology zone',
+const SUCCESSION_OPTIONS = (
+  Object.keys(SUCCESSION_STAGE_LABELS) as SuccessionStage[]
+).map((k) => ({ value: k, label: SUCCESSION_STAGE_LABELS[k] }));
+
+const GROUND_COVER_OPTIONS = (
+  Object.keys(GROUND_COVER_LABELS) as GroundCoverState[]
+).map((k) => ({ value: k, label: GROUND_COVER_LABELS[k] }));
+
+const vegetation: FieldSchema = {
+  title: 'Vegetation & cover',
   fields: [
     {
-      name: 'dominantStage',
-      label: 'Dominant stage',
+      name: 'successionStage',
+      label: 'Succession stage',
       type: 'select',
-      options: [
-        { value: 'disturbed', label: 'Disturbed' },
-        { value: 'pioneer', label: 'Pioneer' },
-        { value: 'mid', label: 'Mid-succession' },
-        { value: 'late', label: 'Late-succession' },
-        { value: 'climax', label: 'Climax' },
-      ],
+      options: SUCCESSION_OPTIONS,
+    },
+    {
+      name: 'groundCover',
+      label: 'Ground cover',
+      type: 'select',
+      options: GROUND_COVER_OPTIONS,
     },
     { name: 'label', label: 'Label', type: 'text', placeholder: 'Mature forest' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
   ],
-  defaults: { dominantStage: 'mid', label: '', notes: '' },
+  defaults: {
+    successionStage: 'mid',
+    groundCover: 'sparse-grasses',
+    label: '',
+    notes: '',
+  },
   loadDefaults: (id) => {
-    const rec = useEcologyStore.getState().ecologyZones.find((z) => z.id === id);
+    const rec = useVegetationStore.getState().patches.find((p) => p.id === id);
     if (!rec) return null;
     return {
-      dominantStage: rec.dominantStage,
+      successionStage: rec.successionStage,
+      groundCover: rec.groundCover,
       label: rec.label ?? '',
       notes: rec.notes ?? '',
     };
   },
   save: (v, ctx) => {
-    const store = useEcologyStore.getState();
+    const store = useVegetationStore.getState();
     if (ctx.existingId) {
-      store.updateEcologyZone(ctx.existingId, {
-        dominantStage: v.dominantStage as never,
+      store.updatePatch(ctx.existingId, {
+        successionStage: v.successionStage as SuccessionStage,
+        groundCover: v.groundCover as GroundCoverState,
         label: s(v.label),
         notes: s(v.notes),
       });
       return;
     }
     if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
-    store.addEcologyZone({
+    store.addPatch({
       id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
-      dominantStage: v.dominantStage as never,
+      successionStage: v.successionStage as SuccessionStage,
+      groundCover: v.groundCover as GroundCoverState,
       label: s(v.label),
       notes: s(v.notes),
       createdAt: nowIso(),
@@ -1367,7 +1389,7 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   highPoint,
   drainageLine,
   watercourse,
-  ecologyZone,
+  vegetation,
   pasture,
   conventionalCrop,
   soilSample,
@@ -1406,7 +1428,7 @@ export const FIELD_REMOVERS: Readonly<Record<AnnotationKind, (id: string) => voi
   highPoint: (id) => useTopographyStore.getState().removeHighPoint(id),
   drainageLine: (id) => useTopographyStore.getState().removeDrainageLine(id),
   watercourse: (id) => useWaterSystemsStore.getState().removeWatercourse(id),
-  ecologyZone: (id) => useEcologyStore.getState().removeEcologyZone(id),
+  vegetation: (id) => useVegetationStore.getState().removePatch(id),
   pasture: (id) => usePastureStore.getState().removePasture(id),
   conventionalCrop: (id) =>
     useConventionalCropStore.getState().removeConventionalCrop(id),

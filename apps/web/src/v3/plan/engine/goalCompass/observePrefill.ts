@@ -30,6 +30,8 @@ import {
   GROUND_COVER_LABELS,
   type GroundCoverState,
 } from '../../../../store/zoneStore.js';
+import { useVegetationStore } from '../../../../store/vegetationStore.js';
+import { deriveCurrentLandCover } from '../vegetationResolver.js';
 import { transectStats } from '../../../observe/modules/topography/derivations.js';
 import { getClimateLayer } from '../../../observe/modules/macroclimate-hazards/derivations.js';
 import type {
@@ -165,28 +167,39 @@ export function deriveSiteProfileFromObserve(projectId: string): ObservePrefillR
     };
   }
 
-  // currentLandCover ← dominant zoneStore.groundCover by total areaM2
-  const zones = useZoneStore.getState().zones.filter((z) => z.projectId === projectId);
-  const coveredZones = zones.filter((z) => z.groundCover);
-  if (coveredZones.length) {
-    const areaByCover = new Map<GroundCoverState, number>();
-    for (const z of coveredZones) {
-      const cover = z.groundCover as GroundCoverState;
-      areaByCover.set(cover, (areaByCover.get(cover) ?? 0) + (z.areaM2 ?? 0));
-    }
-    let dominant: GroundCoverState | null = null;
-    let dominantArea = -1;
-    for (const [cover, area] of areaByCover) {
-      if (area > dominantArea) {
-        dominant = cover;
-        dominantArea = area;
+  // currentLandCover ← dominant observed VegetationPatch groundCover by
+  // area (single source of truth); falls back to a manual zoneStore
+  // groundCover override when no patches have been drawn yet.
+  const patches = useVegetationStore.getState().patches;
+  const derivedCover = deriveCurrentLandCover(projectId, patches);
+  if (derivedCover) {
+    out.currentLandCover = {
+      value: GROUND_COVER_LABELS[derivedCover],
+      observeFieldRef: `vegetationStore.patches[projectId=${projectId}].groundCover`,
+    };
+  } else {
+    const zones = useZoneStore.getState().zones.filter((z) => z.projectId === projectId);
+    const coveredZones = zones.filter((z) => z.groundCover);
+    if (coveredZones.length) {
+      const areaByCover = new Map<GroundCoverState, number>();
+      for (const z of coveredZones) {
+        const cover = z.groundCover as GroundCoverState;
+        areaByCover.set(cover, (areaByCover.get(cover) ?? 0) + (z.areaM2 ?? 0));
       }
-    }
-    if (dominant) {
-      out.currentLandCover = {
-        value: GROUND_COVER_LABELS[dominant],
-        observeFieldRef: `zoneStore.zones[projectId=${projectId}].groundCover`,
-      };
+      let dominant: GroundCoverState | null = null;
+      let dominantArea = -1;
+      for (const [cover, area] of areaByCover) {
+        if (area > dominantArea) {
+          dominant = cover;
+          dominantArea = area;
+        }
+      }
+      if (dominant) {
+        out.currentLandCover = {
+          value: GROUND_COVER_LABELS[dominant],
+          observeFieldRef: `zoneStore.zones[projectId=${projectId}].groundCover`,
+        };
+      }
     }
   }
 

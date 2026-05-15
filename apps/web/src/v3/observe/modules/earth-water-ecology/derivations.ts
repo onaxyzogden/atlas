@@ -1,10 +1,10 @@
 import type { MockLayerResult } from '../../../../lib/mockLayerData.js';
 import type {
   EcologyObservation,
-  EcologyZone,
   SuccessionStage,
   TrophicLevel,
 } from '../../../../store/ecologyStore.js';
+import type { VegetationPatch } from '../../../../store/vegetationStore.js';
 import type {
   Earthwork,
   StorageInfra,
@@ -113,7 +113,7 @@ export interface EcologyCounts {
 
 export function ecologyCounts(
   observations: EcologyObservation[],
-  zones: EcologyZone[],
+  zones: VegetationPatch[],
   stage: SuccessionStage | undefined,
 ): EcologyCounts {
   const levels = [...new Set(observations.map((o) => o.trophicLevel))] as TrophicLevel[];
@@ -324,7 +324,7 @@ const SUCCESSION_LABELS: Record<SuccessionStage, string> = {
 export function ecologyDetailKpis(
   layers: MockLayerResult[] | undefined,
   observations: EcologyObservation[],
-  zones: EcologyZone[],
+  zones: VegetationPatch[],
   stage: SuccessionStage | undefined,
 ): KpiItem[] {
   const habitat = getCriticalHabitatLayer(layers);

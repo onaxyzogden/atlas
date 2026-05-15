@@ -18,6 +18,11 @@
  */
 import { useMemo } from 'react';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
+import {
+  useVegetationStore,
+  type VegetationPatch,
+} from '../../store/vegetationStore.js';
+import { resolveZoneVegetation } from '../../v3/plan/engine/vegetationResolver.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
@@ -74,13 +79,14 @@ function pluralise(n: number, singular: string, plural?: string): string {
 function buildNarrative(args: {
   project: LocalProject;
   zones: LandZone[];
+  patches: VegetationPatch[];
   structures: Structure[];
   paddocks: Paddock[];
   utilities: Utility[];
   paths: DesignPath[];
   crops: CropArea[];
 }): NarrativeItem[] {
-  const { project, zones, structures, paddocks, utilities, paths, crops } = args;
+  const { project, zones, patches, structures, paddocks, utilities, paths, crops } = args;
   const items: NarrativeItem[] = [];
 
   const waterUtils = utilities.filter((u) => WATER_UTIL_TYPES.has(u.type));
@@ -165,12 +171,14 @@ function buildNarrative(args: {
     });
   }
 
-  const bareZones = zones.filter((z) => z.successionStage === 'bare');
+  const bareZones = zones.filter(
+    (z) => resolveZoneVegetation(z, patches).successionStage === 'disturbed',
+  );
   if (bareZones.length > 0) {
     items.push({
       bucket: 'risk',
-      title: `Bare-stage erosion exposure (${pluralise(bareZones.length, 'zone')})`,
-      body: 'Every storm event on bare ground exports topsoil. Cover-crop, mulch, or temporarily exclude livestock until pioneer succession is re-established.',
+      title: `Disturbed-stage erosion exposure (${pluralise(bareZones.length, 'zone')})`,
+      body: 'Every storm event on disturbed ground exports topsoil. Cover-crop, mulch, or temporarily exclude livestock until pioneer succession is re-established.',
     });
   }
 
@@ -269,6 +277,7 @@ const BUCKET_ICON: Record<Bucket, string> = {
 
 export default function SiteNarrativeSummaryCard({ project }: Props) {
   const allZones = useZoneStore((s) => s.zones);
+  const allPatches = useVegetationStore((s) => s.patches);
   const allStructures = useAllStructures();
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allUtilities = useUtilityStore((s) => s.utilities);
@@ -277,13 +286,14 @@ export default function SiteNarrativeSummaryCard({ project }: Props) {
 
   const items = useMemo(() => {
     const zones = allZones.filter((z) => z.projectId === project.id);
+    const patches = allPatches.filter((p) => p.projectId === project.id);
     const structures = allStructures.filter((s) => s.projectId === project.id);
     const paddocks = allPaddocks.filter((p) => p.projectId === project.id);
     const utilities = allUtilities.filter((u) => u.projectId === project.id);
     const paths = allPaths.filter((p) => p.projectId === project.id);
     const crops = allCrops.filter((c) => c.projectId === project.id);
-    return buildNarrative({ project, zones, structures, paddocks, utilities, paths, crops });
-  }, [project, allZones, allStructures, allPaddocks, allUtilities, allPaths, allCrops]);
+    return buildNarrative({ project, zones, patches, structures, paddocks, utilities, paths, crops });
+  }, [project, allZones, allPatches, allStructures, allPaddocks, allUtilities, allPaths, allCrops]);
 
   const grouped = useMemo(() => {
     const g: Record<Bucket, NarrativeItem[]> = { risk: [], opportunity: [], limitation: [] };

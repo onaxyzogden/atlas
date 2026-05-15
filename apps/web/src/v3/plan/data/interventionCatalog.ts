@@ -265,7 +265,7 @@ export const INTERVENTION_CATALOG: Intervention[] = [
     zoneAffinity: {
       preferredCategories: ['food_production', 'livestock'],
       preferredGroundCover: ['bare-soil', 'barren', 'sparse-grasses'],
-      preferredSuccession: ['bare', 'pioneer'],
+      preferredSuccession: ['disturbed', 'pioneer'],
       avoidedCategories: ['habitation', 'spiritual', 'infrastructure', 'conservation'],
     },
     geometryTemplate: 'fill-polygon',
@@ -786,7 +786,7 @@ export const INTERVENTION_CATALOG: Intervention[] = [
     zoneAffinity: {
       preferredCategories: ['livestock'],
       preferredGroundCover: ['sparse-grasses', 'thriving-grasses', 'bare-soil'],
-      preferredSuccession: ['bare', 'pioneer'],
+      preferredSuccession: ['disturbed', 'pioneer'],
       avoidedCategories: ['conservation', 'habitation', 'spiritual'],
     },
     geometryTemplate: 'fill-polygon',

@@ -35,11 +35,18 @@ export type InvasivePressure = 'none' | 'low' | 'medium' | 'high';
 
 /**
  * Succession stage — where the vegetation community currently sits on
- * the bare-ground-to-climax gradient. Used to flag early-succession zones
- * that are regeneration candidates vs climax zones that should be left
- * alone. Drawn from standard old-field succession vocabulary.
+ * the disturbed-to-climax gradient. Canonical 5-value scale shared with
+ * `VegetationPatch` observations (vegetationStore). `disturbed` is the
+ * raw early state (was `bare` pre-v3); `late` is the mature-but-not-yet-
+ * climax band. On a zone this is the optional manual *override* that
+ * wins over the observed value (see vegetationResolver).
  */
-export type SuccessionStage = 'bare' | 'pioneer' | 'mid' | 'climax';
+export type SuccessionStage =
+  | 'disturbed'
+  | 'pioneer'
+  | 'mid'
+  | 'late'
+  | 'climax';
 
 /**
  * Seasonality / phased-use tag — when during the year the zone is
@@ -96,17 +103,24 @@ export const INVASIVE_PRESSURE_COLORS: Record<InvasivePressure, string> = {
 };
 
 export const SUCCESSION_STAGE_LABELS: Record<SuccessionStage, string> = {
-  bare: 'Bare',
+  disturbed: 'Disturbed',
   pioneer: 'Pioneer',
   mid: 'Mid-succession',
+  late: 'Late-succession',
   climax: 'Climax',
 };
 
+/**
+ * Succession palette — disturbed (raw earth) → climax (deep canopy).
+ * Matches the former Observe `ECOLOGY_STAGE_COLOR` ramp so migrated
+ * ecology zones keep their on-map appearance.
+ */
 export const SUCCESSION_STAGE_COLORS: Record<SuccessionStage, string> = {
-  bare: '#9c8b6e',
-  pioneer: '#d4c564',
-  mid: '#a8a06a',
-  climax: '#6ba47a',
+  disturbed: '#a85a3f',
+  pioneer: '#c4a265',
+  mid: '#7aa86a',
+  late: '#4a8a5a',
+  climax: '#2a6a3a',
 };
 
 export const SEASONALITY_LABELS: Record<Seasonality, string> = {
@@ -275,12 +289,21 @@ export const useZoneStore = create<ZoneState>()(
     ),
     {
       name: 'ogden-zones',
-      version: 2,
+      version: 3,
       migrate: (persisted, version) => {
         const state = persisted as { zones?: LandZone[] };
         if (version < 2 && Array.isArray(state.zones)) {
           // v1 → v2: add serverId field to all existing zones
           state.zones = state.zones.map((z) => ({ serverId: undefined, ...z }));
+        }
+        if (version < 3 && Array.isArray(state.zones)) {
+          // v2 → v3: succession scale 4-value → canonical 5-value.
+          // Legacy `bare` becomes `disturbed`; the rest are unchanged.
+          state.zones = state.zones.map((z) =>
+            (z.successionStage as unknown) === 'bare'
+              ? { ...z, successionStage: 'disturbed' }
+              : z,
+          );
         }
         return state;
       },

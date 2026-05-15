@@ -23,6 +23,8 @@ import {
   type ZoneCategory,
   type SuccessionStage,
 } from '../../store/zoneStore.js';
+import { useVegetationStore } from '../../store/vegetationStore.js';
+import { resolveZoneVegetation } from '../../v3/plan/engine/vegetationResolver.js';
 import css from './CarbonByLandUseCard.module.css';
 
 interface Props {
@@ -77,17 +79,20 @@ const BASE_RATE_TC_PER_AC_YR: Record<ZoneCategory, number> = {
  * category default).
  */
 const STAGE_MULTIPLIER: Record<SuccessionStage, number> = {
-  bare: 0.3,
+  disturbed: 0.3,
   pioneer: 1.0,
   mid: 1.2,
+  late: 0.8,
   climax: 0.4,
 };
 
 export default function CarbonByLandUseCard({ projectId }: Props) {
   const allZones = useZoneStore((s) => s.zones);
+  const allPatches = useVegetationStore((s) => s.patches);
 
   const { totalAcres, annualTC, twentyYearTC, byCategory, zoneCount } = useMemo(() => {
     const zones = allZones.filter((z) => z.projectId === projectId);
+    const patches = allPatches.filter((p) => p.projectId === projectId);
     let totalAc = 0;
     let total = 0;
     const cat: Record<ZoneCategory, { acres: number; tcYr: number }> = {
@@ -109,7 +114,8 @@ export default function CarbonByLandUseCard({ projectId }: Props) {
     for (const z of zones) {
       const ac = (z.areaM2 ?? 0) / M2_PER_ACRE;
       const baseRate = BASE_RATE_TC_PER_AC_YR[z.category] ?? 0;
-      const mult = z.successionStage ? STAGE_MULTIPLIER[z.successionStage] : 1.0;
+      const resolvedStage = resolveZoneVegetation(z, patches).successionStage;
+      const mult = resolvedStage ? STAGE_MULTIPLIER[resolvedStage] : 1.0;
       const tcYr = ac * baseRate * mult;
       cat[z.category].acres += ac;
       cat[z.category].tcYr += tcYr;
@@ -124,7 +130,7 @@ export default function CarbonByLandUseCard({ projectId }: Props) {
       byCategory: cat,
       zoneCount: zones.length,
     };
-  }, [allZones, projectId]);
+  }, [allZones, allPatches, projectId]);
 
   if (zoneCount === 0) {
     return (

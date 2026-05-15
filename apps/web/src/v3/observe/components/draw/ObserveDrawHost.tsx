@@ -25,10 +25,9 @@ import HighPointTool from './HighPointTool.js';
 import DrainageLineTool from './DrainageLineTool.js';
 import WatercourseTool from './WatercourseTool.js';
 import SoilSampleTool from './SoilSampleTool.js';
-import EcologyZoneTool from './EcologyZoneTool.js';
+import VegetationTool from './VegetationTool.js';
 import PastureTool from './PastureTool.js';
 import ConventionalCropTool from './ConventionalCropTool.js';
-import GroundCoverPaintTool from './GroundCoverPaintTool.js';
 import SunWindWedgeTool from './SunWindWedgeTool.js';
 import PermacultureZoneTool from './PermacultureZoneTool.js';
 import SwotTagTool from './SwotTagTool.js';
@@ -105,17 +104,14 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
     case 'observe.earth-water-ecology.soil-sample':
       tool = <SoilSampleTool map={map} projectId={projectId} />;
       break;
-    case 'observe.earth-water-ecology.ecology-zone':
-      tool = <EcologyZoneTool map={map} projectId={projectId} />;
+    case 'observe.earth-water-ecology.vegetation':
+      tool = <VegetationTool map={map} projectId={projectId} />;
       break;
     case 'observe.earth-water-ecology.pasture':
       tool = <PastureTool map={map} projectId={projectId} />;
       break;
     case 'observe.earth-water-ecology.conventional-crop':
       tool = <ConventionalCropTool map={map} projectId={projectId} />;
-      break;
-    case 'observe.earth-water-ecology.ground-cover':
-      tool = <GroundCoverPaintTool map={map} projectId={projectId} />;
       break;
     case 'observe.sectors-zones.sun-summer':
       tool = (

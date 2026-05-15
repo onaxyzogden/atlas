@@ -23,6 +23,7 @@ import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useVegetationStore } from '../../../../store/vegetationStore.js';
+import { GROUND_COVER_COLORS } from '../../../../store/zoneStore.js';
 import { usePastureStore } from '../../../../store/pastureStore.js';
 import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
@@ -120,14 +121,6 @@ const PALETTE = {
   swotW: '#a85a3f',
   swotO: '#3a8aa8',
   swotT: '#7c5a8a',
-};
-
-const ECOLOGY_STAGE_COLOR: Record<string, string> = {
-  disturbed: PALETTE.ecologyDisturbed,
-  pioneer: PALETTE.ecologyPioneer,
-  mid: PALETTE.ecologyMid,
-  late: PALETTE.ecologyLate,
-  climax: PALETTE.ecologyClimax,
 };
 
 const SECTOR_TYPE_COLOR: Record<string, string> = {
@@ -803,7 +796,8 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       type: 'Feature',
       properties: {
         stage: z.successionStage,
-        color: ECOLOGY_STAGE_COLOR[z.successionStage] ?? PALETTE.ecologyMid,
+        cover: z.groundCover,
+        color: GROUND_COVER_COLORS[z.groundCover] ?? PALETTE.ecologyMid,
         label: z.label ?? '',
         annoKind: 'vegetation',
         annoId: z.id,

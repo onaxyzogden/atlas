@@ -74,10 +74,9 @@ export type MapToolId =
   // Observe Module 4 — Earth/Water/Ecology
   | 'observe.earth-water-ecology.watercourse'
   | 'observe.earth-water-ecology.soil-sample'
-  | 'observe.earth-water-ecology.ecology-zone'
+  | 'observe.earth-water-ecology.vegetation'
   | 'observe.earth-water-ecology.pasture'
   | 'observe.earth-water-ecology.conventional-crop'
-  | 'observe.earth-water-ecology.ground-cover'
   // Observe Module 5 — Sectors & Zones
   // One tool per SectorType so each kind of wedge is its own toolbar
   // button (no in-popover Type dropdown).

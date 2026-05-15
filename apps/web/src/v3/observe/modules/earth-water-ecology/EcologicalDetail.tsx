@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
@@ -52,7 +53,7 @@ export default function EcologicalDetail() {
   const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
 
   const allObservations = useEcologyStore((s) => s.ecology);
-  const allZones = useEcologyStore((s) => s.ecologyZones);
+  const allZones = useVegetationStore((s) => s.patches);
   const successionByProject = useEcologyStore((s) => s.successionStageByProject);
 
   const observations = useMemo(
@@ -227,7 +228,7 @@ export default function EcologicalDetail() {
                   <Sprout aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                   {zone.label ?? 'Zone'}
                 </span>
-                <span>{zone.dominantStage}</span>
+                <span>{zone.successionStage}</span>
               </div>
             ))
           )}

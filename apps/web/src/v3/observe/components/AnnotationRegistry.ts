@@ -19,7 +19,7 @@ import { useHumanContextStore } from '../../../store/humanContextStore.js';
 import { useTopographyStore } from '../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
-import { useEcologyStore } from '../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../store/vegetationStore.js';
 import { usePastureStore } from '../../../store/pastureStore.js';
 import { useConventionalCropStore } from '../../../store/conventionalCropStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
@@ -71,7 +71,7 @@ export const KIND_LABELS: Record<AnnotationKind, string> = {
   highPoint: 'Elevation point',
   drainageLine: 'Drainage line',
   watercourse: 'Watercourse',
-  ecologyZone: 'Ecology zone',
+  vegetation: 'Vegetation & cover',
   pasture: 'Pasture / paddock',
   conventionalCrop: 'Conventional crop',
   soilSample: 'Soil sample',
@@ -207,15 +207,15 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           createdAt: r.createdAt,
         }));
     }
-    case 'ecologyZone': {
-      return useEcologyStore
+    case 'vegetation': {
+      return useVegetationStore
         .getState()
-        .ecologyZones.filter((r) => r.projectId === projectId)
+        .patches.filter((r) => r.projectId === projectId)
         .map((r) => ({
           kind,
           id: r.id,
-          title: r.label || 'Ecology zone',
-          subtitle: `Stage: ${r.dominantStage}${r.notes ? ` · ${r.notes}` : ''}`,
+          title: r.label || 'Vegetation & cover',
+          subtitle: `Stage: ${r.successionStage} · Cover: ${r.groundCover}${r.notes ? ` · ${r.notes}` : ''}`,
           createdAt: r.createdAt,
         }));
     }
@@ -382,7 +382,7 @@ export function useAnnotationsForKinds(
   const highPoints = useTopographyStore((s) => s.highPoints);
   const drainageLines = useTopographyStore((s) => s.drainageLines);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
-  const ecologyZones = useEcologyStore((s) => s.ecologyZones);
+  const vegetationPatches = useVegetationStore((s) => s.patches);
   const pastures = usePastureStore((s) => s.pastures);
   const conventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
   const samples = useSoilSampleStore((s) => s.samples);
@@ -420,7 +420,7 @@ export function useAnnotationsForKinds(
     highPoints,
     drainageLines,
     watercourses,
-    ecologyZones,
+    vegetationPatches,
     pastures,
     conventionalCrops,
     samples,
@@ -531,13 +531,13 @@ export function getAnnotationRow(
         createdAt: r.createdAt,
       };
     }
-    case 'ecologyZone': {
-      const r = useEcologyStore.getState().ecologyZones.find((x) => x.id === id);
+    case 'vegetation': {
+      const r = useVegetationStore.getState().patches.find((x) => x.id === id);
       if (!r) return null;
       return {
         kind,
         id,
-        title: r.label || 'Ecology zone',
+        title: r.label || 'Vegetation & cover',
         subtitle: r.notes,
         createdAt: r.createdAt,
       };
@@ -670,8 +670,8 @@ export function removeAnnotation(kind: AnnotationKind, id: string): void {
     case 'watercourse':
       useWaterSystemsStore.getState().removeWatercourse(id);
       return;
-    case 'ecologyZone':
-      useEcologyStore.getState().removeEcologyZone(id);
+    case 'vegetation':
+      useVegetationStore.getState().removePatch(id);
       return;
     case 'pasture':
       usePastureStore.getState().removePasture(id);

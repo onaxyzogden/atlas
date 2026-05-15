@@ -33,6 +33,8 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type LandZone, type ZoneCategory } from '../../store/zoneStore.js';
+import { useVegetationStore } from '../../store/vegetationStore.js';
+import { resolveZoneVegetation } from '../../v3/plan/engine/vegetationResolver.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import s from './RestorationPriorityCard.module.css';
 
@@ -76,9 +78,10 @@ const INVASIVE_SCORE: Record<NonNullable<LandZone['invasivePressure']>, number> 
 };
 
 const SUCCESSION_SCORE: Record<NonNullable<LandZone['successionStage']>, number> = {
-  bare: 25,
+  disturbed: 25,
   pioneer: 15,
   mid: 5,
+  late: 2,
   climax: 0,
 };
 
@@ -119,10 +122,12 @@ function categoryLabel(cat: ZoneCategory): string {
 
 export default function RestorationPriorityCard({ project }: RestorationPriorityCardProps) {
   const allZones = useZoneStore((st) => st.zones);
+  const allPatches = useVegetationStore((s) => s.patches);
   const siteData = useSiteData(project.id);
 
   const analysis = useMemo(() => {
     const zones = allZones.filter((z) => z.projectId === project.id);
+    const patches = allPatches.filter((p) => p.projectId === project.id);
     const elevation = siteData ? getLayerSummary<ElevationSummary>(siteData, 'elevation') : null;
     const landCover = siteData ? getLayerSummary<LandCoverSummary>(siteData, 'land_cover') : null;
     const terrainAnalysis = siteData ? getLayerSummary<TerrainAnalysisSummary>(siteData, 'terrain_analysis') : null;
@@ -147,7 +152,7 @@ export default function RestorationPriorityCard({ project }: RestorationPriority
         drivers.push(`${invasive} invasive pressure (+${lift})`);
       }
 
-      const succession = zone.successionStage ?? null;
+      const succession = resolveZoneVegetation(zone, patches).successionStage;
       if (succession && succession !== 'climax') {
         const lift = SUCCESSION_SCORE[succession];
         if (lift > 0) {
@@ -208,7 +213,7 @@ export default function RestorationPriorityCard({ project }: RestorationPriority
         slopeLift,
       },
     };
-  }, [allZones, project.id, siteData]);
+  }, [allZones, allPatches, project.id, siteData]);
 
   if (analysis.zoneCount === 0) {
     return null;

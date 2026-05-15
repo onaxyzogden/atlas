@@ -1,6 +1,7 @@
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
+import { DRAW_PREVIEW_COLORS } from './mapboxDrawStyles.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
 import { FIELD_SCHEMAS, createWithDefaults } from './annotationFieldSchemas.js';
 import {
@@ -16,20 +17,20 @@ interface Props {
   projectId: string;
 }
 
-export default function EcologyZoneTool({ map, projectId }: Props) {
+export default function VegetationTool({ map, projectId }: Props) {
   const open = useAnnotationFormStore((s) => s.open);
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimShape = useDimensionDrawStore((s) => s.shape);
   const dimValues = useDimensionValues();
 
   const place = (geom: GeoJSON.Polygon) => {
-    const id = createWithDefaults(FIELD_SCHEMAS.ecologyZone, {
+    const id = createWithDefaults(FIELD_SCHEMAS.vegetation, {
       projectId,
       geometry: geom,
     });
     if (id)
       open({
-        kind: 'ecologyZone',
+        kind: 'vegetation',
         geometry: geom,
         mode: 'edit',
         existingId: id,
@@ -43,6 +44,7 @@ export default function EcologyZoneTool({ map, projectId }: Props) {
     mode: 'draw_polygon',
     enabled: dimMode === 'freehand',
     onComplete: place,
+    previewColor: DRAW_PREVIEW_COLORS.vegetation,
   });
 
   useDimensionDrawTool({
@@ -54,10 +56,11 @@ export default function EcologyZoneTool({ map, projectId }: Props) {
   });
 
   return (
-    <div className={css.popover} role="dialog" aria-label="Ecology zone">
-      <span className={css.title}>Ecology zone</span>
+    <div className={css.popover} role="dialog" aria-label="Vegetation & cover">
+      <span className={css.title}>Vegetation &amp; cover</span>
       <span className={css.hint}>
-        Outline an ecological patch (Freehand) or set Width × Depth / Radius (Dimensions).
+        Outline a vegetation patch (Freehand) or set Width × Depth / Radius
+        (Dimensions), then tag its succession stage and ground cover.
       </span>
       <DimensionPanel allowedShapes={['rect', 'circle']} />
       {liveArea !== null && (

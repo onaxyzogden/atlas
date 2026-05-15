@@ -39,6 +39,12 @@ export interface UseMapboxDrawToolArgs<G extends DrawGeometry> {
   onComplete: (geometry: G) => void;
   /** When false, the hook is a no-op (no draw control mounted). Default true. */
   enabled?: boolean;
+  /**
+   * Optional fill/stroke color for the in-progress polygon, so the preview
+   * reads as the tool kind being drawn. Falls back to the universal
+   * `MAPLIBRE_DRAW_STYLES` default when unset.
+   */
+  previewColor?: string;
 }
 
 export interface UseMapboxDrawToolReturn<G extends DrawGeometry> {
@@ -66,6 +72,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
   mode,
   onComplete,
   enabled = true,
+  previewColor,
 }: UseMapboxDrawToolArgs<G>): UseMapboxDrawToolReturn<G> {
   const [geometry, setGeometry] = useState<G | null>(null);
   const [liveArea, setLiveArea] = useState<number | null>(null);
@@ -87,6 +94,31 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
     // MapboxDraw's `changeMode` is typed as a string-literal overload that
     // doesn't include our union directly; cast through to satisfy.
     (draw.changeMode as (m: string) => unknown)(mode);
+
+    // Tint the in-progress polygon to the active tool's color. MapboxDraw
+    // adds these layers via addControl above and mutates only its GeoJSON
+    // source thereafter, so a single paint override holds for the session.
+    if (previewColor) {
+      if (map.getLayer('gl-draw-polygon-fill')) {
+        map.setPaintProperty(
+          'gl-draw-polygon-fill',
+          'fill-color',
+          previewColor,
+        );
+        map.setPaintProperty(
+          'gl-draw-polygon-fill',
+          'fill-outline-color',
+          previewColor,
+        );
+      }
+      if (map.getLayer('gl-draw-polygon-stroke')) {
+        map.setPaintProperty(
+          'gl-draw-polygon-stroke',
+          'line-color',
+          previewColor,
+        );
+      }
+    }
 
     const expectedType =
       mode === 'draw_point'
@@ -202,7 +234,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
         /* map already disposed */
       }
     };
-  }, [map, mode, enabled]);
+  }, [map, mode, enabled, previewColor]);
 
   return { geometry, liveArea, liveLength };
 }
