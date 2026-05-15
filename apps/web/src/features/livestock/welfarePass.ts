@@ -1,10 +1,10 @@
 /**
- * welfarePass — shared welfare-access pass predicate.
+ * welfarePass — shared welfare-access evaluator + pass predicate.
  *
  * A paddock "passes" iff all three welfare axes (shade, shelter, water) sit
- * within the `good` band (≤100 m). Same rule the WelfareAccessAuditCard
- * presents; extracted here so the Goal Compass forecast can read live
- * on-map state without coupling to the audit card's UI.
+ * within the `good` band (≤100 m). The detail evaluator returns per-axis
+ * band, distance, and nearest name; the audit card consumes the details,
+ * the Goal Compass forecast consumes the boolean roll-up.
  */
 
 import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
@@ -27,6 +27,37 @@ export const SHELTER_STRUCTURES: ReadonlySet<StructureType> = new Set([
   'animal_shelter',
   'barn',
 ]);
+
+export type WelfareBand = WaterBand;
+
+export interface AxisFinding {
+  axis: 'shade' | 'shelter' | 'water';
+  band: WelfareBand;
+  distanceM: number | null;
+  nearestName: string | null;
+}
+
+export interface PaddockWelfareEval {
+  paddock: Paddock;
+  shade: AxisFinding;
+  shelter: AxisFinding;
+  water: AxisFinding;
+  worst: WelfareBand;
+  centroid: { lat: number; lng: number } | null;
+}
+
+const BAND_RANK: Record<WelfareBand, number> = {
+  good: 0,
+  fair: 1,
+  poor: 2,
+  missing: 3,
+};
+
+export function worstWelfareBand(...bs: WelfareBand[]): WelfareBand {
+  let worst: WelfareBand = 'good';
+  for (const b of bs) if (BAND_RANK[b] > BAND_RANK[worst]) worst = b;
+  return worst;
+}
 
 function polygonCentroid(geom: GeoJSON.Polygon): { lat: number; lng: number } | null {
   const ring = geom.coordinates[0];
@@ -58,21 +89,78 @@ function distanceM(
   return Math.sqrt(dLat * dLat + dLng * dLng) * R;
 }
 
-function nearestStructureDistance(
+interface NearestStructureResult {
+  distanceM: number | null;
+  name: string | null;
+}
+
+function nearestStructureOfTypes(
   centroid: { lat: number; lng: number },
   structures: Structure[],
   allowed: ReadonlySet<StructureType>,
-): number | null {
-  let best: number | null = null;
+): NearestStructureResult {
+  let best: NearestStructureResult = { distanceM: null, name: null };
   for (const st of structures) {
     if (!allowed.has(st.type)) continue;
     const lng = st.center[0];
     const lat = st.center[1];
     if (typeof lng !== 'number' || typeof lat !== 'number') continue;
     const d = distanceM(centroid, { lat, lng });
-    if (best == null || d < best) best = d;
+    if (best.distanceM == null || d < best.distanceM) {
+      best = { distanceM: d, name: st.name || st.type };
+    }
   }
   return best;
+}
+
+/** Full per-paddock welfare evaluation — used by the audit card display
+ *  and (via `paddockPassesWelfare`) by the Goal Compass forecast. */
+export function evaluatePaddockWelfare(
+  paddock: Paddock,
+  utilities: Utility[],
+  structures: Structure[],
+  waterNodes: WaterNode[] = [],
+): PaddockWelfareEval {
+  const centroid = polygonCentroid(paddock.geometry);
+  if (!centroid) {
+    return {
+      paddock,
+      shade: { axis: 'shade', band: 'missing', distanceM: null, nearestName: null },
+      shelter: { axis: 'shelter', band: 'missing', distanceM: null, nearestName: null },
+      water: { axis: 'water', band: 'missing', distanceM: null, nearestName: null },
+      worst: 'missing',
+      centroid: null,
+    };
+  }
+  const shadeNearest = nearestStructureOfTypes(centroid, structures, SHADE_STRUCTURES);
+  const shelterNearest = nearestStructureOfTypes(centroid, structures, SHELTER_STRUCTURES);
+  const waterNearest = nearestWaterSource(centroid, utilities, structures, waterNodes);
+  const shade: AxisFinding = {
+    axis: 'shade',
+    band: bandForWater(shadeNearest.distanceM),
+    distanceM: shadeNearest.distanceM,
+    nearestName: shadeNearest.name,
+  };
+  const shelter: AxisFinding = {
+    axis: 'shelter',
+    band: bandForWater(shelterNearest.distanceM),
+    distanceM: shelterNearest.distanceM,
+    nearestName: shelterNearest.name,
+  };
+  const water: AxisFinding = {
+    axis: 'water',
+    band: bandForWater(waterNearest.distanceM),
+    distanceM: waterNearest.distanceM,
+    nearestName: waterNearest.name,
+  };
+  return {
+    paddock,
+    shade,
+    shelter,
+    water,
+    worst: worstWelfareBand(shade.band, shelter.band, water.band),
+    centroid,
+  };
 }
 
 /** True iff all three welfare axes (shade, shelter, water) are in `good`
@@ -83,18 +171,9 @@ export function paddockPassesWelfare(
   structures: Structure[],
   waterNodes: WaterNode[] = [],
 ): boolean {
-  const centroid = polygonCentroid(paddock.geometry);
-  if (!centroid) return false;
-  const shadeBand: WaterBand = bandForWater(
-    nearestStructureDistance(centroid, structures, SHADE_STRUCTURES),
+  return (
+    evaluatePaddockWelfare(paddock, utilities, structures, waterNodes).worst === 'good'
   );
-  const shelterBand: WaterBand = bandForWater(
-    nearestStructureDistance(centroid, structures, SHELTER_STRUCTURES),
-  );
-  const waterBand: WaterBand = bandForWater(
-    nearestWaterSource(centroid, utilities, structures, waterNodes).distanceM,
-  );
-  return shadeBand === 'good' && shelterBand === 'good' && waterBand === 'good';
 }
 
 /** Project-scoped roll-up used by the Goal Compass forecast. Returns the
