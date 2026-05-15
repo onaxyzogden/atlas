@@ -11,6 +11,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
+import { resolveSpeciesId } from '../data/plantCatalogAliases.js';
 
 // ── Guilds ──────────────────────────────────────────────────────────────────
 
@@ -126,13 +127,22 @@ export const usePolycultureStore = create<PolycultureState>()(
     ),
     {
       name: 'ogden-polyculture',
-      version: 2,
+      version: 3,
       migrate: (persisted, version) => {
-        if (version < 2) {
-          const s = (persisted as Partial<PolycultureState>) ?? {};
-          return { guilds: s.guilds ?? [], species: s.species ?? [] };
+        const s = ((persisted as Partial<PolycultureState>) ?? {}) as Partial<PolycultureState>;
+        let guilds: Guild[] = s.guilds ?? [];
+        let species: SpeciesPick[] = s.species ?? [];
+        // v2→v3 (2026-05-14): rewrite legacy pl-XXX speciesIds to snake_case
+        // canonical via plantCatalogAliases. Idempotent on snake_case input.
+        if (version < 3) {
+          guilds = guilds.map((g) => ({
+            ...g,
+            anchorSpeciesId: resolveSpeciesId(g.anchorSpeciesId),
+            members: g.members.map((m) => ({ ...m, speciesId: resolveSpeciesId(m.speciesId) })),
+          }));
+          species = species.map((sp) => ({ ...sp, speciesId: resolveSpeciesId(sp.speciesId) }));
         }
-        return persisted as PolycultureState;
+        return { guilds, species } as PolycultureState;
       },
     },
   ),
