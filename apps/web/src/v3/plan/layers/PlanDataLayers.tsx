@@ -302,13 +302,32 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         label: z.name,
         yeomansRank: 4,
         enterprise: z.enterprise ?? '',
+        // Stamp Z-level on the feature so the fill-opacity ramp and the
+        // hit-test tie-break can read it without going back to the store.
+        permacultureZone: z.permacultureZone ?? Z_DEFAULT,
       };
       const ac = acresOf(z.geometry);
       if (ac) props.acresLabel = ac;
       polys.push({ type: 'Feature', id: z.id, properties: props, geometry: z.geometry });
       try {
+        // Anchor zone labels near the top edge (not the centroid) so a
+        // smaller-Z zone drawn first keeps its label visible even when a
+        // larger-Z zone is drawn over it — the labels rarely collide because
+        // they sit at different y-positions inside differently sized
+        // polygons. Falls back to centroid if the top-edge point happens
+        // to land outside a concave polygon.
         const c = turf.centroid(z.geometry).geometry;
-        labels.push({ type: 'Feature', id: z.id, properties: props, geometry: c });
+        const [cx, cy] = c.coordinates as [number, number];
+        const bb = turf.bbox(z.geometry) as [number, number, number, number];
+        const labelY = cy + (bb[3] - cy) * 0.6;
+        const candidate = turf.point([cx, labelY]);
+        const inside = turf.booleanPointInPolygon(candidate, z.geometry);
+        labels.push({
+          type: 'Feature',
+          id: z.id,
+          properties: props,
+          geometry: inside ? candidate.geometry : c,
+        });
       } catch {
         /* skip */
       }
@@ -850,11 +869,30 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           : rankColorExpr()
         : ['get', 'color'];
 
+      // Zones ramp opacity by Z-level (Z0 most opaque, Z5 most transparent)
+      // to reinforce the Z-stack ordering with a perceptual cue. Non-zone
+      // polygon kinds keep the shared 0.28 baseline.
+      const fillOpacityExpr = [
+        'case',
+        ['==', ['get', 'kind'], 'zone'],
+        [
+          'match',
+          ['to-number', ['coalesce', ['get', 'permacultureZone'], 2]],
+          0, 0.40,
+          1, 0.34,
+          2, 0.28,
+          3, 0.22,
+          4, 0.18,
+          5, 0.14,
+          0.28,
+        ],
+        0.28,
+      ];
       ensureLayer({
         id: `${LAYER_PREFIX}poly-fill`,
         type: 'fill',
         source: polySid,
-        paint: { 'fill-color': colorExpr as never, 'fill-opacity': 0.28 },
+        paint: { 'fill-color': colorExpr as never, 'fill-opacity': fillOpacityExpr as never },
       });
       ensureLayer({
         id: `${LAYER_PREFIX}poly-line`,
@@ -1039,6 +1077,16 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           'text-offset': [0, 1.1],
           'text-anchor': 'top',
           'text-allow-overlap': false,
+          // Among colliding labels, the lower sort-key is placed first and
+          // wins. Zones use their `permacultureZone` so Z0 always survives
+          // when a higher-Z zone is drawn over it. Non-zone labels get a
+          // neutral 0 (ties with Z0; source order resolves the rare clash).
+          'symbol-sort-key': [
+            'case',
+            ['==', ['get', 'kind'], 'zone'],
+            ['to-number', ['coalesce', ['get', 'permacultureZone'], 2]],
+            0,
+          ] as never,
         },
         paint: {
           'text-color': '#f2ede3',
@@ -1550,7 +1598,21 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
-      const f = e.features?.[0];
+      // Among overlapping zones, always prefer the lowest permacultureZone
+      // (Z0 wins over Z1, Z1 over Z2, …) so an intensive-use zone drawn
+      // first stays selectable when a less-intensive zone is drawn over it.
+      // Non-zone kinds keep the default "topmost wins" pick.
+      const feats = e.features ?? [];
+      const zoneFeats = feats.filter((ff) => ff.properties?.kind === 'zone');
+      const f =
+        zoneFeats.length > 0
+          ? zoneFeats.reduce((best, cur) =>
+              Number(cur.properties?.permacultureZone ?? 2) <
+              Number(best.properties?.permacultureZone ?? 2)
+                ? cur
+                : best,
+            )
+          : feats[0];
       const k = f?.properties?.kind;
       if (typeof k !== 'string' || !HANDLED.includes(k)) return;
       e.preventDefault();
