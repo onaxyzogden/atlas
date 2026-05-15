@@ -355,3 +355,21 @@ export function parseHardinessZone(zone: string): number {
   const match = zone.match(/^(\d+)/);
   return match?.[1] ? parseInt(match[1], 10) : 6;
 }
+
+// ── Derived axis views (formerly the plantDatabase / plantSpeciesData shims) ──
+
+/** Layering-axis-narrowed view (was plantDatabase.PLANT_DATABASE). */
+export const PLANT_DATABASE: PlantSpecies[] = PLANT_CATALOG.filter(hasLayering);
+
+/** Layering-narrowed lookup by canonical or legacy id (was plantDatabase.findSpecies). */
+export function findSpecies(id: string): PlantSpecies | undefined {
+  const e = findEntry(id);
+  return e && hasLayering(e) ? e : undefined;
+}
+
+/** Site-match-axis-narrowed view (was plantSpeciesData.PLANT_SPECIES). */
+export const PLANT_SPECIES: PlantSpeciesInfo[] = PLANT_CATALOG.filter(hasGrowing);
+
+export const SPECIES_BY_ID: Record<string, PlantSpeciesInfo> = Object.fromEntries(
+  PLANT_SPECIES.map((s) => [s.id, s]),
+);

@@ -11,6 +11,7 @@ import type { ProjectedStructure as Structure, StructureType } from '@ogden/shar
 import type { Paddock } from '../../store/livestockStore.js';
 import type { Utility } from '../../store/utilityStore.js';
 import type { WaterNode } from '../../store/waterSystemsStore.js';
+import { haversineM, polygonCentroid } from '../../lib/geo.js';
 import { bandForWater, nearestWaterSource, type WaterBand } from './waterSource.js';
 
 export const SHADE_STRUCTURES: ReadonlySet<StructureType> = new Set([
@@ -59,43 +60,13 @@ export function worstWelfareBand(...bs: WelfareBand[]): WelfareBand {
   return worst;
 }
 
-function polygonCentroid(geom: GeoJSON.Polygon): { lat: number; lng: number } | null {
-  const ring = geom.coordinates[0];
-  if (!ring || ring.length === 0) return null;
-  let sx = 0;
-  let sy = 0;
-  let n = 0;
-  for (const pt of ring) {
-    if (!pt || pt.length < 2) continue;
-    const lng = pt[0];
-    const lat = pt[1];
-    if (typeof lng !== 'number' || typeof lat !== 'number') continue;
-    sx += lng;
-    sy += lat;
-    n += 1;
-  }
-  if (n === 0) return null;
-  return { lng: sx / n, lat: sy / n };
-}
-
-function distanceM(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-): number {
-  const R = 6371000;
-  const meanLat = ((a.lat + b.lat) / 2) * (Math.PI / 180);
-  const dLat = (b.lat - a.lat) * (Math.PI / 180);
-  const dLng = (b.lng - a.lng) * (Math.PI / 180) * Math.cos(meanLat);
-  return Math.sqrt(dLat * dLat + dLng * dLng) * R;
-}
-
 interface NearestStructureResult {
   distanceM: number | null;
   name: string | null;
 }
 
 function nearestStructureOfTypes(
-  centroid: { lat: number; lng: number },
+  centroid: [number, number],
   structures: Structure[],
   allowed: ReadonlySet<StructureType>,
 ): NearestStructureResult {
@@ -105,7 +76,7 @@ function nearestStructureOfTypes(
     const lng = st.center[0];
     const lat = st.center[1];
     if (typeof lng !== 'number' || typeof lat !== 'number') continue;
-    const d = distanceM(centroid, { lat, lng });
+    const d = haversineM(centroid, [lng, lat]);
     if (best.distanceM == null || d < best.distanceM) {
       best = { distanceM: d, name: st.name || st.type };
     }
@@ -121,8 +92,8 @@ export function evaluatePaddockWelfare(
   structures: Structure[],
   waterNodes: WaterNode[] = [],
 ): PaddockWelfareEval {
-  const centroid = polygonCentroid(paddock.geometry);
-  if (!centroid) {
+  const centroidTuple = polygonCentroid(paddock.geometry);
+  if (!centroidTuple) {
     return {
       paddock,
       shade: { axis: 'shade', band: 'missing', distanceM: null, nearestName: null },
@@ -132,9 +103,10 @@ export function evaluatePaddockWelfare(
       centroid: null,
     };
   }
-  const shadeNearest = nearestStructureOfTypes(centroid, structures, SHADE_STRUCTURES);
-  const shelterNearest = nearestStructureOfTypes(centroid, structures, SHELTER_STRUCTURES);
-  const waterNearest = nearestWaterSource(centroid, utilities, structures, waterNodes);
+  const centroidObj = { lng: centroidTuple[0], lat: centroidTuple[1] };
+  const shadeNearest = nearestStructureOfTypes(centroidTuple, structures, SHADE_STRUCTURES);
+  const shelterNearest = nearestStructureOfTypes(centroidTuple, structures, SHELTER_STRUCTURES);
+  const waterNearest = nearestWaterSource(centroidObj, utilities, structures, waterNodes);
   const shade: AxisFinding = {
     axis: 'shade',
     band: bandForWater(shadeNearest.distanceM),
@@ -159,7 +131,7 @@ export function evaluatePaddockWelfare(
     shelter,
     water,
     worst: worstWelfareBand(shade.band, shelter.band, water.band),
-    centroid,
+    centroid: centroidObj,
   };
 }
 

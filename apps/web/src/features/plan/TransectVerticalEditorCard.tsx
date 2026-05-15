@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TransectVerticalEditorCard — PLAN Module 6.
  *
  * Pick a saved transect and pin vertical elements at metric distances along
@@ -26,7 +26,7 @@ import { usePolycultureStore, type Guild, type SpeciesPick } from '../../store/p
 import { useClosedLoopStore, type FertilityInfra } from '../../store/closedLoopStore.js';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
-import { PLANT_DATABASE } from '../../data/plantDatabase.js';
+import { PLANT_DATABASE } from '../../data/plantCatalog.js';
 import {
   newAnnotationId,
   type Transect,

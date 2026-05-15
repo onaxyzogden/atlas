@@ -34,6 +34,10 @@ import {
 import { useUtilityConflictStore } from '../../draw/utilityConflictStore.js';
 import { usePlanView } from '../../PlanViewContext.js';
 import { useContinuousPointDrawTool } from './useContinuousPointDrawTool.js';
+import {
+  autoLinkSilvopastureForPolygon,
+  autoLinkSilvopastureForPoint,
+} from '../../../../features/agroforestry/autoLinkSilvopasture.js';
 
 interface Args {
   map: MaplibreMap;
@@ -254,6 +258,22 @@ export function useDesignElementDrawTool({
         ? checkUtilityConflicts(geom, projectId)
         : [];
 
+      // Auto-link orchard design elements to a containing silvopasture host.
+      // Polygons use intersects; points use point-in-polygon.
+      let silvopastureId: string | undefined;
+      if (kind === 'orchard') {
+        if (geom.type === 'Polygon') {
+          silvopastureId =
+            autoLinkSilvopastureForPolygon(projectId, geom) ?? undefined;
+        } else if (geom.type === 'Point') {
+          silvopastureId =
+            autoLinkSilvopastureForPoint(
+              projectId,
+              geom.coordinates as [number, number],
+            ) ?? undefined;
+        }
+      }
+
       const persist = (extras: {
         utilityConflicts?: { id: string; kind: string }[];
         utilityAcknowledgment?: string;
@@ -268,6 +288,7 @@ export function useDesignElementDrawTool({
           acreage,
           createdAt: new Date().toISOString(),
           view: currentView,
+          ...(silvopastureId ? { silvopastureId } : {}),
           ...extras,
         });
         onComplete?.();

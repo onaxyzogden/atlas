@@ -40,3 +40,31 @@ export function haversineM(a: [number, number], b: [number, number]): number {
 export function haversineKm(a: [number, number], b: [number, number]): number {
   return haversineM(a, b) / 1000;
 }
+
+/**
+ * Naïve vertex-average centroid of the first ring of a polygon —
+ * the closing-vertex repeat biases the result by sub-metre amounts at
+ * parcel scale, below other sources of noise. Returns `null` when the
+ * ring is empty or contains no valid `[lng, lat]` vertices.
+ *
+ * Returned as `[lng, lat]` to match GeoJSON / `Structure.center` /
+ * `Utility.center` conventions.
+ */
+export function polygonCentroid(geom: GeoJSON.Polygon): [number, number] | null {
+  const ring = geom.coordinates[0];
+  if (!ring || ring.length === 0) return null;
+  let sx = 0;
+  let sy = 0;
+  let n = 0;
+  for (const pt of ring) {
+    if (!pt || pt.length < 2) continue;
+    const lng = pt[0];
+    const lat = pt[1];
+    if (typeof lng !== 'number' || typeof lat !== 'number') continue;
+    sx += lng;
+    sy += lat;
+    n += 1;
+  }
+  if (n === 0) return null;
+  return [sx / n, sy / n];
+}

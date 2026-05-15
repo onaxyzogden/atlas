@@ -24,6 +24,7 @@ import { useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
+import SilvopasturePopover from '../../../features/agroforestry/SilvopasturePopover.js';
 import {
   AdoptedBuildingsSync,
   DesignElementExtrusionLayer,
@@ -157,6 +158,7 @@ export default function VisionLayoutCanvas({
           />
           <BaseMapCard stage="plan" />
           <CustomModelPalette />
+          <SilvopasturePopover projectId={projectId} />
           <MapToolbar
             map={map}
             projectId={projectId}

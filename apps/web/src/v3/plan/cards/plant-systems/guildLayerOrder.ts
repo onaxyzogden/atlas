@@ -1,5 +1,5 @@
-import type { GuildLayer } from '../../../../store/site-annotations.js';
-import type { EcologicalFunction } from '../../../../data/plantDatabase.js';
+﻿import type { GuildLayer } from '../../../../store/site-annotations.js';
+import type { EcologicalFunction } from '../../../../data/plantCatalog.js';
 
 export const LAYER_ORDER: GuildLayer[] = [
   'canopy',

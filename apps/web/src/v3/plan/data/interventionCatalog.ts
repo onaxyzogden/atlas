@@ -52,6 +52,14 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'keyline-access-track',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['access', 'food_production', 'livestock'],
+      avoidedCategories: ['habitation', 'spiritual', 'commons', 'conservation'],
+      permacultureRingRange: [2, 4],
+    },
+    geometryTemplate: 'contour-line',
+    // — / —
     name: 'Keyline-graded access track',
     description:
       'Primary vehicular track sited along keyline contour. Sheds water ' +
@@ -96,6 +104,14 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'swale-system',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['food_production', 'conservation', 'water_retention', 'livestock'],
+      avoidedCategories: ['habitation', 'spiritual', 'infrastructure'],
+      permacultureRingRange: [2, 5],
+    },
+    geometryTemplate: 'contour-line',
+    // — / —
     name: 'Contour swale system',
     description:
       'Level-bottom infiltration ditches on contour spaced at 1.5-3× the ' +
@@ -144,6 +160,15 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'earthen-pond',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['water_retention', 'conservation'],
+      preferredGroundCover: ['wetland', 'bare-soil', 'sparse-grasses'],
+      avoidedCategories: ['habitation', 'spiritual', 'infrastructure', 'access'],
+      permacultureRingRange: [2, 5],
+    },
+    geometryTemplate: 'fill-polygon',
+    // — / —
     name: 'Earthen pond (keyline-sited)',
     description:
       'Clay-lined or gleyed earthen reservoir at a keypoint, fed by ' +
@@ -193,6 +218,13 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'roof-catchment-tanks',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['habitation', 'infrastructure'],
+      permacultureRingRange: [0, 1],
+    },
+    geometryTemplate: 'centroid-point',
+    // — / —
     name: 'Roof catchment + storage tanks',
     description:
       'Gutter-fed first-flush diverters into food-grade poly tanks ' +
@@ -229,6 +261,15 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'cover-crop-rebuild',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['food_production', 'livestock'],
+      preferredGroundCover: ['bare-soil', 'barren', 'sparse-grasses'],
+      preferredSuccession: ['bare', 'pioneer'],
+      avoidedCategories: ['habitation', 'spiritual', 'infrastructure', 'conservation'],
+    },
+    geometryTemplate: 'fill-polygon',
+    // — / —
     name: 'Cover-crop soil rebuild rotation',
     description:
       'Multi-species cover-crop sequence (legume + brassica + grass) for ' +
@@ -274,6 +315,13 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'compost-system',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['infrastructure', 'food_production'],
+      permacultureRingRange: [1, 2],
+    },
+    geometryTemplate: 'centroid-point',
+    // — / —
     name: 'On-site composting system',
     description:
       'Three-bay hot-compost system + worm-castings shed. Processes ' +
@@ -309,6 +357,15 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'kitchen-garden',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['food_production', 'habitation'],
+      preferredGroundCover: ['bare-soil', 'sparse-grasses', 'thriving-grasses'],
+      avoidedCategories: ['conservation', 'water_retention', 'spiritual'],
+      permacultureRingRange: [1, 1],
+    },
+    geometryTemplate: 'bbox-rect',
+    // — / —
     name: 'Intensive kitchen garden (Zone 1)',
     description:
       'Bio-intensive market-style beds within 30 m of the kitchen door. ' +
@@ -358,6 +415,16 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'food-forest',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['food_production', 'commons'],
+      preferredSuccession: ['pioneer', 'mid'],
+      preferredGroundCover: ['bare-soil', 'sparse-grasses', 'thriving-grasses'],
+      avoidedCategories: ['habitation', 'spiritual', 'infrastructure', 'water_retention'],
+      permacultureRingRange: [2, 3],
+    },
+    geometryTemplate: 'fill-polygon',
+    // — / —
     name: 'Seven-layer food forest (Zone 2)',
     description:
       'Multi-layer perennial polyculture: canopy nut/fruit, sub-canopy ' +
@@ -412,6 +479,14 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'poultry-coop',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['livestock', 'food_production'],
+      avoidedCategories: ['habitation', 'spiritual', 'conservation'],
+      permacultureRingRange: [2, 2],
+    },
+    geometryTemplate: 'centroid-point',
+    // — / —
     name: 'Pastured poultry (laying flock)',
     description:
       'Mobile coop + electric netting for a 25-bird laying flock rotated ' +
@@ -454,6 +529,16 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'small-ruminant-paddock',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['livestock'],
+      preferredGroundCover: ['thriving-grasses', 'sparse-grasses'],
+      preferredSuccession: ['pioneer', 'mid'],
+      avoidedCategories: ['conservation', 'habitation', 'spiritual', 'water_retention'],
+      permacultureRingRange: [3, 4],
+    },
+    geometryTemplate: 'tile-strip',
+    // — / —
     name: 'Adaptive multi-paddock small ruminants',
     description:
       'Sheep or goats on planned rotational grazing across 8-12 paddocks ' +
@@ -509,6 +594,12 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'permanent-perimeter-fence',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['livestock'],
+    },
+    geometryTemplate: 'edge-line',
+    // — / —
     name: 'Permanent perimeter fence',
     description:
       'Sound, livestock-grade perimeter (high-tensile woven wire or 5-strand ' +
@@ -543,6 +634,16 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'cattle-rotational-grazing',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['livestock'],
+      preferredGroundCover: ['thriving-grasses', 'sparse-grasses'],
+      preferredSuccession: ['mid', 'pioneer'],
+      avoidedCategories: ['conservation', 'habitation', 'spiritual', 'water_retention'],
+      permacultureRingRange: [3, 4],
+    },
+    geometryTemplate: 'tile-strip',
+    // — / —
     name: 'Adaptive multi-paddock cattle grazing',
     description:
       'AMP grazing for a starter cattle herd across 10+ paddocks with mobile ' +
@@ -594,6 +695,12 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'paddock-water-network',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['livestock'],
+    },
+    geometryTemplate: 'centroid-point',
+    // — / —
     name: 'Paddock water network',
     description:
       'Tanks, buried supply lines, and portable troughs sized so every paddock ' +
@@ -631,6 +738,12 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'livestock-shelter-windbreak',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['livestock', 'buffer'],
+    },
+    geometryTemplate: 'edge-line',
+    // — / —
     name: 'Livestock shelter & windbreak',
     description:
       'Multi-row shelterbelt on prevailing-wind edges plus portable shade ' +
@@ -669,6 +782,15 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'pasture-renovation-overseed',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['livestock'],
+      preferredGroundCover: ['sparse-grasses', 'thriving-grasses', 'bare-soil'],
+      preferredSuccession: ['bare', 'pioneer'],
+      avoidedCategories: ['conservation', 'habitation', 'spiritual'],
+    },
+    geometryTemplate: 'fill-polygon',
+    // — / —
     name: 'Pasture renovation & diverse overseed',
     description:
       'Frost-seed or no-till drill a diverse forage mix (legumes + cool/warm ' +
@@ -706,6 +828,15 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'coppice-woodlot',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['conservation', 'commons', 'buffer', 'food_production'],
+      preferredSuccession: ['pioneer', 'mid'],
+      avoidedCategories: ['habitation', 'spiritual', 'infrastructure', 'water_retention'],
+      permacultureRingRange: [3, 5],
+    },
+    geometryTemplate: 'fill-polygon',
+    // — / —
     name: 'Coppice + woodlot for cordwood & timber',
     description:
       'Mixed-species coppice block (willow / black locust / hazel) on a ' +
@@ -754,6 +885,13 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'solar-pv',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['habitation', 'infrastructure'],
+      permacultureRingRange: [0, 1],
+    },
+    geometryTemplate: 'centroid-point',
+    // — / —
     name: 'Rooftop solar PV array',
     description:
       'Grid-tied or hybrid PV array sized for household plus pumping. ' +
@@ -788,6 +926,16 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'orchard-block',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['food_production'],
+      preferredSuccession: ['pioneer', 'mid'],
+      preferredGroundCover: ['bare-soil', 'sparse-grasses', 'thriving-grasses'],
+      avoidedCategories: ['habitation', 'spiritual', 'infrastructure', 'water_retention', 'conservation'],
+      permacultureRingRange: [2, 3],
+    },
+    geometryTemplate: 'bbox-rect',
+    // — / —
     name: 'Standard orchard block',
     description:
       'Semi-dwarf apple / pear / stone fruit on grass alley. ' +
@@ -833,6 +981,13 @@ export const INTERVENTION_CATALOG: Intervention[] = [
 
   {
     id: 'value-add-kitchen',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['habitation', 'infrastructure'],
+      permacultureRingRange: [0, 1],
+    },
+    geometryTemplate: 'centroid-point',
+    // — / —
     name: 'Farm-kitchen value-add (canning / drying / fermenting)',
     description:
       'Licensed cottage-kitchen retrofit in an outbuilding for shelf-stable ' +

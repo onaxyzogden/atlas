@@ -6,6 +6,11 @@
  */
 
 import type { PhaseKey } from '../types.js';
+import type {
+  GroundCoverState,
+  SuccessionStage,
+  ZoneCategory,
+} from '../../../store/zoneStore.js';
 
 export type CitationKind = 'book' | 'standard' | 'journal' | 'practice-guide';
 
@@ -89,6 +94,66 @@ export type InterventionCategory =
   | 'structures'
   | 'access';
 
+/**
+ * GeometryTemplate — how the auto-design pipeline's stamper turns an
+ * acreage allocation into concrete map geometry within a target zone.
+ *
+ *   tile-strip      Equal-area strips along the zone's longest edge
+ *                   (paddocks, annual beds, AMP cattle cells).
+ *   contour-line    One or more contour-following lines clipped to the
+ *                   zone (swales, keyline tracks).
+ *   edge-line       A line traced along the zone perimeter (perimeter
+ *                   fencing, windward shelterbelt).
+ *   bbox-rect       A rectangle inscribed inside the zone (orchards laid
+ *                   out in clean rows; structure footprints).
+ *   centroid-point  A single point at the zone centroid (one-off
+ *                   structures: coop, compost bay, tank, value-add
+ *                   kitchen, solar inverter).
+ *   fill-polygon    The intervention occupies the whole zone polygon
+ *                   (food forest, cover-crop rebuild, coppice block,
+ *                   pasture renovation, pond placed at low point).
+ *
+ * Stampers are dispatched in `engine/autoDesign/stampGeometry.ts`.
+ * Spec: wiki/decisions/2026-05-14-auto-design-pipeline.md.
+ */
+export type GeometryTemplate =
+  | 'tile-strip'
+  | 'contour-line'
+  | 'edge-line'
+  | 'bbox-rect'
+  | 'centroid-point'
+  | 'fill-polygon';
+
+/**
+ * ZoneAffinity — declarative rules the zone-allocator uses to pick which
+ * zones an intervention is allowed (and preferred) to land in. Every field
+ * is optional; an empty affinity means the intervention is happy in any
+ * zone. The allocator scores each candidate zone by how many `preferred*`
+ * lists it matches; ties broken by zone area (largest first).
+ *
+ *   preferredCategories     Zone.category values this intervention likes.
+ *   preferredSuccession     Zone.successionStage values this intervention
+ *                           likes (e.g. orchard prefers `pioneer`/`mid`).
+ *   preferredGroundCover    Zone.groundCover values this intervention
+ *                           likes (e.g. cover-crop rebuild prefers
+ *                           `bare-soil`; livestock prefers
+ *                           `thriving-grasses`).
+ *   permacultureRingRange   Inclusive [min, max] ring band — restricts
+ *                           placement to zones whose `permacultureZone`
+ *                           falls in [min, max]. Z0=home, Z5=wild.
+ *   avoidedCategories       Hard veto. Allocator skips zones in this set
+ *                           even if no `preferred*` field would match.
+ *
+ * Spec: wiki/decisions/2026-05-14-auto-design-pipeline.md.
+ */
+export interface ZoneAffinity {
+  preferredCategories?: ZoneCategory[];
+  preferredSuccession?: SuccessionStage[];
+  preferredGroundCover?: GroundCoverState[];
+  permacultureRingRange?: [0 | 1 | 2 | 3 | 4 | 5, 0 | 1 | 2 | 3 | 4 | 5];
+  avoidedCategories?: ZoneCategory[];
+}
+
 export interface Intervention {
   id: string;
   name: string;
@@ -111,6 +176,18 @@ export interface Intervention {
   };
   seasonConstraints?: ('spring' | 'summer' | 'fall' | 'winter')[];
   designLayer?: 'earthworks' | 'water' | 'vegetation' | 'structures';
+  /**
+   * Where this intervention prefers to land. Read by the auto-design
+   * pipeline's `zoneAllocator`. Optional — undefined = no zone preference,
+   * allocator falls back to free placement inside the parcel boundary.
+   */
+  zoneAffinity?: ZoneAffinity;
+  /**
+   * How the auto-design pipeline's stamper draws this intervention into
+   * its allocated zone. Optional — undefined skips geometry emission for
+   * this intervention (the task still schedules to the Act calendar).
+   */
+  geometryTemplate?: GeometryTemplate;
   sources: Citation[];
   region?: CostRegion;
 }

@@ -376,10 +376,25 @@ function projectV2StructureDesignElements(
   }));
 }
 
-export function getDesignElementsForProject(projectId: string): DesignElement[] {
+// Auto-Design draft plumbing (ADR 2026-05-14): `runAutoDesign` writes
+// `draft: true` elements into landDesignStore awaiting steward review.
+// Normal consumers (acreage rollups, audits, exports) must NOT count
+// drafts — so both selectors exclude them by default. The canvas layer
+// (`DesignElementLayers`) opts in via `includeDrafts: true` to render
+// them dashed/translucent. V2 structure projections never carry `draft`,
+// so only the land list needs filtering.
+function excludeDrafts(list: DesignElement[]): DesignElement[] {
+  return list.some((e) => e.draft) ? list.filter((e) => !e.draft) : list;
+}
+
+export function getDesignElementsForProject(
+  projectId: string,
+  opts?: { includeDrafts?: boolean },
+): DesignElement[] {
   const entities = useBuiltEnvironmentStoreV2.getState().entities;
   const v2 = projectV2StructureDesignElements(entities, projectId);
-  const land = useLandDesignStore.getState().byProject[projectId] ?? [];
+  const rawLand = useLandDesignStore.getState().byProject[projectId] ?? [];
+  const land = opts?.includeDrafts ? rawLand : excludeDrafts(rawLand);
   if (v2.length === 0) return land;
   if (land.length === 0) return v2;
   return [...land, ...v2];
@@ -387,17 +402,20 @@ export function getDesignElementsForProject(projectId: string): DesignElement[] 
 
 export function useDesignElementsForProject(
   projectId: string,
+  opts?: { includeDrafts?: boolean },
 ): DesignElement[] {
   const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
-  const land = useLandDesignStore(
+  const rawLand = useLandDesignStore(
     (s) => s.byProject[projectId] ?? EMPTY_DESIGN_ELEMENTS,
   );
+  const includeDrafts = opts?.includeDrafts ?? false;
   return useMemo(() => {
+    const land = includeDrafts ? rawLand : excludeDrafts(rawLand);
     const v2 = projectV2StructureDesignElements(entities, projectId);
     if (v2.length === 0) return land;
     if (land.length === 0) return v2;
     return [...land, ...v2];
-  }, [entities, land, projectId]);
+  }, [entities, rawLand, projectId, includeDrafts]);
 }
 
 // ─────────────────────────────────────────────────────────────────────────

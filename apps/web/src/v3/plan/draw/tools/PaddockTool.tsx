@@ -34,6 +34,7 @@ import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { autoLinkSilvopastureForPolygon } from '../../../../features/agroforestry/autoLinkSilvopasture.js';
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
@@ -103,6 +104,8 @@ export default function PaddockTool({ map, projectId }: Props) {
       const now = new Date().toISOString();
       const species: LivestockSpecies = 'sheep';
 
+      const silvopastureId = autoLinkSilvopastureForPolygon(projectId, geom) ?? undefined;
+
       addPaddock({
         id,
         projectId,
@@ -119,6 +122,7 @@ export default function PaddockTool({ map, projectId }: Props) {
         shelterNote: '',
         phase: phaseDefault,
         notes: '',
+        ...(silvopastureId ? { silvopastureId } : {}),
         createdAt: now,
         updatedAt: now,
       });

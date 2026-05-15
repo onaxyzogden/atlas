@@ -1,4 +1,4 @@
-/**
+﻿/**
  * FertilityColocationCard — Plan Module 6 (Soil & Fertility), readout.
  *
  * Closed-loop proximity check. Permaculture short-loop discipline:
@@ -50,7 +50,7 @@ import {
   type FertilityInfra,
   type FertilityInfraType,
 } from '../../../../store/closedLoopStore.js';
-import { findSpecies } from '../../../../data/plantDatabase.js';
+import { findSpecies } from '../../../../data/plantCatalog.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import { haversineM } from '../../../../lib/geo.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';

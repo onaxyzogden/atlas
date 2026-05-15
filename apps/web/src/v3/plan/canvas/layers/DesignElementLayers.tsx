@@ -58,7 +58,11 @@ export default function DesignElementLayers({
   onHoverChange,
   onSelect,
 }: Props) {
-  const elements = useDesignElementsForProject(projectId);
+  // Opt into draft rows so the generated-design review layer renders;
+  // every other consumer excludes drafts by default (ADR 2026-05-14).
+  const elements = useDesignElementsForProject(projectId, {
+    includeDrafts: true,
+  });
   // Yeomans cap is now derived from the year scrubber's currentYear
   // (replaces the retired `phase-1` / `phase-2` view tabs, 2026-05-14).
   // Also drives the per-vegetation canopy scaling effect below.
@@ -110,6 +114,7 @@ export default function DesignElementLayers({
             : (el.label ?? spec?.label ?? el.kind),
         originView,
         editable,
+        draft: el.draft === true,
       };
       const hasConflict =
         Array.isArray(el.utilityConflicts) && el.utilityConflicts.length > 0;
@@ -242,6 +247,14 @@ export default function DesignElementLayers({
 
       const selFlag: ExpressionSpecification = ['boolean', ['feature-state', 'selected'], false];
       const SEL_GOLD = '#c4a265';
+      // Auto-Design drafts (ADR 2026-05-14) read dashed + extra-translucent
+      // so the steward can tell generated-but-unreviewed geometry apart
+      // from committed design at a glance.
+      const draftFlag: ExpressionSpecification = [
+        'boolean',
+        ['get', 'draft'],
+        false,
+      ];
 
       ensureLayer({
         id: `${LAYER_PREFIX}poly-fill`,
@@ -249,7 +262,14 @@ export default function DesignElementLayers({
         source: polySid,
         paint: {
           'fill-color': ['get', 'color'],
-          'fill-opacity': ['case', selFlag, 0.55, 0.28],
+          'fill-opacity': [
+            'case',
+            selFlag,
+            0.55,
+            draftFlag,
+            0.14,
+            0.28,
+          ],
         },
       });
       ensureLayer({
@@ -259,7 +279,23 @@ export default function DesignElementLayers({
         paint: {
           'line-color': ['case', selFlag, SEL_GOLD, ['get', 'color']],
           'line-width': ['case', selFlag, 3, 1.5],
-          'line-opacity': 0.9,
+          'line-opacity': ['case', draftFlag, 0.65, 0.9],
+        },
+      });
+      // Draft-only dashed overlay on polygon edges. `line-dasharray` is
+      // not a data-driven property in MapLibre, so the dash can't be a
+      // `get`-expression on the shared layer — instead a separate layer
+      // statically dashed and filtered to draft features carries it.
+      ensureLayer({
+        id: `${LAYER_PREFIX}poly-line-draft`,
+        type: 'line',
+        source: polySid,
+        filter: ['==', ['get', 'draft'], true],
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 1.5,
+          'line-opacity': 0.85,
+          'line-dasharray': [2, 2],
         },
       });
       ensureLayer({
@@ -269,7 +305,7 @@ export default function DesignElementLayers({
         paint: {
           'line-color': ['case', selFlag, SEL_GOLD, ['get', 'color']],
           'line-width': ['case', selFlag, 4, 2],
-          'line-opacity': 0.9,
+          'line-opacity': ['case', draftFlag, 0.65, 0.9],
           'line-dasharray': [2, 1],
         },
       });

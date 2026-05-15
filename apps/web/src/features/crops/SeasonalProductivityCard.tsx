@@ -1,4 +1,4 @@
-/**
+﻿/**
  * §12 SeasonalProductivityCard — 12-month productivity strip per crop area.
  *
  * Heuristic — no harvest months exist in the species catalog. Each
@@ -16,7 +16,7 @@ import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
-import { SPECIES_BY_ID } from '../planting/plantSpeciesData.js';
+import { SPECIES_BY_ID } from '../../data/plantCatalog.js';
 import css from './SeasonalProductivityCard.module.css';
 
 // ── Heuristic monthly-productivity vectors (Northern Hemisphere) ───────────

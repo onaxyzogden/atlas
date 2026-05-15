@@ -1,4 +1,4 @@
-/**
+﻿/**
  * plantingAnalysis — pure-function analysis module for Planting Tool dashboard.
  *
  * Filters species by site conditions, computes frost-safe planting windows,
@@ -10,7 +10,7 @@ import {
   SPECIES_BY_ID,
   parseHardinessZone,
   type PlantSpeciesInfo,
-} from './plantSpeciesData.js';
+} from '../../data/plantCatalog.js';
 import type { CropArea } from '../../store/cropStore.js';
 
 /* ================================================================== */

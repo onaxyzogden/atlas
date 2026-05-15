@@ -32,6 +32,7 @@ import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { autoLinkSilvopastureForPolygon } from '../../../../features/agroforestry/autoLinkSilvopasture.js';
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
 import DimensionPanel from '../DimensionPanel.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
@@ -98,6 +99,7 @@ export default function CropAreaTool({ map, projectId }: Props) {
       const anchor = turf.centroid(geom).geometry.coordinates as [number, number];
       const now = new Date().toISOString();
       const type: CropAreaType = 'orchard';
+      const silvopastureId = autoLinkSilvopastureForPolygon(projectId, geom) ?? undefined;
 
       addCropArea({
         id,
@@ -114,6 +116,7 @@ export default function CropAreaTool({ map, projectId }: Props) {
         irrigationType: 'rain_fed',
         phase: phaseDefault,
         notes: '',
+        ...(silvopastureId ? { silvopastureId } : {}),
         createdAt: now,
         updatedAt: now,
       });
@@ -170,6 +173,7 @@ export default function CropAreaTool({ map, projectId }: Props) {
               | 'none',
             phase: String(values.phase ?? ''),
             enterprise: String(values.enterprise ?? '') || undefined,
+            ...(t !== 'orchard' ? { silvopastureId: undefined } : {}),
           });
         },
         onCancel: () => deleteCropArea(id),

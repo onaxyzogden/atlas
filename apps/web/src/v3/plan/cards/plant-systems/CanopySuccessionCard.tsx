@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CanopySuccessionCard — Plan Module 4, fresh build per Permaculture
  * Scholar verdict (2026-05-07).
  *
@@ -42,7 +42,7 @@
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
-import { findSpecies, type CanopyLayer } from '../../../../data/plantDatabase.js';
+import { findSpecies, type CanopyLayer } from '../../../../data/plantCatalog.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 

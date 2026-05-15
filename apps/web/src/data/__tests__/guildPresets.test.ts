@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import {
   GUILD_PRESETS,
   resolveValidPresets,
   findGuildPreset,
 } from '../guildPresets.js';
-import { PLANT_DATABASE } from '../plantDatabase.js';
+import { PLANT_DATABASE } from '../plantCatalog.js';
 
 describe('guildPresets', () => {
   it('ships at least four starter presets', () => {

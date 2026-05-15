@@ -1,4 +1,4 @@
-/**
+﻿/**
  * inlineEditSchemas — per-kind builders that produce an `InlineFormPayload`
  * (minus the anchor) for editing a placed Plan-stage feature.
  *
@@ -55,7 +55,7 @@ import {
 } from '../../../store/closedLoopStore.js';
 import { type Guild } from '../../../store/polycultureStore.js';
 import { resolveValidPresets, findGuildPreset } from '../../../data/guildPresets.js';
-import { PLANT_DATABASE } from '../../../data/plantDatabase.js';
+import { PLANT_DATABASE } from '../../../data/plantCatalog.js';
 import {
   type CatchmentSurface,
   type StorageNodeKind,

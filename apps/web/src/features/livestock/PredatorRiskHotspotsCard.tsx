@@ -30,6 +30,8 @@ import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import { computePredatorRisk } from './livestockAnalysis.js';
+import { haversineM, polygonCentroid } from '../../lib/geo.js';
+import { SHELTER_MAX_M } from './constants.js';
 import s from './PredatorRiskHotspotsCard.module.css';
 
 interface PredatorRiskHotspotsCardProps {
@@ -129,22 +131,10 @@ function polygonPerimeter(geom: GeoJSON.Polygon): number {
   return total;
 }
 
-function paddockCentroid(geom: GeoJSON.Polygon): [number, number] {
-  const ring = geom.coordinates[0];
-  if (!ring || ring.length === 0) return [0, 0];
-  let sx = 0, sy = 0;
-  for (const c of ring) { sx += (c[0] ?? 0); sy += (c[1] ?? 0); }
-  return [sx / ring.length, sy / ring.length];
-}
-
-function distanceM(a: [number, number], b: [number, number]): number {
-  const lat0 = (a[1] + b[1]) / 2;
-  const dx = (a[0] - b[0]) * 111_320 * Math.cos((lat0 * Math.PI) / 180);
-  const dy = (a[1] - b[1]) * 110_540;
-  return Math.sqrt(dx * dx + dy * dy);
-}
-
-function shelterStructures(structures: Structure[]): Structure[] {
+// Broader shelter set than welfarePass's `SHELTER_STRUCTURES` on purpose —
+// predator-risk treats a pavilion as adequate night-time refuge, the
+// welfare-access audit does not (animal_shelter + barn only).
+function predatorShelterStructures(structures: Structure[]): Structure[] {
   return structures.filter(
     (st) => st.type === 'animal_shelter' || st.type === 'barn' || st.type === 'pavilion',
   );
@@ -152,10 +142,11 @@ function shelterStructures(structures: Structure[]): Structure[] {
 
 function nearestShelterDistanceM(p: Paddock, shelters: Structure[]): number | null {
   if (shelters.length === 0) return null;
-  const c = paddockCentroid(p.geometry);
+  const c = polygonCentroid(p.geometry);
+  if (!c) return null;
   let best = Infinity;
   for (const sh of shelters) {
-    const d = distanceM(c, sh.center);
+    const d = haversineM(c, sh.center);
     if (d < best) best = d;
   }
   return best;
@@ -171,7 +162,7 @@ export default function PredatorRiskHotspotsCard({ projectId }: PredatorRiskHots
 
   const analysis = useMemo<PaddockRisk[]>(() => {
     if (paddocks.length === 0) return [];
-    const shelters = shelterStructures(structures);
+    const shelters = predatorShelterStructures(structures);
 
     return paddocks.map((p) => {
       const baseline = computePredatorRisk(p, zones, canopyPct);
@@ -235,11 +226,11 @@ export default function PredatorRiskHotspotsCard({ projectId }: PredatorRiskHots
         if (maxVuln >= 2) {
           band = bumpBand(band, +1);
           drivers.push('No animal shelter / barn / pavilion placed yet');
-          mitigations.push('Place an animal shelter or barn within 300 m for night-time refuge');
+          mitigations.push(`Place an animal shelter or barn within ${SHELTER_MAX_M} m for night-time refuge`);
         }
-      } else if (shelterDist > 300 && maxVuln >= 2) {
+      } else if (shelterDist > SHELTER_MAX_M && maxVuln >= 2) {
         band = bumpBand(band, +1);
-        drivers.push(`Nearest shelter is ${Math.round(shelterDist)} m away — outside the 300 m welfare guideline`);
+        drivers.push(`Nearest shelter is ${Math.round(shelterDist)} m away — outside the ${SHELTER_MAX_M} m welfare guideline`);
         mitigations.push('Move animals closer to existing shelter or place a satellite night pen');
       }
 

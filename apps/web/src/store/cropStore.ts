@@ -47,6 +47,13 @@ export interface CropArea {
    * crop area belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
+  /**
+   * Optional encoded host id (`<source>:<rawId>`, see
+   * `features/agroforestry/silvopastureHosts.ts`) pinning this crop
+   * area to a specific silvopasture host. Used only when
+   * `type === 'orchard'`; ignored on other types.
+   */
+  silvopastureId?: string;
   createdAt: string;
   updatedAt: string;
 }

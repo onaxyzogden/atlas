@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PlantEstablishmentSequenceCard — Plan Module 4 (Plant Systems), readout.
  *
  * Closes the loop on `Guild.phase`'s docstring promise: "Lets the
@@ -39,7 +39,7 @@ import {
   type GuildLayer,
 } from '../../../../store/polycultureStore.js';
 import { usePhaseStore, type BuildPhase } from '../../../../store/phaseStore.js';
-import { findSpecies } from '../../../../data/plantDatabase.js';
+import { findSpecies } from '../../../../data/plantCatalog.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 

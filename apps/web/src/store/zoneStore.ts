@@ -57,6 +57,30 @@ export type Seasonality =
   | 'spring_fall'
   | 'temporary';
 
+/**
+ * Ground-cover state — what is physically on the ground in this zone right
+ * now, independent of succession stage or category. Captured by stewards in
+ * Observe so the auto-design pipeline can match interventions to suitable
+ * patches (e.g. orchard-block prefers `bare-soil` or `sparse-grasses`;
+ * livestock prefers `thriving-grasses`; swale-system avoids `wetland` and
+ * `forest`).
+ *
+ * Orthogonal to `successionStage` (which tracks the vegetation community
+ * along the bare→climax gradient) because two zones at "pioneer" can have
+ * very different ground covers (sand vs sparse-grasses vs bare-soil).
+ *
+ * Spec: wiki/decisions/2026-05-14-auto-design-pipeline.md.
+ */
+export type GroundCoverState =
+  | 'barren'
+  | 'bare-soil'
+  | 'sparse-grasses'
+  | 'thriving-grasses'
+  | 'sand'
+  | 'rocky'
+  | 'forest'
+  | 'wetland';
+
 export const INVASIVE_PRESSURE_LABELS: Record<InvasivePressure, string> = {
   none: 'None',
   low: 'Low',
@@ -107,6 +131,33 @@ export const SEASONALITY_COLORS: Record<Seasonality, string> = {
   temporary: '#a87fb8',
 };
 
+export const GROUND_COVER_LABELS: Record<GroundCoverState, string> = {
+  barren: 'Barren / dead',
+  'bare-soil': 'Bare soil',
+  'sparse-grasses': 'Sparse grasses',
+  'thriving-grasses': 'Thriving grasses',
+  sand: 'Sand',
+  rocky: 'Rocky',
+  forest: 'Forest',
+  wetland: 'Wetland',
+};
+
+/**
+ * Earth-tone palette ordered from least → most living matter so the legend
+ * reads as a productivity gradient. Wetland gets a distinct blue; sand a
+ * pale tan; rocky a cool grey.
+ */
+export const GROUND_COVER_COLORS: Record<GroundCoverState, string> = {
+  barren: '#7a6a55',
+  'bare-soil': '#a08561',
+  'sparse-grasses': '#bfa86a',
+  'thriving-grasses': '#6ba47a',
+  sand: '#dccd9a',
+  rocky: '#8a8780',
+  forest: '#3f6b4c',
+  wetland: '#5a87a8',
+};
+
 export const ZONE_CATEGORY_CONFIG: Record<ZoneCategory, { label: string; color: string; icon: string }> = {
   habitation:       { label: 'Habitation',        color: zone.habitation, icon: '🏠' },
   food_production:  { label: 'Food Production',   color: zone.food_production, icon: '🌱' },
@@ -151,6 +202,14 @@ export interface LandZone {
    * Spec: §8 `seasonal-temporary-phased-use-zones`.
    */
   seasonality?: Seasonality | null;
+  /**
+   * Ground-cover state — what is physically on the ground in this zone
+   * right now (barren / bare-soil / sparse-grasses / thriving-grasses /
+   * sand / rocky / forest / wetland). Drives the auto-design pipeline's
+   * zone-affinity matching. Optional; undefined = not yet observed.
+   * Spec: wiki/decisions/2026-05-14-auto-design-pipeline.md.
+   */
+  groundCover?: GroundCoverState | null;
   /**
    * PLAN-stage Module 3 — Holmgren / Mollison permaculture zone level
    * (Z0–Z5). Z0 = home, Z1 = daily-touch, …, Z5 = wilderness. Optional;

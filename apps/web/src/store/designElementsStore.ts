@@ -59,4 +59,23 @@ export interface DesignElement {
   view?: PlanView;
   /** Non-Current views in which a `view==='current'` element is hidden. */
   hiddenInViews?: PlanView[];
+  /**
+   * Optional encoded host id (`<source>:<rawId>`, see
+   * `features/agroforestry/silvopastureHosts.ts`) pinning this design
+   * element to a specific silvopasture polygon. Used only when
+   * `kind === 'orchard'`; ignored on other kinds.
+   */
+  silvopastureId?: string;
+  /**
+   * Auto-Design draft plumbing (ADR 2026-05-14). When `true` this element
+   * was emitted by `runAutoDesign` and is awaiting steward review on the
+   * DraftReviewBar — rendered dashed/translucent and excluded from normal
+   * consuming selectors by default. `generationId` links it to one
+   * generation run for cascade accept/discard; `draftClass` is the
+   * feature-class bucket ("livestock" | "water" | "trees" | …) the
+   * DraftReviewBar groups by. Absent on hand-drawn elements.
+   */
+  draft?: boolean;
+  generationId?: string;
+  draftClass?: string;
 }

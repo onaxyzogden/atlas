@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PlantingToolDashboard — species suitability, frost-safe planting windows,
  * placement validation, spacing logic, companion planting, yield estimates.
  *
@@ -21,7 +21,7 @@ import {
   getCompanionNotes,
   computePlantingMetrics,
 } from '../../planting/plantingAnalysis.js';
-import { SPECIES_BY_ID } from '../../planting/plantSpeciesData.js';
+import { SPECIES_BY_ID } from '../../../data/plantCatalog.js';
 import SeasonalProductivityCard from '../../crops/SeasonalProductivityCard.js';
 import CompanionRotationPlannerCard from '../../crops/CompanionRotationPlannerCard.js';
 import AllelopathyWarningCard from '../../crops/AllelopathyWarningCard.js';
@@ -31,6 +31,7 @@ import ClimateShiftScenarioCard from '../../crops/ClimateShiftScenarioCard.js';
 import ShadeSuccessionForecastCard from '../../crops/ShadeSuccessionForecastCard.js';
 import TreeSpacingCalculatorCard from '../../crops/TreeSpacingCalculatorCard.js';
 import AgroforestryPatternAuditCard from '../../crops/AgroforestryPatternAuditCard.js';
+import SilvopastureHostsCard from '../../agroforestry/SilvopastureHostsCard.js';
 import { useClimateMultiplier } from '../../crops/useClimateMultiplier.js';
 import { ClimateAttributionChip } from '../../crops/ClimateAttributionChip.js';
 import css from './PlantingToolDashboard.module.css';
@@ -1978,6 +1979,9 @@ export default function PlantingToolDashboard({ project, onSwitchToMap }: Planti
 
       {/* ── §12 Agroforestry Pattern Audit (windbreak / silvopasture / food-forest / alley) ── */}
       <AgroforestryPatternAuditCard project={project} projectId={project.id} />
+
+      {/* ── Silvopasture hosts — what's inside each silvopasture polygon ── */}
+      <SilvopastureHostsCard projectId={project.id} />
 
       {/* ── §15 Canopy Maturity & Overlap Projection ─────────────── */}
       <CanopyMaturityCard projectId={project.id} />

@@ -58,6 +58,20 @@ export interface Paddock {
    * paddock belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
+  /**
+   * Optional encoded host id (`<source>:<rawId>`, see
+   * `features/agroforestry/silvopastureHosts.ts`) pinning this paddock
+   * to a specific silvopasture polygon. When set, overrides the
+   * spatial-overlap fallback used by `resolveMembers`.
+   */
+  silvopastureId?: string;
+  /**
+   * Auto-Design draft plumbing (ADR 2026-05-14). `draft: true` paddocks
+   * are emitted by `runAutoDesign` and await steward review; `generationId`
+   * links them to one generation run for cascade accept/discard.
+   */
+  draft?: boolean;
+  generationId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -80,6 +94,9 @@ export interface FenceLine {
   mobility: FenceLineMobility;
   /** Optional parent paddock id â€” pure pointer, no schema enforcement. */
   paddockId?: string;
+  /** Auto-Design draft plumbing (ADR 2026-05-14). See `Paddock.draft`. */
+  draft?: boolean;
+  generationId?: string;
   phase: string;
   notes: string;
   createdAt: string;

@@ -81,6 +81,13 @@ export interface Guild {
    * aggregation path as `establishmentCostUSD`.
    */
   establishmentLaborHrs?: number;
+  /**
+   * Optional encoded host id (`<source>:<rawId>`, see
+   * `features/agroforestry/silvopastureHosts.ts`) pinning this guild
+   * to a specific silvopasture polygon. Falls back to spatial overlap
+   * (guild `center` inside host polygon) when unset.
+   */
+  silvopastureId?: string;
   createdAt: string;
 }
 

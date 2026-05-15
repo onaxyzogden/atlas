@@ -8,10 +8,13 @@
  * imperatively and produces a per-facet candidate map that the UI can
  * apply via `setFacet(..., 'observe', observeFieldRef)`.
  *
- * Three facets stay manual because Observe has no source for them:
- *   - currentLandCover
+ * Two facets stay manual because Observe has no source for them:
  *   - primaryLandform
  *   - soilCompaction
+ *
+ * `currentLandCover` is derived from `zoneStore.groundCover` when the
+ * steward has tagged at least one zone — see Phase 1 of the
+ * 2026-05-14-auto-design-pipeline decision.
  */
 
 import { useMemo } from 'react';
@@ -22,6 +25,11 @@ import { useExternalForcesStore } from '../../../../store/externalForcesStore.js
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useSiteProfileStore } from '../../../../store/siteProfileStore.js';
+import {
+  useZoneStore,
+  GROUND_COVER_LABELS,
+  type GroundCoverState,
+} from '../../../../store/zoneStore.js';
 import { transectStats } from '../../../observe/modules/topography/derivations.js';
 import { getClimateLayer } from '../../../observe/modules/macroclimate-hazards/derivations.js';
 import type {
@@ -37,7 +45,8 @@ export type PrefillFacetKey =
   | 'hazards'
   | 'household'
   | 'lastFrostDate'
-  | 'firstFrostDate';
+  | 'firstFrostDate'
+  | 'currentLandCover';
 
 type CandidateValueMap = {
   acres: number;
@@ -48,6 +57,7 @@ type CandidateValueMap = {
   household: Household;
   lastFrostDate: string;
   firstFrostDate: string;
+  currentLandCover: string;
 };
 
 export type ObserveCandidate<K extends PrefillFacetKey> = {
@@ -153,6 +163,31 @@ export function deriveSiteProfileFromObserve(projectId: string): ObservePrefillR
       value: labels,
       observeFieldRef: `externalForcesStore.hazards[projectId=${projectId}]`,
     };
+  }
+
+  // currentLandCover ← dominant zoneStore.groundCover by total areaM2
+  const zones = useZoneStore.getState().zones.filter((z) => z.projectId === projectId);
+  const coveredZones = zones.filter((z) => z.groundCover);
+  if (coveredZones.length) {
+    const areaByCover = new Map<GroundCoverState, number>();
+    for (const z of coveredZones) {
+      const cover = z.groundCover as GroundCoverState;
+      areaByCover.set(cover, (areaByCover.get(cover) ?? 0) + (z.areaM2 ?? 0));
+    }
+    let dominant: GroundCoverState | null = null;
+    let dominantArea = -1;
+    for (const [cover, area] of areaByCover) {
+      if (area > dominantArea) {
+        dominant = cover;
+        dominantArea = area;
+      }
+    }
+    if (dominant) {
+      out.currentLandCover = {
+        value: GROUND_COVER_LABELS[dominant],
+        observeFieldRef: `zoneStore.zones[projectId=${projectId}].groundCover`,
+      };
+    }
   }
 
   // household ← humanContextStore.households (primary)

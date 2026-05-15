@@ -33,7 +33,6 @@ import {
   type FenceType,
   type PastureQuality,
 } from '../../store/livestockStore.js';
-import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import {
@@ -41,6 +40,7 @@ import {
   computeWaterPointDistance,
   PASTURE_QUALITY_MULTIPLIER,
 } from './livestockAnalysis.js';
+import { WATER_STRUCTURES } from './waterSource.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
 import css from './LivestockWelfarePhasingCard.module.css';
 
@@ -67,14 +67,6 @@ const PASTURE_QUALITY_LABEL: Record<PastureQuality, string> = {
   good: 'Good (~2.5 AUE/ha)',
   excellent: 'Excellent (3.7+ AUE/ha)',
 };
-
-/** Water-bearing structure types. Mirrors the welfare-summary filter
- *  in LivestockDashboard so coverage counts agree. */
-const WATER_STRUCTURE_TYPES = new Set<Structure['type']>([
-  'water_pump_house',
-  'well',
-  'water_tank',
-]);
 
 interface SpeciesRow {
   species: LivestockSpecies;
@@ -115,7 +107,7 @@ export default function LivestockWelfarePhasingCard({ projectId }: Props) {
     [allStructures, projectId],
   );
   const waterStructures = useMemo(
-    () => structures.filter((s) => WATER_STRUCTURE_TYPES.has(s.type)),
+    () => structures.filter((s) => WATER_STRUCTURES.has(s.type)),
     [structures],
   );
 

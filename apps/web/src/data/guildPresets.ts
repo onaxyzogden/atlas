@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Guild presets — premade polyculture templates for the Plan-stage GuildTool.
  *
  * Each preset names an anchor species + canonical companion members across the
@@ -24,7 +24,7 @@
  * yet in the plant database.
  */
 
-import { PLANT_DATABASE, findSpecies, type PlantSpecies } from './plantDatabase.js';
+import { PLANT_DATABASE, findSpecies, type PlantSpecies } from './plantCatalog.js';
 import { resolveSpeciesId } from './plantCatalogAliases.js';
 import type { GuildMember } from '../store/polycultureStore.js';
 
