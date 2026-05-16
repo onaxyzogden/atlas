@@ -27,17 +27,14 @@ import * as turf from '@turf/turf';
 import { maplibregl } from '../../../lib/maplibre.js';
 import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
+import { ZONE_RING_BANDS, ringCircle } from './zoneRingConstants.js';
 
 const SOURCE_ID = 'plan-zone-rings-source';
+const CASING_LAYER = 'plan-zone-rings-line-casing';
 const RING_LAYER = 'plan-zone-rings-line';
 const LABEL_LAYER = 'plan-zone-rings-label';
 
-/** [meters, label, color] — Mollison Z1/Z2/Z3 indicative defaults. */
-const RINGS: { radiusM: number; label: string; color: string }[] = [
-  { radiusM: 30,  label: 'Z1 · 30 m',  color: '#c8a85a' },
-  { radiusM: 100, label: 'Z2 · 100 m', color: '#a88a4a' },
-  { radiusM: 500, label: 'Z3 · 500 m', color: '#856a3a' },
-];
+const ALL_LAYERS = [CASING_LAYER, RING_LAYER, LABEL_LAYER] as const;
 
 interface Props {
   map: maplibregl.Map;
@@ -54,15 +51,12 @@ export default function PlanZoneRingsOverlay({ map, projectId }: Props) {
       if (z.projectId !== projectId) continue;
       if (z.permacultureZone !== 0) continue;
       const center = turf.centroid(z.geometry);
-      for (const r of RINGS) {
-        const ring = turf.circle(center, r.radiusM, {
-          steps: 64,
-          units: 'meters',
-        });
+      for (const band of ZONE_RING_BANDS) {
+        const ring = ringCircle(center, band.outerM);
         ring.properties = {
-          radiusM: r.radiusM,
-          label: r.label,
-          color: r.color,
+          radiusM: band.outerM,
+          label: band.label,
+          color: band.color,
           anchorZoneId: z.id,
         };
         features.push(ring);
@@ -81,6 +75,29 @@ export default function PlanZoneRingsOverlay({ map, projectId }: Props) {
       } else {
         src.setData(fc);
       }
+      // White casing under the coloured ring — makes the stroke read on
+      // dark satellite imagery and light/paper basemaps alike. Solid (not
+      // dashed) so it forms a continuous halo behind the dashed colour line.
+      if (!map.getLayer(CASING_LAYER)) {
+        map.addLayer({
+          id: CASING_LAYER,
+          type: 'line',
+          source: SOURCE_ID,
+          paint: {
+            'line-color': '#ffffff',
+            'line-opacity': 0.55,
+            'line-width': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              14,
+              4,
+              19,
+              6,
+            ],
+          },
+        });
+      }
       if (!map.getLayer(RING_LAYER)) {
         map.addLayer({
           id: RING_LAYER,
@@ -88,8 +105,16 @@ export default function PlanZoneRingsOverlay({ map, projectId }: Props) {
           source: SOURCE_ID,
           paint: {
             'line-color': ['get', 'color'],
-            'line-width': 1.5,
-            'line-opacity': 0.65,
+            'line-opacity': 0.95,
+            'line-width': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              14,
+              2,
+              19,
+              4,
+            ],
             'line-dasharray': [4, 3],
           },
         });
@@ -102,19 +127,27 @@ export default function PlanZoneRingsOverlay({ map, projectId }: Props) {
           layout: {
             'symbol-placement': 'line',
             'text-field': ['get', 'label'],
-            'text-size': 10,
+            'text-size': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              14,
+              10,
+              19,
+              13,
+            ],
             'text-keep-upright': true,
-            'text-allow-overlap': false,
-            'text-ignore-placement': false,
+            'text-allow-overlap': true,
+            'text-ignore-placement': true,
           },
           paint: {
             'text-color': ['get', 'color'],
             'text-halo-color': '#f2ede3',
-            'text-halo-width': 1.2,
+            'text-halo-width': 1.8,
           },
         });
       }
-      [RING_LAYER, LABEL_LAYER].forEach((id) => {
+      ALL_LAYERS.forEach((id) => {
         if (map.getLayer(id)) {
           map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
         }

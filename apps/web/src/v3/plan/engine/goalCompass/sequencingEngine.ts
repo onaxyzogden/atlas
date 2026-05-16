@@ -187,6 +187,17 @@ export function runSequencingEngine(
       skipped.push({ intervention: i, reason: 'Site requirements not met' });
       continue;
     }
+    if (
+      i.projectTypes &&
+      i.projectTypes.length > 0 &&
+      !i.projectTypes.includes(goalTree.archetype)
+    ) {
+      skipped.push({
+        intervention: i,
+        reason: `Not authored for project type "${goalTree.archetype}"`,
+      });
+      continue;
+    }
     eligible.push(i);
   }
 

@@ -32,8 +32,10 @@ import {
   Milestone,
   Mountain,
   Recycle,
+  Eraser,
   RotateCw,
   Route,
+  Scissors,
   Snowflake,
   Sprout,
   Square,
@@ -55,6 +57,17 @@ import {
   type MapToolId,
 } from '../observe/components/measure/useMapToolStore.js';
 import { useLayeringLensStore } from '../../store/layeringLensStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
+import * as turf from '@turf/turf';
+import { useZoneStore } from '../../store/zoneStore.js';
+import { ringSeedGenerator } from './engine/zoneGenerators/index.js';
+import type { ZoneGenerator } from './engine/zoneGenerators/types.js';
+import {
+  parcelPolygon,
+  clip,
+  type PolyFeature,
+} from './engine/zoneGenerators/parcelGeometry.js';
+import { toast } from '../../components/Toast.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import {
   PLAN_MODULES,
@@ -183,6 +196,36 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   ],
 };
 
+/**
+ * Zone-generator actions surfaced in the Zone & Circulation rail section.
+ * Unlike `ToolItem`s these don't arm a draw mode — they run a pure
+ * `ZoneGenerator` synchronously and `addZone` the result, so seeding is
+ * reachable from the map (not only the Goal Compass Proposal bar). Adding
+ * a generator (parcel-fill, template, …) is a one-line entry here.
+ */
+interface ZoneGeneratorAction {
+  id: string;
+  label: string;
+  Icon: LucideIcon;
+  generator: ZoneGenerator;
+  /**
+   * When set, the button arms this map tool (steward picks a point first)
+   * instead of running the generator synchronously. The tool builds the
+   * context and runs the generator on click-complete.
+   */
+  armToolId?: MapToolId;
+}
+
+const ZONE_GENERATOR_ACTIONS: ZoneGeneratorAction[] = [
+  {
+    id: 'ring-seed',
+    label: 'Seed zones from rings',
+    Icon: Sprout,
+    generator: ringSeedGenerator,
+    armToolId: 'plan.zone-circulation.zone-seed-anchor',
+  },
+];
+
 interface Props {
   activeModule: PlanModule | null;
   onSelectModule: (mod: PlanModule | null) => void;
@@ -203,6 +246,98 @@ export default function PlanTools({
   const lensMode = useLayeringLensStore((s) => s.mode);
   const setLensEnabled = useLayeringLensStore((s) => s.set);
   const setLensMode = useLayeringLensStore((s) => s.setMode);
+  const projects = useProjectStore((s) => s.projects);
+  const zones = useZoneStore((s) => s.zones);
+  const addZone = useZoneStore((s) => s.addZone);
+  const updateZone = useZoneStore((s) => s.updateZone);
+  const deleteZone = useZoneStore((s) => s.deleteZone);
+  const clearSeededZones = useZoneStore((s) => s.clearSeededZones);
+
+  const project = projectId
+    ? projects.find((p) => p.id === projectId)
+    : undefined;
+  const seededZones = projectId
+    ? zones.filter(
+        (z) => z.projectId === projectId && z.seedProvenance === 'ring-seed',
+      )
+    : [];
+  const hasSeeded = seededZones.length > 0;
+  const hasParcel = !!project?.parcelBoundaryGeojson;
+
+  const runZoneGeneratorAction = (action: ZoneGeneratorAction) => {
+    if (!projectId) return;
+    // Steward-picked-point generators arm a map tool; the tool builds the
+    // context (with anchorPoint) and runs the generator on click.
+    if (action.armToolId) {
+      setActiveTool(action.armToolId);
+      return;
+    }
+    const ctx = {
+      projectId,
+      parcelBoundary: project?.parcelBoundaryGeojson ?? null,
+      existingZones: zones,
+    };
+    const avail = action.generator.canRun(ctx);
+    if (!avail.ok) {
+      toast.warning(avail.reason ?? 'Cannot seed zones yet.');
+      return;
+    }
+    const seeded = action.generator.generate(ctx);
+    seeded.forEach(addZone);
+    if (seeded.length === 0) {
+      toast.info(
+        'No zones seeded — the parcel may already be fully ring-seeded.',
+      );
+    } else {
+      toast.success(
+        `Seeded ${seeded.length} draft zone(s) from the Mollison rings. ` +
+          'Adjust or dismiss them like any drawn zone.',
+      );
+    }
+  };
+
+  const clearSeeded = () => {
+    if (!projectId) return;
+    const removed = clearSeededZones(projectId);
+    if (removed === 0) {
+      toast.info('No seeded zones to clear.');
+    } else {
+      toast.success(`Cleared ${removed} seeded zone(s).`);
+    }
+  };
+
+  const trimSeededToParcel = () => {
+    if (!projectId) return;
+    const parcel = parcelPolygon(project?.parcelBoundaryGeojson ?? null);
+    if (!parcel) {
+      toast.warning('Draw the parcel boundary first to trim against it.');
+      return;
+    }
+    let trimmed = 0;
+    let dropped = 0;
+    for (const z of seededZones) {
+      const zoneFeature = turf.feature(z.geometry) as PolyFeature;
+      const clipped = clip(zoneFeature, parcel);
+      if (!clipped) {
+        deleteZone(z.id);
+        dropped += 1;
+        continue;
+      }
+      updateZone(z.id, {
+        geometry: clipped.geometry,
+        areaM2: turf.area(clipped),
+      });
+      trimmed += 1;
+    }
+    if (trimmed === 0 && dropped === 0) {
+      toast.info('No seeded zones to trim.');
+    } else {
+      toast.success(
+        `Trimmed ${trimmed} seeded zone(s) to the parcel` +
+          (dropped > 0 ? `; removed ${dropped} fully outside.` : '.'),
+      );
+    }
+  };
 
   const toolboxRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -357,6 +492,90 @@ export default function PlanTools({
                 </button>
               </DelayedTooltip>
             )}
+            {mod === 'zone-circulation' ? (
+              <div className={css.itemGrid}>
+                {ZONE_GENERATOR_ACTIONS.map((a) => (
+                  <DelayedTooltip
+                    key={a.id}
+                    label={
+                      projectId
+                        ? a.label
+                        : `${a.label} — open a project to use`
+                    }
+                    position="top"
+                  >
+                    <button
+                      type="button"
+                      className={css.toolItem}
+                      disabled={!projectId}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        runZoneGeneratorAction(a);
+                      }}
+                    >
+                      <span className={css.toolGlyph} aria-hidden="true">
+                        <a.Icon size={16} strokeWidth={1.6} />
+                      </span>
+                      <span className={css.toolLabel}>{a.label}</span>
+                    </button>
+                  </DelayedTooltip>
+                ))}
+                <DelayedTooltip
+                  label={
+                    !projectId
+                      ? 'Trim seeded zones to parcel — open a project to use'
+                      : !hasParcel
+                        ? 'Trim seeded zones to parcel — draw the parcel boundary first'
+                        : !hasSeeded
+                          ? 'Trim seeded zones to parcel — nothing seeded yet'
+                          : 'Trim seeded zones to parcel'
+                  }
+                  position="top"
+                >
+                  <button
+                    type="button"
+                    className={css.toolItem}
+                    disabled={!projectId || !hasParcel || !hasSeeded}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      trimSeededToParcel();
+                    }}
+                  >
+                    <span className={css.toolGlyph} aria-hidden="true">
+                      <Scissors size={16} strokeWidth={1.6} />
+                    </span>
+                    <span className={css.toolLabel}>
+                      Trim seeded to parcel
+                    </span>
+                  </button>
+                </DelayedTooltip>
+                <DelayedTooltip
+                  label={
+                    !projectId
+                      ? 'Clear seeded zones — open a project to use'
+                      : !hasSeeded
+                        ? 'Clear seeded zones — nothing seeded yet'
+                        : 'Clear all seeded zones'
+                  }
+                  position="top"
+                >
+                  <button
+                    type="button"
+                    className={css.toolItem}
+                    disabled={!projectId || !hasSeeded}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearSeeded();
+                    }}
+                  >
+                    <span className={css.toolGlyph} aria-hidden="true">
+                      <Eraser size={16} strokeWidth={1.6} />
+                    </span>
+                    <span className={css.toolLabel}>Clear seeded zones</span>
+                  </button>
+                </DelayedTooltip>
+              </div>
+            ) : null}
           </section>
         );
       })}

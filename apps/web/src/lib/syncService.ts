@@ -180,6 +180,25 @@ function subscribeToStructures() {
 
 // ─── Sync handlers (project) ─────────────────────────────────────────────────
 
+/**
+ * Write the server-recomputed acreage back into the local store after a
+ * boundary push. Without this, `projectStore.acreage` only ever refreshes on
+ * a full `initialSync` (app load), so Site Profile keeps showing the area of
+ * an earlier/partial draw long after the steward has redrawn the parcel.
+ * Guarded by `isSyncing` so the write does not re-enqueue a sync op.
+ */
+function applyServerAcreage(
+  localProjectId: string,
+  resp: { acreage?: number | null } | undefined,
+): void {
+  const acreage = resp?.acreage;
+  if (typeof acreage !== 'number' || !Number.isFinite(acreage)) return;
+  const wasSyncing = isSyncing;
+  isSyncing = true;
+  useProjectStore.getState().updateProject(localProjectId, { acreage });
+  isSyncing = wasSyncing;
+}
+
 async function syncProjectCreate(project: LocalProject) {
   try {
     const { data } = await api.projects.create({
@@ -201,7 +220,11 @@ async function syncProjectCreate(project: LocalProject) {
     // If project has a boundary, also sync it
     if (project.parcelBoundaryGeojson) {
       try {
-        await api.projects.setBoundary(data.id, project.parcelBoundaryGeojson);
+        const { data: bdy } = await api.projects.setBoundary(
+          data.id,
+          project.parcelBoundaryGeojson,
+        );
+        applyServerAcreage(project.id, bdy);
       } catch (err) {
         console.warn('[SYNC] Failed to sync project boundary:', err);
       }
@@ -261,10 +284,11 @@ async function syncProjectBoundary(project: LocalProject) {
   if (!project.parcelBoundaryGeojson) return; // Nothing to push (cleared locally only)
 
   try {
-    await api.projects.setBoundary(
+    const { data: bdy } = await api.projects.setBoundary(
       project.serverId,
       project.parcelBoundaryGeojson,
     );
+    applyServerAcreage(project.id, bdy);
   } catch (err) {
     console.warn('[SYNC] Project boundary update failed, queuing:', err);
     await syncQueue.enqueue({

@@ -15478,3 +15478,361 @@ PlanDataLayers/PlanScheduledMovesOverlay and the draw/drag tools are now
 redundant (the observer makes `useMapCursor` authoritative). Left in
 place — out of scope; harmless. See ADR
 `decisions/2026-05-15-atlas-map-cursor-authoritative.md`.
+
+---
+
+## 2026-05-15 — Offline tile-precache parity with the Esri satellite basemap
+
+**Objective.** Follow-up to the same-day Esri basemap swap (`5fcf63f5`):
+make the offline tile cache match what the live Satellite basemap renders
+online.
+
+**Problem.** Two gaps. (1) `tilePrecache.ts` still warmed MapTiler
+satellite tiles (`api.maptiler.com/tiles/satellite/{z}/{x}/{y}@2x.jpg`) —
+the wrong provider after the swap. (2) The precache is only a `fetch()`
+warmer; it caches offline **only if the service worker stores the
+request**, but the Workbox tile rule in `vite.config.ts` matched only
+`api.maptiler.com`, so neither the live Esri tiles nor any Esri precache
+fetch were cached at all.
+
+**Change.** `vite.config.ts`: new `StaleWhileRevalidate` rule for
+`server.arcgisonline.com/.../World_Imagery/*` into the **same**
+`ogden-map-tiles` bucket (the essential fix — serves both the live raster
+source and the precache warmer); existing MapTiler rules untouched.
+`tilePrecache.ts`: `MAPTILER_TILE_BASE`→`ESRI_TILE_BASE`,
+`buildTileUrl(x,y,z)` → `tile/{z}/{y}/{x}` (no @2x/.jpg/key — Esri native
+256px), `VITE_MAPTILER_KEY` early-return gate + key plumbing removed (Esri
+is tokenless, so keyless public deploy now gains offline satellite).
+`MAX_TILES=1500` / zoom 10–16 / `CONCURRENCY=6` unchanged. No caller change
+(`syncService.ts`). New `src/lib/__tests__/tilePrecache.test.ts` (2 specs).
+
+**Verification.** `pnpm --filter web typecheck` exit 0;
+`pnpm --filter web build` exit 0 — `dist/sw.js` carries the Esri route
+regex and `ogden-map-tiles` ×2 (MapTiler + Esri sharing the bucket); the
+2 new precache specs green. Behavioural offline DevTools cache-inspection
+step **not performed** — needs dev server + manual browser, and
+preview/screenshot tooling is renderer-hanging in this environment
+(documented in the basemap ADR); build-level proof stands in its place,
+behavioural pass deferred to a sighted run.
+
+**Deferred.** Behavioural offline cache check. See ADR
+`decisions/2026-05-15-atlas-offline-tile-precache-esri-parity.md`.
+
+---
+
+## 2026-05-15 — Zone-generator seam + ring-seeded editable zones
+
+**Context.** A steward questioned whether hand-drawn zones and the
+read-only Mollison ring overlay were redundant. They are not (rings =
+visit-frequency gradient, distinct from land-use category), but the
+overlay was read-only, so a blank canvas still meant tracing every zone
+by hand, and `GenerateSiteDesignBar` hard-required ≥1 zone — a zero-zone
+project was a dead end.
+
+**Change.** New pure seam
+`apps/web/src/v3/plan/engine/zoneGenerators/` (`types.ts`,
+`ringSeedGenerator.ts`, `index.ts` registry): `(context) → LandZone[]`,
+no store/React; caller `addZone`s the result so seeds ride the existing
+`temporal` undo + draw/edit tools. `ringSeedGenerator` anchors on an
+explicit `isHomeCentre` zone → legacy Z0 → parcel centroid (emits a
+home-centre disc when none), clips Z1/Z2/Z3 to the parcel,
+subtracts existing zones, is idempotent per Z-level, drops <50 m²
+slivers. Single-source extractions: ring geometry →
+`zoneRingConstants.ts` (`PlanZoneRingsOverlay` imports it),
+`Z_TO_CATEGORIES`/`defaultCategoryForZ` → `zoneStore`
+(`ZonePolygonTool` reads it); `LandZone` gained optional
+`isHomeCentre`/`seedProvenance` (no persist bump).
+`GenerateSiteDesignBar` now itemizes missing prerequisites and shows a
+zero-state "Seed zones from rings" button. Archetype→category biasing
+left as a documented hook (no source data in `planProjectTypeTemplates`).
+
+**Verification.** `vitest run src/v3/plan/engine/zoneGenerators` 5/5
+green; `tsc --noEmit` (full web, 8 GB heap) exit 0; preview (`mtc`, Goal
+Compass → Proposal) — button renders in the zero-state, click invokes
+the generator and correctly surfaces `canRun`'s parcel-boundary reason
+(mtc has no boundary); only console noise is a pre-existing unrelated
+`<button>`-in-`<button>` warning in `ObserveModuleBar.tsx:32`.
+
+**Deferred.** Typo-reword force-push of `cbb08e15` (blocked on explicit
+authorization — local rewrite done); in-canvas tool-rail "Drop home
+centre" / "Seed zones" actions; dashed seeded-draft map styling. See ADR
+`decisions/2026-05-15-atlas-zone-generator-seam-ring-seeding.md`.
+
+## 2026-05-15 — Plan map-view IA: ModuleBar in open slide-up + Vision-first order
+
+**Objective.** Two Plan map-view IA papercuts: (1) the bottom ModuleBar is
+fully covered by the module slide-up scrim, so the module navigator is
+unreachable while a module page is open; (2) Current Land was both the first
+tab and the load default, though Vision Layout is the primary surface.
+
+**Change.** Added an optional `topBar?: ReactNode` slot to the shared
+`ModuleSlideUp` (rendered as the first child of the sheet, above `<header>`,
+new `.topBar` CSS wrapper). `PlanModuleSlideUp` forwards it through;
+`PlanLayout` extracts the `<PlanModuleBar>` into a `moduleBar` const and feeds
+the **same stateless element** into both `StageShell.bottomTray` (closed,
+unchanged) and the slide-up `topBar` (open) — open/close + switch semantics
+unchanged. Additive/backward-compatible: Act/Observe omit `topBar`, unchanged.
+`PLAN_VIEWS` reordered `['vision','current','terrain3d']` (sole tab-order
+driver) and `PlanLayout` default view `'current' → 'vision'`.
+
+**Verification.** Browser preview (`mtc` → redirected project): closed → bar
+at screen bottom; open → DOM child order `[_topBar,_header,_tabs,_body]` +
+screenshot showing the bar under the app header and above the
+"PLAN · MODULE / Goal Compass" header; in-sheet tile switches module with
+sheet open; active-tile + ESC close; tabs render Vision → Current → 3D Terrain
+with Vision active on load.
+
+**Deferred.** Pre-existing `mtc` fallback-project redirect that resets
+slide-up state on first module open (unrelated; left as-is). See ADR
+`decisions/2026-05-15-atlas-plan-modulebar-in-slideup-and-view-order.md`.
+
+## 2026-05-15 — Zone-generator canvas reach + dashed seeded-draft styling
+
+**Why.** Closes the two items the zone-generator-seam ADR
+(`decisions/2026-05-15-atlas-zone-generator-seam-ring-seeding.md`) left
+"pending separately": seeding was only reachable from the Goal Compass
+Proposal bar, and generator-seeded zones were visually
+indistinguishable from committed hand-drawn zones.
+
+**Change.** (1) `PlanTools.tsx` — list-driven `ZONE_GENERATOR_ACTIONS`
+registry + `runZoneGeneratorAction` rendered as an action button in the
+Zone & Circulation rail section. Unlike `ToolItem`s it doesn't arm a
+draw mode — it runs the pure `ringSeedGenerator` synchronously,
+resolves the project via `useProjectStore`, `addZone`s the result, and
+surfaces `canRun`'s reason / seeded count via the global `toast`. A
+future generator is a one-line array entry. (2) `PlanDataLayers.tsx` —
+zone features now carry `seedProvenance`; a separate filtered
+`plan-data-poly-seed-line` line layer renders a static
+`line-dasharray: [2,2]` over `seedProvenance === 'ring-seed'` zones
+(separate layer, not a `case` on `poly-line` — maplibre-gl 4.7.1
+`line-dasharray` is not data-driven; mirrors the existing
+`setback-line` precedent), wired into the lens-recolor parity block
+(guarded by `getLayer`). No engine/seam/schema change — reuses the
+existing `LandZone.seedProvenance` field.
+
+**Verification.** `vitest run src/v3/plan/engine/zoneGenerators` 5/5
+green; `tsc --noEmit` (full web, 8 GB heap) exit 0; preview — rail
+button renders; `mtc` (no boundary) → warning toast with `canRun`'s
+parcel-boundary reason; "351 House — Atlas Sample" (has boundary) →
+"Seeded 4 draft zone(s)" toast + 4 `ring-seed` zones (Z0 home +
+Z1/Z2/Z3) persisted; Current Land map view shows the seeded
+concentric rings with dashed outlines; Yeomans-lens toggle produced
+zero console errors (recolor-parity path ran). Screenshot tool went
+unresponsive on the zoomed close-up — dashed rendering confirmed from
+the wider Current Land capture, not a zoomed shot.
+
+**Deferred.** In-canvas "Drop home centre" action and a dashed-style
+fill (only the outline is dashed) — neither requested. The
+typo-reword force-push of `cbb08e15` remains blocked on explicit
+authorization (external rebase already published it; moot).
+
+## 2026-05-16 — fix(observe): adopt-from-map selects the clicked building, not an already-adopted one
+
+Adopting a 3D basemap building often bound the inline form to a
+*different, already-adopted* entity (visible only after Save). Browser
+investigation disproved the original "unstable feature id" theory: the
+MapTiler OpenMapTiles `building` source returns **tile-batched
+MultiPolygons** (200–317 unrelated footprints under one tile-local id),
+so the old `coordinates[0]` shortcut captured an arbitrary building and
+the feature-id dedup collided.
+
+Fix (scope: **selection only**, per user decision): `pickClickedPolygon`
+picks the click-containing sub-polygon (nearest-centroid fallback under
+pitch); dedup re-keyed to durable geometry (centroid ≤ 2 m **and**
+relative area ≤ 0.05). The per-building basemap-hide goal was **dropped**
+— impossible against a tile-batched source (no `osm_id`/`promoteId`;
+filters & feature-state are per-feature-id → all-or-none per tile).
+`adoptedBasemapBuildings.ts` reduced to `findBuildingLayerIds` +
+documented no-ops; both map hosts compile unchanged. ADR:
+`wiki/decisions/2026-05-16-atlas-adopt-building-geometry-keyed-selection.md`.
+
+Verified: `typecheck` exit 0 (×2); `vite build` exit 0 (54 s).
+Deterministic Node replay — 201-sub-polygon batched input: old
+`coordinates[0]` → 6431 m² (wrong), new → 197 m² containing the click
+(= target). Dedup epsilon: same-building re-click (0.45 m jitter)
+matches; 8 m-away building → new entity; tiny near-centroid kiosk →
+rejected by area guard. Test stub entity removed from persisted store.
+
+Live click-through not exercisable: in the headless Chrome-extension
+context the MapTiler vector style never settles (`map.loaded()` stays
+false), so basemap buildings are not queryable — documented
+environmental limit, not a defect.
+
+**Incidental.** `src/v3/plan/draw/tools/ZoneSeedAnchorTool.tsx`
+(untracked permaculture work) had a broken Toast import depth
+(`../../../` → `../../../../`) that blanked the dev server; fixed in
+passing to unblock verification (not in the tracked diff).
+
+**Deferred.** Two distinct buildings < 2 m apart with ~equal area
+remain a documented dedup ambiguity.
+
+## 2026-05-16 — WS4 catalog archetype parity (closes spec OQ1)
+
+Closed the last open Workstream-4 item: catalog depth per project
+type. Added `ProjectArchetype` (extracted named union) and optional
+`Intervention.projectTypes?` tag; the sequencing-engine eligibility
+loop now skips an intervention whose non-empty `projectTypes` excludes
+the active archetype (untagged ⇒ universal ⇒ the 22 legacy entries are
+provably non-regressive — first conjunct short-circuits).
+
+Split monolithic `interventionCatalog.ts` into `interventionCatalog/`
+(`_shared` 22 verbatim untagged; empty `homestead`; one module each for
+regenerative-farm / retreat / education / conservation /
+multi-enterprise; `index` barrel). `interventionCatalog.ts` kept as a
+thin re-export ⇒ zero importer churn.
+
+Authored 24 new grounded interventions (6 per non-homestead archetype)
++ shared cross-vocabulary `criterionContributions` on ~13 legacy
+entries so non-homestead goal trees can reach them.
+`CATALOG_VERSION → goal-compass-v2-2026-05-16`.
+
+**Verification.** `tsc --noEmit` clean (exit 0); new
+`archetypeCatalogParity.test.ts` 15/15 (≥6 distinct selected per
+archetype + grounded + id-uniqueness + foundations untagged); legacy
+`regenerativeFarmCatalog.test.ts` unchanged & green; full plan-engine
+suite 102/102.
+
+ADR: `wiki/decisions/2026-05-16-atlas-catalog-archetype-parity.md`.
+
+**Deferred.** `multi-largest-enterprise-pct` intentionally has no
+dedicated contribution (emergent revenue-concentration ratio). No
+goal-tree template edits, no UI, no persist-version bump.
+
+## 2026-05-16 — Click-to-anchor ring seeding + seeded-zone management
+
+Two steward asks against the 2026-05-15 ring-seeder: (1) the origin was
+a guessed centroid the steward never chose; (2) the forced parcel clip
+destroyed Z3 on a compact lot (a square ~40-acre property cannot hold a
+500 m ring).
+
+Seeding now **always requires a picked point**. `ZoneGeneratorContext`
+gained `anchorPoint?`; `resolveAnchor()` lets a present point win and
+returns `homeCentreZone: null` so a fresh 15 m Z0 disc lands *at the
+click*. The forced parcel clip was removed — full rings seed around the
+click; existing-zone subtraction + 50 m² floor + per-Z idempotence
+unchanged. Trim is now explicit/opt-in.
+
+New one-shot `ZoneSeedAnchorTool` (`draw_point`, modeled on
+`SlaughterPointTool`) mounted via a `PlanDrawHost` case under
+`plan.zone-circulation.zone-seed-anchor` (no `MapToolId` union edit —
+template literal covers it). The "Seed zones from rings" rail action +
+`GenerateSiteDesignBar` zero-state shortcut now **arm** this tool
+instead of running the generator inline.
+
+`diff`/`clip`/`parcelPolygon` extracted to
+`zoneGenerators/parcelGeometry.ts` (shared by seed + trim; one
+clip/union impl). This also fixed a latent bug — `resolveAnchor` still
+called `parcelPolygon` but the extraction had dropped it from the
+import (would have failed typecheck/runtime).
+
+Seeded-zone management: `zoneStore.clearSeededZones(projectId)` (one
+undo step; no-op pushes no undo state); `PlanTools` **Clear seeded
+zones** + **Trim seeded zones to parcel** rail actions; a dashed-gold
+**"Seeded"** badge in `PlanSelectionFloater` (per-zone edit/delete was
+already functional — this is discoverability + bulk ops, not new
+editor surface).
+
+**Verification.** `vitest run` 857/857 (68 files; 12 zone-relevant new
+/updated — `anchorPoint` ⇒ ~π·15² Z0 disc at click + unclipped Z1–Z3;
+`clearSeededZones` removes only this project's `ring-seed` & no undo on
+no-op; `parcelGeometry` clip/diff/union null on non-overlap). `tsc
+--noEmit` (8 GB heap) exit 0. `vite build` 43.8 s.
+
+ADR: `wiki/decisions/2026-05-16-atlas-click-to-anchor-ring-seeding.md`.
+
+**Deferred.** Manual UI pass (arm → map-click in a boundary-bearing
+project → unclipped rings → Seeded badge → Trim → Clear → disabled
+outside a project) not automatable here (needs a live MapLibre map +
+geographic-coordinate clicks).
+
+## 2026-05-16 — fix(observe): overlapping selection floaters stack instead of colliding
+
+Steward-reported: when a zone polygon and an adopted basemap building
+overlapped and both were selected, their two bottom-center action bars
+rendered on top of each other — the lower bar's Edit/Delete/Clear were
+unreachable.
+
+Root cause: Observe's `SelectionFloater` (`useObserveSelectionStore`)
+and `PlanSelectionFloater` (`usePlanSelectionStore`) are independent
+siblings that each rendered their pill `position: absolute; left: 50%;
+bottom: 16px; transform: translateX(-50%); z-index: 10` off the *same*
+`SelectionFloater.module.css`. Mounted together (`ObserveLayout`
+247–248; `ActLayout` 175), a feature-into-each-store selection put both
+pills at identical coordinates. Two independently-absolute siblings
+can't stack via CSS — they need a shared flex parent.
+
+Fix: a body-level singleton stack container both floaters portal into.
+New `floaterStackRoot.ts` (idempotent, SSR-guarded `<div
+data-floater-stack>` on `document.body`; re-anchors just above the
+stage bottom bar via the pre-existing `[data-stage-bottom]` on
+`StageShell`, `resize`-synced, CSS `bottom: 16px` fallback on
+tray-less stages e.g. Vision). Positioning moved off `.floater` onto a
+new `.stack` class (flex column, `gap: 8px`, `align-items: center`,
+`pointer-events: none` so an empty container never blocks the map).
+Both components `createPortal(…, stackRoot)` with stable inline
+`order` (Observe 1 = upper, Plan 2 = lower). No selection-store,
+click, or layout-mount logic changed; only the two `.tsx` import that
+CSS module (verified contained).
+
+**Verification.** `tsc --noEmit` (8 GB heap) exit 0; no console errors
+after HMR; deterministic `getBoundingClientRect` proof on the running
+Observe stage — two bars vertically stacked, 8 px gap, centered, lower
+bar 16 px above the rail, single-selection unchanged.
+
+ADR: `wiki/decisions/2026-05-16-atlas-selection-floater-stacking.md`.
+
+**Deferred.** Live re-verification of the bottom-tray re-anchor: the
+main preview server stopped before that pass. The offset is additive
+with a safe CSS fallback against an existing `data-stage-bottom`
+element; full manual UI pass (overlap-select in Observe + Plan + Act)
+needs a live MapLibre map.
+
+## 2026-05-16 — fix(plan): feature-edit popover docked to a fixed right-edge position + StageShell `data-stage-bottom` anchor
+
+Steward-reported (screenshot): the shared "EDIT BUILDING"/feature
+mini-form was obstructed or cut off whenever a feature near the bottom
+of the map was selected/placed.
+
+Root cause: `InlineFeaturePopover` (one shared component mounted per
+stage in `DiagnoseMap` across Plan/Observe/Act) rendered anchored to
+the feature's `[lng, lat]`, re-projected via `map.project()` each
+`move`/`zoom`/`resize`. It auto-flipped right→left on horizontal clip
+but had **no vertical clamp and no max-height/scroll** — a bottom-edge
+feature pushed the form behind the module bar or off-screen.
+
+Fix (steward chose "fixed right dock, always", minimal — no
+selection-highlight): `.popover` switched from anchor-translate to a
+fixed dock — `position: absolute; top: 56px; right: 12px; z-index: 6;
+max-height: calc(100% - 56px - 96px); overflow-y: auto` (clears the
+`DesignToolRail`, reserves space above the bottom bar, long forms
+scroll inside). Removed `transform: translate(...)` + the
+`.popover[data-flipped='true']` block. `InlineFeaturePopover.tsx`:
+removed the `screen` `useState` + the `map.project` projection
+`useEffect`; `if (!active || !screen)` → `if (!active)`; `<form>` no
+longer emits `data-flipped`/`style={{left,top}}`. `map` prop retained
+(`_props`) so the 3 call sites typecheck unchanged. ESC /
+click-outside / save / cancel unchanged. Applies to all three stages
+automatically (one shared component).
+
+Also committed this session: `StageShell.tsx` now tags its bottom
+tray with `data-stage-bottom=""`. The prior selection-floater-stacking
+fix (`dd43b59a`, landed via an out-of-band rebase) and its ADR/log
+described this attribute as "pre-existing" — it was not; this is the
+missing piece that lets `floaterStackRoot.ts`'s `[data-stage-bottom]`
+query actually re-anchor the stack above the module bar.
+
+**Verification.** `tsc --noEmit` (8 GB heap) exit 0; live stylesheet
+inspection confirmed the `.popover` rule applied with the `calc()`
+resolved and no flip remnants; real-canvas `getBoundingClientRect`
+showed the panel in the safe zone with ~240 px bottom clearance.
+
+ADR: `wiki/decisions/2026-05-16-atlas-inline-popover-fixed-dock.md`.
+
+**Deferred.** Screenshot proof unavailable — the WebGL map canvas
+hangs the capture tool, and the preview env returned a 0-size
+viewport. A live cross-stage manual pass (Observe + Act, long-form
+scroll, bottom-edge feature; plus the StageShell-completed floater
+re-anchor) needs a working MapLibre preview and is left to a steward
+pass. Many unrelated working-tree files (zone-generator / basemap /
+ZonePolygonTool / zoneSizeGuide) are concurrent in-progress work from
+the rebased branch and were **not** committed in this session.

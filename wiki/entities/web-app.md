@@ -100,7 +100,16 @@ All use `persist` middleware with localStorage. Key stores:
   now preserves the existing local UUID (keeps IndexedDB `boundary:<id>` entries
   valid) and user-drawn parcel boundaries across builtin re-seeds. See
   [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
-- `zoneStore` — land zones (13 categories)
+- `zoneStore` — land zones (13 categories). Owns `Z_TO_CATEGORIES` /
+  `defaultCategoryForZ` (single source for Z-level→category, read by
+  `ZonePolygonTool` + zone generators); `LandZone` carries optional
+  `isHomeCentre` + `seedProvenance` (`'manual' | 'ring-seed'`).
+  **Zone-generator seam** (`v3/plan/engine/zoneGenerators/`): pure
+  `(context) → LandZone[]` generators (`ringSeedGenerator` first) — the
+  caller `addZone`s the output so generated zones ride the existing
+  `temporal` undo + draw/edit tools. `GenerateSiteDesignBar` exposes a
+  zero-state "Seed zones from rings" shortcut. See
+  [[2026-05-15-atlas-zone-generator-seam-ring-seeding]].
 - `structureStore` — structures (20 types)
 - `livestockStore` — paddocks + livestock species
 - `cropStore` — crop areas (10 types)
@@ -137,6 +146,7 @@ All use `persist` middleware with localStorage. Key stores:
 - Tile renderer: MapLibre GL (open-source)
 - Tile provider: **MapTiler** (`VITE_MAPTILER_KEY`) — migrated from Mapbox 2026-04-11/12
 - Satellite basemap: **Esri World Imagery** (free, no token, ~z19) since 2026-05-15 — inline `ESRI_WORLD_IMAGERY_STYLE` raster style in `maplibre.ts` with MapTiler glyphs fallback; MapTiler satellite retained via the **Hybrid** style. See ADR 2026-05-15-atlas-satellite-basemap-esri-world-imagery
+- Offline tile-precache (`tilePrecache.ts`) also warms **Esri World Imagery** (`server.arcgisonline.com/.../World_Imagery/MapServer/tile/{z}/{y}/{x}`, no key) since 2026-05-15 — Workbox `StaleWhileRevalidate` rule routes both the live raster source and the precache warmer into the shared `ogden-map-tiles` cache, so offline tiles match the online Satellite basemap; works on the keyless public deploy. See ADR 2026-05-15-atlas-offline-tile-precache-esri-parity
 - Style URLs (MapTiler, non-satellite): `https://api.maptiler.com/maps/{topo|topo-v2|streets|hybrid}/style.json?key=...`
 - Geocoding: **MapTiler** (`https://api.maptiler.com/geocoding/{query}.json?key=...`) — used in `MapCanvas.tsx` and `StepBoundary.tsx`
 - Terrain DEM: still `mapbox://` protocol in `TerrainControls.tsx` + `HydrologyPanel.tsx` — **pending migration**
@@ -174,6 +184,17 @@ All use `persist` middleware with localStorage. Key stores:
   Fixed components: `ObserveAnnotationLayers` (commit `4da754f`),
   `AnnotationDragHandler` (commit `88b6556`). `AnnotationVertexEditHandler`
   was already guarded. See [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
+
+  **Slide-up `topBar` slot (2026-05-15):** the shared
+  `_shared/moduleNav/ModuleSlideUp` exposes an optional
+  `topBar?: ReactNode` rendered as the first sheet child (above
+  `<header>`). Plan feeds the *same stateless `PlanModuleBar` element*
+  into both `StageShell.bottomTray` (closed) and the slide-up `topBar`
+  (open) so the module navigator stays reachable while a module page is
+  open. Additive/backward-compatible — Act/Observe omit `topBar`. Plan
+  map view also now opens on Vision Layout (`PLAN_VIEWS` =
+  `['vision','current','terrain3d']`). See
+  [[2026-05-15-atlas-plan-modulebar-in-slideup-and-view-order]].
 
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)

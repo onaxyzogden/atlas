@@ -78,7 +78,7 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
 // `yeomansCapForYear` below.
 export type PlanView = 'current' | 'vision' | 'terrain3d';
 
-export const PLAN_VIEWS: PlanView[] = ['current', 'vision', 'terrain3d'];
+export const PLAN_VIEWS: PlanView[] = ['vision', 'current', 'terrain3d'];
 
 export const PLAN_VIEW_LABEL: Record<PlanView, string> = {
   current: 'Current Land',

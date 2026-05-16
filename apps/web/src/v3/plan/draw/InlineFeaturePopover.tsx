@@ -1,10 +1,11 @@
 /**
- * InlineFeaturePopover — floating mini-form anchored at a [lng, lat] on the map.
+ * InlineFeaturePopover — schema-driven mini-form docked at a fixed position
+ * on the right edge of the map canvas.
  *
- * Renders the schema-driven form provided via `useInlineFormStore`. Position
- * tracks the anchor on map move/zoom by re-projecting through `map.project()`
- * each frame. Auto-flips to the left side of the anchor when the right side
- * would clip the viewport.
+ * Renders the form provided via `useInlineFormStore`. Position is static
+ * (CSS-driven) rather than tracking the feature's [lng, lat] — this keeps
+ * the panel predictable and fully on-screen for features anywhere on the
+ * map, including near the bottom edge.
  *
  * Key behaviours:
  *   - Save  → caller's onSave(values); store closes
@@ -20,10 +21,11 @@ import { useInlineFormStore, type FieldSpec } from './inlineFormStore.js';
 import css from './InlineFeaturePopover.module.css';
 
 interface Props {
+  /** Retained so existing call sites typecheck; position is now CSS-driven. */
   map: MaplibreMap;
 }
 
-export default function InlineFeaturePopover({ map }: Props) {
+export default function InlineFeaturePopover(_props: Props) {
   const active = useInlineFormStore((s) => s.active);
   const close = useInlineFormStore((s) => s.close);
 
@@ -31,7 +33,6 @@ export default function InlineFeaturePopover({ map }: Props) {
     active ? { ...active.initial } : {},
   );
   const [prevActive, setPrevActive] = useState(active);
-  const [screen, setScreen] = useState<{ x: number; y: number; flipped: boolean } | null>(null);
   // Per-disclosure expanded state (keyed by disclosure FieldSpec.key).
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const popoverRef = useRef<HTMLFormElement | null>(null);
@@ -60,30 +61,6 @@ export default function InlineFeaturePopover({ map }: Props) {
       setExpanded({});
     }
   }
-
-  // Track anchor → screen coords; re-project on map move/zoom/resize.
-  useEffect(() => {
-    if (!active) {
-      setScreen(null);
-      return;
-    }
-    const POPOVER_WIDTH = 280;
-    const recalc = () => {
-      const p = map.project(active.anchor);
-      const canvasW = map.getCanvas().clientWidth;
-      const flipped = p.x + POPOVER_WIDTH + 24 > canvasW;
-      setScreen({ x: p.x, y: p.y, flipped });
-    };
-    recalc();
-    map.on('move', recalc);
-    map.on('zoom', recalc);
-    map.on('resize', recalc);
-    return () => {
-      map.off('move', recalc);
-      map.off('zoom', recalc);
-      map.off('resize', recalc);
-    };
-  }, [active, map]);
 
   // ESC closes (cancels)
   useEffect(() => {
@@ -123,7 +100,7 @@ export default function InlineFeaturePopover({ map }: Props) {
     return () => document.removeEventListener('mousedown', onDown);
   }, [active, close]);
 
-  if (!active || !screen) return null;
+  if (!active) return null;
 
   // Flatten disclosure children so required validation covers them too.
   // Skip fields whose visibleWhen predicate is currently false — they are
@@ -258,8 +235,6 @@ export default function InlineFeaturePopover({ map }: Props) {
     <form
       ref={popoverRef}
       className={css.popover}
-      data-flipped={screen.flipped ? 'true' : 'false'}
-      style={{ left: screen.x, top: screen.y }}
       onSubmit={onSubmit}
       role="dialog"
       aria-label={active.title}

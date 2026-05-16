@@ -324,6 +324,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         // Stamp Z-level on the feature so the fill-opacity ramp and the
         // hit-test tie-break can read it without going back to the store.
         permacultureZone: z.permacultureZone ?? Z_DEFAULT,
+        // Drives the dashed `poly-seed-line` layer so generator-seeded
+        // zones read as provisional until adjusted/accepted.
+        seedProvenance: z.seedProvenance ?? 'manual',
       };
       const ac = acresOf(z.geometry);
       if (ac) props.acresLabel = ac;
@@ -923,6 +926,23 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           'line-opacity': 0.9,
         },
       });
+      // Dashed overlay stroke for generator-seeded ("ring-seed") zones so
+      // they read as provisional vs. solid hand-drawn zones. Separate
+      // filtered layer (not a `case` on poly-line): maplibre-gl 4.x
+      // `line-dasharray` is not a data-driven property. Mirrors the
+      // `setback-line` static-dash precedent below.
+      ensureLayer({
+        id: `${LAYER_PREFIX}poly-seed-line`,
+        type: 'line',
+        source: polySid,
+        filter: ['==', ['get', 'seedProvenance'], 'ring-seed'],
+        paint: {
+          'line-color': colorExpr as never,
+          'line-width': 1.5,
+          'line-opacity': 0.9,
+          'line-dasharray': [2, 2],
+        },
+      });
       // Setback rings — lower fill alpha + dashed stroke so the
       // "advisory clearance" reading lands at a glance against solid
       // zones / crop areas underneath.
@@ -1059,6 +1079,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       try {
         map.setPaintProperty(`${LAYER_PREFIX}poly-fill`, 'fill-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}poly-line`, 'line-color', colorExpr as never);
+        if (map.getLayer(`${LAYER_PREFIX}poly-seed-line`)) {
+          map.setPaintProperty(`${LAYER_PREFIX}poly-seed-line`, 'line-color', colorExpr as never);
+        }
         map.setPaintProperty(`${LAYER_PREFIX}line`, 'line-color', colorExpr as never);
         if (map.getLayer(`${LAYER_PREFIX}fence-temp-line`)) {
           map.setPaintProperty(`${LAYER_PREFIX}fence-temp-line`, 'line-color', colorExpr as never);

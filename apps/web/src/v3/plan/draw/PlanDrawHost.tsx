@@ -12,6 +12,7 @@ import WaterStorageTool from './tools/WaterStorageTool.js';
 import WaterSwaleTool from './tools/WaterSwaleTool.js';
 import WaterSinkTool from './tools/WaterSinkTool.js';
 import ZonePolygonTool from './tools/ZonePolygonTool.js';
+import ZoneSeedAnchorTool from './tools/ZoneSeedAnchorTool.js';
 import PathLineTool from './tools/PathLineTool.js';
 import CropAreaTool from './tools/CropAreaTool.js';
 import FertilityInfraTool from './tools/FertilityInfraTool.js';
@@ -126,6 +127,9 @@ export default function PlanDrawHost({
       break;
     case 'plan.zone-circulation.zone':
       tool = <ZonePolygonTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.zone-circulation.zone-seed-anchor':
+      tool = <ZoneSeedAnchorTool map={map} projectId={projectId} />;
       break;
     case 'plan.zone-circulation.path':
       tool = <PathLineTool map={map} projectId={projectId} />;

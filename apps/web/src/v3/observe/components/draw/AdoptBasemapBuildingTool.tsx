@@ -33,19 +33,44 @@ interface Props {
   projectId: string;
 }
 
-/** Coerce a Polygon or MultiPolygon GeoJSON into a single Polygon. For
- *  MultiPolygons we keep the first ring set — adoption is best-effort and
- *  most basemap buildings are simple polygons. */
-function toSinglePolygon(
+/** Extract the single building footprint the steward actually clicked.
+ *
+ *  The MapTiler OpenMapTiles `building` source does NOT deliver one feature
+ *  per building: `queryRenderedFeatures` returns a tile-batched MultiPolygon
+ *  whose `coordinates` hold *hundreds* of unrelated building footprints under
+ *  one feature id. The old `coordinates[0]` shortcut therefore captured an
+ *  arbitrary building (usually not the clicked one) — the root cause of the
+ *  wrong-building adoption bug.
+ *
+ *  We instead pick the sub-polygon that contains the click point. When no
+ *  sub-polygon contains it (tall buildings viewed under pitch put the clicked
+ *  roof pixel's ground `lngLat` outside the footprint) we fall back to the
+ *  sub-polygon whose centroid is nearest the click. Both branches are
+ *  deterministic, so re-clicking the same building yields the same footprint
+ *  — which is what the geometry-based dedup downstream relies on. */
+function pickClickedPolygon(
   geom: GeoJSON.Geometry,
+  click: [number, number],
 ): GeoJSON.Polygon | null {
   if (geom.type === 'Polygon') return geom;
-  if (geom.type === 'MultiPolygon' && geom.coordinates.length > 0) {
-    const first = geom.coordinates[0];
-    if (!first) return null;
-    return { type: 'Polygon', coordinates: first };
+  if (geom.type !== 'MultiPolygon' || geom.coordinates.length === 0) return null;
+
+  const point = turf.point(click);
+  let nearest: { poly: GeoJSON.Polygon; metres: number } | null = null;
+  for (const coords of geom.coordinates) {
+    if (!coords || coords.length === 0) continue;
+    const poly: GeoJSON.Polygon = { type: 'Polygon', coordinates: coords };
+    if (turf.booleanPointInPolygon(point, poly)) return poly;
+    try {
+      const metres = turf.distance(point, turf.centroid(poly), {
+        units: 'meters',
+      });
+      if (!nearest || metres < nearest.metres) nearest = { poly, metres };
+    } catch {
+      /* skip degenerate ring */
+    }
   }
-  return null;
+  return nearest?.poly ?? null;
 }
 
 function readHeight(props: Record<string, unknown> | null | undefined): number | undefined {
@@ -75,7 +100,10 @@ export default function AdoptBasemapBuildingTool({ map, projectId }: Props) {
         toast.info('No building under the cursor — click directly on a building footprint.');
         return;
       }
-      const polygon = toSinglePolygon(hit.geometry);
+      const polygon = pickClickedPolygon(hit.geometry, [
+        e.lngLat.lng,
+        e.lngLat.lat,
+      ]);
       if (!polygon) {
         toast.error('Building footprint geometry not supported.');
         return;
@@ -88,49 +116,53 @@ export default function AdoptBasemapBuildingTool({ map, projectId }: Props) {
         areaM2 = undefined;
       }
 
-      // Stable id for the basemap tile feature — needed by v2 so the
-      // basemap sync (`adoptedBasemapBuildings.ts`) can hide the
-      // underlying extrusion via `setFeatureState` + a filter clause.
-      // MapTiler's OpenMapTiles source promotes osm_id onto `feature.id`
-      // for buildings, but we fall back to common property names just in
-      // case. If none resolve, the entity still saves; the basemap
-      // building just stays visible.
-      const props = hit.properties as Record<string, unknown> | null;
-      const rawId =
-        hit.id ??
-        (props && typeof props['osm_id'] !== 'undefined' ? props['osm_id'] : undefined) ??
-        (props && typeof props['id'] !== 'undefined' ? props['id'] : undefined);
-      const adoptedFromBasemapId =
-        typeof rawId === 'string' || typeof rawId === 'number' ? rawId : undefined;
-      if (adoptedFromBasemapId === undefined) {
-        toast.info('Adopted — basemap building couldn’t be hidden (no feature id).');
-      }
+      // Dedup identity is the footprint geometry, NOT the basemap feature
+      // id. The `building` source batches hundreds of footprints under one
+      // tile-local feature id, so the id collides across unrelated
+      // buildings. `pickClickedPolygon` is deterministic, so two clicks on
+      // the same building yield the same ring — centroid + area is a
+      // reliable key.
+      const clickedCentroid = turf.centroid(polygon);
 
-      // Dedup guard: if this basemap building (same osm_id) was already
-      // adopted into this project, re-open the existing entity's inline
-      // form instead of creating a duplicate. Without this guard, repeated
-      // adopts of the same footprint pile up entities at identical
-      // geometry, and a subsequent click resolves to an arbitrary one of
-      // the stack via MapLibre's `feature[0]` — the steward then sees
-      // their edit land on a different building than the one they
-      // clicked. (Stewards still want re-arm-and-edit as a workflow, so
-      // we route the click into edit rather than ignoring it.)
-      if (adoptedFromBasemapId !== undefined) {
-        const existingEntity = useBuiltEnvironmentStoreV2
-          .getState()
-          .entities.find(
-            (e) =>
-              e.projectId === projectId &&
-              e.kind === 'building' &&
-              e.state === 'existing' &&
-              e.existing?.adoptedFromBasemapId === adoptedFromBasemapId,
-          );
-        if (existingEntity) {
-          toast.info('Already adopted — opened the existing entry for editing.');
-          openBeInlineEditById(existingEntity.id, [e.lngLat.lng, e.lngLat.lat]);
-          setActiveTool(null);
-          return;
-        }
+      // Dedup guard: if this footprint was already adopted into this
+      // project, re-open the existing entity's inline form instead of
+      // creating a duplicate. Match on centroid proximity (<=2 m absorbs
+      // MVT quantisation jitter for the same footprint) AND relative area
+      // (<=5% rejects a small footprint sitting near a large building's
+      // centroid). Requiring both kills the wrong-entity bug where a
+      // never-adopted building resolved to an already-adopted one via a
+      // colliding tile-local feature id. (Stewards still want
+      // re-arm-and-edit as a workflow, so route the click into edit.)
+      const existingEntity = useBuiltEnvironmentStoreV2
+        .getState()
+        .entities.find((cand) => {
+          if (cand.projectId !== projectId) return false;
+          if (cand.kind !== 'building') return false;
+          if (cand.state !== 'existing') return false;
+          if (cand.geometry?.type !== 'Polygon') return false;
+          const candCentroid = turf.centroid(cand.geometry as GeoJSON.Polygon);
+          const metres = turf.distance(clickedCentroid, candCentroid, {
+            units: 'meters',
+          });
+          if (metres > 2.0) return false;
+          if (areaM2 === undefined) return true;
+          let candArea = cand.existing?.areaM2;
+          if (candArea === undefined) {
+            try {
+              candArea = turf.area(cand.geometry as GeoJSON.Polygon);
+            } catch {
+              candArea = undefined;
+            }
+          }
+          if (candArea === undefined) return true;
+          const rel = Math.abs(areaM2 - candArea) / Math.max(areaM2, candArea);
+          return rel <= 0.05;
+        });
+      if (existingEntity) {
+        toast.info('Already adopted — opened the existing entry for editing.');
+        openBeInlineEditById(existingEntity.id, [e.lngLat.lng, e.lngLat.lat]);
+        setActiveTool(null);
+        return;
       }
 
       // Height lives on `proposed.heightM` (the existing block has no height
@@ -140,7 +172,6 @@ export default function AdoptBasemapBuildingTool({ map, projectId }: Props) {
       // blocks are independently optional, so this is well-formed.
       const existing = {
         ...(areaM2 !== undefined ? { areaM2 } : {}),
-        ...(adoptedFromBasemapId !== undefined ? { adoptedFromBasemapId } : {}),
       };
       const entity = useBuiltEnvironmentStoreV2.getState().create({
         projectId,
@@ -155,11 +186,9 @@ export default function AdoptBasemapBuildingTool({ map, projectId }: Props) {
       // ObserveAnnotationLayers gates the 2D BE-building fill behind the
       // `builtEnvironment` matrix toggle, which defaults to false. Without
       // turning it on, the adopted footprint never renders top-down and
-      // there's no clickable feature to re-open the inline form — the
-      // basemap building was hidden by `AdoptedBuildingsSync` the instant
-      // the entity landed, so the steward sees a blank patch and assumes
-      // Save did nothing. Using the BE adopt tool is an explicit signal
-      // the steward cares about BE visibility, so flip the toggle on.
+      // there's no clickable feature to re-open the inline form. Using the
+      // BE adopt tool is an explicit signal the steward cares about BE
+      // visibility, so flip the toggle on.
       const toggles = useMatrixTogglesStore.getState();
       if (!toggles.builtEnvironment) toggles.toggle('builtEnvironment');
 

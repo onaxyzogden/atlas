@@ -7,6 +7,7 @@ import * as turf from '@turf/turf';
 import {
   useZoneStore,
   ZONE_CATEGORY_CONFIG,
+  Z_TO_CATEGORIES,
   type ZoneCategory,
 } from '../../../../store/zoneStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
@@ -33,21 +34,6 @@ const Z_OPTIONS = [
   { value: '4', label: 'Z4 — Forage / managed' },
   { value: '5', label: 'Z5 — Wilderness' },
 ];
-
-/**
- * Which zone categories make permaculture sense at each Z-level.
- * Z0 is the home centre (habitation, sacred, learning); intensity tapers
- * outward to Z5 wilderness (conservation, buffer, water retention).
- * `infrastructure` / `access` are admitted wherever they realistically appear.
- */
-const Z_TO_CATEGORIES: Record<string, ZoneCategory[]> = {
-  '0': ['habitation', 'spiritual', 'education', 'infrastructure'],
-  '1': ['habitation', 'food_production', 'spiritual', 'education', 'infrastructure', 'access'],
-  '2': ['food_production', 'livestock', 'education', 'retreat', 'water_retention', 'infrastructure', 'access'],
-  '3': ['food_production', 'livestock', 'water_retention', 'access', 'buffer'],
-  '4': ['livestock', 'commons', 'conservation', 'water_retention', 'buffer', 'future_expansion', 'access'],
-  '5': ['conservation', 'commons', 'water_retention', 'buffer', 'future_expansion'],
-};
 
 const optionsForZ = (z: string | number | undefined): { value: ZoneCategory; label: string }[] => {
   const key = String(z ?? '2');

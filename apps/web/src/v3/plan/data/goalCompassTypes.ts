@@ -82,8 +82,23 @@ export interface SubGoal {
   criteria: SuccessCriterion[];
 }
 
+/**
+ * The six supported project archetypes. This is the type the sequencing
+ * engine sees at runtime (`GoalTree.archetype`), so a mistyped catalog
+ * `projectTypes` tag is a compile error. Distinct from the underscored
+ * `PlanProjectTypeKey` (Record-key only) — kept as the single runtime
+ * source of truth for archetype identity.
+ */
+export type ProjectArchetype =
+  | 'homestead'
+  | 'regenerative-farm'
+  | 'retreat'
+  | 'education'
+  | 'conservation'
+  | 'multi-enterprise';
+
 export interface GoalTree {
-  archetype: 'homestead' | 'regenerative-farm' | 'retreat' | 'education' | 'conservation' | 'multi-enterprise';
+  archetype: ProjectArchetype;
   parentGoal: {
     id: string;
     title: string;
@@ -223,6 +238,13 @@ export interface Intervention {
   geometryTemplate?: GeometryTemplate;
   sources: Citation[];
   region?: CostRegion;
+  /**
+   * Project archetypes this intervention is authored for. The sequencing
+   * engine skips it under any other archetype. Absent OR empty ⇒
+   * universal (eligible under every archetype) — this is how the 22
+   * legacy interventions stay non-regressive.
+   */
+  projectTypes?: ProjectArchetype[];
 }
 
 export type FacetProvenance = 'observe' | 'manual' | null;
@@ -278,4 +300,4 @@ export function emptySiteProfile(projectId: string): SiteProfile {
   };
 }
 
-export const CATALOG_VERSION = 'goal-compass-v1-2026-05-14';
+export const CATALOG_VERSION = 'goal-compass-v2-2026-05-16';

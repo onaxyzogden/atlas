@@ -12,7 +12,9 @@
  */
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Pencil, Trash2, Trees, X } from 'lucide-react';
+import { getFloaterStackRoot } from '../observe/components/floaterStackRoot.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import {
   usePlanSelectionStore,
@@ -144,6 +146,12 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
   const guild = usePolycultureStore((s) =>
     guildId ? s.guilds.find((g) => g.id === guildId) ?? null : null,
   );
+  const zoneId = single?.kind === 'zone' ? single.id : null;
+  const selectedZoneSeeded = useZoneStore((s) =>
+    zoneId
+      ? s.zones.find((z) => z.id === zoneId)?.seedProvenance === 'ring-seed'
+      : false,
+  );
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -158,7 +166,10 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
     return () => document.removeEventListener('keydown', onKey);
   }, [items.length, clear]);
 
+  const stackRoot = getFloaterStackRoot();
+
   if (items.length === 0) return null;
+  if (!stackRoot) return null;
 
   const isPolygonSelection = (item: PlanSelectionItem): boolean => {
     if (!POLYGON_KINDS.has(item.kind)) return false;
@@ -223,8 +234,13 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
     });
   };
 
-  return (
-    <div className={css.floater} role="toolbar" aria-label="Plan selection actions">
+  return createPortal(
+    <div
+      className={css.floater}
+      role="toolbar"
+      aria-label="Plan selection actions"
+      style={{ order: 2 }}
+    >
       {single?.kind === 'paddock' ? (
         <button
           type="button"
@@ -238,6 +254,23 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
       ) : (
         <span className={css.count}>{countLabel}</span>
       )}
+      {selectedZoneSeeded ? (
+        <span
+          title="Ring-seed draft — edit its name/Z-level, reshape its vertices, or delete it like any zone"
+          style={{
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            padding: '2px 6px',
+            borderRadius: 4,
+            border: '1px dashed rgba(212,182,99,0.7)',
+            color: 'rgba(212,182,99,0.95)',
+          }}
+        >
+          Seeded
+        </span>
+      ) : null}
       <div className={css.divider} aria-hidden="true" />
       <DelayedTooltip
         label={
@@ -288,6 +321,7 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
           <span>Clear</span>
         </button>
       </DelayedTooltip>
-    </div>
+    </div>,
+    stackRoot,
   );
 }

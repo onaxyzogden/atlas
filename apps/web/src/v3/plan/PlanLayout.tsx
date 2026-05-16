@@ -88,7 +88,7 @@ export default function PlanLayout() {
   const boundary = v3Project?.location.boundary;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
-  const [activeView, setActiveView] = useState<PlanView>('current');
+  const [activeView, setActiveView] = useState<PlanView>('vision');
   const [currentMode, setCurrentMode] = useState<ToolMode>('pan');
   const [currentHovering, setCurrentHovering] = useState(false);
   const [currentSelectedId, setCurrentSelectedId] = useState<string | null>(null);
@@ -237,6 +237,16 @@ export default function PlanLayout() {
     </DiagnoseMap>
   );
 
+  const moduleBar = (
+    <PlanModuleBar
+      activeModule={validModule}
+      onSelectModule={handleSelectModule}
+      slideUpOpen={slideUpOpen && validModule !== null}
+      onOpenSlideUp={() => setSlideUpOpen(true)}
+      onCloseSlideUp={() => setSlideUpOpen(false)}
+    />
+  );
+
   return (
     <PlanViewProvider view={activeView}>
     <StageShell
@@ -275,21 +285,14 @@ export default function PlanLayout() {
           onCloseSlideUp={() => setSlideUpOpen(false)}
         />
       }
-      bottomTray={
-        <PlanModuleBar
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
-      }
+      bottomTray={moduleBar}
       overlay={
         <PlanModuleSlideUp
           module={validModule}
           open={slideUpOpen && validModule !== null}
           onClose={() => setSlideUpOpen(false)}
           project={project}
+          topBar={moduleBar}
           onSwitchModule={(mod) => {
             handleSelectModule(mod);
             setSlideUpOpen(true);
