@@ -59,6 +59,7 @@ import type { StructureType } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { translateByDelta } from './translateGeometry.js';
 import { beginDragUndoWindow } from './dragUndo.js';
+import { setCursorIntent } from '../canvas/mapCursorIntentStore.js';
 import {
   buildZoneEditSchema,
   buildCropEditSchema,
@@ -1177,11 +1178,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (f?.properties?.kind === 'guild') {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
@@ -1219,7 +1220,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
@@ -1243,7 +1244,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () => updateGuild(id2, { center: origCenter }),
@@ -1395,11 +1396,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (f?.properties?.kind === 'structure') {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
@@ -1439,7 +1440,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         // Translate by delta — keeps the cursor's grab-offset relative to
@@ -1467,7 +1468,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.x, y: down.y };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () =>
@@ -1615,11 +1616,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const f = e.features?.[0];
       const k = f?.properties?.kind;
       if (typeof k === 'string' && HANDLED.includes(k)) {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
@@ -1692,7 +1693,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
@@ -1722,7 +1723,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () => {
@@ -1900,11 +1901,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const f = e.features?.[0];
       const k = f?.properties?.kind;
       if (typeof k === 'string' && HANDLED.includes(k)) {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
@@ -1966,7 +1967,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
@@ -2002,7 +2003,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () => {
@@ -2135,11 +2136,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const f = e.features?.[0];
       const k = f?.properties?.kind;
       if (typeof k === 'string' && HANDLED.includes(k)) {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
@@ -2192,7 +2193,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
@@ -2220,7 +2221,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () => {
@@ -2361,12 +2362,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
     };
 
-    const onMouseEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const onMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'setback') return;
@@ -2391,14 +2386,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       });
     };
 
-    map.on('mouseenter', layerId, onMouseEnter);
-    map.on('mouseleave', layerId, onMouseLeave);
     map.on('click', layerId, onClick);
 
     return () => {
       try {
-        map.off('mouseenter', layerId, onMouseEnter);
-        map.off('mouseleave', layerId, onMouseLeave);
         map.off('click', layerId, onClick);
       } catch {
         /* map already disposed */
@@ -2423,12 +2414,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     if (activeTool !== null) return;
     const layerId = `${LAYER_PREFIX}flow-line`;
 
-    const onMouseEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const onMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'flow') return;
@@ -2450,14 +2435,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       });
     };
 
-    map.on('mouseenter', layerId, onMouseEnter);
-    map.on('mouseleave', layerId, onMouseLeave);
     map.on('click', layerId, onClick);
 
     return () => {
       try {
-        map.off('mouseenter', layerId, onMouseEnter);
-        map.off('mouseleave', layerId, onMouseLeave);
         map.off('click', layerId, onClick);
       } catch {
         /* map already disposed */
@@ -2480,12 +2461,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     if (activeTool !== null) return;
     const layerId = `${LAYER_PREFIX}transect-line`;
 
-    const onMouseEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const onMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'transect') return;
@@ -2507,14 +2482,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       });
     };
 
-    map.on('mouseenter', layerId, onMouseEnter);
-    map.on('mouseleave', layerId, onMouseLeave);
     map.on('click', layerId, onClick);
 
     return () => {
       try {
-        map.off('mouseenter', layerId, onMouseEnter);
-        map.off('mouseleave', layerId, onMouseLeave);
         map.off('click', layerId, onClick);
       } catch {
         /* map already disposed */

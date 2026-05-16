@@ -385,20 +385,13 @@ export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
       openEditForm(anchor, destKind, destId, destName, destPlans);
     };
 
-    const onEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const onLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
-
+    // Hover-pointer is owned by useMapCursor — the TEXT_LAYER id matches
+    // its 'plan-scheduled-moves-' interactive prefix, so hovering the
+    // badge flips to 'pointer' there without this overlay writing the
+    // canvas itself.
     map.on('click', TEXT_LAYER, onClick);
-    map.on('mouseenter', TEXT_LAYER, onEnter);
-    map.on('mouseleave', TEXT_LAYER, onLeave);
     return () => {
       map.off('click', TEXT_LAYER, onClick);
-      map.off('mouseenter', TEXT_LAYER, onEnter);
-      map.off('mouseleave', TEXT_LAYER, onLeave);
     };
   }, [map, visible, projectId, openForm]);
 

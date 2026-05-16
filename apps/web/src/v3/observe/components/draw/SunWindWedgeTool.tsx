@@ -86,9 +86,8 @@ export default function SunWindWedgeTool({
   // bearing from the homestead (or map center) to the click point.
   useEffect(() => {
     if (!seedingFromMap) return;
-    const canvas = map.getCanvas();
-    const prevCursor = canvas.style.cursor;
-    canvas.style.cursor = 'crosshair';
+    // Cursor is owned by useMapCursor — this popover's activeTool starts
+    // with 'observe.' so drawArmed → 'crosshair' is computed there.
     const onClick = (e: maplibregl.MapMouseEvent) => {
       const center = map.getCenter();
       const fromLng = homestead?.[0] ?? center.lng;
@@ -99,7 +98,6 @@ export default function SunWindWedgeTool({
     };
     map.once('click', onClick);
     return () => {
-      canvas.style.cursor = prevCursor;
       map.off('click', onClick);
     };
   }, [seedingFromMap, map, homestead]);
