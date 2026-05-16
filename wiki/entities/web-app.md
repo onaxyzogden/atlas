@@ -100,7 +100,16 @@ All use `persist` middleware with localStorage. Key stores:
   now preserves the existing local UUID (keeps IndexedDB `boundary:<id>` entries
   valid) and user-drawn parcel boundaries across builtin re-seeds. See
   [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
-- `zoneStore` — land zones (13 categories)
+- `zoneStore` — land zones (13 categories). Owns `Z_TO_CATEGORIES` /
+  `defaultCategoryForZ` (single source for Z-level→category, read by
+  `ZonePolygonTool` + zone generators); `LandZone` carries optional
+  `isHomeCentre` + `seedProvenance` (`'manual' | 'ring-seed'`).
+  **Zone-generator seam** (`v3/plan/engine/zoneGenerators/`): pure
+  `(context) → LandZone[]` generators (`ringSeedGenerator` first) — the
+  caller `addZone`s the output so generated zones ride the existing
+  `temporal` undo + draw/edit tools. `GenerateSiteDesignBar` exposes a
+  zero-state "Seed zones from rings" shortcut. See
+  [[2026-05-15-atlas-zone-generator-seam-ring-seeding]].
 - `structureStore` — structures (20 types)
 - `livestockStore` — paddocks + livestock species
 - `cropStore` — crop areas (10 types)
