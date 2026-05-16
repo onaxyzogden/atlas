@@ -117,9 +117,9 @@ export function useDimensionDrawTool({
       },
     });
 
-    const canvas = map.getCanvas();
-    const prevCursor = canvas.style.cursor;
-    canvas.style.cursor = 'crosshair';
+    // Cursor is owned by useMapCursor — this hook only runs while a
+    // `plan.*` draw tool is armed, so drawArmed → 'crosshair' is
+    // computed there.
 
     const updateGhost = (lngLat: LngLat) => {
       const geom = buildGeom(shapeRef.current, lngLat, valuesRef.current);
@@ -162,7 +162,6 @@ export function useDimensionDrawTool({
       map.off('mousemove', onMove);
       map.off('click', onClick);
       window.removeEventListener('keydown', onKey);
-      canvas.style.cursor = prevCursor;
       try {
         if (map.getLayer(LINE_LAYER_ID)) map.removeLayer(LINE_LAYER_ID);
         if (map.getLayer(FILL_LAYER_ID)) map.removeLayer(FILL_LAYER_ID);

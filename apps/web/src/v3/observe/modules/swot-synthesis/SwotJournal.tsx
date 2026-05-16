@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+﻿import { useMemo, useState } from 'react';
 import {
   BookOpen,
   CloudLightning,
@@ -16,6 +16,7 @@ import { api } from '../../../../lib/apiClient.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
+import Ring from '../../../_shared/stageCard/Ring.js';
 
 const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
   S: 'Strengths',
@@ -38,15 +39,6 @@ const METRIC_ICONS: Record<string, LucideIcon> = {
   Threats: CloudLightning,
   'Total entries': BookOpen,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function SwotJournal() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -112,7 +104,7 @@ export default function SwotJournal() {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generating…' : 'Export journal'}
+          {exporting ? 'Generatingâ€¦' : 'Export journal'}
         </button>
       </div>
 
@@ -169,7 +161,7 @@ export default function SwotJournal() {
           Journal entries
         </h2>
         {sorted.length === 0 ? (
-          <p className={card.empty}>No journal entries yet — add one from the toolbar above.</p>
+          <p className={card.empty}>No journal entries yet â€” add one from the toolbar above.</p>
         ) : (
           <ul className={card.list}>
             {sorted.map((e) => (

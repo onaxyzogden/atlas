@@ -36,6 +36,7 @@ import {
   bearingFromPoints,
   arcDegFromPointer,
 } from '../../utils/sectorMath.js';
+import { setCursorIntent } from '../../../plan/canvas/mapCursorIntentStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -219,7 +220,7 @@ export default function AnnotationSectorHandles({ map, projectId }: Props) {
         map.touchZoomRotate.disableRotation();
         touchRotateSuspended = true;
       }
-      map.getCanvas().style.cursor = 'grabbing';
+      setCursorIntent('grabbing');
     };
 
     const onPointerMove = (e: MapPointerEvent) => {
@@ -290,18 +291,18 @@ export default function AnnotationSectorHandles({ map, projectId }: Props) {
           map.touchZoomRotate.enableRotation();
           touchRotateSuspended = false;
         }
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
       } catch {
         /* map already removed */
       }
     };
 
     const onEnter = () => {
-      map.getCanvas().style.cursor = 'grab';
+      setCursorIntent('grab');
     };
     const onLeave = () => {
       if (role) return;
-      map.getCanvas().style.cursor = '';
+      setCursorIntent(null);
     };
 
     map.on('mousedown', LAYER_ID, onLayerPointerDown);
@@ -353,7 +354,7 @@ export default function AnnotationSectorHandles({ map, projectId }: Props) {
         if (touchRotateSuspended) {
           map.touchZoomRotate.enableRotation();
         }
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
       } catch {
         /* map already removed */
       }

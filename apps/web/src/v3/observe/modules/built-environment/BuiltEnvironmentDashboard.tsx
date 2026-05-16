@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+﻿import { useMemo, useState } from 'react';
 import {
   Cable,
   CheckCircle2,
@@ -38,6 +38,7 @@ import {
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   builtEnvironmentKpis,
   builtEnvironmentV2CategoryKpis,
@@ -66,15 +67,6 @@ const ICON_MAP: Record<BuiltKpiItem['iconKey'], LucideIcon> = {
   flame: Flame,
   square: Square,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function BuiltEnvironmentDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -113,7 +105,7 @@ export default function BuiltEnvironmentDashboard() {
   // Phase 5.4: feed V2 entity totals into the health bar so a project that
   // has only V2-class entities (no legacy buildings / wells / etc.) still
   // moves the dial. `kindsPresent` is the count of distinct registry
-  // categories occupied — keeps the per-slot weight comparable to the
+  // categories occupied â€” keeps the per-slot weight comparable to the
   // legacy 8-slot calc (which weights each of its 8 slots by 4 points).
   const v2CountsByCategory = useMemo(
     () => builtV2Counts(v2Entities, id),
@@ -238,7 +230,7 @@ export default function BuiltEnvironmentDashboard() {
 
   const synopsis =
     counts.total === 0
-      ? 'No built-environment assets traced yet — start with the buildings you can see, then wells, then walk the fence lines.'
+      ? 'No built-environment assets traced yet â€” start with the buildings you can see, then wells, then walk the fence lines.'
       : `${counts.total} asset${counts.total === 1 ? '' : 's'} traced; ${formatLength(
           utilityKm,
         )} of utilities and ${formatLength(accessKm)} of access infrastructure mapped.`;
@@ -248,10 +240,10 @@ export default function BuiltEnvironmentDashboard() {
       Droplet,
       'Water & utilities',
       wells.length > 0
-        ? `${wells.length} well${wells.length === 1 ? '' : 's'} pinned — record flow before sizing irrigation.`
+        ? `${wells.length} well${wells.length === 1 ? '' : 's'} pinned â€” record flow before sizing irrigation.`
         : buriedUtilities.length > 0
-          ? `${buriedUtilities.length} buried line${buriedUtilities.length === 1 ? '' : 's'} mapped — they veto earthworks across them.`
-          : 'Pin wells and buried utilities first — they cap what water systems are even possible.',
+          ? `${buriedUtilities.length} buried line${buriedUtilities.length === 1 ? '' : 's'} mapped â€” they veto earthworks across them.`
+          : 'Pin wells and buried utilities first â€” they cap what water systems are even possible.',
     ],
     [
       Route,
@@ -264,10 +256,10 @@ export default function BuiltEnvironmentDashboard() {
       ShieldAlert,
       'Hazards & easements',
       overheadPower.length > 0
-        ? `${overheadPower.length} overhead power run${overheadPower.length === 1 ? '' : 's'} — keep tall trees and structures clear of fall zones.`
+        ? `${overheadPower.length} overhead power run${overheadPower.length === 1 ? '' : 's'} â€” keep tall trees and structures clear of fall zones.`
         : buriedUtilities.length > 0
-          ? 'Buried lines on record — show on Plan layer to keep earthworks out.'
-          : 'No hazard corridors mapped yet — overhead power and buried lines belong here.',
+          ? 'Buried lines on record â€” show on Plan layer to keep earthworks out.'
+          : 'No hazard corridors mapped yet â€” overhead power and buried lines belong here.',
     ],
   ];
 
@@ -276,7 +268,7 @@ export default function BuiltEnvironmentDashboard() {
     implications.push([
       ShieldAlert,
       'Buried lines mapped',
-      `${buriedUtilities.length} run${buriedUtilities.length === 1 ? '' : 's'} — vetoes earthworks across them.`,
+      `${buriedUtilities.length} run${buriedUtilities.length === 1 ? '' : 's'} â€” vetoes earthworks across them.`,
     ]);
   }
   if (overheadPower.length > 0) {
@@ -297,7 +289,7 @@ export default function BuiltEnvironmentDashboard() {
     implications.push([
       Wrench,
       'Trace what is there first',
-      'The design starts from existing assets — buildings, utilities, fences, gates.',
+      'The design starts from existing assets â€” buildings, utilities, fences, gates.',
     ]);
   }
 
@@ -347,7 +339,7 @@ export default function BuiltEnvironmentDashboard() {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generating…' : 'Export built-environment report'}
+          {exporting ? 'Generatingâ€¦' : 'Export built-environment report'}
         </button>
       </div>
 
@@ -463,7 +455,7 @@ export default function BuiltEnvironmentDashboard() {
             'gate',
             'existingDriveway',
           ]}
-          emptyHint="No buildings, utilities, or fences yet — trace one with the tools panel."
+          emptyHint="No buildings, utilities, or fences yet â€” trace one with the tools panel."
         />
       </section>
     </div>

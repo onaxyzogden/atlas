@@ -217,15 +217,11 @@ export default function AdoptBasemapBuildingTool({ map, projectId }: Props) {
       setActiveTool(null);
     };
 
-    map.getCanvas().style.cursor = 'crosshair';
+    // Cursor is owned by useMapCursor — this tool's activeTool starts with
+    // 'observe.' so drawArmed → 'crosshair' is computed there.
     map.on('click', onClick);
     return () => {
       map.off('click', onClick);
-      try {
-        map.getCanvas().style.cursor = '';
-      } catch {
-        /* canvas may already be torn down */
-      }
     };
   }, [map, projectId, setActiveTool]);
 

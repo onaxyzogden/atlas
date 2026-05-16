@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+﻿import { useMemo } from 'react';
 import {
   Beaker,
   Binoculars,
@@ -22,6 +22,7 @@ import WaterBalanceBar from './WaterBalanceBar.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   jprKpis,
   soilStats,
@@ -38,15 +39,6 @@ const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   mountain: Binoculars,
   waves: Waves,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function JarPercRoofDetail() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -72,13 +64,13 @@ export default function JarPercRoofDetail() {
     : null;
 
   const assumptions: Array<[string, string]> = [
-    ['Annual rainfall', roof?.annualPrecipMm != null ? `${roof.annualPrecipMm} mm/yr` : '—'],
-    ['Roof runoff coefficient', roof?.runoffCoeff != null ? `${roof.runoffCoeff}` : '—'],
-    ['Effective roof area', roof?.roofAreaM2 != null ? `${roof.roofAreaM2} m²` : '—'],
-    ['Percolation rate', percVal != null ? `${percVal} in/hr` : '—'],
+    ['Annual rainfall', roof?.annualPrecipMm != null ? `${roof.annualPrecipMm} mm/yr` : 'â€”'],
+    ['Roof runoff coefficient', roof?.runoffCoeff != null ? `${roof.runoffCoeff}` : 'â€”'],
+    ['Effective roof area', roof?.roofAreaM2 != null ? `${roof.roofAreaM2} mÂ²` : 'â€”'],
+    ['Percolation rate', percVal != null ? `${percVal} in/hr` : 'â€”'],
     [
       'Biological activity',
-      latest?.biologicalActivity ? BIO_ACTIVITY_LABELS[latest.biologicalActivity] : '—',
+      latest?.biologicalActivity ? BIO_ACTIVITY_LABELS[latest.biologicalActivity] : 'â€”',
     ],
   ];
 
@@ -112,7 +104,7 @@ export default function JarPercRoofDetail() {
             <Ring value={completenessPct} />
             <span className={obsx.label}>Tests captured</span>
             <span className={obsx.value}>{completedTests} / 3</span>
-            <span className={obsx.note}>Jar · Perc · Roof</span>
+            <span className={obsx.note}>Jar Â· Perc Â· Roof</span>
           </div>
           {kpis.slice(0, 3).map((item) => {
             const Icon = ICON_MAP[item.iconKey];
@@ -153,13 +145,13 @@ export default function JarPercRoofDetail() {
           </>
         ) : (
           <p className={card.empty}>
-            No jar test — fill a jar with soil and water, shake, and record the settled layers.
+            No jar test â€” fill a jar with soil and water, shake, and record the settled layers.
           </p>
         )}
         {latest?.texture ? (
           <p className={card.hint}>
             <Leaf aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-            Texture: <b>{TEXTURE_LABELS[latest.texture]}</b> — balanced mix supports water holding
+            Texture: <b>{TEXTURE_LABELS[latest.texture]}</b> â€” balanced mix supports water holding
             and infiltration.
           </p>
         ) : null}
@@ -171,24 +163,24 @@ export default function JarPercRoofDetail() {
           <PercGauge inPerHr={percVal ?? null} />
           <div className={card.statRow}>
             <span>Sample label</span>
-            <span>{latest?.label ?? '—'}</span>
+            <span>{latest?.label ?? 'â€”'}</span>
           </div>
           <div className={card.statRow}>
             <span>Depth</span>
-            <span>{latest?.depth ? DEPTH_LABELS[latest.depth] : '—'}</span>
+            <span>{latest?.depth ? DEPTH_LABELS[latest.depth] : 'â€”'}</span>
           </div>
           <div className={card.statRow}>
             <span>Rate</span>
-            <span>{percVal != null ? `${percVal} in/hr` : '—'}</span>
+            <span>{percVal != null ? `${percVal} in/hr` : 'â€”'}</span>
           </div>
           <div className={card.statRow}>
             <span>Rating</span>
-            <span>{band?.label ?? '—'}</span>
+            <span>{band?.label ?? 'â€”'}</span>
           </div>
           <div className={card.statRow}>
             <span>Bulk density</span>
             <span>
-              {latest?.bulkDensityGCm3 != null ? `${latest.bulkDensityGCm3} g/cm³` : '—'}
+              {latest?.bulkDensityGCm3 != null ? `${latest.bulkDensityGCm3} g/cmÂ³` : 'â€”'}
             </span>
           </div>
         </section>
@@ -198,19 +190,19 @@ export default function JarPercRoofDetail() {
           <WaterBalanceBar roofCatchment={roof} variant="capture" />
           <div className={card.statRow}>
             <span>Annual precipitation</span>
-            <span>{roof?.annualPrecipMm != null ? `${roof.annualPrecipMm} mm` : '—'}</span>
+            <span>{roof?.annualPrecipMm != null ? `${roof.annualPrecipMm} mm` : 'â€”'}</span>
           </div>
           <div className={card.statRow}>
             <span>Effective roof area</span>
-            <span>{roof?.roofAreaM2 != null ? `${roof.roofAreaM2} m²` : '—'}</span>
+            <span>{roof?.roofAreaM2 != null ? `${roof.roofAreaM2} mÂ²` : 'â€”'}</span>
           </div>
           <div className={card.statRow}>
             <span>Runoff coefficient</span>
-            <span>{roof?.runoffCoeff != null ? roof.runoffCoeff.toFixed(2) : '—'}</span>
+            <span>{roof?.runoffCoeff != null ? roof.runoffCoeff.toFixed(2) : 'â€”'}</span>
           </div>
           <div className={card.statRow}>
             <span>Annual potential</span>
-            <span>{annualL != null ? `${Math.round(annualL).toLocaleString()} L/yr` : '—'}</span>
+            <span>{annualL != null ? `${Math.round(annualL).toLocaleString()} L/yr` : 'â€”'}</span>
           </div>
         </section>
       </div>
@@ -229,15 +221,15 @@ export default function JarPercRoofDetail() {
         <section className={card.section}>
           <h2 className={card.sectionTitle}>Recent tests</h2>
           {recent.length === 0 ? (
-            <p className={card.empty}>No samples yet — add a sample via the tools panel.</p>
+            <p className={card.empty}>No samples yet â€” add a sample via the tools panel.</p>
           ) : (
             recent.map((s) => (
               <div key={s.id} className={card.statRow}>
                 <span>
-                  {s.sampleDate} · {s.label}
+                  {s.sampleDate} Â· {s.label}
                 </span>
                 <span>
-                  {s.ph != null ? `pH ${s.ph}` : s.texture ? TEXTURE_LABELS[s.texture] : '—'}
+                  {s.ph != null ? `pH ${s.ph}` : s.texture ? TEXTURE_LABELS[s.texture] : 'â€”'}
                 </span>
               </div>
             ))
@@ -248,7 +240,7 @@ export default function JarPercRoofDetail() {
       <section className={card.section}>
         <h2 className={card.sectionTitle}>Notes</h2>
         {notes.length === 0 ? (
-          <p className={card.empty}>No notes — add observations to samples via the tools panel.</p>
+          <p className={card.empty}>No notes â€” add observations to samples via the tools panel.</p>
         ) : (
           <ul className={card.list}>
             {notes.map((n, i) => (
@@ -275,8 +267,8 @@ export default function JarPercRoofDetail() {
                 <span>
                   Soil texture is <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{TEXTURE_LABELS[latest.texture]}</b>
                   {latest.texture.includes('clay')
-                    ? ' — higher clay content means slower infiltration but good water retention.'
-                    : ' — balanced structure supports both drainage and moisture retention.'}
+                    ? ' â€” higher clay content means slower infiltration but good water retention.'
+                    : ' â€” balanced structure supports both drainage and moisture retention.'}
                 </span>
               </p>
             ) : null}
@@ -286,10 +278,10 @@ export default function JarPercRoofDetail() {
                 <span>
                   Infiltration rate is <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{band.label}</b>
                   {band.rating === 'ideal'
-                    ? ' — well-suited for on-site soakage systems.'
+                    ? ' â€” well-suited for on-site soakage systems.'
                     : band.rating === 'fast'
-                      ? ' — may need organic matter to improve water retention.'
-                      : ' — consider aerating and adding compost to improve drainage.'}
+                      ? ' â€” may need organic matter to improve water retention.'
+                      : ' â€” consider aerating and adding compost to improve drainage.'}
                 </span>
               </p>
             ) : null}
@@ -297,7 +289,7 @@ export default function JarPercRoofDetail() {
               <p>
                 <Waves aria-hidden="true" size={14} />
                 <span>
-                  Roof has a potential annual harvest of <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{Math.round(annualL / 1000)} m³</b> — size tanks for peak seasonal flows.
+                  Roof has a potential annual harvest of <b style={{ display: 'inline', background: 'transparent', width: 'auto', height: 'auto', color: 'rgba(232,220,200,0.95)' }}>{Math.round(annualL / 1000)} mÂ³</b> â€” size tanks for peak seasonal flows.
                 </span>
               </p>
             ) : null}

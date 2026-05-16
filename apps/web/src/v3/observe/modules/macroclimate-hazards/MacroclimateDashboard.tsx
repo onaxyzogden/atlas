@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
   CheckCircle2,
@@ -25,6 +25,7 @@ import HazardHotspotsMap from './HazardHotspotsMap.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   climateKpis,
   getClimateLayer,
@@ -52,15 +53,6 @@ const ICON_MAP: Record<KpiItem['iconKey'], LucideIcon> = {
   wind: Wind,
   shield: ShieldCheck,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function MacroclimateDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -163,7 +155,7 @@ export default function MacroclimateDashboard() {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generating…' : 'Export macroclimate report'}
+          {exporting ? 'Generatingâ€¦' : 'Export macroclimate report'}
         </button>
       </div>
 
@@ -277,7 +269,7 @@ export default function MacroclimateDashboard() {
           top.map((h) => (
             <div key={h.id} className={card.statRow}>
               <span>
-                {h.label} <span style={{ color: 'rgba(232,220,200,0.45)', marginLeft: 6, fontSize: 11 }}>{statusLabel(h.status)} · {h.mitigationPct}%</span>
+                {h.label} <span style={{ color: 'rgba(232,220,200,0.45)', marginLeft: 6, fontSize: 11 }}>{statusLabel(h.status)} Â· {h.mitigationPct}%</span>
               </span>
               <span className={`${card.pill} ${riskPill(h.risk)}`}>{riskLabel(h.risk)}</span>
             </div>
@@ -341,7 +333,7 @@ export default function MacroclimateDashboard() {
           title=""
           projectId={projectId ?? null}
           kinds={['frostPocket', 'hazardZone']}
-          emptyHint="No frost pockets or hazard zones recorded yet — outline one with the tools panel."
+          emptyHint="No frost pockets or hazard zones recorded yet â€” outline one with the tools panel."
         />
       </section>
     </div>

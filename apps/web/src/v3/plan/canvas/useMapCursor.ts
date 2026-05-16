@@ -4,11 +4,14 @@
  *
  * Priority (top wins):
  *   1. drawArmed → 'crosshair'
- *   2. select + hovering selectable feature → 'pointer'
- *   3. select → 'crosshair'
- *   4. pan + hovering selectable feature (not dragging) → 'pointer'
- *   5. pan + mouse down → 'grabbing'
- *   6. pan → 'grab'
+ *   2. mapCursorIntentStore.intent ('grabbing' | 'move' | 'grab') — the
+ *      imperative channel feature drag/hover code uses instead of writing
+ *      the canvas itself, so this hook stays the only cursor writer.
+ *   3. select + hovering selectable feature → 'pointer'
+ *   4. select → 'crosshair'
+ *   5. pan + hovering selectable feature (not dragging) → 'pointer'
+ *   6. pan + mouse down → 'grabbing'
+ *   7. pan → 'grab'
  *
  * MapLibre re-applies its own cursor on every `mousemove`, so we re-write
  * ours on `mousemove` (and on the matching mouse-down/up) to win the race.
@@ -22,6 +25,7 @@
 
 import { useEffect } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
+import { useMapCursorIntentStore } from './mapCursorIntentStore.js';
 
 export type CursorMode = 'pan' | 'select';
 
@@ -41,9 +45,15 @@ interface Opts {
 const INTERACTIVE_LAYER_PREFIXES = [
   'design-el-',
   'plan-data-',
-  'observe-annot-',
-  'obs-annot-',
+  // Observe annotation layers (ObserveAnnotationLayers `LAYER_PREFIX`).
+  // Clickable → opens the detail panel; the hover-pointer affordance is
+  // computed here instead of the overlay writing the canvas itself.
+  'observe-anno-',
   'be-v2-',
+  // Plan-stage scheduled-move badges (PlanScheduledMovesOverlay). Clickable
+  // → opens the edit form; the hover-pointer affordance is computed here
+  // instead of the overlay writing the canvas itself.
+  'plan-scheduled-moves-',
 ];
 
 interface HostProps {
@@ -96,6 +106,11 @@ export function useMapCursor(map: MaplibreMap | null, opts: Opts): void {
 
     const compute = () => {
       if (drawArmed) return 'crosshair';
+      // Imperative affordance channel — feature drag/hover code declares
+      // 'grabbing'/'move'/'grab' here rather than writing the canvas, so
+      // this hook remains the sole writer. Beats hover/pan/select below.
+      const intent = useMapCursorIntentStore.getState().intent;
+      if (intent) return intent;
       const hov = externalHovering || internalHover;
       if (mode === 'select') {
         return hov ? 'pointer' : 'crosshair';
@@ -172,6 +187,14 @@ export function useMapCursor(map: MaplibreMap | null, opts: Opts): void {
       });
     }
 
+    // Re-apply when the imperative intent changes. Hover-enter/leave and
+    // drag start/end fire on layer events with no following map
+    // `mousemove`, so the intent slot wouldn't otherwise be picked up
+    // until the next pointer move (the same gap the observer closes for
+    // external writes). The equality guard in `apply()` is implicit — a
+    // no-op write is harmless and the observer ignores it.
+    const unsubIntent = useMapCursorIntentStore.subscribe(() => apply());
+
     apply();
     map.on('mousemove', onMove);
     canvas.addEventListener('mousedown', onDown);
@@ -184,6 +207,7 @@ export function useMapCursor(map: MaplibreMap | null, opts: Opts): void {
         /* map disposed */
       }
       observer?.disconnect();
+      unsubIntent();
       canvas.removeEventListener('mousedown', onDown);
       window.removeEventListener('mouseup', onUp);
       try {

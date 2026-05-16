@@ -4,6 +4,77 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-15 — Map cursor: Observe annotation hover-probe coverage fix
+
+**Branch.** `claude/jovial-mccarthy-bb516f`.
+
+**What.** Audit of `INTERACTIVE_LAYER_PREFIXES` coverage (follow-up to
+the intent-channel ADR) found `'observe-annot-'` / `'obs-annot-'` were
+**dead** prefixes — no layer uses them; Observe annotation layers are
+`observe-anno-*`. The hover-probe matched no Observe annotation, so the
+observer clobbered the layers' bare `pointer` write back to `grab`:
+clickable affordance silently dead Observe-wide. `observe-anno-` was the
+sole gap (`design-el-`/`plan-data-`/`be-v2-`/`plan-scheduled-moves-` all
+correct; `observe-sector-handles-circle` intentionally intent-channel).
+
+- Replaced the two dead entries with `'observe-anno-'` in
+  `INTERACTIVE_LAYER_PREFIXES` (`useMapCursor.ts`).
+- Deleted the now-redundant `onEnter`/`onLeave` bare cursor writers +
+  plumbing in `ObserveAnnotationLayers.tsx` (prior ADR's "Redundant —
+  deleted" disposition; click/dblclick → `openDetail` untouched).
+
+See `decisions/2026-05-15-atlas-observe-anno-prefix-fix.md`.
+
+**Verification.** `corepack pnpm --filter web typecheck` exit 0. `web-wt`
+(port 5210) pan rest `grab !important`. Deterministic prefix logic proved
+in-page: OLD prefixes → all real `observe-anno-*` ids `false` (the
+regression), NEW → all `true`; other families still `true`;
+non-interactive `false`. Live rendered-map hover screenshot not
+obtainable headless (MapTiler `403` placeholder key blocks the base
+style; synthetic-style eval + screenshot time out the WebGL renderer) —
+noted as a limitation, not assumed. Console: only pre-existing
+`ObserveModuleBar.tsx:32` warning + expected `403`.
+
+---
+
+## 2026-05-15 — Map cursor: single authority closed via intent channel
+
+**Branch.** `claude/jovial-mccarthy-bb516f`.
+
+**What.** Executed the deferred follow-up from
+`decisions/2026-05-15-atlas-map-cursor-authoritative.md`: resolved the
+~30 ad-hoc `map.getCanvas().style.cursor = X` writers so the codebase
+has exactly one cursor authority (`useMapCursor`).
+
+- **Deleted (redundant):** `crosshair` writers in
+  `AdoptBasemapBuildingTool`, `SunWindWedgeTool`, `useDimensionDrawTool`
+  (all gated by `drawArmed`); pure pointer `mouseenter`/`mouseleave`
+  pairs in `PlanDataLayers` (×3) and `PlanScheduledMovesOverlay`
+  (covered by the hover probe; added `plan-scheduled-moves-` to
+  `INTERACTIVE_LAYER_PREFIXES`).
+- **Preserved by extending the priority model:** new
+  `mapCursorIntentStore.ts` (Zustand; `grabbing | move | grab`) consulted
+  by `useMapCursor` at priority 2 (below `drawArmed`, above hover/pan);
+  the hook subscribes and re-applies. `PlanDataLayers` (×5),
+  `AnnotationDragHandler`, `AnnotationSectorHandles` now call
+  `setCursorIntent(...)`/`setCursorIntent(null)` instead of writing the
+  canvas directly. This revives the `move`/`grab`/`grabbing` affordances
+  the prior ADR's observer had been overriding.
+
+**Verification.** `pnpm --filter web typecheck` exit 0. Live on a
+worktree-dedicated dev server (`web-wt`, port 5210, confirmed serving
+this branch). Observe + Plan: pan rest `grab !important`; draw armed
+(Swale / Adopt-from-map / Sun-summer) `crosshair !important`; real
+`mapCursorIntentStore` driven via the Vite dev graph →
+`grabbing`/`move`/`grab` each `!important`, clear → `grab !important`.
+Only a pre-existing `ObserveModuleBar.tsx:32` DOM-nesting warning and
+the expected placeholder-key MapTiler `403` in console — no cursor /
+MutationObserver / recursion errors.
+
+**Added.** `web-wt` (`--strictPort` 5210) launch config in
+`.claude/launch.json` for collision-free worktree preview. ADR:
+`decisions/2026-05-15-atlas-map-cursor-intent-channel.md`.
+
 ## 2026-05-15 — OLOS/Atlas Workflow-Spec Reconciliation + MVP Delta
 
 **Branch.** `feat/atlas-permaculture`.
@@ -1033,6 +1104,31 @@ follows. Typecheck clean; preview navigated through
 `/observe/{human-context,topography,macroclimate-hazards}` with no
 module-resolution errors. Full record:
 [wiki/decisions/2026-05-12-atlas-observe-shared-primitives-deleted.md](decisions/2026-05-12-atlas-observe-shared-primitives-deleted.md).
+
+---
+
+## 2026-05-12 — Observe `Ring` helper lifted to shared component
+
+**Closed.** Closes deferred follow-up 3 from the 2026-05-11 Human Context
+reskin ADR. The gold conic-gradient `Ring({ value })` helper existed as
+14 byte-identical local copies across every Observe dashboard and detail
+page — same JSX, same `--progress` CSS variable, same
+`observeExtras.module.css` `.ring` rule, distinguished only by which
+local alias (`obsx` vs `hc`) the CSS module was imported under. New
+`apps/web/src/v3/_shared/stageCard/Ring.tsx` exports the component as
+default; each consumer dropped its local `function Ring(...)` block plus
+the now-unused `type CSSProperties` React import and added
+`import Ring from '../../../_shared/stageCard/Ring.js'`. The 14 files
+touched: BuiltEnvironment / EarthWaterEcology / Ecological / Hydrology /
+JarPercRoof / HumanContext / StewardSurvey / Macroclimate /
+SectorCompass / Sectors / Swot{Dashboard,DiagnosisReport,Journal} /
+Topography. Net −126 lines of duplicated boilerplate, +12 in the shared
+component. `pnpm --filter @ogden/web typecheck` clean (exit 0). Visual
+end-to-end confirmation of the Ring inside an open dashboard was
+blocked — demo project's Observe dashboards are data-gated ("Site
+Intelligence is available for real projects. The MTC sample ships with
+mock data only.") so the lazy `ModuleSlideUp` dashboards never mount on
+the preview's mock data. Lift is mechanically pure-refactor.
 
 ---
 

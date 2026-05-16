@@ -32,6 +32,7 @@ import {
   readPointPosition,
   writePointPosition,
 } from './annotationGeometryRegistry.js';
+import { setCursorIntent } from '../../../plan/canvas/mapCursorIntentStore.js';
 
 interface Props {
   map: MaplibreMap;
@@ -186,7 +187,7 @@ export default function AnnotationDragHandler({ map }: Props) {
         map.touchZoomRotate.disableRotation();
         touchRotateSuspended = true;
       }
-      map.getCanvas().style.cursor = 'grabbing';
+      setCursorIntent('grabbing');
       setPreview([e.lngLat.lng, e.lngLat.lat]);
     };
 
@@ -216,7 +217,7 @@ export default function AnnotationDragHandler({ map }: Props) {
         map.touchZoomRotate.enableRotation();
         touchRotateSuspended = false;
       }
-      map.getCanvas().style.cursor = '';
+      setCursorIntent(null);
       setPreview(null);
 
       if (!wasDragging) {
@@ -272,7 +273,7 @@ export default function AnnotationDragHandler({ map }: Props) {
           map.touchZoomRotate.enableRotation();
           touchRotateSuspended = false;
         }
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
       } catch {
         // map already removed — nothing to clean up
       }
