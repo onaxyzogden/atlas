@@ -12,10 +12,33 @@ interface Props {
   onBoundaryDrawn?: (polygon: GeoJSON.Polygon) => void;
 }
 
+/**
+ * MapboxDraw can hold more than one feature mid-session (a stray click, an
+ * abandoned earlier ring). The popover's live-area readout always measures the
+ * feature with the most vertices, so the committed feature must be the *same*
+ * one — otherwise the persisted parcel silently disagrees with what the user
+ * saw measured. Returns the Polygon feature with the largest outer ring.
+ */
+function pickLargestPolygon(
+  fc: GeoJSON.FeatureCollection,
+): GeoJSON.Feature<GeoJSON.Polygon> | null {
+  let best: GeoJSON.Feature<GeoJSON.Polygon> | null = null;
+  for (const f of fc.features) {
+    if (f.geometry?.type !== 'Polygon') continue;
+    const ring = f.geometry.coordinates[0];
+    if (!ring) continue;
+    if (!best || ring.length > (best.geometry.coordinates[0]?.length ?? 0)) {
+      best = f as GeoJSON.Feature<GeoJSON.Polygon>;
+    }
+  }
+  return best;
+}
+
 export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) {
   const drawRef = useRef<MapboxDraw | null>(null);
   const [polygon, setPolygon] = useState<GeoJSON.Polygon | null>(existing ?? null);
   const [liveArea, setLiveArea] = useState<number | null>(null);
+  const [selfIntersecting, setSelfIntersecting] = useState(false);
   // Stash latest onBoundaryDrawn so the effect does not re-init the draw
   // control every time the parent re-renders (ObserveLayout creates a new
   // inline arrow function on every render, which would otherwise cause
@@ -53,13 +76,18 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
     drawRef.current = draw;
 
     const onChange = () => {
-      const all = draw.getAll();
-      const feat = all.features[0];
-      if (feat && feat.geometry.type === 'Polygon') {
-        const poly = feat.geometry as GeoJSON.Polygon;
+      const feat = pickLargestPolygon(draw.getAll());
+      if (feat) {
+        const poly = feat.geometry;
+        // A self-intersecting ("bowtie") ring makes both turf.area and
+        // PostGIS ST_Area return the *net* of the crossed lobes, silently
+        // collapsing the reported parcel size. Refuse to commit it and warn.
+        const kinked = turf.kinks(feat).features.length > 0;
+        setSelfIntersecting(kinked);
         setPolygon(poly);
-        onBoundaryDrawnRef.current?.(poly);
+        if (!kinked) onBoundaryDrawnRef.current?.(poly);
       } else {
+        setSelfIntersecting(false);
         setPolygon(null);
       }
     };
@@ -74,20 +102,7 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
       setLiveArea((prev) => (prev === pendingArea ? prev : pendingArea));
     };
     const onRender = () => {
-      const fc = draw.getAll();
-      let best: GeoJSON.Feature<GeoJSON.Polygon> | null = null;
-      for (const f of fc.features) {
-        if (f.geometry?.type === 'Polygon') {
-          const ring = f.geometry.coordinates[0];
-          if (
-            ring &&
-            (!best ||
-              ring.length > (best.geometry.coordinates[0]?.length ?? 0))
-          ) {
-            best = f as GeoJSON.Feature<GeoJSON.Polygon>;
-          }
-        }
-      }
+      const best = pickLargestPolygon(draw.getAll());
       if (best && (best.geometry.coordinates[0]?.length ?? 0) >= 3) {
         const a = turf.area(best);
         pendingArea = a > 0 ? a : null;
@@ -153,6 +168,16 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
         <span className={css.hint}>
           Click points to outline the parcel. Double-click to close the
           polygon.
+        </span>
+      )}
+      {selfIntersecting && (
+        <span
+          className={css.hint}
+          role="alert"
+          style={{ color: '#c0392b', fontWeight: 600 }}
+        >
+          Self-intersecting boundary — the lines cross, so the reported area
+          is wrong. Untangle the outline before it can be saved.
         </span>
       )}
     </div>

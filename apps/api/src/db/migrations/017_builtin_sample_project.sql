@@ -58,8 +58,8 @@ ON CONFLICT (id) DO NOTHING;
 --
 -- Boundary is a hand-rolled ~12-acre rectangle centred on the Glenashton
 -- address in Oakville, ON. Numbers are in EPSG:4326 (WGS84). Acreage is
--- recomputed via ST_Transform → EPSG:26917 (UTM 17N, Ontario) so the row
--- carries the same value the boundary endpoint would produce.
+-- recomputed via the WGS84 spheroid (::geography) so the row carries the
+-- same location-independent value the boundary endpoint produces.
 
 INSERT INTO projects (
   id,
@@ -101,10 +101,9 @@ SELECT
     '{"type":"Polygon","coordinates":[[[-79.70636,43.50401],[-79.70364,43.50401],[-79.70364,43.50599],[-79.70636,43.50599],[-79.70636,43.50401]]]}'
   )),
   ST_SetSRID(ST_MakePoint(-79.70500, 43.50500), 4326),
-  ST_Area(ST_Transform(
-    ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-79.70636,43.50401],[-79.70364,43.50401],[-79.70364,43.50599],[-79.70636,43.50599],[-79.70636,43.50401]]]}'),
-    26917
-  )) / 4046.86,
+  ST_Area(
+    ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-79.70636,43.50401],[-79.70364,43.50401],[-79.70364,43.50599],[-79.70636,43.50599],[-79.70636,43.50401]]]}')::geography
+  ) / 4046.86,
   '351 Glenashton Dr, Halton Hills, ON',
   '24-15-040-001-04100',
   'CA',

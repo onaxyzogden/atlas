@@ -291,7 +291,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
           parcel_boundary = ST_Multi(ST_GeomFromGeoJSON(${geojsonStr})),
           centroid        = ST_Centroid(ST_GeomFromGeoJSON(${geojsonStr})),
           acreage         = ST_Area(
-            ST_Transform(ST_GeomFromGeoJSON(${geojsonStr}), 26917)
+            ST_GeomFromGeoJSON(${geojsonStr})::geography
           ) / 4046.86
         WHERE id = ${req.projectId}
         RETURNING id,
