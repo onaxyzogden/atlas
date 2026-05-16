@@ -15,7 +15,9 @@
  */
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Move, Pencil, Trash2, X } from 'lucide-react';
+import { getFloaterStackRoot } from './floaterStackRoot.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import { useObserveSelectionStore } from '../../../store/observeSelectionStore.js';
 import { useAnnotationDetailStore } from '../../../store/annotationDetailStore.js';
@@ -69,8 +71,11 @@ export default function SelectionFloater({ projectId }: Props) {
     return () => document.removeEventListener('keydown', onKey);
   }, [selected.length, clear]);
 
+  const stackRoot = getFloaterStackRoot();
+
   if (selected.length === 0) return null;
   if (detailActive) return null;
+  if (!stackRoot) return null;
 
   const single = selected.length === 1 ? selected[0] : null;
   const first = selected[0];
@@ -154,8 +159,13 @@ export default function SelectionFloater({ projectId }: Props) {
     countLabel = `${selected.length} selected`;
   }
 
-  return (
-    <div className={css.floater} role="toolbar" aria-label="Selection actions">
+  return createPortal(
+    <div
+      className={css.floater}
+      role="toolbar"
+      aria-label="Selection actions"
+      style={{ order: 1 }}
+    >
       <span className={css.count}>{countLabel}</span>
       <div className={css.divider} aria-hidden="true" />
       <DelayedTooltip
@@ -218,6 +228,7 @@ export default function SelectionFloater({ projectId }: Props) {
           <span>Clear</span>
         </button>
       </DelayedTooltip>
-    </div>
+    </div>,
+    stackRoot,
   );
 }
