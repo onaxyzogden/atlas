@@ -137,6 +137,7 @@ All use `persist` middleware with localStorage. Key stores:
 - Tile renderer: MapLibre GL (open-source)
 - Tile provider: **MapTiler** (`VITE_MAPTILER_KEY`) — migrated from Mapbox 2026-04-11/12
 - Satellite basemap: **Esri World Imagery** (free, no token, ~z19) since 2026-05-15 — inline `ESRI_WORLD_IMAGERY_STYLE` raster style in `maplibre.ts` with MapTiler glyphs fallback; MapTiler satellite retained via the **Hybrid** style. See ADR 2026-05-15-atlas-satellite-basemap-esri-world-imagery
+- Offline tile-precache (`tilePrecache.ts`) also warms **Esri World Imagery** (`server.arcgisonline.com/.../World_Imagery/MapServer/tile/{z}/{y}/{x}`, no key) since 2026-05-15 — Workbox `StaleWhileRevalidate` rule routes both the live raster source and the precache warmer into the shared `ogden-map-tiles` cache, so offline tiles match the online Satellite basemap; works on the keyless public deploy. See ADR 2026-05-15-atlas-offline-tile-precache-esri-parity
 - Style URLs (MapTiler, non-satellite): `https://api.maptiler.com/maps/{topo|topo-v2|streets|hybrid}/style.json?key=...`
 - Geocoding: **MapTiler** (`https://api.maptiler.com/geocoding/{query}.json?key=...`) — used in `MapCanvas.tsx` and `StepBoundary.tsx`
 - Terrain DEM: still `mapbox://` protocol in `TerrainControls.tsx` + `HydrologyPanel.tsx` — **pending migration**
