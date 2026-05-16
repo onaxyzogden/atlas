@@ -1260,8 +1260,6 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     ) => void;
     const clickHandlers = new Map<string, LayerClick>();
     const dblHandlers = new Map<string, LayerClick>();
-    const enterHandlers = new Map<string, () => void>();
-    const leaveHandlers = new Map<string, () => void>();
 
     /** Track when a click was handled by a layer, so the empty-map click
      *  handler can know to skip clearing (MapLibre fires both layer click
@@ -1331,20 +1329,10 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         e.preventDefault();
         openDetail({ kind, id });
       };
-      const onEnter = () => {
-        map.getCanvas().style.cursor = 'pointer';
-      };
-      const onLeave = () => {
-        map.getCanvas().style.cursor = '';
-      };
       map.on('click', layerId, onClick);
       map.on('dblclick', layerId, onDbl);
-      map.on('mouseenter', layerId, onEnter);
-      map.on('mouseleave', layerId, onLeave);
       clickHandlers.set(layerId, onClick);
       dblHandlers.set(layerId, onDbl);
-      enterHandlers.set(layerId, onEnter);
-      leaveHandlers.set(layerId, onLeave);
     };
 
     /** Empty-map click → clear selection. Skips when a layer click consumed
@@ -1523,19 +1511,13 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         map.off('style.load', onStyle);
         map.off('styleimagemissing', onImageMissing);
         map.off('click', onMapClick);
-        // Remove click/hover handlers per layer id so a re-render or unmount
-        // doesn't leave dangling listeners on stale layer ids.
+        // Remove click/dblclick handlers per layer id so a re-render or
+        // unmount doesn't leave dangling listeners on stale layer ids.
         for (const [layerId, h] of clickHandlers) {
           map.off('click', layerId, h);
         }
         for (const [layerId, h] of dblHandlers) {
           map.off('dblclick', layerId, h);
-        }
-        for (const [layerId, h] of enterHandlers) {
-          map.off('mouseenter', layerId, h);
-        }
-        for (const [layerId, h] of leaveHandlers) {
-          map.off('mouseleave', layerId, h);
         }
       } catch {
         // map already removed — nothing to clean up

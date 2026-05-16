@@ -45,8 +45,10 @@ interface Opts {
 const INTERACTIVE_LAYER_PREFIXES = [
   'design-el-',
   'plan-data-',
-  'observe-annot-',
-  'obs-annot-',
+  // Observe annotation layers (ObserveAnnotationLayers `LAYER_PREFIX`).
+  // Clickable → opens the detail panel; the hover-pointer affordance is
+  // computed here instead of the overlay writing the canvas itself.
+  'observe-anno-',
   'be-v2-',
   // Plan-stage scheduled-move badges (PlanScheduledMovesOverlay). Clickable
   // → opens the edit form; the hover-pointer affordance is computed here
