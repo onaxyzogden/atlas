@@ -18,6 +18,12 @@ export interface ZoneGeneratorContext {
   /** Zones already in the store for this project. */
   existingZones: LandZone[];
   /**
+   * Steward-picked ring origin `[lng, lat]`. When set it overrides the
+   * auto-resolved anchor and becomes the Z0 home-centre — the steward
+   * chooses where the rings grow from instead of the generator guessing.
+   */
+  anchorPoint?: [number, number];
+  /**
    * Goal-tree archetype (e.g. `'regenerative-farm'`). Reserved as the
    * archetype-bias hook; v1 generators use the Z-level default category
    * (single source of truth in `Z_TO_CATEGORIES`) and ignore it rather

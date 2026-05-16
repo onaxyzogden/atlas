@@ -13,7 +13,7 @@ import type { LocalProject } from '../../../../store/projectStore.js';
 import { useGoalTreeStore } from '../../../../store/goalTreeStore.js';
 import { useSiteProfileStore } from '../../../../store/siteProfileStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
-import { ringSeedGenerator } from '../../engine/zoneGenerators/index.js';
+import { useMapToolStore } from '../../../observe/components/measure/useMapToolStore.js';
 import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { resolveZoneVegetation } from '../../engine/vegetationResolver.js';
 import { usePhaseStore } from '../../../../store/phaseStore.js';
@@ -36,7 +36,7 @@ export default function GenerateSiteDesignBar({ project }: Props) {
     (s) => s.profilesByProject[project.id] ?? null,
   );
   const zones = useZoneStore((s) => s.zones);
-  const addZone = useZoneStore((s) => s.addZone);
+  const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const vegetationPatches = useVegetationStore((s) => s.patches);
   const replaceGoalCompassRows = usePhaseStore((s) => s.replaceGoalCompassRows);
   const discard = useGeneratorDraftStore((s) => s.discard);
@@ -111,23 +111,12 @@ export default function GenerateSiteDesignBar({ project }: Props) {
   };
 
   const seedZonesFromRings = () => {
-    const ctx = {
-      projectId: project.id,
-      parcelBoundary: project.parcelBoundaryGeojson,
-      existingZones: zones,
-    };
-    const avail = ringSeedGenerator.canRun(ctx);
-    if (!avail.ok) {
-      setStatus(avail.reason ?? 'Cannot seed zones yet.');
-      return;
-    }
-    const seeded = ringSeedGenerator.generate(ctx);
-    seeded.forEach(addZone);
+    // Seeding now requires the steward to pick the ring origin. Arm the
+    // Plan-map point tool; the click there seeds Z0–Z3 around that point.
+    setActiveTool('plan.zone-circulation.zone-seed-anchor');
     setStatus(
-      seeded.length === 0
-        ? 'No zones seeded — the parcel may already be fully ring-seeded.'
-        : `Seeded ${seeded.length} draft zone(s) from the Mollison rings. ` +
-            'Adjust or dismiss them like any drawn zone, then Generate.',
+      'Switch to the Plan map and click where the home centre sits — ' +
+        'Z0–Z3 rings seed from there. Then return here to Generate.',
     );
   };
 

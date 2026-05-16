@@ -306,6 +306,12 @@ interface ZoneState {
   updateZone: (id: string, updates: Partial<LandZone>) => void;
   deleteZone: (id: string) => void;
   /**
+   * Bulk-remove every ring-seed draft for a project in one undo step.
+   * Hand-drawn (`manual`) zones are untouched. Returns the count removed
+   * so the caller can surface it.
+   */
+  clearSeededZones: (projectId: string) => number;
+  /**
    * Returns a freshly-allocated array. **Do NOT call inside a Zustand
    * selector** — new snapshot every render → infinite loop.
    * Subscribe to `state.zones` raw and derive in `useMemo`.
@@ -330,6 +336,25 @@ export const useZoneStore = create<ZoneState>()(
           })),
 
         deleteZone: (id) => set((s) => ({ zones: s.zones.filter((z) => z.id !== id) })),
+
+        clearSeededZones: (projectId) => {
+          const before = get().zones;
+          const removed = before.filter(
+            (z) => z.projectId === projectId && z.seedProvenance === 'ring-seed',
+          ).length;
+          if (removed > 0) {
+            set({
+              zones: before.filter(
+                (z) =>
+                  !(
+                    z.projectId === projectId &&
+                    z.seedProvenance === 'ring-seed'
+                  ),
+              ),
+            });
+          }
+          return removed;
+        },
 
         getProjectZones: (projectId) => get().zones.filter((z) => z.projectId === projectId),
       }),

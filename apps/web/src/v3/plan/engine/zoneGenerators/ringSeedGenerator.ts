@@ -3,16 +3,17 @@
  * draft `LandZone`s so the steward starts from the ideal instead of a
  * blank canvas. Pure: no store access, no React.
  *
- * Anchor resolution (in order): an explicit `isHomeCentre` zone → a
- * legacy `permacultureZone === 0` zone → the parcel-boundary centroid.
- * When no home-centre zone exists one is emitted (a small disc at the
- * anchor) so the original zero-state ("no zones at all") is closed in
- * one action.
+ * Anchor resolution (in order): a steward-picked `ctx.anchorPoint` →
+ * an explicit `isHomeCentre` zone → a legacy `permacultureZone === 0`
+ * zone → the parcel-boundary centroid. When no home-centre zone exists
+ * one is emitted (a small disc at the anchor) so the original zero-state
+ * ("no zones at all") is closed in one action.
  *
- * Each band is clipped to the parcel and has existing zones (hand-drawn
- * work + the home centre + earlier bands) subtracted, so seeds never
- * overlap and a re-run only fills the still-uncovered remainder
- * (idempotent per Z-level).
+ * Bands are NOT parcel-clipped — full rings are seeded around the anchor
+ * (Z3 stays whole on a compact lot); the steward trims to the parcel
+ * afterwards. Existing zones (hand-drawn work + the home centre + earlier
+ * bands) are still subtracted, so seeds never overlap and a re-run only
+ * fills the still-uncovered remainder (idempotent per Z-level).
  *
  * Geometry constants come from `zoneRingConstants` — shared with the
  * read-only overlay so a seed's outer edge lands exactly on its ring.
@@ -27,6 +28,12 @@ import {
 } from '../../../../store/zoneStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { ZONE_RING_BANDS, ringCircle } from '../../layers/zoneRingConstants.js';
+import {
+  diff,
+  parcelPolygon,
+  type Poly,
+  type PolyFeature,
+} from './parcelGeometry.js';
 import type {
   ZoneGenerator,
   ZoneGeneratorContext,
@@ -36,55 +43,21 @@ import type {
 const HOME_CENTRE_RADIUS_M = 15;
 const MIN_SEED_AREA_M2 = 50;
 
-type Poly = GeoJSON.Polygon | GeoJSON.MultiPolygon;
-type PolyFeature = GeoJSON.Feature<Poly>;
-
-function diff(a: PolyFeature, b: PolyFeature): PolyFeature | null {
-  try {
-    return (turf.difference(turf.featureCollection([a, b])) ??
-      null) as PolyFeature | null;
-  } catch {
-    return null;
-  }
-}
-
-function clip(a: PolyFeature, b: PolyFeature): PolyFeature | null {
-  try {
-    return (turf.intersect(turf.featureCollection([a, b])) ??
-      null) as PolyFeature | null;
-  } catch {
-    return null;
-  }
-}
-
-/** Union of every polygon/multipolygon feature in the boundary FC. */
-function parcelPolygon(
-  fc: GeoJSON.FeatureCollection | null,
-): PolyFeature | null {
-  if (!fc) return null;
-  const polys = fc.features.filter(
-    (f): f is PolyFeature =>
-      f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon',
-  );
-  if (polys.length === 0) return null;
-  let acc = polys[0]!;
-  for (let i = 1; i < polys.length; i++) {
-    try {
-      const u = turf.union(turf.featureCollection([acc, polys[i]!]));
-      if (u) acc = u as PolyFeature;
-    } catch {
-      /* keep acc */
-    }
-  }
-  return acc;
-}
-
 interface Anchor {
   center: GeoJSON.Feature<GeoJSON.Point>;
   homeCentreZone: LandZone | null;
 }
 
 function resolveAnchor(ctx: ZoneGeneratorContext): Anchor | null {
+  // Steward-picked point wins: it becomes the Z0 home centre (a fresh disc
+  // is emitted at it because homeCentreZone is null) so the rings grow from
+  // exactly where the steward clicked, not a guessed centroid.
+  if (ctx.anchorPoint) {
+    return {
+      center: turf.point(ctx.anchorPoint) as GeoJSON.Feature<GeoJSON.Point>,
+      homeCentreZone: null,
+    };
+  }
   const mine = ctx.existingZones.filter((z) => z.projectId === ctx.projectId);
   const hc =
     mine.find((z) => z.isHomeCentre) ??
@@ -159,7 +132,9 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
     out.push(make(0, hc.geometry, 'habitation', 'Home centre', true));
   }
 
-  const parcel = parcelPolygon(ctx.parcelBoundary);
+  // No parcel clip: full Mollison rings are seeded around the picked
+  // point so Z3 isn't truncated on a compact lot. The steward trims to
+  // the parcel afterwards via the explicit "trim seeded zones" action.
   // Existing hand-drawn / prior-seeded work the new seeds must not cover.
   const blockers: PolyFeature[] = mine.map(
     (z) => turf.feature(z.geometry) as PolyFeature,
@@ -183,10 +158,6 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
       geom = diff(geom, ringCircle(center, band.innerM) as PolyFeature);
     }
     if (!geom) continue;
-    if (parcel) {
-      geom = clip(geom, parcel);
-      if (!geom) continue;
-    }
     for (const b of [
       ...blockers,
       ...out.map((z) => turf.feature(z.geometry) as PolyFeature),
@@ -216,8 +187,8 @@ export const ringSeedGenerator: ZoneGenerator = {
   id: 'ring-seed',
   label: 'Seed zones from rings',
   describe:
-    'Generate editable Z0–Z3 draft zones from the Mollison rings, ' +
-    'clipped to the parcel. Adjust or dismiss them like any drawn zone.',
+    'Click a point on the map to seed editable Z0–Z3 Mollison rings ' +
+    'from there. Adjust, trim to the parcel, or clear them anytime.',
   canRun,
   generate,
 };

@@ -1,8 +1,10 @@
 // @vitest-environment happy-dom
 /**
  * ringSeedGenerator — the first zone-generator. Locks the durable
- * contract: pure (no store), parcel-clipped, idempotent per Z-level,
- * closes the zero-state by emitting a home centre when none exists.
+ * contract: pure (no store), full (NOT parcel-clipped) rings,
+ * steward-picked `anchorPoint` wins as the Z0 home centre, idempotent
+ * per Z-level, closes the zero-state by emitting a home centre when
+ * none exists.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -74,12 +76,29 @@ describe('ringSeedGenerator', () => {
     }
   });
 
-  it('every seeded band stays inside the parcel', () => {
-    const parcel = parcelFC().features[0]! as GeoJSON.Feature<GeoJSON.Polygon>;
-    const parcelArea = turf.area(parcel);
-    for (const z of ringSeedGenerator.generate(ctx())) {
-      expect(z.areaM2).toBeLessThanOrEqual(parcelArea);
-    }
+  it('bands are NOT parcel-clipped — full rings on a tiny lot', () => {
+    // ~22 m square (~490 m²) — far smaller than the 500 m Z3 ring.
+    const tinyParcel: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [
+        turf.polygon([
+          [
+            [-0.0001, -0.0001],
+            [0.0001, -0.0001],
+            [0.0001, 0.0001],
+            [-0.0001, 0.0001],
+            [-0.0001, -0.0001],
+          ],
+        ]),
+      ],
+    };
+    const parcelArea = turf.area(tinyParcel.features[0]!);
+    const zones = ringSeedGenerator.generate(
+      ctx({ parcelBoundary: tinyParcel }),
+    );
+    const byZ = new Map(zones.map((z) => [z.permacultureZone, z]));
+    // Z3 (0–500 m ring) dwarfs the parcel — proves no clip happened.
+    expect(byZ.get(3)!.areaM2).toBeGreaterThan(parcelArea * 100);
   });
 
   it('idempotent: a level already ring-seeded is not re-seeded', () => {
@@ -132,5 +151,33 @@ describe('ringSeedGenerator', () => {
     // No new Z0 home centre; rings still produced (unclipped, no parcel).
     expect(zones.some((z) => z.permacultureZone === 0)).toBe(false);
     expect(zones.length).toBeGreaterThan(0);
+  });
+
+  it('a steward-picked anchorPoint becomes the Z0 disc; rings grow from it', () => {
+    const anchor: [number, number] = [0.004, -0.003];
+    const zones = ringSeedGenerator.generate(
+      ctx({ parcelBoundary: null, anchorPoint: anchor }),
+    );
+    const byZ = new Map(zones.map((z) => [z.permacultureZone, z]));
+
+    const home = byZ.get(0)!;
+    expect(home.isHomeCentre).toBe(true);
+    expect(home.seedProvenance).toBe('ring-seed');
+    // ~π·15² m² disc (geodesic, 64-step circle — allow slack).
+    expect(home.areaM2).toBeGreaterThan(600);
+    expect(home.areaM2).toBeLessThan(800);
+    const homeC = turf.centroid(home.geometry).geometry.coordinates;
+    expect(homeC[0]).toBeCloseTo(anchor[0], 3);
+    expect(homeC[1]).toBeCloseTo(anchor[1], 3);
+
+    // Z1–Z3 present, unclipped (no parcel), centred on the picked point.
+    for (const zLevel of [1, 2, 3] as const) {
+      const band = byZ.get(zLevel)!;
+      expect(band).toBeDefined();
+      const c = turf.centroid(band.geometry).geometry.coordinates;
+      expect(c[0]).toBeCloseTo(anchor[0], 2);
+      expect(c[1]).toBeCloseTo(anchor[1], 2);
+    }
+    expect(byZ.get(3)!.areaM2).toBeGreaterThan(byZ.get(2)!.areaM2);
   });
 });
