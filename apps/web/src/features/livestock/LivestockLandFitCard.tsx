@@ -22,7 +22,8 @@
  * Spec: §11 livestock-land-fit-enterprise-zone (featureManifest).
  */
 
-import { useMemo } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useZoneStore, type ZoneCategory, type LandZone } from '../../store/zoneStore.js';
 import {
   useSiteData,
@@ -42,6 +43,19 @@ interface Props {
 
 interface SoilsSummary { drainage_class?: string }
 interface ElevationSummary { mean_slope_deg?: number }
+
+/** Active rationale tooltip — only one is shown at a time across the matrix. */
+interface ActiveTip {
+  key: string;
+  rect: DOMRect;
+  label: string;
+  zoneName: string;
+  reasons: string[];
+}
+
+const TIP_W = 200; // must equal .rationale width in LivestockLandFitCard.module.css
+const GAP = 6;
+const MARGIN = 8;
 
 /**
  * Five major enterprise species shown in the matrix. Horses, ducks/geese,
@@ -225,6 +239,57 @@ export default function LivestockLandFitCard({ projectId }: Props) {
     };
   }, [siteData]);
 
+  const [tip, setTip] = useState<ActiveTip | null>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const tipRef = useRef<HTMLDivElement | null>(null);
+  const anchorElRef = useRef<HTMLTableCellElement | null>(null);
+  const tipId = useId();
+
+  useLayoutEffect(() => {
+    if (!tip) return;
+    const node = tipRef.current;
+    if (!node) return;
+    const tipH = node.offsetHeight;
+    const r = tip.rect;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    const spaceAbove = r.top;
+    const placeAbove = spaceAbove >= tipH + GAP || spaceAbove >= vh - r.bottom;
+    let top = placeAbove ? r.top - GAP - tipH : r.bottom + GAP;
+    if (top < MARGIN) top = MARGIN;
+    if (top + tipH > vh - MARGIN) top = Math.max(MARGIN, vh - MARGIN - tipH);
+
+    let left = r.left + r.width / 2 - TIP_W / 2;
+    if (left < MARGIN) left = MARGIN;
+    if (left + TIP_W > vw - MARGIN) left = Math.max(MARGIN, vw - MARGIN - TIP_W);
+
+    setPos({ top: Math.round(top), left: Math.round(left) });
+  }, [tip]);
+
+  useEffect(() => {
+    if (!tip) return;
+    const onScroll = () => {
+      setTip(null);
+      setPos(null);
+    };
+    const onResize = () => {
+      const el = anchorElRef.current;
+      if (!el || !el.isConnected) {
+        setTip(null);
+        setPos(null);
+        return;
+      }
+      setTip((t) => (t ? { ...t, rect: el.getBoundingClientRect() } : t));
+    };
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll, { capture: true } as EventListenerOptions);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [tip]);
+
   if (zones.length === 0) {
     return (
       <div className={css.card}>
@@ -294,17 +359,47 @@ export default function LivestockLandFitCard({ projectId }: Props) {
                     : fit.stars === 2 ? css.fitTier_2
                     : fit.stars === 1 ? css.fitTier_1
                     : css.fitTier_0;
+                  const cellKey = `${z.id}:${s}`;
                   return (
-                    <td key={s} className={`${css.fitCell} ${tierClass}`}>
+                    <td
+                      key={s}
+                      className={`${css.fitCell} ${tierClass}`}
+                      tabIndex={0}
+                      aria-describedby={tip?.key === cellKey ? tipId : undefined}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        anchorElRef.current = el;
+                        setTip({
+                          key: cellKey,
+                          rect: el.getBoundingClientRect(),
+                          label: info.label,
+                          zoneName: z.name,
+                          reasons: fit.reasons,
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        anchorElRef.current = null;
+                        setTip(null);
+                        setPos(null);
+                      }}
+                      onFocus={(e) => {
+                        const el = e.currentTarget;
+                        anchorElRef.current = el;
+                        setTip({
+                          key: cellKey,
+                          rect: el.getBoundingClientRect(),
+                          label: info.label,
+                          zoneName: z.name,
+                          reasons: fit.reasons,
+                        });
+                      }}
+                      onBlur={() => {
+                        anchorElRef.current = null;
+                        setTip(null);
+                        setPos(null);
+                      }}
+                    >
                       <Stars count={fit.stars} />
-                      <div className={css.rationale}>
-                        <strong>{info.label} {'\u00D7'} {z.name}</strong>
-                        <ul style={{ margin: '4px 0 0', paddingLeft: 14 }}>
-                          {fit.reasons.map((r, i) => (
-                            <li key={i}>{r}</li>
-                          ))}
-                        </ul>
-                      </div>
                     </td>
                   );
                 })}
@@ -318,10 +413,37 @@ export default function LivestockLandFitCard({ projectId }: Props) {
         Spec ref: §11 livestock-land-fit & enterprise zone matching.
         Heuristic blend of zone category, area-vs-min-paddock, site slope,
         and SSURGO drainage class. Coarse by design {'\u2014'} a steward
-        nudge, not a stocking-density quote. Hover any cell for rationale.
-        Horses, ducks/geese, rabbits, and bees are not shown to keep the
-        matrix readable; their per-species data lives in <em>speciesData.ts</em>.
+        nudge, not a stocking-density quote. Hover or focus any cell for
+        rationale. Horses, ducks/geese, rabbits, and bees are not shown to
+        keep the matrix readable; their per-species data lives in{' '}
+        <em>speciesData.ts</em>.
       </div>
+
+      {tip && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              ref={tipRef}
+              id={tipId}
+              role="tooltip"
+              className={css.rationale}
+              style={{
+                top: pos ? pos.top : tip.rect.top,
+                left: pos ? pos.left : tip.rect.left,
+                visibility: pos ? 'visible' : 'hidden',
+              }}
+            >
+              <strong>
+                {tip.label} {'×'} {tip.zoneName}
+              </strong>
+              <ul style={{ margin: '4px 0 0', paddingLeft: 14 }}>
+                {tip.reasons.map((r, i) => (
+                  <li key={i}>{r}</li>
+                ))}
+              </ul>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
