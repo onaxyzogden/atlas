@@ -18,6 +18,7 @@ import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { resolveZoneVegetation } from '../../engine/vegetationResolver.js';
 import { usePhaseStore } from '../../../../store/phaseStore.js';
 import { useGeneratorDraftStore } from '../../../../store/generatorDraftStore.js';
+import { useRegenerationPlanStore } from '../../../../store/regenerationPlanStore.js';
 import { runAutoDesign } from '../../engine/autoDesign/runAutoDesign.js';
 import { commitDrafts } from '../../engine/autoDesign/commitDrafts.js';
 import type { AllocatorZone } from '../../engine/autoDesign/types.js';
@@ -40,11 +41,22 @@ export default function GenerateSiteDesignBar({ project }: Props) {
   const vegetationPatches = useVegetationStore((s) => s.patches);
   const replaceGoalCompassRows = usePhaseStore((s) => s.replaceGoalCompassRows);
   const discard = useGeneratorDraftStore((s) => s.discard);
+  const allPlans = useRegenerationPlanStore((s) => s.plans);
 
   const [startDate, setStartDate] = useState('2026-06-01');
   const [status, setStatus] = useState<string | null>(null);
 
   const projectZones = zones.filter((z) => z.projectId === project.id);
+  // Adoption seam: a zone carrying a steward-authored RegenerationPlan has an
+  // explicit pathway, so the auto-designer's forced-barren assignment gate
+  // releases for it (no double-modeling — the plan never writes BuildPhase).
+  const acknowledgedRegenerationZoneIds = Array.from(
+    new Set(
+      allPlans
+        .filter((pl) => pl.projectId === project.id)
+        .map((pl) => pl.zoneId),
+    ),
+  );
   const missing: string[] = [];
   if (goalTree === null) missing.push('Goal tree (set targets in Goal Compass)');
   if (siteProfile === null)
@@ -83,6 +95,7 @@ export default function GenerateSiteDesignBar({ project }: Props) {
       siteProfile,
       zones: allocatorZones,
       startDate: startDate || null,
+      acknowledgedRegenerationZoneIds,
       parcelBoundary: project.parcelBoundaryGeojson ?? null,
     });
 

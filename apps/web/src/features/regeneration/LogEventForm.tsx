@@ -20,6 +20,8 @@ import {
 } from '@ogden/shared';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useRegenerationEventStore } from '../../store/regenerationEventStore.js';
+import { useZoneStore } from '../../store/zoneStore.js';
+import { useRegenerationPlanStore } from '../../store/regenerationPlanStore.js';
 import { api } from '../../lib/apiClient.js';
 import css from './RegenerationTimeline.module.css';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
@@ -87,6 +89,8 @@ export default function LogEventForm({ project, onSubmitted, onCancel, parentEve
   const projectServerId = project.serverId ?? project.id;
   const createEvent = useRegenerationEventStore((s) => s.createEvent);
   const updateEvent = useRegenerationEventStore((s) => s.updateEvent);
+  const allZones = useZoneStore((s) => s.zones);
+  const allPlans = useRegenerationPlanStore((s) => s.plans);
   const isEdit = !!editEvent;
 
   const [eventType, setEventType] = useState<RegenerationEventType>(editEvent?.eventType ?? 'observation');
@@ -96,6 +100,11 @@ export default function LogEventForm({ project, onSubmitted, onCancel, parentEve
   const [phase, setPhase] = useState<RegenerationPhase | ''>(editEvent?.phase ?? '');
   const [progress, setProgress] = useState<RegenerationProgress | ''>(editEvent?.progress ?? '');
   const [notes, setNotes] = useState(editEvent?.notes ?? '');
+  const [regenerationPlanId, setRegenerationPlanId] = useState<string>(
+    typeof editEvent?.observations?.regenerationPlanId === 'string'
+      ? editEvent.observations.regenerationPlanId
+      : '',
+  );
   const [locationMode, setLocationMode] = useState<'site' | 'centre'>(
     editEvent?.location?.type === 'Point' ? 'centre' : 'site',
   );
@@ -110,6 +119,37 @@ export default function LogEventForm({ project, onSubmitted, onCancel, parentEve
     () => boundaryCentroid(project.parcelBoundaryGeojson),
     [project.parcelBoundaryGeojson],
   );
+
+  // Plan-scoping (selector-stability ADR: raw subscribe + useMemo filter).
+  const projectPlans = useMemo(
+    () => allPlans.filter((pl) => pl.projectId === project.id),
+    [allPlans, project.id],
+  );
+  const zoneById = useMemo(() => {
+    const m = new Map<
+      string,
+      { name: string; geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon }
+    >();
+    for (const z of allZones) {
+      if (z.projectId === project.id) {
+        m.set(z.id, { name: z.name, geometry: z.geometry });
+      }
+    }
+    return m;
+  }, [allZones, project.id]);
+  // When a plan is chosen, the event defaults to that plan's zone centre so
+  // it lands on the revived ground rather than site-wide.
+  const planZoneCentroid = useMemo(() => {
+    if (!regenerationPlanId) return null;
+    const plan = projectPlans.find((pl) => pl.id === regenerationPlanId);
+    if (!plan) return null;
+    const z = zoneById.get(plan.zoneId);
+    if (!z) return null;
+    return boundaryCentroid({
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', properties: {}, geometry: z.geometry }],
+    });
+  }, [regenerationPlanId, projectPlans, zoneById]);
 
   async function handleFiles(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -138,9 +178,14 @@ export default function LogEventForm({ project, onSubmitted, onCancel, parentEve
   async function submit() {
     setError(null);
 
-    const location = locationMode === 'centre' && centroid
-      ? { type: 'Point' as const, coordinates: centroid }
-      : null;
+    // Explicit boundary-centre wins; otherwise a plan-scoped event lands on
+    // its zone centre; otherwise site-wide (null).
+    const location =
+      locationMode === 'centre' && centroid
+        ? { type: 'Point' as const, coordinates: centroid }
+        : regenerationPlanId && planZoneCentroid
+          ? { type: 'Point' as const, coordinates: planZoneCentroid }
+          : null;
 
     const candidate = {
       eventType,
@@ -151,6 +196,9 @@ export default function LogEventForm({ project, onSubmitted, onCancel, parentEve
       progress: progress || undefined,
       notes: notes.trim() || undefined,
       location,
+      observations: regenerationPlanId
+        ? { regenerationPlanId }
+        : undefined,
       mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
       parentEventId: isEdit ? undefined : parentEvent?.id,
     };
@@ -249,6 +297,28 @@ export default function LogEventForm({ project, onSubmitted, onCancel, parentEve
           onChange={(e) => setEventDate(e.target.value)}
         />
       </div>
+
+      {projectPlans.length > 0 && (
+        <div className={css.fieldRow}>
+          <label className={css.fieldLabel} htmlFor="regen-event-plan">REGENERATION PLAN</label>
+          <select
+            id="regen-event-plan"
+            className={css.input}
+            value={regenerationPlanId}
+            onChange={(e) => setRegenerationPlanId(e.target.value)}
+          >
+            <option value="">Site-wide — not plan-scoped</option>
+            {projectPlans.map((pl) => {
+              const zoneName = zoneById.get(pl.zoneId)?.name ?? pl.zoneId;
+              return (
+                <option key={pl.id} value={pl.id}>
+                  {zoneName} — {pl.targetState}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      )}
 
       {eventType === 'intervention' && (
         <div className={css.fieldRow}>

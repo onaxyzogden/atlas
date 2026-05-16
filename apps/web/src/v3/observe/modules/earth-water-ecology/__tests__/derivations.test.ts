@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import type { EcologyObservation } from '../../../../../store/ecologyStore.js';
 import type { Earthwork, StorageInfra, Watercourse } from '../../../../../store/waterSystemsStore.js';
 import type { SoilSample } from '../../../../../store/soilSampleStore.js';
+import type { LandZone } from '../../../../../store/zoneStore.js';
+import type { VegetationPatch } from '../../../../../store/vegetationStore.js';
 import {
   earthwaterKpis,
   ecologyCounts,
@@ -15,6 +17,7 @@ import {
   percRating,
   roofAnnualCaptureL,
   soilStats,
+  troubledZones,
   waterCounts,
 } from '../derivations.js';
 
@@ -242,5 +245,77 @@ describe('earthwaterKpis', () => {
     const kpis = earthwaterKpis([WATERSHED_LAYER as any], [], [], [], [], []);
     expect(kpis[5]!.value).toBe('380 m');
     expect(kpis[5]!.note).toContain('Sixteen Mile Creek');
+  });
+});
+
+// ── troubledZones ─────────────────────────────────────────────────────────────
+
+const SQUARE: GeoJSON.Polygon = {
+  type: 'Polygon',
+  coordinates: [[[0, 0], [0, 0.01], [0.01, 0.01], [0.01, 0], [0, 0]]],
+};
+
+const makeZone = (o: Partial<LandZone> = {}): LandZone => ({
+  id: 'z1',
+  projectId: 'p1',
+  name: 'Zone',
+  category: 'food_production',
+  color: '#888',
+  primaryUse: '',
+  secondaryUse: '',
+  notes: '',
+  geometry: SQUARE,
+  areaM2: 1000,
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
+  ...o,
+});
+
+const makePatch = (o: Partial<VegetationPatch> = {}): VegetationPatch => ({
+  id: 'vp1',
+  projectId: 'p1',
+  geometry: SQUARE,
+  successionStage: 'mid',
+  groundCover: 'thriving-grasses',
+  createdAt: '2026-01-01T00:00:00Z',
+  ...o,
+});
+
+describe('troubledZones', () => {
+  it('flags a zone whose override ground cover is barren', () => {
+    const out = troubledZones([makeZone({ groundCover: 'barren' })], []);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.zone.id).toBe('z1');
+  });
+
+  it('flags a zone whose override succession stage is disturbed', () => {
+    const z = makeZone({ successionStage: 'disturbed', groundCover: 'sparse-grasses' });
+    expect(troubledZones([z], [])).toHaveLength(1);
+  });
+
+  it('flags a zone with derived bare-soil cover from overlapping patches', () => {
+    const z = makeZone({ id: 'z2' });
+    const p = makePatch({ groundCover: 'bare-soil', successionStage: 'pioneer' });
+    const out = troubledZones([z], [p]);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.zone.id).toBe('z2');
+    expect(out[0]!.resolved.groundCover).toBe('bare-soil');
+  });
+
+  it('does not flag a healthy thriving-grasses / mid zone', () => {
+    const z = makeZone({ groundCover: 'thriving-grasses', successionStage: 'mid' });
+    expect(troubledZones([z], [])).toEqual([]);
+  });
+
+  it('returns resolved vegetation so a baseline can be snapshotted', () => {
+    const z = makeZone({ groundCover: 'barren', successionStage: 'disturbed' });
+    const out = troubledZones([z], []);
+    expect(out[0]!.resolved.groundCover).toBe('barren');
+    expect(out[0]!.resolved.successionStage).toBe('disturbed');
+    expect(out[0]!.resolved.source).toBe('override');
+  });
+
+  it('returns empty for empty inputs', () => {
+    expect(troubledZones([], [])).toEqual([]);
   });
 });

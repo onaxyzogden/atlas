@@ -45,6 +45,47 @@ export const STORAGE_LABEL: Record<StorageNodeKind, string> = {
 };
 
 /**
+ * Default catchment area (m²) by surface type, so a freshly-created
+ * catchment can never silently yield 0 from an unset area. Roof scales are
+ * a typical house roof; ground scales a small managed patch. These are
+ * defensible placeholders — flagged for product review.
+ */
+export const DEFAULT_AREA_M2: Record<CatchmentSurface, number> = {
+  metal_roof: 80,
+  asphalt_roof: 80,
+  gravel: 150,
+  pasture: 1000,
+  forest: 1000,
+};
+
+/**
+ * Surfaces that sit on the ground, so deriving their catchment area from
+ * the parcel boundary is meaningful. Roofs are intentionally excluded —
+ * parcel area must never auto-apply to a roof catchment.
+ */
+export const GROUND_SURFACES: ReadonlySet<CatchmentSurface> = new Set<CatchmentSurface>([
+  'gravel',
+  'pasture',
+  'forest',
+]);
+
+/**
+ * A catchment whose area is missing or non-positive. Such a node yields 0
+ * and would silently collapse the whole balance, so the UI must surface it
+ * as incomplete rather than present its 0 as a real result.
+ */
+export function isCatchmentAreaInvalid(node: WaterNode): boolean {
+  return (
+    node.kind === 'catchment' && (node.areaM2 == null || node.areaM2 <= 0)
+  );
+}
+
+/** Catchment nodes with an unusable area, in input order. */
+export function incompleteCatchments(nodes: WaterNode[]): WaterNode[] {
+  return nodes.filter(isCatchmentAreaInvalid);
+}
+
+/**
  * Annual yield in m³/yr for a catchment node, given site precipitation in
  * mm/yr. Returns 0 if any required field is missing.
  */

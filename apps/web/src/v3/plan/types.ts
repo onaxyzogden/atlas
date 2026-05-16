@@ -191,6 +191,7 @@ export const MODULE_CARDS: Record<
     { label: 'Animal tractor zones',    sectionId: 'plan-livestock-tractor-zones' },
     { label: 'Welfare phasing',         sectionId: 'plan-livestock-welfare-phasing' },
     { label: 'Biosecurity & buffers',   sectionId: 'plan-livestock-buffers' },
+    { label: 'Regeneration plan',       sectionId: 'plan-livestock-regeneration' },
     { label: 'Slaughter throughput', sectionId: 'plan-product-slaughter-throughput', group: 'Product Chain' },
     { label: 'Cold-chain coverage',  sectionId: 'plan-product-coldchain-coverage',   group: 'Product Chain' },
     { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },

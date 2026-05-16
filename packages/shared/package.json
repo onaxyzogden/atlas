@@ -24,6 +24,10 @@
     "./relationships": {
       "types": "./src/relationships/index.ts",
       "default": "./src/relationships/index.ts"
+    },
+    "./regeneration": {
+      "types": "./src/regeneration/index.ts",
+      "default": "./src/regeneration/index.ts"
     }
   },
   "scripts": {

@@ -12,9 +12,6 @@
  * dedicated point source — one point per ring placed due north at mid-radius —
  * so all six sit on their own band instead of stacking at the centroid.
  *
- * Hover emphasis: a highlight line layer is filtered to the zone hovered in
- * the BaseMapCard sub-legend (via useZoneEmphasisStore).
- *
  * Pattern matches SectorsOverlay: idempotent ensure, visibility-only on
  * toggle, single GeoJSON source feeding fill / line / label layers.
  */
@@ -24,7 +21,6 @@ import { circle as turfCircle, destination as turfDestination } from "@turf/turf
 import type { Feature, FeatureCollection, Point, Polygon } from "geojson";
 import { maplibregl } from "../../../lib/maplibre.js";
 import { useMatrixTogglesStore } from "../../../store/matrixTogglesStore.js";
-import { useZoneEmphasisStore } from "../../../store/zoneEmphasisStore.js";
 import type { SiteZones, ZoneRing } from "../../../lib/zones/types.js";
 
 const SOURCE_ID = "matrix-zones-source";
@@ -32,14 +28,12 @@ const LABEL_SOURCE_ID = "matrix-zones-label-source";
 const FILL_LAYER = "matrix-zones-fill";
 const CASING_LAYER = "matrix-zones-line-casing";
 const LINE_LAYER = "matrix-zones-line";
-const HIGHLIGHT_LAYER = "matrix-zones-line-highlight";
 const LABEL_LAYER = "matrix-zones-label";
 
 const ALL_LAYERS = [
   FILL_LAYER,
   CASING_LAYER,
   LINE_LAYER,
-  HIGHLIGHT_LAYER,
   LABEL_LAYER,
 ] as const;
 
@@ -171,7 +165,6 @@ function buildLabelCollection(
 
 export default function ZonesOverlay({ map, zones, boundary }: ZonesOverlayProps) {
   const visible = useMatrixTogglesStore((s) => s.zones);
-  const hoveredZone = useZoneEmphasisStore((s) => s.hoveredZone);
   const data = useMemo(
     () => buildFeatureCollection(zones, boundary),
     [zones, boundary],
@@ -264,29 +257,6 @@ export default function ZonesOverlay({ map, zones, boundary }: ZonesOverlayProps
         });
       }
 
-      // Hover emphasis — filtered to the zone hovered in the legend.
-      if (!map.getLayer(HIGHLIGHT_LAYER)) {
-        map.addLayer({
-          id: HIGHLIGHT_LAYER,
-          type: "line",
-          source: SOURCE_ID,
-          filter: ["==", ["get", "index"], -1],
-          paint: {
-            "line-color": "#ffffff",
-            "line-opacity": 0.95,
-            "line-width": [
-              "interpolate",
-              ["linear"],
-              ["zoom"],
-              14,
-              4,
-              19,
-              7,
-            ],
-          },
-        });
-      }
-
       if (!map.getLayer(LABEL_LAYER)) {
         map.addLayer({
           id: LABEL_LAYER,
@@ -321,14 +291,6 @@ export default function ZonesOverlay({ map, zones, boundary }: ZonesOverlayProps
           map.setLayoutProperty(id, "visibility", visible ? "visible" : "none");
         }
       });
-
-      if (map.getLayer(HIGHLIGHT_LAYER)) {
-        map.setFilter(HIGHLIGHT_LAYER, [
-          "==",
-          ["get", "index"],
-          hoveredZone ?? -1,
-        ]);
-      }
     };
 
     const ready = () => (map.getStyle()?.layers?.length ?? 0) > 0;
@@ -345,7 +307,7 @@ export default function ZonesOverlay({ map, zones, boundary }: ZonesOverlayProps
     return () => {
       map.off("styledata", onStyle);
     };
-  }, [map, data, labelData, visible, hoveredZone]);
+  }, [map, data, labelData, visible]);
 
   return null;
 }

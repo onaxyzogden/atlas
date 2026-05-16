@@ -24,10 +24,15 @@ import { useSiteData, getLayer, getLayerSummary } from '../../../../store/siteDa
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import {
   DEFAULT_COEFF,
+  DEFAULT_AREA_M2,
+  GROUND_SURFACES,
   SURFACE_LABEL,
   catchmentYieldM3,
   formatLitres,
+  isCatchmentAreaInvalid,
+  incompleteCatchments,
 } from './waterMath.js';
+import { parcelAreaM2 } from '../../../../lib/geo.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -73,10 +78,22 @@ export default function WaterCatchmentsCard({ project }: Props) {
   );
   const catchments = usePhaseStoreCappedEntities(catchmentsRaw);
 
-  // Draft for new catchment
+  // Parcel boundary → geodesic m², for the "use parcel area" shortcut on
+  // ground catchments (roofs are intentionally excluded).
+  const parcel = project.parcelBoundaryGeojson ?? null;
+  const parcelReady = !!parcel && (parcel.features?.length ?? 0) > 0;
+  const parcelM2 = useMemo(
+    () => (parcelReady ? parcelAreaM2(parcel) : null),
+    [parcelReady, parcel],
+  );
+
+  // Draft for new catchment. Area defaults to a non-zero, surface-aware
+  // value so a freshly created catchment can never silently yield 0.
+  // `areaTouched` stops a surface change from clobbering a typed area.
   const [name, setName] = useState('');
   const [surface, setSurface] = useState<CatchmentSurface>('metal_roof');
-  const [areaM2, setAreaM2] = useState<number>(50);
+  const [areaM2, setAreaM2] = useState<number>(DEFAULT_AREA_M2.metal_roof);
+  const [areaTouched, setAreaTouched] = useState(false);
 
   function commit() {
     if (!name.trim()) return;
@@ -93,14 +110,22 @@ export default function WaterCatchmentsCard({ project }: Props) {
     };
     add(node);
     setName('');
-    setAreaM2(50);
+    setAreaM2(DEFAULT_AREA_M2[surface]);
+    setAreaTouched(false);
   }
+
+  const canUseParcelArea =
+    GROUND_SURFACES.has(surface) && parcelM2 != null && parcelM2 > 0;
 
   const totalYieldM3 = useMemo(
     () => catchments.reduce((s, n) => s + catchmentYieldM3(n, precipMm), 0),
     [catchments, precipMm],
   );
   const totalYieldL = totalYieldM3 * 1000;
+  const incomplete = useMemo(
+    () => incompleteCatchments(catchments),
+    [catchments],
+  );
 
   return (
     <div className={styles.page}>
@@ -198,7 +223,11 @@ export default function WaterCatchmentsCard({ project }: Props) {
             <span>Surface</span>
             <select
               value={surface}
-              onChange={(e) => setSurface(e.target.value as CatchmentSurface)}
+              onChange={(e) => {
+                const next = e.target.value as CatchmentSurface;
+                setSurface(next);
+                if (!areaTouched) setAreaM2(DEFAULT_AREA_M2[next]);
+              }}
             >
               {(Object.keys(SURFACE_LABEL) as CatchmentSurface[]).map((s) => (
                 <option key={s} value={s}>
@@ -214,7 +243,10 @@ export default function WaterCatchmentsCard({ project }: Props) {
               min={0}
               step={1}
               value={areaM2}
-              onChange={(e) => setAreaM2(Number(e.target.value) || 0)}
+              onChange={(e) => {
+                setAreaM2(Number(e.target.value) || 0);
+                setAreaTouched(true);
+              }}
             />
           </label>
         </div>
@@ -227,6 +259,19 @@ export default function WaterCatchmentsCard({ project }: Props) {
           >
             Add catchment
           </button>
+          {canUseParcelArea && (
+            <button
+              type="button"
+              className={styles.btn}
+              onClick={() => {
+                setAreaM2(Math.round(parcelM2!));
+                setAreaTouched(true);
+              }}
+              title="Set area to the project's parcel boundary area"
+            >
+              Use parcel area (≈ {Math.round(parcelM2!)} m²)
+            </button>
+          )}
         </div>
       </section>
 
@@ -240,16 +285,42 @@ export default function WaterCatchmentsCard({ project }: Props) {
           <ul className={styles.list}>
             {catchments.map((n) => {
               const yieldM3 = catchmentYieldM3(n, precipMm);
+              const invalid = isCatchmentAreaInvalid(n);
+              const canRepairFromParcel =
+                invalid &&
+                n.surface != null &&
+                GROUND_SURFACES.has(n.surface) &&
+                parcelM2 != null &&
+                parcelM2 > 0;
               return (
                 <li key={n.id} className={styles.listRow}>
                   <div style={{ flex: 1 }}>
                     <strong>{n.name}</strong>
-                    <div className={styles.listMeta}>
-                      {n.surface ? SURFACE_LABEL[n.surface] : '—'} · {n.areaM2 ?? 0} m² · C ={' '}
-                      {n.runoffCoeff?.toFixed(2) ?? '—'} · ≈{' '}
-                      {formatLitres(yieldM3 * 1000)}/yr
+                    <div
+                      className={styles.listMeta}
+                      style={invalid ? { color: 'rgba(220,140,120,0.95)' } : undefined}
+                    >
+                      {invalid ? (
+                        <>⚠ No area set — excluded from balance</>
+                      ) : (
+                        <>
+                          {n.surface ? SURFACE_LABEL[n.surface] : '—'} · {n.areaM2 ?? 0} m² · C ={' '}
+                          {n.runoffCoeff?.toFixed(2) ?? '—'} · ≈{' '}
+                          {formatLitres(yieldM3 * 1000)}/yr
+                        </>
+                      )}
                     </div>
                   </div>
+                  {canRepairFromParcel && (
+                    <button
+                      type="button"
+                      className={styles.btn}
+                      onClick={() => update(n.id, { areaM2: Math.round(parcelM2!) })}
+                      title="Set this catchment's area to the parcel boundary area"
+                    >
+                      Use parcel area
+                    </button>
+                  )}
                   <button
                     type="button"
                     className={styles.btn}
@@ -276,9 +347,17 @@ export default function WaterCatchmentsCard({ project }: Props) {
         )}
         <div className={styles.statRow}>
           <span>Total annual yield</span>
-          <span>
-            {totalYieldM3.toFixed(1)} m³ · {formatLitres(totalYieldL)}
-          </span>
+          {incomplete.length > 0 ? (
+            <span style={{ color: 'rgba(220,140,120,0.95)' }}>
+              incomplete: {incomplete.length} catchment
+              {incomplete.length === 1 ? '' : 's'}{' '}
+              {incomplete.length === 1 ? 'has' : 'have'} no area
+            </span>
+          ) : (
+            <span>
+              {totalYieldM3.toFixed(1)} m³ · {formatLitres(totalYieldL)}
+            </span>
+          )}
         </div>
       </section>
     </div>

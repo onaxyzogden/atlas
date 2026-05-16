@@ -32,3 +32,10 @@ apps/web/.claude/
 
 # Scratch/scaffolding directories used while validating data-ingest scripts
 apps/api/tmp-*/
+
+# Graphify content-addressed cache (regenerable; not source)
+graphify-out/cache/
+
+# Transient typecheck/scratch dumps
+_t_*.txt
+.graphify_old.json

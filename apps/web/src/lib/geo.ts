@@ -89,3 +89,18 @@ export function parcelAcreage(
     return null;
   }
 }
+
+/**
+ * Raw parcel area in square metres (geodesic, turf). `parcelAcreage` rounds
+ * to ha/ac for display; this is the unrounded m² some callers (e.g. water
+ * catchment sizing) need. Best-effort: `null` on any turf failure.
+ */
+export function parcelAreaM2(
+  geo: GeoJSON.Geometry | GeoJSON.Feature | GeoJSON.FeatureCollection,
+): number | null {
+  try {
+    return turf.area(geo);
+  } catch {
+    return null;
+  }
+}

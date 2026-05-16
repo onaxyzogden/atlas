@@ -9,6 +9,7 @@
  */
 
 import type { Project } from "../types.js";
+import { formatLocationArea } from "./parcelIntegrity.js";
 
 function severityIcon(s: string): string {
   switch (s) {
@@ -38,7 +39,7 @@ export function buildProveBriefMarkdown(project: Project): string {
   lines.push("");
   lines.push(`*Generated ${today} from /v3/project/${project.id}/prove*`);
   lines.push("");
-  lines.push(`**Location:** ${project.location.region} — ${project.location.acreage} ${project.location.acreageUnit}`);
+  lines.push(`**Location:** ${project.location.region} — ${formatLocationArea(project.location)}`);
   lines.push(`**Stage:** ${project.stage}`);
   lines.push(`**Verdict:** ${(brief?.verdict ?? project.verdict).label}`);
   lines.push("");

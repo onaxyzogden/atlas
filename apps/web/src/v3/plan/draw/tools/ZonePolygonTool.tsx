@@ -2,6 +2,7 @@
  * ZonePolygonTool — polygon → LandZone with permaculture zone level (Z0–Z5).
  */
 
+import { useEffect, useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import {
@@ -18,8 +19,22 @@ import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
 import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
 import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import { useZoneSizeGuide } from '../useZoneSizeGuide.js';
+import {
+  guideRadiusM,
+  zoneGuideLabel,
+  zoneSizeStatus,
+  type ZLevel,
+} from '../zoneSizeGuide.js';
 import DimensionPanel from '../DimensionPanel.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
+
+const STATUS_COLOR: Record<string, string> = {
+  ok: '#3f8a4a',
+  under: '#b8860b',
+  over: '#b8860b',
+  none: 'inherit',
+};
 
 interface Props {
   map: MaplibreMap;
@@ -51,13 +66,33 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimShape = useDimensionDrawStore((s) => s.shape);
   const dimValues = useDimensionValues();
+  const setDimValues = useDimensionDrawStore((s) => s.setValues);
+
+  const [zLevel, setZLevel] = useState<ZLevel>(2);
+
+  // Snap-assist: pre-size the parametric circle to the Z-level's Mollison
+  // radius when drawing a circle by dimensions (still user-editable).
+  useEffect(() => {
+    if (dimMode !== 'dimensions' || dimShape !== 'circle') return;
+    const r = guideRadiusM(zLevel);
+    if (r != null) setDimValues({ radiusM: r });
+  }, [zLevel, dimMode, dimShape, setDimValues]);
+
+  useZoneSizeGuide({
+    map,
+    zLevel,
+    anchor: dimMode === 'dimensions' ? 'cursor' : 'freehand',
+  });
+
+  const defaultCategoryForZ = (z: ZLevel): ZoneCategory =>
+    optionsForZ(String(z))[0]?.value ?? 'food_production';
 
   const handleComplete = (geom: GeoJSON.Polygon) => {
       const id = newAnnotationId('zone');
       const areaM2 = turf.area(geom);
       const anchor = turf.centroid(geom).geometry.coordinates as [number, number];
       const now = new Date().toISOString();
-      const category: ZoneCategory = 'food_production';
+      const category: ZoneCategory = defaultCategoryForZ(zLevel);
 
       addZone({
         id,
@@ -70,7 +105,7 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
         notes: '',
         geometry: geom,
         areaM2,
-        permacultureZone: 2,
+        permacultureZone: zLevel,
         phase: phaseDefault || undefined,
         createdAt: now,
         updatedAt: now,
@@ -101,7 +136,7 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
         initial: {
           name: 'Zone',
           category,
-          permacultureZone: '2',
+          permacultureZone: String(zLevel),
           phase: phaseDefault,
           enterprise: enterpriseDefault,
         },
@@ -148,12 +183,34 @@ export default function ZonePolygonTool({ map, projectId }: Props) {
     <div className={css.popover} role="dialog" aria-label="Zone tool">
       <span className={css.title}>Zone</span>
       <span className={css.hint}>
-        Outline a zone polygon — pick category and Z-level (Z0 home → Z5
-        wilderness).
+        Outline a zone polygon — the dashed ring shows the Mollison size
+        target for the chosen Z-level (a guide, not a limit).
       </span>
+      <div className={css.row}>
+        <span className={css.fieldLabel} style={{ minWidth: 56 }}>
+          Z-level
+        </span>
+        <select
+          className={css.input}
+          value={String(zLevel)}
+          onChange={(e) =>
+            setZLevel(Number(e.target.value) as ZLevel)
+          }
+        >
+          {Z_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <span className={css.hint}>{zoneGuideLabel(zLevel)}</span>
       <DimensionPanel allowedShapes={['rect', 'circle']} />
       {liveArea !== null && (
-        <div className={css.readout}>
+        <div
+          className={css.readout}
+          style={{ color: STATUS_COLOR[zoneSizeStatus(liveArea, zLevel)] }}
+        >
           <DrawAreaReadout
             m2={liveArea}
             labelClassName={css.readoutLabel}

@@ -7,9 +7,12 @@
  * Unifies the Plan-stage left rail across all four views: when a
  * recognised Plan tool id is armed and the Vision canvas is active, the
  * canvas mounts `useDesignElementDrawTool` with the mapped kind. Tools
- * not in the table return `null` — the rail still responds (highlight,
- * disarm) but the Vision draw lifecycle stays inert. Phase 2 will close
- * the remaining gaps (pond/spring/road/bridge/turnaround/vegetation).
+ * not in the table return `null` — they are NOT inert: the Vision canvas
+ * routes them through `<PlanDrawHost variant="vision">` (its dedicated-
+ * store `switch`: zone / buffer-ring / water / fence-line / fertility /
+ * flow-connector / note / transect / schedule-move / zone-seed-anchor),
+ * which renders via the already-mounted PlanDataLayers. So `null` here
+ * means "not an elementCatalog kind", not "unsupported on Vision".
  */
 
 import type { MapToolId } from '../../observe/components/measure/useMapToolStore.js';

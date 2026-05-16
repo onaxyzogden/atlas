@@ -33,6 +33,7 @@ import DesignRulesGrid from "../components/DesignRulesGrid.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { useMapFocusStore } from "../../store/mapFocusStore.js";
 import { downloadProveBrief } from "../data/generateProveBrief.js";
+import { formatLocationArea } from "../data/parcelIntegrity.js";
 import StageShell from "../_shell/StageShell.js";
 import ProveRail from "../components/rails/ProveRail.js";
 import "../styles/chrome.css";
@@ -110,7 +111,7 @@ export default function ProvePage() {
         eyebrow="Prove"
         title="Feasibility Engine"
         verdict={verdict}
-        meta={`${project.location.region} · ${project.location.acreage} ${project.location.acreageUnit}`}
+        meta={`${project.location.region} · ${formatLocationArea(project.location)}`}
         actions={[
           { label: "Fix on Map", variant: "primary", onClick: onFixOnMap },
           { label: "Generate Brief", variant: "secondary", onClick: onGenerateBrief },

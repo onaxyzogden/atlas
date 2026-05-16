@@ -17,11 +17,7 @@
 
 import { useEffect } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
-import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
-import {
-  ensureBuildingPromoteId,
-  syncAdoptedHidings,
-} from '../../../features/map/adoptedBasemapBuildings.js';
+import { wireAdoptedHidings } from '../../../features/map/adoptedBasemapBuildings.js';
 
 interface Props {
   map: MaplibreMap;
@@ -31,21 +27,7 @@ interface Props {
 export default function AdoptedBuildingsSync({ map, projectId }: Props) {
   useEffect(() => {
     if (!map || !projectId) return;
-    const run = () => {
-      ensureBuildingPromoteId(map);
-      syncAdoptedHidings(map, projectId);
-    };
-    run();
-    map.on('style.load', run);
-    const unsub = useBuiltEnvironmentStoreV2.subscribe(run);
-    return () => {
-      try {
-        map.off('style.load', run);
-      } catch {
-        /* map disposed */
-      }
-      unsub();
-    };
+    return wireAdoptedHidings(map, projectId);
   }, [map, projectId]);
   return null;
 }

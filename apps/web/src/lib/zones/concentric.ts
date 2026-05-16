@@ -16,9 +16,9 @@
 
 import type { SiteZones, ZoneIndex, ZoneRing } from "./types.js";
 
-const DEFAULT_OUTER_RADII = [5, 30, 100, 300, 600] as const;
+export const DEFAULT_OUTER_RADII = [5, 30, 100, 300, 600] as const;
 
-export const COLORS: Record<ZoneIndex, string> = {
+const COLORS: Record<ZoneIndex, string> = {
   0: "#7a3f2e",
   1: "#a85a3f",
   2: "#c48055",
@@ -27,7 +27,7 @@ export const COLORS: Record<ZoneIndex, string> = {
   5: "#3f6b4a",
 };
 
-export const LABELS: Record<ZoneIndex, string> = {
+const LABELS: Record<ZoneIndex, string> = {
   0: "Zone 0 — Home",
   1: "Zone 1 — Daily",
   2: "Zone 2 — Weekly",

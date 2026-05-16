@@ -26,6 +26,11 @@ import type {
   LifecycleStage,
 } from '../types.js';
 import { adaptScoredResultsToV3, adaptVerdict } from './adaptScores.js';
+import {
+  isParcelAreaValid,
+  INTEGRITY_BLOCKER,
+  INSUFFICIENT_DATA_VERDICT,
+} from './parcelIntegrity.js';
 
 const PLACEHOLDER_TIER: ConfidenceTier = 'low';
 
@@ -157,6 +162,7 @@ export function adaptLocalProjectToV3(p: LocalProject, siteData?: SiteData): Pro
   const polygon = firstPolygon(p);
   const center = metadataCenter(p);
   const derived = deriveScoresFromSiteData(p, siteData);
+  const areaValid = isParcelAreaValid(p);
   return {
     id: p.id,
     name: p.name,
@@ -165,18 +171,23 @@ export function adaptLocalProjectToV3(p: LocalProject, siteData?: SiteData): Pro
     location: {
       region: p.provinceState ? `${p.provinceState}, ${p.country}` : p.country,
       country: p.country,
-      acreage: p.acreage ?? 0,
+      acreage: areaValid ? (p.acreage as number) : 0,
       acreageUnit: unitOf(p),
+      areaKnown: areaValid,
       ...(polygon ? { boundary: polygon } : {}),
       ...(center ? { center } : {}),
     },
-    verdict: derived ? derived.verdict : PLACEHOLDER_VERDICT,
+    verdict: !areaValid
+      ? INSUFFICIENT_DATA_VERDICT
+      : derived
+        ? derived.verdict
+        : PLACEHOLDER_VERDICT,
     summary:
       p.description ??
       p.visionStatement ??
       'Project shell — site data and design intent populate over the lifecycle.',
     scores: derived ? derived.scores : DEFAULT_SCORES,
-    blockers: [],
+    blockers: areaValid ? [] : [INTEGRITY_BLOCKER],
     actions: [],
     activity: [],
     readiness: {

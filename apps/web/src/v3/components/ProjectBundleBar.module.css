@@ -1,0 +1,111 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--color-border-subtle, #e4ddc8);
+  font-size: 12.5px;
+  flex: 0 0 auto;
+}
+
+.warn {
+  background: rgba(196, 162, 101, 0.14);
+  color: #6a4a1a;
+}
+
+.calm {
+  background: var(--color-panel-card, #fbf8f0);
+  color: var(--color-text-muted, rgba(60, 50, 36, 0.7));
+}
+
+.confirm {
+  background: rgba(139, 31, 31, 0.08);
+  color: #8b1f1f;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.message span {
+  min-width: 0;
+}
+
+.message strong {
+  font-weight: 600;
+}
+
+.message svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.error {
+  color: #8b1f1f;
+  max-width: 280px;
+}
+
+.ghostBtn,
+.solidBtn,
+.dangerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ghostBtn svg,
+.solidBtn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.ghostBtn {
+  background: transparent;
+  border-color: rgba(106, 74, 26, 0.4);
+  color: #6a4a1a;
+}
+
+.ghostBtn:hover {
+  background: rgba(196, 162, 101, 0.18);
+}
+
+.solidBtn {
+  background: #6a4a1a;
+  color: #f9f4e8;
+}
+
+.solidBtn:hover {
+  background: #4f3611;
+}
+
+.dangerBtn {
+  background: #8b1f1f;
+  color: #fdf2f2;
+}
+
+.dangerBtn:hover {
+  background: #6f1717;
+}
+
+.hidden {
+  display: none;
+}

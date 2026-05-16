@@ -16,6 +16,7 @@ import {
   OBSERVE_MODULE_FULL_LABEL,
   type ObserveModule,
 } from '../types.js';
+import ErrorBoundary from '../../../components/ErrorBoundary.js';
 import css from './ModuleSlideUp.module.css';
 
 // ── Page lazy imports — Dashboard + each Detail per module ───────────────────
@@ -167,9 +168,16 @@ export default function ModuleSlideUp({ module, open, onClose }: Props) {
         )}
 
         <div className={css.body}>
-          <Suspense fallback={<p className={css.loading}>Loading…</p>}>
-            {currentId ? renderCard(currentId) : null}
-          </Suspense>
+          {/* Keyed per-card so switching tabs remounts a clean boundary —
+              a previously-failed card never blocks a working sibling. The
+              boundary catches a rejected lazy chunk import (stale deploy,
+              offline) so it degrades to a message + retry, not a white
+              screen behind the open sheet. */}
+          <ErrorBoundary key={currentId ?? 'none'} name={label}>
+            <Suspense fallback={<p className={css.loading}>Loading…</p>}>
+              {currentId ? renderCard(currentId) : null}
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </aside>
     </div>

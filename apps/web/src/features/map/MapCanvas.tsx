@@ -26,8 +26,7 @@ import { usePathStore, PATH_TYPE_CONFIG } from '../../store/pathStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import { useCommentStore } from '../../store/commentStore.js';
 import { map as mapTokens, zone as zoneTokens, structure as structureTokens, earth, group } from '../../lib/tokens.js';
-import { useBuiltEnvironmentStoreV2 } from '../../store/builtEnvironmentStoreV2.js';
-import { syncAdoptedHidings } from './adoptedBasemapBuildings.js';
+import { wireAdoptedHidings } from './adoptedBasemapBuildings.js';
 
 interface MapCanvasProps {
   projectId?: string;
@@ -265,14 +264,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   // the BE V2 entity set.
   useEffect(() => {
     if (!map || !isLoaded || !projectId) return;
-    const run = () => syncAdoptedHidings(map, projectId);
-    run();
-    map.on('style.load', run);
-    const unsub = useBuiltEnvironmentStoreV2.subscribe(run);
-    return () => {
-      map.off('style.load', run);
-      unsub();
-    };
+    return wireAdoptedHidings(map, projectId);
   }, [map, isLoaded, projectId]);
 
   // ── Basemap swap — owned here, not in useMaplibre, so the
