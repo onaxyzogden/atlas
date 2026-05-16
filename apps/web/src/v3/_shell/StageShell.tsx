@@ -73,7 +73,9 @@ export default function StageShell({
       </div>
 
       {bottomTray !== undefined && bottomTray !== null && (
-        <div className={css.bottom}>{bottomTray}</div>
+        <div className={css.bottom} data-stage-bottom="">
+          {bottomTray}
+        </div>
       )}
 
       {overlay}
