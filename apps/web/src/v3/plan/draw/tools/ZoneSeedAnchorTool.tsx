@@ -5,7 +5,7 @@
  * Seeding used to run synchronously off a guessed centroid. Stewards
  * asked to choose where the rings grow from, so this tool arms a single
  * map click: the clicked point becomes the Z0 home centre and full
- * Mollison Z0–Z3 rings are seeded around it (un-clipped — trimming to the
+ * Mollison Z0–Z5 rings are seeded around it (un-clipped — trimming to the
  * parcel is a separate, explicit action).
  *
  * One-shot: capture the point → run the `ring-seed` generator → addZone
@@ -68,7 +68,7 @@ export default function ZoneSeedAnchorTool({ map, projectId }: Props) {
     >
       <span className={css.title}>Seed zones from rings</span>
       <span className={css.hint}>
-        Click where the home centre sits — full Z0–Z3 rings grow from
+        Click where the home centre sits — full Z0–Z5 rings grow from
         there. Trim or clear them afterwards.
       </span>
     </div>

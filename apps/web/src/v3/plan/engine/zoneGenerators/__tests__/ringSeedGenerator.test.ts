@@ -15,7 +15,7 @@ import type { LandZone } from '../../../../../store/zoneStore.js';
 
 const PID = 'proj-seed';
 
-/** ~2.2 km square around [0,0] — comfortably contains the 500 m ring. */
+/** ~2.2 km square around [0,0] — comfortably contains the seed rings. */
 function parcelFC(): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
@@ -51,22 +51,30 @@ describe('ringSeedGenerator', () => {
     expect(res.reason).toMatch(/parcel boundary/i);
   });
 
-  it('zero-state: emits a home centre + Z1/Z2/Z3, areas strictly increasing', () => {
+  it('zero-state: emits a home centre + Z1–Z5, areas strictly increasing', () => {
     const zones = ringSeedGenerator.generate(ctx());
     const byZ = new Map(zones.map((z) => [z.permacultureZone, z]));
 
-    expect(zones).toHaveLength(4);
+    expect(zones).toHaveLength(6);
     const home = byZ.get(0)!;
     expect(home.isHomeCentre).toBe(true);
     expect(home.seedProvenance).toBe('ring-seed');
     expect(home.category).toBe('habitation');
 
+    // Z4/Z5 wire through the shared Z→category map (zoneStore).
+    expect(byZ.get(4)!.category).toBe('livestock');
+    expect(byZ.get(5)!.category).toBe('conservation');
+
     const a1 = byZ.get(1)!.areaM2;
     const a2 = byZ.get(2)!.areaM2;
     const a3 = byZ.get(3)!.areaM2;
+    const a4 = byZ.get(4)!.areaM2;
+    const a5 = byZ.get(5)!.areaM2;
     expect(a1).toBeGreaterThan(0);
     expect(a2).toBeGreaterThan(a1);
     expect(a3).toBeGreaterThan(a2);
+    expect(a4).toBeGreaterThan(a3);
+    expect(a5).toBeGreaterThan(a4);
 
     for (const z of zones) {
       expect(['Polygon', 'MultiPolygon']).toContain(z.geometry.type);
@@ -77,7 +85,7 @@ describe('ringSeedGenerator', () => {
   });
 
   it('bands are NOT parcel-clipped — full rings on a tiny lot', () => {
-    // ~22 m square (~490 m²) — far smaller than the 500 m Z3 ring.
+    // ~22 m square (~490 m²) — far smaller than the 300 m Z3 ring.
     const tinyParcel: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
       features: [
@@ -97,8 +105,10 @@ describe('ringSeedGenerator', () => {
       ctx({ parcelBoundary: tinyParcel }),
     );
     const byZ = new Map(zones.map((z) => [z.permacultureZone, z]));
-    // Z3 (0–500 m ring) dwarfs the parcel — proves no clip happened.
+    // Z3 (100–300 m ring) dwarfs the parcel — proves no clip happened.
     expect(byZ.get(3)!.areaM2).toBeGreaterThan(parcelArea * 100);
+    // …and the new outermost band (Z5, 600–1200 m) is unclipped too.
+    expect(byZ.get(5)!.areaM2).toBeGreaterThan(parcelArea * 1000);
   });
 
   it('idempotent: a level already ring-seeded is not re-seeded', () => {
@@ -170,8 +180,8 @@ describe('ringSeedGenerator', () => {
     expect(homeC[0]).toBeCloseTo(anchor[0], 3);
     expect(homeC[1]).toBeCloseTo(anchor[1], 3);
 
-    // Z1–Z3 present, unclipped (no parcel), centred on the picked point.
-    for (const zLevel of [1, 2, 3] as const) {
+    // Z1–Z5 present, unclipped (no parcel), centred on the picked point.
+    for (const zLevel of [1, 2, 3, 4, 5] as const) {
       const band = byZ.get(zLevel)!;
       expect(band).toBeDefined();
       const c = turf.centroid(band.geometry).geometry.coordinates;
@@ -179,5 +189,6 @@ describe('ringSeedGenerator', () => {
       expect(c[1]).toBeCloseTo(anchor[1], 2);
     }
     expect(byZ.get(3)!.areaM2).toBeGreaterThan(byZ.get(2)!.areaM2);
+    expect(byZ.get(5)!.areaM2).toBeGreaterThan(byZ.get(4)!.areaM2);
   });
 });

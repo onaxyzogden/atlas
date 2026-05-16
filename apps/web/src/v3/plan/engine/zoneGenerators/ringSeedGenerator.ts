@@ -1,5 +1,5 @@
 /**
- * ringSeedGenerator — turns the Mollison Z1/Z2/Z3 rings into editable
+ * ringSeedGenerator — turns the Mollison Z1–Z5 rings into editable
  * draft `LandZone`s so the steward starts from the ideal instead of a
  * blank canvas. Pure: no store access, no React.
  *
@@ -10,10 +10,11 @@
  * ("no zones at all") is closed in one action.
  *
  * Bands are NOT parcel-clipped — full rings are seeded around the anchor
- * (Z3 stays whole on a compact lot); the steward trims to the parcel
- * afterwards. Existing zones (hand-drawn work + the home centre + earlier
- * bands) are still subtracted, so seeds never overlap and a re-run only
- * fills the still-uncovered remainder (idempotent per Z-level).
+ * (the outer rings stay whole on a compact lot); the steward trims to
+ * the parcel afterwards. Existing zones (hand-drawn work + the home
+ * centre + earlier bands) are still subtracted, so seeds never overlap
+ * and a re-run only fills the still-uncovered remainder (idempotent per
+ * Z-level).
  *
  * Geometry constants come from `zoneRingConstants` — shared with the
  * read-only overlay so a seed's outer edge lands exactly on its ring.
@@ -100,7 +101,7 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
   const out: LandZone[] = [];
 
   const make = (
-    zLevel: 0 | 1 | 2 | 3,
+    zLevel: 0 | 1 | 2 | 3 | 4 | 5,
     geom: Poly,
     category: ZoneCategory,
     name: string,
@@ -168,7 +169,7 @@ function generate(ctx: ZoneGeneratorContext): LandZone[] {
     if (!geom) continue;
     if (turf.area(geom) < MIN_SEED_AREA_M2) continue;
 
-    const zLevel = band.zLevel as 1 | 2 | 3;
+    const zLevel = band.zLevel as 1 | 2 | 3 | 4 | 5;
     out.push(
       make(
         zLevel,
@@ -187,7 +188,7 @@ export const ringSeedGenerator: ZoneGenerator = {
   id: 'ring-seed',
   label: 'Seed zones from rings',
   describe:
-    'Click a point on the map to seed editable Z0–Z3 Mollison rings ' +
+    'Click a point on the map to seed editable Z0–Z5 Mollison rings ' +
     'from there. Adjust, trim to the parcel, or clear them anytime.',
   canRun,
   generate,

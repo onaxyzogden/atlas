@@ -1,11 +1,14 @@
 /**
  * PlanZoneRingsOverlay — Tier C / C5 read-only map layer.
  *
- * Draws three concentric rings (Z1 / Z2 / Z3) around every zone with
+ * Draws five concentric rings (Z1–Z5) around every zone with
  * `permacultureZone === 0` in the active project. The rings give a
  * steward an instant sanity check on Mollison's Zone-distance principle:
  * Z1 within ~30 m of the home centre (daily touch), Z2 within ~100 m
- * (weekly), Z3 within ~500 m (main crops / managed orchard).
+ * (weekly), Z3 within ~300 m (main crops / managed orchard), Z4 within
+ * ~600 m (forage / woodlot), Z5 a fixed ~1200 m wild ring. Radii are
+ * shared with the ring seeder (`zoneRingConstants`) so the preview rings
+ * are exactly what a seed would lay down.
  *
  * Defaults are intentionally rough — a steward planning a Z2 wheelbarrow
  * orchard wants to see whether their proposed orchard polygon falls
