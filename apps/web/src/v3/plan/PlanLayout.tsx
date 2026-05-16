@@ -86,6 +86,10 @@ export default function PlanLayout() {
   );
 
   const boundary = v3Project?.location.boundary;
+  // Coords-only fallback (no boundary): prefer the parcel's intake center
+  // over the hard-coded stage centroid. Ignored when `boundary` exists —
+  // the canvas fits to bounds in that case.
+  const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   const [activeView, setActiveView] = useState<PlanView>('vision');
@@ -143,12 +147,12 @@ export default function PlanLayout() {
   const canvasContent = isVisionCanvas ? (
     <VisionLayoutCanvas
       projectId={id}
-      centroid={FALLBACK_CENTROID}
+      centroid={fallbackCenter}
       boundary={boundary}
       view={activeView}
     />
   ) : (
-    <DiagnoseMap centroid={FALLBACK_CENTROID} boundary={boundary}>
+    <DiagnoseMap centroid={fallbackCenter} boundary={boundary}>
       {({ map }) => (
         <>
           <MapToolbar
@@ -217,7 +221,7 @@ export default function PlanLayout() {
           <PlanSunPathOverlay
             map={map}
             projectId={id}
-            fallbackCentroid={FALLBACK_CENTROID}
+            fallbackCentroid={fallbackCenter}
             boundary={boundary}
           />
           <PlanScheduledMovesOverlay map={map} projectId={id} />

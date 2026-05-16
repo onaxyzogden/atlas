@@ -98,6 +98,24 @@ function firstPolygon(p: LocalProject): GeoJSON.Polygon | undefined {
   return undefined;
 }
 
+/** Fallback map center from the project's intake coordinates
+ *  (`metadata.centerLat/centerLng`, captured by the new-project wizard).
+ *  Returned as `[lng, lat]` to match MapLibre / `DiagnoseMap` ordering.
+ *  Only used by layouts when no `boundary` polygon exists. */
+function metadataCenter(p: LocalProject): [number, number] | undefined {
+  const lat = p.metadata?.centerLat;
+  const lng = p.metadata?.centerLng;
+  if (
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng)
+  ) {
+    return [lng, lat];
+  }
+  return undefined;
+}
+
 /** Phase 4.2: derive real `ProjectScores` + `Verdict` from the shared
  *  scoring engine when the project has at least one `complete` Tier-1
  *  layer in `useSiteDataStore`. Returns `null` when site data isn't ready
@@ -137,6 +155,7 @@ function deriveScoresFromSiteData(
 
 export function adaptLocalProjectToV3(p: LocalProject, siteData?: SiteData): Project {
   const polygon = firstPolygon(p);
+  const center = metadataCenter(p);
   const derived = deriveScoresFromSiteData(p, siteData);
   return {
     id: p.id,
@@ -149,6 +168,7 @@ export function adaptLocalProjectToV3(p: LocalProject, siteData?: SiteData): Pro
       acreage: p.acreage ?? 0,
       acreageUnit: unitOf(p),
       ...(polygon ? { boundary: polygon } : {}),
+      ...(center ? { center } : {}),
     },
     verdict: derived ? derived.verdict : PLACEHOLDER_VERDICT,
     summary:

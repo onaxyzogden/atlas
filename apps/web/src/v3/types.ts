@@ -38,6 +38,13 @@ export interface ProjectLocation {
    * fetch lands in v3.2.
    */
   boundary?: GeoJSON.Polygon;
+  /**
+   * Optional fallback map center as `[lng, lat]`, derived from the project's
+   * intake coordinates when no `boundary` polygon exists. Layouts prefer
+   * `boundary` (fit-to-bounds), then `center`, then the hard-coded
+   * per-stage fallback.
+   */
+  center?: [number, number];
 }
 
 export interface Verdict {

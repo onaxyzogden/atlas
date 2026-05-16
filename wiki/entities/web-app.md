@@ -196,6 +196,23 @@ All use `persist` middleware with localStorage. Key stores:
   `['vision','current','terrain3d']`). See
   [[2026-05-15-atlas-plan-modulebar-in-slideup-and-view-order]].
 
+  **New-project wizard → v3 cutover + adapter-seam location
+  (2026-05-16):** the wizard's "Create Project" now redirects to
+  `/v3/project/$projectId/observe` (was legacy `/project/$projectId`).
+  This is a *wizard-level* cutover only — the v2 workspace stays
+  mounted and URL-routable (nuances the "cutover deferred to v3.1"
+  line above; only the post-create destination moved, nothing
+  deleted). Location now propagates through the **single v2→v3
+  adapter seam**: `ProjectLocation` carries `center?: [number, number]`
+  (`[lng, lat]`; precedence `boundary → center → fallback`),
+  `adaptLocalProject.metadataCenter()` derives it from
+  `metadata.centerLng/centerLat`, and Observe/Plan(×3 sinks)/Act read
+  `v3Project?.location.center ?? FALLBACK_CENTROID` into `DiagnoseMap`.
+  Layouts must **not** re-read `LocalProject.metadata` directly — the
+  adapter is the typed contract. Closes the
+  [[2026-04-27-project-intake-map-centering]] deferred item. See
+  [[2026-05-16-atlas-wizard-v3-bridge-location-propagation]].
+
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
 - `lib/perfProfiler.tsx` — dev-only `<SectionProfiler>` around React's `<Profiler>`; logs renders over 16 ms; tree-shaken in prod via `import.meta.env.DEV`

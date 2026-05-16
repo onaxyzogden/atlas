@@ -125,8 +125,13 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       addAttachment(project.id, attachment);
     }
 
-    // Navigate immediately — local copy is the source of truth
-    navigate({ to: '/project/$projectId', params: { projectId: project.id } });
+    // Navigate immediately — local copy is the source of truth. Land in the
+    // v3 / Land OS Observe stage (the active lifecycle surface), not the
+    // legacy project page; the v3 tree reads the same store.
+    navigate({
+      to: '/v3/project/$projectId/observe',
+      params: { projectId: project.id },
+    });
 
     // Fire-and-forget backend sync (only when authenticated)
     if (token) {
