@@ -118,3 +118,31 @@ unchanged. Archetype→category biasing deferred (no source data). Pending
 separately: the typo-reword force-push of `cbb08e15` (blocked on explicit
 authorization); in-canvas tool-rail "Drop home centre" / "Seed zones"
 actions; dashed seeded-draft map styling.
+
+## Follow-up — delivered 2026-05-15
+
+The two UI items left "pending separately" above are now shipped (same
+day, no seam change):
+
+- **Tool-rail "Seed zones" action.** `PlanTools.tsx` gained a
+  list-driven `ZONE_GENERATOR_ACTIONS` registry rendered as an action
+  button in the Zone & Circulation rail section — runs
+  `ringSeedGenerator` synchronously (project via `useProjectStore`,
+  result `addZone`d, status via the global `toast`). Seeding is now
+  reachable from the Plan map, not only the Goal Compass Proposal bar.
+  A future generator is a one-line entry.
+- **Dashed seeded-draft styling.** `PlanDataLayers.tsx` stamps
+  `seedProvenance` on zone features and renders a separate filtered
+  `plan-data-poly-seed-line` layer with a static
+  `line-dasharray: [2,2]` over `ring-seed` zones (separate layer, not
+  a `case` on `poly-line` — maplibre-gl 4.7.1 `line-dasharray` is not
+  data-driven; mirrors the `setback-line` precedent), wired into the
+  lens-recolor parity block.
+
+Verified: vitest 5/5, `tsc --noEmit` exit 0, preview (warning toast on
+no-boundary `mtc`; "Seeded 4 draft zone(s)" + dashed concentric rings
+on a boundary-bearing sample project; lens toggle error-free). Log:
+`log.md` 2026-05-15 "Zone-generator canvas reach + dashed
+seeded-draft styling". The "Drop home centre" in-canvas action and a
+dashed *fill* (outline-only here) were not requested and remain out of
+scope.
