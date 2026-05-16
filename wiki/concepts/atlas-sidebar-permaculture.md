@@ -1,5 +1,15 @@
 # Atlas Sidebar — Permaculture-Grounded IA Synthesis
 
+> **DEPRECATED for forward IA work — superseded 2026-05-16.**
+> The seven-stage lifecycle this page builds on is being retired; the
+> 3-item navigation is the forward-looking IA. This page is retained as
+> historical context (per the wiki no-delete rule) and its
+> Permaculture-Scholar rationale remains a valid input, but its
+> active-spec recommendations (rename 4 of 7 verbs, Steward-as-loop,
+> grouping the seven into three phases) are **superseded by**
+> [decisions/2026-05-16-atlas-7-stage-lifecycle-retirement.md](../decisions/2026-05-16-atlas-7-stage-lifecycle-retirement.md).
+> Do not conform the 3-item nav back to the seven stages.
+
 ## Summary
 
 Atlas's v3 lifecycle sidebar lists seven stages — Discover, Diagnose, Design, Prove, Build, Operate, Report — as a flat 1-of-7 list. This page synthesises a six-question dialogue with the **Permaculture Scholar** NotebookLM (`5aa3dcf3-e1de-44ac-82b8-bad5e94e6c4b`, 44 sources covering the Permaculture Design Course Weeks 1–10, Holmgren's principles, Mollison's design process, Yeomans' scales of permanence, watershed, zones/sectors, ethics, decision matrix, and regenerative investments) into actionable sidebar IA decisions.
