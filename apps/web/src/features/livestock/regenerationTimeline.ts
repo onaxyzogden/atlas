@@ -14,6 +14,7 @@ import {
   REGENERATION_METHODS,
   type RegenerationMethod,
 } from '../../v3/plan/data/regenerationPathway.js';
+import { canopyAtAge } from '@ogden/shared';
 
 /**
  * The critical-path spine, in sequence. Every selected method NOT in this
@@ -106,4 +107,37 @@ export function buildRegenerationTimeline(
     totalYears,
     productiveYearOffset: totalYears,
   };
+}
+
+export interface CanopyTrackPoint {
+  /** Timeline year offset (0 = pathway start). */
+  year: number;
+  /** Crown diameter in metres at that year. */
+  canopyM: number;
+}
+
+export interface CanopyTrack {
+  points: CanopyTrackPoint[];
+}
+
+/**
+ * Samples the silvopasture canopy curve one point per year from the
+ * planting year through the pathway's end, for the timeline's advisory
+ * canopy track. Pure: canopy at year Y is `canopyAtAge(speciesId, Y -
+ * plantingYearOffset)`; nothing before planting. Advisory-only by covenant
+ * — drawn on the timeline, never gates grazing.
+ */
+export function buildCanopyTrack(
+  config: { speciesId: string; targetCanopyM: number; plantingYearOffset: number },
+  totalYears: number,
+): CanopyTrack {
+  const points: CanopyTrackPoint[] = [];
+  for (let year = config.plantingYearOffset; year <= totalYears; year += 1) {
+    points.push({
+      year,
+      canopyM: canopyAtAge(config.speciesId, year - config.plantingYearOffset)
+        .canopyM,
+    });
+  }
+  return { points };
 }
