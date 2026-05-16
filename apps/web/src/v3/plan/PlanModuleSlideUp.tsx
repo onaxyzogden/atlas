@@ -78,6 +78,7 @@ const SeasonalTaskCard        = lazy(() => import('../../features/plan/SeasonalT
 const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudgetSummaryCard.js'));
 const PhasingScaleMatrixCard  = lazy(() => import('./cards/phasing-budgeting/PhasingScaleMatrixCard.js'));
 const CumulativeInvestmentCard = lazy(() => import('./cards/phasing-budgeting/CumulativeInvestmentCard.js'));
+const MaintenanceScheduleCard = lazy(() => import('./cards/phasing-budgeting/MaintenanceScheduleCard.js'));
 const EquipmentReplacementScheduleCard = lazy(() => import('./cards/phasing-budgeting/EquipmentReplacementScheduleCard.js'));
 const MaterialSubstitutionsCard = lazy(() => import('./cards/phasing-budgeting/MaterialSubstitutionsCard.js'));
 const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenChecklistCard.js'));
@@ -146,6 +147,7 @@ function renderPlanCard(
     case 'plan-labor-budget':        return <LaborBudgetSummaryCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-scale-matrix': return <PhasingScaleMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-cumulative-investment': return <CumulativeInvestmentCard project={project} onSwitchToMap={noop} />;
+    case 'plan-maintenance-schedule': return <MaintenanceScheduleCard project={project} onSwitchToMap={noop} />;
     case 'plan-equipment-replacement': return <EquipmentReplacementScheduleCard projectId={project.id} />;
     case 'plan-material-substitutions': return <MaterialSubstitutionsCard project={project} onSwitchToMap={noop} />;
     case 'plan-holmgren-checklist':  return <HolmgrenChecklistCard project={project} onSwitchToMap={noop} />;

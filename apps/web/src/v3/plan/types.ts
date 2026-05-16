@@ -236,6 +236,7 @@ export const MODULE_CARDS: Record<
     { label: 'Labor & budget',         sectionId: 'plan-labor-budget' },
     { label: 'Scale-of-permanence',    sectionId: 'plan-phasing-scale-matrix' },
     { label: 'Cumulative investment',  sectionId: 'plan-cumulative-investment' },
+    { label: 'Maintenance schedule',   sectionId: 'plan-maintenance-schedule' },
     { label: 'Equipment replacement',  sectionId: 'plan-equipment-replacement' },
     // Material-substitution calculator (Rec #5 v1 from the permaculture-
     // alignment backlog, 2026-04-28). Surfaces biological alternatives

@@ -14,6 +14,7 @@
 import { useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { useObserveHowChecksStore } from '../../../store/observeHowChecksStore.js';
+import ObserveReadyCue from './ObserveReadyCue.js';
 import { useAutoScrollToActiveModule } from '../../_shared/hooks/useAutoScrollToActiveModule.js';
 import {
   GuidanceCard,
@@ -211,6 +212,7 @@ export default function ObserveChecklistAside({
       data-has-active={activeModule !== null}
       aria-label="Observe guidance"
     >
+      <ObserveReadyCue projectId={projectId} />
       {OBSERVE_MODULES.map((mod) => {
         // 2026-05-14 — BE flatten: parent `built-environment` guidance
         // card is replaced by 9 per-category cards rendered below.

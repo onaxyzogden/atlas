@@ -15269,6 +15269,42 @@ logged-out, unpublish → 404) — no dev server run this session.
 Launch-readiness rate-limit/CDN on the public route remains open
 (inherited, gated before first public URL).
 
+## 2026-05-15 — Regenerative Farm catalog: first-class cash enterprises
+
+Closed OQ1 for the Regenerative Farm archetype (was *partial* — no
+market-scale horticulture, no broadacre cash-crop rotation). ADR:
+`decisions/2026-05-15-atlas-regenerative-farm-catalog-cash-enterprises.md`.
+
+Added two interventions to `interventionCatalog.ts`, authored to the
+existing schema + selectable by the existing criterion vocabulary
+(**no engine / schema / criterion-id change**):
+
+- **`market-garden`** — commercial Zone-2 standardised-bed market
+  garden, distinct from the Zone-1 subsistence `kitchen-garden`
+  (market-scale, income-first). `tile-strip`; prereqs
+  `cover-crop-rebuild` + `compost-system`; income + food-sov + soil
+  contributions; monthly WS4b maintenance.
+- **`annual-cash-crop-rotation`** — regenerative broadacre rotation
+  under continuous cover; dominant field share
+  (`fractionOfParcel 0.35`); `tile-strip`; prereqs
+  `keyline-access-track` + `cover-crop-rebuild`; income + soil
+  contributions; annual WS4b maintenance.
+
+The criterion vocabulary already expressed farm cash income
+(`income-surplus-usd` / `income-streams-count`) and regenerative soil
+gain (`soil-om-pct` / `soil-cover-pct`) — the gap was content, not
+vocabulary, so the close is purely additive.
+
+**Verification.** `tsc --noEmit` clean. `vitest run src/v3/plan`
+84/84 across 13 files (4 new `regenerativeFarmCatalog.test.ts`:
+presence, sequenced for an income+soil goal tree, prerequisites
+pulled + ordered ahead, WS4b metadata). No regression.
+
+**Deferred.** Retreat Center / Educational Farm / Conservation /
+Multi-Enterprise stay content-blocked (OQ1 open for them, gated on
+the project-type-list decision). Manual Auto-design dry-run on a real
+parcel — no dev server this session.
+
 ---
 
 ## 2026-05-15 — Satellite basemap → Esri World Imagery
@@ -15307,3 +15343,42 @@ overlay survives. Hybrid confirmed still MapTiler `satellite-v2`.
 renderer hung (reproduced pre-change on landing page; environment
 issue, not the edit). Functional verification via applied-style
 readback + error-absence instead.
+
+---
+
+## 2026-05-15 — fix(map): cursor never changes / "flashes then reverts to open hand"
+
+**Bug.** Map cursor permanently the MapLibre open-hand `grab` on every
+stage/basemap; after a partial fix it would flash the right shape then
+revert to the open hand while drawing a feature.
+
+**Two root causes (both in the single source of truth
+`apps/web/src/v3/plan/canvas/useMapCursor.ts`):**
+1. Hover was probed only in `select` mode, so in the default `pan` mode
+   `compute()` could never return `pointer` — the "clickable feature"
+   affordance was dead by construction on every stage. Fix: probe hover
+   when `!drawArmed && !externalHovering`; pan branch returns `pointer`
+   when hovering an interactive feature and not dragging.
+2. `useMapCursor` only re-applied its `cursor:…!important` on map
+   `mousemove` (+down/up). mapbox-gl-draw and the Observe draw/drag
+   tools (AdoptBasemapBuildingTool, SunWindWedgeTool,
+   AnnotationDragHandler, AnnotationSectorHandles, useDimensionDrawTool)
+   write `canvas.style.cursor = ''` on click/dblclick/mouseup/keydown/
+   cleanup — events with no following `mousemove`. `= ''` strips the
+   `!important` declaration → canvas inherits the container `grab` and
+   stays there. Fix: a `MutationObserver` on the canvas `style`
+   attribute re-asserts the computed cursor after any external clobber,
+   with an equality guard so our own write is a no-op (no feedback loop).
+
+**Verification.** `pnpm --filter web typecheck` exit 0. Live in Observe
+(`/v3/project/mtc/observe`): pan rest = `grab !important`; arm
+Watercourse draw = `crosshair !important`; simulated draw-tool `= ''`
+clobber reverts to container `grab`; observer restores
+`crosshair !important` within ~80 ms; bare `move` write likewise
+re-asserted. No cursor/MutationObserver/recursion console errors.
+
+**Deferred.** ~30 ad-hoc `map.getCanvas().style.cursor = …` writers in
+PlanDataLayers/PlanScheduledMovesOverlay and the draw/drag tools are now
+redundant (the observer makes `useMapCursor` authoritative). Left in
+place — out of scope; harmless. See ADR
+`decisions/2026-05-15-atlas-map-cursor-authoritative.md`.

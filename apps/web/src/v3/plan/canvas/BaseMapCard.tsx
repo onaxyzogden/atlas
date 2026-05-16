@@ -17,7 +17,12 @@ import {
   useMatrixTogglesStore,
   type MatrixToggleKey,
 } from '../../../store/matrixTogglesStore.js';
+import { useZoneEmphasisStore } from '../../../store/zoneEmphasisStore.js';
+import { COLORS, LABELS } from '../../../lib/zones/concentric.js';
+import type { ZoneIndex } from '../../../lib/zones/types.js';
 import css from './BaseMapCard.module.css';
+
+const ZONE_INDICES: ZoneIndex[] = [0, 1, 2, 3, 4, 5];
 
 interface MapOverlayDef {
   key: MatrixToggleKey;
@@ -69,6 +74,7 @@ export default function BaseMapCard({ stage }: BaseMapCardProps = {}) {
   const basemap = useBasemapStore((s) => s.basemap);
   const setBasemap = useBasemapStore((s) => s.setBasemap);
   const toggles = useMatrixTogglesStore();
+  const setHoveredZone = useZoneEmphasisStore((s) => s.setHoveredZone);
 
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -132,6 +138,30 @@ export default function BaseMapCard({ stage }: BaseMapCardProps = {}) {
                   />
                   <span className={css.text}>{o.label}</span>
                 </label>
+                {o.key === 'zones' && toggles.zones && (
+                  <ul
+                    className={css.subLegend}
+                    onMouseLeave={() => setHoveredZone(null)}
+                  >
+                    {ZONE_INDICES.map((z) => (
+                      <li
+                        key={z}
+                        className={css.subRow}
+                        tabIndex={0}
+                        onMouseEnter={() => setHoveredZone(z)}
+                        onFocus={() => setHoveredZone(z)}
+                        onBlur={() => setHoveredZone(null)}
+                      >
+                        <span
+                          className={css.swatch}
+                          style={{ background: COLORS[z] }}
+                          aria-hidden="true"
+                        />
+                        <span className={css.text}>{LABELS[z]}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>

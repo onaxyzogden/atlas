@@ -1,10 +1,11 @@
 /**
- * tilePrecache — pre-fetches MapTiler map tiles for a project's bounding box
- * so the map works when the user goes offline.
+ * tilePrecache — pre-fetches Esri World Imagery map tiles for a project's
+ * bounding box so the satellite basemap works when the user goes offline.
  *
  * The service worker's StaleWhileRevalidate handler automatically caches
- * tile responses in the 'ogden-map-tiles' Cache Storage bucket. This module
- * simply issues the fetch requests to warm the cache.
+ * tile responses in the 'ogden-map-tiles' Cache Storage bucket — the same
+ * bucket the live Esri raster source writes to, so offline tiles match what
+ * renders online. This module simply issues the fetch requests to warm it.
  */
 
 // ─── Slippy-map tile math ───────────────────────────────────────────────────
@@ -25,10 +26,14 @@ function lat2tile(lat: number, zoom: number): number {
 
 // ─── Tile URL builder ───────────────────────────────────────────────────────
 
-const MAPTILER_TILE_BASE = 'https://api.maptiler.com/tiles/satellite';
+// ArcGIS tile/{z}/{row}/{col} uses the same Web-Mercator XYZ scheme as the
+// slippy math above, i.e. tile/{z}/{y}/{x}. Native 256px, no @2x, no key —
+// matches ESRI_WORLD_IMAGERY_STYLE in maplibre.ts (tileSize: 256).
+const ESRI_TILE_BASE =
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile';
 
-function buildTileUrl(x: number, y: number, z: number, key: string): string {
-  return `${MAPTILER_TILE_BASE}/${z}/${x}/${y}@2x.jpg?key=${key}`;
+function buildTileUrl(x: number, y: number, z: number): string {
+  return `${ESRI_TILE_BASE}/${z}/${y}/${x}`;
 }
 
 // ─── Concurrency limiter ────────────────────────────────────────────────────
@@ -76,7 +81,7 @@ const DEFAULT_MAX_ZOOM = 16;
 const CONCURRENCY = 6;
 
 /**
- * Pre-fetch MapTiler tiles covering a bounding box at useful zoom levels.
+ * Pre-fetch Esri World Imagery tiles covering a bounding box at useful zoom levels.
  * The service worker's cache handler stores the responses automatically.
  *
  * @param bbox [west, south, east, north] in decimal degrees
@@ -87,12 +92,6 @@ export async function precacheProjectTiles(
   bbox: [number, number, number, number],
   options?: PrecacheOptions,
 ): Promise<{ cached: number; skipped: number }> {
-  const key = (import.meta as any).env?.VITE_MAPTILER_KEY;
-  if (!key) {
-    console.warn('[TILE-PRECACHE] No VITE_MAPTILER_KEY — skipping tile precache');
-    return { cached: 0, skipped: 0 };
-  }
-
   const [west, south, east, north] = bbox;
   let minZoom = options?.minZoom ?? DEFAULT_MIN_ZOOM;
   let maxZoom = options?.maxZoom ?? DEFAULT_MAX_ZOOM;
@@ -108,7 +107,7 @@ export async function precacheProjectTiles(
 
     for (let x = xMin; x <= xMax; x++) {
       for (let y = yMin; y <= yMax; y++) {
-        urls.push(buildTileUrl(x, y, z, key));
+        urls.push(buildTileUrl(x, y, z));
       }
     }
 

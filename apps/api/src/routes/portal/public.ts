@@ -19,6 +19,7 @@
 
 import type { FastifyInstance } from 'fastify';
 import { NotFoundError } from '../../lib/errors.js';
+import { getStorageProvider } from '../../services/storage/StorageProvider.js';
 
 export default async function publicPortalRoutes(fastify: FastifyInstance) {
   const { db } = fastify;
@@ -59,6 +60,44 @@ export default async function publicPortalRoutes(fastify: FastifyInstance) {
         meta: undefined,
         error: null,
       };
+    },
+  );
+
+  // GET /portal/:shareToken/report.pdf — public, view-only.
+  // Streams the frozen capital_partner_summary PDF bytes THROUGH the
+  // API. The raw (unsigned, permanent) storage URL is never exposed to
+  // the client — the UUIDv4 token + the `reportShare.published` gate are
+  // the only access path. Gate is independent of the storytelling
+  // `is_published` flag.
+  fastify.get<{ Params: { shareToken: string } }>(
+    '/:shareToken/report.pdf',
+    async (req, reply) => {
+      const { shareToken } = req.params;
+
+      const [row] = await db`
+        SELECT config ->> 'reportShare' AS report_share
+        FROM project_portals
+        WHERE share_token = ${shareToken}
+      `;
+
+      const reportShare = row?.report_share
+        ? (JSON.parse(row.report_share) as {
+            published?: boolean;
+            storageKey?: string;
+          })
+        : null;
+
+      if (!reportShare?.published || !reportShare.storageKey) {
+        throw new NotFoundError('Report share', shareToken);
+      }
+
+      const pdf = await getStorageProvider().download(reportShare.storageKey);
+
+      return reply
+        .header('Content-Type', 'application/pdf')
+        .header('Content-Disposition', 'inline; filename="report.pdf"')
+        .header('Cache-Control', 'private, no-store')
+        .send(pdf);
     },
   );
 }

@@ -376,6 +376,27 @@ export const api = {
 
     getPublic: (shareToken: string) =>
       request<PortalRecord>('GET', `/api/v1/portal/${shareToken}`),
+
+    // WS5 P2 — generate + publish a frozen view-only report snapshot.
+    // Returns the portal record (with `shareToken`) so the caller can
+    // build the public `/report-share/:token` link.
+    publishReport: (projectId: string) =>
+      request<PortalRecord>(
+        'POST',
+        `/api/v1/projects/${projectId}/portal/report`,
+      ),
+
+    unpublishReport: (projectId: string) =>
+      request<{ unpublished: boolean }>(
+        'DELETE',
+        `/api/v1/projects/${projectId}/portal/report`,
+      ),
+
+    // Relative API path the browser/iframe fetches the frozen PDF from.
+    // The raw storage URL is never exposed; this streams through the API
+    // gated by token secrecy + the `reportShare.published` flag.
+    reportPdfPath: (shareToken: string) =>
+      `/api/v1/portal/${shareToken}/report.pdf`,
   },
 
   comments: {

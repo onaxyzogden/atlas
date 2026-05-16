@@ -37,6 +37,34 @@ export interface MaterialLine {
   notes?: string;
 }
 
+export type MaintenanceFrequency =
+  | 'monthly'
+  | 'quarterly'
+  | 'annual'
+  | 'biennial'
+  | 'every-3-years';
+
+/**
+ * Ongoing operational maintenance for an intervention once it is
+ * established (spec §4.3.3). Distinct from the one-time install labor
+ * captured by `laborHrsPerAcre` / `materials`. Consumed by the
+ * `maintenanceSchedule` derivation, which rolls these into a recurring
+ * synthetic phase + a personnel / materials / equipment summary.
+ */
+export interface MaintenanceSchedule {
+  frequency: MaintenanceFrequency;
+  /** 'any' = season-agnostic recurring upkeep. */
+  season?: 'spring' | 'summer' | 'fall' | 'winter' | 'any';
+  laborHrsPerOccurrence: number;
+  costUSDPerOccurrence: number;
+  /** Skilled help beyond the household, if any. */
+  requiredPersonnel?: { skillLevel?: string; minCount: number };
+  materialsPerOccurrence?: MaterialLine[];
+  /** Free-text equipment classes the recurring task needs. */
+  equipmentRequired?: string[];
+  notes?: string;
+}
+
 export type CriterionUnit = 'pct' | 'gallons' | 'lbs' | 'usd' | 'kwh' | 'count';
 
 export interface SuccessCriterion {
@@ -166,6 +194,11 @@ export interface Intervention {
   laborFixedHrs?: number;
   costRangeUSD: CostRange;
   materials: MaterialLine[];
+  /**
+   * Optional recurring upkeep once established (spec §4.3.3).
+   * Undefined = no modeled ongoing maintenance for this intervention.
+   */
+  maintenanceSchedule?: MaintenanceSchedule;
   durationMonths: number;
   maturityCurve: MaturityStep[];
   criterionContributions: CriterionContribution[];

@@ -78,6 +78,18 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Crushed rock (wear strips at gates only)', unit: 'tons' },
       { label: 'Native grass seed mix', quantityPerAcre: 15, unit: 'lbs/acre' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'fall',
+      laborHrsPerOccurrence: 6,
+      costUSDPerOccurrence: 180,
+      materialsPerOccurrence: [
+        { label: 'Wear-strip rock top-up', unit: 'tons' },
+        { label: 'Spot-reseed mix', unit: 'lbs' },
+      ],
+      equipmentRequired: ['tractor + grader blade'],
+      notes: 'Regrade the keyline crown, clear culverts/road swales before the wet season, reseed scoured wear strips.',
+    },
     durationMonths: 3,
     maturityCurve: [
       { yearOffset: 0, functionalPct: 80 },
@@ -130,6 +142,17 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Excavator hire (per acre)', unit: 'hours' },
       { label: 'Cover-crop seed for berm', quantityPerAcre: 20, unit: 'lbs/acre' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'fall',
+      laborHrsPerOccurrence: 8,
+      costUSDPerOccurrence: 220,
+      materialsPerOccurrence: [
+        { label: 'Berm cover-crop reseed', unit: 'lbs' },
+      ],
+      equipmentRequired: ['mini-excavator (periodic desilt)'],
+      notes: 'Desilt the level-bottom channel, repair overflow ends, re-vegetate the berm; full machine desilt roughly every 3rd year.',
+    },
     durationMonths: 4,
     maturityCurve: [
       { yearOffset: 0, functionalPct: 70 },
@@ -187,6 +210,14 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Bentonite or gley layer', unit: 'lot' },
       { label: 'Overflow culvert', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'fall',
+      laborHrsPerOccurrence: 6,
+      costUSDPerOccurrence: 250,
+      equipmentRequired: ['excavator (periodic desilt only)'],
+      notes: 'Inspect spillway/overflow culvert and dam wall for seepage or burrows; mechanical desilt is occasional, not yearly.',
+    },
     durationMonths: 6,
     maturityCurve: [
       { yearOffset: 0, functionalPct: 60 },
@@ -241,6 +272,13 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'First-flush diverter assemblies', unit: 'units' },
       { label: 'Gutters / downspouts', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'quarterly',
+      season: 'any',
+      laborHrsPerOccurrence: 3,
+      costUSDPerOccurrence: 40,
+      notes: 'Clear gutters and leaf screens, flush and reset first-flush diverters, inspect tank inlets and overflow for mosquito-proofing.',
+    },
     durationMonths: 2,
     maturityCurve: [
       { yearOffset: 0, functionalPct: 100 },
@@ -286,6 +324,17 @@ export const INTERVENTION_CATALOG: Intervention[] = [
     materials: [
       { label: 'Cover-crop seed mix', quantityPerAcre: 40, unit: 'lbs/acre' },
     ],
+    maintenanceSchedule: {
+      frequency: 'quarterly',
+      season: 'any',
+      laborHrsPerOccurrence: 4,
+      costUSDPerOccurrence: 60,
+      materialsPerOccurrence: [
+        { label: 'Successive cover-crop seed', unit: 'lbs' },
+      ],
+      equipmentRequired: ['no-till drill / roller-crimper'],
+      notes: 'Recurring during the 2-3 season rebuild only: terminate the standing mix and drill the next species sequence each window.',
+    },
     durationMonths: 24,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 40 },
@@ -338,6 +387,14 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Untreated lumber for bays', unit: 'lot' },
       { label: 'Hardware cloth / aeration tubing', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'monthly',
+      season: 'any',
+      laborHrsPerOccurrence: 6,
+      costUSDPerOccurrence: 20,
+      equipmentRequired: ['front loader or compost fork', 'thermometer'],
+      notes: 'Turn active piles on temperature, balance C:N and moisture, rotate finished bays out; replace failed bay boards as needed.',
+    },
     durationMonths: 1,
     maturityCurve: [
       { yearOffset: 0, functionalPct: 100 },
@@ -384,6 +441,17 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Seed (annual)', unit: 'lot' },
       { label: 'Wood-chip mulch', quantityPerAcre: 30, unit: 'yards' },
     ],
+    maintenanceSchedule: {
+      frequency: 'monthly',
+      season: 'any',
+      laborHrsPerOccurrence: 24,
+      costUSDPerOccurrence: 120,
+      materialsPerOccurrence: [
+        { label: 'Succession seed / transplants', unit: 'lot' },
+        { label: 'Compost + mulch top-up', unit: 'yards' },
+      ],
+      notes: 'Bed flips and successive sowing, drip-line servicing, mulch and compost top-up, pest/disease scouting through the growing months.',
+    },
     durationMonths: 12,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 70 },
@@ -443,6 +511,18 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Wood-chip mulch', quantityPerAcre: 80, unit: 'yards' },
       { label: 'Tree guards / stakes', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'winter',
+      laborHrsPerOccurrence: 40,
+      costUSDPerOccurrence: 350,
+      materialsPerOccurrence: [
+        { label: 'Mulch renewal', unit: 'yards' },
+        { label: 'Replacement whips (gap-fill)', unit: 'plants' },
+      ],
+      equipmentRequired: ['pruning saw / loppers'],
+      notes: 'Formative and maintenance pruning, mulch renewal, guild weeding, gap replanting and guard checks; heaviest in the establishment decade.',
+    },
     durationMonths: 36,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 10 },
@@ -503,6 +583,17 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Electric poultry netting', unit: 'lot' },
       { label: 'Chicks + feed (Year 1)', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'monthly',
+      season: 'any',
+      laborHrsPerOccurrence: 16,
+      costUSDPerOccurrence: 220,
+      materialsPerOccurrence: [
+        { label: 'Supplemental feed + bedding', unit: 'lot' },
+      ],
+      equipmentRequired: ['fence energizer'],
+      notes: 'Coop moves and sanitation, netting relocation each rotation, feed/water/grit, predator and energizer checks; flock replacement folded in annually.',
+    },
     durationMonths: 6,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 80 },
@@ -559,6 +650,18 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Water lines / portable troughs', unit: 'lot' },
       { label: 'Starter flock (8-12 head)', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'quarterly',
+      season: 'any',
+      laborHrsPerOccurrence: 30,
+      costUSDPerOccurrence: 260,
+      requiredPersonnel: { skillLevel: 'veterinary (annual visit)', minCount: 1 },
+      materialsPerOccurrence: [
+        { label: 'Mineral / health supplies', unit: 'lot' },
+      ],
+      equipmentRequired: ['fence energizer tester'],
+      notes: 'Perimeter + portable fence and energizer checks, water-system service, hoof/parasite and body-condition rounds, grazing-chart updates.',
+    },
     durationMonths: 12,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 60 },
@@ -616,6 +719,16 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Wood / steel posts', unit: 'lot' },
       { label: 'Gates + bracing', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'fall',
+      laborHrsPerOccurrence: 8,
+      costUSDPerOccurrence: 180,
+      materialsPerOccurrence: [
+        { label: 'Wire / staple / post repair stock', unit: 'lot' },
+      ],
+      notes: 'Walk the line, retension wire, reset heaved posts, repair gates and brace assemblies before stocking each season.',
+    },
     durationMonths: 3,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 100 },
@@ -664,6 +777,18 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Portable water troughs', unit: 'lot' },
       { label: 'Starter herd (cow-calf pairs)', unit: 'head' },
     ],
+    maintenanceSchedule: {
+      frequency: 'quarterly',
+      season: 'any',
+      laborHrsPerOccurrence: 24,
+      costUSDPerOccurrence: 320,
+      requiredPersonnel: { skillLevel: 'veterinary (annual visit)', minCount: 1 },
+      materialsPerOccurrence: [
+        { label: 'Mineral + animal-health supplies', unit: 'lot' },
+      ],
+      equipmentRequired: ['ATV / UTV', 'fence energizer tester'],
+      notes: 'Audit subdivision moves, test energizer and grounding, service water network, herd health and body-condition rounds, update the grazing chart.',
+    },
     durationMonths: 12,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 50 },
@@ -717,6 +842,13 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Buried HDPE supply line', unit: 'meters' },
       { label: 'Portable troughs + quick-couplers', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'quarterly',
+      season: 'any',
+      laborHrsPerOccurrence: 6,
+      costUSDPerOccurrence: 90,
+      notes: 'Pressure-check lines and couplers, clean troughs and float valves, then drain and winterize exposed runs ahead of hard frost.',
+    },
     durationMonths: 4,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 100 },
@@ -760,6 +892,16 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Shelterbelt tree stock', unit: 'lot' },
       { label: 'Portable shade tarps + frames', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'spring',
+      laborHrsPerOccurrence: 8,
+      costUSDPerOccurrence: 200,
+      materialsPerOccurrence: [
+        { label: 'Replacement shelterbelt stock', unit: 'lot' },
+      ],
+      notes: 'Replace failed shelterbelt whips, weed and water young rows to establishment, repair shade tarps and frames before hot season.',
+    },
     durationMonths: 6,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 60 },
@@ -806,6 +948,17 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Diverse forage seed mix', unit: 'lbs' },
       { label: 'No-till drill rental / frost-seed pass', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'biennial',
+      season: 'spring',
+      laborHrsPerOccurrence: 3,
+      costUSDPerOccurrence: 90,
+      materialsPerOccurrence: [
+        { label: 'Spot-overseed forage mix', unit: 'lbs' },
+      ],
+      equipmentRequired: ['no-till drill / frost-seed spreader'],
+      notes: 'Frost-seed or drill thin and bare patches every other year to hold sward diversity and density.',
+    },
     durationMonths: 2,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 70 },
@@ -854,6 +1007,17 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Coppice whips', quantityPerAcre: 1000, unit: 'plants/acre' },
       { label: 'Deer protection', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'every-3-years',
+      season: 'winter',
+      laborHrsPerOccurrence: 90,
+      costUSDPerOccurrence: 200,
+      materialsPerOccurrence: [
+        { label: 'Guard / fence repair stock', unit: 'lot' },
+      ],
+      equipmentRequired: ['chainsaw / billhook'],
+      notes: 'Cut one coupe per rotation cycle, stack and season cordwood/poles, and keep deer protection sound between cuts.',
+    },
     durationMonths: 24,
     maturityCurve: [
       { yearOffset: 3, functionalPct: 20 },
@@ -906,6 +1070,14 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'PV modules (6-8 kW)', unit: 'system' },
       { label: 'Inverter + balance-of-system', unit: 'system' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'spring',
+      laborHrsPerOccurrence: 4,
+      costUSDPerOccurrence: 150,
+      requiredPersonnel: { skillLevel: 'licensed electrician (inspection)', minCount: 1 },
+      notes: 'Wash modules, clear shading growth, inspect wiring/connectors and inverter logs; electrician sign-off on the annual check.',
+    },
     durationMonths: 3,
     maturityCurve: [
       { yearOffset: 0, functionalPct: 100 },
@@ -955,6 +1127,17 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Tree guards / stakes', unit: 'lot' },
       { label: 'Grass-alley seed', quantityPerAcre: 20, unit: 'lbs/acre' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'winter',
+      laborHrsPerOccurrence: 60,
+      costUSDPerOccurrence: 400,
+      materialsPerOccurrence: [
+        { label: 'Holistic IPM inputs (dormant + summer)', unit: 'lot' },
+      ],
+      equipmentRequired: ['orchard sprayer', 'alley mower'],
+      notes: 'Dormant and summer pruning, holistic spray rounds, alley mowing, guard and stake checks, gap replanting.',
+    },
     durationMonths: 24,
     maturityCurve: [
       { yearOffset: 3, functionalPct: 30 },
@@ -1004,6 +1187,14 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       { label: 'Stainless prep tables', unit: 'lot' },
       { label: 'Jarring / drying equipment', unit: 'lot' },
     ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'any',
+      laborHrsPerOccurrence: 24,
+      costUSDPerOccurrence: 600,
+      requiredPersonnel: { skillLevel: 'health-inspection / appliance service', minCount: 1 },
+      notes: 'Deep clean and equipment servicing, calibrate canners/dehydrators, renew the cottage-kitchen licence and pass the annual inspection.',
+    },
     durationMonths: 6,
     maturityCurve: [
       { yearOffset: 1, functionalPct: 100 },
@@ -1017,6 +1208,173 @@ export const INTERVENTION_CATALOG: Intervention[] = [
       {
         source: 'Katz, S. E. (2012). The Art of Fermentation. Chelsea Green.',
         year: 2012,
+        kind: 'book',
+      },
+    ],
+    region: 'global',
+  },
+
+  {
+    id: 'market-garden',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['food_production'],
+      preferredGroundCover: ['bare-soil', 'sparse-grasses', 'thriving-grasses'],
+      avoidedCategories: [
+        'conservation',
+        'spiritual',
+        'water_retention',
+        'habitation',
+      ],
+      permacultureRingRange: [1, 2],
+    },
+    geometryTemplate: 'tile-strip',
+    // — / —
+    name: 'Commercial market garden (Zone 2 cash beds)',
+    description:
+      'Standardised permanent beds run as the primary horticultural cash ' +
+      'enterprise: succession-cropped salad, roots, alliums, and storage ' +
+      'vegetables for CSA / market channels. Distinct from the Zone-1 ' +
+      'subsistence kitchen garden — larger, market-scale, and the main ' +
+      'income line, not table supply.',
+    category: 'vegetation',
+    yeomansPhase: 'trees',
+    prerequisites: ['cover-crop-rebuild', 'compost-system'],
+    siteRequirements: [{ kind: 'slopeMaxPct', value: 10 }],
+    laborHrsPerAcre: 1600,
+    costRangeUSD: { low: 6000, mid: 11000, high: 20000, perAcre: true },
+    materials: [
+      { label: 'Drip-irrigation + mainline', unit: 'lot' },
+      { label: 'Seed + transplants (annual)', unit: 'lot' },
+      { label: 'Compost', quantityPerAcre: 40, unit: 'yards' },
+      { label: 'Landscape fabric / silage tarps', unit: 'lot' },
+    ],
+    maintenanceSchedule: {
+      frequency: 'monthly',
+      season: 'any',
+      laborHrsPerOccurrence: 60,
+      costUSDPerOccurrence: 300,
+      materialsPerOccurrence: [
+        { label: 'Succession seed / transplants', unit: 'lot' },
+        { label: 'Compost + drip-line parts', unit: 'lot' },
+      ],
+      equipmentRequired: [
+        'walk-behind tractor / tilther',
+        'wash-pack station',
+      ],
+      notes:
+        'Continuous bed flips and succession sowing, drip servicing, ' +
+        'tarp occultation, harvest + wash-pack, and market-channel ' +
+        'logistics through the growing season.',
+    },
+    durationMonths: 12,
+    maturityCurve: [
+      { yearOffset: 1, functionalPct: 60 },
+      { yearOffset: 2, functionalPct: 100 },
+    ],
+    criterionContributions: [
+      { criterionId: 'income-surplus-usd', contributionPerAcre: 4500, appliesAtYearOffset: 2 },
+      { criterionId: 'income-streams-count', contributionFixed: 1, appliesAtYearOffset: 2 },
+      { criterionId: 'food-sov-calories-pct', contributionPerAcre: 10, appliesAtYearOffset: 2 },
+      { criterionId: 'food-sov-protein-pct', contributionPerAcre: 3, appliesAtYearOffset: 2 },
+      { criterionId: 'soil-cover-pct', contributionPerAcre: 2, appliesAtYearOffset: 1 },
+    ],
+    spatialFootprintAcres: { fractionOfParcel: 0.08, minimum: 0.5 },
+    designLayer: 'vegetation',
+    sources: [
+      {
+        source:
+          'Fortier, J.-M. (2014). The Market Gardener. New Society Publishers.',
+        year: 2014,
+        kind: 'book',
+        note: 'Standardised-bed market-garden economics and labor model.',
+      },
+      {
+        source:
+          'Coleman, E. (2018). The New Organic Grower (3rd ed.). Chelsea Green.',
+        year: 2018,
+        kind: 'book',
+      },
+    ],
+    region: 'global',
+  },
+
+  {
+    id: 'annual-cash-crop-rotation',
+    // — auto-design —
+    zoneAffinity: {
+      preferredCategories: ['food_production'],
+      preferredGroundCover: ['bare-soil', 'sparse-grasses'],
+      avoidedCategories: [
+        'conservation',
+        'spiritual',
+        'habitation',
+        'water_retention',
+      ],
+      permacultureRingRange: [2, 4],
+    },
+    geometryTemplate: 'tile-strip',
+    // — / —
+    name: 'Annual cash-crop rotation (regenerative broadacre)',
+    description:
+      'The primary field enterprise on a regenerative farm: a planned ' +
+      'small-grain / pulse / oilseed rotation kept under continuous living ' +
+      'cover with integrated cover crops, minimal tillage, and no bare ' +
+      'fallow. Thin per-acre margin carried by scale; builds soil while it ' +
+      'earns.',
+    category: 'vegetation',
+    yeomansPhase: 'soil',
+    prerequisites: ['keyline-access-track', 'cover-crop-rebuild'],
+    siteRequirements: [{ kind: 'slopeMaxPct', value: 12 }],
+    laborHrsPerAcre: 12,
+    costRangeUSD: { low: 200, mid: 380, high: 650, perAcre: true },
+    materials: [
+      { label: 'Certified rotation seed', unit: 'lot' },
+      { label: 'Biological inoculant / amendment', unit: 'lot' },
+      { label: 'Inter-seeded cover-crop mix', quantityPerAcre: 18, unit: 'lbs' },
+    ],
+    maintenanceSchedule: {
+      frequency: 'annual',
+      season: 'any',
+      laborHrsPerOccurrence: 20,
+      costUSDPerOccurrence: 240,
+      materialsPerOccurrence: [
+        { label: 'Certified seed (rotation crops)', unit: 'lot' },
+        { label: 'Cover-crop seed', unit: 'lbs' },
+      ],
+      equipmentRequired: [
+        'tractor + no-till seed drill',
+        'combine (owned or custom-hire)',
+      ],
+      notes:
+        'Each cropping cycle: rotation planning and seed sourcing, ' +
+        'no-till drilling, cover-crop establishment behind harvest, and ' +
+        'custom-hire combining where equipment is not owned.',
+    },
+    durationMonths: 12,
+    maturityCurve: [
+      { yearOffset: 1, functionalPct: 80 },
+      { yearOffset: 2, functionalPct: 100 },
+    ],
+    criterionContributions: [
+      { criterionId: 'income-surplus-usd', contributionPerAcre: 180, appliesAtYearOffset: 2 },
+      { criterionId: 'income-streams-count', contributionFixed: 1, appliesAtYearOffset: 2 },
+      { criterionId: 'soil-cover-pct', contributionPerAcre: 2.5, appliesAtYearOffset: 1 },
+      { criterionId: 'soil-om-pct', contributionPerAcre: 0.08, appliesAtYearOffset: 5 },
+    ],
+    spatialFootprintAcres: { fractionOfParcel: 0.35 },
+    designLayer: 'vegetation',
+    sources: [
+      {
+        source: 'Brown, G. (2018). Dirt to Soil. Chelsea Green.',
+        year: 2018,
+        kind: 'book',
+        note: 'Regenerative cash-crop rotation under continuous cover.',
+      },
+      {
+        source:
+          'Montgomery, D. R. (2017). Growing a Revolution. W. W. Norton.',
+        year: 2017,
         kind: 'book',
       },
     ],

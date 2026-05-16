@@ -25,6 +25,7 @@ import NewProjectPage from '../pages/NewProjectPage.js';
 import LifecycleProjectPage from '../pages/LifecycleProjectPage.js';
 import CompareCandidatesPage from '../features/project/compare/CompareCandidatesPage.js';
 import PortalPage from '../pages/PortalPage.js';
+import ReportSharePage from '../pages/ReportSharePage.js';
 import LoginPage from '../pages/LoginPage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
@@ -36,6 +37,9 @@ import V3BuildPage from '../v3/pages/BuildPage.js';
 import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
+// TEMP (verification only — remove once DiagnosePage is routed in Phase C):
+// dev-only mount so the concentric ZonesOverlay rings can be visually checked.
+import DiagnosePage from '../v3/pages/DiagnosePage.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
 import CyclePage from '../pages/CyclePage.js';
@@ -190,6 +194,15 @@ const v3DiagnoseRoute = createRoute({
     });
   },
 });
+// TEMP (verification only — remove once DiagnosePage is routed in Phase C):
+// `diagnose` itself redirects (intentional product behaviour); this parallel
+// dev-only path mounts the page so the concentric ZonesOverlay rings can be
+// visually verified. Renders null outside dev so it is inert if it ever ships.
+const v3DiagnosePreviewRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'diagnose-preview',
+  component: import.meta.env.DEV ? DiagnosePage : () => null,
+});
 const v3ObserveIndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe',
@@ -272,6 +285,13 @@ const portalRoute = createRoute({
   component: PortalPage,
 });
 
+// ─── Public report share (outside AppShell, no auth) ─────────────────────
+const reportShareRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/report-share/$token',
+  component: ReportSharePage,
+});
+
 // ─── 404 catch-all ─────────────────────────────────────────────────────────
 const notFoundRoute = createRoute({
   getParentRoute: () => appShellRoute,
@@ -300,6 +320,7 @@ const routeTree = rootRoute.addChildren([
       v3HomeRoute,
       v3DiscoverRoute,
       v3DiagnoseRoute,
+      v3DiagnosePreviewRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
       v3PlanRoute,
@@ -319,6 +340,7 @@ const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
   portalRoute,
+  reportShareRoute,
 ]);
 
 export const router = createRouter({ routeTree });

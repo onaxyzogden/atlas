@@ -31,6 +31,11 @@ vi.mock('../plugins/redis.js', async () => {
   };
 });
 
+const downloadMock = vi.fn();
+vi.mock('../services/storage/StorageProvider.js', () => ({
+  getStorageProvider: () => ({ download: downloadMock }),
+}));
+
 import { buildApp } from '../app.js';
 
 let app: FastifyInstance;
@@ -117,5 +122,81 @@ describe('GET /api/v1/projects/:id/portal', () => {
     });
 
     expect(res.statusCode).toBe(404);
+  });
+});
+
+// WS5 P2 (spec §5.1.2) — tokenized, unauthenticated, view-only report
+// share. The route streams the frozen PDF bytes through the API; the
+// raw storage URL is never exposed. Gate is `reportShare.published`,
+// independent of the storytelling `is_published` flag.
+describe('GET /api/v1/portal/:shareToken/report.pdf (public)', () => {
+  const SHARE_TOKEN = '11111111-2222-3333-4444-555555555555';
+
+  beforeEach(() => {
+    downloadMock.mockReset();
+  });
+
+  it('streams the PDF (200) when reportShare.published is true', async () => {
+    downloadMock.mockResolvedValue(Buffer.from('%PDF-1.4 frozen snapshot'));
+    enqueue({
+      report_share: JSON.stringify({
+        published: true,
+        storageKey: 'exports/test-proj/capital_partner_summary.pdf',
+      }),
+    });
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/portal/${SHARE_TOKEN}/report.pdf`,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['content-type']).toContain('application/pdf');
+    // Unpublish must be immediate — no caching of the resolved snapshot.
+    expect(res.headers['cache-control']).toContain('no-store');
+    expect(downloadMock).toHaveBeenCalledWith(
+      'exports/test-proj/capital_partner_summary.pdf',
+    );
+  });
+
+  it('returns 404 when reportShare.published is false (unpublished)', async () => {
+    enqueue({
+      report_share: JSON.stringify({
+        published: false,
+        storageKey: 'exports/test-proj/capital_partner_summary.pdf',
+      }),
+    });
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/portal/${SHARE_TOKEN}/report.pdf`,
+    });
+
+    expect(res.statusCode).toBe(404);
+    expect(downloadMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 for an absent / tampered token', async () => {
+    enqueue(); // no row for this token
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/portal/00000000-0000-0000-0000-000000000000/report.pdf`,
+    });
+
+    expect(res.statusCode).toBe(404);
+    expect(downloadMock).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when no reportShare block exists (storytelling-only portal)', async () => {
+    enqueue({ report_share: null });
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/portal/${SHARE_TOKEN}/report.pdf`,
+    });
+
+    expect(res.statusCode).toBe(404);
+    expect(downloadMock).not.toHaveBeenCalled();
   });
 });

@@ -9,6 +9,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { phase } from '../lib/tokens';
 import type { PhaseKey } from '../v3/plan/types.js';
+import type {
+  MaintenanceFrequency,
+  MaterialLine,
+} from '../v3/plan/data/goalCompassTypes.js';
 import type { ProjectRole } from '@ogden/shared';
 
 export interface BuildPhase {
@@ -145,6 +149,21 @@ export interface PhaseTask {
    * Replaced wholesale on regenerate.
    */
   generatedFromPlantingCalendar?: string;
+  /**
+   * WS4b — recurring operational-maintenance task (spec §4.3.3). `true`
+   * when emitted by `engine/maintenanceSchedule.ts` into the synthetic
+   * "Ongoing maintenance" phase. Undefined on every other task → existing
+   * rollups are unaffected; no persist version bump (additive optional).
+   */
+  isMaintenanceTask?: boolean;
+  /** Recurrence cadence of a maintenance task (mirrors the catalog). */
+  recurrenceFrequency?: MaintenanceFrequency;
+  /** Per-occurrence materials carried for the procurement rollup. */
+  materials?: MaterialLine[];
+  /** Skilled help beyond the household this occurrence requires. */
+  requiredPersonnel?: { skillLevel?: string; minCount: number };
+  /** Free-text equipment classes the recurring task depends on. */
+  equipmentRequired?: string[];
 }
 
 interface PhaseState {

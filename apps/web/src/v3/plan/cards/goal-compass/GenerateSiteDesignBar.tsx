@@ -76,7 +76,7 @@ export default function GenerateSiteDesignBar({ project }: Props) {
     const counts = commitDrafts(project.id, result);
     replaceGoalCompassRows(
       project.id,
-      result.sequencing.generatedPhases,
+      result.generatedPhases,
       result.scheduledTasks,
     );
 

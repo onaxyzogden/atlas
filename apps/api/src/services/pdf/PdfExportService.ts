@@ -15,6 +15,7 @@ export interface ExportResult {
   projectId: string;
   exportType: string;
   storageUrl: string;
+  storageKey: string;
   generatedAt: string;
 }
 
@@ -76,6 +77,7 @@ export class PdfExportService {
       projectId: record.project_id as string,
       exportType: record.export_type as string,
       storageUrl: record.storage_url as string,
+      storageKey,
       generatedAt: record.generated_at as string,
     };
   }

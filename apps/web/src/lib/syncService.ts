@@ -112,6 +112,7 @@ function subscribeToProjects() {
   return useProjectStore.subscribe((state) => {
     if (isSyncing) return;
     const curr = state.projects;
+    const prevById = new Map(prevProjects.map((p) => [p.id, p]));
     const { added, removed, updated } = diffArrayById(curr, prevProjects);
     prevProjects = curr;
 
@@ -120,6 +121,14 @@ function subscribeToProjects() {
     }
     for (const project of updated) {
       syncProjectUpdate(project);
+      // Boundary lives on a dedicated PostGIS endpoint (recomputes
+      // acreage/centroid + re-enqueues the Tier-1 pipeline), so only
+      // push it when it actually changed — not on every name/notes edit.
+      const prev = prevById.get(project.id);
+      const boundaryChanged =
+        JSON.stringify(prev?.parcelBoundaryGeojson ?? null) !==
+        JSON.stringify(project.parcelBoundaryGeojson ?? null);
+      if (boundaryChanged) syncProjectBoundary(project);
     }
     for (const project of removed) {
       syncProjectDelete(project);
@@ -238,6 +247,26 @@ async function syncProjectUpdate(project: LocalProject) {
     });
   } catch (err) {
     console.warn('[SYNC] Project update failed, queuing:', err);
+    await syncQueue.enqueue({
+      storeType: 'project',
+      action: 'update',
+      localId: project.id,
+      payload: project,
+    });
+  }
+}
+
+async function syncProjectBoundary(project: LocalProject) {
+  if (!project.serverId) return; // Not yet synced — create will handle it
+  if (!project.parcelBoundaryGeojson) return; // Nothing to push (cleared locally only)
+
+  try {
+    await api.projects.setBoundary(
+      project.serverId,
+      project.parcelBoundaryGeojson,
+    );
+  } catch (err) {
+    console.warn('[SYNC] Project boundary update failed, queuing:', err);
     await syncQueue.enqueue({
       storeType: 'project',
       action: 'update',
