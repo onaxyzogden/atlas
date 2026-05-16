@@ -31,6 +31,17 @@ function scoreZone(
 ): number | null {
   if (affinity.avoidedCategories?.includes(zone.category)) return null;
 
+  // Strict steward opt-in: livestock interventions (paddocks + perimeter
+  // fence — all declare preferredCategories ['livestock']) may ONLY land
+  // in zones the steward explicitly flagged. No spill into any other
+  // zone, regardless of category/ground-cover score.
+  if (
+    affinity.preferredCategories?.includes('livestock') &&
+    zone.suitableForLivestock !== true
+  ) {
+    return null;
+  }
+
   if (affinity.permacultureRingRange && zone.permacultureZone != null) {
     const [min, max] = affinity.permacultureRingRange;
     if (zone.permacultureZone < min || zone.permacultureZone > max) return null;

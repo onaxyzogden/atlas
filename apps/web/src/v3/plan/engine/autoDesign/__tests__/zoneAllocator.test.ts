@@ -44,9 +44,14 @@ describe('allocateZones', () => {
       preferredSuccession: ['mid' as const],
       preferredGroundCover: ['thriving-grasses' as const],
     };
-    const weak = makeZone('weak', { category: 'livestock', sideDeg: 0.02 });
+    const weak = makeZone('weak', {
+      category: 'livestock',
+      suitableForLivestock: true,
+      sideDeg: 0.02,
+    });
     const strong = makeZone('strong', {
       category: 'livestock',
+      suitableForLivestock: true,
       successionStage: 'mid',
       groundCover: 'thriving-grasses',
       sideDeg: 0.02,
@@ -61,10 +66,54 @@ describe('allocateZones', () => {
 
   it('respects permacultureRingRange as a veto', () => {
     const aff = { preferredCategories: ['livestock' as const], permacultureRingRange: [3, 4] as [3, 4] };
-    const inBand = makeZone('in', { category: 'livestock', permacultureZone: 3 });
-    const outBand = makeZone('out', { category: 'livestock', permacultureZone: 1 });
+    const inBand = makeZone('in', {
+      category: 'livestock',
+      suitableForLivestock: true,
+      permacultureZone: 3,
+    });
+    const outBand = makeZone('out', {
+      category: 'livestock',
+      suitableForLivestock: true,
+      permacultureZone: 1,
+    });
     const out = allocateZones(ivn({ zoneAffinity: aff }), [inBand, outBand], 1000);
     expect(out.map((a) => a.zoneId)).toEqual(['in']);
+  });
+
+  it('vetoes livestock interventions on zones not flagged suitable', () => {
+    const aff = { preferredCategories: ['livestock' as const] };
+    // category + ground-cover would otherwise score this zone, but the
+    // steward never ticked "Suitable for livestock".
+    const undef = makeZone('undef', {
+      category: 'livestock',
+      groundCover: 'thriving-grasses',
+    });
+    const explicitlyFalse = makeZone('false', {
+      category: 'livestock',
+      suitableForLivestock: false,
+    });
+    expect(allocateZones(ivn({ zoneAffinity: aff }), [undef], 5)).toEqual([]);
+    expect(
+      allocateZones(ivn({ zoneAffinity: aff }), [explicitlyFalse], 5),
+    ).toEqual([]);
+  });
+
+  it('allows livestock interventions only on suitable-flagged zones', () => {
+    const aff = { preferredCategories: ['livestock' as const] };
+    const ok = makeZone('ok', {
+      category: 'livestock',
+      suitableForLivestock: true,
+    });
+    const no = makeZone('no', { category: 'livestock' });
+    const out = allocateZones(ivn({ zoneAffinity: aff }), [no, ok], 5);
+    expect(out.map((a) => a.zoneId)).toEqual(['ok']);
+  });
+
+  it('non-livestock interventions ignore the suitable flag', () => {
+    const aff = { preferredCategories: ['food_production' as const] };
+    const z = makeZone('z1', { category: 'food_production' }); // flag undefined
+    const out = allocateZones(ivn({ zoneAffinity: aff }), [z], 1);
+    expect(out.map((a) => a.zoneId)).toEqual(['z1']);
   });
 
   it('never exceeds the acreage budget', () => {

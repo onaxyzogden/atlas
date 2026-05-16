@@ -43,6 +43,7 @@ export function makeZone(
     successionStage: cfg.successionStage ?? null,
     groundCover: cfg.groundCover ?? null,
     permacultureZone: cfg.permacultureZone,
+    suitableForLivestock: cfg.suitableForLivestock,
     geometry,
     areaM2,
   };

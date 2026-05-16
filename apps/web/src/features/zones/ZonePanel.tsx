@@ -94,6 +94,9 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
   // §8 seasonal-temporary-phased-use-zones — when this zone is in active
   // use during the year. Blank = "not set" (stored as null).
   const [formSeasonality, setFormSeasonality] = useState<Seasonality | ''>('');
+  // Steward opt-in for the auto-design generator: paddocks/fences are
+  // placed ONLY in zones flagged here (strict — see zoneAllocator veto).
+  const [formSuitableForLivestock, setFormSuitableForLivestock] = useState(false);
 
   // Inline per-zone ecology-condition editor: which zone id is currently
   // expanded, or null when nothing is open.
@@ -137,6 +140,7 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
       invasivePressure: formInvasivePressure === '' ? null : formInvasivePressure,
       successionStage: formSuccessionStage === '' ? null : formSuccessionStage,
       seasonality: formSeasonality === '' ? null : formSeasonality,
+      suitableForLivestock: formSuitableForLivestock,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -153,11 +157,13 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
     setFormInvasivePressure('');
     setFormSuccessionStage('');
     setFormSeasonality('');
+    setFormSuitableForLivestock(false);
     draw?.deleteAll();
   }, [
     pendingGeometry, pendingArea, formName, formCategory,
     formPrimaryUse, formSecondaryUse, formNotes,
     formInvasivePressure, formSuccessionStage, formSeasonality,
+    formSuitableForLivestock,
     projectId, addZone, map, isMapReady, draw,
   ]);
 
@@ -297,6 +303,19 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
                     <option key={k} value={k}>Use: {SEASONALITY_LABELS[k]}</option>
                   ))}
                 </select>
+                {/* Auto-design opt-in: only zones ticked here receive
+                    generated paddocks/fences (strict containment). */}
+                <label
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formSuitableForLivestock}
+                    onChange={(e) => setFormSuitableForLivestock(e.target.checked)}
+                    aria-label="Suitable for livestock"
+                  />
+                  Suitable for livestock
+                </label>
                 <div className={s.formActions}>
                   <button
                     onClick={handleSaveZone}
@@ -332,8 +351,17 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
                       <div className={s.zoneMeta}>
                         {ZONE_CATEGORY_CONFIG[z.category].label} \u2014 {formatArea(z.areaM2)}
                       </div>
-                      {(z.invasivePressure || z.successionStage || z.seasonality) && (
+                      {(z.invasivePressure || z.successionStage || z.seasonality || z.suitableForLivestock) && (
                         <div className={s.zoneChips}>
+                          {z.suitableForLivestock && (
+                            <span
+                              className={s.zoneChip}
+                              style={{ borderColor: '#7cb342', color: '#7cb342' }}
+                              title="Auto-design will place paddocks here"
+                            >
+                              Livestock OK
+                            </span>
+                          )}
                           {z.invasivePressure && (
                             <span
                               className={s.zoneChip}
@@ -445,6 +473,19 @@ export default function ZonePanel({ projectId, draw, map, isMapReady = true, can
                           <option key={k} value={k}>{SEASONALITY_LABELS[k]}</option>
                         ))}
                       </select>
+                      <label
+                        className={s.editLabel}
+                        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={z.suitableForLivestock ?? false}
+                          onChange={(e) =>
+                            updateZone(z.id, { suitableForLivestock: e.target.checked })
+                          }
+                        />
+                        Suitable for livestock
+                      </label>
                       <button
                         type="button"
                         onClick={() => setEditingId(null)}

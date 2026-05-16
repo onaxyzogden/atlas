@@ -69,6 +69,8 @@ export default function GenerateSiteDesignBar({ project }: Props) {
         category: z.category,
         successionStage: veg.successionStage,
         groundCover: veg.groundCover,
+        permacultureZone: z.permacultureZone,
+        suitableForLivestock: z.suitableForLivestock,
         geometry: z.geometry,
         areaM2: z.areaM2,
       };
@@ -81,6 +83,7 @@ export default function GenerateSiteDesignBar({ project }: Props) {
       siteProfile,
       zones: allocatorZones,
       startDate: startDate || null,
+      parcelBoundary: project.parcelBoundaryGeojson ?? null,
     });
 
     const counts = commitDrafts(project.id, result);

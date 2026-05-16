@@ -28,6 +28,9 @@ export interface AllocatorZone {
   successionStage?: SuccessionStage | null;
   groundCover?: GroundCoverState | null;
   permacultureZone?: 0 | 1 | 2 | 3 | 4 | 5;
+  /** Steward opt-in flag; livestock interventions are hard-vetoed off
+   *  any zone where this is not exactly `true` (strict containment). */
+  suitableForLivestock?: boolean;
   geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
   areaM2: number;
 }
