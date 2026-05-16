@@ -136,7 +136,8 @@ All use `persist` middleware with localStorage. Key stores:
 ## Map / Geocoding
 - Tile renderer: MapLibre GL (open-source)
 - Tile provider: **MapTiler** (`VITE_MAPTILER_KEY`) — migrated from Mapbox 2026-04-11/12
-- Style URLs: `https://api.maptiler.com/maps/{satellite|topo|streets|hybrid}/style.json?key=...`
+- Satellite basemap: **Esri World Imagery** (free, no token, ~z19) since 2026-05-15 — inline `ESRI_WORLD_IMAGERY_STYLE` raster style in `maplibre.ts` with MapTiler glyphs fallback; MapTiler satellite retained via the **Hybrid** style. See ADR 2026-05-15-atlas-satellite-basemap-esri-world-imagery
+- Style URLs (MapTiler, non-satellite): `https://api.maptiler.com/maps/{topo|topo-v2|streets|hybrid}/style.json?key=...`
 - Geocoding: **MapTiler** (`https://api.maptiler.com/geocoding/{query}.json?key=...`) — used in `MapCanvas.tsx` and `StepBoundary.tsx`
 - Terrain DEM: still `mapbox://` protocol in `TerrainControls.tsx` + `HydrologyPanel.tsx` — **pending migration**
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
