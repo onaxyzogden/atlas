@@ -164,6 +164,15 @@ export interface PhaseTask {
   requiredPersonnel?: { skillLevel?: string; minCount: number };
   /** Free-text equipment classes the recurring task depends on. */
   equipmentRequired?: string[];
+  /**
+   * §5.2 Plan-Execution Tracker — steward marks an individual task done.
+   * Additive optional → no persist version bump (mirrors the
+   * `isMaintenanceTask` precedent above). `doneAt` is the ISO timestamp
+   * of the last flip to `true`; cleared to null when toggled back off.
+   * Legacy persisted tasks load with `done` undefined ⇒ not-done.
+   */
+  done?: boolean;
+  doneAt?: string | null;
 }
 
 interface PhaseState {
@@ -207,6 +216,13 @@ interface PhaseState {
     taskId: string,
     patch?: Partial<PhaseTask>,
   ) => void;
+  /**
+   * §5.2 Plan-Execution Tracker — flip a single task's completion state.
+   * Deliberately does NOT set `status: 'overridden'`: marking a task
+   * done is execution tracking, not an authoring override, so the
+   * Goal-Compass engine may still regenerate the row.
+   */
+  toggleTaskDone: (phaseId: string, taskId: string) => void;
   /**
    * Returns a freshly-allocated, sorted array. **Do NOT call inside a
    * Zustand selector** — it produces a new snapshot every render and
@@ -316,6 +332,23 @@ export const usePhaseStore = create<PhaseState>()(
             if (p.id !== phaseId) return p;
             const tasks = (p.tasks ?? []).map((t) =>
               t.id === taskId ? { ...t, ...(patch ?? {}), status: 'overridden' as const } : t,
+            );
+            return { ...p, tasks };
+          }),
+        })),
+
+      toggleTaskDone: (phaseId, taskId) =>
+        set((s) => ({
+          phases: s.phases.map((p) => {
+            if (p.id !== phaseId) return p;
+            const tasks = (p.tasks ?? []).map((t) =>
+              t.id === taskId
+                ? {
+                    ...t,
+                    done: !t.done,
+                    doneAt: !t.done ? new Date().toISOString() : null,
+                  }
+                : t,
             );
             return { ...p, tasks };
           }),

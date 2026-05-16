@@ -16126,3 +16126,134 @@ entry + index). The other concurrent in-progress working-tree files
 ZonesOverlay / zoneSizeGuide / MapCanvas / routes/index, the deleted
 `zoneEmphasisStore`) were **scoped out** and remain uncommitted —
 deliberately not `git add -A`.
+
+## 2026-05-16 — OLOS pre-live-testing hardening (P0/P1 blockers + P2 backlog)
+
+Pre-external-multi-device-testing scan + fixes. Scope (user-confirmed):
+v3 forward journey only; diagnose + fix P0/P1, catalogue P2. **Four**
+agent-report errors were verified against code and corrected before
+acting (recorded in the plan + this entry so the findings register can
+be trusted) — most consequentially #4: "Matrix Toggles is a no-op /
+deferred to v3.1" was **false**; it is fully wired (`BaseMapCard`
+"Overlays" legend on all forward stages, ~14 consuming overlays). The
+only residue was a stale `matrixTogglesStore.ts` header comment
+(fixed) — the working feature was **not** disabled (that would have
+been destructive). Likewise the "syncService is orphaned" claim was
+false (it is auth-wired but **partial**).
+
+**Phase 1 — legacy gating (P0-2):** `routes/index.tsx` — the four v3
+7-stage routes (`design`/`prove`/`build`/`operate`) + legacy v2
+`projectRoute`/`cycleRoute` converted to `beforeLoad` redirects onto
+the v3 forward path (`component: () => null`), mirroring the existing
+`discover`/`diagnose` precedent. Page components kept importable
+(`void X;`) per the no-deletion policy. `V3LifecycleSidebar` audited:
+already 3-item nav only, Coming-soon utilities already
+`<button disabled>` — P1-2 satisfied, no change.
+
+**Phase 2 — multi-device durability (P0-1):** new dependency-free
+`apps/web/src/lib/projectBundle.ts` — snapshots the entire `ogden-`
+localStorage namespace as opaque persist envelopes (prefix-capture is
+inherently complete — the plan's hand-enumeration would itself have
+risked the "misses a slice" failure; the actual store count is ~70,
+not the plan's assumed ~12), 4-key denylist
+(auth-token/matrix-toggles/connectivity/exported-flag). Restore =
+remove-portable + overwrite + reload. Test-first: 8-spec round-trip
+(`projectBundle.test.ts`) green. `ProjectBundleBar`
+(`v3/components/`, mounted in `V3ProjectLayout`) is **both** the
+export/import entry point **and** the data-safety banner (prominent
+warning until `hasExportedBundle()`, then collapses; import has an
+explicit "replace ALL + reload" confirm — a bundle is opaque so no
+per-field diff). Documented the partial-sync boundary: new ADR
+`decisions/2026-05-16-atlas-multi-device-bundle-escape-hatch.md` +
+corrected the stale `concepts/local-first-architecture.md` ("not yet
+synced" was wrong — 4 slices do sync) + index. Full `syncService`
+coverage deferred to backlog (too large to gate testing on).
+
+**Phase 3 — forward-path friction (P1-1..P1-3):** P1-1 Matrix Toggles
+**retracted** (verified working — see above). P1-2 already correct.
+P1-3 slide-up error boundaries: audited the 3 hosts — Plan + Act both
+delegate chrome (incl. `Suspense`) to `_shared/moduleNav/ModuleSlideUp`
+(one `ErrorBoundary` added there covers both), Observe has its own copy
+(boundary added). Reused the existing `components/ErrorBoundary.tsx`,
+keyed per-card so a failed lazy chunk degrades to a message + retry
+instead of a white screen behind the open sheet. Plan's pre-existing
+`OrphanProbeBoundary` is an unrelated narrower concern, left intact.
+
+**Phase 4 — gates:** `npm run typecheck` (8 GB tsc) **exit 0** (the
+historical `DesignElementLayers` Geometry/MultiPoint→Point error is
+confirmed resolved — correction #1). Full Vitest **913/913** (73
+files) including the new bundle round-trip. P2 backlog filed:
+`concepts/p2-pre-testing-backlog.md` + index — 7 items, incl. a
+verified correction to the plan's own P2 note (`regenerationPlanStore`
+**is** UI-mounted via `RegenerationPlanCard` in `PlanModuleSlideUp`,
+contrary to the plan's "not UI-mounted" claim).
+
+**Verification limit (disclosed, not faked):** the plan's manual
+in-browser checks (route-redirect click-through, multi-device bundle
+round-trip in-browser, toggle→overlay confirmation, forced chunk
+failure) require a live MapLibre/WebGL session, which returns black
+frames offline per the documented environment limit in recent ADRs.
+The substantive verification I stand behind is the automated gate:
+`tsc` exit 0 + 913 specs (incl. the bundle export→wipe→import
+deep-equal + token-never-travels specs). Not committed — left for the
+user's review per session policy.
+
+## 2026-05-16 — feat(act): §5.2 Plan-Execution Tracker (interactive task dashboard)
+
+Closes spec §5.2. The MVP-delta deliberately shipped a *navigable plan
+doc* and deferred the interactive execution surface; this is the
+Phase-2 ledger. The one real data gap (verified in `phaseStore.ts`):
+`PhaseTask` had no per-task completion field, so progress/overdue/%
+were uncomputable.
+
+**Store.** Additive optional `PhaseTask.done?`/`doneAt?` +
+`toggleTaskDone(phaseId, taskId)` mirroring `overrideGoalCompassTask`'s
+phase-map→task-map shape but toggling `done`/`doneAt` and deliberately
+**not** setting `status:'overridden'` (a steward checking a box must
+not freeze the row against Goal-Compass regeneration). Additive
+optional ⇒ **no persist version bump** (the `isMaintenanceTask?`
+precedent). 6-spec `phaseStore.toggleTaskDone.test.ts`: scoped flip,
+round-trip clears `doneAt` to null, no `status` mutation, sibling
+phases referentially untouched, no-op on bad ids, localStorage persist.
+
+**Placement (delegated UX call).** New dedicated Act module
+`'tracker'`, ordered **first** in the rail — `phaseStore` *is* the
+plan-execution ledger and the headline Plan→Act bridge; conceptually
+distinct from Schedule (cadence) and Build (disjoint act-operational
+stores). New `PlanExecutionTrackerCard` mirrors `PhasingScaleMatrixCard`
+derive discipline (raw `state.phases` + `useMemo`, never
+`getProjectPhases` in a selector) + the `MaintenanceScheduleCard`
+Act-card contract: overview %, per-phase groups (synthetic regen
+`order 1` / maintenance `order 99` fall out of the order sort), overdue
+red border vs `scheduledStart`, designLayer pivot, maintenance badge,
+toast on toggle. Wired `'tracker'` first into the `ActModule` union +
+`ACT_MODULES` + 4 `Record<ActModule,…>` maps + `ActModuleSlideUp`
+lazy import/case.
+
+**Plan scope-gap found + resolved (the durable lesson):** the act-module
+set has a **second source of truth** — `ActModuleId`, a separate Zod
+enum in `@ogden/shared` (`actTelemetry.schema.ts`), the runtime type of
+`record()`'s `module` param and the key of
+`AffinityTelemetryDashboard`'s label map. tsc surfaced 5×TS2322 +
+1×TS2741 once `ActModule` gained `'tracker'`. Fixed by adding
+`'tracker'` to that enum + the dashboard maps. DB-safety verified
+first: migration 024's CHECK constraint is on `event_type` only — the
+`module` column is unconstrained text and the API route inserts the
+Zod-validated value, so the enum-extend is migration-safe. Recorded in
+the ADR's "Forward guardrail": future Act modules must edit **both**
+`ActModule` and `ActModuleId`.
+
+**Verification.** `tsc --noEmit` exit 0; `vitest run src/store` 98/98;
+`vitest run src/v3/plan/engine` 110/110 (additive field perturbs
+neither `runAutoDesign` nor `replaceGoalCompassRows`). Preview
+(project `mtc`, 11 phases): Tracker first in rail; Overview
+0/31→1/31 (0→3 %) on mark-done; overdue 3→2 (done excluded);
+strikethrough + opacity 0.6 + `done 5/16/2026`; toast "Marked done:
+…"; Reopen reverts; localStorage `ogden-phases` carries `"done":true`
++ ISO `doneAt`, persist `version` still 3; survives full reload;
+by-design-layer pivot re-groups; zero console errors (the `[ATLAS AI]`
+enrichment + `[act-telemetry]` 500 warnings are pre-existing /
+environmental — the telemetry 500 confirms `module:'tracker'` passes
+client-side Zod validation and reaches the network flush). New ADR
+`decisions/2026-05-16-atlas-act-plan-execution-tracker.md` + index
+pointer. Not committed — left for the user's review per session policy.

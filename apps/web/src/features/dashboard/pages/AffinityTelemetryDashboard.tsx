@@ -50,6 +50,7 @@ const PROJECT_TYPE_LABEL: Record<PlanProjectTypeId, string> = {
 };
 
 const MODULES: ActModuleId[] = [
+  'tracker',
   'build',
   'maintain',
   'livestock',
@@ -60,6 +61,7 @@ const MODULES: ActModuleId[] = [
 ];
 
 const MODULE_LABEL: Record<ActModuleId, string> = {
+  tracker: 'Tracker',
   build: 'Build',
   maintain: 'Maintain',
   livestock: 'Livestock',

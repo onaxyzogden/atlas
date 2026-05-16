@@ -82,6 +82,22 @@ dimension is reserved at weight 0 in Phase 1 so existing project overall
 scores don't shift; weight is moved up when Phase 2 (canvas edge editor)
 ships and the dimension is computed for every project.
 
+## Act telemetry schema (`schemas/actTelemetry.schema.ts`)
+Main-barrel schema backing the Act-stage affinity pipeline (migration
+024 + the `apps/api` telemetry route + `apps/web/src/lib/actInteractionLog.ts`).
+Two enums are **hand-synced sources of truth living in different
+layers**:
+- `ACT_INTERACTION_EVENT_TYPES` ↔ the migration-024 SQL CHECK on
+  `event_type` (kept in lock-step by hand).
+- `ActModuleId` ↔ the UI `ActModule` union
+  (`apps/web/src/v3/act/types.ts`). The `module` DB column is
+  **unconstrained text** (no CHECK), so extending `ActModuleId` is
+  migration-safe — but adding a new Act module requires editing
+  **both** `ActModule` and `ActModuleId`, or tsc fails at the telemetry
+  `record()` call sites (and the `AffinityTelemetryDashboard`
+  `Record<ActModuleId,…>` maps). `'tracker'` added 2026-05-16; see
+  [[2026-05-16-atlas-act-plan-execution-tracker]].
+
 ## Notes
 - All schemas use strict Zod validation
 - `WithConfidence` mixin applied to all analysis outputs

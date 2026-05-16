@@ -213,6 +213,24 @@ All use `persist` middleware with localStorage. Key stores:
   [[2026-04-27-project-intake-map-centering]] deferred item. See
   [[2026-05-16-atlas-wizard-v3-bridge-location-propagation]].
 
+  **Act §5.2 Plan-Execution Tracker — new `tracker` module
+  (2026-05-16):** the v3 Act taxonomy (`v3/act/types.ts` `ACT_MODULES`)
+  gained a module `'tracker'` ordered **first** — the §5.2 interactive
+  task ledger over `phaseStore`. `PhaseTask` gained additive optional
+  `done?`/`doneAt?` and `phaseStore` a `toggleTaskDone(phaseId,
+  taskId)` action (no persist version bump — mirrors the
+  `isMaintenanceTask?` precedent; deliberately does **not** set
+  `status:'overridden'` so a checked box doesn't freeze the row against
+  Goal-Compass regeneration). New card
+  `features/act/PlanExecutionTrackerCard.tsx` (phase-ordered incl.
+  synthetic regen `order 1` / maintenance `order 99`, overall + per-
+  phase progress %, overdue vs `scheduledStart`, optional by-
+  designLayer pivot). **Forward guardrail:** the Act-module set now has
+  two hand-synced sources of truth — `ActModule` (UI) and `ActModuleId`
+  (`@ogden/shared` telemetry); adding an Act module requires editing
+  **both** or tsc fails at the telemetry call sites. See
+  [[2026-05-16-atlas-act-plan-execution-tracker]].
+
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
 - `lib/perfProfiler.tsx` — dev-only `<SectionProfiler>` around React's `<Profiler>`; logs renders over 16 ms; tree-shaken in prod via `import.meta.env.DEV`

@@ -1,12 +1,13 @@
 /**
  * Act stage module types — mirrors plan/types.ts pattern.
  *
- * 5 act modules group the 13 act-stage cards under
+ * 8 act modules group the act-stage cards under
  * apps/web/src/features/act/. Each module maps to one or more sectionIds
  * used by ActModuleSlideUp to load the right card.
  */
 
 import {
+  ListChecks,
   Hammer,
   Wrench,
   Beef,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 
 export type ActModule =
+  | 'tracker'
   | 'build'
   | 'maintain'
   | 'livestock'
@@ -27,6 +29,7 @@ export type ActModule =
   | 'schedule';
 
 export const ACT_MODULES: ActModule[] = [
+  'tracker',
   'build',
   'maintain',
   'livestock',
@@ -41,6 +44,7 @@ export function isActModule(s: string): s is ActModule {
 }
 
 export const ACT_MODULE_LABEL: Record<ActModule, string> = {
+  tracker:   'Tracker',
   build:     'Build',
   maintain:  'Maintain',
   livestock: 'Livestock',
@@ -51,6 +55,7 @@ export const ACT_MODULE_LABEL: Record<ActModule, string> = {
 };
 
 export const ACT_MODULE_ICON: Record<ActModule, LucideIcon> = {
+  tracker:   ListChecks,
   build:     Hammer,
   maintain:  Wrench,
   livestock: Beef,
@@ -61,6 +66,7 @@ export const ACT_MODULE_ICON: Record<ActModule, LucideIcon> = {
 };
 
 export const ACT_MODULE_FULL_LABEL: Record<ActModule, string> = {
+  tracker:   'Plan Execution Tracker',
   build:     'Build & Construction',
   maintain:  'Maintenance & Operations',
   livestock: 'Livestock & Grazing',
@@ -72,6 +78,9 @@ export const ACT_MODULE_FULL_LABEL: Record<ActModule, string> = {
 
 /** Each module maps to one or more act card section IDs. */
 export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: string }>> = {
+  tracker: [
+    { label: 'Plan tracker', sectionId: 'act-plan-tracker' },
+  ],
   build: [
     { label: 'Build Gantt',       sectionId: 'act-build-gantt' },
     { label: 'Budget vs actuals', sectionId: 'act-budget-actuals' },
