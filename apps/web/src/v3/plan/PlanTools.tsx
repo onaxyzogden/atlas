@@ -55,6 +55,11 @@ import {
   type MapToolId,
 } from '../observe/components/measure/useMapToolStore.js';
 import { useLayeringLensStore } from '../../store/layeringLensStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
+import { useZoneStore } from '../../store/zoneStore.js';
+import { ringSeedGenerator } from './engine/zoneGenerators/index.js';
+import type { ZoneGenerator } from './engine/zoneGenerators/types.js';
+import { toast } from '../../components/Toast.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import {
   PLAN_MODULES,
@@ -183,6 +188,29 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   ],
 };
 
+/**
+ * Zone-generator actions surfaced in the Zone & Circulation rail section.
+ * Unlike `ToolItem`s these don't arm a draw mode — they run a pure
+ * `ZoneGenerator` synchronously and `addZone` the result, so seeding is
+ * reachable from the map (not only the Goal Compass Proposal bar). Adding
+ * a generator (parcel-fill, template, …) is a one-line entry here.
+ */
+interface ZoneGeneratorAction {
+  id: string;
+  label: string;
+  Icon: LucideIcon;
+  generator: ZoneGenerator;
+}
+
+const ZONE_GENERATOR_ACTIONS: ZoneGeneratorAction[] = [
+  {
+    id: 'ring-seed',
+    label: 'Seed zones from rings',
+    Icon: Sprout,
+    generator: ringSeedGenerator,
+  },
+];
+
 interface Props {
   activeModule: PlanModule | null;
   onSelectModule: (mod: PlanModule | null) => void;
@@ -203,6 +231,36 @@ export default function PlanTools({
   const lensMode = useLayeringLensStore((s) => s.mode);
   const setLensEnabled = useLayeringLensStore((s) => s.set);
   const setLensMode = useLayeringLensStore((s) => s.setMode);
+  const projects = useProjectStore((s) => s.projects);
+  const zones = useZoneStore((s) => s.zones);
+  const addZone = useZoneStore((s) => s.addZone);
+
+  const runZoneGeneratorAction = (action: ZoneGeneratorAction) => {
+    if (!projectId) return;
+    const project = projects.find((p) => p.id === projectId);
+    const ctx = {
+      projectId,
+      parcelBoundary: project?.parcelBoundaryGeojson ?? null,
+      existingZones: zones,
+    };
+    const avail = action.generator.canRun(ctx);
+    if (!avail.ok) {
+      toast.warning(avail.reason ?? 'Cannot seed zones yet.');
+      return;
+    }
+    const seeded = action.generator.generate(ctx);
+    seeded.forEach(addZone);
+    if (seeded.length === 0) {
+      toast.info(
+        'No zones seeded — the parcel may already be fully ring-seeded.',
+      );
+    } else {
+      toast.success(
+        `Seeded ${seeded.length} draft zone(s) from the Mollison rings. ` +
+          'Adjust or dismiss them like any drawn zone.',
+      );
+    }
+  };
 
   const toolboxRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -357,6 +415,36 @@ export default function PlanTools({
                 </button>
               </DelayedTooltip>
             )}
+            {mod === 'zone-circulation' ? (
+              <div className={css.itemGrid}>
+                {ZONE_GENERATOR_ACTIONS.map((a) => (
+                  <DelayedTooltip
+                    key={a.id}
+                    label={
+                      projectId
+                        ? a.label
+                        : `${a.label} — open a project to use`
+                    }
+                    position="top"
+                  >
+                    <button
+                      type="button"
+                      className={css.toolItem}
+                      disabled={!projectId}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        runZoneGeneratorAction(a);
+                      }}
+                    >
+                      <span className={css.toolGlyph} aria-hidden="true">
+                        <a.Icon size={16} strokeWidth={1.6} />
+                      </span>
+                      <span className={css.toolLabel}>{a.label}</span>
+                    </button>
+                  </DelayedTooltip>
+                ))}
+              </div>
+            ) : null}
           </section>
         );
       })}
