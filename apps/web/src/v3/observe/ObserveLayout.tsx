@@ -24,6 +24,7 @@ import ObserveDeepLinkFocus from './components/ObserveDeepLinkFocus.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
 import { useProjectStore } from '../../store/projectStore.js';
+import { parcelAcreage } from '../../lib/geo.js';
 import { useHomesteadStore } from '../../store/homesteadStore.js';
 import { useMapToolStore } from './components/measure/useMapToolStore.js';
 import TopographyOverlay from '../components/overlays/TopographyOverlay.js';
@@ -86,6 +87,11 @@ export default function ObserveLayout() {
 
   const project = useV3Project(params.projectId);
   const updateProject = useProjectStore((s) => s.updateProject);
+  const units = useProjectStore(
+    (s) =>
+      s.projects.find((p) => p.id === id || p.serverId === id)?.units ??
+      'metric',
+  );
   // Prefer the parcel's intake coordinates over the hard-coded stage
   // fallback. DiagnoseMap still wins with fit-to-bounds when a boundary
   // polygon exists, so this only takes effect for coords-only projects.
@@ -169,6 +175,7 @@ export default function ObserveLayout() {
                       ],
                     },
                     hasParcelBoundary: true,
+                    acreage: parcelAcreage(polygon, units),
                   });
                 }}
               />

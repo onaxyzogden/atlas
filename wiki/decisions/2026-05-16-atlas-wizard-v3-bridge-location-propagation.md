@@ -37,7 +37,7 @@ Any future v3 surface that opens a project map must read `v3Project.location.cen
 
 ## Out of scope (deferred)
 
-- **Latent in-canvas acreage bug:** `handleBoundaryDrawn` / `onBoundaryDrawn` in all three v3 layouts persist `parcelBoundaryGeojson` but never recompute `acreage`, so a boundary drawn *inside* v3 leaves Report at "0 ha". Unrelated to creation-flow propagation (the wizard path *does* compute acreage via `turf.area`). Recorded as a follow-up.
+- **Latent in-canvas acreage bug:** `handleBoundaryDrawn` / `onBoundaryDrawn` in all three v3 layouts persist `parcelBoundaryGeojson` but never recompute `acreage`, so a boundary drawn *inside* v3 leaves Report at "0 ha". Unrelated to creation-flow propagation (the wizard path *does* compute acreage via `turf.area`). Recorded as a follow-up. **— CLOSED 2026-05-16** by [[2026-05-16-atlas-v3-in-canvas-acreage-recompute]] (shared `lib/geo.ts` `parcelAcreage()` helper; 3 handlers + wizard now call it).
 - No-boundary acreage stays `0` (cannot compute area without a polygon — expected, not a regression).
 
 ## Verification

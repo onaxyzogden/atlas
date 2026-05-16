@@ -18,6 +18,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
+import { parcelAcreage } from '../../lib/geo.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useServerMachineryInventory } from '../../hooks/useServerMachineryInventory.js';
 import { useV3Project } from '../data/useV3Project.js';
@@ -137,6 +138,7 @@ export default function PlanLayout() {
         features: [{ type: 'Feature', properties: {}, geometry: polygon }],
       },
       hasParcelBoundary: true,
+      acreage: parcelAcreage(polygon, project.units),
     });
   };
 

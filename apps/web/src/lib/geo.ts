@@ -13,6 +13,8 @@
  * `ArrivalSequenceDesignCard.tsx`, `FertilityColocationCard.tsx`).
  */
 
+import * as turf from '@turf/turf';
+
 /** Earth's mean radius in metres (WGS-84 sphere approximation). */
 const EARTH_RADIUS_M = 6_371_000;
 
@@ -67,4 +69,23 @@ export function polygonCentroid(geom: GeoJSON.Polygon): [number, number] | null 
   }
   if (n === 0) return null;
   return [sx / n, sy / n];
+}
+
+/**
+ * Parcel area from a boundary, in the project's preferred unit
+ * (`metric` → hectares, `imperial` → acres), rounded to 2 dp.
+ * Best-effort: returns `null` on any turf failure (matches the wizard).
+ */
+export function parcelAcreage(
+  geo: GeoJSON.Geometry | GeoJSON.Feature | GeoJSON.FeatureCollection,
+  units: 'metric' | 'imperial',
+): number | null {
+  try {
+    const areaM2 = turf.area(geo);
+    return units === 'metric'
+      ? Math.round((areaM2 / 10000) * 100) / 100
+      : Math.round((areaM2 / 4046.86) * 100) / 100;
+  } catch {
+    return null;
+  }
 }
