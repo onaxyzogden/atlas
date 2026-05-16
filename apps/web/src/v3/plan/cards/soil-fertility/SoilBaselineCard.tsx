@@ -22,7 +22,24 @@ import { useEffect, useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { newSoilTestId, useSoilTestStore } from '../../../../store/soilTestStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
+import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
+import {
+  CROP_KIND_LABEL,
+  COMPACTION_LABEL,
+  INPUT_LABEL,
+  TILLAGE_LABEL,
+  IRRIGATION_LABEL,
+  deriveHeritageHints,
+  polygonSeverity,
+} from './conventionalCropHeritage.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
+
+const SEVERITY_COLOR: Record<'high' | 'medium' | 'low' | 'none', string> = {
+  high: 'rgba(220,110,80,0.95)',
+  medium: 'rgba(220,170,90,0.95)',
+  low: 'rgba(180,200,120,0.9)',
+  none: 'rgba(160,180,140,0.7)',
+};
 
 interface Props {
   project: LocalProject;
@@ -70,11 +87,16 @@ export default function SoilBaselineCard({ project }: Props) {
   const addTest = useSoilTestStore((s) => s.addTest);
   const removeTest = useSoilTestStore((s) => s.removeTest);
   const allZones = useZoneStore((s) => s.zones);
+  const allConventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
 
   const tests = useMemo(() => byProject[project.id] ?? [], [byProject, project.id]);
   const projectZones = useMemo(
     () => allZones.filter((z) => z.projectId === project.id),
     [allZones, project.id],
+  );
+  const heritagePolygons = useMemo(
+    () => allConventionalCrops.filter((c) => c.projectId === project.id),
+    [allConventionalCrops, project.id],
   );
 
   // ── Form state ──────────────────────────────────────────────────────────
@@ -214,6 +236,70 @@ export default function SoilBaselineCard({ project }: Props) {
                     <button type="button" className={styles.btn} onClick={() => loadIntoForm(t.id)}>Load</button>
                     <button type="button" className={styles.removeBtn} onClick={() => handleRemove(t.id)}>Remove</button>
                   </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {heritagePolygons.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>
+            Conventional-crop heritage (from Observe) — {heritagePolygons.length}
+          </h2>
+          <p className={styles.lede} style={{ marginBottom: 8 }}>
+            Practice history captured on Observe-stage cropland polygons.
+            Compaction, input regime, and tillage history shape what the
+            jar test is measuring — and what restoration moves the next
+            rotation needs.
+          </p>
+          <ul className={styles.list}>
+            {heritagePolygons.map((c) => {
+              const hints = deriveHeritageHints(c);
+              const sev = polygonSeverity(c);
+              const title = c.label || c.primaryCrop || CROP_KIND_LABEL[c.kind];
+              return (
+                <li key={c.id} className={styles.listRow} style={{ display: 'block' }}>
+                  <div className={styles.statRow} style={{ alignItems: 'baseline' }}>
+                    <strong style={{ color: SEVERITY_COLOR[sev] }}>{title}</strong>
+                    <span className={styles.listMeta}>
+                      {CROP_KIND_LABEL[c.kind]}
+                      {c.primaryCrop ? ` · ${c.primaryCrop}` : ''}
+                    </span>
+                  </div>
+                  <div className={styles.listMeta} style={{ marginTop: 4 }}>
+                    {c.compaction && c.compaction !== 'unknown' && (
+                      <>compaction: {COMPACTION_LABEL[c.compaction]} · </>
+                    )}
+                    {c.inputs && c.inputs !== 'unknown' && (
+                      <>inputs: {INPUT_LABEL[c.inputs]} · </>
+                    )}
+                    {c.tillage && c.tillage !== 'unknown' && (
+                      <>tillage: {TILLAGE_LABEL[c.tillage]} · </>
+                    )}
+                    {c.irrigation && c.irrigation !== 'unknown' && (
+                      <>irrigation: {IRRIGATION_LABEL[c.irrigation]}</>
+                    )}
+                  </div>
+                  {hints.length > 0 && (
+                    <ul className={styles.list} style={{ margin: '6px 0 0' }}>
+                      {hints.map((h, i) => (
+                        <li
+                          key={i}
+                          className={styles.listRow}
+                          style={{ display: 'block' }}
+                        >
+                          <strong style={{ color: SEVERITY_COLOR[h.severity] }}>
+                            {h.flag}
+                          </strong>
+                          <div className={styles.listMeta} style={{ marginTop: 2 }}>
+                            {h.remedy}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </li>
               );
             })}

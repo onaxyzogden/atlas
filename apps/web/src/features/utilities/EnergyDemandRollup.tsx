@@ -22,7 +22,7 @@ import {
 } from '@ogden/shared/demand';
 import type { Utility } from '../../store/utilityStore.js';
 import { UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { estimateSolarOutput } from './utilityAnalysis.js';
 import p from '../../styles/panel.module.css';
 

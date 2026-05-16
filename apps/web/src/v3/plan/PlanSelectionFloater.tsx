@@ -26,18 +26,25 @@ import { useZoneStore } from '../../store/zoneStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { usePathStore } from '../../store/pathStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
 import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { useUtilityRunStore } from '../../store/utilityRunStore.js';
 import { useSetbackStore } from '../../store/setbackStore.js';
 import { useFlowConnectorStore } from '../../store/flowConnectorStore.js';
 import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.js';
-import { useDesignElementsStore } from '../../store/designElementsStore.js';
-import { getDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
+import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
+import {
+  getDesignElementsForProject,
+  removeDesignElement,
+  removeStructure,
+} from '../../store/builtEnvironmentSelectors.js';
 import * as turf from '@turf/turf';
 import { useInlineFormStore } from './draw/inlineFormStore.js';
 import { buildPaddockEditSchema } from './layers/inlineEditSchemas.js';
+import {
+  resolveSilvopastureHosts,
+  listHostsForSelection,
+} from '../../features/agroforestry/silvopastureHosts.js';
 import css from '../observe/components/SelectionFloater.module.css';
 
 const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
@@ -93,7 +100,7 @@ function removeOne(item: PlanSelectionItem): void {
       usePathStore.getState().deletePath(item.id);
       return;
     case 'structure':
-      useStructureStore.getState().deleteStructure(item.id);
+      removeStructure(item.id);
       return;
     case 'fertility':
       useClosedLoopStore.getState().removeFertilityInfra(item.id);
@@ -114,14 +121,11 @@ function removeOne(item: PlanSelectionItem): void {
       useMonitoringTransectStore.getState().deleteTransect(item.id);
       return;
     case 'water':
-      // Water nodes have a richer graph (catchment ↔ storage ↔ sink with
-      // overflow targeting); deletion routes through the WaterNetworkCard
-      // slide-up rather than the floater. Falling through here is
-      // intentional — the floater only clears the selection.
+      useWaterSystemsStore.getState().removeWaterNode(item.id);
       return;
     case 'design-element':
       if (!item.projectId) return;
-      useDesignElementsStore.getState().remove(item.projectId, item.id);
+      removeDesignElement(item.projectId, item.id);
       return;
   }
 }
@@ -206,8 +210,15 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
     const centroid = turf.centroid(turf.feature(pd.geometry));
     const [lng, lat] = centroid.geometry.coordinates as [number, number];
     const updatePaddock = useLivestockStore.getState().updatePaddock;
+    const hostOptions = listHostsForSelection(
+      resolveSilvopastureHosts(
+        pd.projectId,
+        useCropStore.getState().cropAreas,
+        getDesignElementsForProject(pd.projectId),
+      ),
+    );
     useInlineFormStore.getState().open({
-      ...buildPaddockEditSchema(pd, updatePaddock),
+      ...buildPaddockEditSchema(pd, updatePaddock, hostOptions),
       anchor: [lng, lat],
     });
   };

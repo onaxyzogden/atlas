@@ -13,7 +13,11 @@ import MapLoadingIndicator from './MapLoadingIndicator.js';
 import loadingCss from './MapLoadingOverlay.module.css';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useMapStore } from '../../store/mapStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useStructurePlacementStore } from '../../store/structurePlacementStore.js';
+import {
+  useAllStructures,
+  updateStructure,
+} from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES, createFootprintPolygon } from '../structures/footprints.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -22,6 +26,8 @@ import { usePathStore, PATH_TYPE_CONFIG } from '../../store/pathStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG } from '../../store/utilityStore.js';
 import { useCommentStore } from '../../store/commentStore.js';
 import { map as mapTokens, zone as zoneTokens, structure as structureTokens, earth, group } from '../../lib/tokens.js';
+import { useBuiltEnvironmentStoreV2 } from '../../store/builtEnvironmentStoreV2.js';
+import { syncAdoptedHidings } from './adoptedBasemapBuildings.js';
 
 interface MapCanvasProps {
   projectId?: string;
@@ -50,7 +56,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   // Render boundary + zones + structures on map. Re-adds after style changes.
   const allZones = useZoneStore((s) => s.zones);
   const zones = useMemo(() => projectId ? allZones.filter((z) => z.projectId === projectId) : [], [allZones, projectId]);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => projectId ? allStructures.filter((s) => s.projectId === projectId) : [], [allStructures, projectId]);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const paddocks = useMemo(() => projectId ? allPaddocks.filter((p) => p.projectId === projectId) : [], [allPaddocks, projectId]);
@@ -251,6 +257,24 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
     };
   }, [map, isLoaded, boundaryGeojson, boundaryColor, zones, structures, paddocks, cropAreas, designPaths, designUtilities, mapComments]);
 
+  // ── Adopted basemap buildings — hide the OpenMapTiles `building`
+  // tile features the user has adopted as project entities so the
+  // basemap's own extrusion stops painting under the project's
+  // DesignElementExtrusionLayer rendering. The sync is idempotent;
+  // we run it on style.load (basemap swap) and on every change to
+  // the BE V2 entity set.
+  useEffect(() => {
+    if (!map || !isLoaded || !projectId) return;
+    const run = () => syncAdoptedHidings(map, projectId);
+    run();
+    map.on('style.load', run);
+    const unsub = useBuiltEnvironmentStoreV2.subscribe(run);
+    return () => {
+      map.off('style.load', run);
+      unsub();
+    };
+  }, [map, isLoaded, projectId]);
+
   // ── Basemap swap — owned here, not in useMaplibre, so the
   // `style.load` re-hydration listener registered above (line 245)
   // is guaranteed to be live before `setStyle` is invoked. Effects in
@@ -346,7 +370,6 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
   }, [map, isLoaded, activePhaseFilter, zones, structures, paddocks, cropAreas, designPaths, designUtilities]);
 
   // ── Structure drag-to-relocate ──
-  const updateStructure = useStructureStore((s) => s.updateStructure);
   const dragRef = useRef<{ structureId: string; startLng: number; startLat: number } | null>(null);
 
   useEffect(() => {
@@ -435,7 +458,7 @@ export default function MapCanvas({ projectId, initialCenter, initialZoom, bound
       // Don't allow editing for Viewer/Reviewer roles
       if (!canEdit) return;
       // Don't interfere with structure placement mode
-      if (useStructureStore.getState().placementMode) return;
+      if (useStructurePlacementStore.getState().placementMode) return;
 
       // Query all polygon fill layers at the click point
       const allFillLayers = [

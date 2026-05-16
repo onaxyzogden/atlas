@@ -9,7 +9,7 @@
  *   9 environmental (feature-vs-site-data from Tier 1/3 layers)
  */
 
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { LandZone } from '../../store/zoneStore.js';
 import type { Paddock } from '../../store/livestockStore.js';
 import type { CropArea } from '../../store/cropStore.js';

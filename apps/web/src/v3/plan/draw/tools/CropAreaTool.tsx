@@ -27,9 +27,14 @@ import {
 } from '../../../../store/cropStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { autoLinkSilvopastureForPolygon } from '../../../../features/agroforestry/autoLinkSilvopasture.js';
+import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import DimensionPanel from '../DimensionPanel.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -84,16 +89,17 @@ export default function CropAreaTool({ map, projectId }: Props) {
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimShape = useDimensionDrawStore((s) => s.shape);
+  const dimValues = useDimensionValues();
 
-  useMapboxDrawTool<GeoJSON.Polygon>({
-    map,
-    mode: 'draw_polygon',
-    onComplete: (geom) => {
+  const handleComplete = (geom: GeoJSON.Polygon) => {
       const id = newAnnotationId('crop');
       const areaM2 = turf.area(geom);
       const anchor = turf.centroid(geom).geometry.coordinates as [number, number];
       const now = new Date().toISOString();
       const type: CropAreaType = 'orchard';
+      const silvopastureId = autoLinkSilvopastureForPolygon(projectId, geom) ?? undefined;
 
       addCropArea({
         id,
@@ -110,6 +116,7 @@ export default function CropAreaTool({ map, projectId }: Props) {
         irrigationType: 'rain_fed',
         phase: phaseDefault,
         notes: '',
+        ...(silvopastureId ? { silvopastureId } : {}),
         createdAt: now,
         updatedAt: now,
       });
@@ -166,11 +173,26 @@ export default function CropAreaTool({ map, projectId }: Props) {
               | 'none',
             phase: String(values.phase ?? ''),
             enterprise: String(values.enterprise ?? '') || undefined,
+            ...(t !== 'orchard' ? { silvopastureId: undefined } : {}),
           });
         },
         onCancel: () => deleteCropArea(id),
       });
-    },
+    };
+
+  const { liveArea } = useMapboxDrawTool<GeoJSON.Polygon>({
+    map,
+    mode: 'draw_polygon',
+    onComplete: handleComplete,
+    enabled: dimMode === 'freehand',
+  });
+
+  useDimensionDrawTool({
+    map,
+    shape: dimShape === 'line' ? 'rect' : dimShape,
+    values: dimValues,
+    enabled: dimMode === 'dimensions',
+    onComplete: (geom) => handleComplete(geom as GeoJSON.Polygon),
   });
 
   return (
@@ -180,6 +202,16 @@ export default function CropAreaTool({ map, projectId }: Props) {
         Outline a crop polygon — pick type, water demand, and irrigation
         method.
       </span>
+      <DimensionPanel allowedShapes={['rect', 'circle']} />
+      {liveArea !== null && (
+        <div className={css.readout}>
+          <DrawAreaReadout
+            m2={liveArea}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
     </div>
   );
 }

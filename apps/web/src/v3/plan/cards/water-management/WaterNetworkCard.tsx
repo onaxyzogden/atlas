@@ -66,8 +66,9 @@ export default function WaterNetworkCard({ project }: Props) {
   // station's design storm.
   const [stormDepthMm, setStormDepthMm] = useState<number>(100);
 
-  // Project-scoped nodes, then capped by active Plan view (Year 1 / Year 5)
-  // via the phaseStore→Yeomans adapter. Flow + layout downstream both
+  // Project-scoped nodes, then capped by the year scrubber's
+  // `yeomansCapForYear(currentYear)` via the phaseStore→Yeomans
+  // adapter. Flow + layout downstream both
   // operate on the filtered array, so a node hidden by the cap drops
   // from both the SVG graph and the balance totals.
   // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.

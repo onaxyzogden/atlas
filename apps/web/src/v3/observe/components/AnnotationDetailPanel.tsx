@@ -13,10 +13,14 @@
  * triple, so this component does not need per-kind branching.
  */
 
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useAnnotationDetailStore } from '../../../store/annotationDetailStore.js';
 import { useAnnotationFormStore } from '../../../store/annotationFormStore.js';
+import {
+  selectionKey,
+  useObserveSelectionStore,
+} from '../../../store/observeSelectionStore.js';
 import {
   KIND_LABELS,
   getAnnotationRow,
@@ -31,8 +35,23 @@ interface Props {
 
 export default function AnnotationDetailPanel({ projectId }: Props) {
   const active = useAnnotationDetailStore((s) => s.active);
-  const close = useAnnotationDetailStore((s) => s.close);
+  const closeStore = useAnnotationDetailStore((s) => s.close);
   const openForm = useAnnotationFormStore((s) => s.open);
+
+  // Close = clear the halo selection too, but only if the selection still
+  // matches the focused record. The deep-link sets selection to exactly
+  // `[{ kind, id }]`; user-initiated multi-select changes (shift-click)
+  // would diverge from that signature and we leave them alone.
+  const close = useCallback(() => {
+    if (active) {
+      const focusKey = selectionKey(active);
+      const { selected, clear } = useObserveSelectionStore.getState();
+      if (selected.length === 1 && selectionKey(selected[0]!) === focusKey) {
+        clear();
+      }
+    }
+    closeStore();
+  }, [active, closeStore]);
 
   useEffect(() => {
     if (!active) return;

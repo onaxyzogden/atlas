@@ -40,6 +40,27 @@ export const BeforeAfterPair = z.object({
 });
 export type BeforeAfterPair = z.infer<typeof BeforeAfterPair>;
 
+/**
+ * Frozen report-share snapshot. Lives inside the portal `config` jsonb with
+ * its OWN `published` gate — deliberately decoupled from the row-level
+ * `is_published` flag that gates the storytelling portal, so publishing a
+ * view-only report share never publishes a storytelling portal (and vice
+ * versa). Points at an already-generated `capital_partner_summary` PDF.
+ */
+export const ReportShareConfig = z.object({
+  published: z.boolean(),
+  exportId: z.string().uuid(),
+  /**
+   * Storage object key (not a URL). The public route streams the PDF
+   * bytes through the API by this key; the raw permanent storage URL is
+   * never handed to an unauthenticated client (storage URLs are
+   * unsigned — token secrecy must be the only access path).
+   */
+  storageKey: z.string(),
+  generatedAt: z.string(),
+});
+export type ReportShareConfig = z.infer<typeof ReportShareConfig>;
+
 // ─── Request / Response ──────────────────────────────────────────────────────
 
 export const CreatePortalInput = z.object({
@@ -56,6 +77,7 @@ export const CreatePortalInput = z.object({
   brandColor: z.string(),
   beforeAfterPairs: z.array(BeforeAfterPair),
   storyScenes: z.array(StoryScene),
+  reportShare: ReportShareConfig.optional(),
 });
 export type CreatePortalInput = z.infer<typeof CreatePortalInput>;
 

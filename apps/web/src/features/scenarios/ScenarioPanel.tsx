@@ -16,7 +16,7 @@
 import { useState, useMemo } from 'react';
 import { useScenarioStore, type Scenario } from '../../store/scenarioStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { usePathStore } from '../../store/pathStore.js';
@@ -79,7 +79,7 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
 
   const allZones = useZoneStore((st) => st.zones);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === project.id), [allZones, project.id]);
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => allStructures.filter((st) => st.projectId === project.id), [allStructures, project.id]);
   const allPaddocks = useLivestockStore((st) => st.paddocks);
   const paddocks = useMemo(() => allPaddocks.filter((pd) => pd.projectId === project.id), [allPaddocks, project.id]);

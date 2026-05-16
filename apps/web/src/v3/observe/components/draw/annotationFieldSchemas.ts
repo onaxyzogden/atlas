@@ -16,10 +16,26 @@
 
 import * as turf from '@turf/turf';
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
+import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
-import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import {
+  useVegetationStore,
+  SUCCESSION_STAGE_LABELS,
+  GROUND_COVER_LABELS,
+  type SuccessionStage,
+  type GroundCoverState,
+} from '../../../../store/vegetationStore.js';
+import { usePastureStore, type PastureKind } from '../../../../store/pastureStore.js';
+import {
+  useConventionalCropStore,
+  type ConventionalCropKind,
+  type CompactionLevel,
+  type InputRegime,
+  type TillageRegime,
+  type IrrigationRegime,
+} from '../../../../store/conventionalCropStore.js';
 import { useSwotStore, type SwotBucket } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import {
@@ -52,7 +68,9 @@ export type AnnotationKind =
   | 'highPoint'
   | 'drainageLine'
   | 'watercourse'
-  | 'ecologyZone'
+  | 'vegetation'
+  | 'pasture'
+  | 'conventionalCrop'
   | 'soilSample'
   | 'swotTag'
   | 'sector'
@@ -225,6 +243,11 @@ const household: FieldSchema = {
       notes: s(v.notes),
       createdAt: nowIso(),
     });
+    // Unification (2026-05-13): the Steward / household pin is now the
+    // single surface for placing the Mollison Zone 0 anchor. Mirror the
+    // dropped point into homesteadStore so HomesteadMarker, zone rings,
+    // sectors, and sun/wind wedges all pick it up without changes.
+    useHomesteadStore.getState().set(ctx.projectId, [lng, lat]);
   },
 };
 
@@ -545,52 +568,230 @@ const watercourse: FieldSchema = {
   },
 };
 
-const ecologyZone: FieldSchema = {
-  title: 'Ecology zone',
+const SUCCESSION_OPTIONS = (
+  Object.keys(SUCCESSION_STAGE_LABELS) as SuccessionStage[]
+).map((k) => ({ value: k, label: SUCCESSION_STAGE_LABELS[k] }));
+
+const GROUND_COVER_OPTIONS = (
+  Object.keys(GROUND_COVER_LABELS) as GroundCoverState[]
+).map((k) => ({ value: k, label: GROUND_COVER_LABELS[k] }));
+
+const vegetation: FieldSchema = {
+  title: 'Vegetation & cover',
   fields: [
     {
-      name: 'dominantStage',
-      label: 'Dominant stage',
+      name: 'successionStage',
+      label: 'Succession stage',
       type: 'select',
-      options: [
-        { value: 'disturbed', label: 'Disturbed' },
-        { value: 'pioneer', label: 'Pioneer' },
-        { value: 'mid', label: 'Mid-succession' },
-        { value: 'late', label: 'Late-succession' },
-        { value: 'climax', label: 'Climax' },
-      ],
+      options: SUCCESSION_OPTIONS,
+    },
+    {
+      name: 'groundCover',
+      label: 'Ground cover',
+      type: 'select',
+      options: GROUND_COVER_OPTIONS,
     },
     { name: 'label', label: 'Label', type: 'text', placeholder: 'Mature forest' },
     { name: 'notes', label: 'Notes', type: 'textarea' },
   ],
-  defaults: { dominantStage: 'mid', label: '', notes: '' },
+  defaults: {
+    successionStage: 'mid',
+    groundCover: 'sparse-grasses',
+    label: '',
+    notes: '',
+  },
   loadDefaults: (id) => {
-    const rec = useEcologyStore.getState().ecologyZones.find((z) => z.id === id);
+    const rec = useVegetationStore.getState().patches.find((p) => p.id === id);
     if (!rec) return null;
     return {
-      dominantStage: rec.dominantStage,
+      successionStage: rec.successionStage,
+      groundCover: rec.groundCover,
       label: rec.label ?? '',
       notes: rec.notes ?? '',
     };
   },
   save: (v, ctx) => {
-    const store = useEcologyStore.getState();
+    const store = useVegetationStore.getState();
     if (ctx.existingId) {
-      store.updateEcologyZone(ctx.existingId, {
-        dominantStage: v.dominantStage as never,
+      store.updatePatch(ctx.existingId, {
+        successionStage: v.successionStage as SuccessionStage,
+        groundCover: v.groundCover as GroundCoverState,
         label: s(v.label),
         notes: s(v.notes),
       });
       return;
     }
     if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
-    store.addEcologyZone({
+    store.addPatch({
       id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
-      dominantStage: v.dominantStage as never,
+      successionStage: v.successionStage as SuccessionStage,
+      groundCover: v.groundCover as GroundCoverState,
       label: s(v.label),
       notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const pasture: FieldSchema = {
+  title: 'Pasture / paddock',
+  fields: [
+    {
+      name: 'kind',
+      label: 'Kind',
+      type: 'select',
+      options: [
+        { value: 'paddock', label: 'Paddock (fenced)' },
+        { value: 'open-pasture', label: 'Open pasture' },
+        { value: 'hayfield', label: 'Hayfield' },
+      ],
+    },
+    { name: 'label', label: 'Label', type: 'text', placeholder: 'North paddock' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { kind: 'paddock', label: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = usePastureStore.getState().pastures.find((p) => p.id === id);
+    if (!rec) return null;
+    return {
+      kind: rec.kind,
+      label: rec.label ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = usePastureStore.getState();
+    if (ctx.existingId) {
+      store.updatePasture(ctx.existingId, {
+        kind: v.kind as PastureKind,
+        label: s(v.label),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    store.addPasture({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      kind: v.kind as PastureKind,
+      label: s(v.label),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const CONVENTIONAL_CROP_KIND_OPTIONS = [
+  { value: 'annual-row', label: 'Annual row crop' },
+  { value: 'perennial-monoculture', label: 'Perennial monoculture' },
+  { value: 'cover-cropped', label: 'Cover-cropped' },
+  { value: 'fallow', label: 'Fallow' },
+];
+
+const COMPACTION_OPTIONS = [
+  { value: 'unknown', label: 'Unknown' },
+  { value: 'none', label: 'None' },
+  { value: 'mild', label: 'Mild' },
+  { value: 'moderate', label: 'Moderate' },
+  { value: 'severe', label: 'Severe' },
+];
+
+const INPUTS_OPTIONS = [
+  { value: 'unknown', label: 'Unknown' },
+  { value: 'none', label: 'None' },
+  { value: 'synthetic', label: 'Synthetic' },
+  { value: 'organic', label: 'Organic' },
+  { value: 'mixed', label: 'Mixed' },
+];
+
+const TILLAGE_OPTIONS = [
+  { value: 'unknown', label: 'Unknown' },
+  { value: 'no-till', label: 'No-till' },
+  { value: 'reduced', label: 'Reduced' },
+  { value: 'conventional', label: 'Conventional' },
+  { value: 'intensive', label: 'Intensive' },
+];
+
+const IRRIGATION_OPTIONS = [
+  { value: 'unknown', label: 'Unknown' },
+  { value: 'none', label: 'None' },
+  { value: 'rainfed', label: 'Rainfed' },
+  { value: 'drip', label: 'Drip' },
+  { value: 'sprinkler', label: 'Sprinkler' },
+  { value: 'flood', label: 'Flood' },
+];
+
+const conventionalCrop: FieldSchema = {
+  title: 'Conventional crop',
+  fields: [
+    { name: 'kind', label: 'Kind', type: 'select', options: CONVENTIONAL_CROP_KIND_OPTIONS },
+    { name: 'primaryCrop', label: 'Primary crop', type: 'text', placeholder: 'Corn / Soy-wheat rotation' },
+    { name: 'compaction', label: 'Soil compaction', type: 'select', options: COMPACTION_OPTIONS },
+    { name: 'inputs', label: 'Inputs', type: 'select', options: INPUTS_OPTIONS },
+    { name: 'tillage', label: 'Tillage', type: 'select', options: TILLAGE_OPTIONS },
+    { name: 'irrigation', label: 'Irrigation', type: 'select', options: IRRIGATION_OPTIONS },
+    { name: 'lastPlanted', label: 'Last planted', type: 'date' },
+    { name: 'rotationNotes', label: 'Rotation notes', type: 'textarea', placeholder: 'Years, sequence, cover crops…' },
+    { name: 'label', label: 'Label', type: 'text', placeholder: 'East field' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: {
+    kind: 'annual-row',
+    primaryCrop: '',
+    compaction: 'unknown',
+    inputs: 'unknown',
+    tillage: 'unknown',
+    irrigation: 'unknown',
+    lastPlanted: '',
+    rotationNotes: '',
+    label: '',
+    notes: '',
+  },
+  loadDefaults: (id) => {
+    const rec = useConventionalCropStore
+      .getState()
+      .conventionalCrops.find((c) => c.id === id);
+    if (!rec) return null;
+    return {
+      kind: rec.kind,
+      primaryCrop: rec.primaryCrop ?? '',
+      compaction: rec.compaction ?? 'unknown',
+      inputs: rec.inputs ?? 'unknown',
+      tillage: rec.tillage ?? 'unknown',
+      irrigation: rec.irrigation ?? 'unknown',
+      lastPlanted: rec.lastPlanted ?? '',
+      rotationNotes: rec.rotationNotes ?? '',
+      label: rec.label ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useConventionalCropStore.getState();
+    const patch = {
+      kind: v.kind as ConventionalCropKind,
+      primaryCrop: s(v.primaryCrop),
+      compaction: v.compaction as CompactionLevel,
+      inputs: v.inputs as InputRegime,
+      tillage: v.tillage as TillageRegime,
+      irrigation: v.irrigation as IrrigationRegime,
+      lastPlanted: s(v.lastPlanted),
+      rotationNotes: s(v.rotationNotes),
+      label: s(v.label),
+      notes: s(v.notes),
+    };
+    if (ctx.existingId) {
+      store.updateConventionalCrop(ctx.existingId, patch);
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    store.addConventionalCrop({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      ...patch,
       createdAt: nowIso(),
     });
   },
@@ -1188,7 +1389,9 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   highPoint,
   drainageLine,
   watercourse,
-  ecologyZone,
+  vegetation,
+  pasture,
+  conventionalCrop,
   soilSample,
   swotTag,
   sector,
@@ -1200,4 +1403,44 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   fence,
   gate,
   existingDriveway,
+};
+
+/**
+ * FIELD_REMOVERS — companion dispatch table to FIELD_SCHEMAS. Maps each
+ * AnnotationKind to its namespace store's remove fn. Used by the
+ * shared `<AnnotationFormSlideUp>` when an active form carries
+ * `discardOnCancel: true` (set by post-draw flows): Cancel then deletes
+ * the provisional stub `createWithDefaults` wrote, instead of leaving a
+ * default-labeled phantom in the namespace store.
+ *
+ * The `Record<AnnotationKind, …>` shape acts as an exhaustiveness check:
+ * adding a new kind to AnnotationKind without a remover is a build
+ * error. frostPocket reuses externalForces' `removeHazard` because its
+ * data lives in the hazards collection (see schema above).
+ */
+export const FIELD_REMOVERS: Readonly<Record<AnnotationKind, (id: string) => void>> = {
+  neighbourPin: (id) => useHumanContextStore.getState().removeNeighbour(id),
+  household: (id) => useHumanContextStore.getState().removeHousehold(id),
+  accessRoad: (id) => useHumanContextStore.getState().removeAccessRoad(id),
+  frostPocket: (id) => useExternalForcesStore.getState().removeHazard(id),
+  hazardZone: (id) => useExternalForcesStore.getState().removeHazard(id),
+  contourLine: (id) => useTopographyStore.getState().removeContour(id),
+  highPoint: (id) => useTopographyStore.getState().removeHighPoint(id),
+  drainageLine: (id) => useTopographyStore.getState().removeDrainageLine(id),
+  watercourse: (id) => useWaterSystemsStore.getState().removeWatercourse(id),
+  vegetation: (id) => useVegetationStore.getState().removePatch(id),
+  pasture: (id) => usePastureStore.getState().removePasture(id),
+  conventionalCrop: (id) =>
+    useConventionalCropStore.getState().removeConventionalCrop(id),
+  soilSample: (id) => useSoilSampleStore.getState().deleteSample(id),
+  swotTag: (id) => useSwotStore.getState().removeSwot(id),
+  sector: (id) => useExternalForcesStore.getState().removeSector(id),
+  building: (id) => useBuiltEnvironmentStore.getState().removeBuilding(id),
+  well: (id) => useBuiltEnvironmentStore.getState().removeWell(id),
+  septic: (id) => useBuiltEnvironmentStore.getState().removeSeptic(id),
+  powerLine: (id) => useBuiltEnvironmentStore.getState().removePowerLine(id),
+  buriedUtility: (id) => useBuiltEnvironmentStore.getState().removeBuriedUtility(id),
+  fence: (id) => useBuiltEnvironmentStore.getState().removeFence(id),
+  gate: (id) => useBuiltEnvironmentStore.getState().removeGate(id),
+  existingDriveway: (id) => useBuiltEnvironmentStore.getState().removeExistingDriveway(id),
 };

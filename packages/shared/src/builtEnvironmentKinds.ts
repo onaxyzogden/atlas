@@ -40,10 +40,8 @@ export type BuiltEnvironmentCategory =
                     // wiring, layer rendering, and inline-edit schemas; forking a
                     // sibling registry would 3-5x the per-kind code without adding
                     // capability. The renderer pipeline doesn't distinguish.
-  | 'earthworks'    // berm, raised-bed, terrace — Phase 4 of ADR 2026-05-11.
+  | 'earthworks';   // berm, raised-bed, terrace — Phase 4 of ADR 2026-05-11.
                     // Shaped earth; low-profile GLBs read as ground-up forms.
-  | 'zone-marker';  // zone-0 .. zone-5 — Phase 4 of ADR 2026-05-11. Symbolic
-                    // pillars marking Permaculture Zone boundaries on the plan.
 
 export type BuiltEnvironmentGeometryType = 'point' | 'line' | 'polygon';
 export type BuiltEnvironmentRenderMode = 'glb' | 'extrusion' | 'flat';
@@ -633,92 +631,6 @@ export const BUILT_ENVIRONMENT_KINDS: Readonly<Record<string, BuiltEnvironmentKi
       defaultPhase: 'landshape',
     },
 
-    // ── Zone markers (Permaculture Zones 0–5) ────────────────────────────
-    'zone-0': {
-      kind: 'zone-0',
-      label: 'Zone 0',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Home',
-      color: '#d8d8d8',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-0.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-1': {
-      kind: 'zone-1',
-      label: 'Zone 1',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Sprout',
-      color: '#f3c766',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-1.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-2': {
-      kind: 'zone-2',
-      label: 'Zone 2',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'TreeDeciduous',
-      color: '#a6d172',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-2.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-3': {
-      kind: 'zone-3',
-      label: 'Zone 3',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Wheat',
-      color: '#73b366',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-3.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-4': {
-      kind: 'zone-4',
-      label: 'Zone 4',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Trees',
-      color: '#598c4c',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-4.glb',
-      defaultPhase: 'subdivision',
-    },
-    'zone-5': {
-      kind: 'zone-5',
-      label: 'Zone 5',
-      category: 'zone-marker',
-      geometryType: 'point',
-      icon: 'Leaf',
-      color: '#406640',
-      defaultStates: ['proposed'],
-      renderMode: 'glb',
-      defaultHeightM: 2.5,
-      defaultFootprintM: 1.5,
-      glbUrl: '/models/zone-markers/zone-5.glb',
-      defaultPhase: 'subdivision',
-    },
-
     // ── Custom GLB upload — Phase 6 of ADR 2026-05-11 ──────────────────────
     // Single canonical kind covering all user-uploaded GLBs. The specific
     // blob URL is selected at render time by reading
@@ -775,6 +687,21 @@ export const LEGACY_OBSERVE_BE_KINDS: ReadonlySet<string> = Object.freeze(
     'gate',
     'driveway',
   ]),
+);
+
+/**
+ * Primary-dwelling kinds. Used by `useEffectiveHomestead` to derive a
+ * Mollison Zone 0 anchor lazily when the steward has not explicitly placed
+ * one (ADR 2026-05-13 residence→Zone-0 derivation). A site qualifies for
+ * derivation only when exactly one of these exists with state `existing`;
+ * multi-dwelling sites still require explicit Place-homestead.
+ *
+ * Bathhouse / workshop / prayer-pavilion etc. are not included — Zone 0 is
+ * the *seat of activity*, and the common case the derivation targets is
+ * "single residence on a smallholding."
+ */
+export const RESIDENCE_KINDS: ReadonlySet<string> = Object.freeze(
+  new Set(['building', 'cabin', 'yurt', 'tent-glamping', 'earthship']),
 );
 
 /** Reverse alias map — alias → canonical. Built once at module load. */

@@ -21,7 +21,8 @@
 import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';
 import { useCropStore, type CropAreaType } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -159,7 +160,7 @@ const MONTH_NAMES = [
 ];
 
 export default function SeasonalRealismCard({ project }: SeasonalRealismCardProps) {
-  const structures = useStructureStore((st) => st.structures).filter((x) => x.projectId === project.id);
+  const structures = useAllStructures().filter((x) => x.projectId === project.id);
   const utilities = useUtilityStore((st) => st.utilities).filter((x) => x.projectId === project.id);
   const cropAreas = useCropStore((st) => st.cropAreas).filter((x) => x.projectId === project.id);
   const paddocks = useLivestockStore((st) => st.paddocks).filter((x) => x.projectId === project.id);

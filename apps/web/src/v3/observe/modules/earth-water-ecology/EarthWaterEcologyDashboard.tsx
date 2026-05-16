@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import {
   Beaker,
   Binoculars,
@@ -16,6 +16,7 @@ import { useParams } from '@tanstack/react-router';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
@@ -25,6 +26,7 @@ import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   earthwaterKpis,
@@ -52,7 +54,7 @@ export default function EarthWaterEcologyDashboard() {
   const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
 
   const allObservations = useEcologyStore((s) => s.ecology);
-  const allZones = useEcologyStore((s) => s.ecologyZones);
+  const allZones = useVegetationStore((s) => s.patches);
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
   const allStorage = useWaterSystemsStore((s) => s.storageInfra);
   const allWatercourses = useWaterSystemsStore((s) => s.watercourses);
@@ -146,7 +148,8 @@ export default function EarthWaterEcologyDashboard() {
               })),
               zones: zones.map((z) => ({
                 id: z.id,
-                dominantStage: z.dominantStage,
+                dominantStage: z.successionStage,
+                groundCover: z.groundCover,
                 ...pickTruthy(z, ['label', 'notes']),
                 createdAt: z.createdAt,
               })),
@@ -163,7 +166,7 @@ export default function EarthWaterEcologyDashboard() {
       });
       window.open(data.storageUrl, '_blank');
     } catch (err) {
-      console.error('Earth · Water · Ecology report export failed', err);
+      console.error('Earth Â· Water Â· Ecology report export failed', err);
     } finally {
       setExporting(false);
     }
@@ -174,22 +177,22 @@ export default function EarthWaterEcologyDashboard() {
       Beaker,
       'Soils',
       samples.length > 0
-        ? `${samples.length} sample${samples.length === 1 ? '' : 's'} on record — run jar, perc and lab tests to round out the picture.`
-        : 'No soil samples yet — start with a jar test and percolation test in each distinct zone.',
+        ? `${samples.length} sample${samples.length === 1 ? '' : 's'} on record â€” run jar, perc and lab tests to round out the picture.`
+        : 'No soil samples yet â€” start with a jar test and percolation test in each distinct zone.',
     ],
     [
       Droplet,
       'Hydrology',
       wc.total > 0
-        ? `${wc.total} water feature${wc.total === 1 ? '' : 's'} mapped — ${wc.earthworks} earthworks, ${wc.storage} storage, ${wc.watercourses} watercourse${wc.watercourses === 1 ? '' : 's'}.`
-        : 'No water features mapped yet — trace watercourses, earthworks and storage to see how water moves.',
+        ? `${wc.total} water feature${wc.total === 1 ? '' : 's'} mapped â€” ${wc.earthworks} earthworks, ${wc.storage} storage, ${wc.watercourses} watercourse${wc.watercourses === 1 ? '' : 's'}.`
+        : 'No water features mapped yet â€” trace watercourses, earthworks and storage to see how water moves.',
     ],
     [
       Leaf,
       'Ecology',
       observations.length > 0
         ? `${observations.length} species observation${observations.length === 1 ? '' : 's'} logged across ${zones.length} mapped zone${zones.length === 1 ? '' : 's'}.`
-        : 'No observations yet — log flora, fauna and fungi to build a trophic picture.',
+        : 'No observations yet â€” log flora, fauna and fungi to build a trophic picture.',
     ],
   ];
 
@@ -205,26 +208,20 @@ export default function EarthWaterEcologyDashboard() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Understand the living systems of your site. Diagnose soils, hydrology and ecology to
-              reveal opportunities, risks and patterns that inform wise design.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export earth · water · ecology report'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId="observe-earth-water-ecology-dashboard"
+        lede="Understand the living systems of your site. Diagnose soils, hydrology and ecology to reveal opportunities, risks and patterns that inform wise design."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generatingâ€¦' : 'Export earth Â· water Â· ecology report'}
+        </button>
       </div>
 
       <section className={card.section}>
@@ -236,7 +233,7 @@ export default function EarthWaterEcologyDashboard() {
               {healthPct >= 70 ? 'Strong' : healthPct >= 30 ? 'Forming' : 'Sparse'}
             </span>
             <span className={obsx.note}>
-              {samples.length} samples · {observations.length} obs
+              {samples.length} samples Â· {observations.length} obs
             </span>
           </div>
           {kpis.slice(0, 3).map((item) => {
@@ -277,7 +274,7 @@ export default function EarthWaterEcologyDashboard() {
       ) : null}
 
       <section className={card.section}>
-        <h2 className={card.sectionTitle}>Earth · water · ecology synthesis</h2>
+        <h2 className={card.sectionTitle}>Earth Â· water Â· ecology synthesis</h2>
         <div className={obsx.synthesisGrid}>
           {synthArticles.map(([Icon, title, text]) => (
             <div key={title} className={obsx.synthesisBlock}>
@@ -315,7 +312,7 @@ export default function EarthWaterEcologyDashboard() {
           <h2 className={card.sectionTitle}>Hydrology overview</h2>
           <div className={card.statRow}>
             <span>Runoff direction</span>
-            <span>{watershed?.summary.flow_direction ?? '—'}</span>
+            <span>{watershed?.summary.flow_direction ?? 'â€”'}</span>
           </div>
           <div className={card.statRow}>
             <span>Watercourses</span>
@@ -342,7 +339,7 @@ export default function EarthWaterEcologyDashboard() {
         <section className={card.section}>
           <h2 className={card.sectionTitle}>Soil diagnostics</h2>
           {samples.length === 0 ? (
-            <p className={card.empty}>No soil samples yet — add a sample via the tools panel.</p>
+            <p className={card.empty}>No soil samples yet â€” add a sample via the tools panel.</p>
           ) : (
             samples.slice(0, 5).map((s) => (
               <div key={s.id} className={card.statRow}>
@@ -351,8 +348,8 @@ export default function EarthWaterEcologyDashboard() {
                   {s.label}
                 </span>
                 <span>
-                  {s.ph != null ? `pH ${s.ph}` : '—'}
-                  {s.organicMatterPct != null ? ` · OM ${s.organicMatterPct}%` : ''}
+                  {s.ph != null ? `pH ${s.ph}` : 'â€”'}
+                  {s.organicMatterPct != null ? ` Â· OM ${s.organicMatterPct}%` : ''}
                 </span>
               </div>
             ))
@@ -395,8 +392,8 @@ export default function EarthWaterEcologyDashboard() {
         <AnnotationListCard
           title=""
           projectId={projectId ?? null}
-          kinds={['soilSample', 'watercourse', 'ecologyZone']}
-          emptyHint="No soil samples, watercourses, or ecology zones recorded yet — drop one with the tools panel."
+          kinds={['soilSample', 'watercourse', 'vegetation', 'pasture', 'conventionalCrop']}
+          emptyHint="No soil samples, watercourses, ecology zones, pastures, or conventional crop fields recorded yet â€” drop one with the tools panel."
         />
       </section>
     </div>

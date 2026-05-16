@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CanopySimulatorCard — PLAN Module 4.
  *
  * Year 1 → 50 scrubber. Renders mature-canopy circles for each picked
@@ -10,7 +10,7 @@
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
-import { findSpecies } from '../../data/plantDatabase.js';
+import { findSpecies } from '../../data/plantCatalog.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {

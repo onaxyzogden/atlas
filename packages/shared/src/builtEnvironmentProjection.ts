@@ -20,6 +20,7 @@
 
 import type { BuiltEnvironmentEntity } from './builtEnvironment.js';
 import { canonicalizeKind } from './builtEnvironmentKinds.js';
+import type { StructureType } from './demand/structureDemand.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Legacy-shape interfaces
@@ -125,8 +126,10 @@ export interface ProjectedStructure {
   id: string;
   projectId: string;
   name: string;
-  /** Legacy snake_case StructureType (cabin, prayer_space, ...). */
-  type: string;
+  /** Snake_case StructureType (cabin, prayer_space, ...) — canonical
+   *  per-instance type for proposed structures. Source of truth for
+   *  the `STRUCTURE_WATER_GAL_PER_DAY` / `STRUCTURE_KWH_PER_DAY` tables. */
+  type: StructureType;
   /** [lng, lat] — polygon centroid. */
   center: [number, number];
   geometry: GeoJSON.Polygon;
@@ -197,7 +200,7 @@ function polygonCentroid(p: GeoJSON.Polygon): [number, number] {
  * other kinds (e.g. `power-line`, `gate`) are Observe-only and never need
  * back-projection to a Structure.
  */
-const KIND_TO_LEGACY_STRUCTURE_TYPE: Readonly<Record<string, string>> = Object.freeze({
+const KIND_TO_LEGACY_STRUCTURE_TYPE: Readonly<Record<string, StructureType>> = Object.freeze({
   cabin: 'cabin',
   yurt: 'yurt',
   pavilion: 'pavilion',

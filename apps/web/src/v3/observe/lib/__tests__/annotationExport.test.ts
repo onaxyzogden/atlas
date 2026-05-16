@@ -51,7 +51,7 @@ function reset(): void {
     storageInfra: [],
     watercourses: [],
   });
-  useEcologyStore.setState({ ecology: [], ecologyZones: [] });
+  useEcologyStore.setState({ ecology: [] });
   useSwotStore.setState({ swot: [] });
   useSoilSampleStore.setState({ samples: [] });
   useProjectStore.setState({ projects: [] });
@@ -109,7 +109,6 @@ describe('annotationExport — collection', () => {
     useEcologyStore.setState({
       // @ts-expect-error
       ecology: [{ id: 'eo1', projectId: PROJECT, species: 'oak' }],
-      ecologyZones: [],
     });
     useSwotStore.setState({
       // @ts-expect-error
@@ -159,7 +158,6 @@ describe('annotationExport — serialisation', () => {
       // No geometry — should be CSV-only.
       // @ts-expect-error
       ecology: [{ id: 'eo1', projectId: PROJECT, species: 'oak' }],
-      ecologyZones: [],
     });
   });
 
@@ -482,7 +480,6 @@ describe('annotationExport — permacultureZone + ecologyObservation spatial exp
           observedAt: '2026-05-07T00:00:00Z',
         },
       ],
-      ecologyZones: [],
     });
 
     const fc = toGeoJSON(collectProjectAnnotations(PROJECT));
@@ -512,7 +509,6 @@ describe('annotationExport — permacultureZone + ecologyObservation spatial exp
           observedAt: '2026-05-07T00:00:00Z',
         },
       ],
-      ecologyZones: [],
     });
 
     const fc = toGeoJSON(collectProjectAnnotations(PROJECT));

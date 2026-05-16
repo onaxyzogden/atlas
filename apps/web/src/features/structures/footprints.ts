@@ -5,7 +5,7 @@
  * At placement time, we translate to the target lat/lng using Turf.js.
  */
 
-import type { Structure, StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 
 export interface FootprintTemplate {
   widthM: number;
@@ -157,32 +157,27 @@ export function createFootprintPolygon(
   const mPerDegLat = 111320;
   const mPerDegLng = 111320 * Math.cos((lat * Math.PI) / 180);
 
-  const halfW = (widthM / 2) / mPerDegLng;
-  const halfD = (depthM / 2) / mPerDegLat;
-
-  // Base rectangle corners (unrotated)
-  const corners: [number, number][] = [
-    [lng - halfW, lat - halfD],
-    [lng + halfW, lat - halfD],
-    [lng + halfW, lat + halfD],
-    [lng - halfW, lat + halfD],
+  // Rotate in METRIC space so the rectangle stays rectangular at any
+  // rotation — rotating in lng/lat degree space shears the shape because
+  // 1° of longitude and 1° of latitude span different metric distances.
+  const halfWM = widthM / 2;
+  const halfDM = depthM / 2;
+  const cornersM: [number, number][] = [
+    [-halfWM, -halfDM],
+    [ halfWM, -halfDM],
+    [ halfWM,  halfDM],
+    [-halfWM,  halfDM],
   ];
 
-  // Apply rotation around center
-  if (rotationDeg !== 0) {
-    const rad = (rotationDeg * Math.PI) / 180;
-    const cos = Math.cos(rad);
-    const sin = Math.sin(rad);
+  const rad = (rotationDeg * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
 
-    for (let i = 0; i < corners.length; i++) {
-      const dx = corners[i]![0] - lng;
-      const dy = corners[i]![1] - lat;
-      corners[i] = [
-        lng + dx * cos - dy * sin,
-        lat + dx * sin + dy * cos,
-      ];
-    }
-  }
+  const corners: [number, number][] = cornersM.map(([dxM, dyM]) => {
+    const rxM = dxM * cos - dyM * sin;
+    const ryM = dxM * sin + dyM * cos;
+    return [lng + rxM / mPerDegLng, lat + ryM / mPerDegLat];
+  });
 
   return {
     type: 'Polygon',

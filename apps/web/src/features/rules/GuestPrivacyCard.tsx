@@ -25,7 +25,7 @@
  */
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import css from './GuestPrivacyCard.module.css';
@@ -57,7 +57,7 @@ const GUEST_TYPES = new Set(['tent_glamping', 'yurt']);
 const TONE_RANK: Record<Tone, number> = { good: 0, fair: 1, poor: 2 };
 
 export default function GuestPrivacyCard({ project }: GuestPrivacyCardProps) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPaths = usePathStore((s) => s.paths);
 
   const result = useMemo(() => {

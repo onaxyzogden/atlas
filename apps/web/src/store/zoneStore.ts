@@ -35,11 +35,18 @@ export type InvasivePressure = 'none' | 'low' | 'medium' | 'high';
 
 /**
  * Succession stage — where the vegetation community currently sits on
- * the bare-ground-to-climax gradient. Used to flag early-succession zones
- * that are regeneration candidates vs climax zones that should be left
- * alone. Drawn from standard old-field succession vocabulary.
+ * the disturbed-to-climax gradient. Canonical 5-value scale shared with
+ * `VegetationPatch` observations (vegetationStore). `disturbed` is the
+ * raw early state (was `bare` pre-v3); `late` is the mature-but-not-yet-
+ * climax band. On a zone this is the optional manual *override* that
+ * wins over the observed value (see vegetationResolver).
  */
-export type SuccessionStage = 'bare' | 'pioneer' | 'mid' | 'climax';
+export type SuccessionStage =
+  | 'disturbed'
+  | 'pioneer'
+  | 'mid'
+  | 'late'
+  | 'climax';
 
 /**
  * Seasonality / phased-use tag — when during the year the zone is
@@ -57,6 +64,30 @@ export type Seasonality =
   | 'spring_fall'
   | 'temporary';
 
+/**
+ * Ground-cover state — what is physically on the ground in this zone right
+ * now, independent of succession stage or category. Captured by stewards in
+ * Observe so the auto-design pipeline can match interventions to suitable
+ * patches (e.g. orchard-block prefers `bare-soil` or `sparse-grasses`;
+ * livestock prefers `thriving-grasses`; swale-system avoids `wetland` and
+ * `forest`).
+ *
+ * Orthogonal to `successionStage` (which tracks the vegetation community
+ * along the bare→climax gradient) because two zones at "pioneer" can have
+ * very different ground covers (sand vs sparse-grasses vs bare-soil).
+ *
+ * Spec: wiki/decisions/2026-05-14-auto-design-pipeline.md.
+ */
+export type GroundCoverState =
+  | 'barren'
+  | 'bare-soil'
+  | 'sparse-grasses'
+  | 'thriving-grasses'
+  | 'sand'
+  | 'rocky'
+  | 'forest'
+  | 'wetland';
+
 export const INVASIVE_PRESSURE_LABELS: Record<InvasivePressure, string> = {
   none: 'None',
   low: 'Low',
@@ -72,17 +103,24 @@ export const INVASIVE_PRESSURE_COLORS: Record<InvasivePressure, string> = {
 };
 
 export const SUCCESSION_STAGE_LABELS: Record<SuccessionStage, string> = {
-  bare: 'Bare',
+  disturbed: 'Disturbed',
   pioneer: 'Pioneer',
   mid: 'Mid-succession',
+  late: 'Late-succession',
   climax: 'Climax',
 };
 
+/**
+ * Succession palette — disturbed (raw earth) → climax (deep canopy).
+ * Matches the former Observe `ECOLOGY_STAGE_COLOR` ramp so migrated
+ * ecology zones keep their on-map appearance.
+ */
 export const SUCCESSION_STAGE_COLORS: Record<SuccessionStage, string> = {
-  bare: '#9c8b6e',
-  pioneer: '#d4c564',
-  mid: '#a8a06a',
-  climax: '#6ba47a',
+  disturbed: '#a85a3f',
+  pioneer: '#c4a265',
+  mid: '#7aa86a',
+  late: '#4a8a5a',
+  climax: '#2a6a3a',
 };
 
 export const SEASONALITY_LABELS: Record<Seasonality, string> = {
@@ -105,6 +143,33 @@ export const SEASONALITY_COLORS: Record<Seasonality, string> = {
   winter: '#5a87a8',
   spring_fall: '#9bb37a',
   temporary: '#a87fb8',
+};
+
+export const GROUND_COVER_LABELS: Record<GroundCoverState, string> = {
+  barren: 'Barren / dead',
+  'bare-soil': 'Bare soil',
+  'sparse-grasses': 'Sparse grasses',
+  'thriving-grasses': 'Thriving grasses',
+  sand: 'Sand',
+  rocky: 'Rocky',
+  forest: 'Forest',
+  wetland: 'Wetland',
+};
+
+/**
+ * Earth-tone palette ordered from least → most living matter so the legend
+ * reads as a productivity gradient. Wetland gets a distinct blue; sand a
+ * pale tan; rocky a cool grey.
+ */
+export const GROUND_COVER_COLORS: Record<GroundCoverState, string> = {
+  barren: '#7a6a55',
+  'bare-soil': '#a08561',
+  'sparse-grasses': '#bfa86a',
+  'thriving-grasses': '#6ba47a',
+  sand: '#dccd9a',
+  rocky: '#8a8780',
+  forest: '#3f6b4c',
+  wetland: '#5a87a8',
 };
 
 export const ZONE_CATEGORY_CONFIG: Record<ZoneCategory, { label: string; color: string; icon: string }> = {
@@ -151,6 +216,14 @@ export interface LandZone {
    * Spec: §8 `seasonal-temporary-phased-use-zones`.
    */
   seasonality?: Seasonality | null;
+  /**
+   * Ground-cover state — what is physically on the ground in this zone
+   * right now (barren / bare-soil / sparse-grasses / thriving-grasses /
+   * sand / rocky / forest / wetland). Drives the auto-design pipeline's
+   * zone-affinity matching. Optional; undefined = not yet observed.
+   * Spec: wiki/decisions/2026-05-14-auto-design-pipeline.md.
+   */
+  groundCover?: GroundCoverState | null;
   /**
    * PLAN-stage Module 3 — Holmgren / Mollison permaculture zone level
    * (Z0–Z5). Z0 = home, Z1 = daily-touch, …, Z5 = wilderness. Optional;
@@ -216,12 +289,21 @@ export const useZoneStore = create<ZoneState>()(
     ),
     {
       name: 'ogden-zones',
-      version: 2,
+      version: 3,
       migrate: (persisted, version) => {
         const state = persisted as { zones?: LandZone[] };
         if (version < 2 && Array.isArray(state.zones)) {
           // v1 → v2: add serverId field to all existing zones
           state.zones = state.zones.map((z) => ({ serverId: undefined, ...z }));
+        }
+        if (version < 3 && Array.isArray(state.zones)) {
+          // v2 → v3: succession scale 4-value → canonical 5-value.
+          // Legacy `bare` becomes `disturbed`; the rest are unchanged.
+          state.zones = state.zones.map((z) =>
+            (z.successionStage as unknown) === 'bare'
+              ? { ...z, successionStage: 'disturbed' }
+              : z,
+          );
         }
         return state;
       },

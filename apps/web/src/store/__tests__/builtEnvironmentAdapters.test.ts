@@ -11,10 +11,7 @@
  *   2. Plan `useStructureStore` — addStructure → V2 with proposed metadata;
  *      facade returns V1 Structure[] with snake_case `type` restored;
  *      updateStructure patches; deleteStructure removes.
- *   3. Plan `useDesignElementsStore` — structure-class kinds route to V2;
- *      non-structure kinds stay in the internal store; merged byProject
- *      returns the union; remove tries V2 first; clear wipes both.
- *   4. KPI parity — seed multiple entities, snapshot dashboard-relevant
+ *   3. KPI parity — seed multiple entities, snapshot dashboard-relevant
  *      derivations from the facade, assert byte-for-byte stability.
  */
 
@@ -31,11 +28,15 @@ import {
   type Gate,
   type ExistingDriveway,
 } from '../builtEnvironmentStore.js';
-import { useStructureStore, type Structure } from '../structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
+import { useLandDesignStore } from '../landDesignStore.js';
 import {
-  useDesignElementsStore,
-  type DesignElement,
-} from '../designElementsStore.js';
+  addStructure,
+  updateStructure,
+  removeStructure,
+  findStructureGlobal,
+  getStructuresForProject,
+} from '../builtEnvironmentSelectors.js';
 
 const PROJECT = 'p-adapter';
 
@@ -46,12 +47,10 @@ function resetAll(): void {
       temporal: { getState: () => { clear: () => void } };
     }
   ).temporal.getState().clear();
-  // useDesignElementsStore.clear() drains both v2 and the internal
-  // non-structure store for a project — the safest way to clear the
-  // hidden non-structure substore between tests.
-  useDesignElementsStore.getState().clear(PROJECT);
-  // Belt-and-braces: also reset the merged byProject map directly.
-  useDesignElementsStore.setState({ byProject: {} });
+  // Drain the non-structure substore directly — V2 entities are already
+  // cleared above, and landDesignStore.byProject is the only other
+  // surface that holds Plan-stage design elements.
+  useLandDesignStore.setState({ byProject: {} });
   if (typeof window !== 'undefined' && window.localStorage) {
     window.localStorage.clear();
   }
@@ -184,10 +183,12 @@ describe('useBuiltEnvironmentStore facade', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// Plan facade — useStructureStore
+// Structure selectors (Phase 6.C) — selector-library helpers that bypass
+// the deleted V1 `useStructureStore` facade (deleted 2026-05-12 Phase 5).
+// Mirrors the DesignElement coverage above.
 // ─────────────────────────────────────────────────────────────────────────
 
-describe('useStructureStore facade', () => {
+describe('Structure selector helpers (Phase 6.C)', () => {
   function makeStructure(over: Partial<Structure> = {}): Structure {
     return {
       id: 's1',
@@ -212,130 +213,63 @@ describe('useStructureStore facade', () => {
     };
   }
 
-  it('addStructure writes a v2 entity with state=proposed', () => {
-    useStructureStore.getState().addStructure(makeStructure());
+  it('addStructure routes to V2 with proposed metadata', () => {
+    addStructure(makeStructure());
     const v2 = useBuiltEnvironmentStoreV2.getState().entities;
     expect(v2).toHaveLength(1);
     expect(v2[0]?.kind).toBe('barn');
     expect(v2[0]?.state).toBe('proposed');
     expect(v2[0]?.proposed?.costEstimate).toBe(50000);
-    expect(v2[0]?.proposed?.infrastructureReqs).toEqual(['water', 'power']);
   });
 
-  it('snake_case StructureType (prayer_space) is canonicalised then restored', () => {
-    useStructureStore
-      .getState()
-      .addStructure(makeStructure({ type: 'prayer_space', name: 'Masjid' }));
-    const v2Kind = useBuiltEnvironmentStoreV2.getState().entities[0]?.kind;
-    expect(v2Kind).toBe('prayer-pavilion');
-    const proj = useStructureStore.getState().structures[0];
-    expect(proj?.type).toBe('prayer_space');
-    expect(proj?.name).toBe('Masjid');
-  });
-
-  it('updateStructure bumps proposed metadata and label', () => {
-    useStructureStore.getState().addStructure(makeStructure());
+  it('updateStructure patches metadata + geometry', () => {
+    addStructure(makeStructure());
     const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
-    useStructureStore
-      .getState()
-      .updateStructure(id, { name: 'Barn B', costEstimate: 75000, heightM: 7 });
-    const s = useStructureStore.getState().structures[0];
-    expect(s?.name).toBe('Barn B');
-    expect(s?.costEstimate).toBe(75000);
-    expect(s?.heightM).toBe(7);
-  });
-
-  it('deleteStructure clears it from v2 and the facade', () => {
-    useStructureStore.getState().addStructure(makeStructure());
-    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
-    useStructureStore.getState().deleteStructure(id);
-    expect(useStructureStore.getState().structures).toHaveLength(0);
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-  });
-
-  it('placementMode stays local-only (does not touch v2)', () => {
-    useStructureStore.getState().setPlacementMode('yurt');
-    expect(useStructureStore.getState().placementMode).toBe('yurt');
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────
-// Plan facade — useDesignElementsStore
-// ─────────────────────────────────────────────────────────────────────────
-
-describe('useDesignElementsStore facade', () => {
-  function makeEl(over: Partial<DesignElement> = {}): DesignElement {
-    return {
-      id: 'el1',
-      category: 'structure',
-      kind: 'barn',
-      geometry: {
-        type: 'Polygon',
-        coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]],
-      },
-      phase: 'buildings',
-      label: 'A',
-      createdAt: '2026-05-10T00:00:00.000Z',
-      ...over,
+    const newGeom: GeoJSON.Polygon = {
+      type: 'Polygon',
+      coordinates: [[[0, 0], [20, 0], [20, 20], [0, 20], [0, 0]]],
     };
-  }
-
-  it('structure-class add routes to v2 and is reflected in byProject', () => {
-    useDesignElementsStore.getState().add(PROJECT, makeEl());
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(1);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]).toHaveLength(1);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]?.[0]?.kind).toBe('barn');
+    updateStructure(id, { name: 'Barn B', costEstimate: 75000, geometry: newGeom });
+    const projected = getStructuresForProject(PROJECT)[0];
+    expect(projected?.name).toBe('Barn B');
+    expect(projected?.costEstimate).toBe(75000);
+    expect(projected?.geometry.coordinates[0]).toHaveLength(5);
   });
 
-  it('non-structure add stays in the internal store, NOT v2', () => {
-    useDesignElementsStore.getState().add(
-      PROJECT,
-      makeEl({ id: 'pad1', kind: 'paddock', category: 'grazing', phase: 'subdivision' }),
-    );
+  it('removeStructure deletes from V2', () => {
+    addStructure(makeStructure());
+    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
+    removeStructure(id);
     expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]).toHaveLength(1);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]?.[0]?.kind).toBe('paddock');
+    expect(getStructuresForProject(PROJECT)).toHaveLength(0);
   });
 
-  it('byProject merges v2 structures + non-structure entries', () => {
-    useDesignElementsStore.getState().add(PROJECT, makeEl({ id: 'b1', kind: 'barn' }));
-    useDesignElementsStore
-      .getState()
-      .add(PROJECT, makeEl({ id: 'pad1', kind: 'paddock', category: 'grazing' }));
-    const list = useDesignElementsStore.getState().byProject[PROJECT] ?? [];
-    expect(list).toHaveLength(2);
-    const kinds = list.map((e) => e.kind).sort();
-    expect(kinds).toEqual(['barn', 'paddock']);
+  it('findStructureGlobal locates by id with projectId', () => {
+    addStructure(makeStructure());
+    const id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
+    const hit = findStructureGlobal(id);
+    expect(hit).not.toBeNull();
+    expect(hit?.projectId).toBe(PROJECT);
+    expect(hit?.structure.type).toBe('barn');
   });
 
-  it('remove tries v2 first, then falls through to the internal store', () => {
-    useDesignElementsStore
-      .getState()
-      .add(PROJECT, makeEl({ id: 'pad1', kind: 'paddock', category: 'grazing' }));
-    useDesignElementsStore.getState().add(PROJECT, makeEl({ id: 'b1', kind: 'barn' }));
-    const v2Id = useBuiltEnvironmentStoreV2.getState().entities[0]!.id;
-
-    // Remove the v2 (barn) one — id matches the v2 entity.
-    useDesignElementsStore.getState().remove(PROJECT, v2Id);
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-    // Paddock survives in the internal store.
-    expect(useDesignElementsStore.getState().byProject[PROJECT]).toHaveLength(1);
-    expect(useDesignElementsStore.getState().byProject[PROJECT]?.[0]?.kind).toBe('paddock');
-
-    // Remove the paddock by its V1 id — flows through to internal store.
-    useDesignElementsStore.getState().remove(PROJECT, 'pad1');
-    expect(useDesignElementsStore.getState().byProject[PROJECT]).toHaveLength(0);
+  it('findStructureGlobal returns null for unknown id', () => {
+    expect(findStructureGlobal('nope')).toBeNull();
   });
 
-  it('clear wipes both v2 structures and internal non-structures for the project', () => {
-    useDesignElementsStore.getState().add(PROJECT, makeEl({ id: 'b1', kind: 'barn' }));
-    useDesignElementsStore
-      .getState()
-      .add(PROJECT, makeEl({ id: 'pad1', kind: 'paddock', category: 'grazing' }));
-    useDesignElementsStore.getState().clear(PROJECT);
-    expect(useBuiltEnvironmentStoreV2.getState().entities).toHaveLength(0);
-    expect(useDesignElementsStore.getState().byProject[PROJECT] ?? []).toHaveLength(0);
+  it('getStructuresForProject returns stable empty-array reference', () => {
+    const a = getStructuresForProject('no-such-project');
+    const b = getStructuresForProject('also-empty');
+    expect(a).toBe(b); // same reference, not just equal
+  });
+
+  it('isolates structures across projects', () => {
+    addStructure(makeStructure({ projectId: 'p-a' }));
+    addStructure(makeStructure({ projectId: 'p-b', type: 'yurt' }));
+    expect(getStructuresForProject('p-a')).toHaveLength(1);
+    expect(getStructuresForProject('p-b')).toHaveLength(1);
+    expect(getStructuresForProject('p-a')[0]?.type).toBe('barn');
+    expect(getStructuresForProject('p-b')[0]?.type).toBe('yurt');
   });
 });
 

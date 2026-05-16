@@ -22,7 +22,8 @@
 import { memo, useMemo } from 'react';
 import * as turf from '@turf/turf';
 import { usePathStore, type DesignPath, type PathType } from '../../store/pathStore.js';
-import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import css from './ServiceAccessContinuityCard.module.css';
 
 interface Props {
@@ -88,7 +89,7 @@ function formatLength(m: number): string {
 
 export const ServiceAccessContinuityCard = memo(function ServiceAccessContinuityCard({ projectId }: Props) {
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const data = useMemo(() => {
     const vehiclePaths = allPaths.filter(

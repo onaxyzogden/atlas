@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GuildBuilderCard — PLAN Module 4.
  *
  * Compose a polyculture guild around an anchor species. Members are
@@ -13,7 +13,7 @@ import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { newAnnotationId, type Guild, type GuildMember, type GuildLayer } from '../../store/site-annotations.js';
-import { PLANT_DATABASE, findSpecies, type CanopyLayer } from '../../data/plantDatabase.js';
+import { PLANT_DATABASE, findSpecies, type CanopyLayer } from '../../data/plantCatalog.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {

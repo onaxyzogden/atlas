@@ -5,7 +5,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -27,7 +27,7 @@ const SEVERITY_CONFIG: Record<RuleSeverity, { icon: string; color: string; bg: s
 };
 
 export default function RulesPanel({ project }: RulesPanelProps) {
-  const structures = useStructureStore((s) => s.structures).filter((s) => s.projectId === project.id);
+  const structures = useAllStructures().filter((s) => s.projectId === project.id);
   const zones = useZoneStore((s) => s.zones).filter((z) => z.projectId === project.id);
   const paddocks = useLivestockStore((s) => s.paddocks).filter((pk) => pk.projectId === project.id);
   const crops = useCropStore((s) => s.cropAreas).filter((c) => c.projectId === project.id);

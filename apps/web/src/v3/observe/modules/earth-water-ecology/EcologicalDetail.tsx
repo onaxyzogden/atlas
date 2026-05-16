@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import {
   Beaker,
   Binoculars,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
@@ -20,6 +21,7 @@ import SeasonalEcologyStrip from './SeasonalEcologyStrip.js';
 import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   ecologyDetailKpis,
@@ -43,7 +45,7 @@ export default function EcologicalDetail() {
   const layers = useSiteDataStore((s) => s.dataByProject[id]?.layers);
 
   const allObservations = useEcologyStore((s) => s.ecology);
-  const allZones = useEcologyStore((s) => s.ecologyZones);
+  const allZones = useVegetationStore((s) => s.patches);
   const successionByProject = useEcologyStore((s) => s.successionStageByProject);
 
   const observations = useMemo(
@@ -85,19 +87,19 @@ export default function EcologicalDetail() {
 
   const vulnerabilities: string[] = [];
   if (counts.trophicLevels.length < 3) {
-    vulnerabilities.push('Incomplete trophic web — log secondary and tertiary consumers.');
+    vulnerabilities.push('Incomplete trophic web â€” log secondary and tertiary consumers.');
   }
   if (counts.zones === 0) {
-    vulnerabilities.push('No ecology zones mapped — outline habitat patches to track succession.');
+    vulnerabilities.push('No ecology zones mapped â€” outline habitat patches to track succession.');
   }
   if (!counts.successionStage) {
-    vulnerabilities.push('Succession stage not set — characterize overall site trajectory.');
+    vulnerabilities.push('Succession stage not set â€” characterize overall site trajectory.');
   }
 
   const strengths =
     counts.observations > 0
       ? `${counts.observations} species observation${counts.observations === 1 ? '' : 's'} recorded across ${counts.trophicLevels.length} trophic level${counts.trophicLevels.length === 1 ? '' : 's'}.`
-      : 'No species observations yet — begin recording to build a trophic picture.';
+      : 'No species observations yet â€” begin recording to build a trophic picture.';
 
   const opportunities = [
     'Expand native plant corridors to connect habitats.',
@@ -107,16 +109,10 @@ export default function EcologicalDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Explore habitat conditions, species observations, guild indicators and ecosystem
-              health to guide regenerative design and stewardship.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-earth-water-ecology-ecological"
+        lede="Explore habitat conditions, species observations, guild indicators and ecosystem health to guide regenerative design and stewardship."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>
@@ -127,7 +123,7 @@ export default function EcologicalDetail() {
               {completenessPct >= 70 ? 'Strong' : completenessPct >= 30 ? 'Forming' : 'Sparse'}
             </span>
             <span className={obsx.note}>
-              {counts.observations} obs · {counts.zones} zones
+              {counts.observations} obs Â· {counts.zones} zones
             </span>
           </div>
           {kpis.slice(0, 3).map((item) => {
@@ -224,7 +220,7 @@ export default function EcologicalDetail() {
                   <Sprout aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
                   {zone.label ?? 'Zone'}
                 </span>
-                <span>{zone.dominantStage}</span>
+                <span>{zone.successionStage}</span>
               </div>
             ))
           )}
@@ -248,12 +244,12 @@ export default function EcologicalDetail() {
       <section className={card.section}>
         <h2 className={card.sectionTitle}>Recent field observations</h2>
         {recent.length === 0 ? (
-          <p className={card.empty}>No observations recorded — log species via the tools panel.</p>
+          <p className={card.empty}>No observations recorded â€” log species via the tools panel.</p>
         ) : (
           recent.map((obs) => (
             <div key={obs.id} className={card.statRow}>
               <span>
-                {new Date(obs.observedAt).toLocaleDateString()} ·{' '}
+                {new Date(obs.observedAt).toLocaleDateString()} Â·{' '}
                 <small style={{ opacity: 0.7 }}>{obs.notes ?? obs.species}</small>
               </span>
               <span>{obs.trophicLevel}</span>
@@ -277,7 +273,7 @@ export default function EcologicalDetail() {
             {vulnerabilities.length === 0 ? (
               <p>
                 <Leaf aria-hidden="true" size={14} />
-                <span>No critical gaps identified — keep observing.</span>
+                <span>No critical gaps identified â€” keep observing.</span>
               </p>
             ) : (
               vulnerabilities.map((item) => (

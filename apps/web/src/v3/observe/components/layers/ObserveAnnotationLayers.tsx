@@ -22,7 +22,10 @@ import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
-import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../../store/vegetationStore.js';
+import { GROUND_COVER_COLORS } from '../../../../store/zoneStore.js';
+import { usePastureStore } from '../../../../store/pastureStore.js';
+import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import {
@@ -38,7 +41,10 @@ import {
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
+import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
+import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { openBeInlineEditByObserveKind } from '../../../builtEnvironment/inline/openBeInlineEdit.js';
 import { useProjectStore } from '../../../../store/projectStore.js';
 import { DEFAULT_SECTOR_RADIUS_M } from '../../lib/sectorRadius.js';
 import type {
@@ -71,11 +77,13 @@ interface LayerSpec {
   data: GeoJSON.FeatureCollection;
   /** One or more MapLibre layer specs over this source. */
   layers: maplibregl.LayerSpecification[];
-  /** Optional sub-toggle from `useMatrixTogglesStore` that ANDs with the
-   *  master `observeAnnotations` toggle. When omitted, only the master
-   *  toggle gates this group. PLAN-stage-only keys (`sunPath`,
-   *  `zoneRings`) are excluded — Observe annotation specs never gate on
-   *  them. */
+  /** Optional independent sub-toggle from `useMatrixTogglesStore`. When
+   *  set, this group is gated SOLELY by its own sub-toggle (it is shown
+   *  as an independent overlay row in BaseMapCard and must not also be
+   *  ANDed with the `observeAnnotations` master). When omitted, the
+   *  group falls under the `observeAnnotations` master toggle. PLAN-
+   *  stage-only keys (`sunPath`, `zoneRings`) are excluded — Observe
+   *  annotation specs never gate on them. */
   toggleKey?: Exclude<
     MatrixToggleKey,
     'observeAnnotations' | 'sunPath' | 'zoneRings'
@@ -113,14 +121,6 @@ const PALETTE = {
   swotW: '#a85a3f',
   swotO: '#3a8aa8',
   swotT: '#7c5a8a',
-};
-
-const ECOLOGY_STAGE_COLOR: Record<string, string> = {
-  disturbed: PALETTE.ecologyDisturbed,
-  pioneer: PALETTE.ecologyPioneer,
-  mid: PALETTE.ecologyMid,
-  late: PALETTE.ecologyLate,
-  climax: PALETTE.ecologyClimax,
 };
 
 const SECTOR_TYPE_COLOR: Record<string, string> = {
@@ -236,9 +236,10 @@ function wedgePolygon(
 
 export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const visible = useMatrixTogglesStore((s) => s.observeAnnotations);
-  // Per-group sub-toggles. ANDed with the master `visible` to compute the
-  // final per-spec visibility. Each group only respects its toggle when
-  // `LayerSpec.toggleKey` is set; otherwise the master toggle alone gates.
+  // Per-group sub-toggles. A spec with a `toggleKey` is gated SOLELY by
+  // its own sub-toggle (each is an independent overlay row in
+  // BaseMapCard, so it must not also depend on the `observeAnnotations`
+  // master). A spec WITHOUT a `toggleKey` falls under the master.
   const sectorsVisible = useMatrixTogglesStore((s) => s.sectors);
   const topographyVisible = useMatrixTogglesStore((s) => s.topography);
   const zonesVisible = useMatrixTogglesStore((s) => s.zones);
@@ -275,7 +276,9 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const hazards = useExternalForcesStore((s) => s.hazards);
   const sectors = useExternalForcesStore((s) => s.sectors);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
-  const ecologyZones = useEcologyStore((s) => s.ecologyZones);
+  const vegetationPatches = useVegetationStore((s) => s.patches);
+  const pastures = usePastureStore((s) => s.pastures);
+  const conventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
   const swot = useSwotStore((s) => s.swot);
   const soilSamples = useSoilSampleStore((s) => s.samples);
   // Phase 6.B: read built-environment slices directly from V2 via the
@@ -788,14 +791,15 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
-    // ── Ecology zones ──────────────────────────────────────────────────────
-    const ecoFeatures: GeoJSON.Feature[] = inProject(ecologyZones).map((z) => ({
+    // ── Vegetation patches ─────────────────────────────────────────────────
+    const ecoFeatures: GeoJSON.Feature[] = inProject(vegetationPatches).map((z) => ({
       type: 'Feature',
       properties: {
-        stage: z.dominantStage,
-        color: ECOLOGY_STAGE_COLOR[z.dominantStage] ?? PALETTE.ecologyMid,
+        stage: z.successionStage,
+        cover: z.groundCover,
+        color: GROUND_COVER_COLORS[z.groundCover] ?? PALETTE.ecologyMid,
         label: z.label ?? '',
-        annoKind: 'ecologyZone',
+        annoKind: 'vegetation',
         annoId: z.id,
       },
       geometry: z.geometry,
@@ -818,6 +822,99 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}ecology-line`,
             type: 'line',
             source: `${SOURCE_PREFIX}ecology`,
+            paint: {
+              'line-color': ['get', 'color'],
+              'line-width': 1.5,
+              'line-opacity': 0.85,
+            },
+          },
+        ],
+      });
+    }
+
+    // ── Pasture / paddock ───────────────────────────────────────────────────
+    const PASTURE_COLOR: Record<string, string> = {
+      'open-pasture': '#c9a86a',
+      paddock: '#b58550',
+      hayfield: '#d4b878',
+    };
+    const pastureFeatures: GeoJSON.Feature[] = inProject(pastures).map((p) => ({
+      type: 'Feature',
+      properties: {
+        kind: p.kind,
+        color: PASTURE_COLOR[p.kind] ?? PASTURE_COLOR.paddock,
+        label: p.label ?? '',
+        annoKind: 'pasture',
+        annoId: p.id,
+      },
+      geometry: p.geometry,
+    }));
+    if (pastureFeatures.length) {
+      result.push({
+        id: 'pasture',
+        data: { type: 'FeatureCollection', features: pastureFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}pasture-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}pasture`,
+            paint: {
+              'fill-color': ['get', 'color'],
+              'fill-opacity': 0.22,
+            },
+          },
+          {
+            id: `${LAYER_PREFIX}pasture-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}pasture`,
+            paint: {
+              'line-color': ['get', 'color'],
+              'line-width': 1.5,
+              'line-opacity': 0.85,
+            },
+          },
+        ],
+      });
+    }
+
+    // ── Conventional crop ──────────────────────────────────────────────────
+    const CROP_COLOR: Record<string, string> = {
+      'annual-row': '#a8854a',
+      'perennial-monoculture': '#8e7136',
+      'cover-cropped': '#9aa56b',
+      fallow: '#c4b89a',
+    };
+    const conventionalCropFeatures: GeoJSON.Feature[] = inProject(
+      conventionalCrops,
+    ).map((c) => ({
+      type: 'Feature',
+      properties: {
+        kind: c.kind,
+        color: CROP_COLOR[c.kind] ?? CROP_COLOR['annual-row'],
+        label: c.label ?? '',
+        annoKind: 'conventionalCrop',
+        annoId: c.id,
+      },
+      geometry: c.geometry,
+    }));
+    if (conventionalCropFeatures.length) {
+      result.push({
+        id: 'conventional-crop',
+        data: { type: 'FeatureCollection', features: conventionalCropFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}conventional-crop-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}conventional-crop`,
+            paint: {
+              'fill-color': ['get', 'color'],
+              'fill-opacity': 0.22,
+            },
+          },
+          {
+            id: `${LAYER_PREFIX}conventional-crop-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}conventional-crop`,
             paint: {
               'line-color': ['get', 'color'],
               'line-width': 1.5,
@@ -1096,7 +1193,9 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     hazards,
     sectors,
     watercourses,
-    ecologyZones,
+    vegetationPatches,
+    pastures,
+    conventionalCrops,
     swot,
     soilSamples,
     buildings,
@@ -1113,6 +1212,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   ]);
 
   const openDetail = useAnnotationDetailStore((s) => s.open);
+  const openForm = useAnnotationFormStore((s) => s.open);
   const selected = useObserveSelectionStore((s) => s.selected);
   const setSelection = useObserveSelectionStore((s) => s.set);
   const toggleSelection = useObserveSelectionStore((s) => s.toggle);
@@ -1183,8 +1283,38 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         if (!kind || !id) return;
         consumedAt = e.originalEvent.timeStamp;
         const shift = (e.originalEvent as MouseEvent).shiftKey;
-        if (shift) toggleSelection({ kind, id });
-        else setSelection([{ kind, id }]);
+        if (shift) {
+          toggleSelection({ kind, id });
+          return;
+        }
+        // First click only selects — never pop the editor. The popup opens
+        // on a second click of the already-sole-selected feature (or via the
+        // SelectionFloater Edit button / double-click detail panel). This
+        // keeps a stray click from yanking the form open.
+        const sel = useObserveSelectionStore.getState().selected;
+        const alreadySole =
+          sel.length === 1 &&
+          sel[0]?.kind === kind &&
+          sel[0]?.id === id;
+        setSelection([{ kind, id }]);
+        if (!alreadySole) return;
+        // Re-click on the already-selected feature → reopen the same
+        // editable popup that appeared on first draw — BE kinds route to the
+        // floating inline popover (parity with Plan), others fall through to
+        // the slide-up form. Skip when a draw tool is active (mid-creation)
+        // or when the form is already showing this exact record.
+        if (useMapToolStore.getState().activeTool) return;
+        const active = useAnnotationFormStore.getState().active;
+        if (active?.existingId === id && active.kind === kind) return;
+        if (!projectId) return;
+        if (openBeInlineEditByObserveKind(kind, id)) return;
+        openForm({
+          kind,
+          geometry: null,
+          mode: 'edit',
+          existingId: id,
+          projectId,
+        });
       };
       const onDbl: LayerClick = (e) => {
         const f = e.features?.[0];
@@ -1227,7 +1357,9 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
 
     const apply = () => {
       // Bail if style isn't ready yet.
-      if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
+      if ((map.getStyle()?.layers?.length ?? 0) === 0) {
+        return;
+      }
 
       // Re-register Lucide sprite images. `registerObserveIcons` is
       // idempotent (per-id `hasImage` guard) and safe to fire-and-forget;
@@ -1277,8 +1409,9 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         } else {
           map.addSource(sid, { type: 'geojson', data: spec.data });
         }
-        const specVisible =
-          visible && (spec.toggleKey ? subToggles[spec.toggleKey] : true);
+        const specVisible = spec.toggleKey
+          ? subToggles[spec.toggleKey]
+          : visible;
         for (const layer of spec.layers) {
           if (!map.getLayer(layer.id)) {
             map.addLayer(layer as AnnoLayer);
@@ -1293,10 +1426,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         }
       }
 
-      // Apply visibility toggle (master AND per-group) to all our layers.
+      // Apply visibility to all our layers: toggleKey'd specs follow their
+      // own independent sub-toggle; untoggled specs follow the master.
       for (const spec of layerSpecs) {
-        const specVisible =
-          visible && (spec.toggleKey ? subToggles[spec.toggleKey] : true);
+        const specVisible = spec.toggleKey
+          ? subToggles[spec.toggleKey]
+          : visible;
         for (const layer of spec.layers) {
           if (map.getLayer(layer.id)) {
             map.setLayoutProperty(
@@ -1422,10 +1557,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     viewsVisible,
     builtEnvironmentVisible,
     openDetail,
+    openForm,
     haloData,
     setSelection,
     toggleSelection,
     clearSelection,
+    projectId,
   ]);
 
   // Clean up everything when the component unmounts (route change).

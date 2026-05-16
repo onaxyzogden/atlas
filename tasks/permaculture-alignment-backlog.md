@@ -10,7 +10,40 @@ the Permaculture Scholar (`5aa3dcf3-e1de-44ac-82b8-bad5e94e6c4b`).
 
 ---
 
-## Rec #3 — Highest-potential water router (P1)
+## Rec #3 — Highest-potential water router (P1) — v1 SHIPPED 2026-05-13
+
+**v1 status:** Shipped as a new sub-card in the Plan-stage water-management
+module (`apps/web/src/v3/plan/cards/water-management/WaterRouterCard.tsx`)
+backed by `waterRouterMath.ts`. The card flags water-harvest elements
+(`water-tank`, `pond`, `swale` from `landDesignStore`) placed below the
+parcel's median elevation with a numeric "potential gravity head lost"
+estimate and a suggested upper-third coordinate.
+
+**v1 elevation model — aspect-projected heuristic.** Atlas does not expose a
+per-point DEM sampler today (only `siteDataStore`'s min/max/predominant-
+aspect scalars and per-transect profiles). The math util projects each
+element centroid onto the uphill axis (`aspect + 180°`) within the parcel
+bbox, normalises to `t ∈ [0,1]`, and estimates `elev = min + t·(max−min)`.
+The `estimateElevationM` signature is the v2 swap point for a real DEM
+sample (Mapbox `queryTerrainElevation` or a server raster route) with no
+card-side changes.
+
+**Tier thresholds:** `excellent` < 0.5 m head lost, `adequate` 0.5–2 m,
+`low-potential` ≥ 2 m. Suggested coordinate = upper-third centroid along the
+uphill axis (bbox-aligned; not polygon-clipped in v1).
+
+**Deferred to v2:**
+- Map-canvas overlay drawing the uphill arrow + suggested-coord pin.
+- True per-point DEM sample (Mapbox terrain or Fastify raster route).
+- Flow-path vector overlay from highest points (rec's first bullet — v1
+  ships the scoring half only).
+- One-click "move element to suggested coord" action.
+- Wiring "head lost" into a principle score store (Holmgren P2 — Catch &
+  store energy).
+
+---
+
+### Original spec (preserved for v2 reference)
 
 **Principle:** Catch & Store Energy
 **Source:** *Permaculture Design for Water*, *Watershed Patterns*,
@@ -45,7 +78,29 @@ wiring; UI surface is small (badge + suggestion popover).
 
 ---
 
-## Rec #4 — Edge & connectivity evaluator (P1)
+## Rec #4 — Edge & connectivity evaluator (P1) — v1 SHIPPED 2026-05-12
+
+**v1 status:** Shipped as a new sub-card in the Plan-stage plant-systems
+module (`apps/web/src/v3/plan/cards/plant-systems/EdgeConnectivityCard.tsx`).
+Polsby-Popper compactness (4π·area ÷ perimeter²) is the metric;
+dimensionless 0..1, scale-invariant. Tier thresholds: `excellent` < 0.4,
+`adequate` 0.4–0.7, `homogenized` ≥ 0.7. Polygons below 2 000 m² skip the
+audit. Polygon source: `landDesignStore` filtered to planting-class kinds
+(orchard, silvopasture, pasture-mix, paddock).
+
+**Deferred to v2:**
+- Shape-variant generators (peninsula / scalloped / keyhole) — backlog
+  flagged these as the "biggest unknown"; isolated from v1 so the 0.5-
+  sprint estimate held.
+- Wiring the Diversity penalty into `principleCheckStore` for Holmgren P10
+  ("Use & value diversity") — depends on broader principle-scoring pipeline
+  work.
+- Polyculture guilds — they're points (no polygon), out of scope for an
+  edge-to-area metric.
+
+---
+
+### Original spec (preserved for v2 reference)
 
 **Principle:** Edges & Marginal · Diversity
 **Source:** *Permaculture Design by Sectors*, *Zones in the Matrix*,
@@ -81,7 +136,57 @@ suggestion-shape generator is the biggest unknown.
 
 ---
 
-## Rec #5 — Local/biological material substitution calculator (P2)
+## Rec #5 — Local/biological material substitution calculator (P2) — v1 SHIPPED 2026-05-13
+
+**v1 status:** Shipped as a 7th sub-card in the Plan-stage phasing-
+budgeting module (`apps/web/src/v3/plan/cards/phasing-budgeting/MaterialSubstitutionsCard.tsx`)
+backed by `substitutionCatalog.ts`. The card walks every
+`useFinancialModel().costLineItems` row, resolves its source primitive
+via the per-store array selectors (`livestockStore.paddocks`,
+`pathStore.paths`, `utilityStore.utilities`, `cropStore.cropAreas`), and
+surfaces a biological alternative when a catalog entry matches. The
+toggle writes a scaled `CostRange` into `financialStore.costOverrides`;
+the costEngine's existing `applyOverrides` picks it up, so total
+investment / cashflow / break-even / mission score all recompute live.
+
+**Catalog scope (v1):** 8 cited substitution pairs, each anchored to ≥1
+real bibliographic source (Mollison Designer's Manual, Crawford, Holzer,
+Stamets, Coleman, Lancaster, Yeomans, Drinkwater et al. *Nature* 1998,
+Bowles et al. *Agronomy Journal* 2017, USDA NRCS CPS-380).
+
+| # | Original (matcher) | Alternative | Cost mult (mid) |
+|---|---|---|---|
+| 1 | Woven-wire fence | Hawthorn/blackthorn hedge | 0.40 |
+| 2 | Post-wire perimeter | Multi-row shelterbelt hedge | 0.35 |
+| 3 | Pedestrian / service walkway | Wood-chip path + groundcover | 0.20 |
+| 4 | Farm lane (compacted) | Permeable native-grass track | 0.55 |
+| 5 | Annual garden bed (plastic mulch) | Comfrey chop-and-drop polyculture | 0.10 |
+| 6 | Row crop (synthetic N) | N-fixing cover crop rotation | 0.15 |
+| 7 | Manufactured windbreak panels | NRCS-380 living shelterbelt | 0.30 |
+| 8 | Concrete water tank | Earthen pond + roof catchment | 0.50 |
+
+**Cost behaviour:** `costMultiplier` is fractional, so the alternative
+scales with the steward's actual drawn quantity (50 m of fence vs. 5 km
+both honour the catalog ratio).
+
+**Store extension:** added `clearCostOverride(itemId)` to `financialStore`
+(per-item clear; bulk `clearOverrides()` retained for other UX). Five-
+line addition; no semantics change for existing override writers.
+
+**Deferred to v2:**
+- Establishment-time delta flowing into `cashflowEngine.ts` phase
+  scheduling (currently informational; pending months display only).
+- Mission-uplift wiring into `missionScoring.ts` (currently informational;
+  pending uplift display only — decision on which mission component
+  receives the bump is v2).
+- Catalog expansion past 8 pairs to the 10–15 target.
+- Per-region cost-multiplier tuning (single multiplier v1; split by
+  `CostRegion` is v2).
+- Map-canvas affordance (green tint on substituted elements).
+
+---
+
+### Original spec (preserved for v2 reference)
 
 **Principle:** Renewable Resources & Services · Small & Slow Solutions
 **Source:** *Permaculture Shelter Design*, *Permaculture Trees in Temperate
@@ -116,7 +221,33 @@ catalog (the unknown unknown).
 
 ---
 
-## Rec #6 — "Nets in the flow" social node generator (P2)
+## Rec #6 — "Nets in the flow" social node generator (P2) — v1 SHIPPED 2026-05-13
+
+**v1 status:** Shipped as a 5th sub-card in the Plan-stage zone-circulation
+module (`apps/web/src/v3/plan/cards/zone-circulation/SocialNodesCard.tsx`)
+backed by `socialNodesMath.ts`. The card detects pairwise path × path
+intersections, filters to those inside Z1/Z2 zones (via `zoneStore`
+`permacultureZone`), and flags each as either "covered" (an existing
+amenity point within 12 m) or "social node opportunity" (Scholar prompt).
+
+**Catalog scope (v1):** Counts existing `prayer-pavilion` and `fire-circle`
+amenity points as coverage. Bench / picnic table / shaded seat / signage
+post / gathering pavilion remain a v2 catalog dependency.
+
+**Density metric:** `socialNodeDensity = covered / total`. Tier cuts:
+`served` ≥ 0.66, `partial` 0.33–0.66, `unserved` < 0.33.
+
+**Deferred to v2:**
+- Map-canvas pin at each opportunity intersection.
+- Bench / picnic table / shaded seat / signage post / gathering pavilion
+  kinds added to `elementCatalog.ts` (with COLORS + icons).
+- One-click "place bench / place gathering area / dismiss" interaction
+  from the acceptance criterion.
+- Wiring `socialNodeDensity` into a People-Care principle score.
+
+---
+
+### Original spec (preserved for v2 reference)
 
 **Principle:** Integrate rather than segregate · People Care
 **Source:** *Building Community*, *Permaculture Zones*,

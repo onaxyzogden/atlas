@@ -18,6 +18,7 @@ interface FinancialState {
   setRegion: (region: CostRegion) => void;
   setMissionWeights: (weights: MissionWeights) => void;
   setCostOverride: (itemId: string, override: Partial<CostRange>) => void;
+  clearCostOverride: (itemId: string) => void;
   setRevenueOverride: (streamId: string, override: Partial<CostRange>) => void;
   clearOverrides: () => void;
 }
@@ -34,6 +35,13 @@ export const useFinancialStore = create<FinancialState>()(
       setMissionWeights: (missionWeights) => set({ missionWeights }),
       setCostOverride: (itemId, override) =>
         set((s) => ({ costOverrides: { ...s.costOverrides, [itemId]: override } })),
+      clearCostOverride: (itemId) =>
+        set((s) => {
+          if (!(itemId in s.costOverrides)) return s;
+          const next = { ...s.costOverrides };
+          delete next[itemId];
+          return { costOverrides: next };
+        }),
       setRevenueOverride: (streamId, override) =>
         set((s) => ({ revenueOverrides: { ...s.revenueOverrides, [streamId]: override } })),
       clearOverrides: () => set({ costOverrides: {}, revenueOverrides: {} }),

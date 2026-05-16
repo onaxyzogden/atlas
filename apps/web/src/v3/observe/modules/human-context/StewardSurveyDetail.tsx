@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+﻿import { useEffect, type ReactNode } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
   ArrowRight,
@@ -8,10 +8,10 @@ import {
   Leaf,
   Users,
 } from 'lucide-react';
-import heroLandscape from '../../assets/steward-survey/hero-landscape.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   archetypeFor,
@@ -56,18 +56,10 @@ export default function StewardSurveyDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={hc.heroRow}>
-          <div>
-            <p className={card.lede}>
-              A protracted observation begins with the people. Capture who is stewarding
-              this land, what they bring, and what they hope to grow. All fields optional —
-              fill in what you have.
-            </p>
-          </div>
-          <img src={heroLandscape} alt="" aria-hidden="true" className={hc.heroArt} />
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-human-context-steward-survey"
+        lede="A protracted observation begins with the people. Capture who is stewarding this land, what they bring, and what they hope to grow. All fields optional â€” fill in what you have."
+      />
 
       <div>
           <FormSection number="1" title="Identity">
@@ -114,7 +106,7 @@ export default function StewardSurveyDetail() {
 
           <FormSection number="2" title="Capacity & Resources">
             <div className={card.grid}>
-              <Field label="Maintenance hrs/wk — initial">
+              <Field label="Maintenance hrs/wk â€” initial">
                 <input
                   type="number"
                   value={fmt(steward?.maintenanceHrsInitial)}
@@ -123,7 +115,7 @@ export default function StewardSurveyDetail() {
                   }
                 />
               </Field>
-              <Field label="Maintenance hrs/wk — ongoing">
+              <Field label="Maintenance hrs/wk â€” ongoing">
                 <input
                   type="number"
                   value={fmt(steward?.maintenanceHrsOngoing)}
@@ -143,15 +135,15 @@ export default function StewardSurveyDetail() {
 
             <div className={card.statRow} style={{ marginTop: 16 }}>
               <span>Capacity total</span>
-              <span>{totalCapacity > 0 ? `${totalCapacity} hrs / week` : '—'}</span>
+              <span>{totalCapacity > 0 ? `${totalCapacity} hrs / week` : 'â€”'}</span>
             </div>
             <div className={hc.capacityBar}>
               <i style={{ width: `${initialPct}%` }} />
               <b style={{ width: `${ongoingPct}%` }} />
             </div>
             <div className={hc.capacityLegend}>
-              <span>{initial > 0 ? `${initial} hrs initial` : '— initial'}</span>
-              <span>{ongoing > 0 ? `${ongoing} hrs ongoing` : '— ongoing'}</span>
+              <span>{initial > 0 ? `${initial} hrs initial` : 'â€” initial'}</span>
+              <span>{ongoing > 0 ? `${ongoing} hrs ongoing` : 'â€” ongoing'}</span>
             </div>
 
             <div style={{ marginTop: 16 }}>
@@ -177,7 +169,7 @@ export default function StewardSurveyDetail() {
               <Field label="In your own words" wide>
                 <textarea
                   value={steward?.vision ?? ''}
-                  placeholder="A small homestead that…"
+                  placeholder="A small homestead thatâ€¦"
                   maxLength={500}
                   onChange={(e) => updateSteward(id, { vision: e.target.value })}
                 />
@@ -272,13 +264,13 @@ function ChipEditor({ items, onAdd, onRemove, placeholder }: ChipEditorProps) {
             }}
             aria-label={`Remove ${item}`}
           >
-            ×
+            Ã—
           </button>
         </span>
       ))}
       <input
         type="text"
-        placeholder={placeholder ?? 'Add…'}
+        placeholder={placeholder ?? 'Addâ€¦'}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             const value = (e.target as HTMLInputElement).value.trim();
@@ -327,11 +319,11 @@ function StewardSnapshot() {
   const implications: string[] = [];
   if (totalHrs >= 20) {
     implications.push(
-      'Strong implementation capacity — designs can be more build-intensive.',
+      'Strong implementation capacity â€” designs can be more build-intensive.',
     );
   } else if (totalHrs > 0) {
     implications.push(
-      'Light-touch capacity — prefer durable, low-maintenance systems.',
+      'Light-touch capacity â€” prefer durable, low-maintenance systems.',
     );
   }
   if (skills.some((s) => /cad|gis|map/i.test(s))) {
@@ -398,12 +390,12 @@ function StewardSnapshot() {
           <Clock3 aria-hidden="true" size={18} />
         </div>
         <div className={hc.body}>
-          <strong>{totalHrs > 0 ? `${totalHrs} hrs / wk` : '— hrs / wk'}</strong>
+          <strong>{totalHrs > 0 ? `${totalHrs} hrs / wk` : 'â€” hrs / wk'}</strong>
           <span>
             {totalHrs >= 20
               ? 'Strong capacity for both build and maintenance.'
               : totalHrs > 0
-              ? 'Light-touch capacity — prioritize compounding systems.'
+              ? 'Light-touch capacity â€” prioritize compounding systems.'
               : 'Capacity not yet captured.'}
           </span>
         </div>
@@ -413,7 +405,7 @@ function StewardSnapshot() {
         <h3>What this implies for design</h3>
         {implications.map((item) => (
           <p key={item}>
-            <b>✓</b>
+            <b>âœ“</b>
             <span>{item}</span>
           </p>
         ))}

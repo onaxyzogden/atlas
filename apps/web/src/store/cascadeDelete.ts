@@ -6,7 +6,10 @@
 
 import { geodataCache } from '../lib/geodataCache.js';
 import { useZoneStore } from './zoneStore.js';
-import { useStructureStore } from './structureStore.js';
+import {
+  getStructuresForProject,
+  removeStructure,
+} from './builtEnvironmentSelectors.js';
 import { useCommentStore } from './commentStore.js';
 import { useCropStore } from './cropStore.js';
 import { useFieldworkStore } from './fieldworkStore.js';
@@ -30,9 +33,9 @@ export function cascadeDeleteProject(projectId: string): void {
     zones: s.zones.filter((z) => z.projectId !== projectId),
   })));
 
-  safeDelete('structures', () => useStructureStore.setState((s) => ({
-    structures: s.structures.filter((st) => st.projectId !== projectId),
-  })));
+  safeDelete('structures', () => {
+    getStructuresForProject(projectId).forEach((s) => removeStructure(s.id));
+  });
 
   safeDelete('comments', () => useCommentStore.setState((s) => ({
     comments: s.comments.filter((c) => c.projectId !== projectId),

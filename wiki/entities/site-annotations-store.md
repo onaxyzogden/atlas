@@ -93,3 +93,14 @@ Vitest spec: `apps/web/src/tests/siteAnnotationsMigrate.test.ts` (8 tests).
   not part of this family.
 - The legacy `siteAnnotationsStore.ts` is deleted; tsc serves as the
   regression guard against re-introducing the old import path.
+- **2026-05-15:** Vegetation observation was lifted out of this family
+  into a dedicated `useVegetationStore` (`ogden-vegetation` v1, `persist`
+  + `temporal`) holding `VegetationPatch` (geometry + 5-value
+  `successionStage` + 8-value `groundCover`). `useEcologyStore` lost its
+  `ecologyZones` path and the `ecologyZone` annotation schema; a one-time
+  boot migration drains persisted `ogden-ecology.ecologyZones` into
+  `ogden-vegetation` (guarded by `migratedFromEcology`). Single read path
+  is `v3/plan/engine/vegetationResolver.ts` (zone manual override wins,
+  else area-weighted dominant of overlapping patches). See
+  [[2026-05-15-atlas-vegetation-patch-unification]] and
+  [[2026-05-15-atlas-drawn-polygon-color-by-type]].

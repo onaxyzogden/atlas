@@ -10,10 +10,22 @@
 import { useEffect, useMemo } from 'react';
 import type { ExpressionSpecification, Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
-import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import {
-  PHASE_VIEW_CAP,
+  getDesignElementsForProject,
+  updateDesignElement,
+  useDesignElementsForProject,
+} from '../../../../store/builtEnvironmentSelectors.js';
+import { useTemporalScrubStore } from '../temporalScrubStore.js';
+import { canopyAtAge } from '@ogden/shared';
+import {
+  findOverlaps,
+  overlappingIds,
+} from '../../cards/plant-systems/temporalCoherenceMath.js';
+import { usePlanSelectionStore } from '../../../../store/planSelectionStore.js';
+import { translateByDelta } from '../../layers/translateGeometry.js';
+import {
   phaseIndex,
+  yeomansCapForYear,
   type PlanView,
 } from '../../types.js';
 import { findElementSpec } from '../elementCatalog.js';
@@ -25,6 +37,14 @@ interface Props {
   view: PlanView;
   /** Currently selected design element id. Drives the feature-state highlight. */
   selectedId?: string | null;
+  /** Called with true when the pointer enters a design-element layer,
+   *  false when it leaves. Used by VisionLayoutCanvas to drive the
+   *  hover-affordance cursor in Select mode. */
+  onHoverChange?: (hovering: boolean) => void;
+  /** Notified when a design-element is selected (or selection cleared) via
+   *  a direct map click. Lets the parent mirror the local `selectedId` state
+   *  that drives the gold-outline feature-state highlight. */
+  onSelect?: (id: string | null) => void;
 }
 
 const SOURCE_PREFIX = 'design-el-';
@@ -35,14 +55,22 @@ export default function DesignElementLayers({
   projectId,
   view,
   selectedId,
+  onHoverChange,
+  onSelect,
 }: Props) {
-  const elements = useDesignElementsForProject(projectId);
+  // Opt into draft rows so the generated-design review layer renders;
+  // every other consumer excludes drafts by default (ADR 2026-05-14).
+  const elements = useDesignElementsForProject(projectId, {
+    includeDrafts: true,
+  });
+  // Yeomans cap is now derived from the year scrubber's currentYear
+  // (replaces the retired `phase-1` / `phase-2` view tabs, 2026-05-14).
+  // Also drives the per-vegetation canopy scaling effect below.
+  const currentYear = useTemporalScrubStore((s) => s.currentYear);
 
   const { polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC } = useMemo(() => {
-    const cap =
-      view === 'phase-1' || view === 'phase-2'
-        ? phaseIndex(PHASE_VIEW_CAP[view])
-        : Infinity;
+    const capKey = yeomansCapForYear(currentYear);
+    const cap = capKey ? phaseIndex(capKey) : Infinity;
 
     const visible = elements
       .filter((el) => phaseIndex(el.phase) <= cap)
@@ -86,6 +114,7 @@ export default function DesignElementLayers({
             : (el.label ?? spec?.label ?? el.kind),
         originView,
         editable,
+        draft: el.draft === true,
       };
       const hasConflict =
         Array.isArray(el.utilityConflicts) && el.utilityConflicts.length > 0;
@@ -133,13 +162,31 @@ export default function DesignElementLayers({
       conflictPolyFC: { type: 'FeatureCollection' as const, features: conflictPolys },
       conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
     };
-  }, [elements, view]);
+  }, [elements, view, currentYear]);
 
   useEffect(() => {
     if (!map) return;
 
+    let disposed = false;
+    let idleRetryArmed = false;
+    const armIdleRetry = () => {
+      if (disposed || idleRetryArmed) return;
+      idleRetryArmed = true;
+      map.once('idle', () => {
+        idleRetryArmed = false;
+        if (!disposed) apply();
+      });
+    };
+
     const apply = () => {
-      if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
+      if (disposed) return;
+      // Don't gate on isStyleLoaded() — it flips back to false during
+      // tile loads and basemap swaps, which would suppress legitimate
+      // re-applies. Gate only on the style having been initialised at all.
+      if (!map.getStyle()) {
+        armIdleRetry();
+        return;
+      }
 
       const ensureSource = (id: string, data: GeoJSON.FeatureCollection) => {
         const sid = `${SOURCE_PREFIX}${id}`;
@@ -151,15 +198,28 @@ export default function DesignElementLayers({
         return sid;
       };
 
-      const polySid = ensureSource('poly', polyFC);
-      const lineSid = ensureSource('line', lineFC);
-      const pointSid = ensureSource('point', pointFC);
-      const labelSid = ensureSource('label', labelFC);
-      const conflictPolySid = ensureSource('utility-conflict-poly', conflictPolyFC);
-      const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
+      let polySid: string, lineSid: string, pointSid: string, labelSid: string;
+      let conflictPolySid: string, conflictLineSid: string;
+      try {
+        polySid = ensureSource('poly', polyFC);
+        lineSid = ensureSource('line', lineFC);
+        pointSid = ensureSource('point', pointFC);
+        labelSid = ensureSource('label', labelFC);
+        conflictPolySid = ensureSource('utility-conflict-poly', conflictPolyFC);
+        conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
+      } catch {
+        // Style not actually ready despite getStyle() returning a value
+        // (e.g. mid-setStyle interleaving). Retry on next idle.
+        armIdleRetry();
+        return;
+      }
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
-        if (!map.getLayer(spec.id)) map.addLayer(spec);
+        try {
+          if (!map.getLayer(spec.id)) map.addLayer(spec);
+        } catch {
+          armIdleRetry();
+        }
       };
 
       // Utility-conflict halos — added first so the `#c4422a` outline
@@ -187,6 +247,14 @@ export default function DesignElementLayers({
 
       const selFlag: ExpressionSpecification = ['boolean', ['feature-state', 'selected'], false];
       const SEL_GOLD = '#c4a265';
+      // Auto-Design drafts (ADR 2026-05-14) read dashed + extra-translucent
+      // so the steward can tell generated-but-unreviewed geometry apart
+      // from committed design at a glance.
+      const draftFlag: ExpressionSpecification = [
+        'boolean',
+        ['get', 'draft'],
+        false,
+      ];
 
       ensureLayer({
         id: `${LAYER_PREFIX}poly-fill`,
@@ -194,7 +262,14 @@ export default function DesignElementLayers({
         source: polySid,
         paint: {
           'fill-color': ['get', 'color'],
-          'fill-opacity': ['case', selFlag, 0.55, 0.28],
+          'fill-opacity': [
+            'case',
+            selFlag,
+            0.55,
+            draftFlag,
+            0.14,
+            0.28,
+          ],
         },
       });
       ensureLayer({
@@ -204,7 +279,23 @@ export default function DesignElementLayers({
         paint: {
           'line-color': ['case', selFlag, SEL_GOLD, ['get', 'color']],
           'line-width': ['case', selFlag, 3, 1.5],
-          'line-opacity': 0.9,
+          'line-opacity': ['case', draftFlag, 0.65, 0.9],
+        },
+      });
+      // Draft-only dashed overlay on polygon edges. `line-dasharray` is
+      // not a data-driven property in MapLibre, so the dash can't be a
+      // `get`-expression on the shared layer — instead a separate layer
+      // statically dashed and filtered to draft features carries it.
+      ensureLayer({
+        id: `${LAYER_PREFIX}poly-line-draft`,
+        type: 'line',
+        source: polySid,
+        filter: ['==', ['get', 'draft'], true],
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 1.5,
+          'line-opacity': 0.85,
+          'line-dasharray': [2, 2],
         },
       });
       ensureLayer({
@@ -214,19 +305,48 @@ export default function DesignElementLayers({
         paint: {
           'line-color': ['case', selFlag, SEL_GOLD, ['get', 'color']],
           'line-width': ['case', selFlag, 4, 2],
-          'line-opacity': 0.9,
+          'line-opacity': ['case', draftFlag, 0.65, 0.9],
           'line-dasharray': [2, 1],
         },
       });
+      // Vegetation point trees use a feature-state-driven `canopyR` so
+      // the bottom-canvas TemporalScrubSlider can scale crowns live as
+      // the steward walks Year 1..50. Non-vegetation kinds keep
+      // canopyR=null, so `coalesce` falls back to the base 6 px and the
+      // overlap branch never fires (per the 2026-04-28 temporal-slider ADR).
+      const overlapFlag: ExpressionSpecification = [
+        'boolean',
+        ['feature-state', 'overlap5y'],
+        false,
+      ];
       ensureLayer({
         id: `${LAYER_PREFIX}point`,
         type: 'circle',
         source: pointSid,
         paint: {
-          'circle-radius': ['case', selFlag, 9, 6],
+          'circle-radius': [
+            'case',
+            selFlag,
+            9,
+            ['coalesce', ['feature-state', 'canopyR'], 6],
+          ],
           'circle-color': ['get', 'color'],
-          'circle-stroke-color': ['case', selFlag, SEL_GOLD, '#1f1d1a'],
-          'circle-stroke-width': ['case', selFlag, 3, 1.5],
+          'circle-stroke-color': [
+            'case',
+            selFlag,
+            SEL_GOLD,
+            overlapFlag,
+            '#8a4f3a',
+            '#1f1d1a',
+          ],
+          'circle-stroke-width': [
+            'case',
+            selFlag,
+            3,
+            overlapFlag,
+            2.5,
+            1.5,
+          ],
           'circle-opacity': 0.95,
         },
       });
@@ -252,15 +372,172 @@ export default function DesignElementLayers({
     apply();
     const onStyle = () => apply();
     map.on('style.load', onStyle);
+    map.on('load', onStyle);
+    // `styledata` fires on initial paint AND every basemap swap, where
+    // `style.load` is unreliable in some F5/setStyle interleavings (see
+    // ADDENDUM 7 in DiagnoseMap). Idempotent ensureSource/ensureLayer
+    // guards make repeated invocations safe.
+    map.on('styledata', onStyle);
 
     return () => {
+      disposed = true;
       try {
         map.off('style.load', onStyle);
+        map.off('load', onStyle);
+        map.off('styledata', onStyle);
       } catch {
         /* map already disposed */
       }
     };
   }, [map, polyFC, lineFC, pointFC, labelFC, conflictPolyFC, conflictLineFC]);
+
+  // Pointer hover bookkeeping — report enter/leave on any of the three
+  // clickable design-element layers up to the canvas so the centralized
+  // cursor effect can show a `pointer` affordance in Select mode.
+  useEffect(() => {
+    if (!map || !onHoverChange) return;
+    const layerIds = ['design-el-poly-fill', 'design-el-line', 'design-el-point'];
+    const onEnter = () => onHoverChange(true);
+    const onLeave = () => onHoverChange(false);
+    for (const id of layerIds) {
+      map.on('mouseenter', id, onEnter);
+      map.on('mouseleave', id, onLeave);
+    }
+    return () => {
+      try {
+        for (const id of layerIds) {
+          map.off('mouseenter', id, onEnter);
+          map.off('mouseleave', id, onLeave);
+        }
+        onHoverChange(false);
+      } catch {
+        /* map disposed */
+      }
+    };
+  }, [map, onHoverChange]);
+
+  // Direct-click selection + drag-to-translate. Brings design-element
+  // interaction parity with PlanDataLayers' per-kind handlers — without
+  // this, design-elements were only selectable via DesignToolRail's
+  // gated `select` mode and could not be moved at all.
+  //
+  // Respects the `editable` feature property (origin-view scoping): a
+  // current-origin element rendered on a non-current view stays
+  // read-only.
+  useEffect(() => {
+    if (!map) return;
+
+    const DRAG_THRESHOLD_PX = 4;
+    const layerIds = ['design-el-poly-fill', 'design-el-line', 'design-el-point'];
+
+    type DragState = {
+      id: string;
+      startX: number;
+      startY: number;
+      startLng: number;
+      startLat: number;
+      origGeom: GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon;
+      dragging: boolean;
+    };
+    let down: DragState | null = null;
+
+    const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      const props = f?.properties as { editable?: boolean } | undefined;
+      if (props?.editable === false) return;
+      map.getCanvas().style.cursor = 'move';
+    };
+    const onMouseLeave = () => {
+      if (!down?.dragging) map.getCanvas().style.cursor = '';
+    };
+
+    const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f) return;
+      const props = f.properties as
+        | { id?: string; editable?: boolean }
+        | undefined;
+      const id = props?.id;
+      if (!id) return;
+      // Skip read-only renders (current-origin element on a non-current view).
+      if (props?.editable === false) return;
+      e.preventDefault();
+
+      const list = getDesignElementsForProject(projectId);
+      const el = list.find((x) => x.id === id);
+      if (!el) return;
+
+      const selStore = usePlanSelectionStore.getState();
+      const selItem = {
+        kind: 'design-element' as const,
+        id,
+        projectId,
+      };
+      if (e.originalEvent.shiftKey) {
+        selStore.toggle(selItem);
+      } else {
+        selStore.set([selItem]);
+      }
+      onSelect?.(id);
+
+      down = {
+        id,
+        startX: e.point.x,
+        startY: e.point.y,
+        startLng: e.lngLat.lng,
+        startLat: e.lngLat.lat,
+        origGeom: el.geometry,
+        dragging: false,
+      };
+
+      const onMove = (ev: maplibregl.MapMouseEvent) => {
+        if (!down) return;
+        const dx = ev.point.x - down.startX;
+        const dy = ev.point.y - down.startY;
+        if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+          down.dragging = true;
+          map.dragPan.disable();
+          map.getCanvas().style.cursor = 'grabbing';
+        }
+        if (!down.dragging) return;
+        const dLng = ev.lngLat.lng - down.startLng;
+        const dLat = ev.lngLat.lat - down.startLat;
+        const next = translateByDelta<
+          GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon
+        >(down.origGeom, dLng, dLat);
+        updateDesignElement(projectId, down.id, { geometry: next });
+      };
+
+      const onUp = () => {
+        map.off('mousemove', onMove);
+        map.off('mouseup', onUp);
+        down = null;
+        map.dragPan.enable();
+        map.getCanvas().style.cursor = '';
+      };
+
+      map.on('mousemove', onMove);
+      map.on('mouseup', onUp);
+    };
+
+    for (const id of layerIds) {
+      map.on('mouseenter', id, onMouseEnter);
+      map.on('mouseleave', id, onMouseLeave);
+      map.on('mousedown', id, onMouseDown);
+    }
+    return () => {
+      try {
+        for (const id of layerIds) {
+          map.off('mouseenter', id, onMouseEnter);
+          map.off('mouseleave', id, onMouseLeave);
+          map.off('mousedown', id, onMouseDown);
+        }
+        map.dragPan.enable();
+      } catch {
+        /* map disposed */
+      }
+    };
+  }, [map, projectId, onSelect]);
 
   // Drive feature-state highlight off selectedId. Re-runs on FC changes
   // because source.setData() wipes feature-state.
@@ -286,6 +563,73 @@ export default function DesignElementLayers({
       /* sources not yet ready — next data effect will re-apply */
     }
   }, [map, selectedId, polyFC, lineFC, pointFC]);
+
+  // ── Temporal slider: per-vegetation-point canopyR + overlap5y ──
+  // Drives the live tree-radius scaling and fired-clay overlap stroke
+  // tied to `useTemporalScrubStore.currentYear`. Re-runs on year change,
+  // on zoom/pan (pixel radius depends on the camera), on element changes,
+  // and after the selection effect (which wipes feature-state) so the
+  // canopy state is always re-applied. (`currentYear` is read once at
+  // component top alongside the Yeomans-cap subscription.)
+  useEffect(() => {
+    if (!map) return;
+    const source = `${SOURCE_PREFIX}point`;
+    let rafId: number | null = null;
+    const apply = () => {
+      rafId = null;
+      try {
+        if (!map.getSource(source)) return;
+        const vegPoints = elements.filter(
+          (e) => e.category === 'vegetation' && e.geometry.type === 'Point',
+        );
+        const overlaps = findOverlaps(vegPoints, currentYear, 5);
+        const flagged = overlappingIds(overlaps);
+        for (const el of vegPoints) {
+          if (el.geometry.type !== 'Point') continue;
+          const [lng, lat] = el.geometry.coordinates as [number, number];
+          const canopyM = canopyAtAge(el.kind, currentYear).canopyM;
+          const radiusM = canopyM / 2;
+          // Project centre and a destination point `radiusM` north of
+          // it, then take the pixel-delta as the canopy radius. Cheap;
+          // accurate enough at permaculture scale.
+          const dest = turf.destination(
+            [lng, lat],
+            radiusM / 1000,
+            0,
+            { units: 'kilometers' },
+          ).geometry.coordinates as [number, number];
+          const pCentre = map.project([lng, lat]);
+          const pDest = map.project(dest);
+          const canopyR = Math.max(
+            3,
+            Math.hypot(pDest.x - pCentre.x, pDest.y - pCentre.y),
+          );
+          map.setFeatureState(
+            { source, id: el.id },
+            { canopyR, overlap5y: flagged.has(el.id) },
+          );
+        }
+      } catch {
+        /* source/style not ready — next dep change retries */
+      }
+    };
+    const schedule = () => {
+      if (rafId != null) return;
+      rafId = requestAnimationFrame(apply);
+    };
+    schedule();
+    map.on('moveend', schedule);
+    map.on('zoomend', schedule);
+    return () => {
+      if (rafId != null) cancelAnimationFrame(rafId);
+      try {
+        map.off('moveend', schedule);
+        map.off('zoomend', schedule);
+      } catch {
+        /* map disposed */
+      }
+    };
+  }, [map, currentYear, elements, selectedId, pointFC]);
 
   // Cleanup on unmount: remove our sources + layers so they don't bleed into
   // the Current Land view.

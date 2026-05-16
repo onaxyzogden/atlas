@@ -21,7 +21,7 @@
 
 import { useMemo } from 'react';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import css from '../rules/SitingWarningsCard.module.css';
 
 interface Props {
@@ -86,7 +86,7 @@ const PER_INTENT_LIST_CAP = 4;
 
 export default function PrivacyCohortPlanningCard({ projectId }: Props) {
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const projectZones = useMemo(
     () => allZones.filter((z) => z.projectId === projectId),

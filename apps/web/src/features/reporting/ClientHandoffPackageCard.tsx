@@ -20,7 +20,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -91,7 +91,7 @@ interface PackageInclusion {
 
 export default function ClientHandoffPackageCard({ project }: Props): React.ReactElement {
   const [mode, setMode] = useState<HandoffMode>('hybrid');
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allCrops = useCropStore((s) => s.cropAreas);
   const allPaddocks = useLivestockStore((s) => s.paddocks);

@@ -10,11 +10,15 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import DimensionPanel from '../DimensionPanel.js';
 import {
   checkUtilityConflicts,
   depthTriggersVeto,
 } from '../../utils/utilityConflicts.js';
 import { useUtilityConflictStore } from '../utilityConflictStore.js';
+import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 /** Approximate swale excavation depth — drives the utility-veto gate. */
@@ -32,11 +36,10 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimValues = useDimensionValues();
 
-  useMapboxDrawTool<GeoJSON.LineString>({
-    map,
-    mode: 'draw_line_string',
-    onComplete: (geom) => {
+  const handleComplete = (geom: GeoJSON.LineString) => {
       const id = newAnnotationId('wn-w');
       const lengthM = turf.length(turf.feature(geom), { units: 'kilometers' }) * 1000;
       const coords = geom.coordinates;
@@ -88,7 +91,7 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
       proceed({});
 
       function openInlineForm(_anchor: [number, number]) {
-      openForm({
+        openForm({
         title: 'Swale',
         anchor,
         fields: [
@@ -136,7 +139,21 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
         onCancel: () => removeWaterNode(id),
       });
       }
-    },
+    };
+
+  const { liveLength } = useMapboxDrawTool<GeoJSON.LineString>({
+    map,
+    mode: 'draw_line_string',
+    onComplete: handleComplete,
+    enabled: dimMode === 'freehand',
+  });
+
+  useDimensionDrawTool({
+    map,
+    shape: 'line',
+    values: dimValues,
+    enabled: dimMode === 'dimensions',
+    onComplete: (geom) => handleComplete(geom as GeoJSON.LineString),
   });
 
   return (
@@ -145,6 +162,7 @@ export default function WaterSwaleTool({ map, projectId }: Props) {
       <span className={css.hint}>
         Trace the swale line on contour — confirm width and depth in the popover.
       </span>
+      <DimensionPanel allowedShapes={['line']} />
     </div>
   );
 }

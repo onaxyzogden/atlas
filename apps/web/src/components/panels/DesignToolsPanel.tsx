@@ -13,11 +13,14 @@ import {
   type ZoneCategory,
   type LandZone,
 } from '../../store/zoneStore.js';
+import type { StructureType, ProjectedStructure as Structure } from '@ogden/shared';
+import { useStructurePlacementStore } from '../../store/structurePlacementStore.js';
 import {
-  useStructureStore,
-  type StructureType,
-  type Structure,
-} from '../../store/structureStore.js';
+  useAllStructures,
+  addStructure,
+  updateStructure,
+  removeStructure,
+} from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES, createFootprintPolygon } from '../../features/structures/footprints.js';
 import StructurePropertiesModal from '../../features/structures/StructurePropertiesModal.js';
 import LivestockPanel from '../../features/livestock/LivestockPanel.js';
@@ -68,16 +71,13 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
   const deleteZone = useZoneStore((zs) => zs.deleteZone);
 
   // Structure state
-  const allStructures = useStructureStore((ss) => ss.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => allStructures.filter((st) => st.projectId === projectId), [allStructures, projectId]);
-  const addStructure = useStructureStore((ss) => ss.addStructure);
-  const deleteStructure = useStructureStore((ss) => ss.deleteStructure);
-  const placementMode = useStructureStore((ss) => ss.placementMode);
-  const setPlacementMode = useStructureStore((ss) => ss.setPlacementMode);
+  const placementMode = useStructurePlacementStore((ss) => ss.placementMode);
+  const setPlacementMode = useStructurePlacementStore((ss) => ss.setPlacementMode);
   const [showStructureModal, setShowStructureModal] = useState(false);
   const [pendingStructureCenter, setPendingStructureCenter] = useState<[number, number] | null>(null);
   const [editingStructure, setEditingStructure] = useState<Structure | null>(null);
-  const updateStructure = useStructureStore((ss) => ss.updateStructure);
   const [showStructurePicker, setShowStructurePicker] = useState(false);
 
   // Toolbar's "Place Structure" action triggers the picker overlay.
@@ -289,7 +289,7 @@ export default function DesignToolsPanel({ projectId, draw, map, canEdit = true 
                       <button
                         onClick={canEdit ? (e) => {
                           e.stopPropagation();
-                          deleteStructure(st.id);
+                          removeStructure(st.id);
                           if (map) {
                             ['fill', 'line', 'label'].forEach((t) => {
                               const id = `structure-${t}-${st.id}`;

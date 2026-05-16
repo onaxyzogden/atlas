@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PlantDatabaseCard — PLAN Module 4.
  *
  * Searchable / filterable browser over the v1 hand-curated species list
@@ -9,7 +9,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { PLANT_DATABASE, type CanopyLayer, type LightNeeds, type WaterNeeds, type EcologicalFunction } from '../../data/plantDatabase.js';
+import { PLANT_DATABASE, type CanopyLayer, type LightNeeds, type WaterNeeds, type EcologicalFunction } from '../../data/plantCatalog.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { newAnnotationId, type SpeciesPick } from '../../store/site-annotations.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';

@@ -57,6 +57,17 @@ export const ProjectMetadata = z.object({
   // DEFAULT_SECTOR_RADIUS_M (250) when unset. 5 km cap is a sanity
   // ceiling well past any plausible permaculture-scale parcel.
   sectorRadiusM: z.number().positive().max(5000).optional(),
+  // Steward's design-horizon year for the temporal slider. The TemporalScrubSlider
+  // "↺" chip snaps the year cursor to this value. Default lives in
+  // `getDesignHorizon` (20 years) so a future change is one line.
+  designHorizonYears: z.number().int().min(1).max(50).optional(),
+  // Needs & Yields graph-edge authoring (Rec #1 closeout, 2026-05-13).
+  // `designStatus` defaults to 'draft' via getDesignStatus accessor.
+  // The 'draft' → 'ready-for-review' transition is gated by
+  // canAdvanceToReadyForReview unless allowOrphanOutputs is true.
+  // 'approved' enum value is reserved for a later review-workflow slice.
+  designStatus: z.enum(['draft', 'ready-for-review', 'approved']).optional(),
+  allowOrphanOutputs: z.boolean().optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 

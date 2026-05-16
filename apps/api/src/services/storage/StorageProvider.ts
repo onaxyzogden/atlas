@@ -3,12 +3,13 @@
  * S3 in production, local filesystem in development when S3_BUCKET is not set.
  */
 
-import { mkdir, writeFile, unlink } from 'node:fs/promises';
+import { mkdir, writeFile, unlink, readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { config } from '../../lib/config.js';
 
@@ -21,6 +22,8 @@ export interface StorageProvider {
   delete(key: string): Promise<void>;
   /** Get the URL for a stored file. */
   getUrl(key: string): string;
+  /** Read a stored file's bytes by key (server-side proxy reads). */
+  download(key: string): Promise<Buffer>;
 }
 
 // ─── S3 Implementation ─────────────────────────────────────────────────────
@@ -70,6 +73,14 @@ class S3StorageProvider implements StorageProvider {
     }
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
   }
+
+  async download(key: string): Promise<Buffer> {
+    const res = await this.client.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
+    const bytes = await res.Body!.transformToByteArray();
+    return Buffer.from(bytes);
+  }
 }
 
 // ─── Local Filesystem Implementation ────────────────────────────────────────
@@ -100,6 +111,10 @@ class LocalStorageProvider implements StorageProvider {
 
   getUrl(key: string): string {
     return `/uploads/${key}`;
+  }
+
+  async download(key: string): Promise<Buffer> {
+    return readFile(join(this.baseDir, key));
   }
 }
 

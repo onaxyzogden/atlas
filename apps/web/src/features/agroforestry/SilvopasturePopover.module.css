@@ -1,0 +1,106 @@
+.popover {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(28, 26, 22, 0.94);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  color: rgba(232, 220, 200, 0.92);
+  font-size: 12px;
+  pointer-events: auto;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.95);
+}
+
+.kindPill {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: rgba(120, 160, 110, 0.16);
+  color: rgba(180, 220, 160, 0.9);
+  border: 1px solid rgba(120, 160, 110, 0.28);
+}
+
+.emptyNote {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  background: rgba(232, 220, 200, 0.04);
+}
+
+.rowKind {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(180, 165, 140, 0.7);
+  min-width: 56px;
+}
+
+.rowName {
+  flex: 1;
+  min-width: 0;
+  font-size: 11.5px;
+  color: rgba(232, 220, 200, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pinnedPill {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(196, 162, 101, 0.16);
+  color: rgba(232, 200, 130, 0.9);
+}
+
+.sharedPill {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(220, 180, 100, 0.9);
+}

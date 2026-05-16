@@ -15,7 +15,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -62,7 +62,7 @@ interface PresentationDeckCardProps {
 }
 
 export default function PresentationDeckCard({ project }: PresentationDeckCardProps) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((s) => s.zones);
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allCrops = useCropStore((s) => s.cropAreas);

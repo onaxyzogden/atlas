@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import {
   ArrowRight,
   BookOpen,
@@ -18,6 +18,7 @@ import { swotCounts } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
 
 const BUCKET_LABELS: Record<SwotEntry['bucket'], string> = {
@@ -77,14 +78,14 @@ export default function SwotDashboard() {
   const synthArticles: Array<[LucideIcon, string, string]> = [
     [
       Leaf,
-      'Strengths × Opportunities',
+      'Strengths Ã— Opportunities',
       counts.S > 0 && counts.O > 0
         ? 'Pair internal assets with external openings to maximize leverage.'
         : 'Capture both strengths and opportunities to surface high-leverage moves.',
     ],
     [
       Mountain,
-      'Weaknesses × Threats',
+      'Weaknesses Ã— Threats',
       counts.W > 0 && counts.T > 0
         ? 'Address internal gaps before external risks compound them.'
         : 'Log weaknesses and threats to expose risks that need mitigation.',
@@ -93,7 +94,7 @@ export default function SwotDashboard() {
       Target,
       'Design implications',
       total > 0
-        ? `${total} synthesis entr${total === 1 ? 'y' : 'ies'} — translate into design priorities next.`
+        ? `${total} synthesis entr${total === 1 ? 'y' : 'ies'} â€” translate into design priorities next.`
         : 'Start capturing entries to surface design priorities.',
     ],
   ];
@@ -107,26 +108,20 @@ export default function SwotDashboard() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Synthesize insights from your journal and diagnosis to reveal strategic leverage
-              points and inform robust, regenerative design decisions.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export synthesis summary'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId="observe-swot-synthesis-dashboard"
+        lede="Synthesize insights from your journal and diagnosis to reveal strategic leverage points and inform robust, regenerative design decisions."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generatingâ€¦' : 'Export synthesis summary'}
+        </button>
       </div>
 
       <section className={card.section}>
@@ -145,7 +140,7 @@ export default function SwotDashboard() {
                 <Icon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
                 {label}
               </span>
-              <span className={obsx.value}>{count > 0 ? count : '—'}</span>
+              <span className={obsx.value}>{count > 0 ? count : 'â€”'}</span>
               <span className={obsx.note}>{count > 0 ? 'Logged' : 'None yet'}</span>
             </div>
           ))}
@@ -165,7 +160,7 @@ export default function SwotDashboard() {
                 <Icon aria-hidden="true" size={12} />
                 {title}
                 <span className={`${card.pill} ${card[BUCKET_PILL[bucket]]}`} style={{ marginLeft: 'auto' }}>
-                  {count > 0 ? count : '—'}
+                  {count > 0 ? count : 'â€”'}
                 </span>
               </div>
               <p className={card.sectionBody}>{note}</p>
@@ -200,7 +195,7 @@ export default function SwotDashboard() {
             Recent journal entries
           </h2>
           {recent.length === 0 ? (
-            <p className={card.empty}>No entries yet — add one from the journal.</p>
+            <p className={card.empty}>No entries yet â€” add one from the journal.</p>
           ) : (
             <ul className={card.list}>
               {recent.map((e) => (
@@ -252,7 +247,7 @@ export default function SwotDashboard() {
           title=""
           projectId={id}
           kinds={['swotTag']}
-          emptyHint="No SWOT tags pinned to the map yet — drop a strength, weakness, opportunity, or threat with the tools panel."
+          emptyHint="No SWOT tags pinned to the map yet â€” drop a strength, weakness, opportunity, or threat with the tools panel."
         />
       </section>
     </div>

@@ -16,11 +16,12 @@
 
 .toolbar {
   position: absolute;
-  bottom: 28px;
-  right: 12px;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 6px;
-  z-index: 1;
+  z-index: 2;
 }
 
 .toolBtn {

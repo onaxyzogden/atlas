@@ -11,6 +11,7 @@
 import type { PlanModule } from '../types.js';
 
 export const PLAN_MODULE_DOT: Record<PlanModule, string> = {
+  'goal-compass': '#e2c075',
   'dynamic-layering': '#7aabca',
   'water-management': '#5fc7d4',
   'zone-circulation': '#d68bd0',

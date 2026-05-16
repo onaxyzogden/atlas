@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import {
   GUILD_PRESETS,
   resolveValidPresets,
   findGuildPreset,
 } from '../guildPresets.js';
-import { PLANT_DATABASE } from '../plantDatabase.js';
+import { PLANT_DATABASE } from '../plantCatalog.js';
 
 describe('guildPresets', () => {
   it('ships at least four starter presets', () => {
@@ -16,7 +16,7 @@ describe('guildPresets', () => {
       expect(preset.id).toMatch(/^gp-[a-z0-9-]+$/);
       expect(preset.name.length).toBeGreaterThan(0);
       expect(preset.description.length).toBeGreaterThan(0);
-      expect(preset.anchorSpeciesId).toMatch(/^pl-\d+$/);
+      expect(preset.anchorSpeciesId).toMatch(/^[a-z][a-z0-9_]*$/);
     }
   });
 
@@ -56,17 +56,17 @@ describe('guildPresets', () => {
   });
 
   it('resolveValidPresets drops a preset whose anchor is missing', () => {
-    const dbWithoutApple = PLANT_DATABASE.filter((p) => p.id !== 'pl-101');
+    const dbWithoutApple = PLANT_DATABASE.filter((p) => p.id !== 'apple');
     const resolved = resolveValidPresets(dbWithoutApple);
-    expect(resolved.find((p) => p.anchorSpeciesId === 'pl-101')).toBeUndefined();
+    expect(resolved.find((p) => p.anchorSpeciesId === 'apple')).toBeUndefined();
   });
 
   it('resolveValidPresets drops members whose speciesId is missing but keeps the preset', () => {
-    const dbWithoutComfrey = PLANT_DATABASE.filter((p) => p.id !== 'pl-301');
+    const dbWithoutComfrey = PLANT_DATABASE.filter((p) => p.id !== 'comfrey');
     const resolved = resolveValidPresets(dbWithoutComfrey);
     const apple = resolved.find((p) => p.id === 'gp-apple-guild');
     expect(apple).toBeDefined();
-    expect(apple!.members.find((m) => m.speciesId === 'pl-301')).toBeUndefined();
+    expect(apple!.members.find((m) => m.speciesId === 'comfrey')).toBeUndefined();
   });
 
   it('findGuildPreset returns a preset by id', () => {

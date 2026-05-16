@@ -20,7 +20,7 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import css from './MissionImpactRollupCard.module.css';
 
 /* \u2500\u2500 Per-axis rationale builders (read-only; mirror the inputs the
@@ -151,7 +151,7 @@ interface Props {
 export default function MissionImpactRollupCard({ project }: Props) {
   const model = useFinancialModel(project.id);
   const zones = useZoneStore((s) => s.zones).filter((z) => z.projectId === project.id);
-  const structures = useStructureStore((s) => s.structures).filter((s) => s.projectId === project.id);
+  const structures = useAllStructures().filter((s) => s.projectId === project.id);
 
   const details = useMemo<Record<AxisDescriptor['key'], AxisDetail>>(() => {
     return {

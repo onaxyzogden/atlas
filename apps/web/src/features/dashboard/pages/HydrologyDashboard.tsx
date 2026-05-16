@@ -7,7 +7,8 @@ import { useState, useMemo } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
-import { useStructureStore, type Structure } from '../../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../../store/utilityStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
@@ -51,7 +52,7 @@ export default function HydrologyDashboard({ project, onSwitchToMap }: Hydrology
   const [activeTab, setActiveTab] = useState<SubTab>('overview');
   const siteData = useSiteData(project.id);
 
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const projectStructures = useMemo(
     () => allStructures.filter((s) => s.projectId === project.id),
     [allStructures, project.id],
@@ -1051,7 +1052,7 @@ const LITERS_PER_GALLON = 3.78541;
 const WATER_STORAGE_UTILITY_TYPES: ReadonlySet<UtilityType> = new Set(['rain_catchment', 'water_tank']);
 
 function RoofCatchmentTab({ projectId, precipMm }: { projectId: string; precipMm: number }) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const updateUtility = useUtilityStore((s) => s.updateUtility);
 

@@ -24,6 +24,11 @@ export interface FieldSpec {
   kind: FieldKind;
   /** For 'select' fields. */
   options?: { value: string; label: string }[];
+  /** For 'select' fields with options that depend on other field values.
+   *  When present, this overrides `options` and is re-evaluated each render
+   *  against the current form state. Used e.g. by ZonePolygonTool to filter
+   *  Category by the chosen Z-level. */
+  optionsFor?: (values: Record<string, string | number>) => { value: string; label: string }[];
   /** Optional default value. */
   defaultValue?: string | number;
   /** Optional readonly hint (auto-filled values like areaM2 / lengthM). */

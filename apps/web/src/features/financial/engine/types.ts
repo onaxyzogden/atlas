@@ -6,7 +6,7 @@
  */
 
 import type { ZoneCategory } from '../../../store/zoneStore.js';
-import type { StructureType } from '../../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import type { PathType } from '../../../store/pathStore.js';
 import type { UtilityType } from '../../../store/utilityStore.js';
 import type { CropAreaType } from '../../../store/cropStore.js';

@@ -29,7 +29,7 @@ import {
   structureDestPlans,
   type ScheduledLivestockMove,
 } from '../../store/scheduledLivestockMoveStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import { startScheduledLivestockMove } from '../../v3/act/ActStructurePopover.actions.js';
 import {
@@ -375,7 +375,7 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
     () => structureDestPlans(allPlans, projectId),
     [allPlans, projectId],
   );
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const projectStructures = useMemo(
     () => allStructures.filter((s) => s.projectId === projectId),
     [allStructures, projectId],

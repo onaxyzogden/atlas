@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GuildRingsCanvas — concentric-rings visualisation of a polyculture guild.
  *
  * Anchor at centre; one ring per applicable canopy layer below the anchor.
@@ -14,7 +14,7 @@ import type { GuildLayer, GuildMember } from '../../../../store/site-annotations
 import {
   findSpecies,
   type PlantSpecies,
-} from '../../../../data/plantDatabase.js';
+} from '../../../../data/plantCatalog.js';
 import {
   LAYER_LABEL,
   LAYER_TINT,

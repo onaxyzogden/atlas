@@ -8,7 +8,7 @@
 
 import type { CreateDesignFeatureInput, DesignFeatureSummary } from '@ogden/shared';
 import type { LandZone } from '../store/zoneStore.js';
-import type { Structure } from '../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 
 export function zoneToDesignFeature(zone: LandZone, _projectServerId: string): CreateDesignFeatureInput {
   return {

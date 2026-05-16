@@ -9,7 +9,7 @@ import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import {
   computeInventorySummary,
@@ -80,7 +80,7 @@ const FORAGE_LABELS: Record<string, string> = {
 export default function LivestockDashboard({ project, onSwitchToMap }: LivestockDashboardProps) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const siteData = useSiteData(project.id);
 
   /* Filter to this project */

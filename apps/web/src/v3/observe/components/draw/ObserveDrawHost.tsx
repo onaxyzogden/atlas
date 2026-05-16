@@ -25,10 +25,13 @@ import HighPointTool from './HighPointTool.js';
 import DrainageLineTool from './DrainageLineTool.js';
 import WatercourseTool from './WatercourseTool.js';
 import SoilSampleTool from './SoilSampleTool.js';
-import EcologyZoneTool from './EcologyZoneTool.js';
+import VegetationTool from './VegetationTool.js';
+import PastureTool from './PastureTool.js';
+import ConventionalCropTool from './ConventionalCropTool.js';
 import SunWindWedgeTool from './SunWindWedgeTool.js';
 import PermacultureZoneTool from './PermacultureZoneTool.js';
 import SwotTagTool from './SwotTagTool.js';
+import AdoptBasemapBuildingTool from './AdoptBasemapBuildingTool.js';
 import BuildingTool from './BuildingTool.js';
 import WellTool from './WellTool.js';
 import SepticTool from './SepticTool.js';
@@ -101,8 +104,14 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
     case 'observe.earth-water-ecology.soil-sample':
       tool = <SoilSampleTool map={map} projectId={projectId} />;
       break;
-    case 'observe.earth-water-ecology.ecology-zone':
-      tool = <EcologyZoneTool map={map} projectId={projectId} />;
+    case 'observe.earth-water-ecology.vegetation':
+      tool = <VegetationTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.earth-water-ecology.pasture':
+      tool = <PastureTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.earth-water-ecology.conventional-crop':
+      tool = <ConventionalCropTool map={map} projectId={projectId} />;
       break;
     case 'observe.sectors-zones.sun-summer':
       tool = (
@@ -178,6 +187,9 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
       break;
     case 'observe.swot-synthesis.threat':
       tool = <SwotTagTool map={map} projectId={projectId} bucket="T" />;
+      break;
+    case 'observe.built-environment.adopt-basemap':
+      tool = <AdoptBasemapBuildingTool map={map} projectId={projectId} />;
       break;
     case 'observe.built-environment.building':
       tool = <BuildingTool map={map} projectId={projectId} />;

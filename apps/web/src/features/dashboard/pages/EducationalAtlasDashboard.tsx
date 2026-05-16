@@ -10,7 +10,7 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { useUtilityStore } from '../../../store/utilityStore.js';
 import GatheringRetreatCard from '../../structures/GatheringRetreatCard.js';
@@ -102,7 +102,7 @@ const MODES: ExplanationMode[] = [
 export default function EducationalAtlasDashboard({ project, onSwitchToMap }: EducationalAtlasProps) {
   const [activeMode, setActiveMode] = useState<ModeId>('ecology');
 
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((s) => s.zones);
   const allUtilities = useUtilityStore((s) => s.utilities);
 

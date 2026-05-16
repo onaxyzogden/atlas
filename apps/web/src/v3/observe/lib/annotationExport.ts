@@ -13,7 +13,7 @@
  *                storageInfra, ecologyObservation (when `location` set)
  *   LineString:  accessRoad, contour, drainageLine, watercourse,
  *                earthwork, transect (synthesised from pointA/pointB)
- *   Polygon:     hazard (when geometry present), ecologyZone, sector
+ *   Polygon:     hazard (when geometry present), vegetation, sector
  *                (synthesised wedge when homestead anchor available),
  *                permacultureZone (synthesised six concentric circles
  *                from anchorPoint + ringRadiiM — emitted as six Polygon
@@ -29,6 +29,7 @@ import { useTopographyStore } from '../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useEcologyStore } from '../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../store/vegetationStore.js';
 import { useSwotStore } from '../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../store/soilSampleStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
@@ -52,7 +53,7 @@ export type ExportKind =
   | 'storageInfra'
   | 'watercourse'
   | 'ecologyObservation'
-  | 'ecologyZone'
+  | 'vegetation'
   | 'swot'
   | 'soilSample';
 
@@ -71,7 +72,7 @@ const ALL_KINDS: ExportKind[] = [
   'storageInfra',
   'watercourse',
   'ecologyObservation',
-  'ecologyZone',
+  'vegetation',
   'swot',
   'soilSample',
 ];
@@ -92,7 +93,7 @@ const KIND_LABELS: Record<ExportKind, string> = {
   storageInfra: 'Storage infrastructure',
   watercourse: 'Watercourse',
   ecologyObservation: 'Ecology observation',
-  ecologyZone: 'Ecology zone',
+  vegetation: 'Vegetation & cover',
   swot: 'SWOT tag',
   soilSample: 'Soil sample',
 };
@@ -147,7 +148,7 @@ export function collectProjectAnnotations(
     storageInfra: here(water.storageInfra),
     watercourse: here(water.watercourses),
     ecologyObservation: here(eco.ecology),
-    ecologyZone: here(eco.ecologyZones),
+    vegetation: here(useVegetationStore.getState().patches),
     swot: here(swot.swot),
     soilSample: here(soil.samples),
   };
@@ -324,7 +325,7 @@ function geometriesFor(
         : [];
     }
     case 'hazard':
-    case 'ecologyZone':
+    case 'vegetation':
       return g ? [{ geom: g }] : [];
     case 'sector': {
       const anchor = ctx.sectorAnchor;

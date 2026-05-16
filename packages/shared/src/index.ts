@@ -50,6 +50,7 @@ export * from './schemas/actTelemetry.schema.js';
 export * from './builtEnvironment.js';
 export * from './builtEnvironmentKinds.js';
 export * from './builtEnvironmentProjection.js';
+export * from './demand/structureDemand.js';
 
 // Utilities
 export * from './lib/caseTransform.js';
@@ -62,6 +63,7 @@ export * from './ecology/pollinatorHabitat.js';
 export * from './ecology/ecoregion.js';
 export * from './ecology/corridorLCP.js';
 export * from './ecology/pollinatorHabitatState.js';
+export * from './succession/index.js';
 
 // Constants
 export * from './constants/dataSources.js';

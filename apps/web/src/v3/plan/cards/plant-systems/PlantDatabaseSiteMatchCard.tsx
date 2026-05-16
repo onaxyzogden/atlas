@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PlantDatabaseSiteMatchCard — Plan Module 4, fresh build per Permaculture
  * Scholar verdict (2026-05-07).
  *
@@ -27,7 +27,7 @@ import {
   type LightNeeds,
   type WaterNeeds,
   type EcologicalFunction,
-} from '../../../../data/plantDatabase.js';
+} from '../../../../data/plantCatalog.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import {
   newAnnotationId,

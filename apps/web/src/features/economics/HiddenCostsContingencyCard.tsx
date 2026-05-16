@@ -23,7 +23,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import type { FinancialModel } from '../financial/engine/types.js';
 import s from './HiddenCostsContingencyCard.module.css';
@@ -99,7 +99,7 @@ function sumByCategory(model: FinancialModel, predicate: (cat: string) => boolea
 }
 
 export default function HiddenCostsContingencyCard({ project, model }: Props) {
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () => allStructures.filter((sx) => sx.projectId === project.id),
     [allStructures, project.id],

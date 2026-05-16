@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Guild presets — premade polyculture templates for the Plan-stage GuildTool.
  *
  * Each preset names an anchor species + canonical companion members across the
@@ -24,7 +24,8 @@
  * yet in the plant database.
  */
 
-import { PLANT_DATABASE, findSpecies, type PlantSpecies } from './plantDatabase.js';
+import { PLANT_DATABASE, findSpecies, type PlantSpecies } from './plantCatalog.js';
+import { resolveSpeciesId } from './plantCatalogAliases.js';
 import type { GuildMember } from '../store/polycultureStore.js';
 
 export interface GuildPreset {
@@ -45,15 +46,15 @@ export const GUILD_PRESETS: GuildPreset[] = [
     name: 'Apple guild (Hemenway classic)',
     description:
       'Apple anchor with N-fixing ground cover, dynamic accumulator, insectary herbs, and shade-tolerant berries — the canonical introductory food-forest guild.',
-    anchorSpeciesId: 'pl-101', // Malus domestica — Apple, sub-canopy
+    anchorSpeciesId: 'apple',
     members: [
-      { speciesId: 'pl-202', layer: 'shrub' },        // Black currant
-      { speciesId: 'pl-301', layer: 'herbaceous' },   // Comfrey (dynamic accumulator)
-      { speciesId: 'pl-302', layer: 'herbaceous' },   // Garlic chive (insectary)
-      { speciesId: 'pl-303', layer: 'herbaceous' },   // Yarrow (insectary, dynamic)
-      { speciesId: 'pl-401', layer: 'ground_cover' }, // White clover (n-fixer)
-      { speciesId: 'pl-402', layer: 'ground_cover' }, // Strawberry
-      { speciesId: 'pl-602', layer: 'root' },         // Garlic
+      { speciesId: 'currant', layer: 'shrub' },
+      { speciesId: 'comfrey', layer: 'herbaceous' },
+      { speciesId: 'garlic_chive', layer: 'herbaceous' },
+      { speciesId: 'yarrow', layer: 'herbaceous' },
+      { speciesId: 'clover', layer: 'ground_cover' },
+      { speciesId: 'strawberry', layer: 'ground_cover' },
+      { speciesId: 'garlic', layer: 'root' },
     ],
     notes: 'Intro food-forest guild from Toby Hemenway, Gaia\'s Garden.',
   },
@@ -62,12 +63,12 @@ export const GUILD_PRESETS: GuildPreset[] = [
     name: 'Nitrogen-fixer pioneer',
     description:
       'Establishment-phase guild for degraded soils — N-fixing canopy, sub-canopy, shrub, and ground cover layers building fertility before fruiting species are interplanted.',
-    anchorSpeciesId: 'pl-004', // Black locust — canopy, n-fixer
+    anchorSpeciesId: 'black_locust',
     members: [
-      { speciesId: 'pl-107', layer: 'sub_canopy' },   // Black alder (n-fixer)
-      { speciesId: 'pl-206', layer: 'shrub' },        // Siberian pea shrub (n-fixer)
-      { speciesId: 'pl-301', layer: 'herbaceous' },   // Comfrey (dynamic accumulator)
-      { speciesId: 'pl-401', layer: 'ground_cover' }, // White clover (n-fixer)
+      { speciesId: 'black_alder', layer: 'sub_canopy' },
+      { speciesId: 'siberian_pea_shrub', layer: 'shrub' },
+      { speciesId: 'comfrey', layer: 'herbaceous' },
+      { speciesId: 'clover', layer: 'ground_cover' },
     ],
     notes: 'Pioneer succession — chop-and-drop N-fixers prepare soil before fruiting overstory.',
   },
@@ -76,14 +77,14 @@ export const GUILD_PRESETS: GuildPreset[] = [
     name: 'Food forest 7-layer sample',
     description:
       'Demonstrates the complete seven-layer forest-garden ontology: canopy through root, with N-fixing layers throughout.',
-    anchorSpeciesId: 'pl-101', // Apple — sub-canopy anchor
+    anchorSpeciesId: 'apple',
     members: [
-      { speciesId: 'pl-004', layer: 'canopy' },       // Black locust (canopy, n-fixer)
-      { speciesId: 'pl-207', layer: 'shrub' },        // Hazelnut
-      { speciesId: 'pl-301', layer: 'herbaceous' },   // Comfrey
-      { speciesId: 'pl-401', layer: 'ground_cover' }, // White clover (n-fixer)
-      { speciesId: 'pl-501', layer: 'vine' },         // Concord grape
-      { speciesId: 'pl-601', layer: 'root' },         // Jerusalem artichoke
+      { speciesId: 'black_locust', layer: 'canopy' },
+      { speciesId: 'hazelnut', layer: 'shrub' },
+      { speciesId: 'comfrey', layer: 'herbaceous' },
+      { speciesId: 'clover', layer: 'ground_cover' },
+      { speciesId: 'grape', layer: 'vine' },
+      { speciesId: 'jerusalem_artichoke', layer: 'root' },
     ],
     notes: 'One species per layer — covers canopy / sub-canopy / shrub / herbaceous / ground / vine / root.',
   },
@@ -92,13 +93,13 @@ export const GUILD_PRESETS: GuildPreset[] = [
     name: 'Pollinator edge',
     description:
       'Hedge / edge guild emphasizing pollinator and insectary support — flowering anchor + shrub berry + nectar-rich herbaceous layer.',
-    anchorSpeciesId: 'pl-103', // Sweet cherry — sub-canopy, pollinator
+    anchorSpeciesId: 'cherry',
     members: [
-      { speciesId: 'pl-203', layer: 'shrub' },        // Elderberry (pollinator, medicinal)
-      { speciesId: 'pl-303', layer: 'herbaceous' },   // Yarrow (insectary)
-      { speciesId: 'pl-304', layer: 'herbaceous' },   // Purple coneflower (pollinator)
-      { speciesId: 'pl-305', layer: 'herbaceous' },   // Borage (pollinator, dynamic)
-      { speciesId: 'pl-403', layer: 'ground_cover' }, // Creeping thyme (pollinator)
+      { speciesId: 'elderberry', layer: 'shrub' },
+      { speciesId: 'yarrow', layer: 'herbaceous' },
+      { speciesId: 'echinacea', layer: 'herbaceous' },
+      { speciesId: 'borage', layer: 'herbaceous' },
+      { speciesId: 'creeping_thyme', layer: 'ground_cover' },
     ],
     notes: 'Edge / hedgerow planting — flowering succession from spring (cherry) to summer (coneflower) to late summer (thyme).',
   },
@@ -115,22 +116,25 @@ export function resolveValidPresets(database: PlantSpecies[] = PLANT_DATABASE): 
   const ids = new Set(database.map((p) => p.id));
   const valid: GuildPreset[] = [];
   for (const preset of GUILD_PRESETS) {
-    if (!ids.has(preset.anchorSpeciesId)) {
+    const anchorId = resolveSpeciesId(preset.anchorSpeciesId);
+    if (!ids.has(anchorId)) {
       console.warn(
         `[guildPresets] dropping preset "${preset.id}" — anchor speciesId "${preset.anchorSpeciesId}" not found in PLANT_DATABASE`,
       );
       continue;
     }
-    const members = preset.members.filter((m) => {
-      if (!ids.has(m.speciesId)) {
+    const members: GuildMember[] = [];
+    for (const m of preset.members) {
+      const resolvedId = resolveSpeciesId(m.speciesId);
+      if (!ids.has(resolvedId)) {
         console.warn(
           `[guildPresets] preset "${preset.id}" — dropping member with missing speciesId "${m.speciesId}"`,
         );
-        return false;
+        continue;
       }
-      return true;
-    });
-    valid.push({ ...preset, members });
+      members.push({ ...m, speciesId: resolvedId });
+    }
+    valid.push({ ...preset, anchorSpeciesId: anchorId, members });
   }
   return valid;
 }

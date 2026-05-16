@@ -23,13 +23,22 @@ export default function PlanModuleBar({
   onOpenSlideUp,
   onCloseSlideUp,
 }: Props) {
+  // Plan-specific: opening the slide-up should happen on the FIRST click of
+  // an inactive tile. The shared ModuleBar fires onSelectModule for that
+  // case; we compose onOpenSlideUp on top so the sheet surfaces in a single
+  // render (state updates batch).
+  const handleSelect = (mod: PlanModule | null) => {
+    onSelectModule(mod);
+    if (mod !== null) onOpenSlideUp();
+  };
+
   return (
     <ModuleBar<PlanModule>
       modules={PLAN_MODULES}
       labelFor={(m) => PLAN_MODULE_LABEL[m]}
       activeModule={activeModule}
       slideUpOpen={slideUpOpen}
-      onSelectModule={onSelectModule}
+      onSelectModule={handleSelect}
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       toolbarLabel="Plan modules"

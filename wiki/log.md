@@ -4,6 +4,1076 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-15 — Map cursor: single authority closed via intent channel
+
+**Branch.** `claude/jovial-mccarthy-bb516f`.
+
+**What.** Executed the deferred follow-up from
+`decisions/2026-05-15-atlas-map-cursor-authoritative.md`: resolved the
+~30 ad-hoc `map.getCanvas().style.cursor = X` writers so the codebase
+has exactly one cursor authority (`useMapCursor`).
+
+- **Deleted (redundant):** `crosshair` writers in
+  `AdoptBasemapBuildingTool`, `SunWindWedgeTool`, `useDimensionDrawTool`
+  (all gated by `drawArmed`); pure pointer `mouseenter`/`mouseleave`
+  pairs in `PlanDataLayers` (×3) and `PlanScheduledMovesOverlay`
+  (covered by the hover probe; added `plan-scheduled-moves-` to
+  `INTERACTIVE_LAYER_PREFIXES`).
+- **Preserved by extending the priority model:** new
+  `mapCursorIntentStore.ts` (Zustand; `grabbing | move | grab`) consulted
+  by `useMapCursor` at priority 2 (below `drawArmed`, above hover/pan);
+  the hook subscribes and re-applies. `PlanDataLayers` (×5),
+  `AnnotationDragHandler`, `AnnotationSectorHandles` now call
+  `setCursorIntent(...)`/`setCursorIntent(null)` instead of writing the
+  canvas directly. This revives the `move`/`grab`/`grabbing` affordances
+  the prior ADR's observer had been overriding.
+
+**Verification.** `pnpm --filter web typecheck` exit 0. Live on a
+worktree-dedicated dev server (`web-wt`, port 5210, confirmed serving
+this branch). Observe + Plan: pan rest `grab !important`; draw armed
+(Swale / Adopt-from-map / Sun-summer) `crosshair !important`; real
+`mapCursorIntentStore` driven via the Vite dev graph →
+`grabbing`/`move`/`grab` each `!important`, clear → `grab !important`.
+Only a pre-existing `ObserveModuleBar.tsx:32` DOM-nesting warning and
+the expected placeholder-key MapTiler `403` in console — no cursor /
+MutationObserver / recursion errors.
+
+**Added.** `web-wt` (`--strictPort` 5210) launch config in
+`.claude/launch.json` for collision-free worktree preview. ADR:
+`decisions/2026-05-15-atlas-map-cursor-intent-channel.md`.
+
+## 2026-05-15 — OLOS/Atlas Workflow-Spec Reconciliation + MVP Delta
+
+**Branch.** `feat/atlas-permaculture`.
+
+**Trigger.** OGDEN issued `OLOS_Atlas_Platform_Workflow_Spec_v1.docx`
+(v1.0), treating the codebase as a "partial prototype." A codebase
+audit found the system substantially more mature than assumed — the
+deterministic sequencing engine, intervention catalog, rich land
+model, and three-stage v3 surface already align with spec intent;
+gaps were specific and bounded. Scope: a spec↔codebase reconciliation
+(answering the spec's 5 Open Questions with code evidence) plus six
+scoped MVP-delta workstreams, all v3-only; legacy stage
+routes/`LIFECYCLE_STAGES` enum left untouched (Phase 2 housekeeping).
+
+**WS2 — Spec-taxonomy mapping.** Spec's 6 land categories derived
+from the existing rich model (zone category + succession + ground
+cover) with strict Barren/Compacted precedence; rich model kept, spec
+vocabulary is a derived projection.
+
+**WS4 — Regeneration methodology content.** Authored the §3.2.1
+toolkit (keyline subsoiling, multi-species cover crop, compost/biology,
+biochar [high-compaction only], managed grazing [med/high]) with cited
+sources, compaction gating, and critical-path timeline-to-productive-use.
+
+**WS3 — Barren/Compacted system obligation (core value).**
+`autoDesign/regenerationForcing.ts` forces a mandatory regeneration
+pathway onto every Barren/Compacted zone independent of the goal tree,
+plus an assignment gate withholding those zones from productive
+allocation until acknowledged. **Woven at the `runAutoDesign`
+orchestrator level, not inside `sequencingEngine`** — the sequencing
+engine has no `zones` parameter and selects only foundation/
+goal-advancing interventions, so it structurally cannot enforce a
+zone-driven obligation. `runAutoDesign` gained
+`acknowledgedRegenerationZoneIds` input + `regenerationPathways`
+output; emits one `regeneration-pathway` fill-polygon draft per forced
+zone and schedules regen tasks ahead of the goal-driven phases.
+
+**WS1 — Editable boundary → API sync.** The Observe boundary
+draw/edit tool + local persistence to `parcelBoundaryGeojson` already
+existed; the real gap was `syncService` never pushing the boundary to
+the API. Added `syncProjectBoundary` (calls `api.projects.setBoundary`),
+fired from `subscribeToProjects` only when the boundary JSON actually
+changed — gated so name/notes edits don't re-trigger the endpoint's
+acreage/centroid recompute + Tier-1 pipeline re-enqueue.
+
+**WS5 Part 1 — server-side PDF.** `ReportPage` "Download PDF" now
+calls the server Puppeteer renderer via `api.exports.generate(...,
+{ exportType: 'capital_partner_summary' })` and opens the stored PDF;
+browser Print kept as offline fallback. `capital_partner_summary`
+chosen over an "investor" framing to honor the covenant language.
+
+**WS6 — soft Observe completion cue.** New `ObserveReadyCue` in the
+Observe right rail surfaces boundary-drawn + ≥1-landscape-placed state
+and offers a one-click jump to Plan. Strictly non-blocking — never
+gates navigation.
+
+**Verification.** `tsc --noEmit` clean (exit 0, whole web project).
+`vitest run` — 77 pass across plan engine + syncService suites (12
+new: specTaxonomy 7, regenerationForcing 5); 68-test broad engine
+suite green (no regression from `runAutoDesign` changes).
+
+**Deferred.** WS5 Part 2 (tokenized unauthenticated public
+report-share route) — deferred at Yousef's direction; a security
+boundary warranting its own session, recommended to mirror the audited
+`project_portals` precedent. WS4b (operational maintenance
+schedule/`MachineryInventoryCard` rollup) remains open.
+
+ADR `decisions/2026-05-15-atlas-spec-reconciliation-mvp-delta.md`.
+
+---
+
+## 2026-05-15 — Vegetation Patch unification + drawn-polygon color by type
+
+**Branch.** `feat/atlas-permaculture`.
+
+**Trigger.** Bug: the "Ground cover" Observe tool did nothing on an
+"Ecology zone" polygon — the two EWE tools wrote to disjoint stores
+(`useEcologyStore.ecologyZones` vs `useZoneStore` LandZones). Follow-on
+user request: "change color of drawn polygon based on type."
+
+**Vegetation Patch unification (Approach C).** New
+`apps/web/src/store/vegetationStore.ts` (`VegetationPatch` = geometry +
+5-value `successionStage` + 8-value `groundCover`; `ogden-vegetation` v1,
+`persist` + `temporal`; `groundCoverFromStage` export). One unified
+"Vegetation & cover" Observe tool replaces both old tools;
+`EcologyZoneTool.tsx` + `GroundCoverPaintTool.tsx` and their
+schema/dispatch/registry/`POLYGON_KINDS` entries deleted. New
+`v3/plan/engine/vegetationResolver.ts` (`resolveZoneVegetation` —
+per-axis, zone override wins else area-weighted dominant of overlapping
+patches via `turf.intersect`; `deriveCurrentLandCover`); 9 consumers
+rewired; ZonePanel keeps succession/cover selects as the override
+channel. One-time migration drains `ogden-ecology.ecologyZones` into
+`ogden-vegetation` (guarded `migratedFromEcology`); zoneStore v2→v3
+`bare→disturbed`. Canonical 5-value scale everywhere. turf v7 API fix:
+`intersect(featureCollection([a,b]))`. Spec:
+`docs/superpowers/specs/2026-05-15-vegetation-patch-unification-design.md`.
+ADR `decisions/2026-05-15-atlas-vegetation-patch-unification.md`.
+
+**Drawn-polygon color by type.** (A) New `DRAW_PREVIEW_COLORS` table in
+`mapboxDrawStyles.ts`; `useMapboxDrawTool` gained optional `previewColor`
+→ `setPaintProperty` on `gl-draw-polygon-fill`/`-stroke` after
+`addControl` (guarded by `getLayer`, in effect deps); the three EWE
+polygon tools pass their kind's color (vegetation = ground-cover
+`sparse-grasses` `#bfa86a`, pasture `#b58550`, crop `#a8854a`).
+(B) `ObserveAnnotationLayers` vegetation feature `color` switched
+`successionStage`→`groundCover` (`GROUND_COVER_COLORS`); now-unused
+`ECOLOGY_STAGE_COLOR` removed (would trip `noUnusedLocals` — deviation
+from plan's "keep it defined", made to keep the typecheck gate clean).
+ADR `decisions/2026-05-15-atlas-drawn-polygon-color-by-type.md`.
+
+**Verification.** `npm run typecheck` clean (exit 0, memory-safe 8 GB
+node script — plain `tsc` OOMs). `npm test` — 59 files / 815 tests
+green incl. new `vegetationResolver.test.ts`. Dev server: no console
+errors; `preview_screenshot` unresponsive (renderer hang, unrelated) so
+no visual capture — the in-progress draw tint is not exercisable via
+preview automation (synthetic events don't reach the MapLibre/MapboxDraw
+pipeline) and needs a manual draw; committed groundCover color path is
+logic-only and gate-covered.
+
+**Entity page.** `entities/site-annotations-store.md` updated (vegetation
+lifted out of the 7-namespace family into its own store).
+
+---
+
+## 2026-05-15 — Observe: Zones overlay decoupling + permaculture-zone anchor discoverability
+
+**Branch.** `feat/atlas-permaculture`.
+
+**Trigger.** Steward report: "fix zones overlay show/hide button in map
+view" — Zones checkbox appeared to do nothing with rings drawn.
+
+**Diagnosis (debugging-first, preview-reproduced).** Toggle *wiring* was
+correct (`observe-anno-human-zones-fill`/`-line` flipped `visible`↔`none`),
+but three compounding defects surfaced: (1) `ObserveAnnotationLayers`
+AND-gated every toggled spec with the separate `observeAnnotations` master,
+so a persisted `observeAnnotations: false` made independent rows like Zones
+inert; (2) `PermacultureZone.anchorPoint` is a create-time snapshot — moving
+the homestead pin correctly didn't move rings but nothing explained it; (3)
+a zone anchored km from the auto-fitted parcel rendered rings + the gold/teal
+edit markers off-screen with no way to reach them.
+
+**Changes.**
+
+- `ObserveAnnotationLayers.tsx` (in HEAD via work-tree): per-spec
+  visibility `spec.toggleKey ? subToggles[spec.toggleKey] : visible` at
+  both gating sites; comments updated.
+- `BaseMapCard.tsx`: overlay-scoping comment now states toggled rows are
+  independent of the `observeAnnotations` master (master governs only
+  untoggled point/note specs).
+- `PermacultureZoneTool.tsx`: `homesteadDrifted` (>1 m) detection →
+  explanatory hint + "Re-anchor zones to homestead" button calling
+  `updatePermacultureZone(id, { anchorPoint, anchorSource })`; plus an
+  effect that `map.flyTo`s the anchor on tool-arm / anchor-change when it
+  is outside the current viewport (scoped to active tool, never steals a
+  pan). Snapshot semantics + `2026-05-13` residence-derivation ADR
+  unchanged — steward elected to keep snapshot, fix discoverability.
+
+**Verification.** `tsc --noEmit` exit 0 (re-run post-edit). `vitest run`
+full suite green (815/815 at the toggle-fix point). Preview on mtc: master
+OFF + zones ON → layers `visible` (pre-fix forced `none`); drift → button
+shows, click re-anchors + clears notice; off-parcel anchor → map recenters,
+gold + teal markers on-canvas (screenshot-confirmed). Original mtc data
+restored.
+
+**Scope discipline.** The work-tree carried a large unrelated in-flight
+ecology/vegetation refactor (deleted `EcologyZoneTool`/`GroundCoverPaintTool`,
+new `vegetationStore`/`VegetationTool`, many `M` files). Commit limited to
+the two source files this session authored + the wiki — the refactor was
+**not** bundled.
+
+**Deferred.** Pre-existing `useEcologyStore.addEcologyZone/removeEcologyZone`
+gap (caused 2 transient test failures + an HMR error boundary mid-session)
+belongs to the in-flight ecology refactor; left to that work.
+
+---
+
+## 2026-05-14 — Plan Zone visual hierarchy: opacity ramp, hit-test tie-break, edge-anchored labels
+
+**Branch.** `feat/atlas-permaculture` · sequel to `7b9efe0d`.
+
+**Goal.** Strengthen the Z-stack ordering shipped earlier today
+with three perceptual + interaction cues so an intensive-use
+zone never gets buried by a later-drawn, less-intensive zone.
+
+**Changes.** All in `apps/web/src/v3/plan/layers/PlanDataLayers.tsx`.
+
+- **`permacultureZone` stamped on the feature.** Added to the
+  zone props object inside the zone loop so MapLibre paint
+  expressions and the click handler can read it without
+  re-querying the store.
+- **Z-keyed fill-opacity ramp.** The shared `poly-fill` layer's
+  static `fill-opacity: 0.28` is now a `case` expression: when
+  `kind === 'zone'`, ramp by Z-level — Z0 = 0.40, Z1 = 0.34,
+  Z2 = 0.28, Z3 = 0.22, Z4 = 0.18, Z5 = 0.14. Non-zone polygons
+  (paddocks, crops, etc.) keep the 0.28 baseline via the `else`
+  arm. Ramp kept tight (0.40–0.14, not 0.55–0.05) to avoid
+  drowning the basemap at Z0 or losing Z5 entirely.
+- **Hit-test tie-break.** The `onMouseDown` on `plan-data-poly-fill`
+  no longer naively picks `e.features[0]`. When the click point
+  overlaps multiple zones, it reduces them to the one with the
+  lowest `permacultureZone` (Z0 wins over Z1, Z1 over Z2, …) so
+  a smaller intensive-use zone drawn first stays selectable
+  even after a less-intensive zone is drawn over it. Non-zone
+  kinds keep the default "topmost wins" pick.
+- **Edge-anchored zone labels.** Replaced the centroid label
+  position with a point 60% of the way from the centroid toward
+  the top of the polygon's bounding box. Falls back to centroid
+  when the candidate lands outside the polygon (concave shapes).
+  Other label kinds keep centroid placement.
+- **Label collision priority.** The symbol layer now sets
+  `symbol-sort-key` = `permacultureZone` for zone labels (0 for
+  non-zones) so Z0 labels survive MapLibre's collision pass when
+  a Z1+ label would otherwise displace them.
+
+**Verification.** `npm --prefix "apps\web" run typecheck` clean
+after a small turf coords / bbox tuple-narrowing fix. Preview
+reloads with no error boundaries. Interactive visual checks
+(opacity ladder; click-pick on overlapping zones; label visibility
+under overlap) are pending manual smoke-test on a project with
+multiple overlapping zones — preview tooling can't drive draw
+sequences.
+
+**Deferred.** A one-time backfill prompt for legacy zones without
+`permacultureZone` (currently default to Z2) is still pending.
+The opacity ramp is a single tight scheme; if it reads too subtle
+at low pitch we may want a wider 0.45 → 0.10 sweep behind a
+display preference.
+
+## 2026-05-14 — Plan Zone fixes: decouple Infra, remove Zone Markers, Z-level stacking, popup category filter
+
+**Branch.** `feat/atlas-permaculture` · sequel to `533ff76c`.
+
+**Goal.** Three Plan-stage Zone defects reported in a single
+session: (1) clicking Zone & Circulation also lit up the Built
+Environment Infrastructure card; (2) the Zone Markers tool group
+was wired into the rail but had no draw-tool implementation and
+was effectively dead; (3) overlapping zones rendered in draw
+order so a Z5 drawn last buried a Z0, making the smaller
+intensive-use zone unselectable; (4) follow-on UX — the Zone
+popup let stewards pick any category at any Z-level, with no
+guardrails against permaculture mismatches.
+
+**Changes.**
+
+- **Infrastructure decoupled from Zones.** `BE_CATEGORY_TO_PLAN_MODULE`
+  in `apps/web/src/v3/plan/PlanTools.tsx` and the mirror in
+  `PlanChecklistAside.tsx` now route `infrastructure` to
+  `structures-subsystems` (matching building / agricultural /
+  utility / amenity). The `isActive = activeModule === routed`
+  pattern that caused two BE categories to light up together no
+  longer applies.
+- **Zone Markers fully removed.** The `'zone-marker'` literal
+  dropped from `BuiltEnvironmentCategory` in
+  `packages/shared/src/builtEnvironmentKinds.ts` (TS union
+  narrowing acted as the safety net). Consumers updated:
+  `BE_CATEGORY_LABEL` and `BE_CATEGORY_GUIDANCE` in
+  `apps/web/src/v3/_shared/builtEnvironmentTools.ts`; the
+  Observe twin maps in `ObserveTools.tsx` /
+  `ObserveChecklistAside.tsx`; the Plan element catalog and
+  height registry. Generator `gen-zone-marker-glbs.mjs` and all
+  six GLB assets under `public/models/zone-markers/` deleted;
+  `gen:models` script in `apps/web/package.json` trimmed. The
+  separate ZonesOverlay matrix rings (Module 3) are unrelated
+  and untouched.
+- **Z-level stacking.** Zone polygons in
+  `apps/web/src/v3/plan/layers/PlanDataLayers.tsx` are now sorted
+  by `permacultureZone` descending before being pushed into the
+  shared `polys` / `labels` GeoJSON arrays — MapLibre renders
+  later features on top, so Z0 lands topmost and Z5 at the
+  bottom regardless of draw order. Undefined Z defaults to 2.
+  Hit-testing needed no change: `e.features?.[0]` on
+  `plan-data-poly-fill` already picks the topmost rendered
+  feature.
+- **Popup category filtered by Z-level + field reorder.**
+  `ZonePolygonTool.tsx` reorders the inline form to Name →
+  Z-level → Category and constrains Category to the
+  prescribed list for the selected Z-level
+  (`Z_TO_CATEGORIES`: Z0 = habitation/spiritual/education/
+  infrastructure; Z1 adds food_production + access; Z2 adds
+  livestock/retreat/water_retention; Z3 drops habitation/
+  spiritual, keeps food_production/livestock/water_retention/
+  access/buffer; Z4 = livestock/commons/conservation/
+  water_retention/buffer/future_expansion/access; Z5 =
+  conservation/commons/water_retention/buffer/future_expansion).
+  Implemented via a new `optionsFor?: (values) => options[]`
+  hook on `FieldSpec` (in `inlineFormStore.ts`) read by
+  `InlineFeaturePopover.tsx` per render. An `onValuesChange`
+  patch auto-corrects `category` when the new Z-level no
+  longer admits the previously selected category.
+
+**Verification.** `npm --prefix "apps\web" run typecheck` clean
+across both commits. Preview reload on
+`/v3/project/mtc/plan/zone-circulation` — no error boundaries
+trip, all six Z-level counters render. Defect 1 confirmed:
+clicking Zone & Circulation no longer activates the
+Infrastructure card; clicking Infrastructure opens the
+Structures & Subsystems slide-up as expected. Defect 2
+confirmed: no Zone Markers section anywhere on the Plan or
+Observe rail. Defects 3 + 4 are interactive (require
+draw-and-click on the map) — manual smoke-test pending; logic
+is contained and typecheck covers shape.
+
+**Deferred.** Other places that may carry per-zone styling
+(e.g. zone-aware fill opacity by Z-level for a stronger visual
+hierarchy than render order alone) were not addressed.
+Legacy zones without `permacultureZone` set fall to Z2 in the
+stack; a one-time backfill prompt is not yet implemented.
+
+## 2026-05-14 — Fix: rectangle rotation now preserves 90° angles
+
+User reported that rotating a rect in Dimensions mode deformed the
+shape. Root cause in
+[apps/web/src/features/structures/footprints.ts](../apps/web/src/features/structures/footprints.ts)
+`createFootprintPolygon`: rotation was applied in lng/lat **degree
+space** after the half-extents had already been scaled by the
+per-axis degrees-to-meters factors (`mPerDegLng` ≠ `mPerDegLat`). At
+non-axis-aligned rotations the rotation matrix mixed the two
+unequal-scale axes and sheared the rectangle into a parallelogram —
+the further from the equator, the worse the shear.
+
+Fix: rotate in **metric space** instead. Build the four corners as
+metre offsets from centre `[(±W/2, ±D/2)]`, apply the 2×2 rotation in
+metres, then project each rotated offset back to lng/lat using the
+per-axis scale. The 90° angles are now preserved because the
+rotation operates on an isotropic (metric) coordinate system before
+the anisotropic projection back to degrees.
+
+Verified at lat=44°, 14×10 m rect, rotation=30°:
+- **Old**: edges 15.55 m / 9.38 m, angles 106.2° / 73.8° (sheared).
+- **New**: edges 14.00 m / 10.00 m, angles 90° / 90° / 90° / 90°.
+
+`tsc --noEmit -p apps/web` clean (only unrelated pre-existing errors
+in untracked `observePrefill.ts`). `createFootprintPolygon` is the
+shared rect primitive used by every Dimensions-mode rect — Structures,
+Buildings, Zones, Paddocks, CropAreas, WaterCatchments, and (via the
+prior commit) all 5 agricultural BE kinds through
+`BeV2ExistingTool` — so the fix propagates uniformly.
+
+---
+
+## 2026-05-14 — Freehand/Dimensions toggle reaches agricultural BE kinds
+
+User reported agricultural features (barn, greenhouse, …) lacked the
+Freehand/Dimensions toggle present on bespoke tools. Audit found the 5
+canonical agricultural kinds (`barn`, `greenhouse`, `shed`,
+`animal-shelter`, `compost`) plus 18 other non-bespoke kinds all route
+through the generic `BeV2ExistingTool` at
+[apps/web/src/v3/observe/components/draw/BeV2ExistingTool.tsx](../apps/web/src/v3/observe/components/draw/BeV2ExistingTool.tsx),
+which was omitted from the original 2026-05-14 rollout. Same component
+serves both Observe (state `existing`) and Plan (state `proposed` via
+`PlanDrawHost`'s `be.<kind>` dispatch), so one edit covers both stages.
+
+Wired the standard pattern into `BeV2ExistingTool`: gate the existing
+`useMapboxDrawTool` on `isPoint || dimMode === 'freehand'`; add a
+parallel `useDimensionDrawTool` gated on `!isPoint && dimMode ===
+'dimensions'`; both call a shared `place(geom)` that funnels into the
+unchanged `useBuiltEnvironmentStoreV2.create`. Render `<DimensionPanel
+allowedShapes={['rect','circle']} />` for polygon kinds,
+`allowedShapes={['line']}` for line kinds; point kinds get no panel.
+Polygon/line hint strings updated to mention both modes. Decision
+captured as a follow-up section appended to
+[2026-05-14-atlas-freehand-dimensions-toggle.md](decisions/2026-05-14-atlas-freehand-dimensions-toggle.md).
+
+Verified: tsc clean on the touched file; preview opened Barn,
+Greenhouse, Shed, Animal Shelter, Compost Station from the Plan rail —
+each rendered the expected popover (`aria-label=<kind>`, hint
+`"Outline the footprint (Freehand) or set Width × Depth / Radius
+(Dimensions)."`, Freehand/Dimensions toggle buttons).
+
+---
+
+## 2026-05-14 — Plan-Soil reads Observe conventional-crop heritage
+
+Closes the loop opened by the same-day `conventionalCrop` Observe
+annotation. Plan-stage Soil-fertility cards now read practice history
+from `conventionalCropStore` and surface it alongside live soil
+diagnosis. New pure helper `conventionalCropHeritage.ts` co-located
+with the Soil-fertility cards: `deriveHeritageHints(c)` maps
+compaction / inputs / tillage / irrigation enum values to
+severity-tagged restoration moves (Keyline subsoiling for severe
+compaction; biology rebuild + 2–3 yr transition for synthetic-input
+legacy; no-till transition + 3–5 yr SOM rebound for intensive tillage;
+drip retrofit for flood / sprinkler irrigation). Two consumer
+surfaces: `SoilBaselineCard` grows a "Conventional-crop heritage (from
+Observe) — N" section between Saved readings and Reading details with
+per-polygon practice line + severity-coloured hint list;
+`SoilBuildingPlanCard` gains a "0 · Inherited practice (from Observe)"
+prelude before step 1 (Diagnose now), framing yesterday's causes
+feeding into today's limiting factors. Empty-state predicate updated
+to include heritage. Read-only — Observe still owns polygon authoring;
+stage separation per 2026-05-08 ADR preserved. tsc clean (8 GB heap),
+`npm run lint` exit 0, preview-verified end-to-end at
+`/v3/project/mtc/plan` against a seeded `cc-test-*` polygon
+(annual-row · severe compaction · synthetic · intensive tillage ·
+sprinkler) — all four hints render on both tabs, section hides when
+no polygons exist, no console errors.
+
+Files: [apps/web/src/v3/plan/cards/soil-fertility/conventionalCropHeritage.ts](../apps/web/src/v3/plan/cards/soil-fertility/conventionalCropHeritage.ts),
+[SoilBaselineCard.tsx](../apps/web/src/v3/plan/cards/soil-fertility/SoilBaselineCard.tsx),
+[SoilBuildingPlanCard.tsx](../apps/web/src/v3/plan/cards/soil-fertility/SoilBuildingPlanCard.tsx).
+Decision: [decisions/2026-05-14-atlas-plan-soil-conventional-crop-heritage.md](decisions/2026-05-14-atlas-plan-soil-conventional-crop-heritage.md).
+
+---
+
+## 2026-05-14 — Observe: Conventional-crop annotation (earth-water-ecology)
+
+New `conventionalCrop` annotation kind under the Earth-Water-Ecology
+Observe module, sibling to `pasture` and `ecologyZone`. Closes the gap
+where inherited conventionally-farmed cropland — row crops, perennial
+monocultures, cover-cropped fields, fallow paddocks — had no Observe-side
+note surface, so Plan and Act stages now have an anchor for what
+restoration is converting *from*. One polygon tool with rich agronomy
+schema (kind enum + primaryCrop, compaction, inputs, tillage, irrigation,
+lastPlanted, rotationNotes, label, notes) per steward preference for
+richer first-cut capture. Dedicated `conventionalCropStore` (persist key
+`ogden-conventional-crops`) keeps the schema isolated from `pastureStore`
+and `ecologyStore`. Distinct ochre palette (annual-row `#a8854a`,
+perennial-monoculture `#8e7136`, cover-cropped `#9aa56b`, fallow
+`#c4b89a`) so the visual read diverges at a glance from pasture's
+tan/buff. Mirrors the pasture template's 9-integration-point pattern
+(store, draw tool, schema, registry, switchboard, MapToolId union, rail
+entry, layer spec, dashboard list). Freehand + Dimensions (rect, circle)
+toggle inherited. `tsc --noEmit` clean (required 8GB heap), `npm run lint`
+exit 0, preview-verified end-to-end via store + DOM probes.
+
+Files: [apps/web/src/store/conventionalCropStore.ts](../apps/web/src/store/conventionalCropStore.ts),
+[apps/web/src/v3/observe/components/draw/ConventionalCropTool.tsx](../apps/web/src/v3/observe/components/draw/ConventionalCropTool.tsx),
+[annotationFieldSchemas.ts](../apps/web/src/v3/observe/components/draw/annotationFieldSchemas.ts),
+[AnnotationRegistry.ts](../apps/web/src/v3/observe/components/AnnotationRegistry.ts),
+[ObserveDrawHost.tsx](../apps/web/src/v3/observe/components/draw/ObserveDrawHost.tsx),
+[useMapToolStore.ts](../apps/web/src/v3/observe/components/measure/useMapToolStore.ts),
+[ObserveTools.tsx](../apps/web/src/v3/observe/tools/ObserveTools.tsx),
+[ObserveAnnotationLayers.tsx](../apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx),
+[EarthWaterEcologyDashboard.tsx](../apps/web/src/v3/observe/modules/earth-water-ecology/EarthWaterEcologyDashboard.tsx).
+Decision: [decisions/2026-05-14-atlas-observe-conventional-crop-annotation.md](decisions/2026-05-14-atlas-observe-conventional-crop-annotation.md).
+
+---
+
+## 2026-05-14 — Observe: single-click reopens drawn feature's edit popup
+
+Closed a two-click gap in the Observe annotation flow: after the create popup
+closed, re-selecting a drawn feature on the map only set selection — the
+steward had to press the floater's Edit button to reopen the form. Click now
+reopens the same popup that appeared on first draw, with BE kinds routing to
+`InlineFeaturePopover` and the rest to `AnnotationFormSlideUp`, reusing
+`SelectionFloater.onEdit`'s branching verbatim. Guarded against active draw
+tools, idempotent re-clicks on an already-open form, and missing projectId.
+Shift-click, double-click, and the SelectionFloater are untouched. Plan stage
+unaffected — its BE features already open on mousedown via
+`PlanObserveSelectionHandler`, and Plan-native design elements have no
+creation popup to re-open.
+
+Files: [apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx](../apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx).
+Decision: [decisions/2026-05-14-atlas-observe-click-reopens-edit-popup.md](decisions/2026-05-14-atlas-observe-click-reopens-edit-popup.md).
+
+---
+
+## 2026-05-14 — JSDoc sweep: align Plan-card prose with year-scrubber Yeomans-cap model
+
+Doc-only follow-up to the year-scrubber migration (commit af5a2fc4).
+Ten files swept to retire stale `phase-1` / `phase-2` / "Year 1 / Year 5"
+wording in JSDoc headers, inline comments, and lede prose, replacing
+them with year-scrubber / `yeomansCapForYear(currentYear)` framing:
+PlanPhaseTabs header (Five tabs → Three tabs + scrub toggle),
+usePrincipleEvidenceVisibleIds, WaterStorageCard, WaterNetworkCard,
+ThreeEthicsRollupCard (header + lede), PrincipleCoverageMatrixCard
+(header + lede), FertilityColocationCard (cap-discipline block + lede),
+ClosedLoopGraphCard, PlantEstablishmentSequenceCard (cap-discipline
+block + lede), CanopySuccessionCard. Remaining matches in `types.ts`,
+`PlanViewContext.tsx`, `DesignElementLayers.tsx`, and `PlanPhaseTabs.tsx`
+are intentional historical references (each explicitly "retired" /
+"former").
+
+No logic touched. See: [2026-05-14-atlas-plan-year-scrubber-yeomans-cap.md](decisions/2026-05-14-atlas-plan-year-scrubber-yeomans-cap.md).
+
+---
+
+## 2026-05-14 — Freehand / Dimensions toggle across Plan + Observe annotation tools
+
+Plan-side parametric draw primitives (`dimensionDrawStore`,
+`useDimensionDrawTool`, `DimensionPanel`, `dimensionGeometry`) extended
+to the 14 Observe annotation tools that produce a polygon or linestring.
+Each tool now mounts `<DimensionPanel allowedShapes={...} />` inside its
+popover, gates its existing `useMapboxDrawTool` on
+`enabled: dimMode === 'freehand'`, and adds a parallel
+`useDimensionDrawTool` for the dimensions path. Observe coverage: 6
+polygon tools (Building, Septic, Pasture, FrostPocket, HazardZone,
+EcologyZone) get Rect/Circle; 8 linestring tools (Fence, PowerLine,
+BuriedUtility, AccessRoad, ContourLine, DrainageLine, Watercourse,
+ExistingDriveway) get a single Line shape. The 7 point tools are
+intentionally untouched.
+
+Plan-side wiring (11 opting tools + the four new primitive files) was
+also committed in this change — all of it had been built earlier but
+remained uncommitted across the session boundary.
+
+`tsc --noEmit` clean; 710/710 tests pass; preview-verified Building and
+Fence popovers in Observe.
+
+See: [2026-05-14-atlas-freehand-dimensions-toggle.md](decisions/2026-05-14-atlas-freehand-dimensions-toggle.md)
+
+---
+
+## 2026-05-14 — Plan year scrubber subsumes Year 1 / Year 5 tabs
+
+The Plan-stage `PlanPhaseTabs` strip lost its `phase-1` ("Year 1") and
+`phase-2` ("Year 5") tabs. Their sole job — driving `PHASE_VIEW_CAP`,
+the Yeomans Scale of Permanence cap that filters canvas elements and
+module-card data — moved to a new `yeomansCapForYear(currentYear)`
+helper in `apps/web/src/v3/plan/types.ts`, driven by the bottom-canvas
+year scrubber's `useTemporalScrubStore.currentYear`. Thresholds were
+chosen to preserve bit-identical behaviour at the two prior tab
+landings (Year 1..2 → `water`, Year 3..5 → `buildings`, Year 6+
+uncapped). Five cap consumers migrated; `PlanView` shrinks to
+`current | vision | terrain3d`; `PlanViewBadge` now appends
+`Year N · capped at <key>` so the active cap stays legible after the
+tabs are gone.
+
+Also fixed in the same change: the scrubber's tick row
+(`[1, 5, 15, 30, 50]`) used to evenly distribute via
+`justify-content: space-between`, mis-aligning labels from their
+mathematical positions on the 1..50 axis. Replaced with absolute
+positioning at `((y - 1) / 49) * 100%`, so "5" now sits under the
+thumb at Year 5, "15" at 15, etc.
+
+See: [2026-05-14-atlas-plan-year-scrubber-yeomans-cap.md](decisions/2026-05-14-atlas-plan-year-scrubber-yeomans-cap.md)
+
+---
+
+## 2026-05-14 — Plan scrubber summoned from PlanPhaseTabs (not always-on)
+
+The bottom-canvas `TemporalScrubSlider` (year cursor for canopy
+maturity, landed 2026-05-13) was rendering on every Plan-stage canvas
+and overlapping other chrome. It now hides by default and is summoned
+by a dedicated "Year scrub" toggle on the top `PlanPhaseTabs` strip.
+Visibility lives in a new unpersisted Zustand store
+`apps/web/src/v3/plan/canvas/temporalScrubVisibilityStore.ts` — every
+Plan-stage entry starts hidden; the scrubbed `currentYear` itself is
+preserved within a session via the existing `temporalScrubStore`.
+
+---
+
+## 2026-05-14 — BE category flatten in Observe & Plan rails
+
+Built Environment registry (31 kinds across 9 categories) was previously
+collapsed into a single rail section in both Observe and Plan, dominating
+the rail. Flattened so each `BuiltEnvironmentCategory` becomes its own
+top-level rail section — parallel to how Sectors / SWOT each occupy their
+own section — and the right-rail guidance aside mirrors that shape with
+per-category WHY / HOW / Pitfall cards grounded in Yeomans / Mollison /
+OSU PDC. Each category section click-routes to a pre-existing module so
+slide-ups, telemetry, and `MODULE_CARDS` stay stable; no new module IDs
+were introduced. BE toolIds (`observe.built-environment.<kind>` /
+`plan.structures-subsystems.be.<kind>`) are unchanged, so the BE entity
+store / draw pipeline / inline-edit schemas are untouched.
+
+Per steward feedback during the session, two further reductions:
+**Vegetation** BE rail section was removed — Oak / Pine / Apple / Shrub /
+Hedgerow already surface as first-class plant tools under Plan's native
+`plant-systems` section, and as the EWE ecology workflow in Observe. The
+3-item **Earthworks** section was dissolved: Terrace was appended to the
+Amenities BE section, Berm moved into Water Management (Plan) /
+Earth-Water-Ecology (Observe), and Raised bed moved into Plant Systems
+(Plan) / Earth-Water-Ecology (Observe). All three relocated buttons
+dispatch their original BE toolIds, so the BE draw pipeline still handles
+them — only the rail-section grouping changed.
+
+Final rail counts: Observe = 6 module sections + "Adopt from map" + 7 BE
+sections (Buildings / Agricultural / Utilities / Infrastructure /
+Machinery / Amenities / Zone markers); Plan = 10 module sections + 7 BE
+sections. Right rail mirrors.
+
+Files: `apps/web/src/v3/_shared/builtEnvironmentTools.ts` (+`BE_CATEGORY_GUIDANCE`),
+`observe/tools/ObserveTools.tsx`, `plan/PlanTools.tsx`,
+`observe/components/ObserveChecklistAside.tsx`, `plan/PlanChecklistAside.tsx`.
+
+`npm run typecheck` clean; `npm test` 710/710 passing (no BE toolId tests
+affected).
+
+**ADR.** [2026-05-14 atlas-be-category-flatten](decisions/2026-05-14-atlas-be-category-flatten.md).
+
+---
+
+## 2026-05-14 — Observe: Pasture / paddock annotation (earth-water-ecology)
+
+Added a new `pasture` annotation kind to the Observe stage under the existing
+Earth, Water & Ecology module, sibling to `ecology-zone`. Closes the gap where
+properties with pre-existing paddocks or pastures had no Observe-side tool to
+*note what's already there* (Plan's `PaddockTool` is a design tool under
+`useLivestockStore`, not an observation surface — see ADR
+`2026-05-08-atlas-plan-module4-livestock.md`).
+
+One polygon tool, lean schema (`kind: open-pasture | paddock | hayfield`,
+optional `label`, `notes`), separate `pastureStore` (persistence key
+`ogden-pastures`) so the Observe schema doesn't pollute Plan's livestock store
+or Observe's `ecologyStore`. New `PastureTool.tsx` mirrors `EcologyZoneTool`'s
+persist-first lifecycle. Rendered with buff/tan palette
+(`#c9a86a` / `#b58550` / `#d4b878`) at 0.22 fill opacity, 1.5 line width.
+Surfaced in `EarthWaterEcologyDashboard`'s `AnnotationListCard`.
+
+tsc clean. ADR: `wiki/decisions/2026-05-14-atlas-observe-pasture-annotation.md`.
+
+---
+
+## 2026-05-14 — Observe slide-up: Plan/Act-parity hero headers
+
+Refactored all 21 Observe page hero blocks onto a single new
+`apps/web/src/v3/observe/components/ObserveHero.tsx` that renders
+`<header data-stage="observe">` → `.heroTag` (`Observe · Module N · <Label>`) /
+italic `.title` (per-card tab label) / `.lede`, matching Plan/Act's hero
+contract verbatim. `ObserveHero` derives module index + label from
+`OBSERVE_MODULES`/`OBSERVE_MODULE_LABEL`/`OBSERVE_MODULE_CARDS`; optional
+`moduleOverride` covers dual-host `CartographicDetail`. Plumbed
+`moduleOverride="sectors-zones"` + `sectionIdOverride` through
+`ModuleSlideUp.tsx`'s renderCard switch for the Sectors-&-Zones host;
+preview confirmed both Cartographic instances render with the right
+module eyebrow (Module 4 · Topography vs Module 6 · Sectors & Zones).
+Dropped 3 decorative `hero*.png` imports per the "strict Plan/Act
+parity, no images" call, and deleted now-orphaned `.heroRow` / `.heroArt`
+rules from `_shared/stageCard/observeExtras.module.css`. `tsc --noEmit
+-p apps/web` clean for Observe; pre-existing errors in `plan/draw/tools`
+and `plan/draw/__tests__/dimensionGeometry.test.ts` left alone. PNG
+files themselves left on disk pending an asset sweep. Full ADR:
+[decisions/2026-05-14-atlas-observe-hero-plan-act-parity.md](decisions/2026-05-14-atlas-observe-hero-plan-act-parity.md).
+
+---
+
+## 2026-05-13 — V1 Observe draw: Cancel discards provisional entity
+
+Closed the broader provisional-entity leak across 20 V1 Observe draw
+tools (BuildingTool / WellTool / SepticTool / PowerLineTool /
+BuriedUtilityTool / FenceTool / GateTool / ExistingDrivewayTool /
+NeighbourPinTool / HouseholdPinTool / AccessRoadTool / FrostPocketTool
+/ HazardZoneTool / ContourLineTool / HighPointTool / DrainageLineTool
+/ WatercourseTool / EcologyZoneTool / SoilSampleTool / SwotTagTool).
+ADDENDUM 6 had moved the create call ahead of the form-open, so the
+slide-up's `close()`-on-Cancel left default-labeled phantoms behind.
+
+Approach: payload flag + dispatch table.
+`AnnotationFormActive.discardOnCancel?: boolean` set by post-draw
+flows; slide-up's onCancel looks up
+`FIELD_REMOVERS[kind](existingId)` when present. Edit-from-dashboard
+and SelectionFloater paths leave the flag unset (no-op Cancel).
+`FIELD_REMOVERS` is a `Record<AnnotationKind, (id) => void>` so adding
+a new kind without a remover is a build error.
+
+Verified: 10/10 new vitest cases pass for the dispatch contract; full
+project tsc clean; dev server renders without console errors.
+
+ADR: [wiki/decisions/2026-05-13-cancel-discards-provisional-entity.md](decisions/2026-05-13-cancel-discards-provisional-entity.md).
+
+Follow-up audit (same day): the 21st annotation kind, `sector`, was
+inspected and is intentionally out of scope. `SunWindWedgeTool` is a
+save-on-click popover (no provisional stub written before the steward
+presses Save), and the sector schema's `save` is edit-only — so the
+slide-up create path is structurally unreachable for sectors. No
+remediation needed; scope note appended to the ADR.
+
+---
+
+## 2026-05-13 — Steward / household pin unified as Zone 0 anchor surface
+
+**Closed.** Follow-on to the Option C derivation work below: the
+standalone "Place homestead" control in `ObserveLayout` was retired,
+and the Steward / household annotation pin is now the canonical UI for
+placing the Mollison Zone 0 anchor. The household pin's `save()`
+writes through to `homesteadStore` so `useEffectiveHomestead` still
+resolves the explicit branch first; deleting the household pin tied to
+the current anchor either promotes the next remaining pin or clears
+the anchor (no blink-to-none mid-deletion). `useEffectiveHomestead`
+and `resolveEffectiveHomestead` gain a third "single-household
+fallback" branch so projects whose households were created before the
+unification (no `homesteadStore` mirror) still derive an anchor from a
+lone household pin.
+
+**Changes.**
+- `apps/web/src/v3/observe/ObserveLayout.tsx` — dropped the
+  `homestead={…}` prop passed to `DiagnoseMap`; Place/Clear now
+  surfaces through the Steward / household annotation tool instead.
+- `apps/web/src/store/humanContextStore.ts` — `removeHousehold`
+  imports `useHomesteadStore` and syncs the anchor (promote next or
+  clear) when the deleted pin matched the explicit anchor.
+- `apps/web/src/v3/observe/components/draw/annotationFieldSchemas.ts`
+  — household save() pathway extended to mirror the pin position into
+  `homesteadStore`.
+- `apps/web/src/v3/observe/hooks/useEffectiveHomestead.ts` — both the
+  hook and its imperative twin gained the `households.length === 1`
+  derived branch (resolved after explicit, before the BE-residence
+  branch) plus a `useHumanContextStore` dependency.
+- 26 Observe draw-tool components + `AnnotationFormSlideUp` +
+  `annotationFormStore` + `DiagnoseMap.module.css` — small uniform
+  surface adjustments that fall out of the unification (annotation
+  field plumbing).
+
+**Verification.** Manual smoke pending. Recommended check: place a
+Steward / household pin → Permaculture-zone tile enables and the same
+pin appears as the legend's anchor; delete that pin → with another
+household pin remaining, anchor promotes silently; with none, anchor
+clears and tile disables (or derives from a single BE residence if
+present).
+
+---
+
+## 2026-05-13 — Option C: residence → Zone-0 lazy derivation
+
+**Closed.** Realized the ADR
+[`2026-05-13-atlas-residence-zone0-derivation.md`](decisions/2026-05-13-atlas-residence-zone0-derivation.md)
+(Option C). When no explicit homestead is placed and exactly one
+existing residence-kind BE entity (`building`, `cabin`, `yurt`,
+`tent-glamping`, `earthship`) sits on the parcel, downstream tools now
+treat its polygon centroid as a *derived* Zone 0 anchor. The
+`homesteadStore` is never written from the residence — explicit
+Place-homestead stays the only writer. Per user decision the derived
+marker is **invisible** (no `<HomesteadMarker>` for derived anchors),
+the resolved anchor is **snapshotted** onto each `PermacultureZone`
+record with a new `anchorSource: 'derived' | 'explicit'` field, and a
+new local-only **observe telemetry** stub records gate-flip transitions
+so we can later measure how often derivation lands the gate without an
+explicit Place.
+
+**Changes.**
+- `packages/shared/src/builtEnvironmentKinds.ts` — added shared
+  `RESIDENCE_KINDS` constant.
+- `apps/web/src/v3/observe/hooks/useEffectiveHomestead.ts` *(new)* —
+  resolves `{ point, source, derivedFrom }` from explicit →
+  single-residence centroid → none. Ships with an imperative twin
+  `resolveEffectiveHomestead` for pointer handlers / store subscribers.
+- `apps/web/src/lib/observeInteractionLog.ts` *(new)* — telemetry stub
+  mirroring `actInteractionLog.ts` (queue + idle/ceiling + session id +
+  `VITE_ATLAS_TELEMETRY_ENABLED` gate). Flush is local-only
+  (`console.debug` in dev) until a backend endpoint exists. Events:
+  `homestead_gate_flip`, `homestead_explicit_set`,
+  `homestead_explicit_clear`.
+- `apps/web/src/store/humanContextStore.ts` — `PermacultureZone` gains
+  optional `anchorSource: 'derived' | 'explicit'` (absence treated as
+  `'explicit'` for backward compat with persisted records).
+- Five consumers migrated behind the hook:
+  - `apps/web/src/v3/observe/tools/ObserveTools.tsx` — gate reads
+    effective hook; emits `homestead_gate_flip` on
+    placed/source transitions.
+  - `apps/web/src/v3/observe/components/draw/PermacultureZoneTool.tsx`
+    — reads through hook; writes `anchorSource` on save.
+  - `apps/web/src/v3/observe/components/draw/AnnotationSectorHandles.tsx`
+    — reads through `resolveEffectiveHomestead`; apex-drag *write* to
+    `homesteadStore` unchanged (drag is an explicit Place equivalent);
+    refresh now also subscribes to the BE store so the wedge tracks a
+    moved residence.
+  - `apps/web/src/v3/observe/components/draw/SunWindWedgeTool.tsx` —
+    reads through hook for bearing-seed origin.
+  - `apps/web/src/v3/observe/ObserveLayout.tsx` — `<HomesteadMarker>`
+    stays gated on **explicit only** (invisible derivation); wired
+    `homestead_explicit_set` / `homestead_explicit_clear` telemetry to
+    the Place / Clear callbacks.
+
+**Verification.** `tsc --noEmit -p apps/web` — no new errors from these
+files; the remaining errors are confined to an unrelated untracked
+`__tests__/fieldRemovers.test.ts` fixture. Preview smoke deferred —
+recommended manual check: explicit Place/Clear flips the
+Permaculture-zone tile and emits `source: 'explicit'`; a parcel with no
+explicit homestead and exactly one existing residence enables the tile
+with `source: 'derived'` and renders **no** HomesteadMarker; a parcel
+with multiple residences keeps the tile disabled.
+
+---
+
+## 2026-05-13 — `translateByDelta` dead-branch cleanup
+
+**Closed.** The generic-over-all-Geometry signature
+`translateByDelta<G extends GeoJSON.Geometry>` carried three
+unreachable `Multi*` branches plus a `default: return geom;`
+fall-through. No call site ever produces MultiPoint, MultiLineString,
+or MultiPolygon — Atlas's drawing modes and seed data only emit
+Point / LineString / Polygon, and `writeRecordGeometry` already
+guards on `geom.type === 'Polygon'` before persisting.
+
+**Changes.**
+- `apps/web/src/v3/plan/layers/translateGeometry.ts` — narrowed the
+  generic constraint to `Point | LineString | Polygon` and removed
+  the three Multi* `case` arms plus the `default` clause. Updated
+  the jsdoc to reflect "the geometry types Atlas actually places."
+- `apps/web/src/v3/plan/layers/PlanDataLayers.tsx` — narrowed the
+  polygon-drag `DragState.origGeom` from `GeoJSON.Geometry` to
+  `GeoJSON.Polygon`, and tightened `readRecordGeometry`'s return
+  type from `Geometry | null` to `Polygon | null` via a small
+  `asPolygon` type guard (zone/crop record geometries are schema-
+  typed `Polygon | MultiPolygon`; only Polygons participate in
+  drag, matching the existing `writeRecordGeometry` guard).
+
+**Verification.** `tsc --noEmit -p apps/web` exits 0. No runtime
+behaviour change — the deleted branches were unreachable; the
+new guard mirrors a write-side guard that already existed.
+
+---
+
+## 2026-05-13 — Close baseline `DesignElementLayers.tsx:468` Geometry-width TS error
+
+**Closed.** Every recent ADR (temporal slider, polygon-fill stamp,
+status gate, deep-link halo) recorded `tsc --noEmit` as "clean except
+this". Root cause was a one-line type-annotation widening, not a
+missing case: `DragState.origGeom` at
+[`DesignElementLayers.tsx:401`](../apps/web/src/v3/plan/canvas/layers/DesignElementLayers.tsx)
+was typed `GeoJSON.Geometry`, widening the value sourced from
+`el.geometry` (which is the narrow union `Point | LineString |
+Polygon` per `DesignElement.geometry`). `translateByDelta`'s generic
+return-type then carried the widening through to the patch handed to
+`updateDesignElement`, which fails the `Partial<DesignElement>` shape
+with `MultiPoint` cited as the first widening member.
+
+**Fix.** Narrowed the local type:
+```ts
+- origGeom: GeoJSON.Geometry;
++ origGeom: GeoJSON.Point | GeoJSON.LineString | GeoJSON.Polygon;
+```
+Zero behavioural change — `down.origGeom` is only ever assigned from
+`el.geometry`, which already carries the narrow union.
+`translateByDelta` stays unchanged (its generic `<G extends
+GeoJSON.Geometry>` is correct; the bug was the caller, not the
+utility).
+
+**Verified.** `NODE_OPTIONS=--max-old-space-size=8192 npx tsc
+--noEmit -p .` from `apps/web` exits 0 for the first time in
+recent memory. Preview reload at
+`/v3/project/<id>/plan/principle-verification` clean — chip + audit
+mount, no error boundary.
+
+**Follow-up sweep.** Stripped the now-stale "tsc clean except
+`DesignElementLayers.tsx` …" caveat from the three same-day ADRs
+that carried it: `2026-05-13-atlas-temporal-slider.md`,
+`2026-05-13-atlas-needs-yields-status-gate.md`,
+`2026-05-13-atlas-plan-tree-spacing-snap.md`. Log entries left
+intact as session-historical records.
+
+
+## 2026-05-13 — Plan: temporal slider (succession & maturity) v1
+
+**Closed.** Permaculture-alignment Rec #2 (P0) — Holmgren P9 (*Use small
+and slow solutions*). Atlas's canvas was temporally flat; saplings and
+mature canopies rendered identically. Now ships a Year 1..50 scrubber
+in the bottom canvas chrome that scales placed vegetation point trees
+on both Current 2D (`circle-radius` via feature-state) and Vision 3D
+(deck.gl `ScenegraphLayer` per-instance scale). A forward-overlap
+evaluator (`findOverlaps`, lookahead 5 y) lights a fired-clay stroke on
+crowding pairs and lists them in the new lazy `TemporalCoherenceCard`
+(Plant Systems module). New `metadata.designHorizonYears` (default 20)
++ `getDesignHorizon` accessor lets the steward pin a planning horizon;
+slider's "↺" snaps to it. New shared subpath
+`packages/shared/src/succession/` (`speciesData`, `growthCurves`,
+barrel + 8 vitest specs) hosts the per-kind `GrowthCurve` table (oak,
+pine, apple, shrub) with linear interpolation clamped to
+`matureAtYears`. ADR:
+[2026-05-13 atlas-temporal-slider](decisions/2026-05-13-atlas-temporal-slider.md).
+Verification: shared 8/8, apps/web math 4/4, tsc clean except the
+pre-existing `DesignElementLayers.tsx` Geometry-width error (unchanged).
+
+---
+
+## 2026-05-13 — Needs & Yields audit card v2 (inline edge authoring)
+
+**Closed.** Follow-up to the same-day polish commit `8d3e016e`. The v1
+card was read-only — surfacing orphans / unmet / closed-loops /
+integration score but forcing the steward back to the legacy canvas
+socket-drag to *fix* anything (the "Open map editor →" CTA closed the
+slide-up). v2 attaches behavior to every flagged row so the steward
+closes loops without leaving the slide-up.
+
+Per-row UX:
+
+- Orphan-output rows now render a small `<select>` of compatible
+  targets (entities where `INPUTS_BY_TYPE[type]` includes the resource;
+  self-loops excluded) and a gold `Connect` button. Click → `addEdge`
+  against `useRelationshipsStore`.
+- Mirror under unmet-input rows: `<select>` of compatible sources
+  (entities whose `OUTPUTS_BY_TYPE[type]` includes the resource).
+- When the candidate list is empty the select reads `(no compatible
+  inputs/outputs placed)` and `Connect` is disabled — no addEdge call.
+- Local `edgeKey` helper pre-checks duplicates against
+  `edgesByProject[project.id]` before `addEdge`, since the store
+  silently no-ops on dupes but still returns `{ ok: true }`. Dupe
+  attempts flash an `Already routed` pill for 2 s next to the button.
+
+New "Routed edges (N)" `<details>` block under Site rollup —
+collapsed by default — lists every existing edge as
+`<from> [chip] → <to>` with a per-row `Remove` button calling
+`removeEdge(project.id, predicate)`. Lets the steward undo a bad
+inline pick without map context.
+
+Reactivity is automatic: the orphans/unmet/score `useMemo`s already
+subscribe to `edgesByProject`, so the FLAGGED → INTEGRATED pill flips
+live the moment the last orphan clears, and the routed list grows
+without re-mount.
+
+Files: `apps/web/src/v3/plan/cards/principle-verification/NeedsYieldsAuditCard.tsx`
+(351 + / 22 −, the only file touched). HMR clean. Tsc clean for the
+card itself (pre-existing errors elsewhere in
+`DesignElementLayers.tsx`, `temporalCoherenceMath.ts`,
+`growthCurves.ts` remain — unrelated WIP).
+
+Commit `29ed6498` on `feat/atlas-permaculture`.
+
+---
+
+## 2026-05-13 — Needs & Yields audit card polish (CTA + resource swatches)
+
+**Closed.** Follow-up to the same-day scaffold commit `b2dc9411` that
+lifted the existing orphan-output / unmet-input / closed-loop /
+integration-score audit from the legacy `RelationshipsRail` into the
+Plan slide-up. Two polish passes shipped under `8d3e016e`:
+
+1. **"Open map editor →" CTA** rendered in the card hero as a gold
+   pill. `PlanModuleSlideUp.renderPlanCard` now threads `onClose` down
+   into `NeedsYieldsAuditCard.onSwitchToMap` (only this card consumes
+   it — every other card stays on the `noop` default). Clicking the
+   CTA closes the slide-up so the steward can reach the legacy
+   `RelationshipsRail` socket flow on the canvas. Browser-verified:
+   `dialogOpen: false` after click; canvas + module bar visible.
+
+2. **Per-resource color swatches** on the orphan/unmet chip flow. New
+   inline `RESOURCE_COLOR` map (13 resources — browns/ambers for
+   animal+fire flows, greens for soil+plant flows, blues for water,
+   violet for pollination) feeds small `ResourceSwatch` +
+   `ResourceChip` components rendering as coloured pills instead of
+   the comma-separated names of the v1 scaffold. Easier scan when
+   several flagged entities share resource types.
+
+Files: `apps/web/src/v3/plan/PlanModuleSlideUp.tsx`,
+`apps/web/src/v3/plan/cards/principle-verification/NeedsYieldsAuditCard.tsx`.
+HMR clean. Closes the recommended next-session item from the prior
+debrief.
+
+---
+
+## 2026-05-13 — Adopt-from-map v2 (basemap-hide pipeline + ObserveLayout projectId fix)
+
+**Closed.** Two-bug session on the Observe-stage "Adopt from map" tool.
+Bug 1: the v1 adopt flow created the BE entity but the basemap kept
+rendering its own extrusion underneath, producing z-fight and the
+user-perceived "Save did nothing" symptom. Bug 2 (user-disclosed mid-
+session): the fix only worked on real projects, not the sample route.
+
+Bug 1 fix shipped as a property-based filter pipeline.
+`ExistingMetadata.adoptedFromBasemapId` (new) captures the basemap tile
+feature's `osm_id` at click time;
+`apps/web/src/features/map/adoptedBasemapBuildings.ts` (new) splices a
+`['!', ['in', ['get', 'osm_id'], ['literal', ids]]]` clause onto every
+basemap building layer's filter, preserving each layer's pre-adoption
+baseline via a per-map `WeakMap` cache. Idempotent; runs on mount,
+`style.load`, and every BE V2 store change. Mounted via the new
+`AdoptedBuildingsSync` component in v3 `ObserveLayout` and
+`VisionLayoutCanvas`, plus a direct `useEffect` in legacy `MapCanvas`.
+A prior v2.1 attempt that injected `promoteId` by `removeSource` +
+`addSource` was rejected: MapLibre's `removeSource` throws when layers
+reference the source, so the silent-try/catch left the source destroyed
+and the basemap building still painted.
+
+Bug 2 root cause: `ObserveLayout` was the only v3 layout that did *not*
+normalise `params.projectId ?? 'mtc'`. On the sample route the raw
+`undefined` threaded into `ObserveDrawHost` →
+`AdoptBasemapBuildingTool` triggered the early-return guard, so the
+entity was never created at all. Fix: added `const id =
+params.projectId ?? 'mtc'` and swapped every store-aware child
+(`MapToolbar`, `DesignToolRail`, `ObserveAnnotationLayers`, the
+BE-layer block now mounted unconditionally, `ObserveDrawHost`,
+`AnnotationSectorHandles`, `SelectionFloater`, `ExportButton`,
+`ImportSiteIntelButton`, `AnnotationDetailPanel`) onto `id`. Navigation
+guards and `useV3Project` continue to read raw `params.projectId`.
+
+Auxiliary: `DesignElementExtrusionLayer` now prefers entity height
+when set (so adopted buildings extrude at the basemap's
+`render_height`) and gains click-to-inline-edit, since the 3D extrusion
+intercepts clicks before the flat 2D fill underneath at pitched
+cameras. `elementHeights.ts` registers `building` as a
+`mode: 'extrusion'` kind with a 6 m single-storey fallback.
+
+HMR clean across all touched files. Sample-route adopt-from-map flow
+verified end-to-end. Full record:
+[2026-05-13-atlas-adopt-from-map.md](decisions/2026-05-13-atlas-adopt-from-map.md).
+
+---
+
+## 2026-05-13 — Plan tree spacing snap (canopy ring + placement validation)
+
+**Closed.** Follow-up to 2026-05-12 continuous-point placement. Per-kind
+`defaultSpacingM` on `DesignElementSpec` (oak 10 m, pine 6 m, apple 5 m,
+shrub 2 m) drives a translucent cursor-following ring rendered via a
+single ephemeral `preview-tree-spacing` source on the map. Ring colour
+(estate-green `#7fa05a` / fired-clay `#8a4f3a`) tracks `feature-state.valid`
+swapped per mousemove. Click-time validation rejects placements outside
+the parcel boundary or within `defaultSpacingM` of an existing same-
+`category` point design element; rejection emits a `plan:tree-rejected`
+window CustomEvent that a new `TreeRejectionToast` (mounted once in
+`PlanLayout`) surfaces as a 1.5 s pill near the bottom of the canvas.
+`parcelBoundary` threaded from `useV3Project().location.boundary` down
+both Current (`PlanDrawHost` → `PlanDesignElementHost`) and Vision
+(`VisionLayoutCanvas` → `DesignElementDrawHost`) draw paths. Touched
+files all clean under `tsc --noEmit`; one pre-existing `Geometry` width
+error in `DesignElementLayers.tsx:433` (around `translateByDelta`) is
+unrelated and unfixed. Browser-canvas verification still blocked by the
+preview environment's synthetic-event limitation noted in the prior
+ADR — manual end-to-end pass deferred to user. Cross-kind asymmetric
+spacing (small shrub blocked by an oak's larger drip line) deliberately
+deferred to v2; v1 uses the active kind's spacing only. Polygon-fill /
+row stamp / grid stamp also deferred — `defaultSpacingM` is the
+foundation those would build on. Full record:
+[wiki/decisions/2026-05-13-atlas-plan-tree-spacing-snap.md](decisions/2026-05-13-atlas-plan-tree-spacing-snap.md).
+
+---
+
+## 2026-05-12 — Observe `_shared/components/` primitives deleted (post-reskin cleanup)
+
+**Closed.** Follow-up to the 2026-05-11 full Observe reskin onto shared
+`stageCard` primitives. With all seven Observe dashboards now rendering
+directly against `v3/_shared/stageCard/`, the React primitive layer at
+`apps/web/src/v3/observe/_shared/components/` had a single remaining
+consumer: `components/AnnotationListCard.tsx` imported `SurfaceCard` as
+a `<section>` wrapper, and that card is mounted by six of the seven
+Observe dashboards. Inlined `SurfaceCard` into `AnnotationListCard`
+(swap `<SurfaceCard className={styles.panel}>` → `<section>`; fold the
+four-rule `.card` CSS — border / radius / `--color-panel-card` bg /
+inset green box-shadow — into `AnnotationListCard.module.css`'s
+`.panel` rule), then deleted the entire `_shared/components/`
+directory (24 files: 12 .tsx + 11 .module.css + `index.ts`) and its
+now-empty `_shared/` parent. README's Layout tree no longer mentions
+the `_shared/` branch. Also corrects the 2026-05-11 reskin ADR's
+underscoped title — the actual ship was all seven modules, not just
+Human Context, and today's deletion is the natural cleanup that
+follows. Typecheck clean; preview navigated through
+`/observe/{human-context,topography,macroclimate-hazards}` with no
+module-resolution errors. Full record:
+[wiki/decisions/2026-05-12-atlas-observe-shared-primitives-deleted.md](decisions/2026-05-12-atlas-observe-shared-primitives-deleted.md).
+
+---
+
 ## 2026-05-12 — Observe `Ring` helper lifted to shared component
 
 **Closed.** Closes deferred follow-up 3 from the 2026-05-11 Human Context
@@ -13245,3 +14315,1133 @@ section appended to ADR
 then removed diagnostic console.debug from `Plan3DSelectionHandler`;
 needs hands-on console output to triage (handler mounted? layer present?
 features hit?). Deferred to next session.
+
+
+## 2026-05-12 — Plan3DSelectionHandler diagnostic instrumentation
+
+**Why.** Paddock click-to-select still silent in 3D after the Vision-canvas
+mount (commit `78b21bc`). Needs hands-on console output before triage.
+
+**What.** Added `console.debug('[Plan3DSelect] …', …)` at five points in
+`Plan3DSelectionHandler.tsx`: mount, click (with point / present-layers /
+unfiltered anyHits), selectable-layer query result, kind/id resolution,
+and store-items snapshot after the set call. Triage decision table left
+in chat — to be re-pasted into ADR once root cause is identified, then
+diagnostics stripped.
+
+
+## 2026-05-12 — Continuous point placement for Plan trees
+
+**Why.** Placing a tree from the Plan palette was one-shot — every click
+disarmed the tool, so a 30-tree orchard meant 30 round-trips through the
+palette.
+
+**What.** New `useContinuousPointDrawTool` hook bypasses MapboxDraw for
+`drawMode: 'draw_point'` kinds and keeps the tool armed across many
+single clicks; double-click (4 px / 260 ms tolerance) or Esc exits.
+`useDesignElementDrawTool` branches on `isPoint`; `useMapboxDrawTool`
+gained an `enabled` flag so both hooks call unconditionally and the
+right one binds. Sequential letter labels (A → B → C…) read live from
+`getDesignElementsForProject` per click so the count never lags React
+render. Polygon / line kinds untouched (dblclick already means
+"finish polygon" there). ADR
+`2026-05-12-atlas-plan-continuous-point-placement.md`.
+
+
+## 2026-05-13 — Universal map cursor cascade verified across Plan + Observe
+
+**Why.** User reported the canvas cursor never changed: same arrow whether
+Pan / Select / draw-armed, and no `pointer` affordance when hovering a
+drawn feature. The ad-hoc cursor writes in `DesignToolRail` and
+`BeV2GenericLayer` lost a race against MapLibre`s internal dragPan
+handler, which rewrites `canvas.style.cursor` on every mousemove.
+
+**What.** `useMapCursor` (`apps/web/src/v3/plan/canvas/useMapCursor.ts`)
+centralises the cascade: drawArmed → `crosshair`; select+hover →
+`pointer`; select → `crosshair`; pan+down → `grabbing`; pan → `grab`.
+Wins the race two ways — `canvas.style.setProperty(`cursor`, c,
+`important`)` pins our value, and re-application on `map.on(`mousemove`)`
+covers any frame MapLibre slips through. Hover is detected internally
+via `queryRenderedFeatures` against the layer-id prefixes
+`design-el-`, `plan-data-`, `observe-annot-`, `obs-annot-`, `be-v2-`,
+so every interactive layer gets the pointer without per-layer wiring.
+The shared `MapCursorHost` mounts inside the `DiagnoseMap` render-prop
+on Plan Current, VisionLayoutCanvas, and ObserveLayout — single source
+of truth across all three stages. `PlanSelectionFloater` also mounted
+in `ObserveLayout` so plan-data feature selection surfaces the
+universal floater there too.
+
+**Verified.** Live in `/v3/project/mtc/plan`: pan idle → `grab`
+(priority `important`); arm Storage → `crosshair`; disarm → `grab`;
+Select mode idle → `crosshair`. The `priority` field flipping from
+empty to `important` was the smoking gun confirming the new path runs.
+
+
+## 2026-05-13 — Plan-stage Observe popover surfaces read-only feature details
+
+**Why.** Clicking an Observe annotation on the Plan Current-Land map
+opened `<ObserveLinkPopover>` showing only a generic kind label
+("Soil sample") plus boilerplate "Observed feature. Edits live in
+the Observe stage." — stewards couldn't tell which specific feature
+they'd clicked without round-tripping back to Observe.
+
+**What.** Routed `annoKind` + `annoId` (already stamped on every
+`observe-anno-*` feature) through the popover chain:
+`PlanObserveSelectionHandler` reads them off `top.properties` and
+passes them to `useObserveLinkPopoverStore.open(...)`; the payload
+type gained two optional fields; `<ObserveLinkPopover>` calls the
+existing `getAnnotationRow(kind, id)` helper from
+`AnnotationRegistry` and renders `row.title` + `row.subtitle` +
+`Created · <toLocaleString>` as a read-only block above the
+"Edit in Observe →" deep-link. Falls back to generic copy when no
+row resolves (stale id / kinds without `annoKind` stamping). No new
+store, no new data shape — reused the helper that already powers
+`<AnnotationDetailPanel>` in Observe. BE kinds (building/well/etc.)
+unaffected: they dispatch to the editable inline popover via
+`BE_INLINE_EDIT_DISPATCH` before reaching this path.
+
+**Verified.** `npx tsc --noEmit` clean for the three changed files.
+Live preview at `/v3/project/mtc/plan`: clicking a soil sample
+renders "House yard — kitchen garden bed" + earthworm/crumb notes
++ "Created · 5/11/2026, 1:14:21 PM"; Edit-in-Observe button still
+deep-links into the Observe earth-water-ecology module.
+
+
+## 2026-05-13 — Module-bar tiles open slide-up on first click
+
+**Why.** Tiles in the bottom module bar required two clicks to surface
+the slide-up: first click selected (URL nav + reset slideUpOpen=false
+in the layout), second click on the now-active tile finally fired
+`onOpenSlideUp`. PlanTools and PlanChecklistAside already opened the
+sheet on first click — the bar lagged the rest of the stage.
+
+**What.** Composed `onOpenSlideUp()` on top of `onSelectModule()` at
+the wrapper level so the shared `_shared/moduleNav/ModuleBar.tsx`
+semantics stay untouched. Applied across all three stages:
+`PlanModuleBar.tsx`, `ActModuleBar.tsx` (both wrap shared `ModuleBar`),
+and `ObserveModuleBar.tsx` (custom `handleCardClick` — inactive branch
+now calls both). React batches the layout`s `setSlideUpOpen(false)`
+with the wrapper`s `onOpenSlideUp()`, so the sheet renders open in one
+frame with the freshly-navigated module.
+
+**Verified.** Live in `/v3/project/.../{plan,observe,act}`: first click
+on Water / Human Context / Build opens the slide-up immediately;
+clicking the active tile still closes, click-again reopens.
+
+
+## 2026-05-13 — Plan → Observe deep-link opens the record's detail panel
+
+**Why.** Phase 1 of the Plan-stage Observe popover (earlier today)
+surfaced read-only details, but its "Edit in Observe →" button only
+navigated to the module — the steward still had to hunt for the
+specific record they'd just clicked. Phase 2 closes the loop: the
+detail panel opens automatically on landing.
+
+**What.** Popover now forwards `annoKind` + `annoId` as `focusKind` /
+`focusId` search params on the route navigation. `ObserveLayout`
+reads them via `useSearch({ strict: false })` and on mount calls
+`useAnnotationDetailStore.open({ kind, id })` when
+`getAnnotationRow(kind, id)` resolves. Search params are stripped
+immediately via `navigate({ search: {}, replace: true })` so refresh
+/ back-nav doesn't re-fire the handoff. Falls back gracefully when
+the record is gone (registry lookup returns null → no-op).
+
+**Verified.** `npx tsc --noEmit` clean. Live preview: clicking a soil
+sample on `/v3/project/mtc/plan` → "Edit in Observe →" routes to
+`/v3/project/mtc/observe/earth-water-ecology` and the
+`<AnnotationDetailPanel>` opens showing "House yard — kitchen garden
+bed" + notes + created timestamp + Delete / Edit buttons.
+
+
+## 2026-05-13 — Needs & Yields design-status gate (Rec #1 closeout)
+
+**Why.** The 2026-04-28 Needs & Yields ADR called for a `draft` →
+`ready-for-review` transition gated by orphan-output coverage, with a
+per-project `allowOrphanOutputs` escape hatch surfaced prominently so
+it remains a deliberate choice. The audit card already scored
+coverage but had no transition; the legacy `FLAGS.RELATIONSHIPS` flag
+hid the socket overlay from any user not patching code.
+
+**What.** New pure validator
+`packages/shared/src/relationships/statusGate.ts ::
+canAdvanceToReadyForReview(edges, entities, allowOrphanOutputs)`
+returns `{ ok, orphanCount, unmetCount, reason? }`. 4 vitest cases
+in `packages/shared/src/tests/statusGate.test.ts` (vacuous-allow,
+blocked-by-orphans, override-on, fully-routed). `ProjectMetadata`
+gains `designStatus: enum(draft,ready-for-review,approved)`
+and `allowOrphanOutputs: boolean`; `projectStore.ts` exports
+`DesignStatus` + `getDesignStatus` / `getAllowOrphanOutputs`
+accessors. New `useRelationshipsArmedStore` (ephemeral Zustand atom)
+bypasses the legacy `FLAGS.RELATIONSHIPS` gate when the audit-card
+CTA arms it; `RelationshipsOverlay` / `RelationshipsRail` now
+fall through `FLAGS.RELATIONSHIPS || armed`. `NeedsYieldsAuditCard`
+renders a status pill + "Mark ready for review →" CTA (disabled with
+reason tooltip when `gate.ok === false`) + "Allow orphan outputs"
+checkbox; "Open visual editor →" calls `arm()` before switching to
+the map. New `apps/web/src/v3/plan/header/DesignStatusChip.tsx`
+surfaces the same status as a top-left chip with a `⚠ Orphans
+allowed` warning when the override is on, mounted from
+`PlanLayout.tsx`.
+
+**Verified.** `npx vitest run src/tests/statusGate.test.ts` from
+`packages/shared` — 4/4 pass.
+
+
+## 2026-05-13 — Needs & Yields: confirm-on-close intercept
+
+**Why.** Companion to the earlier same-day commit. The status-gate
+slice landed without a dismiss guard: a steward could open the audit
+card, see N unrouted outputs, and close the panel without ever
+acknowledging them. That undercuts the gate — the next CTA click
+would be a surprise.
+
+**What.** `apps/web/src/v3/plan/PlanModuleSlideUp.tsx` now wraps
+`onClose`. When `module === 'principle-verification'`,
+`getAllowOrphanOutputs(project) === false`, and `orphanOutputs(
+entities, edges).length > 0`, the wrapper opens an inline
+`role="dialog"` confirm modal — *"N unrouted output(s). Close anyway,
+or stay and route them through the audit card?"* — with "Stay in
+audit" / "Close anyway" actions. Re-uses the same `orphanOutputs`
+reader as the card so the numbers cannot drift. Lifecycle-safe:
+`useAllPlacedEntities` / `useRelationshipsStore` subscribe
+unconditionally, the count is short-circuited to 0 when the active
+module is not the audit. Wraps the `renderCard`-passed close fn too,
+so the audit card's own dismiss buttons run through the intercept.
+
+**Reference.** Decision
+[`2026-05-13-atlas-needs-yields-status-gate.md`](decisions/2026-05-13-atlas-needs-yields-status-gate.md)
+treats this as the fourth slice of the same Rec #1 closeout.
+
+
+## 2026-05-13 — Plan → Observe deep-link Phase 3: flyTo + pulse
+
+**Why.** Phase 2 opened the read-only detail panel on landing, but
+the underlying Observe map stayed wherever the camera was last set —
+the steward could read the record's details but couldn't visually
+locate it on the map. Phase 3 carries the popover's anchor coords
+through the handoff and flies the Observe camera to the feature
+with a short pulse ring for draw-the-eye.
+
+**What.** Popover now passes `focusLng` / `focusLat` from
+`active.anchor` alongside the existing `focusKind` / `focusId`.
+ObserveLayout no longer consumes the search params at layout scope —
+that effect moved into a new `ObserveDeepLinkFocus` component
+mounted inside the `DiagnoseMap` render-prop so the live `map`
+instance is in scope. The new component opens the detail panel,
+calls `map.flyTo({ center, zoom: 17, essential: true })` (mirrors
+the legacy DiagnosePage "Open on map" pattern), mounts a
+short-lived `<SpotlightPulse>` (auto-removes at 2.5 s) keyed by
+`Date.now()`, then strips the search params via `replace: true` so
+refresh / back-nav don't re-fire.
+
+**Verified.** `npx tsc --noEmit` clean for the three changed files
+(only pre-existing `DesignElementLayers.tsx:468` MultiPoint error
+remains; not in scope). Live preview at `/v3/project/mtc/plan`:
+soil-sample deep-link routes to
+`/observe/earth-water-ecology`, the Observe camera flies to
+`[-79.7046, 43.5054]`, `_pulse_…` marker mounts for ~2.5 s, the
+`<AnnotationDetailPanel>` opens with title + notes + created stamp.
+Refresh leaves the URL clean.
+
+
+## 2026-05-13 — Plan → Observe deep-link Phase 4: sustained feature halo
+
+**Why.** After Phase 3's flyTo + pulse, the pulse fades at ~2.5 s
+and the target feature loses all visual treatment while the
+steward is still reading the detail panel. They need a sustained
+outline on the feature itself so the spatial context never gets
+lost during the read.
+
+**What.** Reused the existing `useObserveSelectionStore`-driven
+halo (`observe-anno-selection-circle` / `-line` at
+`ObserveAnnotationLayers.tsx:1121-1366`) rather than building a
+parallel highlight layer. Three small edits:
+- `ObserveDeepLinkFocus.tsx` now calls
+  `useObserveSelectionStore.getState().set([{ kind, id }])` right
+  after opening the detail panel, so the gold halo paints around
+  the feature on landing.
+- `AnnotationDetailPanel.tsx` wraps `close` in a `useCallback` that
+  guard-clears the selection only when it's exactly
+  `[{ kind, id }]` matching `active` (via `selectionKey`). User-
+  initiated multi-selects diverge from that signature and are
+  preserved.
+- `SelectionFloater.tsx` early-returns `null` while
+  `useAnnotationDetailStore.active` is set — the panel already
+  shows its own Edit / Delete buttons, so the floater would be
+  redundant clutter on top.
+
+**Verified.** `npx tsc --noEmit` clean for the three changed files
+(only the pre-existing `DesignElementLayers.tsx:468` MultiPoint
+error remains, baseline). The halo source already filters by
+`{kind, id}` across all 21 AnnotationKinds, so points, lines,
+polygons, and sector wedges all paint together with zero per-kind
+plumbing.
+
+
+## 2026-05-13 — Rec #1 status-gate hardening: MTC seed + metadata preservation
+
+**Why.** End-to-end smoke-test of yesterday's Needs & Yields status
+gate flushed out two latent regressions that masked the gate's
+persistence:
+
+1. The legacy `/v3/project/mtc/...` route was served from a
+   `MTC_FALLBACK` constant inlined into both `PlanLayout` and
+   `ActLayout`. The constant was never written to the store, so
+   `updateProject('mtc', { metadata: ... })` silently dropped through
+   the builtin-allowlist guard — `designStatus` / `allowOrphanOutputs`
+   writes vanished before they could reach `persist`.
+2. Even after writes started landing for non-MTC builtins,
+   `applyBuiltinsToStore`'s `incoming.map()` rebuilt every project
+   row from the builtins API and overwrote the local copy. The API
+   doesn't ship a `metadata` field, so the rebuild stripped every
+   `ProjectMetadata` write (status gate, zone thresholds, design
+   horizon) on every reload — undoing the chip flip.
+
+**What.**
+- New `MTC_SEED` exported from `projectStore.ts`; seeded as
+  `isBuiltin: true` on `onFinishHydration` so the slug is a real
+  store row. `PlanLayout` / `ActLayout` switch their fallback to
+  `MTC_SEED` (drop the inlined constants).
+- `applyBuiltinsToStore` spreads `metadata: existing?.metadata` into
+  the rebuilt row so user-edited project metadata survives every
+  re-seed pass.
+- Bonus selector-stability fix: `OrphanCountProbe`'s
+  `useRelationshipsStore((s) => s.edgesByProject[projectId] ?? [])`
+  returned a fresh `[]` reference per call, tripping React's
+  `useSyncExternalStore` snapshot-stability check and infinite-
+  looping the probe whenever a project had no relationship edges
+  yet. Subscribe to the dict and derive via `useMemo`.
+
+**Verified.** Live preview at
+`/v3/project/ec5ed028-0320-4480-9543-2ff10308834e/plan/principle-verification`:
+chip mounts `Status · Draft`, "Mark ready for review →" disabled
+with tooltip `4 unrouted outputs. Route them, or tick "Allow orphan
+outputs".`. Toggle escape hatch → CTA enables → click → chip flips
+to `Status · Ready for review` + fired-clay `⚠ Orphans allowed`
+badge. **Reload → chip + badge persist.** `localStorage`-resident
+`ogden-projects` carries `metadata: { allowOrphanOutputs: true,
+designStatus: "ready-for-review" }` across the re-seed pass. Untick
+escape hatch + dismiss → confirm modal fires with
+`aria-label="Unresolved orphan outputs"` and 4-count copy. Commits:
+[`8f585e4f`], [`e9a7db71`], [`0bc04b4c`].
+
+
+## 2026-05-13 — Adopt-from-map "save does nothing" — perception bug, fixed by toast
+
+**Why.** Steward report: Observe → Adopt from map → click 3D basemap
+building → enter label / height / notes → Save → "as if nothing was
+done." Worked at first ship (`e534ddd3`, 2026-05-13), regressed.
+
+**Investigation.** Followed `superpowers:systematic-debugging` Phase 1.
+Instrumented all five boundaries with `[adopt-debug]` probes:
+`AdoptBasemapBuildingTool.create()`,
+`openBeInlineEditById` schema resolve, `InlineFeaturePopover.onSubmit`,
+`buildBuildingEditSchema.onSave`, `builtEnvironmentStoreV2.updateMetadata`.
+Repro'd with synthetic input + real `KeyboardEvent` sequences. Every
+boundary fired in order: `STORE.open` (1×), `onSubmit` (1×), `onSave`
+(1× with correct values), `updateMetadata` (1× with `match found`),
+`STORE.close` (1×). localStorage `ogden-built-environment-v2` carried
+the patched `label`, `proposed.heightM`, and `notes` correctly. The
+StrictMode 2× identity-change in the popover was a dev-only artifact
+of `prevActive !== active`, not a real reset.
+
+**Root cause.** Save mechanism is sound. The bug is **perceptual**:
+the adopted building's 3D extrusion was already on-map *before* Save
+(rendered at the basemap's `render_height` from the `existing` block
+written by `create()`), and `label` is metadata-only — invisible on
+the map surface. Saving an unedited form re-writes the same values
+and produces no visible delta, so the steward concluded "nothing
+happened." Older buggy entities in localStorage (e.g. `a0ce2f9f`)
+match the pattern "Save pressed with defaults unchanged" exactly.
+
+**What.**
+- Added `toast.success(\`Saved "${label}"\`)` to
+  `buildBuildingEditSchema.onSave` (
+  [`apps/web/src/v3/plan/layers/inlineEditSchemas.ts:1149`](apps/web/src/v3/plan/layers/inlineEditSchemas.ts))
+  after the `updateMetadata` call. Single 7-line diff; no behavioural
+  change to persistence. Comment in source records the perception-bug
+  rationale for future readers.
+- Removed all `[adopt-debug]` probes from 5 files; removed
+  `window.__adoptMap` debug exposure.
+
+**Verified.** `tsc --noEmit` exit 0; `vite build` clean in 36.51s
+with `NODE_OPTIONS=--max-old-space-size=8192` (default 4GB OOMs on
+this monorepo — environmental, unrelated). The save path itself was
+verified end-to-end in Phase 1 (localStorage round-trip + extrusion
+height match). Toast confirmation is the only user-facing change.
+
+**Deferred.** Default heap OOM during `npm run lint` / `npm run build`
+is a Windows dev-env papercut, not a regression — track separately
+if it becomes blocking.
+
+
+## 2026-05-13 — Adopt-from-map root cause (correction): builtEnvironment toggle gated 2D fill off
+
+**Why the earlier entry was wrong.** The earlier-today entry concluded
+the bug was perceptual and shipped a `toast.success` for visible save
+feedback. Retest by user: "still not working. Saved the building. No
+ability to re-edit it. No sign anything was done besides a notification
+in the top right corner that it was saved but it is not visible on
+the map view." The toast fired; the building remained invisible; no
+clickable feature existed for re-edit. Root cause was downstream of
+the save layer entirely.
+
+**Real root cause.** `ObserveAnnotationLayers` is the *only* renderer
+that draws V2 buildings as a 2D footprint at default top-down pitch.
+Its `be-buildings` layer carries `toggleKey: 'builtEnvironment'`, and
+[`matrixTogglesStore.ts:76`](apps/web/src/store/matrixTogglesStore.ts:76)
+defaults `builtEnvironment: false`. The other two BE-V2 layers in
+Observe don't fill the gap:
+
+- `BeV2GenericLayer` deliberately excludes `LEGACY_OBSERVE_BE_KINDS`
+  (including `building`), since the legacy 8 kinds have bespoke
+  renderers in `ObserveAnnotationLayers`.
+- `DesignElementExtrusionLayer` renders 3D extrusion only at pitch
+  > 0 (collapses top-down). Default Observe view is top-down.
+
+Meanwhile `AdoptedBuildingsSync` runs on every V2-entity change and
+hides the basemap building whose `osm_id` matches
+`entity.existing.adoptedFromBasemapId`. So at the moment of Save the
+basemap building disappears, the V2 2D fill is gated off, the V2 3D
+extrusion is invisible at pitch 0 — the steward sees a blank patch
+and no clickable feature for re-edit. Direct evidence from the live
+dev preview: `localStorage['ogden-atlas-matrix-toggles'].state.builtEnvironment
+=== false` while
+`localStorage['ogden-built-environment-v2'].state.entities.filter(e =>
+e.kind === 'building' && e.state === 'existing').length === 13`. Flipping
+the toggle to true via the matrix UI immediately reveals all 13 adopted
+buildings as 2D fills (verified by screenshot).
+
+**What.**
+- Reverted the toast-on-save addition in
+  [`buildBuildingEditSchema`](apps/web/src/v3/plan/layers/inlineEditSchemas.ts) —
+  it was the wrong fix.
+- In
+  [`AdoptBasemapBuildingTool.tsx`](apps/web/src/v3/observe/components/draw/AdoptBasemapBuildingTool.tsx),
+  after `useBuiltEnvironmentStoreV2.create()` succeeds, flip
+  `useMatrixTogglesStore.builtEnvironment` to `true` if it isn't
+  already. Source comment records the rationale so a future
+  reader doesn't strip it as redundant. The toggle is `persist`ed,
+  so future sessions retain the on state.
+- Net diff: +12 lines in `AdoptBasemapBuildingTool.tsx`, −9 lines in
+  `inlineEditSchemas.ts` (toast import + call + comment).
+
+**Verified.** `tsc --noEmit` clean; `vite build` clean (31.49s,
+8GB heap — pre-existing OOM workaround). In the live preview at
+`/v3/project/mtc/observe` the existing 13 adopted buildings become
+visible the moment `builtEnvironment` is true; the 2D fill is the
+clickable surface that re-opens the inline form (via
+`ObserveAnnotationLayers` click handler → `openBeInlineEditByObserveKind`).
+
+**Lesson.** First-pass "this is a perception bug" diagnosis was a
+shortcut: I had the localStorage evidence that Save persists, and
+treated "user reports no visible change" as proof the data was just
+invisible-by-design. The correct read was "user reports no visible
+change *because the V2 entity isn't rendered at default pitch when
+the matrix toggle is off*." Should have walked the rendering pipeline
+end-to-end in Phase 1 — what layer paints this entity, what gates it —
+before concluding perceptual. Updated the systematic-debugging
+discipline note in this session's plan file.
+
+**Deferred / follow-ups.**
+- The same toggle gate hides every other BE kind (well, septic, fence,
+  gate, driveway, power-line, buried-utility) when their place-tools
+  run. Each tool would need the same one-line toggle-flip — or
+  preferably, refactor: each BE V2 tool's success path flips
+  `builtEnvironment` on as a shared helper. Tracked but not in this
+  fix's scope.
+- Default `builtEnvironment: false` is conservative — consider
+  switching to `true` once the V2 building footprint style is
+  unambiguous against the basemap. Until then, the auto-flip-on-create
+  pattern keeps it discoverable without ambushing fresh stewards
+  with overlays they didn't ask for.
+
+---
+
+## 2026-05-13 — Adopt-from-map Rec #2 (Observe): MapLibre setStyle diff race wiped observe-anno sources
+
+**Correction.** The 2026-05-13 entry above (Rec #1, matrix-toggle flip)
+got Save → matrix toggle → 2D fill *partly* right but missed a separate,
+more brutal failure mode: on the affected client (Chrome, real
+localStorage state), the observe-annotation sources for the adopted
+building were being added by
+[`ObserveAnnotationLayers`](apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx)
+and then **silently removed within ~1 s by MapLibre's `setStyle` diff
+path**. The 2D fill never had a chance to render. The toggle flip was
+necessary but not sufficient. The original "still not working — saved,
+no sign anything was done" report was reproducing this second bug,
+not the first.
+
+**Root cause.**
+[`DiagnoseMap`](apps/web/src/v3/components/DiagnoseMap.tsx) constructs
+the MapLibre instance with `style: MAP_STYLES[initialBasemapRef.current]`,
+then a sibling `useEffect` on `[map, basemap]` calls
+`map.setStyle(MAP_STYLES[basemap])` once `map` becomes non-null. On
+first mount those two values are identical — the rehydrated basemap.
+The `setStyle` call is therefore a no-op from the steward's point of
+view, but MapLibre's default `setStyle(target, {diff: true})` doesn't
+treat it as a no-op:
+
+1. `setStyle` begins fetching the (same) target style JSON.
+2. While the fetch is in flight, sibling effects in
+   `ObserveAnnotationLayers`, `DesignElementExtrusionLayer`,
+   `BeV2GenericLayer`, etc. run and `addSource`/`addLayer` their
+   `observe-anno-*` / `be-*` sources.
+3. Target JSON arrives. MapLibre computes the diff between the
+   current style (now carrying our app-added sources) and the target
+   JSON (which doesn't know about them).
+4. `t.Map._updateDiff` → `style.setState` → `style.removeSource` is
+   called for every app-added source. **Crucially**, this path
+   bypasses `map.removeSource` — no public listener fires, no
+   `style.load` re-hook surfaces, and instrumented `setStyle`/
+   `removeSource` traps don't observe it. Sources vanish silently.
+
+This was confirmed in Chrome with progressive prototype-level traps:
+neither `map.setStyle` nor `map.removeSource` fired between source-add
+and source-disappearance — but a trap planted directly on the internal
+`style.setState`/`style.removeSource` caught the diff path tearing
+down all four `observe-anno-*` sources from the `_updateDiff` call.
+Stack: `t.Map._updateDiff → de.setState → style.removeSource(observe-anno-*)`.
+
+**Fix.** Added an `appliedBasemapRef` to
+[`DiagnoseMap`](apps/web/src/v3/components/DiagnoseMap.tsx), initialised
+to the same value used to construct the map. The basemap-swap effect
+now early-returns when `appliedBasemapRef.current === basemap`, and
+updates the ref *before* calling `setStyle` on a real change. The
+no-op `setStyle` on first mount is eliminated; legitimate basemap
+swaps still go through the diff path (and the existing `style.load`
+re-hook in `ObserveAnnotationLayers` re-adds sources cleanly because
+in that case the diff is correct — sources weren't added pre-emptively).
+
+**Verified.**
+- `tsc --noEmit` clean (8 GB heap — pre-existing OOM workaround).
+- `vite build` clean (38.90 s).
+- Chrome reproduction at `/v3/project/eadb3223-.../observe`:
+  pre-fix `Object.keys(getStyle().sources).filter(s=>s.startsWith('observe-anno'))`
+  returned `[]` 8 s after navigation; post-fix returns
+  `['observe-anno-human-points','observe-anno-human-zones',
+  'observe-anno-be-buildings','observe-anno-selection']` with the
+  `be-buildings-fill` + `be-buildings-line` layers visible and a
+  20-feature FeatureCollection on the source. The adopted building
+  the steward had saved earlier in the day is now visible.
+
+**Lesson.** When a "redundant" effect fires `setStyle(currentStyle)`,
+remember the MapLibre default is `diff: true` and the diff is
+computed against *current* state, not against the spec we last
+asked for. That means any app-added source/layer that lands between
+the `setStyle` call and its async resolution is in the diff's
+"remove" set — silently. Same-value `setStyle` is not a no-op.
+The internal mutation path (`Style._updateDiff` → `style.setState`
+→ `style.removeSource`) doesn't surface via public `removeSource`
+either, so naïve `map.removeSource` traps will not catch the wipe.
+Either gate against same-value calls (this fix), pass
+`{diff: false}` and re-add on `style.load`, or defer all app
+source-adds until after the basemap has fully settled. We chose the
+gate — minimal change, no impact on legitimate basemap swaps.
+
+**Net diff.**
+- [`DiagnoseMap.tsx`](apps/web/src/v3/components/DiagnoseMap.tsx):
+  +12 lines (`appliedBasemapRef`, gate, rationale comment).
+- No other production-code changes; all diagnostic instrumentation
+  added during the hunt was reverted.
+
+**Deferred.**
+- The same race could in theory bite *legitimate* basemap swaps if a
+  sibling `useEffect` adds sources between the `setStyle` call and
+  the `style.load` event. Today's `ObserveAnnotationLayers` apply
+  bails on empty `style.layers` and re-runs on `style.load`, so
+  it's robust — but every new layer mounted under `DiagnoseMap`
+  inherits the same contract and could trip the diff if it doesn't
+  follow the same pattern. Worth a follow-up: extract a shared
+  "wait-for-style-then-apply" helper in the BE layer index.
+
+---
+
+## 2026-05-13 — Adopt-from-map: fresh-adopt end-to-end verification
+
+**Follow-up to the diff-race fix above.** After shipping the gate, the
+steward reported "fix did not actually work" — read as: a freshly
+adopted building still didn't render. Drove the full flow in Chrome MCP
+to settle it. Post-reload, in a clean session: clicked the **Adopt from
+map** rail button, fired a synthetic map click at a fresh basemap
+building (osm_id 6842847921). Result:
+
+- new V2 entity created with `state: 'existing'`, correct `projectId`,
+  `existing.adoptedFromBasemapId: 6842847921`;
+- `observe-anno-be-buildings` source feature count: 10 → 11 in the same
+  tick;
+- `queryRenderedFeatures` at the polygon centroid returned the new
+  feature on `observe-anno-be-buildings-fill` with matching `annoId`;
+- basemap layers' `building`/`building-3d` filter clauses extended to
+  include the new id — basemap original now hidden.
+
+So the fix is correct *and* end-to-end sufficient. The "still broken"
+report most likely reflected HMR not picking up the change before the
+retest (the running bundle now contains `appliedBasemapRef`, confirmed
+via `fetch('/src/v3/components/DiagnoseMap.tsx')`).
+
+No further code changes — verification only. `tsc --noEmit` clean.
+
+## 2026-05-13 — Adopt-from-map: dedup guard against duplicate adopts of same osm_id
+
+**Symptom:** Steward reported clicking one adopted building selected/edited a
+*different* one. Snapshot of project `eadb3223-…` showed **21 building
+entities**, **19 of them sharing `existing.adoptedFromBasemapId === 6488308616`** —
+all stacked at the same geometry centroid. With 19 polygons piled on top of
+each other, MapLibre's `e.features[0]` resolves to an arbitrary one of the
+stack on click, so the steward sees their edit land on a "different"
+building than the one they clicked.
+
+**Root cause:** `AdoptBasemapBuildingTool` always called `create(...)` on the
+V2 store — no check for whether this `osm_id` was already adopted into the
+project. Every re-arm + click on the same basemap building piled up
+another entity. Stewards naturally re-arm during a workflow (to label/re-edit),
+so the failure mode was easy to trigger and accumulate silently.
+
+**Fix:** Added a dedup guard at the top of the click handler in
+`apps/web/src/v3/observe/components/draw/AdoptBasemapBuildingTool.tsx`:
+when `adoptedFromBasemapId` is resolved, look up
+`useBuiltEnvironmentStoreV2.getState().entities` for an existing
+`kind === 'building'`, `state === 'existing'` entity in this project with
+the same `adoptedFromBasemapId`. If found, open the existing entity's
+inline-edit popover (`openBeInlineEditById`) at the click point, toast
+"Already adopted — opened the existing entry for editing," clear the
+active tool, and return. New adopts proceed unchanged.
+
+**Verification (Chrome MCP, live preview):**
+- `localStorage` before: 19 entities adopting osm_id 6488308616.
+- Re-armed "Adopt from map," fired a synthetic click at the cluster
+  centroid via canvas `MouseEvent`.
+- `localStorage` after: still 19 (delta 0 — no new entity).
+- Inline-edit popover opened with "Edit building" form.
+
+**Stale state:** the 18 redundant duplicates already in the user's local
+state remain. They will not interfere with future edits to the
+most-recently-updated entry (which the dedup guard re-opens), but if the
+steward wants a clean state, a console one-liner can collapse them by
+keeping the most-recently-updated entity per `(projectId, adoptedFromBasemapId)`
+key and rewriting `localStorage['ogden-built-environment-v2']`.
+
+`tsc --noEmit` clean. No other files touched.
+
+## 2026-05-13 — Adopt-from-map: Cancel discards the just-created entity
+
+**Follow-up to the dedup-guard fix above.** Steward feedback: hitting
+Cancel in the inline-edit popover after a fresh adopt should *discard*
+the captured building, not leave a stub "Adopted building" entity in
+the store.
+
+Previously the tool called `useBuiltEnvironmentStoreV2.create(...)` first
+and then `openBeInlineEditById(entity.id, anchor)` — which uses the
+shared `buildBuildingEditSchema` whose `onCancel` is a documented no-op
+("record already exists"). That contract is correct for edit flows but
+wrong for fresh adopts where the entity is provisional until Save.
+
+**Fix:** in [apps/web/src/v3/observe/components/draw/AdoptBasemapBuildingTool.tsx](apps/web/src/v3/observe/components/draw/AdoptBasemapBuildingTool.tsx),
+the fresh-adopt branch now builds the schema locally and opens the
+inline-form store directly, wrapping `onCancel` to call
+`store.delete(entity.id)`. The dedup branch is unchanged — re-opening
+an already-adopted building keeps the default no-op cancel (no
+destructive side effect on existing data).
+
+`useInlineFormStore.open` already invokes the previous form's onCancel
+when a new form replaces it (singleton replace-semantics), so switching
+tools mid-adopt also cleans up the provisional entity.
+
+**Verification (Chrome MCP, live preview, HMR-loaded modules):**
+- Created a stub entity via the actual `useBuiltEnvironmentStoreV2.create`.
+- Opened the inline form with the wrapped onCancel.
+- Triggered onCancel.
+- Result: before 47 → afterCreate 48 → afterCancel 47. Entity removed.
+
+`tsc --noEmit` clean.
+
+## 2026-05-13 — Observe: homestead control wired + BaseMapCard stage-scoping
+
+**Closed.** Two coupled bugs gated the Permaculture-zone tool on Observe.
+
+**Cause A — Observe never exposed a Place-homestead control.** The Mollison
+Zone 0 anchor lives in `homesteadStore.byProject[projectId]` and is the
+only gate the Permaculture-zone tool checks. `DiagnoseMap` accepts a
+`homestead?: HomesteadControl` prop that renders Place/Move/Clear buttons,
+and legacy `DiagnosePage` wired it correctly — but `ObserveLayout` did
+not. The home icon visible in the steward's screenshot was a
+Built-Environment **structure** (residence/outbuilding owned by
+`builtEnvironmentStoreV2`), not the Zone 0 anchor — a different concept
+sharing iconography.
+
+**Cause B — partitioned-key inconsistency on the projectId fallback.**
+`ObserveLayout` normalised a missing route param to `'mtc'` to keep BE
+writes/reads aligned with PlanLayout and ActLayout. `ObserveTools` did
+not — it read `byProject[null]` (always undefined → tool disabled) while
+any homestead written elsewhere landed under `'mtc'`. Same shape of bug
+the ObserveLayout header comment already warns about for BE entities.
+
+**Fix.**
+- `apps/web/src/v3/observe/ObserveLayout.tsx` — imported
+  `useHomesteadStore` + `HomesteadMarker`, selected `byProject[id]` /
+  `setHomestead` / `clearHomestead`, passed a `homestead={{ enabled,
+  hasHomestead, onPlace, onClear, legendNote }}` prop to `<DiagnoseMap>`
+  mirroring the DiagnosePage shape, and mounted `<HomesteadMarker>` as a
+  child of the map when an anchor exists. Also passed
+  `<BaseMapCard stage="observe" />` so the legend hides Plan-only
+  computed overlays.
+- `apps/web/src/v3/observe/tools/ObserveTools.tsx` — aligned the
+  projectId fallback to `'mtc'` (matching ObserveLayout / PlanLayout /
+  ActLayout). Read side now matches the write side.
+- `apps/web/src/v3/components/DiagnoseMap.module.css` — moved the
+  `.toolbar` (homestead Place/Move/Clear buttons) from bottom-right to
+  top-right with `z-index: 2` so it no longer hides under Import/Export.
+
+**BaseMapCard stage-scoping (paired refinement).**
+- `apps/web/src/v3/plan/canvas/BaseMapCard.tsx` — added an optional
+  `stage?: 'observe' | 'plan' | 'act'` prop and a `STAGE_HIDDEN` table.
+  Only the Plan-stage *computed* overlays (`sunPath`, `zoneRings`,
+  `scheduledMoves` — rendered by `PlanSunPathOverlay`,
+  `PlanZoneRingsOverlay`, `PlanScheduledMovesOverlay`) are stage-bound;
+  hidden on Observe + Act where those layers aren't mounted. The
+  steward-drawn annotation toggles (`sectors`, `wind`, `hazards`,
+  `views`, `zones`, `water`, `topography`, `builtEnvironment`,
+  `observeAnnotations`) stay visible on every stage because
+  `ObserveAnnotationLayers` is mounted on all three.
+- Renamed four legend labels for geometry clarity now that several share
+  "rings/sectors" vocabulary: `sectors` → "Solar sectors
+  (sunrise→south→sunset wedges)"; `zones` → "Zones (use-frequency rings
+  — drawn or textbook)"; `sunPath` → "Sun path (hourly trajectory
+  traces)"; `zoneRings` → "Design audit rings (Z1·Z2·Z3 around tagged
+  Zone-0 elements)".
+- `apps/web/src/v3/plan/PlanLayout.tsx`,
+  `apps/web/src/v3/plan/canvas/VisionLayoutCanvas.tsx` — pass
+  `stage="plan"`. `apps/web/src/v3/act/ActLayout.tsx` — passes
+  `stage="act"`.
+
+**Verification.** `tsc --noEmit` clean. Live preview at
+`/v3/project/mtc/observe`: homestead toolbar mounts top-right, Place
+flow drops the red "0" marker, Permaculture-zone tool tile flips from
+disabled→enabled immediately (same Zustand selector, same `'mtc'` key
+on both sides). Clear → tool re-disables. Hard-reload persists
+(homestead store is `persist`-ed). Legacy `/v3/project/mtc/diagnose`
+unchanged.
+
+**Deferred.** (a) Whether a BE residence structure should auto-derive a
+Zone 0 anchor (steward's mental model suggests yes; conflating the two
+concepts is a design call, not a bug fix — flag for an ADR). (b)
+Pruning the now-unreachable `!projectId` branch in `ObserveTools` — left
+for a separate cleanup pass to keep this diff minimal.
+
+## 2026-05-13 — Observe: residence→Zone-0 ADR + ObserveTools dead-branch sweep
+
+**ADR.** Filed [2026-05-13 atlas-residence-zone0-derivation](decisions/2026-05-13-atlas-residence-zone0-derivation.md)
+recording the decision that a BE residence (kind ∈ {`building`, `cabin`,
+`yurt`, `tent-glamping`, `earthship`}, state `existing`) should
+*lazily* fall back as the Mollison Zone 0 anchor when
+`homesteadStore.byProject[projectId]` is unset and exactly one primary
+dwelling exists on the parcel — never an eager write into
+`homesteadStore`. Permaculture semantics (Zone 0 is the *seat of
+activity*, not "any building") mean the multi-dwelling case stays a
+deliberate steward decision via the existing Place-homestead control.
+Recorded alternatives A (no derivation), B (eager auto-set), and D
+(prompt the steward); B/D rejected with rationale. Implementation —
+`useEffectiveHomestead(projectId)` hook + migrate the five consumers —
+flagged as a separate session, gated on introducing a polygon-centroid
+utility and promoting the dwelling-kinds enumeration to a
+`RESIDENCE_KINDS` constant in
+`packages/shared/src/builtEnvironmentKinds.ts`.
+
+**Sweep.** Removed five unreachable `!projectId` defensive sites in
+`apps/web/src/v3/observe/tools/ObserveTools.tsx` left behind by commit
+`134540e0`'s `?? null` → `?? 'mtc'` fallback alignment:
+selector ternary (line 152) collapsed to `s.byProject[projectId]`;
+`Boolean(onSelectModule && projectId)` → `Boolean(onSelectModule)`
+(line 189); `renderToolButton` ctx-type `projectId: string | null` →
+dropped (it was unused after the title/disabled simplifications);
+`disabled = !projectId || …` → `disabled = needsHomestead &&
+!homesteadPlaced`; `title = !projectId ? '…' : …` branch dropped. Also
+removed `projectId` from the three `renderToolButton` call-site ctx
+objects since the helper no longer reads it. `tsc --noEmit -p
+apps/web` clean. No behaviour change — every removed branch was
+unreachable.
+
+## 2026-05-14 — Act: scheduled livestock moves surface in event calendar
+
+User-reported bug: scheduling a livestock move in Plan stage did not
+appear in Act stage. Root cause:
+`apps/web/src/features/act/useEventAggregator.ts` only iterated
+`livestockMoveLogStore.events` (actual logged moves) and ignored
+`scheduledLivestockMoveStore.plans` (forward-looking, unfulfilled).
+Fix folds the scheduled store into the same aggregator under the
+existing `'livestock'` `CalendarSource` (no enum change → existing
+filter chip + dot styling + source-order map all keep working): hook
+adds `useScheduledLivestockMoveStore((s) => s.plans)`, the `useMemo`
+adds a loop after the logged-moves loop that skips fulfilled plans
+(`p.fulfilledByEventId`) and emits `{ id:
+'scheduled-livestock:${p.id}', source: 'livestock', dateKey,
+iso: p.plannedDate, title: 'Planned: ${head} · ${species}', meta:
+'planned · ${direction}' }`. The auto-fulfilment in
+`scheduledLivestockMoveStore` (±7 day match against logged events)
+handles the dedupe automatically — once a plan is fulfilled it
+disappears from the calendar and only the logged entry remains.
+Docblock updated to mention the new source. Verified end-to-end in
+the running preview against the seeded `slvm-future` plan
+(2026-06-20, sheep, 20 head, `move_in` → paddock `pad-test-C`): June
+20 cell now reads `aria-label="June 20th, 2026 — 1 entries"` and the
+agenda renders `Planned: 20 head · sheep · planned · move in`.
+
+## 2026-05-14 — Livestock water source rule + Goal Compass livestock extension
+
+Three arcs in one session, all on `feat/atlas-permaculture`.
+
+**(1) Water-source rule for grazing paddocks.** User asked what counts
+as a "suitable water source for livestock" — the Plan stage gave no
+guidance, and a free-text `waterPointNote` on a paddock alone was
+silently accepted by the welfare audit. Defined the canonical set in
+[apps/web/src/features/livestock/waterSource.ts](../apps/web/src/features/livestock/waterSource.ts):
+placed `water_tank` / `well_pump` / `rain_catchment` utilities,
+`water_tank` / `well` / `water_pump_house` structures, or a
+`WaterNode` of kind `storage` or `catchment`. Bands: ≤100 m good /
+≤200 m fair / >200 m poor / null missing. `nearestWaterSource()`
+exposes a single shared distance computation used by both the
+draw-time PaddockTool hint copy and the audit-time
+`WelfareAccessAuditCard`. Added vitest coverage (10/10 pass).
+
+**(2) Four follow-up bugs surfaced during field test.**
+  (a) "Place a water source →" CTA on the Act-stage audit card
+      dispatched a `plan.*` tool id, but only `PlanDrawHost` listens
+      for those — wired `useNavigate({ to: '/v3/project/$projectId/plan' })`
+      then `setActiveTool(WATER_TANK_PLAN_TOOL_ID)` so the CTA crosses
+      stages.
+  (b) Deleting a water node from `PlanSelectionFloater` was a no-op
+      under `case 'water'` — replaced with
+      `useWaterSystemsStore.getState().removeWaterNode(item.id)`.
+      The store already re-points dependent overflow edges, so the
+      old "deferred to WaterNetworkCard" comment was the bug.
+  (c) `Above-ground tank` placed via the Plan stage stored as a
+      `WaterNode` with `kind: 'storage'` — invisible to the audit,
+      which only scanned utilities + structures. Extended
+      `nearestWaterSource()` to take a 4th `waterNodes: WaterNode[]`
+      arg and include `storage` + `catchment` (skipping `swale` and
+      `sink`).
+  (d) Paddock-pill click in `PlanSelectionFloater` opened nothing.
+      Diagnosed via dev-console eval to a synchronous throw at
+      [apps/web/src/v3/plan/layers/inlineEditSchemas.ts:322](../apps/web/src/v3/plan/layers/inlineEditSchemas.ts)
+      — `pd.species[0]` on legacy paddocks lacking the `species`
+      field. React's synthetic event handler swallowed the throw,
+      so `open()` was never reached. Guarded with `pd.species?.[0]
+      ?? 'sheep'` plus defensive defaults on `pd.name` and
+      `pd.fencing` for other potentially-legacy records.
+
+**(3) Goal Compass extension for livestock-based regenerative farm.**
+User asked to "develop a Goal tree for a livestock-based regenerative
+farm". Goal Compass (commit `8a0a75d2`) already supports six
+project-type archetypes, but `REGENERATIVE_FARM` only covered
+cash-crop yield, soil health, and water cycle — no livestock criteria
+— and the intervention catalog had just two livestock entries
+(`poultry-coop`, `small-ruminant-paddock`), neither sufficient for a
+livestock-led farm. Per user direction, extended the existing
+archetype rather than adding a new one:
+  • Appended a fourth `livestock-enterprise` sub-goal to
+    `REGENERATIVE_FARM` in
+    [apps/web/src/v3/plan/data/goalTreeTemplates.ts](../apps/web/src/v3/plan/data/goalTreeTemplates.ts)
+    with four measurable criteria: paddocks active (count, target 8
+    by year 3), welfare-audit pass % (target 100% by year 3),
+    annual marketable protein (lbs, 5,000 by year 5), and annual
+    livestock revenue (USD, 20,000 by year 5). Welfare-pass-%
+    criterion description echoes the audit rule verbatim so the goal
+    tab and the audit card tell the same story.
+  • Added 5 interventions to
+    [apps/web/src/v3/plan/data/interventionCatalog.ts](../apps/web/src/v3/plan/data/interventionCatalog.ts):
+    `permanent-perimeter-fence` (access, enabler), `cattle-rotational-grazing`
+    (subdivision; prereqs perimeter + cover-crop-rebuild + keyline-access-track;
+    min 20 ac), `paddock-water-network` (water; closes 70% of welfare-pass-pct
+    in year 1, matching the ≤100 m rule), `livestock-shelter-windbreak`
+    (trees; closes shelter portion at +25% pass-pct), and
+    `pasture-renovation-overseed` (soil; lifts protein + revenue via
+    forage-quality uplift).
+  • Backfilled `poultry-coop` and `small-ruminant-paddock` so they
+    also score on the new livestock criteria — otherwise the
+    greedy sequencer would have preferred new entries solely because
+    legacy ones looked empty against the new sub-goal.
+  • Runtime verification via preview eval confirmed
+    `REGENERATIVE_FARM.subGoals.length === 4`, all 4 livestock
+    criteria have ≥2 contributing interventions, and catalog total is
+    20.
+
+**(4) Goal Tree template picker defaulted to "Homestead".** User
+selected element on the live preview. Root cause in
+[apps/web/src/v3/plan/cards/goal-compass/GoalTreeTab.tsx](../apps/web/src/v3/plan/cards/goal-compass/GoalTreeTab.tsx):
+the picker drove its `value` off `project.projectType`, which on the
+`mtc` project is `null` — so `asTemplateKey(null)` fell back to
+`'homestead'`. But `goalTreesByProject.mtc.archetype` was
+`'regenerative-farm'` — the steward had already switched templates
+via `switchTemplate()`, and the picker simply wasn't reading it.
+Added `archetypeToTemplateKey()` that reverse-maps via
+`GOAL_TREE_TEMPLATES[k].archetype` (the two namespaces diverge —
+archetypes use hyphens, keys use underscores), and made the picker
+prefer the loaded tree's archetype, falling back to project type then
+`'homestead'`. Verified in preview: picker now reads "Regenerative
+farm" with the live tree's parent goal "Profitable regenerative farm"
+rendering below.
+
+**Verification.** `npx tsc --noEmit` clean throughout. Full vitest
+suite `npx vitest run` — 727/727 pass across 49 files (only this
+session's additions touch livestock; the rest is regression
+coverage).
+
+
+---
+
+## 2026-05-14 — Wire livestock criteria to live on-map state (Goal Compass)
+
+**Branch.** `feat/atlas-permaculture` · sequel to `357ea51f`.
+
+**Goal.** Close the feedback loop between Plan-stage drawing and the Goal
+Compass forecast for the two livestock criteria that can be derived from
+current on-map state — `livestock-paddocks-active-count` and
+`livestock-welfare-pass-pct`. Stewards should no longer need to type a
+baseline; placing paddocks and welfare anchors (shade, shelter, water)
+should move the forecast directly.
+
+**Changes.**
+
+- New `apps/web/src/features/livestock/welfarePass.ts` — extracts the
+  per-paddock pass predicate (`worst === 'good'` across shade, shelter,
+  water — all axes ≤100 m from centroid) into a reusable helper plus a
+  project-scoped `welfareSummaryForProject()` roll-up. Same band rule
+  the audit card presents, decoupled from its UI so the Goal Compass
+  can consume it without coupling.
+- `computeForecast()` in
+  `apps/web/src/v3/plan/engine/goalCompass/criteriaForecast.ts` now
+  accepts an optional `currentValues?: Record<string, number>` map.
+  The baseline is added to every yearly point and to the at-deadline
+  comparison — interventions stack on top of live state instead of
+  starting from implicit zero.
+- `CriteriaForecastTab.tsx` reads `useLivestockStore`,
+  `useUtilityStore`, `useWaterSystemsStore`, and `useAllStructures()`
+  (project-scoped), computes `{ paddockCount, passPct }` via the new
+  helper, and threads the resulting `currentValues` map into
+  `computeForecast()`.
+
+**Verification (preview).** Recreated the project's tree via the
+template picker after clearing the stale persisted entry (the
+pre-`8a0a75d2` tree was missing the livestock sub-goal). On the mtc
+project with 4 placed paddocks:
+
+- `livestock-paddocks-active-count` row reads `4` constant across all
+  years — that's the live baseline showing through with no
+  interventions queued.
+- `livestock-welfare-pass-pct` row reads `70 / 85 / 95` at Y1/Y3/Y5 —
+  live baseline 0 (no paddock currently has all three anchors ≤100 m)
+  plus paddock-water-network `+70` Y1, shelter-windbreak `+25` Y2,
+  small-ruminant-paddock `+20` Y3 (attenuated by maturity curves).
+
+`tsc --noEmit` clean.
+
+**Deferred.** `WelfareAccessAuditCard` still has its own copy of the
+band logic — should be refactored to consume `paddockPassesWelfare()`
+next session. Unit tests for `welfareSummaryForProject` not yet added.
+
+---
+
+## 2026-05-14 — Refactor WelfareAccessAuditCard to consume welfarePass.ts + add tests
+
+**Branch.** `feat/atlas-permaculture` · sequel to `c33f4293`.
+
+**Goal.** Close the deferred follow-up from the previous wiring
+commit: collapse the two copies of the welfare-band math into one,
+and add unit coverage for the new helper.
+
+**Changes.**
+
+- `apps/web/src/features/livestock/welfarePass.ts` now exports
+  `evaluatePaddockWelfare()` (full per-paddock detail — three
+  `AxisFinding`s plus `worst`) and the shared types
+  `AxisFinding` / `PaddockWelfareEval` / `WelfareBand` /
+  `worstWelfareBand`. The boolean `paddockPassesWelfare` and the
+  project-scoped `welfareSummaryForProject` collapse to thin wrappers
+  over the detail evaluator.
+- `apps/web/src/features/livestock/WelfareAccessAuditCard.tsx` loses
+  ~140 lines: `polygonCentroid`, `distanceM`, `nearestStructureOfTypes`,
+  `nearestUtilityOfTypes` (which was already unused), `nearestWaterAny`,
+  `worstBand`, the `SHADE_STRUCTURES` / `SHELTER_STRUCTURES` sets, and
+  the local `AxisFinding` / `PaddockEval` / `Band` types — all
+  imported from `./welfarePass.js` now. The `evals` useMemo collapses
+  to a single `evaluatePaddockWelfare()` call per paddock. The card
+  retains `BAND_LABEL` / `BAND_RANK` (display-only sort) / `fmtDistance`
+  / `axisDetail` / `remediationFor` — presentation-only strings, not
+  domain logic.
+- New `apps/web/src/features/livestock/__tests__/welfarePass.test.ts`
+  with 12 vitest cases: `worstWelfareBand` ordering,
+  `evaluatePaddockWelfare` (missing inputs, partial placement,
+  worst-of-three, degenerate geometry), `paddockPassesWelfare` (all
+  good / fair / empty), and `welfareSummaryForProject` (empty /
+  50% / 100%). Mirrors the `waterSource.test.ts` fixture pattern.
+
+**Verification.** `tsc --noEmit` clean. `vitest run` — 739/739 pass
+across 50 files (12 new). Preview on the mtc project's Criteria
+forecast tab: `livestock-paddocks-active-count = 4`,
+`livestock-welfare-pass-pct = 70 / 85 / 95` at Y1/Y3/Y5 — identical
+to the pre-refactor numbers, predicate behavior preserved.
+
+**Deferred.** Four-band tally (good/fair/poor/missing) is not yet
+exposed from welfarePass; the card's `summary` useMemo stays inline.
+Other livestock cards with their own band math (e.g.
+`LivestockWelfarePhasingCard`) are candidates for a next-pass
+consolidation.
+
+## 2026-05-15 — WS5 P2 (public report share) + WS4b (maintenance rollup)
+
+Closed the two MVP-delta items deferred from the 2026-05-15
+reconciliation session. ADR:
+`decisions/2026-05-15-atlas-ws5p2-public-report-share-ws4b-maintenance.md`.
+
+**WS5 P2.** Tokenized, unauthenticated, view-only report share (spec
+§5.1.2). Reuses `project_portals` (no migration); `config.reportShare`
+block with its own publish flag, decoupled from storytelling
+`is_published`. Public `GET /api/v1/portal/:shareToken/report.pdf`
+**streams the frozen `capital_partner_summary` PDF bytes through the
+API** — the raw storage URL is never client-visible, which *resolves*
+the storage-ACL security checkpoint by design rather than assumption.
+`Cache-Control: no-store` satisfies the immediate-unpublish gate.
+Inherited rate-limit/CDN caveat carried forward (gated before first
+public URL).
+
+**WS4b.** `computeMaintenanceSchedule` (pure) → synthetic recurring
+"Ongoing maintenance" phase (`order 99`) + tagged `isMaintenanceTask`
+tasks, woven at the `runAutoDesign` orchestrator seam (not
+`sequencingEngine`), mirroring `regenerationForcing.ts`.
+`MaintenanceSchedule` metadata authored across 19 recurring catalog
+interventions + 2 recurring regeneration methods (deduped by method
+id). `PhaseTask` extended with optional maintenance fields (no persist
+bump). New `MaintenanceScheduleCard` (Module 7 · Phasing) rolls up
+per-frequency labor/cost, annualised totals, materials procurement,
+skilled-help, equipment.
+
+**Latent bug fixed.** `GenerateSiteDesignBar` persisted only
+`sequencing.generatedPhases`, silently dropping WS3 regeneration **and**
+WS4b maintenance synthetic-phase tasks. `AutoDesignResult` now exposes
+combined `generatedPhases` (forcing + sequencing + maintenance); the
+consumer persists that. Fixes WS3 task persistence as a side effect.
+
+**Verification.** `tsc --noEmit` clean (web + api; default heap OOMs
+on web → 8 GB heap, not a type error). web plan+store 158/158 green
+(5 new maintenance specs); api `portal.test.ts` 8/8 green (4 new
+public-route specs). No regression.
+
+**Deferred.** Manual hands-on pass (publish → `/report-share/<token>`
+logged-out, unpublish → 404) — no dev server run this session.
+Launch-readiness rate-limit/CDN on the public route remains open
+(inherited, gated before first public URL).
+
+## 2026-05-15 — Regenerative Farm catalog: first-class cash enterprises
+
+Closed OQ1 for the Regenerative Farm archetype (was *partial* — no
+market-scale horticulture, no broadacre cash-crop rotation). ADR:
+`decisions/2026-05-15-atlas-regenerative-farm-catalog-cash-enterprises.md`.
+
+Added two interventions to `interventionCatalog.ts`, authored to the
+existing schema + selectable by the existing criterion vocabulary
+(**no engine / schema / criterion-id change**):
+
+- **`market-garden`** — commercial Zone-2 standardised-bed market
+  garden, distinct from the Zone-1 subsistence `kitchen-garden`
+  (market-scale, income-first). `tile-strip`; prereqs
+  `cover-crop-rebuild` + `compost-system`; income + food-sov + soil
+  contributions; monthly WS4b maintenance.
+- **`annual-cash-crop-rotation`** — regenerative broadacre rotation
+  under continuous cover; dominant field share
+  (`fractionOfParcel 0.35`); `tile-strip`; prereqs
+  `keyline-access-track` + `cover-crop-rebuild`; income + soil
+  contributions; annual WS4b maintenance.
+
+The criterion vocabulary already expressed farm cash income
+(`income-surplus-usd` / `income-streams-count`) and regenerative soil
+gain (`soil-om-pct` / `soil-cover-pct`) — the gap was content, not
+vocabulary, so the close is purely additive.
+
+**Verification.** `tsc --noEmit` clean. `vitest run src/v3/plan`
+84/84 across 13 files (4 new `regenerativeFarmCatalog.test.ts`:
+presence, sequenced for an income+soil goal tree, prerequisites
+pulled + ordered ahead, WS4b metadata). No regression.
+
+**Deferred.** Retreat Center / Educational Farm / Conservation /
+Multi-Enterprise stay content-blocked (OQ1 open for them, gated on
+the project-type-list decision). Manual Auto-design dry-run on a real
+parcel — no dev server this session.
+
+---
+
+## 2026-05-15 — Satellite basemap → Esri World Imagery
+
+**Branch.** `feat/atlas-permaculture`.
+
+**Trigger.** User asked what could improve satellite-view
+quality/resolution. Raster sharpness is provider-data-bound, not
+code-tunable; for rural/agricultural sites Esri World Imagery is
+sharper than MapTiler and is free/no-token (~z19). User chose "best
+free long-term option" + "keep current zoom limits, change source
+only."
+
+**Change.** `apps/web/src/lib/maplibre.ts`: new inline
+`ESRI_WORLD_IMAGERY_STYLE` (raster source
+`server.arcgisonline.com/.../World_Imagery`, `tileSize 256`,
+`maxzoom 19`, Esri/Maxar attribution, MapTiler `glyphs` fallback for
+label layers). `MAP_STYLES` type widened to `string |
+StyleSpecification`; `satellite` → the Esri style. `terrain` /
+`topographic` / `street` / `hybrid` unchanged. MapTiler satellite
+retained (and as fallback) via **Hybrid**. No zoom/fit/precache/store
+default touched. ADR
+`decisions/2026-05-15-atlas-satellite-basemap-esri-world-imagery.md`;
+`entities/web-app.md` Map section updated.
+
+**Verification.** `pnpm --filter web typecheck` clean across all 9
+`MAP_STYLES` consumers (all feed `setStyle`/`Map({style})`, both
+accept `StyleSpecification`). Live `map.getStyle()` after selecting
+Satellite on Observe `sectors-zones`: `esri-world-imagery` raster +
+MapTiler glyphs + 1 layer. Esri endpoint reachable (~450 ms). No
+console errors (Esri/CORS/glyphs/tiles). Round-trip Satellite →
+Terrain → Satellite restores Esri cleanly, `diagnose-parcel-boundary`
+overlay survives. Hybrid confirmed still MapTiler `satellite-v2`.
+
+**Deferred / caveat.** No pixel screenshot — `preview_screenshot`
+renderer hung (reproduced pre-change on landing page; environment
+issue, not the edit). Functional verification via applied-style
+readback + error-absence instead.
+
+---
+
+## 2026-05-15 — fix(map): cursor never changes / "flashes then reverts to open hand"
+
+**Bug.** Map cursor permanently the MapLibre open-hand `grab` on every
+stage/basemap; after a partial fix it would flash the right shape then
+revert to the open hand while drawing a feature.
+
+**Two root causes (both in the single source of truth
+`apps/web/src/v3/plan/canvas/useMapCursor.ts`):**
+1. Hover was probed only in `select` mode, so in the default `pan` mode
+   `compute()` could never return `pointer` — the "clickable feature"
+   affordance was dead by construction on every stage. Fix: probe hover
+   when `!drawArmed && !externalHovering`; pan branch returns `pointer`
+   when hovering an interactive feature and not dragging.
+2. `useMapCursor` only re-applied its `cursor:…!important` on map
+   `mousemove` (+down/up). mapbox-gl-draw and the Observe draw/drag
+   tools (AdoptBasemapBuildingTool, SunWindWedgeTool,
+   AnnotationDragHandler, AnnotationSectorHandles, useDimensionDrawTool)
+   write `canvas.style.cursor = ''` on click/dblclick/mouseup/keydown/
+   cleanup — events with no following `mousemove`. `= ''` strips the
+   `!important` declaration → canvas inherits the container `grab` and
+   stays there. Fix: a `MutationObserver` on the canvas `style`
+   attribute re-asserts the computed cursor after any external clobber,
+   with an equality guard so our own write is a no-op (no feedback loop).
+
+**Verification.** `pnpm --filter web typecheck` exit 0. Live in Observe
+(`/v3/project/mtc/observe`): pan rest = `grab !important`; arm
+Watercourse draw = `crosshair !important`; simulated draw-tool `= ''`
+clobber reverts to container `grab`; observer restores
+`crosshair !important` within ~80 ms; bare `move` write likewise
+re-asserted. No cursor/MutationObserver/recursion console errors.
+
+**Deferred.** ~30 ad-hoc `map.getCanvas().style.cursor = …` writers in
+PlanDataLayers/PlanScheduledMovesOverlay and the draw/drag tools are now
+redundant (the observer makes `useMapCursor` authoritative). Left in
+place — out of scope; harmless. See ADR
+`decisions/2026-05-15-atlas-map-cursor-authoritative.md`.

@@ -21,6 +21,7 @@ import SlopeLegendStrip from './SlopeLegendStrip.js';
 import TerrainSnapshot, { type TerrainOverlay } from './TerrainSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   featureCounts,
   topographyKpis,
@@ -108,16 +109,10 @@ export default function TerrainDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Read the shape of the land. Understand elevation, slope, aspect and water movement so
-              you can design with the land, not against it.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-topography-terrain"
+        lede="Read the shape of the land. Understand elevation, slope, aspect and water movement so you can design with the land, not against it."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>

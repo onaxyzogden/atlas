@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GuildSpatialBuilderCard — concentric-rings guild designer
  * (2026-05-08 redesign per user request).
  *
@@ -26,7 +26,7 @@ import {
 import {
   PLANT_DATABASE,
   findSpecies,
-} from '../../../../data/plantDatabase.js';
+} from '../../../../data/plantCatalog.js';
 import {
   resolveValidPresets,
   findGuildPreset,

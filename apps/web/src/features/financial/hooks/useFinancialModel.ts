@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 import { useZoneStore } from '../../../store/zoneStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { usePathStore } from '../../../store/pathStore.js';
@@ -86,7 +86,7 @@ function collectAssumptions(
 export function useFinancialModel(projectId: string): FinancialModel | null {
   // Read feature stores
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allCrops = useCropStore((s) => s.cropAreas);
   const allPaths = usePathStore((s) => s.paths);

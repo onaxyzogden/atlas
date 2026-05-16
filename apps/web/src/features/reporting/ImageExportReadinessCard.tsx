@@ -18,7 +18,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import css from './ImageExportReadinessCard.module.css';
@@ -83,7 +83,7 @@ function relativeUpdate(iso: string): { label: string; fresh: boolean } {
 
 export default function ImageExportReadinessCard({ project }: Props): JSX.Element {
   const allZones = useZoneStore((st) => st.zones);
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allPaths = usePathStore((st) => st.paths);
   const allUtilities = useUtilityStore((st) => st.utilities);
 

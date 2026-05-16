@@ -14,7 +14,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useActStructurePopoverStore } from '../../store/actStructurePopoverStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from '../../features/structures/footprints.js';
 import { getActionsForType, ACTION_LABELS } from './data/structureActions.js';
 import {
@@ -33,7 +33,7 @@ interface Props {
 export default function ActStructurePopover({ map, projectId }: Props) {
   const active = useActStructurePopoverStore((s) => s.active);
   const close = useActStructurePopoverStore((s) => s.close);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
 
   const [screen, setScreen] = useState<{ x: number; y: number; flipped: boolean } | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);

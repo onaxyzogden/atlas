@@ -17,10 +17,8 @@
  */
 
 import { useMemo } from 'react';
-import {
-  useStructureStore,
-  type StructureType,
-} from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from './footprints.js';
 import css from './SupportInfrastructureCard.module.css';
 
@@ -59,7 +57,7 @@ const fmtUsd = (n: number) =>
       : `$${n.toLocaleString()}`;
 
 export default function SupportInfrastructureCard({ projectId }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const { rows, totals } = useMemo(() => {
     const projectStructures = allStructures.filter((s) => s.projectId === projectId);

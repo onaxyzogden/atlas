@@ -31,7 +31,8 @@
  */
 
 import { useMemo } from 'react';
-import { useStructureStore } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -130,7 +131,7 @@ interface Props {
 }
 
 export default function RuleHotspotCostBundlesCard({ project }: Props) {
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const zones      = useZoneStore((s) => s.zones);
   const paddocks   = useLivestockStore((s) => s.paddocks);
   const crops      = useCropStore((s) => s.cropAreas);
@@ -330,7 +331,7 @@ interface HotspotBundle {
 
 function buildHotspotBundle(
   project: LocalProject,
-  structures: ReturnType<typeof useStructureStore.getState>['structures'],
+  structures: Structure[],
   zones: ReturnType<typeof useZoneStore.getState>['zones'],
   paddocks: ReturnType<typeof useLivestockStore.getState>['paddocks'],
   crops: ReturnType<typeof useCropStore.getState>['cropAreas'],
@@ -389,7 +390,7 @@ interface CostModelBundle {
 }
 
 function buildCostModelBundle(
-  placed: ReturnType<typeof useStructureStore.getState>['structures'],
+  placed: Structure[],
 ): CostModelBundle {
   const counts = new Map<string, { count: number; totalLow: number; totalHigh: number; types: Set<string> }>();
   for (const s of placed) {

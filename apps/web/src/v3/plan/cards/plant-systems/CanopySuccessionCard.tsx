@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CanopySuccessionCard — Plan Module 4, fresh build per Permaculture
  * Scholar verdict (2026-05-07).
  *
@@ -42,7 +42,7 @@
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
-import { findSpecies, type CanopyLayer } from '../../../../data/plantDatabase.js';
+import { findSpecies, type CanopyLayer } from '../../../../data/plantCatalog.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
@@ -125,9 +125,10 @@ export default function CanopySuccessionCard({ project }: Props) {
     () => allGuilds.filter((g) => g.projectId === project.id),
     [allGuilds, project.id],
   );
-  // Cap the guild set by the active Plan view. On uncapped views
-  // this is identity; on phase-1 / phase-2 it drops guilds whose
-  // BuildPhase yeomansCap exceeds the view cap.
+  // Cap the guild set by the year scrubber's
+  // `yeomansCapForYear(currentYear)`. At Year 6+ this is identity;
+  // at Year ≤ 2 / Year ≤ 5 it drops guilds whose BuildPhase
+  // yeomansCap exceeds the active cap.
   const visibleGuilds = usePhaseStoreCappedEntities(projectGuilds);
 
   // Build (1) the set of speciesIds reachable through any visible

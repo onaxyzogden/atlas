@@ -22,6 +22,7 @@
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
 import { useZoneStore, type LandZone, type ZoneCategory, ZONE_CATEGORY_CONFIG } from '../../store/zoneStore.js';
+import { polygonCentroid } from '../../lib/geo.js';
 import css from './GuestSafeBufferAuditCard.module.css';
 
 const GUEST_CATEGORIES: ReadonlySet<ZoneCategory> = new Set([
@@ -48,23 +49,6 @@ interface PaddockRow {
 
 interface Props {
   projectId: string;
-}
-
-function polygonCentroid(geom: GeoJSON.Polygon): [number, number] | null {
-  const ring = geom.coordinates[0];
-  if (!ring || ring.length === 0) return null;
-  let sx = 0;
-  let sy = 0;
-  let n = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const pt = ring[i];
-    if (!pt || pt.length < 2) continue;
-    sx += pt[0]!;
-    sy += pt[1]!;
-    n++;
-  }
-  if (n === 0) return null;
-  return [sx / n, sy / n];
 }
 
 function pointToSegmentMeters(

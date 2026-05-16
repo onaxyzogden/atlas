@@ -64,8 +64,8 @@ export default function WaterCatchmentsCard({ project }: Props) {
   const [precipMm, setPrecipMm] = useState<number>(sitePrecipMm ?? 900);
 
   // Project-scoped catchment WaterNodes. The Yeomans cap adapter then
-  // filters by the active Plan view (Year 1 / Year 5) using each node's
-  // phaseStore phase id → BuildPhase.yeomansCap → PHASE_VIEW_CAP chain.
+  // filters by the year scrubber's `currentYear` using each node's
+  // phaseStore phase id → BuildPhase.yeomansCap → yeomansCapForYear chain.
   // See wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
   const catchmentsRaw = useMemo(
     () => all.filter((n) => n.projectId === project.id && n.kind === 'catchment'),

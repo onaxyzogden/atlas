@@ -13,7 +13,8 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore, type LandZone, type ZoneCategory } from '../../store/zoneStore.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../store/utilityStore.js';
 import css from './GuidedWalkthroughCard.module.css';
@@ -298,7 +299,7 @@ interface GuidedWalkthroughCardProps {
 }
 
 export default function GuidedWalkthroughCard({ project }: GuidedWalkthroughCardProps) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((s) => s.zones);
   const allUtilities = useUtilityStore((s) => s.utilities);
 

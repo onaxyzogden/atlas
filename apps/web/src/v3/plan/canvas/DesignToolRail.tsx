@@ -26,12 +26,16 @@ import {
   Minus,
 } from 'lucide-react';
 import type { Map as MaplibreMap, MapMouseEvent } from 'maplibre-gl';
-import { useDesignElementsStore } from '../../../store/designElementsStore.js';
-import { useDesignElementsForProject } from '../../../store/builtEnvironmentSelectors.js';
+import {
+  addDesignElement,
+  useDesignElementsForProject,
+} from '../../../store/builtEnvironmentSelectors.js';
 import type { DesignElement } from '../../../store/designElementsStore.js';
 import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import css from './DesignToolRail.module.css';
+
+export type ToolMode = 'pan' | 'select';
 
 interface Props {
   map: MaplibreMap;
@@ -45,9 +49,11 @@ interface Props {
    *  DesignElementLayers feature-state highlight can read the same value. */
   selectedId: string | null;
   setSelectedId: Dispatch<SetStateAction<string | null>>;
+  /** Tool mode (pan/select) — lifted to VisionLayoutCanvas so the
+   *  centralized useMapCursor effect can read the same value. */
+  mode: ToolMode;
+  setMode: Dispatch<SetStateAction<ToolMode>>;
 }
-
-type ToolMode = 'pan' | 'select';
 
 const DESIGN_QUERY_LAYERS = [
   'design-el-poly-fill',
@@ -93,14 +99,14 @@ export default function DesignToolRail({
   onDisarmDraw,
   selectedId,
   setSelectedId,
+  mode,
+  setMode,
 }: Props) {
-  const [mode, setMode] = useState<ToolMode>('pan');
   const [layersOpen, setLayersOpen] = useState(false);
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
   const railRef = useRef<HTMLDivElement>(null);
 
   const elements = useDesignElementsForProject(projectId);
-  const addElement = useDesignElementsStore((s) => s.add);
   const setPlanSelection = usePlanSelectionStore((s) => s.set);
   const clearPlanSelection = usePlanSelectionStore((s) => s.clear);
 
@@ -131,12 +137,9 @@ export default function DesignToolRail({
       }
     };
     map.on('click', onClick);
-    const prevCursor = map.getCanvas().style.cursor;
-    map.getCanvas().style.cursor = 'crosshair';
     return () => {
       try {
         map.off('click', onClick);
-        map.getCanvas().style.cursor = prevCursor;
       } catch {
         /* map disposed */
       }
@@ -199,7 +202,7 @@ export default function DesignToolRail({
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `el-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    addElement(projectId, {
+    addDesignElement(projectId, {
       ...selected,
       id: newId,
       label: selected.label ? `${selected.label} (copy)` : undefined,
@@ -207,7 +210,7 @@ export default function DesignToolRail({
       createdAt: new Date().toISOString(),
     });
     setSelectedId(newId);
-  }, [selected, addElement, projectId]);
+  }, [selected, projectId]);
 
   const drawArmed = activeKind !== null;
   const canDuplicate = selected != null;

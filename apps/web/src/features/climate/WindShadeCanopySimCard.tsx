@@ -1,4 +1,4 @@
-/**
+﻿/**
  * §16 WindShadeCanopySimCard — canopy expansion + shade growth + windshelter
  * scenario rollup at 5/15/30 year horizons.
  *
@@ -14,7 +14,7 @@
 import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import { useCropStore, type CropArea, type CropAreaType } from '../../store/cropStore.js';
-import { SPECIES_BY_ID, type PlantSpeciesInfo } from '../planting/plantSpeciesData.js';
+import { SPECIES_BY_ID, type PlantSpeciesInfo } from '../../data/plantCatalog.js';
 import css from './WindShadeCanopySimCard.module.css';
 
 // ── Heuristic constants ───────────────────────────────────────────────────

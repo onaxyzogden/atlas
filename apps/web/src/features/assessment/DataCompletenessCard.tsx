@@ -17,7 +17,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
@@ -54,7 +54,7 @@ const SITE_LAYER_TYPES = [
 ] as const;
 
 export default function DataCompletenessCard({ project }: Props) {
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const utilities = useUtilityStore((s) => s.utilities);
   const paths = usePathStore((s) => s.paths);
   const zones = useZoneStore((s) => s.zones);

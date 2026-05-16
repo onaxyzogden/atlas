@@ -21,6 +21,7 @@ import HazardRiskMatrix from './HazardRiskMatrix.js';
 import HazardHotspotsMap from './HazardHotspotsMap.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   hazardCounts,
   riskLabel,
@@ -63,17 +64,10 @@ export default function HazardsLogDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Track site risks, seasonal threats, and mitigation readiness. Use this log
-              to prioritize actions, reduce losses, and build resilience across your
-              design zones.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-macroclimate-hazards-log"
+        lede="Track site risks, seasonal threats, and mitigation readiness. Use this log to prioritize actions, reduce losses, and build resilience across your design zones."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>

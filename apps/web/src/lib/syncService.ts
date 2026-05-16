@@ -17,7 +17,14 @@ import { api } from './apiClient.js';
 import { syncQueue, type QueuedOperation } from './syncQueue.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
-import { useStructureStore, type Structure } from '../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
+import { useBuiltEnvironmentStoreV2 } from '../store/builtEnvironmentStoreV2.js';
+import {
+  addStructure,
+  updateStructure,
+  getAllStructures,
+} from '../store/builtEnvironmentSelectors.js';
+import { projectToStructures } from '@ogden/shared';
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import { precacheProjectTiles } from './tilePrecache.js';
 import { FLAGS, type CreateDesignFeatureInput, type DesignFeatureSummary } from '@ogden/shared';
@@ -105,6 +112,7 @@ function subscribeToProjects() {
   return useProjectStore.subscribe((state) => {
     if (isSyncing) return;
     const curr = state.projects;
+    const prevById = new Map(prevProjects.map((p) => [p.id, p]));
     const { added, removed, updated } = diffArrayById(curr, prevProjects);
     prevProjects = curr;
 
@@ -113,6 +121,14 @@ function subscribeToProjects() {
     }
     for (const project of updated) {
       syncProjectUpdate(project);
+      // Boundary lives on a dedicated PostGIS endpoint (recomputes
+      // acreage/centroid + re-enqueues the Tier-1 pipeline), so only
+      // push it when it actually changed — not on every name/notes edit.
+      const prev = prevById.get(project.id);
+      const boundaryChanged =
+        JSON.stringify(prev?.parcelBoundaryGeojson ?? null) !==
+        JSON.stringify(project.parcelBoundaryGeojson ?? null);
+      if (boundaryChanged) syncProjectBoundary(project);
     }
     for (const project of removed) {
       syncProjectDelete(project);
@@ -142,11 +158,11 @@ function subscribeToZones() {
 }
 
 function subscribeToStructures() {
-  let prevStructures = useStructureStore.getState().structures;
+  let prevStructures: Structure[] = getAllStructures();
 
-  return useStructureStore.subscribe((state) => {
+  return useBuiltEnvironmentStoreV2.subscribe((state) => {
     if (isSyncing) return;
-    const curr = state.structures;
+    const curr: Structure[] = projectToStructures(state.entities);
     const { added, removed, updated } = diffArrayById(curr, prevStructures);
     prevStructures = curr;
 
@@ -231,6 +247,26 @@ async function syncProjectUpdate(project: LocalProject) {
     });
   } catch (err) {
     console.warn('[SYNC] Project update failed, queuing:', err);
+    await syncQueue.enqueue({
+      storeType: 'project',
+      action: 'update',
+      localId: project.id,
+      payload: project,
+    });
+  }
+}
+
+async function syncProjectBoundary(project: LocalProject) {
+  if (!project.serverId) return; // Not yet synced — create will handle it
+  if (!project.parcelBoundaryGeojson) return; // Nothing to push (cleared locally only)
+
+  try {
+    await api.projects.setBoundary(
+      project.serverId,
+      project.parcelBoundaryGeojson,
+    );
+  } catch (err) {
+    console.warn('[SYNC] Project boundary update failed, queuing:', err);
     await syncQueue.enqueue({
       storeType: 'project',
       action: 'update',
@@ -341,7 +377,7 @@ async function syncStructureCreate(structure: Structure) {
     const { data } = await api.designFeatures.create(projectServerId, input);
 
     isSyncing = true;
-    useStructureStore.getState().updateStructure(structure.id, { serverId: data.id });
+    updateStructure(structure.id, { serverId: data.id });
     isSyncing = false;
   } catch (err) {
     console.warn('[SYNC] Structure create failed, queuing:', err);
@@ -554,7 +590,7 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
 
     // Fetch structures from server
     const { data: serverStructures } = await api.designFeatures.list(project.serverId, 'structure');
-    const localStructures = useStructureStore.getState().structures.filter((s) => s.projectId === project.id);
+    const localStructures = getAllStructures().filter((s) => s.projectId === project.id);
     const localStructureByServerId = new Map(localStructures.filter((s) => s.serverId).map((s) => [s.serverId!, s]));
 
     // Merge server structures → local
@@ -562,22 +598,22 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
       const existing = localStructureByServerId.get(ss.id);
       if (existing) {
         const merged = designFeatureToStructure(ss, project.id);
-        useStructureStore.getState().updateStructure(existing.id, { ...merged, id: existing.id });
+        updateStructure(existing.id, { ...merged, id: existing.id });
       } else {
         const newStructure = designFeatureToStructure(ss, project.id);
-        useStructureStore.getState().addStructure(newStructure);
+        addStructure(newStructure);
       }
     }
 
     // Push unsynced local structures to server
-    const unsyncedStructures = useStructureStore.getState().structures.filter(
+    const unsyncedStructures = getAllStructures().filter(
       (s) => s.projectId === project.id && !s.serverId,
     );
     for (const structure of unsyncedStructures) {
       try {
         const input = structureToDesignFeature(structure, project.serverId);
         const { data } = await api.designFeatures.create(project.serverId, input);
-        useStructureStore.getState().updateStructure(structure.id, { serverId: data.id });
+        updateStructure(structure.id, { serverId: data.id });
       } catch (err) {
         console.warn(`[SYNC] Failed to push structure "${structure.name}":`, err);
       }

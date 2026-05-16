@@ -22,7 +22,7 @@ import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useEnterpriseStore } from '../../../../store/enterpriseStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { usePathStore } from '../../../../store/pathStore.js';
-import { useStructureStore } from '../../../../store/structureStore.js';
+import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../../../store/cropStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
@@ -72,7 +72,7 @@ export default function EnterprisesCard({ project }: Props) {
   // the lens to be on.
   const zones = useZoneStore((s) => s.zones);
   const paths = usePathStore((s) => s.paths);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const crops = useCropStore((s) => s.cropAreas);
   const guilds = usePolycultureStore((s) => s.guilds);
   const fertility = useClosedLoopStore((s) => s.fertilityInfra);

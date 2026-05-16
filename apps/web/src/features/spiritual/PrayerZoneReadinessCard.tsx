@@ -10,9 +10,11 @@
  * Five checks per zone, scored independently:
  *
  *   1. Prayer space — a placed prayer_space structure inside or within
- *      walking distance (≤ NEARBY_M) of the zone centroid
+ *      Zone-2 walking distance (≤ project.zoneThresholds.mediumM) of
+ *      the zone centroid
  *   2. Wudu water — a well, water tank, well pump, or rain catchment
- *      within short walking distance (≤ WUDU_WALK_M) for ablution
+ *      within Zone-1 walking distance (≤ project.zoneThresholds.closeM)
+ *      for ablution
  *   3. Livestock buffer — no animal paddock inside the spiritual purity
  *      buffer per SETBACK_RULES.livestock_spiritual (50 m)
  *   4. Vehicle / loud infrastructure buffer — no road or generator
@@ -35,12 +37,10 @@
 import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import type { LocalProject } from '../../store/projectStore.js';
+import { getZoneThresholds } from '../../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import {
-  useStructureStore,
-  type Structure,
-  type StructureType,
-} from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import {
   useUtilityStore,
   type Utility,
@@ -58,10 +58,15 @@ interface Props {
 
 /* ── Tunables ────────────────────────────────────────────────────── */
 
-/** Walking distance to a prayer space — comfortable indoor-shoes walk. */
-const NEARBY_M = 60;
-/** Walking distance to wudu water — tighter (ablution before prayer). */
-const WUDU_WALK_M = 35;
+/**
+ * Walk distances are pulled per-render from the project's zoneThresholds
+ * (see `getZoneThresholds` below). Wudu water sits in Zone-1 (closeM —
+ * tighter, repeated 5× daily before each prayer). A prayer space sits in
+ * Zone-2 (mediumM — comfortable indoor-shoes walk, same band
+ * SpiritualCommunalCard uses for the bathhouse→prayer adjacency). Tune
+ * both via FertilityColocationCard's "Tune zones (advanced)" disclosure;
+ * this card honours the same values.
+ */
 /** Loud-infrastructure setback — generators and vehicle roads. */
 const LOUD_BUFFER_M = 30;
 /** Spiritual-purity buffer from animals — pulled from SETBACK_RULES. */
@@ -190,8 +195,12 @@ const STATUS_CFG: Record<CheckStatus, { dot: string; cls: string }> = {
 /* ── Component ───────────────────────────────────────────────────── */
 
 export default function PrayerZoneReadinessCard({ project }: Props) {
+  // Walk thresholds pulled from per-project zoneThresholds. closeM = wudu
+  // walk (tight, daily), mediumM = comfortable walk to a prayer space.
+  const { closeM: WUDU_WALK_M, mediumM: NEARBY_M } = getZoneThresholds(project);
+
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allPaths = usePathStore((s) => s.paths);
   const visionData = useVisionStore((s) => s.getVisionData(project.id));
@@ -349,7 +358,7 @@ export default function PrayerZoneReadinessCard({ project }: Props) {
       const band = bandFromChecks(checks);
       return { zone, centroid, checks, band };
     });
-  }, [spiritualZones, prayerSpaces, livestockStructures, wuduWaterStructures, wuduWaterUtilities, loudUtilities, vehiclePaths, visionAlignment]);
+  }, [spiritualZones, prayerSpaces, livestockStructures, wuduWaterStructures, wuduWaterUtilities, loudUtilities, vehiclePaths, visionAlignment, WUDU_WALK_M, NEARBY_M]);
 
   // Aggregate band: worst case across zones (ready unless any zone is needs_work / workable).
   const aggregateBand: ZoneReadiness['band'] = useMemo(() => {

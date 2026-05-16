@@ -19,7 +19,7 @@
 
 import { useEffect, useMemo } from "react";
 import { maplibregl } from "../../../../lib/maplibre.js";
-import { useStructureStore } from "../../../../store/structureStore.js";
+import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from "../../../../store/livestockStore.js";
 
 const PADDOCK_SOURCE = "design-paddock-source";
@@ -36,7 +36,7 @@ export interface DesignPlacementsOverlayProps {
 
 export default function DesignPlacementsOverlay({ map, projectId }: DesignPlacementsOverlayProps) {
   const paddocks = useLivestockStore((s) => s.paddocks);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
 
   const paddockFC = useMemo<GeoJSON.FeatureCollection<GeoJSON.Polygon>>(() => ({
     type: "FeatureCollection",

@@ -28,6 +28,20 @@
  */
 
 import { map as mapTokens, group, earth } from '../../../../lib/tokens.js';
+import { GROUND_COVER_COLORS } from '../../../../store/zoneStore.js';
+
+/**
+ * Representative in-progress preview color per polygon tool kind, so the
+ * rubber-band polygon reads as the thing being drawn before it's committed.
+ * Values mirror the committed layer tables (ground cover for vegetation,
+ * paddock for pasture, annual-row for crop) so preview ≈ committed. Kinds
+ * absent here keep the universal `mapTokens.boundary` default.
+ */
+export const DRAW_PREVIEW_COLORS: Record<string, string> = {
+  vegetation: GROUND_COVER_COLORS['sparse-grasses'],
+  pasture: '#b58550',
+  conventionalCrop: '#a8854a',
+};
 
 export const MAPLIBRE_DRAW_STYLES = [
   {

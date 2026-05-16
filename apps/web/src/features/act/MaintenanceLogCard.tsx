@@ -19,7 +19,7 @@ import {
   type MaintenanceSourceKind,
 } from '../../store/maintenanceLogStore.js';
 import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
@@ -57,7 +57,7 @@ export default function MaintenanceLogCard({ project }: Props) {
 
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
   const allStorage = useWaterSystemsStore((s) => s.storageInfra);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
 
   const earthworks = useMemo(
     () => allEarthworks.filter((w) => w.projectId === project.id),

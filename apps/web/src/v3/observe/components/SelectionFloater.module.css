@@ -48,6 +48,14 @@
   cursor: not-allowed;
 }
 
+.btnActive,
+.btnActive:hover {
+  background: rgba(196, 162, 101, 0.28);
+  border-color: rgba(196, 162, 101, 0.7);
+  color: #6a4a1a;
+  font-weight: 600;
+}
+
 .btnDanger {
   color: #8a3a2a;
 }

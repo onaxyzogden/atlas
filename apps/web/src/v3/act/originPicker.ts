@@ -19,7 +19,7 @@
  */
 
 import { useLivestockStore } from '../../store/livestockStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { getAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from '../../features/structures/footprints.js';
 import { getActionsForType } from './data/structureActions.js';
 import type { FieldSpec } from '../plan/draw/inlineFormStore.js';
@@ -62,9 +62,8 @@ export function buildOriginOptions(
     .slice()
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const structures = useStructureStore
-    .getState()
-    .structures.filter(
+  const structures = getAllStructures()
+    .filter(
       (s) =>
         s.projectId === projectId &&
         getActionsForType(s.type).includes('livestockMove'),

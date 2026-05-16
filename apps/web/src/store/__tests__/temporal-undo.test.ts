@@ -26,6 +26,7 @@ import { useTopographyStore } from '../topographyStore.js';
 import { useExternalForcesStore } from '../externalForcesStore.js';
 import { useWaterSystemsStore } from '../waterSystemsStore.js';
 import { useEcologyStore } from '../ecologyStore.js';
+import { useVegetationStore } from '../vegetationStore.js';
 
 function clearTemporal(store: { temporal: { getState: () => { clear: () => void } } }): void {
   store.temporal.getState().clear();
@@ -390,7 +391,6 @@ describe('temporal middleware — ecologyStore', () => {
     useEcologyStore.setState({
       ecology: [],
       successionStageByProject: {},
-      ecologyZones: [],
     });
     clearTemporal(useEcologyStore as unknown as {
       temporal: { getState: () => { clear: () => void } };
@@ -417,9 +417,19 @@ describe('temporal middleware — ecologyStore', () => {
     expect(useEcologyStore.getState().ecology[0]?.notes).toBe('Initial sighting');
   });
 
-  it('undoes addEcologyZone to empty', () => {
-    const zone = {
-      id: 'ez-1',
+});
+
+describe('temporal middleware — vegetationStore', () => {
+  beforeEach(() => {
+    useVegetationStore.setState({ patches: [] });
+    clearTemporal(useVegetationStore as unknown as {
+      temporal: { getState: () => { clear: () => void } };
+    });
+  });
+
+  it('undoes addPatch to empty', () => {
+    const patch = {
+      id: 'vp-1',
       projectId: 'p-1',
       geometry: {
         type: 'Polygon' as const,
@@ -433,17 +443,18 @@ describe('temporal middleware — ecologyStore', () => {
           ],
         ],
       },
-      dominantStage: 'mid' as const,
+      successionStage: 'mid' as const,
+      groundCover: 'sparse-grasses' as const,
       label: 'East woodlot',
       createdAt: '2026-05-07T00:00:00Z',
     };
 
-    useEcologyStore.getState().addEcologyZone(zone);
-    expect(useEcologyStore.getState().ecologyZones).toHaveLength(1);
+    useVegetationStore.getState().addPatch(patch);
+    expect(useVegetationStore.getState().patches).toHaveLength(1);
 
-    (useEcologyStore as unknown as {
+    (useVegetationStore as unknown as {
       temporal: { getState: () => { undo: () => void } };
     }).temporal.getState().undo();
-    expect(useEcologyStore.getState().ecologyZones).toHaveLength(0);
+    expect(useVegetationStore.getState().patches).toHaveLength(0);
   });
 });

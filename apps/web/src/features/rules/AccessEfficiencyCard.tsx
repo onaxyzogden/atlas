@@ -23,7 +23,7 @@
  */
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
@@ -64,7 +64,7 @@ const WATER_UTIL_TYPES = new Set(['water_tank', 'well_pump', 'rain_catchment']);
 const TONE_RANK: Record<Tone, number> = { good: 0, fair: 1, poor: 2 };
 
 export default function AccessEfficiencyCard({ project }: AccessEfficiencyCardProps) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
 

@@ -14,12 +14,13 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl, { type Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
-import { useHomesteadStore } from '../../../../store/homesteadStore.js';
+import { BUILT_ENVIRONMENT_KINDS } from '@ogden/shared';
 import {
   useHumanContextStore,
   type PermacultureZone,
 } from '../../../../store/humanContextStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { useEffectiveHomestead } from '../../hooks/useEffectiveHomestead.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -46,7 +47,11 @@ export default function PermacultureZoneTool({ map, projectId }: Props) {
     s.permacultureZones.find((z) => z.projectId === projectId),
   );
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  const homestead = useHomesteadStore((s) => s.byProject[projectId]);
+  // Reads through the effective hook so a single existing residence
+  // can supply the anchor when no explicit homestead is placed (ADR
+  // wiki/decisions/2026-05-13-atlas-residence-zone0-derivation.md).
+  const { point: homestead, source: anchorSource, derivedFrom } =
+    useEffectiveHomestead(projectId);
 
   const [radii, setRadii] = useState<RadiiTuple>(
     existingZone?.ringRadiiM ?? DEFAULT_RADII_M,
@@ -75,6 +80,7 @@ export default function PermacultureZoneTool({ map, projectId }: Props) {
         projectId,
         ringRadiiM: radii,
         anchorPoint: homestead,
+        anchorSource: anchorSource === 'derived' ? 'derived' : 'explicit',
         createdAt: new Date().toISOString(),
       });
     }
@@ -155,10 +161,59 @@ export default function PermacultureZoneTool({ map, projectId }: Props) {
     existingZone?.ringRadiiM[5],
   ]);
 
+  // The Observe map auto-fits the parcel boundary, but a zone's stored
+  // anchor can sit far from it (e.g. a derived/old anchor km away). When
+  // that happens the rings AND the draggable gold/teal markers render
+  // off-screen, so the steward sees nothing to grab. On tool-arm — and
+  // whenever the anchor changes (re-anchor, drag) — recenter the map on
+  // the anchor if it's outside the current viewport. Scoped to while the
+  // zone tool is active, so it never steals a normal pan.
+  useEffect(() => {
+    if (!existingZone) return;
+    const anchor = existingZone.anchorPoint;
+    const b = map.getBounds();
+    const inView =
+      anchor[0] >= b.getWest() &&
+      anchor[0] <= b.getEast() &&
+      anchor[1] >= b.getSouth() &&
+      anchor[1] <= b.getNorth();
+    if (!inView) {
+      map.flyTo({ center: anchor, essential: true });
+    }
+  }, [
+    map,
+    existingZone?.id,
+    existingZone?.anchorPoint?.[0],
+    existingZone?.anchorPoint?.[1],
+  ]);
+
   const canSave = !!existingZone || !!homestead;
   const helperText = !existingZone && !homestead
     ? 'Place a homestead anchor first via the map "Place homestead" control.'
     : null;
+
+  // A saved zone's anchorPoint is a snapshot copied at create time — it
+  // intentionally does NOT live-follow the homestead pin (see
+  // humanContextStore.PermacultureZone). When the steward later moves the
+  // homestead/Zone-0 pin the rings stay put, which reads as a bug. Detect
+  // that drift and offer an explicit one-click re-anchor instead.
+  const homesteadDrifted =
+    !!existingZone &&
+    !!homestead &&
+    turf.distance(
+      turf.point(existingZone.anchorPoint),
+      turf.point(homestead),
+      { units: 'kilometers' },
+    ) * 1000 >
+      1;
+
+  const reanchorToHomestead = () => {
+    if (!existingZone || !homestead) return;
+    updatePermacultureZone(existingZone.id, {
+      anchorPoint: homestead,
+      anchorSource: anchorSource === 'derived' ? 'derived' : 'explicit',
+    });
+  };
 
   return (
     <div className={css.popover} role="dialog" aria-label="Permaculture zone">
@@ -169,7 +224,31 @@ export default function PermacultureZoneTool({ map, projectId }: Props) {
         <span className={css.hint}>{helperText}</span>
       ) : (
         <>
-          {existingZone ? (
+          {anchorSource === 'derived' && derivedFrom ? (
+            <span className={css.hint}>
+              {`Anchored at ${
+                derivedFrom.label?.trim() ||
+                BUILT_ENVIRONMENT_KINDS[derivedFrom.kind]?.label ||
+                'residence'
+              } — derived from your only residence. Place a household pin to override.`}
+            </span>
+          ) : null}
+          {existingZone && homesteadDrifted ? (
+            <>
+              <span className={css.hint}>
+                Your homestead pin has moved. Zones stay where you placed
+                them — they don&apos;t auto-follow the pin. Re-anchor them to
+                the pin, or drag the gold marker to position them by hand.
+              </span>
+              <button
+                type="button"
+                className={css.secondaryBtn}
+                onClick={reanchorToHomestead}
+              >
+                Re-anchor zones to homestead
+              </button>
+            </>
+          ) : existingZone ? (
             <span className={css.hint}>
               Drag the gold pin to relocate the centre, or the teal handles
               east of the anchor to resize each ring.

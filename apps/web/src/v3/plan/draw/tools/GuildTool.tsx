@@ -1,4 +1,4 @@
-/**
+﻿/**
  * GuildTool — point → Guild (Plan Module 5: Plant Systems & Polyculture).
  *
  * Persist-first: skeleton Guild on draw.create, popover patches name +
@@ -28,8 +28,9 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
-import { PLANT_DATABASE } from '../../../../data/plantDatabase.js';
+import { PLANT_DATABASE } from '../../../../data/plantCatalog.js';
 import { resolveValidPresets, findGuildPreset } from '../../../../data/guildPresets.js';
+import { autoLinkSilvopastureForPoint } from '../../../../features/agroforestry/autoLinkSilvopasture.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -91,6 +92,8 @@ export default function GuildTool({ map, projectId }: Props) {
         /* bounds unavailable — accept [0.5, 0.5] fallback */
       }
 
+      const silvopastureId = autoLinkSilvopastureForPoint(projectId, anchor) ?? undefined;
+
       addGuild({
         id,
         projectId,
@@ -100,6 +103,7 @@ export default function GuildTool({ map, projectId }: Props) {
         center: anchor,
         centroidUv,
         phase: phaseDefault || undefined,
+        ...(silvopastureId ? { silvopastureId } : {}),
         createdAt: new Date().toISOString(),
       });
 

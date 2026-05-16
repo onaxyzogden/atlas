@@ -12,4 +12,5 @@ export { default as DesignElementScenegraphLayer } from './DesignElementScenegra
 export { default as DesignElementExtrusionLayer } from './DesignElementExtrusionLayer.js';
 export { default as Terrain3DController } from './Terrain3DController.js';
 export { default as BeV2GenericLayer } from './BeV2GenericLayer.js';
+export { default as AdoptedBuildingsSync } from './AdoptedBuildingsSync.js';
 export type { StateFilter } from './DesignElementExtrusionLayer.js';

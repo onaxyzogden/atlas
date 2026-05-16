@@ -11,7 +11,8 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../../store/utilityStore.js';
 import { usePathStore, type DesignPath, type PathType } from '../../../store/pathStore.js';
 import { useCropStore, type CropArea, type CropAreaType } from '../../../store/cropStore.js';
@@ -214,7 +215,7 @@ function fmtCurrency(n: number): string {
 export default function PathModesCard({ project }: Props) {
   const [mode, setMode] = useState<Mode>('fastest');
 
-  const structures = useStructureStore((s) => s.structures).filter((s) => s.projectId === project.id);
+  const structures = useAllStructures().filter((s) => s.projectId === project.id);
   const utilities = useUtilityStore((s) => s.utilities).filter((u) => u.projectId === project.id);
   const paths = usePathStore((s) => s.paths).filter((p) => p.projectId === project.id);
   const crops = useCropStore((s) => s.cropAreas).filter((c) => c.projectId === project.id);

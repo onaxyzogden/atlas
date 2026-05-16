@@ -26,10 +26,8 @@
  */
 
 import { useMemo } from 'react';
-import {
-  useStructureStore,
-  type StructureType,
-} from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import {
   useUtilityStore,
   type UtilityType,
@@ -110,7 +108,7 @@ const FOUNDATION_ROWS: ReadonlyArray<{ reqKey: ReqKey; label: string; icon: stri
 ];
 
 export default function BuildOrderCard({ projectId }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((u) => u.utilities);
 
   const structures = useMemo(

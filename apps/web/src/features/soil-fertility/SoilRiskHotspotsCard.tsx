@@ -25,7 +25,14 @@
  * types. Reads zoneStore + livestockStore + utilityStore.
  */
 import { useMemo } from 'react';
-import { useZoneStore, type LandZone, type ZoneCategory } from '../../store/zoneStore.js';
+import {
+  useZoneStore,
+  type LandZone,
+  type ZoneCategory,
+  type SuccessionStage,
+} from '../../store/zoneStore.js';
+import { useVegetationStore } from '../../store/vegetationStore.js';
+import { resolveZoneVegetation } from '../../v3/plan/engine/vegetationResolver.js';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
 import { useUtilityStore, type Utility, type UtilityType } from '../../store/utilityStore.js';
 import css from './SoilRiskHotspotsCard.module.css';
@@ -89,6 +96,7 @@ function metresBetween(a: [number, number], b: [number, number]): number {
 
 function classifyZone(
   z: LandZone,
+  succession: SuccessionStage | null,
   paddockOverlay: Paddock | null,
   waterUtils: Utility[],
 ): RiskFlag[] {
@@ -117,19 +125,19 @@ function classifyZone(
   }
 
   // ── Erosion ────────────────────────────────────────────────────────
-  if (z.successionStage === 'bare') {
+  if (succession === 'disturbed') {
     flags.push({
       kind: 'erosion',
       severity: 'high',
-      rationale: 'Bare ground tagged — every storm event is an erosion event. Cover-crop or mulch as a first-pass intervention.',
+      rationale: 'Disturbed ground tagged — every storm event is an erosion event. Cover-crop or mulch as a first-pass intervention.',
     });
-  } else if (z.successionStage === 'pioneer') {
+  } else if (succession === 'pioneer') {
     flags.push({
       kind: 'erosion',
       severity: 'medium',
       rationale: 'Pioneer succession — root systems still shallow. Maintain or thicken vegetative cover before allowing disturbance.',
     });
-  } else if (z.category === 'access' && z.successionStage !== 'climax') {
+  } else if (z.category === 'access' && succession !== 'climax') {
     flags.push({
       kind: 'erosion',
       severity: 'medium',
@@ -238,23 +246,26 @@ export default function SoilRiskHotspotsCard({ projectId }: Props) {
   const allZones = useZoneStore((s) => s.zones);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allUtilities = useUtilityStore((s) => s.utilities);
+  const allPatches = useVegetationStore((s) => s.patches);
 
-  const { zones, paddocks, waterUtils } = useMemo(
+  const { zones, paddocks, waterUtils, patches } = useMemo(
     () => ({
       zones: allZones.filter((z) => z.projectId === projectId),
       paddocks: allPaddocks.filter((p) => p.projectId === projectId),
       waterUtils: allUtilities.filter(
         (u) => u.projectId === projectId && WATER_UTILITY_TYPES.has(u.type),
       ),
+      patches: allPatches.filter((p) => p.projectId === projectId),
     }),
-    [allZones, allPaddocks, allUtilities, projectId],
+    [allZones, allPaddocks, allUtilities, allPatches, projectId],
   );
 
   const rows = useMemo<ZoneRisk[]>(
     () =>
       zones.map((z) => {
         const overlay = findOverlappingPaddock(z, paddocks);
-        const flags = classifyZone(z, overlay, waterUtils);
+        const succession = resolveZoneVegetation(z, patches).successionStage;
+        const flags = classifyZone(z, succession, overlay, waterUtils);
         return {
           id: z.id,
           name: z.name || '(unnamed zone)',
@@ -264,7 +275,7 @@ export default function SoilRiskHotspotsCard({ projectId }: Props) {
           worst: worstSeverity(flags),
         };
       }),
-    [zones, paddocks, waterUtils],
+    [zones, paddocks, waterUtils, patches],
   );
 
   const totals = useMemo(() => {

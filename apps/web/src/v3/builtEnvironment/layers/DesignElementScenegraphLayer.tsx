@@ -32,8 +32,8 @@ import {
   type BuiltEnvironmentV2State,
 } from '../../../store/builtEnvironmentStoreV2.js';
 import {
-  PHASE_VIEW_CAP,
   phaseIndex,
+  yeomansCapForYear,
   type PhaseKey,
   type PlanView,
 } from '../../plan/types.js';
@@ -50,6 +50,8 @@ import { useDeckOverlay } from '../../_shared/deck/DeckOverlay.js';
 import { openBeInlineEditById } from '../inline/openBeInlineEdit.js';
 import { useCustomModelStore } from '../../../store/customModelStore.js';
 import type { StateFilter } from './DesignElementExtrusionLayer.js';
+import { useTemporalScrubStore } from '../../plan/canvas/temporalScrubStore.js';
+import { canopyAtAge, matureCanopyM } from '@ogden/shared';
 
 interface Props {
   projectId: string;
@@ -75,6 +77,7 @@ function entityToPlaced(
   e: BuiltEnvironmentEntity,
   spec: ElementHeightSpec,
   customModelUrls: Record<string, string>,
+  currentYear: number,
 ): PlacedSpec | null {
   if (!spec.glbUrl) return null;
   const baseM = spec.baseM ?? 0;
@@ -82,9 +85,18 @@ function entityToPlaced(
   // Per-instance yaw overrides the kind-level default (Phase 5 of ADR
   // 2026-05-11). `scaleMul` multiplies all three axes of the auto-computed
   // scale so users can size a placed model up or down without touching
-  // footprint/height defaults.
+  // footprint/height defaults. Vegetation kinds ignore `scaleMul` and
+  // instead derive their scale from the canopy growth curve at the
+  // current scrub year (per the 2026-04-28 temporal-slider ADR).
   const yawDeg = e.proposed?.rotationDeg ?? spec.glbRotationDeg ?? 0;
-  const mul = e.proposed?.scaleMul ?? 1;
+  let mul = e.proposed?.scaleMul ?? 1;
+  if (spec.category === 'vegetation') {
+    const mature = matureCanopyM(e.kind);
+    if (mature > 0) {
+      const now = canopyAtAge(e.kind, currentYear).canopyM;
+      mul = Math.max(0.05, now / mature);
+    }
+  }
   const anchor = spec.glbAnchorOffsetM ?? [0, 0, 0];
   // Phase 6: per-instance custom GLB URL overrides the kind's spec.glbUrl
   // when the entity carries a resolvable `customModelId`. Unresolved ids
@@ -140,12 +152,16 @@ export default function DesignElementScenegraphLayer({
   // Phase 6: per-instance custom-GLB lookup. Subscribing here means the
   // layer rebuilds when a model is added/removed or the store hydrates.
   const customEntries = useCustomModelStore((s) => s.entries);
+  // Temporal slider — scrub year drives the per-instance vegetation
+  // scale through entityToPlaced. Subscribing here means the specs
+  // memo re-runs (and the layer rebuilds) on every slider tick.
+  const currentYear = useTemporalScrubStore((s) => s.currentYear);
 
   const specs = useMemo<PlacedSpec[]>(() => {
-    const cap =
-      view === 'phase-1' || view === 'phase-2'
-        ? phaseIndex(PHASE_VIEW_CAP[view])
-        : Infinity;
+    // Yeomans cap is now derived from the year scrubber's currentYear
+    // (replaces the retired `phase-1` / `phase-2` view tabs, 2026-05-14).
+    const capKey = yeomansCapForYear(currentYear);
+    const cap = capKey ? phaseIndex(capKey) : Infinity;
 
     const customUrls: Record<string, string> = {};
     for (const [id, entry] of Object.entries(customEntries)) {
@@ -165,11 +181,11 @@ export default function DesignElementScenegraphLayer({
         if (phaseIndex(phase) > cap) continue;
       }
 
-      const placed = entityToPlaced(e, heightSpec, customUrls);
+      const placed = entityToPlaced(e, heightSpec, customUrls, currentYear);
       if (placed) out.push(placed);
     }
     return out;
-  }, [entities, projectId, stateFilter, view, customEntries]);
+  }, [entities, projectId, stateFilter, view, customEntries, currentYear]);
 
   useEffect(() => {
     const layer = new ScenegraphLayer<PlacedSpec>({

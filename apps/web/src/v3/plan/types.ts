@@ -7,6 +7,7 @@
  */
 
 export type PlanModule =
+  | 'goal-compass'
   | 'dynamic-layering'
   | 'water-management'
   | 'zone-circulation'
@@ -20,6 +21,7 @@ export type PlanModule =
   | 'principle-verification';
 
 export const PLAN_MODULES: PlanModule[] = [
+  'goal-compass',
   'dynamic-layering',
   'water-management',
   'zone-circulation',
@@ -38,6 +40,7 @@ export function isPlanModule(s: string): s is PlanModule {
 }
 
 export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
+  'goal-compass':           'Compass',
   'dynamic-layering':       'Layering',
   'water-management':       'Water',
   'zone-circulation':       'Zones',
@@ -52,6 +55,7 @@ export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
 };
 
 export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
+  'goal-compass':           'Goal Compass',
   'dynamic-layering':       'Dynamic Layering & Permanence',
   'water-management':       'Water Management',
   'zone-circulation':       'Zone & Circulation',
@@ -65,30 +69,20 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'principle-verification': 'Holmgren Principle Verification',
 };
 
-// ── Vision-Layout canvas (added 2026-05-07) ──────────────────────────────────
+// ── Vision-Layout canvas (added 2026-05-07; phase tabs retired 2026-05-14) ───
 // Top-tab views for the Plan stage. `current` keeps the legacy module-driven
-// experience; `vision` opens the design-element canvas; phase tabs filter the
-// canvas by Yeomans Scale of Permanence index. `terrain3d` is a v1 placeholder.
-export type PlanView =
-  | 'current'
-  | 'vision'
-  | 'phase-1'
-  | 'phase-2'
-  | 'terrain3d';
+// experience; `vision` opens the design-element canvas; `terrain3d` is a v1
+// camera-preset placeholder. The former `phase-1` / `phase-2` Yeomans-cap
+// tabs were retired in favour of the bottom-canvas year scrubber — the cap
+// is now derived from `useTemporalScrubStore.currentYear` via
+// `yeomansCapForYear` below.
+export type PlanView = 'current' | 'vision' | 'terrain3d';
 
-export const PLAN_VIEWS: PlanView[] = [
-  'current',
-  'vision',
-  'phase-1',
-  'phase-2',
-  'terrain3d',
-];
+export const PLAN_VIEWS: PlanView[] = ['current', 'vision', 'terrain3d'];
 
 export const PLAN_VIEW_LABEL: Record<PlanView, string> = {
   current: 'Current Land',
   vision: 'Vision Layout',
-  'phase-1': 'Year 1',
-  'phase-2': 'Year 5',
   terrain3d: '3D Terrain',
 };
 
@@ -125,17 +119,35 @@ export function phaseIndex(p: PhaseKey): number {
   return PHASE_ORDER.indexOf(p);
 }
 
-/** Cap (inclusive) used to filter elements visible in each phase view tab. */
-export const PHASE_VIEW_CAP: Record<'phase-1' | 'phase-2', PhaseKey> = {
-  'phase-1': 'water',     // Year 1: climate → landshape → water
-  'phase-2': 'buildings', // Year 5: through buildings
-};
+/**
+ * Yeomans cap derived from the year scrubber's `currentYear` (1..50).
+ *
+ * Replaces the retired `PHASE_VIEW_CAP` lookup tied to the `phase-1` /
+ * `phase-2` tabs (2026-05-14). Thresholds chosen so behaviour at the two
+ * prior tab landings is identical:
+ *
+ * - Year 1..2  → `'water'`     (matches the old Year 1 tab)
+ * - Year 3..5  → `'buildings'` (matches the old Year 5 tab)
+ * - Year 6+    → `null`        (uncapped — same as `current` / `vision`)
+ */
+export function yeomansCapForYear(year: number): PhaseKey | null {
+  if (year <= 2) return 'water';
+  if (year <= 5) return 'buildings';
+  return null;
+}
 
 /** Each module maps to one or more plan card section IDs. */
 export const MODULE_CARDS: Record<
   PlanModule,
   Array<{ label: string; sectionId: string; group?: string }>
 > = {
+  'goal-compass': [
+    { label: 'Goal tree',         sectionId: 'plan-goal-tree' },
+    { label: 'Site profile',      sectionId: 'plan-site-profile' },
+    { label: 'Proposal',          sectionId: 'plan-proposal' },
+    { label: 'Develop plan',      sectionId: 'plan-develop-plan' },
+    { label: 'Criteria forecast', sectionId: 'plan-criteria-forecast' },
+  ],
   'dynamic-layering': [
     { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
     { label: 'Permanence ladder', sectionId: 'plan-permanence-ladder' },
@@ -145,12 +157,22 @@ export const MODULE_CARDS: Record<
     { label: 'Catchments',     sectionId: 'plan-water-catchments' },
     { label: 'Storage & overflow', sectionId: 'plan-water-storage' },
     { label: 'Network & balance',  sectionId: 'plan-water-network' },
+    // Highest-potential water router (Rec #3 v1 from the permaculture-
+    // alignment backlog, 2026-04-28). Aspect-projected heuristic flags
+    // water-harvest elements placed below the parcel's median elevation
+    // with a numeric "head lost" estimate and a suggested upper-third coord.
+    { label: 'Highest-potential router', sectionId: 'plan-water-router' },
   ],
   'zone-circulation': [
     { label: 'Zone level layer', sectionId: 'plan-zone-level' },
     { label: 'Path frequency',   sectionId: 'plan-path-frequency' },
     { label: 'Overview & validation', sectionId: 'plan-zone-overview' },
     { label: 'Sectors',          sectionId: 'plan-sector-overlay' },
+    // Social-node generator (Rec #6 v1 from the permaculture-alignment
+    // backlog, 2026-04-28). Path×path intersections inside Z1/Z2 zones
+    // surface as "social node opportunities"; existing amenity points
+    // within COVERED_RADIUS_M flip the row to "served."
+    { label: 'Social nodes',     sectionId: 'plan-social-nodes' },
   ],
   'structures-subsystems': [
     { label: 'Structures overview', sectionId: 'plan-structures-overview' },
@@ -178,15 +200,30 @@ export const MODULE_CARDS: Record<
     { label: 'Guild builder',          sectionId: 'plan-guild-builder' },
     { label: 'Canopy simulator',       sectionId: 'plan-canopy-simulator' },
     { label: 'Establishment sequence', sectionId: 'plan-plant-establishment-sequence' },
+    // Edge & connectivity evaluator (Rec #4 from permaculture-alignment
+    // backlog, 2026-04-28). Polsby-Popper compactness audit on planting
+    // polygons; flags homogenized shapes with a textual prompt.
+    { label: 'Edge & connectivity',    sectionId: 'plan-edge-connectivity' },
+    // Temporal coherence (Rec #2 from permaculture-alignment backlog,
+    // 2026-04-28). Canopy-overlap evaluator behind the bottom-canvas
+    // year scrubber; surfaces crowding pairs within next 5 y of cursor.
+    { label: 'Canopy maturity',        sectionId: 'plan-temporal-coherence' },
+    { label: 'Annual planting schedule', sectionId: 'plan-planting-schedule' },
   ],
   'soil-fertility': [
+    // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
+    // tile cold-opens onto the readout that hosts the "Tune zones
+    // (advanced)" disclosure — the controller for the whole
+    // zoneThresholds family (6 cards). Every consumer points stewards
+    // back here, so making it the default closes the discoverability
+    // loop. Designer remains one tab away.
+    { label: 'Fertility colocation', sectionId: 'plan-fertility-colocation' },
     { label: 'Soil fertility designer', sectionId: 'plan-soil-fertility' },
     { label: 'Waste-to-resource vectors', sectionId: 'plan-waste-vectors' },
     { label: 'Closed-loop graph', sectionId: 'plan-closed-loop-graph' },
     { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
     { label: 'Greens & browns', sectionId: 'plan-soil-resources' },
     { label: 'Soil-building plan', sectionId: 'plan-soil-building-plan' },
-    { label: 'Fertility colocation', sectionId: 'plan-fertility-colocation' },
   ],
   'cross-section-solar': [
     { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },
@@ -199,11 +236,24 @@ export const MODULE_CARDS: Record<
     { label: 'Labor & budget',         sectionId: 'plan-labor-budget' },
     { label: 'Scale-of-permanence',    sectionId: 'plan-phasing-scale-matrix' },
     { label: 'Cumulative investment',  sectionId: 'plan-cumulative-investment' },
+    { label: 'Maintenance schedule',   sectionId: 'plan-maintenance-schedule' },
     { label: 'Equipment replacement',  sectionId: 'plan-equipment-replacement' },
+    // Material-substitution calculator (Rec #5 v1 from the permaculture-
+    // alignment backlog, 2026-04-28). Surfaces biological alternatives
+    // for conventional infrastructure cost line items; toggle writes
+    // through to `financialStore.costOverrides` so total investment
+    // recomputes. v1 ships 8 cited substitution pairs.
+    { label: 'Material substitutions', sectionId: 'plan-material-substitutions' },
   ],
   'principle-verification': [
     { label: 'Holmgren checklist', sectionId: 'plan-holmgren-checklist' },
     { label: 'Three Ethics',       sectionId: 'plan-three-ethics-rollup' },
     { label: 'Coverage matrix',    sectionId: 'plan-principle-coverage-matrix' },
+    // Needs & Yields audit (Rec #1 ADR 2026-04-28; v3 Plan-stage surface
+    // added 2026-05-13). Promotes the orphan-output / unmet-input /
+    // closed-loop / integration-score readout from the legacy MapView
+    // RelationshipsRail into the Plan slide-up idiom alongside the
+    // other Holmgren P6 + P8 verifications.
+    { label: 'Needs & Yields',     sectionId: 'plan-needs-yields' },
   ],
 };

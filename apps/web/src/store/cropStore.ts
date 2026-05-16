@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
+import { resolveSpeciesId } from '../data/plantCatalogAliases.js';
 
 export type CropAreaType = 'orchard' | 'row_crop' | 'garden_bed' | 'food_forest' | 'windbreak' | 'shelterbelt' | 'silvopasture' | 'nursery' | 'market_garden' | 'pollinator_strip';
 
@@ -46,6 +47,13 @@ export interface CropArea {
    * crop area belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
+  /**
+   * Optional encoded host id (`<source>:<rawId>`, see
+   * `features/agroforestry/silvopastureHosts.ts`) pinning this crop
+   * area to a specific silvopasture host. Used only when
+   * `type === 'orchard'`; ignored on other types.
+   */
+  silvopastureId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -78,7 +86,24 @@ export const useCropStore = create<CropState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-crops', version: 1, migrate: (persisted) => persisted as never },
+    {
+      name: 'ogden-crops',
+      version: 2,
+      migrate: (persisted, version) => {
+        const s = ((persisted as Partial<CropState>) ?? {}) as Partial<CropState>;
+        let cropAreas: CropArea[] = s.cropAreas ?? [];
+        // v1→v2 (2026-05-14): rewrite legacy pl-XXX species ids on
+        // cropAreas[].species[] to snake_case canonical. Idempotent on
+        // snake_case input (resolveSpeciesId is identity on unknowns).
+        if (version < 2) {
+          cropAreas = cropAreas.map((c) => ({
+            ...c,
+            species: (c.species ?? []).map((id) => resolveSpeciesId(id)),
+          }));
+        }
+        return { cropAreas } as CropState;
+      },
+    },
   ),
 );
 

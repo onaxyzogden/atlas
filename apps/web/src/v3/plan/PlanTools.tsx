@@ -30,6 +30,7 @@ import {
   Link2,
   MapPin,
   Milestone,
+  Mountain,
   Recycle,
   RotateCw,
   Route,
@@ -48,6 +49,7 @@ import {
   BE_TOOL_ITEMS,
   BE_TOOL_GROUPS,
 } from '../_shared/builtEnvironmentTools.js';
+import type { BuiltEnvironmentCategory } from '@ogden/shared';
 import {
   useMapToolStore,
   type MapToolId,
@@ -83,6 +85,27 @@ const PLAN_BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
   toolId: `plan.structures-subsystems.be.${it.kind}` as MapToolId,
 }));
 
+/**
+ * 2026-05-14 — BE flatten. Each `BuiltEnvironmentCategory` surfaces as its
+ * own top-level rail section; clicking it activates the routed Plan
+ * module below. Plan has dedicated modules for several BE category
+ * concerns (machinery, plant-systems, water-management, zone-circulation),
+ * so the mapping is more specific than Observe's.
+ */
+const BE_CATEGORY_TO_PLAN_MODULE: Record<
+  BuiltEnvironmentCategory,
+  PlanModule
+> = {
+  building: 'structures-subsystems',
+  agricultural: 'structures-subsystems',
+  utility: 'structures-subsystems',
+  infrastructure: 'structures-subsystems',
+  machinery: 'machinery',
+  amenity: 'structures-subsystems',
+  vegetation: 'plant-systems',
+  earthworks: 'water-management',
+};
+
 /** Modules with map-first draw tools. Others fall back to "Open module". */
 const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   'water-management': [
@@ -93,6 +116,9 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     // 2026-05-11 — Yeomans water kind ported from elementCatalog; persists
     // to designElementsStore via PlanDesignElementHost.
     { id: 'spring',    label: 'Spring',    Icon: Flower2,   toolId: 'plan.water-management.spring' },
+    // 2026-05-14 — Berm relocated from the Earthworks BE category (dropped).
+    // Uses the BE toolId so the existing BE draw pipeline still handles it.
+    { id: 'be-berm',   label: 'Berm',      Icon: Mountain,  toolId: 'plan.structures-subsystems.be.berm' as MapToolId },
   ],
   'zone-circulation': [
     { id: 'zone',        label: 'Zone',        Icon: Square,        toolId: 'plan.zone-circulation.zone' },
@@ -142,6 +168,10 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'apple-tree',   label: 'Apple tree',   Icon: Apple,         toolId: 'plan.plant-systems.apple-tree' },
     { id: 'shrub',        label: 'Shrub',        Icon: Leaf,          toolId: 'plan.plant-systems.shrub' },
     { id: 'hedgerow',     label: 'Hedgerow',     Icon: Trees,         toolId: 'plan.plant-systems.hedgerow' },
+    // 2026-05-14 — Raised bed relocated from the Earthworks BE category
+    // (dropped). Uses the BE toolId so the existing draw pipeline still
+    // handles it.
+    { id: 'be-raised-bed', label: 'Raised bed',  Icon: Square,        toolId: 'plan.structures-subsystems.be.raised-bed' as MapToolId },
   ],
   'soil-fertility': [
     { id: 'fertility-unit',  label: 'Fertility unit',  Icon: Recycle,    toolId: 'plan.soil-fertility.fertility-unit' },
@@ -213,6 +243,11 @@ export default function PlanTools({
       data-has-active={activeModule !== null ? 'true' : 'false'}
     >
       {PLAN_MODULES.map((mod) => {
+        // 2026-05-14 — BE flatten: the parent `structures-subsystems`
+        // module no longer renders as a rail section; its kinds surface
+        // as 9 per-category sections appended after this loop. The
+        // module slide-up is still reachable via the bottom-rail tile.
+        if (mod === 'structures-subsystems') return null;
         const items = TOOL_GROUPS[mod];
         const isActive = activeModule === mod;
         const headerLabel = PLAN_MODULE_FULL_LABEL[mod];
@@ -254,51 +289,15 @@ export default function PlanTools({
               <span className={css.groupLabel}>{headerLabel}</span>
             </header>
             {items ? (
-              mod === 'structures-subsystems' ? (
-                // 31 BE kinds is too many for a flat 3-col grid — sub-group by
-                // `BuiltEnvironmentCategory` via native <details>. Mirrors the
-                // Observe rail (`ObserveTools` BE branch) so both stages stay
-                // parallel as new kinds are added to the registry.
-                BE_TOOL_GROUPS.map((group) => {
-                  const groupItems = group.items.map((bg) => ({
-                    id: `be-${bg.kind}`,
-                    label: bg.label,
-                    Icon: bg.Icon,
-                    toolId: `plan.structures-subsystems.be.${bg.kind}` as MapToolId,
-                  }));
-                  if (groupItems.length === 0) return null;
-                  return (
-                    <details
-                      key={group.category}
-                      className={css.subgroup}
-                      open
-                    >
-                      <summary className={css.subgroupHeader}>
-                        {group.label}
-                      </summary>
-                      <div className={css.itemGrid}>
-                        {groupItems.map((it) =>
-                          renderPlanToolButton(it, {
-                            activeTool,
-                            projectId,
-                            onToolClick,
-                          }),
-                        )}
-                      </div>
-                    </details>
-                  );
-                })
-              ) : (
-                <div className={css.itemGrid}>
-                  {items.map((it) =>
-                    renderPlanToolButton(it, {
-                      activeTool,
-                      projectId,
-                      onToolClick,
-                    }),
-                  )}
-                </div>
-              )
+              <div className={css.itemGrid}>
+                {items.map((it) =>
+                  renderPlanToolButton(it, {
+                    activeTool,
+                    projectId,
+                    onToolClick,
+                  }),
+                )}
+              </div>
             ) : mod === 'dynamic-layering' ? (
               <div className={css.lensRow}>
                 {(['yeomans', 'enterprise'] as const).map((m) => {
@@ -358,6 +357,85 @@ export default function PlanTools({
                 </button>
               </DelayedTooltip>
             )}
+          </section>
+        );
+      })}
+      {/* 2026-05-14 — Per-`BuiltEnvironmentCategory` top-level rail
+       *  sections. Each routes click-to-activate to a relevant
+       *  pre-existing Plan module (`BE_CATEGORY_TO_PLAN_MODULE`); tool
+       *  buttons still dispatch `plan.structures-subsystems.be.<kind>`
+       *  toolIds so the BE pipeline is unchanged. */}
+      {BE_TOOL_GROUPS.map((group) => {
+        if (group.items.length === 0) return null;
+        // 2026-05-14 — Vegetation BE kinds (Oak/Pine/Apple/Shrub/Hedgerow)
+        // already surface in the `plant-systems` rail section as plant
+        // tools; the BE category card is redundant in Plan.
+        if (group.category === 'vegetation') return null;
+        // 2026-05-14 — Earthworks BE section dropped. Berm and Raised bed
+        // now appear inline in Water Management / Plant Systems above;
+        // Terrace is appended to the Amenities group below.
+        if (group.category === 'earthworks') return null;
+        const routed = BE_CATEGORY_TO_PLAN_MODULE[group.category];
+        const isActive = activeModule === routed;
+        const sectionClassName = [
+          css.group,
+          isActive ? css.groupActive : '',
+          projectId ? css.groupClickable : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+        const sectionInteractionProps = projectId
+          ? {
+              role: 'button' as const,
+              tabIndex: 0,
+              'aria-pressed': isActive,
+              title: isActive
+                ? `Deselect ${PLAN_MODULE_FULL_LABEL[routed]}`
+                : `Switch to ${PLAN_MODULE_FULL_LABEL[routed]}`,
+              onClick: () => onSectionActivate(routed, isActive),
+              onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSectionActivate(routed, isActive);
+                }
+              },
+            }
+          : {};
+        const sourceItems =
+          group.category === 'amenity'
+            ? [
+                ...group.items,
+                // 2026-05-14 — Terrace relocated from Earthworks BE category.
+                ...BE_TOOL_ITEMS.filter((i) => i.kind === 'terrace'),
+              ]
+            : group.items;
+        const groupItems: ToolItem[] = sourceItems.map((bg) => ({
+          id: `be-${bg.kind}`,
+          label: bg.label,
+          Icon: bg.Icon,
+          toolId: `plan.structures-subsystems.be.${bg.kind}` as MapToolId,
+        }));
+        return (
+          <section
+            key={`be-${group.category}`}
+            className={sectionClassName}
+            data-module={routed}
+            data-be-category={group.category}
+            {...sectionInteractionProps}
+          >
+            <header className={css.groupHeader}>
+              <span className={css.dot} aria-hidden="true" />
+              <span className={css.groupLabel}>{group.label}</span>
+            </header>
+            <div className={css.itemGrid}>
+              {groupItems.map((it) =>
+                renderPlanToolButton(it, {
+                  activeTool,
+                  projectId,
+                  onToolClick,
+                }),
+              )}
+            </div>
           </section>
         );
       })}

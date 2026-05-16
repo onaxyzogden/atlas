@@ -17,7 +17,7 @@ import {
 } from '../../store/maintenanceStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useCropStore } from '../../store/cropStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePathStore } from '../../store/pathStore.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
@@ -51,7 +51,7 @@ export default function MaintenanceScheduleCard({ project }: Props) {
 
   const allZones = useZoneStore((s) => s.zones);
   const allCrops = useCropStore((s) => s.cropAreas);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPaths = usePathStore((s) => s.paths);
 
   const tasks = useMemo(

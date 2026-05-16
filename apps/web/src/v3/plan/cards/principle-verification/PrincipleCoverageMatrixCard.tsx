@@ -59,12 +59,12 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
   const byProject = usePrincipleCheckStore((s) => s.byProject);
   const checks = useMemo(() => byProject[project.id] ?? {}, [byProject, project.id]);
 
-  // id → kind map scoped to this project AND capped by the active Plan
-  // view. Phase-tagged features (water nodes/earthworks, paddocks,
-  // fertility infra) drop out on Year 1 / Year 5 views when their
-  // BuildPhase's `yeomansCap` exceeds the view cap. The matrix, radar,
-  // and uncovered/dominant signals are all readouts of "evidence
-  // visible at this view," not data-deletion — the steward's narrative
+  // id → kind map scoped to this project AND capped by the year
+  // scrubber's `yeomansCapForYear(currentYear)`. Phase-tagged features
+  // (water nodes/earthworks, paddocks, fertility infra) drop out when
+  // their BuildPhase's `yeomansCap` exceeds that cap. The matrix,
+  // radar, and uncovered/dominant signals are all readouts of "evidence
+  // visible at this year," not data-deletion — the steward's narrative
   // (PrincipleCheck.linkedFeatureIds) is untouched. See
   // wiki/decisions/2026-05-12-plan-phasestore-yeomans-adapter.md.
   const { idToKind } = usePrincipleEvidenceVisibleIds(project.id);
@@ -132,9 +132,9 @@ export default function PrincipleCoverageMatrixCard({ project }: Props) {
           A 12 × 9 grid of which feature types you've cited as evidence for
           each principle. Empty rows are an honest signal that the design
           isn't yet responding to that principle — exactly the feedback
-          loop principle 4 asks for. On Year 1 / Year 5 views the matrix
-          counts only evidence visible at that view, so the radar shrinks
-          honestly as the design earns its way up the Scale of Permanence.
+          loop principle 4 asks for. As you scrub the year cursor, the
+          matrix counts only evidence visible at that year, so the radar
+          shrinks honestly as the design earns its way up the Scale of Permanence.
         </p>
       </header>
 

@@ -9,7 +9,10 @@
  *   2. task       — fieldTaskStore (uses dueAt, ignores status='done' for
  *                   the *upcoming* helper but still surfaces them on the
  *                   calendar grid for retrospective context)
- *   3. livestock  — livestockMoveLogStore
+ *   3. livestock  — livestockMoveLogStore (logged moves) +
+ *                   scheduledLivestockMoveStore (unfulfilled forward plans,
+ *                   surfaced with a "Planned:" title prefix and `planned · …`
+ *                   meta so the existing source filter / dot styling apply)
  *   4. harvest    — harvestLogStore
  *   5. nursery    — nurseryStore (sowDate AND expectedReadyDate emit
  *                   separate entries)
@@ -23,15 +26,19 @@ import { useMemo } from 'react';
 import { useCommunityEventStore } from '../../store/communityEventStore.js';
 import { useFieldTaskStore } from '../../store/fieldTaskStore.js';
 import { useLivestockMoveLogStore } from '../../store/livestockMoveLogStore.js';
+import { useScheduledLivestockMoveStore } from '../../store/scheduledLivestockMoveStore.js';
 import { useHarvestLogStore } from '../../store/harvestLogStore.js';
 import { useNurseryStore } from '../../store/nurseryStore.js';
+import { usePhaseStore } from '../../store/phaseStore.js';
 
 export type CalendarSource =
   | 'community'
   | 'task'
   | 'livestock'
   | 'harvest'
-  | 'nursery';
+  | 'nursery'
+  | 'phaseTask'
+  | 'plantingCalendar';
 
 export const CALENDAR_SOURCES: readonly CalendarSource[] = [
   'community',
@@ -39,6 +46,8 @@ export const CALENDAR_SOURCES: readonly CalendarSource[] = [
   'livestock',
   'harvest',
   'nursery',
+  'phaseTask',
+  'plantingCalendar',
 ] as const;
 
 export const CALENDAR_SOURCE_LABEL: Record<CalendarSource, string> = {
@@ -47,6 +56,8 @@ export const CALENDAR_SOURCE_LABEL: Record<CalendarSource, string> = {
   livestock: 'Livestock',
   harvest: 'Harvest',
   nursery: 'Nursery',
+  phaseTask: 'Plan tasks',
+  plantingCalendar: 'Planting calendar',
 };
 
 export interface CalendarEntry {
@@ -88,15 +99,19 @@ const SOURCE_ORDER: Record<CalendarSource, number> = {
   livestock: 2,
   harvest: 3,
   nursery: 4,
+  phaseTask: 5,
+  plantingCalendar: 6,
 };
 
 export function useEventAggregator(projectId: string): UseEventAggregatorResult {
   const communityEvents = useCommunityEventStore((s) => s.events);
   const tasks = useFieldTaskStore((s) => s.tasks);
   const livestockMoves = useLivestockMoveLogStore((s) => s.events);
+  const scheduledMoves = useScheduledLivestockMoveStore((s) => s.plans);
   const harvests = useHarvestLogStore((s) => s.entries);
   const nurseryBatches = useNurseryStore((s) => s.batches);
   const stockTransfers = useNurseryStore((s) => s.transfers);
+  const phases = usePhaseStore((s) => s.phases);
 
   return useMemo(() => {
     const all: CalendarEntry[] = [];
@@ -144,6 +159,22 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       });
     }
 
+    for (const p of scheduledMoves) {
+      if (p.projectId !== projectId) continue;
+      if (p.fulfilledByEventId) continue;
+      const key = toDateKey(p.plannedDate);
+      if (!key) continue;
+      const head = p.headCount != null ? `${p.headCount} head` : 'move';
+      all.push({
+        id: `scheduled-livestock:${p.id}`,
+        source: 'livestock',
+        dateKey: key,
+        iso: p.plannedDate,
+        title: `Planned: ${head} · ${p.species}`,
+        meta: `planned · ${p.direction.replace('_', ' ')}`,
+      });
+    }
+
     for (const h of harvests) {
       if (h.projectId !== projectId) continue;
       const key = toDateKey(h.date);
@@ -160,11 +191,14 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
 
     for (const b of nurseryBatches) {
       if (b.projectId !== projectId) continue;
+      const batchSource: CalendarSource = b.generatedFromPlantingCalendar
+        ? 'plantingCalendar'
+        : 'nursery';
       const sowKey = toDateKey(b.sowDate);
       if (sowKey) {
         all.push({
           id: `nursery-sow:${b.id}`,
-          source: 'nursery',
+          source: batchSource,
           dateKey: sowKey,
           iso: b.sowDate,
           title: `Sow ${b.species}`,
@@ -175,11 +209,36 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       if (readyKey && readyKey !== sowKey) {
         all.push({
           id: `nursery-ready:${b.id}`,
-          source: 'nursery',
+          source: batchSource,
           dateKey: readyKey,
           iso: b.expectedReadyDate,
           title: `Ready: ${b.species}`,
           meta: `${b.quantity} · ${b.stage}`,
+        });
+      }
+    }
+
+    for (const phase of phases) {
+      if (phase.projectId !== projectId) continue;
+      for (const t of phase.tasks ?? []) {
+        if (!t.scheduledStart) continue;
+        const key = toDateKey(t.scheduledStart);
+        if (!key) continue;
+        const iso = `${t.scheduledStart}T09:00:00`;
+        const laborMeta = t.laborHrs ? `${t.laborHrs}h` : '';
+        const roleMeta = t.roleAccess && t.roleAccess.length > 0
+          ? t.roleAccess.join('/')
+          : '';
+        const meta = [phase.name, laborMeta, roleMeta]
+          .filter(Boolean)
+          .join(' · ');
+        all.push({
+          id: `phase-task:${t.id}`,
+          source: t.generatedFromPlantingCalendar ? 'plantingCalendar' : 'phaseTask',
+          dateKey: key,
+          iso,
+          title: t.title,
+          meta,
         });
       }
     }
@@ -216,8 +275,10 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
     communityEvents,
     tasks,
     livestockMoves,
+    scheduledMoves,
     harvests,
     nurseryBatches,
     stockTransfers,
+    phases,
   ]);
 }

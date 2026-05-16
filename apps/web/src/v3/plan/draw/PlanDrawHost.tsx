@@ -61,9 +61,14 @@ const DESIGN_ELEMENT_TOOL_IDS = new Set<string>([
 interface Props {
   map: MaplibreMap;
   projectId: string | null;
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
-export default function PlanDrawHost({ map, projectId }: Props) {
+export default function PlanDrawHost({
+  map,
+  projectId,
+  parcelBoundary,
+}: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
 
   if (!activeTool || !activeTool.startsWith('plan.') || !projectId) {
@@ -78,7 +83,12 @@ export default function PlanDrawHost({ map, projectId }: Props) {
     const kind = activeTool.split('.').pop()!;
     return (
       <div className={css.dock}>
-        <PlanDesignElementHost map={map} projectId={projectId} kind={kind} />
+        <PlanDesignElementHost
+          map={map}
+          projectId={projectId}
+          kind={kind}
+          parcelBoundary={parcelBoundary}
+        />
       </div>
     );
   }

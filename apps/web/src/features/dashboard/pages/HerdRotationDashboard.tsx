@@ -12,7 +12,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import {
   computeRecoveryStatus,
@@ -104,7 +104,7 @@ function InfoSvg() {
 export default function HerdRotationDashboard({ project, onSwitchToMap }: HerdRotationDashboardProps) {
   /* ---------- Store subscriptions ---------- */
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const siteData = useSiteData(project.id);
 
   /* ---------- Filtered data ---------- */

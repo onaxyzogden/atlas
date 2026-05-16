@@ -14,7 +14,8 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore, type UtilityType } from '../../store/utilityStore.js';
 import { useZoneStore, type ZoneCategory } from '../../store/zoneStore.js';
 import { useCropStore, type CropAreaType } from '../../store/cropStore.js';
@@ -257,7 +258,7 @@ interface Props {
 export default function AiSiteSynthesisCard({ project }: Props) {
   const siteData = useSiteData(project.id);
 
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allZones = useZoneStore((s) => s.zones);
   const allCropAreas = useCropStore((s) => s.cropAreas);

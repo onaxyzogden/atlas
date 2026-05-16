@@ -34,6 +34,14 @@ import type { LocalProject } from '../../../../store/projectStore.js';
 import { useSoilTestStore, type SoilTest } from '../../../../store/soilTestStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useClosedLoopStore, type FertilityInfraType } from '../../../../store/closedLoopStore.js';
+import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
+import {
+  CROP_KIND_LABEL,
+  COMPACTION_LABEL,
+  INPUT_LABEL,
+  TILLAGE_LABEL,
+  deriveHeritageHints,
+} from './conventionalCropHeritage.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -111,6 +119,12 @@ export default function SoilBuildingPlanCard({ project }: Props) {
   const allZones = useZoneStore((s) => s.zones);
   const allVectors = useClosedLoopStore((s) => s.wasteVectors);
   const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
+  const allConventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
+
+  const heritagePolygons = useMemo(
+    () => allConventionalCrops.filter((c) => c.projectId === project.id),
+    [allConventionalCrops, project.id],
+  );
 
   const tests = useMemo(() => byProject[project.id] ?? [], [byProject, project.id]);
   const projectZones = useMemo(
@@ -173,7 +187,8 @@ export default function SoilBuildingPlanCard({ project }: Props) {
   const empty =
     diagnoseRows.length === 0 &&
     fertility.length === 0 &&
-    vectors.length === 0;
+    vectors.length === 0 &&
+    heritagePolygons.length === 0;
 
   return (
     <div className={styles.page}>
@@ -199,6 +214,68 @@ export default function SoilBuildingPlanCard({ project }: Props) {
         </section>
       ) : (
         <>
+          {heritagePolygons.length > 0 && (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                0 · Inherited practice (from Observe)
+              </h2>
+              <p className={styles.lede} style={{ marginBottom: 8 }}>
+                Practice history captured on Observe-stage cropland
+                polygons. The jar test measures today&rsquo;s state;
+                this section names yesterday&rsquo;s causes — what to
+                undo before what to add.
+              </p>
+              {heritagePolygons.map((c) => {
+                const hints = deriveHeritageHints(c);
+                const title = c.label || c.primaryCrop || CROP_KIND_LABEL[c.kind];
+                return (
+                  <div key={c.id} style={{ marginBottom: 12 }}>
+                    <div className={styles.statRow} style={{ alignItems: 'baseline' }}>
+                      <strong>{title}</strong>
+                      <span className={styles.listMeta}>
+                        {CROP_KIND_LABEL[c.kind]}
+                        {c.compaction && c.compaction !== 'unknown'
+                          ? ` · compaction ${COMPACTION_LABEL[c.compaction]}`
+                          : ''}
+                        {c.inputs && c.inputs !== 'unknown'
+                          ? ` · inputs ${INPUT_LABEL[c.inputs]}`
+                          : ''}
+                        {c.tillage && c.tillage !== 'unknown'
+                          ? ` · tillage ${TILLAGE_LABEL[c.tillage]}`
+                          : ''}
+                      </span>
+                    </div>
+                    {hints.length === 0 ? (
+                      <div
+                        className={styles.listMeta}
+                        style={{ marginTop: 2, color: 'rgba(140,180,120,0.95)' }}
+                      >
+                        No actionable legacy on compaction / inputs / tillage / irrigation axes.
+                      </div>
+                    ) : (
+                      <ul className={styles.list} style={{ margin: '6px 0 0' }}>
+                        {hints.map((h, i) => (
+                          <li
+                            key={i}
+                            className={styles.listRow}
+                            style={{ display: 'block' }}
+                          >
+                            <strong style={{ color: 'rgba(220,150,90,0.95)' }}>
+                              {h.flag}
+                            </strong>
+                            <div className={styles.listMeta} style={{ marginTop: 2 }}>
+                              {h.remedy}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>1 · Diagnose now (limiting factors)</h2>
             {diagnoseRows.length === 0 ? (

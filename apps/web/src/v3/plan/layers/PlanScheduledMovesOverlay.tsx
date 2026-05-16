@@ -23,7 +23,10 @@ import * as turf from '@turf/turf';
 import { maplibregl } from '../../../lib/maplibre.js';
 import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import {
+  useAllStructures,
+  getAllStructures,
+} from '../../../store/builtEnvironmentSelectors.js';
 import {
   useScheduledLivestockMoveStore,
   plansByPaddock,
@@ -74,7 +77,7 @@ interface Props {
 export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
   const visible = useMatrixTogglesStore((s) => s.scheduledMoves);
   const paddocks = useLivestockStore((s) => s.paddocks);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const plans = useScheduledLivestockMoveStore((s) => s.plans);
   const openForm = useInlineFormStore((s) => s.open);
 
@@ -369,9 +372,9 @@ export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
         }
         destName = pd.name || 'paddock';
       } else {
-        const st = useStructureStore
-          .getState()
-          .structures.find((x) => x.id === destId && x.projectId === projectId);
+        const st = getAllStructures().find(
+          (x) => x.id === destId && x.projectId === projectId,
+        );
         if (!st) return;
         anchor = st.center;
         destName = st.name || st.type;
@@ -382,20 +385,13 @@ export default function PlanScheduledMovesOverlay({ map, projectId }: Props) {
       openEditForm(anchor, destKind, destId, destName, destPlans);
     };
 
-    const onEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const onLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
-
+    // Hover-pointer is owned by useMapCursor — the TEXT_LAYER id matches
+    // its 'plan-scheduled-moves-' interactive prefix, so hovering the
+    // badge flips to 'pointer' there without this overlay writing the
+    // canvas itself.
     map.on('click', TEXT_LAYER, onClick);
-    map.on('mouseenter', TEXT_LAYER, onEnter);
-    map.on('mouseleave', TEXT_LAYER, onLeave);
     return () => {
       map.off('click', TEXT_LAYER, onClick);
-      map.off('mouseenter', TEXT_LAYER, onEnter);
-      map.off('mouseleave', TEXT_LAYER, onLeave);
     };
   }, [map, visible, projectId, openForm]);
 

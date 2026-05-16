@@ -33,13 +33,14 @@ import {
   type FenceType,
   type PastureQuality,
 } from '../../store/livestockStore.js';
-import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePhaseStoreCappedEntities } from '../../v3/plan/usePhaseStoreCappedEntities.js';
 import {
   computeShelterAccess,
   computeWaterPointDistance,
   PASTURE_QUALITY_MULTIPLIER,
 } from './livestockAnalysis.js';
+import { WATER_STRUCTURES } from './waterSource.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
 import css from './LivestockWelfarePhasingCard.module.css';
 
@@ -67,14 +68,6 @@ const PASTURE_QUALITY_LABEL: Record<PastureQuality, string> = {
   excellent: 'Excellent (3.7+ AUE/ha)',
 };
 
-/** Water-bearing structure types. Mirrors the welfare-summary filter
- *  in LivestockDashboard so coverage counts agree. */
-const WATER_STRUCTURE_TYPES = new Set<Structure['type']>([
-  'water_pump_house',
-  'well',
-  'water_tank',
-]);
-
 interface SpeciesRow {
   species: LivestockSpecies;
   paddockCount: number;
@@ -97,7 +90,7 @@ interface PhaseRow {
 
 export default function LivestockWelfarePhasingCard({ projectId }: Props) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   // Empty-state pasture-quality picker. `typicalStocking` in the catalog is
   // calibrated for good pasture, so 'good' is the natural default — moving
   // the selector rescales the displayed stocking values in real time.
@@ -114,7 +107,7 @@ export default function LivestockWelfarePhasingCard({ projectId }: Props) {
     [allStructures, projectId],
   );
   const waterStructures = useMemo(
-    () => structures.filter((s) => WATER_STRUCTURE_TYPES.has(s.type)),
+    () => structures.filter((s) => WATER_STRUCTURES.has(s.type)),
     [structures],
   );
 

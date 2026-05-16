@@ -18,7 +18,8 @@
  */
 
 import { useZoneStore, type LandZone } from './zoneStore.js';
-import { useStructureStore, type Structure } from './structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
+import { addStructure, getAllStructures } from './builtEnvironmentSelectors.js';
 import { useCropStore, type CropArea } from './cropStore.js';
 import { useLivestockStore, type Paddock } from './livestockStore.js';
 import { usePathStore, type DesignPath } from './pathStore.js';
@@ -64,7 +65,7 @@ export function cascadeCloneProject(sourceProjectId: string, targetProjectId: st
   });
 
   safeClone('structures', () => {
-    const sourceStructures = useStructureStore.getState().structures.filter((st) => st.projectId === sourceProjectId);
+    const sourceStructures = getAllStructures().filter((st) => st.projectId === sourceProjectId);
     const cloned: Structure[] = sourceStructures.map((st) => {
       const { serverId: _serverId, ...rest } = st;
       return {
@@ -76,7 +77,7 @@ export function cascadeCloneProject(sourceProjectId: string, targetProjectId: st
       };
     });
     if (cloned.length > 0) {
-      useStructureStore.setState((s) => ({ structures: [...s.structures, ...cloned] }));
+      cloned.forEach((s) => addStructure(s));
     }
   });
 

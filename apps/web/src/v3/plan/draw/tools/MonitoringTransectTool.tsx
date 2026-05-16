@@ -26,6 +26,10 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import DimensionPanel from '../DimensionPanel.js';
+import DrawLengthReadout from '../../../observe/components/draw/DrawLengthReadout.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -49,11 +53,10 @@ export default function MonitoringTransectTool({ map, projectId }: Props) {
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } =
     useEnterpriseFieldSpec(projectId);
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimValues = useDimensionValues();
 
-  useMapboxDrawTool<GeoJSON.LineString>({
-    map,
-    mode: 'draw_line_string',
-    onComplete: (geom) => {
+  const handleComplete = (geom: GeoJSON.LineString) => {
       const id = newAnnotationId('transect');
       const coords = geom.coordinates;
       const midIdx = Math.floor(coords.length / 2);
@@ -128,7 +131,21 @@ export default function MonitoringTransectTool({ map, projectId }: Props) {
         },
         onCancel: () => deleteTransect(id),
       });
-    },
+    };
+
+  const { liveLength } = useMapboxDrawTool<GeoJSON.LineString>({
+    map,
+    mode: 'draw_line_string',
+    onComplete: handleComplete,
+    enabled: dimMode === 'freehand',
+  });
+
+  useDimensionDrawTool({
+    map,
+    shape: 'line',
+    values: dimValues,
+    enabled: dimMode === 'dimensions',
+    onComplete: (geom) => handleComplete(geom as GeoJSON.LineString),
   });
 
   return (
@@ -139,6 +156,16 @@ export default function MonitoringTransectTool({ map, projectId }: Props) {
         indicator species, soil, water, or wildlife. Observations land in
         the transect's log on each return visit.
       </span>
+      <DimensionPanel allowedShapes={['line']} />
+      {liveLength !== null && (
+        <div className={css.readout}>
+          <DrawLengthReadout
+            meters={liveLength}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
     </div>
   );
 }

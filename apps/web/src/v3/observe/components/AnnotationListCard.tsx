@@ -1,5 +1,5 @@
 /**
- * AnnotationListCard — shared SurfaceCard that renders a live, sortable
+ * AnnotationListCard — surface card that renders a live, sortable
  * list of annotations across one or more `AnnotationKind`s for the active
  * project. Drops into any module dashboard.
  *
@@ -13,7 +13,6 @@
  */
 
 import { Pencil, Trash2 } from 'lucide-react';
-import { SurfaceCard } from '../_shared/components/index.js';
 import styles from './AnnotationListCard.module.css';
 import { useAnnotationFormStore } from '../../../store/annotationFormStore.js';
 import { useAnnotationDetailStore } from '../../../store/annotationDetailStore.js';
@@ -61,7 +60,7 @@ export default function AnnotationListCard({ title, projectId, kinds, emptyHint 
   };
 
   return (
-    <SurfaceCard className={styles.panel}>
+    <section className={styles.panel}>
       <header className={styles.header}>
         <h2>{title}</h2>
         <span style={{ fontSize: 12, color: 'var(--text-muted, #888)' }}>
@@ -161,6 +160,6 @@ export default function AnnotationListCard({ title, projectId, kinds, emptyHint 
           ))}
         </ul>
       )}
-    </SurfaceCard>
+    </section>
   );
 }

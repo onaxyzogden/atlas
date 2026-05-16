@@ -23,7 +23,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
@@ -78,7 +78,7 @@ function saveObserved(projectId: string, observed: Record<string, string>): void
 export default function FieldworkChecklistCard({ projectId }: Props) {
   const paddocks = useLivestockStore((s) => s.paddocks).filter((p) => p.projectId === projectId);
   const utilities = useUtilityStore((s) => s.utilities).filter((u) => u.projectId === projectId);
-  const structures = useStructureStore((s) => s.structures).filter((s) => s.projectId === projectId);
+  const structures = useAllStructures().filter((s) => s.projectId === projectId);
   const crops = useCropStore((s) => s.cropAreas).filter((c) => c.projectId === projectId);
   // Touch path/zone stores so the card stays consistent with sibling
   // panels that mount on entity churn — no derivations from them today.

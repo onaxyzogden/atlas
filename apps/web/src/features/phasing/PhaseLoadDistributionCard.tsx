@@ -25,7 +25,7 @@
 
 import { useMemo } from 'react';
 import { usePhaseStore } from '../../store/phaseStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { usePathStore } from '../../store/pathStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -87,7 +87,7 @@ interface Props {
 
 export default function PhaseLoadDistributionCard({ projectId }: Props) {
   const allPhases = usePhaseStore((s) => s.phases);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allPaths = usePathStore((s) => s.paths);
   const allCropAreas = useCropStore((s) => s.cropAreas);

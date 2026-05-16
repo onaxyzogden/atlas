@@ -15,8 +15,8 @@ import {
   type SectorType,
   type SectorIntensity,
 } from '../../../../store/externalForcesStore.js';
-import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
+import { useEffectiveHomestead } from '../../hooks/useEffectiveHomestead.js';
 import { bearingFromPoints } from '../../utils/sectorMath.js';
 import css from './ObserveDrawHost.module.css';
 
@@ -63,7 +63,10 @@ export default function SunWindWedgeTool({
 }: Props) {
   const addSector = useExternalForcesStore((s) => s.addSector);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
-  const homestead = useHomesteadStore((s) => s.byProject[projectId]);
+  // Reads through the effective hook so the wedge anchors at a single
+  // existing residence when no explicit homestead is placed (ADR
+  // wiki/decisions/2026-05-13-atlas-residence-zone0-derivation.md).
+  const { point: homestead } = useEffectiveHomestead(projectId);
 
   const defaults = TYPE_DEFAULTS[sectorType];
   const [bearingDeg, setBearingDeg] = useState(defaults.bearingDeg);
@@ -83,9 +86,8 @@ export default function SunWindWedgeTool({
   // bearing from the homestead (or map center) to the click point.
   useEffect(() => {
     if (!seedingFromMap) return;
-    const canvas = map.getCanvas();
-    const prevCursor = canvas.style.cursor;
-    canvas.style.cursor = 'crosshair';
+    // Cursor is owned by useMapCursor — this popover's activeTool starts
+    // with 'observe.' so drawArmed → 'crosshair' is computed there.
     const onClick = (e: maplibregl.MapMouseEvent) => {
       const center = map.getCenter();
       const fromLng = homestead?.[0] ?? center.lng;
@@ -96,7 +98,6 @@ export default function SunWindWedgeTool({
     };
     map.once('click', onClick);
     return () => {
-      canvas.style.cursor = prevCursor;
       map.off('click', onClick);
     };
   }, [seedingFromMap, map, homestead]);

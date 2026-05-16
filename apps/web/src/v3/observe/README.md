@@ -12,8 +12,6 @@ observe/
 ├── ObserveLayout.tsx           Route component for /v3/project/$id/observe/$module
 ├── ObserveLayout.module.css
 ├── types.ts                    LifecycleLevel + ObserveModule + label/registry
-├── _shared/
-│   └── components/             Cross-module primitives (SurfaceCard, CroppedArt, …)
 ├── assets/                     Per-module PNGs imported by detail components
 ├── components/
 │   ├── ObserveBottomRail.tsx   6 module tiles (collapsible, persisted)

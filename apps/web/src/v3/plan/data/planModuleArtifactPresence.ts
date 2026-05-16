@@ -30,7 +30,7 @@
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import { usePathStore } from '../../../store/pathStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
@@ -61,11 +61,10 @@ export function usePlanModuleArtifactPresence(
     projectId ? s.paths.some((p) => p.projectId === projectId) : false,
   );
 
-  const hasStructures = useStructureStore((s) =>
-    projectId
-      ? s.structures.some((st) => st.projectId === projectId)
-      : false,
-  );
+  const allStructures = useAllStructures();
+  const hasStructures = projectId
+    ? allStructures.some((st) => st.projectId === projectId)
+    : false;
 
   const hasPaddocks = useLivestockStore((s) =>
     projectId ? s.paddocks.some((p) => p.projectId === projectId) : false,
@@ -120,6 +119,7 @@ export function usePlanModuleArtifactPresence(
       return hasNotes || hasTransects;
     case 'dynamic-layering':
     case 'cross-section-solar':
+    case 'goal-compass':
       return false;
     default: {
       const _exhaustive: never = module;

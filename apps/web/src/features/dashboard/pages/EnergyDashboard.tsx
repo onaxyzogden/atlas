@@ -10,7 +10,7 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useUtilityStore, UTILITY_TYPE_CONFIG, type UtilityType } from '../../../store/utilityStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import { useAllStructures } from '../../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
 import {
   computeOffGridReadiness,
@@ -38,7 +38,7 @@ export default function EnergyDashboard({ project, onSwitchToMap, focus = 'energ
     () => allUtilities.filter((u) => u.projectId === project.id),
     [allUtilities, project.id],
   );
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () => allStructures.filter((st) => st.projectId === project.id),
     [allStructures, project.id],

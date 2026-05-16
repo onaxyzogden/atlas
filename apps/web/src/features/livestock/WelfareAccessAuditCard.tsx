@@ -27,157 +27,33 @@
  */
 
 import { useMemo } from 'react';
-import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
-import { useUtilityStore, type Utility, type UtilityType } from '../../store/utilityStore.js';
+import { useNavigate } from '@tanstack/react-router';
+import { useLivestockStore } from '../../store/livestockStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
+import { useUtilityStore } from '../../store/utilityStore.js';
+import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
+import { useMapToolStore } from '../../v3/observe/components/measure/useMapToolStore.js';
+import {
+  WATER_SOURCE_ENTITY_LABEL,
+  WATER_BAND_RULE_COPY,
+  WATER_TANK_PLAN_TOOL_ID,
+} from './waterSource.js';
+import {
+  evaluatePaddockWelfare,
+  type AxisFinding,
+  type PaddockWelfareEval,
+  type WelfareBand as Band,
+} from './welfarePass.js';
 import s from './WelfareAccessAuditCard.module.css';
 
 interface Props {
   projectId: string;
 }
 
-const SHADE_STRUCTURES: ReadonlySet<StructureType> = new Set([
-  'animal_shelter',
-  'barn',
-  'pavilion',
-  'cabin',
-  'greenhouse',
-  'workshop',
-  'lookout',
-]);
+type PaddockEval = PaddockWelfareEval;
 
-const SHELTER_STRUCTURES: ReadonlySet<StructureType> = new Set([
-  'animal_shelter',
-  'barn',
-]);
-
-const WATER_UTILITIES: ReadonlySet<UtilityType> = new Set([
-  'water_tank',
-  'well_pump',
-  'rain_catchment',
-]);
-
-const WATER_STRUCTURES: ReadonlySet<StructureType> = new Set([
-  'water_tank',
-  'well',
-  'water_pump_house',
-]);
-
-type Band = 'good' | 'fair' | 'poor' | 'missing';
-
-function bandFor(distanceM: number | null): Band {
-  if (distanceM == null) return 'missing';
-  if (distanceM <= 100) return 'good';
-  if (distanceM <= 200) return 'fair';
-  return 'poor';
-}
-
+/** Display-order rank used to sort worst-first for the in-card table. */
 const BAND_RANK: Record<Band, number> = { good: 0, fair: 1, poor: 2, missing: 3 };
-
-function worstBand(...bs: Band[]): Band {
-  let worst: Band = 'good';
-  for (const b of bs) if (BAND_RANK[b] > BAND_RANK[worst]) worst = b;
-  return worst;
-}
-
-interface AxisFinding {
-  axis: 'shade' | 'shelter' | 'water';
-  band: Band;
-  distanceM: number | null;
-  nearestName: string | null;
-}
-
-interface PaddockEval {
-  paddock: Paddock;
-  shade: AxisFinding;
-  shelter: AxisFinding;
-  water: AxisFinding;
-  worst: Band;
-  centroid: { lat: number; lng: number } | null;
-}
-
-function polygonCentroid(geom: GeoJSON.Polygon): { lat: number; lng: number } | null {
-  const ring = geom.coordinates[0];
-  if (!ring || ring.length === 0) return null;
-  let sx = 0;
-  let sy = 0;
-  let n = 0;
-  for (const pt of ring) {
-    if (!pt || pt.length < 2) continue;
-    const lng = pt[0];
-    const lat = pt[1];
-    if (typeof lng !== 'number' || typeof lat !== 'number') continue;
-    sx += lng;
-    sy += lat;
-    n += 1;
-  }
-  if (n === 0) return null;
-  return { lng: sx / n, lat: sy / n };
-}
-
-/** Approx great-circle distance (equirect, fine for small parcels). */
-function distanceM(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
-  const R = 6371000;
-  const meanLat = ((a.lat + b.lat) / 2) * (Math.PI / 180);
-  const dLat = (b.lat - a.lat) * (Math.PI / 180);
-  const dLng = (b.lng - a.lng) * (Math.PI / 180) * Math.cos(meanLat);
-  return Math.sqrt(dLat * dLat + dLng * dLng) * R;
-}
-
-interface NearestResult {
-  distanceM: number | null;
-  name: string | null;
-}
-
-function nearestStructureOfTypes(
-  centroid: { lat: number; lng: number },
-  structures: Structure[],
-  allowed: ReadonlySet<StructureType>,
-): NearestResult {
-  let best: NearestResult = { distanceM: null, name: null };
-  for (const st of structures) {
-    if (!allowed.has(st.type)) continue;
-    const lng = st.center[0];
-    const lat = st.center[1];
-    if (typeof lng !== 'number' || typeof lat !== 'number') continue;
-    const d = distanceM(centroid, { lat, lng });
-    if (best.distanceM == null || d < best.distanceM) {
-      best = { distanceM: d, name: st.name || st.type };
-    }
-  }
-  return best;
-}
-
-function nearestUtilityOfTypes(
-  centroid: { lat: number; lng: number },
-  utilities: Utility[],
-  allowed: ReadonlySet<UtilityType>,
-): NearestResult {
-  let best: NearestResult = { distanceM: null, name: null };
-  for (const u of utilities) {
-    if (!allowed.has(u.type)) continue;
-    const lng = u.center[0];
-    const lat = u.center[1];
-    if (typeof lng !== 'number' || typeof lat !== 'number') continue;
-    const d = distanceM(centroid, { lat, lng });
-    if (best.distanceM == null || d < best.distanceM) {
-      best = { distanceM: d, name: u.name || u.type };
-    }
-  }
-  return best;
-}
-
-function nearestWaterAny(
-  centroid: { lat: number; lng: number },
-  utilities: Utility[],
-  structures: Structure[],
-): NearestResult {
-  const u = nearestUtilityOfTypes(centroid, utilities, WATER_UTILITIES);
-  const s2 = nearestStructureOfTypes(centroid, structures, WATER_STRUCTURES);
-  if (u.distanceM == null) return s2;
-  if (s2.distanceM == null) return u;
-  return u.distanceM <= s2.distanceM ? u : s2;
-}
 
 const BAND_LABEL: Record<Band, string> = {
   good: 'Good',
@@ -214,8 +90,16 @@ function remediationFor(p: PaddockEval): string | null {
 
 export default function WelfareAccessAuditCard({ projectId }: Props) {
   const allPaddocks = useLivestockStore((st) => st.paddocks);
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((st) => st.utilities);
+  const allWaterNodes = useWaterSystemsStore((st) => st.waterNodes);
+  const setActiveTool = useMapToolStore((st) => st.setActiveTool);
+  const navigate = useNavigate();
+
+  const handlePlaceWaterSource = () => {
+    navigate({ to: '/v3/project/$projectId/plan', params: { projectId } });
+    setActiveTool(WATER_TANK_PLAN_TOOL_ID);
+  };
 
   const paddocks = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
@@ -229,51 +113,18 @@ export default function WelfareAccessAuditCard({ projectId }: Props) {
     () => allUtilities.filter((u) => u.projectId === projectId),
     [allUtilities, projectId],
   );
+  const waterNodes = useMemo(
+    () => allWaterNodes.filter((n) => n.projectId === projectId),
+    [allWaterNodes, projectId],
+  );
 
-  const evals: PaddockEval[] = useMemo(() => {
-    return paddocks.map((paddock): PaddockEval => {
-      const centroid = polygonCentroid(paddock.geometry);
-      if (!centroid) {
-        return {
-          paddock,
-          shade: { axis: 'shade', band: 'missing', distanceM: null, nearestName: null },
-          shelter: { axis: 'shelter', band: 'missing', distanceM: null, nearestName: null },
-          water: { axis: 'water', band: 'missing', distanceM: null, nearestName: null },
-          worst: 'missing',
-          centroid: null,
-        };
-      }
-      const shadeNearest = nearestStructureOfTypes(centroid, structures, SHADE_STRUCTURES);
-      const shelterNearest = nearestStructureOfTypes(centroid, structures, SHELTER_STRUCTURES);
-      const waterNearest = nearestWaterAny(centroid, utilities, structures);
-      const shade: AxisFinding = {
-        axis: 'shade',
-        band: bandFor(shadeNearest.distanceM),
-        distanceM: shadeNearest.distanceM,
-        nearestName: shadeNearest.name,
-      };
-      const shelter: AxisFinding = {
-        axis: 'shelter',
-        band: bandFor(shelterNearest.distanceM),
-        distanceM: shelterNearest.distanceM,
-        nearestName: shelterNearest.name,
-      };
-      const water: AxisFinding = {
-        axis: 'water',
-        band: bandFor(waterNearest.distanceM),
-        distanceM: waterNearest.distanceM,
-        nearestName: waterNearest.name,
-      };
-      return {
-        paddock,
-        shade,
-        shelter,
-        water,
-        worst: worstBand(shade.band, shelter.band, water.band),
-        centroid,
-      };
-    });
-  }, [paddocks, structures, utilities]);
+  const evals: PaddockEval[] = useMemo(
+    () =>
+      paddocks.map((paddock) =>
+        evaluatePaddockWelfare(paddock, utilities, structures, waterNodes),
+      ),
+    [paddocks, structures, utilities, waterNodes],
+  );
 
   const summary = useMemo(() => {
     let good = 0;
@@ -319,8 +170,9 @@ export default function WelfareAccessAuditCard({ projectId }: Props) {
           <p className={s.cardHint}>
             For every paddock the centroid is measured against the nearest <em>shade</em>{' '}
             (animal_shelter / barn / pavilion / cabin / greenhouse / workshop / lookout),{' '}
-            <em>shelter</em> (animal_shelter / barn), and <em>water</em> source (water utility or
-            water-relevant structure). Bands: ≤100 m = good · ≤200 m = fair · &gt;200 m = poor.
+            <em>shelter</em> (animal_shelter / barn), and <em>water</em> source — a placed{' '}
+            {WATER_SOURCE_ENTITY_LABEL}. A note on the paddock alone does not count; the audit
+            measures distance to a placed entity. Bands: {WATER_BAND_RULE_COPY}.
           </p>
         </div>
         <span className={s.heuristicBadge}>Heuristic</span>
@@ -356,8 +208,8 @@ export default function WelfareAccessAuditCard({ projectId }: Props) {
               <div className={s.rowHead}>
                 <span className={`${s.tag} ${tagClass}`}>{BAND_LABEL[e.worst]}</span>
                 <span className={s.rowTitle}>{e.paddock.name || 'Paddock'}</span>
-                {e.paddock.species.length > 0 && (
-                  <span className={s.kindBadge}>{e.paddock.species.join(' · ')}</span>
+                {(e.paddock.species?.length ?? 0) > 0 && (
+                  <span className={s.kindBadge}>{e.paddock.species!.join(' · ')}</span>
                 )}
               </div>
               <ul className={s.axisList}>
@@ -367,11 +219,37 @@ export default function WelfareAccessAuditCard({ projectId }: Props) {
                   const axisLabel =
                     axis === 'shade' ? 'Shade' : axis === 'shelter' ? 'Shelter' : 'Water';
                   const aTagClass = s[`tag_${f.band}`] ?? '';
+                  const chipTitle =
+                    axis === 'water'
+                      ? `Bands: ${WATER_BAND_RULE_COPY}. Counts as a water source: ${WATER_SOURCE_ENTITY_LABEL}.`
+                      : `Bands: ${WATER_BAND_RULE_COPY}.`;
+                  const needsWaterCta =
+                    axis === 'water' && (f.band === 'missing' || f.band === 'poor');
                   return (
                     <li key={axis} className={s.axisRow}>
-                      <span className={`${s.axisTag} ${aTagClass}`}>{BAND_LABEL[f.band]}</span>
+                      <span
+                        className={`${s.axisTag} ${aTagClass}`}
+                        title={chipTitle}
+                      >
+                        {BAND_LABEL[f.band]}
+                      </span>
                       <span className={s.axisLabel}>{axisLabel}:</span>
-                      <span className={s.axisDetail}>{axisDetail(f, axisLabel)}</span>
+                      <span className={s.axisDetail}>
+                        {axisDetail(f, axisLabel)}
+                        {needsWaterCta && (
+                          <>
+                            {' '}
+                            <button
+                              type="button"
+                              className={s.placeWaterBtn}
+                              onClick={handlePlaceWaterSource}
+                              title={`Activates the Water tank tool on the Plan stage. Counts as a water source: ${WATER_SOURCE_ENTITY_LABEL}.`}
+                            >
+                              Place a water source →
+                            </button>
+                          </>
+                        )}
+                      </span>
                     </li>
                   );
                 })}

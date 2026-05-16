@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import {
   CalendarDays,
   CheckCircle2,
@@ -24,6 +24,7 @@ import HazardRiskMatrix from './HazardRiskMatrix.js';
 import HazardHotspotsMap from './HazardHotspotsMap.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   climateKpis,
@@ -142,27 +143,20 @@ export default function MacroclimateDashboard() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Understand the big-picture climate patterns and natural hazards that shape
-              your site. Use this foundation to design resilient systems that work with
-              your environment, not against it.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export macroclimate report'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId="observe-macroclimate-hazards-dashboard"
+        lede="Understand the big-picture climate patterns and natural hazards that shape your site. Use this foundation to design resilient systems that work with your environment, not against it."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generatingâ€¦' : 'Export macroclimate report'}
+        </button>
       </div>
 
       <section className={card.section}>
@@ -275,7 +269,7 @@ export default function MacroclimateDashboard() {
           top.map((h) => (
             <div key={h.id} className={card.statRow}>
               <span>
-                {h.label} <span style={{ color: 'rgba(232,220,200,0.45)', marginLeft: 6, fontSize: 11 }}>{statusLabel(h.status)} · {h.mitigationPct}%</span>
+                {h.label} <span style={{ color: 'rgba(232,220,200,0.45)', marginLeft: 6, fontSize: 11 }}>{statusLabel(h.status)} Â· {h.mitigationPct}%</span>
               </span>
               <span className={`${card.pill} ${riskPill(h.risk)}`}>{riskLabel(h.risk)}</span>
             </div>
@@ -339,7 +333,7 @@ export default function MacroclimateDashboard() {
           title=""
           projectId={projectId ?? null}
           kinds={['frostPocket', 'hazardZone']}
-          emptyHint="No frost pockets or hazard zones recorded yet — outline one with the tools panel."
+          emptyHint="No frost pockets or hazard zones recorded yet â€” outline one with the tools panel."
         />
       </section>
     </div>

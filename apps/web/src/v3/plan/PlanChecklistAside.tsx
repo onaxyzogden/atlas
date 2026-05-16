@@ -17,7 +17,32 @@ import {
   GuidanceCard,
   type GuidanceCardData,
 } from '../_shared/components/GuidanceCard.js';
+import {
+  BE_CATEGORY_GUIDANCE,
+  BE_CATEGORY_LABEL,
+  BE_TOOL_GROUPS,
+} from '../_shared/builtEnvironmentTools.js';
+import type { BuiltEnvironmentCategory } from '@ogden/shared';
 import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
+
+/**
+ * 2026-05-14 — BE flatten. Mirrors `BE_CATEGORY_TO_PLAN_MODULE` in
+ * `PlanTools.tsx`. Each BE category routes to a relevant pre-existing
+ * Plan module so click-to-activate opens the right slide-up.
+ */
+const BE_CATEGORY_TO_PLAN_MODULE: Record<
+  BuiltEnvironmentCategory,
+  PlanModule
+> = {
+  building: 'structures-subsystems',
+  agricultural: 'structures-subsystems',
+  utility: 'structures-subsystems',
+  infrastructure: 'structures-subsystems',
+  machinery: 'machinery',
+  amenity: 'structures-subsystems',
+  vegetation: 'plant-systems',
+  earthworks: 'water-management',
+};
 import PlanProjectTypeCard from './PlanProjectTypeCard.js';
 import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';
 import { PLAN_MODULE_DOT } from './data/planModulePalette.js';
@@ -26,6 +51,15 @@ import css from './PlanChecklistAside.module.css';
 const EMPTY_CHECKS: readonly number[] = [];
 
 const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
+  'goal-compass': {
+    why: 'Goal Compass lets the steward declare measurable success criteria and have a deterministic sequencing engine propose a phased, costed, labor-budgeted plan against a curated permaculture intervention catalog (Mollison, Yeomans, Holmgren P1: Observe & interact).',
+    how: [
+      'Edit the Goal tree — parent goal, sub-goals, and measurable criteria with deadline years.',
+      'Fill the Site profile facets; manual entries lower the forecast confidence until verified from Observe.',
+      'Click Generate to materialise BuildPhase + PhaseTask rows into the shared phase store.',
+      'Open Criteria forecast to see projected values at Year 1 / 3 / 5 / 7 / 10 / 20.',
+    ],
+  },
   'dynamic-layering': {
     why: 'Yeomans\' nine ranks decide order: Climate → Landform → Water → Access → Structures → Subsystems → Soil → Vegetation → Fauna. Per Permaculture Scholar (2026-05-07): collapsing Access + Structures is a Keyline violation; visualising ordering and warning when prerequisites are skipped is what the module must do (Mollison ch.5; Holmgren P8 Integrate rather than segregate).',
     how: [
@@ -211,18 +245,57 @@ export default function PlanChecklistAside({
         onSelectModule={onSelectModule}
         onOpenSlideUp={onOpenSlideUp}
       />
-      {PLAN_MODULES.map((mod) => (
-        <PlanGuidanceCard
-          key={mod}
-          module={mod}
-          active={activeModule === mod}
-          projectId={projectId}
-          slideUpOpen={slideUpOpen}
-          onSelectModule={onSelectModule}
-          onOpenSlideUp={onOpenSlideUp}
-          onCloseSlideUp={onCloseSlideUp}
-        />
-      ))}
+      {PLAN_MODULES.map((mod) => {
+        // 2026-05-14 — BE flatten: parent `structures-subsystems` card
+        // is replaced by 9 per-category cards rendered below.
+        if (mod === 'structures-subsystems') return null;
+        return (
+          <PlanGuidanceCard
+            key={mod}
+            module={mod}
+            active={activeModule === mod}
+            projectId={projectId}
+            slideUpOpen={slideUpOpen}
+            onSelectModule={onSelectModule}
+            onOpenSlideUp={onOpenSlideUp}
+            onCloseSlideUp={onCloseSlideUp}
+          />
+        );
+      })}
+      {BE_TOOL_GROUPS.map((group) => {
+        // 2026-05-14 — Vegetation BE kinds already surface under the
+        // `plant-systems` rail/guidance section; the BE category card
+        // is redundant in Plan.
+        if (group.category === 'vegetation') return null;
+        // 2026-05-14 — Earthworks BE category dropped from Plan rail;
+        // Berm / Raised bed / Terrace surface inside Water Management /
+        // Plant Systems / Amenities. No standalone guidance card.
+        if (group.category === 'earthworks') return null;
+        const routed = BE_CATEGORY_TO_PLAN_MODULE[group.category];
+        const guidance = BE_CATEGORY_GUIDANCE[group.category];
+        const active = activeModule === routed;
+        return (
+          <GuidanceCard
+            key={`be-${group.category}`}
+            moduleKey={`be-${group.category}` as `be-${BuiltEnvironmentCategory}`}
+            label={BE_CATEGORY_LABEL[group.category]}
+            dotColor={PLAN_MODULE_DOT[routed]}
+            active={active}
+            slideUpOpen={slideUpOpen}
+            guidance={guidance}
+            checkedList={EMPTY_CHECKS}
+            onToggle={() => {
+              /* BE category cards share their routed module's how-checks
+               * slot — disabling the UI affordance here keeps the parent
+               * module the single source of truth. */
+            }}
+            onSelect={() => onSelectModule(routed)}
+            onOpenSlideUp={onOpenSlideUp}
+            onCloseSlideUp={onCloseSlideUp}
+            checksDisabled
+          />
+        );
+      })}
     </div>
   );
 }

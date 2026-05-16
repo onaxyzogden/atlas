@@ -21,7 +21,16 @@ import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useAgribusinessStore } from '../../../store/agribusinessStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
-import { useStructureStore } from '../../../store/structureStore.js';
+import {
+  useAllStructures,
+  getAllStructures,
+  updateStructure,
+  getDesignElementsForProject,
+} from '../../../store/builtEnvironmentSelectors.js';
+import {
+  resolveSilvopastureHosts,
+  listHostsForSelection,
+} from '../../../features/agroforestry/silvopastureHosts.js';
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -46,10 +55,11 @@ import {
   STRUCTURE_TEMPLATES,
   createFootprintPolygon,
 } from '../../../features/structures/footprints.js';
-import type { StructureType } from '../../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { translateByDelta } from './translateGeometry.js';
 import { beginDragUndoWindow } from './dragUndo.js';
+import { setCursorIntent } from '../canvas/mapCursorIntentStore.js';
 import {
   buildZoneEditSchema,
   buildCropEditSchema,
@@ -63,6 +73,19 @@ import {
   buildFlowConnectorEditSchema,
   buildMonitoringTransectEditSchema,
 } from './inlineEditSchemas.js';
+
+/**
+ * Resolve the silvopasture-host re-pin options for the inline edit
+ * popover. Reads cropStore + design elements at call time so the option
+ * list always reflects the current set of silvopasture polygons.
+ */
+function silvopastureHostOptions(projectId: string) {
+  const cropAreas = useCropStore.getState().cropAreas;
+  const designElements = getDesignElementsForProject(projectId);
+  return listHostsForSelection(
+    resolveSilvopastureHosts(projectId, cropAreas, designElements),
+  );
+}
 
 interface Props {
   map: MaplibreMap;
@@ -211,8 +234,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const marketNodes = useAgribusinessStore((s) => s.marketNodes);
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
-  const structures = useStructureStore((s) => s.structures);
-  const updateStructure = useStructureStore((s) => s.updateStructure);
+  const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
   const updateUtilityRun = useUtilityRunStore((s) => s.updateRun);
@@ -281,8 +303,17 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     };
 
     // Zones (polygon) — Yeomans rank 4 (Access; activity proximity).
-    for (const z of zones) {
-      if (z.projectId !== projectId) continue;
+    // Stack by permaculture Z-level: Z0 on top, Z5 at the bottom, regardless
+    // of draw order. MapLibre renders later GeoJSON features on top, so we
+    // sort descending. Undefined Z defaults to 2 (typical "main activity").
+    const Z_DEFAULT = 2;
+    const orderedZones = [...zones]
+      .filter((z) => z.projectId === projectId)
+      .sort(
+        (a, b) =>
+          (b.permacultureZone ?? Z_DEFAULT) - (a.permacultureZone ?? Z_DEFAULT),
+      );
+    for (const z of orderedZones) {
       const props: Record<string, unknown> = {
         id: z.id,
         kind: 'zone',
@@ -290,13 +321,32 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         label: z.name,
         yeomansRank: 4,
         enterprise: z.enterprise ?? '',
+        // Stamp Z-level on the feature so the fill-opacity ramp and the
+        // hit-test tie-break can read it without going back to the store.
+        permacultureZone: z.permacultureZone ?? Z_DEFAULT,
       };
       const ac = acresOf(z.geometry);
       if (ac) props.acresLabel = ac;
       polys.push({ type: 'Feature', id: z.id, properties: props, geometry: z.geometry });
       try {
+        // Anchor zone labels near the top edge (not the centroid) so a
+        // smaller-Z zone drawn first keeps its label visible even when a
+        // larger-Z zone is drawn over it — the labels rarely collide because
+        // they sit at different y-positions inside differently sized
+        // polygons. Falls back to centroid if the top-edge point happens
+        // to land outside a concave polygon.
         const c = turf.centroid(z.geometry).geometry;
-        labels.push({ type: 'Feature', id: z.id, properties: props, geometry: c });
+        const [cx, cy] = c.coordinates as [number, number];
+        const bb = turf.bbox(z.geometry) as [number, number, number, number];
+        const labelY = cy + (bb[3] - cy) * 0.6;
+        const candidate = turf.point([cx, labelY]);
+        const inside = turf.booleanPointInPolygon(candidate, z.geometry);
+        labels.push({
+          type: 'Feature',
+          id: z.id,
+          properties: props,
+          geometry: inside ? candidate.geometry : c,
+        });
       } catch {
         /* skip */
       }
@@ -838,11 +888,30 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           : rankColorExpr()
         : ['get', 'color'];
 
+      // Zones ramp opacity by Z-level (Z0 most opaque, Z5 most transparent)
+      // to reinforce the Z-stack ordering with a perceptual cue. Non-zone
+      // polygon kinds keep the shared 0.28 baseline.
+      const fillOpacityExpr = [
+        'case',
+        ['==', ['get', 'kind'], 'zone'],
+        [
+          'match',
+          ['to-number', ['coalesce', ['get', 'permacultureZone'], 2]],
+          0, 0.40,
+          1, 0.34,
+          2, 0.28,
+          3, 0.22,
+          4, 0.18,
+          5, 0.14,
+          0.28,
+        ],
+        0.28,
+      ];
       ensureLayer({
         id: `${LAYER_PREFIX}poly-fill`,
         type: 'fill',
         source: polySid,
-        paint: { 'fill-color': colorExpr as never, 'fill-opacity': 0.28 },
+        paint: { 'fill-color': colorExpr as never, 'fill-opacity': fillOpacityExpr as never },
       });
       ensureLayer({
         id: `${LAYER_PREFIX}poly-line`,
@@ -1027,6 +1096,16 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           'text-offset': [0, 1.1],
           'text-anchor': 'top',
           'text-allow-overlap': false,
+          // Among colliding labels, the lower sort-key is placed first and
+          // wins. Zones use their `permacultureZone` so Z0 always survives
+          // when a higher-Z zone is drawn over it. Non-zone labels get a
+          // neutral 0 (ties with Z0; source order resolves the rare clash).
+          'symbol-sort-key': [
+            'case',
+            ['==', ['get', 'kind'], 'zone'],
+            ['to-number', ['coalesce', ['get', 'permacultureZone'], 2]],
+            0,
+          ] as never,
         },
         paint: {
           'text-color': '#f2ede3',
@@ -1099,11 +1178,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (f?.properties?.kind === 'guild') {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
@@ -1141,7 +1220,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
@@ -1165,7 +1244,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () => updateGuild(id2, { center: origCenter }),
@@ -1193,7 +1272,14 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           .getState()
           .guilds.find((x) => x.id === id2);
         if (!r2) return;
-        openForm({ ...buildGuildEditSchema(r2, updateGuild), anchor });
+        openForm({
+          ...buildGuildEditSchema(
+            r2,
+            updateGuild,
+            silvopastureHostOptions(projectId),
+          ),
+          anchor,
+        });
       };
       map.on('mousemove', onMove);
       map.on('mouseup', onUp);
@@ -1216,6 +1302,13 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         `${LAYER_PREFIX}transect-line`,
         `${LAYER_PREFIX}setback-fill`,
         `${LAYER_PREFIX}setback-line`,
+        // Design-element layers (rendered by DesignElementLayers, prefix
+        // `design-el-`). Included here so background-click clearing
+        // doesn't wipe a selection that was just set by mousedown on
+        // one of these layers.
+        'design-el-poly-fill',
+        'design-el-line',
+        'design-el-point',
       ].filter((id) => map.getLayer(id));
       if (SELECTABLE_LAYERS.length === 0) return;
       try {
@@ -1303,11 +1396,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (f?.properties?.kind === 'structure') {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
@@ -1315,9 +1408,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       if (!f || f.properties?.kind !== 'structure') return;
       e.preventDefault();
       const id = String(f.properties.id);
-      const st0 = useStructureStore
-        .getState()
-        .structures.find((s) => s.id === id);
+      const st0 = getAllStructures().find((s) => s.id === id);
       if (!st0) return;
       const selItem = { kind: 'structure' as const, id };
       if (e.originalEvent.shiftKey) {
@@ -1349,7 +1440,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         // Translate by delta — keeps the cursor's grab-offset relative to
@@ -1377,7 +1468,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.x, y: down.y };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () =>
@@ -1397,9 +1488,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           return;
         }
         // Click (no drag) → open edit popover.
-        const st = useStructureStore
-          .getState()
-          .structures.find((s) => s.id === id);
+        const st = getAllStructures().find((s) => s.id === id);
         if (!st) return;
         const anchor: [number, number] =
           ev?.lngLat
@@ -1517,7 +1606,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       startY: number;
       startLng: number;
       startLat: number;
-      origGeom: GeoJSON.Geometry;
+      origGeom: GeoJSON.Polygon;
       origCenter: [number, number] | null;
       dragging: boolean;
     };
@@ -1527,15 +1616,29 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const f = e.features?.[0];
       const k = f?.properties?.kind;
       if (typeof k === 'string' && HANDLED.includes(k)) {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
-      const f = e.features?.[0];
+      // Among overlapping zones, always prefer the lowest permacultureZone
+      // (Z0 wins over Z1, Z1 over Z2, …) so an intensive-use zone drawn
+      // first stays selectable when a less-intensive zone is drawn over it.
+      // Non-zone kinds keep the default "topmost wins" pick.
+      const feats = e.features ?? [];
+      const zoneFeats = feats.filter((ff) => ff.properties?.kind === 'zone');
+      const f =
+        zoneFeats.length > 0
+          ? zoneFeats.reduce((best, cur) =>
+              Number(cur.properties?.permacultureZone ?? 2) <
+              Number(best.properties?.permacultureZone ?? 2)
+                ? cur
+                : best,
+            )
+          : feats[0];
       const k = f?.properties?.kind;
       if (typeof k !== 'string' || !HANDLED.includes(k)) return;
       e.preventDefault();
@@ -1590,7 +1693,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
@@ -1620,7 +1723,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () => {
@@ -1666,29 +1769,32 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       map.on('mouseup', onUp);
     };
 
+    const asPolygon = (
+      g: GeoJSON.Geometry | undefined,
+    ): GeoJSON.Polygon | null => (g?.type === 'Polygon' ? g : null);
     const readRecordGeometry = (
       k: string,
       id: string,
-    ): GeoJSON.Geometry | null => {
+    ): GeoJSON.Polygon | null => {
       if (k === 'zone') {
         const r = useZoneStore.getState().zones.find((x) => x.id === id);
-        return r?.geometry ?? null;
+        return asPolygon(r?.geometry);
       }
       if (k === 'crop') {
         const r = useCropStore.getState().cropAreas.find((x) => x.id === id);
-        return r?.geometry ?? null;
+        return asPolygon(r?.geometry);
       }
       if (k === 'paddock') {
         const r = useLivestockStore
           .getState()
           .paddocks.find((x) => x.id === id);
-        return r?.geometry ?? null;
+        return asPolygon(r?.geometry);
       }
       if (k === 'water_catchment') {
         const r = useWaterSystemsStore
           .getState()
           .waterNodes.find((x) => x.id === id);
-        return r?.geometry ?? null;
+        return asPolygon(r?.geometry);
       }
       return null;
     };
@@ -1714,13 +1820,25 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
       if (k === 'crop') {
         const r = useCropStore.getState().cropAreas.find((x) => x.id === id);
-        return r ? buildCropEditSchema(r, updateCropArea) : null;
+        return r
+          ? buildCropEditSchema(
+              r,
+              updateCropArea,
+              silvopastureHostOptions(projectId),
+            )
+          : null;
       }
       if (k === 'paddock') {
         const r = useLivestockStore
           .getState()
           .paddocks.find((x) => x.id === id);
-        return r ? buildPaddockEditSchema(r, updatePaddock) : null;
+        return r
+          ? buildPaddockEditSchema(
+              r,
+              updatePaddock,
+              silvopastureHostOptions(projectId),
+            )
+          : null;
       }
       if (k === 'water_catchment') {
         const r = useWaterSystemsStore
@@ -1783,11 +1901,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const f = e.features?.[0];
       const k = f?.properties?.kind;
       if (typeof k === 'string' && HANDLED.includes(k)) {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
@@ -1849,7 +1967,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
@@ -1885,7 +2003,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () => {
@@ -2018,11 +2136,11 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const f = e.features?.[0];
       const k = f?.properties?.kind;
       if (typeof k === 'string' && HANDLED.includes(k)) {
-        map.getCanvas().style.cursor = 'move';
+        setCursorIntent('move');
       }
     };
     const onMouseLeave = () => {
-      if (!down?.dragging) map.getCanvas().style.cursor = '';
+      if (!down?.dragging) setCursorIntent(null);
     };
 
     const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
@@ -2075,7 +2193,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           down.dragging = true;
           undoWindow.start();
           map.dragPan.disable();
-          map.getCanvas().style.cursor = 'grabbing';
+          setCursorIntent('grabbing');
         }
         if (!down.dragging) return;
         const dLng = ev.lngLat.lng - down.startLng;
@@ -2103,7 +2221,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const downXY = { x: down.startX, y: down.startY };
         down = null;
         map.dragPan.enable();
-        map.getCanvas().style.cursor = '';
+        setCursorIntent(null);
         if (wasDrag) {
           undoWindow.commit(
             () => {
@@ -2193,7 +2311,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // moved off-project), the existing materialised geometry is preserved.
   useEffect(() => {
     if (!map) return;
-    if (!editable) return;
     if (activeTool !== null) return;
     const layerId = `${LAYER_PREFIX}setback-fill`;
 
@@ -2225,9 +2342,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           return r?.geometry ?? null;
         }
         case 'structure': {
-          const r = useStructureStore
-            .getState()
-            .structures.find((x) => x.id === id && x.projectId === projectId);
+          const r = getAllStructures().find(
+            (x) => x.id === id && x.projectId === projectId,
+          );
           return r?.geometry ?? null;
         }
         case 'path': {
@@ -2245,12 +2362,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
     };
 
-    const onMouseEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const onMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'setback') return;
@@ -2275,14 +2386,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       });
     };
 
-    map.on('mouseenter', layerId, onMouseEnter);
-    map.on('mouseleave', layerId, onMouseLeave);
     map.on('click', layerId, onClick);
 
     return () => {
       try {
-        map.off('mouseenter', layerId, onMouseEnter);
-        map.off('mouseleave', layerId, onMouseLeave);
         map.off('click', layerId, onClick);
       } catch {
         /* map already disposed */
@@ -2304,16 +2411,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // popover (name / kind / from-name / to-name / phase / enterprise).
   useEffect(() => {
     if (!map) return;
-    if (!editable) return;
     if (activeTool !== null) return;
     const layerId = `${LAYER_PREFIX}flow-line`;
 
-    const onMouseEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const onMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'flow') return;
@@ -2335,14 +2435,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       });
     };
 
-    map.on('mouseenter', layerId, onMouseEnter);
-    map.on('mouseleave', layerId, onMouseLeave);
     map.on('click', layerId, onClick);
 
     return () => {
       try {
-        map.off('mouseenter', layerId, onMouseEnter);
-        map.off('mouseleave', layerId, onMouseLeave);
         map.off('click', layerId, onClick);
       } catch {
         /* map already disposed */
@@ -2362,16 +2458,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // breaks the "this is the route I walk every <cadence>" semantics.
   useEffect(() => {
     if (!map) return;
-    if (!editable) return;
     if (activeTool !== null) return;
     const layerId = `${LAYER_PREFIX}transect-line`;
 
-    const onMouseEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-    const onMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'transect') return;
@@ -2393,14 +2482,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       });
     };
 
-    map.on('mouseenter', layerId, onMouseEnter);
-    map.on('mouseleave', layerId, onMouseLeave);
     map.on('click', layerId, onClick);
 
     return () => {
       try {
-        map.off('mouseenter', layerId, onMouseEnter);
-        map.off('mouseleave', layerId, onMouseLeave);
         map.off('click', layerId, onClick);
       } catch {
         /* map already disposed */
@@ -2414,6 +2499,71 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     openForm,
     editable,
   ]);
+
+  // Read-only click→selection. The 5 composite mousedown handlers above
+  // (guild, structure, polygon, line, point) each gate themselves on
+  // `editable` to keep drag-to-translate disabled in Observe / Act. To
+  // still surface the `PlanSelectionFloater` for those features in the
+  // read-only stages, register a parallel click-only listener that just
+  // writes to `usePlanSelectionStore`. In editable mode the existing
+  // mousedown path also writes selection — duplicate writes are
+  // idempotent. Catchment-centroid points are selected via their
+  // poly-fill, so the `water_catchment` point kind is intentionally not
+  // surfaced here.
+  useEffect(() => {
+    if (!map) return;
+    if (activeTool !== null) return;
+    const layerIds = [
+      `${LAYER_PREFIX}point`,
+      `${LAYER_PREFIX}poly-fill`,
+      `${LAYER_PREFIX}line`,
+    ];
+
+    const KIND_MAP: Record<string, PlanSelectionKind | undefined> = {
+      guild: 'guild',
+      structure: 'structure',
+      zone: 'zone',
+      crop: 'crop',
+      paddock: 'paddock',
+      water_catchment: 'water',
+      path: 'path',
+      water_swale: 'water',
+      utility: 'utility',
+      fertility: 'fertility',
+      water_storage: 'water',
+      water_sink: 'water',
+    };
+
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      const k = typeof f?.properties?.kind === 'string'
+        ? f.properties.kind
+        : null;
+      if (!k) return;
+      const planKind = KIND_MAP[k];
+      if (!planKind) return;
+      const id = String(f!.properties!.id);
+      const selItem = { kind: planKind, id };
+      if (e.originalEvent.shiftKey) {
+        usePlanSelectionStore.getState().toggle(selItem);
+      } else {
+        setSelection([selItem]);
+      }
+    };
+
+    for (const lid of layerIds) {
+      map.on('click', lid, onClick);
+    }
+    return () => {
+      for (const lid of layerIds) {
+        try {
+          map.off('click', lid, onClick);
+        } catch {
+          /* map already disposed */
+        }
+      }
+    };
+  }, [map, activeTool, setSelection]);
 
   // Cleanup on unmount.
   useEffect(() => {

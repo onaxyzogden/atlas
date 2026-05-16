@@ -49,6 +49,18 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          // Stale-while-revalidate for Esri World Imagery satellite tiles
+          // (the satellite basemap source — same cache bucket so the offline
+          // precache and the live map share one store)
+          {
+            urlPattern: /^https:\/\/server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery\/.*/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'ogden-map-tiles',
+              expiration: { maxEntries: 2000, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
           // Network-first for MapTiler style JSON (changes rarely)
           {
             urlPattern: /^https:\/\/api\.maptiler\.com\/maps\/.*\/style\.json.*/,

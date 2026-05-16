@@ -30,7 +30,8 @@
 
 import { useMemo } from 'react';
 import type { LandZone } from '../../store/zoneStore.js';
-import { useStructureStore, type StructureType } from '../../store/structureStore.js';
+import type { StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import css from './ProgramCoverageCard.module.css';
@@ -121,7 +122,7 @@ interface Props {
 /* ------------------------------------------------------------------ */
 
 export default function ProgramCoverageCard({ projectId, zones }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allCrops = useCropStore((s) => s.cropAreas);
   const allPaddocks = useLivestockStore((s) => s.paddocks);
 

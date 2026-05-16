@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import {
   CheckCircle2,
   Compass,
@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
-import heroTerrain from '../../assets/topography-dashboard/hero-terrain.png';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import {
   useTopographyStore,
@@ -30,6 +29,7 @@ import ElevationProfileChart from './ElevationProfileChart.js';
 import TerrainSnapshot from './TerrainSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   featureCounts,
@@ -140,12 +140,12 @@ export default function TopographyDashboard() {
   const meanSlope = elevationSummary?.mean_slope_deg;
 
   const synopsis = !elevationSummary
-    ? 'Elevation data pending — once a DEM is sampled, the dashboard will summarise the site shape.'
-    : `${meanSlope != null ? `Mean slope ${meanSlope.toFixed(1)}°` : 'Slope data partial'}${
+    ? 'Elevation data pending â€” once a DEM is sampled, the dashboard will summarise the site shape.'
+    : `${meanSlope != null ? `Mean slope ${meanSlope.toFixed(1)}Â°` : 'Slope data partial'}${
         range != null ? `, ${range} m of total relief` : ''
       }${aspect ? ` and a ${aspect} aspect` : ''}. ${
         counts.total === 0
-          ? 'No field annotations yet — trace contours, high points, or drainage lines to start building a base map.'
+          ? 'No field annotations yet â€” trace contours, high points, or drainage lines to start building a base map.'
           : `${counts.total} field annotation${counts.total === 1 ? '' : 's'} so far.`
       }`;
 
@@ -154,21 +154,21 @@ export default function TopographyDashboard() {
       Droplet,
       'Water',
       counts.drainageLines > 0
-        ? `${counts.drainageLines} drainage line${counts.drainageLines === 1 ? '' : 's'} traced — use them to plan swales, ponds and infiltration.`
+        ? `${counts.drainageLines} drainage line${counts.drainageLines === 1 ? '' : 's'} traced â€” use them to plan swales, ponds and infiltration.`
         : 'Trace drainage lines on the map to surface water-harvesting opportunities here.',
     ],
     [
       Leaf,
       'Soil & stability',
       elevationSummary?.max_slope_deg != null && elevationSummary.max_slope_deg > 25
-        ? 'Steep zones present — protect them with vegetation and avoid cut/fill.'
+        ? 'Steep zones present â€” protect them with vegetation and avoid cut/fill.'
         : 'Mostly stable slopes; protect any exposed ridge lines and swale entries.',
     ],
     [
       Home,
       'Access & zones',
       counts.highPoints > 0
-        ? `${counts.highPoints} elevation point${counts.highPoints === 1 ? '' : 's'} pinned — useful anchors for buildings or zones.`
+        ? `${counts.highPoints} elevation point${counts.highPoints === 1 ? '' : 's'} pinned â€” useful anchors for buildings or zones.`
         : 'Pin high and low points to find buildable benches and productive zones.',
     ],
   ];
@@ -178,7 +178,7 @@ export default function TopographyDashboard() {
     implications.push([
       Droplet,
       'Drainage lines mapped',
-      `${counts.drainageLines} traced — design swales and infiltration along them.`,
+      `${counts.drainageLines} traced â€” design swales and infiltration along them.`,
     ]);
   } else {
     implications.push([
@@ -191,7 +191,7 @@ export default function TopographyDashboard() {
     implications.push([
       ShieldAlert,
       'Steep zones present',
-      `Max slope ${elevationSummary.max_slope_deg.toFixed(1)}° — protect with vegetation, avoid cut/fill.`,
+      `Max slope ${elevationSummary.max_slope_deg.toFixed(1)}Â° â€” protect with vegetation, avoid cut/fill.`,
     ]);
   } else {
     implications.push([
@@ -225,7 +225,7 @@ export default function TopographyDashboard() {
     ['Contour lines', counts.contours],
     ['Elevation points', counts.highPoints],
     ['Drainage lines', counts.drainageLines],
-    ['A–B transects', counts.transects],
+    ['Aâ€“B transects', counts.transects],
   ];
 
   const actions: Array<[string, string]> = [
@@ -233,7 +233,7 @@ export default function TopographyDashboard() {
       counts.drainageLines === 0 ? 'Trace drainage lines' : 'Design water harvesting system',
       'High',
     ],
-    [counts.transects === 0 ? 'Draw an A–B transect' : 'Add another transect', 'High'],
+    [counts.transects === 0 ? 'Draw an Aâ€“B transect' : 'Add another transect', 'High'],
     [
       counts.highPoints === 0 ? 'Pin high and low points' : 'Identify building sites',
       'Medium',
@@ -247,27 +247,20 @@ export default function TopographyDashboard() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Understand the shape of the land. Explore elevation, slope, aspect and cross-sections
-              to design with the terrain, not against it.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export terrain report'}
-              </button>
-            </div>
-          </div>
-          <img src={heroTerrain} alt="" aria-hidden="true" className={obsx.heroArt} />
-        </div>
+      <ObserveHero
+        sectionId="observe-topography-dashboard"
+        lede="Understand the shape of the land. Explore elevation, slope, aspect and cross-sections to design with the terrain, not against it."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generatingâ€¦' : 'Export terrain report'}
+        </button>
       </div>
 
       <section className={card.section}>
@@ -385,7 +378,7 @@ export default function TopographyDashboard() {
           <h2 className={card.sectionTitle}>Aspect</h2>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
             <AspectCompass aspect={aspect} size={96} />
-            <strong style={{ color: 'rgba(var(--color-gold-rgb), 0.95)' }}>{aspect ?? '—'}</strong>
+            <strong style={{ color: 'rgba(var(--color-gold-rgb), 0.95)' }}>{aspect ?? 'â€”'}</strong>
             <small className={card.hint}>Predominant facing direction.</small>
           </div>
         </section>
@@ -407,7 +400,7 @@ export default function TopographyDashboard() {
           title=""
           projectId={projectId ?? null}
           kinds={['contourLine', 'highPoint', 'drainageLine']}
-          emptyHint="No contours, elevation points, or drainage lines yet — trace one with the tools panel."
+          emptyHint="No contours, elevation points, or drainage lines yet â€” trace one with the tools panel."
         />
       </section>
     </div>

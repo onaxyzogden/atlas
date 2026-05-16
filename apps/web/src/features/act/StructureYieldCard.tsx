@@ -20,7 +20,7 @@ import {
   type HarvestUnit,
   type HarvestQuality,
 } from '../../store/harvestLogStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import { getActionsForType } from '../../v3/act/data/structureActions.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
@@ -61,7 +61,7 @@ export default function StructureYieldCard({ project }: Props) {
   const addEntry = useHarvestLogStore((s) => s.addEntry);
   const removeEntry = useHarvestLogStore((s) => s.removeEntry);
 
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () =>
       allStructures.filter(

@@ -5,7 +5,7 @@
 
 import type { CropArea, CropAreaType } from '../../../store/cropStore.js';
 import type { DesignPath, PathType } from '../../../store/pathStore.js';
-import type { Structure, StructureType } from '../../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
 import type { Utility, UtilityType } from '../../../store/utilityStore.js';
 
 /* ── Feature aggregation ──────────────────────────────────────────────── */

@@ -10,12 +10,12 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import heroTerrain from '../../assets/indigenous-regional-context/hero-terrain.png';
 import { useVisionStore } from '../../../../store/visionStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import { regionalCounts } from './derivations.js';
 
 const CONTACT_TYPES = ['regulator', 'first_nation', 'community', 'partner', 'other'];
@@ -41,18 +41,10 @@ export default function IndigenousRegionalContextDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={hc.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Honour the land&rsquo;s longer story. Capture indigenous place-names, cultural
-              challenges and strengths in this region, and the local network you can lean on
-              for stewardship.
-            </p>
-          </div>
-          <img src={heroTerrain} alt="" aria-hidden="true" className={hc.heroArt} />
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-human-context-indigenous-regional"
+        lede="Honour the land's longer story. Capture indigenous place-names, cultural challenges and strengths in this region, and the local network you can lean on for stewardship."
+      />
 
       <Section number="1" title="Indigenous Place-Names" subtitle="Recognize the traditional territories and histories that shape this landscape.">
             <ChipEditor

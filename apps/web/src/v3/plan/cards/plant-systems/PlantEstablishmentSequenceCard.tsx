@@ -1,4 +1,4 @@
-/**
+﻿/**
  * PlantEstablishmentSequenceCard — Plan Module 4 (Plant Systems), readout.
  *
  * Closes the loop on `Guild.phase`'s docstring promise: "Lets the
@@ -11,9 +11,9 @@
  *
  * Cap discipline (asymmetric rule established for Phase B):
  *   - This is a *readout* card. The guild slice is run through
- *     `usePhaseStoreCappedEntities`, so on `phase-1` / `phase-2`
- *     views guilds whose BuildPhase's `yeomansCap` exceeds the
- *     view cap simply drop out.
+ *     `usePhaseStoreCappedEntities`, so guilds whose BuildPhase's
+ *     `yeomansCap` exceeds the year scrubber's
+ *     `yeomansCapForYear(currentYear)` simply drop out.
  *   - The registration cards (PlantDatabaseSiteMatchCard,
  *     GuildSpatialBuilderCard, CanopySuccessionCard) stay uncapped
  *     — a steward must be able to compose a Year-5 guild from a
@@ -39,7 +39,7 @@ import {
   type GuildLayer,
 } from '../../../../store/polycultureStore.js';
 import { usePhaseStore, type BuildPhase } from '../../../../store/phaseStore.js';
-import { findSpecies } from '../../../../data/plantDatabase.js';
+import { findSpecies } from '../../../../data/plantCatalog.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
@@ -173,11 +173,11 @@ export default function PlantEstablishmentSequenceCard({ project }: Props) {
         <h1 className={styles.title}>Plant establishment sequence</h1>
         <p className={styles.lede}>
           Guilds grouped by the build phase they're assigned to, in
-          phaseStore order. On Year 1 / Year 5 views the list reflects
-          only guilds whose phase fits the active Scale-of-Permanence
-          cap; on Current / Vision views nothing is hidden. Use the
-          Guild Builder to compose guilds and assign them to a phase
-          — this card is read-only.
+          phaseStore order. As you scrub the year cursor, the list
+          reflects only guilds whose phase fits the active
+          Scale-of-Permanence cap (Year ≤ 2 → water; Year ≤ 5 →
+          buildings; Year 6+ uncapped). Use the Guild Builder to
+          compose guilds and assign them to a phase — this card is read-only.
         </p>
       </header>
 

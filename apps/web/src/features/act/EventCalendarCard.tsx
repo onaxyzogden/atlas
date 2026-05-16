@@ -52,6 +52,8 @@ const SOURCE_DOT_CLASS: Record<CalendarSource, string> = {
   harvest: css.dotHarvest!,
   nursery: css.dotNursery!,
   community: css.dotCommunity!,
+  phaseTask: css.dotPhaseTask!,
+  plantingCalendar: css.dotPlantingCalendar!,
 };
 
 function dateKey(d: Date): string {

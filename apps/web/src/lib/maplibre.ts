@@ -33,8 +33,43 @@ export function setMaptilerKey(value: string | null): void {
 
 const key = resolveKey();
 
-export const MAP_STYLES: Record<string, string> = {
-  satellite:    `https://api.maptiler.com/maps/satellite/style.json?key=${key}`,
+/**
+ * Inline raster style for the satellite basemap, backed by Esri World Imagery
+ * (free, no token, sub-meter in most regions, native to z19). This is sharper
+ * than MapTiler's satellite tiles in rural/agricultural areas — the primary
+ * use case for this tool. MapTiler satellite remains reachable via the
+ * `hybrid` style as a built-in fallback.
+ *
+ * `glyphs` points at MapTiler's font endpoint so that user-added symbol/label
+ * layers still resolve fonts after a basemap swap to this style (an Esri
+ * raster style supplies none of its own; text layers would silently fail).
+ */
+export const ESRI_WORLD_IMAGERY_STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  glyphs: `https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key=${key}`,
+  sources: {
+    'esri-world-imagery': {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      ],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution:
+        'Imagery © Esri, Maxar, Earthstar Geographics, GIS User Community',
+    },
+  },
+  layers: [
+    {
+      id: 'esri-world-imagery',
+      type: 'raster',
+      source: 'esri-world-imagery',
+    },
+  ],
+};
+
+export const MAP_STYLES: Record<string, string | maplibregl.StyleSpecification> = {
+  satellite:    ESRI_WORLD_IMAGERY_STYLE,
   terrain:      `https://api.maptiler.com/maps/topo/style.json?key=${key}`,
   topographic:  `https://api.maptiler.com/maps/topo-v2/style.json?key=${key}`,
   street:       `https://api.maptiler.com/maps/streets/style.json?key=${key}`,

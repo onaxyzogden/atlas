@@ -22,7 +22,7 @@ import {
   type FertilityInfraType,
 } from '../../../../store/closedLoopStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
-import { useStructureStore } from '../../../../store/structureStore.js';
+import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../../../store/cropStore.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
@@ -113,12 +113,12 @@ export default function ClosedLoopGraphCard({ project }: Props) {
   const allVectors = useClosedLoopStore((s) => s.wasteVectors);
   const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allCrops = useCropStore((s) => s.cropAreas);
 
   // Fertility infra is the only phase-tagged entity in this card.
-  // Capped by Plan view (Year 1 / Year 5) via the phaseStore→Yeomans
-  // adapter. Zones, structures, crops, and vectors stay uncapped:
+  // Capped by the year scrubber's `yeomansCapForYear(currentYear)` via
+  // the phaseStore→Yeomans adapter. Zones, structures, crops, and vectors stay uncapped:
   // they have no phase field, and caps are presentational — dangling
   // edges from a capped-out fertility node are accepted (matches the
   // principle established for WaterStorageCard overflow targets).

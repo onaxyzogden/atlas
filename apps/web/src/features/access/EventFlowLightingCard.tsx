@@ -25,7 +25,8 @@
 
 import { useMemo } from 'react';
 import { usePathStore, type DesignPath, type PathType } from '../../store/pathStore.js';
-import { useStructureStore, type Structure, type StructureType } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
 import css from './EventFlowLightingCard.module.css';
 
@@ -304,7 +305,7 @@ const TYPE_LABEL: Record<StructureType, string> = {
 
 export default function EventFlowLightingCard({ projectId }: Props) {
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allZones = useZoneStore((s) => s.zones);
 
   const paths = useMemo(() => allPaths.filter((p) => p.projectId === projectId), [allPaths, projectId]);

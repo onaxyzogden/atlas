@@ -15,13 +15,13 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useParams } from '@tanstack/react-router';
-import heroSunscape from '../../assets/solar-climate-detail/hero-sunscape.png';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import MonthlyClimateChart from './MonthlyClimateChart.js';
 import SunPathDiagram from './SunPathDiagram.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import {
   climateKpis,
   getClimateLayer,
@@ -111,27 +111,19 @@ export default function SolarClimateDetail() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Understand sunlight, seasonal rhythms, rainfall, and wind patterns to design
-              with climate, not against it. These insights help you place elements, time
-              actions, and build resilience.
-            </p>
-            <div className={card.btnRow}>
-              <button type="button" className={card.btn}>
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                Export climate report
-              </button>
-              <button type="button" className={card.btn}>
-                <ExternalLink aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                Open climate sources
-              </button>
-            </div>
-          </div>
-          <img src={heroSunscape} alt="" aria-hidden="true" className={obsx.heroArt} />
-        </div>
+      <ObserveHero
+        sectionId="observe-macroclimate-hazards-solar-climate"
+        lede="Understand sunlight, seasonal rhythms, rainfall, and wind patterns to design with climate, not against it. These insights help you place elements, time actions, and build resilience."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button type="button" className={card.btn}>
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Export climate report
+        </button>
+        <button type="button" className={card.btn}>
+          <ExternalLink aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          Open climate sources
+        </button>
       </div>
 
       <section className={card.section}>

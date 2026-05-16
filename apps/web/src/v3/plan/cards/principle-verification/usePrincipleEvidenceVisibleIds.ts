@@ -8,8 +8,9 @@
  * feature picker, scopes each to the active project, then runs each
  * project-scoped slice through the `usePhaseStoreCappedEntities`
  * adapter so phase-tagged entities (waterNodes, paddocks,
- * fertilityInfra, etc.) drop out on `phase-1` / `phase-2` views when
- * their BuildPhase's `yeomansCap` exceeds the view cap.
+ * fertilityInfra, etc.) drop out when the year scrubber's
+ * `yeomansCapForYear(currentYear)` is exceeded by their BuildPhase's
+ * `yeomansCap`.
  *
  * Entities whose store has no `phase?: string` field (zones, paths,
  * structures, transects, guilds, crops, ecology — observation /
@@ -30,7 +31,7 @@
 import { useMemo } from 'react';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { usePathStore } from '../../../../store/pathStore.js';
-import { useStructureStore } from '../../../../store/structureStore.js';
+import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
@@ -82,7 +83,7 @@ export function usePrincipleEvidenceVisibleIds(
 ): PrincipleEvidenceVisibleIds {
   const allZones = useZoneStore((s) => s.zones);
   const allPaths = usePathStore((s) => s.paths);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allTransects = useTopographyStore((s) => s.transects);
   const allGuilds = usePolycultureStore((s) => s.guilds);
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);

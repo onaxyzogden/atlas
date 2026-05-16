@@ -15,9 +15,10 @@
  */
 
 import { useEffect } from 'react';
-import { Pencil, Trash2, X } from 'lucide-react';
+import { Move, Pencil, Trash2, X } from 'lucide-react';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import { useObserveSelectionStore } from '../../../store/observeSelectionStore.js';
+import { useAnnotationDetailStore } from '../../../store/annotationDetailStore.js';
 import { useAnnotationFormStore } from '../../../store/annotationFormStore.js';
 import { useExternalForcesStore } from '../../../store/externalForcesStore.js';
 import {
@@ -25,6 +26,11 @@ import {
   SECTOR_TYPE_LABELS,
   removeAnnotation,
 } from './AnnotationRegistry.js';
+import {
+  POINT_KINDS,
+  LINESTRING_KINDS,
+  POLYGON_KINDS,
+} from './draw/annotationGeometryRegistry.js';
 import { openBeInlineEditByObserveKind } from '../../builtEnvironment/inline/openBeInlineEdit.js';
 import css from './SelectionFloater.module.css';
 
@@ -36,7 +42,13 @@ interface Props {
 export default function SelectionFloater({ projectId }: Props) {
   const selected = useObserveSelectionStore((s) => s.selected);
   const clear = useObserveSelectionStore((s) => s.clear);
+  const moveMode = useObserveSelectionStore((s) => s.moveMode);
+  const toggleMoveMode = useObserveSelectionStore((s) => s.toggleMoveMode);
   const openForm = useAnnotationFormStore((s) => s.open);
+  // Hide while the read-only `<AnnotationDetailPanel>` is open: it shows
+  // its own Edit / Delete buttons for the same record, so the floater
+  // would be redundant clutter on top of the panel.
+  const detailActive = useAnnotationDetailStore((s) => s.active);
   // Subscribed so the floater's sector-type label re-renders if the
   // underlying record's `type` is edited while selected (rare, but cheap).
   const sectors = useExternalForcesStore((s) => s.sectors);
@@ -58,6 +70,7 @@ export default function SelectionFloater({ projectId }: Props) {
   }, [selected.length, clear]);
 
   if (selected.length === 0) return null;
+  if (detailActive) return null;
 
   const single = selected.length === 1 ? selected[0] : null;
   const first = selected[0];
@@ -69,6 +82,13 @@ export default function SelectionFloater({ projectId }: Props) {
     first !== undefined &&
     selected.every((s) => s.kind === first.kind);
   const editEnabled = Boolean(projectId) && (single !== null || sameKindBatch);
+  // Move (geometry reposition / vertex edit) is single-selection only and
+  // only for kinds with editable geometry.
+  const moveEnabled =
+    !!single &&
+    (POINT_KINDS.has(single.kind) ||
+      LINESTRING_KINDS.has(single.kind) ||
+      POLYGON_KINDS.has(single.kind));
 
   const onEdit = () => {
     if (!projectId) return;
@@ -158,6 +178,27 @@ export default function SelectionFloater({ projectId }: Props) {
         >
           <Pencil aria-hidden="true" />
           <span>Edit</span>
+        </button>
+      </DelayedTooltip>
+      <DelayedTooltip
+        label={
+          !moveEnabled
+            ? 'Select one feature with editable geometry'
+            : moveMode
+              ? 'Drag to reposition — click to finish'
+              : 'Move selected'
+        }
+        position="top"
+      >
+        <button
+          type="button"
+          className={`${css.btn} ${moveMode ? css.btnActive : ''}`}
+          onClick={toggleMoveMode}
+          disabled={!moveEnabled}
+          aria-pressed={moveMode}
+        >
+          <Move aria-hidden="true" />
+          <span>Move</span>
         </button>
       </DelayedTooltip>
       <DelayedTooltip label="Delete selected" position="top">

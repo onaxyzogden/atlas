@@ -26,7 +26,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -76,7 +76,7 @@ const DOMAIN_ORDER: Domain[] = [
 ];
 
 export default function AssumptionGapDetectorCard({ project }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(
     () => allStructures.filter((st) => st.projectId === project.id),
     [allStructures, project.id],

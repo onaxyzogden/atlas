@@ -15,7 +15,7 @@
 import { useMemo } from 'react';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import css from './BeforeAfterMasterplanCard.module.css';
@@ -78,7 +78,7 @@ function deltaLabel(current: number, vision: number): string {
 export default function BeforeAfterMasterplanCard({ projectId }: Props) {
   const cropAreas = useCropStore((s) => s.cropAreas);
   const paddocks = useLivestockStore((s) => s.paddocks);
-  const structures = useStructureStore((s) => s.structures);
+  const structures = useAllStructures();
   const utilities = useUtilityStore((s) => s.utilities);
   const allPhases = usePhaseStore((s) => s.phases);
 

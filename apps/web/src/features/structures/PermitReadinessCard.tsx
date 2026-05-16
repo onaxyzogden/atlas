@@ -27,11 +27,8 @@
  */
 
 import { useMemo } from 'react';
-import {
-  useStructureStore,
-  type Structure,
-  type StructureType,
-} from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { usePhaseStore, type BuildPhase } from '../../store/phaseStore.js';
 import css from './PermitReadinessCard.module.css';
 
@@ -235,7 +232,7 @@ function StatusBadge({ status }: { status: PermitStatus }) {
 }
 
 export default function PermitReadinessCard({ projectId }: Props) {
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPhases = usePhaseStore((s) => s.phases);
 
   const projectStructures = useMemo(

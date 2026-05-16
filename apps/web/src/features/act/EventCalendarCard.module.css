@@ -142,6 +142,8 @@
 .dotHarvest   { background: rgba(80, 180, 120, 0.95); }
 .dotNursery   { background: rgba(150, 200, 100, 0.95); }
 .dotCommunity { background: rgba(220, 160, 200, 0.95); }
+.dotPhaseTask { background: rgba(155, 200, 130, 0.95); }
+.dotPlantingCalendar { background: rgba(170, 130, 220, 0.95); }
 
 /* Weekday header row */
 .weekHeader {

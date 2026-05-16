@@ -39,7 +39,8 @@
 
 import { useMemo } from 'react';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import { useStructureStore, type Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
 import { usePathStore, type DesignPath, type PathType } from '../../store/pathStore.js';
 import { SETBACK_RULES } from '../rules/SitingRules.js';
@@ -248,7 +249,7 @@ function evaluateRules(
 
 export default function EcologicalProtectionCard({ projectId }: Props) {
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allPaths = usePathStore((s) => s.paths);
 

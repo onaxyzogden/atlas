@@ -32,7 +32,7 @@ import {
   useLivestockStore,
   type LivestockSpecies,
 } from '../../../../store/livestockStore.js';
-import { useStructureStore } from '../../../../store/structureStore.js';
+import { getAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useScheduledLivestockMoveStore } from '../../../../store/scheduledLivestockMoveStore.js';
 import { getActionsForType } from '../../../act/data/structureActions.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
@@ -116,13 +116,11 @@ export default function PlanScheduleMoveTool({ map, projectId }: Props) {
 
       // 2) Structure proximity (livestock-capable kinds only)
       if (!destKind) {
-        const structures = useStructureStore
-          .getState()
-          .structures.filter(
-            (s) =>
-              s.projectId === projectId &&
-              getActionsForType(s.type).includes('livestockMove'),
-          );
+        const structures = getAllStructures().filter(
+          (s) =>
+            s.projectId === projectId &&
+            getActionsForType(s.type).includes('livestockMove'),
+        );
         let best = Infinity;
         for (const s of structures) {
           const d = distanceM([lng, lat], s.center);

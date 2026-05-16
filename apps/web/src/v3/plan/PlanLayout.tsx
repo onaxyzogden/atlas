@@ -6,7 +6,7 @@
  * 1. `current` — legacy module-driven UI (PlanTools left, DiagnoseMap +
  *    MapToolbar + ObserveAnnotationLayers, PlanModuleBar bottom).
  *
- * 2. `vision` / `phase-1` / `phase-2` / `terrain3d` — Vision-Layout canvas:
+ * 2. `vision` / `terrain3d` — Vision-Layout canvas:
  *    design-element palette (left), VisionLayoutCanvas (centre, with
  *    DesignElementLayers + DesignToolRail + BaseMapCard), no module bar.
  *    Phase tabs filter by Yeomans Scale of Permanence index. `terrain3d`
@@ -17,10 +17,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useProjectStore } from '../../store/projectStore.js';
+import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useServerMachineryInventory } from '../../hooks/useServerMachineryInventory.js';
-import type { LocalProject } from '../../store/projectStore.js';
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
@@ -31,8 +30,9 @@ import PlanChecklistAside from './PlanChecklistAside.js';
 import PlanModuleBar from './PlanModuleBar.js';
 import PlanModuleSlideUp from './PlanModuleSlideUp.js';
 import PlanPhaseTabs from './canvas/PlanPhaseTabs.js';
-import DesignToolRail from './canvas/DesignToolRail.js';
+import DesignToolRail, { type ToolMode } from './canvas/DesignToolRail.js';
 import DesignElementLayers from './canvas/layers/DesignElementLayers.js';
+import { MapCursorHost } from './canvas/useMapCursor.js';
 import BaseMapCard from './canvas/BaseMapCard.js';
 import DeckOverlay from '../_shared/deck/DeckOverlay.js';
 import {
@@ -56,35 +56,12 @@ import PlanZoneRingsOverlay from './layers/PlanZoneRingsOverlay.js';
 import PlanSunPathOverlay from './layers/PlanSunPathOverlay.js';
 import PlanScheduledMovesOverlay from './layers/PlanScheduledMovesOverlay.js';
 import PlanSelectionFloater from './PlanSelectionFloater.js';
+import PlanStampToast from './draw/PlanStampToast.js';
+import StampModePicker from './canvas/StampModePicker.js';
+import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
+import DesignStatusChip from './header/DesignStatusChip.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
-
-/** MTC fallback: PlanModuleSlideUp only needs project.id + store fields. */
-const MTC_FALLBACK: LocalProject = {
-  id: 'mtc',
-  name: 'Moontrance Creek',
-  description: null,
-  status: 'active',
-  projectType: null,
-  country: 'CA',
-  provinceState: 'ON',
-  conservationAuthId: null,
-  address: null,
-  parcelId: null,
-  acreage: null,
-  dataCompletenessScore: null,
-  hasParcelBoundary: false,
-  createdAt: '',
-  updatedAt: '',
-  parcelBoundaryGeojson: null,
-  ownerNotes: null,
-  zoningNotes: null,
-  accessNotes: null,
-  waterRightsNotes: null,
-  visionStatement: null,
-  units: 'metric',
-  attachments: [],
-};
 
 export default function PlanLayout() {
   const params = useParams({ strict: false }) as {
@@ -104,7 +81,7 @@ export default function PlanLayout() {
   const v3Project = useV3Project(params.projectId);
 
   const project = useMemo(
-    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_FALLBACK,
+    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
     [projects, id],
   );
 
@@ -112,6 +89,9 @@ export default function PlanLayout() {
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   const [activeView, setActiveView] = useState<PlanView>('current');
+  const [currentMode, setCurrentMode] = useState<ToolMode>('pan');
+  const [currentHovering, setCurrentHovering] = useState(false);
+  const [currentSelectedId, setCurrentSelectedId] = useState<string | null>(null);
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
   const armedPlanDrawKind =
@@ -157,10 +137,7 @@ export default function PlanLayout() {
   };
 
   const isVisionCanvas =
-    activeView === 'vision' ||
-    activeView === 'phase-1' ||
-    activeView === 'phase-2' ||
-    activeView === 'terrain3d';
+    activeView === 'vision' || activeView === 'terrain3d';
 
   // ── Canvas content ───────────────────────────────────────────────────────
   const canvasContent = isVisionCanvas ? (
@@ -181,15 +158,23 @@ export default function PlanLayout() {
             onBoundaryDrawn={handleBoundaryDrawn}
             showBoundary={false}
           />
+          <MapCursorHost
+            map={map}
+            drawArmed={armedPlanDrawKind !== null}
+            mode={currentMode}
+            hovering={currentHovering}
+          />
           <DesignToolRail
             map={map}
             activeKind={armedPlanDrawKind}
             projectId={id}
             onDisarmDraw={() => setActiveTool(null)}
-            selectedId={null}
-            setSelectedId={() => {}}
+            selectedId={currentSelectedId}
+            setSelectedId={setCurrentSelectedId}
+            mode={currentMode}
+            setMode={setCurrentMode}
           />
-          <BaseMapCard />
+          <BaseMapCard stage="plan" />
           <ObserveAnnotationLayers map={map} projectId={id} />
           {/* Plan Current mirrors Observe's 3D BE stack (existing-state only).
               Year 1–5 / Vision views layer proposed-state placements on top
@@ -223,7 +208,9 @@ export default function PlanLayout() {
             map={map}
             projectId={id}
             view="current"
-            selectedId={null}
+            selectedId={currentSelectedId}
+            onHoverChange={setCurrentHovering}
+            onSelect={setCurrentSelectedId}
           />
           <PlanContoursOverlay map={map} />
           <PlanZoneRingsOverlay map={map} projectId={id} />
@@ -235,7 +222,7 @@ export default function PlanLayout() {
           />
           <PlanScheduledMovesOverlay map={map} projectId={id} />
           <PlanVertexEditHandler map={map} />
-          <PlanDrawHost map={map} projectId={id} />
+          <PlanDrawHost map={map} projectId={id} parcelBoundary={boundary} />
           <InlineFeaturePopover map={map} />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
@@ -266,7 +253,17 @@ export default function PlanLayout() {
       canvas={
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           {canvasContent}
+          <DesignStatusChip
+            project={project}
+            onOpenAudit={() => {
+              handleSelectModule('principle-verification');
+              setSlideUpOpen(true);
+            }}
+          />
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
+          <PlanStampToast />
+          <TemporalScrubSlider />
+          <StampModePicker />
         </div>
       }
       rightRail={

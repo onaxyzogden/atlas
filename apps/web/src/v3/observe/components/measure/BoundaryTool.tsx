@@ -15,6 +15,7 @@ interface Props {
 export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) {
   const drawRef = useRef<MapboxDraw | null>(null);
   const [polygon, setPolygon] = useState<GeoJSON.Polygon | null>(existing ?? null);
+  const [liveArea, setLiveArea] = useState<number | null>(null);
   // Stash latest onBoundaryDrawn so the effect does not re-init the draw
   // control every time the parent re-renders (ObserveLayout creates a new
   // inline arrow function on every render, which would otherwise cause
@@ -63,14 +64,50 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
       }
     };
 
+    // Live-area pump — fires on every MapboxDraw internal render (each click,
+    // each mouse-move rubber-band tick). rAF-coalesced so we re-render React
+    // at most once per frame even under the 60Hz `draw.render` firehose.
+    let rafId: number | null = null;
+    let pendingArea: number | null = null;
+    const flushArea = () => {
+      rafId = null;
+      setLiveArea((prev) => (prev === pendingArea ? prev : pendingArea));
+    };
+    const onRender = () => {
+      const fc = draw.getAll();
+      let best: GeoJSON.Feature<GeoJSON.Polygon> | null = null;
+      for (const f of fc.features) {
+        if (f.geometry?.type === 'Polygon') {
+          const ring = f.geometry.coordinates[0];
+          if (
+            ring &&
+            (!best ||
+              ring.length > (best.geometry.coordinates[0]?.length ?? 0))
+          ) {
+            best = f as GeoJSON.Feature<GeoJSON.Polygon>;
+          }
+        }
+      }
+      if (best && (best.geometry.coordinates[0]?.length ?? 0) >= 3) {
+        const a = turf.area(best);
+        pendingArea = a > 0 ? a : null;
+      } else {
+        pendingArea = null;
+      }
+      if (rafId === null) rafId = requestAnimationFrame(flushArea);
+    };
+
     map.on('draw.create', onChange);
     map.on('draw.update', onChange);
     map.on('draw.delete', onChange);
+    map.on('draw.render', onRender);
 
     return () => {
       map.off('draw.create', onChange);
       map.off('draw.update', onChange);
       map.off('draw.delete', onChange);
+      map.off('draw.render', onRender);
+      if (rafId !== null) cancelAnimationFrame(rafId);
       try {
         map.removeControl(draw);
       } catch {
@@ -82,9 +119,16 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
 
   const ring = polygon?.coordinates[0];
   const vertexCount = ring ? ring.length - 1 : 0;
-  const areaHa = polygon
-    ? turf.area({ type: 'Feature', properties: {}, geometry: polygon }) / 10000
+  const finalAreaM2 = polygon
+    ? turf.area({ type: 'Feature', properties: {}, geometry: polygon })
     : null;
+  const displayAreaM2 = finalAreaM2 ?? liveArea;
+  const areaDisplay =
+    displayAreaM2 === null
+      ? null
+      : displayAreaM2 > 10000
+        ? `${(displayAreaM2 / 10000).toFixed(2)} ha (${(displayAreaM2 / 4046.86).toFixed(2)} ac)`
+        : `${displayAreaM2.toFixed(0)} m²`;
 
   return (
     <div className={css.popover} role="dialog" aria-label="Property boundary">
@@ -93,12 +137,17 @@ export default function BoundaryTool({ map, existing, onBoundaryDrawn }: Props) 
         <div className={css.readout}>
           <span className={css.readoutLabel}>Vertices</span>
           <span className={css.readoutValue}>{vertexCount}</span>
-          {areaHa !== null && (
+          {areaDisplay && (
             <>
               <span className={css.readoutLabel}>Area</span>
-              <span className={css.readoutValue}>{areaHa.toFixed(2)} ha</span>
+              <span className={css.readoutValue}>{areaDisplay}</span>
             </>
           )}
+        </div>
+      ) : areaDisplay ? (
+        <div className={css.readout}>
+          <span className={css.readoutLabel}>Area</span>
+          <span className={css.readoutValue}>{areaDisplay}</span>
         </div>
       ) : (
         <span className={css.hint}>

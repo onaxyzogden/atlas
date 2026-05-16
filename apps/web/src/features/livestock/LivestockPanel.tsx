@@ -347,8 +347,8 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
               Guest-safe buffer required
             </label>
 
-            <label className={p.formLabel}>Notes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={`${p.formInput} ${p.formTextarea}`} placeholder="Grazing notes, water access..." />
+            <label className={p.formLabel}>Notes (water source & general)</label>
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={`${p.formInput} ${p.formTextarea}`} placeholder="Off-spec water (riparian access, seasonal swale, tote delivery). For audit credit, place a water tank, well, or rain catchment within 100 m of the paddock centroid." />
 
             <div className={p.btnRow}>
               <button onClick={() => { setShowModal(false); draw?.deleteAll(); }} className={p.cancelBtn}>Cancel</button>

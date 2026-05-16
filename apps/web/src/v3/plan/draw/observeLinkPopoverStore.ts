@@ -17,6 +17,7 @@
 import { create } from 'zustand';
 
 import type { ObserveModule } from '../../observe/types.js';
+import type { AnnotationKind } from '../../observe/components/draw/annotationFieldSchemas.js';
 
 export type ObserveLinkKind = ObserveModule;
 
@@ -29,6 +30,12 @@ export interface ObserveLinkPayload {
   anchor: [number, number];
   /** Optional feature id; reserved for Phase 2 deep-link focus. */
   featureId?: string;
+  /** Granular annotation kind stamped on the observe-anno-* feature
+   *  (`annoKind` property). Drives read-only detail lookup via
+   *  `getAnnotationRow(annoKind, annoId)` in the popover. */
+  annoKind?: AnnotationKind;
+  /** Annotation record id stamped on the feature (`annoId` property). */
+  annoId?: string;
 }
 
 interface ObserveLinkPopoverState {

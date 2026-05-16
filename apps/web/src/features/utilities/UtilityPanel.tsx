@@ -4,7 +4,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useUtilityStore, UTILITY_TYPE_CONFIG, type UtilityType, type Utility } from '../../store/utilityStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useSiteData, getLayerSummary } from '../../store/siteDataStore.js';
 import type maplibregl from 'maplibre-gl';
 import SolarPlacement from './SolarPlacement.js';
@@ -24,7 +24,7 @@ interface UtilityPanelProps {
 export default function UtilityPanel({ projectId, map }: UtilityPanelProps) {
   const allUtilities = useUtilityStore((st) => st.utilities);
   const utilities = useMemo(() => allUtilities.filter((u) => u.projectId === projectId), [allUtilities, projectId]);
-  const allStructures = useStructureStore((st) => st.structures);
+  const allStructures = useAllStructures();
   const structures = useMemo(() => allStructures.filter((s) => s.projectId === projectId), [allStructures, projectId]);
   const addUtility = useUtilityStore((st) => st.addUtility);
   const deleteUtility = useUtilityStore((st) => st.deleteUtility);

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import {
   Check,
   Compass,
@@ -17,6 +17,7 @@ import { useV3Project } from '../../../data/useV3Project.js';
 import SectorCompassDiagram from './SectorCompassDiagram.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
 import { compassKpis, type KpiIconKey } from './derivations.js';
 import { polygonCentroid } from '../macroclimate-hazards/derivations.js';
@@ -83,26 +84,19 @@ export default function SectorCompassDetail() {
   ];
 
   const priorityActions: Array<[string, string, 'High' | 'Medium' | 'Low']> = [
-    ['Clear fire buffer (20 m) on SW boundary', 'Due in 1–2 weeks', 'High'],
-    ['Plant windbreak (NW) — 3-row shelterbelt', 'Due in 2–4 weeks', 'High'],
+    ['Clear fire buffer (20 m) on SW boundary', 'Due in 1â€“2 weeks', 'High'],
+    ['Plant windbreak (NW) â€” 3-row shelterbelt', 'Due in 2â€“4 weeks', 'High'],
     ['Identify orchard zone & soil prep', 'Due in 1 month', 'Medium'],
-    ['Plan seating area & sun/shade strategy', 'Due in 1–2 months', 'Medium'],
-    ['Install pond & swale to SE', 'Due in 2–3 months', 'Low'],
+    ['Plan seating area & sun/shade strategy', 'Due in 1â€“2 months', 'Medium'],
+    ['Install pond & swale to SE', 'Due in 2â€“3 months', 'Low'],
   ];
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Map and analyse the external energies and influences shaping your site — wind,
-              sun, fire, noise, wildlife, and views. Arrows reveal direction and intensity so
-              you can place, protect, and buffer with confidence.
-            </p>
-          </div>
-        </div>
-      </div>
+      <ObserveHero
+        sectionId="observe-sectors-zones-sector-compass"
+        lede="Map and analyse the external energies and influences shaping your site â€” wind, sun, fire, noise, wildlife, and views. Arrows reveal direction and intensity so you can place, protect, and buffer with confidence."
+      />
 
       <section className={card.section}>
         <div className={obsx.kpiGrid}>
@@ -174,7 +168,7 @@ export default function SectorCompassDetail() {
           ) : null}
         </h2>
         {sortedSectors.length === 0 ? (
-          <p className={card.empty}>No sectors logged yet — add one from the toolbar.</p>
+          <p className={card.empty}>No sectors logged yet â€” add one from the toolbar.</p>
         ) : (
           <table className={card.table}>
             <thead>
@@ -197,7 +191,7 @@ export default function SectorCompassDetail() {
                 return (
                   <tr key={s.id}>
                     <td>{index + 1}</td>
-                    <td>{s.bearingDeg}°</td>
+                    <td>{s.bearingDeg}Â°</td>
                     <td>{SECTOR_TYPE_LABELS[s.type]}</td>
                     <td>
                       <span className={`${card.pill} ${pillClass}`}>
@@ -244,7 +238,7 @@ export default function SectorCompassDetail() {
                 <span>
                   {title}
                   <span style={{ display: 'block', marginTop: 2, color: 'rgba(232,220,200,0.55)', fontSize: 11 }}>
-                    {due} · {priority} priority
+                    {due} Â· {priority} priority
                   </span>
                 </span>
               </p>

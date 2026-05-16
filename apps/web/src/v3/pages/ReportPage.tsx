@@ -4,27 +4,24 @@
  * "Generate Summary" reveals an on-screen summary that aggregates
  * verdict + scores + blockers + actions.
  *
- * Phase 6.5 (per `.claude/plans/few-concerns-shiny-quokka.md`):
- *   - Print path is preserved (browser print-to-PDF is the "PDF
- *     export" until a server-side renderer lands in Phase 7 backend).
- *   - New "Download Markdown" CTA exports the same payload as a `.md`
- *     file via `downloadProjectReport`, mirroring the Phase 6.2 brief
- *     download pattern.
- *   - New "Copy share link" CTA copies the deep-link URL to the
- *     clipboard. Today this is just the report route — Phase 7
- *     backend swaps in a tokenized link with auth/permissions.
- *   - react-pdf was rejected for v3.1 (~3MB runtime cost without
- *     enough lift over print-to-PDF + markdown export).
+ *   - "Download PDF" calls the server-side Puppeteer renderer
+ *     (`api.exports.generate` → `capital_partner_summary`) and opens
+ *     the stored PDF. Browser Print is kept as an offline fallback.
+ *   - "Download Markdown" exports the same payload as a `.md` file.
+ *   - "Publish view-only link" generates + publishes a frozen
+ *     capital_partner_summary snapshot and copies a tokenized,
+ *     unauthenticated `/report-share/:token` link (no recipient
+ *     login). The PDF streams through the API gated by token secrecy
+ *     + a `reportShare.published` flag; "Unpublish" revokes it
+ *     immediately. Reuses the audited `project_portals` token model.
  */
 
 import { useState } from "react";
 import { useParams } from "@tanstack/react-router";
 import PageHeader from "../components/PageHeader.js";
 import { useV3Project } from "../data/useV3Project.js";
-import {
-  downloadProjectReport,
-  getProjectShareUrl,
-} from "../data/generateProjectReport.js";
+import { api } from "../../lib/apiClient.js";
+import { downloadProjectReport } from "../data/generateProjectReport.js";
 import type { ProjectScores } from "../types.js";
 import StageShell from "../_shell/StageShell.js";
 import css from "./ReportPage.module.css";
@@ -43,6 +40,9 @@ export default function ReportPage() {
   const project = useV3Project(params.projectId);
   const [generated, setGenerated] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
+  const [sharePublished, setSharePublished] = useState(false);
 
   if (!project) {
     return (
@@ -53,19 +53,69 @@ export default function ReportPage() {
     );
   }
 
-  const onCopyShare = async () => {
-    const url = getProjectShareUrl(project);
+  const onServerPdf = async () => {
+    if (pdfBusy || !params.projectId) return;
+    setPdfBusy(true);
     try {
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(url);
-        setShareToast("Link copied to clipboard");
-      } else {
-        setShareToast(url);
-      }
-    } catch {
-      setShareToast(url);
+      const { data } = await api.exports.generate(params.projectId, {
+        exportType: "capital_partner_summary",
+      });
+      window.open(data.storageUrl, "_blank");
+    } catch (err) {
+      console.error("Server PDF export failed", err);
+      setShareToast("PDF export failed — check connection / project sync");
+      window.setTimeout(() => setShareToast(null), 3000);
+    } finally {
+      setPdfBusy(false);
     }
-    window.setTimeout(() => setShareToast(null), 2500);
+  };
+
+  const flashToast = (msg: string, ms = 3000) => {
+    setShareToast(msg);
+    window.setTimeout(() => setShareToast(null), ms);
+  };
+
+  // Generate + publish a frozen view-only snapshot, then copy the
+  // public /report-share/<token> link. No recipient login required;
+  // the link only ever exposes the frozen capital-partner PDF.
+  const onPublishShare = async () => {
+    if (shareBusy || !params.projectId) return;
+    setShareBusy(true);
+    try {
+      const { data } = await api.portal.publishReport(params.projectId);
+      const url = `${window.location.origin}/report-share/${data.shareToken}`;
+      setSharePublished(true);
+      try {
+        if (navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url);
+          flashToast("View-only link published & copied");
+        } else {
+          flashToast(url, 6000);
+        }
+      } catch {
+        flashToast(url, 6000);
+      }
+    } catch (err) {
+      console.error("Publish view-only link failed", err);
+      flashToast("Publish failed — check connection / project sync");
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
+  const onUnpublishShare = async () => {
+    if (shareBusy || !params.projectId) return;
+    setShareBusy(true);
+    try {
+      await api.portal.unpublishReport(params.projectId);
+      setSharePublished(false);
+      flashToast("View-only link unpublished");
+    } catch (err) {
+      console.error("Unpublish view-only link failed", err);
+      flashToast("Unpublish failed — check connection");
+    } finally {
+      setShareBusy(false);
+    }
   };
 
   return (
@@ -96,21 +146,43 @@ export default function ReportPage() {
             <button
               type="button"
               className={css.btn}
-              onClick={() => window.print()}
-              disabled={!generated}
-              title="Browser print dialog — choose 'Save as PDF' to export"
+              onClick={onServerPdf}
+              disabled={!generated || pdfBusy}
+              title="Generate a server-rendered PDF (capital partner summary)"
             >
-              Print / PDF
+              {pdfBusy ? "Generating PDF…" : "Download PDF"}
             </button>
             <button
               type="button"
               className={css.btn}
-              onClick={onCopyShare}
+              onClick={() => window.print()}
               disabled={!generated}
-              title="Copy a shareable link to this report"
+              title="Browser print dialog — fallback if server PDF is unavailable"
             >
-              {shareToast ?? "Copy share link"}
+              Print
             </button>
+            <button
+              type="button"
+              className={css.btn}
+              onClick={onPublishShare}
+              disabled={!generated || shareBusy}
+              title="Publish a tokenized, view-only link (no recipient login)"
+            >
+              {shareBusy
+                ? "Publishing…"
+                : shareToast ?? "Publish view-only link"}
+            </button>
+            {sharePublished && (
+              <button
+                type="button"
+                className={css.btn}
+                onClick={onUnpublishShare}
+                disabled={shareBusy}
+                title="Revoke the view-only link immediately"
+              >
+                Unpublish
+              </button>
+            )}
           </div>
         }
       />
@@ -203,7 +275,7 @@ export default function ReportPage() {
 
           <footer className={css.summaryFooter}>
             <span>OGDEN Atlas · {project.shortLabel}</span>
-            <span>Use Print / PDF or Download Markdown to export</span>
+            <span>Use Download PDF or Download Markdown to export</span>
           </footer>
         </article>
       )}

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Plant-systems site-match scoring helpers.
  *
  * Scholar verdict (Permaculture Scholar NotebookLM, 2026-05-07): plant
@@ -26,7 +26,7 @@
  * (no penalty for missing data).
  */
 
-import type { PlantSpecies } from '../../../../data/plantDatabase.js';
+import type { PlantSpecies } from '../../../../data/plantCatalog.js';
 
 /** Approximate USDA hardiness zone band typical for a country's
  *  agriculturally-active range. Conservative centre-of-mass values used

@@ -5,13 +5,18 @@
  * physically separated from vehicle noise. For each quiet_route this card
  * samples ~12 points along the line and measures the min distance from
  * each sample to any vehicle-class line (main_road, secondary_road,
- * emergency_access, service_road). A sample within 25 m is "compromised"
- * (audible road noise); within 10 m is "noise-exposed" (steady road
- * presence). Per-route tier:
- *   excellent  - all samples >= 50 m from any vehicle line
- *   good       - all samples >= 25 m
- *   compromised - any sample 10-25 m
- *   noisy       - any sample <  10 m
+ * emergency_access, service_road). The "compromised" and "quiet" walk
+ * bands are pulled per-render from project.zoneThresholds — Zone-1
+ * (closeM, default 25 m) is the threshold below which a sample counts
+ * as audibly compromised; Zone-2 (mediumM, default 75 m) is the
+ * threshold above which a sample counts as quiet. The innermost
+ * NOISY_NEAR_M band (10 m, acoustic propagation) stays a fixed module
+ * constant — it's about engine presence at close range, not a
+ * steward-walk band, so the steward shouldn't tune it. Per-route tier:
+ *   excellent   - all samples >= mediumM (default 75 m)
+ *   good        - all samples >= closeM  (default 25 m)
+ *   compromised - any sample NOISY_NEAR_M..closeM
+ *   noisy       - any sample <  NOISY_NEAR_M (10 m)
  *
  * Pure presentation. Reads usePathStore. No new entity types, no shared
  * math, no map overlay.
@@ -22,6 +27,11 @@
 import { memo, useMemo } from 'react';
 import * as turf from '@turf/turf';
 import { usePathStore, type DesignPath, type PathType } from '../../store/pathStore.js';
+import {
+  useProjectStore,
+  getZoneThresholds,
+  DEFAULT_ZONE_THRESHOLDS,
+} from '../../store/projectStore.js';
 import css from './QuietCirculationRouteCard.module.css';
 
 interface Props {
@@ -30,9 +40,18 @@ interface Props {
 
 const NOISY_TYPES: PathType[] = ['main_road', 'secondary_road', 'emergency_access', 'service_road'];
 const SAMPLE_COUNT = 12;
+/**
+ * Acoustic-presence threshold — a sample within NOISY_NEAR_M of a
+ * vehicle line is effectively *next to* engine noise. This is a
+ * propagation/perception constant, not a steward-walk band, so it
+ * stays literal (same treatment as LOUD_BUFFER_M / LIVESTOCK_BUFFER_M
+ * elsewhere in the zoneThresholds family).
+ */
 const NOISY_NEAR_M = 10;
-const COMPROMISED_M = 25;
-const QUIET_M = 50;
+// COMPROMISED_M (Zone-1 / closeM) and QUIET_M (Zone-2 / mediumM) are
+// derived per-render from project.zoneThresholds — see the component
+// body below. Tune via FertilityColocationCard's "Tune zones (advanced)"
+// disclosure; this card honours the same values.
 
 type Tier = 'excellent' | 'good' | 'compromised' | 'noisy' | 'no_neighbors';
 
@@ -68,7 +87,15 @@ function sampleAlong(path: DesignPath, count: number): [number, number][] {
   return out;
 }
 
-function rowFor(quietPath: DesignPath, noisyPaths: DesignPath[]): RouteRow {
+function rowFor(
+  quietPath: DesignPath,
+  noisyPaths: DesignPath[],
+  compromisedM: number,
+  quietM: number,
+): RouteRow {
+  // Locals named to match the rest of the function body / tier table.
+  const COMPROMISED_M = compromisedM;
+  const QUIET_M = quietM;
   const samples = sampleAlong(quietPath, SAMPLE_COUNT);
   const noisyLines = noisyPaths.map((p) => turf.lineString(p.geometry.coordinates as number[][]));
 
@@ -135,6 +162,19 @@ const TIER_CLASS: Record<Tier, string> = {
 export const QuietCirculationRouteCard = memo(function QuietCirculationRouteCard({ projectId }: Props) {
   const allPaths = usePathStore((s) => s.paths);
 
+  // Walk thresholds pulled from per-project zoneThresholds. closeM →
+  // COMPROMISED_M (Zone-1 audible band), mediumM → QUIET_M (Zone-2
+  // quiet-enough-for-retreat band). Falls back to defaults for
+  // detached-preview edge cases where the project record isn't found.
+  const project = useProjectStore((s) =>
+    s.projects.find((p) => p.id === projectId),
+  );
+  const { closeM, mediumM } = project
+    ? getZoneThresholds(project)
+    : DEFAULT_ZONE_THRESHOLDS;
+  const COMPROMISED_M = closeM;
+  const QUIET_M = mediumM;
+
   const data = useMemo(() => {
     const quiet = allPaths.filter(
       (p) => p.projectId === projectId && p.type === 'quiet_route',
@@ -143,7 +183,7 @@ export const QuietCirculationRouteCard = memo(function QuietCirculationRouteCard
       (p) => p.projectId === projectId && (NOISY_TYPES as PathType[]).includes(p.type),
     );
 
-    const rows = quiet.map((p) => rowFor(p, noisy));
+    const rows = quiet.map((p) => rowFor(p, noisy, COMPROMISED_M, QUIET_M));
     const totalLengthM = rows.reduce((s, r) => s + r.lengthM, 0);
     const tierCounts: Record<Tier, number> = {
       excellent: 0, good: 0, compromised: 0, noisy: 0, no_neighbors: 0,
@@ -156,7 +196,7 @@ export const QuietCirculationRouteCard = memo(function QuietCirculationRouteCard
       noisyLineCount: noisy.length,
       tierCounts,
     };
-  }, [allPaths, projectId]);
+  }, [allPaths, projectId, COMPROMISED_M, QUIET_M]);
 
   const isEmpty = data.rows.length === 0;
 

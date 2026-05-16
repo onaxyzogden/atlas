@@ -45,6 +45,9 @@ import {
   projectToFences,
   projectToGates,
   projectToExistingDriveways,
+  projectToDesignElementsByProject,
+  projectToStructures,
+  canonicalizeKind,
   type ProjectedBuilding,
   type ProjectedWell,
   type ProjectedSeptic,
@@ -53,13 +56,18 @@ import {
   type ProjectedFence,
   type ProjectedGate,
   type ProjectedExistingDriveway,
+  type ProjectedStructure,
+  type BuiltEnvironmentEntity,
+  type CreateBuiltEnvironmentInput,
+  type ProposedMetadata,
+  type StructureType,
 } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
-import {
-  useDesignElementsStore,
-  type DesignElement,
-} from './designElementsStore.js';
-import { useStructureStore, type Structure } from './structureStore.js';
+import { type DesignElement } from './designElementsStore.js';
+import { useLandDesignStore } from './landDesignStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
+import type { DesignCategory } from '../v3/plan/canvas/elementCatalog.js';
+import type { PhaseKey, PlanView } from '../v3/plan/types.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Non-React, one-shot readers
@@ -196,48 +204,356 @@ export function useExistingDrivewaysForProject(
 // ─────────────────────────────────────────────────────────────────────────
 // Phase 6.B — Structure + DesignElement project-filtered selectors
 //
-// These currently re-export through the V1 facades (useStructureStore /
-// useDesignElementsStore) because:
-//   - `useStructureStore` already projects from V2 internally; consumers
-//     read a narrowed `Structure[]` with `type: StructureType` which the
-//     facade restores from the projection's `type: string`. Reading direct
-//     from V2 would force every consumer to widen narrowing or local-cast.
-//   - `useDesignElementsStore` merges V2 structure-class entities with a
-//     module-private `useNonStructureStore` (paddock / pond / swale / road
-//     and friends — kinds not yet in V2's registry). Reading direct from V2
-//     would silently drop the non-structure half.
+// Structure (since 2026-05-12 ProjectedStructure narrowing): reads direct
+// from V2 via `projectToStructures`. `Structure` is now an alias for
+// `ProjectedStructure` and `ProjectedStructure.type` is narrowed to
+// `StructureType`, so consumers get the same type safety they had through
+// the V1 facade without the facade's projection subscribe-dance.
 //
-// The facades retire when (a) `Structure` narrowing collapses into a
-// shared `ProjectedStructure` and (b) non-structure kinds extract into a
-// dedicated `landDesignStore` (per the ADR doc-comment on
-// designElementsStore.ts). At that point only the bodies below change;
-// consumer call sites already migrated to these names stay put.
+// DesignElement (since 2026-05-12 landDesignStore extraction): merges V2
+// structure-class entities (projected here via `projectToDesignElementsByProject`)
+// with non-structure entries sourced directly from `useLandDesignStore`.
+// No longer routes through the V1 `useDesignElementsStore` facade — that
+// facade was deleted on the same date.
 // ─────────────────────────────────────────────────────────────────────────
 
 const EMPTY_DESIGN_ELEMENTS: DesignElement[] = [];
+const EMPTY_STRUCTURES: Structure[] = [];
 
 export function getStructuresForProject(projectId: string): Structure[] {
-  return useStructureStore
-    .getState()
-    .structures.filter((s) => s.projectId === projectId);
+  const entities = useBuiltEnvironmentStoreV2.getState().entities;
+  const projected = projectToStructures(entities).filter(
+    (s) => s.projectId === projectId,
+  );
+  return projected.length === 0 ? EMPTY_STRUCTURES : projected;
 }
 
 export function useStructuresForProject(projectId: string): Structure[] {
-  const structures = useStructureStore((s) => s.structures);
-  return useMemo(
-    () => structures.filter((s) => s.projectId === projectId),
-    [structures, projectId],
-  );
+  const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  return useMemo(() => {
+    const projected = projectToStructures(entities).filter(
+      (s) => s.projectId === projectId,
+    );
+    return projected.length === 0 ? EMPTY_STRUCTURES : projected;
+  }, [entities, projectId]);
 }
 
-export function getDesignElementsForProject(projectId: string): DesignElement[] {
-  return useDesignElementsStore.getState().byProject[projectId] ?? [];
+/** Read every structure across all projects. Non-React; one-shot. Used by
+ *  call sites that need to iterate / filter by something other than
+ *  projectId (e.g. by id, by kind, by bounding-box intersection). */
+export function getAllStructures(): Structure[] {
+  const entities = useBuiltEnvironmentStoreV2.getState().entities;
+  const projected = projectToStructures(entities);
+  return projected.length === 0 ? EMPTY_STRUCTURES : projected;
+}
+
+/** Subscribe to every structure across all projects. React hook. Use only
+ *  when a project-filtered read is genuinely not possible — otherwise
+ *  prefer `useStructuresForProject(projectId)` for narrower re-render
+ *  scope. */
+export function useAllStructures(): Structure[] {
+  const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  return useMemo(() => {
+    const projected = projectToStructures(entities);
+    return projected.length === 0 ? EMPTY_STRUCTURES : projected;
+  }, [entities]);
+}
+
+/** Locate a structure by id across every project (ids are globally unique
+ *  within V2). Non-React; one-shot. */
+export function findStructureGlobal(
+  id: string,
+): { projectId: string; structure: Structure } | null {
+  const entities = useBuiltEnvironmentStoreV2.getState().entities;
+  const entity = entities.find((e) => e.id === id);
+  if (!entity) return null;
+  const projected = projectToStructures([entity])[0];
+  if (!projected) return null;
+  return { projectId: entity.projectId, structure: projected };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Structure writers — replicate the V1 facade's add/update/delete routing
+// so consumer call sites can migrate off `useStructureStore`. Same V1 → V2
+// kind translation logic as `structureStore.ts` (snake_case StructureType
+// → kebab-case V2 kind via `canonicalizeKind`).
+// ─────────────────────────────────────────────────────────────────────────
+
+function structureTypeToV2Kind(t: StructureType): string {
+  return canonicalizeKind(t) ?? canonicalizeKind(t.replace(/_/g, '-')) ?? t;
+}
+
+function buildProposedFromStructure(s: Partial<Structure>): ProposedMetadata {
+  const m: ProposedMetadata = {};
+  if (typeof s.rotationDeg === 'number') m.rotationDeg = s.rotationDeg;
+  if (typeof s.widthM === 'number') m.widthM = s.widthM;
+  if (typeof s.depthM === 'number') m.depthM = s.depthM;
+  if (typeof s.heightM === 'number') m.heightM = s.heightM;
+  if (typeof s.storiesCount === 'number') m.storiesCount = s.storiesCount;
+  if (typeof s.costEstimate === 'number') m.costEstimate = s.costEstimate;
+  if (typeof s.laborHoursEstimate === 'number') {
+    m.laborHoursEstimate = s.laborHoursEstimate;
+  }
+  if (typeof s.materialTonnageEstimate === 'number') {
+    m.materialTonnageEstimate = s.materialTonnageEstimate;
+  }
+  if (typeof s.demandWaterGalPerDay === 'number') {
+    m.demandWaterGalPerDay = s.demandWaterGalPerDay;
+  }
+  if (typeof s.demandKwhPerDay === 'number') m.demandKwhPerDay = s.demandKwhPerDay;
+  if (typeof s.occupantCount === 'number') m.occupantCount = s.occupantCount;
+  if (Array.isArray(s.infrastructureReqs)) m.infrastructureReqs = s.infrastructureReqs;
+  if (typeof s.isTemporary === 'boolean') m.isTemporary = s.isTemporary;
+  if (Array.isArray(s.seasonalMonths)) m.seasonalMonths = s.seasonalMonths;
+  if (typeof s.phase === 'string') m.phase = s.phase;
+  if (typeof s.enterprise === 'string') m.enterprise = s.enterprise;
+  return m;
+}
+
+/** Add a proposed structure to V2. Mirrors the V1 facade's `addStructure`. */
+export function addStructure(structure: Structure): void {
+  const v2 = useBuiltEnvironmentStoreV2.getState();
+  const proposed = buildProposedFromStructure(structure);
+  const input: Parameters<typeof v2.create>[0] = {
+    projectId: structure.projectId,
+    kind: structureTypeToV2Kind(structure.type),
+    state: 'proposed',
+    geometry: structure.geometry,
+    proposed,
+  };
+  if (structure.name !== undefined) input.label = structure.name;
+  if (structure.notes !== undefined) input.notes = structure.notes;
+  const created = v2.create(input);
+  if (structure.serverId !== undefined) {
+    v2.updateMetadata(created.id, { serverId: structure.serverId });
+  }
+}
+
+/** Patch a proposed structure in V2. Mirrors the V1 facade's
+ *  `updateStructure` (metadata + optional geometry). */
+export function updateStructure(
+  id: string,
+  updates: Partial<Structure>,
+): void {
+  const v2 = useBuiltEnvironmentStoreV2.getState();
+  const update: Parameters<typeof v2.updateMetadata>[1] = {};
+  if (updates.name !== undefined) update.label = updates.name;
+  if (updates.notes !== undefined) update.notes = updates.notes;
+  if (updates.serverId !== undefined) update.serverId = updates.serverId;
+  const proposed = buildProposedFromStructure(updates);
+  if (Object.keys(proposed).length > 0) update.proposed = proposed;
+  v2.updateMetadata(id, update);
+  if (updates.geometry) v2.updateGeometry(id, updates.geometry);
+}
+
+/** Delete a proposed structure from V2. */
+export function removeStructure(id: string): void {
+  useBuiltEnvironmentStoreV2.getState().delete(id);
+}
+
+// Re-export `ProjectedStructure` so consumers migrating off the V1 facade
+// can pick up the canonical type from a single import path.
+export type { ProjectedStructure };
+
+/** Project V2 structure-class entities to DesignElement shape for a single
+ *  project. Mirrors the projection the V1 facade does internally. */
+function projectV2StructureDesignElements(
+  entities: BuiltEnvironmentEntity[],
+  projectId: string,
+): DesignElement[] {
+  const byProject = projectToDesignElementsByProject(entities);
+  const list = byProject[projectId];
+  if (!list || list.length === 0) return [];
+  return list.map((p) => ({
+    id: p.id,
+    category: 'structure' as DesignCategory,
+    kind: p.kind,
+    geometry: p.geometry,
+    phase: (p.phase as PhaseKey) ?? ('building' as PhaseKey),
+    label: p.label,
+    createdAt: p.createdAt,
+    view: 'current' as PlanView,
+  }));
+}
+
+// Auto-Design draft plumbing (ADR 2026-05-14): `runAutoDesign` writes
+// `draft: true` elements into landDesignStore awaiting steward review.
+// Normal consumers (acreage rollups, audits, exports) must NOT count
+// drafts — so both selectors exclude them by default. The canvas layer
+// (`DesignElementLayers`) opts in via `includeDrafts: true` to render
+// them dashed/translucent. V2 structure projections never carry `draft`,
+// so only the land list needs filtering.
+function excludeDrafts(list: DesignElement[]): DesignElement[] {
+  return list.some((e) => e.draft) ? list.filter((e) => !e.draft) : list;
+}
+
+export function getDesignElementsForProject(
+  projectId: string,
+  opts?: { includeDrafts?: boolean },
+): DesignElement[] {
+  const entities = useBuiltEnvironmentStoreV2.getState().entities;
+  const v2 = projectV2StructureDesignElements(entities, projectId);
+  const rawLand = useLandDesignStore.getState().byProject[projectId] ?? [];
+  const land = opts?.includeDrafts ? rawLand : excludeDrafts(rawLand);
+  if (v2.length === 0) return land;
+  if (land.length === 0) return v2;
+  return [...land, ...v2];
 }
 
 export function useDesignElementsForProject(
   projectId: string,
+  opts?: { includeDrafts?: boolean },
 ): DesignElement[] {
-  return useDesignElementsStore(
+  const entities = useBuiltEnvironmentStoreV2((s) => s.entities);
+  const rawLand = useLandDesignStore(
     (s) => s.byProject[projectId] ?? EMPTY_DESIGN_ELEMENTS,
   );
+  const includeDrafts = opts?.includeDrafts ?? false;
+  return useMemo(() => {
+    const land = includeDrafts ? rawLand : excludeDrafts(rawLand);
+    const v2 = projectV2StructureDesignElements(entities, projectId);
+    if (v2.length === 0) return land;
+    if (land.length === 0) return v2;
+    return [...land, ...v2];
+  }, [entities, rawLand, projectId, includeDrafts]);
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// DesignElement writers — replicate the V1 facade's add/remove/update
+// routing logic so consumer call sites can migrate off
+// `useDesignElementsStore`. Structure-class kinds route to V2; everything
+// else routes to `useLandDesignStore`. Same behavior the V1 facade
+// implements internally — extracted here so the facade can retire.
+// ─────────────────────────────────────────────────────────────────────────
+
+const STRUCTURE_CLASS_KINDS: ReadonlySet<string> = new Set([
+  'yurt',
+  'greenhouse',
+  'barn',
+  'shed',
+  'machinery-shed',
+  'fuel-station',
+  'equipment-yard',
+  'water-tank',
+  'parking',
+  'prayer-pavilion',
+  'fire-circle',
+  'compost',
+]);
+
+function isStructureClassKind(kind: string): boolean {
+  const canonical = canonicalizeKind(kind) ?? kind;
+  return STRUCTURE_CLASS_KINDS.has(canonical);
+}
+
+/** Add a design element. Structure-class kinds go to V2 as a `proposed`
+ *  entity; everything else goes to `useLandDesignStore`. */
+export function addDesignElement(
+  projectId: string,
+  el: DesignElement,
+): void {
+  if (isStructureClassKind(el.kind)) {
+    const proposed: ProposedMetadata = {};
+    if (typeof el.phase === 'string') proposed.phase = el.phase;
+    const canonical = canonicalizeKind(el.kind) ?? el.kind;
+    useBuiltEnvironmentStoreV2.getState().create({
+      projectId,
+      kind: canonical,
+      state: 'proposed',
+      geometry: el.geometry,
+      label: el.label,
+      proposed,
+    });
+    return;
+  }
+  useLandDesignStore.getState().add(projectId, el);
+}
+
+/** Bulk-add design elements. Splits the input by category routing
+ *  (structure-class → BE V2, everything else → landDesign) and writes
+ *  each store with a single `set()` so the canvas re-renders once per
+ *  category instead of N times. Used by the polygon-fill stamp path
+ *  in `useDesignElementDrawTool.ts`. */
+export function addDesignElements(
+  projectId: string,
+  elements: DesignElement[],
+): void {
+  if (elements.length === 0) return;
+  const v2Inputs: CreateBuiltEnvironmentInput[] = [];
+  const landInputs: DesignElement[] = [];
+  for (const el of elements) {
+    if (isStructureClassKind(el.kind)) {
+      const proposed: ProposedMetadata = {};
+      if (typeof el.phase === 'string') proposed.phase = el.phase;
+      const canonical = canonicalizeKind(el.kind) ?? el.kind;
+      v2Inputs.push({
+        projectId,
+        kind: canonical,
+        state: 'proposed',
+        geometry: el.geometry,
+        label: el.label,
+        proposed,
+      });
+    } else {
+      landInputs.push(el);
+    }
+  }
+  if (v2Inputs.length > 0) {
+    useBuiltEnvironmentStoreV2.getState().createMany(v2Inputs);
+  }
+  if (landInputs.length > 0) {
+    useLandDesignStore.getState().addMany(projectId, landInputs);
+  }
+}
+
+/** Remove a design element. Tries V2 first (structure-class); if the id
+ *  isn't a V2 entity for this project, falls through to landDesignStore. */
+export function removeDesignElement(projectId: string, id: string): void {
+  const v2 = useBuiltEnvironmentStoreV2.getState();
+  const inV2 = v2.entities.some(
+    (e) => e.id === id && e.projectId === projectId,
+  );
+  if (inV2) {
+    v2.delete(id);
+    return;
+  }
+  useLandDesignStore.getState().remove(projectId, id);
+}
+
+/** Patch a design element. Structure-class kinds are owned by V2 and
+ *  edited through `useBuiltEnvironmentStoreV2` directly — this writer is a
+ *  no-op for those ids, matching the V1 facade's behavior. */
+export function updateDesignElement(
+  projectId: string,
+  id: string,
+  patch: Partial<Omit<DesignElement, 'id'>>,
+): void {
+  useLandDesignStore.getState().update(projectId, id, patch);
+}
+
+/** Locate a design element by id across every project (ids are globally
+ *  unique). Searches V2 structure-class entities first, then landDesignStore.
+ *  Returns `{ projectId, element } | null`. Non-React; one-shot. */
+export function findDesignElementGlobal(
+  id: string,
+): { projectId: string; element: DesignElement } | null {
+  // V2 first — covers structure-class kinds.
+  const v2Entity = useBuiltEnvironmentStoreV2
+    .getState()
+    .entities.find((e) => e.id === id);
+  if (v2Entity) {
+    const projected = projectV2StructureDesignElements(
+      [v2Entity],
+      v2Entity.projectId,
+    );
+    const element = projected[0];
+    if (element) return { projectId: v2Entity.projectId, element };
+  }
+  // landDesignStore — covers paddock / pond / swale / road / …
+  const byProject = useLandDesignStore.getState().byProject;
+  for (const [projectId, list] of Object.entries(byProject)) {
+    const element = list.find((e) => e.id === id);
+    if (element) return { projectId, element };
+  }
+  return null;
 }

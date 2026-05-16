@@ -14,17 +14,44 @@
 import { useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { useObserveHowChecksStore } from '../../../store/observeHowChecksStore.js';
+import ObserveReadyCue from './ObserveReadyCue.js';
 import { useAutoScrollToActiveModule } from '../../_shared/hooks/useAutoScrollToActiveModule.js';
 import {
   GuidanceCard,
   type GuidanceCardData,
 } from '../../_shared/components/GuidanceCard.js';
 import {
+  BE_CATEGORY_GUIDANCE,
+  BE_CATEGORY_LABEL,
+  BE_TOOL_GROUPS,
+} from '../../_shared/builtEnvironmentTools.js';
+import type { BuiltEnvironmentCategory } from '@ogden/shared';
+import {
   OBSERVE_MODULES,
   OBSERVE_MODULE_LABEL,
   type ObserveModule,
 } from '../types.js';
 import css from './ObserveChecklistAside.module.css';
+
+/**
+ * 2026-05-14 — BE flatten. Mirrors `BE_CATEGORY_TO_OBSERVE_MODULE` in
+ * `ObserveTools.tsx`. Kept here (instead of in `_shared/`) so the right
+ * rail can be edited without touching the rail registry — but the two
+ * tables must agree.
+ */
+const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
+  BuiltEnvironmentCategory,
+  ObserveModule
+> = {
+  building: 'built-environment',
+  agricultural: 'built-environment',
+  utility: 'built-environment',
+  infrastructure: 'built-environment',
+  machinery: 'built-environment',
+  amenity: 'built-environment',
+  vegetation: 'earth-water-ecology',
+  earthworks: 'topography',
+};
 
 /**
  * Stable empty-array reference for the zustand selector. DO NOT inline `?? []`
@@ -185,18 +212,58 @@ export default function ObserveChecklistAside({
       data-has-active={activeModule !== null}
       aria-label="Observe guidance"
     >
-      {OBSERVE_MODULES.map((mod) => (
-        <ObserveGuidanceCard
-          key={mod}
-          module={mod}
-          active={mod === activeModule}
-          projectId={projectId}
-          slideUpOpen={slideUpOpen}
-          onSelectModule={onSelectModule}
-          onOpenSlideUp={onOpenSlideUp}
-          onCloseSlideUp={onCloseSlideUp}
-        />
-      ))}
+      <ObserveReadyCue projectId={projectId} />
+      {OBSERVE_MODULES.map((mod) => {
+        // 2026-05-14 — BE flatten: parent `built-environment` guidance
+        // card is replaced by 9 per-category cards rendered below.
+        if (mod === 'built-environment') return null;
+        return (
+          <ObserveGuidanceCard
+            key={mod}
+            module={mod}
+            active={mod === activeModule}
+            projectId={projectId}
+            slideUpOpen={slideUpOpen}
+            onSelectModule={onSelectModule}
+            onOpenSlideUp={onOpenSlideUp}
+            onCloseSlideUp={onCloseSlideUp}
+          />
+        );
+      })}
+      {BE_TOOL_GROUPS.map((group) => {
+        // 2026-05-14 — Vegetation BE category suppressed in Observe to
+        // match the rail; mature trees / shrubs live under the
+        // `earth-water-ecology` module guidance instead.
+        if (group.category === 'vegetation') return null;
+        // 2026-05-14 — Earthworks BE category dropped; Berm / Raised bed /
+        // Terrace surface inside EWE / Amenities sections. No standalone
+        // guidance card.
+        if (group.category === 'earthworks') return null;
+        const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
+        const guidance = BE_CATEGORY_GUIDANCE[group.category];
+        const active = routed === activeModule;
+        return (
+          <GuidanceCard
+            key={`be-${group.category}`}
+            moduleKey={`be-${group.category}` as `be-${BuiltEnvironmentCategory}`}
+            label={BE_CATEGORY_LABEL[group.category]}
+            dotColor={OBSERVE_MODULE_DOT[routed]}
+            active={active}
+            slideUpOpen={slideUpOpen}
+            guidance={guidance}
+            checkedList={EMPTY_CHECKS}
+            onToggle={() => {
+              /* category cards don't persist how-checks — they share the
+               * routed module's slot. checksDisabled flag below suppresses
+               * the UI affordance entirely. */
+            }}
+            onSelect={() => onSelectModule(routed)}
+            onOpenSlideUp={onOpenSlideUp}
+            onCloseSlideUp={onCloseSlideUp}
+            checksDisabled
+          />
+        );
+      })}
     </aside>
   );
 }

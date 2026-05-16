@@ -29,9 +29,14 @@ import {
 } from '../../../../store/livestockStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { autoLinkSilvopastureForPolygon } from '../../../../features/agroforestry/autoLinkSilvopasture.js';
+import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import DimensionPanel from '../DimensionPanel.js';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -88,16 +93,18 @@ export default function PaddockTool({ map, projectId }: Props) {
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimShape = useDimensionDrawStore((s) => s.shape);
+  const dimValues = useDimensionValues();
 
-  useMapboxDrawTool<GeoJSON.Polygon>({
-    map,
-    mode: 'draw_polygon',
-    onComplete: (geom) => {
+  const handleComplete = (geom: GeoJSON.Polygon) => {
       const id = newAnnotationId('pad');
       const areaM2 = turf.area(geom);
       const anchor = turf.centroid(geom).geometry.coordinates as [number, number];
       const now = new Date().toISOString();
       const species: LivestockSpecies = 'sheep';
+
+      const silvopastureId = autoLinkSilvopastureForPolygon(projectId, geom) ?? undefined;
 
       addPaddock({
         id,
@@ -115,6 +122,7 @@ export default function PaddockTool({ map, projectId }: Props) {
         shelterNote: '',
         phase: phaseDefault,
         notes: '',
+        ...(silvopastureId ? { silvopastureId } : {}),
         createdAt: now,
         updatedAt: now,
       });
@@ -187,7 +195,21 @@ export default function PaddockTool({ map, projectId }: Props) {
         },
         onCancel: () => deletePaddock(id),
       });
-    },
+    };
+
+  const { liveArea } = useMapboxDrawTool<GeoJSON.Polygon>({
+    map,
+    mode: 'draw_polygon',
+    onComplete: handleComplete,
+    enabled: dimMode === 'freehand',
+  });
+
+  useDimensionDrawTool({
+    map,
+    shape: dimShape === 'line' ? 'rect' : dimShape,
+    values: dimValues,
+    enabled: dimMode === 'dimensions',
+    onComplete: (geom) => handleComplete(geom as GeoJSON.Polygon),
   });
 
   return (
@@ -195,8 +217,19 @@ export default function PaddockTool({ map, projectId }: Props) {
       <span className={css.title}>Paddock</span>
       <span className={css.hint}>
         Outline a paddock — pick primary species, fencing, and stocking
-        density (head per ha).
+        density (head per ha). For welfare audit credit, place a water tank,
+        well, or rain catchment within 100 m of the paddock centroid.
       </span>
+      <DimensionPanel allowedShapes={['rect', 'circle']} />
+      {liveArea !== null && (
+        <div className={css.readout}>
+          <DrawAreaReadout
+            m2={liveArea}
+            labelClassName={css.readoutLabel}
+            valueClassName={css.readoutValue}
+          />
+        </div>
+      )}
     </div>
   );
 }

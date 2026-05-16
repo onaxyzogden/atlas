@@ -4,7 +4,7 @@
  * tiles. One row, six cards: progress bar + label.
  *
  * Click semantics on a card:
- *   - inactive card           → onSelectModule(mod) navigates only (no slide-up)
+ *   - inactive card           → onSelectModule(mod) + onOpenSlideUp() (first-click open)
  *   - active + slide-up shut  → onOpenSlideUp() opens the slide-up (URL stays)
  *   - active + slide-up open  → onCloseSlideUp() closes the slide-up (URL stays)
  *
@@ -59,7 +59,10 @@ export default function ObserveModuleBar({
       }
       return;
     }
+    // First-click slide-up open (parity with Plan + Act). URL nav +
+    // open in a single batched render.
     onSelectModule(mod);
+    onOpenSlideUp();
   };
 
   return (

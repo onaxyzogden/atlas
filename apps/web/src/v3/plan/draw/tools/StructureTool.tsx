@@ -20,10 +20,12 @@
 
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { getBuiltEnvironmentKind } from '@ogden/shared';
+import type { StructureType } from '@ogden/shared';
 import {
-  useStructureStore,
-  type StructureType,
-} from '../../../../store/structureStore.js';
+  addStructure,
+  updateStructure,
+  removeStructure,
+} from '../../../../store/builtEnvironmentSelectors.js';
 import {
   STRUCTURE_TEMPLATES,
   createFootprintPolygon,
@@ -33,6 +35,10 @@ import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDra
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
+import { useDimensionDrawStore, useDimensionValues } from '../dimensionDrawStore.js';
+import { useDimensionDrawTool } from '../useDimensionDrawTool.js';
+import DimensionPanel from '../DimensionPanel.js';
+import * as turf from '@turf/turf';
 import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 
 interface Props {
@@ -90,96 +96,135 @@ function midCost(type: StructureType): number {
 }
 
 export default function StructureTool({ map, projectId }: Props) {
-  const addStructure = useStructureStore((s) => s.addStructure);
-  const updateStructure = useStructureStore((s) => s.updateStructure);
-  const deleteStructure = useStructureStore((s) => s.deleteStructure);
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } = useEnterpriseFieldSpec(projectId);
+  const dimMode = useDimensionDrawStore((s) => s.mode);
+  const dimValues = useDimensionValues();
+
+  // Place a structure with explicit dimensions. Used by both the freehand
+  // (point → template defaults) and dimensions (custom width/depth/rotation)
+  // paths. Anchors the popover at the placement centre.
+  const placeStructure = (
+    center: [number, number],
+    widthM: number,
+    depthM: number,
+    rotationDeg: number,
+  ) => {
+    const id = newAnnotationId('str');
+    const type: StructureType = 'cabin';
+    const tpl = STRUCTURE_TEMPLATES[type];
+    const now = new Date().toISOString();
+
+    addStructure({
+      id,
+      projectId,
+      name: tpl.label,
+      type,
+      center,
+      geometry: createFootprintPolygon(center, widthM, depthM, rotationDeg),
+      rotationDeg,
+      widthM,
+      depthM,
+      phase: phaseDefault,
+      costEstimate: midCost(type),
+      infrastructureReqs: [...tpl.infrastructureReqs],
+      notes: '',
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    openForm({
+      title: 'Structure',
+      anchor: center,
+      fields: [
+        { key: 'name', label: 'Name', kind: 'text', required: true },
+        {
+          key: 'type',
+          label: 'Type',
+          kind: 'select',
+          required: true,
+          options: TYPE_OPTIONS,
+        },
+        phaseField,
+        enterpriseField,
+        {
+          key: 'rotationDeg',
+          label: 'Rotation (°)',
+          kind: 'number',
+          placeholder: '0',
+          suffix: '°',
+        },
+      ],
+      initial: {
+        name: tpl.label,
+        type,
+        phase: phaseDefault,
+        enterprise: enterpriseDefault,
+        rotationDeg,
+      },
+      onSave: (values) => {
+        const nextType = values.type as StructureType;
+        const nextTpl = STRUCTURE_TEMPLATES[nextType] ?? tpl;
+        const rawRot = Number(values.rotationDeg);
+        const nextRotation = Number.isFinite(rawRot)
+          ? ((rawRot % 360) + 360) % 360
+          : rotationDeg;
+        // Preserve dim-mode dimensions when the type hasn't changed; if the
+        // steward switches type, fall back to the new template's defaults.
+        const typeChanged = nextType !== type;
+        const nextWidth = typeChanged ? nextTpl.widthM : widthM;
+        const nextDepth = typeChanged ? nextTpl.depthM : depthM;
+        const geometry = createFootprintPolygon(
+          center,
+          nextWidth,
+          nextDepth,
+          nextRotation,
+        );
+        updateStructure(id, {
+          name: String(values.name ?? nextTpl.label).trim() || nextTpl.label,
+          type: nextType,
+          geometry,
+          rotationDeg: nextRotation,
+          widthM: nextWidth,
+          depthM: nextDepth,
+          phase: String(values.phase ?? ''),
+          enterprise: String(values.enterprise ?? '') || undefined,
+          costEstimate: midCost(nextType),
+          infrastructureReqs: [...nextTpl.infrastructureReqs],
+        });
+      },
+      onCancel: () => removeStructure(id),
+    });
+  };
 
   useMapboxDrawTool<GeoJSON.Point>({
     map,
     mode: 'draw_point',
+    enabled: dimMode === 'freehand',
     onComplete: (geom) => {
-      const id = newAnnotationId('str');
       const center = geom.coordinates as [number, number];
-      const type: StructureType = 'cabin';
-      const tpl = STRUCTURE_TEMPLATES[type];
-      const now = new Date().toISOString();
+      const tpl = STRUCTURE_TEMPLATES['cabin'];
+      placeStructure(center, tpl.widthM, tpl.depthM, 0);
+    },
+  });
 
-      addStructure({
-        id,
-        projectId,
-        name: tpl.label,
-        type,
+  useDimensionDrawTool({
+    map,
+    shape: 'rect',
+    values: dimValues,
+    enabled: dimMode === 'dimensions',
+    onComplete: (geom) => {
+      // Dimensions hook always commits a Polygon for shape='rect'; centroid
+      // becomes the structure centre.
+      const polygon = geom as GeoJSON.Polygon;
+      const center = turf.centroid(polygon).geometry.coordinates as [number, number];
+      placeStructure(
         center,
-        geometry: createFootprintPolygon(center, tpl.widthM, tpl.depthM, 0),
-        rotationDeg: 0,
-        widthM: tpl.widthM,
-        depthM: tpl.depthM,
-        phase: phaseDefault,
-        costEstimate: midCost(type),
-        infrastructureReqs: [...tpl.infrastructureReqs],
-        notes: '',
-        createdAt: now,
-        updatedAt: now,
-      });
-
-      openForm({
-        title: 'Structure',
-        anchor: center,
-        fields: [
-          { key: 'name', label: 'Name', kind: 'text', required: true },
-          {
-            key: 'type',
-            label: 'Type',
-            kind: 'select',
-            required: true,
-            options: TYPE_OPTIONS,
-          },
-          phaseField,
-          enterpriseField,
-          {
-            key: 'rotationDeg',
-            label: 'Rotation (°)',
-            kind: 'number',
-            placeholder: '0',
-            suffix: '°',
-          },
-        ],
-        initial: {
-          name: tpl.label,
-          type,
-          phase: phaseDefault,
-          enterprise: enterpriseDefault,
-          rotationDeg: 0,
-        },
-        onSave: (values) => {
-          const nextType = values.type as StructureType;
-          const nextTpl = STRUCTURE_TEMPLATES[nextType] ?? tpl;
-          const rawRot = Number(values.rotationDeg);
-          const rotationDeg = Number.isFinite(rawRot) ? ((rawRot % 360) + 360) % 360 : 0;
-          const geometry = createFootprintPolygon(
-            center,
-            nextTpl.widthM,
-            nextTpl.depthM,
-            rotationDeg,
-          );
-          updateStructure(id, {
-            name: String(values.name ?? nextTpl.label).trim() || nextTpl.label,
-            type: nextType,
-            geometry,
-            rotationDeg,
-            widthM: nextTpl.widthM,
-            depthM: nextTpl.depthM,
-            phase: String(values.phase ?? ''),
-            enterprise: String(values.enterprise ?? '') || undefined,
-            costEstimate: midCost(nextType),
-            infrastructureReqs: [...nextTpl.infrastructureReqs],
-          });
-        },
-        onCancel: () => deleteStructure(id),
-      });
+        dimValues.widthM,
+        dimValues.depthM,
+        dimValues.rotationDeg,
+      );
     },
   });
 
@@ -190,6 +235,7 @@ export default function StructureTool({ map, projectId }: Props) {
         Drop a point — pick type (cabin / yurt / earthship / greenhouse /
         prayer space / well / solar array / …), phase, and rotation.
       </span>
+      <DimensionPanel allowedShapes={['rect']} />
     </div>
   );
 }

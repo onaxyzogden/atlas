@@ -11,8 +11,11 @@ import type {
   PastureQuality,
 } from '../../store/livestockStore.js';
 import type { LandZone } from '../../store/zoneStore.js';
-import type { Structure } from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { DesignPath } from '../../store/pathStore.js';
+import { haversineM, polygonCentroid } from '../../lib/geo.js';
+import { SHELTER_MAX_M } from './constants.js';
+import { SHELTER_STRUCTURES } from './welfarePass.js';
 import { LIVESTOCK_SPECIES, type LivestockSpeciesInfo } from './speciesData.js';
 
 /* ================================================================== */
@@ -112,19 +115,10 @@ export interface ShelterAccess {
 /*  Geometry helpers (no turf dependency — lightweight approx)         */
 /* ================================================================== */
 
-function polygonCentroid(geom: GeoJSON.Polygon): [number, number] {
-  const ring = geom.coordinates[0];
-  if (!ring || ring.length === 0) return [0, 0];
-  let sx = 0, sy = 0;
-  for (const c of ring) { sx += c[0]!; sy += c[1]!; }
-  return [sx / ring.length, sy / ring.length];
-}
-
-function approxDistanceM(a: [number, number], b: [number, number]): number {
-  const lat = (a[1] + b[1]) / 2;
-  const dx = (a[0] - b[0]) * 111320 * Math.cos(lat * Math.PI / 180);
-  const dy = (a[1] - b[1]) * 110540;
-  return Math.sqrt(dx * dx + dy * dy);
+/** Safe centroid fallback for legacy call sites that expect `[0, 0]`
+ *  on a degenerate geometry — preserves prior behaviour. */
+function safeCentroid(geom: GeoJSON.Polygon): [number, number] {
+  return polygonCentroid(geom) ?? [0, 0];
 }
 
 function polygonPerimeterM(geom: GeoJSON.Polygon): number {
@@ -132,7 +126,7 @@ function polygonPerimeterM(geom: GeoJSON.Polygon): number {
   if (!ring || ring.length < 2) return 0;
   let total = 0;
   for (let i = 0; i < ring.length - 1; i++) {
-    total += approxDistanceM(ring[i] as [number, number], ring[i + 1] as [number, number]);
+    total += haversineM(ring[i] as [number, number], ring[i + 1] as [number, number]);
   }
   return total;
 }
@@ -347,7 +341,7 @@ export function computeWaterPointDistance(
   paddock: Paddock,
   waterStructures: Structure[],
 ): WaterAccess {
-  const centroid = polygonCentroid(paddock.geometry);
+  const centroid = safeCentroid(paddock.geometry);
   const primarySpecies = paddock.species[0];
   const thresholdM = (primarySpecies ? WATER_THRESHOLDS[primarySpecies] : undefined) ?? DEFAULT_WATER_THRESHOLD;
 
@@ -355,7 +349,7 @@ export function computeWaterPointDistance(
   let nearestName: string | null = null;
 
   for (const s of waterStructures) {
-    const dist = approxDistanceM(centroid, s.center);
+    const dist = haversineM(centroid, s.center);
     if (dist < nearestDist) {
       nearestDist = dist;
       nearestName = s.name;
@@ -375,16 +369,14 @@ export function computePaddockPerimeter(geometry: GeoJSON.Polygon): number {
 }
 
 export function computeShelterAccess(paddock: Paddock, structures: Structure[]): ShelterAccess {
-  const centroid = polygonCentroid(paddock.geometry);
-  const shelters = structures.filter((s) =>
-    s.type === 'animal_shelter' || s.type === 'barn',
-  );
+  const centroid = safeCentroid(paddock.geometry);
+  const shelters = structures.filter((s) => SHELTER_STRUCTURES.has(s.type));
 
   let nearestDist = Infinity;
   let nearestName: string | null = null;
 
   for (const s of shelters) {
-    const dist = approxDistanceM(centroid, s.center);
+    const dist = haversineM(centroid, s.center);
     if (dist < nearestDist) {
       nearestDist = dist;
       nearestName = s.name;
@@ -395,7 +387,7 @@ export function computeShelterAccess(paddock: Paddock, structures: Structure[]):
     paddockId: paddock.id,
     nearestDistanceM: isFinite(nearestDist) ? Math.round(nearestDist) : -1,
     nearestStructureName: nearestName,
-    hasShelter: nearestDist <= 300,
+    hasShelter: nearestDist <= SHELTER_MAX_M,
   };
 }
 
@@ -411,11 +403,11 @@ export function computeGuestSafetyConflicts(
   const bufferedPaddocks = paddocks.filter((p) => p.guestSafeBuffer);
 
   for (const pad of bufferedPaddocks) {
-    const centroid = polygonCentroid(pad.geometry);
+    const centroid = safeCentroid(pad.geometry);
     for (const path of guestPaths) {
       // Check distance from paddock centroid to each path vertex
       for (const coord of path.geometry.coordinates) {
-        const dist = approxDistanceM(centroid, coord as [number, number]);
+        const dist = haversineM(centroid, coord as [number, number]);
         if (dist < 50) { // 50m buffer
           conflicts.push({
             paddockId: pad.id,
@@ -445,9 +437,9 @@ export function computeSpeciesConflicts(paddocks: Paddock[]): SpeciesConflict[] 
     for (let j = i + 1; j < paddocks.length; j++) {
       const a = paddocks[i]!;
       const b = paddocks[j]!;
-      const centA = polygonCentroid(a.geometry);
-      const centB = polygonCentroid(b.geometry);
-      const dist = approxDistanceM(centA, centB);
+      const centA = safeCentroid(a.geometry);
+      const centB = safeCentroid(b.geometry);
+      const dist = haversineM(centA, centB);
 
       if (dist > 200) continue; // too far to conflict
 
@@ -537,7 +529,7 @@ export function computePredatorRisk(
   zones: LandZone[],
   treeCanopyPct: number,
 ): PredatorRisk {
-  const centroid = polygonCentroid(paddock.geometry);
+  const centroid = safeCentroid(paddock.geometry);
 
   // Check adjacency to conservation or buffer zones (woodland edges)
   let nearestEdgeDist = Infinity;
@@ -546,8 +538,8 @@ export function computePredatorRisk(
     const geom = z.geometry.type === 'MultiPolygon'
       ? { type: 'Polygon' as const, coordinates: z.geometry.coordinates[0]! }
       : z.geometry;
-    const zCentroid = polygonCentroid(geom);
-    const dist = approxDistanceM(centroid, zCentroid);
+    const zCentroid = safeCentroid(geom);
+    const dist = haversineM(centroid, zCentroid);
     if (dist < nearestEdgeDist) nearestEdgeDist = dist;
   }
 

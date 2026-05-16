@@ -21,7 +21,7 @@ import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
-import { useEcologyStore } from '../../../../store/ecologyStore.js';
+import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
@@ -72,7 +72,7 @@ export const LINESTRING_KINDS: ReadonlySet<AnnotationKind> = new Set<AnnotationK
 export const POLYGON_KINDS: ReadonlySet<AnnotationKind> = new Set<AnnotationKind>([
   'frostPocket',
   'hazardZone',
-  'ecologyZone',
+  'vegetation',
   // Built-Environment polygons (Phase 4.5) — areaM2 recomputed on edit
   'building',
   'septic',
@@ -175,8 +175,8 @@ export function writePolygon(
     case 'hazardZone':
       useExternalForcesStore.getState().updateHazard(id, { geometry });
       return;
-    case 'ecologyZone':
-      useEcologyStore.getState().updateEcologyZone(id, { geometry });
+    case 'vegetation':
+      useVegetationStore.getState().updatePatch(id, { geometry });
       return;
     case 'building': {
       const areaM2 = polygonAreaM2(geometry);
@@ -317,10 +317,10 @@ export function readPolygon(
         .hazards.find((x) => x.id === id);
       return r?.geometry ?? null;
     }
-    case 'ecologyZone': {
-      const r = useEcologyStore
+    case 'vegetation': {
+      const r = useVegetationStore
         .getState()
-        .ecologyZones.find((x) => x.id === id);
+        .patches.find((x) => x.id === id);
       return r ? r.geometry : null;
     }
     case 'building': {

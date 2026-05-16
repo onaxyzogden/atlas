@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import {
   BookOpen,
   CalendarDays,
@@ -16,6 +16,7 @@ import { swotCounts } from './derivations.js';
 import { api } from '../../../../lib/apiClient.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
+import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
 
 export default function SwotDiagnosisReport() {
@@ -103,7 +104,7 @@ export default function SwotDiagnosisReport() {
 
   const evidence = [
     'Water flows & erosion on lower slope',
-    'Soil tests — low OM in Zone 2',
+    'Soil tests â€” low OM in Zone 2',
     'Access mapping & constraints',
   ];
 
@@ -114,26 +115,20 @@ export default function SwotDiagnosisReport() {
 
   return (
     <div className={card.page}>
-      <div className={card.hero} data-stage="observe">
-        <div className={obsx.heroRow}>
-          <div>
-            <p className={card.lede}>
-              Turning observations into a clear diagnosis to guide design decisions. A clear
-              diagnosis today leads to a regenerative design tomorrow.
-            </p>
-            <div className={card.btnRow}>
-              <button
-                type="button"
-                className={card.btn}
-                onClick={handleExport}
-                disabled={exporting}
-              >
-                <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {exporting ? 'Generating…' : 'Export report'}
-              </button>
-            </div>
-          </div>
-        </div>
+      <ObserveHero
+        sectionId="observe-swot-synthesis-diagnosis-report"
+        lede="Turning observations into a clear diagnosis to guide design decisions. A clear diagnosis today leads to a regenerative design tomorrow."
+      />
+      <div className={card.btnRow} style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={card.btn}
+          onClick={handleExport}
+          disabled={exporting}
+        >
+          <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+          {exporting ? 'Generatingâ€¦' : 'Export report'}
+        </button>
       </div>
 
       <section className={card.section}>
@@ -149,7 +144,7 @@ export default function SwotDiagnosisReport() {
           {quadrants.map(([label, count, note]) => (
             <div key={label} className={obsx.kpiBlock}>
               <span className={obsx.label}>{label}</span>
-              <span className={obsx.value}>{count > 0 ? count : '—'}</span>
+              <span className={obsx.value}>{count > 0 ? count : 'â€”'}</span>
               <span className={obsx.note}>{note}</span>
             </div>
           ))}

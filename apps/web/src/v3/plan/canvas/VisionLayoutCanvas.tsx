@@ -24,13 +24,17 @@ import { useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import DesignElementLayers from './layers/DesignElementLayers.js';
+import SilvopasturePopover from '../../../features/agroforestry/SilvopasturePopover.js';
+import SilvopastureMemberOutline from '../../../features/agroforestry/SilvopastureMemberOutline.js';
 import {
+  AdoptedBuildingsSync,
   DesignElementExtrusionLayer,
   DesignElementScenegraphLayer,
   Terrain3DController,
 } from '../../builtEnvironment/layers/index.js';
 import DeckOverlay from '../../_shared/deck/DeckOverlay.js';
-import DesignToolRail from './DesignToolRail.js';
+import DesignToolRail, { type ToolMode } from './DesignToolRail.js';
+import { MapCursorHost } from './useMapCursor.js';
 import BaseMapCard from './BaseMapCard.js';
 import CustomModelPalette from './CustomModelPalette.js';
 import MapToolbar from '../../observe/components/MapToolbar.js';
@@ -61,10 +65,23 @@ interface DrawHostProps {
   projectId: string;
   kind: string;
   onComplete: () => void;
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
-function DesignElementDrawHost({ map, projectId, kind, onComplete }: DrawHostProps) {
-  useDesignElementDrawTool({ map, projectId, kind, onComplete });
+function DesignElementDrawHost({
+  map,
+  projectId,
+  kind,
+  onComplete,
+  parcelBoundary,
+}: DrawHostProps) {
+  useDesignElementDrawTool({
+    map,
+    projectId,
+    kind,
+    onComplete,
+    parcelBoundary,
+  });
   return null;
 }
 
@@ -95,17 +112,29 @@ export default function VisionLayoutCanvas({
       : null;
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [mode, setMode] = useState<ToolMode>('pan');
+  const [hovering, setHovering] = useState(false);
+  const drawArmed = activeKind !== null || beKind !== null;
 
   return (
     <DiagnoseMap centroid={centroid} boundary={boundary}>
       {({ map }) => (
         <>
+          <MapCursorHost
+            map={map}
+            drawArmed={drawArmed}
+            mode={mode}
+            hovering={hovering}
+          />
           <DesignElementLayers
             map={map}
             projectId={projectId}
             view={view}
             selectedId={selectedId}
+            onHoverChange={setHovering}
+            onSelect={setSelectedId}
           />
+          <AdoptedBuildingsSync map={map} projectId={projectId} />
           <DesignElementExtrusionLayer
             map={map}
             projectId={projectId}
@@ -125,9 +154,13 @@ export default function VisionLayoutCanvas({
             onDisarmDraw={onDrawComplete}
             selectedId={selectedId}
             setSelectedId={setSelectedId}
+            mode={mode}
+            setMode={setMode}
           />
-          <BaseMapCard />
+          <BaseMapCard stage="plan" />
           <CustomModelPalette />
+          <SilvopasturePopover projectId={projectId} />
+          <SilvopastureMemberOutline map={map} projectId={projectId} />
           <MapToolbar
             map={map}
             projectId={projectId}
@@ -162,6 +195,7 @@ export default function VisionLayoutCanvas({
               projectId={projectId}
               kind={activeKind}
               onComplete={onDrawComplete}
+              parcelBoundary={boundary}
             />
           )}
           {beKind && (

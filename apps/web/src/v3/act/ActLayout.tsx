@@ -19,15 +19,15 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useProjectStore } from '../../store/projectStore.js';
+import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
 import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
-import type { LocalProject } from '../../store/projectStore.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
 import PlanDataLayers from '../plan/layers/PlanDataLayers.js';
 import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
+import PlanSelectionFloater from '../plan/PlanSelectionFloater.js';
 import ActTools from './ActTools.js';
 import ActChecklistAside from './ActChecklistAside.js';
 import ActModuleBar from './ActModuleBar.js';
@@ -41,33 +41,6 @@ import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
-
-/** MTC fallback so /v3/project/mtc/act renders deterministically. */
-const MTC_FALLBACK: LocalProject = {
-  id: 'mtc',
-  name: 'Moontrance Creek',
-  description: null,
-  status: 'active',
-  projectType: null,
-  country: 'CA',
-  provinceState: 'ON',
-  conservationAuthId: null,
-  address: null,
-  parcelId: null,
-  acreage: null,
-  dataCompletenessScore: null,
-  hasParcelBoundary: false,
-  createdAt: '',
-  updatedAt: '',
-  parcelBoundaryGeojson: null,
-  ownerNotes: null,
-  zoningNotes: null,
-  accessNotes: null,
-  waterRightsNotes: null,
-  visionStatement: null,
-  units: 'metric',
-  attachments: [],
-};
 
 export default function ActLayout() {
   const params = useParams({ strict: false }) as {
@@ -86,7 +59,7 @@ export default function ActLayout() {
   const updateProject = useProjectStore((s) => s.updateProject);
 
   const project = useMemo(
-    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_FALLBACK,
+    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
     [projects, id],
   );
 
@@ -179,7 +152,7 @@ export default function ActLayout() {
                 onBoundaryDrawn={handleBoundaryDrawn}
                 showBoundary={false}
               />
-              <BaseMapCard />
+              <BaseMapCard stage="act" />
               <ObserveAnnotationLayers
                 map={map}
                 projectId={params.projectId ?? null}
@@ -199,6 +172,7 @@ export default function ActLayout() {
               ) : null}
               <ActDrawHost map={map} projectId={params.projectId ?? null} />
               <InlineFeaturePopover map={map} />
+              <PlanSelectionFloater />
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
             </>
           )}

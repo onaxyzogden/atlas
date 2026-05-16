@@ -8,7 +8,7 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -55,7 +55,7 @@ interface FloodWetlandSummary {
 }
 
 export default function DecisionSupportPanel({ project }: DecisionSupportPanelProps) {
-  const structures = useStructureStore((st) => st.structures).filter((st) => st.projectId === project.id);
+  const structures = useAllStructures().filter((st) => st.projectId === project.id);
   const zones = useZoneStore((st) => st.zones).filter((z) => z.projectId === project.id);
   const paddocks = useLivestockStore((st) => st.paddocks).filter((pk) => pk.projectId === project.id);
   const crops = useCropStore((st) => st.cropAreas).filter((c) => c.projectId === project.id);

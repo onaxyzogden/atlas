@@ -31,7 +31,7 @@
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
-import { useStructureStore } from '../../store/structureStore.js';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { useUtilityStore } from '../../store/utilityStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
@@ -130,7 +130,7 @@ export default function StakeholderReviewModeCard({ project }: Props) {
         .sort((a, b) => a.order - b.order),
     [allPhases, project.id],
   );
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
   const allCropAreas = useCropStore((s) => s.cropAreas);
   const allPaddocks = useLivestockStore((s) => s.paddocks);

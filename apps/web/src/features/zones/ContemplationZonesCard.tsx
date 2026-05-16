@@ -25,16 +25,18 @@
 import { useMemo } from 'react';
 import * as turf from '@turf/turf';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
-import {
-  useStructureStore,
-  type Structure,
-  type StructureType,
-} from '../../store/structureStore.js';
+import type { ProjectedStructure as Structure, StructureType } from '@ogden/shared';
+import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import {
   useUtilityStore,
   type Utility,
   type UtilityType,
 } from '../../store/utilityStore.js';
+import {
+  useProjectStore,
+  getZoneThresholds,
+  DEFAULT_ZONE_THRESHOLDS,
+} from '../../store/projectStore.js';
 import css from '../rules/SitingWarningsCard.module.css';
 
 interface Props {
@@ -75,11 +77,13 @@ const NOISE_UTILITY_TYPES: UtilityType[] = [
 /** Structure types that count as supportive prayer facilities. */
 const PRAYER_FACILITY_TYPES: StructureType[] = ['prayer_space'];
 
-/** "Nearby" radius in metres — same comfortable-walk distance used by
-    SpiritualCommunalCard's adjacency advisory, doubled (100 m) since
-    here we're measuring from a zone centroid not a single structure
-    center, and contemplation tolerates a wider buffer. */
-const NEARBY_RADIUS_M = 100;
+/** "Nearby" radius is derived as 2 × Zone-2 reach (mediumM). Same
+    framing SpiritualCommunalCard uses for its adjacency advisory,
+    doubled because we measure from a zone centroid (not a structure
+    center) and contemplation tolerates a wider buffer. When the
+    steward tunes `mediumM` on the FertilityColocationCard disclosure,
+    this radius cascades along with the rest of the zoneThresholds
+    family. Computed per-render from the project. */
 
 function distanceM(a: [number, number], b: [number, number]): number {
   const [lng1, lat1] = a;
@@ -138,8 +142,16 @@ const PER_ZONE_LIST_CAP = 5;
 
 export default function ContemplationZonesCard({ projectId }: Props) {
   const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useStructureStore((s) => s.structures);
+  const allStructures = useAllStructures();
   const allUtilities = useUtilityStore((s) => s.utilities);
+  const project = useProjectStore((s) =>
+    s.projects.find((p) => p.id === projectId),
+  );
+  // 2 × Zone-2 reach. Falls back to 2 × default mediumM (150 m) if the
+  // project record can't be found — preserves prior behaviour shape for
+  // edge cases like detached previews.
+  const NEARBY_RADIUS_M =
+    (project ? getZoneThresholds(project).mediumM : DEFAULT_ZONE_THRESHOLDS.mediumM) * 2;
 
   const zones = useMemo(
     () => allZones.filter((z) => z.projectId === projectId),
