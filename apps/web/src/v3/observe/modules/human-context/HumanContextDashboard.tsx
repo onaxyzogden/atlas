@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   CheckCircle2,
   Compass,
@@ -22,6 +22,7 @@ import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import hc from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   archetypeFor,
   healthLabel,
@@ -188,7 +189,7 @@ export default function HumanContextDashboard() {
           title=""
           projectId={projectId ?? null}
           kinds={['neighbourPin', 'household', 'accessRoad']}
-          emptyHint="No neighbours, households, or access roads pinned yet — drop one with the tools panel."
+          emptyHint="No neighbours, households, or access roads pinned yet â€” drop one with the tools panel."
         />
       </section>
     </div>
@@ -208,15 +209,6 @@ interface ProjectVisionProps extends VisionProps {
 interface HumanHeroProps extends VisionProps {
   onExport: () => void;
   exporting: boolean;
-}
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={hc.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
 }
 
 function HumanHero({ vision, onExport, exporting }: HumanHeroProps) {
@@ -239,7 +231,7 @@ function HumanHero({ vision, onExport, exporting }: HumanHeroProps) {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generating…' : 'Export human-context report'}
+          {exporting ? 'Generatingâ€¦' : 'Export human-context report'}
         </button>
       </div>
 
@@ -259,7 +251,7 @@ function HumanHero({ vision, onExport, exporting }: HumanHeroProps) {
           </div>
           <KpiBlock icon={Eye} label="Vision phases" value={`${phases.filled} / ${phases.total}`} note="Captured" />
           <KpiBlock icon={Flag} label="Milestones" value={String(milestones)} note="Defined" />
-          <KpiBlock icon={MapPin} label="Regional context" value={regional.total > 0 ? String(regional.total) : '—'} note="Captured" />
+          <KpiBlock icon={MapPin} label="Regional context" value={regional.total > 0 ? String(regional.total) : 'â€”'} note="Captured" />
         </div>
       </section>
     </>
@@ -317,7 +309,7 @@ function StewardCard({ vision }: ProjectVisionProps) {
       </div>
       <div className={card.statRow}>
         <span>Capacity</span>
-        <span>{totalHrs > 0 ? `${totalHrs} hrs / week` : '—'}</span>
+        <span>{totalHrs > 0 ? `${totalHrs} hrs / week` : 'â€”'}</span>
       </div>
 
       <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -360,7 +352,7 @@ function RegionalCard({ projectId, vision }: ProjectVisionProps) {
       ].map(([label, value]) => (
         <div key={String(label)} className={card.statRow}>
           <span>{label}</span>
-          <span>{Number(value) > 0 ? value : '—'}</span>
+          <span>{Number(value) > 0 ? value : 'â€”'}</span>
         </div>
       ))}
 
@@ -435,8 +427,8 @@ function HealthStrip({ vision }: VisionProps) {
         {overall.pct >= 70
           ? 'Strong foundation with clear direction.'
           : overall.pct >= 30
-          ? 'Forming — keep filling in the picture.'
-          : 'Sparse — start with the steward survey.'}
+          ? 'Forming â€” keep filling in the picture.'
+          : 'Sparse â€” start with the steward survey.'}
       </p>
       <div className={card.statRow}>
         <span>People &amp; capacity</span>
@@ -474,8 +466,8 @@ function SynthesisPanel({ vision }: VisionProps) {
   if (totalHrs > 0) {
     insights.push(
       totalHrs >= 20
-        ? `${totalHrs} hrs/week of stewardship capacity — strong foundation.`
-        : `${totalHrs} hrs/week — light-touch capacity, favour resilient systems.`,
+        ? `${totalHrs} hrs/week of stewardship capacity â€” strong foundation.`
+        : `${totalHrs} hrs/week â€” light-touch capacity, favour resilient systems.`,
     );
   }
   if (archetype.name !== 'Observer-In-Residence') {
@@ -483,7 +475,7 @@ function SynthesisPanel({ vision }: VisionProps) {
   }
   if ((regional?.culturalStrengths?.length ?? 0) > 0) {
     insights.push(
-      `${regional?.culturalStrengths?.length ?? 0} cultural strengths identified — leverage them in design.`,
+      `${regional?.culturalStrengths?.length ?? 0} cultural strengths identified â€” leverage them in design.`,
     );
   }
   if (insights.length === 0) {
@@ -536,8 +528,8 @@ function SynthesisPanel({ vision }: VisionProps) {
                 {overall.pct >= 70
                   ? 'Strong foundation.'
                   : overall.pct >= 30
-                  ? 'Forming — keep building.'
-                  : 'Sparse — capture the basics first.'}
+                  ? 'Forming â€” keep building.'
+                  : 'Sparse â€” capture the basics first.'}
               </p>
             </div>
           </div>

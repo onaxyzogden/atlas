@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+﻿import { useMemo } from 'react';
 import {
   Beaker,
   Binoculars,
@@ -22,6 +22,7 @@ import WaterSystemsSnapshot from './WaterSystemsSnapshot.js';
 import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
+import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   ecologyDetailKpis,
   ecologyCounts,
@@ -36,15 +37,6 @@ const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
   mountain: Binoculars,
   waves: Waves,
 };
-
-function Ring({ value }: { value: number }) {
-  const style = { '--progress': `${value}%` } as CSSProperties;
-  return (
-    <div className={obsx.ring} style={style}>
-      <span>{value}%</span>
-    </div>
-  );
-}
 
 export default function EcologicalDetail() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -95,19 +87,19 @@ export default function EcologicalDetail() {
 
   const vulnerabilities: string[] = [];
   if (counts.trophicLevels.length < 3) {
-    vulnerabilities.push('Incomplete trophic web — log secondary and tertiary consumers.');
+    vulnerabilities.push('Incomplete trophic web â€” log secondary and tertiary consumers.');
   }
   if (counts.zones === 0) {
-    vulnerabilities.push('No ecology zones mapped — outline habitat patches to track succession.');
+    vulnerabilities.push('No ecology zones mapped â€” outline habitat patches to track succession.');
   }
   if (!counts.successionStage) {
-    vulnerabilities.push('Succession stage not set — characterize overall site trajectory.');
+    vulnerabilities.push('Succession stage not set â€” characterize overall site trajectory.');
   }
 
   const strengths =
     counts.observations > 0
       ? `${counts.observations} species observation${counts.observations === 1 ? '' : 's'} recorded across ${counts.trophicLevels.length} trophic level${counts.trophicLevels.length === 1 ? '' : 's'}.`
-      : 'No species observations yet — begin recording to build a trophic picture.';
+      : 'No species observations yet â€” begin recording to build a trophic picture.';
 
   const opportunities = [
     'Expand native plant corridors to connect habitats.',
@@ -131,7 +123,7 @@ export default function EcologicalDetail() {
               {completenessPct >= 70 ? 'Strong' : completenessPct >= 30 ? 'Forming' : 'Sparse'}
             </span>
             <span className={obsx.note}>
-              {counts.observations} obs · {counts.zones} zones
+              {counts.observations} obs Â· {counts.zones} zones
             </span>
           </div>
           {kpis.slice(0, 3).map((item) => {
@@ -252,12 +244,12 @@ export default function EcologicalDetail() {
       <section className={card.section}>
         <h2 className={card.sectionTitle}>Recent field observations</h2>
         {recent.length === 0 ? (
-          <p className={card.empty}>No observations recorded — log species via the tools panel.</p>
+          <p className={card.empty}>No observations recorded â€” log species via the tools panel.</p>
         ) : (
           recent.map((obs) => (
             <div key={obs.id} className={card.statRow}>
               <span>
-                {new Date(obs.observedAt).toLocaleDateString()} ·{' '}
+                {new Date(obs.observedAt).toLocaleDateString()} Â·{' '}
                 <small style={{ opacity: 0.7 }}>{obs.notes ?? obs.species}</small>
               </span>
               <span>{obs.trophicLevel}</span>
@@ -281,7 +273,7 @@ export default function EcologicalDetail() {
             {vulnerabilities.length === 0 ? (
               <p>
                 <Leaf aria-hidden="true" size={14} />
-                <span>No critical gaps identified — keep observing.</span>
+                <span>No critical gaps identified â€” keep observing.</span>
               </p>
             ) : (
               vulnerabilities.map((item) => (
