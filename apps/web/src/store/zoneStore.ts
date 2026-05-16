@@ -188,6 +188,37 @@ export const ZONE_CATEGORY_CONFIG: Record<ZoneCategory, { label: string; color: 
   future_expansion: { label: 'Future Expansion',   color: zone.future_expansion, icon: '📐' },
 };
 
+/**
+ * Which zone categories make permaculture sense at each Z-level.
+ * Z0 is the home centre (habitation, sacred, learning); intensity tapers
+ * outward to Z5 wilderness (conservation, buffer, water retention).
+ * `infrastructure` / `access` are admitted wherever they realistically
+ * appear. The first entry per level is the sensible default.
+ *
+ * Single source of truth: the Zone draw tool's category picker AND the
+ * ring-seed generator both read this — they must not diverge.
+ */
+export const Z_TO_CATEGORIES: Record<string, ZoneCategory[]> = {
+  '0': ['habitation', 'spiritual', 'education', 'infrastructure'],
+  '1': ['habitation', 'food_production', 'spiritual', 'education', 'infrastructure', 'access'],
+  '2': ['food_production', 'livestock', 'education', 'retreat', 'water_retention', 'infrastructure', 'access'],
+  '3': ['food_production', 'livestock', 'water_retention', 'access', 'buffer'],
+  '4': ['livestock', 'commons', 'conservation', 'water_retention', 'buffer', 'future_expansion', 'access'],
+  '5': ['conservation', 'commons', 'water_retention', 'buffer', 'future_expansion'],
+};
+
+/** Sensible default category for a Z-level (first admissible entry). */
+export function defaultCategoryForZ(z: number): ZoneCategory {
+  const list = Z_TO_CATEGORIES[String(z)];
+  return list?.[0] ?? 'food_production';
+}
+
+/**
+ * How a zone came to exist. Extensible: future generators (parcel-fill,
+ * template, AI) add their own tag and ride the same provisional review.
+ */
+export type ZoneSeedProvenance = 'manual' | 'ring-seed';
+
 export interface LandZone {
   id: string;
   projectId: string;
@@ -245,6 +276,23 @@ export interface LandZone {
    * cross-check chip on items #1, #2, #6.
    */
   enterprise?: string;
+  /**
+   * First-class "home centre" anchor flag. The Mollison ring overlay and
+   * the ring-seed generator both key off this. Decoupled from
+   * `permacultureZone === 0` so two unrelated Z0 zones don't silently
+   * each spawn a ring set — exactly one zone per project should carry
+   * this. Optional; falls back to `permacultureZone === 0` for zones
+   * created before this field existed (no migration needed).
+   */
+  isHomeCentre?: boolean;
+  /**
+   * Provenance of this zone. `'ring-seed'` zones are generated drafts
+   * (rendered provisionally) until the steward edits or accepts them;
+   * absent / `'manual'` = hand-drawn. Unified across all future zone
+   * generators so the map has one provisional vocabulary, not one per
+   * generator. Optional; no persist version bump.
+   */
+  seedProvenance?: ZoneSeedProvenance;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */

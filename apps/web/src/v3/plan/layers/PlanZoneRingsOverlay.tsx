@@ -27,6 +27,7 @@ import * as turf from '@turf/turf';
 import { maplibregl } from '../../../lib/maplibre.js';
 import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
+import { ZONE_RING_BANDS, ringCircle } from './zoneRingConstants.js';
 
 const SOURCE_ID = 'plan-zone-rings-source';
 const CASING_LAYER = 'plan-zone-rings-line-casing';
@@ -34,13 +35,6 @@ const RING_LAYER = 'plan-zone-rings-line';
 const LABEL_LAYER = 'plan-zone-rings-label';
 
 const ALL_LAYERS = [CASING_LAYER, RING_LAYER, LABEL_LAYER] as const;
-
-/** [meters, label, color] — Mollison Z1/Z2/Z3 indicative defaults. */
-const RINGS: { radiusM: number; label: string; color: string }[] = [
-  { radiusM: 30,  label: 'Z1 · 30 m',  color: '#c8a85a' },
-  { radiusM: 100, label: 'Z2 · 100 m', color: '#a88a4a' },
-  { radiusM: 500, label: 'Z3 · 500 m', color: '#856a3a' },
-];
 
 interface Props {
   map: maplibregl.Map;
@@ -57,15 +51,12 @@ export default function PlanZoneRingsOverlay({ map, projectId }: Props) {
       if (z.projectId !== projectId) continue;
       if (z.permacultureZone !== 0) continue;
       const center = turf.centroid(z.geometry);
-      for (const r of RINGS) {
-        const ring = turf.circle(center, r.radiusM, {
-          steps: 64,
-          units: 'meters',
-        });
+      for (const band of ZONE_RING_BANDS) {
+        const ring = ringCircle(center, band.outerM);
         ring.properties = {
-          radiusM: r.radiusM,
-          label: r.label,
-          color: r.color,
+          radiusM: band.outerM,
+          label: band.label,
+          color: band.color,
           anchorZoneId: z.id,
         };
         features.push(ring);

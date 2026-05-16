@@ -13,6 +13,7 @@ import type { LocalProject } from '../../../../store/projectStore.js';
 import { useGoalTreeStore } from '../../../../store/goalTreeStore.js';
 import { useSiteProfileStore } from '../../../../store/siteProfileStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
+import { ringSeedGenerator } from '../../engine/zoneGenerators/index.js';
 import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { resolveZoneVegetation } from '../../engine/vegetationResolver.js';
 import { usePhaseStore } from '../../../../store/phaseStore.js';
@@ -35,6 +36,7 @@ export default function GenerateSiteDesignBar({ project }: Props) {
     (s) => s.profilesByProject[project.id] ?? null,
   );
   const zones = useZoneStore((s) => s.zones);
+  const addZone = useZoneStore((s) => s.addZone);
   const vegetationPatches = useVegetationStore((s) => s.patches);
   const replaceGoalCompassRows = usePhaseStore((s) => s.replaceGoalCompassRows);
   const discard = useGeneratorDraftStore((s) => s.discard);
@@ -43,8 +45,16 @@ export default function GenerateSiteDesignBar({ project }: Props) {
   const [status, setStatus] = useState<string | null>(null);
 
   const projectZones = zones.filter((z) => z.projectId === project.id);
-  const canGenerate =
-    goalTree !== null && siteProfile !== null && projectZones.length > 0;
+  const missing: string[] = [];
+  if (goalTree === null) missing.push('Goal tree (set targets in Goal Compass)');
+  if (siteProfile === null)
+    missing.push('Site profile (complete the Site profile step)');
+  if (projectZones.length === 0)
+    missing.push(
+      '≥1 land zone (draw one with the Zone tool in the Plan map’s ' +
+        'Zone & Circulation tools)',
+    );
+  const canGenerate = missing.length === 0;
 
   const generate = () => {
     if (!goalTree || !siteProfile) return;
@@ -100,6 +110,27 @@ export default function GenerateSiteDesignBar({ project }: Props) {
     );
   };
 
+  const seedZonesFromRings = () => {
+    const ctx = {
+      projectId: project.id,
+      parcelBoundary: project.parcelBoundaryGeojson,
+      existingZones: zones,
+    };
+    const avail = ringSeedGenerator.canRun(ctx);
+    if (!avail.ok) {
+      setStatus(avail.reason ?? 'Cannot seed zones yet.');
+      return;
+    }
+    const seeded = ringSeedGenerator.generate(ctx);
+    seeded.forEach(addZone);
+    setStatus(
+      seeded.length === 0
+        ? 'No zones seeded — the parcel may already be fully ring-seeded.'
+        : `Seeded ${seeded.length} draft zone(s) from the Mollison rings. ` +
+            'Adjust or dismiss them like any drawn zone, then Generate.',
+    );
+  };
+
   const handleRegenerate = (prevGenerationId: string) => {
     discard(prevGenerationId);
     generate();
@@ -137,9 +168,18 @@ export default function GenerateSiteDesignBar({ project }: Props) {
         >
           Generate site design
         </button>
+        {projectZones.length === 0 ? (
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={seedZonesFromRings}
+          >
+            Seed zones from rings
+          </button>
+        ) : null}
         {!canGenerate ? (
           <span className={styles.hint}>
-            Need Goal tree, Site profile, and ≥1 Observe zone.
+            Still needed: {missing.join('; ')}.
           </span>
         ) : null}
       </div>
