@@ -38,6 +38,12 @@ export interface ModuleSlideUpProps {
   sheetClassName?: string;
   /** Optional node rendered under the title (e.g. Plan view badge chip). */
   headerExtra?: ReactNode;
+  /**
+   * Optional row rendered at the very top of the sheet — under the app
+   * header and above the module header. Plan uses this for the in-sheet
+   * ModuleBar so the module navigator stays reachable while a module is open.
+   */
+  topBar?: ReactNode;
 }
 
 export default function ModuleSlideUp({
@@ -50,6 +56,7 @@ export default function ModuleSlideUp({
   ariaLabel,
   sheetClassName,
   headerExtra,
+  topBar,
 }: ModuleSlideUpProps) {
   const sheetRef = useRef<HTMLElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
@@ -89,6 +96,7 @@ export default function ModuleSlideUp({
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
+        {topBar ? <div className={css.topBar}>{topBar}</div> : null}
         <header className={css.header}>
           <div className={css.titleBlock}>
             {eyebrow ? <span className={css.eyebrow}>{eyebrow}</span> : null}

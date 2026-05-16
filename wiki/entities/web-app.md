@@ -185,6 +185,17 @@ All use `persist` middleware with localStorage. Key stores:
   `AnnotationDragHandler` (commit `88b6556`). `AnnotationVertexEditHandler`
   was already guarded. See [[2026-05-07-atlas-crash-fix-rail-refactor-data-improvements]].
 
+  **Slide-up `topBar` slot (2026-05-15):** the shared
+  `_shared/moduleNav/ModuleSlideUp` exposes an optional
+  `topBar?: ReactNode` rendered as the first sheet child (above
+  `<header>`). Plan feeds the *same stateless `PlanModuleBar` element*
+  into both `StageShell.bottomTray` (closed) and the slide-up `topBar`
+  (open) so the module navigator stays reachable while a module page is
+  open. Additive/backward-compatible — Act/Observe omit `topBar`. Plan
+  map view also now opens on Vision Layout (`PLAN_VIEWS` =
+  `['vision','current','terrain3d']`). See
+  [[2026-05-15-atlas-plan-modulebar-in-slideup-and-view-order]].
+
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
 - `lib/perfProfiler.tsx` — dev-only `<SectionProfiler>` around React's `<Profiler>`; logs renders over 16 ms; tree-shaken in prod via `import.meta.env.DEV`

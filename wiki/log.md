@@ -15461,3 +15461,71 @@ the generator and correctly surfaces `canRun`'s parcel-boundary reason
 authorization — local rewrite done); in-canvas tool-rail "Drop home
 centre" / "Seed zones" actions; dashed seeded-draft map styling. See ADR
 `decisions/2026-05-15-atlas-zone-generator-seam-ring-seeding.md`.
+
+## 2026-05-15 — Plan map-view IA: ModuleBar in open slide-up + Vision-first order
+
+**Objective.** Two Plan map-view IA papercuts: (1) the bottom ModuleBar is
+fully covered by the module slide-up scrim, so the module navigator is
+unreachable while a module page is open; (2) Current Land was both the first
+tab and the load default, though Vision Layout is the primary surface.
+
+**Change.** Added an optional `topBar?: ReactNode` slot to the shared
+`ModuleSlideUp` (rendered as the first child of the sheet, above `<header>`,
+new `.topBar` CSS wrapper). `PlanModuleSlideUp` forwards it through;
+`PlanLayout` extracts the `<PlanModuleBar>` into a `moduleBar` const and feeds
+the **same stateless element** into both `StageShell.bottomTray` (closed,
+unchanged) and the slide-up `topBar` (open) — open/close + switch semantics
+unchanged. Additive/backward-compatible: Act/Observe omit `topBar`, unchanged.
+`PLAN_VIEWS` reordered `['vision','current','terrain3d']` (sole tab-order
+driver) and `PlanLayout` default view `'current' → 'vision'`.
+
+**Verification.** Browser preview (`mtc` → redirected project): closed → bar
+at screen bottom; open → DOM child order `[_topBar,_header,_tabs,_body]` +
+screenshot showing the bar under the app header and above the
+"PLAN · MODULE / Goal Compass" header; in-sheet tile switches module with
+sheet open; active-tile + ESC close; tabs render Vision → Current → 3D Terrain
+with Vision active on load.
+
+**Deferred.** Pre-existing `mtc` fallback-project redirect that resets
+slide-up state on first module open (unrelated; left as-is). See ADR
+`decisions/2026-05-15-atlas-plan-modulebar-in-slideup-and-view-order.md`.
+
+## 2026-05-15 — Zone-generator canvas reach + dashed seeded-draft styling
+
+**Why.** Closes the two items the zone-generator-seam ADR
+(`decisions/2026-05-15-atlas-zone-generator-seam-ring-seeding.md`) left
+"pending separately": seeding was only reachable from the Goal Compass
+Proposal bar, and generator-seeded zones were visually
+indistinguishable from committed hand-drawn zones.
+
+**Change.** (1) `PlanTools.tsx` — list-driven `ZONE_GENERATOR_ACTIONS`
+registry + `runZoneGeneratorAction` rendered as an action button in the
+Zone & Circulation rail section. Unlike `ToolItem`s it doesn't arm a
+draw mode — it runs the pure `ringSeedGenerator` synchronously,
+resolves the project via `useProjectStore`, `addZone`s the result, and
+surfaces `canRun`'s reason / seeded count via the global `toast`. A
+future generator is a one-line array entry. (2) `PlanDataLayers.tsx` —
+zone features now carry `seedProvenance`; a separate filtered
+`plan-data-poly-seed-line` line layer renders a static
+`line-dasharray: [2,2]` over `seedProvenance === 'ring-seed'` zones
+(separate layer, not a `case` on `poly-line` — maplibre-gl 4.7.1
+`line-dasharray` is not data-driven; mirrors the existing
+`setback-line` precedent), wired into the lens-recolor parity block
+(guarded by `getLayer`). No engine/seam/schema change — reuses the
+existing `LandZone.seedProvenance` field.
+
+**Verification.** `vitest run src/v3/plan/engine/zoneGenerators` 5/5
+green; `tsc --noEmit` (full web, 8 GB heap) exit 0; preview — rail
+button renders; `mtc` (no boundary) → warning toast with `canRun`'s
+parcel-boundary reason; "351 House — Atlas Sample" (has boundary) →
+"Seeded 4 draft zone(s)" toast + 4 `ring-seed` zones (Z0 home +
+Z1/Z2/Z3) persisted; Current Land map view shows the seeded
+concentric rings with dashed outlines; Yeomans-lens toggle produced
+zero console errors (recolor-parity path ran). Screenshot tool went
+unresponsive on the zoomed close-up — dashed rendering confirmed from
+the wider Current Land capture, not a zoomed shot.
+
+**Deferred.** In-canvas "Drop home centre" action and a dashed-style
+fill (only the outline is dashed) — neither requested. The
+typo-reword force-push of `cbb08e15` remains blocked on explicit
+authorization (external rebase already published it; moot).

@@ -174,9 +174,11 @@ interface Props {
    * the URL and the slide-up reopens on the new module.
    */
   onSwitchModule?: (mod: PlanModule) => void;
+  /** Rendered at the top of the sheet (above the module header) — the in-sheet ModuleBar. */
+  topBar?: ReactNode;
 }
 
-export default function PlanModuleSlideUp({ module, open, onClose, project, onSwitchModule }: Props) {
+export default function PlanModuleSlideUp({ module, open, onClose, project, onSwitchModule, topBar }: Props) {
   const cards = module ? MODULE_CARDS[module] : [];
   const label = module ? PLAN_MODULE_FULL_LABEL[module] : '';
 
@@ -224,6 +226,7 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
         renderCard={renderCard}
         ariaLabel={module ? `${label} — plan tools` : undefined}
         headerExtra={module ? <PlanViewBadge module={module} /> : null}
+        topBar={topBar}
       />
       {confirmOpen ? (
         <div
