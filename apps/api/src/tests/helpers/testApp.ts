@@ -18,8 +18,16 @@ const queue: unknown[][] = [];
  * Tagged-template function that shifts the next row-set off the queue.
  * Called as: db`SELECT ...` → Promise<row[]>
  */
-export const mockDb = (_strings: TemplateStringsArray, ..._values: unknown[]) =>
-  Promise.resolve(queue.shift() ?? []);
+export const mockDb = Object.assign(
+  (_strings: TemplateStringsArray, ..._values: unknown[]) =>
+    Promise.resolve(queue.shift() ?? []),
+  {
+    /** db.unsafe(query, params) — shifts the next row-set, mirrors the tagged form. */
+    unsafe: (_query: string, _params?: unknown[]) => Promise.resolve(queue.shift() ?? []),
+    /** db.json(v) — postgres.js jsonb wrapper; identity in the mock. */
+    json: (v: unknown) => v,
+  },
+);
 
 /** Push row(s) onto the mock DB queue. */
 export const enqueue = (...rows: unknown[]) => { queue.push(rows); };
