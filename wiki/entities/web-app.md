@@ -181,6 +181,19 @@ All use `persist` middleware with localStorage. Key stores:
   [Phase 1–2 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md),
   [Phase 4 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase4.md),
   [Phase 5 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase5.md).
+  **Phase 3 (2026-05-17, same flag) — last deferred item closed:**
+  `ogden-vegetation` + `ogden-act-succession` now have real Postgres
+  tables (migration `028`, `id text`), shared Zod schemas (optional
+  client-minted id — `machinery_items` idiom), `design-features`-shaped
+  Fastify routes (owner-only delete), a dedicated client write-through
+  (**client-supplied id, no serverId/no writeback** so vegetation's
+  `temporal()` undo stays clean; failures enqueue typed
+  `'vegetation'`/`'succession'` retry ops) and `hydrateTypedTables`
+  device-B restore (server-wins per id, local-only pushed up, no
+  cross-project clobber). Coverage guard pins both `typed-table` so the
+  blob loop can never double-write them. Full plan now complete; only the
+  5.7 manual matrix remains operational. See
+  [Phase 3 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase3.md).
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
