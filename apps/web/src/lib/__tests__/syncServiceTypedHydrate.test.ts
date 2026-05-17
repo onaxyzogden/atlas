@@ -59,7 +59,7 @@ const SERVER_VEG = {
   successionStage: 'climax',
   groundCover: 'forest',
   createdAt: '2026-01-01T00:00:00.000Z',
-} as never;
+};
 
 const SERVER_MS = {
   id: 'sm-server',
@@ -67,7 +67,7 @@ const SERVER_MS = {
   year: 2030,
   phase: 'mid',
   observation: 'Canopy closing.',
-} as never;
+};
 
 beforeEach(() => {
   vegList.mockReset();
@@ -100,7 +100,7 @@ describe('hydrateTypedTables', () => {
 
   it('server wins by id over a divergent local copy', async () => {
     useVegetationStore.setState({
-      patches: [{ ...SERVER_VEG, successionStage: 'pioneer', groundCover: 'bare-soil' }],
+      patches: [{ ...SERVER_VEG, successionStage: 'pioneer', groundCover: 'bare-soil' } as never],
     });
     vegList.mockResolvedValue({ data: [SERVER_VEG] });
     succList.mockResolvedValue({ data: [] });
