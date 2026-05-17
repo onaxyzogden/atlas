@@ -160,10 +160,17 @@ All use `persist` middleware with localStorage. Key stores:
   original P0-1 enumeration gap). A generic versioned-blob transport
   (`blobSync.ts`, `'state-blob'` queue type, `project_state_blobs` table +
   `routes/project-state/`, debounced subscription loop over all 62 blob
-  stores) is wired but **default-off** behind `FLAGS.SYNC_STATE_BLOBS` —
-  push-only shadow; hydration + visible conflict surface are Phase 4,
+  stores) is wired but **default-off** behind `FLAGS.SYNC_STATE_BLOBS`.
+  **Phase 4 (2026-05-17, same flag):** the read side is now complete —
+  `hydrateProjectStateBlobs` (in `initialSync`, inside `isSyncing`) +
+  `applyForProject` on all 62 descriptors (project-isolated) restores
+  device B; version-skew guard skips newer blobs; `temporal()` undo
+  cleared post-hydrate; 409 surfaces visibly (`connectivityStore
+  .conflictedStores` badge + toast, no silent clobber). End-to-end
+  functionally complete; phased enable + multi-device matrix is Phase 5;
   `projectBundle.ts` remains the offline backup. See
-  [ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md).
+  [Phase 1–2 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md),
+  [Phase 4 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase4.md).
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's

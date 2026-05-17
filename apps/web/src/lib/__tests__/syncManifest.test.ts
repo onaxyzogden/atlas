@@ -169,6 +169,52 @@ describe('syncManifest coverage guard', () => {
     }
   });
 
+  it('every versioned-blob store can apply a hydrated slice back (P4)', () => {
+    // Hydration on device B writes the server slice back into the store via
+    // applyForProject. Missing it = the store never restores = P0-1 reborn
+    // on the read side. It must be a function for every blob store.
+    const missing = SYNCED_STORES.filter(
+      (d) => d.classification === 'versioned-blob' && typeof d.applyForProject !== 'function',
+    ).map((d) => d.storeKey);
+    expect(missing, `versioned-blob stores missing applyForProject:\n` + missing.join('\n')).toEqual([]);
+  });
+
+  it('select→apply round-trips a project slice and isolates other projects', () => {
+    // byProject shape
+    const hz = SYNCED_STORES.find((d) => d.storeKey === 'ogden-hazards')!;
+    const hzState: any = {
+      byProject: { A: { hazards: [{ id: 'a1' }] }, B: { hazards: [{ id: 'b1' }] } },
+    };
+    let hzStore: any = { ...hzState };
+    const hzHandle = {
+      getState: () => hzStore,
+      setState: (p: any) => {
+        hzStore = { ...hzStore, ...(typeof p === 'function' ? p(hzStore) : p) };
+      },
+    };
+    const sliceA = hz.selectForProject!(hzState, 'A');
+    expect(sliceA).toEqual([{ id: 'a1' }]);
+    hz.applyForProject!(hzHandle as never, 'A', [{ id: 'a1' }, { id: 'a2' }]);
+    expect(hzStore.byProject.A.hazards).toEqual([{ id: 'a1' }, { id: 'a2' }]);
+    expect(hzStore.byProject.B.hazards).toEqual([{ id: 'b1' }]); // untouched
+
+    // projectId-tagged shape
+    const pa = SYNCED_STORES.find((d) => d.storeKey === 'ogden-paths')!;
+    let paStore: any = { paths: [{ id: 'p1', projectId: 'A' }, { id: 'p2', projectId: 'B' }] };
+    const paHandle = {
+      getState: () => paStore,
+      setState: (p: any) => {
+        paStore = { ...paStore, ...(typeof p === 'function' ? p(paStore) : p) };
+      },
+    };
+    expect(pa.selectForProject!(paStore, 'A')).toEqual({ paths: [{ id: 'p1', projectId: 'A' }] });
+    pa.applyForProject!(paHandle as never, 'A', { paths: [{ id: 'p1b', projectId: 'A' }] });
+    expect(paStore.paths).toEqual([
+      { id: 'p2', projectId: 'B' },
+      { id: 'p1b', projectId: 'A' },
+    ]);
+  });
+
   it('only uses known classification values', () => {
     const allowed: SyncClassification[] = [
       'typed-design-feature',

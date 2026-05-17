@@ -28,6 +28,7 @@ import {
 } from '../store/builtEnvironmentSelectors.js';
 import { projectToStructures } from '@ogden/shared';
 import { useConnectivityStore } from '../store/connectivityStore.js';
+import { toast } from '../components/Toast';
 import { precacheProjectTiles } from './tilePrecache.js';
 import { FLAGS, type CreateDesignFeatureInput, type DesignFeatureSummary } from '@ogden/shared';
 import * as turf from '@turf/turf';
@@ -572,6 +573,12 @@ async function initialSync(): Promise<void> {
     for (const project of allProjects) {
       if (!project.serverId) continue;
       await mergeDesignFeatures(project);
+      // P4: restore the full versioned-blob design surface. Still inside
+      // isSyncing=true so applyForProject mutations do not bounce back
+      // out through subscribeVersionedBlobs as fresh pushes.
+      if (FLAGS.SYNC_STATE_BLOBS) {
+        await hydrateProjectStateBlobs(project);
+      }
     }
   } catch (err) {
     console.error('[SYNC] Initial sync failed:', err);
@@ -695,9 +702,20 @@ export async function executeStateBlobOp(op: QueuedOperation): Promise<void> {
   // stale base. The local slice is NOT silently clobbered back — Phase 4
   // owns the visible reconcile (toast + Connectivity badge); here we log.
   if (typeof result.serverRev === 'number') blobBaseRev.set(key, result.serverRev);
+  // P4.4 — surface the conflict instead of swallowing it: badge it in the
+  // Connectivity panel and warn the user once per newly-conflicted store.
+  // The local slice is NOT clobbered back; the reconcile is the user's.
+  const conn = useConnectivityStore.getState();
+  if (!conn.conflictedStores.includes(p.storeKey)) {
+    conn.addConflictedStore(p.storeKey);
+    toast.warning(
+      `A change to "${p.storeKey}" conflicts with a newer version on ` +
+        `the server. Your local copy is kept — review it in Connectivity.`,
+    );
+  }
   console.warn(
     `[SYNC] state-blob "${p.storeKey}" rejected as stale (server rev ` +
-      `${result.serverRev}); conflict surface pending Phase 4`,
+      `${result.serverRev}); surfaced as conflict (no clobber)`,
   );
 }
 
@@ -710,6 +728,96 @@ const blobBaseRev = new Map<string, number>();
 
 function getBlobBaseRev(storeKey: string, projectLocalId: string): number {
   return blobBaseRev.get(blobLocalId(storeKey, projectLocalId)) ?? 0;
+}
+
+/** Test seam: read the in-memory adopted base rev. */
+export function getBlobBaseRevForTest(
+  storeKey: string,
+  projectLocalId: string,
+): number {
+  return getBlobBaseRev(storeKey, projectLocalId);
+}
+
+/** Shown at most once per session, not once per skewed store. */
+let blobVersionSkewWarned = false;
+
+/**
+ * P4 — read side of the generic versioned-blob transport: pull every
+ * server blob for `project` and write it back into its store (the half
+ * that makes device B actually restore; P0-1's other half).
+ *
+ * Runs INSIDE `initialSync`'s `isSyncing = true` window so `applyForProject`
+ * mutations do not bounce back out through `subscribeVersionedBlobs`.
+ * `descriptors` is injectable for tests; production passes `SYNCED_STORES`.
+ *
+ * Guards:
+ *  - version-skew (P4.2): a blob whose `schemaVersion` exceeds this client's
+ *    descriptor version is SKIPPED — never downcast through a stale
+ *    `migrate`, and the stale local slice is deliberately NOT pushed back.
+ *    A single "update Atlas" toast is shown per session.
+ *  - temporal (P4.3): after applying a `temporal()` store, its undo history
+ *    is cleared so the restore is not a user-undoable frame.
+ */
+export async function hydrateProjectStateBlobs(
+  project: LocalProject,
+  descriptors: SyncedStoreDescriptor[] = SYNCED_STORES,
+): Promise<void> {
+  if (!project.serverId) return;
+  let rows: Array<{
+    storeKey: string;
+    payload: unknown;
+    schemaVersion: number;
+    rev: number;
+  }>;
+  try {
+    const res = await api.projectState.list(project.serverId);
+    rows = (res.data ?? []) as never;
+  } catch (err) {
+    console.warn(
+      `[SYNC] blob hydrate list failed for "${project.name}":`,
+      err,
+    );
+    return;
+  }
+  const descByKey = new Map(
+    descriptors
+      .filter((d) => d.classification === 'versioned-blob')
+      .map((d) => [d.storeKey, d] as const),
+  );
+  for (const row of rows) {
+    const d = descByKey.get(row.storeKey);
+    if (!d || !d.store || !d.applyForProject) continue;
+    const localVersion = d.schemaVersion ?? 1;
+    if (row.schemaVersion > localVersion) {
+      if (!blobVersionSkewWarned) {
+        blobVersionSkewWarned = true;
+        toast.warning(
+          'Some synced data was saved by a newer version of Atlas. ' +
+            'Update Atlas to restore it.',
+        );
+      }
+      console.warn(
+        `[SYNC] blob "${row.storeKey}" schemaVersion ${row.schemaVersion} ` +
+          `> local ${localVersion}; skipped (version-skew guard)`,
+      );
+      continue;
+    }
+    try {
+      const handle = d.store as unknown as {
+        getState: () => unknown;
+        setState: (p: unknown) => void;
+        temporal?: { getState: () => { clear: () => void } };
+      };
+      d.applyForProject(handle, project.id, row.payload);
+      blobBaseRev.set(blobLocalId(row.storeKey, project.id), row.rev);
+      if (d.usesTemporal) handle.temporal?.getState().clear();
+    } catch (err) {
+      console.warn(
+        `[SYNC] blob "${row.storeKey}" hydrate apply failed:`,
+        err,
+      );
+    }
+  }
 }
 
 /**

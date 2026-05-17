@@ -132,54 +132,134 @@ export interface SyncedStoreDescriptor {
    * unknown project still produces a serialisable payload.
    */
   selectForProject?: (state: unknown, projectId: string) => unknown;
+  /**
+   * Inverse of `selectForProject`: write a hydrated server slice back into
+   * the live store for `projectId`, leaving every OTHER project's rows
+   * untouched (P4 multi-device restore). Applies via the store's
+   * `setState` functional updater so the `isSyncing` guard suppresses an
+   * undo frame for `temporal()` stores.
+   */
+  applyForProject?: (
+    store: { getState: () => unknown; setState: (p: unknown) => void },
+    projectId: string,
+    incoming: unknown,
+  ) => void;
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Selector = (state: unknown, projectId: string) => unknown;
+type StoreApi = { getState: () => unknown; setState: (p: unknown) => void };
+type Applier = (store: StoreApi, projectId: string, incoming: unknown) => void;
+
+/**
+ * A project-scope shape: how to extract this project's slice (`select`) and
+ * how to write a hydrated slice back without disturbing other projects
+ * (`apply`). `apply` always goes through `setState((st) => patch)` so the
+ * `isSyncing` guard suppresses a temporal undo frame.
+ */
+interface BlobShape {
+  select: Selector;
+  apply: Applier;
+}
 
 /** active-singleton: the whole persisted state is the project slice. */
-const whole: Selector = (s) => s ?? {};
+const whole: BlobShape = {
+  select: (s) => s ?? {},
+  apply: (store, _pid, incoming) =>
+    store.setState(() => ({ ...((incoming as any) ?? {}) })),
+};
 
 /** byProject: `state[record][projectId]` (optionally a `leaf` field). */
-const byKey =
-  (record: string, leaf: string | null, empty: unknown): Selector =>
-  (s, pid) => {
+const byKey = (
+  record: string,
+  leaf: string | null,
+  empty: unknown,
+): BlobShape => ({
+  select: (s, pid) => {
     const bucket = (s as any)?.[record]?.[pid];
     if (leaf) return bucket?.[leaf] ?? empty;
     return bucket ?? empty;
-  };
+  },
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const rec = { ...((st?.[record] as any) ?? {}) };
+      if (leaf) rec[pid] = { ...(rec[pid] ?? {}), [leaf]: incoming };
+      else rec[pid] = incoming;
+      return { [record]: rec };
+    }),
+});
 
 /** projectId-tagged: each named array filtered to this project. */
-const tagged =
-  (...fields: string[]): Selector =>
-  (s, pid) => {
+const tagged = (...fields: string[]): BlobShape => ({
+  select: (s, pid) => {
     const out: Record<string, unknown[]> = {};
     for (const f of fields) {
       const arr = (s as any)?.[f];
       out[f] = Array.isArray(arr) ? arr.filter((x) => x?.projectId === pid) : [];
     }
     return out;
-  };
+  },
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const patch: Record<string, unknown[]> = {};
+      for (const f of fields) {
+        const existing = Array.isArray(st?.[f]) ? st[f] : [];
+        const others = existing.filter((x: any) => x?.projectId !== pid);
+        const inc = (incoming as any)?.[f];
+        patch[f] = others.concat(Array.isArray(inc) ? inc : []);
+      }
+      return patch;
+    }),
+});
 
 /** projectId-tagged singleton: the one row owned by this project. */
-const taggedFind =
-  (field: string): Selector =>
-  (s, pid) => {
+const taggedFind = (field: string): BlobShape => ({
+  select: (s, pid) => {
     const arr = (s as any)?.[field];
     return (Array.isArray(arr) ? arr.find((x) => x?.projectId === pid) : null) ?? null;
-  };
+  },
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const existing = Array.isArray(st?.[field]) ? st[field] : [];
+      const others = existing.filter((x: any) => x?.projectId !== pid);
+      return {
+        [field]: incoming == null ? others : others.concat([incoming]),
+      };
+    }),
+});
 
 /** agribusiness mixes projectId-tagged arrays with a byProject sizing map. */
-const agribusinessSelect: Selector = (s, pid) => {
-  const st = s as any;
-  const pick = (f: string) =>
-    Array.isArray(st?.[f]) ? st[f].filter((x: any) => x?.projectId === pid) : [];
-  return {
-    slaughterPoints: pick('slaughterPoints'),
-    coldChainUnits: pick('coldChainUnits'),
-    marketNodes: pick('marketNodes'),
-    sizingByProject: st?.sizingByProject?.[pid] ?? null,
-  };
+const agribusinessSelect: BlobShape = {
+  select: (s, pid) => {
+    const st = s as any;
+    const pick = (f: string) =>
+      Array.isArray(st?.[f]) ? st[f].filter((x: any) => x?.projectId === pid) : [];
+    return {
+      slaughterPoints: pick('slaughterPoints'),
+      coldChainUnits: pick('coldChainUnits'),
+      marketNodes: pick('marketNodes'),
+      sizingByProject: st?.sizingByProject?.[pid] ?? null,
+    };
+  },
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const inc = (incoming as any) ?? {};
+      const repl = (f: string) => {
+        const ex = Array.isArray(st?.[f]) ? st[f] : [];
+        const others = ex.filter((x: any) => x?.projectId !== pid);
+        const i = inc[f];
+        return others.concat(Array.isArray(i) ? i : []);
+      };
+      return {
+        slaughterPoints: repl('slaughterPoints'),
+        coldChainUnits: repl('coldChainUnits'),
+        marketNodes: repl('marketNodes'),
+        sizingByProject: {
+          ...((st?.sizingByProject as any) ?? {}),
+          [pid]: inc.sizingByProject ?? null,
+        },
+      };
+    }),
 };
 
 function blob(
@@ -187,7 +267,7 @@ function blob(
   store: { getState: () => unknown; subscribe: (...a: any[]) => any },
   scope: StoreScope,
   schemaVersion: number,
-  selectForProject: Selector,
+  shape: BlobShape,
   usesTemporal = false,
 ): SyncedStoreDescriptor {
   return {
@@ -197,7 +277,8 @@ function blob(
     schemaVersion,
     usesTemporal,
     store: store as unknown as VersionedBlobStoreHandle,
-    selectForProject,
+    selectForProject: shape.select,
+    applyForProject: shape.apply as SyncedStoreDescriptor['applyForProject'],
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
