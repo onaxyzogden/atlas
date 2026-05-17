@@ -72,10 +72,11 @@ import {
   type SetbackRing,
 } from '../../../store/setbackStore.js';
 import {
-  FLOW_KIND_CONFIG,
-  type FlowConnector,
-  type FlowKind,
-} from '../../../store/flowConnectorStore.js';
+  MATERIAL_KIND_CONFIG,
+  type MaterialFlow,
+  type MaterialKind,
+} from '../../../store/closedLoopStore.js';
+import type { FlowEndpointOption } from '../../../features/plan/useFlowEndpointOptions.js';
 import {
   TRANSECT_CADENCE_LABEL,
   TRANSECT_MONITORING_CONFIG,
@@ -950,52 +951,63 @@ export function buildSetbackRingEditSchema(
 
 // ---------- Flow connector ----------
 
-const FLOW_KIND_OPTIONS: { value: FlowKind; label: string }[] = (
-  Object.keys(FLOW_KIND_CONFIG) as FlowKind[]
-).map((k) => ({ value: k, label: FLOW_KIND_CONFIG[k].label }));
+const FLOW_KIND_OPTIONS: { value: MaterialKind; label: string }[] = (
+  Object.keys(MATERIAL_KIND_CONFIG) as MaterialKind[]
+).map((k) => ({ value: k, label: MATERIAL_KIND_CONFIG[k].label }));
 
 export function buildFlowConnectorEditSchema(
-  c: FlowConnector,
-  updateConnector: (id: string, patch: Partial<FlowConnector>) => void,
+  c: MaterialFlow,
+  updateFlow: (id: string, patch: Partial<MaterialFlow>) => void,
+  endpointOptions: FlowEndpointOption[] = [],
 ): Omit<InlineFormPayload, 'anchor'> {
+  const endpointSelect = [
+    { value: '', label: '— none —' },
+    ...endpointOptions.map((o) => ({ value: o.id, label: o.label })),
+  ];
+  const labelFor = (id: string): string | undefined =>
+    endpointOptions.find((o) => o.id === id)?.label;
   return {
     title: 'Edit flow connector',
     fields: [
-      { key: 'name', label: 'Name', kind: 'text', required: true },
+      { key: 'label', label: 'Name', kind: 'text', required: true },
       {
-        key: 'flowKind',
+        key: 'materialKind',
         label: 'Flow',
         kind: 'select',
         required: true,
         options: FLOW_KIND_OPTIONS,
       },
       {
-        key: 'fromName',
+        key: 'sourceId',
         label: 'From',
-        kind: 'text',
-        placeholder: 'e.g., Kitchen scraps',
+        kind: 'select',
+        options: endpointSelect,
       },
       {
-        key: 'toName',
+        key: 'sinkId',
         label: 'To',
-        kind: 'text',
-        placeholder: 'e.g., Orchard guild',
+        kind: 'select',
+        options: endpointSelect,
       },
     ],
     initial: {
-      name: c.name,
-      flowKind: c.flowKind,
-      fromName: c.fromName ?? '',
-      toName: c.toName ?? '',
+      label: c.label,
+      materialKind: c.materialKind,
+      sourceId: c.sourceId ?? '',
+      sinkId: c.sinkId ?? '',
     },
     onSave: (values) => {
-      const nextKind = values.flowKind as FlowKind;
-      updateConnector(c.id, {
-        name: String(values.name ?? c.name).trim() || c.name,
-        flowKind: nextKind,
-        color: FLOW_KIND_CONFIG[nextKind].color,
-        fromName: String(values.fromName ?? '').trim() || undefined,
-        toName: String(values.toName ?? '').trim() || undefined,
+      const nextKind = values.materialKind as MaterialKind;
+      const sourceId = String(values.sourceId ?? '') || null;
+      const sinkId = String(values.sinkId ?? '') || null;
+      updateFlow(c.id, {
+        label: String(values.label ?? c.label).trim() || c.label,
+        materialKind: nextKind,
+        color: MATERIAL_KIND_CONFIG[nextKind].color,
+        sourceId,
+        sinkId,
+        sourceLabel: sourceId ? labelFor(sourceId) : undefined,
+        sinkLabel: sinkId ? labelFor(sinkId) : undefined,
       });
     },
     onCancel: () => {

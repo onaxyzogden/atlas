@@ -88,6 +88,7 @@ const PrincipleCoverageMatrixCard = lazy(() => import('./cards/principle-verific
 const NeedsYieldsAuditCard       = lazy(() => import('./cards/principle-verification/NeedsYieldsAuditCard.js'));
 const StructuresOverviewCard     = lazy(() => import('./cards/structures-subsystems/StructuresOverviewCard.js'));
 const SubsystemsOverviewCard     = lazy(() => import('./cards/structures-subsystems/SubsystemsOverviewCard.js'));
+const RegenerationMonitorCard    = lazy(() => import('../../features/plan/RegenerationMonitorCard.js'));
 
 function renderPlanCard(
   sectionId: string,
@@ -164,6 +165,7 @@ function renderPlanCard(
     );
     case 'plan-structures-overview': return <StructuresOverviewCard projectId={project.id} />;
     case 'plan-subsystems-overview': return <SubsystemsOverviewCard projectId={project.id} />;
+    case 'plan-regeneration-monitor': return <RegenerationMonitorCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }

@@ -21,7 +21,7 @@ const HIST_DAYS = 30;
 const DAY_MS = 24 * 3600 * 1000;
 
 export default function WasteRoutingChecklistCard({ project }: Props) {
-  const allVectors = useClosedLoopStore((s) => s.wasteVectors);
+  const allVectors = useClosedLoopStore((s) => s.materialFlows);
   const allRuns = useClosedLoopStore((s) => s.wasteVectorRuns);
   const addRun = useClosedLoopStore((s) => s.addWasteVectorRun);
   const removeRun = useClosedLoopStore((s) => s.removeWasteVectorRun);
@@ -97,7 +97,7 @@ export default function WasteRoutingChecklistCard({ project }: Props) {
                     <span>
                       <strong>{v.label}</strong>
                       <div className={styles.listMeta}>
-                        {v.resourceType} · {recentCount} run{recentCount === 1 ? '' : 's'} in last {HIST_DAYS} days
+                        {v.materialKind} · {recentCount} run{recentCount === 1 ? '' : 's'} in last {HIST_DAYS} days
                         {lastDays !== null && ` · last ${lastDays} day${lastDays === 1 ? '' : 's'} ago`}
                       </div>
                     </span>

@@ -73,7 +73,6 @@ import { useEcologicalNoteStore } from '../store/ecologicalNoteStore.js';
 import { useCommunityEventStore } from '../store/communityEventStore.js';
 import { useCommentStore } from '../store/commentStore.js';
 import { useMaintenanceStore } from '../store/maintenanceStore.js';
-import { useFlowConnectorStore } from '../store/flowConnectorStore.js';
 import { useMaintenanceLogStore } from '../store/maintenanceLogStore.js';
 import { useHarvestLogStore } from '../store/harvestLogStore.js';
 import { useLivestockMoveLogStore } from '../store/livestockMoveLogStore.js';
@@ -336,7 +335,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-human-context', useHumanContextStore, 'projectId-tagged', 1, tagged('neighbours', 'households', 'accessRoads', 'permacultureZones'), true),
   blob('ogden-enterprises', useEnterpriseStore, 'projectId-tagged', 1, tagged('enterprises')),
   blob('ogden-versions', useVersionStore, 'projectId-tagged', 1, tagged('snapshots')),
-  blob('ogden-closed-loop', useClosedLoopStore, 'projectId-tagged', 1, tagged('wasteVectors', 'wasteVectorRuns', 'fertilityInfra'), true),
+  blob('ogden-closed-loop', useClosedLoopStore, 'projectId-tagged', 2, tagged('materialFlows', 'wasteVectorRuns', 'fertilityInfra'), true),
   blob('ogden-act-appropriate-tech', useAppropriateTechStore, 'projectId-tagged', 1, tagged('items')),
   blob('ogden-fieldwork', useFieldworkStore, 'projectId-tagged', 1, tagged('entries', 'walkRoutes', 'punchList')),
   blob('ogden-field-tasks', useFieldTaskStore, 'projectId-tagged', 1, tagged('tasks')),
@@ -349,7 +348,6 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-act-community-events', useCommunityEventStore, 'projectId-tagged', 1, tagged('events')),
   blob('ogden-comments', useCommentStore, 'projectId-tagged', 2, tagged('comments')),
   blob('ogden-act-maintenance', useMaintenanceStore, 'projectId-tagged', 1, tagged('tasks')),
-  blob('ogden-flow-connectors', useFlowConnectorStore, 'projectId-tagged', 1, tagged('connectors'), true),
   blob('ogden-act-maintenance-log', useMaintenanceLogStore, 'projectId-tagged', 2, tagged('events')),
   blob('ogden-act-harvest-log', useHarvestLogStore, 'projectId-tagged', 1, tagged('entries')),
   blob('ogden-livestock-moves', useLivestockMoveLogStore, 'projectId-tagged', 3, tagged('events')),

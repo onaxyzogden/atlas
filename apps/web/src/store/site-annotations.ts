@@ -56,8 +56,8 @@ export type {
 
 // Closed-Loop
 export type {
-  WasteResourceType,
-  WasteVector,
+  MaterialKind,
+  MaterialFlow,
   WasteVectorRun,
   FertilityInfraType,
   FertilityInfra,

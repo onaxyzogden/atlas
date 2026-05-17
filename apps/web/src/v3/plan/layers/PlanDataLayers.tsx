@@ -43,8 +43,8 @@ import {
   useSetbackStore,
   type SetbackSourceKind,
 } from '../../../store/setbackStore.js';
-import { useFlowConnectorStore } from '../../../store/flowConnectorStore.js';
 import { useMonitoringTransectStore } from '../../../store/monitoringTransectStore.js';
+import { useFlowEndpointOptions } from '../../../features/plan/useFlowEndpointOptions.js';
 import { bufferGeometry } from '../draw/tools/bufferGeometry.js';
 import {
   usePlanSelectionStore,
@@ -241,8 +241,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const updateUtilityRun = useUtilityRunStore((s) => s.updateRun);
   const setbackRings = useSetbackStore((s) => s.rings);
   const updateSetbackRing = useSetbackStore((s) => s.updateRing);
-  const flowConnectors = useFlowConnectorStore((s) => s.connectors);
-  const updateFlowConnector = useFlowConnectorStore((s) => s.updateConnector);
+  const flowConnectors = useClosedLoopStore((s) => s.materialFlows);
+  const updateFlowConnector = useClosedLoopStore((s) => s.updateMaterialFlow);
+  const flowEndpointOptions = useFlowEndpointOptions(projectId);
   const monitoringTransects = useMonitoringTransectStore((s) => s.transects);
   const updateMonitoringTransect = useMonitoringTransectStore(
     (s) => s.updateTransect,
@@ -715,11 +716,12 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     // free-text rather than feature ids in v1).
     for (const fc of flowConnectors) {
       if (fc.projectId !== projectId) continue;
+      if (!fc.geometry) continue; // list-origin flows have no map geometry
       const props = {
         id: fc.id,
         kind: 'flow',
-        color: fc.color,
-        label: fc.name,
+        color: fc.color ?? '#5db1a2',
+        label: fc.label,
         yeomansRank: 7,
         enterprise: fc.enterprise ?? '',
       };
@@ -2478,9 +2480,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'flow') return;
       const id = String(f.properties.id);
-      const r = useFlowConnectorStore
+      const r = useClosedLoopStore
         .getState()
-        .connectors.find((x) => x.id === id);
+        .materialFlows.find((x) => x.id === id);
       if (!r) return;
       const selItem = { kind: 'flow' as const, id };
       if (e.originalEvent.shiftKey) {
@@ -2490,7 +2492,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
       const anchor: [number, number] = [e.lngLat.lng, e.lngLat.lat];
       openForm({
-        ...buildFlowConnectorEditSchema(r, updateFlowConnector),
+        ...buildFlowConnectorEditSchema(r, updateFlowConnector, flowEndpointOptions),
         anchor,
       });
     };
@@ -2508,6 +2510,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     map,
     activeTool,
     updateFlowConnector,
+    flowEndpointOptions,
     setSelection,
     openForm,
     editable,

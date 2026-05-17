@@ -32,7 +32,6 @@ import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { useUtilityRunStore } from '../../store/utilityRunStore.js';
 import { useSetbackStore } from '../../store/setbackStore.js';
-import { useFlowConnectorStore } from '../../store/flowConnectorStore.js';
 import { useMonitoringTransectStore } from '../../store/monitoringTransectStore.js';
 import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
 import {
@@ -117,7 +116,7 @@ function removeOne(item: PlanSelectionItem): void {
       useSetbackStore.getState().deleteRing(item.id);
       return;
     case 'flow':
-      useFlowConnectorStore.getState().deleteConnector(item.id);
+      useClosedLoopStore.getState().removeMaterialFlow(item.id);
       return;
     case 'transect':
       useMonitoringTransectStore.getState().deleteTransect(item.id);

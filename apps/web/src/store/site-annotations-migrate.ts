@@ -20,7 +20,6 @@ import type {
   StorageInfra,
   FertilityInfra,
   Guild,
-  WasteVector,
   WasteVectorRun,
   SpeciesPick,
   Transect,
@@ -40,6 +39,18 @@ interface LegacyTransect extends Omit<Transect, 'verticalRefs'> {
   verticalElements?: LegacyVerticalElement[];
 }
 
+/** Legacy v3 waste-vector shape — passed through as JSON only; the new
+ *  closedLoopStore `migrate` (v1→v2) folds it into `materialFlows`. */
+interface LegacyWasteVector {
+  id: string;
+  projectId: string;
+  fromFeatureId: string;
+  toFeatureId: string;
+  label: string;
+  resourceType: string;
+  createdAt: string;
+}
+
 interface LegacyV3State {
   hazards?: HazardEvent[];
   transects?: LegacyTransect[];
@@ -51,7 +62,7 @@ interface LegacyV3State {
   storageInfra?: StorageInfra[];
   fertilityInfra?: FertilityInfra[];
   guilds?: Guild[];
-  wasteVectors?: WasteVector[];
+  wasteVectors?: LegacyWasteVector[];
   species?: SpeciesPick[];
   wasteVectorRuns?: WasteVectorRun[];
 }

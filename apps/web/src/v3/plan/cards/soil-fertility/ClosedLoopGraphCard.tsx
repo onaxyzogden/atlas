@@ -5,7 +5,7 @@
  * captures directed edges between features but offers no visual graph
  * and no validation. Holmgren P6 ("Produce no waste") demands that
  * every output have a sink. This card surfaces the existing
- * `wasteVectors` data + every feature node and flags **orphan
+ * `materialFlows` data + every feature node and flags **orphan
  * fertility units** (no incoming or outgoing vector) and **isolated
  * features** (zones / structures / crops / fertility units that touch
  * no vector at all) so the steward can route the missing flows.
@@ -24,6 +24,9 @@ import {
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useCropStore } from '../../../../store/cropStore.js';
+import { useLivestockStore } from '../../../../store/livestockStore.js';
+import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
+import { usePolycultureStore } from '../../../../store/polycultureStore.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
@@ -50,7 +53,7 @@ interface Props {
 interface Node {
   id: string;
   label: string;
-  kind: 'zone' | 'structure' | 'crop' | 'fertility';
+  kind: 'zone' | 'structure' | 'crop' | 'fertility' | 'paddock' | 'water' | 'guild';
   /** [lng, lat] centroid when known, else null (e.g. structure without geometry). */
   lngLat: [number, number] | null;
 }
@@ -107,14 +110,21 @@ const KIND_COLOR: Record<Node['kind'], string> = {
   structure: '#c89b66',
   crop: '#a3c45c',
   fertility: '#5db1a2',
+  paddock: '#b48a4a',
+  water: '#4a90d9',
+  guild: '#8aae3c',
 };
 
 export default function ClosedLoopGraphCard({ project }: Props) {
-  const allVectors = useClosedLoopStore((s) => s.wasteVectors);
+  const allVectors = useClosedLoopStore((s) => s.materialFlows);
   const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
   const allZones = useZoneStore((s) => s.zones);
   const allStructures = useAllStructures();
   const allCrops = useCropStore((s) => s.cropAreas);
+  const allPaddocks = useLivestockStore((s) => s.paddocks);
+  const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
+  const allStorage = useWaterSystemsStore((s) => s.storageInfra);
+  const allGuilds = usePolycultureStore((s) => s.guilds);
 
   // Fertility infra is the only phase-tagged entity in this card.
   // Capped by the year scrubber's `yeomansCapForYear(currentYear)` via
@@ -147,19 +157,35 @@ export default function ClosedLoopGraphCard({ project }: Props) {
     for (const f of fertility) {
       ns.push({ id: f.id, label: `${f.type.replace(/_/g, ' ')}${f.scaleNote ? ` (${f.scaleNote})` : ''}`, kind: 'fertility', lngLat: f.center ?? null });
     }
+    for (const p of allPaddocks) {
+      if (p.projectId !== pId) continue;
+      ns.push({ id: p.id, label: p.name || 'paddock', kind: 'paddock', lngLat: polygonCentroid(p.geometry) });
+    }
+    for (const e of allEarthworks) {
+      if (e.projectId !== pId) continue;
+      ns.push({ id: e.id, label: e.type.replace(/_/g, ' '), kind: 'water', lngLat: null });
+    }
+    for (const st of allStorage) {
+      if (st.projectId !== pId) continue;
+      ns.push({ id: st.id, label: st.type.replace(/_/g, ' '), kind: 'water', lngLat: st.center });
+    }
+    for (const g of allGuilds) {
+      if (g.projectId !== pId) continue;
+      ns.push({ id: g.id, label: g.name || 'guild', kind: 'guild', lngLat: null });
+    }
     const vs = allVectors.filter((v) => v.projectId === pId);
     return { nodes: ns, vectors: vs };
-  }, [project.id, allZones, allStructures, allCrops, fertility, allVectors]);
+  }, [project.id, allZones, allStructures, allCrops, fertility, allPaddocks, allEarthworks, allStorage, allGuilds, allVectors]);
 
   // Adjacency
   const inDeg = useMemo(() => {
     const m = new Map<string, number>();
-    for (const v of vectors) m.set(v.toFeatureId, (m.get(v.toFeatureId) ?? 0) + 1);
+    for (const v of vectors) if (v.sinkId) m.set(v.sinkId, (m.get(v.sinkId) ?? 0) + 1);
     return m;
   }, [vectors]);
   const outDeg = useMemo(() => {
     const m = new Map<string, number>();
-    for (const v of vectors) m.set(v.fromFeatureId, (m.get(v.fromFeatureId) ?? 0) + 1);
+    for (const v of vectors) if (v.sourceId) m.set(v.sourceId, (m.get(v.sourceId) ?? 0) + 1);
     return m;
   }, [vectors]);
 
@@ -259,7 +285,7 @@ export default function ClosedLoopGraphCard({ project }: Props) {
   }, [nodes, cx, cy, r, layout, spatialReady]);
 
   const counts = useMemo(() => {
-    const c = { zone: 0, structure: 0, crop: 0, fertility: 0 } as Record<Node['kind'], number>;
+    const c = { zone: 0, structure: 0, crop: 0, fertility: 0, paddock: 0, water: 0, guild: 0 } as Record<Node['kind'], number>;
     for (const n of nodes) c[n.kind]++;
     return c;
   }, [nodes]);
@@ -333,8 +359,8 @@ export default function ClosedLoopGraphCard({ project }: Props) {
                 </marker>
               </defs>
               {vectors.map((v) => {
-                const a = positions.get(v.fromFeatureId);
-                const b = positions.get(v.toFeatureId);
+                const a = v.sourceId ? positions.get(v.sourceId) : undefined;
+                const b = v.sinkId ? positions.get(v.sinkId) : undefined;
                 if (!a || !b) return null;
                 return (
                   <line
@@ -378,7 +404,7 @@ export default function ClosedLoopGraphCard({ project }: Props) {
             </svg>
             <div className={styles.statRow}>
               <span style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                {(['zone', 'structure', 'crop', 'fertility'] as const).map((k) => (
+                {(['zone', 'structure', 'crop', 'fertility', 'paddock', 'water', 'guild'] as const).map((k) => (
                   <span key={k} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ width: 10, height: 10, background: KIND_COLOR[k], borderRadius: 5, display: 'inline-block' }} />
                     {k} ({counts[k]})

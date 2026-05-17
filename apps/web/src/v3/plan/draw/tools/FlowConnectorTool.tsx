@@ -1,5 +1,5 @@
 /**
- * FlowConnectorTool — directed line → FlowConnector (Plan Tier B / B3).
+ * FlowConnectorTool — directed line → MaterialFlow (Plan Tier B / B3).
  *
  * Stewards trace a flow line from source to sink and pick what kind of
  * material moves along it (compost / manure / mulch / water / grain /
@@ -8,19 +8,21 @@
  * direction reads at a glance. Lives under `soil-fertility` in the PLAN
  * toolbar.
  *
- * v1: free-draw line, no auto-snap to fertility infra. Endpoints can be
- * labelled with free text via the popover so the steward can describe
- * the loop ("kitchen scraps" → "compost tumbler" → "orchard guild")
- * even when the geometry only loosely tracks the underlying features.
+ * Per #59: the From/To pickers bind the drawn line to structured
+ * endpoints (zones / structures / crops / fertility / paddocks / water
+ * systems / guilds) so a canvas-drawn flow earns closed-loop credit in
+ * `ClosedLoopGraphCard`, not just free-text labels.
  */
 
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import {
-  useFlowConnectorStore,
-  FLOW_KIND_CONFIG,
-  type FlowKind,
-} from '../../../../store/flowConnectorStore.js';
+  useClosedLoopStore,
+  MATERIAL_KIND_CONFIG,
+  type MaterialFlow,
+  type MaterialKind,
+} from '../../../../store/closedLoopStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
+import { useFlowEndpointOptions } from '../../../../features/plan/useFlowEndpointOptions.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
@@ -36,14 +38,15 @@ interface Props {
   projectId: string;
 }
 
-const KIND_OPTIONS: { value: FlowKind; label: string }[] = (
-  Object.keys(FLOW_KIND_CONFIG) as FlowKind[]
-).map((k) => ({ value: k, label: FLOW_KIND_CONFIG[k].label }));
+const KIND_OPTIONS: { value: MaterialKind; label: string }[] = (
+  Object.keys(MATERIAL_KIND_CONFIG) as MaterialKind[]
+).map((k) => ({ value: k, label: MATERIAL_KIND_CONFIG[k].label }));
 
 export default function FlowConnectorTool({ map, projectId }: Props) {
-  const addConnector = useFlowConnectorStore((s) => s.addConnector);
-  const updateConnector = useFlowConnectorStore((s) => s.updateConnector);
-  const deleteConnector = useFlowConnectorStore((s) => s.deleteConnector);
+  const addFlow = useClosedLoopStore((s) => s.addMaterialFlow);
+  const updateFlow = useClosedLoopStore((s) => s.updateMaterialFlow);
+  const removeFlow = useClosedLoopStore((s) => s.removeMaterialFlow);
+  const endpointOptions = useFlowEndpointOptions(projectId);
   const openForm = useInlineFormStore((s) => s.open);
   const { field: phaseField, defaultValue: phaseDefault } = usePhaseFieldSpec(projectId);
   const { field: enterpriseField, defaultValue: enterpriseDefault } =
@@ -51,21 +54,31 @@ export default function FlowConnectorTool({ map, projectId }: Props) {
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimValues = useDimensionValues();
 
+  const endpointSelect = [
+    { value: '', label: '— none —' },
+    ...endpointOptions.map((o) => ({ value: o.id, label: o.label })),
+  ];
+  const labelFor = (id: string): string | undefined =>
+    endpointOptions.find((o) => o.id === id)?.label;
+
   const handleComplete = (geom: GeoJSON.LineString) => {
       const id = newAnnotationId('flow');
       const coords = geom.coordinates;
       const midIdx = Math.floor(coords.length / 2);
       const anchor = coords[midIdx] as [number, number];
       const now = new Date().toISOString();
-      const flowKind: FlowKind = 'compost';
+      const materialKind: MaterialKind = 'compost';
 
-      addConnector({
+      addFlow({
         id,
         projectId,
-        name: `${FLOW_KIND_CONFIG[flowKind].label} flow`,
-        flowKind,
+        label: `${MATERIAL_KIND_CONFIG[materialKind].label} flow`,
+        materialKind,
+        sourceId: null,
+        sinkId: null,
+        origin: 'canvas',
         geometry: geom,
-        color: FLOW_KIND_CONFIG[flowKind].color,
+        color: MATERIAL_KIND_CONFIG[materialKind].color,
         notes: '',
         phase: phaseDefault || undefined,
         createdAt: now,
@@ -77,57 +90,62 @@ export default function FlowConnectorTool({ map, projectId }: Props) {
         anchor,
         fields: [
           {
-            key: 'name',
+            key: 'label',
             label: 'Name',
             kind: 'text',
             required: true,
             placeholder: 'e.g., Kitchen → orchard compost',
           },
           {
-            key: 'flowKind',
+            key: 'materialKind',
             label: 'Flow',
             kind: 'select',
             required: true,
             options: KIND_OPTIONS,
           },
           {
-            key: 'fromName',
+            key: 'sourceId',
             label: 'From',
-            kind: 'text',
-            placeholder: 'e.g., Kitchen scraps',
+            kind: 'select',
+            options: endpointSelect,
           },
           {
-            key: 'toName',
+            key: 'sinkId',
             label: 'To',
-            kind: 'text',
-            placeholder: 'e.g., Orchard guild',
+            kind: 'select',
+            options: endpointSelect,
           },
           phaseField,
           enterpriseField,
         ],
         initial: {
-          name: `${FLOW_KIND_CONFIG[flowKind].label} flow`,
-          flowKind,
-          fromName: '',
-          toName: '',
+          label: `${MATERIAL_KIND_CONFIG[materialKind].label} flow`,
+          materialKind,
+          sourceId: '',
+          sinkId: '',
           phase: phaseDefault,
           enterprise: enterpriseDefault,
         },
         onSave: (values) => {
-          const nextKind = values.flowKind as FlowKind;
-          updateConnector(id, {
-            name:
-              String(values.name ?? '').trim() ||
-              `${FLOW_KIND_CONFIG[nextKind].label} flow`,
-            flowKind: nextKind,
-            color: FLOW_KIND_CONFIG[nextKind].color,
-            fromName: String(values.fromName ?? '').trim() || undefined,
-            toName: String(values.toName ?? '').trim() || undefined,
+          const nextKind = values.materialKind as MaterialKind;
+          const sourceId = String(values.sourceId ?? '') || null;
+          const sinkId = String(values.sinkId ?? '') || null;
+          const patch: Partial<MaterialFlow> = {
+            label:
+              String(values.label ?? '').trim() ||
+              `${MATERIAL_KIND_CONFIG[nextKind].label} flow`,
+            materialKind: nextKind,
+            color: MATERIAL_KIND_CONFIG[nextKind].color,
+            sourceId,
+            sinkId,
+            sourceLabel: sourceId ? labelFor(sourceId) : undefined,
+            sinkLabel: sinkId ? labelFor(sinkId) : undefined,
             phase: String(values.phase ?? '') || undefined,
             enterprise: String(values.enterprise ?? '') || undefined,
-          });
+          };
+          updateFlow(id, patch);
         },
-        onCancel: () => deleteConnector(id),
+        onCancel: () => removeFlow(id),
       });
     };
 
@@ -152,7 +170,8 @@ export default function FlowConnectorTool({ map, projectId }: Props) {
       <span className={css.hint}>
         Draw a directed line from source to sink. The renderer paints
         arrowheads along the line — pick what flows on it (compost,
-        manure, mulch, water, grain, energy).
+        manure, mulch, water, grain, energy) and bind its From/To to
+        site features so it earns closed-loop credit.
       </span>
       <DimensionPanel allowedShapes={['line']} />
       {liveLength !== null && (
