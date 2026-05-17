@@ -57,4 +57,8 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 Key: fastify, postgres, puppeteer, @aws-sdk/client-s3, bullmq, ioredis, zod, bcryptjs, pino
 
 ## Current State
-All 16+ routes functional. PDF export service complete. Data pipeline orchestration works but adapters are stubbed. AI enrichment stubbed. No tests.
+All 16+ routes functional. PDF export service complete. Data pipeline orchestration works but adapters are stubbed. AI enrichment stubbed.
+
+Error handling (2026-05-17, commit `6ac716b4`): the custom `setNotFoundHandler` / `setErrorHandler` in `src/app.ts` are now registered **before** the route plugins, so all route contexts return the app envelope `{data:null,error:{code,message}}` — `AppError` (with `details`), `ZodError` → `VALIDATION_ERROR` 422, everything else → `INTERNAL_ERROR`. Previously they were registered after the routes and Fastify's default handler served route contexts (correct status, wrong body shape). See `decisions/2026-05-17-atlas-error-handler-ordering.md`.
+
+Tests: ~550 in `@ogden/api` (Vitest). Several build-app integration tests require a provisioned test DB; in a fresh git worktree without one, ~11 fail (project-create 500, project GET 404, telemetry aggregate empty) — environment, not code.
