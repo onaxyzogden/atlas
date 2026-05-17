@@ -80,6 +80,8 @@ const PhasingMatrixCard = lazy(() => import('../plan/PhasingMatrixCard.js'));
 const SeasonalTaskCard = lazy(() => import('../plan/SeasonalTaskCard.js'));
 const LaborBudgetSummaryCard = lazy(() => import('../plan/LaborBudgetSummaryCard.js'));
 const HolmgrenChecklistCard = lazy(() => import('../plan/HolmgrenChecklistCard.js'));
+// PLAN-stage A1 — Apricot Lane regeneration monitoring spine (longitudinal dashboard).
+const RegenerationMonitorCard = lazy(() => import('../plan/RegenerationMonitorCard.js'));
 // ACT-stage Phase 1 — landing surface. Stage 3 of the 3-stage cycle.
 const ActHub = lazy(() => import('../act/ActHub.js'));
 // ACT-stage Phase 3 — 13 spec-module cards (2026-04-29 IA restructure).
@@ -224,6 +226,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Holmgren Checklist">
           <HolmgrenChecklistCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'plan-regeneration-monitor':
+      return (
+        <PanelShell name="Regeneration Monitor">
+          <RegenerationMonitorCard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     case 'dashboard-act-hub':
