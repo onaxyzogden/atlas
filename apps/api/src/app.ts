@@ -136,6 +136,59 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   // ─── Pipeline orchestrator (populated in onReady once DB + Redis are available)
   app.decorate('pipeline', null as unknown as DataPipelineOrchestrator);
 
+  // ─── 404 handler (always JSON) ────────────────────────────────────────────────
+  // Registered BEFORE routes so the custom handlers apply to all route contexts.
+  // (Fastify uses the handler in scope at route-registration time; registering
+  // after the routes leaves them on the default handler.)
+
+  app.setNotFoundHandler((_req, reply) => {
+    reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({
+      data: null,
+      error: { code: 'NOT_FOUND', message: 'Route not found' },
+    });
+  });
+
+  // ─── Global error handler ────────────────────────────────────────────────────
+
+  app.setErrorHandler((error, _req, reply) => {
+    reply.header('Content-Type', 'application/json; charset=utf-8');
+
+    if (error instanceof AppError) {
+      reply.code(error.statusCode).send({
+        data: null,
+        error: { code: error.code, message: error.message, details: error.details },
+      });
+      return;
+    }
+
+    if (error instanceof ZodError) {
+      reply.code(422).send({
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Request validation failed',
+          details: error.issues.map((i) => ({
+            path: i.path.join('.'),
+            message: i.message,
+          })),
+        },
+      });
+      return;
+    }
+
+    app.log.error(error);
+
+    const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
+    const message = config.NODE_ENV !== 'production'
+      ? (error instanceof Error ? error.message : String(error))
+      : 'An unexpected error occurred';
+
+    reply.code(statusCode).send({
+      data: null,
+      error: { code: 'INTERNAL_ERROR', message },
+    });
+  });
+
   // ─── Routes ─────────────────────────────────────────────────────────────────
 
   await app.register(authRoutes,     { prefix: '/api/v1/auth' });
@@ -360,56 +413,6 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
 
   app.addHook('onClose', async () => {
     await closeBrowser();
-  });
-
-  // ─── 404 handler (always JSON) ────────────────────────────────────────────────
-
-  app.setNotFoundHandler((_req, reply) => {
-    reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({
-      data: null,
-      error: { code: 'NOT_FOUND', message: 'Route not found' },
-    });
-  });
-
-  // ─── Global error handler ────────────────────────────────────────────────────
-
-  app.setErrorHandler((error, _req, reply) => {
-    reply.header('Content-Type', 'application/json; charset=utf-8');
-
-    if (error instanceof AppError) {
-      reply.code(error.statusCode).send({
-        data: null,
-        error: { code: error.code, message: error.message, details: error.details },
-      });
-      return;
-    }
-
-    if (error instanceof ZodError) {
-      reply.code(422).send({
-        data: null,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Request validation failed',
-          details: error.issues.map((i) => ({
-            path: i.path.join('.'),
-            message: i.message,
-          })),
-        },
-      });
-      return;
-    }
-
-    app.log.error(error);
-
-    const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
-    const message = config.NODE_ENV !== 'production'
-      ? (error instanceof Error ? error.message : String(error))
-      : 'An unexpected error occurred';
-
-    reply.code(statusCode).send({
-      data: null,
-      error: { code: 'INTERNAL_ERROR', message },
-    });
   });
 
   return app;
