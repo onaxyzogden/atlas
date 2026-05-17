@@ -20,6 +20,7 @@
 
 import { useRef, useState } from 'react';
 import { Download, Upload, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { FLAGS } from '@ogden/shared';
 import {
   buildBundle,
   serializeBundle,
@@ -127,22 +128,36 @@ export default function ProjectBundleBar() {
     );
   }
 
+  // Once the durable account sync is on, the bundle is no longer the
+  // data-safety net — it is an optional offline backup. Never raise the
+  // data-loss alarm in that mode.
+  const syncedToAccount = FLAGS.SYNC_STATE_BLOBS;
+  const showWarn = !syncedToAccount && !exported;
+
+  let message: string;
+  if (syncedToAccount) {
+    message =
+      'Your work syncs to your account across devices. Export an offline backup if you want a local copy.';
+  } else if (exported) {
+    message =
+      'Your design lives in this browser. Re-export a bundle after changes to keep your backup current.';
+  } else {
+    message =
+      'Your design lives in this browser. Export a bundle to move devices or back up — it is not fully saved to your account.';
+  }
+
   return (
     <div
-      className={`${css.bar} ${exported ? css.calm : css.warn}`}
-      role={exported ? undefined : 'status'}
+      className={`${css.bar} ${showWarn ? css.warn : css.calm}`}
+      role={showWarn ? 'status' : undefined}
     >
       <div className={css.message}>
-        {exported ? (
-          <ShieldCheck aria-hidden="true" />
-        ) : (
+        {showWarn ? (
           <ShieldAlert aria-hidden="true" />
+        ) : (
+          <ShieldCheck aria-hidden="true" />
         )}
-        <span>
-          {exported
-            ? 'Your design lives in this browser. Re-export a bundle after changes to keep your backup current.'
-            : 'Your design lives in this browser. Export a bundle to move devices or back up — it is not fully saved to your account.'}
-        </span>
+        <span>{message}</span>
       </div>
       <div className={css.actions}>
         {error && <span className={css.error}>{error}</span>}
