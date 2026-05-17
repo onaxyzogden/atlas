@@ -158,6 +158,14 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Act on lagging verdicts: where the curve is below trajectory, revisit the upstream water, soil, or plant module before the deadline year.',
     ],
   },
+  'habitat-allocation': {
+    why: 'Apricot Lane Farms deliberately set aside ~10% of total acreage as undisturbed wildlife habitat and biological corridors — treating native predators (owl boxes, hawk perches) and the wildlife pond as primary biological pest-control tools, not philanthropy. A steward must be able to see whether enough land is actually allocated to habitat before the design is locked, because habitat is a year-zero allocation decision, not a post-production add-on (Holmgren P10: Use and value diversity).',
+    how: [
+      'Draw conservation, buffer, and water-retention zones on the map — their area is what counts toward the habitat set-aside.',
+      'Read the allocation gauge: allocated % vs the goal-tree target line (regen-habitat-pct, default 10%), with the shortfall in hectares when under.',
+      'Record the discrete habitat features you commit to — wildlife pond, owl boxes, hawk perches, hedgerow length — so the inventory matches the drawn land.',
+    ],
+  },
 };
 
 interface Props {

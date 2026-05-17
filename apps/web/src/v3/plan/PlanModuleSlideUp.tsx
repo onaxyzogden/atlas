@@ -89,6 +89,7 @@ const NeedsYieldsAuditCard       = lazy(() => import('./cards/principle-verifica
 const StructuresOverviewCard     = lazy(() => import('./cards/structures-subsystems/StructuresOverviewCard.js'));
 const SubsystemsOverviewCard     = lazy(() => import('./cards/structures-subsystems/SubsystemsOverviewCard.js'));
 const RegenerationMonitorCard    = lazy(() => import('../../features/plan/RegenerationMonitorCard.js'));
+const HabitatAllocationCard      = lazy(() => import('../../features/plan/HabitatAllocationCard.js'));
 
 function renderPlanCard(
   sectionId: string,
@@ -166,6 +167,7 @@ function renderPlanCard(
     case 'plan-structures-overview': return <StructuresOverviewCard projectId={project.id} />;
     case 'plan-subsystems-overview': return <SubsystemsOverviewCard projectId={project.id} />;
     case 'plan-regeneration-monitor': return <RegenerationMonitorCard project={project} onSwitchToMap={noop} />;
+    case 'plan-habitat-allocation': return <HabitatAllocationCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }

@@ -19,7 +19,8 @@ export type PlanModule =
   | 'cross-section-solar'
   | 'phasing-budgeting'
   | 'principle-verification'
-  | 'regeneration-monitor';
+  | 'regeneration-monitor'
+  | 'habitat-allocation';
 
 export const PLAN_MODULES: PlanModule[] = [
   'goal-compass',
@@ -35,6 +36,7 @@ export const PLAN_MODULES: PlanModule[] = [
   'phasing-budgeting',
   'principle-verification',
   'regeneration-monitor',
+  'habitat-allocation',
 ];
 
 export function isPlanModule(s: string): s is PlanModule {
@@ -55,6 +57,7 @@ export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
   'phasing-budgeting':      'Phasing',
   'principle-verification': 'Principles',
   'regeneration-monitor':   'Regeneration',
+  'habitat-allocation':     'Habitat',
 };
 
 export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
@@ -71,6 +74,7 @@ export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
   'phasing-budgeting':      'Phasing & Budgeting',
   'principle-verification': 'Holmgren Principle Verification',
   'regeneration-monitor':   'Regeneration Monitoring',
+  'habitat-allocation':     'Habitat Allocation',
 };
 
 // ── Vision-Layout canvas (added 2026-05-07; phase tabs retired 2026-05-14) ───
@@ -263,5 +267,8 @@ export const MODULE_CARDS: Record<
   ],
   'regeneration-monitor': [
     { label: 'Trajectory dashboard', sectionId: 'plan-regeneration-monitor' },
+  ],
+  'habitat-allocation': [
+    { label: 'Allocation & inventory', sectionId: 'plan-habitat-allocation' },
   ],
 };

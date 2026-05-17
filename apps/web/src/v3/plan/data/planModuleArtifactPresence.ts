@@ -120,6 +120,8 @@ export function usePlanModuleArtifactPresence(
     case 'dynamic-layering':
     case 'cross-section-solar':
     case 'goal-compass':
+    case 'regeneration-monitor':
+    case 'habitat-allocation':
       return false;
     default: {
       const _exhaustive: never = module;

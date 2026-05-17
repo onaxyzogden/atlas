@@ -38,6 +38,7 @@ export const PLAN_MODULE_SCOPE: Record<PlanModule, PlanModuleScope> = {
   'phasing-budgeting':      'phased',
   'principle-verification': 'phased',
   'regeneration-monitor':   'time-invariant',
+  'habitat-allocation':     'time-invariant',
 };
 
 interface PlanViewContextValue {

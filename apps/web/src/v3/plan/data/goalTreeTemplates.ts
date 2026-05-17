@@ -79,6 +79,24 @@ const REGENERATIVE_FARM: GoalTree = {
       ],
     },
     {
+      id: 'biodiversity-habitat',
+      title: 'Biodiversity habitat',
+      narrative:
+        'A deliberate share of the parcel set aside and restored as ' +
+        'undisturbed wildlife habitat and biological corridors — the ' +
+        'Apricot Lane ~10% set-aside that hosts native predators and ' +
+        'pollinators as primary biological pest-control tools.',
+      criteria: [
+        {
+          id: 'regen-habitat-pct',
+          description: '% of parcel allocated to undisturbed habitat / corridors',
+          unit: 'pct',
+          target: 10,
+          deadlineYear: 1,
+        },
+      ],
+    },
+    {
       id: 'livestock-enterprise',
       title: 'Livestock enterprise',
       narrative:
