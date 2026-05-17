@@ -80,6 +80,13 @@ payload). The two telemetry tests asserting `400` were **outliers** — the
 codebase-wide validation contract is **422** (errors.ts `ValidationError`,
 gaez/soilgrids/relationships tests); test expectations corrected to 422.
 
+> **Erratum (2026-05-17):** the dual-`zod`-instance *rationale* here is
+> superseded — no genuine dual instance exists in the current install (the
+> escaped-500 was the handler-ordering bug, fixed in `a481d852`). D4's
+> `safeParse`→`ValidationError` is still correct as the 422 contract
+> regardless. See
+> [2026-05-17 dual-zod non-issue](2026-05-17-atlas-dual-zod-non-issue.md).
+
 ## Consequences
 
 - `@ogden/api` **548/548** + typecheck clean; `@ogden/web` **973/973** +

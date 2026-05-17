@@ -75,3 +75,16 @@ strictly better than 15 mechanical per-route edits.
 
 - `apps/api/src/app.ts` (D1 relocation + D2 structural predicate)
 - `apps/api/src/tests/comments.test.ts` (regression lock-in)
+
+## Erratum (2026-05-17)
+
+D2's framing — "neutralises the dual-zod 500 for every route" — describes
+a *defensive* property, not a bug that was occurring. Subsequent read-only
+investigation established that **no genuine dual-zod instance exists**
+between `@ogden/shared` and `@ogden/api` in the current install (single
+root-hoisted `zod@3.25.76`; the only second copy is `@scalar/types`'
+private v4, never on the request path). The original telemetry-500 was
+D1's handler-ordering bug, not a dual-zod `instanceof` miss. D1 and D2's
+*behaviour* (relocation + structural 422) remain correct and are kept as
+intentional defense-in-depth; only the dual-zod *rationale* is superseded.
+See [2026-05-17 dual-zod non-issue](2026-05-17-atlas-dual-zod-non-issue.md).

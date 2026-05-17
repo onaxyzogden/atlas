@@ -4,6 +4,32 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-17 — Investigation: the dual-zod "root cause" does not exist (document-only)
+
+**Branch.** `claude/hardcore-napier-80b70c`. No commit to code — wiki only.
+
+**What.** The session debrief recommended a build-level fix to "eliminate
+the dual-`zod`-instance root cause." Read-only investigation **falsified
+the premise**: `.npmrc` is `node-linker=hoisted` + `shamefully-hoist=true`;
+all workspace packages declare `zod@^3.23.8` and resolve to a **single**
+root `node_modules/zod@3.25.76` (no `apps/api/node_modules/zod`, no
+`packages/shared/node_modules/zod`). `@ogden/shared` and `@ogden/api`
+therefore share one zod instance — `instanceof ZodError` already works.
+The only second copy is `@scalar/types`' private `zod@4.3.6` (transitive
+via `@scalar/fastify-api-reference`), never on the request path. The
+original telemetry-500 was the handler-ordering bug (fixed `a481d852`),
+not a dual-zod miss.
+
+**Outcome.** User decision: **document only**. New ADR
+`decisions/2026-05-17-atlas-dual-zod-non-issue.md` records the finding, the
+preserved invariant, and a re-confirm command; erratum pointers added to
+the two prior 2026-05-17 ADRs and `entities/api.md`. The three mitigations
+(`parseOrThrow`, `parseEdge`, structural `app.ts` check) stay **untouched**
+as cheap, forward-safe defense-in-depth. No source/config/test/dependency
+changes.
+
+---
+
 ## 2026-05-17 — Spun-off follow-up: error-handler ordering + structural dual-zod ZodError detection
 
 **Branch.** `claude/hardcore-napier-80b70c`. Commit `a481d852`.

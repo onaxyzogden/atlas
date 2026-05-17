@@ -91,6 +91,16 @@ bare `.parse()`: shared can resolve a different `zod` instance, so a
 thrown `ZodError` misses `instanceof ZodError` in the global handler and
 escapes as a 500. Codebase-wide validation status is **422**.
 
+**Dual-zod risk is currently theoretical (2026-05-17):** there is a
+*single* root-hoisted `zod@3.25.76` shared by `@ogden/shared` +
+`@ogden/api` (no nested workspace copy; the only other copy is
+`@scalar/types`' private v4, never on the request path), so `instanceof`
+across that boundary works today. The `parseOrThrow`/`parseEdge` wrappers
+and the structural check in `app.ts` are intentional defense-in-depth, not
+fixes for an active bug — kept because they are cheap and forward-safe. See
+`decisions/2026-05-17-atlas-dual-zod-non-issue.md` (includes the invariant
+that must hold to keep it single-instance).
+
 **Resolved 2026-05-17 (`a481d852`):** `app.ts` previously registered
 `setNotFoundHandler` / `setErrorHandler` *after* the route plugins, so
 Fastify's default handler served route errors (status survived via
