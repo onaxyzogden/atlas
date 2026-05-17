@@ -4,6 +4,49 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-17 — Bundled-defect cleanup: web narrowing + faithful postgres.js test mock + telemetry dual-zod
+
+**Branch.** `claude/hardcore-napier-80b70c` (off `feat/atlas-permaculture`
+lineage). Commits `f9018650`, `cf61712a`.
+
+**What.** Fixed two defects bundled into `ddb7e0e4`. (1) Web TS18048 —
+`subscribeVersionedBlobs()` lost a `store` narrowing through a `const`
+alias; carried it onto the subscribed value. (2) `@ogden/api` suite red:
+the brief's "blob-sync off-by-one regression" premise was **falsified by
+parent-baseline evidence** (parent already had 10 failing api tests; HEAD
+added exactly 1 — the acreage-named boundary test). Root cause was an
+**eager** mock DB that executed embedded `sql`…`` sub-fragments (which
+real postgres.js never awaits), shifting every fixture by one. Reworked
+`testApp.ts` into a faithful **lazy `PendingQuery`** thenable + inert
+`json/array/typed/unsafe/begin` helpers, typed `MockDb` (not
+`postgres.Sql`, so the `@ts-expect-error` mock directives stay used — a
+bare `: any` regresses api typecheck via TS2578). Corrected fixtures to
+the real query sequences (boundary `is_builtin` ×2 — also fixed the lone
+"acreage regression", which was a fixture gap, **not** an acreage-code
+bug; siteAssessments Tier-3 derived-layers race-guard count; comments'
+spurious `locationExpr` sub-fragment row removed; smoke → shared helper).
+telemetry parsed `@ogden/shared` schemas with bare `.parse()` →
+dual-`zod`-instance `ZodError` escaped the global handler as 500; adopted
+the relationships-route `safeParse`→`ValidationError` precedent; test
+expectations corrected from 400 → the codebase-wide **422** contract.
+
+**Verify.** `@ogden/api` **548/548** + typecheck exit 0; `@ogden/web`
+**973/973** + typecheck exit 0; `@ogden/shared` **201/201** + typecheck
+exit 0. No regression. CRLF-only `exportDiagnoseBrief.test.ts.snap` churn
+reverted + excluded.
+
+**Flagged (spun off).** `app.ts` registers `setNotFoundHandler` /
+`setErrorHandler` *after* route plugins → Fastify's default handler serves
+route errors (wrong envelope; status codes survive via
+`AppError.statusCode`). Pre-existing/latent — handed to a separate task,
+out of this branch's scope.
+
+**ADR.** `decisions/2026-05-17-atlas-faithful-postgres-test-mock.md` +
+index pointer. Discipline: systematic-debugging — premise verified against
+parent baseline before any fix; no fix authored on the false premise.
+
+---
+
 ## 2026-05-17 — Full `syncService` coverage: Phase 1 registry + Phase 2 generic versioned-blob transport
 
 **Branch.** `feat/atlas-permaculture`.

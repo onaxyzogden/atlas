@@ -57,4 +57,41 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 Key: fastify, postgres, puppeteer, @aws-sdk/client-s3, bullmq, ioredis, zod, bcryptjs, pino
 
 ## Current State
-All 16+ routes functional. PDF export service complete. Data pipeline orchestration works but adapters are stubbed. AI enrichment stubbed. No tests.
+All 16+ routes functional. PDF export service complete. Data pipeline orchestration works but adapters are stubbed. AI enrichment stubbed.
+
+Vitest suite: **548 tests / 50 files** green (as of 2026-05-17).
+
+## Testing harness (read before adding api tests)
+
+`src/tests/helpers/testApp.ts` is a **faithful postgres.js double**, not a
+naive stub (reworked 2026-05-17, see
+`decisions/2026-05-17-atlas-faithful-postgres-test-mock.md`):
+
+- A tagged-template call `db`…`` returns a **lazy `PendingQuery`**. The
+  next queued row-set is shifted **only on `await`** (`.then`). Embedding
+  a `db`…`` fragment as an interpolation value (`WHERE ${userFilter}`,
+  `INSERT … ${locationExpr}`) does **not** await it → it consumes
+  **nothing**. This mirrors real postgres.js.
+- Helper calls — dynamic `db(value)`, `db.json`, `db.array`, `db.typed` —
+  return an inert `SQL_FRAGMENT` and consume nothing. `db.unsafe`
+  executes; `db.begin(cb)` runs `cb` with the same handle.
+- **Write fixtures against the real query sequence**, not against
+  eager-mock artefacts. Do **not** `enqueue()` a row for an embedded
+  sub-fragment or a `db.json(...)` — that re-introduces the off-by-one
+  that produced 10 of 11 failures in the 2026-05-17 cleanup.
+- `mockDb` is typed `MockDb`, deliberately **not** assignable to
+  `postgres.Sql`, so the `// @ts-expect-error — mock` directive each test
+  places before `fastify.decorate('db', mockDb)` stays "used". A bare
+  `: any` silently breaks `@ogden/api typecheck` with TS2578 — do not.
+
+**Validation parsing:** per-route parsing of `@ogden/shared` schemas must
+use the `safeParse`→`ValidationError` precedent
+(`routes/relationships/index.ts`, `routes/telemetry/index.ts`), **not**
+bare `.parse()`: shared can resolve a different `zod` instance, so a
+thrown `ZodError` misses `instanceof ZodError` in the global handler and
+escapes as a 500. Codebase-wide validation status is **422**.
+
+**Known latent issue:** `app.ts` registers `setNotFoundHandler` /
+`setErrorHandler` *after* the route plugins, so Fastify's default handler
+serves route errors (status codes survive via `AppError.statusCode`, but
+the response envelope is the default shape, not `{data:null,error:{…}}`).
