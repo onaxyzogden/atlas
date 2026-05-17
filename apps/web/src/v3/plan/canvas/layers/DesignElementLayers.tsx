@@ -99,6 +99,16 @@ export default function DesignElementLayers({
     const conflictLines: GeoJSON.Feature[] = [];
 
     for (const el of visible) {
+      // Skip rows whose geometry is missing or malformed. The DesignElement
+      // type declares `geometry` as required, but synced/draft rows can
+      // arrive without it (Auto-Design drafts land here because this is the
+      // only consumer that opts into `includeDrafts`). Accessing
+      // `el.geometry.type` on such a row throws "Cannot read properties of
+      // undefined (reading 'type')" and takes down the whole Plan canvas.
+      // Mirrors the skip-on-malformed convention used for centroids below
+      // and PlanDataLayers' `acresOf` guard.
+      const geom = el.geometry as GeoJSON.Geometry | undefined;
+      if (!geom || typeof geom.type !== 'string') continue;
       const spec = findElementSpec(el.kind);
       const color = spec?.color ?? '#888';
       const originView = el.view ?? 'current';
