@@ -145,13 +145,14 @@ describe('maybeWriteAssessmentIfTier3Complete', () => {
     // Queue order mirrors the writer's SQL sequence. Layers is one query
     // returning all 6 rows, so pass them as a single enqueue(...spread) call
     // (builder pushes them as one row-set array).
-    mock.enqueue({ completed: '4' });                 // 1. completion check
-    mock.enqueue();                                   // 2. debounce check (empty = fresh)
-    mock.enqueue({ acreage: '40.0', country: 'US' }); // 3. project fetch
-    mock.enqueue(...layerFixtures());                 // 4. layers (single query, 6 rows)
-    mock.enqueue();                                   // 5. prev version lookup inside tx (empty)
-    mock.enqueue();                                   // 6. UPDATE is_current=false
-    mock.enqueue({ id: 'sa-0001' });                  // 7. INSERT RETURNING id
+    mock.enqueue({ completed: '4' });                 // 1. Tier-3 completion count
+    mock.enqueue({ present: '3' });                   // 2. derived-layers presence guard (>=3)
+    mock.enqueue();                                   // 3. debounce check (empty = fresh)
+    mock.enqueue({ acreage: '40.0', country: 'US' }); // 4. project fetch
+    mock.enqueue(...layerFixtures());                 // 5. layers (single query, 6 rows)
+    mock.enqueue();                                   // 6. prev version lookup inside tx (empty)
+    mock.enqueue();                                   // 7. UPDATE is_current=false
+    mock.enqueue({ id: 'sa-0001' });                  // 8. INSERT RETURNING id
 
     const result = await maybeWriteAssessmentIfTier3Complete(
       mock.db as unknown as import('postgres').Sql,

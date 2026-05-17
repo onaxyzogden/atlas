@@ -96,7 +96,7 @@ describe('POST /api/v1/telemetry/act-interactions', () => {
     expect(res.statusCode).toBe(401);
   });
 
-  it('returns 400 when payload fails per-eventType validation', async () => {
+  it('returns 422 when payload fails per-eventType validation', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/telemetry/act-interactions',
@@ -110,17 +110,24 @@ describe('POST /api/v1/telemetry/act-interactions', () => {
         ],
       },
     });
-    expect(res.statusCode).toBe(400);
+    // ZodError → custom error handler → 422 VALIDATION_ERROR envelope
+    expect(res.statusCode).toBe(422);
+    const body = JSON.parse(res.body);
+    expect(body.data).toBeNull();
+    expect(body.error.code).toBe('VALIDATION_ERROR');
   });
 
-  it('returns 400 when batch is empty', async () => {
+  it('returns 422 when batch is empty', async () => {
     const res = await app.inject({
       method: 'POST',
       url: '/api/v1/telemetry/act-interactions',
       headers: { authorization: `Bearer ${authToken}` },
       payload: { events: [] },
     });
-    expect(res.statusCode).toBe(400);
+    expect(res.statusCode).toBe(422);
+    const body = JSON.parse(res.body);
+    expect(body.data).toBeNull();
+    expect(body.error.code).toBe('VALIDATION_ERROR');
   });
 });
 
