@@ -55,6 +55,7 @@ beforeEach(() => { clearQueue(); });
 describe('POST /api/v1/projects/:id/boundary', () => {
   it('sets boundary and returns 200', async () => {
     enqueue(projectRow()); // resolveProjectRole
+    enqueue({ is_builtin: false }); // refuseIfBuiltin guard
     // UPDATE projects SET parcel_boundary, centroid, acreage RETURNING ...
     enqueue({
       id: TEST_PROJ_ID,
@@ -84,6 +85,7 @@ describe('POST /api/v1/projects/:id/boundary', () => {
     // an un-normalized payload silently produced acreage 0. The route must
     // normalize it to a Polygon and persist a real area.
     enqueue(projectRow());
+    enqueue({ is_builtin: false }); // refuseIfBuiltin guard
     enqueue({
       id: TEST_PROJ_ID,
       acreage: 152.3,

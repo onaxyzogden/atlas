@@ -82,8 +82,9 @@ describe('POST /api/v1/projects/:id/comments', () => {
   it('creates a comment and returns 201', async () => {
     // resolveProjectRole (owner shortcut)
     enqueue(projectRow());
-    // db`NULL` for locationExpr (no location provided)
-    enqueue();
+    // NOTE: locationExpr (`db`NULL``) is an embedded sub-fragment, not an
+    // awaited query — postgres.js never executes it on its own, so it
+    // consumes no canned row (see helpers/testApp.ts).
     // INSERT comment RETURNING *
     enqueue(commentRow({ text: 'New comment', author_id: TEST_USER_ID }));
     // SELECT user display_name, email

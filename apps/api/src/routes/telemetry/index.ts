@@ -21,6 +21,24 @@ import {
   GetActAffinityAggregateQuery,
   type ActInteractionEventInput,
 } from '@ogden/shared';
+import { ValidationError } from '../../lib/errors.js';
+
+// PostActInteractionsBody / GetActAffinityAggregateQuery live in @ogden/shared,
+// which can resolve a different `zod` instance than the api package — a thrown
+// ZodError then misses `instanceof ZodError` in the global handler. Parse by
+// shape and rethrow as our own ValidationError so the response is consistent
+// (422 + structured payload). See routes/relationships/index.ts for the same
+// pattern.
+function parseOrThrow<T>(schema: { safeParse(v: unknown): z.SafeParseReturnType<unknown, T> }, value: unknown): T {
+  const r = schema.safeParse(value);
+  if (!r.success) {
+    throw new ValidationError(
+      'Request validation failed',
+      r.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+    );
+  }
+  return r.data;
+}
 
 export default async function telemetryRoutes(fastify: FastifyInstance) {
   const { db, authenticate } = fastify;
@@ -30,7 +48,7 @@ export default async function telemetryRoutes(fastify: FastifyInstance) {
     '/act-interactions',
     { preHandler: [authenticate] },
     async (req, reply) => {
-      const body = PostActInteractionsBody.parse(req.body);
+      const body = parseOrThrow(PostActInteractionsBody, req.body);
 
       const userId = req.userId;
       let ingested = 0;
@@ -74,7 +92,7 @@ export default async function telemetryRoutes(fastify: FastifyInstance) {
     '/act-interactions/aggregate',
     { preHandler: [authenticate] },
     async (req) => {
-      const query = GetActAffinityAggregateQuery.parse(req.query);
+      const query = parseOrThrow(GetActAffinityAggregateQuery, req.query);
 
       // Build WHERE clause with optional filters. The postgres tagged-template
       // engine accepts conditional fragments via db`...`; compose by

@@ -5,27 +5,10 @@
  * database or Redis instance is required.
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import bcrypt from 'bcryptjs';
-
-// ─── Hoisted mock state ───────────────────────────────────────────────────────
-//
-// vi.hoisted() runs before vi.mock() factory functions, making these variables
-// available to the mock factories below without hitting the "hoisting" trap.
-
-const { mockDb, enqueue } = vi.hoisted(() => {
-  const queue: unknown[][] = [];
-
-  // Tagged-template function that shifts the next row-set off the queue.
-  // Called as: db`SELECT ...` → Promise<row[]>
-  const mockDb = (_strings: TemplateStringsArray, ..._values: unknown[]) =>
-    Promise.resolve(queue.shift() ?? []);
-
-  const enqueue = (...rows: unknown[]) => { queue.push(rows); };
-
-  return { mockDb, enqueue };
-});
+import { mockDb, enqueue, clearQueue } from './helpers/testApp.js';
 
 // ─── Module mocks ────────────────────────────────────────────────────────────
 
@@ -105,6 +88,8 @@ beforeAll(async () => {
 afterAll(async () => {
   await app.close();
 });
+
+beforeEach(() => { clearQueue(); });
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
