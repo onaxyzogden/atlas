@@ -16,8 +16,9 @@
  *     ├ BaseMapCard                  — bottom-left floating basemap + overlays
  *     ├ DesignElementDrawHost        — mounts the draw hook iff activeKind set
  *
- * The palette lives in `PlanLayout`'s leftRail slot, not inside the canvas,
- * so it shares the StageShell column with the existing PlanTools rail.
+ * The custom-model palette is a section inside the PlanTools left rail
+ * (mounted there, gated to vision / terrain3d views), not a floating card
+ * on this canvas.
  */
 
 import { useState } from 'react';
@@ -36,7 +37,6 @@ import DeckOverlay from '../../_shared/deck/DeckOverlay.js';
 import DesignToolRail, { type ToolMode } from './DesignToolRail.js';
 import { MapCursorHost } from './useMapCursor.js';
 import BaseMapCard from './BaseMapCard.js';
-import CustomModelPalette from './CustomModelPalette.js';
 import MapToolbar from '../../observe/components/MapToolbar.js';
 import { useDesignElementDrawTool } from './draw/useDesignElementDrawTool.js';
 import { useActiveElementKind } from './useToolIdToElementKind.js';
@@ -54,6 +54,16 @@ import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
 import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
 import PlanSelectionFloater from '../PlanSelectionFloater.js';
 import type { PlanView } from '../types.js';
+
+/**
+ * Overlay legend rows that are dead no-ops on this canvas: it does not mount
+ * PlanSunPathOverlay or PlanZoneRingsOverlay (only Current Land does).
+ * `topography` is intentionally NOT listed — its steward-drawn topo
+ * annotations still render here via ObserveAnnotationLayers (only its
+ * MapTiler contour-line half, from the unmounted PlanContoursOverlay, is
+ * absent).
+ */
+const VISION_DEAD_OVERLAYS = ['sunPath', 'zoneRings'] as const;
 
 interface Props {
   projectId: string;
@@ -159,8 +169,7 @@ export default function VisionLayoutCanvas({
             mode={mode}
             setMode={setMode}
           />
-          <BaseMapCard stage="plan" />
-          <CustomModelPalette />
+          <BaseMapCard stage="plan" hiddenOverlays={VISION_DEAD_OVERLAYS} />
           <SilvopasturePopover projectId={projectId} />
           <SilvopastureMemberOutline map={map} projectId={projectId} />
           <MapToolbar

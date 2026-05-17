@@ -153,6 +153,17 @@ All use `persist` middleware with localStorage. Key stores:
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
 
 ## Current State
+- **Vision Layout UX consolidation (2026-05-17)** — three Vision Layout
+  (also `terrain3d`) Plan-canvas rough edges fixed, no behavior/layer
+  deletion. `BaseMapCard` gained an optional `hiddenOverlays` prop (mount
+  site declares its dead overlay keys; filter =
+  `STAGE_HIDDEN[stage] ∪ hiddenOverlays`); `VisionLayoutCanvas` passes
+  `VISION_DEAD_OVERLAYS=['sunPath','zoneRings']`. `zones`/`zoneRings`
+  legend labels corrected (Z1–Z5). `CustomModelPalette` relocated from a
+  floating bottom-right card into the left `PlanTools` rail (restyled as
+  a rail `<section>`, gated `usePlanView() ∈ {vision,terrain3d}`).
+  `InlineFeaturePopover` re-anchored top-right → bottom-right. See
+  `decisions/2026-05-17-atlas-vision-layout-ux-consolidation.md`.
 - **Seeded-zones overlay show/hide toggle (2026-05-17)** — generator-seeded
   ("ring-seed") `LandZone`s can now be hidden on the Plan map via a new
   `matrixTogglesStore.seededZones` toggle in the BaseMapCard "Overlays"

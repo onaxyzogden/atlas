@@ -1,6 +1,9 @@
 /**
- * CustomModelPalette — floating card for the Plan Vision canvas that lets
- * the steward upload custom GLB files and place them on the map.
+ * CustomModelPalette — a section in the PlanTools left rail (Vision /
+ * 3D Terrain views only) that lets the steward upload custom GLB files
+ * and place them on the map. Mounted by `PlanTools`, not the canvas, so
+ * it lives in the shared StageShell left column alongside the other rail
+ * sections rather than floating over the map.
  *
  * Per ADR 2026-05-11 Phase 6. Uploads go through `customModelValidator`
  * (magic-byte + extension allowlist + ≤10 MB) before landing in
@@ -16,7 +19,7 @@ import { useCustomModelStore } from '../../../store/customModelStore.js';
 import { useCustomDrawSelectionStore } from '../../../store/customDrawSelectionStore.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import { validateCustomGlb } from './customModelValidator.js';
-import css from './DesignElementPalette.module.css';
+import css from '../PlanTools.module.css';
 
 const CUSTOM_GLB_TOOL_ID = 'plan.structures-subsystems.be.custom-glb' as const;
 
@@ -80,83 +83,74 @@ export default function CustomModelPalette() {
   const rows = Object.values(entries).sort((a, b) => b.addedAt - a.addedAt);
 
   return (
-    <div
-      className={css.panel}
-      aria-label="Custom models"
-      style={{
-        position: 'absolute',
-        bottom: 16,
-        right: 16,
-        height: 'auto',
-        maxHeight: 'calc(100vh - 32px)',
-        zIndex: 5,
-      }}
-    >
-      <div className={css.titleRow}>
-        <span className={css.title}>Custom Models</span>
-      </div>
+    <section className={css.group} aria-label="Custom models">
+      <header className={css.groupHeader}>
+        <span className={css.dot} aria-hidden="true" />
+        <span className={css.groupLabel}>Custom models</span>
+      </header>
 
-      <div className={css.scroll}>
-        {rows.length === 0 ? (
-          <p
-            style={{
-              margin: 0,
-              fontSize: 11,
-              color: 'var(--color-text-muted)',
-              lineHeight: 1.4,
-            }}
-          >
-            No uploads yet. GLB files up to 10 MB. After uploading,
-            click a tile and then click on the map to place.
-          </p>
-        ) : (
-          <div className={css.tiles}>
-            {rows.map((entry) => {
-              const isActive =
-                activeTool === CUSTOM_GLB_TOOL_ID &&
-                activeCustomModelId === entry.id;
-              return (
-                <div
-                  key={entry.id}
-                  style={{ position: 'relative', display: 'flex' }}
+      {rows.length === 0 ? (
+        <p
+          style={{
+            margin: 0,
+            fontSize: 11,
+            color: 'var(--color-text-muted)',
+            lineHeight: 1.4,
+          }}
+        >
+          No uploads yet. GLB files up to 10 MB. After uploading,
+          click a tile and then click on the map to place.
+        </p>
+      ) : (
+        <div className={css.itemGrid}>
+          {rows.map((entry) => {
+            const isActive =
+              activeTool === CUSTOM_GLB_TOOL_ID &&
+              activeCustomModelId === entry.id;
+            return (
+              <div
+                key={entry.id}
+                style={{ position: 'relative', display: 'flex' }}
+              >
+                <button
+                  type="button"
+                  className={css.toolItem}
+                  data-active={isActive ? 'true' : 'false'}
+                  aria-pressed={isActive}
+                  onClick={() => onTileClick(entry.id)}
+                  title={`${entry.label} (${(entry.sizeBytes / 1024).toFixed(0)} KB)`}
+                  style={{ flex: 1 }}
                 >
-                  <button
-                    type="button"
-                    className={css.tile}
-                    data-active={isActive}
-                    onClick={() => onTileClick(entry.id)}
-                    title={`${entry.label} (${(entry.sizeBytes / 1024).toFixed(0)} KB)`}
-                    style={{ flex: 1 }}
-                  >
-                    <Upload size={16} strokeWidth={1.75} aria-hidden="true" />
-                    <span className={css.tileLabel}>{entry.label}</span>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`Remove ${entry.label}`}
-                    onClick={() => {
-                      void remove(entry.id);
-                    }}
-                    style={{
-                      position: 'absolute',
-                      top: 2,
-                      right: 2,
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--color-text-muted)',
-                      cursor: 'pointer',
-                      padding: 2,
-                      lineHeight: 0,
-                    }}
-                  >
-                    <Trash2 size={10} strokeWidth={1.75} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                  <span className={css.toolGlyph} aria-hidden="true">
+                    <Upload size={16} strokeWidth={1.6} />
+                  </span>
+                  <span className={css.toolLabel}>{entry.label}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Remove ${entry.label}`}
+                  onClick={() => {
+                    void remove(entry.id);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: 2,
+                    right: 2,
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    padding: 2,
+                    lineHeight: 0,
+                  }}
+                >
+                  <Trash2 size={10} strokeWidth={1.75} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <input
         ref={fileInputRef}
@@ -171,12 +165,12 @@ export default function CustomModelPalette() {
       />
       <button
         type="button"
-        className={css.uploadBtn}
+        className={css.openModuleBtn}
         disabled={busy}
         onClick={() => fileInputRef.current?.click()}
       >
-        <Upload size={14} strokeWidth={1.75} aria-hidden="true" />
-        {busy ? 'Uploading…' : 'Upload .glb'}
+        <Upload size={14} strokeWidth={1.6} aria-hidden="true" />
+        <span>{busy ? 'Uploading…' : 'Upload .glb'}</span>
       </button>
       {error && (
         <p
@@ -190,6 +184,6 @@ export default function CustomModelPalette() {
           {error}
         </p>
       )}
-    </div>
+    </section>
   );
 }
