@@ -711,6 +711,7 @@ async function initialSync(): Promise<void> {
       // out through subscribeVersionedBlobs as fresh pushes.
       if (FLAGS.SYNC_STATE_BLOBS) {
         await hydrateProjectStateBlobs(project);
+        await hydrateTypedTables(project);
       }
     }
   } catch (err) {
@@ -950,6 +951,56 @@ export async function hydrateProjectStateBlobs(
         err,
       );
     }
+  }
+}
+
+/**
+ * Device-B restore for the typed-table class (vegetation + succession).
+ * Mirrors `mergeDesignFeatures`, NOT the blob path: server-wins per id,
+ * local-only records for this project are pushed up so an offline-created
+ * record is never lost. Runs inside `initialSync`'s `isSyncing` window.
+ */
+export async function hydrateTypedTables(
+  project: LocalProject,
+): Promise<void> {
+  if (!project.serverId) return;
+  const serverId = project.serverId;
+
+  try {
+    const { data } = await api.vegetation.list(serverId);
+    const serverRecs = (data ?? []) as unknown as VegetationPatch[];
+    const seen = new Set<string>();
+    const veg = useVegetationStore.getState();
+    for (const rec of serverRecs) {
+      seen.add(rec.id);
+      if (veg.patches.some((p) => p.id === rec.id)) veg.updatePatch(rec.id, rec);
+      else veg.addPatch(rec);
+    }
+    const localOnly = useVegetationStore
+      .getState()
+      .patches.filter((p) => p.projectId === project.id && !seen.has(p.id));
+    for (const rec of localOnly) await syncVegetationCreate(rec);
+  } catch (err) {
+    console.warn(`[SYNC] vegetation hydrate failed for "${project.name}":`, err);
+  }
+
+  try {
+    const { data } = await api.succession.list(serverId);
+    const serverRecs = (data ?? []) as unknown as SuccessionMilestone[];
+    const seen = new Set<string>();
+    const succ = useSuccessionStore.getState();
+    for (const rec of serverRecs) {
+      seen.add(rec.id);
+      if (succ.milestones.some((m) => m.id === rec.id))
+        succ.updateMilestone(rec.id, rec);
+      else succ.addMilestone(rec);
+    }
+    const localOnly = useSuccessionStore
+      .getState()
+      .milestones.filter((m) => m.projectId === project.id && !seen.has(m.id));
+    for (const rec of localOnly) await syncSuccessionCreate(rec);
+  } catch (err) {
+    console.warn(`[SYNC] succession hydrate failed for "${project.name}":`, err);
   }
 }
 
