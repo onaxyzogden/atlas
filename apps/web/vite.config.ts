@@ -115,6 +115,8 @@ export default defineConfig({
     'process.env.FEATURE_MULTI_USER': JSON.stringify(process.env.FEATURE_MULTI_USER ?? 'true'),
     'process.env.FEATURE_SCENARIOS': JSON.stringify(process.env.FEATURE_SCENARIOS ?? 'true'),
     'process.env.FEATURE_PUBLIC_PORTAL': JSON.stringify(process.env.FEATURE_PUBLIC_PORTAL ?? 'false'),
+    'process.env.FEATURE_RELATIONSHIPS': JSON.stringify(process.env.FEATURE_RELATIONSHIPS ?? 'false'),
+    'process.env.FEATURE_SYNC_STATE_BLOBS': JSON.stringify(process.env.FEATURE_SYNC_STATE_BLOBS ?? 'false'),
   },
   resolve: {
     alias: {
