@@ -103,6 +103,42 @@ describe('PUT /api/v1/project-state/project/:projectId/:storeKey', () => {
     expect(body.error).toBeNull();
   });
 
+  it('cold-start: first write of a brand-new (project, storeKey) at baseRev 0 → 200 rev 1', async () => {
+    enqueue(projectRow());                          // resolveProjectRole owner shortcut
+    enqueue(blobRow({ rev: 1, store_key: 'ogden-hazards' })); // fresh INSERT gets DEFAULT rev 1
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/project-state/project/${TEST_PROJ_ID}/ogden-hazards`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { envelopeSchema: 1, schemaVersion: 2, baseRev: 0, payload: { items: [] } },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data.rev).toBe(1);
+    expect(body.error).toBeNull();
+  });
+
+  it('allows a designer (write role) to upsert → 200', async () => {
+    // resolveProjectRole: not owner → membership lookup returns designer
+    enqueue(projectRow({ owner_id: TEST_USER_ID_2 }));
+    enqueue({ role: 'designer' });
+    enqueue(blobRow({ rev: 6 }));
+
+    const res = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/project-state/project/${TEST_PROJ_ID}/${STORE_KEY}`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { envelopeSchema: 1, schemaVersion: 2, baseRev: 5, payload: { headline: 'y' } },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data.rev).toBe(6);
+    expect(body.error).toBeNull();
+  });
+
   it('rejects a viewer with 403 (no DB write attempted)', async () => {
     // resolveProjectRole: not owner → membership lookup returns viewer
     enqueue(projectRow({ owner_id: TEST_USER_ID_2 }));
