@@ -23,4 +23,5 @@ export const PLAN_MODULE_DOT: Record<PlanModule, string> = {
   'cross-section-solar': '#e6c34a',
   'phasing-budgeting': '#c4a265',
   'principle-verification': '#e88aa4',
+  'regeneration-monitor': '#79c98a',
 };

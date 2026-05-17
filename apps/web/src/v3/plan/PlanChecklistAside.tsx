@@ -150,6 +150,14 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Document the rationale for each score as a project record.',
     ],
   },
+  'regeneration-monitor': {
+    why: 'Regeneration is only real if it is measured over time. The Apricot Lane Farms model rests on a peer-reviewed MDPI 9-year longitudinal soil study (Year 0 / 5 / 9 sampling of microbial biomass, soil organic matter, and water-stable aggregates) — without dated, per-zone sampling a steward cannot tell whether the land is actually improving or only appears to be (Holmgren P4: Apply self-regulation and accept feedback).',
+    how: [
+      'Log dated observation samples per metric and per management zone — soil organic matter %, living cover %, infiltration %, microbial biomass, aggregate stability, bulk density.',
+      'Read each metric\'s trajectory against the goal-tree target line and deadline-year marker.',
+      'Act on lagging verdicts: where the curve is below trajectory, revisit the upstream water, soil, or plant module before the deadline year.',
+    ],
+  },
 };
 
 interface Props {
