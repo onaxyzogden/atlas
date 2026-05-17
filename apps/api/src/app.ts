@@ -136,6 +136,80 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   // ─── Pipeline orchestrator (populated in onReady once DB + Redis are available)
   app.decorate('pipeline', null as unknown as DataPipelineOrchestrator);
 
+  // ─── 404 + global error handlers ─────────────────────────────────────────────
+  //
+  // MUST be registered BEFORE the route plugins below. Fastify resolves a
+  // route's error/notFound handler from the encapsulated context that was
+  // current when that route was registered; handlers set on `app` *after*
+  // `await app.register(routePlugin)` are never inherited by those already-
+  // booted child contexts, so route errors silently fall through to Fastify's
+  // default handler (wrong `{statusCode,error,message}` envelope; ZodError →
+  // 500 instead of our 422). See decisions/2026-05-17-atlas-faithful-postgres
+  // -test-mock.md (flagged) and 2026-05-17 follow-up.
+
+  app.setNotFoundHandler((_req, reply) => {
+    reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({
+      data: null,
+      error: { code: 'NOT_FOUND', message: 'Route not found' },
+    });
+  });
+
+  app.setErrorHandler((error, _req, reply) => {
+    reply.header('Content-Type', 'application/json; charset=utf-8');
+
+    if (error instanceof AppError) {
+      reply.code(error.statusCode).send({
+        data: null,
+        error: { code: error.code, message: error.message, details: error.details },
+      });
+      return;
+    }
+
+    // Structural ZodError detection, not just `instanceof`. `@ogden/shared`
+    // can resolve a *different* zod instance than `@ogden/api`, so a ZodError
+    // thrown by a `SharedSchema.parse(req.body)` call fails `instanceof
+    // ZodError` here and would otherwise escape as a generic 500. Matching on
+    // the structural shape (`name === 'ZodError'` + an `issues` array) catches
+    // it regardless of which zod instance produced it — the dual-zod 500 is
+    // neutralised for every route at once. See decisions/2026-05-17-atlas-
+    // faithful-postgres-test-mock.md (D4) + 2026-05-17 follow-up.
+    const zodErr =
+      error instanceof ZodError
+        ? error
+        : error != null &&
+            (error as { name?: unknown }).name === 'ZodError' &&
+            Array.isArray((error as { issues?: unknown }).issues)
+          ? (error as unknown as ZodError)
+          : null;
+
+    if (zodErr) {
+      reply.code(422).send({
+        data: null,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Request validation failed',
+          details: zodErr.issues.map((i) => ({
+            path: i.path.join('.'),
+            message: i.message,
+          })),
+        },
+      });
+      return;
+    }
+
+    app.log.error(error);
+
+    const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
+    const message = config.NODE_ENV !== 'production'
+      ? (error instanceof Error ? error.message : String(error))
+      : 'An unexpected error occurred';
+
+    reply.code(statusCode).send({
+      data: null,
+      error: { code: 'INTERNAL_ERROR', message },
+    });
+  });
+
   // ─── Routes ─────────────────────────────────────────────────────────────────
 
   await app.register(authRoutes,     { prefix: '/api/v1/auth' });
@@ -360,56 +434,6 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
 
   app.addHook('onClose', async () => {
     await closeBrowser();
-  });
-
-  // ─── 404 handler (always JSON) ────────────────────────────────────────────────
-
-  app.setNotFoundHandler((_req, reply) => {
-    reply.code(404).header('Content-Type', 'application/json; charset=utf-8').send({
-      data: null,
-      error: { code: 'NOT_FOUND', message: 'Route not found' },
-    });
-  });
-
-  // ─── Global error handler ────────────────────────────────────────────────────
-
-  app.setErrorHandler((error, _req, reply) => {
-    reply.header('Content-Type', 'application/json; charset=utf-8');
-
-    if (error instanceof AppError) {
-      reply.code(error.statusCode).send({
-        data: null,
-        error: { code: error.code, message: error.message, details: error.details },
-      });
-      return;
-    }
-
-    if (error instanceof ZodError) {
-      reply.code(422).send({
-        data: null,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Request validation failed',
-          details: error.issues.map((i) => ({
-            path: i.path.join('.'),
-            message: i.message,
-          })),
-        },
-      });
-      return;
-    }
-
-    app.log.error(error);
-
-    const statusCode = (error as { statusCode?: number }).statusCode ?? 500;
-    const message = config.NODE_ENV !== 'production'
-      ? (error instanceof Error ? error.message : String(error))
-      : 'An unexpected error occurred';
-
-    reply.code(statusCode).send({
-      data: null,
-      error: { code: 'INTERNAL_ERROR', message },
-    });
   });
 
   return app;

@@ -101,4 +101,26 @@ describe('POST /api/v1/projects/:id/comments', () => {
 
     expect(res.statusCode).toBe(201);
   });
+
+  it('returns 422 with the standard envelope when the body fails CreateCommentInput (dual-zod safe)', async () => {
+    // resolveProjectRole (owner shortcut) runs before the bare
+    // `CreateCommentInput.parse(req.body)`. `CreateCommentInput` is an
+    // `@ogden/shared` schema, so its ZodError may originate from a *different*
+    // zod instance than `@ogden/api` — the global handler must detect it
+    // structurally and return 422 + `{data:null,error:{…}}`, not a generic 500.
+    enqueue(projectRow());
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/comments`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: { notText: 123 },
+    });
+
+    expect(res.statusCode).toBe(422);
+    const body = JSON.parse(res.body);
+    expect(body.data).toBeNull();
+    expect(body.error.code).toBe('VALIDATION_ERROR');
+    expect(Array.isArray(body.error.details)).toBe(true);
+  });
 });
