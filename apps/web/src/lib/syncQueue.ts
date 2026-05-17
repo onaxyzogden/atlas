@@ -14,7 +14,14 @@ const DB_VERSION = 1;
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1000;
 
-export type SyncStoreType = 'project' | 'zone' | 'structure' | 'comment' | 'state-blob';
+export type SyncStoreType =
+  | 'project'
+  | 'zone'
+  | 'structure'
+  | 'comment'
+  | 'state-blob'
+  | 'vegetation'
+  | 'succession';
 export type SyncAction = 'create' | 'update' | 'delete';
 
 export interface QueuedOperation {

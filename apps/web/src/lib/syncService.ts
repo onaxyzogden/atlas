@@ -19,6 +19,8 @@ import { pushProjectStateBlob, buildBlobEnvelope, blobLocalId } from './blobSync
 import { SYNCED_STORES, type SyncedStoreDescriptor } from './syncManifest.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
+import { useVegetationStore, type VegetationPatch } from '../store/vegetationStore.js';
+import { useSuccessionStore, type SuccessionMilestone } from '../store/successionStore.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from '../store/builtEnvironmentStoreV2.js';
 import {
@@ -463,6 +465,137 @@ async function syncStructureDelete(structure: Structure) {
       payload: { serverId: structure.serverId },
     });
   }
+}
+
+// ─── Sync handlers (typed-table: vegetation + succession) ────────────────────
+
+/**
+ * Content diff for typed-table records. Unlike zones/structures these have
+ * no serverId roundtrip and no `updatedAt` on the local record (the id is
+ * client-supplied and stable from creation, machinery_items-style), so an
+ * "update" is a JSON content change rather than a timestamp delta.
+ */
+function diffArrayByContent<T extends { id: string }>(
+  curr: T[],
+  prev: T[],
+): { added: T[]; updated: T[]; removed: T[] } {
+  const prevMap = new Map(prev.map((i) => [i.id, i]));
+  const currMap = new Map(curr.map((i) => [i.id, i]));
+  const added: T[] = [];
+  const updated: T[] = [];
+  const removed: T[] = [];
+  for (const it of curr) {
+    const p = prevMap.get(it.id);
+    if (!p) added.push(it);
+    else if (JSON.stringify(p) !== JSON.stringify(it)) updated.push(it);
+  }
+  for (const it of prev) if (!currMap.has(it.id)) removed.push(it);
+  return { added, updated, removed };
+}
+
+interface TypedRecord {
+  id: string;
+  projectId: string;
+}
+
+interface TypedTableSpec<T extends TypedRecord> {
+  storeType: 'vegetation' | 'succession';
+  create: (projectServerId: string, body: T) => Promise<unknown>;
+  update: (id: string, body: T) => Promise<unknown>;
+  remove: (id: string) => Promise<unknown>;
+}
+
+async function typedCreate<T extends TypedRecord>(spec: TypedTableSpec<T>, rec: T) {
+  const projectServerId = getProjectServerId(rec.projectId);
+  if (!projectServerId) return; // project not synced yet — initialSync pushes it
+  try {
+    await spec.create(projectServerId, rec);
+  } catch (err) {
+    console.warn(`[SYNC] ${spec.storeType} create failed, queuing:`, err);
+    await syncQueue.enqueue({
+      storeType: spec.storeType,
+      action: 'create',
+      localId: rec.id,
+      payload: rec,
+    });
+  }
+}
+
+async function typedUpdate<T extends TypedRecord>(spec: TypedTableSpec<T>, rec: T) {
+  if (!getProjectServerId(rec.projectId)) return;
+  try {
+    await spec.update(rec.id, rec);
+  } catch (err) {
+    console.warn(`[SYNC] ${spec.storeType} update failed, queuing:`, err);
+    await syncQueue.enqueue({
+      storeType: spec.storeType,
+      action: 'update',
+      localId: rec.id,
+      payload: rec,
+    });
+  }
+}
+
+async function typedDelete<T extends TypedRecord>(spec: TypedTableSpec<T>, rec: T) {
+  try {
+    await spec.remove(rec.id);
+    await syncQueue.dequeueByLocalId(rec.id);
+  } catch (err) {
+    console.warn(`[SYNC] ${spec.storeType} delete failed, queuing:`, err);
+    await syncQueue.enqueue({
+      storeType: spec.storeType,
+      action: 'delete',
+      localId: rec.id,
+      payload: { id: rec.id },
+    });
+  }
+}
+
+const vegetationSpec: TypedTableSpec<VegetationPatch> = {
+  storeType: 'vegetation',
+  create: (pid, body) => api.vegetation.create(pid, body as never),
+  update: (id, body) => api.vegetation.update(id, body as never),
+  remove: (id) => api.vegetation.delete(id),
+};
+
+const successionSpec: TypedTableSpec<SuccessionMilestone> = {
+  storeType: 'succession',
+  create: (pid, body) => api.succession.create(pid, body as never),
+  update: (id, body) => api.succession.update(id, body as never),
+  remove: (id) => api.succession.delete(id),
+};
+
+export const syncVegetationCreate = (r: VegetationPatch) => typedCreate(vegetationSpec, r);
+export const syncVegetationUpdate = (r: VegetationPatch) => typedUpdate(vegetationSpec, r);
+export const syncVegetationDelete = (r: VegetationPatch) => typedDelete(vegetationSpec, r);
+export const syncSuccessionCreate = (r: SuccessionMilestone) => typedCreate(successionSpec, r);
+export const syncSuccessionUpdate = (r: SuccessionMilestone) => typedUpdate(successionSpec, r);
+export const syncSuccessionDelete = (r: SuccessionMilestone) => typedDelete(successionSpec, r);
+
+function subscribeToVegetation() {
+  let prev = useVegetationStore.getState().patches;
+  return useVegetationStore.subscribe((state) => {
+    if (isSyncing) return;
+    const curr = state.patches;
+    const { added, updated, removed } = diffArrayByContent(curr, prev);
+    prev = curr;
+    for (const r of added) void syncVegetationCreate(r);
+    for (const r of updated) void syncVegetationUpdate(r);
+    for (const r of removed) void syncVegetationDelete(r);
+  });
+}
+
+function subscribeToSuccession() {
+  let prev = useSuccessionStore.getState().milestones;
+  return useSuccessionStore.subscribe((state) => {
+    if (isSyncing) return;
+    const curr = state.milestones;
+    const { added, updated, removed } = diffArrayByContent(curr, prev);
+    prev = curr;
+    for (const r of added) void syncSuccessionCreate(r);
+    for (const r of updated) void syncSuccessionUpdate(r);
+    for (const r of removed) void syncSuccessionDelete(r);
+  });
 }
 
 // ─── B. Initial fetch & merge ────────────────────────────────────────────────
@@ -939,6 +1072,28 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
       }
       break;
     }
+    case 'vegetation': {
+      if (op.action === 'create') {
+        await syncVegetationCreate(payload as unknown as VegetationPatch);
+      } else if (op.action === 'update') {
+        await syncVegetationUpdate(payload as unknown as VegetationPatch);
+      } else if (op.action === 'delete') {
+        const id = (payload as { id: string }).id;
+        if (id) await api.vegetation.delete(id);
+      }
+      break;
+    }
+    case 'succession': {
+      if (op.action === 'create') {
+        await syncSuccessionCreate(payload as unknown as SuccessionMilestone);
+      } else if (op.action === 'update') {
+        await syncSuccessionUpdate(payload as unknown as SuccessionMilestone);
+      } else if (op.action === 'delete') {
+        const id = (payload as { id: string }).id;
+        if (id) await api.succession.delete(id);
+      }
+      break;
+    }
     case 'state-blob': {
       await executeStateBlobOp(op);
       break;
@@ -1028,6 +1183,8 @@ export const syncService = {
     // shadow; hydration + conflict surface land in Phase 4.
     if (FLAGS.SYNC_STATE_BLOBS) {
       unsubscribers.push(subscribeVersionedBlobs());
+      unsubscribers.push(subscribeToVegetation());
+      unsubscribers.push(subscribeToSuccession());
     }
 
     // Online/offline listeners
