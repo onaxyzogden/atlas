@@ -18,6 +18,7 @@
  *   Module 6  Cross-section + Solar     → CrossSectionTool + Vertical/SolarOverlay
  *   Module 7  Phasing & Budgeting       → phaseStore + PhasingMatrix/SeasonalTask
  *   Module 8  Principle Verification    → HolmgrenChecklist
+ *   Module 9  Regeneration Monitoring   → RegenerationMonitorCard
  *
  * Selector discipline: every store read uses subscribe-then-derive (raw
  * field selector + useMemo) per ADR `2026-04-26-zustand-selector-stability`.
@@ -38,6 +39,7 @@ import { usePathStore } from '../../store/pathStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { usePrincipleCheckStore } from '../../store/principleCheckStore.js';
+import { useRegenerationEventStore } from '../../store/regenerationEventStore.js';
 import styles from './PlanHub.module.css';
 
 interface Props {
@@ -84,7 +86,7 @@ export default function PlanHub({ project }: Props) {
   const allStorageInfra   = useWaterSystemsStore((s) => s.storageInfra);
   const allFertilityInfra = useClosedLoopStore((s) => s.fertilityInfra);
   const allGuilds         = usePolycultureStore((s) => s.guilds);
-  const allWasteVectors   = useClosedLoopStore((s) => s.wasteVectors);
+  const allWasteVectors   = useClosedLoopStore((s) => s.materialFlows);
   const allSpecies        = usePolycultureStore((s) => s.species);
 
   const allZones      = useZoneStore((s) => s.zones);
@@ -92,6 +94,7 @@ export default function PlanHub({ project }: Props) {
   const allCrops      = useCropStore((s) => s.cropAreas);
   const phases        = usePhaseStore((s) => s.phases);
   const principleChecksByProject = usePrincipleCheckStore((s) => s.byProject);
+  const regenEventsByProject = useRegenerationEventStore((s) => s.eventsByProject);
 
   const projectTransects      = useMemo(() => allTransects.filter((t) => t.projectId === project.id), [allTransects, project.id]);
   const projectEarthworks     = useMemo(() => allEarthworks.filter((e) => e.projectId === project.id), [allEarthworks, project.id]);
@@ -104,6 +107,10 @@ export default function PlanHub({ project }: Props) {
   const projectPaths          = useMemo(() => allPaths.filter((p) => p.projectId === project.id), [allPaths, project.id]);
   const projectCrops          = useMemo(() => allCrops.filter((c) => c.projectId === project.id), [allCrops, project.id]);
   const projectPrinciples     = useMemo(() => principleChecksByProject[project.id] ?? {}, [principleChecksByProject, project.id]);
+  const regenSampleCount      = useMemo(() => {
+    const cache = regenEventsByProject[project.serverId ?? project.id];
+    return cache?.events.filter((e) => e.eventType === 'observation').length ?? 0;
+  }, [regenEventsByProject, project.serverId, project.id]);
 
   const modules: ModuleSpec[] = useMemo(() => {
     // ── Module 1 — Dynamic Layering ─────────────────────────────────────────
@@ -253,7 +260,21 @@ export default function PlanHub({ project }: Props) {
       empty: principleEntries.length === 0,
     };
 
-    return [layering, water, zoneCirc, plant, soil, cross, phasing, principles];
+    // ── Module 9 — Regeneration Monitoring ──────────────────────────────────
+    const monitoring: ModuleSpec = {
+      number: '9',
+      title: 'Regeneration Monitoring',
+      rows: [
+        { label: 'Monitoring samples logged', value: fmtCount(regenSampleCount) },
+        { label: 'Tracked vs goal tree', value: 'Soil · water · biology' },
+      ],
+      actions: [
+        { label: 'Regeneration monitor →', sectionId: 'plan-regeneration-monitor' },
+      ],
+      empty: regenSampleCount === 0,
+    };
+
+    return [layering, water, zoneCirc, plant, soil, cross, phasing, principles, monitoring];
   }, [
     projectTransects,
     projectEarthworks,
@@ -267,6 +288,7 @@ export default function PlanHub({ project }: Props) {
     projectCrops,
     projectPrinciples,
     phases,
+    regenSampleCount,
   ]);
 
   return (
@@ -275,11 +297,11 @@ export default function PlanHub({ project }: Props) {
         <span className={styles.heroTag}>Stage 2 of 3 · Trunk & Synthesis</span>
         <h1 className={styles.title}>Plan — design from patterns to details.</h1>
         <p className={styles.lede}>
-          Eight modules that turn observations into a designed system. Layer
+          Nine modules that turn observations into a designed system. Layer
           the data, route the water, set zones and circulation, compose
           polycultures, close nutrient loops, draw cross-sections, schedule
-          phases, and verify against Holmgren&rsquo;s twelve principles before
-          shovelling any earth.
+          phases, verify against Holmgren&rsquo;s twelve principles, and
+          monitor regeneration over time.
         </p>
         <span className={styles.principle}>P7 · Design from Patterns to Details</span>
       </header>
