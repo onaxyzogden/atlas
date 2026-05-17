@@ -139,6 +139,7 @@ export default defineConfig({
       '@ogden/shared/manifest': resolve(__dirname, '../../packages/shared/src/featureManifest.ts'),
       '@ogden/shared/demand': resolve(__dirname, '../../packages/shared/src/demand/index.ts'),
       '@ogden/shared/relationships': resolve(__dirname, '../../packages/shared/src/relationships/index.ts'),
+      '@ogden/shared/regeneration': resolve(__dirname, '../../packages/shared/src/regeneration/index.ts'),
       '@ogden/shared': resolve(__dirname, '../../packages/shared/src/index.ts'),
       'mapbox-gl': 'maplibre-gl',
     },
