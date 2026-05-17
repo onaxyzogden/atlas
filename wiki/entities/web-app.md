@@ -153,6 +153,20 @@ All use `persist` middleware with localStorage. Key stores:
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
 
 ## Current State
+- **Parcel-area integrity guard (2026-05-16)** — a project with
+  missing/zero parcel area can no longer present as "0 ha · Supported".
+  `v3/data/parcelIntegrity.ts` is the single integrity-decision module;
+  `adaptLocalProject.ts` is the sole guard seam (`!isParcelAreaValid` ⇒
+  explicit `INSUFFICIENT_DATA_VERDICT` + `INTEGRITY_BLOCKER`, bypassing
+  `adaptVerdict`/`VERDICT_TABLE`); `ProjectLocation.areaKnown?` added; all
+  5 area-display surfaces share `formatLocationArea`. Water balance no
+  longer silently reads `0.0 m³` from an unset catchment area — Network /
+  Catchments cards gate the aggregate on `incompleteCatchments(...)`,
+  pre-fill surface-aware non-zero defaults, and offer ground-only
+  one-click parcel-area (`lib/geo.ts` `parcelAreaM2`). See
+  [`2026-05-16-atlas-parcel-integrity-guard.md`](../decisions/2026-05-16-atlas-parcel-integrity-guard.md).
+  Deferred: backend `ST_GeomFromGeoJSON(FeatureCollection)`→0 +
+  `applyServerAcreage` overwrite (online-only).
 - Map + drawing tools: **production-ready** (MapTiler tiles + geocoding live)
 - Dashboard: 14 pages, mixed live/demo data
 - Financial engine: **working** (client-side, ~8 sub-engines)
