@@ -47,6 +47,14 @@ const LEVELS: Level[] = [
     desc: "Execute, run, and report on the design in the field.",
     routeSuffix: "act",
   },
+  {
+    key: "report",
+    label: "Report",
+    title: "Report",
+    subtitle: "Share the outcome",
+    desc: "Compile the verdict, scores, blockers, and next actions; export or publish.",
+    routeSuffix: "report",
+  },
 ];
 
 const OBSERVE_PILLARS: Pillar[] = OBSERVE_MODULES.map((mod) => ({
@@ -70,18 +78,18 @@ const OBSERVE_PILLAR_TASKS: Record<string, PillarTask[]> = Object.fromEntries(
 interface V3RouteInfo {
   enabled: boolean;
   projectId: string | null;
-  stage: "observe" | "plan" | "act" | null;
+  stage: "observe" | "plan" | "act" | "report" | null;
   module: string | null;
 }
 
 function parseV3Route(pathname: string): V3RouteInfo {
-  const match = pathname.match(/^\/v3\/project\/([^/]+)\/(observe|plan|act)(?:\/([^/?#]+))?/);
+  const match = pathname.match(/^\/v3\/project\/([^/]+)\/(observe|plan|act|report)(?:\/([^/?#]+))?/);
   if (!match) return { enabled: false, projectId: null, stage: null, module: null };
   const [, projectId, stage, module] = match;
   return {
     enabled: true,
     projectId: projectId ?? null,
-    stage: (stage as "observe" | "plan" | "act") ?? null,
+    stage: (stage as "observe" | "plan" | "act" | "report") ?? null,
     module: module ?? null,
   };
 }
@@ -122,6 +130,11 @@ export default function V3LevelNavBridge({ children }: V3LevelNavBridgeProps) {
     } else if (key === "act") {
       navigate({
         to: "/v3/project/$projectId/act",
+        params: { projectId },
+      });
+    } else if (key === "report") {
+      navigate({
+        to: "/v3/project/$projectId/report",
         params: { projectId },
       });
     }

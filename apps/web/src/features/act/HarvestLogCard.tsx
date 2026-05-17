@@ -16,7 +16,12 @@ import {
   type HarvestQuality,
 } from '../../store/harvestLogStore.js';
 import { useCropStore } from '../../store/cropStore.js';
+import { usePolycultureStore } from '../../store/polycultureStore.js';
+import { useLandDesignStore } from '../../store/landDesignStore.js';
+import type { DesignElement } from '../../store/designElementsStore.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
+
+const EMPTY_ELEMENTS: DesignElement[] = [];
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -55,11 +60,42 @@ export default function HarvestLogCard({ project }: Props) {
   const removeEntry = useHarvestLogStore((s) => s.removeEntry);
 
   const allCrops = useCropStore((s) => s.cropAreas);
+  const allGuilds = usePolycultureStore((s) => s.guilds);
+  const designElements = useLandDesignStore(
+    (s) => s.byProject[project.id] ?? EMPTY_ELEMENTS,
+  );
+
   const crops = useMemo(
     () => allCrops.filter((c) => c.projectId === project.id),
     [allCrops, project.id],
   );
-  const cropName = (id: string) => crops.find((c) => c.id === id)?.name ?? '(deleted area)';
+  const guilds = useMemo(
+    () => allGuilds.filter((g) => g.projectId === project.id),
+    [allGuilds, project.id],
+  );
+  const orchards = useMemo(
+    () => designElements.filter((e) => e.kind === 'orchard'),
+    [designElements],
+  );
+
+  // Plant systems designed in Plan (food-forest guilds → `ogden-polyculture`,
+  // orchards → land-design elements) are harvestable areas too, not just
+  // `cropStore` crop areas. Surface all three so yield tracking against a
+  // designed guild/orchard is reachable end-to-end (run-2 #72).
+  const harvestAreas = useMemo(
+    () => [
+      ...crops.map((c) => ({ id: c.id, name: c.name, kind: 'Crop' })),
+      ...guilds.map((g) => ({ id: g.id, name: g.name, kind: 'Guild' })),
+      ...orchards.map((o, i) => ({
+        id: o.id,
+        name: o.label ?? `Orchard ${i + 1}`,
+        kind: 'Orchard',
+      })),
+    ],
+    [crops, guilds, orchards],
+  );
+  const cropName = (id: string) =>
+    harvestAreas.find((a) => a.id === id)?.name ?? '(deleted area)';
 
   const entries = useMemo(
     () =>
@@ -128,7 +164,9 @@ export default function HarvestLogCard({ project }: Props) {
             <label>Crop area</label>
             <select value={draft.cropAreaId} onChange={(e) => setDraft({ ...draft, cropAreaId: e.target.value })}>
               <option value="">— select —</option>
-              {crops.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {harvestAreas.map((a) => (
+                <option key={a.id} value={a.id}>{a.kind} · {a.name}</option>
+              ))}
             </select>
           </div>
           <div className={styles.field}>

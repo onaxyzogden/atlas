@@ -11,7 +11,12 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useCropStore, type CropArea } from '../../store/cropStore.js';
+import { usePolycultureStore } from '../../store/polycultureStore.js';
+import { useLandDesignStore } from '../../store/landDesignStore.js';
+import type { DesignElement } from '../../store/designElementsStore.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
+
+const EMPTY_ELEMENTS: DesignElement[] = [];
 
 interface Props { project: LocalProject; onSwitchToMap: () => void; }
 
@@ -33,9 +38,37 @@ export default function IrrigationManagerCard({ project }: Props) {
   const allCrops = useCropStore((s) => s.cropAreas);
   const updateCropArea = useCropStore((s) => s.updateCropArea);
 
+  const allGuilds = usePolycultureStore((s) => s.guilds);
+  const designElements = useLandDesignStore(
+    (s) => s.byProject[project.id] ?? EMPTY_ELEMENTS,
+  );
+
   const crops = useMemo(
     () => allCrops.filter((c) => c.projectId === project.id),
     [allCrops, project.id],
+  );
+  // Plant systems designed in Plan are watered areas too. The active →
+  // passive transition state persists per `CropArea`; guilds/orchards have
+  // no such field, so they surface here read-only (no longer invisible —
+  // run-2 #67) with an explicit status, rather than silently absent.
+  const guilds = useMemo(
+    () => allGuilds.filter((g) => g.projectId === project.id),
+    [allGuilds, project.id],
+  );
+  const orchards = useMemo(
+    () => designElements.filter((e) => e.kind === 'orchard'),
+    [designElements],
+  );
+  const designedSystems = useMemo(
+    () => [
+      ...guilds.map((g) => ({ id: g.id, name: g.name, kind: 'Guild' })),
+      ...orchards.map((o, i) => ({
+        id: o.id,
+        name: o.label ?? `Orchard ${i + 1}`,
+        kind: 'Orchard',
+      })),
+    ],
+    [guilds, orchards],
   );
 
   return (
@@ -52,8 +85,10 @@ export default function IrrigationManagerCard({ project }: Props) {
       </header>
 
       <section className={styles.section}>
-        {crops.length === 0 ? (
-          <p className={styles.empty}>No crop areas yet — draw them on the map first.</p>
+        {crops.length === 0 && designedSystems.length === 0 ? (
+          <p className={styles.empty}>No crop areas or plant systems yet — draw a crop area, or design a guild/orchard in Plan first.</p>
+        ) : crops.length === 0 ? (
+          <p className={styles.empty}>No crop areas yet — draw them on the map to track an irrigation transition. Designed plant systems are listed below.</p>
         ) : (
           <ul className={styles.list}>
             {crops.map((c) => {
@@ -117,6 +152,28 @@ export default function IrrigationManagerCard({ project }: Props) {
           </ul>
         )}
       </section>
+
+      {designedSystems.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Designed plant systems</h2>
+          <p className={styles.lede} style={{ marginTop: 0 }}>
+            Guilds and orchards designed in Plan. Irrigation-transition
+            tracking records onto crop areas; represent a system as a crop
+            area to track its active → passive arc here.
+          </p>
+          <ul className={styles.list}>
+            {designedSystems.map((d) => (
+              <li key={d.id} className={styles.listRow}>
+                <span>
+                  <strong>{d.name}</strong>
+                  <div className={styles.listMeta}>{d.kind} · designed</div>
+                </span>
+                <span className={styles.pill}>Not yet a crop area</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

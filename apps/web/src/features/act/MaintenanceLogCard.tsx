@@ -57,6 +57,7 @@ export default function MaintenanceLogCard({ project }: Props) {
 
   const allEarthworks = useWaterSystemsStore((s) => s.earthworks);
   const allStorage = useWaterSystemsStore((s) => s.storageInfra);
+  const allWaterNodes = useWaterSystemsStore((s) => s.waterNodes);
   const allStructures = useAllStructures();
 
   const earthworks = useMemo(
@@ -67,6 +68,22 @@ export default function MaintenanceLogCard({ project }: Props) {
     () => allStorage.filter((s) => s.projectId === project.id),
     [allStorage, project.id],
   );
+  // Plan WATER Module 2 persists swales/catchments/storage as `waterNodes`
+  // (the Scholar directed-graph collection), not the legacy
+  // `earthworks`/`storageInfra` arrays. Surface them here so the module's
+  // own flagship "swales clear quarterly" example is loggable.
+  const waterNodes = useMemo(
+    () => allWaterNodes.filter((n) => n.projectId === project.id),
+    [allWaterNodes, project.id],
+  );
+  const earthworkNodes = useMemo(
+    () => waterNodes.filter((n) => n.kind === 'swale' || n.kind === 'catchment' || n.kind === 'sink'),
+    [waterNodes],
+  );
+  const storageNodes = useMemo(
+    () => waterNodes.filter((n) => n.kind === 'storage'),
+    [waterNodes],
+  );
   const structures = useMemo(
     () => allStructures.filter((s) => s.projectId === project.id),
     [allStructures, project.id],
@@ -75,7 +92,9 @@ export default function MaintenanceLogCard({ project }: Props) {
   const sourceLabel = (kind: MaintenanceSourceKind, id: string): string => {
     if (kind === 'earthwork') {
       const w = earthworks.find((e) => e.id === id);
-      return w ? `${w.type.replace('_', ' ')}` : '(deleted earthwork)';
+      if (w) return `${w.type.replace('_', ' ')}`;
+      const n = earthworkNodes.find((x) => x.id === id);
+      return n ? `${n.kind}: ${n.name}` : '(deleted earthwork)';
     }
     if (kind === 'structure') {
       const s = structures.find((x) => x.id === id);
@@ -84,7 +103,9 @@ export default function MaintenanceLogCard({ project }: Props) {
       return `${tpl.icon} ${s.name || tpl.label}`;
     }
     const s = storage.find((x) => x.id === id);
-    return s ? `${s.type.replace('_', ' ')}` : '(deleted storage)';
+    if (s) return `${s.type.replace('_', ' ')}`;
+    const sn = storageNodes.find((x) => x.id === id);
+    return sn ? `${sn.storageKind ?? 'storage'}: ${sn.name}` : '(deleted storage)';
   };
 
   const events = useMemo(
@@ -111,13 +132,19 @@ export default function MaintenanceLogCard({ project }: Props) {
 
   const sourceOptions =
     draft.sourceKind === 'earthwork'
-      ? earthworks.map((w) => ({ id: w.id, label: w.type.replace('_', ' ') }))
+      ? [
+          ...earthworks.map((w) => ({ id: w.id, label: w.type.replace('_', ' ') })),
+          ...earthworkNodes.map((n) => ({ id: n.id, label: `${n.kind}: ${n.name}` })),
+        ]
       : draft.sourceKind === 'structure'
         ? structures.map((s) => {
             const tpl = STRUCTURE_TEMPLATES[s.type];
             return { id: s.id, label: `${tpl.icon} ${s.name || tpl.label}` };
           })
-        : storage.map((s) => ({ id: s.id, label: s.type.replace('_', ' ') }));
+        : [
+            ...storage.map((s) => ({ id: s.id, label: s.type.replace('_', ' ') })),
+            ...storageNodes.map((n) => ({ id: n.id, label: `${n.storageKind ?? 'storage'}: ${n.name}` })),
+          ];
 
   function commit() {
     if (!draft.sourceId) return;
