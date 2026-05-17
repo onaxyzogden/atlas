@@ -125,11 +125,42 @@ Record pass/fail per step below when run.
 
 | Step | Result | Notes |
 |---|---|---|
-| A — shadow | _pending_ | |
-| B — restore | _pending_ | |
-| C — conflict | _pending_ | |
-| D — skew | _pending_ | |
-| E — bundle relabel | _pending_ | |
+| A — shadow | automated harness added & passing where a live DB exists; **blocked here** | `blobSync.integration.test.ts` proves PUT baseRev:0 → 200 rev 1 + a direct `SELECT` confirms the row physically persisted under `(project_id, store_key)`. Not run in this sandbox: `docker: command not found` (no Docker/Postgres), so the spec **auto-skipped cleanly** (3 skipped, mock-DB unit gate unaffected). |
+| B — restore | automated harness added & passing where a live DB exists; **blocked here** | Same spec: two store keys under P1 + one under P2 (same owner) → `GET /project/P1` returns exactly P1's two blobs, P2's absent (the P0-1 cross-project read invariant). Blocked here for the same no-Docker reason. |
+| C — conflict | automated harness added & passing where a live DB exists; **blocked here** | Same spec: stale `baseRev` → 409 `{serverRev, serverPayload}`; follow-up `GET` proves the server copy unchanged (no clobber); a PUT at the correct `baseRev` then bumps rev (recovery). Blocked here for the same no-Docker reason. |
+| D — skew | operator-only | Needs a second build with a higher store `schemaVersion` — cannot be exercised from one build/sandbox. Manual two-device step. |
+| E — bundle relabel | operator-only (copy unit-locked) | The flag-on ProjectBundleBar copy is already regression-locked by `apps/web/src/v3/components/__tests__/ProjectBundleBar.test.tsx`; the visual two-device confirmation stays a manual step. |
+
+### 5.7 addendum — automatable subset coverage
+
+The *mechanical core* of A/B/C (route → real Postgres round-trip,
+cross-project isolation, the `ON CONFLICT` rev gate + 409 no-clobber +
+recovery) is now covered by a real-Postgres integration spec,
+`apps/api/src/tests/blobSync.integration.test.ts`. It mirrors the
+auto-skip-without-DB convention so it never breaks the mock-DB unit
+gate: with a live DB (`INTEGRATION_DATABASE_URL`, default the
+`infrastructure/docker-compose.yml` dev DB) it runs A/B/C for real;
+without one it skips with a `console.warn` pointing at the bring-up
+command. Verified in this session: spec auto-skips cleanly (3 skipped),
+`pnpm --filter @ogden/api test` = 549 passing (the 9 failures across
+boundary/smoke/telemetry/siteAssessmentsPipeline are the unchanged
+pre-existing branch/env baseline, **not** a regression), `pnpm
+typecheck` 3/3 exit 0; no web/shared product code touched. The FIFO
+mock-DB harness (`helpers/testApp.ts`) ignores SQL params and cannot
+assert a `(project_id, store_key)→payload` round-trip — this spec is
+the only thing in the suite that proves real persistence.
+
+A real two-device A–E run by a human operator is still required before
+the flag is enabled for testers (steps D and E are operator-only).
+
+### Follow-up (gated)
+
+Enabling `FEATURE_SYNC_STATE_BLOBS` for testers is **deferred**. No edit
+was made to `packages/shared/src/constants/flags.ts` or
+`apps/web/vite.config.ts`; the flag remains default-off. The flag-flip
+is gated on a real two-device A–E matrix pass (run
+`blobSync.integration.test.ts` against a live DB for the A/B/C
+mechanical core first, then the operator D/E steps).
 
 ## Consequences
 
