@@ -167,10 +167,20 @@ All use `persist` middleware with localStorage. Key stores:
   device B; version-skew guard skips newer blobs; `temporal()` undo
   cleared post-hydrate; 409 surfaces visibly (`connectivityStore
   .conflictedStores` badge + toast, no silent clobber). End-to-end
-  functionally complete; phased enable + multi-device matrix is Phase 5;
-  `projectBundle.ts` remains the offline backup. See
+  functionally complete. **Phase 5 (2026-05-17, same flag):** the flag
+  is now browser-functional — `vite.config.ts` `define:` was missing
+  `FEATURE_SYNC_STATE_BLOBS` so it was permanently `false` in-browser
+  (fixed + a text-level guard test); `OfflineBanner` gained a
+  highest-priority dismissible conflict bar; `ProjectBundleBar` is
+  flag-aware (calm "syncs to your account" when on, not deleted);
+  `projectState.test.ts` pins cold-start + designer write-role. Single
+  boolean (no per-store map); **Phase 3 typed tables (veg/succession)
+  deferred**; 5.7 manual two-device A→B matrix is an operator action
+  before enabling the flag for testers. `projectBundle.ts` remains the
+  offline backup. See
   [Phase 1–2 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md),
-  [Phase 4 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase4.md).
+  [Phase 4 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase4.md),
+  [Phase 5 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase5.md).
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
