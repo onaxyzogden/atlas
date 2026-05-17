@@ -164,6 +164,18 @@ All use `persist` middleware with localStorage. Key stores:
   push-only shadow; hydration + visible conflict surface are Phase 4,
   `projectBundle.ts` remains the offline backup. See
   [ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md).
+- **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
+  *online* hole the P0 guard deferred. New pure shared
+  `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
+  GeoJSON **FeatureCollection** to a bare Polygon/MultiPolygon before PostGIS
+  `ST_GeomFromGeoJSON` (which rejects FeatureCollections → NULL → acreage 0);
+  used by both `projects` `/boundary` and `templates` `/instantiate` (4xx /
+  skip-UPDATE on nothing — never write a confident 0). `project.schema.ts`
+  `parcelBoundaryGeojson` tightened from `z.unknown()` to a shape-only
+  GeoJSON union. `syncService.applyServerAcreage` guard hardened to reject
+  `acreage <= 0` so a server 0 can never clobber the canonical client
+  geodesic acreage. See
+  [ADR](../decisions/2026-05-17-atlas-backend-acreage-hardening.md).
 - **Parcel-area integrity guard (2026-05-16)** — a project with
   missing/zero parcel area can no longer present as "0 ha · Supported".
   `v3/data/parcelIntegrity.ts` is the single integrity-decision module;
