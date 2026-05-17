@@ -153,6 +153,17 @@ All use `persist` middleware with localStorage. Key stores:
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
 
 ## Current State
+- **Full `syncService` coverage Phases 1–2 (2026-05-17)** — `lib/syncManifest.ts`
+  is the single source of truth: every project-scoped `ogden-` persist store
+  is classified (`typed-design-feature`/`typed-table`/`versioned-blob`) and a
+  Vitest coverage guard fails the build on any unclassified store (closes the
+  original P0-1 enumeration gap). A generic versioned-blob transport
+  (`blobSync.ts`, `'state-blob'` queue type, `project_state_blobs` table +
+  `routes/project-state/`, debounced subscription loop over all 62 blob
+  stores) is wired but **default-off** behind `FLAGS.SYNC_STATE_BLOBS` —
+  push-only shadow; hydration + visible conflict surface are Phase 4,
+  `projectBundle.ts` remains the offline backup. See
+  [ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md).
 - **Parcel-area integrity guard (2026-05-16)** — a project with
   missing/zero parcel area can no longer present as "0 ha · Supported".
   `v3/data/parcelIntegrity.ts` is the single integrity-decision module;

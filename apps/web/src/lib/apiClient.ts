@@ -44,6 +44,8 @@ import type {
   ElevationPointResponse,
   ActInteractionEventInput,
   GetActAffinityAggregateResult,
+  ProjectStateBlob,
+  UpsertProjectStateInput,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -260,6 +262,24 @@ export const api = {
 
     delete: (id: string) =>
       request<void>('DELETE', `/api/v1/machinery-items/${id}`),
+  },
+
+  projectState: {
+    list: (projectId: string) =>
+      request<ProjectStateBlob[]>('GET', `/api/v1/project-state/project/${projectId}`),
+
+    get: (projectId: string, storeKey: string) =>
+      request<ProjectStateBlob>(
+        'GET',
+        `/api/v1/project-state/project/${projectId}/${encodeURIComponent(storeKey)}`,
+      ),
+
+    upsert: (projectId: string, storeKey: string, input: UpsertProjectStateInput) =>
+      request<ProjectStateBlob>(
+        'PUT',
+        `/api/v1/project-state/project/${projectId}/${encodeURIComponent(storeKey)}`,
+        input,
+      ),
   },
 
   layers: {

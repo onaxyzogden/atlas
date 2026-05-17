@@ -68,7 +68,7 @@ vi.mock('../store/builtEnvironmentStoreV2.js', () => ({
   useBuiltEnvironmentStoreV2: mockBuiltEnvV2Store,
 }));
 
-import { syncService } from '../lib/syncService.js';
+import { syncService, applyServerAcreage } from '../lib/syncService.js';
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
@@ -151,5 +151,37 @@ describe('queue flush', () => {
     mockQueue.getPendingCount.mockResolvedValue(0);
     await syncService.start();
     expect(mockQueue.flush).not.toHaveBeenCalled();
+  });
+});
+
+describe('applyServerAcreage guard', () => {
+  let updateProject: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    updateProject = vi.fn();
+    mockProjectStore.getState.mockReturnValue({
+      projects: [],
+      zones: [],
+      entities: [],
+      updateProject,
+    } as unknown as ReturnType<typeof mockProjectStore.getState>);
+  });
+
+  it('ignores a non-positive server acreage (the FeatureCollection-bug signature)', () => {
+    applyServerAcreage('local-1', { acreage: 0 });
+    applyServerAcreage('local-1', { acreage: -5 });
+    expect(updateProject).not.toHaveBeenCalled();
+  });
+
+  it('ignores a missing / non-finite acreage', () => {
+    applyServerAcreage('local-1', undefined);
+    applyServerAcreage('local-1', { acreage: null });
+    applyServerAcreage('local-1', { acreage: NaN });
+    expect(updateProject).not.toHaveBeenCalled();
+  });
+
+  it('applies a valid positive server acreage', () => {
+    applyServerAcreage('local-1', { acreage: 12.3 });
+    expect(updateProject).toHaveBeenCalledWith('local-1', { acreage: 12.3 });
   });
 });

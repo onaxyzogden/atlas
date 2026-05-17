@@ -28,6 +28,7 @@ import {
   useRegenerationPlanStore,
   type RegenerationPlan,
   type RegenTargetState,
+  type SilvopastureCanopyConfig,
 } from '../../store/regenerationPlanStore.js';
 import type { GroundCoverState, SuccessionStage } from '../../store/zoneStore.js';
 import {
@@ -35,7 +36,9 @@ import {
 } from '../../v3/plan/data/regenerationPathway.js';
 import {
   buildRegenerationTimeline,
+  buildCanopyTrack,
   type TimelineSegment,
+  type CanopyTrackPoint,
 } from './regenerationTimeline.js';
 import { selectActivePlans } from './regenerationGate.js';
 import css from './RegenerationPlanCard.module.css';
@@ -67,6 +70,21 @@ const SUCCESSION_OPTIONS: SuccessionStage[] = [
   'late',
   'climax',
 ];
+
+const CANOPY_SPECIES: { value: string; label: string }[] = [
+  { value: 'oak-tree', label: 'Oak' },
+  { value: 'pine-tree', label: 'Pine' },
+  { value: 'apple-tree', label: 'Apple' },
+  { value: 'shrub', label: 'Shrub' },
+];
+
+const DEFAULT_CANOPY: SilvopastureCanopyConfig = {
+  speciesId: 'oak-tree',
+  targetCanopyM: 6,
+  plantingYearOffset: 0,
+};
+
+const MS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 
 function fmtDate(iso: string | null): string {
   if (!iso) return '—';
@@ -243,6 +261,26 @@ function PlanBlock({
     [plan.pathwayMethodIds],
   );
 
+  const canopy =
+    plan.targetState === 'silvopasture' ? plan.silvopastureCanopy : undefined;
+
+  // Canopy age is computed here (impure: today) and handed to the pure
+  // evaluator as a plain number, so the evaluator stays deterministic.
+  const canopyInput = useMemo(() => {
+    if (!canopy || !plan.startedAt) return undefined;
+    const yearsSinceStart =
+      (Date.now() - Date.parse(plan.startedAt)) / MS_PER_YEAR;
+    const canopyAgeYears = Math.max(
+      0,
+      yearsSinceStart - canopy.plantingYearOffset,
+    );
+    return {
+      speciesId: canopy.speciesId,
+      targetCanopyM: canopy.targetCanopyM,
+      canopyAgeYears,
+    };
+  }, [canopy, plan.startedAt]);
+
   const readiness = useMemo(
     () =>
       evaluateRegenerationReadiness({
@@ -257,8 +295,17 @@ function PlanBlock({
         pathwayDurationYears: timeline.totalYears,
         startedAt: plan.startedAt,
         stewardConfirmedAt: plan.stewardReadinessConfirmedAt,
+        silvopastureCanopy: canopyInput,
       }),
-    [plan.thresholds, plan.baseline, plan.startedAt, plan.stewardReadinessConfirmedAt, timeline.totalYears],
+    [plan.thresholds, plan.baseline, plan.startedAt, plan.stewardReadinessConfirmedAt, timeline.totalYears, canopyInput],
+  );
+
+  const canopyTrack = useMemo(
+    () =>
+      canopy
+        ? buildCanopyTrack(canopy, timeline.totalYears).points
+        : [],
+    [canopy, timeline.totalYears],
   );
 
   const rl = readinessLabel(plan);
@@ -412,6 +459,8 @@ function PlanBlock({
           segments={timeline.segments}
           totalYears={timeline.totalYears}
           productiveYearOffset={timeline.productiveYearOffset}
+          canopyTrack={canopyTrack}
+          canopyTargetM={canopy?.targetCanopyM ?? 0}
         />
       ) : (
         <div className={css.emptyTimeline}>
@@ -461,10 +510,101 @@ function PlanBlock({
 
       {plan.targetState === 'silvopasture' && (
         <div className={css.silvoNote}>
-          Silvopasture: a tree-canopy layer is overlaid on this pathway.
-          Per v1 design the canopy is tracked on the timeline but does{' '}
-          <strong>not</strong> gate grazing — readiness keys only on the
-          pasture thresholds above.
+          {canopy ? (
+            <>
+              <div className={css.controls}>
+                <label className={css.field}>
+                  <span className={css.fieldLabel}>Canopy species</span>
+                  <select
+                    className={css.select}
+                    value={canopy.speciesId}
+                    onChange={(e) =>
+                      onUpdate(plan.id, {
+                        silvopastureCanopy: {
+                          ...canopy,
+                          speciesId: e.target.value,
+                        },
+                      })
+                    }
+                  >
+                    {CANOPY_SPECIES.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className={css.field}>
+                  <span className={css.fieldLabel}>Target canopy (m)</span>
+                  <input
+                    className={css.select}
+                    type="number"
+                    min={0}
+                    step={0.5}
+                    value={canopy.targetCanopyM}
+                    onChange={(e) =>
+                      onUpdate(plan.id, {
+                        silvopastureCanopy: {
+                          ...canopy,
+                          targetCanopyM: Number(e.target.value) || 0,
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <label className={css.field}>
+                  <span className={css.fieldLabel}>Planting year offset</span>
+                  <input
+                    className={css.select}
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={canopy.plantingYearOffset}
+                    onChange={(e) =>
+                      onUpdate(plan.id, {
+                        silvopastureCanopy: {
+                          ...canopy,
+                          plantingYearOffset: Math.max(
+                            0,
+                            Math.floor(Number(e.target.value) || 0),
+                          ),
+                        },
+                      })
+                    }
+                  />
+                </label>
+              </div>
+              <div className={css.muted} style={{ marginTop: 6 }}>
+                {readiness.canopyAdvisory ? (
+                  <>
+                    Canopy{' '}
+                    <strong>
+                      {Math.round(readiness.canopyAdvisory.percentToTarget)}%
+                    </strong>{' '}
+                    of target (
+                    {readiness.canopyAdvisory.currentCanopyM.toFixed(1)} m /{' '}
+                    {readiness.canopyAdvisory.targetCanopyM.toFixed(1)} m) —
+                    advisory, never gates.
+                  </>
+                ) : (
+                  <>
+                    Start the pathway to project canopy progress. Canopy is
+                    advisory only and never gates grazing.
+                  </>
+                )}
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              className={css.startBtn}
+              onClick={() =>
+                onUpdate(plan.id, { silvopastureCanopy: { ...DEFAULT_CANOPY } })
+              }
+            >
+              Add canopy layer
+            </button>
+          )}
         </div>
       )}
     </li>
@@ -475,10 +615,14 @@ function TimelineSvg({
   segments,
   totalYears,
   productiveYearOffset,
+  canopyTrack,
+  canopyTargetM,
 }: {
   segments: TimelineSegment[];
   totalYears: number;
   productiveYearOffset: number;
+  canopyTrack: CanopyTrackPoint[];
+  canopyTargetM: number;
 }) {
   const LABEL_W = 134;
   const YEAR_W = 84;
@@ -486,14 +630,34 @@ function TimelineSvg({
   const ROW_GAP = 8;
   const AXIS_TOP = 22;
   const AXIS_BOT = 26;
+  const CANOPY_BAND_H = canopyTrack.length > 0 ? 56 : 0;
 
   const span = Math.max(totalYears, 1);
   const chartW = LABEL_W + span * YEAR_W + 16;
-  const chartH =
-    AXIS_TOP + segments.length * (ROW_H + ROW_GAP) + AXIS_BOT;
+  const segmentsBottom =
+    AXIS_TOP + segments.length * (ROW_H + ROW_GAP);
+  const chartH = segmentsBottom + CANOPY_BAND_H + AXIS_BOT;
 
   const xForYear = (y: number) => LABEL_W + y * YEAR_W;
   const productiveX = xForYear(productiveYearOffset);
+
+  // Advisory canopy curve drawn in its own band below the spine. Scaled to
+  // the larger of the target or the peak sampled canopy so the target line
+  // is always visible. Never gates — purely informational.
+  const canopyScaleMax = Math.max(
+    canopyTargetM,
+    ...canopyTrack.map((p) => p.canopyM),
+    0.001,
+  );
+  const canopyBandTop = segmentsBottom + 8;
+  const canopyBandBot = canopyBandTop + CANOPY_BAND_H - 16;
+  const yForCanopy = (m: number) =>
+    canopyBandBot -
+    (Math.min(m, canopyScaleMax) / canopyScaleMax) *
+      (canopyBandBot - canopyBandTop);
+  const canopyPolyline = canopyTrack
+    .map((p) => `${xForYear(p.year)},${yForCanopy(p.canopyM)}`)
+    .join(' ');
 
   return (
     <svg
@@ -579,6 +743,34 @@ function TimelineSvg({
           </g>
         );
       })}
+
+      {/* Advisory canopy track (silvopasture) — never gates grazing. */}
+      {canopyTrack.length > 0 && (
+        <g>
+          <line
+            x1={LABEL_W}
+            y1={yForCanopy(canopyTargetM)}
+            x2={xForYear(totalYears)}
+            y2={yForCanopy(canopyTargetM)}
+            className={css.grid}
+            strokeDasharray="4 3"
+          />
+          <text
+            x={6}
+            y={(canopyBandTop + canopyBandBot) / 2}
+            className={css.segLabel}
+            dominantBaseline="middle"
+          >
+            Canopy (advisory)
+          </text>
+          <polyline
+            points={canopyPolyline}
+            fill="none"
+            stroke="rgba(150, 200, 140, 0.85)"
+            strokeWidth={2}
+          />
+        </g>
+      )}
     </svg>
   );
 }

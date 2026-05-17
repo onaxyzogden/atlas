@@ -6,6 +6,7 @@ import {
   ProjectSummary,
   TemplateSnapshot,
   TemplateSummary,
+  extractPolygonalGeometry,
   toCamelCase,
 } from '@ogden/shared';
 import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
@@ -125,8 +126,15 @@ export default async function templateRoutes(fastify: FastifyInstance) {
 
       // If the snapshot carried a boundary, replay the boundary setter so
       // PostGIS computes centroid + acreage from scratch.
-      if (snapshot.parcelBoundaryGeojson) {
-        const geojsonStr = JSON.stringify(snapshot.parcelBoundaryGeojson);
+      // ST_GeomFromGeoJSON accepts only a bare Geometry; normalize the
+      // snapshot's FeatureCollection. If nothing extractable, leave
+      // parcel_boundary NULL rather than write a confident acreage 0 — it
+      // self-heals on the next client boundary re-sync.
+      const snapshotGeom = snapshot.parcelBoundaryGeojson
+        ? extractPolygonalGeometry(snapshot.parcelBoundaryGeojson)
+        : null;
+      if (snapshotGeom) {
+        const geojsonStr = JSON.stringify(snapshotGeom);
         await db`
           UPDATE projects SET
             parcel_boundary = ST_Multi(ST_GeomFromGeoJSON(${geojsonStr})),

@@ -15,6 +15,8 @@
 
 import { api } from './apiClient.js';
 import { syncQueue, type QueuedOperation } from './syncQueue.js';
+import { pushProjectStateBlob, buildBlobEnvelope, blobLocalId } from './blobSync.js';
+import { SYNCED_STORES, type SyncedStoreDescriptor } from './syncManifest.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
@@ -187,12 +189,15 @@ function subscribeToStructures() {
  * an earlier/partial draw long after the steward has redrawn the parcel.
  * Guarded by `isSyncing` so the write does not re-enqueue a sync op.
  */
-function applyServerAcreage(
+export function applyServerAcreage(
   localProjectId: string,
   resp: { acreage?: number | null } | undefined,
 ): void {
   const acreage = resp?.acreage;
-  if (typeof acreage !== 'number' || !Number.isFinite(acreage)) return;
+  // Reject non-positive server acreage: a 0 is the signature of the backend
+  // FeatureCollection bug and must never clobber the canonical client-side
+  // geodesic acreage.
+  if (typeof acreage !== 'number' || !Number.isFinite(acreage) || acreage <= 0) return;
   const wasSyncing = isSyncing;
   isSyncing = true;
   useProjectStore.getState().updateProject(localProjectId, { acreage });
@@ -649,6 +654,139 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
 
 // ─── C. Online/offline resilience ────────────────────────────────────────────
 
+/** Queued payload for one `versioned-blob` store slice (P2.5). */
+export interface StateBlobOpPayload {
+  projectLocalId: string;
+  storeKey: string;
+  schemaVersion: number;
+  baseRev: number;
+  payload: unknown;
+}
+
+/**
+ * Push one queued `state-blob` slice through the generic versioned-blob
+ * transport. The project's serverId is resolved at flush time (not enqueue
+ * time) so an op queued before the project synced still lands once it has.
+ *
+ * Conflict contract: a `409` is surfaced, never clobbered and never retried
+ * forever. Phase 2 is push-only shadow — the visible conflict surface (toast
+ * + Connectivity badge + reconcile) is Phase 4; here we log and stop.
+ */
+export async function executeStateBlobOp(op: QueuedOperation): Promise<void> {
+  const p = op.payload as StateBlobOpPayload;
+  const serverId = getProjectServerId(p.projectLocalId);
+  if (!serverId) {
+    // Throw so the op stays queued and retries once the project gets a
+    // serverId — do not silently drop the slice.
+    throw new Error(
+      `[SYNC] state-blob "${p.storeKey}": project ${p.projectLocalId} has no serverId yet`,
+    );
+  }
+  const envelope = buildBlobEnvelope(p.schemaVersion, p.baseRev, p.payload);
+  const result = await pushProjectStateBlob(serverId, p.storeKey, envelope);
+  const key = blobLocalId(p.storeKey, p.projectLocalId);
+  if (result.status === 'ok') {
+    // Persist the bumped rev as the next push's baseRev so repeated edits
+    // don't all collide on rev 0 → permanent 409.
+    blobBaseRev.set(key, result.rev);
+    return;
+  }
+  // 409: adopt the authoritative rev so we stop infinitely re-pushing a
+  // stale base. The local slice is NOT silently clobbered back — Phase 4
+  // owns the visible reconcile (toast + Connectivity badge); here we log.
+  if (typeof result.serverRev === 'number') blobBaseRev.set(key, result.serverRev);
+  console.warn(
+    `[SYNC] state-blob "${p.storeKey}" rejected as stale (server rev ` +
+      `${result.serverRev}); conflict surface pending Phase 4`,
+  );
+}
+
+/**
+ * Last server `rev` we know for a (storeKey, project) blob, used as the next
+ * push's `baseRev`. In-memory only for the Phase 2 push-only shadow;
+ * Phase 4's conflict surface owns durable rev/conflict bookkeeping.
+ */
+const blobBaseRev = new Map<string, number>();
+
+function getBlobBaseRev(storeKey: string, projectLocalId: string): number {
+  return blobBaseRev.get(blobLocalId(storeKey, projectLocalId)) ?? 0;
+}
+
+/**
+ * Enqueue one `versioned-blob` store's active-project slice. Resolves the
+ * active project at enqueue time; skips silently when there is no active
+ * project or it has no serverId yet (a later store edit re-enqueues once the
+ * project-create path has bootstrapped the serverId). The op itself resolves
+ * serverId again at flush time, so a race here only delays, never drops.
+ */
+export async function enqueueVersionedBlob(
+  desc: SyncedStoreDescriptor,
+): Promise<void> {
+  if (!desc.store || !desc.selectForProject) return;
+  const activeId = useProjectStore.getState().activeProjectId;
+  if (!activeId) return;
+  if (!getProjectServerId(activeId)) return;
+  const payload: StateBlobOpPayload = {
+    projectLocalId: activeId,
+    storeKey: desc.storeKey,
+    schemaVersion: desc.schemaVersion ?? 1,
+    baseRev: getBlobBaseRev(desc.storeKey, activeId),
+    payload: desc.selectForProject(desc.store.getState(), activeId),
+  };
+  await syncQueue.enqueue({
+    storeType: 'state-blob',
+    action: 'update',
+    localId: blobLocalId(desc.storeKey, activeId),
+    payload,
+  });
+}
+
+const BLOB_DEBOUNCE_MS = 800;
+
+/**
+ * Generic write-through for every `versioned-blob` manifest store: on any
+ * change, debounce ~800ms then enqueue the active-project slice. One timer
+ * per store so a burst of edits collapses to a single push. Returns an
+ * unsubscribe that also clears pending timers.
+ */
+function subscribeVersionedBlobs(): () => void {
+  const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  const unsubs: (() => void)[] = [];
+  for (const desc of SYNCED_STORES) {
+    if (
+      desc.classification !== 'versioned-blob' ||
+      !desc.store ||
+      !desc.selectForProject
+    ) {
+      continue;
+    }
+    const d = desc;
+    unsubs.push(
+      d.store.subscribe(() => {
+        if (isSyncing) return;
+        const existing = timers.get(d.storeKey);
+        if (existing) clearTimeout(existing);
+        timers.set(
+          d.storeKey,
+          setTimeout(() => {
+            timers.delete(d.storeKey);
+            void enqueueVersionedBlob(d).catch((err) =>
+              console.warn(
+                `[SYNC] state-blob "${d.storeKey}" enqueue failed:`,
+                err,
+              ),
+            );
+          }, BLOB_DEBOUNCE_MS),
+        );
+      }),
+    );
+  }
+  return () => {
+    for (const t of timers.values()) clearTimeout(t);
+    for (const u of unsubs) u();
+  };
+}
+
 async function executeQueuedOp(op: QueuedOperation): Promise<void> {
   const payload = op.payload as Record<string, unknown>;
 
@@ -690,6 +828,10 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
         const serverId = payload.serverId as string;
         if (serverId) await api.designFeatures.delete(serverId);
       }
+      break;
+    }
+    case 'state-blob': {
+      await executeStateBlobOp(op);
       break;
     }
     case 'comment': {
@@ -771,6 +913,13 @@ export const syncService = {
     unsubscribers.push(subscribeToProjects());
     unsubscribers.push(subscribeToZones());
     unsubscribers.push(subscribeToStructures());
+
+    // Generic versioned-blob write-through for the remaining ~62
+    // project-scoped stores. Disabled by default — Phase 2 is a push-only
+    // shadow; hydration + conflict surface land in Phase 4.
+    if (FLAGS.SYNC_STATE_BLOBS) {
+      unsubscribers.push(subscribeVersionedBlobs());
+    }
 
     // Online/offline listeners
     window.addEventListener('online', onOnline);

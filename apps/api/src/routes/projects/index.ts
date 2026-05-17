@@ -1,7 +1,14 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { CreateProjectInput, UpdateProjectInput, ProjectSummary, toCamelCase } from '@ogden/shared';
-import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
+import {
+  CreateProjectInput,
+  UpdateProjectInput,
+  ProjectSummary,
+  ParcelBoundaryGeojson,
+  extractPolygonalGeometry,
+  toCamelCase,
+} from '@ogden/shared';
+import { NotFoundError, ForbiddenError, ValidationError } from '../../lib/errors.js';
 import { getLatestAiOutputsForProject } from '../../services/ai/AiOutputWriter.js';
 
 const BUILTIN_PROJECT_ID = '00000000-0000-0000-0000-0000005a3791';
@@ -283,8 +290,17 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
     async (req) => {
       await refuseIfBuiltin(req.projectId);
-      const body = z.object({ geojson: z.unknown() }).parse(req.body);
-      const geojsonStr = JSON.stringify(body.geojson);
+      const body = z.object({ geojson: ParcelBoundaryGeojson }).parse(req.body);
+      // PostGIS ST_GeomFromGeoJSON accepts only a bare Geometry; the client
+      // sends a FeatureCollection. Normalize, and refuse rather than write a
+      // confident acreage 0 when no polygonal geometry can be extracted.
+      const geom = extractPolygonalGeometry(body.geojson);
+      if (!geom) {
+        throw new ValidationError(
+          'Parcel boundary contains no Polygon/MultiPolygon geometry.',
+        );
+      }
+      const geojsonStr = JSON.stringify(geom);
 
       const [updated] = await db`
         UPDATE projects SET
