@@ -36,6 +36,7 @@ import {
   RANK_COLOR,
 } from '../../../store/layeringLensStore.js';
 import { useEnterpriseStore } from '../../../store/enterpriseStore.js';
+import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useEcologicalNoteStore } from '../../../store/ecologicalNoteStore.js';
 import { useUtilityRunStore } from '../../../store/utilityRunStore.js';
 import {
@@ -248,6 +249,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   );
   const activeTool = useMapToolStore((s) => s.activeTool);
   const openForm = useInlineFormStore((s) => s.open);
+  const seededZonesVisible = useMatrixTogglesStore((s) => s.seededZones);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
   const lensMode = useLayeringLensStore((s) => s.mode);
   const allEnterprises = useEnterpriseStore((s) => s.enterprises);
@@ -891,6 +893,20 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           : rankColorExpr()
         : ['get', 'color'];
 
+      // Seeded-zones visibility (matrixTogglesStore.seededZones). Seeded
+      // ("ring-seed") zones share poly-fill/poly-line/label with all other
+      // polygons, so we filter rather than flip layer visibility. Non-zone
+      // features lack `seedProvenance`; coalescing to 'manual' keeps them
+      // always visible — only ring-seed features are dropped when off.
+      const hideSeedFilter = [
+        '!=',
+        ['coalesce', ['get', 'seedProvenance'], 'manual'],
+        'ring-seed',
+      ];
+      const seedLineFilter = seededZonesVisible
+        ? ['==', ['get', 'seedProvenance'], 'ring-seed']
+        : ['==', ['literal', 0], 1];
+
       // Zones ramp opacity by Z-level (Z0 most opaque, Z5 most transparent)
       // to reinforce the Z-stack ordering with a perceptual cue. Non-zone
       // polygon kinds keep the shared 0.28 baseline.
@@ -914,12 +930,14 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: `${LAYER_PREFIX}poly-fill`,
         type: 'fill',
         source: polySid,
+        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
         paint: { 'fill-color': colorExpr as never, 'fill-opacity': fillOpacityExpr as never },
       });
       ensureLayer({
         id: `${LAYER_PREFIX}poly-line`,
         type: 'line',
         source: polySid,
+        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
         paint: {
           'line-color': colorExpr as never,
           'line-width': 1.5,
@@ -935,7 +953,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: `${LAYER_PREFIX}poly-seed-line`,
         type: 'line',
         source: polySid,
-        filter: ['==', ['get', 'seedProvenance'], 'ring-seed'],
+        filter: seedLineFilter as never,
         paint: {
           'line-color': colorExpr as never,
           'line-width': 1.5,
@@ -1079,8 +1097,25 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       try {
         map.setPaintProperty(`${LAYER_PREFIX}poly-fill`, 'fill-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}poly-line`, 'line-color', colorExpr as never);
+        // Re-apply seeded-zones filters on existing layers so the toggle
+        // takes effect (ensureLayer is a no-op once the layer exists).
+        map.setFilter(
+          `${LAYER_PREFIX}poly-fill`,
+          (seededZonesVisible ? null : hideSeedFilter) as never,
+        );
+        map.setFilter(
+          `${LAYER_PREFIX}poly-line`,
+          (seededZonesVisible ? null : hideSeedFilter) as never,
+        );
+        if (map.getLayer(`${LAYER_PREFIX}label`)) {
+          map.setFilter(
+            `${LAYER_PREFIX}label`,
+            (seededZonesVisible ? null : hideSeedFilter) as never,
+          );
+        }
         if (map.getLayer(`${LAYER_PREFIX}poly-seed-line`)) {
           map.setPaintProperty(`${LAYER_PREFIX}poly-seed-line`, 'line-color', colorExpr as never);
+          map.setFilter(`${LAYER_PREFIX}poly-seed-line`, seedLineFilter as never);
         }
         map.setPaintProperty(`${LAYER_PREFIX}line`, 'line-color', colorExpr as never);
         if (map.getLayer(`${LAYER_PREFIX}fence-temp-line`)) {
@@ -1102,6 +1137,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: `${LAYER_PREFIX}label`,
         type: 'symbol',
         source: labelSid,
+        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
         layout: {
           // 2026-05-11 — Polygon features (zones, paddocks, crop areas,
           // catchments, setback rings) stamp `acresLabel` on their props
@@ -1173,6 +1209,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     lensMode,
     enterprises,
     selectedGuildId,
+    seededZonesVisible,
   ]);
 
   // Click-to-edit + drag-to-move for guild points. Uses the same

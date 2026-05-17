@@ -86,7 +86,7 @@ interface LayerSpec {
    *  annotation specs never gate on them. */
   toggleKey?: Exclude<
     MatrixToggleKey,
-    'observeAnnotations' | 'sunPath' | 'zoneRings'
+    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
   >;
 }
 
@@ -153,7 +153,10 @@ const SECTOR_GROUP: Record<SectorType, SectorGroup> = {
 
 const GROUP_TOGGLE: Record<
   SectorGroup,
-  Exclude<MatrixToggleKey, 'observeAnnotations' | 'sunPath' | 'zoneRings'>
+  Exclude<
+    MatrixToggleKey,
+    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
+  >
 > = {
   solar: 'sectors',
   wind: 'wind',
@@ -250,7 +253,10 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const builtEnvironmentVisible = useMatrixTogglesStore((s) => s.builtEnvironment);
   const scheduledMovesVisible = useMatrixTogglesStore((s) => s.scheduledMoves);
   const subToggles: Record<
-    Exclude<MatrixToggleKey, 'observeAnnotations' | 'sunPath' | 'zoneRings'>,
+    Exclude<
+      MatrixToggleKey,
+      'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
+    >,
     boolean
   > = {
     sectors: sectorsVisible,

@@ -153,6 +153,16 @@ All use `persist` middleware with localStorage. Key stores:
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
 
 ## Current State
+- **Seeded-zones overlay show/hide toggle (2026-05-17)** — generator-seeded
+  ("ring-seed") `LandZone`s can now be hidden on the Plan map via a new
+  `matrixTogglesStore.seededZones` toggle in the BaseMapCard "Overlays"
+  legend (**defaults ON**, persist `version` 11→12, `migrate` `?? true`).
+  Implemented with maplibre `setFilter` on the shared
+  `plan-data-poly-fill`/`poly-line`/`label` layers
+  (`coalesce(seedProvenance,'manual') != 'ring-seed'` when off — only
+  ring-seed features ever dropped) + match-nothing on the seeded-only
+  `poly-seed-line`; legend row stage-scoped to Plan. No deletion. See
+  [[2026-05-17-atlas-seeded-zones-overlay-toggle]].
 - **Full `syncService` coverage Phases 1–2 (2026-05-17)** — `lib/syncManifest.ts`
   is the single source of truth: every project-scoped `ogden-` persist store
   is classified (`typed-design-feature`/`typed-table`/`versioned-blob`) and a

@@ -31,6 +31,7 @@ export type MatrixToggleKey =
   | 'observeAnnotations'
   | 'sunPath'
   | 'zoneRings'
+  | 'seededZones'
   | 'scheduledMoves';
 
 export interface MatrixTogglesState {
@@ -59,6 +60,12 @@ export interface MatrixTogglesState {
    */
   zoneRings: boolean;
   /**
+   * PLAN — visibility of generator-seeded ("ring-seed") provisional zones
+   * (fill + solid/dashed outline + label) on the shared plan-data layers.
+   * Defaults ON so existing stewards keep the current always-visible behavior.
+   */
+  seededZones: boolean;
+  /**
    * PLAN cross-stage surfacing — renders ACT-stage unfulfilled scheduled
    * livestock moves on the Plan-stage map as centroid badges over the
    * destination paddock or structure. Read-only: editing the plan
@@ -83,6 +90,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       observeAnnotations: true,
       sunPath: false,
       zoneRings: false,
+      seededZones: true,
       scheduledMoves: false,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
@@ -98,11 +106,16 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           observeAnnotations: value,
           sunPath: value,
           zoneRings: value,
+          seededZones: value,
           scheduledMoves: value,
         })),
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
+      // v12 (2026-05-17): added seededZones — show/hide for generator-seeded
+      //  ("ring-seed") provisional zones on the Plan map. Defaults ON
+      //  (unlike the off-by-default overlays) so existing stewards keep the
+      //  prior always-visible behavior; no regression.
       // v11 (2026-05-11): added cross-stage Plan-map overlay
       //  (scheduledMoves — surfaces ACT-stage unfulfilled scheduled
       //  livestock moves on the Plan-stage map). Defaults off so
@@ -121,7 +134,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
-      version: 11,
+      version: 12,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState>;
         return {
@@ -136,6 +149,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           observeAnnotations: prev.observeAnnotations ?? true,
           sunPath: prev.sunPath ?? false,
           zoneRings: prev.zoneRings ?? false,
+          seededZones: prev.seededZones ?? true,
           scheduledMoves: prev.scheduledMoves ?? false,
         } as MatrixTogglesState;
       },
