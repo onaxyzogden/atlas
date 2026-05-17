@@ -869,8 +869,9 @@ function subscribeVersionedBlobs(): () => void {
       continue;
     }
     const d = desc;
+    const store = desc.store;
     unsubs.push(
-      d.store.subscribe(() => {
+      store.subscribe(() => {
         if (isSyncing) return;
         const existing = timers.get(d.storeKey);
         if (existing) clearTimeout(existing);
