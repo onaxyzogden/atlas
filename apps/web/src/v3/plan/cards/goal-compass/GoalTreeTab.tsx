@@ -18,7 +18,7 @@ import {
 } from '../../data/planProjectTypeTemplates.js';
 import {
   GOAL_TREE_TEMPLATE_LABEL,
-  GOAL_TREE_TEMPLATES,
+  resolveTemplateKey,
 } from '../../data/goalTreeTemplates.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
@@ -36,18 +36,6 @@ function asTemplateKey(value: string | null | undefined): PlanProjectTypeKey {
   return 'homestead';
 }
 
-/** Reverse-map a loaded tree's archetype string (e.g. `'regenerative-farm'`)
- *  back to its template key (e.g. `'regenerative_farm'`). The two namespaces
- *  diverge — archetypes use hyphens, keys use underscores — so we resolve by
- *  scanning the template table rather than mechanical string-munging. */
-function archetypeToTemplateKey(archetype: string | null | undefined): PlanProjectTypeKey | null {
-  if (!archetype) return null;
-  for (const key of PLAN_PROJECT_TYPE_KEYS) {
-    if (GOAL_TREE_TEMPLATES[key].archetype === archetype) return key;
-  }
-  return null;
-}
-
 export default function GoalTreeTab({ project }: Props) {
   const ensureDefault = useGoalTreeStore((s) => s.ensureDefault);
   const tree = useGoalTreeStore((s) => s.goalTreesByProject[project.id] ?? null);
@@ -62,7 +50,7 @@ export default function GoalTreeTab({ project }: Props) {
   // templates independently of `project.projectType`). Falls back to the
   // project's own type, then to 'homestead', when no tree exists yet.
   const currentTemplateKey =
-    archetypeToTemplateKey(tree?.archetype) ?? asTemplateKey(project.projectType);
+    resolveTemplateKey(tree?.archetype) ?? asTemplateKey(project.projectType);
 
   useEffect(() => {
     ensureDefault(project.id, project.projectType);

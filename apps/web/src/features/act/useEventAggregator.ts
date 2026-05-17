@@ -30,6 +30,7 @@ import { useScheduledLivestockMoveStore } from '../../store/scheduledLivestockMo
 import { useHarvestLogStore } from '../../store/harvestLogStore.js';
 import { useNurseryStore } from '../../store/nurseryStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
+import type { MaintenanceFrequency } from '../../v3/plan/data/goalCompassTypes.js';
 
 export type CalendarSource =
   | 'community'
@@ -92,6 +93,21 @@ export interface UseEventAggregatorResult {
   /** Map keyed by `YYYY-MM-DD` with the entries on that day, source-ordered. */
   byDate: Map<string, CalendarEntry[]>;
 }
+
+// Recurring maintenance tasks persist as ONE canonical PhaseTask; the
+// calendar expands that single row into virtual occurrences so the steward
+// sees the cadence without bloating the store. The projection is bounded:
+// a fixed forward horizon plus a hard occurrence cap so a monthly task can
+// never run away.
+const MAINTENANCE_VIEW_HORIZON_YEARS = 5;
+const MAINTENANCE_MAX_OCCURRENCES = 240;
+const RECURRENCE_STEP_MONTHS: Record<MaintenanceFrequency, number> = {
+  monthly: 1,
+  quarterly: 3,
+  annual: 12,
+  biennial: 24,
+  'every-3-years': 36,
+};
 
 const SOURCE_ORDER: Record<CalendarSource, number> = {
   community: 0,
@@ -222,24 +238,60 @@ export function useEventAggregator(projectId: string): UseEventAggregatorResult 
       if (phase.projectId !== projectId) continue;
       for (const t of phase.tasks ?? []) {
         if (!t.scheduledStart) continue;
-        const key = toDateKey(t.scheduledStart);
-        if (!key) continue;
-        const iso = `${t.scheduledStart}T09:00:00`;
+        const firstKey = toDateKey(t.scheduledStart);
+        if (!firstKey) continue;
         const laborMeta = t.laborHrs ? `${t.laborHrs}h` : '';
         const roleMeta = t.roleAccess && t.roleAccess.length > 0
           ? t.roleAccess.join('/')
           : '';
-        const meta = [phase.name, laborMeta, roleMeta]
+        const src: CalendarSource = t.generatedFromPlantingCalendar
+          ? 'plantingCalendar'
+          : 'phaseTask';
+
+        const recurStep =
+          t.isMaintenanceTask && t.recurrenceFrequency
+            ? RECURRENCE_STEP_MONTHS[t.recurrenceFrequency]
+            : null;
+
+        if (recurStep == null) {
+          const meta = [phase.name, laborMeta, roleMeta]
+            .filter(Boolean)
+            .join(' · ');
+          all.push({
+            id: `phase-task:${t.id}`,
+            source: src,
+            dateKey: firstKey,
+            iso: `${firstKey}T09:00:00`,
+            title: t.title,
+            meta,
+          });
+          continue;
+        }
+
+        // Recurring maintenance: project bounded virtual occurrences from
+        // the first scheduled date forward by the cadence.
+        const meta = [phase.name, laborMeta, roleMeta, `recurring ${t.recurrenceFrequency}`]
           .filter(Boolean)
           .join(' · ');
-        all.push({
-          id: `phase-task:${t.id}`,
-          source: t.generatedFromPlantingCalendar ? 'plantingCalendar' : 'phaseTask',
-          dateKey: key,
-          iso,
-          title: t.title,
-          meta,
-        });
+        const [y0, m0, d0] = firstKey.split('-').map(Number) as [number, number, number];
+        const horizonEnd = new Date(y0 + MAINTENANCE_VIEW_HORIZON_YEARS, m0 - 1, d0);
+        let occ = new Date(y0, m0 - 1, d0);
+        for (
+          let n = 0;
+          n < MAINTENANCE_MAX_OCCURRENCES && occ.getTime() <= horizonEnd.getTime();
+          n++
+        ) {
+          const dk = `${occ.getFullYear()}-${String(occ.getMonth() + 1).padStart(2, '0')}-${String(occ.getDate()).padStart(2, '0')}`;
+          all.push({
+            id: `phase-task:${t.id}@${dk}`,
+            source: src,
+            dateKey: dk,
+            iso: `${dk}T09:00:00`,
+            title: t.title,
+            meta,
+          });
+          occ = new Date(y0, m0 - 1 + recurStep * (n + 1), d0);
+        }
       }
     }
 
