@@ -59,7 +59,7 @@ Key: fastify, postgres, puppeteer, @aws-sdk/client-s3, bullmq, ioredis, zod, bcr
 ## Current State
 All 16+ routes functional. PDF export service complete. Data pipeline orchestration works but adapters are stubbed. AI enrichment stubbed.
 
-Vitest suite: **548 tests / 50 files** green (as of 2026-05-17).
+Vitest suite: **549 tests / 50 files** green (as of 2026-05-17).
 
 ## Testing harness (read before adding api tests)
 
@@ -91,7 +91,16 @@ bare `.parse()`: shared can resolve a different `zod` instance, so a
 thrown `ZodError` misses `instanceof ZodError` in the global handler and
 escapes as a 500. Codebase-wide validation status is **422**.
 
-**Known latent issue:** `app.ts` registers `setNotFoundHandler` /
-`setErrorHandler` *after* the route plugins, so Fastify's default handler
-serves route errors (status codes survive via `AppError.statusCode`, but
-the response envelope is the default shape, not `{data:null,error:{…}}`).
+**Resolved 2026-05-17 (`a481d852`):** `app.ts` previously registered
+`setNotFoundHandler` / `setErrorHandler` *after* the route plugins, so
+Fastify's default handler served route errors (status survived via
+`AppError.statusCode`, but the envelope was the default shape and a thrown
+`ZodError` → 500 not 422). Both registrations were moved *before* the
+route block, and the `ZodError` branch now matches **structurally**
+(`name === 'ZodError'` + `issues` array) so a ZodError from
+`@ogden/shared`'s separate zod instance is still mapped to the 422
+envelope — the dual-zod 500 is neutralised for every bare-`.parse()`
+route at the single error seam (no per-route `safeParse` churn needed;
+the `parseOrThrow`/`parseEdge` precedents remain valid belt-and-
+suspenders). See
+`decisions/2026-05-17-atlas-error-handler-ordering-dual-zod-structural.md`.

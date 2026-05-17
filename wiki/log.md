@@ -4,6 +4,33 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-17 — Spun-off follow-up: error-handler ordering + structural dual-zod ZodError detection
+
+**Branch.** `claude/hardcore-napier-80b70c`. Commit `a481d852`.
+
+**What.** Executed the item flagged out-of-scope by the faithful-mock ADR.
+(1) `app.ts` registered `setNotFoundHandler`/`setErrorHandler` **after**
+the route plugins → Fastify's default handler served route errors (wrong
+envelope; thrown `ZodError` → 500 not 422). Moved both **before** the
+route block. (2) Audited ~15 bare-`.parse()` routes — confirmed most
+request schemas are `@ogden/shared` imports, so instead of 15 per-route
+`safeParse` edits, broadened the handler's `ZodError` branch to
+**structural** detection (`name === 'ZodError'` + `issues` array) so a
+ZodError from shared's *different* zod instance is still mapped to 422.
+Root-cause fix at the single error seam — neutralises the dual-zod 500
+for every route at once.
+
+**Verification.** Temporary `console.log` probe in the relocated handler
+fired (`UnauthorizedError`/`ValidationError`) for thrown route errors —
+before the move it never fired (confirms the original flagged diagnosis);
+probe reverted. New `comments.test.ts` case POSTs an invalid body to a
+real bare-`.parse()` `@ogden/shared` route → asserts `422` +
+`{data:null,error:{code:'VALIDATION_ERROR',details:[]}}`. api
+**549/549** (+1), `tsc --noEmit` exit 0; no regression. Decision:
+`decisions/2026-05-17-atlas-error-handler-ordering-dual-zod-structural.md`.
+
+---
+
 ## 2026-05-17 — Bundled-defect cleanup: web narrowing + faithful postgres.js test mock + telemetry dual-zod
 
 **Branch.** `claude/hardcore-napier-80b70c` (off `feat/atlas-permaculture`
