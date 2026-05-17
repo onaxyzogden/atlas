@@ -19,6 +19,7 @@ import ActivityList from "../components/ActivityList.js";
 import ActionList from "../components/ActionList.js";
 import ObservedStamp from "../components/ObservedStamp.js";
 import { useV3Project } from "../data/useV3Project.js";
+import { formatLocationArea } from "../data/parcelIntegrity.js";
 import type { ProjectScores } from "../types.js";
 import "../styles/chrome.css";
 import css from "./HomePage.module.css";
@@ -63,7 +64,7 @@ export default function HomePage() {
 
       <HomeHero
         projectName={project.name}
-        meta={`${project.location.region} · ${project.location.acreage} ${project.location.acreageUnit}`}
+        meta={`${project.location.region} · ${formatLocationArea(project.location)}`}
         verdict={project.verdict}
         actions={[
           { label: "Continue Project", onClick: () => navigate({ to: "/cycle" }) },

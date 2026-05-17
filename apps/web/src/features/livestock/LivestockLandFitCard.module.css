@@ -137,12 +137,7 @@
 }
 
 .fitCell {
-  position: relative;
   cursor: help;
-}
-
-.fitCell:hover .rationale {
-  display: block;
 }
 
 .fitTier_3 { background: rgba(120, 175, 110, 0.06); }
@@ -151,12 +146,8 @@
 .fitTier_0 { background: rgba(232, 100, 90, 0.04); }
 
 .rationale {
-  display: none;
-  position: absolute;
-  z-index: 5;
-  bottom: calc(100% + 4px);
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;
+  z-index: var(--z-tooltip, 600);
   width: 200px;
   padding: 8px 10px;
   border-radius: 6px;

@@ -54,6 +54,7 @@ const FencingLayoutCard           = lazy(() => import('../../features/livestock/
 const AnimalTractorZonesCard      = lazy(() => import('../../features/livestock/AnimalTractorZonesCard.js'));
 const LivestockWelfarePhasingCard = lazy(() => import('../../features/livestock/LivestockWelfarePhasingCard.js'));
 const BiosecurityBufferCard       = lazy(() => import('../../features/livestock/BiosecurityBufferCard.js'));
+const RegenerationPlanCard        = lazy(() => import('../../features/livestock/RegenerationPlanCard.js'));
 const SlaughterThroughputCard = lazy(() => import('../../features/agribusiness/SlaughterThroughputCard.js'));
 const ColdChainCoverageCard   = lazy(() => import('../../features/agribusiness/ColdChainCoverageCard.js'));
 const MarketDistributionCard  = lazy(() => import('../../features/agribusiness/MarketDistributionCard.js'));
@@ -122,6 +123,7 @@ function renderPlanCard(
     case 'plan-livestock-tractor-zones':    return <AnimalTractorZonesCard projectId={project.id} />;
     case 'plan-livestock-welfare-phasing':  return <LivestockWelfarePhasingCard projectId={project.id} />;
     case 'plan-livestock-buffers':          return <BiosecurityBufferCard projectId={project.id} />;
+    case 'plan-livestock-regeneration':     return <RegenerationPlanCard projectId={project.id} />;
     case 'plan-product-slaughter-throughput': return <SlaughterThroughputCard projectId={project.id} />;
     case 'plan-product-coldchain-coverage':   return <ColdChainCoverageCard projectId={project.id} />;
     case 'plan-product-market-distribution':  return <MarketDistributionCard projectId={project.id} />;

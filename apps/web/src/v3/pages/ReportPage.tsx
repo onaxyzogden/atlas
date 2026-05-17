@@ -22,6 +22,7 @@ import PageHeader from "../components/PageHeader.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { api } from "../../lib/apiClient.js";
 import { downloadProjectReport } from "../data/generateProjectReport.js";
+import { formatLocationArea } from "../data/parcelIntegrity.js";
 import type { ProjectScores } from "../types.js";
 import StageShell from "../_shell/StageShell.js";
 import css from "./ReportPage.module.css";
@@ -202,7 +203,7 @@ export default function ReportPage() {
             <span className={css.eyebrow}>Project Summary · Generated just now</span>
             <h2 className={css.summaryTitle}>{project.name}</h2>
             <p className={css.summaryMeta}>
-              {project.location.region} · {project.location.acreage} {project.location.acreageUnit}
+              {project.location.region} · {formatLocationArea(project.location)}
             </p>
           </header>
 

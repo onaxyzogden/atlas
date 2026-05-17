@@ -293,6 +293,14 @@ export interface LandZone {
    * generator. Optional; no persist version bump.
    */
   seedProvenance?: ZoneSeedProvenance;
+  /**
+   * Steward opt-in: this zone is suitable grazing land. The auto-design
+   * generator places paddocks/fences ONLY in zones flagged `true` — it is
+   * an explicit toggle, not derived from category or ring. Optional;
+   * undefined/false = not suitable. No persist version bump (optional
+   * field; existing zones load with `undefined`).
+   */
+  suitableForLivestock?: boolean;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */

@@ -14,6 +14,8 @@ import {
 import { useParams } from '@tanstack/react-router';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useVegetationStore } from '../../../../store/vegetationStore.js';
+import { useZoneStore } from '../../../../store/zoneStore.js';
+import { useRegenerationPlanStore } from '../../../../store/regenerationPlanStore.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import SpeciesObservationList from './SpeciesObservationList.js';
@@ -26,7 +28,9 @@ import Ring from '../../../_shared/stageCard/Ring.js';
 import {
   ecologyDetailKpis,
   ecologyCounts,
+  troubledZones,
   type KpiIconKey,
+  type TroubledZone,
 } from './derivations.js';
 
 const ICON_MAP: Record<KpiIconKey, LucideIcon> = {
@@ -54,6 +58,39 @@ export default function EcologicalDetail() {
   );
   const zones = useMemo(() => allZones.filter((z) => z.projectId === id), [allZones, id]);
   const successionStage = successionByProject[id];
+
+  const allLandZones = useZoneStore((s) => s.zones);
+  const landZones = useMemo(
+    () => allLandZones.filter((z) => z.projectId === id),
+    [allLandZones, id],
+  );
+  const allPlans = useRegenerationPlanStore((s) => s.plans);
+  const createPlan = useRegenerationPlanStore((s) => s.createPlan);
+  const troubled = useMemo(
+    () => troubledZones(landZones, zones),
+    [landZones, zones],
+  );
+  const planCountByZone = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of allPlans) {
+      if (p.projectId !== id) continue;
+      counts.set(p.zoneId, (counts.get(p.zoneId) ?? 0) + 1);
+    }
+    return counts;
+  }, [allPlans, id]);
+
+  const startRegenerationPlan = (t: TroubledZone) => {
+    createPlan({
+      projectId: id,
+      zoneId: t.zone.id,
+      baseline: {
+        groundCover: t.resolved.groundCover,
+        successionStage: t.resolved.successionStage,
+        source: t.resolved.source,
+        capturedAt: new Date().toISOString(),
+      },
+    });
+  };
 
   const kpis = ecologyDetailKpis(layers, observations, zones, successionStage);
   const counts = ecologyCounts(observations, zones, successionStage);
@@ -240,6 +277,68 @@ export default function EcologicalDetail() {
           )}
         </section>
       </div>
+
+      {troubled.length > 0 ? (
+        <section className={card.section}>
+          <h2 className={card.sectionTitle}>Land to revive</h2>
+          <p className={card.sectionBody}>
+            These zones read as troubled ground - bare, dead, or stalled at
+            early succession. Reviving dead land (ihya al-mawat) is a
+            stewardship duty under the Environment maqsid: start a regeneration
+            plan to chart a multi-year pathway to pasture before livestock can
+            be placed.
+          </p>
+          {troubled.map((item) => {
+            const planCount = planCountByZone.get(item.zone.id) ?? 0;
+            const planned = planCount > 0;
+            return (
+              <div key={item.zone.id} className={card.statRow}>
+                <span>
+                  <Sprout
+                    aria-hidden="true"
+                    size={12}
+                    style={{ marginRight: 6, verticalAlign: 'middle' }}
+                  />
+                  {item.zone.name}
+                  <small style={{ opacity: 0.7, marginLeft: 8 }}>
+                    {item.resolved.groundCover ?? 'unknown cover'} /{' '}
+                    {item.resolved.successionStage ?? 'unknown stage'}
+                  </small>
+                </span>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  {planned && (
+                    <small style={{ opacity: 0.7 }}>
+                      {planCount} {planCount === 1 ? 'plan' : 'plans'}
+                    </small>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => startRegenerationPlan(item)}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: 'rgba(220, 210, 185, 0.95)',
+                      background: 'rgba(180, 200, 150, 0.16)',
+                      border: '1px solid rgba(180, 200, 150, 0.35)',
+                      borderRadius: 5,
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {planned ? 'Start another plan' : 'Start regeneration plan'}
+                  </button>
+                </span>
+              </div>
+            );
+          })}
+        </section>
+      ) : null}
 
       <section className={card.section}>
         <h2 className={card.sectionTitle}>Recent field observations</h2>

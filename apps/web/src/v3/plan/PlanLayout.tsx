@@ -18,6 +18,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
+import { parcelAcreage } from '../../lib/geo.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useServerMachineryInventory } from '../../hooks/useServerMachineryInventory.js';
 import { useV3Project } from '../data/useV3Project.js';
@@ -86,6 +87,10 @@ export default function PlanLayout() {
   );
 
   const boundary = v3Project?.location.boundary;
+  // Coords-only fallback (no boundary): prefer the parcel's intake center
+  // over the hard-coded stage centroid. Ignored when `boundary` exists —
+  // the canvas fits to bounds in that case.
+  const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   const [activeView, setActiveView] = useState<PlanView>('vision');
@@ -133,6 +138,7 @@ export default function PlanLayout() {
         features: [{ type: 'Feature', properties: {}, geometry: polygon }],
       },
       hasParcelBoundary: true,
+      acreage: parcelAcreage(polygon, project.units),
     });
   };
 
@@ -143,12 +149,12 @@ export default function PlanLayout() {
   const canvasContent = isVisionCanvas ? (
     <VisionLayoutCanvas
       projectId={id}
-      centroid={FALLBACK_CENTROID}
+      centroid={fallbackCenter}
       boundary={boundary}
       view={activeView}
     />
   ) : (
-    <DiagnoseMap centroid={FALLBACK_CENTROID} boundary={boundary}>
+    <DiagnoseMap centroid={fallbackCenter} boundary={boundary}>
       {({ map }) => (
         <>
           <MapToolbar
@@ -217,7 +223,7 @@ export default function PlanLayout() {
           <PlanSunPathOverlay
             map={map}
             projectId={id}
-            fallbackCentroid={FALLBACK_CENTROID}
+            fallbackCentroid={fallbackCenter}
             boundary={boundary}
           />
           <PlanScheduledMovesOverlay map={map} projectId={id} />

@@ -8,7 +8,7 @@ import { edgeLine } from '../stampers/edgeLine.js';
 import { contourLine } from '../stampers/contourLine.js';
 import { lowPointFill } from '../stampers/lowPointFill.js';
 import { squarePoly } from './fixtures.js';
-import type { TerrainView } from '../types.js';
+import { ACRE_M2, type TerrainView } from '../types.js';
 
 const ZONE = squarePoly(0, 0, 0.02);
 const ZONE_F = turf.feature(ZONE);
@@ -38,6 +38,41 @@ describe('stripSubdivide', () => {
   it('is deterministic', () => {
     expect(stripSubdivide(ZONE, ZONE_AREA)).toEqual(
       stripSubdivide(ZONE, ZONE_AREA),
+    );
+  });
+
+  // Right triangle: the old equal-bbox-width slices collapsed to a
+  // sliver at the apex. Equal-area cutting must keep cells uniform.
+  const TRI: GeoJSON.Polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [0.04, 0],
+        [0, 0.04],
+        [0, 0],
+      ],
+    ],
+  };
+  const TRI_AREA = turf.area(turf.feature(TRI));
+
+  it('keeps cell areas within 10% on an irregular polygon', () => {
+    const strips = stripSubdivide(TRI, TRI_AREA);
+    expect(strips.length).toBeGreaterThanOrEqual(2);
+    const areas = strips.map((s) => turf.area(turf.feature(s)));
+    const max = Math.max(...areas);
+    const min = Math.min(...areas);
+    expect((max - min) / max).toBeLessThanOrEqual(0.1);
+  });
+
+  it('strip count still follows the ~1-acre formula', () => {
+    // 0.5-acre allocation clamps to the floor of 2 strips.
+    expect(stripSubdivide(ZONE, 0.5 * ACRE_M2).length).toBe(2);
+  });
+
+  it('is deterministic on an irregular polygon', () => {
+    expect(stripSubdivide(TRI, TRI_AREA)).toEqual(
+      stripSubdivide(TRI, TRI_AREA),
     );
   });
 });

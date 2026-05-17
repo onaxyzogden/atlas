@@ -37,9 +37,6 @@ import V3BuildPage from '../v3/pages/BuildPage.js';
 import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
-// TEMP (verification only — remove once DiagnosePage is routed in Phase C):
-// dev-only mount so the concentric ZonesOverlay rings can be visually checked.
-import DiagnosePage from '../v3/pages/DiagnosePage.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
 import CyclePage from '../pages/CyclePage.js';
@@ -51,6 +48,16 @@ import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
 // ActLayout but left importable for any future fallback need.
 void ActPlaceholderPage;
+
+// Legacy 7-stage + v2 page components retained per feedback_no_deletion.md —
+// their routes now redirect onto the v3 forward path (Observe/Plan/Act) but
+// the components stay importable for potential reuse in a later phase.
+void V3DesignPage;
+void V3ProvePage;
+void V3BuildPage;
+void V3OperatePage;
+void LifecycleProjectPage;
+void CyclePage;
 
 // Auth gate used by the public landing route. Reads the persisted token
 // directly so the redirect fires before AppShell mounts (avoiding a flash
@@ -93,16 +100,28 @@ const newProjectRoute = createRoute({
   component: NewProjectPage,
 });
 
+// Legacy v2 routes redirect onto the v3 forward path. Components stay
+// importable per feedback_no_deletion.md (void-referenced near the top).
 const cycleRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/cycle',
-  component: CyclePage,
+  component: () => null,
+  beforeLoad: () => {
+    throw redirect({ to: '/v3/project' });
+  },
 });
 
 const projectRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/project/$projectId',
-  component: LifecycleProjectPage,
+  component: () => null,
+  beforeLoad: ({ params }) => {
+    const { projectId } = params as { projectId: string };
+    throw redirect({
+      to: '/v3/project/$projectId/observe',
+      params: { projectId },
+    });
+  },
 });
 
 const compareCandidatesRoute = createRoute({
@@ -194,15 +213,6 @@ const v3DiagnoseRoute = createRoute({
     });
   },
 });
-// TEMP (verification only — remove once DiagnosePage is routed in Phase C):
-// `diagnose` itself redirects (intentional product behaviour); this parallel
-// dev-only path mounts the page so the concentric ZonesOverlay rings can be
-// visually verified. Renders null outside dev so it is inert if it ever ships.
-const v3DiagnosePreviewRoute = createRoute({
-  getParentRoute: () => v3ProjectLayoutRoute,
-  path: 'diagnose-preview',
-  component: import.meta.env.DEV ? DiagnosePage : () => null,
-});
 const v3ObserveIndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe',
@@ -233,25 +243,44 @@ const v3ActModuleRoute = createRoute({
   path: 'act/$module',
   component: ActLayout,
 });
+// Legacy 7-stage routes redirect onto the v3 forward path (Observe/Plan/Act).
+// Page components stay importable per feedback_no_deletion.md (void-referenced
+// near the top) for potential reuse in a later phase.
 const v3DesignRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'design',
-  component: V3DesignPage,
+  component: () => null,
+  beforeLoad: ({ params }) => {
+    const { projectId } = params as { projectId: string };
+    throw redirect({ to: '/v3/project/$projectId/plan', params: { projectId } });
+  },
 });
 const v3ProveRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'prove',
-  component: V3ProvePage,
+  component: () => null,
+  beforeLoad: ({ params }) => {
+    const { projectId } = params as { projectId: string };
+    throw redirect({ to: '/v3/project/$projectId/plan', params: { projectId } });
+  },
 });
 const v3BuildRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'build',
-  component: V3BuildPage,
+  component: () => null,
+  beforeLoad: ({ params }) => {
+    const { projectId } = params as { projectId: string };
+    throw redirect({ to: '/v3/project/$projectId/act', params: { projectId } });
+  },
 });
 const v3OperateRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'operate',
-  component: V3OperatePage,
+  component: () => null,
+  beforeLoad: ({ params }) => {
+    const { projectId } = params as { projectId: string };
+    throw redirect({ to: '/v3/project/$projectId/act', params: { projectId } });
+  },
 });
 const v3ReportRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
@@ -320,7 +349,6 @@ const routeTree = rootRoute.addChildren([
       v3HomeRoute,
       v3DiscoverRoute,
       v3DiagnoseRoute,
-      v3DiagnosePreviewRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
       v3PlanRoute,

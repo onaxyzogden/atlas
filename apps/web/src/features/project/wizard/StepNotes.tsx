@@ -5,7 +5,7 @@
 
 import { useState, useRef } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import * as turf from '@turf/turf';
+import { parcelAcreage } from '../../../lib/geo.js';
 import { useProjectStore, type ProjectAttachment } from '../../../store/projectStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { api } from '../../../lib/apiClient.js';
@@ -88,18 +88,8 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
     });
 
     // Calculate acreage from boundary if available
-    let acreage: number | null = null;
     const boundaryGeo = data.parcelBoundaryGeojson as GeoJSON.FeatureCollection | null;
-    if (boundaryGeo) {
-      try {
-        const areaM2 = turf.area(boundaryGeo);
-        acreage = project.units === 'metric'
-          ? Math.round((areaM2 / 10000) * 100) / 100   // hectares
-          : Math.round((areaM2 / 4046.86) * 100) / 100; // acres
-      } catch {
-        // Best-effort — leave null if calculation fails
-      }
-    }
+    const acreage = boundaryGeo ? parcelAcreage(boundaryGeo, project.units) : null;
 
     // Apply boundary + notes + calculated acreage
     updateProjectFn(project.id, {
@@ -125,8 +115,13 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       addAttachment(project.id, attachment);
     }
 
-    // Navigate immediately — local copy is the source of truth
-    navigate({ to: '/project/$projectId', params: { projectId: project.id } });
+    // Navigate immediately — local copy is the source of truth. Land in the
+    // v3 / Land OS Observe stage (the active lifecycle surface), not the
+    // legacy project page; the v3 tree reads the same store.
+    navigate({
+      to: '/v3/project/$projectId/observe',
+      params: { projectId: project.id },
+    });
 
     // Fire-and-forget backend sync (only when authenticated)
     if (token) {

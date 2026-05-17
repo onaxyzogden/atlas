@@ -57,4 +57,8 @@ Fastify REST API serving project management, data pipeline orchestration, geospa
 Key: fastify, postgres, puppeteer, @aws-sdk/client-s3, bullmq, ioredis, zod, bcryptjs, pino
 
 ## Current State
-All 16+ routes functional. PDF export service complete. Data pipeline orchestration works but adapters are stubbed. AI enrichment stubbed. No tests.
+All 16+ routes functional. PDF export service complete. Data pipeline orchestration works but adapters are stubbed. AI enrichment stubbed.
+
+Error handling (2026-05-17, commit `6ac716b4`): the custom `setNotFoundHandler` / `setErrorHandler` in `src/app.ts` are now registered **before** the route plugins, so all route contexts return the app envelope `{data:null,error:{code,message}}` — `AppError` (with `details`), `ZodError` → `VALIDATION_ERROR` 422, everything else → `INTERNAL_ERROR`. Previously they were registered after the routes and Fastify's default handler served route contexts (correct status, wrong body shape). See `decisions/2026-05-17-atlas-error-handler-ordering.md`.
+
+Tests: **550/550** passing in `@ogden/api` (Vitest, 50 files). The suite is **mock-DB by design** — `vitest.config.ts` hardcodes a dummy `DATABASE_URL` and every test `vi.mock`s the database plugin with an in-process FIFO queue; no real Postgres/PostGIS is ever consulted. The long-recurring "~11 fail without a provisioned test DB" note was **false** (provisioning a DB changes nothing); those 11 were mock-harness deficiencies, closed 2026-05-17 by the lazy-thenable mock upgrade (`tests/helpers/testApp.ts` shifts the queue only when a query is awaited, mirroring real `postgres`; non-awaited SQL fragments no longer drain it; `+.json`/`.begin`). See `decisions/2026-05-17-atlas-mock-db-lazy-thenable.md`. A real-DB/testcontainers harness remains explicitly deferred.

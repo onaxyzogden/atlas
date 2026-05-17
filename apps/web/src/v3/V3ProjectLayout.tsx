@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { Outlet, useParams, useRouterState } from "@tanstack/react-router";
 import LandOsShell from "../features/land-os/LandOsShell.js";
 import V3LifecycleSidebar from "./components/V3LifecycleSidebar.js";
+import ProjectBundleBar from "./components/ProjectBundleBar.js";
 import DecisionRail, { type RailStage } from "./components/DecisionRail.js";
 import { useV3Project } from "./data/useV3Project.js";
 import { useProjectStore } from "../store/projectStore.js";
@@ -80,6 +81,7 @@ export default function V3ProjectLayout() {
       rail={rail}
     >
       <div className={css.frame}>
+        <ProjectBundleBar />
         <div className={css.outletHost}>
           <Outlet />
         </div>

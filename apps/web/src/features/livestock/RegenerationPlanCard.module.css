@@ -1,0 +1,382 @@
+/* RegenerationPlanCard — Plan-stage strategy home for reviving troubled land. */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 16px 0;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.hint strong {
+  color: rgba(232, 200, 130, 0.9);
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.badgeIdle {
+  background: rgba(180, 165, 140, 0.08);
+  color: rgba(180, 165, 140, 0.7);
+  border-color: rgba(180, 165, 140, 0.18);
+}
+
+.empty {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.65);
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+}
+
+.list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Per-zone group ───────────────────────────────────────────────────── */
+
+.zoneGroup {
+  margin-bottom: 16px;
+}
+
+.zoneGroupHead {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.setActiveBtn {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(220, 210, 185, 0.9);
+  background: rgba(180, 200, 150, 0.14);
+  border: 1px solid rgba(180, 200, 150, 0.32);
+  border-radius: 5px;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+.setActiveBtn:hover {
+  background: rgba(180, 200, 150, 0.24);
+}
+
+/* ── Per-plan block ───────────────────────────────────────────────────── */
+
+.block {
+  padding: 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.014);
+  border-left: 3px solid rgba(180, 200, 150, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blockHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.blockMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.zoneName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.targetTag {
+  font-size: 10px;
+  text-transform: capitalize;
+  color: rgba(220, 200, 130, 0.85);
+  border: 1px solid rgba(220, 180, 100, 0.25);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+.stateTag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tag_good { background: rgba(180, 200, 150, 0.18); color: rgba(180, 220, 150, 0.95); }
+.tag_fair { background: rgba(220, 180, 100, 0.15); color: rgba(232, 200, 130, 0.9); }
+.tag_idle { background: rgba(180, 165, 140, 0.1);  color: rgba(200, 188, 165, 0.78); }
+
+.baseline {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(200, 188, 165, 0.78);
+}
+
+.baseline strong { color: rgba(220, 210, 185, 0.92); font-weight: 600; }
+
+.muted {
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+}
+
+/* ── Controls ─────────────────────────────────────────────────────────── */
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 700px) {
+  .controls { grid-template-columns: repeat(2, 1fr); }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.select {
+  font-size: 11.5px;
+  color: rgba(232, 220, 200, 0.92);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+  border-radius: 5px;
+  padding: 5px 7px;
+  outline: none;
+}
+
+.select:focus {
+  border-color: rgba(220, 180, 100, 0.4);
+}
+
+.startedValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(180, 220, 150, 0.9);
+  padding-top: 2px;
+}
+
+.startBtn {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  background: rgba(180, 200, 150, 0.14);
+  border: 1px solid rgba(180, 200, 150, 0.32);
+  border-radius: 5px;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+
+.startBtn:hover {
+  background: rgba(180, 200, 150, 0.22);
+}
+
+/* ── Method picker ────────────────────────────────────────────────────── */
+
+.methods {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 700px) {
+  .methodGrid { grid-template-columns: 1fr; }
+}
+
+.method {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: rgba(200, 188, 165, 0.78);
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  border-radius: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.methodOn {
+  border-color: rgba(180, 200, 150, 0.35);
+  background: rgba(180, 200, 150, 0.05);
+  color: rgba(220, 210, 185, 0.92);
+}
+
+.methodName { flex: 1; }
+
+.methodDur {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+/* ── SVG timeline ─────────────────────────────────────────────────────── */
+
+.timeline {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.grid {
+  stroke: rgba(232, 220, 200, 0.07);
+  stroke-width: 1;
+}
+
+.yearLabel {
+  fill: rgba(180, 165, 140, 0.6);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.productiveLine {
+  stroke: rgba(180, 220, 150, 0.6);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.productiveLabel {
+  fill: rgba(180, 220, 150, 0.9);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.segLabel {
+  fill: rgba(200, 188, 165, 0.8);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.segSpine {
+  fill: rgba(180, 200, 150, 0.55);
+  stroke: rgba(180, 220, 150, 0.5);
+  stroke-width: 1;
+}
+
+.segConcurrent {
+  fill: rgba(220, 180, 100, 0.28);
+  stroke: rgba(220, 180, 100, 0.5);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.segDur {
+  fill: rgba(20, 22, 18, 0.85);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.emptyTimeline {
+  margin: 0;
+  padding: 14px;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  border: 1px dashed rgba(180, 165, 140, 0.18);
+  border-radius: 6px;
+}
+
+.projected {
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(200, 188, 165, 0.8);
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.014);
+  border: 1px solid rgba(232, 220, 200, 0.05);
+}
+
+.projected strong { color: rgba(232, 200, 130, 0.92); font-weight: 600; }
+
+.silvoNote {
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.7);
+  font-style: italic;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: 1px dashed rgba(180, 200, 150, 0.22);
+}
+
+.silvoNote strong { color: rgba(220, 210, 185, 0.9); font-style: normal; }
+
+/* ── Footnote ─────────────────────────────────────────────────────────── */
+
+.footnote {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.55);
+}

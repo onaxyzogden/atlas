@@ -1,12 +1,13 @@
 /**
  * OfflineBanner — persistent notification bar showing offline/sync state.
  *
- * Three visible states:
+ * Visible states (highest severity first):
+ *   0. Conflict: a server-side newer version was rejected; local copy kept
  *   1. Offline:  warning-colored bar with last-synced timestamp
  *   2. Syncing:  info-colored bar with pending change count
  *   3. Pending:  subtle bar when online but queue has items
  *
- * Hidden when online with no pending changes.
+ * Hidden when online with no pending changes and no conflicts.
  * Mounted at the top of AppShell (before header).
  */
 
@@ -19,6 +20,41 @@ export default function OfflineBanner() {
   const syncStatus = useConnectivityStore((s) => s.syncStatus);
   const pendingChanges = useConnectivityStore((s) => s.pendingChanges);
   const lastSyncedAt = useConnectivityStore((s) => s.lastSyncedAt);
+  const conflictedStores = useConnectivityStore((s) => s.conflictedStores);
+  const clearConflictedStore = useConnectivityStore((s) => s.clearConflictedStore);
+
+  // ── Conflict (highest severity — persists across online/offline) ──
+  if (conflictedStores.length > 0) {
+    const n = conflictedStores.length;
+    return (
+      <div className={`${styles.banner} ${styles.conflict}`} role="alert" aria-live="assertive">
+        <span className={styles.icon}>
+          {/* ShieldAlert icon (inline SVG — no Lucide dependency) */}
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <line x1={12} y1={8} x2={12} y2={12} />
+            <line x1={12} y1={16} x2={12.01} y2={16} />
+          </svg>
+        </span>
+        <span>
+          {n} store{n !== 1 ? 's' : ''} ha{n !== 1 ? 've' : 's'} a newer version on the server — your local copy is kept
+        </span>
+        <span className={styles.chips}>
+          {conflictedStores.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className={styles.chip}
+              aria-label={`Dismiss ${key}`}
+              onClick={() => clearConflictedStore(key)}
+            >
+              {key} ✕
+            </button>
+          ))}
+        </span>
+      </div>
+    );
+  }
 
   // ── Offline ──
   if (!isOnline) {

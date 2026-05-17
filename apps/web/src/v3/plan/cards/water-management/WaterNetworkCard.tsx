@@ -27,6 +27,7 @@ import {
   catchmentYieldM3,
   effectiveCapacityL,
   formatLitres,
+  incompleteCatchments,
 } from './waterMath.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
@@ -79,6 +80,15 @@ export default function WaterNetworkCard({ project }: Props) {
   const nodes = usePhaseStoreCappedEntities(nodesRaw);
 
   const flow = useMemo(() => computeFlow(nodes, precipMm), [nodes, precipMm]);
+
+  // Catchments with no usable area yield 0 and would silently collapse the
+  // whole balance to a confident zero. Gate every aggregate readout on this
+  // so the steward is told the balance is incomplete, never shown a fake 0.
+  const incomplete = useMemo(() => incompleteCatchments(nodes), [nodes]);
+  const incompleteMsg = `incomplete: ${incomplete.length} catchment${
+    incomplete.length === 1 ? '' : 's'
+  } ${incomplete.length === 1 ? 'has' : 'have'} no area`;
+  const warn = 'rgba(220,140,120,0.95)';
 
   // Layout: bucket nodes by row, distribute horizontally.
   const layout = useMemo(() => {
@@ -219,20 +229,33 @@ export default function WaterNetworkCard({ project }: Props) {
         </label>
         <div className={styles.statRow}>
           <span>Total yield (catchments)</span>
-          <span>
-            {totalYieldM3.toFixed(1)} m³ · {formatLitres(totalYieldL)}
+          <span style={incomplete.length > 0 ? { color: warn } : undefined}>
+            {incomplete.length > 0
+              ? incompleteMsg
+              : `${totalYieldM3.toFixed(1)} m³ · ${formatLitres(totalYieldL)}`}
           </span>
         </div>
         <div className={styles.statRow}>
           <span>Retained on-site (storage + swales + sinks)</span>
-          <span>{formatLitres(totalRetainedL)}</span>
+          <span>{incomplete.length > 0 ? '—' : formatLitres(totalRetainedL)}</span>
         </div>
         <div className={styles.statRow}>
           <span>Lost off-site</span>
-          <span style={{ color: 'rgba(220,140,120,0.95)' }}>
-            {formatLitres(flow.offsiteLossL)}
+          <span style={{ color: warn }}>
+            {incomplete.length > 0 ? '—' : formatLitres(flow.offsiteLossL)}
           </span>
         </div>
+        {incomplete.length > 0 && (
+          <p
+            className={styles.empty}
+            style={{ textAlign: 'left', padding: '6px 0 0', color: 'rgba(220,140,120,0.85)' }}
+          >
+            {incomplete.length} catchment
+            {incomplete.length === 1 ? '' : 's'} {incomplete.length === 1 ? 'has' : 'have'}{' '}
+            no area set, so the balance cannot be computed. Set each
+            catchment&rsquo;s area in the Catchments tab.
+          </p>
+        )}
       </section>
 
       <section className={styles.section}>
@@ -255,7 +278,11 @@ export default function WaterNetworkCard({ project }: Props) {
         </label>
         <div className={styles.statRow}>
           <span>Peak inflow from catchments</span>
-          <span>{formatLitres(peakEvent.peakInflowL)}</span>
+          <span style={incomplete.length > 0 ? { color: warn } : undefined}>
+            {incomplete.length > 0
+              ? incompleteMsg
+              : formatLitres(peakEvent.peakInflowL)}
+          </span>
         </div>
         <div className={styles.statRow}>
           <span>Total effective capacity</span>
@@ -265,17 +292,20 @@ export default function WaterNetworkCard({ project }: Props) {
           <span>Storm balance</span>
           <span
             style={{
-              color: peakEvent.undersized
-                ? 'rgba(220,140,120,0.95)'
-                : 'rgba(160,200,140,0.95)',
+              color:
+                incomplete.length > 0 || peakEvent.undersized
+                  ? 'rgba(220,140,120,0.95)'
+                  : 'rgba(160,200,140,0.95)',
             }}
           >
-            {peakEvent.undersized
-              ? `undersized — ${formatLitres(peakEvent.surplusL)} must spill to emergency overflow`
-              : `${formatLitres(-peakEvent.surplusL)} headroom`}
+            {incomplete.length > 0
+              ? '— catchment area incomplete'
+              : peakEvent.undersized
+                ? `undersized — ${formatLitres(peakEvent.surplusL)} must spill to emergency overflow`
+                : `${formatLitres(-peakEvent.surplusL)} headroom`}
           </span>
         </div>
-        {peakEvent.undersized && (
+        {incomplete.length === 0 && peakEvent.undersized && (
           <p
             className={styles.empty}
             style={{ textAlign: 'left', padding: '6px 0 0', color: 'rgba(220,140,120,0.85)' }}
@@ -370,10 +400,23 @@ export default function WaterNetworkCard({ project }: Props) {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Validation</h2>
-        {orphans.length === 0 && catchmentOrphans.length === 0 && flow.cycleNodes.length === 0 ? (
+        {orphans.length === 0 &&
+        catchmentOrphans.length === 0 &&
+        flow.cycleNodes.length === 0 &&
+        incomplete.length === 0 ? (
           <p className={styles.empty}>Every node has an overflow target. ✓</p>
         ) : (
           <ul className={styles.list}>
+            {incomplete.map((n) => (
+              <li key={`ia-${n.id}`} className={styles.listRow}>
+                <div>
+                  <strong>{n.name}</strong>
+                  <div className={styles.listMeta} style={{ color: warn }}>
+                    catchment · area not set — fix in the Catchments tab
+                  </div>
+                </div>
+              </li>
+            ))}
             {[...catchmentOrphans, ...orphans].map((n) => (
               <li key={n.id} className={styles.listRow}>
                 <div>

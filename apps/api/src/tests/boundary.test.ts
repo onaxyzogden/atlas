@@ -55,6 +55,7 @@ beforeEach(() => { clearQueue(); });
 describe('POST /api/v1/projects/:id/boundary', () => {
   it('sets boundary and returns 200', async () => {
     enqueue(projectRow()); // resolveProjectRole
+    enqueue({ is_builtin: false }); // refuseIfBuiltin SELECT is_builtin
     // UPDATE projects SET parcel_boundary, centroid, acreage RETURNING ...
     enqueue({
       id: TEST_PROJ_ID,
@@ -76,6 +77,55 @@ describe('POST /api/v1/projects/:id/boundary', () => {
     const body = JSON.parse(res.body);
     expect(body.data.acreage).toBe(152.3);
     expect(body.data.has_parcel_boundary).toBe(true);
+  });
+
+  it('accepts a FeatureCollection boundary and returns positive acreage', async () => {
+    // Regression: the web client sends a FeatureCollection, not a bare
+    // Geometry. PostGIS ST_GeomFromGeoJSON rejects FeatureCollections, so
+    // an un-normalized payload silently produced acreage 0. The route must
+    // normalize it to a Polygon and persist a real area.
+    enqueue(projectRow());
+    enqueue({ is_builtin: false }); // refuseIfBuiltin SELECT is_builtin
+    enqueue({
+      id: TEST_PROJ_ID,
+      acreage: 152.3,
+      centroid_geojson: { type: 'Point', coordinates: [-79.95, 40.05] },
+      has_parcel_boundary: true,
+    });
+    enqueue();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/boundary`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        geojson: {
+          type: 'FeatureCollection',
+          features: [{ type: 'Feature', properties: {}, geometry: validGeoJSON }],
+        },
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data.acreage).toBeGreaterThan(0);
+    expect(body.data.has_parcel_boundary).toBe(true);
+  });
+
+  it('rejects a boundary with no polygonal geometry', async () => {
+    enqueue(projectRow());
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/projects/${TEST_PROJ_ID}/boundary`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        geojson: { type: 'FeatureCollection', features: [] },
+      },
+    });
+
+    expect(res.statusCode).toBeGreaterThanOrEqual(400);
+    expect(res.statusCode).toBeLessThan(500);
   });
 
   it('returns 401 without auth', async () => {

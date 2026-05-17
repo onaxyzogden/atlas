@@ -11,6 +11,7 @@
 
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useFocusTrap } from '../../../components/ui/useFocusTrap.js';
+import ErrorBoundary from '../../../components/ErrorBoundary.js';
 import css from './ModuleSlideUp.module.css';
 
 export interface ModuleSlideUpCard {
@@ -146,9 +147,16 @@ export default function ModuleSlideUp({
         )}
 
         <div className={css.body}>
-          <Suspense fallback={<p className={css.loading}>Loading…</p>}>
-            {currentId ? renderCard(currentId) : null}
-          </Suspense>
+          {/* Keyed per-card so switching tabs remounts a clean boundary —
+              a previously-failed card never blocks a working sibling. The
+              boundary catches a rejected lazy chunk import (stale deploy,
+              offline) so it degrades to a message + retry, not a white
+              screen behind the open sheet. */}
+          <ErrorBoundary key={currentId ?? 'none'} name={label}>
+            <Suspense fallback={<p className={css.loading}>Loading…</p>}>
+              {currentId ? renderCard(currentId) : null}
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </aside>
     </div>

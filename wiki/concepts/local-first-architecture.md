@@ -1,7 +1,9 @@
 # Local-First Architecture
 
 ## Summary
-All user-facing state in Atlas is stored in Zustand stores with `persist` middleware targeting `localStorage`. The backend API exists but stores are not yet synced to it. This means data is device-local and survives page reloads but not browser clears or device switches.
+All user-facing state in Atlas is stored in Zustand stores with `persist` middleware targeting `localStorage` (~70 stores, all keyed under the `ogden-` prefix). `syncService` **is implemented and auth-wired** but covers only **four slices** — projects, zones, structures, queued comments. The rest of the v3 design surface is localStorage-only *even when authenticated*. Data survives page reloads but the uncovered majority does **not** survive device switches or browser clears unless the steward exports a project bundle.
+
+> ⚠️ The old claim here ("backend exists but stores are not yet synced") was a verified inaccuracy, corrected 2026-05-16 — see [the partial-sync boundary](#partial-sync-boundary-the-real-state-2026-05-16).
 
 ## How It Works
 Each Zustand store follows this pattern:
@@ -26,10 +28,40 @@ export const useXStore = create<XState>()(
 );
 ```
 
-## Stores (18)
-All stores have a `serverId` field on their items (added in v2 migrations) but it is never populated. This field is reserved for Sprint 3 backend sync.
+## Partial-sync boundary: the real state (2026-05-16)
 
-## Sync Strategy (Planned — Sprint 3+)
+`apps/web/src/lib/syncService.ts` is **fully implemented and wired** —
+`main.tsx` starts it on auth and stops it on logout; it calls real
+`api.projects.*` / `api.designFeatures.*` endpoints. It is *not* orphaned.
+What it is, is **partial**. It round-trips only:
+
+| Synced (survives device switch when authenticated) | Store |
+|---|---|
+| Projects | `projectStore` |
+| Zones | `zoneStore` |
+| Structures | `builtEnvironmentStoreV2` |
+| Comments (queued) | comment queue |
+
+**Everything else is localStorage-only even when authenticated** — design
+elements (`landDesign`), vegetation, every Observe annotation namespace
+(hazards/sectors/ecology/pasture/conventional-crop/SWOT), project metadata
+(`designStatus`, `designHorizonYears`, zone thresholds),
+`regenerationPlanStore`, succession/temporal state — ~70 persisted `ogden-`
+stores total, only 3–4 of which sync.
+
+### Mitigation: the project-bundle escape hatch
+Until full sync lands, the multi-device path is a **project bundle** —
+`apps/web/src/lib/projectBundle.ts` snapshots the entire `ogden-`
+localStorage namespace (minus a 4-key denylist) to one JSON file; import
+overwrites + reloads so every store re-hydrates and runs its own `migrate`.
+Surfaced via `ProjectBundleBar` on the v3 shell, which also serves as the
+data-safety banner. See
+[ADR 2026-05-16 — multi-device bundle escape hatch](../decisions/2026-05-16-atlas-multi-device-bundle-escape-hatch.md).
+
+## Sync Strategy (Planned — full coverage deferred to backlog)
+Extending `syncService` from the 4 covered slices to the full ~70-store v3
+surface is the real long-term fix, deferred as a backlog item (too large to
+gate the testing window on). Intended shape:
 1. On project creation: POST to API, store returned `serverId`
 2. On mutation: debounced PATCH to API using `serverId`
 3. On app load: if online, fetch latest from API, merge with local
@@ -45,4 +77,4 @@ Every feature in the app — zones, structures, paddocks, crops, paths, utilitie
 - Portal configs are localStorage-only — public portals can't be shared yet (launch blocker)
 
 ## Risk
-Data loss on browser clear, no multi-device support, no collaboration. This is the #1 launch blocker.
+Data loss on browser clear for the uncovered ~66 stores; multi-device only via manual bundle export/import; no real-time collaboration. Full `syncService` coverage remains the #1 launch blocker — the bundle is a tester-window mitigation, not a resolution.

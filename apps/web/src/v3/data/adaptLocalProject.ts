@@ -26,6 +26,11 @@ import type {
   LifecycleStage,
 } from '../types.js';
 import { adaptScoredResultsToV3, adaptVerdict } from './adaptScores.js';
+import {
+  isParcelAreaValid,
+  INTEGRITY_BLOCKER,
+  INSUFFICIENT_DATA_VERDICT,
+} from './parcelIntegrity.js';
 
 const PLACEHOLDER_TIER: ConfidenceTier = 'low';
 
@@ -98,6 +103,24 @@ function firstPolygon(p: LocalProject): GeoJSON.Polygon | undefined {
   return undefined;
 }
 
+/** Fallback map center from the project's intake coordinates
+ *  (`metadata.centerLat/centerLng`, captured by the new-project wizard).
+ *  Returned as `[lng, lat]` to match MapLibre / `DiagnoseMap` ordering.
+ *  Only used by layouts when no `boundary` polygon exists. */
+function metadataCenter(p: LocalProject): [number, number] | undefined {
+  const lat = p.metadata?.centerLat;
+  const lng = p.metadata?.centerLng;
+  if (
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng)
+  ) {
+    return [lng, lat];
+  }
+  return undefined;
+}
+
 /** Phase 4.2: derive real `ProjectScores` + `Verdict` from the shared
  *  scoring engine when the project has at least one `complete` Tier-1
  *  layer in `useSiteDataStore`. Returns `null` when site data isn't ready
@@ -137,7 +160,9 @@ function deriveScoresFromSiteData(
 
 export function adaptLocalProjectToV3(p: LocalProject, siteData?: SiteData): Project {
   const polygon = firstPolygon(p);
+  const center = metadataCenter(p);
   const derived = deriveScoresFromSiteData(p, siteData);
+  const areaValid = isParcelAreaValid(p);
   return {
     id: p.id,
     name: p.name,
@@ -146,17 +171,23 @@ export function adaptLocalProjectToV3(p: LocalProject, siteData?: SiteData): Pro
     location: {
       region: p.provinceState ? `${p.provinceState}, ${p.country}` : p.country,
       country: p.country,
-      acreage: p.acreage ?? 0,
+      acreage: areaValid ? (p.acreage as number) : 0,
       acreageUnit: unitOf(p),
+      areaKnown: areaValid,
       ...(polygon ? { boundary: polygon } : {}),
+      ...(center ? { center } : {}),
     },
-    verdict: derived ? derived.verdict : PLACEHOLDER_VERDICT,
+    verdict: !areaValid
+      ? INSUFFICIENT_DATA_VERDICT
+      : derived
+        ? derived.verdict
+        : PLACEHOLDER_VERDICT,
     summary:
       p.description ??
       p.visionStatement ??
       'Project shell — site data and design intent populate over the lifecycle.',
     scores: derived ? derived.scores : DEFAULT_SCORES,
-    blockers: [],
+    blockers: areaValid ? [] : [INTEGRITY_BLOCKER],
     actions: [],
     activity: [],
     readiness: {

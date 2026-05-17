@@ -20,8 +20,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
+import { parcelAcreage } from '../../lib/geo.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
 import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
+import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
@@ -66,6 +68,12 @@ export default function ActLayout() {
   const boundary = project.parcelBoundaryGeojson?.features[0]?.geometry as
     | GeoJSON.Polygon
     | undefined;
+
+  // Coords-only fallback (no boundary): prefer the parcel's intake center
+  // (via the v2→v3 adapter seam) over the hard-coded stage centroid.
+  // DiagnoseMap still fits to `boundary` when one exists.
+  const v3Project = useV3Project(params.projectId);
+  const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
 
@@ -123,6 +131,7 @@ export default function ActLayout() {
         features: [{ type: 'Feature', properties: {}, geometry: polygon }],
       },
       hasParcelBoundary: true,
+      acreage: parcelAcreage(polygon, project.units),
     });
   };
 
@@ -140,7 +149,7 @@ export default function ActLayout() {
       }
       canvas={
         <DiagnoseMap
-          centroid={FALLBACK_CENTROID}
+          centroid={fallbackCenter}
           boundary={boundary}
         >
           {({ map }) => (

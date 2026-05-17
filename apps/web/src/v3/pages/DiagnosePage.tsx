@@ -25,6 +25,7 @@ import SectorsOverlay from "../components/overlays/SectorsOverlay.js";
 import WindSectorsOverlay from "../components/overlays/WindSectorsOverlay.js";
 import WaterOverlay from "../components/overlays/WaterOverlay.js";
 import ZonesOverlay from "../components/overlays/ZonesOverlay.js";
+import RegenerationPlanOverlay from "../components/overlays/RegenerationPlanOverlay.js";
 import HomesteadMarker from "../components/overlays/HomesteadMarker.js";
 import SpotlightPulse from "../components/overlays/SpotlightPulse.js";
 import { computeSolarSectors } from "../../lib/sectors/solar.js";
@@ -290,6 +291,7 @@ function DiagnoseOverlays({
       <SectorsOverlay map={map} sectors={sectors} />
       <WindSectorsOverlay map={map} rose={wind} />
       <ZonesOverlay map={map} zones={zones} boundary={boundary} />
+      <RegenerationPlanOverlay map={map} projectId={projectId} />
       {homestead && (
         <HomesteadMarker map={map} projectId={projectId} point={homestead} />
       )}

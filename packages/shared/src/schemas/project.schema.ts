@@ -81,6 +81,35 @@ export const ProjectType = z.enum([
   'moontrance',       // OGDEN identity template
 ]);
 
+// Shape-only GeoJSON validation for parcel boundaries. Rejects malformed /
+// non-GeoJSON bodies at the API boundary so the backend never feeds junk to
+// PostGIS. Coordinate arithmetic is left to PostGIS — this only asserts the
+// structural shape (type discriminants + coordinate/feature arrays present).
+const GeoJsonPosition = z.array(z.number()).min(2);
+const PolygonGeom = z.object({
+  type: z.literal('Polygon'),
+  coordinates: z.array(z.array(GeoJsonPosition)),
+});
+const MultiPolygonGeom = z.object({
+  type: z.literal('MultiPolygon'),
+  coordinates: z.array(z.array(z.array(GeoJsonPosition))),
+});
+const PolygonalGeom = z.union([PolygonGeom, MultiPolygonGeom]);
+const GeoJsonFeature = z.object({
+  type: z.literal('Feature'),
+  geometry: PolygonalGeom.nullable(),
+});
+const GeoJsonFeatureCollection = z.object({
+  type: z.literal('FeatureCollection'),
+  features: z.array(GeoJsonFeature),
+});
+export const ParcelBoundaryGeojson = z.union([
+  GeoJsonFeatureCollection,
+  GeoJsonFeature,
+  PolygonalGeom,
+]);
+export type ParcelBoundaryGeojson = z.infer<typeof ParcelBoundaryGeojson>;
+
 export const CreateProjectInput = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
@@ -95,7 +124,7 @@ export const CreateProjectInput = z.object({
 export type CreateProjectInput = z.infer<typeof CreateProjectInput>;
 
 export const UpdateProjectInput = CreateProjectInput.partial().extend({
-  parcelBoundaryGeojson: z.unknown().optional(), // GeoJSON MultiPolygon
+  parcelBoundaryGeojson: ParcelBoundaryGeojson.optional(),
   ownerNotes: z.string().max(5000).optional(),
   zoningNotes: z.string().max(2000).optional(),
   accessNotes: z.string().max(2000).optional(),

@@ -20,6 +20,7 @@ function buildInput(): AutoDesignInput {
     }),
     makeZone('z-pasture', {
       category: 'livestock',
+      suitableForLivestock: true,
       successionStage: 'mid',
       groundCover: 'thriving-grasses',
       permacultureZone: 3,
@@ -126,5 +127,75 @@ describe('runAutoDesign', () => {
     // contour-line interventions (swale/keyline) have no terrain here,
     // so they should report as empty-geometry.
     expect(Array.isArray(res.emptyGeometryInterventionIds)).toBe(true);
+  });
+
+  // Parcel containment + equal-area for tile-strip drafts (grazing
+  // paddocks / annual beds — the steward's fix). This goal tree selects
+  // silvopasture-alley + integrated-stock-cropland as its tile-strip
+  // livestock infrastructure; the contract is keyed on the geometry
+  // template, not on specific catalog ids.
+  const isTileStrip = (d: { geometry: { type: string }; template: string }) =>
+    d.geometry.type === 'Polygon' && d.template === 'tile-strip';
+
+  function parcelFC(
+    box: [number, number, number, number],
+  ): GeoJSON.FeatureCollection {
+    const [w, s, e, n] = box;
+    return {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'Polygon',
+            coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]],
+          },
+        },
+      ],
+    };
+  }
+
+  it('clips tile-strip drafts to zone ∩ parcel and keeps them equal-area', () => {
+    // z-pasture spans lng [0.05, 0.09]; this parcel keeps only its
+    // left portion, so tile strips must be trimmed to the overlap.
+    const parcel = parcelFC([0.05, -0.01, 0.07, 0.05]);
+    const parcelPoly = turf.buffer(turf.feature(parcel.features[0]!.geometry), 0.003, {
+      units: 'kilometers',
+    })!;
+    const res = runAutoDesign({ ...buildInput(), parcelBoundary: parcel });
+
+    const paddocks = res.drafts.filter(isTileStrip);
+    expect(paddocks.length).toBeGreaterThan(0);
+    for (const d of paddocks) {
+      expect(d.zoneId).toBe('z-pasture');
+      expect(
+        turf.booleanWithin(turf.feature(d.geometry), parcelPoly),
+      ).toBe(true);
+    }
+
+    // Per intervention+zone group, largest cell ≤ smallest + 10%.
+    const groups = new Map<string, number[]>();
+    for (const d of paddocks) {
+      const key = `${d.interventionId}|${d.zoneId}`;
+      const arr = groups.get(key) ?? [];
+      arr.push(turf.area(turf.feature(d.geometry)));
+      groups.set(key, arr);
+    }
+    for (const areas of groups.values()) {
+      if (areas.length < 2) continue;
+      const max = Math.max(...areas);
+      const min = Math.min(...areas);
+      expect((max - min) / max).toBeLessThanOrEqual(0.1);
+    }
+  });
+
+  it('emits no tile-strip drafts when the suitable zone is outside the parcel', () => {
+    // Parcel disjoint from every zone → tile-strip clip yields nothing.
+    const res = runAutoDesign({
+      ...buildInput(),
+      parcelBoundary: parcelFC([0.2, 0.2, 0.21, 0.21]),
+    });
+    expect(res.drafts.filter(isTileStrip)).toHaveLength(0);
   });
 });

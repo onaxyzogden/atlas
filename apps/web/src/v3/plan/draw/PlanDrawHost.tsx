@@ -63,12 +63,21 @@ interface Props {
   map: MaplibreMap;
   projectId: string | null;
   parcelBoundary?: GeoJSON.Polygon;
+  /**
+   * `'current'` (default) — full switchboard for the 2D Current canvas.
+   * `'vision'` — Vision / 3D Terrain canvas: skip the elementCatalog-kind
+   * and Plan-BE branches because `VisionLayoutCanvas` already mounts those
+   * lifecycles (`DesignElementDrawHost` / `BeV2ExistingTool`). Only the
+   * dedicated-store `switch` runs, so there is no double-mount.
+   */
+  variant?: 'current' | 'vision';
 }
 
 export default function PlanDrawHost({
   map,
   projectId,
   parcelBoundary,
+  variant = 'current',
 }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
 
@@ -80,7 +89,7 @@ export default function PlanDrawHost({
   // palette route through PlanDesignElementHost so they persist to
   // `designElementsStore` (same store the Vision canvas writes into).
   // One source of truth across all four Plan views.
-  if (DESIGN_ELEMENT_TOOL_IDS.has(activeTool)) {
+  if (variant === 'current' && DESIGN_ELEMENT_TOOL_IDS.has(activeTool)) {
     const kind = activeTool.split('.').pop()!;
     return (
       <div className={css.dock}>
@@ -97,7 +106,7 @@ export default function PlanDrawHost({
   // Registry-driven Plan BE dispatch: tool ids of shape
   // `plan.structures-subsystems.be.<kind>` mount BeV2ExistingTool with
   // `state: 'proposed'`. Mirrors the Observe rail's registry-driven path.
-  if (activeTool.startsWith(PLAN_BE_PREFIX)) {
+  if (variant === 'current' && activeTool.startsWith(PLAN_BE_PREFIX)) {
     const kind = activeTool.slice(PLAN_BE_PREFIX.length);
     return (
       <div className={css.dock}>

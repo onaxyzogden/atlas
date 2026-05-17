@@ -1,9 +1,15 @@
 /**
- * matrixTogglesStore — four boolean overlays (Topography / Sectors / Zones /
- * Wind) surfaced via the V3LifecycleSidebar footer "Matrix Toggles" P0 utility.
+ * matrixTogglesStore — boolean visibility switches for the map-overlay layers
+ * (solar/wind/hazard/view sectors, zones, water, topography, built environment,
+ * observe annotations, sun path, design audit rings, scheduled moves).
  *
- * Persistence: localStorage. The toggles are pure UI state — no server sync,
- * no per-project scoping yet (defer until a real overlay layer consumes them).
+ * Surfaced via the BaseMapCard "Overlays" legend — the canonical control,
+ * mounted on every Observe / Plan / Act map view. Each key is consumed by the
+ * matching overlay layer component, which gates its own visibility on it.
+ *
+ * Persistence: localStorage. Pure UI state — no server sync, not per-project
+ * scoped (a global view preference, not project data; intentionally excluded
+ * from the project bundle).
  *
  * Naming follows the Permaculture Scholar dialogue
  * (wiki/concepts/atlas-sidebar-permaculture.md, 2026-04-28): the matrix

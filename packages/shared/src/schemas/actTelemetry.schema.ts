@@ -26,6 +26,7 @@ export const ActInteractionEventType = z.enum(ACT_INTERACTION_EVENT_TYPES);
 export type ActInteractionEventType = z.infer<typeof ActInteractionEventType>;
 
 export const ActModuleId = z.enum([
+  'tracker',
   'build',
   'maintain',
   'livestock',

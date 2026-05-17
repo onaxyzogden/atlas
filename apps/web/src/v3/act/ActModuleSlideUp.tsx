@@ -12,7 +12,8 @@ import type { LocalProject } from '../../store/projectStore.js';
 import type { ActModule } from './types.js';
 import { MODULE_CARDS, ACT_MODULE_FULL_LABEL } from './types.js';
 
-// All 13 act cards lazy-loaded.
+// Act cards lazy-loaded.
+const PlanExecutionTrackerCard  = lazy(() => import('../../features/act/PlanExecutionTrackerCard.js'));
 const BuildGanttCard            = lazy(() => import('../../features/act/BuildGanttCard.js'));
 const BudgetActualsCard         = lazy(() => import('../../features/act/BudgetActualsCard.js'));
 const PilotPlotsCard            = lazy(() => import('../../features/act/PilotPlotsCard.js'));
@@ -43,6 +44,7 @@ const AnimalCorridorGrazingRouteCard = lazy(() => import('../../features/livesto
 function renderActCard(sectionId: string, project: LocalProject) {
   const noop = () => {};
   switch (sectionId) {
+    case 'act-plan-tracker':      return <PlanExecutionTrackerCard project={project} onSwitchToMap={noop} />;
     case 'act-build-gantt':       return <BuildGanttCard project={project} onSwitchToMap={noop} />;
     case 'act-budget-actuals':    return <BudgetActualsCard project={project} onSwitchToMap={noop} />;
     case 'act-pilot-plots':       return <PilotPlotsCard project={project} onSwitchToMap={noop} />;

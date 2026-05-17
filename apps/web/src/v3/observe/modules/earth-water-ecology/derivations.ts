@@ -11,6 +11,11 @@ import type {
   Watercourse,
 } from '../../../../store/waterSystemsStore.js';
 import type { SoilSample } from '../../../../store/soilSampleStore.js';
+import type { LandZone, GroundCoverState } from '../../../../store/zoneStore.js';
+import {
+  resolveZoneVegetation,
+  type ResolvedVegetation,
+} from '../../../plan/engine/vegetationResolver.js';
 
 const DASH = '—';
 
@@ -467,4 +472,44 @@ export function jprKpis(samples: SoilSample[]): KpiItem[] {
         : 'dim',
     },
   ];
+}
+
+// ── Troubled-zone detection ───────────────────────────────────────────────────
+
+/**
+ * A zone whose resolved vegetation reads as land in need of revival
+ * (iḥyāʾ al-mawāt) — bare/dead ground or stalled at the disturbed
+ * succession stage — paired with the resolved reading so a steward can
+ * snapshot it as a regeneration-plan baseline.
+ */
+export interface TroubledZone {
+  zone: LandZone;
+  resolved: ResolvedVegetation;
+}
+
+const TROUBLED_GROUND_COVERS: ReadonlySet<GroundCoverState> = new Set([
+  'barren',
+  'bare-soil',
+]);
+
+/**
+ * Flag zones a steward should consider regenerating before productive use.
+ * Pure: resolves each zone's vegetation against the project's observed
+ * patches (override wins) and keeps those reading as barren / bare-soil
+ * ground cover or a `disturbed` succession stage.
+ */
+export function troubledZones(
+  zones: LandZone[],
+  patches: VegetationPatch[],
+): TroubledZone[] {
+  const out: TroubledZone[] = [];
+  for (const zone of zones) {
+    const resolved = resolveZoneVegetation(zone, patches);
+    const troubled =
+      (resolved.groundCover !== null &&
+        TROUBLED_GROUND_COVERS.has(resolved.groundCover)) ||
+      resolved.successionStage === 'disturbed';
+    if (troubled) out.push({ zone, resolved });
+  }
+  return out;
 }

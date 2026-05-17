@@ -48,6 +48,8 @@ import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
 import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
 import PlanDataLayers from '../layers/PlanDataLayers.js';
+import PlanScheduledMovesOverlay from '../layers/PlanScheduledMovesOverlay.js';
+import PlanDrawHost from '../draw/PlanDrawHost.js';
 import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
 import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
 import PlanSelectionFloater from '../PlanSelectionFloater.js';
@@ -185,9 +187,25 @@ export default function VisionLayoutCanvas({
               PlanVertexEditHandler keeps the floater's Edit-vertices
               action working under 3D. */}
           <PlanDataLayers map={map} projectId={projectId} editable={false} />
+          <PlanScheduledMovesOverlay map={map} projectId={projectId} />
           <Plan3DSelectionHandler map={map} />
           <PlanVertexEditHandler map={map} />
           <PlanSelectionFloater />
+          {/* Dedicated-store draw tools (zone / buffer-ring / water /
+              fence-line / fertility / flow-connector / note / transect /
+              schedule-move / zone-seed-anchor — the ~16 ids that
+              `useToolIdToElementKind` maps to null). `variant="vision"`
+              skips PlanDrawHost's elementCatalog + BE branches because
+              those lifecycles are already mounted below
+              (DesignElementDrawHost / BeV2ExistingTool), so each tool
+              mounts exactly once. Output renders via the already-present
+              PlanDataLayers. Closes the prior "Phase 2 gap". */}
+          <PlanDrawHost
+            map={map}
+            projectId={projectId}
+            parcelBoundary={boundary}
+            variant="vision"
+          />
           {activeKind && (
             <DesignElementDrawHost
               key={activeKind}

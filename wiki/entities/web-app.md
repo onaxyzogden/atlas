@@ -153,6 +153,50 @@ All use `persist` middleware with localStorage. Key stores:
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
 
 ## Current State
+- **Full `syncService` coverage Phases 1–2 (2026-05-17)** — `lib/syncManifest.ts`
+  is the single source of truth: every project-scoped `ogden-` persist store
+  is classified (`typed-design-feature`/`typed-table`/`versioned-blob`) and a
+  Vitest coverage guard fails the build on any unclassified store (closes the
+  original P0-1 enumeration gap). A generic versioned-blob transport
+  (`blobSync.ts`, `'state-blob'` queue type, `project_state_blobs` table +
+  `routes/project-state/`, debounced subscription loop over all 62 blob
+  stores) is wired but **default-off** behind `FLAGS.SYNC_STATE_BLOBS`.
+  **Phase 4 (2026-05-17, same flag):** the read side is now complete —
+  `hydrateProjectStateBlobs` (in `initialSync`, inside `isSyncing`) +
+  `applyForProject` on all 62 descriptors (project-isolated) restores
+  device B; version-skew guard skips newer blobs; `temporal()` undo
+  cleared post-hydrate; 409 surfaces visibly (`connectivityStore
+  .conflictedStores` badge + toast, no silent clobber). End-to-end
+  functionally complete; phased enable + multi-device matrix is Phase 5;
+  `projectBundle.ts` remains the offline backup. See
+  [Phase 1–2 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md),
+  [Phase 4 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase4.md).
+- **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
+  *online* hole the P0 guard deferred. New pure shared
+  `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
+  GeoJSON **FeatureCollection** to a bare Polygon/MultiPolygon before PostGIS
+  `ST_GeomFromGeoJSON` (which rejects FeatureCollections → NULL → acreage 0);
+  used by both `projects` `/boundary` and `templates` `/instantiate` (4xx /
+  skip-UPDATE on nothing — never write a confident 0). `project.schema.ts`
+  `parcelBoundaryGeojson` tightened from `z.unknown()` to a shape-only
+  GeoJSON union. `syncService.applyServerAcreage` guard hardened to reject
+  `acreage <= 0` so a server 0 can never clobber the canonical client
+  geodesic acreage. See
+  [ADR](../decisions/2026-05-17-atlas-backend-acreage-hardening.md).
+- **Parcel-area integrity guard (2026-05-16)** — a project with
+  missing/zero parcel area can no longer present as "0 ha · Supported".
+  `v3/data/parcelIntegrity.ts` is the single integrity-decision module;
+  `adaptLocalProject.ts` is the sole guard seam (`!isParcelAreaValid` ⇒
+  explicit `INSUFFICIENT_DATA_VERDICT` + `INTEGRITY_BLOCKER`, bypassing
+  `adaptVerdict`/`VERDICT_TABLE`); `ProjectLocation.areaKnown?` added; all
+  5 area-display surfaces share `formatLocationArea`. Water balance no
+  longer silently reads `0.0 m³` from an unset catchment area — Network /
+  Catchments cards gate the aggregate on `incompleteCatchments(...)`,
+  pre-fill surface-aware non-zero defaults, and offer ground-only
+  one-click parcel-area (`lib/geo.ts` `parcelAreaM2`). See
+  [`2026-05-16-atlas-parcel-integrity-guard.md`](../decisions/2026-05-16-atlas-parcel-integrity-guard.md).
+  Deferred: backend `ST_GeomFromGeoJSON(FeatureCollection)`→0 +
+  `applyServerAcreage` overwrite (online-only).
 - Map + drawing tools: **production-ready** (MapTiler tiles + geocoding live)
 - Dashboard: 14 pages, mixed live/demo data
 - Financial engine: **working** (client-side, ~8 sub-engines)
@@ -195,6 +239,41 @@ All use `persist` middleware with localStorage. Key stores:
   map view also now opens on Vision Layout (`PLAN_VIEWS` =
   `['vision','current','terrain3d']`). See
   [[2026-05-15-atlas-plan-modulebar-in-slideup-and-view-order]].
+
+  **New-project wizard → v3 cutover + adapter-seam location
+  (2026-05-16):** the wizard's "Create Project" now redirects to
+  `/v3/project/$projectId/observe` (was legacy `/project/$projectId`).
+  This is a *wizard-level* cutover only — the v2 workspace stays
+  mounted and URL-routable (nuances the "cutover deferred to v3.1"
+  line above; only the post-create destination moved, nothing
+  deleted). Location now propagates through the **single v2→v3
+  adapter seam**: `ProjectLocation` carries `center?: [number, number]`
+  (`[lng, lat]`; precedence `boundary → center → fallback`),
+  `adaptLocalProject.metadataCenter()` derives it from
+  `metadata.centerLng/centerLat`, and Observe/Plan(×3 sinks)/Act read
+  `v3Project?.location.center ?? FALLBACK_CENTROID` into `DiagnoseMap`.
+  Layouts must **not** re-read `LocalProject.metadata` directly — the
+  adapter is the typed contract. Closes the
+  [[2026-04-27-project-intake-map-centering]] deferred item. See
+  [[2026-05-16-atlas-wizard-v3-bridge-location-propagation]].
+
+  **Act §5.2 Plan-Execution Tracker — new `tracker` module
+  (2026-05-16):** the v3 Act taxonomy (`v3/act/types.ts` `ACT_MODULES`)
+  gained a module `'tracker'` ordered **first** — the §5.2 interactive
+  task ledger over `phaseStore`. `PhaseTask` gained additive optional
+  `done?`/`doneAt?` and `phaseStore` a `toggleTaskDone(phaseId,
+  taskId)` action (no persist version bump — mirrors the
+  `isMaintenanceTask?` precedent; deliberately does **not** set
+  `status:'overridden'` so a checked box doesn't freeze the row against
+  Goal-Compass regeneration). New card
+  `features/act/PlanExecutionTrackerCard.tsx` (phase-ordered incl.
+  synthetic regen `order 1` / maintenance `order 99`, overall + per-
+  phase progress %, overdue vs `scheduledStart`, optional by-
+  designLayer pivot). **Forward guardrail:** the Act-module set now has
+  two hand-synced sources of truth — `ActModule` (UI) and `ActModuleId`
+  (`@ogden/shared` telemetry); adding an Act module requires editing
+  **both** or tsc fails at the telemetry call sites. See
+  [[2026-05-16-atlas-act-plan-execution-tracker]].
 
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)

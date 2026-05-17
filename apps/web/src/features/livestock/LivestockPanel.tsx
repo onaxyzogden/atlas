@@ -15,6 +15,17 @@ import {
 } from '../../store/livestockStore.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
 import { DEFAULT_SUBCATEGORY_BY_SPECIES, getScheduleAOptions } from './scheduleA.js';
+import { useZoneStore } from '../../store/zoneStore.js';
+import {
+  useRegenerationPlanStore,
+  type RegenerationPlan,
+} from '../../store/regenerationPlanStore.js';
+import {
+  findBlockingRegenerationPlan,
+  selectActivePlans,
+  type GateZone,
+} from './regenerationGate.js';
+import RegenerationGateBanner from '../../components/regeneration/RegenerationGateBanner.js';
 import { zone, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 
@@ -39,16 +50,52 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
   const addPaddock = useLivestockStore((s) => s.addPaddock);
   const deletePaddock = useLivestockStore((s) => s.deletePaddock);
 
+  // Livestock-readiness gate inputs. Subscribe the raw dicts and derive with
+  // useMemo (selector-stability ADR — never call array getters in selectors).
+  const allZones = useZoneStore((s) => s.zones);
+  const gateZones = useMemo<GateZone[]>(
+    () =>
+      allZones
+        .filter((z) => z.projectId === projectId)
+        .map((z) => ({ id: z.id, geometry: z.geometry })),
+    [allZones, projectId],
+  );
+  const allPlans = useRegenerationPlanStore((s) => s.plans);
+  const activePlanIdByZone = useRegenerationPlanStore(
+    (s) => s.activePlanIdByZone,
+  );
+  // Gate keys on the active plan per zone only — scenario/history plans
+  // never block a placement.
+  const projectPlans = useMemo(
+    () =>
+      selectActivePlans(
+        allPlans.filter((pl) => pl.projectId === projectId),
+        activePlanIdByZone,
+      ),
+    [allPlans, projectId, activePlanIdByZone],
+  );
+  const recordOverride = useRegenerationPlanStore((s) => s.recordOverride);
+
   const [isDrawing, setIsDrawing] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [pendingGeometry, setPendingGeometry] = useState<GeoJSON.Polygon | null>(null);
   const [pendingArea, setPendingArea] = useState(0);
+  // When a steward tries to graze a zone still under an unconfirmed
+  // regeneration plan, save is intercepted: this holds the blocking plan
+  // until the steward either backs off or records an override.
+  const [blockingPlan, setBlockingPlan] = useState<RegenerationPlan | null>(null);
+  const [overrideReason, setOverrideReason] = useState('');
 
   // a11y: Escape key dismisses the paddock-naming modal when open
   useEffect(() => {
     if (!showModal) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setShowModal(false); draw?.deleteAll(); }
+      if (e.key === 'Escape') {
+        setShowModal(false);
+        setBlockingPlan(null);
+        setOverrideReason('');
+        draw?.deleteAll();
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -112,7 +159,10 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
     };
   }, [map, draw]);
 
-  const handleSave = useCallback(() => {
+  // Builds + persists the paddock and tears the flow down. Called only once
+  // the readiness gate has been cleared (zone confirmed, no plan, or the
+  // steward recorded an override).
+  const commitPaddock = useCallback(() => {
     if (!pendingGeometry || !name.trim()) return;
 
     // Compute suggested stocking from selected species
@@ -159,7 +209,37 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
     draw?.deleteAll();
     setShowModal(false);
     setPendingGeometry(null);
+    setBlockingPlan(null);
+    setOverrideReason('');
   }, [pendingGeometry, name, selectedSpecies, fencing, guestSafe, phase, notes, pendingArea, projectId, addPaddock, map, draw, scheduleA]);
+
+  // Readiness gate. A steward may not graze a zone whose regeneration plan
+  // is not yet steward-confirmed (iḥyāʾ al-mawāt — reviving troubled land
+  // takes time; the decisive rule lives in @ogden/shared/regeneration). If
+  // the paddock centroid falls in such a zone, intercept and surface the
+  // recorded-override escape hatch; otherwise commit straight through.
+  const handleSave = useCallback(() => {
+    if (!pendingGeometry || !name.trim()) return;
+    const centroid = polygonCentroid(pendingGeometry);
+    const blocking = findBlockingRegenerationPlan(centroid, gateZones, projectPlans);
+    if (blocking) {
+      setBlockingPlan(blocking);
+      return;
+    }
+    commitPaddock();
+  }, [pendingGeometry, name, gateZones, projectPlans, commitPaddock]);
+
+  // Steward sovereignty: the gate is never a hard lock. Placing anyway
+  // records the override (with the steward's reason) on the plan, then
+  // proceeds with the real save.
+  const handleOverride = useCallback(() => {
+    if (!blockingPlan) return;
+    recordOverride(
+      blockingPlan.id,
+      overrideReason.trim() || 'Placed before steward-confirmed recovery',
+    );
+    commitPaddock();
+  }, [blockingPlan, overrideReason, recordOverride, commitPaddock]);
 
   const toggleSpecies = (sp: LivestockSpecies) => {
     setSelectedSpecies((prev) => {
@@ -177,6 +257,8 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
 
   return (
     <>
+      <RegenerationGateBanner projectId={projectId} />
+
       {/* Species selector */}
       <div className={`${p.label} ${p.mb8}`}>Select Species</div>
       <div className={p.selectorGrid3}>
@@ -359,8 +441,67 @@ export default function LivestockPanel({ projectId, draw, map }: LivestockPanelP
           </div>
         </div>
       )}
+
+      {/* ── Livestock Readiness Gate ── */}
+      {blockingPlan && (
+        <div
+          className={p.modalOverlay}
+          role="presentation"
+          onClick={() => { setBlockingPlan(null); setOverrideReason(''); }}
+        >
+          <div onClick={(e) => e.stopPropagation()} className={p.modalContent} role="dialog" aria-modal="true">
+            <h2 className={p.modalTitle}>Land still under revival</h2>
+            <p className={p.modalSubtitle}>
+              {allZones.find((z) => z.id === blockingPlan.zoneId)?.name ?? 'This zone'} carries a regeneration plan the steward has not yet confirmed recovered.
+            </p>
+            <p className={p.modalSubtitle}>
+              Reviving troubled land (ihya al-mawat) often takes more than a
+              season. Grazing it before recovery is confirmed risks undoing the
+              work. You hold the trust here: you may place the paddock anyway,
+              and the override will be recorded on the plan.
+            </p>
+
+            <label className={p.formLabel}>Reason for placing early (recorded)</label>
+            <textarea
+              value={overrideReason}
+              onChange={(e) => setOverrideReason(e.target.value)}
+              rows={2}
+              className={`${p.formInput} ${p.formTextarea}`}
+              placeholder="e.g. temporary holding only; stock moves off within the week"
+            />
+
+            <div className={p.btnRow}>
+              <button onClick={() => { setBlockingPlan(null); setOverrideReason(''); }} className={p.cancelBtn}>
+                Back
+              </button>
+              <button onClick={handleOverride} className={`${p.saveBtn} ${p.saveBtnEnabled}`}>
+                Place anyway (override)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
+}
+
+/** Cheap representative point: mean of the exterior ring (drop closing dup). */
+function polygonCentroid(geom: GeoJSON.Polygon): [number, number] {
+  const ring = geom.coordinates[0] ?? [];
+  const pts =
+    ring.length > 1 &&
+    ring[0]?.[0] === ring[ring.length - 1]?.[0] &&
+    ring[0]?.[1] === ring[ring.length - 1]?.[1]
+      ? ring.slice(0, -1)
+      : ring;
+  let lng = 0;
+  let lat = 0;
+  for (const pt of pts) {
+    lng += pt[0] ?? 0;
+    lat += pt[1] ?? 0;
+  }
+  const n = pts.length || 1;
+  return [lng / n, lat / n];
 }
 
 function renderPaddockOnMap(map: maplibregl.Map, paddock: Paddock) {

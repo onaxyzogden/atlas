@@ -82,8 +82,6 @@ describe('POST /api/v1/projects/:id/comments', () => {
   it('creates a comment and returns 201', async () => {
     // resolveProjectRole (owner shortcut)
     enqueue(projectRow());
-    // db`NULL` for locationExpr (no location provided)
-    enqueue();
     // INSERT comment RETURNING *
     enqueue(commentRow({ text: 'New comment', author_id: TEST_USER_ID }));
     // SELECT user display_name, email

@@ -13,6 +13,10 @@ export const FLAGS = {
   // flag until the interaction model is validated. See ADR
   // wiki/decisions/2026-04-28-needs-yields-dependency-graph.md.
   RELATIONSHIPS: process.env['FEATURE_RELATIONSHIPS'] === 'true',
+  // Phase 2 of Full syncService Coverage: the generic versioned-blob sync
+  // path. Disabled by default — push-only shadow first, then phased per the
+  // execution plan. See wiki/decisions/2026-05-16-atlas-multi-device-bundle-escape-hatch.md.
+  SYNC_STATE_BLOBS: process.env['FEATURE_SYNC_STATE_BLOBS'] === 'true',
   // (BUILT_ENV_V2 retired 2026-05-12 — V2 is now the unconditional path.
   //  The legacy V1 stores remain on disk as in-memory facades projecting
   //  V2 state into V1 shape; their deletion is the next milestone in

@@ -18,12 +18,20 @@ export interface ConnectivityState {
   pendingChanges: number;
   /** Current sync lifecycle state */
   syncStatus: 'idle' | 'syncing' | 'error';
+  /**
+   * Store keys whose last sync was rejected as stale (409). Drives the
+   * Connectivity-panel conflict badge; a stale write is never silently
+   * clobbered (P4.4).
+   */
+  conflictedStores: string[];
 
   // ── Actions ──
   setOnline: (online: boolean) => void;
   setLastSyncedAt: (ts: string) => void;
   setPendingChanges: (count: number) => void;
   setSyncStatus: (status: ConnectivityState['syncStatus']) => void;
+  addConflictedStore: (storeKey: string) => void;
+  clearConflictedStore: (storeKey: string) => void;
 }
 
 export const useConnectivityStore = create<ConnectivityState>()(
@@ -33,11 +41,22 @@ export const useConnectivityStore = create<ConnectivityState>()(
       lastSyncedAt: null,
       pendingChanges: 0,
       syncStatus: 'idle',
+      conflictedStores: [],
 
       setOnline: (online) => set({ isOnline: online }),
       setLastSyncedAt: (ts) => set({ lastSyncedAt: ts }),
       setPendingChanges: (count) => set({ pendingChanges: count }),
       setSyncStatus: (status) => set({ syncStatus: status }),
+      addConflictedStore: (storeKey) =>
+        set((s) =>
+          s.conflictedStores.includes(storeKey)
+            ? s
+            : { conflictedStores: [...s.conflictedStores, storeKey] },
+        ),
+      clearConflictedStore: (storeKey) =>
+        set((s) => ({
+          conflictedStores: s.conflictedStores.filter((k) => k !== storeKey),
+        })),
     }),
     {
       name: 'ogden-connectivity',

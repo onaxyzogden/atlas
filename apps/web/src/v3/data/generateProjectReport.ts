@@ -15,6 +15,7 @@
  */
 
 import type { Project, ProjectScores } from "../types.js";
+import { formatLocationArea } from "./parcelIntegrity.js";
 
 const SCORE_KEYS: Array<{ key: keyof ProjectScores; label: string }> = [
   { key: "landFit", label: "Land Fit" },
@@ -53,7 +54,7 @@ export function buildProjectReportMarkdown(project: Project): string {
   lines.push(`*Generated ${today} from /v3/project/${project.id}/report*`);
   lines.push("");
   lines.push(`**Stage:** ${project.stage}`);
-  lines.push(`**Location:** ${project.location.region} — ${project.location.acreage} ${project.location.acreageUnit}`);
+  lines.push(`**Location:** ${project.location.region} — ${formatLocationArea(project.location)}`);
   lines.push("");
 
   lines.push("## Verdict");

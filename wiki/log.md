@@ -4,6 +4,133 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-17 — Full `syncService` coverage: Phase 4 (hydration + version-skew + visible conflict)
+
+**Branch.** `feat/atlas-permaculture`.
+
+**What.** Executed Phase 4 of the approved Full `syncService` Coverage plan
+— the read half P0-1 was still missing (Phase 2 shipped a push-only
+shadow). (1) **P4 manifest:** every blob helper became a `BlobShape
+{select,apply}`; `applyForProject` now on all 62 `versioned-blob`
+descriptors — the project-isolated inverse of `select` via
+`store.setState((st)=>patch)` (other projects' rows untouched). (2)
+**P4.1/4.3:** new `hydrateProjectStateBlobs(project)` called from
+`initialSync`'s step-4 per-project loop **inside `isSyncing=true`** so
+applies don't bounce back as pushes; adopts the server `rev` as the next
+`baseRev`; clears `temporal()` undo history post-hydrate. (3) **P4.2:**
+version-skew guard skips a blob whose `schemaVersion` exceeds the local
+descriptor (no stale-`migrate` downcast, rev not adopted, stale slice not
+pushed back, one per-session "update Atlas" toast). (4) **P4.4:**
+`connectivityStore.conflictedStores` + `add/clearConflictedStore`;
+`executeStateBlobOp`'s 409 branch badges the store + warns once — local
+slice still not clobbered. P4.5 WebSocket deferred (additive realtime, not
+a restore-gate blocker). All behind default-off `FLAGS.SYNC_STATE_BLOBS`.
+
+**TDD.** RED→GREEN watched fail-first for each guard (`syncManifest.test.ts`
++2 round-trip tests, new `syncServiceHydrate.test.ts`,
+`syncServiceConflict.test.ts`). Isolation gotcha: `blobBaseRev` and the
+skew-warned flag are module-global — hydration tests use distinct project
+ids rather than `beforeEach` resets.
+
+**Verify.** `tsc --noEmit` (web, 8 GB) exit 0; web Vitest **981/981**
+(80 files); shared 201/201; api projectState 4/4; targeted sync 18/18.
+Device B now functionally restores end-to-end with the flag on.
+
+**ADR.** `decisions/2026-05-17-atlas-syncservice-coverage-phase4.md`.
+
+---
+
+## 2026-05-17 — Full `syncService` coverage: Phase 1 registry + Phase 2 generic versioned-blob transport
+
+**Branch.** `feat/atlas-permaculture`.
+
+**What.** Executed Phases 1–2 of the approved Full `syncService` Coverage
+plan — the durable P0-1 fix deferred by the 2026-05-16 bundle-escape-hatch
+ADR. Phase 1: `lib/syncManifest.ts` registry + CI coverage guard
+(every project-scoped `ogden-` persist store must be classified or the
+build fails). Phase 2: `027_project_state_blobs.sql` migration,
+`routes/project-state/` Fastify route (explicit `reply.code(409)` so the
+`{serverRev,serverPayload}` conflict envelope survives Fastify's
+detail-dropping serializer), shared `projectState.schema.ts`, client
+`blobSync.ts` + `'state-blob'` queue type + `executeStateBlobOp`. **P2.5b**
+(user chose "full 62-store manifest now"): every `versioned-blob`
+descriptor given a live store handle + `scope` + `schemaVersion` +
+`usesTemporal` + total `selectForProject`; generic flag-gated
+(`SYNC_STATE_BLOBS`, default off) debounced subscription loop wired into
+`syncService.start()`; in-memory `blobBaseRev` to avoid rev-0 409 lockout.
+
+**TDD.** RED→GREEN throughout. Diagnosed a Vitest mock-tracking artifact
+(`vi.mock`+`importActual`+wrapper double-tracks a caught rejection) →
+`vi.spyOn` on the real object; `happy-dom` pragma required for persist-store
+imports.
+
+**Verify.** `tsc --noEmit` web exit 0; web Vitest **973/973** (78 files,
+no regression from 62-store import); shared 7/7; api projectState 4/4 incl.
+409-staleness. Phase 2 gate met (transport exercised behind disabled flag;
+409 no-clobber/no-infinite-retry). Phases 3 (typed tables) + 4 (hydration,
+version-skew, visible conflict surface) + 5 (phased enable) deferred.
+
+**ADR.** `decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md` +
+index pointer. Committed + pushed (single checkpoint commit; the branch's
+parallel geodesic-acreage follow-on rode along — `shared/index.ts`
+entangles both exports, non-interactive partial-stage unsafe).
+
+---
+
+## 2026-05-16 — `/graphify update` re-extraction + 7-stage-lifecycle retirement ADR
+
+**Branch.** `feat/atlas-permaculture`.
+
+**What.** Ran graphify's incremental pipeline (`/graphify update`) over
+the atlas corpus. Hash-diff vs. `graphify-out/manifest.json` (last build
+2026-04-21) re-extracted everything changed since then — far broader
+than `git status` (commits + working tree since April). Full scope
+(code + docs + images) per the approved plan.
+
+- Graph grew **2,867 → 7,642 nodes**, **3,812 → 8,182 edges**,
+  **1,880 communities**. AST extraction was free/deterministic; semantic
+  subagents covered changed docs/images (token cost recorded as a
+  rounded estimate — `tokens_estimated: true` — in `cost.json` run 3,
+  since subagents do not self-report).
+- Labelled the **top 60 communities** by size + god/surprise reference;
+  the 1,820 long-tail communities remain `Community N` (pragmatic stop).
+- `graph.html` regenerated on a **filtered subgraph** (dropped 957
+  `public/cesium` vendor nodes, then capped to top 4,800 by degree)
+  because the full 7,642 exceeds graphify's `MAX_NODES_FOR_VIZ = 5000`;
+  `graph.json` retains all 7,642 nodes / 8,182 edges for GraphRAG.
+- Regenerated `GRAPH_REPORT.md` (94% EXTRACTED / 6% INFERRED / 0%
+  AMBIGUOUS). Keystone nodes: `fetchWithRetry()` (65 edges),
+  `fetchAllLayersInternal()` (42), `panel.module.css .container` (40).
+  Knowledge gaps: 347 isolated nodes (deferred Phase 2/3/4, Adapter
+  Registry, MapboxGL engine).
+- **Top surprising connection** flagged an IA tension:
+  `3-item nav does not match 7-stage lifecycle`
+  (`docs/ux-walkthrough-regen-farm.md`) `semantically_similar_to` the
+  *Atlas Sidebar — Permaculture-Grounded IA* concept page. Yousef
+  resolved it directly: the **seven-stage lifecycle is deprecated**; the
+  3-item nav is the forward IA and is not to be conformed back to the
+  seven stages. Recorded as an ADR; the sidebar concept page got a
+  deprecation callout and an `index.md` annotation (page retained per
+  no-delete rule, recommendations superseded for forward work).
+
+See `decisions/2026-05-16-atlas-7-stage-lifecycle-retirement.md`.
+
+**Verification.** `GRAPH_REPORT.md` header date = 2026-05-16; node/edge
+counts moved off the 2,867/3,812 baseline; `cost.json` gained a 3rd run
+entry; `manifest.json` tracks the full 2,583-file corpus; `graph.html`
+renders the filtered graph. Extraction yielded >0 nodes (no hard stop).
+
+**Not committed.** Per the standing precedent, the concurrent in-progress
+out-of-band working-tree files (livestock cards / zones / concentric /
+autoDesign / zonesOverlay / zoneSizeGuide and friends) remain
+uncommitted — only the `graphify-out/` deliverables and the four wiki
+pages (this entry, the new ADR, the deprecated sidebar concept, the
+updated index) were staged this session. `.graphify_old.json` (6 MB
+ephemeral merge backup) and `graphify-out/cache/*` are deliberately
+excluded.
+
+---
+
 ## 2026-05-15 — Map cursor: Observe annotation hover-probe coverage fix
 
 **Branch.** `claude/jovial-mccarthy-bb516f`.
@@ -15836,3 +15963,525 @@ re-anchor) needs a working MapLibre preview and is left to a steward
 pass. Many unrelated working-tree files (zone-generator / basemap /
 ZonePolygonTool / zoneSizeGuide) are concurrent in-progress work from
 the rebased branch and were **not** committed in this session.
+
+## 2026-05-16 — feat(plan/v3): new-project wizard → v3 bridge + adapter-seam location propagation
+
+A simulated regen-farm UX walkthrough
+(`docs/ux-walkthrough-regen-farm.md`) found two coupled defects in the
+project-creation path:
+
+1. **Wrong destination.** The new-project wizard's "Create Project"
+   navigated to the legacy `/project/{id}` page, not the active
+   v3 / Land OS flow — new projects landed in a deprecated surface.
+2. **Location dropped on the floor.** The wizard captures
+   `metadata.centerLat/centerLng` (per the 2026-04-27 intake-centering
+   ADR) but the v2→v3 adapter never read them, and all three v3
+   layouts passed a hardcoded `FALLBACK_CENTROID = [-78.2, 44.5]` (an
+   Ontario lake) to `DiagnoseMap`. A project created anywhere else
+   opened Observe on the wrong continent; that single root cause
+   cascaded into ~5 downstream degradations (Weather gate, Report
+   acreage, Plan ring-seeding anchored wrong). Drawn-boundary projects
+   already propagated (`firstPolygon` → `fitBounds`); the gap was
+   specifically the coords-only / no-boundary case.
+
+Rec #1 (1 line): `StepNotes.tsx` "Create Project" now navigates to
+`/v3/project/$projectId/observe`. Fire-and-forget backend sync
+untouched; legacy page stays URL-routable (no deletion).
+
+Rec #2 (single adapter seam, not per-layout duplication):
+`v3/types.ts` `ProjectLocation` gains `center?: [number, number]`
+(documented `[lng, lat]`; precedence `boundary → center → fallback`).
+`adaptLocalProject.ts` new `metadataCenter(p)` reads
+`metadata.centerLng/centerLat`, returns `[lng, lat]` only when both
+are finite, spread into `location` alongside `boundary`.
+ObserveLayout / PlanLayout (3 sinks: `VisionLayoutCanvas`,
+`DiagnoseMap`, `PlanSunPathOverlay`) / ActLayout (added `useV3Project`
+import) each compute
+`fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID` and
+feed `DiagnoseMap`. The pre-existing `boundary ? fitBounds : centroid`
+branch in `DiagnoseMap` is unchanged — `center` is consumed only as
+the centroid when no boundary exists. Closes the 2026-04-27 deferred
+item ("consume `metadata.centerLat/Lng` on already-existing project
+map open paths").
+
+**Verification.** `corepack pnpm --filter @ogden/web typecheck` —
+`tsc --noEmit` exit 0 (shared `Project` type change ripples cleanly
+through adapter + 3 layouts). Case B (coords only): wizard → US
+lat/lng → skip drawing → Create; live MapLibre read showed route
+`= /v3/project/{id}/observe` and `getCenter() = {lng:-86.7816,
+lat:36.1627}` — exactly the entered coords, correct lng/lat order,
+not `[-78.2, 44.5]`. Case A (boundary): store-seeded the exact
+`parcelBoundaryGeojson` + `acreage` shape the wizard writes with
+`metadata.center` deliberately set to Europe; map fit the polygon
+centroid `[-105.27, 40.015]`, ignoring the Europe metadata — proves
+`center` does not override an existing `boundary`. MTC regression:
+`/v3/project/mtc/observe` still centers `[-78.2, 44.5]` (no `center`
+field → fallthrough), unchanged.
+
+ADR: `wiki/decisions/2026-05-16-atlas-wizard-v3-bridge-location-propagation.md`.
+
+**Deferred.** Latent in-canvas acreage bug: `handleBoundaryDrawn` /
+`onBoundaryDrawn` in all three v3 layouts persist
+`parcelBoundaryGeojson` but never recompute `acreage`, so a boundary
+drawn *inside* v3 leaves Report at "0 ha" (the wizard path itself
+*does* compute acreage via `turf.area`). Unrelated to creation-flow
+propagation; recorded as a follow-up. No-boundary acreage stays `0`
+(cannot compute area without a polygon — expected, not a regression).
+Screenshot proof unavailable on every offline map route — the
+MapLibre WebGL canvas never settles without basemap tiles
+(`map.loaded() === false`), so route + coordinate assertions were
+verified by reading the live map instance instead (strictly more
+precise than a tile-less grey-canvas capture). The concurrent
+in-progress working-tree files (zone-generator / basemap /
+ZonePolygonTool / zoneSizeGuide) were **not** committed in this
+session — only the 6 task files + these wiki pages.
+
+## 2026-05-16 — fix(plan/v3): recompute acreage when a parcel boundary is drawn inside Land OS
+
+Closes the deferred follow-up recorded at the end of the preceding
+wizard→v3 bridge entry. The three v3 boundary-persist handlers —
+`handleBoundaryDrawn` in PlanLayout/ActLayout, the inline
+`onBoundaryDrawn` in ObserveLayout — persisted `parcelBoundaryGeojson`
++ `hasParcelBoundary` but omitted `acreage`. `adaptLocalProjectToV3`
+reads `LocalProject.acreage` straight (`p.acreage ?? 0`) and never
+derives area from the polygon, so a parcel drawn *inside* v3 left
+Report at "0 ha". The new-project wizard already computed acreage
+correctly inline (`turf.area`); the in-canvas draw path was the only
+gap.
+
+Scope (user-confirmed): **helper + 3 handlers + wizard** — explicitly
+not the minimal handlers-only patch, and not widening to legacy
+`MapView`. New `lib/geo.ts` `parcelAcreage(geo, units)` beside the
+2026-05-12 extracted geo utilities: a verbatim relocation of the
+wizard's math (`turf.area` → `÷10000` ha / `÷4046.86` ac,
+`Math.round(x*100)/100`, best-effort `try/catch → null`); first
+`import * as turf` in the file; arg type
+`GeoJSON.Geometry | Feature | FeatureCollection` covers the handlers'
+raw `Polygon` and the wizard's `FeatureCollection`. PlanLayout/ActLayout
+add `acreage: parcelAcreage(polygon, project.units)` to the existing
+patch (`project` already in scope); ObserveLayout has no `LocalProject`
+in scope so a `units` store selector was added
+(`projects.find(... id|serverId ...)?.units ?? 'metric'`). StepNotes.tsx
+collapses its ~12-line inline block to
+`boundaryGeo ? parcelAcreage(boundaryGeo, project.units) : null` and
+drops the now-unused `turf` import. Four call sites, one source of
+truth. Persist (not adapter-derive) was chosen so the many non-v3
+consumers of `LocalProject.acreage` (financial `computeAssessmentScores`,
+AI context, dashboards, `siteIntelTemplate`, backend `syncService`)
+stay consistent.
+
+**Verification.** `corepack pnpm --filter @ogden/web typecheck` —
+`tsc --noEmit` exit 0; the union arg type satisfies all four call
+sites. Math-equivalence is a static verbatim check (same divisors,
+rounding, null semantics); the empty-coords case returns `0` because
+`turf.area` returns 0 without throwing — exactly the prior wizard
+behaviour, not a regression. Functional, offline, exercising the real
+Vite-served modules → real `useProjectStore` → real
+`adaptLocalProjectToV3` → real `V3ReportPage`: `parcelAcreage` gave
+ha `3.99` / ac `9.87` (correctly not inverted — a swap would give the
+≈2.47 ratio, observed ≈0.40), identical for `Polygon` and
+`FeatureCollection` args; the exact handler patch persisted and
+surfaced as `location.acreage = 3.99 ha` / `9.87 ac`,
+`not_zero_ha: true`; the live Report rendered "US · 3.99 ha" and
+"US · 9.87 ac" (no "0 ha"). Regression: MTC sentinel unaffected
+(builtin-project key filter drops the extra `acreage` key, stayed
+`null`); re-draw updates not appends (`3.99 → 99.82`, one feature).
+The Report route has no MapLibre canvas, so the standing offline
+tile-less-WebGL screenshot limitation does not apply here — asserts
+were instrument-level DOM/store reads (strictly more precise for
+numeric claims), stated explicitly rather than faking a capture. Test
+projects seeded for verification were deleted from the dev store.
+
+ADR: `wiki/decisions/2026-05-16-atlas-v3-in-canvas-acreage-recompute.md`.
+
+**Not committed:** the same concurrent in-progress working-tree files
+(livestock cards / zones / concentric / autoDesign / zonesOverlay /
+zoneSizeGuide / graphify-out) remain uncommitted — only the 5 task
+files + these 3 wiki pages were staged this session.
+
+## 2026-05-16 — fix(plan): auto-design paddocks contained to steward-tagged livestock zones + parcel-clip + equal-area
+
+The steward reported **Generate site design** stamped draft paddocks
+**outside the area drawn and deemed suitable for livestock** — "the
+only consideration currently is the zone." Code-verified root cause,
+three compounding defects: (1) `GenerateSiteDesignBar` built
+`AllocatorZone[]` *without* `permacultureZone`, so the existing
+`permacultureRingRange` hard-veto in `zoneAllocator` was dead code in
+production (always `undefined`) and the paddock interventions' `[3,4]`
+gate never fired; (2) `scoreZone` hard-vetoed only `avoidedCategories`
+— every other category scored `0` but stayed a candidate, so once the
+livestock zone filled, strips spilled elsewhere; (3) no parcel /
+suitability containment existed anywhere (no parcel field on
+`AutoDesignInput`; `stripSubdivide` clipped only to the zone;
+`commitDrafts` wrote geometry with zero clipping). **Amplifier:**
+`ringSeedGenerator` seeds Z4 as a full, non-parcel-clipped Mollison
+annulus with `defaultCategoryForZ(4) = 'livestock'`; that giant
+"livestock" zone won the allocator's area tiebreak and paddocks tiled
+it far outside the parcel — precisely "the only consideration is the
+zone." Additionally the steward required generated paddocks **roughly
+equal size**; the old equal-bbox-width bands collapsed to slivers
+wherever a zone narrowed.
+
+Steward-confirmed decision: (1) "Suitable for livestock" is an
+explicit per-zone **opt-in toggle** on drawn ecology zones — not
+category/ring/draw-tool derived; (2) containment is **strict +
+parcel-clipped** — paddocks only land in tagged zones, never spill,
+geometry always clipped to the parcel; (3) within one set
+`(max − min) / max ≤ 0.10`. Because any zone with
+`suitableForLivestock !== true` (including the ring-seeded Z4
+`livestock` annulus, which carries no flag) gets **no** paddocks, the
+reported amplifier collapses by construction.
+
+Fix (pure-engine first, one narrow UI surface): optional
+`suitableForLivestock?: boolean` on `LandZone` + `AllocatorZone`
+(optional-field pattern → **no `ogden-zones` persist bump**); strict
+allocator veto in `scoreZone` after the `avoidedCategories` veto
+(`affinity.preferredCategories?.includes('livestock') &&
+zone.suitableForLivestock !== true` → `return null`, the existing
+hard-veto contract → no spill, non-livestock unaffected); the call
+site now maps `permacultureZone` + `suitableForLivestock` into
+`AllocatorZone[]` (reviving the dead ring veto as defence-in-depth)
+and passes `parcelBoundary`; `runAutoDesign` clips `zone ∩ parcel`
+(reusing `parcelPolygon` / `toPolygonFeature` / `intersectPolys`)
+**before** subdivision for the `tile-strip` template only (null
+region → existing `emptyGeometryInterventionIds` path, no new UI);
+`stripSubdivide` rewritten to place each inter-strip boundary by
+bisecting the sweep coordinate (fixed 28 iterations, pure + no RNG)
+until cumulative clipped area reaches `k/n` of the polygon's true
+area — `(max−min)/max ≤ 0.10` now holds by construction on irregular
+polygons. `edge-line` fences + `centroid/fill/bbox` keep their
+zone-geometry input (smallest blast radius; parcel-clipping those is
+a noted follow-up).
+
+**Verification.** `cd apps/web && npx tsc --noEmit` — exit 0. vitest
+**892/892** (70 files): new/extended pure-engine coverage —
+`zoneAllocator` (livestock vetoed when flag `undefined`/`false`,
+allocated when `true`, non-livestock unaffected), `stampers`
+(`(max−min)/max ≤ 0.10` on a right-triangle, acre-count + determinism
+preserved), `runAutoDesign` (the **real, unmocked** pipeline: real
+catalog → sequencing → strict-veto allocator → parcel clip →
+equal-area subdivide; all `tile-strip` drafts within `zone ∩ parcel`,
+per-group `≤ 0.10`, zero drafts when the suitable zone is outside the
+parcel, determinism). **One initial failure was a wrong test
+assumption, not an implementation bug** — evidence-gathered via a
+throwaway diagnostic: `makeGoalTree()` never selects
+`cattle-rotational-grazing` / `small-ruminant-paddock`; its
+`tile-strip` livestock infrastructure is `silvopasture-alley` +
+`integrated-stock-cropland`. The engine was provably correct (zone
+area 19,782,951 → exactly half 9,891,475 when parcel-clipped; every
+strip equal; all `within parcel`). Fix: the test's `isPaddock` helper
+now keys on the `tile-strip` **template** — the plan's actual
+contract — not catalog IDs this goal tree doesn't produce; diagnostic
+file removed. Edited modules serve HTTP 200 from Vite; ZonePanel
+wiring confirmed on disk (the served esbuild transform splits the JSX
+text child so a `curl | grep` of the literal is a false negative).
+**Live screenshot walkthrough not obtainable** — the preview
+screenshot tool returns black frames for this WebGL/MapLibre app
+(even the landing page) and the steward flow needs login → project →
+hand-drawn polygon → ring seeding → multi-step Goal Compass; disclosed
+rather than faked (project rule), the integration tests assert the
+steward's exact invariants with numeric precision the eye cannot
+match.
+
+ADR: `wiki/decisions/2026-05-16-atlas-paddock-livestock-containment.md`.
+Refines `2026-05-14-auto-design-pipeline.md`; interacts with
+`2026-05-15-atlas-zone-generator-seam-ring-seeding.md` (the reported
+amplifier).
+
+**Committed this session:** the 11 fix files (`zoneStore.ts`,
+`autoDesign/types.ts`, `ZonePanel.tsx`, `zoneAllocator.ts`,
+`GenerateSiteDesignBar.tsx`, `runAutoDesign.ts`,
+`stampers/stripSubdivide.ts`, and the four `__tests__` files
+`fixtures.ts` / `zoneAllocator.test.ts` / `stampers.test.ts` /
+`runAutoDesign.test.ts`) **plus** these 3 wiki pages (ADR + this log
+entry + index). The other concurrent in-progress working-tree files
+(graphify-out re-extraction, the v3 plan canvas/draw set, concentric /
+ZonesOverlay / zoneSizeGuide / MapCanvas / routes/index, the deleted
+`zoneEmphasisStore`) were **scoped out** and remain uncommitted —
+deliberately not `git add -A`.
+
+## 2026-05-16 — OLOS pre-live-testing hardening (P0/P1 blockers + P2 backlog)
+
+Pre-external-multi-device-testing scan + fixes. Scope (user-confirmed):
+v3 forward journey only; diagnose + fix P0/P1, catalogue P2. **Four**
+agent-report errors were verified against code and corrected before
+acting (recorded in the plan + this entry so the findings register can
+be trusted) — most consequentially #4: "Matrix Toggles is a no-op /
+deferred to v3.1" was **false**; it is fully wired (`BaseMapCard`
+"Overlays" legend on all forward stages, ~14 consuming overlays). The
+only residue was a stale `matrixTogglesStore.ts` header comment
+(fixed) — the working feature was **not** disabled (that would have
+been destructive). Likewise the "syncService is orphaned" claim was
+false (it is auth-wired but **partial**).
+
+**Phase 1 — legacy gating (P0-2):** `routes/index.tsx` — the four v3
+7-stage routes (`design`/`prove`/`build`/`operate`) + legacy v2
+`projectRoute`/`cycleRoute` converted to `beforeLoad` redirects onto
+the v3 forward path (`component: () => null`), mirroring the existing
+`discover`/`diagnose` precedent. Page components kept importable
+(`void X;`) per the no-deletion policy. `V3LifecycleSidebar` audited:
+already 3-item nav only, Coming-soon utilities already
+`<button disabled>` — P1-2 satisfied, no change.
+
+**Phase 2 — multi-device durability (P0-1):** new dependency-free
+`apps/web/src/lib/projectBundle.ts` — snapshots the entire `ogden-`
+localStorage namespace as opaque persist envelopes (prefix-capture is
+inherently complete — the plan's hand-enumeration would itself have
+risked the "misses a slice" failure; the actual store count is ~70,
+not the plan's assumed ~12), 4-key denylist
+(auth-token/matrix-toggles/connectivity/exported-flag). Restore =
+remove-portable + overwrite + reload. Test-first: 8-spec round-trip
+(`projectBundle.test.ts`) green. `ProjectBundleBar`
+(`v3/components/`, mounted in `V3ProjectLayout`) is **both** the
+export/import entry point **and** the data-safety banner (prominent
+warning until `hasExportedBundle()`, then collapses; import has an
+explicit "replace ALL + reload" confirm — a bundle is opaque so no
+per-field diff). Documented the partial-sync boundary: new ADR
+`decisions/2026-05-16-atlas-multi-device-bundle-escape-hatch.md` +
+corrected the stale `concepts/local-first-architecture.md` ("not yet
+synced" was wrong — 4 slices do sync) + index. Full `syncService`
+coverage deferred to backlog (too large to gate testing on).
+
+**Phase 3 — forward-path friction (P1-1..P1-3):** P1-1 Matrix Toggles
+**retracted** (verified working — see above). P1-2 already correct.
+P1-3 slide-up error boundaries: audited the 3 hosts — Plan + Act both
+delegate chrome (incl. `Suspense`) to `_shared/moduleNav/ModuleSlideUp`
+(one `ErrorBoundary` added there covers both), Observe has its own copy
+(boundary added). Reused the existing `components/ErrorBoundary.tsx`,
+keyed per-card so a failed lazy chunk degrades to a message + retry
+instead of a white screen behind the open sheet. Plan's pre-existing
+`OrphanProbeBoundary` is an unrelated narrower concern, left intact.
+
+**Phase 4 — gates:** `npm run typecheck` (8 GB tsc) **exit 0** (the
+historical `DesignElementLayers` Geometry/MultiPoint→Point error is
+confirmed resolved — correction #1). Full Vitest **913/913** (73
+files) including the new bundle round-trip. P2 backlog filed:
+`concepts/p2-pre-testing-backlog.md` + index — 7 items, incl. a
+verified correction to the plan's own P2 note (`regenerationPlanStore`
+**is** UI-mounted via `RegenerationPlanCard` in `PlanModuleSlideUp`,
+contrary to the plan's "not UI-mounted" claim).
+
+**Verification limit (disclosed, not faked):** the plan's manual
+in-browser checks (route-redirect click-through, multi-device bundle
+round-trip in-browser, toggle→overlay confirmation, forced chunk
+failure) require a live MapLibre/WebGL session, which returns black
+frames offline per the documented environment limit in recent ADRs.
+The substantive verification I stand behind is the automated gate:
+`tsc` exit 0 + 913 specs (incl. the bundle export→wipe→import
+deep-equal + token-never-travels specs). Not committed — left for the
+user's review per session policy.
+
+## 2026-05-16 — feat(act): §5.2 Plan-Execution Tracker (interactive task dashboard)
+
+Closes spec §5.2. The MVP-delta deliberately shipped a *navigable plan
+doc* and deferred the interactive execution surface; this is the
+Phase-2 ledger. The one real data gap (verified in `phaseStore.ts`):
+`PhaseTask` had no per-task completion field, so progress/overdue/%
+were uncomputable.
+
+**Store.** Additive optional `PhaseTask.done?`/`doneAt?` +
+`toggleTaskDone(phaseId, taskId)` mirroring `overrideGoalCompassTask`'s
+phase-map→task-map shape but toggling `done`/`doneAt` and deliberately
+**not** setting `status:'overridden'` (a steward checking a box must
+not freeze the row against Goal-Compass regeneration). Additive
+optional ⇒ **no persist version bump** (the `isMaintenanceTask?`
+precedent). 6-spec `phaseStore.toggleTaskDone.test.ts`: scoped flip,
+round-trip clears `doneAt` to null, no `status` mutation, sibling
+phases referentially untouched, no-op on bad ids, localStorage persist.
+
+**Placement (delegated UX call).** New dedicated Act module
+`'tracker'`, ordered **first** in the rail — `phaseStore` *is* the
+plan-execution ledger and the headline Plan→Act bridge; conceptually
+distinct from Schedule (cadence) and Build (disjoint act-operational
+stores). New `PlanExecutionTrackerCard` mirrors `PhasingScaleMatrixCard`
+derive discipline (raw `state.phases` + `useMemo`, never
+`getProjectPhases` in a selector) + the `MaintenanceScheduleCard`
+Act-card contract: overview %, per-phase groups (synthetic regen
+`order 1` / maintenance `order 99` fall out of the order sort), overdue
+red border vs `scheduledStart`, designLayer pivot, maintenance badge,
+toast on toggle. Wired `'tracker'` first into the `ActModule` union +
+`ACT_MODULES` + 4 `Record<ActModule,…>` maps + `ActModuleSlideUp`
+lazy import/case.
+
+**Plan scope-gap found + resolved (the durable lesson):** the act-module
+set has a **second source of truth** — `ActModuleId`, a separate Zod
+enum in `@ogden/shared` (`actTelemetry.schema.ts`), the runtime type of
+`record()`'s `module` param and the key of
+`AffinityTelemetryDashboard`'s label map. tsc surfaced 5×TS2322 +
+1×TS2741 once `ActModule` gained `'tracker'`. Fixed by adding
+`'tracker'` to that enum + the dashboard maps. DB-safety verified
+first: migration 024's CHECK constraint is on `event_type` only — the
+`module` column is unconstrained text and the API route inserts the
+Zod-validated value, so the enum-extend is migration-safe. Recorded in
+the ADR's "Forward guardrail": future Act modules must edit **both**
+`ActModule` and `ActModuleId`.
+
+**Verification.** `tsc --noEmit` exit 0; `vitest run src/store` 98/98;
+`vitest run src/v3/plan/engine` 110/110 (additive field perturbs
+neither `runAutoDesign` nor `replaceGoalCompassRows`). Preview
+(project `mtc`, 11 phases): Tracker first in rail; Overview
+0/31→1/31 (0→3 %) on mark-done; overdue 3→2 (done excluded);
+strikethrough + opacity 0.6 + `done 5/16/2026`; toast "Marked done:
+…"; Reopen reverts; localStorage `ogden-phases` carries `"done":true`
++ ISO `doneAt`, persist `version` still 3; survives full reload;
+by-design-layer pivot re-groups; zero console errors (the `[ATLAS AI]`
+enrichment + `[act-telemetry]` 500 warnings are pre-existing /
+environmental — the telemetry 500 confirms `module:'tracker'` passes
+client-side Zod validation and reaches the network flush). New ADR
+`decisions/2026-05-16-atlas-act-plan-execution-tracker.md` + index
+pointer. Not committed — left for the user's review per session policy.
+
+## 2026-05-16 — Full syncService coverage → backlog (plan-mode session)
+
+Plan-mode session to scope the deferred durable fix for P0-1 (multi-device
+silent data loss) flagged in the pre-live-testing hardening debrief. Phase-1
+exploration (3 Explore agents: syncService mechanism, full ~73-store
+project-scoped/device-global inventory, backend Fastify routes/DB/Zod surface)
++ Phase-2 design (2 contrasting Plan agents: pragmatic generic-blob vs
+correctness-first typed/conflict). User-confirmed scope via AskUserQuestion:
+execution-ready plan · HYBRID storage · stale-write-reject-and-surface
+conflict model. Approved plan written to the plan file
+(`before-we-proceed-with-mutable-crystal.md`, 5 phases, file-path-specific).
+Filed as backlog: new `concepts/full-syncservice-coverage-backlog.md` + index
+pointer. NOT executed — ~128k-token multi-session build, not a testing-window
+blocker (the `projectBundle.ts` hatch holds the line). No code changed this
+session; prior hardening-pass changes remain uncommitted for user review.
+
+## 2026-05-16 — P0 trust & integrity: no confident zeros (acreage + Water)
+
+Execution session against the approved plan
+(`create-a-regen-farm-melodic-bird.md`). Closed the run-2 walkthrough
+(#77/#78) defect where a naive user finished a regen-farm design and was
+shown "ON, CA · 0 ha · Supported · 67/100 · 0 blocking issues". Two
+independent root causes fixed (the walkthrough's "0-ha is the root of the
+Water balance" premise was wrong — surfaced honestly, user re-scoped):
+(1) false-confidence Report — `adaptLocalProject.ts` silently `null→0`,
+hardcoded `blockers:[]`, verdict fell through to "Supported"; (2) separate
+— Water `catchmentYieldM3` reads each node's manual `areaM2`, unset →
+silent `0 m³` collapsing the balance. User-approved scope via
+AskUserQuestion: include Water + hard-degrade the verdict.
+
+Shipped: new single-decision module `v3/data/parcelIntegrity.ts`
+(`isParcelAreaValid`, `formatLocationArea`, explicit
+`INTEGRITY_BLOCKER`/`INSUFFICIENT_DATA_VERDICT` deliberately not routed
+through `adaptVerdict`/`VERDICT_TABLE`); `adaptLocalProject.ts` as the sole
+guard seam (scorer input line left unchanged — override supersedes);
+`ProjectLocation.areaKnown?`; 5 display surfaces share
+`formatLocationArea`. Water: `waterMath.ts` +`DEFAULT_AREA_M2`
+/`GROUND_SURFACES`/`isCatchmentAreaInvalid`/`incompleteCatchments`
+(existing yield guard kept as safety net); `lib/geo.ts` +`parcelAreaM2`
+(`parcelAcreage` stays canonical, untouched); Network/Catchments cards
+gate the aggregate ("incomplete: N catchment(s)…", never silent `0.0 m³`),
+surface-aware non-zero defaults, ground-only one-click parcel-area; no
+`waterSystemsStore` migration.
+
+Verification: `corepack pnpm --filter @ogden/web typecheck` (8 GB heap)
+exit 0 (`lint`=`tsc --noEmit` equivalent — only OOMs at default heap).
+Offline DOM-text asserts via real Vite→store→adapter→pages
+(`preview_screenshot` timed out twice on the WebGL map canvas — disclosed
+not faked, per project convention): Case A (null) / Case B (0) → "Area not
+set" + blocked "Insufficient Data" verdict (score 0) + 1 blocker; Case C
+(valid 12 ha) byte-for-byte unchanged ("49 Conditional", 0 blockers);
+Water zero-area → "incomplete: 1 catchment has no area" not 0.0 m³,
+surface defaults (roof 80 / pasture 1000), ground-only parcel-button
+("≈ 112939 m²" for pasture, absent for roof), all-valid regression real
+"82.6 m³ · 82.6 kL". Injected localStorage fixtures cleaned afterward;
+baseline walkthrough docs left byte-for-byte unmodified. No commits (not
+requested). New ADR `decisions/2026-05-16-atlas-parcel-integrity-guard.md`
++ index pointer + `entities/web-app.md` Current State updated. Deferred
+(out of scope): backend `ST_GeomFromGeoJSON(FeatureCollection)`→0 +
+`applyServerAcreage` overwrite (online-only).
+
+## 2026-05-17 — Backend acreage integrity (Full hardening)
+
+Closed the online hole the P0 guard deferred. Root causes: (1) both backend
+boundary-ingestion paths fed the client's raw GeoJSON **FeatureCollection**
+to PostGIS `ST_GeomFromGeoJSON` (bare-Geometry only) → NULL → `ST_Area(NULL)`
+→ server `acreage 0`; (2) `applyServerAcreage` accepted `0`, clobbering the
+canonical client geodesic acreage. User scope (AskUserQuestion): **Full
+hardening**. New pure shared `lib/geojsonGeometry.ts` `extractPolygonalGeometry`
+(no turf; FC/Feature/GeometryCollection walk, polygon→MultiPolygon merge,
+`null`/no-throw on nothing) exported from `index.ts`; `project.schema.ts`
+`parcelBoundaryGeojson` tightened `z.unknown()`→shape-only GeoJSON union;
+both `projects` `/boundary` (4xx) and `templates` `/instantiate` (skip
+UPDATE, NULL self-heals) normalize before SQL — never write acreage 0;
+`syncService.applyServerAcreage` guard → `<= 0`, exported for test.
+Verified: `@ogden/shared` 201 tests (9 new geojsonGeometry) + tsc clean;
+`@ogden/api` tsc clean + pre-DB rejection passes (the 11 build-app
+integration fails are pre-existing mock-db breakage from the co-landed
+durable-syncService blob work — reproduced on baseline with my changes
+stashed); `@ogden/web` syncService 12/12 (3 new guard cases). One remaining
+web tsc error `syncService.ts:765 'd.store' undefined` sits in the co-landed
+blob-sync `SYNCED_STORES` loop (outside the acreage guard — confirmed by
+stash); flagged to its owner, not fixed here (no undiscussed edits to
+another contributor's just-landed code). Branch rebased out-of-band
+mid-session (`4f7b04be`→`ddb7e0e4`); all acreage-hardening files folded
+into commit `ddb7e0e4` alongside the blob-sync work. Working tree clean; no
+manual push. New ADR `decisions/2026-05-17-atlas-backend-acreage-hardening.md`
++ index pointer + `entities/web-app.md` Current State updated.
+
+## 2026-05-17 — fix(api): custom 404/error handlers registered before route plugins
+
+Fixed a **latent, pre-existing** Fastify ordering bug in `apps/api/src/app.ts`:
+`setNotFoundHandler`/`setErrorHandler` were registered *after* every route
+plugin, so Fastify served all route contexts with its **default** handler.
+Status codes were still correct (`AppError.statusCode` honored by the default
+handler) but the response **body shape** was wrong — Fastify's default
+`{statusCode,error,message}` instead of the app envelope
+`{data:null,error:{code,message}}` — and non-`AppError`/non-`ZodError`
+failures never received the `INTERNAL_ERROR` envelope. Moved both handler
+blocks ahead of the route registrations (immediately after
+`app.decorate('pipeline')`); handler bodies are byte-for-byte unchanged, only
+ordering + a short explanatory comment. Out of scope for the branch's defect
+fixes but corrected so error responses are consistently enveloped. Telemetry
+validation failures still return **422** (the route throws `ValidationError`,
+an `AppError`; status honored by old default *and* new custom handler — only
+the envelope changed). Verified: fresh worktree had no `node_modules`/test DB,
+so ran `pnpm install --frozen-lockfile` first; `@ogden/api` typecheck exit 0;
+full suite 539/550 with **11 DB-environment fails** (project-create 500,
+project GET 404, telemetry aggregate 0 rows) — proven **not a regression**:
+stashing the change and re-running `smoke`+`telemetry`+`boundary` gives an
+identical 9 failed/11 passed; with the change those same files reproduce the
+same 9. Net new failures: zero; no previously-passing body-shape assertion
+flipped. The telemetry 400↔422 test mismatch is pre-existing (route throws
+422, test asserts 400 — independent of this reorder, part of the branch's
+separate defect work). Landed in commit `6ac716b4` on
+`claude/elated-einstein-16895e`. New ADR
+`decisions/2026-05-17-atlas-error-handler-ordering.md` + index pointer +
+`entities/api.md` Current State updated.
+
+## 2026-05-17 — test(api): lazy-thenable mock harness closes the "11 failing" tests (550/550)
+
+Resolved the long-recurring "~11 `@ogden/api` tests need a provisioned test
+database" item — by proving the premise **false**. The suite is mock-DB by
+design: `vitest.config.ts` hardcodes a dummy `DATABASE_URL` and every test
+`vi.mock`s the database plugin with an in-process FIFO queue; no real
+Postgres/PostGIS is ever consulted, so provisioning a DB would change nothing.
+The 11 were mock-harness deficiencies, exposed by the co-landed
+durable-sync/telemetry work and the error-handler reorder (`6ac716b4`). User
+decision (2026-05-17): fix the harness; do **not** build a real-DB harness.
+
+Core fix — `apps/api/src/tests/helpers/testApp.ts` (mirrored in
+`smoke.test.ts`'s hoisted copy): replaced the eager
+`Promise.resolve(queue.shift())` with a **lazy thenable** that shifts the
+queue only when `.then()`/`.catch()`/`.finally()` is invoked (memoized per
+query object), matching real `postgres` `PendingQuery` — a non-awaited SQL
+fragment interpolated into another `db`...`` no longer drains a row-set. Added
+`mockDb.json = v => ({__json:v})` and `mockDb.begin = async cb => cb(mockDb)`.
+Per-file drift: `smoke` got `beforeEach(clear)`; `boundary` got the missing
+`refuseIfBuiltin` `{is_builtin:false}` row in 2 tests; `telemetry` 400→422 on
+2 validation tests (now asserts the `VALIDATION_ERROR` envelope);
+`siteAssessmentsPipeline` got the missing derived-layers `{present:'3'}`
+guard row — `maybeWriteAssessmentIfTier3Complete` runs **8** awaited queries
+(completion count + derived-layers guard + the writer's 6), not 7. One
+regression surfaced and was fixed at the test (`comments.test.ts` had a
+placeholder `enqueue()` that only existed to feed the old eager-shift bug on
+`locationExpr = db`NULL``; removed). Verified: `corepack pnpm --filter
+@ogden/api typecheck` exit 0; full suite **550/550** (50 files) — first
+post-fix run 549/550 (the comments regression), green after the one-line test
+fix; zero previously-passing tests flipped. New ADR
+`decisions/2026-05-17-atlas-mock-db-lazy-thenable.md` + index pointer (with a
+correction appended to the error-handler ADR pointer that had repeated the
+debunked "needs a test DB" claim) + `entities/api.md` Current State rewritten
+(now "550/550, mock-DB by design"). Real-DB/testcontainers harness explicitly
+deferred.

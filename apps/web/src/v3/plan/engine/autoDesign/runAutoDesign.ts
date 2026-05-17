@@ -27,6 +27,8 @@ import {
 } from '../goalCompass/scheduleTasksToCalendar.js';
 import { allocateZones } from './zoneAllocator.js';
 import { stampGeometry } from './stampGeometry.js';
+import { toPolygonFeature, intersectPolys } from './geo.js';
+import { parcelPolygon } from '../zoneGenerators/parcelGeometry.js';
 import { seedRng } from './rng.js';
 import {
   computeRegenerationForcing,
@@ -59,6 +61,13 @@ export interface AutoDesignInput {
    * may also be placed there). Spec §3.2.1.
    */
   acknowledgedRegenerationZoneIds?: string[];
+  /**
+   * Parcel boundary FeatureCollection. When present, paddock/bed
+   * (`tile-strip`) geometry is subdivided from the region inside BOTH
+   * the allocated zone and the parcel — strict containment + parcel
+   * clip, applied before subdivision so equal-area cells are preserved.
+   */
+  parcelBoundary?: GeoJSON.FeatureCollection | null;
 }
 
 export interface AutoDesignResult {
@@ -95,6 +104,7 @@ export function runAutoDesign(input: AutoDesignInput): AutoDesignResult {
     terrain = EMPTY_TERRAIN,
     startDate,
     acknowledgedRegenerationZoneIds = [],
+    parcelBoundary = null,
   } = input;
 
   const rng = seedRng(projectId + generationId);
@@ -110,6 +120,11 @@ export function runAutoDesign(input: AutoDesignInput): AutoDesignResult {
     acknowledgedRegenerationZoneIds,
   );
   const allocatableZones = applyAssignmentGate(zones, forcing.barrenZoneIds);
+
+  // Steward-approved zones may extend past the parcel (e.g. a ring-seeded
+  // zone is explicitly NOT parcel-clipped). Build the parcel polygon once
+  // so paddock/bed geometry is subdivided from `zone ∩ parcel`.
+  const parcel = parcelBoundary ? parcelPolygon(parcelBoundary) : null;
 
   const drafts: DraftShape[] = [];
   const emptyGeometryInterventionIds: string[] = [];
@@ -145,9 +160,23 @@ export function runAutoDesign(input: AutoDesignInput): AutoDesignResult {
     for (const alloc of allocations) {
       const zone = zoneById.get(alloc.zoneId);
       if (!zone) continue;
+
+      // Paddocks/beds (`tile-strip`) must sit inside BOTH the steward-
+      // approved zone and the parcel. Clip to that region BEFORE
+      // subdivision so stripSubdivide's equal-area cells can't be
+      // re-trimmed afterward. Other templates keep their zone input.
+      let stampInput: GeoJSON.Polygon | GeoJSON.MultiPolygon = zone.geometry;
+      if (intervention.geometryTemplate === 'tile-strip' && parcel) {
+        const region = intersectPolys(
+          toPolygonFeature(zone.geometry),
+          toPolygonFeature(parcel.geometry),
+        );
+        if (!region) continue; // suitable zone lies fully outside the parcel
+        stampInput = region.geometry;
+      }
       const geoms = stampGeometry(
         intervention.geometryTemplate,
-        zone.geometry,
+        stampInput,
         alloc.areaM2,
         terrain,
       );

@@ -38,6 +38,19 @@ export interface ProjectLocation {
    * fetch lands in v3.2.
    */
   boundary?: GeoJSON.Polygon;
+  /**
+   * Whether the parcel area is trustworthy (finite, > 0). `false` means the
+   * boundary is missing or zero-area, so callers must render "Area not set"
+   * instead of a misleading "0 ha". Absent = treated as known (fixtures/mtc).
+   */
+  areaKnown?: boolean;
+  /**
+   * Optional fallback map center as `[lng, lat]`, derived from the project's
+   * intake coordinates when no `boundary` polygon exists. Layouts prefer
+   * `boundary` (fit-to-bounds), then `center`, then the hard-coded
+   * per-stage fallback.
+   */
+  center?: [number, number];
 }
 
 export interface Verdict {
