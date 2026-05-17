@@ -8,6 +8,8 @@ export * from './schemas/spiritual.schema.js';
 export * from './schemas/api.schema.js';
 export * from './schemas/designFeature.schema.js';
 export * from './schemas/machineryItem.schema.js';
+export * from './schemas/vegetationPatch.schema.js';
+export * from './schemas/successionMilestone.schema.js';
 export * from './schemas/projectState.schema.js';
 export * from './schemas/file.schema.js';
 export * from './schemas/export.schema.js';
