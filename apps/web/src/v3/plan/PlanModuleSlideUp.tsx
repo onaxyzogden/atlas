@@ -74,6 +74,8 @@ const SoilBaselineCard        = lazy(() => import('./cards/soil-fertility/SoilBa
 const SoilResourcesCard       = lazy(() => import('./cards/soil-fertility/SoilResourcesCard.js'));
 const SoilBuildingPlanCard    = lazy(() => import('./cards/soil-fertility/SoilBuildingPlanCard.js'));
 const FertilityColocationCard = lazy(() => import('./cards/soil-fertility/FertilityColocationCard.js'));
+const SoilFoodWebCard         = lazy(() => import('./cards/soil-fertility/SoilFoodWebCard.js'));
+const CompostCycleCard        = lazy(() => import('./cards/soil-fertility/CompostCycleCard.js'));
 const TransectVerticalEditorCard = lazy(() => import('../../features/plan/TransectVerticalEditorCard.js'));
 const SectionAnnotationsCard  = lazy(() => import('./cards/cross-section/SectionAnnotationsCard.js'));
 const PhasingMatrixCard       = lazy(() => import('../../features/plan/PhasingMatrixCard.js'));
@@ -150,6 +152,8 @@ function renderPlanCard(
     case 'plan-soil-resources':      return <SoilResourcesCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-building-plan':  return <SoilBuildingPlanCard project={project} onSwitchToMap={noop} />;
     case 'plan-fertility-colocation': return <FertilityColocationCard project={project} onSwitchToMap={noop} />;
+    case 'plan-soil-foodweb':        return <SoilFoodWebCard project={project} onSwitchToMap={noop} />;
+    case 'plan-compost-cycle':       return <CompostCycleCard project={project} onSwitchToMap={noop} />;
     case 'plan-transect-vertical':
     case 'plan-solar-overlay':       return <TransectVerticalEditorCard project={project} onSwitchToMap={noop} />;
     case 'plan-section-annotations': return <SectionAnnotationsCard project={project} onSwitchToMap={noop} />;
