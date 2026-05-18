@@ -4,6 +4,83 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-18 — Sub-project B decomposed (B1–B5); Sub-project D reconciled to ratified D0–D5
+
+**Branch.** `feat/atlas-permaculture` (atlas wiki only — scoping
+artifact, no source code touched).
+
+Executed the approved B/D combined-scoping plan. On execution, discovered
+that an out-of-band session the same day had **ratified** the Land OS
+positioning ADR (Status: accepted) decomposing Sub-project D into D0–D5
+with a load-bearing C-vs-D covenant boundary. Per CLAUDE.md (flag
+contradictions; do not overwrite ratified content), the planned D1–D4
+decomposition + flagged additive-vs-backend decision was **withdrawn, not
+committed** — it would have contradicted an accepted ADR. The new ADR
+`decisions/2026-05-18-atlas-bd-subproject-decomposition.md` therefore
+delivers only the genuinely outstanding, non-conflicting piece: the full
+**Sub-project B (Biological Systems Engineering) B1–B5 decomposition** —
+B1 plant-system design integrity → B2 soil food-web → B3
+rotational-grazing sequencer → B4 guild↔livestock↔silvopasture
+integration → B5 beneficial-organism habitat spec, sequenced with reuse
+map (additive front-end, non-covenant). This is the "B decomposed in its
+own dedicated session" both ratified docs called for. Sub-project D is
+explicitly deferred to the authoritative ratified D0–D5 roadmap; the
+additive-vs-backend question is noted as already governed by that ADR's
+"additive default unless a slice's own spec justifies otherwise" rule.
+
+**Session-close blocker (surfaced, not actioned):** the atlas working
+tree also holds the out-of-band Land OS session's *uncommitted* work
+(modified `wiki/log.md`/`index.md`/`entities/atlas-platform.md`; untracked
+`concepts/land-os-positioning.md`, the land-os ADR, a ux-walkthrough
+doc). To avoid entangling another session's uncommitted work or doing
+risky partial staging, no commit/push was performed this session — left
+for operator direction.
+
+Artifacts: new `decisions/2026-05-18-atlas-bd-subproject-decomposition.md`;
+this log entry; `index.md` pointer added. No atlas source code touched;
+C's covenant gate unaffected.
+
+---
+
+## 2026-05-18 — Land OS positioning ratified & Sub-project D decomposed (D0–D5)
+
+**Branch.** `feat/atlas-permaculture` (atlas wiki only — strategy
+artifact, no source code touched).
+
+Ratified the elevated "Land OS, not land-design app" positioning as the
+authoritative Phase-2 north star. The operator's verbatim success
+definition (OLOS must *independently run* an Apricot-Lane-complexity
+project without external PM tools or personnel) is captured byte-exact in
+the new concept page. Adopted the 5-capability model and the
+capability→current-state map: Observe / Plan / Phased-implementation are
+built engines; capability #4 (manage implementation without external PM
+tools) is the large gap = Track D; capability #5 (adapt through feedback)
+is monitoring-built via the A-series with the recommendation engine = D5.
+
+Track sequencing ratified: **A complete** (A1/A2/A3); **B track-level
+only** (depends on A spine); **C intent-only, covenant-bounded,
+Scholar-Council-gated**; **D decomposed now** into the sequenced D0–D5
+backlog — D0 operating-loop spine & work-item model, D1 task & dependency
+engine, D2 resourcing, D3 budget & cost tracking, D4 field execution &
+proof, D5 operating dashboards & adaptive recommendations. Each slice is
+scope + dependency only (a future spec — no architecture decided).
+
+Affirmed the load-bearing **C-vs-D covenant boundary**: D3/D5 are project
+cost/budget tracking and operating analytics only; capital formation,
+financing, advance-purchase, investor/equity, and yield-as-return framing
+stay in Sub-project C under Scholar Council. No riba/gharar framing in any
+D surface; CSRA / salam-style advance-purchase explicitly excluded.
+
+Artifacts: new `concepts/land-os-positioning.md`; new ADR
+`decisions/2026-05-18-atlas-land-os-positioning-and-d-roadmap.md`
+(Status: accepted, references A1/A2/A3); `entities/atlas-platform.md`
+gained a "Strategic Direction (Phase 2)" subsection; `index.md`
+registered both pages. MILOS root `wiki/entities/olos.md` "Phase 2
+roadmap" open question closed, pointing to the atlas concept page.
+Docs-only — no build/test; verified by link resolution + covenant grep.
+
+---
+
 ## 2026-05-18 — Sub-project C scoping: transition economics (Scholar-Council-gated)
 
 **Branch.** `feat/atlas-permaculture` (atlas); spec committed to the
