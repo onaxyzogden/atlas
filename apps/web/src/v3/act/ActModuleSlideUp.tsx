@@ -6,7 +6,7 @@
  * `_shared/moduleNav/ModuleSlideUp.tsx`.
  */
 
-import { lazy, useCallback } from 'react';
+import { lazy, useCallback, type ReactNode } from 'react';
 import { ModuleSlideUp } from '../_shared/moduleNav/index.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { ActModule } from './types.js';
@@ -80,9 +80,10 @@ interface Props {
   open: boolean;
   onClose: () => void;
   project: LocalProject;
+  topBar?: ReactNode;
 }
 
-export default function ActModuleSlideUp({ module, open, onClose, project }: Props) {
+export default function ActModuleSlideUp({ module, open, onClose, project, topBar }: Props) {
   const cards = module ? MODULE_CARDS[module] : [];
   const label = module ? ACT_MODULE_FULL_LABEL[module] : '';
 
@@ -100,6 +101,7 @@ export default function ActModuleSlideUp({ module, open, onClose, project }: Pro
       cards={cards}
       renderCard={renderCard}
       ariaLabel={module ? `${label} — act tools` : undefined}
+      topBar={topBar}
     />
   );
 }

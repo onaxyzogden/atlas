@@ -10,7 +10,7 @@
  * `OBSERVE_MODULE_CARDS` (in `../types.ts`).
  */
 
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   OBSERVE_MODULE_CARDS,
   OBSERVE_MODULE_FULL_LABEL,
@@ -88,9 +88,10 @@ interface Props {
   module: ObserveModule | null;
   open: boolean;
   onClose: () => void;
+  topBar?: ReactNode;
 }
 
-export default function ModuleSlideUp({ module, open, onClose }: Props) {
+export default function ModuleSlideUp({ module, open, onClose, topBar }: Props) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
@@ -136,6 +137,7 @@ export default function ModuleSlideUp({ module, open, onClose }: Props) {
         aria-label={`${label} module`}
         onClick={(e) => e.stopPropagation()}
       >
+        {topBar ? <div className={css.topBar}>{topBar}</div> : null}
         <header className={css.header}>
           <div className={css.titleBlock}>
             <span className={css.eyebrow}>Observe · module</span>

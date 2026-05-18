@@ -47,14 +47,6 @@ const LEVELS: Level[] = [
     desc: "Execute, run, and report on the design in the field.",
     routeSuffix: "act",
   },
-  {
-    key: "report",
-    label: "Report",
-    title: "Report",
-    subtitle: "Share the outcome",
-    desc: "Compile the verdict, scores, blockers, and next actions; export or publish.",
-    routeSuffix: "report",
-  },
 ];
 
 const OBSERVE_PILLARS: Pillar[] = OBSERVE_MODULES.map((mod) => ({

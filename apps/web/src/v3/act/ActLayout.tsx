@@ -135,6 +135,16 @@ export default function ActLayout() {
     });
   };
 
+  const moduleBar = (
+    <ActModuleBar
+      activeModule={validModule}
+      onSelectModule={handleSelectModule}
+      slideUpOpen={slideUpOpen && validModule !== null}
+      onOpenSlideUp={() => setSlideUpOpen(true)}
+      onCloseSlideUp={() => setSlideUpOpen(false)}
+    />
+  );
+
   return (
     <StageShell
       canvasLabel="Act canvas"
@@ -196,21 +206,14 @@ export default function ActLayout() {
           onCloseSlideUp={() => setSlideUpOpen(false)}
         />
       }
-      bottomTray={
-        <ActModuleBar
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
-      }
+      bottomTray={moduleBar}
       overlay={
         <ActModuleSlideUp
           module={validModule}
           open={slideUpOpen && validModule !== null}
           onClose={() => setSlideUpOpen(false)}
           project={project}
+          topBar={moduleBar}
         />
       }
     />

@@ -77,6 +77,30 @@ Group colors are now design tokens (`--color-group-*` in `tokens.css`).
   `templates`, `fieldwork`, `history`) remain in place. See
   [[2026-04-29-act-stage-ia-restructure]].
 
+## Cyclical Stage Navigator + Slide-up Top Bar (2026-05-18)
+- Header stage navigator (`LevelNavigatorBar`, state via
+  `LevelNavigatorContext` mounted by `V3LevelNavBridge`) is now a
+  **cyclical 3-stage carousel**: `goPrev`/`goNext` and the context
+  `prev`/`next` values use modulo wrap (`(activeIdx ± 1 + n) % n`), so
+  both side controls are always present/active. No more linear dead-ends
+  at the first/last stage.
+- `report` removed from `V3LevelNavBridge` `LEVELS` array — the cycle is
+  exactly `[observe, plan, act]`. The `/report` route and
+  `parseV3Route` / `handleLevelChange` report branches are untouched
+  (Report absorption into a module / left sidebar is separate future
+  work). Direct `/report` URL resolves `findIndex -1 → 0` → shows
+  "Observe" (accepted cosmetic side-effect on the soon-absorbed page).
+- ACT + OBSERVE slide-up sheets now render the module navigation bar
+  pinned at the top (`topBar` slot), matching PLAN — steward can switch
+  modules without closing the detail sheet. OBSERVE uses a bespoke
+  `observe/components/ModuleSlideUp.tsx` (not the shared one), so the
+  `topBar` prop + `.topBar` CSS were added there manually.
+- Test: `components/LevelNavigator/__tests__/LevelNavigatorCyclical.test.tsx`
+  (3 cases — act→next=observe, observe→prev=act, plan interior).
+- Pre-existing `validateDOMNesting` button-in-button warning in
+  `ObserveModuleBar` is now doubled (bar mounts twice — bottomTray +
+  topBar); flagged as separate out-of-scope cleanup task.
+
 ## Plan v3 — 8-Module Permaculture Scholar Iteration (2026-05-07)
 
 The 8 Plan-stage modules surfaced through `PlanModuleBar` were each adjudicated against their OGDEN counterpart by the Permaculture Scholar (NotebookLM `5aa3dcf3-…`). Index ADR: [[2026-05-07-atlas-plan-modules-scholar-iteration]]; per-module ADRs filed same date. Final tally: **5 BUILD_FRESH (3 additive, 2 net-new) · 3 KEEP_ATLAS · 0 PORT_OGDEN**.

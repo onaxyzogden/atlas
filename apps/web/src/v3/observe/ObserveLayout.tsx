@@ -127,6 +127,16 @@ export default function ObserveLayout() {
     setSlideUpOpen(false);
   };
 
+  const moduleBar = (
+    <ObserveModuleBar
+      activeModule={validModule}
+      onSelectModule={handleSelectModule}
+      slideUpOpen={slideUpOpen && validModule !== null}
+      onOpenSlideUp={() => setSlideUpOpen(true)}
+      onCloseSlideUp={() => setSlideUpOpen(false)}
+    />
+  );
+
   return (
     <StageShell
       canvasLabel="Observe canvas"
@@ -273,21 +283,14 @@ export default function ObserveLayout() {
           onCloseSlideUp={() => setSlideUpOpen(false)}
         />
       }
-      bottomTray={
-        <ObserveModuleBar
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
-      }
+      bottomTray={moduleBar}
       overlay={
         <>
           <ModuleSlideUp
             module={validModule}
             open={slideUpOpen && validModule !== null}
             onClose={() => setSlideUpOpen(false)}
+            topBar={moduleBar}
           />
           <AnnotationFormSlideUp />
           <AnnotationDetailPanel projectId={id} />
