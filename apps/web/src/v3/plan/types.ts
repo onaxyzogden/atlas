@@ -222,6 +222,12 @@ export const MODULE_CARDS: Record<
     // year scrubber; surfaces crowding pairs within next 5 y of cursor.
     { label: 'Canopy maturity',        sectionId: 'plan-temporal-coherence' },
     { label: 'Annual planting schedule', sectionId: 'plan-planting-schedule' },
+    // Sub-project B1 (plant-system design integrity). Guild integrity is a
+    // design-time companion/spacing/maturity audit (no save gate, no
+    // goal-tree criterion); Succession path is the editable Year0→Year30
+    // designer over the additive successionPathStore slice.
+    { label: 'Guild integrity',        sectionId: 'plan-guild-integrity' },
+    { label: 'Succession path',        sectionId: 'plan-succession-path' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
