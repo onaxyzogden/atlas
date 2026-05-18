@@ -5,7 +5,7 @@
  * database or Redis instance is required.
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import bcrypt from 'bcryptjs';
 
@@ -14,17 +14,29 @@ import bcrypt from 'bcryptjs';
 // vi.hoisted() runs before vi.mock() factory functions, making these variables
 // available to the mock factories below without hitting the "hoisting" trap.
 
-const { mockDb, enqueue } = vi.hoisted(() => {
+const { mockDb, enqueue, clear } = vi.hoisted(() => {
   const queue: unknown[][] = [];
 
-  // Tagged-template function that shifts the next row-set off the queue.
-  // Called as: db`SELECT ...` → Promise<row[]>
-  const mockDb = (_strings: TemplateStringsArray, ..._values: unknown[]) =>
-    Promise.resolve(queue.shift() ?? []);
+  // Lazy-thenable tagged-template mock, mirroring real `postgres`: the row-set
+  // is shifted only when the query object is awaited (memoized per object), so
+  // non-awaited SQL fragments don't drain the queue. See helpers/testApp.ts.
+  const mockDb = (_strings: TemplateStringsArray, ..._values: unknown[]) => {
+    let settled: Promise<unknown[]> | undefined;
+    const run = () => (settled ??= Promise.resolve(queue.shift() ?? []));
+    return {
+      then: (onFulfilled?: ((v: unknown[]) => unknown) | null, onRejected?: ((r: unknown) => unknown) | null) =>
+        run().then(onFulfilled, onRejected),
+      catch: (onRejected?: ((r: unknown) => unknown) | null) => run().catch(onRejected),
+      finally: (onFinally?: (() => void) | null) => run().finally(onFinally),
+    };
+  };
+  mockDb.json = (value: unknown) => ({ __json: value });
+  mockDb.begin = async (cb: (tx: typeof mockDb) => unknown) => cb(mockDb);
 
   const enqueue = (...rows: unknown[]) => { queue.push(rows); };
+  const clear = () => { queue.length = 0; };
 
-  return { mockDb, enqueue };
+  return { mockDb, enqueue, clear };
 });
 
 // ─── Module mocks ────────────────────────────────────────────────────────────
@@ -105,6 +117,9 @@ beforeAll(async () => {
 afterAll(async () => {
   await app.close();
 });
+
+// Each test owns its queue — prevents count drift cascading across tests.
+beforeEach(() => { clear(); });
 
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
