@@ -4,6 +4,37 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-17 — Green the web suite: habitat-store sync registration + Paddock fixture backfill
+
+**Branch.** `claude/magical-galileo-d96f93` (worktree).
+
+Closed two pre-existing failures independent of the autoDesign
+paddock-overlap fix.
+
+- **syncManifest coverage guard.** `habitatFeatureStore.ts`'s
+  `ogden-habitat-features` persist key (Sub-project A2, `temporal()` +
+  `persist`, project-scoped via per-feature `projectId`) was unclassified,
+  so `syncManifest.test.ts`'s unclassified-keys assertion failed.
+  Registered it in `syncManifest.ts` as `versioned-blob`,
+  `projectId-tagged` on field `features`, `usesTemporal: true`,
+  `schemaVersion: 1` — matching the `pathStore`/`soilSampleStore` sibling
+  pattern the store's own header cites.
+- **useFlowEndpointOptions TS2740.** Both inline `Paddock` test fixtures
+  were missing 9 required fields; backfilled `stockingDensity: null`,
+  `fencing: 'none'`, `guestSafeBuffer: false`, `waterPointNote`,
+  `shelterNote`, `phase`, `notes`, `createdAt`, `updatedAt` to satisfy the
+  current `Paddock` type.
+
+**Verification.** Worktree had no `node_modules`; `pnpm install
+--frozen-lockfile` (reused from global store). `pnpm --filter web exec
+vitest run` → 92 files / 1108 tests passed (the `ECONNREFUSED :3000`
+lines are expected dev-server-absent noise). `tsc --noEmit`
+(`NODE_OPTIONS=--max-old-space-size=8192`) → exit 0. A CRLF-only working
+copy touch of `exportDiagnoseBrief.test.ts.snap` was left unstaged
+(no content change).
+
+---
+
 ## 2026-05-17 — Phase 5.7 automatable subset: real-Postgres blobSync integration spec
 
 **Branch.** `feat/atlas-permaculture`.
@@ -16635,6 +16666,8 @@ into commit `ddb7e0e4` alongside the blob-sync work. Working tree clean; no
 manual push. New ADR `decisions/2026-05-17-atlas-backend-acreage-hardening.md`
 + index pointer + `entities/web-app.md` Current State updated.
 
+---
+
 ## 2026-05-17 — Regen-farm Run-3: fix prior-run UX gaps, then verify
 
 Fix-first session against the approved plan
@@ -16905,6 +16938,8 @@ unit test `closedLoopStore.test.ts` test #1; and the day-cell aria is
 ordinal (`"September 1st, 2032 — 0 entries"`), not the predicted date-fns
 `PPP`. Walkthrough: `docs/ux-walkthrough-regen-farm-run6-2026-05-17.md`
 (runs 1–5 byte-for-byte unmodified). No commit/push (not requested).
+
+---
 
 ## 2026-05-18 — Biodiversity Outcome Monitoring (Sub-project A3)
 
