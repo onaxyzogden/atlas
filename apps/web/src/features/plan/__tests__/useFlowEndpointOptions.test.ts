@@ -34,8 +34,8 @@ describe('useFlowEndpointOptions', () => {
     });
     useLivestockStore.setState({
       paddocks: [
-        { id: 'pad-1', projectId: PID, name: 'North paddock', color: '#fff', geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] }, areaM2: 100, grazingCellGroup: null, species: [] },
-        { id: 'pad-x', projectId: 'other', name: 'Foreign', color: '#fff', geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] }, areaM2: 100, grazingCellGroup: null, species: [] },
+        { id: 'pad-1', projectId: PID, name: 'North paddock', color: '#fff', geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] }, areaM2: 100, grazingCellGroup: null, species: [], stockingDensity: null, fencing: 'none', guestSafeBuffer: false, waterPointNote: '', shelterNote: '', phase: '', notes: '', createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+        { id: 'pad-x', projectId: 'other', name: 'Foreign', color: '#fff', geometry: { type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 0]]] }, areaM2: 100, grazingCellGroup: null, species: [], stockingDensity: null, fencing: 'none', guestSafeBuffer: false, waterPointNote: '', shelterNote: '', phase: '', notes: '', createdAt: '2026-01-01', updatedAt: '2026-01-01' },
       ],
     });
     useWaterSystemsStore.setState({
