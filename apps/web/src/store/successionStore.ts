@@ -26,6 +26,11 @@ export interface SuccessionMilestone {
   observation: string;
   /** Optional inline photo (data-URL). */
   photoDataUrl?: string;
+  /**
+   * D0 spine link — the `WorkItem` (e.g. a planned succession-review)
+   * this observation completes. Additive optional → no version bump.
+   */
+  workItemId?: string;
 }
 
 interface SuccessionState {

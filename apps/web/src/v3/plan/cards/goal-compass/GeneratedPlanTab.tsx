@@ -16,6 +16,7 @@ import { usePhaseStore } from '../../../../store/phaseStore.js';
 import { runSequencingEngine } from '../../engine/goalCompass/sequencingEngine.js';
 import type { SequencingResult } from '../../engine/goalCompass/sequencingEngine.js';
 import { scheduleTasksToCalendar } from '../../engine/goalCompass/scheduleTasksToCalendar.js';
+import { pushGoalCompassToSpine } from '../../engine/goalCompass/goalCompassSpineSync.js';
 import { computeImpactPreview } from '../../engine/goalCompass/impactPreview.js';
 import type { ImpactPreview } from '../../engine/goalCompass/impactPreview.js';
 import { INTERVENTION_CATALOG } from '../../data/interventionCatalog.js';
@@ -77,6 +78,7 @@ export default function GeneratedPlanTab({ project }: Props) {
       projectStartDate,
     );
     replaceGoalCompassRows(project.id, result.generatedPhases, scheduledTasks);
+    pushGoalCompassToSpine(project.id, result.generatedPhases, scheduledTasks);
   };
 
   const handleRequestRemove = (interventionId: string) => {
@@ -112,6 +114,7 @@ export default function GeneratedPlanTab({ project }: Props) {
       projectStartDate,
     );
     replaceGoalCompassRows(project.id, result.generatedPhases, scheduledTasks);
+    pushGoalCompassToSpine(project.id, result.generatedPhases, scheduledTasks);
     setPreview(null);
   };
 
@@ -126,6 +129,7 @@ export default function GeneratedPlanTab({ project }: Props) {
       projectStartDate,
     );
     replaceGoalCompassRows(project.id, result.generatedPhases, scheduledTasks);
+    pushGoalCompassToSpine(project.id, result.generatedPhases, scheduledTasks);
   };
 
   return (

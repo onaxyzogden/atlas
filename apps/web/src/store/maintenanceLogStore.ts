@@ -39,6 +39,11 @@ export interface MaintenanceEvent {
   /** Optional steward / contractor name. */
   who?: string;
   notes?: string;
+  /**
+   * D0 spine link — the recurring-maintenance `WorkItem` this event
+   * completes. Additive optional → no version bump.
+   */
+  workItemId?: string;
 }
 
 interface MaintenanceLogState {

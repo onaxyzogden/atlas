@@ -16,6 +16,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useEventAggregator } from '../useEventAggregator.js';
 import { usePhaseStore, type BuildPhase, type PhaseTask } from '../../../store/phaseStore.js';
+import { useWorkItemStore } from '../../../store/workItemStore.js';
+import { phaseTaskToWorkItem } from '../../../store/workItemStore.migration.js';
 
 function task(id: string, over: Partial<PhaseTask> = {}): PhaseTask {
   return { id, season: 'spring', title: `Task ${id}`, laborHrs: 4, costUSD: 0, ...over };
@@ -37,23 +39,45 @@ function phase(id: string, tasks: PhaseTask[]): BuildPhase {
   };
 }
 
+/**
+ * D0 cut-over: phase rows are read from the spine, with phaseStore retained
+ * only for the phase-name/projectId gate. Seed BOTH from the same fixture
+ * via the shared `phaseTaskToWorkItem` mapper so the spine rows are
+ * byte-identical to what the migration would produce.
+ */
+function seed(phases: BuildPhase[]) {
+  usePhaseStore.setState({ phases });
+  const items = phases.flatMap((p) =>
+    (p.tasks ?? []).map((t) => phaseTaskToWorkItem(p.projectId, p.id, t)),
+  );
+  useWorkItemStore.setState({
+    items,
+    migratedSources: [
+      'goal-compass',
+      'field-task',
+      'maintenance',
+      'scheduled-livestock-move',
+      'nursery-batch',
+    ],
+  });
+}
+
 beforeEach(() => {
   usePhaseStore.setState({ phases: [] });
+  useWorkItemStore.setState({ items: [], migratedSources: [] });
 });
 
 describe('useEventAggregator — maintenance recurrence expansion', () => {
   it('expands an annual recurring task into a bounded multi-year series', () => {
-    usePhaseStore.setState({
-      phases: [
-        phase('maint-phase-p1', [
-          task('m1', {
-            isMaintenanceTask: true,
-            recurrenceFrequency: 'annual',
-            scheduledStart: '2032-03-01',
-          }),
-        ]),
-      ],
-    });
+    seed([
+      phase('maint-phase-p1', [
+        task('m1', {
+          isMaintenanceTask: true,
+          recurrenceFrequency: 'annual',
+          scheduledStart: '2032-03-01',
+        }),
+      ]),
+    ]);
 
     const { result } = renderHook(() => useEventAggregator('p1'));
     const occ = result.current.all.filter((e) => e.id.startsWith('phase-task:m1'));
@@ -72,17 +96,15 @@ describe('useEventAggregator — maintenance recurrence expansion', () => {
   });
 
   it('caps a monthly recurring task (never runs away)', () => {
-    usePhaseStore.setState({
-      phases: [
-        phase('maint-phase-p1', [
-          task('m2', {
-            isMaintenanceTask: true,
-            recurrenceFrequency: 'monthly',
-            scheduledStart: '2032-01-15',
-          }),
-        ]),
-      ],
-    });
+    seed([
+      phase('maint-phase-p1', [
+        task('m2', {
+          isMaintenanceTask: true,
+          recurrenceFrequency: 'monthly',
+          scheduledStart: '2032-01-15',
+        }),
+      ]),
+    ]);
 
     const { result } = renderHook(() => useEventAggregator('p1'));
     const occ = result.current.all.filter((e) => e.id.startsWith('phase-task:m2'));
@@ -94,13 +116,11 @@ describe('useEventAggregator — maintenance recurrence expansion', () => {
   });
 
   it('keeps a non-recurring phase task as exactly one entry', () => {
-    usePhaseStore.setState({
-      phases: [
-        phase('design-phase-1', [
-          task('d1', { scheduledStart: '2027-04-01' }),
-        ]),
-      ],
-    });
+    seed([
+      phase('design-phase-1', [
+        task('d1', { scheduledStart: '2027-04-01' }),
+      ]),
+    ]);
 
     const { result } = renderHook(() => useEventAggregator('p1'));
     const occ = result.current.all.filter((e) => e.id.startsWith('phase-task:d1'));

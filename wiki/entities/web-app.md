@@ -333,6 +333,82 @@ All use `persist` middleware with localStorage. Key stores:
   **both** or tsc fails at the telemetry call sites. See
   [[2026-05-16-atlas-act-plan-execution-tracker]].
 
+  **D0 — the operating-loop WorkItem spine (2026-05-18):** a new
+  canonical store `store/workItemStore.ts` (`ogden-work-items`,
+  projectId-tagged, `versioned-blob` sync class — no DB migration)
+  supersedes the five legacy planned-work stores (`phaseStore`
+  `PhaseTask`, `fieldTaskStore`, `maintenanceStore`,
+  `scheduledLivestockMoveStore`, `nurseryStore` `PropagationBatch`).
+  Schema is `@ogden/shared` `workItem.schema.ts` (union superset,
+  `.passthrough()`). `workItemStore.migration.ts` is the idempotent
+  one-time supersede; legacy stores **retained, write-dead** for
+  rollback (no-deletion covenant). Goal Compass emits `WorkItem[]` via
+  `v3/plan/engine/goalCompass/goalCompassSpineSync.ts` with the
+  generated-vs-overridden contract re-implemented byte-for-byte; nursery
+  `replacePlantingCalendarBatches` wholesale-regen contract ported.
+  Append-only event-logs keep their own stores, gaining an additive
+  `workItemId?` proof-link. `PlanExecutionTrackerCard.tsx` is the D0
+  proof surface — now grouped by phaseStore phases with a synthetic
+  `Operations (unphased)` bucket for `phaseId==null` rows; done-toggle
+  routes through `workItemStore.toggleDone`. Re-pointed readers
+  (clean cut-overs): `useEventAggregator.ts`, `v3/act/ops/
+  TodaysPriorities.tsx`. See [[2026-05-18-atlas-d0-workitem-spine]].
+
+  **D0.1 — coupled reader/writer cut-overs + `seedSaving` carry
+  (2026-05-18):** the deferred deep CRUD surfaces now read **and write**
+  the spine. `seedSaving` added to `workItem.schema.ts` +
+  `propagationBatchToWorkItem` (closes D0's 2nd lossy gap; migration
+  test asserts it). Pattern: **project spine `WorkItem`s back into the
+  legacy row shape the render block expects** so display is
+  byte-unchanged, and writers redirect to `workItemStore` actions
+  mirroring the migration mappers exactly (fidelity by construction).
+  Cut over: `MaintenanceScheduleCard` (CRUD → `addItem`/`deleteItem`/
+  `setStatus`), `NurseryLedgerDashboard` (reader; `nursery-batch`
+  projection; `StockTransfer` stays on `nurseryStore` — not migrated),
+  `RotationScheduleCard` (`scheduled-livestock-move` plans → spine via
+  `planToWorkItem`/`workItemToPlan`; the actual-move event log stays on
+  `livestockMoveLogStore`; auto-fulfilment sets WorkItem `done` + stamps
+  the event `workItemId`), `PhasingScaleMatrixCard` (per-phase task
+  pivot off WorkItems where `phaseId!=null`; `BuildPhase` stays the
+  container). `PhasingDashboard` needed **no change** — it rolls up off
+  built-environment `structures`, never `phase.tasks` (verified, not
+  assumed). One deferred seam: the structure-plan **Edit** button in
+  `RotationScheduleCard` still calls `startScheduledLivestockMove`
+  (`ActStructurePopover.actions`) which writes the legacy store — that
+  action is its own out-of-scope cut-over. Legacy stores remain
+  retained/write-dead. See [[2026-05-18-atlas-d0-1-coupled-cutovers]].
+
+  **D1 — dependency / critical-path engine (2026-05-18):** a new pure
+  engine `packages/shared/src/lib/workItemGraph.ts` (no React/store,
+  exported from `@ogden/shared`) computes the effective dependency DAG,
+  CPM critical path, and derived blocked-state over spine `WorkItem`s:
+  `effectiveDependencies` (union `dependsOn ∪ dependsOnAuto`),
+  `detectCycle` (self-edge = cycle; the editor's pre-write guard),
+  `itemDuration` ladder (scheduled span → `laborHrs/8` → 0 milestone),
+  `analyzeWorkItemGraph` (Kahn topo + forward/backward CPM; `slack===0`
+  ⇒ critical; cyclic ⇒ `cyclic:true` + CPM zeros, no loop; blocked
+  computed independently so it survives cycles; dangling ids ignored).
+  Schema gains additive `dependsOnAuto` (`.default([])` —
+  no DB migration): `dependsOn`=manual/steward, `dependsOnAuto`=
+  Goal-Compass-seeded, effective DAG=union (provenance Approach B).
+  `workItemStore.replaceGoalCompassDependencies` mirrors
+  `replaceGoalCompassRows` preservation 1:1 (only `goal-compass &&
+  !overridden`; idempotent). `v3/plan/engine/goalCompass/
+  goalCompassSpineSync.ts` gains pure `seedGoalCompassDependencies`
+  (maps `Intervention.prerequisites[]` → prereq WorkItem ids via
+  `generatedFromInterventionId`), called after `replaceGoalCompassRows`
+  (acyclic by construction). `PlanExecutionTrackerCard.tsx` extended in
+  place: Critical/Blocked/Slack read-only row badges (both group
+  modes), a per-row dependency editor (manual removable, auto
+  read-only, cycle/self-edge refused inline), and a third `timeline`
+  view toggle (CSS/SVG Gantt — bars earliest→finish, milestone
+  diamonds, critical highlight, dependency lines, cyclic banner).
+  Blocked/critical are derived at render only — **never** written to
+  `WorkItem.status` (D0.1 single-writer discipline). Strictly
+  project-operational (no D2–D5; no covenant-excluded framing;
+  `BudgetActualsCard` untouched). See
+  [[2026-05-18-atlas-d1-dependency-critical-path]].
+
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
 - `lib/perfProfiler.tsx` — dev-only `<SectionProfiler>` around React's `<Profiler>`; logs renders over 16 ms; tree-shaken in prod via `import.meta.env.DEV`

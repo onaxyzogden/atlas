@@ -11,9 +11,8 @@
  */
 
 import { useEffect, useMemo, useRef } from 'react';
-import { useFieldTaskStore } from '../../../store/fieldTaskStore.js';
+import { useWorkItemStore } from '../../../store/workItemStore.js';
 import { useActTelemetry } from '../../../lib/actInteractionLog.js';
-import { useMaintenanceStore } from '../../../store/maintenanceStore.js';
 import { useHarvestLogStore } from '../../../store/harvestLogStore.js';
 import { useSuccessionStore } from '../../../store/successionStore.js';
 import { useCommunityEventStore } from '../../../store/communityEventStore.js';
@@ -70,8 +69,7 @@ function fieldTaskModule(category: FieldTaskCategory): ActModule | null {
 }
 
 export default function TodaysPriorities({ projectId, activeModule }: Props) {
-  const fieldTasks = useFieldTaskStore((s) => s.tasks);
-  const maintenanceTasks = useMaintenanceStore((s) => s.tasks);
+  const workItems = useWorkItemStore((s) => s.items);
   const harvestEntries = useHarvestLogStore((s) => s.entries);
   const milestones = useSuccessionStore((s) => s.milestones);
   const events = useCommunityEventStore((s) => s.events);
@@ -101,31 +99,34 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
       activeModule === null || activeModule === 'network';
 
     if (wantBuild || wantMaintain || wantLivestock || wantReview) {
-      for (const t of fieldTasks) {
-        if (t.projectId !== projectId) continue;
-        if (t.status === 'done') continue;
-        if (!isToday(t.dueAt)) continue;
+      for (const w of workItems) {
+        if (w.projectId !== projectId) continue;
+        if (w.source !== 'field-task') continue;
+        if (w.status === 'done') continue;
+        const due = w.scheduledEnd ?? '';
+        if (!isToday(due)) continue;
         push({
-          id: `ft-${t.id}`,
-          title: t.title,
-          meta: `${t.category} · ${formatTime(t.dueAt)}`,
-          module: fieldTaskModule(t.category),
+          id: `ft-${w.id}`,
+          title: w.title,
+          meta: `${w.category} · ${formatTime(due)}`,
+          module: w.category ? fieldTaskModule(w.category) : null,
         });
       }
     }
 
     if (wantMaintain) {
-      for (const m of maintenanceTasks) {
-        if (m.projectId !== projectId) continue;
-        if (m.cadence !== 'daily') continue;
-        const last = m.lastDoneAt ? new Date(m.lastDoneAt) : null;
+      for (const w of workItems) {
+        if (w.projectId !== projectId) continue;
+        if (w.source !== 'maintenance') continue;
+        if (w.recurrenceFrequency !== 'daily') continue;
+        const last = w.doneAt ? new Date(w.doneAt) : null;
         const dueToday =
           !last ||
           last.toDateString() !== new Date().toDateString();
         if (!dueToday) continue;
         push({
-          id: `mt-${m.id}`,
-          title: m.title,
+          id: `mt-${w.id}`,
+          title: w.title,
           meta: `Maintenance · daily`,
           module: 'maintain',
         });
@@ -187,8 +188,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
   }, [
     projectId,
     activeModule,
-    fieldTasks,
-    maintenanceTasks,
+    workItems,
     harvestEntries,
     milestones,
     events,

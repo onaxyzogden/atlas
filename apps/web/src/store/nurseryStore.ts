@@ -40,6 +40,12 @@ export interface StockTransfer {
   destinationZoneId: string;
   transferDate: string;
   notes: string;
+  /**
+   * D0 spine link — the `WorkItem` this executed transfer proves complete
+   * (the *batch* becomes a WorkItem; this transfer is its proof-of-
+   * completion record). Additive optional → no version bump.
+   */
+  workItemId?: string;
 }
 
 interface NurseryState {
