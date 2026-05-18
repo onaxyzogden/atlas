@@ -2,7 +2,7 @@
  * Species data catalogs for livestock and crops.
  */
 
-import type { LivestockSpecies } from '../../store/livestockStore.js';
+import type { LivestockSpecies, Paddock } from '../../store/livestockStore.js';
 import type { CropAreaType } from '../../store/cropStore.js';
 import { crop } from '../../lib/tokens';
 import { auFactorFor } from './scheduleA.js';
@@ -86,6 +86,21 @@ export const LIVESTOCK_SPECIES: Record<LivestockSpecies, LivestockSpeciesInfo> =
     shelterNote: 'Hives face south-east, wind-protected',
   },
 };
+
+/**
+ * Required recovery/rest days for a paddock = the max `recoveryDays` across
+ * all assigned species, or 30 when no species are assigned. Single source of
+ * truth shared by `computeRecoveryStatus` (time-dependent recovery dashboard)
+ * and `requiredRestDays` (pure rotation-sequence projection) so the rule
+ * cannot drift if `LIVESTOCK_SPECIES` defaults change.
+ */
+export function requiredRecoveryDays(paddock: Paddock): number {
+  return paddock.species.length > 0
+    ? Math.max(
+        ...paddock.species.map((sp) => LIVESTOCK_SPECIES[sp]?.recoveryDays ?? 30),
+      )
+    : 30;
+}
 
 /**
  * Animal Unit (AU) conversion factors per head of livestock.

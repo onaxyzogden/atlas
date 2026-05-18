@@ -16,7 +16,7 @@ import type { DesignPath } from '../../store/pathStore.js';
 import { haversineM, polygonCentroid } from '../../lib/geo.js';
 import { SHELTER_MAX_M } from './constants.js';
 import { SHELTER_STRUCTURES } from './welfarePass.js';
-import { LIVESTOCK_SPECIES, type LivestockSpeciesInfo } from './speciesData.js';
+import { LIVESTOCK_SPECIES, requiredRecoveryDays, type LivestockSpeciesInfo } from './speciesData.js';
 
 /* ================================================================== */
 /*  Exported types                                                     */
@@ -228,9 +228,7 @@ export function computeRecoveryStatus(paddock: Paddock): RecoveryStatus {
   const daysRested = Math.max(0, Math.floor((now - updated) / 86_400_000));
 
   // Required days = max recovery across all assigned species (or 30 default)
-  const requiredDays = paddock.species.length > 0
-    ? Math.max(...paddock.species.map((sp) => LIVESTOCK_SPECIES[sp]?.recoveryDays ?? 30))
-    : 30;
+  const requiredDays = requiredRecoveryDays(paddock);
 
   const compliance = requiredDays > 0 ? Math.min(100, Math.round((daysRested / requiredDays) * 100)) : 100;
 

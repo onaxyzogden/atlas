@@ -13,7 +13,7 @@
  */
 
 import type { Paddock } from '../../store/livestockStore.js';
-import { LIVESTOCK_SPECIES } from './speciesData.js';
+import { requiredRecoveryDays } from './speciesData.js';
 
 /* ================================================================== */
 /*  Owned plan types                                                   */
@@ -79,16 +79,13 @@ function addDaysISO(iso: string, days: number): string {
 
 /**
  * Required rest = max recovery across assigned species, or 30 when no
- * species. Kept byte-for-byte identical to `computeRecoveryStatus`'s
- * `requiredDays` so rotation-sequence compliance never diverges from the
- * recovery dashboard.
+ * species. Thin wrapper over the shared `requiredRecoveryDays` helper so
+ * rotation-sequence compliance can never diverge from the recovery
+ * dashboard's `computeRecoveryStatus`. This module owns the rest-compliance
+ * vocabulary ("rest"); the underlying rule lives once in `speciesData`.
  */
 export function requiredRestDays(paddock: Paddock): number {
-  return paddock.species.length > 0
-    ? Math.max(
-        ...paddock.species.map((sp) => LIVESTOCK_SPECIES[sp]?.recoveryDays ?? 30),
-      )
-    : 30;
+  return requiredRecoveryDays(paddock);
 }
 
 /* ================================================================== */
