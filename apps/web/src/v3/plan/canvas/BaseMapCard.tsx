@@ -32,13 +32,14 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'wind', label: 'Wind sectors (proportional · labelled)', swatch: '#5b7a8a' },
   { key: 'hazards', label: 'Hazards (fire · noise · wildlife)', swatch: '#a85a3f' },
   { key: 'views', label: 'Views (sightline sectors)', swatch: '#7aa86a' },
-  { key: 'zones', label: 'Zones (use-frequency rings — drawn or textbook)', swatch: '#b07c4a' },
+  { key: 'zones', label: 'Permaculture zones (steward-drawn in Observe)', swatch: '#b07c4a' },
   { key: 'water', label: 'Water (streams · surface water)', swatch: '#5b8aa8' },
   { key: 'topography', label: 'Topography (contours + hillshade)', swatch: '#7a6a3f' },
   { key: 'builtEnvironment', label: 'Built environment (buildings · utilities · fences)', swatch: '#8a8e94' },
   { key: 'observeAnnotations', label: 'Observe annotations (steward-placed)', swatch: '#7c5a8a' },
   { key: 'sunPath', label: 'Sun path (hourly trajectory traces)', swatch: '#d68a4a' },
-  { key: 'zoneRings', label: 'Design audit rings (Z1·Z2·Z3 around tagged Zone-0 elements)', swatch: '#c8a85a' },
+  { key: 'zoneRings', label: 'Design audit rings (Z1–Z5 around tagged Zone-0 elements)', swatch: '#c8a85a' },
+  { key: 'seededZones', label: 'Seeded zones (ring-seed provisional drafts)', swatch: '#7a9a4a' },
   { key: 'scheduledMoves', label: 'Scheduled moves (Act-stage plans on paddocks · structures)', swatch: '#5a8a6a' },
 ];
 
@@ -52,20 +53,37 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
 // on Observe + Plan + Act — those rows stay everywhere. Only the Plan-stage
 // computed overlays (PlanSunPathOverlay, PlanZoneRingsOverlay,
 // PlanScheduledMovesOverlay) are stage-bound; hide them on Observe + Act.
+//
+// STAGE_HIDDEN is stage-granular only. The Plan stage has two structurally
+// different canvases (Current Land mounts every Plan overlay; Vision Layout
+// does not mount PlanSunPathOverlay / PlanZoneRingsOverlay), so those rows
+// would be dead no-ops on Vision Layout. A canvas that does not mount an
+// overlay passes its dead keys via the `hiddenOverlays` prop — suppression
+// is the union of STAGE_HIDDEN[stage] and hiddenOverlays.
 type Stage = 'observe' | 'plan' | 'act';
 
 const STAGE_HIDDEN: Record<Stage, ReadonlyArray<MatrixToggleKey>> = {
-  observe: ['sunPath', 'zoneRings', 'scheduledMoves'],
+  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves'],
   plan: [],
-  act: ['sunPath', 'zoneRings', 'scheduledMoves'],
+  act: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves'],
 };
 
 export interface BaseMapCardProps {
   /** When provided, hides overlays not applicable to that stage. */
   stage?: Stage;
+  /**
+   * Extra overlay rows to hide for the specific canvas this card is mounted
+   * on (declared by the mount site, which knows which overlay components it
+   * actually mounts). Unioned with STAGE_HIDDEN[stage]. Used by the Vision
+   * Layout Plan canvas, which does not mount sun-path / zone-rings overlays.
+   */
+  hiddenOverlays?: ReadonlyArray<MatrixToggleKey>;
 }
 
-export default function BaseMapCard({ stage }: BaseMapCardProps = {}) {
+export default function BaseMapCard({
+  stage,
+  hiddenOverlays,
+}: BaseMapCardProps = {}) {
   const basemap = useBasemapStore((s) => s.basemap);
   const setBasemap = useBasemapStore((s) => s.setBasemap);
   const toggles = useMatrixTogglesStore();
@@ -115,9 +133,13 @@ export default function BaseMapCard({ stage }: BaseMapCardProps = {}) {
         </button>
         {!collapsed && (
           <ul id="basemap-card-overlays" className={css.overlaysList}>
-            {DEFAULT_OVERLAYS.filter(
-              (o) => !stage || !STAGE_HIDDEN[stage].includes(o.key),
-            ).map((o) => (
+            {DEFAULT_OVERLAYS.filter((o) => {
+              const hidden = new Set<MatrixToggleKey>([
+                ...(stage ? STAGE_HIDDEN[stage] : []),
+                ...(hiddenOverlays ?? []),
+              ]);
+              return !hidden.has(o.key);
+            }).map((o) => (
               <li key={o.key} className={css.row}>
                 <label className={css.rowLabel}>
                   <input

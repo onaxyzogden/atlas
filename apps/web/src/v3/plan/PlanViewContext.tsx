@@ -37,6 +37,9 @@ export const PLAN_MODULE_SCOPE: Record<PlanModule, PlanModuleScope> = {
   'cross-section-solar':    'time-invariant',
   'phasing-budgeting':      'phased',
   'principle-verification': 'phased',
+  'regeneration-monitor':   'time-invariant',
+  'habitat-allocation':     'time-invariant',
+  'biodiversity-monitor':   'time-invariant',
 };
 
 interface PlanViewContextValue {

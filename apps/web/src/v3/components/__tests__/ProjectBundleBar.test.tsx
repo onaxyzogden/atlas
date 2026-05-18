@@ -34,7 +34,7 @@ beforeEach(() => {
 describe('ProjectBundleBar — sync-aware framing', () => {
   it('flag OFF: shows the data-loss warning and a status role', () => {
     render(<ProjectBundleBar />);
-    expect(screen.getByText(/not fully saved to your account/i)).toBeTruthy();
+    expect(screen.getByText(/permanently delete it/i)).toBeTruthy();
     expect(screen.getByRole('status')).toBeTruthy();
   });
 
@@ -42,7 +42,7 @@ describe('ProjectBundleBar — sync-aware framing', () => {
     flags.SYNC_STATE_BLOBS = true;
     const { container } = render(<ProjectBundleBar />);
     expect(screen.getByText(/syncs to your account across devices/i)).toBeTruthy();
-    expect(screen.queryByText(/not fully saved to your account/i)).toBeNull();
+    expect(screen.queryByText(/permanently delete it/i)).toBeNull();
     expect(screen.queryByRole('status')).toBeNull();
     expect(container.querySelector('[class*="warn"]')).toBeNull();
   });

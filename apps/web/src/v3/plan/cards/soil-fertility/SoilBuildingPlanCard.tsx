@@ -117,7 +117,7 @@ function vectorCadence(resource: string, label: string): string {
 export default function SoilBuildingPlanCard({ project }: Props) {
   const byProject = useSoilTestStore((s) => s.byProject);
   const allZones = useZoneStore((s) => s.zones);
-  const allVectors = useClosedLoopStore((s) => s.wasteVectors);
+  const allVectors = useClosedLoopStore((s) => s.materialFlows);
   const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
   const allConventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
 
@@ -178,9 +178,9 @@ export default function SoilBuildingPlanCard({ project }: Props) {
   const recurringRows = useMemo(() => {
     return vectors.map((v) => ({
       id: v.id,
-      label: v.label || `${v.resourceType} flow`,
-      resource: v.resourceType,
-      cadence: vectorCadence(v.resourceType, v.label || ''),
+      label: v.label || `${v.materialKind} flow`,
+      resource: v.materialKind,
+      cadence: vectorCadence(v.materialKind, v.label || ''),
     }));
   }, [vectors]);
 

@@ -79,6 +79,57 @@ const REGENERATIVE_FARM: GoalTree = {
       ],
     },
     {
+      id: 'biodiversity-habitat',
+      title: 'Biodiversity habitat',
+      narrative:
+        'A deliberate share of the parcel set aside and restored as ' +
+        'undisturbed wildlife habitat and biological corridors — the ' +
+        'Apricot Lane ~10% set-aside that hosts native predators and ' +
+        'pollinators as primary biological pest-control tools.',
+      criteria: [
+        {
+          id: 'regen-habitat-pct',
+          description: '% of parcel allocated to undisturbed habitat / corridors',
+          unit: 'pct',
+          target: 10,
+          deadlineYear: 1,
+        },
+      ],
+    },
+    {
+      id: 'biodiversity-outcomes',
+      title: 'Biodiversity outcomes',
+      narrative:
+        'Whether the habitat set-aside is actually working over time — ' +
+        'native vegetative cover returning, invasive-species pressure ' +
+        'falling, and the bird & pollinator community arriving on the ' +
+        'classic Year 0 / 5 / 9 monitoring cadence. Ecological response ' +
+        'only; no valuation, credit, or offset framing.',
+      criteria: [
+        {
+          id: 'bio-native-cover',
+          description: '% of monitored area in native vegetative cover',
+          unit: 'pct',
+          target: 60,
+          deadlineYear: 7,
+        },
+        {
+          id: 'bio-invasive-pressure',
+          description: '% of monitored area under invasive-species pressure',
+          unit: 'pct',
+          target: 5,
+          deadlineYear: 5,
+        },
+        {
+          id: 'bio-species-richness',
+          description: 'Distinct bird & pollinator species observed in census',
+          unit: 'count',
+          target: 45,
+          deadlineYear: 9,
+        },
+      ],
+    },
+    {
       id: 'livestock-enterprise',
       title: 'Livestock enterprise',
       narrative:
@@ -384,9 +435,33 @@ export const GOAL_TREE_TEMPLATE_LABEL: Record<PlanProjectTypeKey, string> = {
   multi_enterprise: 'Multi-enterprise',
 };
 
+/**
+ * Resolve any project-type-ish string to a concrete template key.
+ *
+ * Accepts both the underscore `PlanProjectTypeKey` form (the value the real
+ * wizard stores, e.g. `regenerative_farm`) and the hyphenated
+ * `ProjectArchetype` form (e.g. `regenerative-farm`) by reverse-matching on
+ * each template's `archetype`. Returns `null` only for genuinely unknown
+ * input — callers decide the fallback.
+ */
+export function resolveTemplateKey(
+  input: string | null | undefined,
+): PlanProjectTypeKey | null {
+  if (!input) return null;
+  if (input in GOAL_TREE_TEMPLATES) return input as PlanProjectTypeKey;
+  for (const key of Object.keys(GOAL_TREE_TEMPLATES) as PlanProjectTypeKey[]) {
+    if (GOAL_TREE_TEMPLATES[key].archetype === input) return key;
+  }
+  return null;
+}
+
 export function getGoalTreeTemplate(key: string | null | undefined): GoalTree {
-  if (key && key in GOAL_TREE_TEMPLATES) {
-    return GOAL_TREE_TEMPLATES[key as PlanProjectTypeKey];
+  const resolved = resolveTemplateKey(key);
+  if (resolved) return GOAL_TREE_TEMPLATES[resolved];
+  if (key && import.meta.env.DEV) {
+    console.warn(
+      `[goalTreeTemplates] unknown projectType "${key}" → HOMESTEAD fallback`,
+    );
   }
   return HOMESTEAD_GOAL_TREE_TEMPLATE;
 }

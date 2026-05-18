@@ -36,14 +36,15 @@ import {
   RANK_COLOR,
 } from '../../../store/layeringLensStore.js';
 import { useEnterpriseStore } from '../../../store/enterpriseStore.js';
+import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useEcologicalNoteStore } from '../../../store/ecologicalNoteStore.js';
 import { useUtilityRunStore } from '../../../store/utilityRunStore.js';
 import {
   useSetbackStore,
   type SetbackSourceKind,
 } from '../../../store/setbackStore.js';
-import { useFlowConnectorStore } from '../../../store/flowConnectorStore.js';
 import { useMonitoringTransectStore } from '../../../store/monitoringTransectStore.js';
+import { useFlowEndpointOptions } from '../../../features/plan/useFlowEndpointOptions.js';
 import { bufferGeometry } from '../draw/tools/bufferGeometry.js';
 import {
   usePlanSelectionStore,
@@ -240,14 +241,16 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const updateUtilityRun = useUtilityRunStore((s) => s.updateRun);
   const setbackRings = useSetbackStore((s) => s.rings);
   const updateSetbackRing = useSetbackStore((s) => s.updateRing);
-  const flowConnectors = useFlowConnectorStore((s) => s.connectors);
-  const updateFlowConnector = useFlowConnectorStore((s) => s.updateConnector);
+  const flowConnectors = useClosedLoopStore((s) => s.materialFlows);
+  const updateFlowConnector = useClosedLoopStore((s) => s.updateMaterialFlow);
+  const flowEndpointOptions = useFlowEndpointOptions(projectId);
   const monitoringTransects = useMonitoringTransectStore((s) => s.transects);
   const updateMonitoringTransect = useMonitoringTransectStore(
     (s) => s.updateTransect,
   );
   const activeTool = useMapToolStore((s) => s.activeTool);
   const openForm = useInlineFormStore((s) => s.open);
+  const seededZonesVisible = useMatrixTogglesStore((s) => s.seededZones);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
   const lensMode = useLayeringLensStore((s) => s.mode);
   const allEnterprises = useEnterpriseStore((s) => s.enterprises);
@@ -713,11 +716,12 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     // free-text rather than feature ids in v1).
     for (const fc of flowConnectors) {
       if (fc.projectId !== projectId) continue;
+      if (!fc.geometry) continue; // list-origin flows have no map geometry
       const props = {
         id: fc.id,
         kind: 'flow',
-        color: fc.color,
-        label: fc.name,
+        color: fc.color ?? '#5db1a2',
+        label: fc.label,
         yeomansRank: 7,
         enterprise: fc.enterprise ?? '',
       };
@@ -891,6 +895,20 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           : rankColorExpr()
         : ['get', 'color'];
 
+      // Seeded-zones visibility (matrixTogglesStore.seededZones). Seeded
+      // ("ring-seed") zones share poly-fill/poly-line/label with all other
+      // polygons, so we filter rather than flip layer visibility. Non-zone
+      // features lack `seedProvenance`; coalescing to 'manual' keeps them
+      // always visible — only ring-seed features are dropped when off.
+      const hideSeedFilter = [
+        '!=',
+        ['coalesce', ['get', 'seedProvenance'], 'manual'],
+        'ring-seed',
+      ];
+      const seedLineFilter = seededZonesVisible
+        ? ['==', ['get', 'seedProvenance'], 'ring-seed']
+        : ['==', ['literal', 0], 1];
+
       // Zones ramp opacity by Z-level (Z0 most opaque, Z5 most transparent)
       // to reinforce the Z-stack ordering with a perceptual cue. Non-zone
       // polygon kinds keep the shared 0.28 baseline.
@@ -914,12 +932,14 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: `${LAYER_PREFIX}poly-fill`,
         type: 'fill',
         source: polySid,
+        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
         paint: { 'fill-color': colorExpr as never, 'fill-opacity': fillOpacityExpr as never },
       });
       ensureLayer({
         id: `${LAYER_PREFIX}poly-line`,
         type: 'line',
         source: polySid,
+        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
         paint: {
           'line-color': colorExpr as never,
           'line-width': 1.5,
@@ -935,7 +955,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: `${LAYER_PREFIX}poly-seed-line`,
         type: 'line',
         source: polySid,
-        filter: ['==', ['get', 'seedProvenance'], 'ring-seed'],
+        filter: seedLineFilter as never,
         paint: {
           'line-color': colorExpr as never,
           'line-width': 1.5,
@@ -1079,8 +1099,25 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       try {
         map.setPaintProperty(`${LAYER_PREFIX}poly-fill`, 'fill-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}poly-line`, 'line-color', colorExpr as never);
+        // Re-apply seeded-zones filters on existing layers so the toggle
+        // takes effect (ensureLayer is a no-op once the layer exists).
+        map.setFilter(
+          `${LAYER_PREFIX}poly-fill`,
+          (seededZonesVisible ? null : hideSeedFilter) as never,
+        );
+        map.setFilter(
+          `${LAYER_PREFIX}poly-line`,
+          (seededZonesVisible ? null : hideSeedFilter) as never,
+        );
+        if (map.getLayer(`${LAYER_PREFIX}label`)) {
+          map.setFilter(
+            `${LAYER_PREFIX}label`,
+            (seededZonesVisible ? null : hideSeedFilter) as never,
+          );
+        }
         if (map.getLayer(`${LAYER_PREFIX}poly-seed-line`)) {
           map.setPaintProperty(`${LAYER_PREFIX}poly-seed-line`, 'line-color', colorExpr as never);
+          map.setFilter(`${LAYER_PREFIX}poly-seed-line`, seedLineFilter as never);
         }
         map.setPaintProperty(`${LAYER_PREFIX}line`, 'line-color', colorExpr as never);
         if (map.getLayer(`${LAYER_PREFIX}fence-temp-line`)) {
@@ -1102,6 +1139,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: `${LAYER_PREFIX}label`,
         type: 'symbol',
         source: labelSid,
+        ...(seededZonesVisible ? {} : { filter: hideSeedFilter as never }),
         layout: {
           // 2026-05-11 — Polygon features (zones, paddocks, crop areas,
           // catchments, setback rings) stamp `acresLabel` on their props
@@ -1173,6 +1211,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     lensMode,
     enterprises,
     selectedGuildId,
+    seededZonesVisible,
   ]);
 
   // Click-to-edit + drag-to-move for guild points. Uses the same
@@ -2441,9 +2480,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'flow') return;
       const id = String(f.properties.id);
-      const r = useFlowConnectorStore
+      const r = useClosedLoopStore
         .getState()
-        .connectors.find((x) => x.id === id);
+        .materialFlows.find((x) => x.id === id);
       if (!r) return;
       const selItem = { kind: 'flow' as const, id };
       if (e.originalEvent.shiftKey) {
@@ -2453,7 +2492,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       }
       const anchor: [number, number] = [e.lngLat.lng, e.lngLat.lat];
       openForm({
-        ...buildFlowConnectorEditSchema(r, updateFlowConnector),
+        ...buildFlowConnectorEditSchema(r, updateFlowConnector, flowEndpointOptions),
         anchor,
       });
     };
@@ -2471,6 +2510,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     map,
     activeTool,
     updateFlowConnector,
+    flowEndpointOptions,
     setSelection,
     openForm,
     editable,

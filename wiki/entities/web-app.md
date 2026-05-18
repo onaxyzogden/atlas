@@ -153,6 +153,27 @@ All use `persist` middleware with localStorage. Key stores:
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
 
 ## Current State
+- **Vision Layout UX consolidation (2026-05-17)** — three Vision Layout
+  (also `terrain3d`) Plan-canvas rough edges fixed, no behavior/layer
+  deletion. `BaseMapCard` gained an optional `hiddenOverlays` prop (mount
+  site declares its dead overlay keys; filter =
+  `STAGE_HIDDEN[stage] ∪ hiddenOverlays`); `VisionLayoutCanvas` passes
+  `VISION_DEAD_OVERLAYS=['sunPath','zoneRings']`. `zones`/`zoneRings`
+  legend labels corrected (Z1–Z5). `CustomModelPalette` relocated from a
+  floating bottom-right card into the left `PlanTools` rail (restyled as
+  a rail `<section>`, gated `usePlanView() ∈ {vision,terrain3d}`).
+  `InlineFeaturePopover` re-anchored top-right → bottom-right. See
+  `decisions/2026-05-17-atlas-vision-layout-ux-consolidation.md`.
+- **Seeded-zones overlay show/hide toggle (2026-05-17)** — generator-seeded
+  ("ring-seed") `LandZone`s can now be hidden on the Plan map via a new
+  `matrixTogglesStore.seededZones` toggle in the BaseMapCard "Overlays"
+  legend (**defaults ON**, persist `version` 11→12, `migrate` `?? true`).
+  Implemented with maplibre `setFilter` on the shared
+  `plan-data-poly-fill`/`poly-line`/`label` layers
+  (`coalesce(seedProvenance,'manual') != 'ring-seed'` when off — only
+  ring-seed features ever dropped) + match-nothing on the seeded-only
+  `poly-seed-line`; legend row stage-scoped to Plan. No deletion. See
+  [[2026-05-17-atlas-seeded-zones-overlay-toggle]].
 - **Full `syncService` coverage Phases 1–2 (2026-05-17)** — `lib/syncManifest.ts`
   is the single source of truth: every project-scoped `ogden-` persist store
   is classified (`typed-design-feature`/`typed-table`/`versioned-blob`) and a
@@ -167,10 +188,33 @@ All use `persist` middleware with localStorage. Key stores:
   device B; version-skew guard skips newer blobs; `temporal()` undo
   cleared post-hydrate; 409 surfaces visibly (`connectivityStore
   .conflictedStores` badge + toast, no silent clobber). End-to-end
-  functionally complete; phased enable + multi-device matrix is Phase 5;
-  `projectBundle.ts` remains the offline backup. See
+  functionally complete. **Phase 5 (2026-05-17, same flag):** the flag
+  is now browser-functional — `vite.config.ts` `define:` was missing
+  `FEATURE_SYNC_STATE_BLOBS` so it was permanently `false` in-browser
+  (fixed + a text-level guard test); `OfflineBanner` gained a
+  highest-priority dismissible conflict bar; `ProjectBundleBar` is
+  flag-aware (calm "syncs to your account" when on, not deleted);
+  `projectState.test.ts` pins cold-start + designer write-role. Single
+  boolean (no per-store map); **Phase 3 typed tables (veg/succession)
+  deferred**; 5.7 manual two-device A→B matrix is an operator action
+  before enabling the flag for testers. `projectBundle.ts` remains the
+  offline backup. See
   [Phase 1–2 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase1-2.md),
-  [Phase 4 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase4.md).
+  [Phase 4 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase4.md),
+  [Phase 5 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase5.md).
+  **Phase 3 (2026-05-17, same flag) — last deferred item closed:**
+  `ogden-vegetation` + `ogden-act-succession` now have real Postgres
+  tables (migration `028`, `id text`), shared Zod schemas (optional
+  client-minted id — `machinery_items` idiom), `design-features`-shaped
+  Fastify routes (owner-only delete), a dedicated client write-through
+  (**client-supplied id, no serverId/no writeback** so vegetation's
+  `temporal()` undo stays clean; failures enqueue typed
+  `'vegetation'`/`'succession'` retry ops) and `hydrateTypedTables`
+  device-B restore (server-wins per id, local-only pushed up, no
+  cross-project clobber). Coverage guard pins both `typed-table` so the
+  blob loop can never double-write them. Full plan now complete; only the
+  5.7 manual matrix remains operational. See
+  [Phase 3 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase3.md).
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's

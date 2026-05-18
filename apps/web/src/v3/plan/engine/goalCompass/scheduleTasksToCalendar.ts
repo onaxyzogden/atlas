@@ -11,7 +11,10 @@
  *       summer = Jun 1 – Aug 31 (≈92d)
  *       fall   = Sep 1 – Nov 30 (≈91d)
  *       winter = Dec 1 – Feb 28 (≈90d)
- *   - Distribute tasks in the same (phaseOrder, season) bucket evenly
+ *   - The synthetic maintenance phase carries a sentinel `order: 99` and is
+ *     post-establishment, so it anchors to `startYear + maxDesignOrder`
+ *     (the year after the last design phase), not `order - 1`.
+ *   - Distribute tasks in the same (phaseId, season) bucket evenly
  *     across the window so the calendar isn't lumpy.
  *   - Each task's end = start + ceil(laborHrs / 8) workdays, min 1.
  *   - Every task receives `roleAccess: ['owner','designer','reviewer',
@@ -24,6 +27,14 @@ import type { ProjectRole } from '@ogden/shared';
 type Season = NonNullable<PhaseTask['season']>;
 
 const ALL_ROLES: ProjectRole[] = ['owner', 'designer', 'reviewer', 'viewer'];
+
+// The synthetic maintenance phase carries a sentinel `order: 99` so it sorts
+// last in the phasing matrix. That ordinal must NOT be treated as a calendar
+// year offset (it would throw upkeep ~98 years out). Detect it by its
+// deterministic id prefix instead.
+function isMaintenancePhaseId(id: string): boolean {
+  return id.startsWith('maint-phase-');
+}
 
 interface SeasonWindow {
   startMonth: number; // 0-indexed
@@ -83,13 +94,25 @@ export function scheduleTasksToCalendar(
     : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const startYear = anchor.getFullYear();
 
-  // Bucket tasks by (phaseOrder, season) for even distribution.
+  // Establishment span = the largest real (non-maintenance) phase order.
+  // Maintenance is post-establishment upkeep, so it anchors to the first
+  // full year *after* the last design year.
+  const maxDesignOrder = Math.max(
+    0,
+    ...phases.filter((p) => !isMaintenancePhaseId(p.id)).map((p) => p.order),
+  );
+
+  // Bucket tasks by (phaseId, season) for even distribution. Keying by
+  // phase identity (not the shared `order` ordinal) keeps the intended
+  // same-year placement — year is still derived from `order` below — while
+  // stopping unrelated phases that share an ordinal from interleaving their
+  // task distributions, and removing the zero-task placeholder collision.
   const phaseById = new Map(phases.map((p) => [p.id, p]));
   const buckets = new Map<string, { phaseId: string; task: PhaseTask }[]>();
   for (const entry of tasks) {
     const phase = phaseById.get(entry.phaseId);
     if (!phase) continue;
-    const key = `${phase.order}|${entry.task.season}`;
+    const key = `${phase.id}|${entry.task.season}`;
     const list = buckets.get(key) ?? [];
     list.push(entry);
     buckets.set(key, list);
@@ -97,9 +120,13 @@ export function scheduleTasksToCalendar(
 
   const result: ScheduledTaskOutput[] = [];
   for (const [key, bucket] of buckets) {
-    const [orderStr, season] = key.split('|') as [string, Season];
-    const order = Number(orderStr);
-    const year = startYear + (order - 1);
+    const sep = key.lastIndexOf('|');
+    const phaseId = key.slice(0, sep);
+    const season = key.slice(sep + 1) as Season;
+    const phase = phaseById.get(phaseId)!;
+    const year = isMaintenancePhaseId(phaseId)
+      ? startYear + maxDesignOrder
+      : startYear + (phase.order - 1);
     const { start, end } = seasonWindowDates(season, year);
     const windowLen = Math.max(1, diffDays(start, end));
     const count = bucket.length;

@@ -18,6 +18,7 @@ import {
   DIRECTION_OPTIONS,
   SPECIES_OPTIONS,
   buildRotatePair,
+  destPaddockId,
   type LivestockMoveDirection,
 } from '../../../../store/livestockMoveLogStore.js';
 import {
@@ -71,12 +72,16 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
       let hitId = '';
       let hitName = '';
       let defaultSpecies: LivestockSpecies = 'sheep';
+      let paddockHasSpecies = false;
       for (const p of paddocks) {
         try {
           if (turf.booleanPointInPolygon(click, p.geometry)) {
             hitId = p.id;
             hitName = p.name || 'paddock';
-            if (p.species[0]) defaultSpecies = p.species[0];
+            if (p.species[0]) {
+              defaultSpecies = p.species[0];
+              paddockHasSpecies = true;
+            }
             break;
           }
         } catch {
@@ -85,6 +90,21 @@ export default function LivestockMoveTool({ map, projectId }: Props) {
       }
 
       if (!hitId) return;
+
+      // Drop-placed / auto-designed paddocks carry no `species[]` (run-2
+      // #71): silently falling back to 'sheep' mislabels e.g. a poultry
+      // paddock. Use the species of the most recent move *into* this
+      // paddock instead — the move log is the real record of what grazes
+      // here once any rotation has been logged.
+      if (!paddockHasSpecies) {
+        const lastInto = useLivestockMoveLogStore
+          .getState()
+          .events.filter(
+            (e) => e.projectId === projectId && destPaddockId(e) === hitId,
+          )
+          .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+        if (lastInto) defaultSpecies = lastInto.species;
+      }
 
       const id = newAnnotationId('lvm');
       addEvent({

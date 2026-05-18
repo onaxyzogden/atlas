@@ -9,11 +9,14 @@
 
 import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useClosedLoopStore } from '../../store/closedLoopStore.js';
-import { newAnnotationId, type WasteVector, type WasteResourceType } from '../../store/site-annotations.js';
-import { useZoneStore } from '../../store/zoneStore.js';
-import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
-import { useCropStore } from '../../store/cropStore.js';
+import {
+  useClosedLoopStore,
+  MATERIAL_KIND_CONFIG,
+  type MaterialFlow,
+  type MaterialKind,
+} from '../../store/closedLoopStore.js';
+import { newAnnotationId } from '../../store/site-annotations.js';
+import { useFlowEndpointOptions } from './useFlowEndpointOptions.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -21,7 +24,7 @@ interface Props {
   onSwitchToMap: () => void;
 }
 
-const RESOURCE_TYPES: Array<{ value: WasteResourceType; label: string }> = [
+const RESOURCE_TYPES: Array<{ value: MaterialKind; label: string }> = [
   { value: 'organic_matter', label: 'Organic matter' },
   { value: 'manure',         label: 'Manure' },
   { value: 'greywater',      label: 'Greywater' },
@@ -29,43 +32,35 @@ const RESOURCE_TYPES: Array<{ value: WasteResourceType; label: string }> = [
 ];
 
 export default function WasteVectorTool({ project }: Props) {
-  const allVectors = useClosedLoopStore((s) => s.wasteVectors);
-  const allFertility = useClosedLoopStore((s) => s.fertilityInfra);
-  const addVector = useClosedLoopStore((s) => s.addWasteVector);
-  const removeVector = useClosedLoopStore((s) => s.removeWasteVector);
+  const allFlows = useClosedLoopStore((s) => s.materialFlows);
+  const addFlow = useClosedLoopStore((s) => s.addMaterialFlow);
+  const removeFlow = useClosedLoopStore((s) => s.removeMaterialFlow);
 
-  const allZones = useZoneStore((s) => s.zones);
-  const allStructures = useAllStructures();
-  const allCrops = useCropStore((s) => s.cropAreas);
-
-  const vectors = useMemo(() => allVectors.filter((v) => v.projectId === project.id), [allVectors, project.id]);
-  const featureOptions = useMemo(() => {
-    const pId = project.id;
-    const out: Array<{ id: string; label: string }> = [];
-    for (const z of allZones) if (z.projectId === pId) out.push({ id: z.id, label: `Zone · ${z.name || z.category}` });
-    for (const s of allStructures) if (s.projectId === pId) out.push({ id: s.id, label: `Structure · ${s.name || s.type}` });
-    for (const c of allCrops) if (c.projectId === pId) out.push({ id: c.id, label: `Crop · ${(c as { name?: string }).name ?? 'crop area'}` });
-    for (const f of allFertility) if (f.projectId === pId) out.push({ id: f.id, label: `Fertility · ${f.type}${f.scaleNote ? ` (${f.scaleNote})` : ''}` });
-    return out;
-  }, [project.id, allZones, allStructures, allCrops, allFertility]);
+  const vectors = useMemo(
+    () => allFlows.filter((v) => v.projectId === project.id),
+    [allFlows, project.id],
+  );
+  const featureOptions = useFlowEndpointOptions(project.id);
 
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [label, setLabel] = useState('');
-  const [resource, setResource] = useState<WasteResourceType>('organic_matter');
+  const [resource, setResource] = useState<MaterialKind>('organic_matter');
 
   function commit() {
     if (!from || !to || from === to || !label.trim()) return;
-    const v: WasteVector = {
+    const v: MaterialFlow = {
       id: newAnnotationId('wv'),
       projectId: project.id,
-      fromFeatureId: from,
-      toFeatureId: to,
       label: label.trim(),
-      resourceType: resource,
+      materialKind: resource,
+      sourceId: from,
+      sinkId: to,
+      origin: 'list',
+      color: MATERIAL_KIND_CONFIG[resource].color,
       createdAt: new Date().toISOString(),
     };
-    addVector(v);
+    addFlow(v);
     setLabel('');
   }
 
@@ -110,7 +105,7 @@ export default function WasteVectorTool({ project }: Props) {
               </label>
               <label className={styles.field}>
                 <span>Resource type</span>
-                <select value={resource} onChange={(e) => setResource(e.target.value as WasteResourceType)}>
+                <select value={resource} onChange={(e) => setResource(e.target.value as MaterialKind)}>
                   {RESOURCE_TYPES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </label>
@@ -140,10 +135,10 @@ export default function WasteVectorTool({ project }: Props) {
                 <div>
                   <strong>{v.label}</strong>
                   <div className={styles.listMeta}>
-                    {featureLabel(v.fromFeatureId)} → {featureLabel(v.toFeatureId)} · {v.resourceType}
+                    {featureLabel(v.sourceId ?? '')} → {featureLabel(v.sinkId ?? '')} · {v.materialKind}
                   </div>
                 </div>
-                <button type="button" className={styles.removeBtn} onClick={() => removeVector(v.id)}>Remove</button>
+                <button type="button" className={styles.removeBtn} onClick={() => removeFlow(v.id)}>Remove</button>
               </li>
             ))}
           </ul>

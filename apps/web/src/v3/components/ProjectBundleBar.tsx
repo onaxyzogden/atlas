@@ -140,10 +140,10 @@ export default function ProjectBundleBar() {
       'Your work syncs to your account across devices. Export an offline backup if you want a local copy.';
   } else if (exported) {
     message =
-      'Your design lives in this browser. Re-export a bundle after changes to keep your backup current.';
+      'Not saved to an account — your design lives only in this browser. You exported a backup earlier; re-export now, because changes since then are not in it and clearing browser data still erases them.';
   } else {
     message =
-      'Your design lives in this browser. Export a bundle to move devices or back up — it is not fully saved to your account.';
+      'Not saved to an account — your design lives only in this browser. Clearing browser data, switching browsers, or this device failing will permanently delete it. Export a bundle now to keep your work safe.';
   }
 
   return (

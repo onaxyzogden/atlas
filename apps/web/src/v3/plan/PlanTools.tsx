@@ -74,6 +74,8 @@ import {
   PLAN_MODULE_FULL_LABEL,
   type PlanModule,
 } from './types.js';
+import { usePlanView } from './PlanViewContext.js';
+import CustomModelPalette from './canvas/CustomModelPalette.js';
 import css from './PlanTools.module.css';
 
 interface ToolItem {
@@ -239,6 +241,7 @@ export default function PlanTools({
 }: Props) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
+  const view = usePlanView();
 
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
@@ -658,6 +661,7 @@ export default function PlanTools({
           </section>
         );
       })}
+      {(view === 'vision' || view === 'terrain3d') && <CustomModelPalette />}
     </div>
   );
 }

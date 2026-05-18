@@ -46,6 +46,12 @@ import type {
   GetActAffinityAggregateResult,
   ProjectStateBlob,
   UpsertProjectStateInput,
+  VegetationPatchSummary,
+  CreateVegetationPatchInput,
+  UpdateVegetationPatchInput,
+  SuccessionMilestoneSummary,
+  CreateSuccessionMilestoneInput,
+  UpdateSuccessionMilestoneInput,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -262,6 +268,34 @@ export const api = {
 
     delete: (id: string) =>
       request<void>('DELETE', `/api/v1/machinery-items/${id}`),
+  },
+
+  vegetation: {
+    list: (projectId: string) =>
+      request<VegetationPatchSummary[]>('GET', `/api/v1/vegetation/project/${projectId}`),
+
+    create: (projectId: string, input: CreateVegetationPatchInput) =>
+      request<VegetationPatchSummary>('POST', `/api/v1/vegetation/project/${projectId}`, input),
+
+    update: (id: string, input: UpdateVegetationPatchInput) =>
+      request<VegetationPatchSummary>('PATCH', `/api/v1/vegetation/${id}`, input),
+
+    delete: (id: string) =>
+      request<void>('DELETE', `/api/v1/vegetation/${id}`),
+  },
+
+  succession: {
+    list: (projectId: string) =>
+      request<SuccessionMilestoneSummary[]>('GET', `/api/v1/succession/project/${projectId}`),
+
+    create: (projectId: string, input: CreateSuccessionMilestoneInput) =>
+      request<SuccessionMilestoneSummary>('POST', `/api/v1/succession/project/${projectId}`, input),
+
+    update: (id: string, input: UpdateSuccessionMilestoneInput) =>
+      request<SuccessionMilestoneSummary>('PATCH', `/api/v1/succession/${id}`, input),
+
+    delete: (id: string) =>
+      request<void>('DELETE', `/api/v1/succession/${id}`),
   },
 
   projectState: {

@@ -86,6 +86,11 @@ const HolmgrenChecklistCard   = lazy(() => import('../../features/plan/HolmgrenC
 const ThreeEthicsRollupCard   = lazy(() => import('./cards/principle-verification/ThreeEthicsRollupCard.js'));
 const PrincipleCoverageMatrixCard = lazy(() => import('./cards/principle-verification/PrincipleCoverageMatrixCard.js'));
 const NeedsYieldsAuditCard       = lazy(() => import('./cards/principle-verification/NeedsYieldsAuditCard.js'));
+const StructuresOverviewCard     = lazy(() => import('./cards/structures-subsystems/StructuresOverviewCard.js'));
+const SubsystemsOverviewCard     = lazy(() => import('./cards/structures-subsystems/SubsystemsOverviewCard.js'));
+const RegenerationMonitorCard    = lazy(() => import('../../features/plan/RegenerationMonitorCard.js'));
+const HabitatAllocationCard      = lazy(() => import('../../features/plan/HabitatAllocationCard.js'));
+const BiodiversityMonitorCard    = lazy(() => import('../../features/plan/BiodiversityMonitorCard.js'));
 
 function renderPlanCard(
   sectionId: string,
@@ -160,6 +165,11 @@ function renderPlanCard(
         <NeedsYieldsAuditCard project={project} onSwitchToMap={closeSlideUp} />
       </OrphanProbeBoundary>
     );
+    case 'plan-structures-overview': return <StructuresOverviewCard projectId={project.id} />;
+    case 'plan-subsystems-overview': return <SubsystemsOverviewCard projectId={project.id} />;
+    case 'plan-regeneration-monitor': return <RegenerationMonitorCard project={project} onSwitchToMap={noop} />;
+    case 'plan-habitat-allocation': return <HabitatAllocationCard project={project} onSwitchToMap={noop} />;
+    case 'plan-biodiversity-monitor': return <BiodiversityMonitorCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }

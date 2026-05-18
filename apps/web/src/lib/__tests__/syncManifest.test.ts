@@ -123,6 +123,30 @@ describe('syncManifest coverage guard', () => {
     }
   });
 
+  it('keeps vegetation + succession on the typed-table path (P3-c5, no blob double-write)', () => {
+    // These two have real queryable Postgres tables + routes (P3-c2) and
+    // a dedicated client write-through/hydrate path (P3-c3/c4). If either
+    // drifts to versioned-blob it would ALSO be picked up by the generic
+    // blob loop → double-write + temporal-undo pollution. Pin typed-table.
+    const typedTableKeys = ['ogden-vegetation', 'ogden-act-succession'];
+    for (const key of typedTableKeys) {
+      const entry = SYNCED_STORES.find((d) => d.storeKey === key);
+      expect(entry, `${key} must be in SYNCED_STORES`).toBeDefined();
+      expect(
+        entry?.classification,
+        `${key} must be 'typed-table' so the versioned-blob loop cannot ` +
+          `double-write it`,
+      ).toBe<SyncClassification>('typed-table');
+    }
+    // Belt-and-braces: no typed-table key leaks into the blob loop's filter.
+    const blobKeys = SYNCED_STORES.filter(
+      (d) => d.classification === 'versioned-blob',
+    ).map((d) => d.storeKey);
+    for (const key of typedTableKeys) {
+      expect(blobKeys, `${key} must not be in the versioned-blob set`).not.toContain(key);
+    }
+  });
+
   it('has no key in both SYNCED_STORES and DEVICE_GLOBAL, and no duplicate storeKeys', () => {
     const syncedKeys = SYNCED_STORES.map((d) => d.storeKey);
     expect(new Set(syncedKeys).size, 'duplicate storeKey in SYNCED_STORES').toBe(

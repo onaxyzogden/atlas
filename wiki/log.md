@@ -4,6 +4,169 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-17 — Phase 5.7 automatable subset: real-Postgres blobSync integration spec
+
+**Branch.** `feat/atlas-permaculture`.
+
+Closed the last open item of the Full syncService Coverage plan — the
+Phase 5.7 multi-device A→B matrix — at its automatable boundary. A true
+two-device run is an operator action; the *mechanical core* (route → real
+Postgres round-trip, cross-project isolation, `ON CONFLICT` rev gate +
+409 no-clobber + recovery) is now locked by a new real-Postgres
+integration spec `apps/api/src/tests/blobSync.integration.test.ts`. It
+mirrors the auto-skip-without-DB convention (live DB via
+`INTEGRATION_DATABASE_URL`, default the docker-compose dev DB; otherwise
+`console.warn` + skip) so the mock-DB unit gate is never broken — the
+FIFO `helpers/testApp.ts` ignores SQL params and cannot prove a
+`(project_id, store_key)→payload` round-trip. Cases A (PUT baseRev:0 →
+200 rev 1 + direct `SELECT` confirms physical persistence), B (P1 two
+keys + P2 one key → `GET /project/P1` returns only P1's two, P2 absent),
+C (stale baseRev → 409 `{serverRev,serverPayload}`, unchanged-server
+GET, then correct-baseRev recovery bumps rev). **Run blocked here:**
+`docker: command not found` (no Docker/Postgres in sandbox) → spec
+auto-skipped cleanly (3 skipped); `pnpm --filter @ogden/api test` 549
+passing (9 boundary/smoke/telemetry/siteAssessmentsPipeline failures =
+unchanged pre-existing branch/env baseline, not a regression);
+`pnpm typecheck` 3/3 exit 0; no web/shared product code touched. Phase 5
+wiki note's 5.7 table filled truthfully (A/B/C "harness added & passing
+where a live DB exists; blocked here"; D/E operator-only) + addendum +
+**gated follow-up**: `FEATURE_SYNC_STATE_BLOBS` flag NOT flipped
+(`flags.ts`/`vite.config.ts` untouched, default-off); flag-flip deferred
+until a real two-device A–E pass.
+
+---
+
+## 2026-05-17 — Opt-in real-PostGIS testcontainers suite for `@ogden/api`
+
+**Branch.** `claude/elated-einstein-16895e`.
+
+Defense against the mock/real divergence class recurring after the prior
+lazy-thenable fix (550/550). Added a second, **opt-in** Vitest project
+(`test:integration`, never `test`) running 4 focused `*.pgtest.ts` against one
+`postgis/postgis:16-3.4` testcontainer; the fast mock suite is byte-unchanged
+(**550/550**, excludes `src/tests/integration/**`+`**/*.pgtest.ts`).
+Local/manual only — no CI job, no `turbo.json` task. `migrate.ts` refactored
+to `export runMigrations(sql)` (one source of truth for prod CLI +
+integration globalSetup). **Load-bearing fix surfaced by the Docker-down
+run only** (invisible to typecheck): migrate.ts's top-level `import { config }`
++ unconditional CLI tail ran on import → globalSetup importing `runMigrations`
+hit `config.ts`'s import-time `process.exit(1)` → suite went **red instead of
+green-skipping**; fixed via lazy `await import('../lib/config.js')` inside
+`migrateCli()` + an `isCliEntry` (`resolve(process.argv[1]) === fileURLToPath`)
+guard. Container lifecycle in `globalSetup` (one container, `runMigrations`
+parity, sentinel JSON in `os.tmpdir()` → forked workers since globalSetup
+`process.env` doesn't propagate); Docker absent / container-start failure
+writes `{skipped:true}` and green-skips, never red. Per-test isolation =
+`TRUNCATE … CASCADE` (deliberately not txn-rollback — a savepoint would mask
+the `db.begin`/FK-abort behaviors the suite exists to lock). 4 locked
+surfaces: geodetic `ST_Area(::geography)` acreage; `SiteAssessmentWriter`
+single-`is_current` + 30 s debounce + clamped `overall_score`; telemetry
+swallowed per-event FK `23503`; regeneration-events SRID-4326 round-trip +
+ownership-join RBAC. New: `vitest.integration.config.ts`,
+`src/tests/integration/{sentinel,globalSetup,harness,fixtures}.ts` + 4
+`*.pgtest.ts`; `package.json` +2 devDeps (`testcontainers`,
+`@testcontainers/postgresql` @ `11.14.0`) + `test:integration` script;
+`vitest.config.ts` +exclude. Verified: fast `pnpm --filter @ogden/api test`
+**550/550** (50 files, no container, no pgtest collected); `typecheck` exit 0;
+Docker-down `test:integration` **exit 0**, 4 files / 5 tests green-skipped
+with clear log; lockfile sanity (only testcontainers, +538 lines).
+**Deferred:** the with-Docker run is unverified (Docker Desktop stopped this
+session) — one outstanding manual `test:integration` in Linux-containers mode
+before relying on the 4 pgtests; CI wiring intentionally not done (user:
+local-only). ADR: `decisions/2026-05-17-atlas-pgtest-testcontainers-suite.md`.
+
+---
+
+## 2026-05-17 — Full `syncService` coverage: Phase 3 (typed tables: vegetation + succession)
+
+**Branch.** `feat/atlas-permaculture`.
+
+Closed the last deferred item of the full `syncService` coverage plan.
+`ogden-vegetation` + `ogden-act-succession` now have real Postgres tables
+(migration `028`, `id text`), shared Zod schemas (optional client-minted
+id — `machinery_items` idiom), `design-features`-shaped Fastify routes
+(owner-only delete, `logActivity`, `requireRole`), a dedicated client
+write-through (**client-supplied id, no serverId/no writeback** so
+vegetation's `temporal()` undo is not polluted; API failure → typed
+`'vegetation'`/`'succession'` retry op, never dropped), and
+`hydrateTypedTables` device-B restore (mirrors `mergeDesignFeatures`:
+server-wins per id, local-only pushed up, no cross-project clobber).
+Coverage guard pins both `typed-table` (verified failing on a flipped
+classification) so the versioned-blob loop can never double-write them.
+Same default-off `FLAGS.SYNC_STATE_BLOBS` gate. Shared mock-DB gained
+`.unsafe`/`.json` (additive `Object.assign`); the embedded-`db\`now()\``
+trap (shifts the mock queue, corrupts row ordering) was replaced with
+`COALESCE(${createdAt ?? null}, now())`. Commits P3-c1…c5 + a tsc fix.
+Gate: `pnpm typecheck` 3/3 exit 0; web Vitest **1073/1073** (86 files,
++`syncServiceTyped`, `syncServiceTypedHydrate`; `syncManifest` 10/10);
+shared 213/213; api `vegetationSuccession` 8/8 (incl. 3.3 no-double-write
+guard) + 549 passing. The 9 api failures
+(boundary/smoke/telemetry/siteAssessmentsPipeline) are a pre-existing
+branch baseline confirmed by stash before P3, unrelated to this work.
+Full plan (Phases 1–5 + P3) now complete; only the Phase 5.7 manual
+multi-device matrix (flag-on, operator action) remains.
+
+---
+
+## 2026-05-17 — Full `syncService` coverage: Phase 5 (phased enable + conflict UI + bundle relabel)
+
+**Branch.** `feat/atlas-permaculture`.
+
+**What.** Executed Phase 5 of the approved plan — made
+`FLAGS.SYNC_STATE_BLOBS` browser-functional and closed the build half
+of P0-1. Strict TDD, one commit per item. **c1** (`44821315`): the
+flag was permanently `false` in the browser because `vite.config.ts`
+`define:` lacked `FEATURE_SYNC_STATE_BLOBS` (also `FEATURE_RELATIONSHIPS`);
+added both + `syncFlagWiring.test.ts` (text-asserts every `flags.ts`
+`FEATURE_*` has a `define` entry — kills the class). **c2**
+(`4b673f0f`): `syncManifestRoundTrip.test.ts` — `it.each` over the
+exact production `versioned-blob` filter (all 61), proves
+`select`↔`apply` survives a JSON wire hop + other-project isolation,
+black-box vs a handle shim. **c3** (`d899880e`): `OfflineBanner` new
+highest-priority danger branch above offline — dismissible per-store
+chips → `clearConflictedStore`, copy matched to the `syncService`
+toast, inline SVG (no `lucide-react`). **c4**: `ProjectBundleBar`
+flag-aware (calm "syncs to your account" when on; destructive
+replace-confirm + Export/Import unchanged; not deleted). **c5**
+(`59db6d0b`): `projectState.test.ts` pinned cold-start
+(`baseRev:0`→200 `rev 1`) + designer write-role 200 — the plan said
+"editor" but the route is `requireRole('owner','designer')`, so the
+role string is `designer`. **tsc-gate fix** (`47fccb1d`): Phase-1
+`subscribeVersionedBlobs` lost `desc.store` narrowing across
+`const d = desc` (TS18048) — surfaced only at the full-monorepo
+typecheck; read the narrowed `desc.store` into a local.
+
+**Decisions.** Single module-level boolean (no per-store gating map);
+"shadow" = device-A-only operationally (no suppression constant);
+Phase 3 (typed tables veg/succession) deferred — already pinned
+`typed-table`, excluded from blob loops by construction; bundle
+relabelled, not deleted.
+
+**Test infra (reusable).** Store-bound component tests hit the
+dual-React hazard (zustand/`lucide-react` nested React, externalized
+deps bypass `resolve.alias`). Fixed `apps/web/vitest.config.ts`: pin
+`react`/`react-dom` aliases + `dedupe` + `server.deps.inline:['zustand']`;
+mock `lucide-react` in icon-only tests. Global change → full web
+suite re-run as the regression check.
+
+**Verification.** `pnpm typecheck` exit 0 (after the tsc-gate fix);
+web `pnpm test` **1061/1061** (84 files); shared **201/201**; api
+`projectState` **6/6**. 11 api failures across 5 unrelated files
+(`projects`/`boundary`/`smoke`/`telemetry`/`siteAssessmentsPipeline.integration`)
+are pre-existing/environmental — need live Postgres/PostGIS/network
+(HTTP 500 / ECONNREFUSED) absent in this sandbox; last touched by
+unrelated earlier commits; Phase 5 touched only `projectState.test.ts`
+in api.
+
+**Remaining.** Phase 3 typed tables (veg/succession), independent of
+the blob path. 5.7 manual two-device A→B matrix is an operator action
+— result table in the Phase 5 ADR awaits a real run before enabling
+the flag for testers.
+
+**ADR.** `decisions/2026-05-17-atlas-syncservice-coverage-phase5.md`.
+
+---
+
 ## 2026-05-17 — Opt-in real-PostGIS testcontainers integration suite (`@ogden/api`)
 
 The deferred real-DB follow-up to the lazy-thenable ADR. Added a minimal,
@@ -16471,6 +16634,312 @@ mid-session (`4f7b04be`→`ddb7e0e4`); all acreage-hardening files folded
 into commit `ddb7e0e4` alongside the blob-sync work. Working tree clean; no
 manual push. New ADR `decisions/2026-05-17-atlas-backend-acreage-hardening.md`
 + index pointer + `entities/web-app.md` Current State updated.
+
+## 2026-05-17 — Regen-farm Run-3: fix prior-run UX gaps, then verify
+
+Fix-first session against the approved plan
+(`create-a-regen-farm-happy-micali`): close still-open Run-1/2 documented
+defects before any new discovery run. **Six findings fixed and verified on
+the running build**, each gated on `tsc --noEmit` (EXIT:0, 8 GiB heap) +
+targeted test/logic check + DOM read before being marked done — no
+screenshot success claimed (WebGL-canvas blocker carried from Run 2).
+
+- **#61** Built-Environment Plan module rendered blank → new
+  `StructuresOverviewCard` + `SubsystemsOverviewCard` (read-only grouped
+  inventory + empty states) wired into the two
+  `plan-structures-overview` / `plan-subsystems-overview` switch cases in
+  `PlanModuleSlideUp` (was `default: return null`).
+- **#66** MAINTAIN feature picker blind to Scholar `waterNodes` →
+  `MaintenanceLogCard` now also sources `waterNodes` (swale/catchment/sink
+  → earthwork; storage), extending `sourceLabel` + `sourceOptions`.
+- **#67/#72** Designed guilds/orchards stranded from Act → `HarvestLogCard`
+  unifies `harvestAreas` across crops + `ogden-polyculture` guilds +
+  `…design-elements` orchards (id-only storage); `IrrigationManagerCard`
+  surfaces them read-only. HARVEST picker DOM-confirmed listing `Guild ·` /
+  `Orchard ·` entries.
+- **#75** No Act→Report affordance → `report` added as 4th `LEVELS` entry
+  in `V3LevelNavBridge` (regex + stage union + `handleLevelChange`); Act
+  shows forward REPORT nav, Report page now carries lifecycle chrome.
+- **#71** Move-log species defaulted to `sheep` for a poultry paddock —
+  root cause: drop-/auto-placed paddocks persist `species: []` so the
+  existing `p.species[0]` prefill fell through to the `'sheep'` constant.
+  `LivestockMoveTool` now falls back to the species of the most recent
+  move-in to that paddock (the move log is the real grazing record) before
+  the constant. Logic-simulation verified both branches.
+- **#62** Local-only persistence banner too soft → `ProjectBundleBar`
+  warn copy now names the concrete loss vectors (clear data / switch
+  browser / device failure → permanent deletion) + Export remedy; test
+  assertions updated (vitest 3/3).
+
+**Deferred with rationale:** #58/#59 closed-loop From/To unification —
+data-model change with fiqh-adjacent waste→resource framing; needs design
++ Scholar review, not an inline patch (document-only, as planned). Two
+smaller follow-ups recorded honestly in the Run-3 doc rather than shipped
+silently: Irrigation guild/orchard tracking is read-only; paddock species
+not captured at draw time. #77/#78 (0-ha → dishonest Report) confirmed
+already CLOSED by PR #29 during triage.
+
+New `docs/ux-walkthrough-regen-farm-run3-2026-05-17.md` (run-2 format;
+records FIXED-this-session vs open; Runs 1 & 2 byte-for-byte unmodified).
+Validation used `preview_*` store injection labelled "(simulated)" for
+canvas-origin state. Branch shares the tree with a concurrent sibling
+session; only this session's source/doc files + this log entry were
+staged (sibling's pgtest ADR / index / api entity left untouched).
+
+## 2026-05-17 — Seeded-zones overlay show/hide toggle
+
+Steward request: "Seeded zones need an overlay show/hide button."
+Clarified (questions): control in the **BaseMapCard "Overlays" legend**
+(top-left matrix legend); hide removes the **entire** seeded zone (fill +
+solid line + dashed seed-line + label); default **visible** (no
+regression). Plan approved, executed autonomously.
+
+Implementation — maplibre `setFilter` on the *shared* polygon/label
+layers (not visibility flips; mirrors the `fence-temp-line` /
+`poly-seed-line` filtered-sub-layer precedent), since ring-seed zones
+ride `plan-data-poly-fill`/`poly-line`/`label` with every other polygon:
+
+- `matrixTogglesStore.ts` — `'seededZones'` added to `MatrixToggleKey` +
+  `MatrixTogglesState` (doc comment), initial `true`, `setAll` extended;
+  persist `version` 11→12 + v12 comment; `migrate`
+  `seededZones: prev.seededZones ?? true` — **defaults ON** (unlike the
+  off-by-default overlays) so existing stewards keep prior always-visible
+  behavior; persisted stores self-heal.
+- `BaseMapCard.tsx` — new `DEFAULT_OVERLAYS` row ("Seeded zones (ring-seed
+  provisional drafts)", swatch `#7a9a4a`) by the zone rows; `seededZones`
+  added to `STAGE_HIDDEN.observe` + `STAGE_HIDDEN.act` (stage-scoped, same
+  as `zoneRings`/`sunPath` — layers only mounted by `PlanDataLayers`).
+- `PlanDataLayers.tsx` — reads `useMatrixTogglesStore(s=>s.seededZones)`;
+  `hideSeedFilter = ['!=',['coalesce',['get','seedProvenance'],'manual'],
+  'ring-seed']` (non-zone features coalesce to `'manual'` ⇒ always pass —
+  **only ring-seed ever dropped**); `seedLineFilter` match-everything-ring
+  when on / match-nothing `['==',['literal',0],1]` when off. Applied at
+  first-mount `ensureLayer` (`poly-fill`/`poly-line`/`label` carry the
+  filter when hidden; `poly-seed-line` uses the seed-line filter) **and**
+  re-`setFilter`d in the toggle-time re-apply `try` block (all four,
+  `map.getLayer`-guarded). `seededZonesVisible` added to `apply` deps.
+- `ObserveAnnotationLayers.tsx` — typecheck-only: `'seededZones'` added
+  to the three `Exclude<MatrixToggleKey,…>` unions (`toggleKey?`,
+  `GROUP_TOGGLE`, `subToggles`) so the new key isn't a sector sub-toggle.
+
+No existing layer/behavior deleted (no-deletion-in-revamps convention).
+`tsc --noEmit` (8 GiB heap) exit 0; `lint` (= `tsc` default heap) OOM
+exit 134 — environment memory limit, not a code defect. E2E verified by
+injecting a test `ring-seed` zone into `localStorage` on the Current
+Land canvas tab (where `plan-data-*` mounts — not Vision Layout's
+`design-el-*`): seed render count 2 → 0 (off) → 2 (on), 78 non-seed
+features unaffected, filter expressions confirmed exact; test data
+cleaned up. Live WebGL screenshot unobtainable offline (black frames) —
+disclosed, not faked. New ADR
+`decisions/2026-05-17-atlas-seeded-zones-overlay-toggle.md` + index
+pointer + this entry + `entities/web-app.md` Current State. Pre-existing
+unrelated `DesignElementLayers` crash (ec5ed028 / a4d04c74) observed in
+a different component — not caused here, flagged separately.
+
+## 2026-05-17 — fix(plan/v3): guard DesignElementLayers against geometry-less rows
+
+Pre-existing crash: opening the Plan-stage map canvas threw an uncaught
+"Cannot read properties of undefined (reading 'type')" caught by
+`GlobalErrorBoundary` (repro projects `ec5ed028…`, `a4d04c74…` — latter
+after the "Current Land" tab switch). Root cause: `DesignElementLayers`'
+feature-building loop does `el.geometry.type` with no guard at
+`apps/web/src/v3/plan/canvas/layers/DesignElementLayers.tsx` line ~121.
+`DesignElement.geometry` is typed as required (`designElementsStore.ts`),
+but a synced/draft row arrives with `geometry === undefined`.
+`DesignElementLayers` is the **only** consumer that opts into
+`includeDrafts: true`, so the malformed row surfaces here and nowhere
+else (acreage rollups / audits / exports drop drafts via
+`excludeDrafts`). Fix: a two-line skip-on-malformed guard at loop entry
+(`if (!geom || typeof geom.type !== 'string') continue;`), mirroring the
+existing `turf.centroid` try/catch (same file) and PlanDataLayers'
+`acresOf` geometry-type guard — happy path provably unaffected, only
+geometry-less rows are skipped. Stash `phase5-unrelated-blockers`
+inspected and ruled out (hover-cursor plumbing, already merged; no
+geometry guard). No ADR — defensive null-guard, not an architectural
+decision. Verified: `tsc --noEmit` clean for the edited file (the ~40
+other tsc errors are pre-existing, unrelated `lib/computeScores` /
+`hydrologyMetrics` stale sibling-build). **Not** browser-verified:
+live repro on the two project IDs needs the full atlas stack (web +
+Fastify API + PostGIS) with the seeded DB holding the malformed row —
+recommend a manual smoke before merge.
+
+## 2026-05-17 — Vision Layout UX consolidation
+
+Three steward-reported Vision Layout (also `terrain3d`) Plan-canvas rough
+edges fixed in one pass, no behavior/layer deletion (project "no deletion
+in revamps" convention upheld). (1) `BaseMapCard` gained an optional
+`hiddenOverlays?: ReadonlyArray<MatrixToggleKey>` prop — the mount site
+declares its dead overlay keys, keeping `BaseMapCard` ignorant of canvas
+topology; the row filter is `STAGE_HIDDEN[stage] ∪ hiddenOverlays`.
+`VisionLayoutCanvas` passes `VISION_DEAD_OVERLAYS=['sunPath','zoneRings']`
+(those overlay components aren't mounted there). `topography` deliberately
+kept (its Observe topo annotations still render via the mounted
+`ObserveAnnotationLayers`); `scheduledMoves` kept (intentional cross-stage
+Act surfacing). `zones`/`zoneRings` labels corrected (latter now reads
+Z1–Z5, matching `ZONE_RING_BANDS`). (2) `CustomModelPalette` relocated
+from a floating bottom-right card into the left `PlanTools` rail —
+restyled as a `<section className={css.group}>` reusing
+`PlanTools.module.css`, mounted inside `PlanTools` gated
+`usePlanView() ∈ {vision,terrain3d}`; floating mount + import removed
+from `VisionLayoutCanvas`; store wiring unchanged (pure relocation).
+(3) `InlineFeaturePopover.module.css` `.popover` re-anchored
+`top:56px`→`bottom:12px`, `max-height`→`calc(100% - 80px)`. No
+`matrixTogglesStore`/persist change (toggles still persist, just not
+surfaced where they can't act). `pnpm --filter web typecheck` (8 GiB)
+clean. Preview DOM-asserted (WebGL screenshots blocked offline —
+disclosed, not faked): Custom models section in the rail on Vision /
+absent on Current Land; "Paddock" inline popover measured 12px from the
+map's right + bottom edges. New ADR
+`decisions/2026-05-17-atlas-vision-layout-ux-consolidation.md` + index
+pointer + this entry + `entities/web-app.md` Current State.
+
+---
+
+## 2026-05-17 — Regeneration Monitoring (Sub-project A1)
+
+Apricot Lane replication ask brainstormed → decomposed into 4 sub-projects
+(A ecological monitoring, B biological systems, C transition economics
+[covenant-bounded], D operating loop) on a monitoring-first spine. Only
+**A1** (monitoring spine + dashboard) built this session; B/C/D + A2 habitat
+deferred to own specs. Confirmed: generic capability, **client-side
+aggregation only — no DB migration, no new endpoint** (server pivot +
+JSONB index documented as deferred in `regenerationMonitor/NOTES.md`).
+Delivered: `packages/shared/.../regenerationMetrics.ts` (typed Zod
+`.passthrough()` narrowing of the permissive `regeneration_events.observations`
+JSONB — zero schema change; metric→goal `goalCriterionId` map; migration-015
+sync intact); pure unit-tested `regenerationMonitor/aggregate.ts`
+(year-0 = earliest sample, linear pace line, verdict
+on-track/lagging/no-target/insufficient-data, lower-is-better inverted);
+`TrajectoryChart.tsx` (dependency-free SVG), `SampleEntryForm.tsx` (writes
+`observation` event via existing `regenerationEventStore.createEvent`),
+`RegenerationMonitorCard.tsx`. Registered `plan-regeneration-monitor` in
+`V3PlanPage.tsx`; PlanHub grew 8→9 modules (Module 9). Gate: shared tsc
+clean, web tsc clean on touched files, vitest 11/11. **`vite build`
+blocked by UNRELATED pre-existing breakage** — `PlanDataLayers.tsx` imports
+`flowConnectorStore.js` which a concurrent branch refactor staged for
+deletion (`D`); no A1 file touches it; not fixed (owned elsewhere, branch
+rebased out-of-band). No browser screenshot (disclosed not faked: build
+graph broken by that import; running preview server bound to a different
+worktree). New ADR
+`decisions/2026-05-17-atlas-regeneration-monitoring-a1.md` + index pointer
++ this entry.
+
+## 2026-05-17 — Closed-loop model unification (#58/#59) + calendar jump-to-date
+
+Took up the deferred #58/#59 unification. **Phase 0 (independent):**
+`EventCalendarCard` gained a native `<input type="date">` jump-to-date
+affordance (toolbar, between month label and nav) + `.dateJump` CSS —
+closes the Run-5 "76 Next-month clicks to reach 2032" MINOR rec; pure
+`setAnchor(startOfMonth(...))` reposition, no aggregator/filter coupling.
+
+**Unification:** collapsed the two disjoint material-flow models
+(`flowConnectorStore` canvas LineStrings w/ free-text endpoints +
+`closedLoopStore` `WasteVector` w/ structured endpoints) into one
+`MaterialFlow` model in the surviving `closedLoopStore`
+(`ogden-closed-loop` schemaVersion 1→2). Two-mechanism migration
+(builtEnvironmentStoreV2 precedent): same-key persist `migrate`
+WasteVector→MaterialFlow (origin:'list'); foreign-key `onRehydrateStorage`
+fold of dead `ogden-flow-connectors` (origin:'canvas', geometry kept,
+fromName/toName→sourceLabel/sinkLabel, dead key deleted, temporal
+cleared). `flowConnectorStore.ts` deleted; `syncManifest` line 339
+schemaVersion 2 + slice rename, flow-connectors descriptor removed.
+New shared `useFlowEndpointOptions` hook broadens the endpoint picker to
+livestock paddocks / water earthworks+storage / guilds (the #59 ask);
+`FlowConnectorTool` + `buildFlowConnectorEditSchema` gained structured
+From/To pickers so canvas-drawn flows now earn closed-loop credit.
+Repointed 8 consumers (WasteVectorTool, ClosedLoopGraphCard — now also
+renders paddock/water/guild nodes, PlanDataLayers — geometry-less list
+flows skipped, PlanSelectionFloater, SoilBuildingPlanCard, PlanHub,
+WasteRoutingChecklistCard, inlineEditSchemas). Side benefit: closes the
+pre-existing `PlanDataLayers → flowConnectorStore` build breakage logged
+under the A1 entry above.
+
+Gate: `tsc --noEmit` EXIT 0; full `apps/web` vitest **1096/1096** green
+incl. 19 new (closedLoopStore migration ×4 — same-key, foreign-key fold,
+idempotent, temporal-clear; useFlowEndpointOptions ×2; siteAnnotations
+migrate ×13 unchanged) + syncManifest coverage guard green. Browser
+verification **not run (disclosed, not faked):** the only running 5200
+preview server is bound to a sibling session's worktree
+(`elated-einstein-16895e`), not this working tree, and the
+non-destructive mandate forbids disturbing it / wiping shared `ogden-*`.
+Migration correctness + endpoint breadth + jump anchor math are
+deterministic and unit-locked. No commit/push (not requested).
+
+---
+
+## 2026-05-17 — Run-6: live-UI verification of unified `MaterialFlow` (discovery-only)
+
+Closed the single open leg of the unification session — the deferred
+browser verification — on a now-available non-sibling preview server
+(`web-a1`, port 5240, serverId `2a89ece2-…`, `cwd` = main atlas tree
+carrying shipped build `759cfa57`). Discovery-only, **no code changes**,
+non-destructive throwaway pid `run6-fcef85be-058f-474e-8cf8-e5787fc8de39`
+appended to `ogden-projects` (12 pre-existing `ogden-*` keys untouched,
+`preservedPriorIds:true`).
+
+Three live probes, all **WORKS** (DOM-text / store-state reads, no
+screenshots — WebGL canvas undrivable):
+
+- **(B) Foreign-key fold.** Seeded `ogden-flow-connectors` `{state:{connectors:[fc-r6 …]}}`
+  → `await useClosedLoopStore.persist.rehydrate()` → `materialFlows`
+  gains `fc-r6` `origin:'canvas'`, geometry preserved,
+  `sourceLabel:'chip pile'`/`sinkLabel:'bed 3'`, `materialKind:'mulch'`;
+  `localStorage['ogden-flow-connectors']` → **null** (dead key deleted);
+  no collateral loss. Mapping matches `flowConnectorToFlow`
+  (`closedLoopStore.ts:137-156`).
+- **(C) Canvas-origin scoring.** Injected 2 `fertilityInfra` + canvas
+  `MaterialFlow` `mf-r6` (structured `sourceId`/`sinkId`, `origin:'canvas'`).
+  SOIL → "Closed-loop graph": SVG `[aria-label="Closed-loop nutrient graph"]`,
+  `<line>` count = 1 (mf-r6 drawn), footer `2 vector(s)`, **"Orphan
+  fertility units = 0"** — proving #59 (canvas flows now earn closed-loop
+  credit).
+- **(D) Calendar jump-to-date.** `input[aria-label="Jump to date"]` set to
+  `2032-09-01` + dispatched change → month label "May 2026" → **"September
+  2032" in one action** (replaces the 76-click nav).
+
+No defects. Two doc/method nuances (not product issues): same-key v1→v2
+`migrate` is **not live-verifiable non-destructively** (shipped store is
+`version:2`; `ogden-closed-loop` is one shared blob — seeding a v1 blob
+would destroy sibling sessions' `materialFlows`) → stays covered by green
+unit test `closedLoopStore.test.ts` test #1; and the day-cell aria is
+ordinal (`"September 1st, 2032 — 0 entries"`), not the predicted date-fns
+`PPP`. Walkthrough: `docs/ux-walkthrough-regen-farm-run6-2026-05-17.md`
+(runs 1–5 byte-for-byte unmodified). No commit/push (not requested).
+
+## 2026-05-18 — Biodiversity Outcome Monitoring (Sub-project A3)
+
+Re-skinned A1's longitudinal trajectory spine for a biodiversity metric
+family — the ecological-response complement to A2's habitat allocation.
+Added a `MetricDomain` discriminator + `domain` field to
+`regenerationMetrics.ts`, 4 biodiversity keys (native cover, invasive
+pressure [lower-is-better], species count, predator index [trend-only]),
+and `metricKeysForDomain()`. Parameterized `buildTrajectories(…, domain?)`
+(all-keys back-compat default) and `SampleEntryForm` with a `domain` prop;
+the existing `RegenerationMonitorCard` now passes `'regeneration'`
+explicitly (regression fix for the all-keys coupling). New
+`biodiversity-outcomes` goal-tree sub-goal (`bio-native-cover` 60%/yr7,
+`bio-invasive-pressure` 5%/yr5, `bio-species-richness` 45/yr9). Cloned
+`BiodiversityMonitorCard`; wired the 15th PlanModule
+`biodiversity-monitor` through all 6 exhaustive touchpoints.
+
+Covenant: strictly ecological outcome tracking — no valuation / credit /
+offset / payment framing (that economics is the covenant-bounded
+Sub-project C). No DB migration, no new endpoint.
+
+Gate: shared + web tsc clean (only a pre-existing unrelated
+`useFlowEndpointOptions.test.ts` Paddock drift remains); vitest 16/16
+(new `biodiversity.aggregate.test.ts` proves domain isolation both ways;
+existing `aggregate.test.ts` registry-size constant 6→10); `vite build`
+succeeds. Live DOM-verified both directions (bio form = 4 bio metrics
+only; regen form = 6 regen metrics only); screenshot tool unresponsive
+(2×30s MapLibre/WebGL hang, disclosed not faked) — sample-trajectory
+rendering needs the backend the frontend-only preview doesn't serve, so
+it's covered by the unit tests. Committed `bfb689fe` (14 A3 files only;
+branch divergence checked 0/0; unrelated `docs/ux-walkthrough-*` excluded).
+ADR: `decisions/2026-05-18-atlas-biodiversity-outcome-monitoring-a3.md`
++ index pointer. The A-series A track (A1+A2+A3) is now complete.
+
+---
 
 ## 2026-05-17 — fix(api): custom 404/error handlers registered before route plugins
 

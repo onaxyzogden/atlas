@@ -22,6 +22,7 @@ const PhasingMatrixCard      = lazy(() => import('../../features/plan/PhasingMat
 const SeasonalTaskCard       = lazy(() => import('../../features/plan/SeasonalTaskCard.js'));
 const LaborBudgetSummaryCard = lazy(() => import('../../features/plan/LaborBudgetSummaryCard.js'));
 const HolmgrenChecklistCard  = lazy(() => import('../../features/plan/HolmgrenChecklistCard.js'));
+const RegenerationMonitorCard = lazy(() => import('../../features/plan/RegenerationMonitorCard.js'));
 
 const FALLBACK_PROJECT: LocalProject = {
   id: 'mtc',
@@ -137,6 +138,8 @@ function renderPlanCard(
       return <LaborBudgetSummaryCard project={project} onSwitchToMap={onSwitchToMap} />;
     case 'plan-holmgren-checklist':
       return <HolmgrenChecklistCard project={project} onSwitchToMap={onSwitchToMap} />;
+    case 'plan-regeneration-monitor':
+      return <RegenerationMonitorCard project={project} onSwitchToMap={onSwitchToMap} />;
     default:
       return null;
   }

@@ -27,7 +27,14 @@ import {
 } from '../goalCompass/scheduleTasksToCalendar.js';
 import { allocateZones } from './zoneAllocator.js';
 import { stampGeometry } from './stampGeometry.js';
-import { toPolygonFeature, intersectPolys } from './geo.js';
+import {
+  turf,
+  toPolygonFeature,
+  intersectPolys,
+  differencePolys,
+  unionPolys,
+  type AnyPolyFeature,
+} from './geo.js';
 import { parcelPolygon } from '../zoneGenerators/parcelGeometry.js';
 import { seedRng } from './rng.js';
 import {
@@ -129,6 +136,15 @@ export function runAutoDesign(input: AutoDesignInput): AutoDesignResult {
   const drafts: DraftShape[] = [];
   const emptyGeometryInterventionIds: string[] = [];
 
+  // Footprint already consumed by an earlier `tile-strip` (paddock/bed)
+  // intervention. stripSubdivide tiles the WHOLE input polygon regardless
+  // of allocated acreage, so two co-selected paddock interventions landing
+  // on the same livestock zone would otherwise stack identical grids. We
+  // subtract this ledger before subdividing the next one — first-wins by
+  // sequencing order, leftover cascades. Lossless union so disjoint
+  // earlier claims are never forgotten.
+  let claimed: AnyPolyFeature | null = null;
+
   // Distinguish regeneration zones visually on the map (§4.3.1): one
   // fill-polygon draft per forced zone.
   for (const fz of forcing.forcedZones) {
@@ -166,12 +182,18 @@ export function runAutoDesign(input: AutoDesignInput): AutoDesignResult {
       // subdivision so stripSubdivide's equal-area cells can't be
       // re-trimmed afterward. Other templates keep their zone input.
       let stampInput: GeoJSON.Polygon | GeoJSON.MultiPolygon = zone.geometry;
-      if (intervention.geometryTemplate === 'tile-strip' && parcel) {
-        const region = intersectPolys(
-          toPolygonFeature(zone.geometry),
-          toPolygonFeature(parcel.geometry),
-        );
+      if (intervention.geometryTemplate === 'tile-strip') {
+        let region: AnyPolyFeature | null = parcel
+          ? intersectPolys(
+              toPolygonFeature(zone.geometry),
+              toPolygonFeature(parcel.geometry),
+            )
+          : (turf.feature(zone.geometry) as AnyPolyFeature);
         if (!region) continue; // suitable zone lies fully outside the parcel
+        // First-wins cascade: carve out footprint an earlier paddock/bed
+        // intervention already claimed before subdividing this one.
+        region = differencePolys(region, claimed);
+        if (!region || turf.area(region) <= 1) continue; // nothing left
         stampInput = region.geometry;
       }
       const geoms = stampGeometry(
@@ -180,6 +202,16 @@ export function runAutoDesign(input: AutoDesignInput): AutoDesignResult {
         alloc.areaM2,
         terrain,
       );
+      if (intervention.geometryTemplate === 'tile-strip') {
+        for (const g of geoms) {
+          if (g.type === 'Polygon') {
+            claimed = unionPolys(
+              claimed,
+              turf.feature(g) as AnyPolyFeature,
+            );
+          }
+        }
+      }
       geoms.forEach((geometry, idx) => {
         drafts.push({
           id: `gd-${generationId}-${intervention.id}-${alloc.zoneId}-${idx}-${rng.int(0, 1_000_000)}`,

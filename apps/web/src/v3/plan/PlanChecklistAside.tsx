@@ -150,6 +150,30 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Document the rationale for each score as a project record.',
     ],
   },
+  'regeneration-monitor': {
+    why: 'Regeneration is only real if it is measured over time. The Apricot Lane Farms model rests on a peer-reviewed MDPI 9-year longitudinal soil study (Year 0 / 5 / 9 sampling of microbial biomass, soil organic matter, and water-stable aggregates) — without dated, per-zone sampling a steward cannot tell whether the land is actually improving or only appears to be (Holmgren P4: Apply self-regulation and accept feedback).',
+    how: [
+      'Log dated observation samples per metric and per management zone — soil organic matter %, living cover %, infiltration %, microbial biomass, aggregate stability, bulk density.',
+      'Read each metric\'s trajectory against the goal-tree target line and deadline-year marker.',
+      'Act on lagging verdicts: where the curve is below trajectory, revisit the upstream water, soil, or plant module before the deadline year.',
+    ],
+  },
+  'habitat-allocation': {
+    why: 'Apricot Lane Farms deliberately set aside ~10% of total acreage as undisturbed wildlife habitat and biological corridors — treating native predators (owl boxes, hawk perches) and the wildlife pond as primary biological pest-control tools, not philanthropy. A steward must be able to see whether enough land is actually allocated to habitat before the design is locked, because habitat is a year-zero allocation decision, not a post-production add-on (Holmgren P10: Use and value diversity).',
+    how: [
+      'Draw conservation, buffer, and water-retention zones on the map — their area is what counts toward the habitat set-aside.',
+      'Read the allocation gauge: allocated % vs the goal-tree target line (regen-habitat-pct, default 10%), with the shortfall in hectares when under.',
+      'Record the discrete habitat features you commit to — wildlife pond, owl boxes, hawk perches, hedgerow length — so the inventory matches the drawn land.',
+    ],
+  },
+  'biodiversity-monitor': {
+    why: 'A habitat set-aside is only working if the ecology actually recovers — native vegetative cover returning, invasive-species pressure falling, and the bird & pollinator community arriving. That recovery must be measured over time, not assumed from the allocation decision (Holmgren P4: Apply self-regulation and accept feedback; P10: Use and value diversity). This module tracks ecological outcomes only — no valuation, credit, or offset framing.',
+    how: [
+      'Log dated biodiversity samples per management zone — native vegetative cover %, invasive-species pressure %, distinct bird & pollinator species count, beneficial-predator activity index.',
+      'Read each metric\'s trajectory against the goal-tree target line and deadline-year marker, on the Year 0 / 5 / 9 monitoring cadence.',
+      'Act on lagging native-cover or invasive-pressure curves: where recovery is below trajectory, revisit the habitat allocation and corridor design before the deadline year.',
+    ],
+  },
 };
 
 interface Props {

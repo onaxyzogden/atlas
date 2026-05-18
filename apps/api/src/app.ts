@@ -40,6 +40,8 @@ import { initSoilGridsService } from './services/soilgrids/SoilGridsRasterServic
 import designFeatureRoutes from './routes/design-features/index.js';
 import machineryItemRoutes from './routes/machinery-items/index.js';
 import projectStateRoutes from './routes/project-state/index.js';
+import vegetationRoutes from './routes/vegetation/index.js';
+import successionRoutes from './routes/succession/index.js';
 import fileRoutes from './routes/files/index.js';
 import exportRoutes from './routes/exports/index.js';
 import portalRoutes from './routes/portal/index.js';
@@ -204,6 +206,8 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(designFeatureRoutes, { prefix: '/api/v1/design-features' });
   await app.register(machineryItemRoutes, { prefix: '/api/v1/machinery-items' });
   await app.register(projectStateRoutes,  { prefix: '/api/v1/project-state' });
+  await app.register(vegetationRoutes,    { prefix: '/api/v1/vegetation' });
+  await app.register(successionRoutes,    { prefix: '/api/v1/succession' });
   await app.register(fileRoutes,          { prefix: '/api/v1/projects' });
   await app.register(exportRoutes,        { prefix: '/api/v1/projects' });
   await app.register(portalRoutes,        { prefix: '/api/v1/projects' });

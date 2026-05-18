@@ -49,6 +49,11 @@ mockDb.json = (value: unknown) => ({ __json: value });
 /** Transaction helper — runs the callback with the same tagged-template mock as the tx handle. */
 mockDb.begin = async (cb: (tx: typeof mockDb) => unknown) => cb(mockDb);
 
+/** db.unsafe(query, params) — direct row-set shift. Always awaited directly
+ *  (never interpolated as a fragment) so eager resolution is safe here. */
+mockDb.unsafe = (_query: string, _params?: unknown[]) =>
+  Promise.resolve(queue.shift() ?? []);
+
 /** Push row(s) onto the mock DB queue. */
 export const enqueue = (...rows: unknown[]) => { queue.push(rows); };
 

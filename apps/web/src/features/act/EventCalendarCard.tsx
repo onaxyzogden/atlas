@@ -149,6 +149,18 @@ export default function EventCalendarCard({ project }: Props) {
       <section className={shared.section}>
         <div className={css.toolbar}>
           <span className={css.monthLabel}>{headerLabel}</span>
+          <input
+            type="date"
+            className={css.dateJump}
+            aria-label="Jump to date"
+            value={dateKey(anchor)}
+            onChange={(e) => {
+              if (!e.target.value) return;
+              const picked = parseISO(e.target.value);
+              setAnchor(startOfMonth(picked));
+              setSelectedDay(startOfDay(picked));
+            }}
+          />
           <div className={css.navButtons}>
             <button
               type="button"

@@ -1,0 +1,131 @@
+/* Structures / Subsystems overview cards — read-only inventory views for the
+   Plan "Built Environment" module. Visual language matches
+   MachineryInventoryCard. */
+
+.card {
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+  letter-spacing: 0.01em;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.55);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.intro {
+  margin: 0 0 14px 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(180, 165, 140, 0.7);
+}
+
+.group {
+  margin-bottom: 16px;
+}
+
+.group:last-child {
+  margin-bottom: 0;
+}
+
+.groupHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 8px 0;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.groupCount {
+  font-variant-numeric: tabular-nums;
+  color: rgba(180, 165, 140, 0.45);
+}
+
+.empty {
+  padding: 18px;
+  text-align: center;
+  font-size: 12px;
+  color: rgba(180, 165, 140, 0.55);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.groupEmpty {
+  padding: 8px 10px;
+  font-size: 11.5px;
+  color: rgba(180, 165, 140, 0.4);
+  font-style: italic;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.item strong {
+  font-size: 13px;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.kindChip {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(106, 106, 106, 0.25);
+  color: rgba(220, 220, 220, 0.85);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.meta {
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+.notes {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: rgba(180, 165, 140, 0.5);
+  font-style: italic;
+}
