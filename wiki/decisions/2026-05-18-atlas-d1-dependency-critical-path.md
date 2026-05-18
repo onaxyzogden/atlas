@@ -1,7 +1,7 @@
 # 2026-05-18 — D1: dependency / critical-path engine on the WorkItem spine
 
-**Status:** Implemented, verified, uncommitted (working tree on
-`feat/atlas-permaculture`)
+**Status:** Implemented, verified, committed `6211caff` on
+`feat/atlas-permaculture` (combined D0–D1 spine)
 **Context source:** Approved Session Execution Plan for Sub-project D1,
 executing the ratified D0–D5 roadmap
 ([[2026-05-18-atlas-land-os-positioning-and-d-roadmap]]). Builds directly

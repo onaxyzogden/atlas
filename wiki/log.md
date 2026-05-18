@@ -95,8 +95,10 @@ console output is a pre-existing, unrelated `ObserveModuleBar`
 `<button>`-in-`<button>` React DOM-nesting warning (stack roots at
 `src/v3/observe/components/ObserveModuleBar.tsx`). MapLibre/WebGL
 screenshot not attempted (known hang) — DOM/console + the test matrix
-are the verification of record. Uncommitted (awaiting explicit
-go-ahead). New ADR
+are the verification of record. Committed `6211caff` (36 files —
+combined D0+D0.1+D1 spine; D1-only had no working intermediate; the
+mixed tree was staged by explicit path, unrelated WIP excluded). New
+ADR
 `decisions/2026-05-18-atlas-d1-dependency-critical-path.md` + index
 pointer + `entities/web-app.md` Current State. Continues D0.1/D0; D2
 is its own brainstorm→spec→plan cycle.

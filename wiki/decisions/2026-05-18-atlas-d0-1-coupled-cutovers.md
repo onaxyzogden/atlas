@@ -3,7 +3,7 @@
 - **Date:** 2026-05-18
 - **Status:** accepted
 - **Sub-project:** D0.1 (continuation of [[2026-05-18-atlas-d0-workitem-spine]])
-- **Branch:** `feat/atlas-permaculture` (working tree, uncommitted)
+- **Branch:** `feat/atlas-permaculture` — committed `6211caff` (combined D0–D1 spine)
 
 ## Context
 
