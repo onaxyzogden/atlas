@@ -24,11 +24,12 @@ import {
   type LivestockMoveDirection,
 } from '../../store/livestockMoveLogStore.js';
 import {
-  useScheduledLivestockMoveStore,
   nextUnfulfilledPlan,
   structureDestPlans,
   type ScheduledLivestockMove,
 } from '../../store/scheduledLivestockMoveStore.js';
+import { useWorkItemStore } from '../../store/workItemStore.js';
+import type { WorkItem } from '@ogden/shared';
 import { useAllStructures } from '../../store/builtEnvironmentSelectors.js';
 import { STRUCTURE_TEMPLATES } from '../structures/footprints.js';
 import { startScheduledLivestockMove } from '../../v3/act/ActStructurePopover.actions.js';
@@ -221,6 +222,64 @@ function projectMoves(paddocks: Paddock[]): UpcomingMove[] {
   return moves;
 }
 
+/**
+ * Reverse of the D0 scheduled-livestock-move migration mapper — projects a
+ * spine WorkItem back into the legacy `ScheduledLivestockMove` shape the
+ * helpers + render block expect. `fulfilledByEventId` is consumed only for
+ * truthiness (`!p.fulfilledByEventId`), so `status:'done'` round-trips it.
+ */
+function workItemToPlan(w: WorkItem): ScheduledLivestockMove {
+  const t = w.target;
+  const isStructure = t?.kind === 'structure';
+  return {
+    id: w.id,
+    projectId: w.projectId,
+    ...(isStructure
+      ? { toStructureId: t?.toId, fromStructureId: t?.fromId }
+      : { toPaddockId: t?.toId, fromPaddockId: t?.fromId }),
+    plannedDate: w.scheduledEnd ?? '',
+    direction: (w.direction ?? 'move_in') as LivestockMoveDirection,
+    species: (w.species ?? 'sheep') as LivestockSpecies,
+    headCount: w.headCount ?? null,
+    who: w.who,
+    notes: w.notes,
+    fulfilledByEventId: w.status === 'done' ? w.id : undefined,
+    createdAt: w.createdAt,
+  };
+}
+
+/**
+ * Mirrors `mapScheduledLivestockMoves` (D0 migration mapper) exactly so a
+ * card-authored plan is byte-identical to a migrated one.
+ */
+function planToWorkItem(m: ScheduledLivestockMove): WorkItem {
+  const toId = m.toPaddockId ?? m.toStructureId;
+  const fromId = m.fromPaddockId ?? m.fromStructureId;
+  const kind = m.toStructureId || m.fromStructureId ? 'structure' : 'paddock';
+  return {
+    id: m.id,
+    projectId: m.projectId,
+    source: 'scheduled-livestock-move',
+    overridden: true,
+    title: `Move ${m.species}${m.headCount != null ? ` (${m.headCount})` : ''}`,
+    phaseId: null,
+    status: m.fulfilledByEventId ? 'done' : 'todo',
+    doneAt: null,
+    dependsOn: [],
+    dependsOnAuto: [],
+    scheduledStart: null,
+    scheduledEnd: m.plannedDate,
+    target: { kind, fromId, toId },
+    species: m.species,
+    direction: m.direction,
+    headCount: m.headCount,
+    who: m.who,
+    notes: m.notes,
+    createdAt: m.createdAt,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 export default function RotationScheduleCard({ projectId }: RotationScheduleCardProps) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const paddocks = useMemo(
@@ -230,11 +289,29 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
 
   const allEvents = useLivestockMoveLogStore((s) => s.events);
   const addEvent = useLivestockMoveLogStore((s) => s.addEvent);
-  const allPlans = useScheduledLivestockMoveStore((s) => s.plans);
-  const addPlan = useScheduledLivestockMoveStore((s) => s.addPlan);
-  const updatePlan = useScheduledLivestockMoveStore((s) => s.updatePlan);
-  const removePlan = useScheduledLivestockMoveStore((s) => s.removePlan);
-  const markFulfilled = useScheduledLivestockMoveStore((s) => s.markFulfilled);
+
+  // Spine is authoritative (D0.1). Project scheduled-livestock-move WorkItems
+  // back into the legacy ScheduledLivestockMove shape the helpers + render
+  // block expect; redirect writes to workItemStore. The actual-move event log
+  // is NOT migrated — it stays in livestockMoveLogStore.
+  const allWorkItems = useWorkItemStore((s) => s.items);
+  const addItem = useWorkItemStore((s) => s.addItem);
+  const updateItem = useWorkItemStore((s) => s.updateItem);
+  const deleteItem = useWorkItemStore((s) => s.deleteItem);
+  const allPlans = useMemo(
+    () =>
+      allWorkItems
+        .filter((w) => w.source === 'scheduled-livestock-move')
+        .map(workItemToPlan),
+    [allWorkItems],
+  );
+  const addPlan = (p: ScheduledLivestockMove) => addItem(planToWorkItem(p));
+  const removePlan = (id: string) => deleteItem(id);
+  const updatePlan = (id: string, patch: Partial<ScheduledLivestockMove>) => {
+    const current = allPlans.find((p) => p.id === id);
+    if (!current) return;
+    updateItem(id, planToWorkItem({ ...current, ...patch }));
+  };
 
   // Inline quick-log form state — single open form at a time. The `mode`
   // discriminant determines which store the form writes to on save.
@@ -348,10 +425,15 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
         return diff <= FULFIL_WINDOW_DAYS;
       });
       if (match) {
-        markFulfilled(plan.id, match.id);
+        // Spine fulfilment: WorkItem → done, and stamp the actual event with
+        // the WorkItem it proves complete (D0 proof-of-completion back-link).
+        updateItem(plan.id, { status: 'done' });
+        useLivestockMoveLogStore
+          .getState()
+          .updateEvent(match.id, { workItemId: plan.id });
       }
     }
-  }, [allEvents, allPlans, projectId, markFulfilled]);
+  }, [allEvents, allPlans, projectId, updateItem]);
 
   const eventsByPaddockId = useMemo(() => {
     const map = new Map<string, LivestockMoveEvent[]>();

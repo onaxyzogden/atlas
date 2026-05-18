@@ -9,7 +9,8 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../store/projectStore.js';
 import { useSiteData, getLayerSummary } from '../../../store/siteDataStore.js';
-import { useNurseryStore } from '../../../store/nurseryStore.js';
+import { useNurseryStore, type PropagationBatch, type PropagationMethod, type GrowthStage } from '../../../store/nurseryStore.js';
+import { useWorkItemStore } from '../../../store/workItemStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
 import {
   computeGerminationCalendar,
@@ -45,14 +46,39 @@ const STAGE_LABELS: Record<string, string> = {
 
 export default function NurseryLedgerDashboard({ project, onSwitchToMap }: NurseryLedgerDashboardProps) {
   const siteData = useSiteData(project.id);
-  const allBatches = useNurseryStore((s) => s.batches);
+  // Spine is authoritative (D0.1). Project nursery-batch WorkItems back into
+  // the legacy PropagationBatch shape the analysis fns + render block expect,
+  // so display is byte-unchanged. StockTransfer is NOT migrated — the
+  // executed-transfer log stays in nurseryStore.
+  const allItems = useWorkItemStore((s) => s.items);
   const allTransfers = useNurseryStore((s) => s.transfers);
   const allZones = useZoneStore((s) => s.zones);
 
   const climate = useMemo(() => siteData ? getLayerSummary<ClimateSummary>(siteData, 'climate') : null, [siteData]);
   const microclimate = useMemo(() => siteData ? getLayerSummary<MicroclimateSummary>(siteData, 'microclimate') : null, [siteData]);
 
-  const batches = useMemo(() => allBatches.filter((b) => b.projectId === project.id), [allBatches, project.id]);
+  const batches = useMemo<PropagationBatch[]>(
+    () =>
+      allItems
+        .filter((w) => w.projectId === project.id && w.source === 'nursery-batch')
+        .map((w) => ({
+          id: w.id,
+          projectId: w.projectId,
+          species: w.species ?? '',
+          method: (w.propagationMethod ?? 'seed') as PropagationMethod,
+          quantity: w.quantity ?? 0,
+          stage: (w.growthStage ?? 'seed') as GrowthStage,
+          sowDate: w.scheduledStart ?? '',
+          expectedReadyDate: w.scheduledEnd ?? '',
+          destinationZoneId: w.linkedFeatureId ?? null,
+          seedSaving: w.seedSaving ?? false,
+          notes: w.notes ?? '',
+          createdAt: w.createdAt,
+          updatedAt: w.updatedAt,
+          generatedFromPlantingCalendar: w.generatedFromPlantingCalendar,
+        })),
+    [allItems, project.id],
+  );
   const transfers = useMemo(() => allTransfers.filter((t) => t.projectId === project.id), [allTransfers, project.id]);
   const zones = useMemo(() => allZones.filter((z) => z.projectId === project.id), [allZones, project.id]);
 

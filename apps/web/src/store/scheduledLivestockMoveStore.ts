@@ -24,7 +24,10 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { LivestockMoveDirection } from './livestockMoveLogStore.js';
+import {
+  useLivestockMoveLogStore,
+  type LivestockMoveDirection,
+} from './livestockMoveLogStore.js';
 import type { LivestockSpecies } from './livestockStore.js';
 
 export interface ScheduledLivestockMove {
@@ -144,12 +147,20 @@ export const useScheduledLivestockMoveStore = create<ScheduledLivestockMoveState
       updatePlan: (id, patch) =>
         set((s) => ({ plans: s.plans.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
       removePlan: (id) => set((s) => ({ plans: s.plans.filter((p) => p.id !== id) })),
-      markFulfilled: (id, eventId) =>
+      markFulfilled: (id, eventId) => {
         set((s) => ({
           plans: s.plans.map((p) =>
             p.id === id ? { ...p, fulfilledByEventId: eventId } : p,
           ),
-        })),
+        }));
+        // D0 spine: stamp the actual move with the WorkItem it completes.
+        // The scheduled-move id is carried verbatim as the WorkItem id by
+        // the workItemStore migration (source 'scheduled-livestock-move'),
+        // so this is the proof-of-completion back-link.
+        useLivestockMoveLogStore.getState().updateEvent(eventId, {
+          workItemId: id,
+        });
+      },
     }),
     {
       name: 'ogden-scheduled-livestock-moves',

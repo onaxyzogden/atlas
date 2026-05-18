@@ -8,12 +8,12 @@
  */
 
 import { useMemo, useState } from 'react';
+import type { WorkItem } from '@ogden/shared';
 import type { LocalProject } from '../../store/projectStore.js';
-import {
-  useMaintenanceStore,
-  type MaintenanceTask,
-  type MaintenanceCadence,
-  type MaintenanceSeason,
+import { useWorkItemStore } from '../../store/workItemStore.js';
+import type {
+  MaintenanceCadence,
+  MaintenanceSeason,
 } from '../../store/maintenanceStore.js';
 import { useZoneStore } from '../../store/zoneStore.js';
 import { useCropStore } from '../../store/cropStore.js';
@@ -42,21 +42,36 @@ interface Draft {
 const EMPTY_DRAFT: Draft = { title: '', cadence: 'weekly', season: '', linkedFeatureId: '', notes: '' };
 
 function newId() { return `mt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; }
+const nowIso = () => new Date().toISOString();
 
 export default function MaintenanceScheduleCard({ project }: Props) {
-  const allTasks = useMaintenanceStore((s) => s.tasks);
-  const addTask = useMaintenanceStore((s) => s.addTask);
-  const removeTask = useMaintenanceStore((s) => s.removeTask);
-  const markDone = useMaintenanceStore((s) => s.markDone);
+  const allItems = useWorkItemStore((s) => s.items);
+  const addItem = useWorkItemStore((s) => s.addItem);
+  const deleteItem = useWorkItemStore((s) => s.deleteItem);
+  const setStatus = useWorkItemStore((s) => s.setStatus);
 
   const allZones = useZoneStore((s) => s.zones);
   const allCrops = useCropStore((s) => s.cropAreas);
   const allStructures = useAllStructures();
   const allPaths = usePathStore((s) => s.paths);
 
+  // Spine is authoritative (D0.1). Project maintenance WorkItems back into
+  // the legacy row shape the render block expects, so display is unchanged.
   const tasks = useMemo(
-    () => allTasks.filter((t) => t.projectId === project.id),
-    [allTasks, project.id],
+    () =>
+      allItems
+        .filter(
+          (w) => w.projectId === project.id && w.source === 'maintenance',
+        )
+        .map((w) => ({
+          id: w.id,
+          title: w.title,
+          cadence: (w.recurrenceFrequency ?? 'weekly') as MaintenanceCadence,
+          season: w.season as MaintenanceSeason | undefined,
+          linkedFeatureId: w.linkedFeatureId,
+          lastDoneAt: w.doneAt ?? undefined,
+        })),
+    [allItems, project.id],
   );
   const features = useMemo(() => {
     const fs: Array<{ id: string; label: string }> = [];
@@ -73,16 +88,27 @@ export default function MaintenanceScheduleCard({ project }: Props) {
 
   function commit() {
     if (!draft.title.trim()) return;
-    const entry: MaintenanceTask = {
+    // Mirror the maintenance migration mapper shape exactly.
+    const entry: WorkItem = {
       id: newId(),
       projectId: project.id,
+      source: 'maintenance',
+      overridden: true,
       title: draft.title.trim(),
-      cadence: draft.cadence,
+      phaseId: null,
+      status: 'todo',
+      doneAt: null,
+      dependsOn: [],
+      dependsOnAuto: [],
+      isRecurring: true,
+      recurrenceFrequency: draft.cadence,
       season: draft.season || undefined,
       linkedFeatureId: draft.linkedFeatureId || undefined,
       notes: draft.notes.trim() || undefined,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
     };
-    addTask(entry);
+    addItem(entry);
     setDraft(EMPTY_DRAFT);
   }
 
@@ -154,8 +180,8 @@ export default function MaintenanceScheduleCard({ project }: Props) {
                     </div>
                   </span>
                   <span style={{ display: 'flex', gap: 6 }}>
-                    <button type="button" className={styles.btn} onClick={() => markDone(t.id)}>Mark done</button>
-                    <button type="button" className={styles.removeBtn} onClick={() => removeTask(t.id)}>Remove</button>
+                    <button type="button" className={styles.btn} onClick={() => setStatus(t.id, 'done')}>Mark done</button>
+                    <button type="button" className={styles.removeBtn} onClick={() => deleteItem(t.id)}>Remove</button>
                   </span>
                 </li>
               ))}

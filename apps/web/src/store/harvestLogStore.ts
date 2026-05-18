@@ -42,6 +42,13 @@ export interface HarvestEntry {
   /** Optional grade for sortable, market-bound yields. */
   quality?: HarvestQuality;
   notes?: string;
+  /**
+   * D0 spine link — the `WorkItem` this harvest proves complete (execution
+   * history / proof-of-completion). Additive optional → no version bump
+   * (legacy entries load with it absent). D4 surfaces the proof; D0 only
+   * stores the edge.
+   */
+  workItemId?: string;
 }
 
 interface HarvestLogState {

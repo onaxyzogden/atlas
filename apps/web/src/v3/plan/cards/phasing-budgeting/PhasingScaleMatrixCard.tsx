@@ -26,7 +26,8 @@
 
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
-import { usePhaseStore, type DesignLayer, type PhaseTask } from '../../../../store/phaseStore.js';
+import { usePhaseStore, type DesignLayer } from '../../../../store/phaseStore.js';
+import { useWorkItemStore } from '../../../../store/workItemStore.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -94,17 +95,43 @@ function emptyCell(): Cell {
   return { count: 0, hrs: 0, usd: 0 };
 }
 
-function classifyTask(t: PhaseTask): DesignLayer | 'uncategorised' {
+interface PhaseTaskProj {
+  designLayer?: DesignLayer;
+  laborHrs: number;
+  costUSD: number;
+}
+
+function classifyTask(t: PhaseTaskProj): DesignLayer | 'uncategorised' {
   return t.designLayer ?? 'uncategorised';
 }
 
 export default function PhasingScaleMatrixCard({ project }: Props) {
   const allPhases = usePhaseStore((s) => s.phases);
+  const allItems = useWorkItemStore((s) => s.items);
 
   const phases = useMemo(
     () => allPhases.filter((p) => p.projectId === project.id).slice().sort((a, b) => a.order - b.order),
     [allPhases, project.id],
   );
+
+  // Spine is authoritative (D0.1). phaseStore tasks now live on the WorkItem
+  // spine (discriminator: `phaseId != null`); project them back per-phase so
+  // the matrix/violation/coverage math is byte-unchanged. BuildPhase stays
+  // the phase container — only its `tasks[]` moved.
+  const tasksByPhase = useMemo(() => {
+    const map = new Map<string, PhaseTaskProj[]>();
+    for (const w of allItems) {
+      if (w.projectId !== project.id || w.phaseId == null) continue;
+      const list = map.get(w.phaseId) ?? [];
+      list.push({
+        designLayer: w.designLayer,
+        laborHrs: w.laborHrs ?? 0,
+        costUSD: w.costUSD ?? 0,
+      });
+      map.set(w.phaseId, list);
+    }
+    return map;
+  }, [allItems, project.id]);
 
   // Build the (layer × phase) cell matrix.
   const matrix = useMemo(() => {
@@ -115,7 +142,7 @@ export default function PhasingScaleMatrixCard({ project }: Props) {
       }
     }
     for (const ph of phases) {
-      for (const t of ph.tasks ?? []) {
+      for (const t of tasksByPhase.get(ph.id) ?? []) {
         const key = `${classifyTask(t)}::${ph.id}`;
         const cell = m.get(key);
         if (!cell) continue;
@@ -125,7 +152,7 @@ export default function PhasingScaleMatrixCard({ project }: Props) {
       }
     }
     return m;
-  }, [phases]);
+  }, [phases, tasksByPhase]);
 
   // Sequencing-violation detection. Two severities:
   //   · `same-phase` (orange) — later layer populated but its prereqs are
@@ -206,24 +233,24 @@ export default function PhasingScaleMatrixCard({ project }: Props) {
   const populatedLayers = useMemo(() => {
     const populated = new Set<string>();
     for (const ph of phases) {
-      for (const t of ph.tasks ?? []) {
+      for (const t of tasksByPhase.get(ph.id) ?? []) {
         populated.add(classifyTask(t));
       }
     }
     return populated;
-  }, [phases]);
+  }, [phases, tasksByPhase]);
 
   const totals = useMemo(() => {
     let count = 0, hrs = 0, usd = 0;
     for (const ph of phases) {
-      for (const t of ph.tasks ?? []) {
+      for (const t of tasksByPhase.get(ph.id) ?? []) {
         count += 1;
         hrs += t.laborHrs;
         usd += t.costUSD;
       }
     }
     return { count, hrs, usd };
-  }, [phases]);
+  }, [phases, tasksByPhase]);
 
   return (
     <div className={styles.page}>

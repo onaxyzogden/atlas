@@ -75,6 +75,12 @@ export interface LivestockMoveEvent {
    *  pair before persisting).
    */
   linkedEventId?: string;
+  /**
+   * D0 spine link — the scheduled-livestock-move `WorkItem` this actual
+   * move fulfils (set by `scheduledLivestockMoveStore.markFulfilled`).
+   * Additive optional → no version bump.
+   */
+  workItemId?: string;
 }
 
 /** Destination paddock id, with legacy v2 fallback. */

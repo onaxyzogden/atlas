@@ -19,6 +19,7 @@ import { resolveZoneVegetation } from '../../engine/vegetationResolver.js';
 import { usePhaseStore } from '../../../../store/phaseStore.js';
 import { useGeneratorDraftStore } from '../../../../store/generatorDraftStore.js';
 import { useRegenerationPlanStore } from '../../../../store/regenerationPlanStore.js';
+import { pushGoalCompassToSpine } from '../../engine/goalCompass/goalCompassSpineSync.js';
 import { runAutoDesign } from '../../engine/autoDesign/runAutoDesign.js';
 import { commitDrafts } from '../../engine/autoDesign/commitDrafts.js';
 import type { AllocatorZone } from '../../engine/autoDesign/types.js';
@@ -101,6 +102,11 @@ export default function GenerateSiteDesignBar({ project }: Props) {
 
     const counts = commitDrafts(project.id, result);
     replaceGoalCompassRows(
+      project.id,
+      result.generatedPhases,
+      result.scheduledTasks,
+    );
+    pushGoalCompassToSpine(
       project.id,
       result.generatedPhases,
       result.scheduledTasks,

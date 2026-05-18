@@ -12,6 +12,7 @@ import type { LocalProject } from '../../../../store/projectStore.js';
 import { useProjectStore } from '../../../../store/projectStore.js';
 import { usePhaseStore } from '../../../../store/phaseStore.js';
 import { scheduleTasksToCalendar } from '../../engine/goalCompass/scheduleTasksToCalendar.js';
+import { pushGoalCompassToSpine } from '../../engine/goalCompass/goalCompassSpineSync.js';
 import type { PlanModule } from '../../types.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
@@ -46,6 +47,7 @@ export default function DevelopPlanTab({ project, onSwitchModule }: Props) {
       projectStartDate,
     );
     replaceGoalCompassRows(project.id, generatedPhases, scheduled);
+    pushGoalCompassToSpine(project.id, generatedPhases, scheduled);
   };
 
   const totals = useMemo(() => {
