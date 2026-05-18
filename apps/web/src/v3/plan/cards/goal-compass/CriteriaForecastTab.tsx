@@ -14,6 +14,8 @@ import { useLivestockStore } from '../../../../store/livestockStore.js';
 import { useUtilityStore } from '../../../../store/utilityStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
+import { useRotationPlanStore } from '../../../../store/rotationPlanStore.js';
+import { computeRestCompliancePct } from '../../../../features/livestock/rotationSequenceMath.js';
 import { welfareSummaryForProject } from '../../../../features/livestock/welfarePass.js';
 import { runSequencingEngine } from '../../engine/goalCompass/sequencingEngine.js';
 import {
@@ -36,6 +38,9 @@ export default function CriteriaForecastTab({ project }: Props) {
   const allUtilities = useUtilityStore((st) => st.utilities);
   const allWaterNodes = useWaterSystemsStore((st) => st.waterNodes);
   const allStructures = useAllStructures();
+  const rotationPlan = useRotationPlanStore(
+    (s) => s.byProject[project.id] ?? null,
+  );
 
   const currentValues = useMemo<Record<string, number>>(() => {
     const paddocks = allPaddocks.filter((p) => p.projectId === project.id);
@@ -51,8 +56,19 @@ export default function CriteriaForecastTab({ project }: Props) {
     return {
       'livestock-paddocks-active-count': paddockCount,
       'livestock-welfare-pass-pct': passPct,
+      'livestock-rotation-rest-compliance-pct': computeRestCompliancePct(
+        paddocks,
+        rotationPlan,
+      ),
     };
-  }, [allPaddocks, allUtilities, allWaterNodes, allStructures, project.id]);
+  }, [
+    allPaddocks,
+    allUtilities,
+    allWaterNodes,
+    allStructures,
+    rotationPlan,
+    project.id,
+  ]);
 
   const forecast = useMemo(() => {
     if (!goalTree || !siteProfile) return null;

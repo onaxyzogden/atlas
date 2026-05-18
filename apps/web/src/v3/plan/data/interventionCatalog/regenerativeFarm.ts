@@ -237,6 +237,7 @@ export const REGENERATIVE_FARM_INTERVENTIONS: Intervention[] = [
     criterionContributions: [
       { criterionId: 'regen-soil-om', contributionPerAcre: 0.05, appliesAtYearOffset: 4 },
       { criterionId: 'livestock-paddocks-active-count', contributionFixed: 6, appliesAtYearOffset: 2 },
+      { criterionId: 'livestock-rotation-rest-compliance-pct', contributionFixed: 70, appliesAtYearOffset: 2 },
       { criterionId: 'livestock-revenue-usd', contributionPerAcre: 160, appliesAtYearOffset: 3 },
       { criterionId: 'regen-revenue-per-acre', contributionPerAcre: 160, appliesAtYearOffset: 3 },
     ],
