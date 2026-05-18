@@ -87,6 +87,10 @@ import { useTemplateStore } from '../store/templateStore.js';
 import { useUtilityRunStore } from '../store/utilityRunStore.js';
 import { useUtilityStore } from '../store/utilityStore.js';
 import { useWaterSystemsStore } from '../store/waterSystemsStore.js';
+import { useCompostCycleStore } from '../store/compostCycleStore.js';
+import { useRotationPlanStore } from '../store/rotationPlanStore.js';
+import { useSuccessionPathStore } from '../store/successionPathStore.js';
+import { useHabitatFeatureStore } from '../store/habitatFeatureStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -318,6 +322,9 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-atlas-plan-how-checks', usePlanHowChecksStore, 'byProject', 1, byKey('byProject', null, {})),
   blob('ogden-relationships', useRelationshipsStore, 'byProject', 2, byKey('edgesByProject', null, [])),
   blob('ogden-atlas-observe-how-checks', useObserveHowChecksStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-compost-cycle', useCompostCycleStore, 'byProject', 1, byKey('byProject', null, [])),
+  blob('ogden-rotation-plan', useRotationPlanStore, 'byProject', 1, byKey('byProject', null, null)),
+  blob('ogden-succession-path', useSuccessionPathStore, 'byProject', 1, byKey('byProject', null, null)),
 
   // --- versioned-blob: projectId-tagged (flat arrays carrying projectId) ---
   blob('ogden-regen-plans', useRegenerationPlanStore, 'projectId-tagged', 2, tagged('plans'), true),
@@ -345,6 +352,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-agribusiness', useAgribusinessStore, 'projectId-tagged', 2, agribusinessSelect, true),
   blob('ogden-monitoring-transects', useMonitoringTransectStore, 'projectId-tagged', 1, tagged('transects'), true),
   blob('ogden-ecological-notes', useEcologicalNoteStore, 'projectId-tagged', 1, tagged('notes'), true),
+  blob('ogden-habitat-features', useHabitatFeatureStore, 'projectId-tagged', 1, tagged('features'), true),
   blob('ogden-act-community-events', useCommunityEventStore, 'projectId-tagged', 1, tagged('events')),
   blob('ogden-comments', useCommentStore, 'projectId-tagged', 2, tagged('comments')),
   blob('ogden-act-maintenance', useMaintenanceStore, 'projectId-tagged', 1, tagged('tasks')),
