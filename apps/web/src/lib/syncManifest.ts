@@ -87,6 +87,7 @@ import { useTemplateStore } from '../store/templateStore.js';
 import { useUtilityRunStore } from '../store/utilityRunStore.js';
 import { useUtilityStore } from '../store/utilityStore.js';
 import { useWaterSystemsStore } from '../store/waterSystemsStore.js';
+import { useHabitatFeatureStore } from '../store/habitatFeatureStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -362,6 +363,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-utility-runs', useUtilityRunStore, 'projectId-tagged', 1, tagged('runs'), true),
   blob('ogden-utilities', useUtilityStore, 'projectId-tagged', 1, tagged('utilities'), true),
   blob('ogden-water-systems', useWaterSystemsStore, 'projectId-tagged', 1, tagged('earthworks', 'storageInfra', 'watercourses', 'waterNodes'), true),
+  blob('ogden-habitat-features', useHabitatFeatureStore, 'projectId-tagged', 1, tagged('features'), true),
 ];
 
 /**
