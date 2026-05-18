@@ -17143,3 +17143,27 @@ correction appended to the error-handler ADR pointer that had repeated the
 debunked "needs a test DB" claim) + `entities/api.md` Current State rewritten
 (now "550/550, mock-DB by design"). Real-DB/testcontainers harness explicitly
 deferred.
+
+## 2026-05-18 — fix(web): ObserveModuleBar invalid `<button>`-in-`<button>` nesting
+
+Pre-existing React `validateDOMNesting` warning on the Observe stage —
+`ObserveModuleBar.tsx` rendered each module tile as an outer
+`<button className={css.tile}>` wrapping inner per-task progress
+`<button className={css.subseg}>` elements. Not introduced by the recent
+module-bar `topBar` work; internal to this component. Fix: outer element
+converted `<button>` → `<div role="button" tabIndex={0}>` with an
+`onKeyDown` (Enter/Space → `handleCardClick`, `preventDefault` so Space
+doesn't scroll); `aria-pressed`, `onClick`, and
+`css.tile`/`css.tileActive` preserved (zero visual change); removed the
+now-redundant `type="button"`. Inner sub-seg `<button>`s are now legally
+nested (button-in-div) and keep their `stopPropagation` + task-URL
+navigate behaviour. Verification: ran main-repo `tsc --noEmit` over the
+worktree's `apps/web` (worktree has no `node_modules`, so the
+memory-bounded `npm run typecheck` script's `../../node_modules` path
+can't resolve here) — **zero** errors for `ObserveModuleBar`; remaining
+run errors are worktree-env artifacts (`@ogden/shared` subpaths
+unresolvable without installed deps), unrelated. In-browser preview
+confirmation deferred — this isolated worktree cannot install deps to
+run a dev server; flagged honestly rather than assumed. New ADR
+`decisions/2026-05-18-atlas-observe-modulebar-button-nesting.md` + index
+pointer.
