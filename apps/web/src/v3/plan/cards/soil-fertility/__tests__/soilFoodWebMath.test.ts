@@ -64,6 +64,22 @@ describe('checkGuild — mycorrhizal coherence', () => {
   });
 });
 
+describe('checkGuild — anchor unmatched', () => {
+  it('skips mycorrhiza checks but still audits when the anchor has no profile', () => {
+    const f = checkGuild(
+      guild(
+        [
+          { speciesId: 'definitely_not_a_real_species', layer: 'canopy' },
+          { speciesId: 'apple', layer: 'sub_canopy' },
+        ],
+        'definitely_not_a_real_species',
+      ),
+    );
+    expect(f.some((x) => x.kind === 'mycorrhiza')).toBe(false);
+    expect(f.some((x) => x.kind === 'unmatched')).toBe(true);
+  });
+});
+
 describe('checkGuild — unmatched info (never a false all-clear)', () => {
   it('emits an info finding when a member has no profile', () => {
     const f = checkGuild(
@@ -109,5 +125,19 @@ describe('checkGuild / checkGuilds — edges', () => {
     );
     const g2: Guild = { ...g1, id: 'g2' };
     expect(checkGuilds([g1, g2]).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('tags findings with the correct guildId per guild', () => {
+    const g1 = guild(
+      [
+        { speciesId: 'apple', layer: 'canopy' },
+        { speciesId: 'white_oak', layer: 'sub_canopy' },
+      ],
+      'apple',
+    );
+    const g2: Guild = { ...g1, id: 'g2' };
+    const ids = new Set(checkGuilds([g1, g2]).map((f) => f.guildId));
+    expect(ids.has('g1')).toBe(true);
+    expect(ids.has('g2')).toBe(true);
   });
 });
