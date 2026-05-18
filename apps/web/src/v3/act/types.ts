@@ -80,6 +80,7 @@ export const ACT_MODULE_FULL_LABEL: Record<ActModule, string> = {
 export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: string }>> = {
   tracker: [
     { label: 'Plan tracker', sectionId: 'act-plan-tracker' },
+    { label: 'Resourcing',   sectionId: 'act-resourcing' },
   ],
   build: [
     { label: 'Build Gantt',       sectionId: 'act-build-gantt' },

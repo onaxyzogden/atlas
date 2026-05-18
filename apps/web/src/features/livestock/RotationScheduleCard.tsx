@@ -267,6 +267,8 @@ function planToWorkItem(m: ScheduledLivestockMove): WorkItem {
     doneAt: null,
     dependsOn: [],
     dependsOnAuto: [],
+    materialsAuto: [],
+    equipmentRequiredAuto: [],
     scheduledStart: null,
     scheduledEnd: m.plannedDate,
     target: { kind, fromId, toId },

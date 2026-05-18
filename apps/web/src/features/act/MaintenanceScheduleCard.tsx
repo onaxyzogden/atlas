@@ -100,6 +100,8 @@ export default function MaintenanceScheduleCard({ project }: Props) {
       doneAt: null,
       dependsOn: [],
       dependsOnAuto: [],
+      materialsAuto: [],
+      equipmentRequiredAuto: [],
       isRecurring: true,
       recurrenceFrequency: draft.cadence,
       season: draft.season || undefined,

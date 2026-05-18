@@ -16,7 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { WorkItem } from '@ogden/shared';
+import type { WorkItem, MaterialLine } from '@ogden/shared';
 import { runWorkItemMigration } from './workItemStore.migration';
 
 interface WorkItemState {
@@ -55,6 +55,21 @@ interface WorkItemState {
   replaceGoalCompassDependencies: (
     projectId: string,
     edgesByItemId: Map<string, string[]>,
+  ) => void;
+  /**
+   * Goal Compass — replace the *seeded* resourcing (`equipmentRequiredAuto`
+   * / `materialsAuto`) for a project. Mirrors the
+   * `replaceGoalCompassDependencies` preservation filter 1:1: writes only on
+   * this project's generated, un-overridden goal-compass rows. Manual
+   * `equipmentRequired` / `materials`, overridden rows, and every other
+   * source are never touched. Idempotent (same input → same state). D2.
+   */
+  replaceGoalCompassResources: (
+    projectId: string,
+    resourcesByItemId: Map<
+      string,
+      { equipment: string[]; materials: MaterialLine[] }
+    >,
   ) => void;
   /**
    * Annual planting calendar — replace nursery-batch work items carrying a
@@ -182,6 +197,49 @@ export const useWorkItemStore = create<WorkItemState>()(
               return it;
             }
             return { ...it, dependsOnAuto: next, updatedAt: now() };
+          }),
+        })),
+
+      replaceGoalCompassResources: (projectId, resourcesByItemId) =>
+        set((s) => ({
+          items: s.items.map((it) => {
+            // Same gate as replaceGoalCompassDependencies: only this
+            // project's generated, un-overridden goal-compass rows are
+            // engine-owned.
+            if (
+              it.projectId !== projectId ||
+              it.source !== 'goal-compass' ||
+              it.overridden
+            ) {
+              return it;
+            }
+            const seeded = resourcesByItemId.get(it.id);
+            const nextEquip = seeded?.equipment ?? [];
+            const nextMats = seeded?.materials ?? [];
+            const prevEquip = it.equipmentRequiredAuto ?? [];
+            const prevMats = it.materialsAuto ?? [];
+            const equipSame =
+              prevEquip.length === nextEquip.length &&
+              prevEquip.every((e, i) => e === nextEquip[i]);
+            const matsSame =
+              prevMats.length === nextMats.length &&
+              prevMats.every((m, i) => {
+                const n = nextMats[i]!;
+                return (
+                  m.label === n.label &&
+                  m.unit === n.unit &&
+                  m.quantityPerAcre === n.quantityPerAcre &&
+                  m.notes === n.notes
+                );
+              });
+            // Idempotent: unchanged → same reference (no updatedAt churn).
+            if (equipSame && matsSame) return it;
+            return {
+              ...it,
+              equipmentRequiredAuto: nextEquip,
+              materialsAuto: nextMats,
+              updatedAt: now(),
+            };
           }),
         })),
 

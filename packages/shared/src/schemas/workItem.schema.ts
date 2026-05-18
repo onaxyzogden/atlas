@@ -104,12 +104,13 @@ const ProjectRoleEnum = z.enum(['owner', 'designer', 'reviewer', 'viewer']);
  * legacy shape is these four fields, and the top-level WorkItem
  * `.passthrough()` already protects against unforeseen fields).
  */
-const MaterialLineSchema = z.object({
+export const MaterialLineSchema = z.object({
   label: z.string(),
   quantityPerAcre: z.number().optional(),
   unit: z.string(),
   notes: z.string().optional(),
 });
+export type MaterialLine = z.infer<typeof MaterialLineSchema>;
 
 /**
  * Spatial linkage for moves/transfers. Carries scheduled-livestock-move
@@ -192,11 +193,26 @@ export const WorkItemSchema = z
     laborHrs: z.number().optional(),
     costUSD: z.number().optional(),
     materials: z.array(MaterialLineSchema).optional(),
+    /**
+     * Goal-Compass-seeded materials (provenance-separated, D2 Approach B —
+     * mirrors `dependsOnAuto`). Regenerated with goal-compass rows; manual
+     * `materials` is never touched by seeding. Effective BOM = `materials`
+     * (manual wins on label+unit) merged with `materialsAuto`. `.default([])`
+     * + the top-level `.passthrough()` ⇒ existing persisted rows hydrate
+     * clean — no DB migration (A-series additive covenant).
+     */
+    materialsAuto: z.array(MaterialLineSchema).default([]),
     requiredPersonnel: z
       .object({ skillLevel: z.string().optional(), minCount: z.number() })
       .passthrough()
       .optional(),
     equipmentRequired: z.array(z.string()).optional(),
+    /**
+     * Goal-Compass-seeded equipment ids (provenance-separated, D2 Approach
+     * B). Effective equipment = `equipmentRequired ∪ equipmentRequiredAuto`.
+     * `.default([])` + `.passthrough()` ⇒ no DB migration.
+     */
+    equipmentRequiredAuto: z.array(z.string()).default([]),
 
     // --- domain payload (lossless carry) ---
     priority: WorkItemPriority.optional(),

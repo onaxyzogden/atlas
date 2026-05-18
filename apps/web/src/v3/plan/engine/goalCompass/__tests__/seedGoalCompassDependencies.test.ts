@@ -21,6 +21,8 @@ function gc(id: string, intervention?: string): WorkItem {
     status: 'todo',
     dependsOn: [],
     dependsOnAuto: [],
+    materialsAuto: [],
+    equipmentRequiredAuto: [],
     generatedFromInterventionId: intervention,
   } as WorkItem;
 }

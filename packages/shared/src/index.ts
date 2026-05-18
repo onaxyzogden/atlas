@@ -50,6 +50,7 @@ export * from './schemas/section29.schema.js';
 export * from './schemas/elevation.schema.js';
 export * from './schemas/actTelemetry.schema.js';
 export * from './schemas/workItem.schema.js';
+export * from './schemas/crewMember.schema.js';
 
 // Built Environment (unified Observe + Plan entity — see ADR 2026-05-10)
 export * from './builtEnvironment.js';
@@ -61,6 +62,7 @@ export * from './demand/structureDemand.js';
 export * from './lib/caseTransform.js';
 export * from './lib/geojsonGeometry.js';
 export * from './lib/workItemGraph.js';
+export * from './lib/resourcingConflicts.js';
 export * from './astronomy/sunPath.js';
 export * from './astronomy/solarExposure.js';
 export * from './climate/comfortCalendar.js';

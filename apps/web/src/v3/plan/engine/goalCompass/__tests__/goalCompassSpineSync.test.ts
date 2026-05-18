@@ -84,6 +84,8 @@ describe('pushGoalCompassToSpine — override-preservation hard gate', () => {
       status: 'todo',
       dependsOn: [],
       dependsOnAuto: [],
+      materialsAuto: [],
+      equipmentRequiredAuto: [],
       createdAt: 'c',
       updatedAt: 'u',
     });
@@ -139,6 +141,8 @@ describe('pushPlantingCalendarToSpine — wholesale-regen contract', () => {
       status: 'todo',
       dependsOn: [],
       dependsOnAuto: [],
+      materialsAuto: [],
+      equipmentRequiredAuto: [],
       createdAt: 'c',
       updatedAt: 'u',
     };

@@ -433,6 +433,38 @@ All use `persist` middleware with localStorage. Key stores:
   `BudgetActualsCard` untouched). See
   [[2026-05-18-atlas-d1-dependency-critical-path]].
 
+  **D2 — operational resourcing (2026-05-18):** crew/equipment/materials
+  surfaced on the spine. Net-new `@ogden/shared`
+  `crewMember.schema.ts` (skill enum + soft `weeklyHoursCap`; optional
+  non-coupled `networkContactId`) + projectId-tagged `crewMemberStore`
+  (`ogden-crew-members`, no DB migration, `syncManifest`-registered) —
+  distinct from `ProjectMemberRecord`/`NetworkContact`, fully
+  steward-authored (no Goal-Compass contract). Spine schema gains
+  additive `materialsAuto`/`equipmentRequiredAuto` `.default([])`
+  (no migration; `MaterialLine`/`MaterialLineSchema` exported) —
+  Approach B exactly like D1's `dependsOnAuto`.
+  `workItemStore.replaceGoalCompassResources` mirrors
+  `replaceGoalCompassDependencies` 1:1 (only `goal-compass &&
+  !overridden`; manual/overridden/other-project untouched; idempotent
+  same-reference). Pure `seedGoalCompassResources` (in
+  `goalCompassSpineSync`, after `replaceGoalCompassDependencies`) merges
+  intervention `materials` + `maintenanceSchedule.materialsPerOccurrence`
+  (label+unit deduped) + declared equipment → effective `*Auto`. New
+  pure engine `packages/shared/src/lib/resourcingConflicts.ts` (no
+  React/store): `effectiveEquipment`, `rollUpBom`,
+  `equipmentConflicts` (per-equipment pairwise span overlap, strict
+  `<`, missing-date skip), `assigneeWeeklyLoad` (ISO-week buckets vs
+  soft cap), `analyzeResourcing`→`{equipment,workload,byItemId}` —
+  hours only, derived only, never mutates `WorkItem.status`. New
+  `features/act/ResourcingCard.tsx` + manifest entry `act-resourcing`
+  under the `tracker` module (`v3/act/types.ts` + lazy import +
+  `renderActCard` in `ActModuleSlideUp.tsx`): crew CRUD, assignee
+  workload, equipment booking, BOM rollup, render-only conflict badges
+  — **no cost column**, subtitle points budget to D3. Strictly
+  operational (no D3 cost / `BudgetActualsCard` untouched; no D4/D5;
+  no covenant-excluded framing; no spine-status mutation; no DB
+  migration). See [[2026-05-18-atlas-d2-resourcing]].
+
 ## Performance (Sprint BJ — 2026-04-20)
 - `lib/debounce.ts` — 15-line debounce helper (no lodash)
 - `lib/perfProfiler.tsx` — dev-only `<SectionProfiler>` around React's `<Profiler>`; logs renders over 16 ms; tree-shaken in prod via `import.meta.env.DEV`
