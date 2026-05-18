@@ -53,4 +53,30 @@ export function intersectPolys(
   return best;
 }
 
+export type AnyPolyFeature = Feature<Polygon | MultiPolygon>;
+
+/** v7 difference takes a FeatureCollection [minuend, subtrahend].
+ *  Returns a − b WITHOUT collapsing a MultiPolygon result (the
+ *  remainder may legitimately be several disjoint pieces and the
+ *  caller — stripSubdivide — already reduces to its working ring).
+ *  `b` null → minuend unchanged; null result → `a` fully consumed. */
+export function differencePolys(
+  a: AnyPolyFeature,
+  b: AnyPolyFeature | null,
+): AnyPolyFeature | null {
+  if (!b) return a;
+  return turf.difference(turf.featureCollection([a, b]));
+}
+
+/** a ∪ b, lossless: a MultiPolygon result is preserved so the
+ *  accumulating claimed-footprint ledger never forgets a disjoint
+ *  earlier claim. `a` null → b. */
+export function unionPolys(
+  a: AnyPolyFeature | null,
+  b: AnyPolyFeature,
+): AnyPolyFeature {
+  if (!a) return b;
+  return turf.union(turf.featureCollection([a, b])) ?? a;
+}
+
 export { turf };

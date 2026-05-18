@@ -198,4 +198,104 @@ describe('runAutoDesign', () => {
     });
     expect(res.drafts.filter(isTileStrip)).toHaveLength(0);
   });
+
+  // Largest pairwise overlap ratio across all tile-strip paddock drafts:
+  // area(A ∩ B) / min(area A, area B). Adjacent strips share only edges
+  // (zero-area intersection) so a correct generation is ≈ 0.
+  function maxPaddockOverlapRatio(
+    drafts: { geometry: GeoJSON.Geometry; template: string }[],
+  ): number {
+    const polys = drafts
+      .filter(isTileStrip)
+      .map((d) => turf.feature(d.geometry as GeoJSON.Polygon));
+    let worst = 0;
+    for (let i = 0; i < polys.length; i++) {
+      for (let j = i + 1; j < polys.length; j++) {
+        const inter = turf.intersect(
+          turf.featureCollection([polys[i]!, polys[j]!]),
+        );
+        if (!inter) continue;
+        const ia = turf.area(inter);
+        if (ia <= 0) continue;
+        const denom = Math.min(
+          turf.area(polys[i]!),
+          turf.area(polys[j]!),
+        );
+        if (denom > 0) worst = Math.max(worst, ia / denom);
+      }
+    }
+    return worst;
+  }
+
+  it('co-selected tile-strip interventions on one zone do not overlap', () => {
+    // Single productive zone that scores for BOTH default tile-strip
+    // interventions (silvopasture-alley + integrated-stock-cropland):
+    // ring 3 ∈ both ring ranges, livestock + food affine. With no other
+    // productive zone to absorb them, both subdivide this one polygon.
+    // Before the claimed-footprint ledger that stacked two full grids.
+    const base = buildInput();
+    const zones = [
+      base.zones.find((z) => z.id === 'z-home')!,
+      base.zones.find((z) => z.id === 'z-water')!,
+      makeZone('z-mixed', {
+        category: 'livestock',
+        suitableForLivestock: true,
+        successionStage: 'mid',
+        groundCover: 'thriving-grasses',
+        permacultureZone: 3,
+        lng: 0.05,
+        lat: 0,
+        sideDeg: 0.05,
+      }),
+    ];
+    const res = runAutoDesign({ ...base, zones });
+    const paddocks = res.drafts.filter(isTileStrip);
+    expect(paddocks.length).toBeGreaterThan(0);
+    // Precondition: the sequencer selected >=2 tile-strip interventions
+    // and z-mixed is the only zone any of them can score (z-water/z-home
+    // are vetoed for tile-strip affinity) — so absent the ledger they
+    // would both subdivide z-mixed (the stacked-grid bug). Post-fix the
+    // first claims it and the rest cascade onto the (empty) leftover.
+    const tileStripSelected = res.sequencing.selected.filter(
+      (s) => s.intervention.geometryTemplate === 'tile-strip',
+    );
+    expect(tileStripSelected.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(paddocks.map((d) => d.zoneId))).toEqual(
+      new Set(['z-mixed']),
+    );
+    expect(maxPaddockOverlapRatio(res.drafts)).toBeLessThan(0.02);
+  });
+
+  it('paddocks from overlapping painted livestock zones do not overlap', () => {
+    // Two steward-painted livestock zones that physically overlap. Each
+    // subdivides independently; the ledger must prevent the second zone's
+    // strips from re-tiling the shared region.
+    const base = buildInput();
+    const zones = [
+      base.zones.find((z) => z.id === 'z-home')!,
+      makeZone('z-pasture-a', {
+        category: 'livestock',
+        suitableForLivestock: true,
+        successionStage: 'mid',
+        groundCover: 'thriving-grasses',
+        permacultureZone: 3,
+        lng: 0.05,
+        lat: 0,
+        sideDeg: 0.04,
+      }),
+      makeZone('z-pasture-b', {
+        category: 'livestock',
+        suitableForLivestock: true,
+        successionStage: 'mid',
+        groundCover: 'thriving-grasses',
+        permacultureZone: 3,
+        lng: 0.07, // overlaps z-pasture-a on lng [0.07, 0.09]
+        lat: 0,
+        sideDeg: 0.04,
+      }),
+    ];
+    const res = runAutoDesign({ ...base, zones });
+    expect(res.drafts.filter(isTileStrip).length).toBeGreaterThan(0);
+    expect(maxPaddockOverlapRatio(res.drafts)).toBeLessThan(0.02);
+  });
 });
