@@ -24,7 +24,7 @@ import type { PlanModule } from './types.js';
 import { MODULE_CARDS, PLAN_MODULE_FULL_LABEL } from './types.js';
 import PlanViewBadge from './PlanViewBadge.js';
 
-// All 16 plan cards lazy-loaded.
+// All 18 plan cards lazy-loaded.
 const GoalTreeTab             = lazy(() => import('./cards/goal-compass/GoalTreeTab.js'));
 const SiteProfileTab          = lazy(() => import('./cards/goal-compass/SiteProfileTab.js'));
 const GeneratedPlanTab        = lazy(() => import('./cards/goal-compass/GeneratedPlanTab.js'));
@@ -55,6 +55,8 @@ const AnimalTractorZonesCard      = lazy(() => import('../../features/livestock/
 const LivestockWelfarePhasingCard = lazy(() => import('../../features/livestock/LivestockWelfarePhasingCard.js'));
 const BiosecurityBufferCard       = lazy(() => import('../../features/livestock/BiosecurityBufferCard.js'));
 const RegenerationPlanCard        = lazy(() => import('../../features/livestock/RegenerationPlanCard.js'));
+const RotationSequenceCard        = lazy(() => import('../../features/livestock/RotationSequenceCard.js'));
+const RotationPlanCard            = lazy(() => import('../../features/livestock/RotationPlanCard.js'));
 const SlaughterThroughputCard = lazy(() => import('../../features/agribusiness/SlaughterThroughputCard.js'));
 const ColdChainCoverageCard   = lazy(() => import('../../features/agribusiness/ColdChainCoverageCard.js'));
 const MarketDistributionCard  = lazy(() => import('../../features/agribusiness/MarketDistributionCard.js'));
@@ -65,6 +67,8 @@ const PlantEstablishmentSequenceCard = lazy(() => import('./cards/plant-systems/
 const EdgeConnectivityCard          = lazy(() => import('./cards/plant-systems/EdgeConnectivityCard.js'));
 const TemporalCoherenceCard         = lazy(() => import('./cards/plant-systems/TemporalCoherenceCard.js'));
 const AnnualPlantingCalendarCard    = lazy(() => import('./cards/plant-systems/AnnualPlantingCalendarCard.js'));
+const GuildIntegrityCard            = lazy(() => import('./cards/plant-systems/GuildIntegrityCard.js'));
+const SuccessionPathCard            = lazy(() => import('./cards/plant-systems/SuccessionPathCard.js'));
 const SoilFertilityDesignerCard = lazy(() => import('../../features/plan/SoilFertilityDesignerCard.js'));
 const WasteVectorTool         = lazy(() => import('../../features/plan/WasteVectorTool.js'));
 const ClosedLoopGraphCard     = lazy(() => import('./cards/soil-fertility/ClosedLoopGraphCard.js'));
@@ -72,6 +76,8 @@ const SoilBaselineCard        = lazy(() => import('./cards/soil-fertility/SoilBa
 const SoilResourcesCard       = lazy(() => import('./cards/soil-fertility/SoilResourcesCard.js'));
 const SoilBuildingPlanCard    = lazy(() => import('./cards/soil-fertility/SoilBuildingPlanCard.js'));
 const FertilityColocationCard = lazy(() => import('./cards/soil-fertility/FertilityColocationCard.js'));
+const SoilFoodWebCard         = lazy(() => import('./cards/soil-fertility/SoilFoodWebCard.js'));
+const CompostCycleCard        = lazy(() => import('./cards/soil-fertility/CompostCycleCard.js'));
 const TransectVerticalEditorCard = lazy(() => import('../../features/plan/TransectVerticalEditorCard.js'));
 const SectionAnnotationsCard  = lazy(() => import('./cards/cross-section/SectionAnnotationsCard.js'));
 const PhasingMatrixCard       = lazy(() => import('../../features/plan/PhasingMatrixCard.js'));
@@ -129,6 +135,8 @@ function renderPlanCard(
     case 'plan-livestock-welfare-phasing':  return <LivestockWelfarePhasingCard projectId={project.id} />;
     case 'plan-livestock-buffers':          return <BiosecurityBufferCard projectId={project.id} />;
     case 'plan-livestock-regeneration':     return <RegenerationPlanCard projectId={project.id} />;
+    case 'plan-livestock-rotation-sequence': return <RotationSequenceCard projectId={project.id} />;
+    case 'plan-livestock-rotation-plan':    return <RotationPlanCard projectId={project.id} />;
     case 'plan-product-slaughter-throughput': return <SlaughterThroughputCard projectId={project.id} />;
     case 'plan-product-coldchain-coverage':   return <ColdChainCoverageCard projectId={project.id} />;
     case 'plan-product-market-distribution':  return <MarketDistributionCard projectId={project.id} />;
@@ -139,6 +147,8 @@ function renderPlanCard(
     case 'plan-edge-connectivity':   return <EdgeConnectivityCard project={project} onSwitchToMap={noop} />;
     case 'plan-temporal-coherence':  return <TemporalCoherenceCard project={project} onSwitchToMap={noop} />;
     case 'plan-planting-schedule':   return <AnnualPlantingCalendarCard project={project} onSwitchToMap={noop} />;
+    case 'plan-guild-integrity':     return <GuildIntegrityCard project={project} onSwitchToMap={noop} />;
+    case 'plan-succession-path':     return <SuccessionPathCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-fertility':      return <SoilFertilityDesignerCard project={project} onSwitchToMap={noop} />;
     case 'plan-waste-vectors':       return <WasteVectorTool project={project} onSwitchToMap={noop} />;
     case 'plan-closed-loop-graph':   return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;
@@ -146,6 +156,8 @@ function renderPlanCard(
     case 'plan-soil-resources':      return <SoilResourcesCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-building-plan':  return <SoilBuildingPlanCard project={project} onSwitchToMap={noop} />;
     case 'plan-fertility-colocation': return <FertilityColocationCard project={project} onSwitchToMap={noop} />;
+    case 'plan-soil-foodweb':        return <SoilFoodWebCard project={project} onSwitchToMap={noop} />;
+    case 'plan-compost-cycle':       return <CompostCycleCard project={project} onSwitchToMap={noop} />;
     case 'plan-transect-vertical':
     case 'plan-solar-overlay':       return <TransectVerticalEditorCard project={project} onSwitchToMap={noop} />;
     case 'plan-section-annotations': return <SectionAnnotationsCard project={project} onSwitchToMap={noop} />;

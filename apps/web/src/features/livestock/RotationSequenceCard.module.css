@@ -1,0 +1,233 @@
+/* RotationSequenceCard — read-only audit surface for Sub-project B (Task 3). */
+
+.card {
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  background: rgba(232, 220, 200, 0.025);
+  margin: 18px 0 0;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.cardTitle {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.cardHint {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.65);
+  max-width: 640px;
+}
+
+.modeBadge {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(196, 162, 101, 0.15);
+  color: rgba(196, 162, 101, 0.85);
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.6);
+  background: rgba(232, 220, 200, 0.018);
+  border-radius: 8px;
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+/* ── Headline rest-compliance ── */
+.headline {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.08);
+  border-left: 3px solid rgba(196, 162, 101, 0.55);
+  margin-bottom: 18px;
+}
+
+.headlineNumber {
+  font-size: 26px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.headlineLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+/* ── Group block ── */
+.groupBlock {
+  margin-bottom: 16px;
+}
+
+.groupHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.groupName {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(220, 210, 185, 0.85);
+}
+
+.groupMeta {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+/* ── Move + compliance rows ── */
+.moveList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.moveRow {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.moveMain {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.paddockName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(232, 220, 200, 0.92);
+}
+
+.moveDates {
+  font-size: 11px;
+  color: rgba(220, 210, 185, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.moveMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+}
+
+.metaDot {
+  color: rgba(180, 165, 140, 0.4);
+}
+
+/* ── Compliance rows ── */
+.complianceRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.022);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+}
+
+.complianceMeta {
+  flex: 1;
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
+.complianceBadge {
+  flex-shrink: 0;
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badgeGood {
+  background: rgba(160, 195, 130, 0.14);
+  color: rgba(200, 230, 170, 0.95);
+  border: 1px solid rgba(160, 195, 130, 0.34);
+}
+
+.badgeWarn {
+  background: rgba(220, 130, 110, 0.14);
+  color: rgba(240, 170, 130, 0.95);
+  border: 1px solid rgba(220, 130, 110, 0.34);
+}
+
+/* ── Carrying-capacity advisories ── */
+.advisoryRow {
+  padding: 7px 12px;
+  border-radius: 6px;
+  background: rgba(220, 130, 110, 0.06);
+  border: 1px dashed rgba(220, 130, 110, 0.22);
+}
+
+.advisoryText {
+  font-size: 11px;
+  color: rgba(240, 190, 165, 0.9);
+}
+
+.advisoryClear {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 10.5px;
+  font-style: italic;
+  color: rgba(180, 165, 140, 0.5);
+  background: rgba(232, 220, 200, 0.012);
+}
+
+/* ── Assumption footnote ── */
+.assumption {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(232, 220, 200, 0.018);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(180, 165, 140, 0.7);
+}

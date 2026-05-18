@@ -204,6 +204,8 @@ export const MODULE_CARDS: Record<
     { label: 'Welfare phasing',         sectionId: 'plan-livestock-welfare-phasing' },
     { label: 'Biosecurity & buffers',   sectionId: 'plan-livestock-buffers' },
     { label: 'Regeneration plan',       sectionId: 'plan-livestock-regeneration' },
+    { label: 'Rotation sequence',       sectionId: 'plan-livestock-rotation-sequence' },
+    { label: 'Rotation plan',           sectionId: 'plan-livestock-rotation-plan' },
     { label: 'Slaughter throughput', sectionId: 'plan-product-slaughter-throughput', group: 'Product Chain' },
     { label: 'Cold-chain coverage',  sectionId: 'plan-product-coldchain-coverage',   group: 'Product Chain' },
     { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },
@@ -222,6 +224,12 @@ export const MODULE_CARDS: Record<
     // year scrubber; surfaces crowding pairs within next 5 y of cursor.
     { label: 'Canopy maturity',        sectionId: 'plan-temporal-coherence' },
     { label: 'Annual planting schedule', sectionId: 'plan-planting-schedule' },
+    // Sub-project B1 (plant-system design integrity). Guild integrity is a
+    // design-time companion/spacing/maturity audit (no save gate, no
+    // goal-tree criterion); Succession path is the editable Year0→Year30
+    // designer over the additive successionPathStore slice.
+    { label: 'Guild integrity',        sectionId: 'plan-guild-integrity' },
+    { label: 'Succession path',        sectionId: 'plan-succession-path' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
@@ -237,6 +245,8 @@ export const MODULE_CARDS: Record<
     { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
     { label: 'Greens & browns', sectionId: 'plan-soil-resources' },
     { label: 'Soil-building plan', sectionId: 'plan-soil-building-plan' },
+    { label: 'Soil food-web', sectionId: 'plan-soil-foodweb' },
+    { label: 'Compost cycle', sectionId: 'plan-compost-cycle' },
   ],
   'cross-section-solar': [
     { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },

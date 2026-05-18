@@ -4,6 +4,143 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-18 — B1 implemented: plant-system design integrity (first B slice)
+
+**Branch.** `feat/atlas-permaculture`.
+
+Built B1 per [[2026-05-18-atlas-bd-subproject-decomposition]]: a pure
+companion-planting constraint checker (`guildIntegrityMath.ts` — matrix
++ mandatory catalog-`incompatible` fallback + explicit `unmatched` info,
+spacing heuristic, maturity spread) with a read-only `GuildIntegrityCard`,
+plus a net-new additive `successionPathStore` slice and editable
+`SuccessionPathCard` (Year0→Year30). Registration was 2 append-only edits
+(`types.ts`, `PlanModuleSlideUp.tsx`) — `plant-systems` was already a
+registered module so no `PlanModule` union change. Three ADR-deferred
+per-part calls made at build: two cards (not one), new persisted designer
+(separate persist key, no migrate), pure validator with **no goal-tree
+criterion** (EdgeConnectivity/TemporalCoherence precedent).
+
+Verified: apps/web tsc clean for all 8 B1 files; packages/shared tsc
+exit 0; vitest 13/13 (`guildIntegrityMath` 8, `successionPathStore` 5).
+Remaining project tsc/Vite errors are pre-existing out-of-band D0 work
+(`workItemStore*`), not B1. Per the screenshot-honesty rule no browser
+screenshot claimed (cards sit deep behind plant-systems nav; the
+out-of-band `workItemStore.migration` import error blocks the shell).
+
+**Commit posture.** Mixed working tree (B1 + active uncommitted D0 work).
+B1 staged by explicit path only; commit/push decision surfaced to the
+operator rather than blanket-committing — CLAUDE.md (don't clobber
+others' uncommitted work). See ADR
+[[2026-05-18-atlas-b1-plant-system-design-integrity]].
+
+---
+
+## 2026-05-18 — Sub-project B decomposed (B1–B5); Sub-project D reconciled to ratified D0–D5
+
+**Branch.** `feat/atlas-permaculture` (atlas wiki only — scoping
+artifact, no source code touched).
+
+Executed the approved B/D combined-scoping plan. On execution, discovered
+that an out-of-band session the same day had **ratified** the Land OS
+positioning ADR (Status: accepted) decomposing Sub-project D into D0–D5
+with a load-bearing C-vs-D covenant boundary. Per CLAUDE.md (flag
+contradictions; do not overwrite ratified content), the planned D1–D4
+decomposition + flagged additive-vs-backend decision was **withdrawn, not
+committed** — it would have contradicted an accepted ADR. The new ADR
+`decisions/2026-05-18-atlas-bd-subproject-decomposition.md` therefore
+delivers only the genuinely outstanding, non-conflicting piece: the full
+**Sub-project B (Biological Systems Engineering) B1–B5 decomposition** —
+B1 plant-system design integrity → B2 soil food-web → B3
+rotational-grazing sequencer → B4 guild↔livestock↔silvopasture
+integration → B5 beneficial-organism habitat spec, sequenced with reuse
+map (additive front-end, non-covenant). This is the "B decomposed in its
+own dedicated session" both ratified docs called for. Sub-project D is
+explicitly deferred to the authoritative ratified D0–D5 roadmap; the
+additive-vs-backend question is noted as already governed by that ADR's
+"additive default unless a slice's own spec justifies otherwise" rule.
+
+**Session-close blocker (surfaced, not actioned):** the atlas working
+tree also holds the out-of-band Land OS session's *uncommitted* work
+(modified `wiki/log.md`/`index.md`/`entities/atlas-platform.md`; untracked
+`concepts/land-os-positioning.md`, the land-os ADR, a ux-walkthrough
+doc). To avoid entangling another session's uncommitted work or doing
+risky partial staging, no commit/push was performed this session — left
+for operator direction.
+
+Artifacts: new `decisions/2026-05-18-atlas-bd-subproject-decomposition.md`;
+this log entry; `index.md` pointer added. No atlas source code touched;
+C's covenant gate unaffected.
+
+---
+
+## 2026-05-18 — Land OS positioning ratified & Sub-project D decomposed (D0–D5)
+
+**Branch.** `feat/atlas-permaculture` (atlas wiki only — strategy
+artifact, no source code touched).
+
+Ratified the elevated "Land OS, not land-design app" positioning as the
+authoritative Phase-2 north star. The operator's verbatim success
+definition (OLOS must *independently run* an Apricot-Lane-complexity
+project without external PM tools or personnel) is captured byte-exact in
+the new concept page. Adopted the 5-capability model and the
+capability→current-state map: Observe / Plan / Phased-implementation are
+built engines; capability #4 (manage implementation without external PM
+tools) is the large gap = Track D; capability #5 (adapt through feedback)
+is monitoring-built via the A-series with the recommendation engine = D5.
+
+Track sequencing ratified: **A complete** (A1/A2/A3); **B track-level
+only** (depends on A spine); **C intent-only, covenant-bounded,
+Scholar-Council-gated**; **D decomposed now** into the sequenced D0–D5
+backlog — D0 operating-loop spine & work-item model, D1 task & dependency
+engine, D2 resourcing, D3 budget & cost tracking, D4 field execution &
+proof, D5 operating dashboards & adaptive recommendations. Each slice is
+scope + dependency only (a future spec — no architecture decided).
+
+Affirmed the load-bearing **C-vs-D covenant boundary**: D3/D5 are project
+cost/budget tracking and operating analytics only; capital formation,
+financing, advance-purchase, investor/equity, and yield-as-return framing
+stay in Sub-project C under Scholar Council. No riba/gharar framing in any
+D surface; CSRA / salam-style advance-purchase explicitly excluded.
+
+Artifacts: new `concepts/land-os-positioning.md`; new ADR
+`decisions/2026-05-18-atlas-land-os-positioning-and-d-roadmap.md`
+(Status: accepted, references A1/A2/A3); `entities/atlas-platform.md`
+gained a "Strategic Direction (Phase 2)" subsection; `index.md`
+registered both pages. MILOS root `wiki/entities/olos.md` "Phase 2
+roadmap" open question closed, pointing to the atlas concept page.
+Docs-only — no build/test; verified by link resolution + covenant grep.
+
+---
+
+## 2026-05-18 — Sub-project C scoping: transition economics (Scholar-Council-gated)
+
+**Branch.** `feat/atlas-permaculture` (atlas); spec committed to the
+MILOS parent repo, not atlas.
+
+Scoped the covenant-bounded fourth Apricot Lane sub-project, **C
+(Transition Economics)** — the bridge from the A-series ecological
+monitoring (A1/A2/A3, all built) to financial viability under the MTC
+Waqf. Deliverable is a sequenced spec at
+`MILOS/stages/design-mtc-transition-economics-review.md` (status
+`review`, `amanah: pending`): **Artifact 1** is the covenant/economic
+gate — 5-channel permitted-capital catalog, surplus floors restated as
+fixed inputs (≥30/≥20/≥10; 35/40/25 target), tri-entity
+"tool-may-model vs. Council-may-set" split, and a Scholar Council
+**binding-attestation matrix** (S1–S7) that *routes* every
+fiqh-sensitive item rather than deciding it. **Artifact 2** is a
+design-only, **gate-blocked** outline of a future 16th `transition-
+economics` Atlas plan-module (reuses the existing financial engine +
+A1/A2/A3 6-touchpoint pattern; criterion IDs `TBD-Council`). **No atlas
+code written or touched** — atlas `git status` clean except a
+pre-existing unrelated untracked walkthrough doc. Covenant verification
+passed: no CSRA/advance-purchase/investor-equity framing, yield-share
+named-only and out of scope, spec does not self-approve. **No atlas ADR
+filed** — the C decision is Scholar-Council-gated; an Atlas decision
+record is explicitly deferred until the §9 gate (`approved` +
+attestations S1–S6 + OQ1/OQ4) clears. MILOS spec commit `77c3065`.
+
+---
+
 ## 2026-05-17 — Green the web suite: habitat-store sync registration + Paddock fixture backfill
 
 **Branch.** `claude/magical-galileo-d96f93` (worktree).
@@ -17041,3 +17178,27 @@ correction appended to the error-handler ADR pointer that had repeated the
 debunked "needs a test DB" claim) + `entities/api.md` Current State rewritten
 (now "550/550, mock-DB by design"). Real-DB/testcontainers harness explicitly
 deferred.
+
+## 2026-05-18 — fix(web): ObserveModuleBar invalid `<button>`-in-`<button>` nesting
+
+Pre-existing React `validateDOMNesting` warning on the Observe stage —
+`ObserveModuleBar.tsx` rendered each module tile as an outer
+`<button className={css.tile}>` wrapping inner per-task progress
+`<button className={css.subseg}>` elements. Not introduced by the recent
+module-bar `topBar` work; internal to this component. Fix: outer element
+converted `<button>` → `<div role="button" tabIndex={0}>` with an
+`onKeyDown` (Enter/Space → `handleCardClick`, `preventDefault` so Space
+doesn't scroll); `aria-pressed`, `onClick`, and
+`css.tile`/`css.tileActive` preserved (zero visual change); removed the
+now-redundant `type="button"`. Inner sub-seg `<button>`s are now legally
+nested (button-in-div) and keep their `stopPropagation` + task-URL
+navigate behaviour. Verification: ran main-repo `tsc --noEmit` over the
+worktree's `apps/web` (worktree has no `node_modules`, so the
+memory-bounded `npm run typecheck` script's `../../node_modules` path
+can't resolve here) — **zero** errors for `ObserveModuleBar`; remaining
+run errors are worktree-env artifacts (`@ogden/shared` subpaths
+unresolvable without installed deps), unrelated. In-browser preview
+confirmation deferred — this isolated worktree cannot install deps to
+run a dev server; flagged honestly rather than assumed. New ADR
+`decisions/2026-05-18-atlas-observe-modulebar-button-nesting.md` + index
+pointer.

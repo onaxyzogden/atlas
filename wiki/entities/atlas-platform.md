@@ -54,6 +54,9 @@ Revision rationale: The ~65% estimate counted frontend-only layer fetchers as
 ## Strategic Gaps
 See [Gap Analysis](gap-analysis.md) for the full ~120-gap inventory against global frameworks (FAO, USDA, ASTM, IUCN, WRB). Covers soil, terrain, hydrology, climate, crop suitability, ecology, energy, infrastructure, regulatory, global coverage, and design intelligence.
 
+## Strategic Direction (Phase 2)
+The ratified Phase-2 north star is [Land OS Positioning & Phase-2 Roadmap](../concepts/land-os-positioning.md): OLOS is the full operating system for regenerative land development — success = independently running an Apricot-Lane-complexity project without external PM tools. The A track (ecological monitoring & habitat) is complete; Sub-project D (the end-to-end operating loop / command centre — capability #4) is decomposed into a sequenced D0–D5 backlog. B is track-level only; C (transition economics) is intent-only and Scholar-Council-gated. Ratifying ADR: [2026-05-18 Land OS positioning & D roadmap](../decisions/2026-05-18-atlas-land-os-positioning-and-d-roadmap.md).
+
 ## Launch Blockers
 1. No backend sync (data is localStorage-only)
 2. No CI/CD pipeline

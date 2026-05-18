@@ -166,6 +166,14 @@ const REGENERATIVE_FARM: GoalTree = {
           target: 20000,
           deadlineYear: 5,
         },
+        {
+          id: 'livestock-rotation-rest-compliance-pct',
+          description:
+            'Paddocks meeting their species rest-period requirement on the planned rotation (%)',
+          unit: 'pct',
+          target: 90,
+          deadlineYear: 3,
+        },
       ],
     },
   ],
