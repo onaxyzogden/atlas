@@ -1,7 +1,7 @@
 # ADR: Report becomes a standalone sidebar destination; ObserveModuleBar de-nested
 
 - **Date:** 2026-05-18
-- **Status:** Accepted (design — implementation pending)
+- **Status:** Implemented & verified (2026-05-18)
 - **Context source:** Follow-up to 2026-05-18 cyclical-navigator change
   (`report` removed from `V3LevelNavBridge` `LEVELS`); user-confirmed via
   AskUserQuestion.
@@ -67,7 +67,7 @@ Target tree (no nested interactives; both click behaviors preserved):
 <div .tile (+ .tileActive)>                       ← presentational wrapper
   <button .tileHit aria-pressed onClick=handleCardClick
           aria-label={moduleLabel} />             ← absolute inset:0, z-index 1
-  <div .cardProgress aria-hidden>                 ← position:relative, z-index 2
+  <div .cardProgress>                             ← position:relative, z-index 2
     <button .subseg onClick=task />               ← real button, now a SIBLING
   </div>
   <span .tileLabel>label</span>                   ← pointer-events:none
@@ -92,8 +92,13 @@ Target tree (no nested interactives; both click behaviors preserved):
 
 Net behavior is unchanged: click tile background/label → select/toggle
 module; click a pip → task navigation. Accessibility improves (no
-interactive-in-interactive; explicit `aria-label` on the hit target;
-pip row stays `aria-hidden` decorative).
+interactive-in-interactive; explicit `aria-label` on the hit target).
+`aria-hidden` was removed from `.cardProgress` during implementation:
+placing `aria-hidden="true"` on a container that holds focusable
+interactive `<button>` elements is a WCAG anti-pattern (assistive tech
+would skip real controls). The pip buttons are exposed to AT as their
+own labelled controls; the tile's accessible name lives entirely on the
+`.tileHit` `aria-label`.
 
 ## Consequences
 

@@ -35,6 +35,108 @@ branch scope. Verified: targeted `syncManifest.test.ts` **10/10**; full
 `entities/web-app.md` Current State syncService bullet appended. Same
 default-off `FLAGS.SYNC_STATE_BLOBS` gate — no tester-facing behavior change.
 
+---
+
+## 2026-05-18 — feat(web): Report sidebar destination + ObserveModuleBar de-nesting
+
+**Branch.** `feat/atlas-permaculture`. Commits `080aa487` (Report link) + `736ba329` (ObserveModuleBar restructure).
+
+Added a standalone `Report` `<Link>` in `V3LifecycleSidebar.tsx` pointing to the existing `/v3/project/$projectId/report` route, placed directly below "Project Home" and above the stage groups. No module scaffolding; `ReportPage.tsx` and the `/report` route are untouched. `data-active={activeStage === 'report'}` wires the active highlight via the existing plumbing in `V3ProjectLayout.activeFromPath`.
+
+`ObserveModuleBar.tsx` restructured to eliminate the `validateDOMNesting` button-in-button warning: outer tile changed from `<button>` to `<div>`; a new `.tileHit` `<button>` (absolute inset:0, transparent, z-index:1) carries `aria-pressed`, `onClick`, and an explicit `aria-label`; `.cardProgress` (z-index:2) becomes a sibling of `.tileHit` rather than a descendant, so pip `<button>`s are no longer nested inside a `<button>`. `aria-hidden="true"` was removed from `.cardProgress` — placing it on a container holding focusable interactive elements is a WCAG anti-pattern; pip buttons are now exposed to AT as their own labelled controls, with the tile's accessible name on `.tileHit aria-label`. Four CSS rules added to `ObserveModuleBar.module.css`.
+
+Tests: `V3LifecycleSidebar` suite +2 → 6/6 (Report link found + active state). New `ObserveModuleBar.test.tsx` 3/3 (no nested button, tileHit present, pip buttons accessible). Typecheck: clean except 2 pre-existing unrelated `Paddock` errors in `useFlowEndpointOptions.test.ts`.
+
+Runtime preview (web-a1 :5240, project run6): Report link found in expanded sidebar with href ending `/report`; clicking routes to `/v3/project/.../report` with Report heading rendered (`hasReportHeading: true`). Console warning check inconclusive — preview MCP served a stale Vite HMR-cached bundle (timestamp `t=1779130977882`, predating the fix commit); the disk file is confirmed correct by source read. The fix is structurally verified by the test suite (no nested button asserted) and by static analysis of the committed source.
+
+ADR: [[2026-05-18-atlas-report-sidebar-destination]] updated — status → Implemented & verified; `aria-hidden` note corrected.
+
+---
+
+## 2026-05-18 — D2 implemented: operational resourcing on the WorkItem spine
+
+**Branch.** `feat/atlas-permaculture` (working tree, uncommitted).
+
+Executed the approved D2 Session Execution Plan — the next ratified D
+slice on the stable D0/D0.1 spine, mirroring the D1 Approach-B provenance
+seam. The spine already carried every resourcing field; nothing surfaced
+or operationalised them (no crew model, equipment linkage, BOM, workload,
+or conflict detection).
+
+Net-new crew model: `@ogden/shared` `crewMember.schema.ts`
+(skill level + soft weekly-hours cap; optional non-coupled
+`networkContactId`) + projectId-tagged `crewMemberStore`
+(`ogden-crew-members`, no DB migration, registered in `syncManifest`).
+Distinct from `ProjectMemberRecord` (ACL) and `NetworkContact` (CRM);
+fully steward-authored, no Goal-Compass contract.
+
+Approach-B provenance on the spine: additive `materialsAuto` /
+`equipmentRequiredAuto` `.default([])` beside the manual fields (no DB
+migration; `MaterialLine`/`MaterialLineSchema` now exported). New
+`replaceGoalCompassResources` mirrors `replaceGoalCompassDependencies`
+1:1 (only `goal-compass && !overridden`; manual/overridden/other-project
+untouched; idempotent same-reference). Pure
+`seedGoalCompassResources` (in `goalCompassSpineSync`, after
+`replaceGoalCompassDependencies`) merges intervention `materials` +
+`maintenanceSchedule.materialsPerOccurrence` (label+unit deduped) and
+declared equipment → effective `*Auto`.
+
+Pure conflict engine `packages/shared/src/lib/resourcingConflicts.ts`
+(no React/store): `effectiveEquipment`, `rollUpBom`,
+`equipmentConflicts` (per-equipment pairwise span overlap, strict `<`,
+missing-date skip), `assigneeWeeklyLoad` (ISO-week buckets vs soft cap),
+`analyzeResourcing` → `{equipment, workload, byItemId}`. Hours only — no
+cost; derived only, never mutates `WorkItem.status`.
+
+New `ResourcingCard` + manifest entry `act-resourcing` under the
+`tracker` module (lazy import + `renderActCard` case): crew CRUD,
+assignee workload, equipment booking, BOM rollup, render-only conflict
+badges. No cost column; subtitle points budget to D3.
+
+Covenant: strictly operational resourcing — no D3 cost
+(`BudgetActualsCard` untouched, no `costUSD` sum, no cost column), no
+D4/D5 surfaces, no riba/gharar/CSRA/financing framing, no spine-status
+auto-mutation, no DB migration.
+
+**Verification.** shared+web tsc exit 0 (fully clean — the 2 disclosed
+pre-existing Paddock errors did not surface). Vitest: shared
+**237/237**, web **1198/1198** incl. crew store 2, resources
+preservation/idempotence 3, seeding 3, conflict engine 10 — zero
+failures; the previously-disclosed `syncManifest` debt did not recur
+(`ogden-crew-members` correctly classified). `vite build` exit 0
+(53.25s; first attempt OOM'd on default Node heap — environment, fixed
+with `--max-old-space-size=8192`; `tsc` had already passed). Live
+(preview :5200, project `mtc`): required a dev-server restart to clear a
+stale cached `types.ts`; Tracker module then serves `Plan tracker` +
+`Resourcing` tabs, card mounts zero-console-error, all four blocks
+render with correct empty states, covenant-clean, crew CRUD verified
+add→list→remove. MapLibre/WebGL screenshot hang disclosed not faked —
+DOM/console + test matrix the verification of record.
+
+- Decisions: [[2026-05-18-atlas-d2-resourcing]]
+- Pages touched: wiki/decisions/2026-05-18-atlas-d2-resourcing.md,
+  wiki/log.md, wiki/index.md, wiki/entities/olos.md; atlas
+  (branch feat/atlas-permaculture, uncommitted):
+  packages/shared/src/schemas/crewMember.schema.ts (new),
+  packages/shared/src/schemas/workItem.schema.ts,
+  packages/shared/src/lib/resourcingConflicts.ts (new),
+  packages/shared/src/index.ts,
+  apps/web/src/store/crewMemberStore.ts (new),
+  apps/web/src/store/workItemStore.ts,
+  apps/web/src/store/workItemStore.migration.ts,
+  apps/web/src/lib/syncManifest.ts,
+  apps/web/src/v3/plan/engine/goalCompass/goalCompassSpineSync.ts,
+  apps/web/src/features/act/ResourcingCard.tsx (new),
+  apps/web/src/features/act/MaintenanceScheduleCard.tsx,
+  apps/web/src/features/livestock/RotationScheduleCard.tsx,
+  apps/web/src/v3/act/types.ts, apps/web/src/v3/act/ActModuleSlideUp.tsx,
+  + 4 new/updated test files.
+- Deferred: live Goal-Compass regenerate-preservation exercise (unit/
+  store-proven); explicit commit (D2 uncommitted, awaiting instruction);
+  D3 (budget/cost) is its own brainstorm→spec→plan cycle.
+
+---
+
 ## 2026-05-18 — D1 implemented: dependency / critical-path engine on the WorkItem spine
 
 **Branch.** `feat/atlas-permaculture` (working tree, uncommitted).
