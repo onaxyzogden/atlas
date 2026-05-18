@@ -239,6 +239,20 @@ All use `persist` middleware with localStorage. Key stores:
   blob loop can never double-write them. Full plan now complete; only the
   5.7 manual matrix remains operational. See
   [Phase 3 ADR](../decisions/2026-05-17-atlas-syncservice-coverage-phase3.md).
+  **syncManifest B-series backfill (2026-05-18):** the coverage guard was
+  *failing on the branch* (a real bug, masked by a now-fixed vitest
+  react-resolution issue) — four project-scoped stores added by B/A feature
+  work were unregistered and would silently never sync. Classified all four
+  `versioned-blob` from their actual data shape: `ogden-rotation-plan`,
+  `ogden-compost-cycle`, `ogden-succession-path` (`byProject`) +
+  `ogden-habitat-features` (`projectId-tagged`, `usesTemporal`, mirrors
+  `ogden-soil-samples`). Incidental: worktree `vitest.config.ts` react
+  alias moved to a `createRequire` resolver — the old hard-coded
+  `../../node_modules/react` path doesn't exist in a worktree and was
+  silently collapsing the whole suite to "0 tests" (the masking cause).
+  Full suite **1162/1162, 99 files**, zero regressions. Main-tree
+  `vitest.config.ts` still has the old path — upstream port recommended.
+  See [B-series backfill ADR](../decisions/2026-05-18-atlas-syncmanifest-bseries-store-backfill.md).
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
