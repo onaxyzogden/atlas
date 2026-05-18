@@ -166,6 +166,14 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
       'Record the discrete habitat features you commit to — wildlife pond, owl boxes, hawk perches, hedgerow length — so the inventory matches the drawn land.',
     ],
   },
+  'biodiversity-monitor': {
+    why: 'A habitat set-aside is only working if the ecology actually recovers — native vegetative cover returning, invasive-species pressure falling, and the bird & pollinator community arriving. That recovery must be measured over time, not assumed from the allocation decision (Holmgren P4: Apply self-regulation and accept feedback; P10: Use and value diversity). This module tracks ecological outcomes only — no valuation, credit, or offset framing.',
+    how: [
+      'Log dated biodiversity samples per management zone — native vegetative cover %, invasive-species pressure %, distinct bird & pollinator species count, beneficial-predator activity index.',
+      'Read each metric\'s trajectory against the goal-tree target line and deadline-year marker, on the Year 0 / 5 / 9 monitoring cadence.',
+      'Act on lagging native-cover or invasive-pressure curves: where recovery is below trajectory, revisit the habitat allocation and corridor design before the deadline year.',
+    ],
+  },
 };
 
 interface Props {

@@ -90,6 +90,7 @@ const StructuresOverviewCard     = lazy(() => import('./cards/structures-subsyst
 const SubsystemsOverviewCard     = lazy(() => import('./cards/structures-subsystems/SubsystemsOverviewCard.js'));
 const RegenerationMonitorCard    = lazy(() => import('../../features/plan/RegenerationMonitorCard.js'));
 const HabitatAllocationCard      = lazy(() => import('../../features/plan/HabitatAllocationCard.js'));
+const BiodiversityMonitorCard    = lazy(() => import('../../features/plan/BiodiversityMonitorCard.js'));
 
 function renderPlanCard(
   sectionId: string,
@@ -168,6 +169,7 @@ function renderPlanCard(
     case 'plan-subsystems-overview': return <SubsystemsOverviewCard projectId={project.id} />;
     case 'plan-regeneration-monitor': return <RegenerationMonitorCard project={project} onSwitchToMap={noop} />;
     case 'plan-habitat-allocation': return <HabitatAllocationCard project={project} onSwitchToMap={noop} />;
+    case 'plan-biodiversity-monitor': return <BiodiversityMonitorCard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }

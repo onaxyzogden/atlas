@@ -25,4 +25,5 @@ export const PLAN_MODULE_DOT: Record<PlanModule, string> = {
   'principle-verification': '#e88aa4',
   'regeneration-monitor': '#79c98a',
   'habitat-allocation': '#4fb0a5',
+  'biodiversity-monitor': '#6fc2a0',
 };

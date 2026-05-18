@@ -97,6 +97,39 @@ const REGENERATIVE_FARM: GoalTree = {
       ],
     },
     {
+      id: 'biodiversity-outcomes',
+      title: 'Biodiversity outcomes',
+      narrative:
+        'Whether the habitat set-aside is actually working over time — ' +
+        'native vegetative cover returning, invasive-species pressure ' +
+        'falling, and the bird & pollinator community arriving on the ' +
+        'classic Year 0 / 5 / 9 monitoring cadence. Ecological response ' +
+        'only; no valuation, credit, or offset framing.',
+      criteria: [
+        {
+          id: 'bio-native-cover',
+          description: '% of monitored area in native vegetative cover',
+          unit: 'pct',
+          target: 60,
+          deadlineYear: 7,
+        },
+        {
+          id: 'bio-invasive-pressure',
+          description: '% of monitored area under invasive-species pressure',
+          unit: 'pct',
+          target: 5,
+          deadlineYear: 5,
+        },
+        {
+          id: 'bio-species-richness',
+          description: 'Distinct bird & pollinator species observed in census',
+          unit: 'count',
+          target: 45,
+          deadlineYear: 9,
+        },
+      ],
+    },
+    {
       id: 'livestock-enterprise',
       title: 'Livestock enterprise',
       narrative:

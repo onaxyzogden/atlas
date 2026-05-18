@@ -45,7 +45,7 @@ function omTraj(events: RegenerationEvent[], goal = SOIL_OM_GOAL) {
 describe('buildTrajectories', () => {
   it('always returns every monitored metric, even with no events', () => {
     const trajs = buildTrajectories([], {});
-    expect(trajs).toHaveLength(6);
+    expect(trajs).toHaveLength(10);
     for (const t of trajs) {
       expect(t.series).toEqual([]);
       expect(t.baseline).toBeNull();

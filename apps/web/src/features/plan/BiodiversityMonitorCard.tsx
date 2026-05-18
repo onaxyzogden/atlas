@@ -1,13 +1,17 @@
 /**
- * RegenerationMonitorCard — PLAN · Regeneration Monitor.
+ * BiodiversityMonitorCard — PLAN · Biodiversity Outcomes.
  *
- * Turns the project's free-form `regeneration_events` into a
- * longitudinal soil/water/biology dashboard, charted against the
- * regenerative-farm goal tree (the MDPI Apricot Lane study's Year
- * 0/5/9 monitoring discipline). Pure client-side aggregation over the
- * existing list endpoint — no DB migration, no new route. A future
- * server-side pivot endpoint + JSONB index is the documented
- * optimization once sample volume warrants it (see folder notes).
+ * The ecological-response complement to Habitat Allocation (A2): A2
+ * decides the design-time area budget; this card tracks whether that
+ * habitat is actually working over time — native cover returning,
+ * invasive pressure falling, the bird/pollinator community arriving on
+ * the MDPI Apricot Lane Year 0 / 5 / 9 cadence. Re-skins A1's
+ * longitudinal spine for the `biodiversity` metric domain over the same
+ * shared `regeneration_events` stream — no DB migration, no new route.
+ *
+ * Strictly ecological outcome tracking: no valuation, credit, offset,
+ * or payment framing (that economics is the separate covenant-bounded
+ * Sub-project C under Scholar Council review).
  */
 
 import { useEffect, useMemo } from 'react';
@@ -57,7 +61,7 @@ function VerdictBadge({ verdict }: { verdict: Verdict }) {
   );
 }
 
-export default function RegenerationMonitorCard({ project }: Props) {
+export default function BiodiversityMonitorCard({ project }: Props) {
   const apiProjectId = project.serverId ?? project.id;
   const projectEvents = useRegenerationEventsForProject(apiProjectId);
 
@@ -75,7 +79,7 @@ export default function RegenerationMonitorCard({ project }: Props) {
     const goalTargets = goalTree
       ? flattenGoalTargets(goalTree.subGoals)
       : {};
-    return buildTrajectories(events, goalTargets, 'regeneration');
+    return buildTrajectories(events, goalTargets, 'biodiversity');
   }, [projectEvents?.events, goalTree]);
 
   const summary = useMemo(() => {
@@ -100,14 +104,15 @@ export default function RegenerationMonitorCard({ project }: Props) {
   return (
     <div className={styles.page}>
       <header className={styles.hero} data-stage="plan">
-        <span className={styles.heroTag}>Plan · Regeneration Monitor</span>
-        <h1 className={styles.title}>Regeneration monitor</h1>
+        <span className={styles.heroTag}>Plan · Biodiversity Outcomes</span>
+        <h1 className={styles.title}>Biodiversity outcome monitor</h1>
         <p className={styles.lede}>
-          Longitudinal soil, water, and biology trajectories from your
-          logged monitoring samples — charted against the goal tree's
-          targets and deadlines, the way the MDPI Apricot Lane study
-          tracked Year 0 / 5 / 9. Each sample is an observation event;
-          group readings by zone and sampling round.
+          Longitudinal native-cover, invasive-pressure, and species
+          trajectories from your logged monitoring samples — the
+          ecological-response complement to the habitat set-aside,
+          charted against the goal tree's targets the way the MDPI
+          Apricot Lane study tracked Year 0 / 5 / 9. Each sample is an
+          observation event; group readings by zone and sampling round.
         </p>
       </header>
 
@@ -129,7 +134,7 @@ export default function RegenerationMonitorCard({ project }: Props) {
       </section>
 
       <section className={styles.section}>
-        <SampleEntryForm projectId={apiProjectId} domain="regeneration" />
+        <SampleEntryForm projectId={apiProjectId} domain="biodiversity" />
       </section>
 
       {loading && summary.totalSamples === 0 && (
@@ -149,9 +154,9 @@ export default function RegenerationMonitorCard({ project }: Props) {
       {!loading && summary.totalSamples === 0 && !fetchError && (
         <section className={styles.section}>
           <p className={styles.empty}>
-            No monitoring samples yet. Log a baseline reading above — that
-            becomes "Year 0", and every later sample is measured against
-            it and the goal-tree target line.
+            No biodiversity samples yet. Log a baseline reading above —
+            that becomes "Year 0", and every later sample is measured
+            against it and the goal-tree target line.
           </p>
         </section>
       )}

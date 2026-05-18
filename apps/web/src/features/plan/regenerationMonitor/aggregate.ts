@@ -16,7 +16,9 @@ import type { RegenerationEvent } from '@ogden/shared';
 import {
   MONITORED_METRICS,
   MONITORED_METRIC_KEYS,
+  metricKeysForDomain,
   readTypedObservations,
+  type MetricDomain,
   type MonitoredMetricKey,
 } from '@ogden/shared';
 
@@ -116,20 +118,28 @@ function computeVerdict(
  * Build the full set of metric trajectories. Every monitored metric is
  * always returned (even with zero samples) so the dashboard can render a
  * stable, complete grid; `series` is simply empty when nothing is logged.
+ *
+ * `domain` scopes the result to one dashboard family (the A1
+ * Regeneration Monitor passes `'regeneration'`, the A3 Biodiversity
+ * Outcome Monitor passes `'biodiversity'`). Omitting it preserves the
+ * original all-keys behaviour for back-compat.
  */
 export function buildTrajectories(
   events: RegenerationEvent[],
   goalTargets: GoalTargetLookup,
+  domain?: MetricDomain,
 ): MetricTrajectory[] {
+  const keys = domain ? metricKeysForDomain(domain) : MONITORED_METRIC_KEYS;
+
   // metricKey → zoneRef → points
   const byMetric = new Map<MonitoredMetricKey, Map<string, SamplePoint[]>>();
-  for (const key of MONITORED_METRIC_KEYS) byMetric.set(key, new Map());
+  for (const key of keys) byMetric.set(key, new Map());
 
   for (const ev of events) {
     if (!ev.eventDate) continue;
     const { metrics, zoneRef } = readTypedObservations(ev.observations);
     const zone = zoneRef ?? SITE_WIDE_ZONE;
-    for (const key of MONITORED_METRIC_KEYS) {
+    for (const key of keys) {
       const value = metrics[key];
       if (value == null) continue;
       const zoneMap = byMetric.get(key)!;
@@ -139,7 +149,7 @@ export function buildTrajectories(
     }
   }
 
-  return MONITORED_METRIC_KEYS.map((key) => {
+  return keys.map((key) => {
     const meta = MONITORED_METRICS[key];
     const zoneMap = byMetric.get(key)!;
 

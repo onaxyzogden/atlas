@@ -8,9 +8,10 @@
 import { useState } from 'react';
 import {
   MONITORED_METRICS,
-  MONITORED_METRIC_KEYS,
+  metricKeysForDomain,
   ROUND_LABEL_KEY,
   ZONE_REF_KEY,
+  type MetricDomain,
   type MonitoredMetricKey,
   type RegenerationEventInput,
 } from '@ogden/shared';
@@ -18,12 +19,15 @@ import { useRegenerationEventStore } from '../../../store/regenerationEventStore
 
 interface Props {
   projectId: string;
+  /** Which metric family this form captures (A1 vs A3). */
+  domain: MetricDomain;
 }
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export default function SampleEntryForm({ projectId }: Props) {
+export default function SampleEntryForm({ projectId, domain }: Props) {
   const createEvent = useRegenerationEventStore((s) => s.createEvent);
+  const metricKeys = metricKeysForDomain(domain);
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(today());
   const [zone, setZone] = useState('');
@@ -44,7 +48,7 @@ export default function SampleEntryForm({ projectId }: Props) {
     setError(null);
     const observations: Record<string, number | string> = {};
     let metricCount = 0;
-    for (const key of MONITORED_METRIC_KEYS) {
+    for (const key of metricKeys) {
       const raw = values[key];
       if (raw == null || raw.trim() === '') continue;
       const n = Number(raw);
@@ -145,7 +149,7 @@ export default function SampleEntryForm({ projectId }: Props) {
           marginBottom: 12,
         }}
       >
-        {MONITORED_METRIC_KEYS.map((key) => {
+        {metricKeys.map((key) => {
           const meta = MONITORED_METRICS[key];
           return (
             <label key={key} style={lblStyle}>

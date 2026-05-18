@@ -1,6 +1,9 @@
 /**
- * Monitored soil/water/biology metric vocabulary for longitudinal
- * regeneration tracking (Sub-project A1).
+ * Monitored metric vocabulary for longitudinal outcome tracking.
+ * Carries two `domain`s over one shared `regeneration_events` stream:
+ *   - `regeneration` — soil/water/biology (Sub-project A1)
+ *   - `biodiversity` — native cover, invasive pressure, species
+ *     richness, beneficial-predator activity (Sub-project A3)
  *
  * This is a TYPED NARROWING of the deliberately-permissive
  * `observations` JSONB on `regeneration_events` (migration 015 /
@@ -24,11 +27,25 @@ export type MonitoredMetricKey =
   | 'infiltration_pct'
   | 'microbial_biomass_index'
   | 'water_stable_aggregate_pct'
-  | 'bulk_density';
+  | 'bulk_density'
+  | 'native_veg_cover_pct'
+  | 'invasive_pressure_pct'
+  | 'bird_pollinator_species_count'
+  | 'beneficial_predator_index';
+
+/**
+ * Which monitoring dashboard a metric belongs to. The same
+ * `regeneration_events` stream and `observations` JSONB carry both
+ * families; the discriminator keeps each card (A1 Regeneration Monitor
+ * vs A3 Biodiversity Outcome Monitor) from rendering the other's series.
+ */
+export type MetricDomain = 'regeneration' | 'biodiversity';
 
 export interface MonitoredMetric {
   key: MonitoredMetricKey;
   label: string;
+  /** Which monitoring dashboard this metric is charted on. */
+  domain: MetricDomain;
   /** Display unit suffix, e.g. "%", "g/cm³", "index". */
   unit: string;
   /**
@@ -51,6 +68,7 @@ export const MONITORED_METRICS: Record<MonitoredMetricKey, MonitoredMetric> = {
   soil_om_pct: {
     key: 'soil_om_pct',
     label: 'Soil organic matter',
+    domain: 'regeneration',
     unit: '%',
     goalCriterionId: 'regen-soil-om',
     higherIsBetter: true,
@@ -60,6 +78,7 @@ export const MONITORED_METRICS: Record<MonitoredMetricKey, MonitoredMetric> = {
   living_cover_pct: {
     key: 'living_cover_pct',
     label: 'Living ground cover',
+    domain: 'regeneration',
     unit: '%',
     goalCriterionId: 'regen-soil-cover',
     higherIsBetter: true,
@@ -69,6 +88,7 @@ export const MONITORED_METRICS: Record<MonitoredMetricKey, MonitoredMetric> = {
   infiltration_pct: {
     key: 'infiltration_pct',
     label: 'Rainfall infiltration',
+    domain: 'regeneration',
     unit: '%',
     goalCriterionId: 'regen-water-infiltration',
     higherIsBetter: true,
@@ -78,6 +98,7 @@ export const MONITORED_METRICS: Record<MonitoredMetricKey, MonitoredMetric> = {
   microbial_biomass_index: {
     key: 'microbial_biomass_index',
     label: 'Microbial biomass',
+    domain: 'regeneration',
     unit: 'index',
     goalCriterionId: null,
     higherIsBetter: true,
@@ -87,6 +108,7 @@ export const MONITORED_METRICS: Record<MonitoredMetricKey, MonitoredMetric> = {
   water_stable_aggregate_pct: {
     key: 'water_stable_aggregate_pct',
     label: 'Water-stable aggregates',
+    domain: 'regeneration',
     unit: '%',
     goalCriterionId: null,
     higherIsBetter: true,
@@ -96,17 +118,72 @@ export const MONITORED_METRICS: Record<MonitoredMetricKey, MonitoredMetric> = {
   bulk_density: {
     key: 'bulk_density',
     label: 'Bulk density',
+    domain: 'regeneration',
     unit: 'g/cm³',
     goalCriterionId: null,
     higherIsBetter: false,
     description:
       'Compaction proxy. Falling values mean the soil is opening up; lower is better.',
   },
+  native_veg_cover_pct: {
+    key: 'native_veg_cover_pct',
+    label: 'Native vegetative cover',
+    domain: 'biodiversity',
+    unit: '%',
+    goalCriterionId: 'bio-native-cover',
+    higherIsBetter: true,
+    description:
+      'Share of the monitored area in native vegetative cover — the hedgerows, corridors, and restored ground the habitat plan is meant to re-establish.',
+  },
+  invasive_pressure_pct: {
+    key: 'invasive_pressure_pct',
+    label: 'Invasive-species pressure',
+    domain: 'biodiversity',
+    unit: '%',
+    goalCriterionId: 'bio-invasive-pressure',
+    higherIsBetter: false,
+    description:
+      'Share of the monitored area under invasive-species pressure. Falling values mean the corridors are holding; lower is better.',
+  },
+  bird_pollinator_species_count: {
+    key: 'bird_pollinator_species_count',
+    label: 'Bird & pollinator species',
+    domain: 'biodiversity',
+    unit: 'count',
+    goalCriterionId: 'bio-species-richness',
+    higherIsBetter: true,
+    description:
+      'Distinct bird & pollinator species observed in a standardised census — the classic Year 0 / 5 / 9 richness trajectory.',
+  },
+  beneficial_predator_index: {
+    key: 'beneficial_predator_index',
+    label: 'Beneficial-predator activity',
+    domain: 'biodiversity',
+    unit: 'index',
+    goalCriterionId: null,
+    higherIsBetter: true,
+    description:
+      'Owl / hawk / beneficial-insect activity proxy, indexed to the year-0 baseline = 100. Trend only — no defensible absolute target.',
+  },
 };
 
 export const MONITORED_METRIC_KEYS = Object.keys(
   MONITORED_METRICS,
 ) as MonitoredMetricKey[];
+
+/**
+ * Metric keys belonging to a single dashboard domain, in registry order.
+ * The A1 Regeneration Monitor passes `'regeneration'` and the A3
+ * Biodiversity Outcome Monitor passes `'biodiversity'` so each charts
+ * only its own family from the shared event stream.
+ */
+export function metricKeysForDomain(
+  domain: MetricDomain,
+): MonitoredMetricKey[] {
+  return MONITORED_METRIC_KEYS.filter(
+    (k) => MONITORED_METRICS[k].domain === domain,
+  );
+}
 
 /** Reserved `observations` keys that group samples rather than carry metrics. */
 export const ROUND_LABEL_KEY = 'roundLabel' as const;
@@ -126,6 +203,10 @@ export const TypedObservations = z
     microbial_biomass_index: z.number().finite().optional(),
     water_stable_aggregate_pct: z.number().finite().optional(),
     bulk_density: z.number().finite().optional(),
+    native_veg_cover_pct: z.number().finite().optional(),
+    invasive_pressure_pct: z.number().finite().optional(),
+    bird_pollinator_species_count: z.number().finite().optional(),
+    beneficial_predator_index: z.number().finite().optional(),
     [ROUND_LABEL_KEY]: z.string().min(1).max(80).optional(),
     [ZONE_REF_KEY]: z.string().min(1).max(120).optional(),
   })
