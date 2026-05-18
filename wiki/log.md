@@ -198,6 +198,58 @@ the flag for testers.
 
 ---
 
+## 2026-05-17 — Opt-in real-PostGIS testcontainers integration suite (`@ogden/api`)
+
+The deferred real-DB follow-up to the lazy-thenable ADR. Added a minimal,
+opt-in PostGIS suite **alongside** the untouched fast mock suite (still
+**550/550**, 50 files, zero `*.pgtest.ts` collected, no container).
+Local/manual only — no CI, not in `turbo.json`.
+
+`migrate.ts` refactored to export a shared `runMigrations(sql)` (CLI tail
+unchanged, `config` import moved to the CLI path, tail gated on
+`isCliEntry`). New `vitest.integration.config.ts` (forks/singleFork,
+`fileParallelism:false`, **no `DATABASE_URL`**); fast `vitest.config.ts`
+gains only an `exclude` for the integration dir + pgtest suffix.
+`globalSetup` starts one `postgis/postgis:16-3.4` container, runs
+`runMigrations` once, writes the connection URL to a sentinel JSON in
+`os.tmpdir()` (the only reliable channel from Vitest `globalSetup` to
+forked workers); Docker absent / container-start failure → `{skipped:true}`
+sentinel + clear log → **green-skip, never red**. Harness reads the
+sentinel synchronously at import (drives `describe.skipIf`), sets
+`process.env.DATABASE_URL` **before** the dynamic `import(app.ts)`
+(config.ts `process.exit(1)`s on missing env at import). Per-test isolation
+is `TRUNCATE … RESTART IDENTITY CASCADE` — deliberately not
+transaction-rollback (would mask the writer's real `db.begin`
+single-`is_current` invariant + telemetry's per-event FK abort). 4
+`*.pgtest.ts`: geodetic boundary acreage vs independent
+`ST_Area(::geography)`; `SiteAssessmentWriter` single-`is_current` +
+version flip + 30 s debounce + `overall_score` invariant; telemetry
+swallowed per-event FK `23503`; regeneration-events SRID-4326 round-trip +
+author-or-owner RBAC.
+
+Two real defects caught by the suite's own typecheck/run during
+verification and fixed: `fixtures.ts` `sql.json()` rejected
+`Record<string, unknown>` (arg cast); `vitest.integration.config.ts` JSDoc
+literally contained the glob whose `*/` substring prematurely closed the
+block comment and broke esbuild's config load (reworded). Verified: fast
+550/550; `@ogden/api` typecheck exit 0; Docker-down `test:integration`
+**exit 0** (4 files / 5 tests skipped, clear log); lockfile additive only
+(+543 testcontainers/@testcontainers/postgresql 11.14.0). Docker-*up* path
+not exercised (Docker Desktop stopped).
+
+**Provenance:** a prior session (`claude/elated-einstein-16895e`) authored
+this but it was never persisted to git anywhere — lost to an external
+force-push on a shared branch (confirmed via `git log --all -S`, reflog,
+worktree/stash search). Re-implemented from the approved plan in a fresh
+worktree off `d95ce7a2` (lazy-thenable baseline) and pushed as the isolated
+branch `claude/pgtest-testcontainers` (commit `ee58e371`); the contested
+branch / diverged origin were not touched. New ADR
+`decisions/2026-05-17-atlas-pgtest-testcontainers-suite.md` + index pointer;
+`entities/api.md` Current State updated (the "explicitly deferred" line
+resolved).
+
+---
+
 ## 2026-05-17 — Full `syncService` coverage: Phase 4 (hydration + version-skew + visible conflict)
 
 **Branch.** `feat/atlas-permaculture`.
@@ -16614,6 +16666,8 @@ into commit `ddb7e0e4` alongside the blob-sync work. Working tree clean; no
 manual push. New ADR `decisions/2026-05-17-atlas-backend-acreage-hardening.md`
 + index pointer + `entities/web-app.md` Current State updated.
 
+---
+
 ## 2026-05-17 — Regen-farm Run-3: fix prior-run UX gaps, then verify
 
 Fix-first session against the approved plan
@@ -16884,3 +16938,71 @@ unit test `closedLoopStore.test.ts` test #1; and the day-cell aria is
 ordinal (`"September 1st, 2032 — 0 entries"`), not the predicted date-fns
 `PPP`. Walkthrough: `docs/ux-walkthrough-regen-farm-run6-2026-05-17.md`
 (runs 1–5 byte-for-byte unmodified). No commit/push (not requested).
+
+---
+
+## 2026-05-17 — fix(api): custom 404/error handlers registered before route plugins
+
+Fixed a **latent, pre-existing** Fastify ordering bug in `apps/api/src/app.ts`:
+`setNotFoundHandler`/`setErrorHandler` were registered *after* every route
+plugin, so Fastify served all route contexts with its **default** handler.
+Status codes were still correct (`AppError.statusCode` honored by the default
+handler) but the response **body shape** was wrong — Fastify's default
+`{statusCode,error,message}` instead of the app envelope
+`{data:null,error:{code,message}}` — and non-`AppError`/non-`ZodError`
+failures never received the `INTERNAL_ERROR` envelope. Moved both handler
+blocks ahead of the route registrations (immediately after
+`app.decorate('pipeline')`); handler bodies are byte-for-byte unchanged, only
+ordering + a short explanatory comment. Out of scope for the branch's defect
+fixes but corrected so error responses are consistently enveloped. Telemetry
+validation failures still return **422** (the route throws `ValidationError`,
+an `AppError`; status honored by old default *and* new custom handler — only
+the envelope changed). Verified: fresh worktree had no `node_modules`/test DB,
+so ran `pnpm install --frozen-lockfile` first; `@ogden/api` typecheck exit 0;
+full suite 539/550 with **11 DB-environment fails** (project-create 500,
+project GET 404, telemetry aggregate 0 rows) — proven **not a regression**:
+stashing the change and re-running `smoke`+`telemetry`+`boundary` gives an
+identical 9 failed/11 passed; with the change those same files reproduce the
+same 9. Net new failures: zero; no previously-passing body-shape assertion
+flipped. The telemetry 400↔422 test mismatch is pre-existing (route throws
+422, test asserts 400 — independent of this reorder, part of the branch's
+separate defect work). Landed in commit `6ac716b4` on
+`claude/elated-einstein-16895e`. New ADR
+`decisions/2026-05-17-atlas-error-handler-ordering.md` + index pointer +
+`entities/api.md` Current State updated.
+
+## 2026-05-17 — test(api): lazy-thenable mock harness closes the "11 failing" tests (550/550)
+
+Resolved the long-recurring "~11 `@ogden/api` tests need a provisioned test
+database" item — by proving the premise **false**. The suite is mock-DB by
+design: `vitest.config.ts` hardcodes a dummy `DATABASE_URL` and every test
+`vi.mock`s the database plugin with an in-process FIFO queue; no real
+Postgres/PostGIS is ever consulted, so provisioning a DB would change nothing.
+The 11 were mock-harness deficiencies, exposed by the co-landed
+durable-sync/telemetry work and the error-handler reorder (`6ac716b4`). User
+decision (2026-05-17): fix the harness; do **not** build a real-DB harness.
+
+Core fix — `apps/api/src/tests/helpers/testApp.ts` (mirrored in
+`smoke.test.ts`'s hoisted copy): replaced the eager
+`Promise.resolve(queue.shift())` with a **lazy thenable** that shifts the
+queue only when `.then()`/`.catch()`/`.finally()` is invoked (memoized per
+query object), matching real `postgres` `PendingQuery` — a non-awaited SQL
+fragment interpolated into another `db`...`` no longer drains a row-set. Added
+`mockDb.json = v => ({__json:v})` and `mockDb.begin = async cb => cb(mockDb)`.
+Per-file drift: `smoke` got `beforeEach(clear)`; `boundary` got the missing
+`refuseIfBuiltin` `{is_builtin:false}` row in 2 tests; `telemetry` 400→422 on
+2 validation tests (now asserts the `VALIDATION_ERROR` envelope);
+`siteAssessmentsPipeline` got the missing derived-layers `{present:'3'}`
+guard row — `maybeWriteAssessmentIfTier3Complete` runs **8** awaited queries
+(completion count + derived-layers guard + the writer's 6), not 7. One
+regression surfaced and was fixed at the test (`comments.test.ts` had a
+placeholder `enqueue()` that only existed to feed the old eager-shift bug on
+`locationExpr = db`NULL``; removed). Verified: `corepack pnpm --filter
+@ogden/api typecheck` exit 0; full suite **550/550** (50 files) — first
+post-fix run 549/550 (the comments regression), green after the one-line test
+fix; zero previously-passing tests flipped. New ADR
+`decisions/2026-05-17-atlas-mock-db-lazy-thenable.md` + index pointer (with a
+correction appended to the error-handler ADR pointer that had repeated the
+debunked "needs a test DB" claim) + `entities/api.md` Current State rewritten
+(now "550/550, mock-DB by design"). Real-DB/testcontainers harness explicitly
+deferred.
