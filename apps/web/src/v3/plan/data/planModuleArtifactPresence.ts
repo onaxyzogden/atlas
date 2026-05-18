@@ -122,6 +122,7 @@ export function usePlanModuleArtifactPresence(
     case 'goal-compass':
     case 'regeneration-monitor':
     case 'habitat-allocation':
+    case 'biodiversity-monitor':
       return false;
     default: {
       const _exhaustive: never = module;
