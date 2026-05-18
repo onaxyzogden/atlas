@@ -72,15 +72,18 @@ export default function ObserveModuleBar({
             const isActive = activeModule === mod;
             const tasks = pillarTasks[mod] ?? [];
             return (
-              <button
+              <div
                 key={mod}
-                type="button"
-                role="button"
-                aria-pressed={isActive}
                 className={`${css.tile} ${isActive ? css.tileActive : ''}`}
-                onClick={() => handleCardClick(mod)}
               >
-                <div className={css.cardProgress} aria-hidden="true">
+                <button
+                  type="button"
+                  aria-pressed={isActive}
+                  aria-label={OBSERVE_MODULE_LABEL[mod]}
+                  className={css.tileHit}
+                  onClick={() => handleCardClick(mod)}
+                />
+                <div className={css.cardProgress}>
                   {tasks.length > 0 ? (
                     tasks.map((task) => (
                       <button
@@ -110,7 +113,7 @@ export default function ObserveModuleBar({
                 <span className={css.tileLabel}>
                   {OBSERVE_MODULE_LABEL[mod]}
                 </span>
-              </button>
+              </div>
             );
         })}
       </div>
