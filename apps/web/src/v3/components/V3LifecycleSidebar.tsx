@@ -167,6 +167,15 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
         Project Home
       </Link>
 
+      <Link
+        to="/v3/project/$projectId/report"
+        params={{ projectId }}
+        className={css.homeLink}
+        data-active={activeStage === 'report' ? 'true' : 'false'}
+      >
+        Report
+      </Link>
+
       <div className={css.stageGroups}>
         {STAGE_ENTRIES.map((entry) => {
           const isActive = stageIsActive(entry.id);
