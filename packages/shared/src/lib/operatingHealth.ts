@@ -75,7 +75,11 @@ export interface OperatingHealthInput {
   resourcing: ResourcingConflictResult;
   budget: BudgetAnalysis;
   proof: FieldProofAnalysis;
-  /** ISO timestamp used for overdue detection; defaults to now. */
+  /**
+   * ISO timestamp used for overdue detection. Omitted ⇒ `Date.now()`.
+   * A malformed/unparseable value parses to NaN and is treated as
+   * "no item overdue" (never throws).
+   */
   now?: string;
 }
 
@@ -85,7 +89,8 @@ function isOverdue(item: WorkItem, nowMs: number): boolean {
   if (item.status === 'done' || item.status === 'cancelled') return false;
   if (!item.scheduledEnd) return false;
   const end = new Date(item.scheduledEnd).getTime();
-  return Number.isFinite(end) && end < nowMs;
+  if (Number.isNaN(end)) return false;
+  return end < nowMs;
 }
 
 export function computeOperatingHealth(

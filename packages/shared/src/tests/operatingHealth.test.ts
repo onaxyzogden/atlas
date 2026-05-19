@@ -269,11 +269,76 @@ describe('computeOperatingHealth — D5 composition engine', () => {
     expect(r.recommendations.at(-1)!.kind).toBe('unproven'); // low last
   });
 
-  it('does not mutate inputs (no spine-status write)', () => {
+  it('orders equal-severity recs by count desc then stable id asc', () => {
+    // Three med rules: overdue (count 3), over-capacity (count 2),
+    // budget-drift (count 2). Expect overdue first (higher count),
+    // then the count-2 tie broken by ascending id:
+    // 'budget-drift' < 'over-capacity'.
+    const items = [
+      wi({ id: 'o1', status: 'todo', scheduledEnd: '2026-01-01' }),
+      wi({ id: 'o2', status: 'todo', scheduledEnd: '2026-01-01' }),
+      wi({ id: 'o3', status: 'todo', scheduledEnd: '2026-01-01' }),
+    ];
+    const resourcing: ResourcingConflictResult = {
+      equipment: [],
+      workload: [
+        { memberId: 'm1', week: 'w1', hours: 9, cap: 8 },
+        { memberId: 'm2', week: 'w2', hours: 9, cap: 8 },
+      ],
+      byItemId: new Map(),
+    };
+    const budget: BudgetAnalysis = {
+      byItemId: new Map([
+        ['x', cell({ drift: true })],
+        ['y', cell({ drift: true })],
+      ]),
+      byPhase: new Map(),
+      total: cell(),
+    };
+    const r = computeOperatingHealth(input({ items, resourcing, budget }));
+    const med = r.recommendations.filter((x) => x.severity === 'med');
+    expect(med.map((x) => x.kind)).toEqual([
+      'overdue', // count 3 — highest
+      'budget-drift', // count 2, id 'budget-drift' < 'over-capacity'
+      'over-capacity', // count 2
+    ]);
+  });
+
+  it('does not mutate any input (no spine-status / engine-result write)', () => {
     const items = [wi({ id: 'a', status: 'done' })];
-    Object.freeze(items);
-    Object.freeze(items[0]);
-    expect(() => computeOperatingHealth(input({ items }))).not.toThrow();
+    const graph = emptyGraph();
+    const resourcing = emptyResourcing();
+    const budget = emptyBudget();
+    const proof = emptyProof();
+    for (const o of [
+      items,
+      items[0],
+      graph,
+      graph.byId,
+      graph.order,
+      resourcing,
+      resourcing.equipment,
+      resourcing.workload,
+      budget,
+      budget.byItemId,
+      budget.total,
+      proof,
+      proof.byItemId,
+      proof.suggestions,
+      proof.counts,
+    ]) {
+      Object.freeze(o);
+    }
+    expect(() =>
+      computeOperatingHealth({
+        items,
+        graph,
+        resourcing,
+        budget,
+        proof,
+        now: '2026-05-19T00:00:00.000Z',
+      }),
+    ).not.toThrow();
     expect(items[0]!.status).toBe('done');
   });
 
