@@ -110,7 +110,7 @@ export const STAGE_MODULES: Record<Stage3Key, StageModule[]> = {
     {
       id: 'act-mod-implementation',
       label: 'Phased Implementation',
-      itemIds: ['act-build-gantt', 'act-budget-actuals', 'act-pilot-plots'],
+      itemIds: ['act-build-gantt', 'act-budget', 'act-pilot-plots'],
     },
     {
       id: 'act-mod-maintenance',

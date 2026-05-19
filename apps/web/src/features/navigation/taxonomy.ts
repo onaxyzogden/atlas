@@ -441,7 +441,7 @@ export const NAV_ITEMS: NavItem[] = [
     dashboardOnly: true,
   },
   {
-    id: 'act-budget-actuals', label: 'Budget Actuals',
+    id: 'act-budget', label: 'Budget vs actuals',
     phase: 'P3', domainGroup: 'finance', stage: 'S4', stage3: 'act',
     dashboardOnly: true,
   },

@@ -1,4 +1,11 @@
 /**
+ * @deprecated RETIRED by Sub-project D3 (2026-05-18). Superseded by
+ * `BudgetCard` (canonical WorkItem-spine budget vs actuals via
+ * `workItemBudgetStore` + the pure `analyzeBudget` engine). This file and
+ * `actualsStore` are PRESERVED for audit only (no-deletion-in-revamps
+ * covenant) and un-mounted from the Act IA — no manifest entry, no lazy
+ * import, no `renderActCard` case routes here anymore. Do not re-mount.
+ *
  * BudgetActualsCard — ACT-stage Module 1 (Phased Implementation & Budgeting).
  *
  * Joins `phaseStore.BuildPhase.tasks` (estimates from PLAN) against
