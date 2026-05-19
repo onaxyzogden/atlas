@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CostRangeSchema } from './costRange.schema.js';
 
 // ─── Export type enum ─────────────────────────────────────────────────────────
 
@@ -24,7 +25,7 @@ export type ExportType = z.infer<typeof ExportType>;
 
 // ─── Payload schemas (client-side data sent with request) ─────────────────────
 
-const CostRange = z.object({ low: z.number(), mid: z.number(), high: z.number() });
+const CostRange = CostRangeSchema;
 
 export const FieldNotesPayload = z.object({
   entries: z.array(z.object({

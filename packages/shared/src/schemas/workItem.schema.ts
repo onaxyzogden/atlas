@@ -27,6 +27,7 @@
  */
 
 import { z } from 'zod';
+import { CostRangeSchema } from './costRange.schema.js';
 
 /** Which legacy planned-work surface a WorkItem originated from. */
 export const WorkItemSource = z.enum([
@@ -192,6 +193,19 @@ export const WorkItemSchema = z
     // --- estimates carried verbatim for D3 ---
     laborHrs: z.number().optional(),
     costUSD: z.number().optional(),
+    /**
+     * Goal-Compass-seeded planned-cost band (provenance-separated, D3
+     * Approach B — mirrors `materialsAuto` / `equipmentRequiredAuto`).
+     * Regenerated with goal-compass rows; the manual point estimate
+     * `costUSD` is never touched by seeding. Effective planned cost =
+     * manual `costUSD` (a point promoted to a degenerate band) when
+     * present, else `costRangeAuto`. `.optional()` + the top-level
+     * `.passthrough()` ⇒ existing persisted rows hydrate clean — no DB
+     * migration (A-series additive covenant). Covenant (D3, binding):
+     * strictly project cost/budget tracking — no financing/capital
+     * /investor semantics (Sub-project C, Scholar-gated).
+     */
+    costRangeAuto: CostRangeSchema.optional(),
     materials: z.array(MaterialLineSchema).optional(),
     /**
      * Goal-Compass-seeded materials (provenance-separated, D2 Approach B —
