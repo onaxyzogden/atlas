@@ -35,6 +35,7 @@ import { usePhaseStore, type DesignLayer } from '../../store/phaseStore.js';
 import { useWorkItemStore } from '../../store/workItemStore.js';
 import { toast } from '../../components/Toast.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
+import FieldProofPanel from './FieldProofPanel.js';
 
 interface Props {
   project: LocalProject;
@@ -921,6 +922,8 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
           phases are included.
         </p>
       </header>
+
+      <FieldProofPanel project={project} />
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Overview</h2>

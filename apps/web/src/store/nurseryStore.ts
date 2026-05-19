@@ -66,6 +66,12 @@ interface NurseryState {
   ) => void;
 
   addTransfer: (transfer: StockTransfer) => void;
+  /**
+   * D4 spine link — patch a transfer in place (used by the field-proof
+   * orchestrator to stamp `workItemId` on a confirmed typed match).
+   * Additive, mirrors `maintenanceLogStore.updateEvent`.
+   */
+  updateTransfer: (id: string, patch: Partial<StockTransfer>) => void;
   deleteTransfer: (id: string) => void;
 }
 
@@ -98,6 +104,13 @@ export const useNurseryStore = create<NurseryState>()(
 
       addTransfer: (transfer) =>
         set((s) => ({ transfers: [...s.transfers, transfer] })),
+
+      updateTransfer: (id, patch) =>
+        set((s) => ({
+          transfers: s.transfers.map((t) =>
+            t.id === id ? { ...t, ...patch } : t,
+          ),
+        })),
 
       deleteTransfer: (id) =>
         set((s) => ({ transfers: s.transfers.filter((t) => t.id !== id) })),
