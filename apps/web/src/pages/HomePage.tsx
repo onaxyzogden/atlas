@@ -5,9 +5,10 @@
 
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useProjectStore } from '../store/projectStore.js';
+import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { Button } from '../components/ui/Button.js';
 import { Badge } from '../components/ui/Badge.js';
+import { Modal } from '../components/ui/Modal.js';
 import styles from './HomePage.module.css';
 
 const PROJECT_TYPE_LABELS: Record<string, string> = {
@@ -20,12 +21,13 @@ const PROJECT_TYPE_LABELS: Record<string, string> = {
   moontrance: 'OGDEN Template',
 };
 
-type StatusFilter = 'all' | 'active' | 'candidate';
+type StatusFilter = 'all' | 'active' | 'candidate' | 'archived';
 
 export default function HomePage() {
   const projects = useProjectStore((s) => s.projects);
   const duplicateProject = useProjectStore((s) => s.duplicateProject);
   const updateProject = useProjectStore((s) => s.updateProject);
+  const deleteProject = useProjectStore((s) => s.deleteProject);
   const setActiveProject = useProjectStore((s) => s.setActiveProject);
   const navigate = useNavigate();
 
@@ -48,14 +50,35 @@ export default function HomePage() {
     });
   };
 
+  const archiveProject = (id: string) =>
+    updateProject(id, { status: 'archived' });
+  const unarchiveProject = (id: string) =>
+    updateProject(id, { status: 'active' });
+
+  const [deleteTarget, setDeleteTarget] = useState<LocalProject | null>(null);
+
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const candidateCount = projects.filter((p) => p.status === 'candidate').length;
   const activeCount = projects.filter((p) => p.status === 'active').length;
+  const archivedCount = projects.filter((p) => p.status === 'archived').length;
+
+  // When the selected tab's projects all leave that bucket (e.g. the last
+  // candidate is promoted, or the last archived project is unarchived /
+  // deleted) the tab chip is no longer rendered — fall back to 'all' so the
+  // steward isn't stranded on an empty filtered view with a stale message.
+  useEffect(() => {
+    if (statusFilter === 'candidate' && candidateCount === 0)
+      setStatusFilter('all');
+    if (statusFilter === 'archived' && archivedCount === 0)
+      setStatusFilter('all');
+  }, [statusFilter, candidateCount, archivedCount]);
+
   const visibleProjects = projects.filter((p) => {
     if (statusFilter === 'candidate') return p.status === 'candidate';
     if (statusFilter === 'active') return p.status === 'active';
-    return true; // 'all' — include archived + shared too, preserving the
-    // historical default of showing every row.
+    if (statusFilter === 'archived') return p.status === 'archived';
+    return p.status !== 'archived'; // 'all' — everything except archived
+    // (shelved out of the default working list).
   });
 
   // §1 Compare-mode: a steward toggles "Compare" in the header, picks
@@ -151,7 +174,7 @@ export default function HomePage() {
               <>
                 {/* §1 Candidate filter — hidden until a candidate exists so
                     the chrome doesn't clutter fresh accounts. */}
-                {candidateCount > 0 && (
+                {(candidateCount > 0 || archivedCount > 0) && (
                   <div className={styles.filterChips} role="tablist" aria-label="Filter projects by status">
                     <button
                       type="button"
@@ -160,7 +183,7 @@ export default function HomePage() {
                       className={`${styles.filterChip} ${statusFilter === 'all' ? styles.filterChipActive : ''}`}
                       onClick={() => setStatusFilter('all')}
                     >
-                      All <span className={styles.filterChipCount}>{projects.length}</span>
+                      All <span className={styles.filterChipCount}>{projects.length - archivedCount}</span>
                     </button>
                     <button
                       type="button"
@@ -171,15 +194,28 @@ export default function HomePage() {
                     >
                       Active <span className={styles.filterChipCount}>{activeCount}</span>
                     </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={statusFilter === 'candidate'}
-                      className={`${styles.filterChip} ${statusFilter === 'candidate' ? styles.filterChipActive : ''}`}
-                      onClick={() => setStatusFilter('candidate')}
-                    >
-                      Candidates <span className={styles.filterChipCount}>{candidateCount}</span>
-                    </button>
+                    {candidateCount > 0 && (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={statusFilter === 'candidate'}
+                        className={`${styles.filterChip} ${statusFilter === 'candidate' ? styles.filterChipActive : ''}`}
+                        onClick={() => setStatusFilter('candidate')}
+                      >
+                        Candidates <span className={styles.filterChipCount}>{candidateCount}</span>
+                      </button>
+                    )}
+                    {archivedCount > 0 && (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={statusFilter === 'archived'}
+                        className={`${styles.filterChip} ${statusFilter === 'archived' ? styles.filterChipActive : ''}`}
+                        onClick={() => setStatusFilter('archived')}
+                      >
+                        Archived <span className={styles.filterChipCount}>{archivedCount}</span>
+                      </button>
+                    )}
                   </div>
                 )}
                 {projects.length >= 2 && (
@@ -218,6 +254,11 @@ export default function HomePage() {
                   {isCandidate && (
                     <Badge variant="info" size="sm" dot>
                       Candidate
+                    </Badge>
+                  )}
+                  {p.status === 'archived' && (
+                    <Badge variant="default" size="sm" dot>
+                      Archived
                     </Badge>
                   )}
                   {p.isBuiltin && (
@@ -271,27 +312,29 @@ export default function HomePage() {
                 )}
                 {!compareMode && !p.isBuiltin && (
                   <div className={styles.cardActions}>
-                    <button
-                      type="button"
-                      className={styles.cardActionBtn}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleCandidate(p.id, p.status);
-                      }}
-                      aria-label={
-                        isCandidate
-                          ? `Promote ${p.name} to an active project`
-                          : `Mark ${p.name} as a candidate property`
-                      }
-                      title={
-                        isCandidate
-                          ? 'Promote to active project'
-                          : 'Mark as candidate (exploratory)'
-                      }
-                    >
-                      {isCandidate ? 'Promote' : 'Candidate'}
-                    </button>
+                    {p.status !== 'archived' && (
+                      <button
+                        type="button"
+                        className={styles.cardActionBtn}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          toggleCandidate(p.id, p.status);
+                        }}
+                        aria-label={
+                          isCandidate
+                            ? `Promote ${p.name} to an active project`
+                            : `Mark ${p.name} as a candidate property`
+                        }
+                        title={
+                          isCandidate
+                            ? 'Promote to active project'
+                            : 'Mark as candidate (exploratory)'
+                        }
+                      >
+                        {isCandidate ? 'Promote' : 'Candidate'}
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={styles.cardActionBtn}
@@ -304,6 +347,44 @@ export default function HomePage() {
                       title="Duplicate as template"
                     >
                       Duplicate
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.cardActionBtn}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (p.status === 'archived') {
+                          unarchiveProject(p.id);
+                        } else {
+                          archiveProject(p.id);
+                        }
+                      }}
+                      aria-label={
+                        p.status === 'archived'
+                          ? `Unarchive ${p.name} (restore to active)`
+                          : `Archive ${p.name}`
+                      }
+                      title={
+                        p.status === 'archived'
+                          ? 'Restore to active'
+                          : 'Archive (shelve out of the working list)'
+                      }
+                    >
+                      {p.status === 'archived' ? 'Unarchive' : 'Archive'}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.cardActionBtnDanger}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setDeleteTarget(p);
+                      }}
+                      aria-label={`Delete ${p.name} permanently`}
+                      title="Delete permanently"
+                    >
+                      Delete
                     </button>
                   </div>
                 )}
@@ -337,6 +418,36 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      <Modal
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title={deleteTarget ? `Delete “${deleteTarget.name}”?` : ''}
+        description="This permanently removes the project, all zones, design elements, and attachments. This cannot be undone."
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setDeleteTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                if (deleteTarget) {
+                  deleteProject(deleteTarget.id);
+                  setDeleteTarget(null);
+                }
+              }}
+            >
+              Delete Project
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }

@@ -162,6 +162,16 @@
   outline-offset: 2px;
 }
 
+.cardActionBtnDanger {
+  composes: cardActionBtn;
+  color: var(--color-error-600);
+}
+
+.cardActionBtnDanger:hover {
+  color: var(--color-error-600);
+  border-color: var(--color-error-600);
+}
+
 /* ─── Project card ─────────────────────────────────────────────────────── */
 .card {
   display: block;
