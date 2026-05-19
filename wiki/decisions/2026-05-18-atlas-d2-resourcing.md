@@ -6,7 +6,11 @@ DOM); **committed & pushed** on `feat/atlas-permaculture` (commit
 reconciliation (duplicate `21f30db5` syncManifest fix dropped in favour of
 the already-merged remote `45a87345`; `ogden-crew-members` registration
 preserved). Preservation contract re-confirmed green post-rebase by the
-hard-gate unit suite.
+hard-gate unit suite. **Update 2026-05-19:** the previously-deferred live
+regenerate-preservation run is now **VERIFIED LIVE (run6)** after building
+the D2.1 manual-override editor
+([[2026-05-18-atlas-d2-1-resourcing-override-ui]]) — see "Notes &
+deferred".
 **Context source:** Approved Session Execution Plan for Sub-project D2,
 executing the ratified D0–D5 roadmap
 ([[2026-05-18-atlas-land-os-positioning-and-d-roadmap]]). Builds on the
@@ -145,16 +149,41 @@ auto-mutation (conflicts derived at render only). No DB migration.
 ## Notes & deferred
 
 - Live exercise of the Goal-Compass regenerate-preserves-manual-edit flow
-  against a project with a generated plan **remains deferred** — the
-  contract is proven by construction (byte-identical shared mappers) + the
-  preservation/idempotence + seeding + spine-sync hard-gate unit tests,
-  which were re-run green after the 2026-05-18 rebase
-  (`workItemStore.resources` 3, `seedGoalCompassResources` 3,
-  `syncManifest` 10, plus `V3LifecycleSidebar`/`ObserveModuleBar`). The
-  live run was not performed: no preview server was up and the scenario
-  needs bespoke seeded data (a generated plan **and** a manual resourcing
-  override); not fabricated. Recommended as the first step of a future
-  session that has a generated-plan fixture project.
+  is **VERIFIED LIVE (run6, 2026-05-19)** — superseding the prior deferral.
+  The missing manual-override edit surface was built first as **D2.1**
+  ([[2026-05-18-atlas-d2-1-resourcing-override-ui]]; per-WorkItem inline
+  `ResourcingEditor` in `PlanExecutionTrackerCard`); the generated-plan
+  fixture was seeded programmatically via the new dev seam
+  `apps/web/src/dev/seedGoalCompassPlan.ts`
+  (`window.__ogdenSeedGoalCompassPlan`). Run executed on preview `web-a1`
+  (:5240), builtin "351 House" project
+  (`31b47ae7-9afd-4db6-ab23-bac099549713`): 19 goal-compass WorkItems
+  seeded. Target item `gc-task-keyline-access-track`:
+  - **Before:** `overridden:false`, `equipmentRequired:null`,
+    `materials:null`, `equipmentRequiredAuto:["tractor + grader blade"]`,
+    `materialsAuto:[4 catalog lines]`.
+  - **Manual override via the D2.1 editor UI (real clicks):** equipment
+    `STEWARD-OVERRIDE-EXCAVATOR`, material
+    `{label:"STEWARD-COMPOST",unit:"m³",quantityPerAcre:9}`. Post-override:
+    `overridden:true`, manual fields set, `*Auto` unchanged. Act →
+    Resourcing BOM showed `STEWARD-COMPOST … manual` and the equipment
+    booking listed `STEWARD-OVERRIDE-EXCAVATOR — 1 item`.
+  - **Regenerated via the real path** (Plan → Goal Compass → Proposal →
+    "Generate proposal", `GeneratedPlanTab.handleGenerate` →
+    `pushGoalCompassToSpine` → `replaceGoalCompassResources`).
+  - **Post-regenerate (the contract — PASS):** manual
+    `equipmentRequired`/`materials` **byte-identical** to the
+    STEWARD-OVERRIDE values; `overridden` still `true`; `source` still
+    `goal-compass`; `updatedAt` **unchanged** (`08:06:38.456Z` —
+    preservation gate short-circuited the overridden row, zero churn);
+    `equipmentRequiredAuto`/`materialsAuto` retained their catalog values;
+    the 18 **non-overridden** goal-compass rows re-seeded their `*Auto`
+    fields, proving the resource sync ran spine-wide while skipping the
+    single overridden row. `preview_console_logs` clean (zero errors;
+    only the known unrelated act-telemetry / machinery 500s — no backend
+    in preview; no D2/D2.1 file in any stack trace). The
+    construction/unit-test proof above stands and is now corroborated by
+    this live run.
 - **Committed & pushed** — `63313677` on `feat/atlas-permaculture`
   (D0/D1 were `6211caff`); divergence with the remote reconciled by
   rebase and pushed (`80553503..249dad54`).
