@@ -24,7 +24,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import type { WorkItem } from '@ogden/shared';
+import type { WorkItem, MaterialLine } from '@ogden/shared';
 import {
   analyzeWorkItemGraph,
   detectCycle,
@@ -144,6 +144,9 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
 
   const [group, setGroup] = useState<GroupMode>('phase');
   const [openDepEditor, setOpenDepEditor] = useState<string | null>(null);
+  const [openResourcingEditor, setOpenResourcingEditor] = useState<
+    string | null
+  >(null);
   const [depPick, setDepPick] = useState<Record<string, string>>({});
   const [depError, setDepError] = useState<Record<string, string>>({});
 
@@ -409,12 +412,221 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
     );
   }
 
+  function ResourcingEditor({ w }: { w: WorkItem }) {
+    const [equipment, setEquipment] = useState<string[]>(
+      () => w.equipmentRequired ?? [],
+    );
+    const [materials, setMaterials] = useState<MaterialLine[]>(
+      () => w.materials ?? [],
+    );
+    const [equipDraft, setEquipDraft] = useState('');
+
+    function addEquipment() {
+      const v = equipDraft.trim();
+      if (!v) return;
+      setEquipment((cur) => (cur.includes(v) ? cur : [...cur, v]));
+      setEquipDraft('');
+    }
+
+    function removeEquipment(v: string) {
+      setEquipment((cur) => cur.filter((e) => e !== v));
+    }
+
+    function addMaterialRow() {
+      setMaterials((cur) => [...cur, { label: '', unit: '' }]);
+    }
+
+    function patchMaterial(i: number, patch: Partial<MaterialLine>) {
+      setMaterials((cur) =>
+        cur.map((m, idx) => (idx === i ? { ...m, ...patch } : m)),
+      );
+    }
+
+    function removeMaterial(i: number) {
+      setMaterials((cur) => cur.filter((_, idx) => idx !== i));
+    }
+
+    function save() {
+      const cleaned = materials.filter((m) => m.label.trim() !== '');
+      useWorkItemStore.getState().updateItem(w.id, {
+        overridden: true,
+        equipmentRequired: equipment,
+        materials: cleaned,
+      });
+      setOpenResourcingEditor(null);
+    }
+
+    return (
+      <div
+        style={{
+          margin: '6px 0 2px',
+          padding: '8px 10px',
+          borderRadius: 6,
+          background: 'rgba(255,255,255,0.04)',
+          fontSize: 12,
+        }}
+      >
+        <div className={styles.listMeta} style={{ marginBottom: 4 }}>
+          Equipment required
+        </div>
+        {equipment.length === 0 ? (
+          <div className={styles.listMeta}>None.</div>
+        ) : (
+          <div
+            style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2 }}
+          >
+            {equipment.map((e) => (
+              <span
+                key={e}
+                className={styles.listMeta}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  background: 'rgba(255,255,255,0.06)',
+                }}
+              >
+                {e}
+                <button
+                  type="button"
+                  className={styles.btn}
+                  aria-label={`Remove ${e}`}
+                  onClick={() => removeEquipment(e)}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+          <input
+            type="text"
+            placeholder="Add equipment…"
+            value={equipDraft}
+            onChange={(e) => setEquipDraft(e.target.value)}
+            className={styles.field}
+            style={{ flex: 1, fontSize: 12 }}
+          />
+          <button
+            type="button"
+            className={styles.btn}
+            disabled={!equipDraft.trim()}
+            onClick={addEquipment}
+          >
+            Add
+          </button>
+        </div>
+
+        <div
+          className={styles.listMeta}
+          style={{ marginBottom: 4, marginTop: 10 }}
+        >
+          Materials
+        </div>
+        {materials.length === 0 ? (
+          <div className={styles.listMeta}>None.</div>
+        ) : (
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {materials.map((m, i) => (
+              <li
+                key={i}
+                className={styles.listRow}
+                style={{ gap: 6, padding: '3px 0' }}
+              >
+                <input
+                  type="text"
+                  placeholder="Label"
+                  value={m.label}
+                  onChange={(e) => patchMaterial(i, { label: e.target.value })}
+                  className={styles.field}
+                  style={{ flex: 2, fontSize: 12 }}
+                />
+                <input
+                  type="text"
+                  placeholder="Unit"
+                  value={m.unit}
+                  onChange={(e) => patchMaterial(i, { unit: e.target.value })}
+                  className={styles.field}
+                  style={{ flex: 1, fontSize: 12 }}
+                />
+                <input
+                  type="number"
+                  placeholder="Qty per acre"
+                  value={m.quantityPerAcre ?? ''}
+                  onChange={(e) =>
+                    patchMaterial(i, {
+                      quantityPerAcre:
+                        e.target.value.trim() === ''
+                          ? undefined
+                          : Number(e.target.value),
+                    })
+                  }
+                  className={styles.field}
+                  style={{ flex: 1, fontSize: 12 }}
+                />
+                <input
+                  type="text"
+                  placeholder="Notes"
+                  value={m.notes ?? ''}
+                  onChange={(e) =>
+                    patchMaterial(i, {
+                      notes:
+                        e.target.value === '' ? undefined : e.target.value,
+                    })
+                  }
+                  className={styles.field}
+                  style={{ flex: 2, fontSize: 12 }}
+                />
+                <button
+                  type="button"
+                  className={styles.btn}
+                  aria-label={`Remove material ${i + 1}`}
+                  onClick={() => removeMaterial(i)}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div style={{ marginTop: 6 }}>
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={addMaterialRow}
+          >
+            Add material
+          </button>
+        </div>
+
+        <div className={styles.btnRow} style={{ marginTop: 10, gap: 6 }}>
+          <button type="button" className={styles.btn} onClick={save}>
+            Save
+          </button>
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={() => setOpenResourcingEditor(null)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   function TaskItem({ row, showPhase }: { row: TaskRow; showPhase: boolean }) {
     const w = row.item;
     const done = isDone(w);
     const overdue = isOverdue(w, today);
     const node = graph.byId.get(w.id);
     const editing = openDepEditor === w.id;
+    const editingResourcing = openResourcingEditor === w.id;
+    const resourcingCount =
+      (w.equipmentRequired?.length ?? 0) + (w.materials?.length ?? 0);
     const when =
       w.scheduledStart && w.scheduledEnd
         ? `${w.scheduledStart} → ${w.scheduledEnd}`
@@ -483,6 +695,19 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
             <button
               type="button"
               className={styles.btn}
+              aria-expanded={editingResourcing}
+              onClick={() =>
+                setOpenResourcingEditor((cur) =>
+                  cur === w.id ? null : w.id,
+                )
+              }
+            >
+              Resourcing
+              {resourcingCount > 0 ? ` (${resourcingCount})` : ''}
+            </button>
+            <button
+              type="button"
+              className={styles.btn}
               onClick={() => onToggle(row)}
             >
               {done ? 'Reopen' : 'Mark done'}
@@ -490,6 +715,7 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
           </span>
         </div>
         {editing ? <DependencyEditor w={w} /> : null}
+        {editingResourcing ? <ResourcingEditor w={w} /> : null}
       </li>
     );
   }
