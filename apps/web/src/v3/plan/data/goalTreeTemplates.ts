@@ -174,6 +174,14 @@ const REGENERATIVE_FARM: GoalTree = {
           target: 90,
           deadlineYear: 3,
         },
+        {
+          id: 'silvopasture-integration-pct',
+          description:
+            'Mean per-host silvopasture integration (fodder + canopy − toxicity) across the parcel (%)',
+          unit: 'pct',
+          target: 70,
+          deadlineYear: 5,
+        },
       ],
     },
   ],

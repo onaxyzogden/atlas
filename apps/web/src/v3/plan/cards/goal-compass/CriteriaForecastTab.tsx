@@ -15,7 +15,11 @@ import { useUtilityStore } from '../../../../store/utilityStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import { useAllStructures } from '../../../../store/builtEnvironmentSelectors.js';
 import { useRotationPlanStore } from '../../../../store/rotationPlanStore.js';
+import { usePolycultureStore } from '../../../../store/polycultureStore.js';
+import { useCropStore } from '../../../../store/cropStore.js';
+import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import { computeRestCompliancePct } from '../../../../features/livestock/rotationSequenceMath.js';
+import { computeSilvopastureIntegrationPct } from '../../../../features/agroforestry/guildLivestockMath.js';
 import { welfareSummaryForProject } from '../../../../features/livestock/welfarePass.js';
 import { runSequencingEngine } from '../../engine/goalCompass/sequencingEngine.js';
 import {
@@ -41,6 +45,9 @@ export default function CriteriaForecastTab({ project }: Props) {
   const rotationPlan = useRotationPlanStore(
     (s) => s.byProject[project.id] ?? null,
   );
+  const allGuilds = usePolycultureStore((s) => s.guilds);
+  const allCropAreas = useCropStore((s) => s.cropAreas);
+  const designElements = useDesignElementsForProject(project.id);
 
   const currentValues = useMemo<Record<string, number>>(() => {
     const paddocks = allPaddocks.filter((p) => p.projectId === project.id);
@@ -60,6 +67,13 @@ export default function CriteriaForecastTab({ project }: Props) {
         paddocks,
         rotationPlan,
       ),
+      'silvopasture-integration-pct': computeSilvopastureIntegrationPct({
+        projectId: project.id,
+        cropAreas: allCropAreas,
+        designElements,
+        paddocks: allPaddocks,
+        guilds: allGuilds,
+      }),
     };
   }, [
     allPaddocks,
@@ -67,6 +81,9 @@ export default function CriteriaForecastTab({ project }: Props) {
     allWaterNodes,
     allStructures,
     rotationPlan,
+    allGuilds,
+    allCropAreas,
+    designElements,
     project.id,
   ]);
 

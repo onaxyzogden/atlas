@@ -207,6 +207,9 @@ export const MODULE_CARDS: Record<
     { label: 'Rotation sequence',       sectionId: 'plan-livestock-rotation-sequence' },
     { label: 'Rotation plan',           sectionId: 'plan-livestock-rotation-plan' },
     { label: 'Rotation adherence',      sectionId: 'plan-livestock-rotation-adherence' },
+    // B4 — cross-registered with plant-systems. One sectionId, two
+    // surfacing tabs; render is centralised in PlanModuleSlideUp.
+    { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },
     { label: 'Slaughter throughput', sectionId: 'plan-product-slaughter-throughput', group: 'Product Chain' },
     { label: 'Cold-chain coverage',  sectionId: 'plan-product-coldchain-coverage',   group: 'Product Chain' },
     { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },
@@ -231,6 +234,8 @@ export const MODULE_CARDS: Record<
     // designer over the additive successionPathStore slice.
     { label: 'Guild integrity',        sectionId: 'plan-guild-integrity' },
     { label: 'Succession path',        sectionId: 'plan-succession-path' },
+    // B4 — cross-registered with livestock; same sectionId, one render.
+    { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
