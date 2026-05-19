@@ -99,12 +99,44 @@ describe('equipmentConflicts', () => {
     ]);
     expect(c).toHaveLength(0);
   });
+
+  // Hardening (D2 spec §2): pins the strict `<` overlap contract. Two items
+  // where one's end exactly equals the other's start are back-to-back, NOT
+  // double-booked — a future `<=` regression would false-positive every
+  // consecutive booking of shared equipment.
+  it('does not flag touching spans (a.end === b.start)', () => {
+    const c = equipmentConflicts([
+      wi({
+        id: 'a',
+        equipmentRequired: ['tractor'],
+        scheduledStart: '2026-06-01',
+        scheduledEnd: '2026-06-10',
+      }),
+      wi({
+        id: 'b',
+        equipmentRequired: ['tractor'],
+        scheduledStart: '2026-06-10',
+        scheduledEnd: '2026-06-20',
+      }),
+    ]);
+    expect(c).toHaveLength(0);
+  });
 });
 
 describe('isoWeekKey', () => {
   it('computes ISO week', () => {
     // 2026-01-01 is a Thursday → ISO week 2026-W01
     expect(isoWeekKey(Date.parse('2026-01-01'))).toBe('2026-W01');
+  });
+
+  // Hardening (D2 spec §1): ISO-8601 year-boundary rollover. 2026 starts on
+  // a Thursday so it is a 53-week ISO year; 2026-12-31 is itself a Thursday
+  // (anchors W53/2026) and 2027-01-01 is a Friday that ISO-8601 assigns to
+  // W53 of the PRIOR year, not W01/2027. An off-by-one here silently
+  // mis-buckets labour hours across the year boundary with no other signal.
+  it('rolls the year boundary per ISO-8601 (Jan 1 belongs to prior year)', () => {
+    expect(isoWeekKey(Date.parse('2026-12-31'))).toBe('2026-W53');
+    expect(isoWeekKey(Date.parse('2027-01-01'))).toBe('2026-W53');
   });
 });
 
@@ -131,6 +163,21 @@ describe('assigneeWeeklyLoad', () => {
         crew,
       ),
     ).toHaveLength(0);
+  });
+
+  // Hardening (D2 spec §3): pins the exact-cap boundary unconditionally.
+  // A member whose summed week hours === weeklyHoursCap is at-capacity, NOT
+  // over (strict `>`). Independent of the chosen number in the "at or under"
+  // case above — guards against a future `>=` regression at the boundary.
+  it('does not flag a week exactly equal to the soft cap', () => {
+    const c = assigneeWeeklyLoad(
+      [
+        wi({ id: 'a', assigneeId: 'm1', laborHrs: 25, scheduledStart: '2026-06-01' }),
+        wi({ id: 'b', assigneeId: 'm1', laborHrs: 15, scheduledStart: '2026-06-03' }),
+      ],
+      crew,
+    );
+    expect(c).toHaveLength(0);
   });
 
   it('ignores unassigned / no-hours / no-date items', () => {
