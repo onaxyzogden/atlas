@@ -118,10 +118,11 @@ describe('PlanExecutionTrackerCard — D2.1 resourcing editor', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /resourcing/i }));
 
-    const dialog = screen.getByRole('button', { name: /^save$/i })
-      .closest('div')!.parentElement as HTMLElement;
-    expect(within(dialog).getByText('tractor')).toBeTruthy();
-    expect(within(dialog).queryByText('hidden-auto')).toBeNull();
+    const group = screen.getByRole('group', {
+      name: /resourcing/i,
+    }) as HTMLElement;
+    expect(within(group).getByText('tractor')).toBeTruthy();
+    expect(within(group).queryByText('hidden-auto')).toBeNull();
   });
 
   it('Cancel performs no store write (updatedAt unchanged)', () => {

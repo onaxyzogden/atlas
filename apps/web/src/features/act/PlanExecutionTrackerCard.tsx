@@ -416,8 +416,13 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
     const [equipment, setEquipment] = useState<string[]>(
       () => w.equipmentRequired ?? [],
     );
-    const [materials, setMaterials] = useState<MaterialLine[]>(
-      () => w.materials ?? [],
+    const [materials, setMaterials] = useState<
+      { line: MaterialLine; _rk: string }[]
+    >(() =>
+      (w.materials ?? []).map((line) => ({
+        line,
+        _rk: crypto.randomUUID(),
+      })),
     );
     const [equipDraft, setEquipDraft] = useState('');
 
@@ -433,21 +438,28 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
     }
 
     function addMaterialRow() {
-      setMaterials((cur) => [...cur, { label: '', unit: '' }]);
+      setMaterials((cur) => [
+        ...cur,
+        { line: { label: '', unit: '' }, _rk: crypto.randomUUID() },
+      ]);
     }
 
-    function patchMaterial(i: number, patch: Partial<MaterialLine>) {
+    function patchMaterial(rk: string, patch: Partial<MaterialLine>) {
       setMaterials((cur) =>
-        cur.map((m, idx) => (idx === i ? { ...m, ...patch } : m)),
+        cur.map((m) =>
+          m._rk === rk ? { ...m, line: { ...m.line, ...patch } } : m,
+        ),
       );
     }
 
-    function removeMaterial(i: number) {
-      setMaterials((cur) => cur.filter((_, idx) => idx !== i));
+    function removeMaterial(rk: string) {
+      setMaterials((cur) => cur.filter((m) => m._rk !== rk));
     }
 
     function save() {
-      const cleaned = materials.filter((m) => m.label.trim() !== '');
+      const cleaned = materials
+        .map((m) => m.line)
+        .filter((m) => m.label.trim() !== '');
       useWorkItemStore.getState().updateItem(w.id, {
         overridden: true,
         equipmentRequired: equipment,
@@ -458,6 +470,8 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
 
     return (
       <div
+        role="group"
+        aria-label="Resourcing"
         style={{
           margin: '6px 0 2px',
           padding: '8px 10px',
@@ -530,9 +544,9 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
           <div className={styles.listMeta}>None.</div>
         ) : (
           <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {materials.map((m, i) => (
+            {materials.map(({ line: m, _rk }, i) => (
               <li
-                key={i}
+                key={_rk}
                 className={styles.listRow}
                 style={{ gap: 6, padding: '3px 0' }}
               >
@@ -540,7 +554,9 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
                   type="text"
                   placeholder="Label"
                   value={m.label}
-                  onChange={(e) => patchMaterial(i, { label: e.target.value })}
+                  onChange={(e) =>
+                    patchMaterial(_rk, { label: e.target.value })
+                  }
                   className={styles.field}
                   style={{ flex: 2, fontSize: 12 }}
                 />
@@ -548,7 +564,7 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
                   type="text"
                   placeholder="Unit"
                   value={m.unit}
-                  onChange={(e) => patchMaterial(i, { unit: e.target.value })}
+                  onChange={(e) => patchMaterial(_rk, { unit: e.target.value })}
                   className={styles.field}
                   style={{ flex: 1, fontSize: 12 }}
                 />
@@ -557,7 +573,7 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
                   placeholder="Qty per acre"
                   value={m.quantityPerAcre ?? ''}
                   onChange={(e) =>
-                    patchMaterial(i, {
+                    patchMaterial(_rk, {
                       quantityPerAcre:
                         e.target.value.trim() === ''
                           ? undefined
@@ -572,7 +588,7 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
                   placeholder="Notes"
                   value={m.notes ?? ''}
                   onChange={(e) =>
-                    patchMaterial(i, {
+                    patchMaterial(_rk, {
                       notes:
                         e.target.value === '' ? undefined : e.target.value,
                     })
@@ -584,7 +600,7 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
                   type="button"
                   className={styles.btn}
                   aria-label={`Remove material ${i + 1}`}
-                  onClick={() => removeMaterial(i)}
+                  onClick={() => removeMaterial(_rk)}
                 >
                   ×
                 </button>
