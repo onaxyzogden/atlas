@@ -36,46 +36,18 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useCompostInventoryStore } from '../../../../store/compostInventoryStore.js';
+import {
+  GREENS,
+  BROWNS,
+  aggregateCN,
+  type Feedstock,
+} from './compostYieldMath.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
 }
-
-interface Feedstock {
-  id: string;
-  name: string;
-  cn: number;       // reference C:N ratio
-  note?: string;
-}
-
-// Coarse reference C:N ratios. Cornell + USDA tables. These are the
-// figures stewards quote in the field — "20:1 grass clippings, 80:1
-// straw" — not the lab values you'd find in a soil-science journal.
-const GREENS: Feedstock[] = [
-  { id: 'green-kitchen',      name: 'Kitchen scraps (fruit, veg)', cn: 15, note: 'Bury or cover — exposed scraps attract pests.' },
-  { id: 'green-grass',        name: 'Fresh grass clippings',        cn: 20, note: 'Heats fast; spread thin or it will mat & go anaerobic.' },
-  { id: 'green-coffee',       name: 'Coffee grounds',               cn: 20, note: 'Mildly acidic; great worm food.' },
-  { id: 'green-manure-cow',   name: 'Cow / horse manure (fresh)',   cn: 20, note: 'Compost ≥ 90 days before food-crop contact.' },
-  { id: 'green-manure-poultry', name: 'Poultry manure (fresh)',     cn: 10, note: 'Hot — pair with high-C bedding (straw / wood shavings).' },
-  { id: 'green-comfrey',      name: 'Comfrey / nettle (chop & drop)', cn: 10, note: 'Dynamic accumulator — high-K leachate.' },
-  { id: 'green-cover-crop',   name: 'Cover crop (turned in green)', cn: 18, note: 'Legume mixes 12–18:1; grass mixes higher.' },
-  { id: 'green-seaweed',      name: 'Seaweed / kelp',               cn: 19, note: 'Rinse to drop salt; trace minerals + cytokinins.' },
-];
-
-const BROWNS: Feedstock[] = [
-  { id: 'brown-leaves',       name: 'Dry autumn leaves',            cn: 60, note: 'Shred — whole leaves mat and exclude oxygen.' },
-  { id: 'brown-straw',        name: 'Straw (wheat, oat, rice)',      cn: 80, note: 'Fluffy bulking agent; check for herbicide residue.' },
-  { id: 'brown-woodchip',     name: 'Wood chips (deciduous)',       cn: 400, note: 'Slow; better as path / sheet-mulch top dressing.' },
-  { id: 'brown-sawdust',      name: 'Sawdust (untreated)',          cn: 500, note: 'Use sparingly — locks up N if uncomposted.' },
-  { id: 'brown-cardboard',    name: 'Cardboard / paper (shredded)', cn: 350, note: 'Strip tape and glossy print; sheet-mulch base layer.' },
-  { id: 'brown-pine-needles', name: 'Pine needles',                  cn: 80, note: 'Acidic — pair with wood ash or use for blueberries.' },
-  { id: 'brown-corn-stalks',  name: 'Corn / sunflower stalks',      cn: 75, note: 'Chop fine; otherwise composts over multiple seasons.' },
-  { id: 'brown-spent-mushroom', name: 'Spent mushroom substrate',    cn: 30, note: 'Borderline — counts as brown when fresh, green when leached.' },
-];
-
-const DENSITY_KG_PER_M3 = 200; // coarse — enough to weight ratios in the right direction.
 
 export default function SoilResourcesCard({ project }: Props) {
   // ── Persistent inventory (compostInventoryStore) ──────────────────────
@@ -99,36 +71,10 @@ export default function SoilResourcesCard({ project }: Props) {
     return (inventory[id] ?? 0) > 0;
   }
 
-  // Mass-weighted C:N — the contribution of each feedstock to total C
-  // and total N is proportional to its mass and its share of carbon /
-  // nitrogen. We use C:N as a unitless ratio: for a feedstock with
-  // ratio r, its C-fraction (relative to dry matter) ≈ r/(r+1) and its
-  // N-fraction ≈ 1/(r+1). Aggregate C:N = ΣC/ΣN. Density is constant
-  // across feedstocks here (200 kg/m³) so it cancels — but we keep it
-  // explicit so a future refinement can use per-feedstock densities.
-  const aggregate = useMemo(() => {
-    let totalC = 0;
-    let totalN = 0;
-    for (const f of GREENS) {
-      const v = inventory[f.id] ?? 0;
-      if (v <= 0) continue;
-      const m = v * DENSITY_KG_PER_M3;
-      totalC += m * (f.cn / (f.cn + 1));
-      totalN += m * (1 / (f.cn + 1));
-    }
-    for (const f of BROWNS) {
-      const v = inventory[f.id] ?? 0;
-      if (v <= 0) continue;
-      const m = v * DENSITY_KG_PER_M3;
-      totalC += m * (f.cn / (f.cn + 1));
-      totalN += m * (1 / (f.cn + 1));
-    }
-    const ratio = totalN > 0 ? totalC / totalN : 0;
-    const greenCount = GREENS.filter((f) => checked(f.id)).length;
-    const brownCount = BROWNS.filter((f) => checked(f.id)).length;
-    return { totalC, totalN, ratio, greenCount, brownCount };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inventory]);
+  // Mass-weighted aggregate C:N — extracted to `compostYieldMath` so the
+  // formula has one home + a colocated test (this card had none). The
+  // card's rendered numbers are unchanged by construction.
+  const aggregate = useMemo(() => aggregateCN(inventory), [inventory]);
 
   // Verdict bands.
   const verdict = useMemo(() => {
