@@ -33,6 +33,10 @@ import './store/connectivityStore.js';
 // Register window.__ogdenSeedFertilitySample dev handle for Plan-stage
 // zoneThresholds smoke-testing. Function reference only; no auto-execution.
 import './dev/seedFertilitySample.js';
+// Register window.__ogdenSeedGoalCompassPlan dev handle for D2
+// regenerate-preservation smoke-testing. Function reference only; no
+// auto-execution.
+import './dev/seedGoalCompassPlan.js';
 // Init auth from localStorage before first render (non-blocking — sets isLoaded when done)
 import { useAuthStore } from './store/authStore.js';
 import { syncService } from './lib/syncService.js';
