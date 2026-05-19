@@ -67,6 +67,7 @@ export * from './lib/workItemGraph.js';
 export * from './lib/resourcingConflicts.js';
 export * from './lib/budgetVariance.js';
 export * from './lib/fieldProof.js';
+export * from './lib/operatingHealth.js';
 export * from './astronomy/sunPath.js';
 export * from './astronomy/solarExposure.js';
 export * from './climate/comfortCalendar.js';
