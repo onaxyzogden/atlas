@@ -1,7 +1,12 @@
 # 2026-05-18 — D2: operational resourcing on the WorkItem spine
 
-**Status:** Implemented, verified (typecheck / vitest / `vite build` / live
-DOM), **uncommitted** on `feat/atlas-permaculture`
+**Status:** Implemented & verified (typecheck / vitest / `vite build` / live
+DOM); **committed & pushed** on `feat/atlas-permaculture` (commit
+`63313677`, 2026-05-18) — rebased onto the remote tip during divergence
+reconciliation (duplicate `21f30db5` syncManifest fix dropped in favour of
+the already-merged remote `45a87345`; `ogden-crew-members` registration
+preserved). Preservation contract re-confirmed green post-rebase by the
+hard-gate unit suite.
 **Context source:** Approved Session Execution Plan for Sub-project D2,
 executing the ratified D0–D5 roadmap
 ([[2026-05-18-atlas-land-os-positioning-and-d-roadmap]]). Builds on the
@@ -140,10 +145,18 @@ auto-mutation (conflicts derived at render only). No DB migration.
 ## Notes & deferred
 
 - Live exercise of the Goal-Compass regenerate-preserves-manual-edit flow
-  against a project with a generated plan is deferred — the contract is
-  proven by construction (byte-identical shared mappers) + the
-  preservation/idempotence + seeding + spine-sync hard-gate unit tests.
-- **Uncommitted** — D0/D1 were committed (`6211caff`); D2 awaits an
-  explicit commit instruction.
+  against a project with a generated plan **remains deferred** — the
+  contract is proven by construction (byte-identical shared mappers) + the
+  preservation/idempotence + seeding + spine-sync hard-gate unit tests,
+  which were re-run green after the 2026-05-18 rebase
+  (`workItemStore.resources` 3, `seedGoalCompassResources` 3,
+  `syncManifest` 10, plus `V3LifecycleSidebar`/`ObserveModuleBar`). The
+  live run was not performed: no preview server was up and the scenario
+  needs bespoke seeded data (a generated plan **and** a manual resourcing
+  override); not fabricated. Recommended as the first step of a future
+  session that has a generated-plan fixture project.
+- **Committed & pushed** — `63313677` on `feat/atlas-permaculture`
+  (D0/D1 were `6211caff`); divergence with the remote reconciled by
+  rebase and pushed (`80553503..249dad54`).
 - Continues the D-series. D3 (budget/cost tracking, the covenant-bounded
   cost layer) is its own brainstorm→spec→plan cycle.
