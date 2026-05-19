@@ -17,6 +17,7 @@ const PlanExecutionTrackerCard  = lazy(() => import('../../features/act/PlanExec
 const ResourcingCard            = lazy(() => import('../../features/act/ResourcingCard.js'));
 const BuildGanttCard            = lazy(() => import('../../features/act/BuildGanttCard.js'));
 const BudgetCard                = lazy(() => import('../../features/act/BudgetCard.js'));
+const OperatingDashboardCard    = lazy(() => import('../../features/act/OperatingDashboardCard.js'));
 const PilotPlotsCard            = lazy(() => import('../../features/act/PilotPlotsCard.js'));
 const MaintenanceScheduleCard   = lazy(() => import('../../features/act/MaintenanceScheduleCard.js'));
 const IrrigationManagerCard     = lazy(() => import('../../features/act/IrrigationManagerCard.js'));
@@ -49,6 +50,7 @@ function renderActCard(sectionId: string, project: LocalProject) {
     case 'act-resourcing':        return <ResourcingCard project={project} onSwitchToMap={noop} />;
     case 'act-build-gantt':       return <BuildGanttCard project={project} onSwitchToMap={noop} />;
     case 'act-budget':            return <BudgetCard project={project} onSwitchToMap={noop} />;
+    case 'act-operating-dashboard': return <OperatingDashboardCard project={project} onSwitchToMap={noop} />;
     case 'act-pilot-plots':       return <PilotPlotsCard project={project} onSwitchToMap={noop} />;
     case 'act-maintenance-events': return <MaintenanceLogCard project={project} onSwitchToMap={noop} />;
     case 'act-maintenance':       return <MaintenanceScheduleCard project={project} onSwitchToMap={noop} />;

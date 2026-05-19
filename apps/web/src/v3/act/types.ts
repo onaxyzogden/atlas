@@ -86,6 +86,7 @@ export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: s
     { label: 'Build Gantt',       sectionId: 'act-build-gantt' },
     { label: 'Budget vs actuals', sectionId: 'act-budget' },
     { label: 'Pilot plots',       sectionId: 'act-pilot-plots' },
+    { label: 'Operating Dashboard', sectionId: 'act-operating-dashboard' },
   ],
   maintain: [
     { label: 'Event log',            sectionId: 'act-maintenance-events' },

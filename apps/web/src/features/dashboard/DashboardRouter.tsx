@@ -87,6 +87,7 @@ const ActHub = lazy(() => import('../act/ActHub.js'));
 // ACT-stage Phase 3 — 13 spec-module cards (2026-04-29 IA restructure).
 const BuildGanttCard = lazy(() => import('../act/BuildGanttCard.js'));
 const BudgetCard = lazy(() => import('../act/BudgetCard.js'));
+const OperatingDashboardCard = lazy(() => import('../act/OperatingDashboardCard.js'));
 const PilotPlotsCard = lazy(() => import('../act/PilotPlotsCard.js'));
 const MaintenanceScheduleCard = lazy(() => import('../act/MaintenanceScheduleCard.js'));
 const IrrigationManagerCard = lazy(() => import('../act/IrrigationManagerCard.js'));
@@ -250,6 +251,12 @@ export default function DashboardRouter({ section, project, onSwitchToMap }: Das
       return (
         <PanelShell name="Budget vs actuals">
           <BudgetCard project={project} onSwitchToMap={onSwitchToMap} />
+        </PanelShell>
+      );
+    case 'act-operating-dashboard':
+      return (
+        <PanelShell name="Operating Dashboard">
+          <OperatingDashboardCard project={project} onSwitchToMap={onSwitchToMap} />
         </PanelShell>
       );
     case 'act-pilot-plots':

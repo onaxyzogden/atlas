@@ -446,6 +446,11 @@ export const NAV_ITEMS: NavItem[] = [
     dashboardOnly: true,
   },
   {
+    id: 'act-operating-dashboard', label: 'Operating Dashboard',
+    phase: 'P3', domainGroup: 'finance', stage: 'S4', stage3: 'act',
+    dashboardOnly: true,
+  },
+  {
     id: 'act-pilot-plots', label: 'Pilot Plots',
     phase: 'P3', domainGroup: 'site-overview', stage: 'S3', stage3: 'act',
     dashboardOnly: true,
