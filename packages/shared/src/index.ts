@@ -52,6 +52,7 @@ export * from './schemas/actTelemetry.schema.js';
 export * from './schemas/workItem.schema.js';
 export * from './schemas/crewMember.schema.js';
 export * from './schemas/costRange.schema.js';
+export * from './schemas/proofEvent.schema.js';
 
 // Built Environment (unified Observe + Plan entity — see ADR 2026-05-10)
 export * from './builtEnvironment.js';
