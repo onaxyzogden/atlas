@@ -297,3 +297,28 @@ describe('B3.1 — targetRestDays floor (the dead-field fix)', () => {
     expect(cal[2]!.moveInDateISO).toBe('2026-06-14'); // idle gap honored
   });
 });
+
+/* ---------- 8. B3.1 — projectRotationSequence cycles arg ---------- */
+
+describe('B3.1 — projectRotationSequence honors cycles / startDate', () => {
+  it('default cycles=1 ⇒ one pass (pre-B3.1 behaviour)', () => {
+    const pads = [paddock('a'), paddock('b')];
+    const p = plan([
+      cell('a', { sequenceOrder: 0, targetGrazeDays: 2 }),
+      cell('b', { sequenceOrder: 1, targetGrazeDays: 3 }),
+    ]);
+    const proj = projectRotationSequence(pads, p, '2026-06-01');
+    expect(proj.calendar).toHaveLength(2);
+  });
+
+  it('explicit cycles + startDate thread into the calendar', () => {
+    const pads = [paddock('a'), paddock('b')];
+    const p = plan([
+      cell('a', { sequenceOrder: 0, targetGrazeDays: 2 }),
+      cell('b', { sequenceOrder: 1, targetGrazeDays: 3 }),
+    ]);
+    const proj = projectRotationSequence(pads, p, '2026-07-15', 3);
+    expect(proj.calendar).toHaveLength(6);
+    expect(proj.calendar[0]!.moveInDateISO).toBe('2026-07-15');
+  });
+});

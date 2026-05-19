@@ -18,6 +18,7 @@ import {
   projectRotationSequence,
   type MoveCalendarEntry,
 } from './rotationSequenceMath.js';
+import { computeRotationCarryingCapacity } from './rotationCapacityMath.js';
 import {
   computeOvergrazingRisk,
   computePaddockRecommendedStocking,
@@ -45,11 +46,13 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
 
   const plan = useRotationPlanStore((s) => s.byProject[projectId] ?? null);
 
-  const startDateISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const startDateISO = plan?.startDateISO ?? today;
+  const horizonCycles = plan?.horizonCycles ?? 1;
 
   const projection = useMemo(
-    () => projectRotationSequence(paddocks, plan, startDateISO),
-    [paddocks, plan, startDateISO],
+    () => projectRotationSequence(paddocks, plan, startDateISO, horizonCycles),
+    [paddocks, plan, startDateISO, horizonCycles],
   );
 
   // Calendar grouped by cellGroup: 'ungrouped' sorts last, otherwise
@@ -87,6 +90,11 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
     }
     return rows;
   }, [paddocks]);
+
+  const rotationCapacity = useMemo(
+    () => computeRotationCarryingCapacity(paddocks, plan),
+    [paddocks, plan],
+  );
 
   if (paddocks.length === 0) {
     return (
@@ -217,6 +225,37 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
           <span className={css.groupName}>Carrying capacity</span>
           <span className={css.groupMeta}>advisory only</span>
         </div>
+        {rotationCapacity.length > 0 && (
+          <div className={css.moveList}>
+            {rotationCapacity.map((g) => (
+              <div key={g.cellGroup} className={css.complianceRow}>
+                <span className={css.paddockName}>
+                  {g.cellGroup === 'ungrouped' ? 'Ungrouped' : g.cellGroup}
+                </span>
+                <span className={css.complianceMeta}>
+                  {g.utilizationPct}% AU utilization {'·'} {g.cycleDays}d
+                  cycle {'·'} {g.paddockCount} paddock
+                  {g.paddockCount === 1 ? '' : 's'}
+                </span>
+                <span
+                  className={`${css.complianceBadge} ${
+                    g.status === 'over'
+                      ? css.badgeWarn
+                      : g.status === 'tight'
+                        ? css.badgeWarn
+                        : css.badgeGood
+                  }`}
+                >
+                  {g.status === 'over'
+                    ? 'Over'
+                    : g.status === 'tight'
+                      ? 'Tight'
+                      : 'OK'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
         {overstocked.length === 0 ? (
           <div className={css.advisoryClear}>
             No overstocking detected against recommended density.
@@ -237,10 +276,15 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
       </div>
 
       <div className={css.assumption}>
-        Calendar dates assume each cell group{'’'}s sequence starts today
-        and advances by planned graze days. Rest compliance compares planned
+        Calendar dates assume each cell group{'’'}s sequence starts on the
+        plan start date (default today) over {horizonCycles} cycle
+        {horizonCycles === 1 ? '' : 's'} and advances by planned graze days,
+        inserting an idle gap when a cell{'’'}s rest-days floor exceeds the
+        natural sibling-graze gap. Rest compliance compares planned
         rest (sum of other cells{'’'} graze in the group) against species
-        recovery requirements. Carrying-capacity notes are advisory and never
+        recovery requirements. AU-utilization is a coarse animal-unit load
+        heuristic (planned vs recommended stocking over the cycle), not a
+        forage-budget model. Carrying-capacity notes are advisory and never
         block the schedule.
       </div>
     </section>

@@ -31,6 +31,10 @@ export interface RotationCell {
 export interface RotationPlan {
   projectId: string;
   cells: RotationCell[];
+  /** Optional season/plan anchor; absent ⇒ today (B3.1, back-compatible). */
+  startDateISO?: string;
+  /** Optional projection horizon, 1..6; absent ⇒ 1 (B3.1). */
+  horizonCycles?: number;
 }
 
 /* ================================================================== */
@@ -246,9 +250,10 @@ export function projectRotationSequence(
   paddocks: Paddock[],
   plan: RotationPlan | null,
   startDateISO: string,
+  cycles = 1,
 ): RotationSequenceProjection {
   return {
-    calendar: computeMoveCalendar(paddocks, plan, startDateISO),
+    calendar: computeMoveCalendar(paddocks, plan, startDateISO, cycles),
     restCompliance: computeRestCompliance(paddocks, plan),
     restCompliancePct: computeRestCompliancePct(paddocks, plan),
   };
