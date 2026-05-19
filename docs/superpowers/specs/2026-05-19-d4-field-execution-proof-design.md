@@ -1,4 +1,14 @@
-# D4 — Field Execution & Proof Design
+> **⚠️ SUPERSEDED — 2026-05-19.** This spec was authored by a parallel
+> session and is **not** the authoritative D4 design. It made unilateral
+> calls (new dedicated `act-field-proof` card; no D0 typed-event
+> linking) that conflict with the four design forks the operator
+> explicitly confirmed in the originating session. The authoritative D4
+> design is **[[2026-05-19-d4-field-proof-design]]**
+> (`docs/superpowers/specs/2026-05-19-d4-field-proof-design.md`).
+> Preserved un-deleted for audit per the no-deletion-in-revamps
+> covenant. Do not implement from this document.
+
+# D4 — Field Execution & Proof Design  *(SUPERSEDED)*
 
 **Date:** 2026-05-19
 **Sub-project:** D4 (Field execution & proof), 4th slice of Sub-project D
