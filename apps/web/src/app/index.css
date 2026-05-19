@@ -28,6 +28,18 @@ html {
   }
 }
 
+/* Class-based fallback for headless capture UAs (Claude Code preview) that
+   do not report prefers-reduced-motion. Set by the UA sniff in main.tsx. */
+.reduce-motion html { scroll-behavior: auto; }
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
 body {
   font-family: var(--font-sans);
   font-size: var(--text-base);

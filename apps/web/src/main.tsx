@@ -8,6 +8,14 @@ import { ToastContainer } from './components/Toast.js';
 import '@ogden/ui-components/style.css';
 import './app/index.css';
 
+// Collapse infinite animations under the Claude Code preview window so the
+// MCP screenshot tool can settle a frame (the capture renderer waits for
+// paint to quiesce, which never happens with an endless animation).
+// See wiki ADR 2026-05-19-atlas-preview-screenshot-verification-standard.
+if (typeof navigator !== 'undefined' && /Claude\//.test(navigator.userAgent)) {
+  document.documentElement.classList.add('reduce-motion');
+}
+
 // One-time migrator: legacy `ogden-site-annotations` v3 blob → 7
 // Scholar-aligned namespace stores. Must run BEFORE any of the new stores
 // rehydrate (they live under `apps/web/src/store/` and are reached via
