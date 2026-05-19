@@ -206,6 +206,7 @@ export const MODULE_CARDS: Record<
     { label: 'Regeneration plan',       sectionId: 'plan-livestock-regeneration' },
     { label: 'Rotation sequence',       sectionId: 'plan-livestock-rotation-sequence' },
     { label: 'Rotation plan',           sectionId: 'plan-livestock-rotation-plan' },
+    { label: 'Rotation adherence',      sectionId: 'plan-livestock-rotation-adherence' },
     { label: 'Slaughter throughput', sectionId: 'plan-product-slaughter-throughput', group: 'Product Chain' },
     { label: 'Cold-chain coverage',  sectionId: 'plan-product-coldchain-coverage',   group: 'Product Chain' },
     { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },
