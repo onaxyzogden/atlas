@@ -92,7 +92,7 @@ export function computeOperatingHealth(
   inp: OperatingHealthInput,
 ): OperatingHealth {
   const { items, graph, resourcing, budget, proof } = inp;
-  const nowMs = new Date(inp.now ?? new Date().toISOString()).getTime();
+  const nowMs = inp.now ? new Date(inp.now).getTime() : Date.now();
 
   let blocked = 0;
   let critical = 0;
@@ -245,13 +245,20 @@ export function computeOperatingHealth(
         return unproven;
       case 'cycle':
         return 1;
+      default: {
+        const _exhaustive: never = r.kind;
+        void _exhaustive;
+        return 0;
+      }
     }
   };
 
   recs.sort((a, b) => {
     const s = SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];
     if (s !== 0) return s;
-    return countOf(b) - countOf(a);
+    const c = countOf(b) - countOf(a);
+    if (c !== 0) return c;
+    return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   });
 
   return {
