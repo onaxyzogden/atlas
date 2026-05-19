@@ -35,6 +35,31 @@ interface WorkItemState {
    * legacy `phaseStore.toggleTaskDone` contract).
    */
   toggleDone: (id: string) => void;
+  /**
+   * D4 — the SOLE writer of the spine completion fields. Stamps
+   * status:'done' + doneAt + actualStart/actualEnd + who on the matching
+   * item. Idempotent: if the item is already 'done' it is a no-op and the
+   * items array keeps the same reference (no updatedAt churn). Proof-event
+   * creation (typed D0 stamp or generic fallback) is orchestrated OUTSIDE
+   * this store (fieldProofActions) — this writer never touches any other
+   * store, so workItemStore keeps zero app-store dependencies.
+   */
+  fulfilWorkItem: (
+    id: string,
+    capture: {
+      who?: string;
+      actualStart?: string | null;
+      actualEnd?: string | null;
+      notes?: string;
+    },
+  ) => void;
+  /**
+   * D4 — reverse ONLY the spine completion fields (status→'todo',
+   * doneAt/actualStart/actualEnd cleared). The immutable proof event is
+   * deliberately NOT removed (orphan-by-design audit trail; that lives in
+   * proofEventStore / the typed D0 logs).
+   */
+  unfulfilWorkItem: (id: string) => void;
   addDependency: (id: string, dependsOnId: string) => void;
   removeDependency: (id: string, dependsOnId: string) => void;
 
@@ -149,6 +174,53 @@ export const useWorkItemStore = create<WorkItemState>()(
             };
           }),
         })),
+
+      fulfilWorkItem: (id, capture) =>
+        set((s) => {
+          const it = s.items.find((w) => w.id === id);
+          if (!it) return s;
+          // Idempotent: already done ⇒ no-op, same reference (no churn).
+          if (it.status === 'done') return s;
+          return {
+            items: s.items.map((w) =>
+              w.id === id
+                ? {
+                    ...w,
+                    status: 'done',
+                    doneAt: now(),
+                    ...(capture.who !== undefined ? { who: capture.who } : {}),
+                    ...(capture.actualStart !== undefined
+                      ? { actualStart: capture.actualStart }
+                      : {}),
+                    ...(capture.actualEnd !== undefined
+                      ? { actualEnd: capture.actualEnd }
+                      : {}),
+                    updatedAt: now(),
+                  }
+                : w,
+            ),
+          };
+        }),
+
+      unfulfilWorkItem: (id) =>
+        set((s) => {
+          const it = s.items.find((w) => w.id === id);
+          if (!it || it.status !== 'done') return s;
+          return {
+            items: s.items.map((w) =>
+              w.id === id
+                ? {
+                    ...w,
+                    status: 'todo',
+                    doneAt: null,
+                    actualStart: null,
+                    actualEnd: null,
+                    updatedAt: now(),
+                  }
+                : w,
+            ),
+          };
+        }),
 
       addDependency: (id, dependsOnId) =>
         set((s) => ({
