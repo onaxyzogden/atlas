@@ -52,6 +52,7 @@ import { useSwotStore } from '../store/swotStore.js';
 import { usePhaseStore } from '../store/phaseStore.js';
 import { useWorkItemStore } from '../store/workItemStore.js';
 import { useCrewMemberStore } from '../store/crewMemberStore.js';
+import { useWorkItemBudgetStore } from '../store/workItemBudgetStore.js';
 import { useLivestockStore } from '../store/livestockStore.js';
 import { usePolycultureStore } from '../store/polycultureStore.js';
 import { useCropStore } from '../store/cropStore.js';
@@ -333,6 +334,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-phases', usePhaseStore, 'projectId-tagged', 3, tagged('phases')),
   blob('ogden-work-items', useWorkItemStore, 'projectId-tagged', 1, tagged('items')),
   blob('ogden-crew-members', useCrewMemberStore, 'projectId-tagged', 1, tagged('members')),
+  blob('ogden-work-item-actuals', useWorkItemBudgetStore, 'projectId-tagged', 1, tagged('actuals')),
   blob('ogden-livestock', useLivestockStore, 'projectId-tagged', 1, tagged('paddocks', 'fenceLines'), true),
   blob('ogden-polyculture', usePolycultureStore, 'projectId-tagged', 3, tagged('guilds', 'species'), true),
   blob('ogden-crops', useCropStore, 'projectId-tagged', 2, tagged('cropAreas'), true),

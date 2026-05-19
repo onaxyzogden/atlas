@@ -16,7 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { WorkItem, MaterialLine } from '@ogden/shared';
+import type { WorkItem, MaterialLine, CostRange } from '@ogden/shared';
 import { runWorkItemMigration } from './workItemStore.migration';
 
 interface WorkItemState {
@@ -70,6 +70,19 @@ interface WorkItemState {
       string,
       { equipment: string[]; materials: MaterialLine[] }
     >,
+  ) => void;
+  /**
+   * Goal Compass — replace the *seeded* planned-cost band (`costRangeAuto`)
+   * for a project. Mirrors the `replaceGoalCompassResources` preservation
+   * filter 1:1: writes only on this project's generated, un-overridden
+   * goal-compass rows. The manual point estimate `costUSD`, overridden rows,
+   * and every other source are never touched. Idempotent (same input → same
+   * state). Strictly project cost tracking — no financing/capital semantics
+   * (Sub-project C, Scholar-gated). D3.
+   */
+  replaceGoalCompassCosts: (
+    projectId: string,
+    costsByItemId: Map<string, CostRange>,
   ) => void;
   /**
    * Annual planting calendar — replace nursery-batch work items carrying a
@@ -240,6 +253,34 @@ export const useWorkItemStore = create<WorkItemState>()(
               materialsAuto: nextMats,
               updatedAt: now(),
             };
+          }),
+        })),
+
+      replaceGoalCompassCosts: (projectId, costsByItemId) =>
+        set((s) => ({
+          items: s.items.map((it) => {
+            // Same gate as replaceGoalCompassResources: only this project's
+            // generated, un-overridden goal-compass rows are engine-owned.
+            if (
+              it.projectId !== projectId ||
+              it.source !== 'goal-compass' ||
+              it.overridden
+            ) {
+              return it;
+            }
+            const next = costsByItemId.get(it.id);
+            const prev = it.costRangeAuto;
+            // Idempotent: unchanged band (incl. both-absent) → same
+            // reference (no updatedAt churn), so re-seeding is a no-op.
+            const same =
+              (prev === undefined && next === undefined) ||
+              (prev !== undefined &&
+                next !== undefined &&
+                prev.low === next.low &&
+                prev.mid === next.mid &&
+                prev.high === next.high);
+            if (same) return it;
+            return { ...it, costRangeAuto: next, updatedAt: now() };
           }),
         })),
 

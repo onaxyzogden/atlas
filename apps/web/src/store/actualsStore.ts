@@ -1,4 +1,10 @@
 ﻿/**
+ * @deprecated RETIRED by Sub-project D3 (2026-05-18). Superseded by
+ * `workItemBudgetStore` (`ogden-work-item-actuals`), the actuals ledger on
+ * the canonical WorkItem spine. This store is PRESERVED for audit only
+ * (no-deletion-in-revamps covenant) and is no longer mounted by any Act
+ * card. Do not wire new consumers; use `workItemBudgetStore`.
+ *
  * Actuals store â€” ACT-stage Module 2 (Phased Implementation & Budgeting).
  *
  * Tracks **actual** labor hours and dollars spent against each PLAN-stage
