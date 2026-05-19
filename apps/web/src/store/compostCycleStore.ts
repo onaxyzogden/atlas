@@ -26,6 +26,14 @@ export interface CompostBatch {
   readyDateISO?: string;
   feedstockNote?: string;
   status: CompostStatus;
+  /**
+   * B2.1 amendment-application plan (all optional, additive — old
+   * persisted rows simply lack them; `version:1` stays, no `migrate`).
+   * Closes the loop from finished compost back to soil application.
+   */
+  appliedToZone?: string;
+  applicationDateISO?: string;
+  applicationRateNote?: string;
 }
 
 interface CompostCycleState {

@@ -20,6 +20,11 @@ import {
   type CompostBatch,
   type CompostMethod,
 } from '../../../../store/compostCycleStore.js';
+import { COMPOST_METHOD_SPEC } from './compostMethodSpec.js';
+import {
+  estimateYield,
+  projectInventoryVolumeM3,
+} from './compostYieldMath.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -34,12 +39,21 @@ const METHOD_LABEL: Record<CompostMethod, string> = {
   compost_tea: 'Compost tea',
 };
 
-const METHOD_HINT: Record<CompostMethod, string> = {
-  hot: 'Turn ≈ every 7 days; ready ≈ 8 weeks.',
-  cold: 'No turning required; ready ≈ 6–12 months.',
-  vermicompost: 'No turning; harvest ≈ 12 weeks; keep 15–25 °C.',
-  compost_tea: 'Brew 24–48 h with aeration; use within hours.',
-};
+/** Spec-driven one-line cadence/band hint from COMPOST_METHOD_SPEC. */
+function methodHint(method: CompostMethod): string {
+  const s = COMPOST_METHOD_SPEC[method];
+  const turn =
+    s.turnEveryDays == null
+      ? 'no turning'
+      : `turn ≈ every ${s.turnEveryDays} d`;
+  const cure = `ready ≈ ${s.cureWeeksLow}–${s.cureWeeksHigh} wk`;
+  const cn = `C:N ${s.cnTargetLow}–${s.cnTargetHigh}:1`;
+  const temp =
+    s.tempCLow != null && s.tempCHigh != null
+      ? `, ${s.tempCLow}–${s.tempCHigh} °C`
+      : '';
+  return `${cn} · ${turn} · ${cure}${temp}.`;
+}
 
 const METHODS: CompostMethod[] = [
   'hot',
@@ -71,9 +85,9 @@ export default function CompostCycleCard({ project }: Props) {
 
   const feedstock = useMemo(() => {
     const inv = inventory[project.id] ?? {};
-    const ids = Object.keys(inv);
-    const totalM3 = Object.values(inv).reduce((a, b) => a + b, 0);
-    return { count: ids.length, totalM3 };
+    const count = Object.keys(inv).filter((k) => (inv[k] ?? 0) > 0).length;
+    const totalM3 = projectInventoryVolumeM3(inv);
+    return { count, totalM3 };
   }, [inventory, project.id]);
 
   const onAdd = () => {
@@ -154,6 +168,9 @@ export default function CompostCycleCard({ project }: Props) {
         const badCadence =
           b.turnEveryDays != null && b.turnEveryDays <= 0;
         const noFeedstock = !b.feedstockNote?.trim();
+        const curedNoApplication =
+          b.status === 'cured' && !b.appliedToZone?.trim();
+        const projected = estimateYield(b.method, feedstock.totalM3);
         const patch = (over: Partial<CompostBatch>) =>
           updateBatch(project.id, { ...b, ...over });
         return (
@@ -181,7 +198,12 @@ export default function CompostCycleCard({ project }: Props) {
               </button>
             </h2>
 
-            <p className={styles.listMeta}>{METHOD_HINT[b.method]}</p>
+            <p className={styles.listMeta}>{methodHint(b.method)}</p>
+            <p className={styles.listMeta}>
+              {feedstock.totalM3 > 0
+                ? `Projected yield ≈ ${projected.finishedM3} m³ finished from ${projected.feedstockM3} m³ inventoried feedstock (${projected.retentionPct}% retention — coarse heuristic, not a lab assay).`
+                : 'Projected yield: log feedstock volume in Resource inventory to estimate finished compost.'}
+            </p>
 
             <div className={styles.statRow}>
               <span>Start date</span>
@@ -245,7 +267,47 @@ export default function CompostCycleCard({ project }: Props) {
               />
             </div>
 
-            {(readyBeforeStart || badCadence || noFeedstock) && (
+            <div className={styles.statRow}>
+              <span>Applied to (guild / zone)</span>
+              <input
+                type="text"
+                value={b.appliedToZone ?? ''}
+                onChange={(e) =>
+                  patch({ appliedToZone: e.target.value || undefined })
+                }
+                placeholder="e.g. fruit guild, north beds"
+                style={{ flex: 1, minWidth: 0 }}
+              />
+            </div>
+            <div className={styles.statRow}>
+              <span>Application date</span>
+              <input
+                type="date"
+                value={b.applicationDateISO ?? ''}
+                onChange={(e) =>
+                  patch({ applicationDateISO: e.target.value || undefined })
+                }
+              />
+            </div>
+            <div className={styles.statRow}>
+              <span>Application rate</span>
+              <input
+                type="text"
+                value={b.applicationRateNote ?? ''}
+                onChange={(e) =>
+                  patch({
+                    applicationRateNote: e.target.value || undefined,
+                  })
+                }
+                placeholder="e.g. 5 cm top-dress"
+                style={{ flex: 1, minWidth: 0 }}
+              />
+            </div>
+
+            {(readyBeforeStart ||
+              badCadence ||
+              noFeedstock ||
+              curedNoApplication) && (
               <ul className={styles.list}>
                 {readyBeforeStart && (
                   <li className={styles.listRow}>
@@ -269,6 +331,14 @@ export default function CompostCycleCard({ project }: Props) {
                   <li className={styles.listRow}>
                     <span className={styles.pill}>
                       no feedstock note — C:N balance unrecorded
+                    </span>
+                  </li>
+                )}
+                {curedNoApplication && (
+                  <li className={styles.listRow}>
+                    <span className={styles.pill}>
+                      cured but no application target — finished compost
+                      unassigned
                     </span>
                   </li>
                 )}
