@@ -73,6 +73,28 @@ function addDaysISO(iso: string, days: number): string {
   return next.toISOString().slice(0, 10);
 }
 
+/** Whole-day UTC difference `b - a` for two yyyy-mm-dd strings. */
+function daysBetweenISO(a: string, b: string): number {
+  return Math.round(
+    (Date.parse(`${b}T00:00:00.000Z`) - Date.parse(`${a}T00:00:00.000Z`)) /
+      86_400_000,
+  );
+}
+
+/* ================================================================== */
+/*  Honored rest (B3.1 — the dead-field fix)                          */
+/* ================================================================== */
+
+/**
+ * Rest honored before a cell's NEXT graze: the natural cycle gap (Σ the
+ * OTHER same-group cells' graze days) raised to the steward's explicit
+ * `targetRestDays` floor. B3 stored/edited `targetRestDays` but never read
+ * it — this is the single point that makes the editable input load-bearing.
+ */
+function honoredRestDays(cell: RotationCell, siblingGrazeSum: number): number {
+  return Math.max(siblingGrazeSum, cell.targetRestDays);
+}
+
 /* ================================================================== */
 /*  Required rest (identical rule to computeRecoveryStatus)            */
 /* ================================================================== */
@@ -136,9 +158,18 @@ export function computeMoveCalendar(
     const totalGraze = live.reduce((s, c) => s + c.targetGrazeDays, 0);
 
     let cursor = startDateISO; // independent per group
+    // Per-paddock last moveOut so we can honor an explicit rest floor by
+    // inserting an idle gap when sibling-graze alone is too short.
+    const lastMoveOut = new Map<string, string>();
     for (let cycle = 0; cycle < Math.max(1, cycles); cycle++) {
       for (const c of live) {
         const pad = byId.get(c.paddockId)!;
+        const honored = honoredRestDays(c, totalGraze - c.targetGrazeDays);
+        const prevOut = lastMoveOut.get(c.paddockId);
+        if (prevOut) {
+          const gap = daysBetweenISO(prevOut, cursor);
+          if (gap < honored) cursor = addDaysISO(cursor, honored - gap);
+        }
         const moveInDateISO = cursor;
         const moveOutDateISO = addDaysISO(cursor, c.targetGrazeDays);
         out.push({
@@ -149,8 +180,9 @@ export function computeMoveCalendar(
           moveInDateISO,
           moveOutDateISO,
           grazeDays: c.targetGrazeDays,
-          restDaysUntilNextGraze: totalGraze - c.targetGrazeDays,
+          restDaysUntilNextGraze: honored,
         });
+        lastMoveOut.set(c.paddockId, moveOutDateISO);
         cursor = moveOutDateISO;
       }
     }
@@ -180,7 +212,7 @@ export function computeRestCompliance(
     for (const c of cells) {
       const pad = byId.get(c.paddockId);
       if (!pad) continue; // paddock must exist to be a row
-      const plannedRestDays = totalGraze - c.targetGrazeDays;
+      const plannedRestDays = honoredRestDays(c, totalGraze - c.targetGrazeDays);
       const required = requiredRestDays(pad);
       rows.push({
         paddockId: pad.id,
