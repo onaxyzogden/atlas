@@ -73,4 +73,26 @@ describe('generateDesignMap — orchestrator', () => {
     expect(DEFAULT_ENTERPRISES).toContain('orchard');
     expect(DEFAULT_ENTERPRISES).toContain('livestock');
   });
+
+  it('runs swales when candidates are present, regardless of enterprise mix', () => {
+    const mLat = metresPerDegLat();
+    const mLon = metresPerDegLon(ANCHOR_LAT);
+    const swaleCandidate = {
+      start: [ANCHOR_LON - 200 / mLon, ANCHOR_LAT] as [number, number],
+      end: [ANCHOR_LON + 200 / mLon, ANCHOR_LAT] as [number, number],
+      lengthCells: 20,
+      meanSlope: 6,
+      elevation: 100,
+      suitabilityScore: 0.8,
+    };
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      enterprises: [], // no enterprises at all
+      swaleCandidates: [swaleCandidate],
+    });
+    expect(out.summary.swales).toBe(1);
+    expect(out.summary.totalSpongeCapacityM3).toBeGreaterThan(0);
+    expect(out.features[0]?.subtype).toBe('farm_lane');
+  });
 });

@@ -20,6 +20,10 @@ import {
   generateOrchardOnContour,
   type OrchardOnContourOptions,
 } from './algorithms/orchardOnContour.js';
+import {
+  generateKeylineSwales,
+  type KeylineSwalesOptions,
+} from './algorithms/keylineSwales.js';
 
 // ── Input types ────────────────────────────────────────────────────────────
 
@@ -89,6 +93,7 @@ export interface GenerateDesignMapInput {
   /** Per-algorithm tuning. Each key is optional; algorithm defaults apply. */
   options?: {
     orchard?: OrchardOnContourOptions;
+    swale?: KeylineSwalesOptions;
   };
 }
 
@@ -154,7 +159,21 @@ export function generateDesignMap(
     warnings.push(...orchard.warnings);
   }
 
-  // Remaining B.2.* algorithms (swale, paddock, corridor) wire in here.
+  // Swales are infrastructure, not an enterprise — run them whenever
+  // candidates are present, regardless of the enterprise mix.
+  if (input.swaleCandidates && input.swaleCandidates.length > 0) {
+    const swales = generateKeylineSwales({
+      parcel: input.parcel,
+      candidates: input.swaleCandidates,
+      ...(input.options?.swale ? { options: input.options.swale } : {}),
+    });
+    features.push(...swales.features);
+    summary.swales = swales.swaleCount;
+    summary.totalSpongeCapacityM3 = swales.totalSpongeCapacityM3;
+    warnings.push(...swales.warnings);
+  }
+
+  // Remaining B.2.* algorithms (paddock, corridor) wire in here.
 
   return { features, summary, warnings };
 }
