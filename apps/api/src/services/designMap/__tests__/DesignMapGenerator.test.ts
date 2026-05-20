@@ -27,15 +27,29 @@ function squareParcel(sideM: number): Ring {
   ];
 }
 
-describe('generateDesignMap — orchestrator (B.1 skeleton)', () => {
-  it('returns the empty summary + a "no algorithms registered" warning until B.2 lands', () => {
+describe('generateDesignMap — orchestrator', () => {
+  it('runs the orchard algorithm by default and surfaces its "no contours" warning when contours are absent', () => {
     const out = generateDesignMap({
       parcel: { boundary: squareParcel(900) },
       acres: 200,
     });
     expect(out.features).toEqual([]);
     expect(out.summary).toEqual(emptySummary());
-    expect(out.warnings).toContain('no algorithms registered');
+    expect(
+      out.warnings.some((w) => w.includes('no contours provided')),
+    ).toBe(true);
+  });
+
+  it('skips the orchard algorithm when "orchard" is not in the enterprise mix', () => {
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      enterprises: ['livestock'],
+    });
+    expect(out.features).toEqual([]);
+    expect(
+      out.warnings.some((w) => w.includes('no contours provided')),
+    ).toBe(false);
   });
 
   it('rejects a parcel with fewer than 3 boundary vertices', () => {

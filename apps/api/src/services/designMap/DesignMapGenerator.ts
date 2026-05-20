@@ -16,6 +16,10 @@
 
 import type { CreateDesignFeatureInput } from '@ogden/shared';
 import type { LineString, LonLat, Ring } from './geometry.js';
+import {
+  generateOrchardOnContour,
+  type OrchardOnContourOptions,
+} from './algorithms/orchardOnContour.js';
 
 // ── Input types ────────────────────────────────────────────────────────────
 
@@ -82,6 +86,10 @@ export interface GenerateDesignMapInput {
    */
   riparianLines?: LineString[];
   enterprises?: EnterpriseKind[];
+  /** Per-algorithm tuning. Each key is optional; algorithm defaults apply. */
+  options?: {
+    orchard?: OrchardOnContourOptions;
+  };
 }
 
 // ── Output types ───────────────────────────────────────────────────────────
@@ -131,14 +139,22 @@ export function generateDesignMap(
   }
 
   const enterprises = input.enterprises ?? DEFAULT_ENTERPRISES;
-  void enterprises;
+  const features: CreateDesignFeatureInput[] = [];
+  const summary = emptySummary();
 
-  // B.2.* algorithms wire in here incrementally.
-  warnings.push('no algorithms registered');
+  if (enterprises.includes('orchard')) {
+    const orchard = generateOrchardOnContour({
+      parcel: input.parcel,
+      contours: input.contours ?? [],
+      ...(input.options?.orchard ? { options: input.options.orchard } : {}),
+    });
+    features.push(...orchard.features);
+    summary.orchardRows = orchard.rowCount;
+    summary.estimatedTreeCount = orchard.estimatedTreeCount;
+    warnings.push(...orchard.warnings);
+  }
 
-  return {
-    features: [],
-    summary: emptySummary(),
-    warnings,
-  };
+  // Remaining B.2.* algorithms (swale, paddock, corridor) wire in here.
+
+  return { features, summary, warnings };
 }
