@@ -260,6 +260,15 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     point: { x: number; y: number };
     props: Omit<HostCanopyUnionTooltipProps, 'point'>;
   } | null>(null);
+  // Pinned state for the same tooltip. Set by a click on the union
+  // fill; cleared by a second click on the same union (hostId match)
+  // or by ESC. While a union is pinned, transient mousemove writes to
+  // `hoveredUnion` are suppressed so the pinned read doesn't jitter.
+  const [pinnedUnion, setPinnedUnion] = useState<{
+    point: { x: number; y: number };
+    props: Omit<HostCanopyUnionTooltipProps, 'point'>;
+    hostId: string;
+  } | null>(null);
   const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
@@ -306,6 +315,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     memberPointFC,
     memberCanopyFC,
     hostCanopyUnionFC,
+    hostCanopyUnionLabelFC,
   } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
@@ -326,6 +336,12 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     // a soft grey halo beneath the individual member disks so the steward
     // sees the aggregate footprint that `canopyDedupedM2` measures.
     const hostCanopyUnions: GeoJSON.Feature[] = [];
+    // Parallel point-FC of per-host labels rendered above the union halo
+    // at minzoom 17. `unionAreaLabel` is pre-formatted at the push site
+    // (Math.round + " m²") so the symbol layer's `text-field` stays a
+    // trivial `['get']` and rounding matches the tooltip + the
+    // SilvopastureIntegrationCard verbatim.
+    const hostCanopyUnionLabels: GeoJSON.Feature[] = [];
     // Utility-conflict hazard halos — earthwork WaterNodes that intersected
     // a buried utility at draw-time (see ADR 2026-05-10-plan-earthwork-
     // utility-veto). Rendered in `#c4422a` as a 4 px outline behind the
@@ -660,6 +676,25 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         },
         geometry: union.unionGeometry,
       });
+      // Centroid label — one Point feature per host union with the
+      // pre-formatted m² string. `turf.pointOnFeature` (not centroid) so
+      // the anchor is guaranteed inside the polygon even when the union
+      // is concave or a MultiPolygon — centroid can fall outside.
+      const labelAnchor = turf.pointOnFeature({
+        type: 'Feature',
+        geometry: union.unionGeometry,
+        properties: {},
+      });
+      hostCanopyUnionLabels.push({
+        type: 'Feature',
+        id: `${host.id}:canopy-union-label`,
+        properties: {
+          kind: 'host-canopy-union-label',
+          hostId: host.id,
+          unionAreaLabel: `${Math.round(union.unionAreaM2)} m²`,
+        },
+        geometry: labelAnchor.geometry,
+      });
     }
 
     // Fertility infra (point) — Module 6 Soil & Closed-Loop. Yeomans rank 7.
@@ -986,6 +1021,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       memberPointFC: { type: 'FeatureCollection' as const, features: memberPoints },
       memberCanopyFC: { type: 'FeatureCollection' as const, features: memberCanopies },
       hostCanopyUnionFC: { type: 'FeatureCollection' as const, features: hostCanopyUnions },
+      hostCanopyUnionLabelFC: { type: 'FeatureCollection' as const, features: hostCanopyUnionLabels },
     };
   }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId, designElementsForProject]);
 
@@ -1019,6 +1055,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const hostCanopyUnionSid = ensureSource(
         'guild-host-canopy-union',
         hostCanopyUnionFC,
+      );
+      const hostCanopyUnionLabelSid = ensureSource(
+        'guild-host-canopy-union-label',
+        hostCanopyUnionLabelFC,
       );
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
@@ -1299,6 +1339,31 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           'line-width': 1.25,
         },
       });
+      // Per-host union-area label — single Math.round-formatted m²
+      // string at the union's interior anchor (turf.pointOnFeature).
+      // Paint mirrors the existing main label layer below so the m²
+      // value reads as part of the same dark-glass design family.
+      // Inserted before the member-canopy layers so member disks paint
+      // on top of the label — the label is per-host context, the disks
+      // are per-member identity.
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-host-canopy-union-label`,
+        type: 'symbol',
+        source: hostCanopyUnionLabelSid,
+        minzoom: 17,
+        layout: {
+          'text-field': ['get', 'unionAreaLabel'],
+          'text-size': 11,
+          'text-anchor': 'center',
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
+        },
+        paint: {
+          'text-color': '#f2ede3',
+          'text-halo-color': 'rgba(31, 29, 26, 0.85)',
+          'text-halo-width': 1.2,
+        },
+      });
       ensureLayer({
         id: `${LAYER_PREFIX}guild-member-canopy-fill`,
         type: 'fill',
@@ -1463,6 +1528,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     memberPointFC,
     memberCanopyFC,
     hostCanopyUnionFC,
+    hostCanopyUnionLabelFC,
     lensEnabled,
     lensMode,
     enterprises,
@@ -1940,38 +2006,73 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     if (!map) return;
     const layerId = `${LAYER_PREFIX}guild-host-canopy-union-fill`;
 
+    const unpackProps = (
+      p: Record<string, unknown>,
+    ): Omit<HostCanopyUnionTooltipProps, 'point'> => ({
+      hostName: String(p.hostName ?? ''),
+      unionAreaM2: Number(p.unionAreaM2) || 0,
+      rawSumM2: Number(p.rawSumM2) || 0,
+      guildCount: Number(p.guildCount) || 0,
+      memberCount: Number(p.memberCount) || 0,
+    });
+
     const onMove = (e: maplibregl.MapLayerMouseEvent) => {
+      // Suppress hover writes while pinned so the pinned read doesn't
+      // jitter under cursor motion over the same union.
+      if (pinnedUnion) return;
       const f = e.features?.[0];
       if (!f || f.properties?.kind !== 'host-canopy-union') {
         setHoveredUnion(null);
         return;
       }
-      const p = f.properties;
       setHoveredUnion({
         point: { x: e.point.x, y: e.point.y },
-        props: {
-          hostName: String(p.hostName ?? ''),
-          unionAreaM2: Number(p.unionAreaM2) || 0,
-          rawSumM2: Number(p.rawSumM2) || 0,
-          guildCount: Number(p.guildCount) || 0,
-          memberCount: Number(p.memberCount) || 0,
-        },
+        props: unpackProps(f.properties),
       });
     };
-    const onLeave = () => setHoveredUnion(null);
+    const onLeave = () => {
+      if (pinnedUnion) return;
+      setHoveredUnion(null);
+    };
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f || f.properties?.kind !== 'host-canopy-union') return;
+      const hostId = String(f.properties.hostId ?? '');
+      if (!hostId) return;
+      // Toggle: clicking the currently-pinned union unpins it; clicking
+      // a different union (or any union when nothing is pinned) pins.
+      if (pinnedUnion?.hostId === hostId) {
+        setPinnedUnion(null);
+        return;
+      }
+      setPinnedUnion({
+        point: { x: e.point.x, y: e.point.y },
+        props: unpackProps(f.properties),
+        hostId,
+      });
+      // Clear hover so only one tooltip ever renders.
+      setHoveredUnion(null);
+    };
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') setPinnedUnion(null);
+    };
 
     map.on('mousemove', layerId, onMove);
     map.on('mouseleave', layerId, onLeave);
+    map.on('click', layerId, onClick);
+    document.addEventListener('keydown', onKey);
 
     return () => {
       try {
         map.off('mousemove', layerId, onMove);
         map.off('mouseleave', layerId, onLeave);
+        map.off('click', layerId, onClick);
       } catch {
         /* map already disposed */
       }
+      document.removeEventListener('keydown', onKey);
     };
-  }, [map]);
+  }, [map, pinnedUnion]);
 
   // Click-to-edit + drag-to-move for placed Structures (poly fill).
   // Gated to `activeTool == null` so a Plan draw tool always wins.
@@ -3231,13 +3332,16 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // directly against the tooltip's `position: absolute` origin. No
   // other JSX is emitted — PlanDataLayers remains a side-effect-only
   // component for everything else.
-  if (!hoveredUnion || !map) return null;
+  // Pinned tooltip takes precedence over hover; only one ever renders.
+  const activeUnion = pinnedUnion ?? hoveredUnion;
+  if (!activeUnion || !map) return null;
   const canvasContainer = map.getCanvasContainer();
   if (!canvasContainer) return null;
   return createPortal(
     <HostCanopyUnionTooltip
-      point={hoveredUnion.point}
-      {...hoveredUnion.props}
+      point={activeUnion.point}
+      {...activeUnion.props}
+      pinned={!!pinnedUnion}
     />,
     canvasContainer,
   );
