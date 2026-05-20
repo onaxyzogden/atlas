@@ -37,6 +37,7 @@ export const WorkItemSource = z.enum([
   'scheduled-livestock-move',
   'nursery-batch',
   'cover-crop',
+  'rotation-sequence',
   'manual',
 ]);
 export type WorkItemSource = z.infer<typeof WorkItemSource>;
@@ -145,6 +146,12 @@ export const WorkItemSchema = z
     generatedFromPlantingCalendar: z.string().optional(),
     /** Composite `<cropAreaId>__<windowIndex>` (cover-crop plan). */
     generatedFromCoverCropWindow: z.string().optional(),
+    /**
+     * Composite `<cellGroup>__<paddockId>__<sequenceOrder>__<cycleIndex>`
+     * (rotation-sequence plan, B3 spine-push). Identifies the projected
+     * livestock-move emitted by `computeMoveCalendar`.
+     */
+    generatedFromRotationMove: z.string().optional(),
     goalCriterionId: z.string().optional(),
     catalogVersion: z.string().optional(),
     createdAt: z.string(),
