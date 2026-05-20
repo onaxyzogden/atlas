@@ -1,6 +1,12 @@
 /**
- * LandAssessmentSlideUp — full-screen slide-up pane showing the 13-axis
- * land assessment scores for the current project.
+ * LandAssessmentSlideUp — full-screen slide-up pane showing the land
+ * assessment scores for the current project.
+ *
+ * Surfaces the 8 core assessment dimensions prominently, with the
+ * weight-0 diagnostic facets (sub-resilience scores + formal classifications
+ * — FAO/USDA/Canada) collapsed under a `<details>` panel to keep the
+ * surface honest to the "Eight-dimension assessment" promise without
+ * losing the underlying detail.
  *
  * Triggered by clicking the LevelNavigatorBar center element when on a
  * /v3/project/:projectId route. Data pipeline mirrors SiteIntelligencePanel:
@@ -30,6 +36,38 @@ import css from './LandAssessmentSlideUp.module.css';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const EMPTY_LAYERS: never[] = [];
+
+/**
+ * The 8 core assessment dimensions returned first by
+ * `computeAssessmentScores`. Anything outside this set (water-resilience
+ * sub-facets and formal classification systems — FAO / USDA / Canada Soil
+ * Capability) is weighted 0 in the overall score and shown collapsed
+ * under a "Diagnostic facets" disclosure.
+ *
+ * Kept here rather than exported from shared/scoring so this UX choice
+ * doesn't leak into API surfaces.
+ */
+const CORE_EIGHT_LABELS: ReadonlySet<string> = new Set([
+  'Water Resilience',
+  'Agricultural Suitability',
+  'Regenerative Potential',
+  'Buildability',
+  'Habitat Sensitivity',
+  'Stewardship Readiness',
+  'Community Suitability',
+  'Design Complexity',
+]);
+
+/**
+ * "Pending data" replaces the noisier "Insufficient Data / 25" badge that
+ * the 5/20 walkthrough flagged on cold-start projects. We key off the
+ * `Insufficient Data` rating (score < 30 per `ratingFromScore`) — formal
+ * classification systems (FAO / USDA / Canada) override `rating` with their
+ * own class strings, so they are never reclassified as pending.
+ */
+function isPending(item: AssessmentScore): boolean {
+  return item.rating === 'Insufficient Data';
+}
 
 /** Mirrors getScoreColor from _helpers.ts — token values. */
 function getScoreColor(score: number): string {
@@ -92,7 +130,8 @@ function LandAssessmentScoresList({ scores, expandedScore, onToggle }: ScoreList
     <div className={css.scoreList}>
       {scores.map((item) => {
         const isExpanded = expandedScore === item.label;
-        const color = getScoreColor(item.score);
+        const pending = isPending(item);
+        const color = pending ? '#7a7a7a' : getScoreColor(item.score);
 
         return (
           <div key={item.label}>
@@ -115,7 +154,7 @@ function LandAssessmentScoresList({ scores, expandedScore, onToggle }: ScoreList
                 className={css.scoreCircle}
                 style={{ background: `${color}22`, color }}
               >
-                {item.score}
+                {pending ? '—' : item.score}
               </div>
 
               {/* Meta */}
@@ -124,7 +163,7 @@ function LandAssessmentScoresList({ scores, expandedScore, onToggle }: ScoreList
                 <div className={css.scoreBar}>
                   <div
                     className={css.scoreBarFill}
-                    style={{ width: `${item.score}%`, background: color }}
+                    style={{ width: `${pending ? 0 : item.score}%`, background: color }}
                   />
                 </div>
                 {item.dataSources.length > 0 && (
@@ -138,12 +177,13 @@ function LandAssessmentScoresList({ scores, expandedScore, onToggle }: ScoreList
                 )}
               </div>
 
-              {/* Rating badge */}
+              {/* Rating badge ("Pending data" replaces "Insufficient Data / 25"
+                  for residual-only rows on a fresh project) */}
               <span
                 className={css.scoreBadge}
                 style={{ background: `${color}18`, color }}
               >
-                {item.rating}
+                {pending ? 'Pending data' : item.rating}
               </span>
 
               {/* Chevron */}
@@ -262,6 +302,18 @@ export default function LandAssessmentSlideUp({ projectId, open, onClose }: Prop
     [layers, project.acreage, project.country],
   );
 
+  // Partition: 8 core dimensions stay above-the-fold; weight-0 facets
+  // (sub-resilience + formal classifications) collapse into a disclosure.
+  const { coreScores, diagnosticScores } = useMemo(() => {
+    const core: AssessmentScore[] = [];
+    const diag: AssessmentScore[] = [];
+    for (const s of scores) {
+      if (CORE_EIGHT_LABELS.has(s.label)) core.push(s);
+      else diag.push(s);
+    }
+    return { coreScores: core, diagnosticScores: diag };
+  }, [scores]);
+
   // Reset expansion when closed
   useEffect(() => {
     if (!open) setExpandedScore(null);
@@ -297,6 +349,15 @@ export default function LandAssessmentSlideUp({ projectId, open, onClose }: Prop
           <div className={css.titleBlock}>
             <span className={css.eyebrow}>Site Intelligence</span>
             <h2 className={css.title}>Land Assessment</h2>
+            <span
+              style={{
+                fontSize: 11,
+                color: 'var(--color-text-muted)',
+                marginTop: 2,
+              }}
+            >
+              Eight-dimension assessment, scored against your site layers.
+            </span>
           </div>
           <button
             ref={closeRef}
@@ -312,12 +373,54 @@ export default function LandAssessmentSlideUp({ projectId, open, onClose }: Prop
         {/* Body */}
         <div className={css.body}>
           <LandAssessmentScoresList
-            scores={scores}
+            scores={coreScores}
             expandedScore={expandedScore}
             onToggle={(label) =>
               setExpandedScore((prev) => (prev === label ? null : label))
             }
           />
+
+          {diagnosticScores.length > 0 && (
+            <details
+              style={{
+                maxWidth: 900,
+                margin: '20px auto 0',
+                padding: '0 12px',
+              }}
+            >
+              <summary
+                style={{
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: 'var(--color-text-muted)',
+                  padding: '8px 0',
+                  userSelect: 'none',
+                }}
+              >
+                Diagnostic facets ({diagnosticScores.length})
+              </summary>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: 'var(--color-text-muted)',
+                  margin: '4px 0 8px',
+                  lineHeight: 1.5,
+                }}
+              >
+                Weight-0 sub-resilience scores and formal classification
+                systems. Informational only — do not roll into the
+                eight-dimension assessment above.
+              </div>
+              <LandAssessmentScoresList
+                scores={diagnosticScores}
+                expandedScore={expandedScore}
+                onToggle={(label) =>
+                  setExpandedScore((prev) => (prev === label ? null : label))
+                }
+              />
+            </details>
+          )}
         </div>
       </aside>
     </div>
