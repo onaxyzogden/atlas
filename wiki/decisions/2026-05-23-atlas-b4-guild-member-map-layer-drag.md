@@ -140,13 +140,23 @@ one of these two helpers.
 32-step polygon `hostCanopyUnion` uses, undershooting π·r² by ~0.6 %.
 At zoom 17–20 this is sub-pixel; not a visible artifact.
 
+**Newly closed 2026-05-24:**
+- ~~Polygon canopy-union visualisation (drawing the `turf.union`
+  result as a separate layer) — today's slice draws each member's
+  disk individually; visual overlap conveys union to the eye without
+  needing a dedicated geometry layer.~~ — shipped via
+  [2026-05-24 ADR](2026-05-24-atlas-b4-host-canopy-union-viz.md):
+  `hostCanopyUnion` return shape extended additively with
+  `unionGeometry`; new `guild-host-canopy-union` source + fill/line
+  layers at `minzoom: 17` render a neutral-grey halo beneath the
+  individual member disks. Per-host iteration reuses
+  `resolveSilvopastureHosts` + `resolveMembers` so the visible halo
+  matches the `canopyDedupedM2` number on
+  `SilvopastureIntegrationCard`.
+
 **Still deferred (own slices):**
 - Multi-select / batch drag of multiple members at once.
 - Snap-to-other-member / snap-to-grid alignment helpers.
-- Polygon canopy-union visualisation (drawing the `turf.union`
-  result as a separate layer) — today's slice draws each member's
-  disk individually; visual overlap conveys union to the eye without
-  needing a dedicated geometry layer.
 - Member catalog edit on map (changing species via the popover).
 - Layer ring-radius ground-truthing against extension-service
   plant-spacing guidance.
@@ -166,7 +176,8 @@ nothing here touches MTC capital channels or yield-share framing.
 - Multi-select / batch drag.
 - Snap-to-other-member / snap-to-grid.
 - Catalog edit via map popover (stays in the in-card surface).
-- Polygon canopy-union visualisation.
+- ~~Polygon canopy-union visualisation.~~ — shipped 2026-05-24,
+  see [2026-05-24 ADR](2026-05-24-atlas-b4-host-canopy-union-viz.md).
 - Ring-radius ground-truthing.
 - Z-order between members and other Plan kinds.
 
