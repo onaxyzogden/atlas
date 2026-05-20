@@ -24,6 +24,10 @@ import {
   type SilvopastureHost,
 } from './silvopastureHosts.js';
 import {
+  assignRingPositions,
+  metresToLonLatOffset,
+} from './guildMemberPositions.js';
+import {
   LIVESTOCK_BROWSE_TOXICITY,
   type BrowseToxicityEntry,
   toxicityForGuild,
@@ -44,15 +48,22 @@ export interface HostIntegrationRow {
   /** Toxicity hits, narrowed to the herd species actually paddocked here. */
   toxicityFindings: BrowseToxicityEntry[];
   /** Sum of member-guild canopy footprint ÷ total host paddock area, ×100.
-   *  The numerator is clipped at the host polygon's own envelope area
-   *  before division — see `canopyClampedM2`. */
+   *  Numerator is the `turf.union` area of per-member canopy disks when
+   *  every guild on the host has a `center` and at least one canopy radius
+   *  resolves; otherwise falls back to the raw π·r² sum clipped at the
+   *  host polygon envelope (see `canopyClampedM2`). */
   canopyCoveragePct: number;
   /** Host polygon area in m² (turf.area). 0 when geometry is unmeasurable. */
   hostAreaM2: number;
   /** Raw canopy-footprint sum minus what survived the host-envelope clip,
-   *  in m². > 0 indicates two or more guilds claimed canopy that physically
-   *  cannot fit inside the host polygon (overlap dedup discount). */
+   *  in m². > 0 only on the fallback path (no guild center or no resolvable
+   *  canopy radii). Mutually exclusive with `canopyDedupedM2` in practice. */
   canopyClampedM2: number;
+  /** Raw canopy-footprint sum minus the `turf.union` area of per-member
+   *  canopy disks, in m². > 0 indicates the union path saved overlap that
+   *  the legacy π·r² sum double-counted. Mutually exclusive with
+   *  `canopyClampedM2`. */
+  canopyDedupedM2: number;
   /** Composite 0..100: fodder band + canopy band − toxicity penalty. */
   integrationScore: number;
 }
@@ -103,6 +114,55 @@ function guildCanopyFootprintM2(members: GuildMember[]): number {
     total += Math.PI * r * r;
   }
   return total;
+}
+
+/**
+ * Build one `turf.circle` per (guild, member) at the absolute lon/lat
+ * resolved from `Guild.center` + the member's `position` (explicit or
+ * ring-derived), union them all, and return both the union area and the
+ * underlying raw π·r² sum. Returns `null` when any guild on the host
+ * lacks `center` or when no member has a resolvable `canopySpreadM` —
+ * caller falls back to the legacy envelope clip in those cases.
+ */
+function hostCanopyUnion(
+  guilds: Guild[],
+): { unionAreaM2: number; rawSumM2: number } | null {
+  if (guilds.length === 0) return null;
+  const circles: GeoJSON.Feature<GeoJSON.Polygon>[] = [];
+  let rawSumM2 = 0;
+  for (const g of guilds) {
+    if (!g.center) return null;
+    const positions = assignRingPositions(g.members);
+    for (let i = 0; i < g.members.length; i++) {
+      const m = g.members[i]!;
+      const spread = PLANT_BY_ID.get(m.speciesId)?.canopySpreadM;
+      if (typeof spread !== 'number' || spread <= 0) continue;
+      const r = spread / 2;
+      rawSumM2 += Math.PI * r * r;
+      const [eastM, northM] = positions[i]!;
+      const [dLon, dLat] = metresToLonLatOffset(eastM, northM, g.center[1]);
+      const absLon = g.center[0] + dLon;
+      const absLat = g.center[1] + dLat;
+      const circle = turf.circle([absLon, absLat], r / 1000, {
+        units: 'kilometers',
+        steps: 32,
+      });
+      circles.push(circle);
+    }
+  }
+  if (circles.length === 0) return null;
+  try {
+    const merged =
+      circles.length === 1
+        ? circles[0]!
+        : turf.union(turf.featureCollection(circles));
+    if (!merged) return null;
+    const unionAreaM2 = turf.area(merged);
+    if (!Number.isFinite(unionAreaM2)) return null;
+    return { unionAreaM2, rawSumM2 };
+  } catch {
+    return null;
+  }
 }
 
 function scoreFodder(matchCount: number): number {
@@ -179,13 +239,13 @@ export function computeSilvopastureIntegration(
     );
     const toxicityFindings = toxicityForGuild(allGuildMembers, herd);
 
-    // Canopy coverage %. Numerator is the raw π·r² sum across guild members,
-    // clipped at the host polygon's own envelope area (physical upper bound
-    // — canopy cannot exceed the silvopasture footprint). Denominator
-    // remains total paddock area (we care about shade over the grazed area,
-    // not the whole silvopasture polygon). The clip prevents two or more
-    // guilds from claiming canopy that physically cannot fit; the discount
-    // surfaces on the card via `canopyClampedM2`.
+    // Canopy coverage %. When every guild on the host has a center and at
+    // least one canopy radius resolves, the numerator is the `turf.union`
+    // of per-member canopy disks (real overlap dedup). Otherwise it falls
+    // back to the legacy raw π·r² sum clipped at the host envelope
+    // (physical upper bound — canopy cannot exceed the silvopasture
+    // polygon). Denominator remains total paddock area: shade is measured
+    // over the grazed area, not the whole silvopasture polygon.
     const totalPaddockAreaM2 = paddockEntities.reduce(
       (a, p) => a + (Number.isFinite(p.areaM2) ? p.areaM2 : 0),
       0,
@@ -195,12 +255,21 @@ export function computeSilvopastureIntegration(
       (a, g) => a + guildCanopyFootprintM2(g.members),
       0,
     );
-    const clippedCanopyM2 =
-      hostAreaM2 > 0 ? Math.min(rawCanopyM2, hostAreaM2) : rawCanopyM2;
-    const canopyClampedM2 = rawCanopyM2 - clippedCanopyM2;
+    const union = hostCanopyUnion(guildEntities);
+    let effectiveCanopyM2: number;
+    let canopyDedupedM2 = 0;
+    let canopyClampedM2 = 0;
+    if (union) {
+      effectiveCanopyM2 = union.unionAreaM2;
+      canopyDedupedM2 = Math.max(0, union.rawSumM2 - union.unionAreaM2);
+    } else {
+      effectiveCanopyM2 =
+        hostAreaM2 > 0 ? Math.min(rawCanopyM2, hostAreaM2) : rawCanopyM2;
+      canopyClampedM2 = rawCanopyM2 - effectiveCanopyM2;
+    }
     const canopyCoveragePct =
       totalPaddockAreaM2 > 0
-        ? Math.min(100, (clippedCanopyM2 / totalPaddockAreaM2) * 100)
+        ? Math.min(100, (effectiveCanopyM2 / totalPaddockAreaM2) * 100)
         : 0;
 
     const integrationScore = clamp01_100(
@@ -219,6 +288,7 @@ export function computeSilvopastureIntegration(
       canopyCoveragePct,
       hostAreaM2,
       canopyClampedM2,
+      canopyDedupedM2,
       integrationScore,
     });
   }
