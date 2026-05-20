@@ -103,6 +103,88 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     citation:
       'Rodale Institute, Cover Crops & Living Mulches (2018), Ch. 6 (Shade-tolerant ground covers).',
   },
+
+  // ── B5.2 backfill: conventional row-crop / market-garden cover crops ──
+  {
+    speciesId: 'winter_rye',
+    roles: ['winter_cover', 'scavenger', 'smother'],
+    livingRootSeasons: ['fall', 'winter', 'spring'],
+    plantingMonthWindow: [9, 10],
+    rationale:
+      'Secale cereale germinates at soil temperatures down to 2 °C and overwinters reliably to zone 3; the deep fibrous root scavenges residual nitrate (up to 80 kg N/ha) and the allelopathic residue smothers small-seeded weeds for 4–6 weeks after termination.',
+    citation:
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 4 (Cereal Rye); USDA NRCS Plant Guide — Secale cereale.',
+  },
+  {
+    speciesId: 'hairy_vetch',
+    roles: ['winter_cover', 'green_manure'],
+    livingRootSeasons: ['fall', 'winter', 'spring'],
+    plantingMonthWindow: [8, 10],
+    rationale:
+      'Vicia villosa is the most winter-hardy annual legume in temperate row-crop systems, fixing 90–200 kg N/ha by terminal bloom; commonly drilled in a 2:1 mix with winter rye to balance C:N and reduce vetch sprawl.',
+    citation:
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 7 (Hairy Vetch); USDA NRCS Plant Guide — Vicia villosa.',
+  },
+  {
+    speciesId: 'buckwheat',
+    roles: ['smother', 'green_manure'],
+    livingRootSeasons: ['summer'],
+    plantingMonthWindow: [5, 7],
+    rationale:
+      'Fagopyrum esculentum reaches full canopy in 4–6 weeks and reliably smothers summer annual weeds; phosphorus-solubilising root exudates mobilise P from low-availability pools, and the succulent biomass tills in cleanly as a quick-turn green manure between cash crops.',
+    citation:
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 5 (Buckwheat); UC SAREP Cover Crop Database — Fagopyrum esculentum.',
+  },
+  {
+    speciesId: 'tillage_radish',
+    roles: ['scavenger', 'biofumigant'],
+    livingRootSeasons: ['fall'],
+    plantingMonthWindow: [8, 9],
+    rationale:
+      'Raphanus sativus var. longipinnatus drills a 30–100 cm taproot through compacted plough-pan layers, leaving open biopores after winter-kill below −4 °C; glucosinolate breakdown products suppress soil nematodes and fungal pathogens (Verticillium, Rhizoctonia).',
+    citation:
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 6 (Brassicas — Tillage Radish); USDA NRCS Plant Materials Tech Note — Forage Radish (PM-19).',
+  },
+  {
+    speciesId: 'crimson_clover',
+    roles: ['winter_cover', 'green_manure'],
+    livingRootSeasons: ['fall', 'winter', 'spring'],
+    plantingMonthWindow: [8, 9],
+    rationale:
+      'Trifolium incarnatum is the most cold-tolerant annual clover for zone-6 to zone-9 winter cover, fixing 70–150 kg N/ha by full bloom; rapid spring growth allows early termination ahead of cash-crop transplanting without sacrificing N contribution.',
+    citation:
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 8 (Clovers — Crimson Clover); USDA NRCS Plant Guide — Trifolium incarnatum.',
+  },
+  {
+    speciesId: 'field_pea',
+    roles: ['green_manure'],
+    livingRootSeasons: ['spring'],
+    plantingMonthWindow: [3, 4],
+    rationale:
+      'Pisum sativum subsp. arvense fixes 90–150 kg N/ha in a 60-day spring window before summer cash-crop establishment; commonly seeded in a 4:1 mix with oats which provides physical support for the climbing pea vines.',
+    citation:
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 9 (Field Peas); UC SAREP Cover Crop Database — Pisum sativum.',
+  },
+  {
+    speciesId: 'white_mustard',
+    roles: ['biofumigant', 'smother', 'scavenger'],
+    livingRootSeasons: ['summer', 'fall'],
+    plantingMonthWindow: [4, 8],
+    rationale:
+      'Sinapis alba reaches full canopy in 35–45 days for fast-cycle smother + nitrate scavenging; sinalbin glucosinolates hydrolyse on incorporation into isothiocyanates that suppress Sclerotinia, Rhizoctonia, and root-knot nematode populations for 4–8 weeks.',
+    citation:
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 6 (Brassicas — Mustards); UC SAREP Cover Crop Database — Sinapis alba.',
+  },
+  {
+    speciesId: 'oats',
+    roles: ['winter_cover', 'smother'],
+    livingRootSeasons: ['fall'],
+    plantingMonthWindow: [8, 9],
+    rationale:
+      'Avena sativa winter-kills reliably below −7 °C, leaving a flat residue mat that smothers weeds and protects the soil surface through spring without the spring-termination workload of winter rye; preferred where the steward wants a self-terminating fall cover.',
+    citation:
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 4 (Cereals — Oats); USDA NRCS Plant Guide — Avena sativa.',
+  },
 ]);
 
 export function coverCropEntryFor(speciesId: string): CoverCropEntry | undefined {
