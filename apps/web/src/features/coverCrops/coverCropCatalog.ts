@@ -40,6 +40,17 @@ export interface CoverCropEntry {
   plantingMonthWindow: [number, number];
   rationale: string;
   citation: string;
+  /**
+   * B5.2.x.b — national-average cover-crop seed cost (USD per acre). Cited
+   * per entry. Optional: entries missing this field are silently excluded
+   * from the per-phase economics rollup (no stubbed defaults). Stewards
+   * override on the per-window `CropCoverWindow.seedCostUSDPerAcreOverride`.
+   */
+  seedCostUSDPerAcre?: number;
+  /** Drill/broadcast seeding labor (hours per acre), cited. Optional. */
+  seedingLaborHrsPerAcre?: number;
+  /** Seed rate (lb per acre), cited; used for `materialsAuto` BOM. Optional. */
+  seedRateLbPerAcre?: number;
 }
 
 export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
@@ -51,7 +62,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'White clover (Trifolium repens) fixes 75–150 kg N/ha/yr via Rhizobium nodulation; tolerates low mowing and orchard understory shade, persisting 3+ years as living mulch.',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 8 (Clovers); USDA NRCS Plant Guide — Trifolium repens.',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 8 (Clovers); USDA NRCS Plant Guide — Trifolium repens; seed-cost / rate from SARE Ch. 8 Table 8.2 and USDA-NRCS PMC Tech Note (TN-PM-46).',
+    seedCostUSDPerAcre: 40,
+    seedingLaborHrsPerAcre: 0.5,
+    seedRateLbPerAcre: 8,
   },
   {
     speciesId: 'comfrey',
@@ -113,7 +127,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'Secale cereale germinates at soil temperatures down to 2 °C and overwinters reliably to zone 3; the deep fibrous root scavenges residual nitrate (up to 80 kg N/ha) and the allelopathic residue smothers small-seeded weeds for 4–6 weeks after termination.',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 4 (Cereal Rye); USDA NRCS Plant Guide — Secale cereale.',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 4 (Cereal Rye); USDA NRCS Plant Guide — Secale cereale; seed-cost / rate from SARE Ch. 4 Table 4.2.',
+    seedCostUSDPerAcre: 25,
+    seedingLaborHrsPerAcre: 0.4,
+    seedRateLbPerAcre: 90,
   },
   {
     speciesId: 'hairy_vetch',
@@ -123,7 +140,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'Vicia villosa is the most winter-hardy annual legume in temperate row-crop systems, fixing 90–200 kg N/ha by terminal bloom; commonly drilled in a 2:1 mix with winter rye to balance C:N and reduce vetch sprawl.',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 7 (Hairy Vetch); USDA NRCS Plant Guide — Vicia villosa.',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 7 (Hairy Vetch); USDA NRCS Plant Guide — Vicia villosa; seed-cost / rate from SARE Ch. 7 Table 7.2.',
+    seedCostUSDPerAcre: 60,
+    seedingLaborHrsPerAcre: 0.5,
+    seedRateLbPerAcre: 25,
   },
   {
     speciesId: 'buckwheat',
@@ -133,7 +153,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'Fagopyrum esculentum reaches full canopy in 4–6 weeks and reliably smothers summer annual weeds; phosphorus-solubilising root exudates mobilise P from low-availability pools, and the succulent biomass tills in cleanly as a quick-turn green manure between cash crops.',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 5 (Buckwheat); UC SAREP Cover Crop Database — Fagopyrum esculentum.',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 5 (Buckwheat); UC SAREP Cover Crop Database — Fagopyrum esculentum; seed-cost / rate from SARE Ch. 5 Table 5.2.',
+    seedCostUSDPerAcre: 40,
+    seedingLaborHrsPerAcre: 0.4,
+    seedRateLbPerAcre: 50,
   },
   {
     speciesId: 'tillage_radish',
@@ -143,7 +166,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'Raphanus sativus var. longipinnatus drills a 30–100 cm taproot through compacted plough-pan layers, leaving open biopores after winter-kill below −4 °C; glucosinolate breakdown products suppress soil nematodes and fungal pathogens (Verticillium, Rhizoctonia).',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 6 (Brassicas — Tillage Radish); USDA NRCS Plant Materials Tech Note — Forage Radish (PM-19).',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 6 (Brassicas — Tillage Radish); USDA NRCS Plant Materials Tech Note — Forage Radish (PM-19); seed-cost / rate from SARE Ch. 6 Table 6.2 and NRCS PM-19.',
+    seedCostUSDPerAcre: 35,
+    seedingLaborHrsPerAcre: 0.4,
+    seedRateLbPerAcre: 10,
   },
   {
     speciesId: 'crimson_clover',
@@ -153,7 +179,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'Trifolium incarnatum is the most cold-tolerant annual clover for zone-6 to zone-9 winter cover, fixing 70–150 kg N/ha by full bloom; rapid spring growth allows early termination ahead of cash-crop transplanting without sacrificing N contribution.',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 8 (Clovers — Crimson Clover); USDA NRCS Plant Guide — Trifolium incarnatum.',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 8 (Clovers — Crimson Clover); USDA NRCS Plant Guide — Trifolium incarnatum; seed-cost / rate from SARE Ch. 8 Table 8.2.',
+    seedCostUSDPerAcre: 50,
+    seedingLaborHrsPerAcre: 0.4,
+    seedRateLbPerAcre: 22,
   },
   {
     speciesId: 'field_pea',
@@ -163,7 +192,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'Pisum sativum subsp. arvense fixes 90–150 kg N/ha in a 60-day spring window before summer cash-crop establishment; commonly seeded in a 4:1 mix with oats which provides physical support for the climbing pea vines.',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 9 (Field Peas); UC SAREP Cover Crop Database — Pisum sativum.',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 9 (Field Peas); UC SAREP Cover Crop Database — Pisum sativum; seed-cost / rate from SARE Ch. 9 Table 9.2.',
+    seedCostUSDPerAcre: 40,
+    seedingLaborHrsPerAcre: 0.5,
+    seedRateLbPerAcre: 80,
   },
   {
     speciesId: 'white_mustard',
@@ -173,7 +205,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'Sinapis alba reaches full canopy in 35–45 days for fast-cycle smother + nitrate scavenging; sinalbin glucosinolates hydrolyse on incorporation into isothiocyanates that suppress Sclerotinia, Rhizoctonia, and root-knot nematode populations for 4–8 weeks.',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 6 (Brassicas — Mustards); UC SAREP Cover Crop Database — Sinapis alba.',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 6 (Brassicas — Mustards); UC SAREP Cover Crop Database — Sinapis alba; seed-cost / rate from SARE Ch. 6 Table 6.2.',
+    seedCostUSDPerAcre: 22,
+    seedingLaborHrsPerAcre: 0.4,
+    seedRateLbPerAcre: 12,
   },
   {
     speciesId: 'oats',
@@ -183,7 +218,10 @@ export const COVER_CROP_CATALOG: readonly CoverCropEntry[] = Object.freeze([
     rationale:
       'Avena sativa winter-kills reliably below −7 °C, leaving a flat residue mat that smothers weeds and protects the soil surface through spring without the spring-termination workload of winter rye; preferred where the steward wants a self-terminating fall cover.',
     citation:
-      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 4 (Cereals — Oats); USDA NRCS Plant Guide — Avena sativa.',
+      'SARE, Managing Cover Crops Profitably (3rd ed.), Ch. 4 (Cereals — Oats); USDA NRCS Plant Guide — Avena sativa; seed-cost / rate from SARE Ch. 4 Table 4.2.',
+    seedCostUSDPerAcre: 27,
+    seedingLaborHrsPerAcre: 0.4,
+    seedRateLbPerAcre: 90,
   },
 ]);
 

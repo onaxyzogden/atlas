@@ -333,7 +333,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-pastures', usePastureStore, 'projectId-tagged', 1, tagged('pastures'), true),
   blob('ogden-swot', useSwotStore, 'projectId-tagged', 1, tagged('swot'), true),
   blob('ogden-phases', usePhaseStore, 'projectId-tagged', 3, tagged('phases')),
-  blob('ogden-work-items', useWorkItemStore, 'projectId-tagged', 1, tagged('items')),
+  blob('ogden-work-items', useWorkItemStore, 'projectId-tagged', 2, tagged('items')),
   blob('ogden-crew-members', useCrewMemberStore, 'projectId-tagged', 1, tagged('members')),
   blob('ogden-work-item-actuals', useWorkItemBudgetStore, 'projectId-tagged', 1, tagged('actuals')),
   blob('ogden-work-item-proof', useProofEventStore, 'projectId-tagged', 1, tagged('events')),

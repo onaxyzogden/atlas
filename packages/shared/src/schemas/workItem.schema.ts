@@ -36,6 +36,7 @@ export const WorkItemSource = z.enum([
   'maintenance',
   'scheduled-livestock-move',
   'nursery-batch',
+  'cover-crop',
   'manual',
 ]);
 export type WorkItemSource = z.infer<typeof WorkItemSource>;
@@ -142,6 +143,8 @@ export const WorkItemSchema = z
     generatedFromInterventionId: z.string().optional(),
     /** Composite `<species>:<cropAreaId>:<year>` (planting calendar). */
     generatedFromPlantingCalendar: z.string().optional(),
+    /** Composite `<cropAreaId>__<windowIndex>` (cover-crop plan). */
+    generatedFromCoverCropWindow: z.string().optional(),
     goalCriterionId: z.string().optional(),
     catalogVersion: z.string().optional(),
     createdAt: z.string(),

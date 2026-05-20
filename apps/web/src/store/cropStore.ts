@@ -31,6 +31,9 @@ export interface CropCoverWindow {
     | 'scavenger'
     | 'smother'
     | 'biofumigant';
+  /** B5.2.x.b — per-window steward override; effective = override ?? catalog default. */
+  seedCostUSDPerAcreOverride?: number;
+  seedingLaborHrsPerAcreOverride?: number;
 }
 
 export interface CropArea {
