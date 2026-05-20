@@ -331,3 +331,66 @@ mounted via BUILD module slide-up → Operating Dashboard tab.
 
 Gap #5 closed. Walkthrough verification debt for D5 cleared. No commit;
 awaiting steward review.
+
+---
+
+## Footer: Phase 0 (Apricot-Lane showcase blocker close, 2026-05-20)
+
+Phase 0 of the Apricot-Lane showcase program closes the still-open
+walkthrough residue. Verdict updates by gap number:
+
+- **#1 auth-token regression** — closed prior session.
+- **#2 ContextBuilder boot crash** — closed prior session.
+- **#3 cold-start auto-fetch copy** — closed prior session.
+- **#4 13→8 scorecard reconciliation** — **CLOSED.** UX partition
+  shipped in
+  [`LandAssessmentSlideUp.tsx`](../../apps/web/src/components/LevelNavigator/LandAssessmentSlideUp.tsx):
+  `CORE_EIGHT_LABELS` set partitions
+  `computeAssessmentScores` output into 8 visible core + N collapsed
+  diagnostic facets behind `<details>`. Subtitle reads
+  *"Eight-dimension assessment, scored against your site layers."*
+  `Insufficient Data` rating now renders a `Pending data` badge
+  (preserves FAO/USDA classification override strings unchanged).
+  Scorer untouched — partition is presentational.
+- **#5 nursery / catalogue discoverability** — **CLOSED.** Two reuses,
+  no rebuild:
+  - **Catalogue half** was already discoverable from the Plan
+    slide-up Plants module via
+    `MODULE_CARDS['plant-systems'][0]` →
+    `plan-plant-database` → `PlantDatabaseSiteMatchCard`. Re-verified.
+  - **Nursery ledger half** added as a new entry in the same
+    Plants module (`MODULE_CARDS['plant-systems']` in
+    [`v3/plan/types.ts`](../../apps/web/src/v3/plan/types.ts)) +
+    new `'nursery-ledger'` case in
+    [`PlanModuleSlideUp.tsx`](../../apps/web/src/v3/plan/PlanModuleSlideUp.tsx)
+    lazy-loading the existing `NurseryLedgerDashboard`. Also wired
+    into `PlanHub` Module 4 actions for the Hub-rooted path.
+    Preview-verified: clicking the new "Nursery ledger" button
+    renders the full dashboard inside the slide-up (Propagation
+    Inventory, Germination Calendar, Readiness, etc.).
+- **#6 field-proof photo upload** — closed prior session (above).
+- **#7 D5 dashboards** — closed prior session (above).
+- **#8 auth-guard re-enable** — **CLOSED.** New `beforeLoad` guard on
+  `appShellRoute` in
+  [`apps/web/src/routes/index.tsx`](../../apps/web/src/routes/index.tsx)
+  redirects unauthenticated visitors to `/login?redirect=<href>` for
+  every nested route (`/home`, `/new`, `/v3/project/*`,
+  `/projects/compare`, etc.); public routes (landing, login, portal,
+  report-share) are siblings of `appShellRoute` and unaffected.
+  `loginRoute` gains `validateSearch` so `?redirect=` is typed;
+  `LoginPage` already consumed `search.redirect` in its submit
+  handler — no LoginPage change required. Preview-verified all three
+  protected paths (`/home`, `/new`, `/v3/project/<id>`) redirect to
+  `/login?redirect=%2F<path>` while logged out, and logged-in
+  navigation to `/home` works unchanged.
+- **#9 Create-Account tab toggle on /login** — **CLOSED via verify.**
+  Click on the Create Account tab applies `_tabActive_*` to that
+  button and changes the submit button copy to "Create Account."
+  No regression; no code change required.
+- **#10 backend sync** — deferred per program (D-track adjacent).
+
+The walkthrough now produces no 🟡 verdicts on gaps #1–9 against
+current HEAD. Only #10 (deferred-by-program) remains 🟡.
+
+Phase 0 deliverable: a clean platform ready for Phase 1 (Three Streams
+Farm canon).
