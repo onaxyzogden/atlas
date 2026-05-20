@@ -121,7 +121,8 @@
   margin-bottom: 8px;
 }
 
-.canopyClipped {
+.canopyClipped,
+.canopyDeduped {
   font-size: 10.5px;
   color: rgba(180, 165, 140, 0.55);
   font-style: italic;

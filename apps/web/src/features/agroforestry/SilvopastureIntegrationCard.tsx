@@ -107,7 +107,15 @@ export default function SilvopastureIntegrationCard({ projectId }: Props) {
                 {row.guildCount} guild{row.guildCount === 1 ? '' : 's'} ·{' '}
                 canopy {row.canopyCoveragePct.toFixed(0)}%
               </div>
-              {row.canopyClampedM2 > 0 ? (
+              {row.canopyDedupedM2 > 0 ? (
+                <div
+                  className={css.canopyDeduped}
+                  data-testid="canopy-deduped"
+                >
+                  canopy unioned across overlapping guilds — saved{' '}
+                  {Math.round(row.canopyDedupedM2)} m²
+                </div>
+              ) : row.canopyClampedM2 > 0 ? (
                 <div
                   className={css.canopyClipped}
                   data-testid="canopy-clipped"
