@@ -17,9 +17,11 @@
  * Never a financial or yield-as-return notion.
  */
 
+import * as turf from '@turf/turf';
 import {
   resolveSilvopastureHosts,
   resolveMembers,
+  type SilvopastureHost,
 } from './silvopastureHosts.js';
 import {
   LIVESTOCK_BROWSE_TOXICITY,
@@ -41,8 +43,16 @@ export interface HostIntegrationRow {
   fodderMatches: { speciesId: string; commonName: string }[];
   /** Toxicity hits, narrowed to the herd species actually paddocked here. */
   toxicityFindings: BrowseToxicityEntry[];
-  /** Sum of member-guild canopy footprint ÷ total host paddock area, ×100. */
+  /** Sum of member-guild canopy footprint ÷ total host paddock area, ×100.
+   *  The numerator is clipped at the host polygon's own envelope area
+   *  before division — see `canopyClampedM2`. */
   canopyCoveragePct: number;
+  /** Host polygon area in m² (turf.area). 0 when geometry is unmeasurable. */
+  hostAreaM2: number;
+  /** Raw canopy-footprint sum minus what survived the host-envelope clip,
+   *  in m². > 0 indicates two or more guilds claimed canopy that physically
+   *  cannot fit inside the host polygon (overlap dedup discount). */
+  canopyClampedM2: number;
   /** Composite 0..100: fodder band + canopy band − toxicity penalty. */
   integrationScore: number;
 }
@@ -70,6 +80,16 @@ function isFodder(speciesId: string): boolean {
 
 function commonName(speciesId: string): string {
   return PLANT_BY_ID.get(speciesId)?.commonName ?? speciesId;
+}
+
+/** Host polygon area in m² via turf.area. Returns 0 when geometry cannot
+ *  be measured (degenerate polygon, etc.) so callers fall back gracefully. */
+function hostPolygonAreaM2(host: SilvopastureHost): number {
+  try {
+    return turf.area(turf.feature(host.geometry));
+  } catch {
+    return 0;
+  }
 }
 
 /** Sum of π·(spread/2)²·n across guild members, in m². Members missing
@@ -159,18 +179,28 @@ export function computeSilvopastureIntegration(
     );
     const toxicityFindings = toxicityForGuild(allGuildMembers, herd);
 
-    // Canopy coverage % over total paddock area at this host.
+    // Canopy coverage %. Numerator is the raw π·r² sum across guild members,
+    // clipped at the host polygon's own envelope area (physical upper bound
+    // — canopy cannot exceed the silvopasture footprint). Denominator
+    // remains total paddock area (we care about shade over the grazed area,
+    // not the whole silvopasture polygon). The clip prevents two or more
+    // guilds from claiming canopy that physically cannot fit; the discount
+    // surfaces on the card via `canopyClampedM2`.
     const totalPaddockAreaM2 = paddockEntities.reduce(
       (a, p) => a + (Number.isFinite(p.areaM2) ? p.areaM2 : 0),
       0,
     );
-    const canopyM2 = guildEntities.reduce(
+    const hostAreaM2 = hostPolygonAreaM2(host);
+    const rawCanopyM2 = guildEntities.reduce(
       (a, g) => a + guildCanopyFootprintM2(g.members),
       0,
     );
+    const clippedCanopyM2 =
+      hostAreaM2 > 0 ? Math.min(rawCanopyM2, hostAreaM2) : rawCanopyM2;
+    const canopyClampedM2 = rawCanopyM2 - clippedCanopyM2;
     const canopyCoveragePct =
       totalPaddockAreaM2 > 0
-        ? Math.min(100, (canopyM2 / totalPaddockAreaM2) * 100)
+        ? Math.min(100, (clippedCanopyM2 / totalPaddockAreaM2) * 100)
         : 0;
 
     const integrationScore = clamp01_100(
@@ -187,6 +217,8 @@ export function computeSilvopastureIntegration(
       fodderMatches,
       toxicityFindings,
       canopyCoveragePct,
+      hostAreaM2,
+      canopyClampedM2,
       integrationScore,
     });
   }
