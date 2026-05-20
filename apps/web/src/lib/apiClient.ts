@@ -256,6 +256,32 @@ export const api = {
       ),
   },
 
+  designMap: {
+    generate: (
+      projectId: string,
+      input: {
+        persist?: boolean;
+        options?: {
+          enterprises?: string[];
+          orchard?: Record<string, unknown>;
+          swale?: Record<string, unknown>;
+          paddock?: Record<string, unknown>;
+          corridor?: Record<string, unknown>;
+        };
+      } = {},
+    ) =>
+      request<{
+        features: DesignFeatureSummary[];
+        summary: Record<string, number>;
+        warnings: string[];
+        persisted?: { count: number; ids: string[] };
+      }>(
+        'POST',
+        `/api/v1/design-map/project/${projectId}/generate`,
+        input,
+      ),
+  },
+
   machineryItems: {
     list: (projectId: string) =>
       request<MachineryItemSummary[]>('GET', `/api/v1/machinery-items/project/${projectId}`),
