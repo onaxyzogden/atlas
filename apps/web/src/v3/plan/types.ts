@@ -239,6 +239,9 @@ export const MODULE_CARDS: Record<
     { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },
     // B5 — cross-registered with habitat-allocation; same sectionId, one render.
     { label: 'Beneficial-organism audit', sectionId: 'plan-beneficial-habitat' },
+    // B5.2.x — per-CropArea cover-crop plan editor (writes coverCropPlan;
+    // LivingRootsCard reads the same store and lights up live).
+    { label: 'Cover-crop planner', sectionId: 'plan-cover-crop-planner' },
     // B5.1 — cross-registered with soil-fertility; same sectionId, one render.
     { label: 'Living-roots audit', sectionId: 'plan-living-roots' },
   ],

@@ -62,6 +62,7 @@ const RotationAdherenceActionsCard = lazy(() => import('../../features/livestock
 const SilvopastureIntegrationCard = lazy(() => import('../../features/agroforestry/SilvopastureIntegrationCard.js'));
 const BeneficialHabitatCard       = lazy(() => import('../../features/biodiversity/BeneficialHabitatCard.js'));
 const LivingRootsCard             = lazy(() => import('../../features/coverCrops/LivingRootsCard.js'));
+const CoverCropPlannerCard        = lazy(() => import('../../features/coverCrops/CoverCropPlannerCard.js'));
 const SlaughterThroughputCard = lazy(() => import('../../features/agribusiness/SlaughterThroughputCard.js'));
 const ColdChainCoverageCard   = lazy(() => import('../../features/agribusiness/ColdChainCoverageCard.js'));
 const MarketDistributionCard  = lazy(() => import('../../features/agribusiness/MarketDistributionCard.js'));
@@ -147,6 +148,7 @@ function renderPlanCard(
     case 'plan-silvopasture-integration':     return <SilvopastureIntegrationCard projectId={project.id} />;
     case 'plan-beneficial-habitat':           return <BeneficialHabitatCard projectId={project.id} />;
     case 'plan-living-roots':                 return <LivingRootsCard projectId={project.id} />;
+    case 'plan-cover-crop-planner':           return <CoverCropPlannerCard projectId={project.id} />;
     case 'plan-product-slaughter-throughput': return <SlaughterThroughputCard projectId={project.id} />;
     case 'plan-product-coldchain-coverage':   return <ColdChainCoverageCard projectId={project.id} />;
     case 'plan-product-market-distribution':  return <MarketDistributionCard projectId={project.id} />;
