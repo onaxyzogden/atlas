@@ -266,6 +266,45 @@ export const PLANT_CATALOG: PlantCatalogEntry[] = [
     id: 'carrot', latinName: 'Daucus carota', commonName: 'Carrot', legacyIds: ['pl-604'],
     layer: 'root', matureHeightM: 0.4, matureWidthM: 0.2, hardinessZones: [3, 10], lightNeeds: 'full', waterNeeds: 'med', rootDepthM: 0.3, rootPattern: 'tap', ecologicalFunction: ['edible_yield', 'pollinator'],
   },
+
+  // ── Annual cover crops (B5.2 backfill — sources: USDA NRCS Plant Profile; ──
+  // ── SARE Managing Cover Crops Profitably 3rd ed.; UC SAREP cover-crop DB) ──
+  // No `category` populated: existing PlantCategory union is tree|shrub|vine|
+  // ground_cover and annuals do not cleanly fit; the field is optional on the
+  // site-match B-axis filter. These entries surface through the A-axis
+  // layering selector (layer: herbaceous | ground_cover).
+  {
+    id: 'winter_rye', latinName: 'Secale cereale', commonName: 'Winter rye',
+    layer: 'herbaceous', matureHeightM: 1.5, matureWidthM: 0.3, hardinessZones: [3, 8], lightNeeds: 'full', waterNeeds: 'low', rootDepthM: 1.5, rootPattern: 'fibrous', ecologicalFunction: ['dynamic_accumulator'],
+  },
+  {
+    id: 'hairy_vetch', latinName: 'Vicia villosa', commonName: 'Hairy vetch',
+    layer: 'ground_cover', matureHeightM: 0.6, matureWidthM: 0.5, hardinessZones: [4, 8], lightNeeds: 'full', waterNeeds: 'low', rootDepthM: 0.9, rootPattern: 'tap', ecologicalFunction: ['n_fixer', 'pollinator'],
+  },
+  {
+    id: 'buckwheat', latinName: 'Fagopyrum esculentum', commonName: 'Buckwheat',
+    layer: 'herbaceous', matureHeightM: 0.9, matureWidthM: 0.3, hardinessZones: [3, 10], lightNeeds: 'full', waterNeeds: 'low', rootDepthM: 0.3, rootPattern: 'fibrous', ecologicalFunction: ['pollinator', 'dynamic_accumulator'],
+  },
+  {
+    id: 'tillage_radish', latinName: 'Raphanus sativus var. longipinnatus', commonName: 'Daikon (tillage radish)',
+    layer: 'herbaceous', matureHeightM: 0.4, matureWidthM: 0.3, hardinessZones: [3, 10], lightNeeds: 'full', waterNeeds: 'med', rootDepthM: 1.0, rootPattern: 'tap', ecologicalFunction: ['dynamic_accumulator'],
+  },
+  {
+    id: 'crimson_clover', latinName: 'Trifolium incarnatum', commonName: 'Crimson clover',
+    layer: 'ground_cover', matureHeightM: 0.5, matureWidthM: 0.3, hardinessZones: [6, 9], lightNeeds: 'full', waterNeeds: 'low', rootDepthM: 0.6, rootPattern: 'tap', ecologicalFunction: ['n_fixer', 'pollinator'],
+  },
+  {
+    id: 'field_pea', latinName: 'Pisum sativum subsp. arvense', commonName: 'Field pea',
+    layer: 'herbaceous', matureHeightM: 1.2, matureWidthM: 0.3, hardinessZones: [3, 8], lightNeeds: 'full', waterNeeds: 'med', rootDepthM: 0.6, rootPattern: 'tap', ecologicalFunction: ['n_fixer'],
+  },
+  {
+    id: 'white_mustard', latinName: 'Sinapis alba', commonName: 'White mustard',
+    layer: 'herbaceous', matureHeightM: 0.8, matureWidthM: 0.3, hardinessZones: [3, 9], lightNeeds: 'full', waterNeeds: 'low', rootDepthM: 0.6, rootPattern: 'tap', ecologicalFunction: ['pollinator'],
+  },
+  {
+    id: 'oats', latinName: 'Avena sativa', commonName: 'Oats',
+    layer: 'herbaceous', matureHeightM: 1.2, matureWidthM: 0.3, hardinessZones: [3, 9], lightNeeds: 'full', waterNeeds: 'med', rootDepthM: 0.6, rootPattern: 'fibrous', ecologicalFunction: ['fodder'],
+  },
 ];
 
 export const CATALOG_BY_ID: Record<string, PlantCatalogEntry> = Object.fromEntries(
