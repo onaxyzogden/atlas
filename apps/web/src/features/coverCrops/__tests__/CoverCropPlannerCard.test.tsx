@@ -13,6 +13,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CoverCropPlannerCard from '../CoverCropPlannerCard.js';
 import { useCropStore, type CropArea } from '../../../store/cropStore.js';
+import { useWorkItemStore } from '../../../store/workItemStore.js';
+import { usePhaseStore } from '../../../store/phaseStore.js';
 
 const PROJECT_ID = 'p1';
 
@@ -44,6 +46,8 @@ function area(over: Partial<CropArea> = {}): CropArea {
 beforeEach(() => {
   localStorage.clear();
   useCropStore.setState({ cropAreas: [] });
+  useWorkItemStore.setState({ items: [] });
+  usePhaseStore.setState({ phases: [] });
 });
 
 describe('CoverCropPlannerCard — B5.2.x', () => {
@@ -106,5 +110,26 @@ describe('CoverCropPlannerCard — B5.2.x', () => {
     fireEvent.click(screen.getByRole('button', { name: /Save changes/i }));
 
     expect(useCropStore.getState().cropAreas[0]!.coverCropPlan).toEqual([]);
+  });
+
+  it('pushes cover-crop WorkItems onto the spine on Save (B5.2.x.b C5)', () => {
+    useCropStore.setState({ cropAreas: [area()] });
+    render(<CoverCropPlannerCard projectId={PROJECT_ID} />);
+
+    fireEvent.click(screen.getByText(/Add cover-crop window/i));
+    const speciesSelect = screen.getByLabelText(/Species/i) as HTMLSelectElement;
+    fireEvent.change(speciesSelect, { target: { value: 'winter_rye' } });
+    fireEvent.click(screen.getByRole('button', { name: /Add window/i }));
+
+    expect(useWorkItemStore.getState().items).toHaveLength(0);
+    fireEvent.click(screen.getByRole('button', { name: /Save changes/i }));
+
+    const items = useWorkItemStore.getState().items;
+    expect(items).toHaveLength(1);
+    expect(items[0]!).toMatchObject({
+      source: 'cover-crop',
+      generatedFromCoverCropWindow: 'ca1__0',
+      projectId: PROJECT_ID,
+    });
   });
 });

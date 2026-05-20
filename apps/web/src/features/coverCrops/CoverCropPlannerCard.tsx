@@ -37,6 +37,7 @@ import {
   formatMonthRange,
   isValidMonth,
 } from './coverCropPlannerMath.js';
+import { pushCoverCropPlanToSpine } from './coverCropSpineSync.js';
 import css from './CoverCropPlannerCard.module.css';
 
 interface Props {
@@ -126,7 +127,10 @@ export default function CoverCropPlannerCard({ projectId }: Props) {
           <AreaEditor
             key={area.id}
             area={area}
-            onSave={(next) => updateCropArea(area.id, { coverCropPlan: next })}
+            onSave={(next) => {
+              updateCropArea(area.id, { coverCropPlan: next });
+              pushCoverCropPlanToSpine(projectId);
+            }}
           />
         ))}
       </div>
@@ -259,6 +263,9 @@ function AddWindowForm({ onAdd, onCancel }: AddWindowFormProps) {
   const [role, setRole] = useState<CoverCropRole>(firstEntry.roles[0]!);
   const [startMonth, setStartMonth] = useState<number>(firstDefault.startMonth);
   const [endMonth, setEndMonth] = useState<number>(firstDefault.endMonth);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [seedCostOverride, setSeedCostOverride] = useState<string>('');
+  const [laborHrsOverride, setLaborHrsOverride] = useState<string>('');
 
   const entry = coverCropEntryFor(speciesId);
   const allowedRoles = entry?.roles ?? [];
@@ -354,12 +361,69 @@ function AddWindowForm({ onAdd, onCancel }: AddWindowFormProps) {
         Living roots: {seasons.length > 0 ? seasons.join(', ') : '—'}
       </div>
 
+      <button
+        type="button"
+        className={css.cancelButton}
+        onClick={() => setAdvancedOpen((v) => !v)}
+        aria-expanded={advancedOpen}
+        style={{ marginTop: 8 }}
+      >
+        {advancedOpen ? '− Advanced' : '+ Advanced (site-specific cost overrides)'}
+      </button>
+      {advancedOpen && (
+        <div className={css.monthRow}>
+          <label className={css.field}>
+            <span className={css.fieldLabel}>Override seed cost (USD/acre)</span>
+            <input
+              className={css.monthInput}
+              type="number"
+              min={0}
+              step="0.01"
+              value={seedCostOverride}
+              onChange={(e) => setSeedCostOverride(e.target.value)}
+              placeholder={
+                entry?.seedCostUSDPerAcre != null
+                  ? `catalog: ${entry.seedCostUSDPerAcre}`
+                  : 'no catalog default'
+              }
+            />
+          </label>
+          <label className={css.field}>
+            <span className={css.fieldLabel}>Override seeding labor (hrs/acre)</span>
+            <input
+              className={css.monthInput}
+              type="number"
+              min={0}
+              step="0.01"
+              value={laborHrsOverride}
+              onChange={(e) => setLaborHrsOverride(e.target.value)}
+              placeholder={
+                entry?.seedingLaborHrsPerAcre != null
+                  ? `catalog: ${entry.seedingLaborHrsPerAcre}`
+                  : 'no catalog default'
+              }
+            />
+          </label>
+        </div>
+      )}
+
       <div className={css.formActions}>
         <button
           type="button"
           className={css.addConfirm}
           disabled={!canSubmit}
-          onClick={() => onAdd({ speciesId, role, startMonth, endMonth })}
+          onClick={() => {
+            const next: CropCoverWindow = { speciesId, role, startMonth, endMonth };
+            const seedNum = Number(seedCostOverride);
+            if (seedCostOverride !== '' && Number.isFinite(seedNum) && seedNum >= 0) {
+              next.seedCostUSDPerAcreOverride = seedNum;
+            }
+            const laborNum = Number(laborHrsOverride);
+            if (laborHrsOverride !== '' && Number.isFinite(laborNum) && laborNum >= 0) {
+              next.seedingLaborHrsPerAcreOverride = laborNum;
+            }
+            onAdd(next);
+          }}
         >
           Add window
         </button>
