@@ -44,8 +44,12 @@ import {
 import { hostCanopyUnion } from '../../../features/agroforestry/guildLivestockMath.js';
 import {
   HostCanopyUnionTooltip,
-  type HostCanopyUnionTooltipProps,
+  type HostBlockProps,
 } from './HostCanopyUnionTooltip.js';
+
+// A single host's block of tooltip data, plus the hostId used for
+// click-toggle stack-equality unpin (not rendered).
+type HostBlock = HostBlockProps & { hostId: string };
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -255,19 +259,23 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // from a mousemove on the `guild-host-canopy-union-fill` layer; cleared
   // on mouseleave. Rendered via a portal into `map.getCanvasContainer()`
   // so the cursor-anchored coordinates from `e.point` are in the same
-  // pixel space the tooltip lives in.
+  // pixel space the tooltip lives in. `entries` is the multi-feature
+  // fan-out: every overlapping host at the cursor, deduped by hostId,
+  // topmost first.
   const [hoveredUnion, setHoveredUnion] = useState<{
     point: { x: number; y: number };
-    props: Omit<HostCanopyUnionTooltipProps, 'point'>;
+    entries: HostBlock[];
   } | null>(null);
   // Pinned state for the same tooltip. Set by a click on the union
-  // fill; cleared by a second click on the same union (hostId match)
-  // or by ESC. While a union is pinned, transient mousemove writes to
-  // `hoveredUnion` are suppressed so the pinned read doesn't jitter.
+  // fill; cleared by a second click whose hostId set is identical to
+  // the pinned stack's, or by ESC. While a union is pinned, transient
+  // mousemove writes to `hoveredUnion` are suppressed so the pinned
+  // read doesn't jitter. `hostIds` is the sorted set used for the
+  // set-equality unpin check on click.
   const [pinnedUnion, setPinnedUnion] = useState<{
     point: { x: number; y: number };
-    props: Omit<HostCanopyUnionTooltipProps, 'point'>;
-    hostId: string;
+    entries: HostBlock[];
+    hostIds: string[];
   } | null>(null);
   const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
@@ -2006,28 +2014,54 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     if (!map) return;
     const layerId = `${LAYER_PREFIX}guild-host-canopy-union-fill`;
 
-    const unpackProps = (
-      p: Record<string, unknown>,
-    ): Omit<HostCanopyUnionTooltipProps, 'point'> => ({
-      hostName: String(p.hostName ?? ''),
-      unionAreaM2: Number(p.unionAreaM2) || 0,
-      rawSumM2: Number(p.rawSumM2) || 0,
-      guildCount: Number(p.guildCount) || 0,
-      memberCount: Number(p.memberCount) || 0,
-    });
+    // Pulls every host-canopy-union feature at the cursor (not just
+    // the topmost), preserves MapLibre's render order (topmost first),
+    // and dedups by hostId — MapLibre can emit the same feature twice
+    // when its source has multiple visible tiles.
+    const unpackEntries = (
+      features: maplibregl.MapGeoJSONFeature[] | undefined,
+    ): HostBlock[] => {
+      if (!features || features.length === 0) return [];
+      const seen = new Set<string>();
+      const out: HostBlock[] = [];
+      for (const f of features) {
+        const p = f.properties;
+        if (!p || p.kind !== 'host-canopy-union') continue;
+        const hostId = String(p.hostId ?? '');
+        if (!hostId || seen.has(hostId)) continue;
+        seen.add(hostId);
+        out.push({
+          hostId,
+          hostName: String(p.hostName ?? ''),
+          unionAreaM2: Number(p.unionAreaM2) || 0,
+          rawSumM2: Number(p.rawSumM2) || 0,
+          guildCount: Number(p.guildCount) || 0,
+          memberCount: Number(p.memberCount) || 0,
+        });
+      }
+      return out;
+    };
+
+    const sameHostIdSet = (a: string[], b: string[]): boolean => {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+      }
+      return true;
+    };
 
     const onMove = (e: maplibregl.MapLayerMouseEvent) => {
       // Suppress hover writes while pinned so the pinned read doesn't
-      // jitter under cursor motion over the same union.
+      // jitter under cursor motion.
       if (pinnedUnion) return;
-      const f = e.features?.[0];
-      if (!f || f.properties?.kind !== 'host-canopy-union') {
+      const entries = unpackEntries(e.features);
+      if (entries.length === 0) {
         setHoveredUnion(null);
         return;
       }
       setHoveredUnion({
         point: { x: e.point.x, y: e.point.y },
-        props: unpackProps(f.properties),
+        entries,
       });
     };
     const onLeave = () => {
@@ -2035,20 +2069,20 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       setHoveredUnion(null);
     };
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
-      const f = e.features?.[0];
-      if (!f || f.properties?.kind !== 'host-canopy-union') return;
-      const hostId = String(f.properties.hostId ?? '');
-      if (!hostId) return;
-      // Toggle: clicking the currently-pinned union unpins it; clicking
-      // a different union (or any union when nothing is pinned) pins.
-      if (pinnedUnion?.hostId === hostId) {
+      const entries = unpackEntries(e.features);
+      if (entries.length === 0) return;
+      const hostIds = entries.map((x) => x.hostId).sort();
+      // Toggle: clicking a stack whose hostId set matches the
+      // currently-pinned stack unpins it; clicking any other stack
+      // (or any stack when nothing is pinned) pins.
+      if (pinnedUnion && sameHostIdSet(pinnedUnion.hostIds, hostIds)) {
         setPinnedUnion(null);
         return;
       }
       setPinnedUnion({
         point: { x: e.point.x, y: e.point.y },
-        props: unpackProps(f.properties),
-        hostId,
+        entries,
+        hostIds,
       });
       // Clear hover so only one tooltip ever renders.
       setHoveredUnion(null);
@@ -3340,7 +3374,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   return createPortal(
     <HostCanopyUnionTooltip
       point={activeUnion.point}
-      {...activeUnion.props}
+      entries={activeUnion.entries}
       pinned={!!pinnedUnion}
     />,
     canvasContainer,
