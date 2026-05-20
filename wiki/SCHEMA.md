@@ -8,12 +8,16 @@ It is maintained by Claude Code across sessions and version-controlled with the 
 ```
 wiki/
   index.md          — catalog of all pages (read first every session)
-  log.md            — chronological record of operations
+  log.md            — reverse-chronological index of per-day log entries
+  log/              — one file per session-end entry (YYYY-MM-DD-slug.md)
   SCHEMA.md         — this file: conventions and workflows
   entities/         — projects, modules, systems, tools
   concepts/         — frameworks, patterns, principles
   decisions/        — architectural decision records (ADRs)
 ```
+
+See [concepts/parallel-session-coordination.md](concepts/parallel-session-coordination.md)
+for why `log/` is a directory of per-day files rather than a monolith.
 
 ## Page Conventions
 
@@ -64,6 +68,24 @@ List of entities/files that implement this concept.
 Rules or invariants to respect.
 ```
 
+### Log Entries (`log/`)
+File naming: `YYYY-MM-DD-slug.md` (slug = heading title kebab-cased,
+≤60 chars; on same-day collisions append `-2`, `-3`, …).
+
+No frontmatter. The file is just the entry body with an H1 heading:
+
+```markdown
+# YYYY-MM-DD — Title
+
+Body narrative — branch, scope, what shipped, links to ADRs, etc.
+No fixed template beyond the heading; mirror existing entries.
+```
+
+`wiki/log.md` is the reverse-chronological **index** of these files
+(one line per entry). The index is regenerable; the per-file entries
+are authoritative. See
+[concepts/parallel-session-coordination.md](concepts/parallel-session-coordination.md).
+
 ### Decision Records (`decisions/`)
 File naming: `YYYY-MM-DD-slug.md`
 
@@ -86,7 +108,9 @@ File naming: `YYYY-MM-DD-slug.md`
 ### Session End
 1. Update affected entity pages
 2. File any new ADRs
-3. Append session entry to `wiki/log.md`
+3. Write a new entry under `wiki/log/YYYY-MM-DD-slug.md` and add a
+   one-line index entry at the top of `wiki/log.md`. Never edit a
+   peer session's existing entry file.
 4. Update `wiki/index.md` if new pages were created
 
 ### Compaction Boundary
