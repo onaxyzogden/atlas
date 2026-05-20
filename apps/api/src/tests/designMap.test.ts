@@ -55,7 +55,6 @@ vi.mock('../plugins/websocket.js', async () => {
   const { default: fp } = await import('fastify-plugin');
   return {
     default: fp(async (fastify: FastifyInstance) => {
-      // @ts-expect-error — mock
       fastify.decorate('wsBroadcast', wsBroadcastSpy);
     }),
   };
