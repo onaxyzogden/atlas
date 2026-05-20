@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   generateDesignMap,
-  emptySummary,
   DEFAULT_ENTERPRISES,
 } from '../DesignMapGenerator.js';
 import type { Ring } from '../geometry.js';
@@ -28,14 +27,14 @@ function squareParcel(sideM: number): Ring {
 }
 
 describe('generateDesignMap — orchestrator', () => {
-  it('runs the orchard algorithm by default and surfaces its "no contours" warning when contours are absent', () => {
+  it('runs the orchard algorithm and surfaces its "no contours" warning when contours are absent', () => {
     const out = generateDesignMap({
       parcel: { boundary: squareParcel(900) },
       acres: 200,
       enterprises: ['orchard'],
     });
-    expect(out.features).toEqual([]);
-    expect(out.summary).toEqual(emptySummary());
+    expect(out.summary.orchardRows).toBe(0);
+    expect(out.summary.estimatedTreeCount).toBe(0);
     expect(
       out.warnings.some((w) => w.includes('no contours provided')),
     ).toBe(true);
@@ -47,7 +46,7 @@ describe('generateDesignMap — orchestrator', () => {
       acres: 200,
       enterprises: [],
     });
-    expect(out.features).toEqual([]);
+    expect(out.summary.orchardRows).toBe(0);
     expect(
       out.warnings.some((w) => w.includes('no contours provided')),
     ).toBe(false);
@@ -61,7 +60,9 @@ describe('generateDesignMap — orchestrator', () => {
     });
     expect(out.summary.paddocks).toBeGreaterThan(0);
     expect(out.summary.totalPaddockAuDays).toBeGreaterThan(0);
-    expect(out.features.every((f) => f.subtype === 'livestock')).toBe(true);
+    expect(
+      out.features.some((f) => f.subtype === 'livestock'),
+    ).toBe(true);
   });
 
   it('skips the paddock-grid algorithm when "livestock" is absent from the enterprise mix', () => {
@@ -94,6 +95,50 @@ describe('generateDesignMap — orchestrator', () => {
   it('exposes a default enterprise mix of orchard + livestock', () => {
     expect(DEFAULT_ENTERPRISES).toContain('orchard');
     expect(DEFAULT_ENTERPRISES).toContain('livestock');
+  });
+
+  it('always emits a perimeter habitat corridor on a valid parcel', () => {
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      enterprises: [],
+    });
+    expect(out.summary.corridors).toBeGreaterThan(0);
+    expect(out.summary.totalCorridorAcres).toBeGreaterThan(0);
+    expect(
+      out.features.some(
+        (f) => f.subtype === 'conservation' && f.phaseTag === 'habitat',
+      ),
+    ).toBe(true);
+  });
+
+  it('gate: a 900 m square fixture with contours yields orchards + paddocks + corridors together', () => {
+    const mLat = metresPerDegLat();
+    const mLon = metresPerDegLon(ANCHOR_LAT);
+    // Two horizontal contour lines inside the parcel.
+    const contour = (northingM: number) => ({
+      line: [
+        [ANCHOR_LON - 350 / mLon, ANCHOR_LAT + northingM / mLat],
+        [ANCHOR_LON + 350 / mLon, ANCHOR_LAT + northingM / mLat],
+      ] as [number, number][],
+      elevationM: 100 + northingM / 10,
+      meanSlopePct: 6,
+    });
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      contours: [contour(-150), contour(0), contour(150)],
+      enterprises: ['orchard', 'livestock'],
+    });
+    expect(out.summary.orchardRows).toBeGreaterThan(0);
+    expect(out.summary.estimatedTreeCount).toBeGreaterThan(0);
+    expect(out.summary.paddocks).toBeGreaterThan(0);
+    expect(out.summary.corridors).toBeGreaterThan(0);
+    // Three algorithm families represented in the feature set.
+    const subtypes = new Set(out.features.map((f) => f.subtype));
+    expect(subtypes.has('farm_lane')).toBe(true); // orchard rows
+    expect(subtypes.has('livestock')).toBe(true); // paddocks
+    expect(subtypes.has('conservation')).toBe(true); // corridors
   });
 
   it('runs swales when candidates are present, regardless of enterprise mix', () => {

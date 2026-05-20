@@ -28,6 +28,10 @@ import {
   generatePaddockGrid,
   type PaddockGridOptions,
 } from './algorithms/paddockGrid.js';
+import {
+  generateHabitatCorridors,
+  type HabitatCorridorsOptions,
+} from './algorithms/habitatCorridors.js';
 
 // ── Input types ────────────────────────────────────────────────────────────
 
@@ -99,6 +103,7 @@ export interface GenerateDesignMapInput {
     orchard?: OrchardOnContourOptions;
     swale?: KeylineSwalesOptions;
     paddock?: PaddockGridOptions;
+    corridor?: HabitatCorridorsOptions;
   };
 }
 
@@ -112,6 +117,7 @@ export interface DesignMapSummary {
   totalSpongeCapacityM3: number;
   estimatedTreeCount: number;
   totalPaddockAuDays: number;
+  totalCorridorAcres: number;
 }
 
 export interface GenerateDesignMapOutput {
@@ -129,6 +135,7 @@ export function emptySummary(): DesignMapSummary {
     totalSpongeCapacityM3: 0,
     estimatedTreeCount: 0,
     totalPaddockAuDays: 0,
+    totalCorridorAcres: 0,
   };
 }
 
@@ -190,7 +197,22 @@ export function generateDesignMap(
     warnings.push(...paddocks.warnings);
   }
 
-  // Remaining B.2.* algorithms (corridor) wire in here.
+  // Habitat corridors are ecological infrastructure — run unconditionally
+  // (the perimeter buffer is always emitted; riparian buffers only when
+  // `riparianLines` is provided).
+  {
+    const corridors = generateHabitatCorridors({
+      parcel: input.parcel,
+      ...(input.riparianLines ? { riparianLines: input.riparianLines } : {}),
+      ...(input.options?.corridor
+        ? { options: input.options.corridor }
+        : {}),
+    });
+    features.push(...corridors.features);
+    summary.corridors = corridors.corridorCount;
+    summary.totalCorridorAcres = corridors.totalCorridorAcres;
+    warnings.push(...corridors.warnings);
+  }
 
   return { features, summary, warnings };
 }
