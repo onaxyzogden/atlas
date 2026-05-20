@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { useRotationPlanStore } from '../../../store/rotationPlanStore.js';
+import { pushRotationSequenceToSpine } from '../rotationSequenceSpineSync.js';
 
 interface Props {
   projectId: string;
@@ -34,6 +35,7 @@ export function OvergrazedEditor({ projectId, paddockId, onClose }: Props) {
   function save() {
     if (!cell) return;
     upsertCell(projectId, { ...cell, targetGrazeDays: draft });
+    pushRotationSequenceToSpine(projectId);
     onClose();
   }
 

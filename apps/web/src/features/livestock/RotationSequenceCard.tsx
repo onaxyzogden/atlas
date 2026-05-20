@@ -24,6 +24,7 @@ import {
   computePaddockRecommendedStocking,
   type RiskLevel,
 } from './livestockAnalysis.js';
+import { pushRotationSequenceToSpine } from './rotationSequenceSpineSync.js';
 import css from './RotationSequenceCard.module.css';
 
 interface RotationSequenceCardProps {
@@ -147,7 +148,17 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
             sequence in the companion {'“'}Rotation plan{'”'} card.
           </p>
         </div>
-        <span className={css.modeBadge}>Read-only</span>
+        <div className={css.headActions}>
+          <button
+            type="button"
+            className={css.syncBtn}
+            onClick={() => pushRotationSequenceToSpine(projectId)}
+            aria-label="Sync rotation schedule to work-item spine"
+          >
+            Sync schedule
+          </button>
+          <span className={css.modeBadge}>Read-only</span>
+        </div>
       </div>
 
       {/* Headline rest-compliance */}

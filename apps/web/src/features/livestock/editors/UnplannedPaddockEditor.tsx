@@ -4,6 +4,7 @@
  */
 import { useState } from 'react';
 import { useRotationPlanStore } from '../../../store/rotationPlanStore.js';
+import { pushRotationSequenceToSpine } from '../rotationSequenceSpineSync.js';
 
 interface Props {
   projectId: string;
@@ -30,6 +31,7 @@ export function UnplannedPaddockEditor({
       targetGrazeDays,
       targetRestDays,
     });
+    pushRotationSequenceToSpine(projectId);
     onClose();
   }
 
