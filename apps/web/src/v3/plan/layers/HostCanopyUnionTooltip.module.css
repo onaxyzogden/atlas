@@ -51,3 +51,11 @@
 .saved {
   color: #c4a265;
 }
+
+/* Pinned-state border accent — brand-gold, same hue as the saved-overlap
+   row, signalling "this tooltip is sticky." Subtle on purpose: the
+   unpinned hover surface should be visually unchanged from the
+   2026-05-25 ship. */
+.tooltip[data-pinned='true'] {
+  border-color: #c4a265;
+}

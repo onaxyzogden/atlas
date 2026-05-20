@@ -23,6 +23,12 @@ export interface HostCanopyUnionTooltipProps {
   rawSumM2: number;
   guildCount: number;
   memberCount: number;
+  // True when the tooltip is shown via click-to-pin (not hover).
+  // Forwarded as `data-pinned` so CSS can swap the border accent
+  // without disturbing the hover appearance. The 2026-05-25 contract
+  // (pointer-events: none, cursor-anchored) is unchanged in either
+  // state.
+  pinned?: boolean;
 }
 
 // Approximate dimensions used only for the edge-clamp decision —
@@ -44,6 +50,7 @@ export function HostCanopyUnionTooltip({
   rawSumM2,
   guildCount,
   memberCount,
+  pinned,
 }: HostCanopyUnionTooltipProps): React.JSX.Element {
   const viewportW =
     typeof window === 'undefined' ? 1024 : window.innerWidth;
@@ -70,6 +77,7 @@ export function HostCanopyUnionTooltip({
       data-testid="host-canopy-union-tooltip"
       data-anchor-x={anchorRight ? 'left' : 'right'}
       data-anchor-y={anchorBottom ? 'top' : 'bottom'}
+      {...(pinned ? { 'data-pinned': 'true' } : {})}
       style={{ left, top }}
     >
       <div className={styles.hostName}>{hostName}</div>
