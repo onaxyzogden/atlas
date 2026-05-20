@@ -38,6 +38,7 @@ import { initGaezService } from './services/gaez/GaezRasterService.js';
 import soilgridsRoutes from './routes/soilgrids/index.js';
 import { initSoilGridsService } from './services/soilgrids/SoilGridsRasterService.js';
 import designFeatureRoutes from './routes/design-features/index.js';
+import designMapRoutes from './routes/design-map/index.js';
 import machineryItemRoutes from './routes/machinery-items/index.js';
 import projectStateRoutes from './routes/project-state/index.js';
 import vegetationRoutes from './routes/vegetation/index.js';
@@ -204,6 +205,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(gaezRoutes,     { prefix: '/api/v1/gaez' });
   await app.register(soilgridsRoutes,{ prefix: '/api/v1/soilgrids' });
   await app.register(designFeatureRoutes, { prefix: '/api/v1/design-features' });
+  await app.register(designMapRoutes,     { prefix: '/api/v1/design-map' });
   await app.register(machineryItemRoutes, { prefix: '/api/v1/machinery-items' });
   await app.register(projectStateRoutes,  { prefix: '/api/v1/project-state' });
   await app.register(vegetationRoutes,    { prefix: '/api/v1/vegetation' });
