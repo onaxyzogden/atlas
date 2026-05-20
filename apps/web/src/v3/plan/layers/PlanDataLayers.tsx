@@ -10,7 +10,8 @@
  *   - plan-label      — symbol labels (one per feature)
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
@@ -41,6 +42,10 @@ import {
   resolveMembers,
 } from '../../../features/agroforestry/silvopastureHosts.js';
 import { hostCanopyUnion } from '../../../features/agroforestry/guildLivestockMath.js';
+import {
+  HostCanopyUnionTooltip,
+  type HostCanopyUnionTooltipProps,
+} from './HostCanopyUnionTooltip.js';
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -246,6 +251,15 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
   const designElementsForProject = useDesignElementsForProject(projectId);
+  // Hover state for the per-host canopy-union tooltip (minzoom 17). Set
+  // from a mousemove on the `guild-host-canopy-union-fill` layer; cleared
+  // on mouseleave. Rendered via a portal into `map.getCanvasContainer()`
+  // so the cursor-anchored coordinates from `e.point` are in the same
+  // pixel space the tooltip lives in.
+  const [hoveredUnion, setHoveredUnion] = useState<{
+    point: { x: number; y: number };
+    props: Omit<HostCanopyUnionTooltipProps, 'point'>;
+  } | null>(null);
   const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
@@ -618,13 +632,31 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       if (hostGuilds.length === 0) continue;
       const union = hostCanopyUnion(hostGuilds);
       if (!union) continue;
+      // Match hostCanopyUnion's circle-push gate exactly: a member is
+      // canopy-bearing iff its species has a positive finite
+      // canopySpreadM. Counting here, at the call site, keeps the
+      // hover-tooltip's "M canopy-bearing members" honest as
+      // "M circles were folded into this union."
+      let canopyBearingMembers = 0;
+      for (const g of hostGuilds) {
+        for (const m of g.members) {
+          const spread = findSpecies(m.speciesId)?.canopySpreadM;
+          if (typeof spread === 'number' && spread > 0) {
+            canopyBearingMembers += 1;
+          }
+        }
+      }
       hostCanopyUnions.push({
         type: 'Feature',
         id: `${host.id}:canopy-union`,
         properties: {
           kind: 'host-canopy-union',
           hostId: host.id,
+          hostName: host.name,
           unionAreaM2: union.unionAreaM2,
+          rawSumM2: union.rawSumM2,
+          guildCount: hostGuilds.length,
+          memberCount: canopyBearingMembers,
         },
         geometry: union.unionGeometry,
       });
@@ -1897,6 +1929,50 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     };
   }, [map, activeTool, setSelection, updateGuild, openForm, editable]);
 
+  // Per-host canopy-union hover tooltip (minzoom 17). Cursor-following,
+  // read-only, mouseleave hides. Closes the loop from the 2026-05-24
+  // ADR: the steward could see *where* `canopyDedupedM2` lived
+  // geometrically but had to look at SilvopastureIntegrationCard to
+  // read the number; this surface puts the three m² values on the map.
+  // No selection / drag / popover wiring — `SELECTABLE_LAYERS`
+  // unchanged.
+  useEffect(() => {
+    if (!map) return;
+    const layerId = `${LAYER_PREFIX}guild-host-canopy-union-fill`;
+
+    const onMove = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f || f.properties?.kind !== 'host-canopy-union') {
+        setHoveredUnion(null);
+        return;
+      }
+      const p = f.properties;
+      setHoveredUnion({
+        point: { x: e.point.x, y: e.point.y },
+        props: {
+          hostName: String(p.hostName ?? ''),
+          unionAreaM2: Number(p.unionAreaM2) || 0,
+          rawSumM2: Number(p.rawSumM2) || 0,
+          guildCount: Number(p.guildCount) || 0,
+          memberCount: Number(p.memberCount) || 0,
+        },
+      });
+    };
+    const onLeave = () => setHoveredUnion(null);
+
+    map.on('mousemove', layerId, onMove);
+    map.on('mouseleave', layerId, onLeave);
+
+    return () => {
+      try {
+        map.off('mousemove', layerId, onMove);
+        map.off('mouseleave', layerId, onLeave);
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map]);
+
   // Click-to-edit + drag-to-move for placed Structures (poly fill).
   // Gated to `activeTool == null` so a Plan draw tool always wins.
   useEffect(() => {
@@ -3150,5 +3226,19 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     };
   }, [map]);
 
-  return null;
+  // Per-host union hover tooltip is portalled into the map's canvas
+  // container so the cursor-pixel coordinates from `e.point` resolve
+  // directly against the tooltip's `position: absolute` origin. No
+  // other JSX is emitted — PlanDataLayers remains a side-effect-only
+  // component for everything else.
+  if (!hoveredUnion || !map) return null;
+  const canvasContainer = map.getCanvasContainer();
+  if (!canvasContainer) return null;
+  return createPortal(
+    <HostCanopyUnionTooltip
+      point={hoveredUnion.point}
+      {...hoveredUnion.props}
+    />,
+    canvasContainer,
+  );
 }

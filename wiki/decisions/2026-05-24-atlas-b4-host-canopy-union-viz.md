@@ -101,13 +101,20 @@ authoritative source.
 **Per-rasterisation noise unchanged.** The same 32-step polygon
 discipline from 2026-05-21 carries through; sub-pixel at zoom 17–20.
 
+**Newly closed 2026-05-25:**
+- ~~Per-host hover tooltip / popover showing `unionAreaM2`,
+  `rawSumM2`, dedup delta.~~ — shipped via
+  [2026-05-25 ADR](2026-05-25-atlas-b4-host-union-hover-tooltip.md):
+  cursor-following floating tooltip on `guild-host-canopy-union-fill`
+  (mousemove) that surfaces host name, guild + canopy-bearing-member
+  counts, and the three m² values (union footprint, raw π·r² sum,
+  saved overlap). Feature properties extended additively with
+  `hostName`, `rawSumM2`, `guildCount`, `memberCount`; tooltip
+  portalled into the map's canvas container with edge-clamp.
+
 **Still deferred (own slices):**
 - Toggle UI to show/hide the union layer (always-on at zoom 17+
   for now).
-- Per-host hover tooltip / popover showing `unionAreaM2`,
-  `rawSumM2`, dedup delta. Steward reads the number on
-  `SilvopastureIntegrationCard` today; map hover is a separate
-  slice.
 - Rendering `unionAreaM2` as a label on the polygon centroid.
 - Multi-host overlap when two hosts themselves overlap on the map
   — `resolveSilvopastureHosts` is structured to avoid this, but if
@@ -127,7 +134,8 @@ framing in any new file.
 ## Out of scope
 
 - Toggle UI for the union layer.
-- Per-host hover tooltip / popover.
+- ~~Per-host hover tooltip / popover.~~ — shipped 2026-05-25,
+  see [2026-05-25 ADR](2026-05-25-atlas-b4-host-union-hover-tooltip.md).
 - Union-area as a map label.
 - Multi-host map overlap.
 - Colour theming (light/dark mode).
