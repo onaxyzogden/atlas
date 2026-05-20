@@ -14,6 +14,7 @@ import { useLivestockStore } from '../../store/livestockStore.js';
 import { useRotationPlanStore } from '../../store/rotationPlanStore.js';
 import { useLivestockMoveLogStore } from '../../store/livestockMoveLogStore.js';
 import { useWorkItemDraftStore } from '../../store/workItemDraftStore.js';
+import { useNow } from '../../hooks/useNow.js';
 import {
   computeRotationAdherence,
   type AdherenceRecommendation,
@@ -82,6 +83,7 @@ export default function RotationAdherenceActionsCard({ projectId }: Props) {
   const plan = useRotationPlanStore((s) => s.byProject[projectId] ?? null);
   const moves = useLivestockMoveLogStore((s) => s.events);
   const setDraft = useWorkItemDraftStore((s) => s.setDraft);
+  const now = useNow();
 
   const paddocks = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
@@ -94,9 +96,9 @@ export default function RotationAdherenceActionsCard({ projectId }: Props) {
         paddocks,
         plan,
         moves,
-        now: new Date().toISOString(),
+        now,
       }),
-    [paddocks, plan, moves],
+    [paddocks, plan, moves, now],
   );
 
   const [openEditor, setOpenEditor] = useState<string | null>(null);
