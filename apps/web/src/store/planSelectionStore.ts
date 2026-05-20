@@ -13,6 +13,7 @@ import { create } from 'zustand';
 
 export type PlanSelectionKind =
   | 'guild'
+  | 'guild-member'
   | 'zone'
   | 'crop'
   | 'paddock'
@@ -28,11 +29,14 @@ export type PlanSelectionKind =
 
 export interface PlanSelectionItem {
   kind: PlanSelectionKind;
+  /** For `guild-member`, this is the parent `guildId`; pair with `memberIndex`. */
   id: string;
   /** Only required for kinds whose backing store is `byProject` (currently
    *  `design-element`). Plan-data stores are flat across projects so they
    *  ignore this field. */
   projectId?: string;
+  /** Index into `Guild.members[]` for `kind === 'guild-member'`. */
+  memberIndex?: number;
 }
 
 /** @deprecated kept for transition; prefer `PlanSelectionItem`. */
@@ -48,7 +52,7 @@ interface State {
 }
 
 const sameItem = (a: PlanSelectionItem, b: PlanSelectionItem): boolean =>
-  a.kind === b.kind && a.id === b.id;
+  a.kind === b.kind && a.id === b.id && a.memberIndex === b.memberIndex;
 
 export const usePlanSelectionStore = create<State>((set) => ({
   items: [],
