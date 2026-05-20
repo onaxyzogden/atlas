@@ -9,8 +9,9 @@
  *
  * Edge semantics: an id in `item.dependsOn` ∪ `item.dependsOnAuto` is a
  * *predecessor* — that dependency must finish before this item starts. The
- * effective DAG is the union of both arrays (manual ∪ Goal-Compass-seeded);
- * provenance is irrelevant to the math and is resolved at the editor surface.
+ * effective DAG also unions the *inverse* of `precedesAuto` — when X carries
+ * `precedesAuto: [Y]` that means X precedes Y, so Y treats X as a predecessor.
+ * Provenance is irrelevant to the math and is resolved at the editor surface.
  *
  * Blocked-state is *derived only* — it is never written back into
  * `WorkItem.status` (single-writer-spine discipline, consistent with D0.1).
@@ -58,7 +59,12 @@ export interface WorkItemGraphResult {
   order: string[];
 }
 
-/** The effective predecessor ids of an item: `dependsOn ∪ dependsOnAuto`. */
+/**
+ * The local predecessor ids of an item: `dependsOn ∪ dependsOnAuto`. Does
+ * NOT include `precedesAuto` inverses (those require the full items list as
+ * context and are resolved by `buildEffectiveGraph`). For correct DAG
+ * traversal, use `buildEffectiveGraph` instead.
+ */
 export function effectiveDependencies(item: WorkItem): string[] {
   const manual = item.dependsOn ?? [];
   const auto = item.dependsOnAuto ?? [];
@@ -68,7 +74,9 @@ export function effectiveDependencies(item: WorkItem): string[] {
 
 /**
  * Adjacency from the union edges, restricted to ids that actually exist in
- * `items` (dangling targets silently dropped). Returns both directions plus
+ * `items` (dangling targets silently dropped). Unions in the inverse of every
+ * item's `precedesAuto`: if X carries `precedesAuto: [Y]`, Y gains X as a
+ * predecessor (and X gains Y as a dependent). Returns both directions plus
  * the id set so callers don't re-derive them.
  */
 export function buildEffectiveGraph(items: WorkItem[]): {
@@ -81,18 +89,29 @@ export function buildEffectiveGraph(items: WorkItem[]): {
   const ids = new Set(items.map((it) => it.id));
   const deps = new Map<string, string[]>();
   const dependents = new Map<string, string[]>();
+  const depSeen = new Map<string, Set<string>>();
   for (const id of ids) {
     deps.set(id, []);
     dependents.set(id, []);
+    depSeen.set(id, new Set<string>());
   }
+  const addEdge = (fromId: string, depId: string): void => {
+    if (depId === fromId || !ids.has(depId) || !ids.has(fromId)) return;
+    const seen = depSeen.get(fromId)!;
+    if (seen.has(depId)) return;
+    seen.add(depId);
+    deps.get(fromId)!.push(depId);
+    dependents.get(depId)!.push(fromId);
+  };
   for (const item of items) {
-    const seen = new Set<string>();
-    for (const dep of effectiveDependencies(item)) {
-      if (dep === item.id || !ids.has(dep) || seen.has(dep)) continue;
-      seen.add(dep);
-      deps.get(item.id)!.push(dep);
-      dependents.get(dep)!.push(item.id);
-    }
+    for (const dep of effectiveDependencies(item)) addEdge(item.id, dep);
+  }
+  // B5.2.x.c — inverse pass for precedesAuto: X.precedesAuto includes Y ⇒
+  // Y depends on X. Lets a source's sync engine express cross-source
+  // ordering without mutating rows it doesn't own.
+  for (const item of items) {
+    const precedes = (item as { precedesAuto?: string[] }).precedesAuto ?? [];
+    for (const successorId of precedes) addEdge(successorId, item.id);
   }
   return { ids, deps, dependents };
 }

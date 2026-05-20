@@ -48,6 +48,36 @@ describe('effectiveDependencies / buildEffectiveGraph', () => {
     expect(dependents.get('a')).toEqual(['b']);
     expect(deps.get('a')).toEqual([]);
   });
+
+  it('unions inverse precedesAuto into successor predecessor set', () => {
+    // X.precedesAuto = [Y] ⇒ Y depends on X (X is Y's predecessor)
+    const items = [
+      wi({ id: 'cc', precedesAuto: ['cash'] } as Partial<WorkItem> & { id: string }),
+      wi({ id: 'cash' }),
+    ];
+    const { deps, dependents } = buildEffectiveGraph(items);
+    expect(deps.get('cash')).toEqual(['cc']);
+    expect(dependents.get('cc')).toEqual(['cash']);
+    expect(deps.get('cc')).toEqual([]);
+  });
+
+  it('de-duplicates when both precedesAuto inverse and dependsOnAuto point the same way', () => {
+    const items = [
+      wi({ id: 'cc', precedesAuto: ['cash'] } as Partial<WorkItem> & { id: string }),
+      wi({ id: 'cash', dependsOnAuto: ['cc'] }),
+    ];
+    const { deps, dependents } = buildEffectiveGraph(items);
+    expect(deps.get('cash')).toEqual(['cc']);
+    expect(dependents.get('cc')).toEqual(['cash']);
+  });
+
+  it('drops dangling precedesAuto targets silently', () => {
+    const items = [
+      wi({ id: 'cc', precedesAuto: ['ghost'] } as Partial<WorkItem> & { id: string }),
+    ];
+    const { deps } = buildEffectiveGraph(items);
+    expect(deps.get('cc')).toEqual([]);
+  });
 });
 
 describe('detectCycle', () => {

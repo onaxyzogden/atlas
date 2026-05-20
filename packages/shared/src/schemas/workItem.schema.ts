@@ -172,11 +172,24 @@ export const WorkItemSchema = z
     /**
      * Goal-Compass-seeded edges (provenance-separated, D1). Regenerated with
      * goal-compass rows; `dependsOn` (manual) is never touched by seeding.
-     * Effective dependency DAG = `dependsOn ∪ dependsOnAuto`. `.default([])`
-     * + the top-level `.passthrough()` ⇒ existing persisted rows hydrate
-     * clean — no DB migration (A-series additive covenant).
+     * Effective dependency DAG = `dependsOn ∪ dependsOnAuto ∪ inverse(precedesAuto)`.
+     * `.default([])` + the top-level `.passthrough()` ⇒ existing persisted
+     * rows hydrate clean — no DB migration (A-series additive covenant).
      */
     dependsOnAuto: z.array(z.string()).default([]),
+    /**
+     * B5.2.x.c — denormalized inverse dependency edges. An id in
+     * `X.precedesAuto` means *X must complete before that id starts*.
+     * Equivalently, that id treats `X` as a predecessor in the effective
+     * DAG. Single-writer-spine discipline forbids cross-source mutation, so
+     * "terminate cover-crop before cash-crop" is stored on the cover-crop
+     * row (which the cover-crop sync owns) rather than mutating the
+     * cash-crop's `dependsOnAuto` (which goal-compass sync owns). D1
+     * traversal unions these inverses into each item's predecessor set —
+     * see `buildEffectiveGraph` in `workItemGraph.ts`. `.default([])` ⇒ no
+     * DB migration.
+     */
+    precedesAuto: z.array(z.string()).default([]),
 
     // --- net-new assignment ---
     assigneeId: z.string().optional(),
