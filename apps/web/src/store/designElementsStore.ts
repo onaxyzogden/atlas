@@ -78,4 +78,12 @@ export interface DesignElement {
   draft?: boolean;
   generationId?: string;
   draftClass?: string;
+  /**
+   * Steward-side display flag set by the PlacedFeaturesCard visibility
+   * toggle. When `true`, canvas layers suppress this element; the row
+   * still appears in the inventory (dimmed) so the steward can toggle
+   * it back on. Independent of `hiddenInViews` (per-view authoring
+   * filter) — `hidden` hides everywhere.
+   */
+  hidden?: boolean;
 }

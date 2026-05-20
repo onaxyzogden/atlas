@@ -312,6 +312,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const Z_DEFAULT = 2;
     const orderedZones = [...zones]
       .filter((z) => z.projectId === projectId)
+      .filter((z) => !z.hidden)
       .sort(
         (a, b) =>
           (b.permacultureZone ?? Z_DEFAULT) - (a.permacultureZone ?? Z_DEFAULT),

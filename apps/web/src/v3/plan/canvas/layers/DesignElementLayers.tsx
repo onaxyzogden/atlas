@@ -73,6 +73,7 @@ export default function DesignElementLayers({
     const cap = capKey ? phaseIndex(capKey) : Infinity;
 
     const visible = elements
+      .filter((el) => !el.hidden)
       .filter((el) => phaseIndex(el.phase) <= cap)
       .filter((el) => {
         // Per-view origin scoping (2026-05-11):

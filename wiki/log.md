@@ -4,6 +4,132 @@ Chronological record of significant operations performed on the Atlas codebase.
 
 ---
 
+## 2026-05-19 — PlacedFeaturesCard search + hide-hidden filter
+
+**Branch.** `feat/atlas-permaculture`. Third placed-features follow-up:
+the card now has a search input + a "Hide hidden" pill at the top of
+the expanded body, mirroring the existing `DesignElementPalette` search
+pattern (same Lucide `Search` icon + bordered transparent input).
+
+Filter is UI-local — no hook or store changes. `PlacedFeaturesCard`
+gained two `useState` hooks (query string + `hideHidden` boolean) and a
+`useMemo` that filters `rows` by case-insensitive substring against
+`label`/`groupLabel`/`kind` plus the hide-hidden flag. Grouped sections
+recompute from the filtered list while the header rollup stays on the
+unfiltered totals — the summary reads as "what is placed", the body as
+"what is currently shown". Zero-match fallback shows "No placed
+features match your filter." while keeping the toolbar in place.
+
+Tests. New `PlacedFeaturesCard.test.tsx` (3 cases): search narrows
+body rows, hide-hidden pill drops hidden rows, header rollup stays
+anchored to the unfiltered total when a search is active. Test file
+re-uses the established `vi.mock('lucide-react', …)` forwardRef-stub
+pattern from `V3LifecycleSidebar.test.tsx` since this is the first
+card-level test in the placedFeatures slice and lucide icons can't
+render under happy-dom without it. **17/17 vitest cases passing**
+(14 hook + 3 card).
+
+Files. UI: `apps/web/src/features/shared/placedFeatures/{PlacedFeaturesCard.tsx,
+PlacedFeaturesCard.module.css, PlacedFeaturesCard.test.tsx (new),
+CONTEXT.md}`. Wiki: this log entry + the entity page section.
+
+---
+
+## 2026-05-19 — PlacedFeaturesCard visibility toggle (follow-up)
+
+**Branch.** `feat/atlas-permaculture`. Per-row hide/show affordance for
+the placed-features card, closing the deferred-from-day-one follow-up.
+
+Schema (additive, no migrations): `hidden?: boolean` added to
+`BuiltEnvironmentEntity` (shared Zod schema), `DesignElement`, and
+`LandZone`. `builtEnvironmentStoreV2` gained a dedicated
+`setHidden(id, hidden)` action (root-level field, not `metadata`, so it
+survives the `existing`/`proposed` state axis); `landDesignStore.update`
+and `zoneStore.updateZone` already accept the patch shape so no new
+actions there. `usePlacedFeatures` threads `hidden` onto every
+`PlacedFeatureRow` and exposes three source-discriminated setters.
+
+UI: `PlacedFeaturesCard` row now has an Eye / EyeOff button (lucide,
+12px) before Focus, with `aria-pressed` + dynamic title. Row gains
+`data-hidden` when hidden — CSS dims the swatch/main and strikes through
+the label. The eye button defies the hover-fade on `.actions` (via
+`:not(.actionBtnEye)`) so a hidden row is always immediately
+un-hideable.
+
+Canvas: three one-liners skip hidden entities in their projection loops
+— `BeV2GenericLayer` (`if (e.hidden) continue;`), `DesignElementLayers`
+(`.filter((el) => !el.hidden)` first in the visible chain), and
+`PlanDataLayers` (`.filter((z) => !z.hidden)` on `orderedZones`).
+
+Tests. 14/14 vitest cases passing — added two cases covering hidden
+plumbing through each source and the explicit decision to keep hidden
+rows in the list (dimmed, not filtered out).
+
+Verification. DOM preview confirmed bidirectional toggle on Plan stage
+(Paddock A row): clicking the eye flipped `data-hidden` → `"true"`,
+swapped Eye → EyeOff, flipped `aria-pressed`, and changed the title to
+"Show on map"; clicking again restored all three.
+
+Files. Schema/stores: `packages/shared/src/builtEnvironment.ts`,
+`apps/web/src/store/builtEnvironmentStoreV2.ts`,
+`apps/web/src/store/designElementsStore.ts`,
+`apps/web/src/store/zoneStore.ts`. Hook + UI:
+`apps/web/src/features/shared/placedFeatures/{usePlacedFeatures.ts,
+usePlacedFeatures.test.ts, PlacedFeaturesCard.tsx,
+PlacedFeaturesCard.module.css, CONTEXT.md}`. Layers:
+`apps/web/src/v3/builtEnvironment/layers/BeV2GenericLayer.tsx`,
+`apps/web/src/v3/plan/canvas/layers/DesignElementLayers.tsx`,
+`apps/web/src/v3/plan/layers/PlanDataLayers.tsx`.
+
+---
+
+## 2026-05-19 — PlacedFeaturesCard (right-rail placement inventory)
+
+**Branch.** `feat/atlas-permaculture`. New right-rail card unifying the
+three placement stores (`builtEnvironmentStoreV2` / `landDesignStore` /
+`zoneStore`) into one stage-scoped inventory — closes the gap where the
+canvas had no list-view of placed features.
+
+Files added under `apps/web/src/features/shared/placedFeatures/`:
+`usePlacedFeatures.ts` (selector hook + `centroidOf` + `rollupRows`),
+`usePlacedFeatures.test.ts` (12 vitest cases), `PlacedFeaturesCard.tsx`
+(collapsible card, header rollup, grouped body, Focus + delete row
+actions), `PlacedFeaturesCard.module.css`, `CONTEXT.md`. Mounted in
+`ObserveChecklistAside.tsx` (`stage="observe"`) and `PlanChecklistAside.tsx`
+(`stage="plan"`).
+
+Stage scoping: observe = built `state==='existing'` + zones; plan =
+built `state==='proposed'` + non-draft design elements + zones. Geometry
+→ centroid computed locally (Point/LineString/Polygon/MultiPolygon) so
+Focus can call `useMapFocusStore.focus({ projectId, center, zoom: 17 })`
+without map-host access. Delete uses `window.confirm` then a
+source-discriminated remover.
+
+Conventions honoured: zustand selector stability (raw arrays in
+selectors, derived in `useMemo`); `// @vitest-environment happy-dom`
+directive (persist middleware touches `localStorage`); explicit
+destructuring + `typeof === 'number'` guards for
+`noUncheckedIndexedAccess` on coordinate tuples; `flex: 0 0 auto` on the
+card root to survive the right-rail flex-column parent.
+
+Deliberately deferred per CONTEXT.md: per-row visibility toggle (no
+per-store flag exists), search/filter, inline edit, drag-reorder,
+multi-select, cross-project inventory.
+
+**Gate.** Vitest 12/12 green; tsc clean for the new files (only
+unrelated pre-existing `SilvopastureIntegrationCard.tsx` errors remain).
+DOM-level preview verification per the 2026-05-17 WebGL ADR — Observe
+stage `/v3/project/mtc/observe` shows "8 placed · 8 buildings", expands
+60→380 px, 8 rows × {Focus, ×}; Plan stage `/v3/project/mtc/plan` shows
+"1 placed · 1 paddocks", expands 60→151 px, "Paddocks (1)" group
+renders. Console clean. **Not committed / not pushed** (branch is
+rebased/force-pushed externally — wiki + source changes left uncommitted
+for the user's commit-and-push decision).
+
+Entity page: [entities/placed-features-card.md](entities/placed-features-card.md).
+
+---
+
 ## 2026-05-19 — B3: Rotation Adherence (plan-vs-actual composition slice)
 
 **Branch.** `feat/atlas-permaculture`. After the D-series (D0–D5)

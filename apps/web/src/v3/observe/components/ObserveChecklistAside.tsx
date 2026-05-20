@@ -31,6 +31,7 @@ import {
   OBSERVE_MODULE_LABEL,
   type ObserveModule,
 } from '../types.js';
+import PlacedFeaturesCard from '../../../features/shared/placedFeatures/PlacedFeaturesCard.js';
 import css from './ObserveChecklistAside.module.css';
 
 /**
@@ -213,6 +214,7 @@ export default function ObserveChecklistAside({
       aria-label="Observe guidance"
     >
       <ObserveReadyCue projectId={projectId} />
+      <PlacedFeaturesCard stage="observe" projectId={projectId} />
       {OBSERVE_MODULES.map((mod) => {
         // 2026-05-14 — BE flatten: parent `built-environment` guidance
         // card is replaced by 9 per-category cards rendered below.

@@ -18,6 +18,7 @@ Read this first at the start of every session.
 - [PDF Export Service](entities/pdf-export-service.md) — Puppeteer templates, S3 storage, 7 export types
 - [Gap Analysis](entities/gap-analysis.md) — ~120 gaps against global frameworks (FAO, USDA, ASTM, IUCN), triage roadmap
 - [Site Annotations Store](entities/site-annotations-store.md) — Persisted store for user-authored OBSERVE annotations (hazards, transects, sectors, ecology, succession, SWOT)
+- [PlacedFeaturesCard](entities/placed-features-card.md) — Right-rail inventory of every feature placed on the map, unified across three stores (built / design / zone) and scoped per stage (observe / plan)
 
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens

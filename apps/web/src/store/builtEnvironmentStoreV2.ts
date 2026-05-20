@@ -70,6 +70,9 @@ export interface BuiltEnvironmentV2State {
   updateMetadata: (id: string, patch: UpdateBuiltEnvironmentInput) => void;
   /** Flip an entity between existing and proposed. */
   setState: (id: string, state: BuiltEnvironmentState) => void;
+  /** Toggle the steward-side `hidden` display flag without touching
+   *  per-state metadata. Used by PlacedFeaturesCard's visibility toggle. */
+  setHidden: (id: string, hidden: boolean) => void;
   /** Hard delete. */
   delete: (id: string) => void;
   /** Test/dev helper — wipe all entities. */
@@ -525,6 +528,15 @@ export const useBuiltEnvironmentStoreV2 = create<BuiltEnvironmentV2State>()(
           }));
           // touch get() to keep it referenced (no behaviour change)
           void get;
+        },
+
+        setHidden: (id, hidden) => {
+          const now = nowIso();
+          set((s) => ({
+            entities: s.entities.map((e) =>
+              e.id === id ? { ...e, hidden, updatedAt: now } : e,
+            ),
+          }));
         },
 
         delete: (id) => {

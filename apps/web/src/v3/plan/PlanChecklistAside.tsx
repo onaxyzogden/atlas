@@ -44,6 +44,7 @@ const BE_CATEGORY_TO_PLAN_MODULE: Record<
   earthworks: 'water-management',
 };
 import PlanProjectTypeCard from './PlanProjectTypeCard.js';
+import PlacedFeaturesCard from '../../features/shared/placedFeatures/PlacedFeaturesCard.js';
 import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';
 import { PLAN_MODULE_DOT } from './data/planModulePalette.js';
 import css from './PlanChecklistAside.module.css';
@@ -269,6 +270,7 @@ export default function PlanChecklistAside({
         onSelectModule={onSelectModule}
         onOpenSlideUp={onOpenSlideUp}
       />
+      <PlacedFeaturesCard stage="plan" projectId={projectId} />
       {PLAN_MODULES.map((mod) => {
         // 2026-05-14 — BE flatten: parent `structures-subsystems` card
         // is replaced by 9 per-category cards rendered below.

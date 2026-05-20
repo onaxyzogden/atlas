@@ -175,6 +175,10 @@ export const BuiltEnvironmentEntity = z.object({
   updatedAt: z.string().datetime({ offset: true }),
   /** Server-assigned UUID after backend sync. Undefined = client-only. */
   serverId: z.string().optional(),
+  /** When true, the canvas suppresses this entity. Steward-side display
+   *  flag set by the PlacedFeaturesCard visibility toggle; data is
+   *  preserved. Optional — undefined / false = shown. */
+  hidden: z.boolean().optional(),
 
   /** State-specific metadata blocks. Both optional — per-kind helpers
    *  enforce required-by-state. The two blocks are NOT mutually exclusive

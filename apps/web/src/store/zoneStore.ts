@@ -301,6 +301,13 @@ export interface LandZone {
    * field; existing zones load with `undefined`).
    */
   suitableForLivestock?: boolean;
+  /**
+   * Steward-side display flag set by the PlacedFeaturesCard visibility
+   * toggle. When `true`, canvas zone layers suppress this zone; the row
+   * still appears in the inventory (dimmed). Optional — undefined /
+   * false = shown.
+   */
+  hidden?: boolean;
   createdAt: string;
   updatedAt: string;
   /** Server-assigned UUID after backend sync (undefined = not yet synced) */

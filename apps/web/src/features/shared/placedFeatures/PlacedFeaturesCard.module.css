@@ -1,0 +1,236 @@
+/* PlacedFeaturesCard — collapsible right-rail card listing every feature
+   placed on the map for the active project + stage. */
+
+.card {
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface) 98%, #fff);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text);
+  font: inherit;
+}
+
+.header:hover {
+  background: color-mix(in srgb, var(--color-surface) 90%, var(--color-text) 4%);
+}
+
+.headerMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.summary {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  transition: transform 120ms ease;
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+.body {
+  max-height: 320px;
+  overflow-y: auto;
+  border-top: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  padding: 8px 4px 10px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px 8px;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  border-radius: var(--radius-sm);
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.searchRow:focus-within {
+  border-color: color-mix(in srgb, var(--color-border) 60%, var(--color-text) 20%);
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.toggleHidden {
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
+  background: transparent;
+  color: color-mix(in srgb, var(--color-text) 65%, transparent);
+  font: inherit;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.toggleHidden:hover {
+  background: color-mix(in srgb, var(--color-surface) 80%, var(--color-text) 8%);
+  color: var(--color-text);
+}
+
+.toggleHidden[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--color-text) 12%, transparent);
+  border-color: color-mix(in srgb, var(--color-border) 60%, var(--color-text) 20%);
+  color: var(--color-text);
+}
+
+.empty {
+  padding: 14px 12px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  line-height: 1.5;
+}
+
+.groupHeading {
+  padding: 8px 12px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+}
+
+.row:hover {
+  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-text) 6%);
+}
+
+.row[data-hidden] .swatch,
+.row[data-hidden] .rowMain {
+  opacity: 0.45;
+}
+
+.row[data-hidden] .rowLabel {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--color-text) 35%, transparent);
+}
+
+.swatch {
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.rowLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowMeta {
+  font-size: 10px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Focus + delete fade in on hover/focus; the eye toggle (below) is
+   always visible so a hidden row is immediately un-hideable. */
+.actions > .actionBtn:not(.actionBtnEye) {
+  opacity: 0;
+  transition: opacity 80ms ease;
+}
+
+.row:hover .actions > .actionBtn,
+.row:focus-within .actions > .actionBtn {
+  opacity: 1;
+}
+
+.actionBtn {
+  border: 0;
+  background: transparent;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.actionBtn:hover {
+  background: color-mix(in srgb, var(--color-surface) 80%, var(--color-text) 10%);
+  color: var(--color-text);
+}
+
+.actionBtnDanger:hover {
+  color: #d98b6f;
+}
+
+.actionBtnEye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+}
+
