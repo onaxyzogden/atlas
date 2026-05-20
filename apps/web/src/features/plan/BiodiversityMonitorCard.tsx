@@ -61,7 +61,36 @@ function VerdictBadge({ verdict }: { verdict: Verdict }) {
   );
 }
 
-export default function BiodiversityMonitorCard({ project }: Props) {
+export default function BiodiversityMonitorCard(props: Props) {
+  // Built-ins (`mtc`, `351-house`) have no DB row — any fetch against
+  // `/api/v1/projects/<id>/regeneration-events` genuinely 401s for an
+  // authenticated user. Early-return above the hook call so zero auth'd
+  // requests fire on the built-in path.
+  if (!props.project.serverId) {
+    return <BuiltInBiodiversityBanner />;
+  }
+  return <BiodiversityMonitorCardInner {...props} />;
+}
+
+function BuiltInBiodiversityBanner() {
+  return (
+    <div className={styles.page}>
+      <header className={styles.hero} data-stage="plan">
+        <span className={styles.heroTag}>Plan · Biodiversity Outcomes</span>
+        <h1 className={styles.title}>Biodiversity monitor</h1>
+      </header>
+      <section className={styles.section}>
+        <p className={styles.empty}>
+          <strong>Sample project — monitoring is read-only.</strong> This is a
+          built-in / sample project. Create your own project from the
+          dashboard to start logging biodiversity samples.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function BiodiversityMonitorCardInner({ project }: Props) {
   const apiProjectId = project.serverId ?? project.id;
   const projectEvents = useRegenerationEventsForProject(apiProjectId);
 

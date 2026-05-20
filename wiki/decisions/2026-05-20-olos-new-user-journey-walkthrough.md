@@ -271,3 +271,63 @@ sampler). Tracked as future work; not part of this fix.
 
 Gaps #4–#10 remain open as documented above. No commit; awaiting steward
 review.
+
+---
+
+## Update — 2026-05-20 (later still) — Gap #5 closed; D5 verified live
+
+**Field-proof photo upload.** Built reusable
+[`PhotoAttachField`](../../apps/web/src/features/act/_shared/PhotoAttachField.tsx)
++ module CSS + Vitest (4/4 green) wrapping the existing
+`api.files.upload(projectId, file)` → `XMLHttpRequest` → `ProjectFile.storageUrl`
+client. Schema layer: `ProofEventSchema.evidence` now carries an additive
+optional `photoFileIds: z.array(z.string()).optional()` alongside the
+existing single `photoRef` (preserved for back-compat); `HarvestEntry`,
+`MaintenanceEvent`, `LivestockMoveEvent` each gain an additive optional
+`photoFileIds?: string[]` (no zustand migration bump — additive optional
+fields don't change persisted shape). Wired into all four Act surfaces:
+- [`FieldProofPanel`](../../apps/web/src/features/act/FieldProofPanel.tsx) —
+  replaced single `photoRef` text input with `<PhotoAttachField>` inside the
+  Record-proof editor; submit writes `evidence: { photoRef: photoFileIds[0]
+  ?? '', photoFileIds }` when non-empty.
+- [`HarvestLogCard`](../../apps/web/src/features/act/HarvestLogCard.tsx),
+  [`MaintenanceLogCard`](../../apps/web/src/features/act/MaintenanceLogCard.tsx),
+  [`LivestockMoveCard`](../../apps/web/src/features/act/LivestockMoveCard.tsx) —
+  PhotoAttachField row in the new-entry form, thumbnails rendered 32×32 in
+  the per-entry list/row views. Rotate-through path on the move card
+  mirrors `photoFileIds` to both exit + entry legs.
+
+**Preview verification (all DOM-probed via `preview_eval`).**
+- HarvestLogCard at `/v3/project/mtc/act/harvest`: 2 file inputs +
+  `Field-proof photos` label + `+ Add photos` button present.
+- MaintenanceLogCard at `/v3/project/mtc/act/maintain`: 1 file input +
+  same label/button.
+- LivestockMoveCard via Livestock module → Move log tab: 1 file input +
+  same label/button.
+- FieldProofPanel via Tracker module → Record proof editor (with a
+  seeded WorkItem so the editor is reachable): 1 file input + same
+  label/button.
+- Zero new errors in `preview_console_logs level=error`.
+
+Live binary-upload roundtrip not exercised this session because the
+`/api/v1/projects/:id/files` route is auth-gated and the preview session
+has no auth token in localStorage. Component contract is covered by
+Phase-1 Vitest (success → onChange push; failure → inline `errorText`,
+no push; remove → strip; max → disable Add) and the
+[`api.files.upload`](../../apps/web/src/lib/apiClient.ts) wrapper is
+unchanged — the new path is just three places it's now called from.
+
+**D5 Adaptive Recommendations — verified live.** OperatingDashboardCard
+mounted via BUILD module slide-up → Operating Dashboard tab.
+- Cold-start (zero work items): all four lights `OK`, recommendations list
+  shows `On track — no action needed.` (exact copy from
+  [`OperatingDashboardCard.tsx`](../../apps/web/src/features/act/OperatingDashboardCard.tsx)).
+- Seeded an overdue WorkItem
+  (`{ status: 'todo', scheduledEnd: '2026-05-10' }`) into
+  `localStorage['ogden-work-items']` and reloaded. Re-opened the tab:
+  Schedule light → **Warning**, `1 overdue` count, **[MED]** recommendation
+  *"1 work item(s) past scheduled end — advance the schedule."*, deep-link
+  hint `→ Plan tracker`. Cleared seed.
+
+Gap #5 closed. Walkthrough verification debt for D5 cleared. No commit;
+awaiting steward review.

@@ -80,6 +80,17 @@ export function setAuthToken(token: string | null) {
   authToken = token;
 }
 
+// Module-global 401 interceptor handler. Wired once at app boot from
+// `main.tsx` after `bootAuth()` to avoid a direct apiClient → store import
+// (apiClient is intentionally store-agnostic). When the server returns
+// 401 + UNAUTHORIZED|INVALID_TOKEN, the handler fires exactly once per
+// session-expiry event (idempotency lives in the store slice).
+let sessionExpiredHandler: (() => void) | null = null;
+
+export function setSessionExpiredHandler(fn: (() => void) | null) {
+  sessionExpiredHandler = fn;
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -107,6 +118,12 @@ async function request<T>(
   })) as ApiEnvelope<T>;
 
   if (!response.ok || json.error) {
+    if (
+      response.status === 401 &&
+      (json.error?.code === 'UNAUTHORIZED' || json.error?.code === 'INVALID_TOKEN')
+    ) {
+      sessionExpiredHandler?.();
+    }
     throw new ApiError(
       json.error?.code ?? 'UNKNOWN',
       json.error?.message ?? `Request failed (${response.status})`,
@@ -145,8 +162,11 @@ export const api = {
   },
 
   projects: {
-    list: () =>
-      request<ProjectSummary[]>('GET', '/api/v1/projects'),
+    list: (params?: { status?: 'active' | 'archived' | 'all' }) =>
+      request<ProjectSummary[]>(
+        'GET',
+        params?.status ? `/api/v1/projects?status=${params.status}` : '/api/v1/projects',
+      ),
 
     // Public — returns only is_builtin = true rows. No auth required so
     // unauthenticated visitors see the canonical sample on the home page.
@@ -205,6 +225,12 @@ export const api = {
 
     delete: (id: string) =>
       request<void>('DELETE', `/api/v1/projects/${id}`),
+
+    archive: (id: string) =>
+      request<ProjectSummary>('POST', `/api/v1/projects/${id}/archive`),
+
+    unarchive: (id: string) =>
+      request<ProjectSummary>('POST', `/api/v1/projects/${id}/unarchive`),
   },
 
   templates: {

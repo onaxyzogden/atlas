@@ -40,6 +40,9 @@ import './dev/seedFertilitySample.js';
 // auto-execution.
 import './dev/seedGoalCompassPlan.js';
 import { useAuthStore } from './store/authStore.js';
+import { useSessionExpiredStore } from './store/sessionExpiredStore.js';
+import { setSessionExpiredHandler } from './lib/apiClient.js';
+import SessionExpiredBanner from './components/SessionExpiredBanner.js';
 import { syncService } from './lib/syncService.js';
 
 // Block first paint on auth init so the apiClient module-level token is
@@ -53,6 +56,11 @@ async function bootAuth(): Promise<void> {
 }
 
 await bootAuth();
+
+// Wire the apiClient → sessionExpiredStore bridge BEFORE createRoot so any
+// fetch fired during the first render (or a stale-token sync on boot)
+// triggers the global banner instead of leaking raw 401 copy into cards.
+setSessionExpiredHandler(() => useSessionExpiredStore.getState().trigger());
 
 // siteDataSync subscribes to projectStore at import-time and would fire
 // authed fetches as soon as a project boundary lands. Import AFTER auth
@@ -85,6 +93,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        <SessionExpiredBanner />
         <RouterProvider router={router} />
         <ToastContainer />
       </QueryClientProvider>
