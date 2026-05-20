@@ -1,4 +1,4 @@
-/* RotationAdherenceCard — B3 plan-vs-actual rotation adherence audit. */
+/* RotationAdherenceActionsCard — B3.1 editable companion to the rotation adherence audit. */
 
 .card {
   padding: 18px 20px;
@@ -132,6 +132,7 @@
 
 .recRow {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: 10px;
   padding: 8px 12px;
