@@ -49,6 +49,8 @@ import PlanDrawHost from './draw/PlanDrawHost.js';
 import InlineFeaturePopover from './draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from './draw/UtilityConflictDialog.js';
 import PlanObserveSelectionHandler from './draw/PlanObserveSelectionHandler.js';
+import PlanCropAreaSelectionHandler from './draw/PlanCropAreaSelectionHandler.js';
+import CoverCropPopoverEditor from '../../features/coverCrops/CoverCropPopoverEditor.js';
 import ObserveLinkPopover from './draw/ObserveLinkPopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
 import PlanVertexEditHandler from './layers/PlanVertexEditHandler.js';
@@ -203,6 +205,7 @@ export default function PlanLayout() {
             stateFilter="existing"
           />
           <PlanObserveSelectionHandler map={map} />
+          <PlanCropAreaSelectionHandler map={map} projectId={id} />
           <PlanDataLayers map={map} projectId={id} />
           {/* DesignElementLayers also mounts on Current (2026-05-11) so
               orchard / silvopasture / pasture-mix polygons drawn from
@@ -230,6 +233,7 @@ export default function PlanLayout() {
           <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} parcelBoundary={boundary} />
           <InlineFeaturePopover map={map} />
+          <CoverCropPopoverEditor />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           <PlanSelectionFloater
