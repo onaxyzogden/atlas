@@ -50,6 +50,7 @@ import css from '../observe/components/SelectionFloater.module.css';
 
 const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
   guild: 'Guild',
+  'guild-member': 'Guild member',
   zone: 'Zone',
   crop: 'Crop area',
   paddock: 'Paddock',

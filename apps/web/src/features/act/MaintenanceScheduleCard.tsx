@@ -100,6 +100,7 @@ export default function MaintenanceScheduleCard({ project }: Props) {
       doneAt: null,
       dependsOn: [],
       dependsOnAuto: [],
+      precedesAuto: [],
       materialsAuto: [],
       equipmentRequiredAuto: [],
       isRecurring: true,

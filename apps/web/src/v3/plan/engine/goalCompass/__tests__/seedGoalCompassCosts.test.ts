@@ -23,6 +23,7 @@ function gc(id: string, intervention?: string): WorkItem {
     status: 'todo',
     dependsOn: [],
     dependsOnAuto: [],
+    precedesAuto: [],
     materialsAuto: [],
     equipmentRequiredAuto: [],
     generatedFromInterventionId: intervention,

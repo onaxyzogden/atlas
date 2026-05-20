@@ -20,6 +20,7 @@ function cc(id: string, provenance: string): WorkItem {
     status: 'todo',
     dependsOn: [],
     dependsOnAuto: [],
+    precedesAuto: [],
     materialsAuto: [],
     equipmentRequiredAuto: [],
   } as WorkItem;
@@ -39,6 +40,7 @@ function cash(id: string, provenance: string): WorkItem {
     status: 'todo',
     dependsOn: [],
     dependsOnAuto: [],
+    precedesAuto: [],
     materialsAuto: [],
     equipmentRequiredAuto: [],
   } as WorkItem;

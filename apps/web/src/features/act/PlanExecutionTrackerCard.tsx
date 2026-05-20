@@ -173,6 +173,7 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
       status: 'todo',
       dependsOn: [],
       dependsOnAuto: [],
+      precedesAuto: [],
       materialsAuto: [],
       equipmentRequiredAuto: [],
     });

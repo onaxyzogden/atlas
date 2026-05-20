@@ -190,7 +190,7 @@ describe('workItemStore — Goal-Compass override-preservation contract', () => 
     return {
       id, projectId: 'p1', source: 'goal-compass', overridden: false,
       title: id, phaseId: 'ph1', status: 'todo', dependsOn: [], dependsOnAuto: [],
-      materialsAuto: [], equipmentRequiredAuto: [],
+      precedesAuto: [], materialsAuto: [], equipmentRequiredAuto: [],
       createdAt: 'c', updatedAt: 'u', ...extra,
     };
   }

@@ -109,6 +109,7 @@ function manualWorkItem(over: Partial<WorkItem> & { id: string }): WorkItem {
     doneAt: null,
     dependsOn: [],
     dependsOnAuto: [],
+    precedesAuto: [],
     materialsAuto: [],
     equipmentRequiredAuto: [],
     ...over,
