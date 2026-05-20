@@ -1,0 +1,815 @@
+# 2026-04-21 — Staging provisioning decision parked
+
+
+Considered executing `wiki/decisions/2026-04-20-atlas-staging-provisioning.md`
+immediately after Sprint BY. Declined on three grounds: no concrete audience
+for a staging URL (dev loop is fine on localhost), CC BY-NC-SA NC clause means
+any public URL needs auth/robots gating anyway, and $25/mo recurring is
+premature without a trigger. Decision doc updated to `Status: Parked`;
+revisit criteria documented inline (external viewer needs URL, feature requires
+non-local validation, or production launch within 4 weeks). Preserves Sprint BY
+gains — GAEZ pipeline runs fully against localhost — without drifting config
+files that would bitrot before deploy.
+
+---
+
+### 2026-04-21 — GAEZ Automated Downloader (Sprint BY) — Option C Landed and Executed End-to-End
+- **Context:** Sprint BX shipped the operator preflight + smoke-test runbook but left the acquisition step manual (96 Data Viewer clicks against FAO's ArcGIS Hub SPA — Theme 4 has no bulk download; the v4 DATA ACCESS page literally says "Use Data Viewer" in its download column). BY implements the third and most ambitious option from the BX handback: a fully programmatic downloader that bypasses the portal entirely by talking to FAO's ArcGIS Image Service (`res05`) directly.
+- **Discovery (schema probe):** `https://gaez-services.fao.org/server/rest/services/res05/ImageServer` is a single-service catalog containing ALL GAEZ v4 themes (122,708 rows), with fields `crop`, `water_supply`, `input_level`, `sub_theme_name`, `variable`, `model`, `year`, and — critically — `download_url` pointing at a direct `s3.eu-west-1.amazonaws.com/data.gaezdev.aws.fao.org/res05/…/*.tif` path (no auth, no license-page redirect). Theme 4 narrows via `sub_theme_name IN ('Suitability Class', 'Agro-ecological Attainable Yield ')` + `variable LIKE '…current cropland…'` + `year='1981-2010'` + `model='CRUTS32'`. Observed quirk: the yield sub-theme is stored with a trailing space in FAO's DB — filter matches both with/without for future-proofing.
+- **Crop-name mapping (our slug → FAO canonical):** `rice → Wetland rice`, `potato → White potato`, `millet → Pearl millet`, `sweet_potato → Sweet potato`; remaining 8 match. Water-supply mapping: `rainfed → Rainfed`, `irrigated → Gravity Irrigation` (40 crops) with fallback priority `Irrigation` / `Sprinkler Irrigation` / `Drip Irrigation` for crops like Cassava that only publish one irrigated variant.
+- **Script (`apps/api/scripts/download-gaez.ts`):** 320 LOC TypeScript using Node built-ins only (`node:https`, `node:fs`) — no new deps. Architecture: (a) `enumerateTargets()` produces the 96 target filenames matching `convert-gaez-to-cog.ts`'s `parseName()` scheme; (b) `resolveTargets()` makes 24 `/query` calls (12 crops × 2 variables — not 96) and picks the best row per bucket via water-supply priority order; (c) `downloadFile()` streams to `${dest}.tmp` then renames, with redirect-following and 3× exponential-backoff retry (1s/4s/16s); (d) concurrency limiter for parallel downloads (default 4). CLI flags: `--filter <substring>`, `--dry-run`, `--concurrency N`.
+- **Tests (`apps/api/src/tests/downloadGaez.test.ts`):** 30 unit tests covering `sqlQuote` escaping, `buildQueryUrl`/`buildWhereClause` construction (including the trailing-space sub-theme edge case), `enumerateTargets` 96-combination invariant, `mapToFilename` water-supply priority + input-level match (with Rainfed/Gravity Irrigation/Irrigation cases and the "Rainfed All Phases" rejection), `shouldInclude` filter semantics (smoke-test pair matches exactly 2), `parseArgs` CLI parsing, and `resolveTargets` with a mocked fetcher (smoke-test pair, Cassava partial-coverage unresolved case, Gravity-over-Irrigation preference, Cassava Irrigation fallback, ImageServer error passthrough, one-query-per-(crop, variable) invariant). All 30/30 green.
+- **End-to-end execution:** Ran the full pipeline this session — (1) `--dry-run` resolved 94/96 against live FAO (the 2 missing are `cassava_irrigated_low_{suitability,yield}` — a legitimate FAO data gap, not a script bug: Cassava publishes only Irrigation/High, no Irrigation/Low); (2) smoke download of 2 maize files in 2.8 s total (3.2 MB); (3) preflight green (`2/2 raw files match naming`); (4) COG conversion green (`Converted: 2, Crop keys: 1` — PROJ warnings from PostgreSQL's bundled proj.db conflict are cosmetic; GDAL still wrote both COGs); (5) API booted with `GAEZ v4 raster service enabled`; (6) Iowa query returned `fetch_status: complete`, maize S1 at 10,918 kg/ha — within the 3,000–12,000 expected range from the smoke-test doc.
+- **Full 94-file pull:** Ran `download-gaez.ts --concurrency 6` after smoke passed → 92 fresh + 2 skipped from smoke = 94/94 available in `raw/`, total ~90 MB, under 90 seconds. Then full COG conversion: `Converted: 92, Reused: 2, Crop keys: 47` (48 minus the cassava_irrigated_low gap). API restarted and queried against the full manifest — Iowa (42, -93.5): 47 crops analyzed, best = irrigated-high potato at 12,719 kg/ha S1 (maize S1 at 11,177, barley S1 at 9,664 — sane ranking for prime US cropland). Punjab (31, 74): maize S2 at 7,196 (hot/dry drags class from S1 to S2, realistic). Sahara (24, 12): all crops WATER/NoData (expected; no mapped cropland in the Sahara interior, though WATER-class on desert is a classifier edge case worth a future refinement).
+- **Docs updated:** `apps/api/scripts/ingest-gaez.md` §2 promoted the programmatic path to primary with a block pointing at `npm run download:gaez`, keeping the Data Viewer flow as fallback. `apps/api/scripts/gaez-smoke-test.md` Step 1 became `pnpm … run download:gaez -- --filter maize_rainfed_high` (one command replaces 10 click-steps). `apps/api/package.json` gained `download:gaez` script entry. `wiki/entities/api.md` got a `scripts/download-gaez.ts` row under the GAEZ subsection.
+- **Files touched (6):** `apps/api/scripts/download-gaez.ts` (new, 320 LOC), `apps/api/src/tests/downloadGaez.test.ts` (new, 30 tests), `apps/api/package.json` (added `download:gaez`), `apps/api/scripts/ingest-gaez.md` (primary-path block in §2), `apps/api/scripts/gaez-smoke-test.md` (Step 1 rewritten), `wiki/entities/api.md` (scripts row).
+- **Net impact:** Atlas now has full FAO GAEZ v4 Theme 4 coverage live in dev — 47 of 48 crop keys populated (12 crops × 4 mgmt regimes, minus the one FAO gap). Operator friction dropped from "96 portal clicks over 2-3 hours" to "one command, ~90 seconds unattended." The Data Viewer fallback path stays documented in case FAO rotates or breaks the ImageServer. No new dependencies, no infrastructure, no license-agreement automation (the CC BY-NC-SA 3.0 IGO NC-clause remains the pre-commercial blocker tracked in `wiki/LAUNCH-CHECKLIST.md` — programmatic downloading is covered by the license; downstream commercial use is what triggers review).
+- **Verification:** 30/30 new vitest tests green. `npm run download:gaez -- --dry-run --filter maize_rainfed_high` resolves 2/2 in <2 s. Full pull Iowa smoke query returns `complete` + S1 maize 10,918 kg/ha. No apps/web or apps/api core-source changes → existing 325 api / 361 web vitest suites unaffected.
+
+---
+
+### 2026-04-20 — GAEZ Ingest Operator Tooling + Staging Provisioning Plan (Sprint BX)
+- **Scope:** Operator asked to "run the GAEZ ingest pipeline against real Theme 4 rasters in a staging env." The ingest is not autonomously executable — FAO GAEZ v4 requires manual click-through of a CC BY-NC-SA 3.0 IGO license page (no REST endpoint), GDAL is not installed on the dev machine, and no staging infrastructure exists yet. BX lands the three artifacts that unblock this work without violating those constraints: (A) an operator preflight script, (B) a single-raster smoke-test runbook, (C) a staging-provisioning decision doc.
+- **Option A — preflight script (`apps/api/scripts/gaez-ingest-preflight.ps1`):** PowerShell operator preflight that (1) checks `gdal_translate --version` with install-path hints (OSGeo4W / QGIS bundle / conda), (2) creates `data/gaez/raw/` + `data/gaez/cog/` on `-CreateDirs`, (3) validates any existing raw-file names against the `parseName()` regex in `convert-gaez-to-cog.ts` and flags skip-prone files by name, (4) prints a 96-file download checklist with `-PrintChecklist`. Exits 0 ready-to-ingest or 1 with actionable blockers. ASCII-only to avoid PS 5.1 CP-1252 parse errors on no-BOM UTF-8.
+- **Option B — smoke-test runbook (`apps/api/scripts/gaez-smoke-test.md`):** Documents the minimum-real-data validation path: download 1 yield + 1 suitability raster (`maize_rainfed_high_*.tif`), run ingest, boot API, hit `/api/v1/gaez/query?lat=42&lng=-93.5` (Iowa cropland), verify `fetch_status: 'complete'` + plausible nonzero yield + S1/S2-ish class. Adds water-point + polar-point edge cases. Zero infrastructure; catches bugs the fully-mocked unit tests miss (projection metadata, NoData encoding, real geotiff.js byte-range behavior).
+- **Option C — staging-provisioning decision doc (`wiki/decisions/2026-04-20-atlas-staging-provisioning.md`):** Scopes the minimum-viable staging env that would let GAEZ run "in staging" end-to-end: Fly.io (API + Postgres + Redis, ~$15-25/mo), Cloudflare Pages (web, free), AWS S3 + CloudFront (GAEZ COGs, ~$1/mo), Cloudflare DNS (`atlas-staging.ogden.ag`, `atlas-web-staging.ogden.ag`, `gaez-staging.ogden.ag`). Four phases: infra (2-3 h), GAEZ ingest + upload (~1 h + 30 min compute), deploy + verify (~30 min), handback (~15 min). Deliberately **Proposed, not Committed** — operator decision point is whether to allocate 4-6 hours + $25/mo now or stay mock-validated until prod launch. Recommendation: run Option B first, revisit C once a second infrastructure need (prod DNS, Stripe, production DB) amortizes the setup cost.
+- **Also touched:** `apps/api/scripts/ingest-gaez.md` gained a §2b "Preflight (recommended)" section pointing at the new PS1 + smoke-test doc. `wiki/index.md` gained the staging-provisioning decision-doc link under Decisions.
+- **Not landed:** no actual staging infrastructure provisioned, no GDAL install, no rasters downloaded, no ingest run. These are operator-gated — cannot be executed by Claude Code in the current session (license click-through, infrastructure provisioning, and disk/network cost all fall outside the agent boundary).
+- **Verification:** preflight runs clean (with `[FAIL] gdal_translate not on PATH` + `[OK] directory creation` + `Missing: 96` on a fresh checkout). No apps/api or apps/web code touched → existing vitest + tsc + build state preserved (325 api / 361 web).
+- **Files touched (5):** `apps/api/scripts/gaez-ingest-preflight.ps1` (new), `apps/api/scripts/gaez-smoke-test.md` (new), `wiki/decisions/2026-04-20-atlas-staging-provisioning.md` (new), `apps/api/scripts/ingest-gaez.md` (§2b preflight cross-reference), `wiki/index.md` (decisions link).
+- **Handback to operator:** to exercise the GAEZ pipeline against real data, (1) install GDAL (OSGeo4W recommended on Windows), (2) run `pwsh apps/api/scripts/gaez-ingest-preflight.ps1 -CreateDirs` to prep the tree, (3) follow `apps/api/scripts/gaez-smoke-test.md` for the 1-raster validation or `apps/api/scripts/ingest-gaez.md` for the full 96-raster ingest, (4) when ready, revisit `wiki/decisions/2026-04-20-atlas-staging-provisioning.md` to decide on staging infra.
+- **Follow-up fixup (same session, post-install):** Operator installed OSGeo4W 3.12.3 via the GUI installer. It landed at `%LOCALAPPDATA%\Programs\OSGeo4W\` (per-user install) and did not modify PATH — "installed" ≠ "on PATH". Hardened both operator tools to survive this case: (a) `gaez-ingest-preflight.ps1` now falls back to scanning standard OSGeo4W install paths + reading the uninstall registry keys when `gdal_translate` isn't on PATH, and prints the exact one-liner to persist the bin dir to user PATH or the `GDAL_BIN` env-var override; (b) `convert-gaez-to-cog.ts` gained a `resolveGdalTranslate()` helper that honors `GDAL_BIN` and falls back to the platform-default binary name, so the ingest can run even in shells that predate a PATH update. Persisted `C:\Users\MY OWN AXIS\AppData\Local\Programs\OSGeo4W\bin` to user PATH during the session — new shells inherit it. Vitest 27/27 GAEZ tests still green post-fixup.
+
+---
+
+### 2026-04-20 — Fix apps/api tsc/build regressions (Sprint BW)
+- **Scope:** Sprint BV's debrief flagged three pre-existing `apps/api` tsc/build regressions that were blocking `npm run build` while vitest stayed green (the broken adapters weren't exercised by the passing suite). BW is a short triage sprint to clear them so `apps/api` builds cleanly again on `main`.
+- **Fix 1 — `NlcdAdapter.ts:168` (`Property 'features' does not exist on type '{}'`):** `response.json().catch(() => null)` inferred `{} | null`, so `json?.features` didn't typecheck. Widened the parse to an explicit `{ features?: Array<{ properties?: Record<string, unknown> }> } | null` cast at the assignment site. No behavioral change — the downstream `if (!features || features.length === 0)` guard already handles the missing-features case.
+- **Fix 2 — `UsCountyGisAdapter.ts:436/447` (duplicate `getAttributionText` + private-vs-interface visibility):** the adapter had two `getAttributionText` methods — a `private` summary-taking variant (`:436`) used internally by `fetchForBoundary` (`:429`), and a public no-arg variant (`:447`) required by the `DataSourceAdapter` interface. TS rejected both as duplicates, and the private one also violated the interface. Renamed the internal helper to `buildAttributionText(summary)` and updated the single call site; the public parameterless `getAttributionText()` remains as the interface contract. The test at `UsCountyGisAdapter.test.ts:283` was already calling the public variant — passes unchanged.
+- **Fix 3 — `SsurgoAdapter.test.ts:123` (missing `frag3to10_pct` / `fraggt10_pct` on `HorizonRow`):** Sprint BB's SSURGO coarse-fragment enrichment added these two required fields to the `HorizonRow` type, but the two test fixture rows in `Weighted average computation > computes correct weighted averages for 60/40 split` never got backfilled. Added `frag3to10_pct: 0, fraggt10_pct: 0` to both rows — neutral values (no coarse fragments), doesn't perturb any downstream assertion.
+- **Verification:** `cd apps/api && npx tsc --noEmit` → clean. `npm run build` → clean. `npx vitest run` → **325/325 passing** (unchanged). `cd apps/web && npx vitest run` → **361/361 passing** (unchanged).
+- **Files touched (3):** `apps/api/src/services/pipeline/adapters/NlcdAdapter.ts`, `apps/api/src/services/pipeline/adapters/UsCountyGisAdapter.ts`, `apps/api/src/tests/SsurgoAdapter.test.ts`.
+
+---
+
+### 2026-04-20 — Land FAO GAEZ v4 Self-Hosting (Sprint BV)
+- **Scope:** Sprint BU restored `main` test-green while explicitly deferring the GAEZ (FAO Global Agro-Ecological Zones v4) self-hosting slice. Sprint BV lands that slice: the `GaezRasterService` (geotiff.js byte-range COG reads, local FS + HTTPS/S3 dual backend, LRU-cached TIFF handles, 48-sample per-point query across 12 crops × 4 management regimes), Fastify `GET /api/v1/gaez/query?lat=&lng=` route with Zod validation and `{ data, error }` wrapper, `gdal_translate`-based `convert-gaez-to-cog.ts` ingestion producing `gaez-manifest.json`, `app.ts` + `lib/config.ts` + `.env.example` + `package.json` + `.gitignore` glue, plus 28 new Vitest tests. Wiki claims in `index.md`, `entities/api.md`, `entities/gap-analysis.md` now truthful; decision doc `2026-04-20-gaez-self-hosting.md` landed; new `wiki/LAUNCH-CHECKLIST.md` seeded with **CC BY-NC-SA 3.0 IGO legal review** as the first pre-commercial blocker.
+- **Phase A — verification:** Read `GaezRasterService.ts` (362 lines) + `routes/gaez/index.ts` (69 lines) end-to-end. Confirmed `initGaezService` / `getGaezService` singleton factory, `isEnabled()` returns false when `gaez-manifest.json` absent, `query(lat, lng)` returns `{ fetch_status, confidence, source_api, attribution, summary }` with summary selected by yield-desc-primary / suitability-rank-desc-tiebreaker. Verified `openTiff` trailing-slash-aware URL join for S3. Cross-referenced test patterns in `UsgsElevationAdapter.test.ts` (adapter pattern) and `smoke.test.ts` (Fastify `buildApp()` + `inject()` with `vi.mock()` of DB + Redis plugins).
+- **Phase B — GaezRasterService unit tests (18 tests, all green):** `src/tests/GaezRasterService.test.ts` — `vi.mock('geotiff')` at module scope, `makeFakeTiff(value, opts?)` factory returns image with `getWidth/getHeight/getOrigin/getResolution/getGDALNoData/readRasters`. Coverage: `loadManifest` (absent / malformed / valid / zero-entries), `query` (disabled → unavailable, full 48-raster happy path, all-water WATER class, all-fail failed path, highest-yield-wins tiebreaker, top-3 uniqueness, NoData handling), `openTiff` backend switch (local `fromFile` vs `fromUrl` with/without trailing slash), pixel math (window `[px, py, px+1, py+1]` for known lat/lng + out-of-bounds), singleton factory re-init.
+- **Phase C — route integration tests (9 tests, all green):** `src/tests/gaezRoutes.test.ts` — mocks `../plugins/database.js` + `../plugins/redis.js` via `fastify-plugin` (copied from `smoke.test.ts`), mocks `../services/gaez/GaezRasterService.js` exports to a `gaezFake` stub. Validation: missing lat (422), missing lng (422), lat out of [-90, 90] (422), lng out of [-180, 180] (422), non-numeric (422). Service-interaction: disabled → 200 + `fetch_status: 'unavailable'` + message mentioning `ingest:gaez`, happy path → 200 + summary.best_crop, query throws → 200 + `fetch_status: 'failed'`, wrapper shape always `{ data, error }`.
+- **Phase D — full-suite:** `cd apps/api && npx vitest run` → **325/325 passing** (297 baseline + 28 new GAEZ). `cd apps/web && npx vitest run` → **361/361 passing** (unchanged). `apps/api` `tsc --noEmit` + `npm run build` surface pre-existing errors in `NlcdAdapter.ts`, `UsCountyGisAdapter.ts` (duplicate `getAttributionText` method + private-vs-interface visibility), `SsurgoAdapter.test.ts` (missing `frag3to10_pct`/`fraggt10_pct` on test horizons); all untouched by BV — regressions from the BT/BU landing slice, to be addressed in a follow-up sprint.
+- **Phase E — wiki:** `wiki/index.md` gained `LAUNCH-CHECKLIST.md` link under Orientation + GAEZ decision link under Decisions. `wiki/entities/api.md` gained `/api/v1/gaez` route-table row + `services/gaez/GaezRasterService.ts` services-list entry. `wiki/entities/gap-analysis.md` normalized "Sprint BI self-hosts FAO GAEZ v4" → "Sprint BV self-hosts FAO GAEZ v4" and now claims 8/10 global-data coverage truthfully. `wiki/entities/web-app.md` gained a Sprint BV note (GAEZ backend now live, `gaez_suitability` layer type flips from `'unavailable'` to `'complete'` when manifest is present). `wiki/LAUNCH-CHECKLIST.md` created with CC BY-NC-SA 3.0 IGO legal review as first blocker.
+- **Files touched (18 total):** Source: `apps/api/src/services/gaez/GaezRasterService.ts`, `apps/api/src/routes/gaez/index.ts`, `apps/api/scripts/convert-gaez-to-cog.ts`, `apps/api/scripts/ingest-gaez.md`, `apps/api/src/app.ts`, `apps/api/src/lib/config.ts`, `apps/api/.env.example`, `apps/api/package.json`, `.gitignore`. Tests (new): `apps/api/src/tests/GaezRasterService.test.ts`, `apps/api/src/tests/gaezRoutes.test.ts`. Wiki: `wiki/decisions/2026-04-20-gaez-self-hosting.md`, `wiki/index.md`, `wiki/entities/api.md`, `wiki/entities/gap-analysis.md`, `wiki/entities/web-app.md`, `wiki/LAUNCH-CHECKLIST.md`, `wiki/log.md`.
+- **Out of scope / follow-up:** (1) Running the actual `ingest:gaez` pipeline against 96 raw Theme 4 .tifs requires GDAL + ~40 GB disk — ops task, separate sprint. (2) Staging-env integration against real COGs also deferred. (3) Pre-existing `tsc`/`npm run build` errors in `NlcdAdapter.ts` / `UsCountyGisAdapter.ts` / `SsurgoAdapter.test.ts` — BT/BU landing regressions, not BV-introduced; file a triage sprint. (4) CC BY-NC-SA 3.0 IGO non-commercial clause is a hard pre-commercial blocker — tracked in `wiki/LAUNCH-CHECKLIST.md`.
+
+---
+
+### 2026-04-20 — Land Panel Split + Scoring Support Libs (Sprint BU)
+- **Scope:** After Sprint BT committed the `computeScores.ts` + `layerFetcher.ts` diffs, `main` was briefly in a non-compiling state — `computeScores.ts` imports from 11 in-progress lib files that had been living unstaged in the worktree since Sprints BB–BJ. BU lands all the Sprint BS panel-split artifacts + those scoring support libs + the in-progress state/route/store wiring as one coherent slice, restoring a compilable, test-green `main`. GAEZ self-hosting (Sprint BI API side) was explicitly deferred to its own sprint.
+- **Phase A — triage:** Inventoried 30 unstaged files. Split cleanly along the BB–BJ-vs-GAEZ seam: `apps/api/.env.example`, `package.json`, `app.ts`, `lib/config.ts`, `.gitignore`, `apps/api/scripts/convert-gaez-to-cog.ts`, `scripts/ingest-gaez.md`, `src/routes/gaez/`, `src/services/gaez/`, `wiki/decisions/2026-04-20-gaez-self-hosting.md`, `wiki/entities/api.md`, `wiki/entities/gap-analysis.md`, `wiki/index.md` → GAEZ sprint. Everything else → BU. `packages/shared/src/constants/dataSources.ts`'s 17 new `LayerType` union members include `'gaez_suitability'` as a forward-referenced type only (safe — web-side can name the type before the API route is live). `apps/api/src/services/pipeline/adapters/SsurgoAdapter.ts`'s `coarse_fragment_pct` addition is BB-pipeline soil enrichment (unrelated to GAEZ) → BU.
+- **Phase B — land Sprint BS panel split:** The big `SiteIntelligencePanel.tsx` refactor (1,645 lines → 465 lines of orchestration + 28 new section components under `components/panels/sections/`) lands with the `vite.config.ts` manualChunks routing that splits them into the `panel-sections` chunk. `useSiteIntelligenceMetrics.ts` hook + `useSiteIntelligenceMetrics.test.ts` (5 tests, happy-dom, already passing) land together. `panel.module.css` carries the section-boundary styling. Net effect: the chunk architecture sized under Sprint BS is now fully realized on `main` — shell **15.82 kB**, panel-sections **100.99 kB**, panel-compute **152.93 kB**, ecocrop-db **946.90 kB** (isolated).
+- **Phase B — land BB–BJ scoring support libs:** 11 new files under `apps/web/src/lib/`: `designIntelligence.ts`, `regulatoryIntelligence.ts`, `energyIntelligence.ts`, `climateProjections.ts`, `ecosystemValuation.ts`, `fuzzyMCDM.ts`, `waterRightsRegistry.ts`, `companionPlanting.ts`, `canopyHeight.ts`, plus two utility modules `debounce.ts` and `perfProfiler.tsx`. These are the functions the Sprint BT `computeScores.ts` already imports from — they compute per-domain scoring components that feed into the 8 weighted dimensions + 2–3 formal classifications.
+- **Phase B — land state + route wiring:** `store/projectStore.ts`, `store/siteDataStore.ts` (56-line delta — new Tier-3 layer-result caching), `lib/rules/ruleEngine.ts`, `lib/mockLayerData.ts`, `lib/syncService.ts`, `pages/ProjectPage.tsx`, `routes/index.tsx`, `features/map/LayerPanel.tsx` all carry the glue that lets the new section components and scoring libs receive their data.
+- **Phase C — verification:** `npx tsc --noEmit` clean across `apps/web`. `npx vitest run` — **361/361 passing** (Sprint BT's 361 baseline preserved; the 5 `useSiteIntelligenceMetrics.test.ts` tests that were already being counted now have their file committed). `npm run build` — clean in ~23 s. Panel chunk sizes exactly match the Sprint BS design targets.
+- **Files touched (58 total):** 27 modified + 31 new. Key paths: `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (orchestration shell), `apps/web/src/components/panels/sections/*.tsx` (28 new), `apps/web/src/hooks/useSiteIntelligenceMetrics.ts` + test, 11 new `apps/web/src/lib/*.{ts,tsx}` scoring + util libs, `apps/web/vite.config.ts`, `apps/web/src/styles/panel.module.css`, `apps/web/src/store/{projectStore,siteDataStore}.ts`, `apps/web/src/lib/{mockLayerData,syncService,rules/ruleEngine}.ts`, `apps/web/src/pages/ProjectPage.tsx`, `apps/web/src/routes/index.tsx`, `apps/web/src/features/map/LayerPanel.tsx`, `packages/shared/src/constants/dataSources.ts` (+17 `LayerType` union members), `apps/api/src/services/pipeline/adapters/SsurgoAdapter.ts` (SSURGO coarse-fragment %), `wiki/concepts/scoring-engine.md`, `wiki/entities/data-pipeline.md`.
+- **Deferred to next sprint (GAEZ):** `apps/api/{scripts/convert-gaez-to-cog.ts, scripts/ingest-gaez.md, src/routes/gaez/, src/services/gaez/, .env.example, package.json, app.ts, lib/config.ts}`, `.gitignore` (GAEZ raster paths), `wiki/decisions/2026-04-20-gaez-self-hosting.md`, `wiki/index.md` (decision link), `wiki/entities/api.md` (route table entry), `wiki/entities/gap-analysis.md` (GAEZ "implemented" annotations). Files remain unstaged in the worktree — visible via `git status`, not stashed.
+
+---
+
+### 2026-04-20 — Triage BB–BJ Regressions (Sprint BT)
+- **Scope:** Sprint BS surfaced 10 pre-existing failures across `computeScores.test.ts` (8) and `layerFetcher.test.ts` (2). Triage across `git diff` of both files concluded that the uncommitted local changes represent **coherent in-progress work across Sprints BB–BJ** (~3,000 lines of live-API fetchers + Tier 3 scoring extensions) rather than accidental rot. Decision: land, don't revert.
+- **Phase A — `layerFetcher.ts` `raceWithSignal` rejection bug:** Line 158 was `new Promise<FetchLayerResults>((resolve) => { … p.then(…, (err) => { …; throw err; }); })` — the `throw err` inside a `.then` rejection handler is swallowed because the Promise executor never captured `reject`. Any failing upstream promise caused `raceWithSignal` to hang forever, cascading through the `fetchAllLayers` dedup map. One-line fix: capture `reject` in the executor and forward via `reject(err)`. Verified — `raceWithSignal` now settles correctly on rejection.
+- **Test-timeout alignment:** The `fetchAllLayers` tests were timing out at the default 5,000 ms because the panel now iterates ~30+ live-API fetchers per call, each attempting network I/O before falling back to mock. Raised timeouts on three US-path tests (`returns mock data when all APIs fail` → 15_000, `caches results to localStorage` → 15_000, `handles US country correctly` → 15_000, `returns cached results on second call` → 20_000). The CA test already had a 15,000 ms override. Observed per-test run time ~9 s.
+- **Phase B — `computeScores.test.ts` drift:** `computeAssessmentScores` returns **10 scores for US (8 weighted + FAO Land Suitability + USDA Land Capability), 11 for CA (+Canada Soil Capability)**. Tests were asserting length 7 — pre-dated the introduction of `computeCommunitySuitability` + the three formal-classification scorers and had been failing against HEAD. Updates:
+  - All 7 `toHaveLength(7)` assertions updated to `10` (or `11` for CA).
+  - `includes all expected score labels` extended with `'Community Suitability'`, `'FAO Land Suitability'`, `'USDA Land Capability'`.
+  - `assigns a valid rating to each score` filtered to `scores.slice(0, 8)` — formal-classification scorers emit domain-specific ratings (`'S1 — Highly Suitable'`, `'Class 2 — …'`) that don't match the `Exceptional/Good/Moderate/Low/Insufficient Data` enum.
+  - CA test explicitly passes `country='CA'` as the 3rd argument (optional param added in a prior sprint); without it, the Canada Soil Capability branch is skipped and length stays at 10.
+- **Verification:** `npx vitest run` — **361/361 passing** (up from 351/361). `npm run build` — clean (22 s). `npx tsc --noEmit` — clean. Panel chunk sizes unchanged vs Sprint BS baseline.
+- **Files touched:** `apps/web/src/lib/layerFetcher.ts` (1-line fix at line 165), `apps/web/src/tests/layerFetcher.test.ts` (3 timeout overrides), `apps/web/src/tests/computeScores.test.ts` (7 length + 1 label + 1 rating-scope + 1 country-arg updates).
+- **Coherent sprints now landable under Sprint BT:** BB (GBIF biodiversity), BC (EPA UST/LUST/Brownfields/Landfills, USGS mine hazards, FUDS contamination), BD (USGS Principal Aquifer, WRI Aqueduct water stress, stream seasonality), BF (NLCD prior land-use history), BG (WDPA / ALR / AUV / EcoGifts regulatory), BH (FAO GAEZ agro-climatic suitability), BJ (abort-signal plumbing + dedup).
+
+---
+
+### 2026-04-20 — Panel Chunk Split + Hook Test (Sprint BS)
+- **Scope:** Two follow-ups from the Sprint BR debrief — (a) split the 1,144 kB lazy-loaded `SiteIntelligencePanel` chunk into granular, parallel-loadable chunks; (b) add a Vitest fixture test around `useSiteIntelligenceMetrics` to protect the BQ hook boundary.
+- **Phase A — chunk split (`apps/web/vite.config.ts`):** Converted `manualChunks` from the object form (exact-name vendor splits) to the function form, so rollup can route arbitrary paths. Kept the existing vendor groupings (`maplibre`, `turf`, `framework`, `cesium`) and added three app-side splits:
+  - `ecocrop-db` — FAO EcoCrop data (`data/ecocrop_parsed.json` + `data/ecocropSubset`, ~968 kB raw / ~109 kB gzip); cache-stable, no code churn expected
+  - `panel-sections` — the 27 section components under `components/panels/sections/` (~101 kB / ~20 kB gzip)
+  - `panel-compute` — the heavy per-metric compute libs (`designIntelligence`, `regulatoryIntelligence`, `energyIntelligence`, `climateProjections`, `ecosystemValuation`, `cropMatching`, `companionPlanting`, `fuzzyMCDM`, `hydrologyMetrics`, `canopyHeight`, `waterRightsRegistry`, `computeScores`) + `hooks/useSiteIntelligenceMetrics` (~153 kB / ~49 kB gzip)
+- **Before / after chunk sizes** (lazy panel payload only):
+  - Before: `SiteIntelligencePanel` 1,144.14 kB / gzip 158.66 kB (single chunk, serial download after panel open, any edit invalidates the whole blob)
+  - After: shell 15.82 kB + panel-sections 100.99 kB + panel-compute 152.93 kB + ecocrop-db 946.90 kB = **1,216.64 kB total / gzip ~183 kB across 4 files**
+  - Net: slightly larger total (~6% / +24 kB gzip) due to per-chunk rollup boilerplate, but the shell is **72× smaller** (first panel-open paint is near-instant), 3 of 4 chunks load in parallel, and editing one section/lib invalidates only its chunk (ecocrop-db cache-hit rate approaches 100% across deploys).
+- **Phase B — hook test (`apps/web/src/tests/useSiteIntelligenceMetrics.test.ts`):** New Vitest file using the existing `@testing-library/react` + happy-dom stack (already in devDeps; env override via `@vitest-environment happy-dom` directive since the project default is `node`). Five test cases:
+  1. Returns all 37 expected keys (guard against accidental rename / drop)
+  2. Does not throw with empty layers; every key present (contract: downstream sections destructure without null-guarding; hook never explodes on degenerate inputs)
+  3. At least one metric hydrates when passed `mockLayersUS()`
+  4. Memoizes return reference for stable inputs (rerender with same args → same reference) — protects the `useMemo` seam
+  5. Recomputes when `layers` array identity changes — protects the dep array
+- **Verification:** Five new tests pass. Pre-existing failures in `computeScores.test.ts` (8) and `layerFetcher.test.ts` (2) are from unrelated local edits (+151 lines in computeScores, +2,686 lines in layerFetcher — not touched this session); out of scope. `npm run build` succeeds (~24 s).
+- **Files touched:** `apps/web/vite.config.ts` (manualChunks → function form), `apps/web/src/tests/useSiteIntelligenceMetrics.test.ts` (new).
+
+---
+
+### 2026-04-20 — Semantic Token CSS Bridge (Sprint BR)
+- **Scope:** Follow-up to Sprint BQ. After BQ, 71 inline `style={{…}}` objects bound to TS semantic tokens (`semantic.sidebarIcon` / `semantic.sidebarActive`) remained across 27 section files + `SiteIntelligencePanel.tsx` — these could not be migrated to CSS modules in BQ because the module files had no way to reference the TS token values. BR closes that gap by bridging the two token surfaces through CSS custom properties already present in `apps/web/src/styles/tokens.css` (`--color-sidebar-active: #c4a265`, `--color-sidebar-icon: #9a8a74`), then adds semantic-token-backed utility classes and swaps the inline styles.
+- **Phase 1 — utility classes (panel.module.css):** Added 12 classes in two batches — (a) solo-pattern classes: `.tokenActive`, `.tokenIcon`, `.tokenIconFs11Mt2`, `.tokenIconFs10Italic`, `.tokenIconFs12Leading`, `.tokenIconFs11Leading`, `.tokenActiveFs10Bold`; (b) Phase 3 atoms for composite patterns: `.fs9`, `.fs10`, `.mt2`, `.mr2`, `.tokenIconGrid2`. All color values reference CSS vars so tokens.css remains the single source of truth.
+- **Phase 2 — solo pattern swap (script-driven, 20 files):** Regex-driven migration of the 6 highest-frequency semantic-bound inline styles. Reused the existing `p.mt4`/`p.mb4` utilities when a composite required them (e.g., `{ fontSize: 10, color: semantic.sidebarIcon, marginTop: 4, fontStyle: 'italic' }` → `` `${p.tokenIconFs10Italic} ${p.mt4}` ``). Script handled three className-positional cases (before / after / absent) and template-string merging. Changed files: AhpWeights, Canopy, Climate, Community, CropMatching, Design, Ecosystem, Energy, EnvRisk, Fuzzy, Groundwater, HydroExt, HydroIntel, InfraAccess, LandUse, RegionalSpecies, Regulatory, SiteContext, Soil, WaterQuality.
+- **Phase 3 — composite stragglers (5 files):** Remaining 2× patterns swapped in ClimateProjections, CropMatching, EcosystemServices, EnergyIntelligence, RegulatoryHeritage — using the Phase 3 atoms (`fs9`/`fs10`/`mt2`/`mr2`) composed with `tokenIcon` in template className expressions; `tokenIconGrid2` covers a 2× grid composite.
+- **Unused-import cleanup:** After the swaps left three files with no remaining `semantic.*` code references (HydrologyExtensions, ClimateProjections, EnergyIntelligence), dropped `semantic` from their tokens.js imports. Remaining 19 files still use `semantic` elsewhere (dynamic color interpolations in badges / computed styles) and keep the import.
+- **Verification:** `npx tsc --noEmit` clean. `npm run build` succeeds (22.02 s, SiteIntelligencePanel chunk 1,144.14 kB / gzip 158.66 kB — unchanged vs BQ post-build, as expected: inline style object literals collapsed to class-name string concats are ~net-zero in bundled output). `style={{` count on the sections dir + panel: 198 → 159 (−39, ~20% reduction on top of BQ's 378→198). `semantic.sidebar*` inline-style hits: 71 → 26 (−45, ~63%). Remaining 26 are genuinely dynamic (runtime-computed colors like `color: l.status === 'complete' ? confidence.high : …`, conditional backgrounds on `confidence.low`-toned badges, hover-bound color overrides) and are left inline by design.
+- **Cumulative post-BR:** Panel + 27 sections now carry 159 inline styles total (down from the pre-BQ peak of ~378 on sections alone). `panel.module.css` grew from the pre-BQ baseline by 16 classes (BQ) + 12 classes (BR) = 28 new utilities, all documented inline by sprint tag.
+- **Files touched:** `apps/web/src/styles/panel.module.css` (+12 classes), 24 `apps/web/src/components/panels/sections/*.tsx`, `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (incidental swap via the same script).
+- **Deferred:** The 26 remaining `semantic.*` dynamic-style references cannot migrate without a runtime-CSS-var escape hatch (`style={{ '--col': confidence.high }}` + `.classRef { color: var(--col) }` pattern) — not worth the complexity unless/until another sprint touches that code.
+
+---
+
+### 2026-04-20 — Panel Body Consolidation + CSS Migration (Sprint BQ)
+- **Scope:** Closes the two deferred refactors from the Sprint BP debrief — (A) relocate the 37 layer-metric `useMemo` blocks that still lived in `SiteIntelligencePanel.tsx` into a single custom hook, and (B) begin the CSS-module migration for the ~378 inline `style={{…}}` objects accumulated across the 27 section files.
+- **Phase A — `useSiteIntelligenceMetrics` hook:** `apps/web/src/hooks/useSiteIntelligenceMetrics.ts` (newly created). A single `useMemo` keyed on `[layers, project.acreage, project.country, project.provinceState, project.parcelBoundaryGeojson]` (union of all original deps) wraps 37 IIFE-bodied metric computations extracted verbatim from the panel (lines ~272–1213). Returns a keyed object covering `hydroMetrics`, `windEnergy`, `infraMetrics`, `solarPV`, `soilMetrics`, `groundwaterMetrics`, `waterQualityMetrics`, + 8 environmental-hazard + 3 site-context + 3 hydrology-extension + 7 regulatory + 5 community/context + 5 long-tail metrics + `gaezMetrics`. Signature: `useSiteIntelligenceMetrics(layers, project)`. Return type exported via `SiteIntelligenceMetrics = ReturnType<typeof useSiteIntelligenceMetrics>`.
+- **Panel consumer rewrite:** Instead of rewriting every reference to `m.foo`, destructured the hook return: `const { hydroMetrics, windEnergy, ... , gaezMetrics } = useSiteIntelligenceMetrics(layers, project);`. Keeps the remaining panel code + section JSX line-for-line identical to pre-BQ (no consumer edits needed; `eiaTriggers` + `cropMatches` useMemos continue to reference their deps by original name). Removed 9 now-unused imports from the panel (`computeHydrologyMetrics`, `computeWindEnergy`, `parseHydrologicGroup`, `HYDRO_DEFAULTS`, `HydroMetrics`, `WindEnergyResult`, `estimateCanopyHeight`, `computeFuzzyFAOMembership`, `classifyAgUseValue`) + `fmtGal` + `findCompanions`.
+- **Phase A verification:** `cd apps/web && npx tsc --noEmit` — clean. `SiteIntelligencePanel.tsx` reduced **1492 → 827 lines (−665, ~45%)**. `useMemo` count 62 → 28 in the panel. Behavioral semantics preserved — same recomputation trigger set (hook's single `useMemo` fires on the union of what the 37 individual `useMemo`s previously fired on). Note: the plan's ≤550-line gate was not hit; the remaining ~275 lines are non-metric useMemos (`designIntelligence`, `energyIntelligence`, `climateProjections`, `ecosystemIntelligence`, `eiaTriggers`, `typicalSetbacks`, `cropMatches`, `companionCache`, `ahpResult`, `assessmentScores`, derived scoreboards) + UI state hooks + 25 `<…Section />` JSX prop passes + `useCallback` toggle handlers. Those consume hook output and UI state — extracting them would split the orchestration boundary, not reduce it.
+- **Phase B — CSS-module migration (378 → 198 inline styles, −180, ~48% reduction):** Added 10 new utility classes to `apps/web/src/styles/panel.module.css`: `.rightAlign`, `.flexBetween`, `.itemLabel`, `.detailText`, `.borderBottomNone`, `.fs11` (plan-scoped) + `.innerPad`, `.cursorDefault`, `.colStretchPad`, `.separatorThin` (added during second-pass when the top-frequency remaining patterns were identified). Patterns migrated across 22 of 27 section files:
+  - `{ marginBottom: 'var(--space-5)' }` → `p.mb20` (outer `.liveDataWrap` — every file)
+  - `{ flex: 1, textAlign: 'right' }` → `p.rightAlign` (badge wrappers + value spans — 25+ occurrences)
+  - `{ flex: 1, textAlign: 'right', fontSize: 11 }` → `${p.rightAlign} ${p.fs11}` (9 occurrences)
+  - `{ padding: '4px 8px 6px', fontSize: 11, color: 'var(--color-panel-muted, #888)', fontStyle: 'italic' }` (with + without `borderBottom: 'none'`) → `p.detailText` (~17 occurrences, mostly `DesignIntelligenceSection`)
+  - `{ padding: '4px 0' }` → `p.innerPad` (20× — one per toggleable section's inner container)
+  - `{ cursor: 'default' }` on `liveDataHeader` → `p.cursorDefault` (10 occurrences)
+  - `{ flexDirection: 'column', alignItems: 'stretch', padding: '8px 12px' }` (+ `borderBottom: 'none'` variant) → `p.colStretchPad` (+ `p.borderBottomNone`) — 17× across `RegulatoryHeritageSection` + 4 others
+  - `{ borderTop: '1px solid var(--color-panel-border, #333)', margin: '4px 0' }` → `p.separatorThin` (8× on standalone `<div … />` separators)
+  - `{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }` → `p.flexBetween` (6× in `RegulatoryHeritageSection`)
+  - `{ fontSize: 11, color: semantic.sidebarIcon, marginTop: 2 }` → `p.itemLabel` (multi-file; note — only the semantic-token-free variant is converted; token-bound variants kept inline since JS tokens ≠ CSS vars in this codebase)
+  - `{ marginTop: 4 }` → `p.mt4` (existing utility; 2× with `className` merge)
+- **Per-file inline-style reductions (before → after):** `DesignIntelligenceSection` 65→27 · `RegulatoryHeritageSection` 46→22 · `SoilIntelligenceSection` 18→7 · `HydrologyIntelligenceSection` 18→9 · `EnvironmentalRiskSection` 18→13 · `SiteContextSection` 15→7 · `RegionalSpeciesSection` 15→12 · `LandUseHistorySection` 14→12 · `InfrastructureAccessSection` 14→12 · `EnergyIntelligenceSection` 13→10 · `CommunitySection` 10→4 · `GroundwaterSection` 9→5 · `WaterQualitySection` 11→7 · `GaezSection` 9→7 (+ 1 bugfix for `className`/`className` duplication caught by `tsc`). Files untouched: `_shared.tsx`, `SiteSummaryNarrativeSection` (0 inline styles already), `OpportunitiesSection`, `ConstraintsSection`, `DataLayersSection`, `AssessmentScoresSection`.
+- **Remaining inline styles (~198):** All dynamic — score-badge `background`/`color` interpolated from `confidence.high/medium/low` + state, `semantic.sidebarActive`/`sidebarIcon` token colors (JS-bound hex, not CSS vars), runtime-computed widths, grid-template-columns with calculated fractions. Per the plan's "what stays inline" guidance, these are legitimate holdouts.
+- **Files touched:** `apps/web/src/hooks/useSiteIntelligenceMetrics.ts` (new), `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (−665 lines, import cleanup), `apps/web/src/styles/panel.module.css` (+10 utility classes), 22 section files under `apps/web/src/components/panels/sections/`, `wiki/entities/web-app.md`, `wiki/log.md`.
+- **Verification:** `npx tsc --noEmit` clean after each phase. `npm run build` succeeds (22.02 s). Panel chunk size: `SiteIntelligencePanel-DiNOoR0u.js` 1144.88 kB (gzip 158.68 kB) — inline-object literals collapsed into shared module-class strings, minor bundle improvement.
+- **Milestone:** `SiteIntelligencePanel.tsx` cumulative reduction since pre-BJ: **4086 → 827 lines (−3259, ~80%)**. Panel body now reads as: state hooks → destructured hook call → derived memos → callbacks → JSX. Further reduction would require collapsing the JSX prop-pass cluster itself (e.g., composing a single `<SiteIntelligenceSections metrics={…} />` aggregator), which crosses an architectural boundary and is not net-positive.
+- **Deferred:** `useSiteIntelligenceMetrics.test.ts` snapshot test against a fixture `layers[]` (plan A3 optional — not needed for correctness, metric bodies are verbatim copies). `semantic.sidebarActive`/`sidebarIcon` → CSS-variable migration in `tokens.css` (would unlock another ~30 inline-style removals but requires token-system refactor, separate sprint).
+
+---
+
+### 2026-04-20 — Sub-Component Extraction (Sprint BP)
+- **Scope:** Final trio cleared — Site Context (Sprints O/P/BB), Community (Sprint V), and FAO GAEZ v4 agro-climatic suitability (Sprint BI). Closes the extraction-pattern long tail flagged at the end of Sprint BO.
+- **SiteContextSection:** 7 props — 5 optional sub-metric interfaces (`CropValidationMetrics`, `BiodiversityMetrics`, `SoilGridsMetrics`, `CriticalHabitatMetrics`, `StormMetrics`) declared structurally inline, plus `siteContextOpen` + `onToggleSiteContext`. Outer `hasAny` short-circuit moved inside the section. Parent adds `onToggleSiteContext = useCallback(() => setSiteContextOpen((v) => !v), [])`.
+- **CommunitySection:** 3 props — `DemographicsMetrics` structural interface inline, plus `communityOpen` + `onToggleCommunity`. Parent bridges the legacy `demogOpen`/`setDemogOpen` state to the new prop names via `onToggleCommunity = useCallback(() => setDemogOpen((v) => !v), [])`.
+- **GaezSection:** 1 prop — `GaezMetrics` structural interface covering both `enabled`/`!enabled` branches + `GaezTop3Crop[]`. Non-toggleable; fragment wrapper collapsed into the section's `SectionProfiler` root.
+- **Files touched:** 3 new section files under `apps/web/src/components/panels/sections/`, `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (modified — 3 imports + 2 useCallbacks + 3 JSX splices), `wiki/entities/web-app.md`, `wiki/log.md`.
+- **Verification:** `cd apps/web && npx tsc --noEmit` — clean. `SiteIntelligencePanel.tsx` reduced 1755 → ~1492 lines (−263, beating the ~1450 projection by a small margin due to the 5-prop `<SiteContextSection />` call site). Cumulative since Sprint BJ: 4086 → ~1492 (**−2594 lines, ~63%**).
+- **Milestone:** Panel is now pure orchestration + hooks. 25 memo'd, profiler-wrapped sections live under `sections/`. The remaining bulk is `useMemo` declarations for layer metrics (lines ~500-1210) and the computed-scores reducers — these are not JSX and shouldn't be extracted as sections; a future sprint could relocate them to a custom hook (`useSiteIntelligenceMetrics(layers)`) if further reduction is desired.
+- **Deferred:** CSS-module migration for the remaining ~384 inline style objects scattered across the section files (stylistic refactor, separate sprint). Custom-hook relocation of layer-metric `useMemo`s (not urgent — panel already performant after Sprint BJ's memoization work).
+
+---
+
+### 2026-04-20 — Sub-Component Extraction (Sprint BO)
+- **Scope:** Sixth wave of the BJ→BN extraction pattern. Cleared eight inlined blocks across two phases: five mid-panel data cards (Fuzzy FAO, AHP weights, Regional Species, Canopy Structure, Land-Use History) and the footer cluster (Opportunities, Key Constraints, Data Layers).
+- **Phase 1 — mid-panel cards:** 5 new section files under `apps/web/src/components/panels/sections/`. All non-toggleable, 1 prop each, no parent useCallback needed. `FuzzyFaoSection` + `AhpWeightsSection` import typed results from `lib/fuzzyMCDM.js` (`FuzzyFAOResult`, `AhpResult`). `CanopyStructureSection` imports `CanopyHeightResult` from `lib/canopyHeight.js`. `RegionalSpeciesSection` + `LandUseHistorySection` declare structural interfaces inline (anonymous `useMemo` parent metrics).
+- **Phase 2 — footer cluster:** 3 new section files. `OpportunitiesSection` + `ConstraintsSection` are symmetric (4 props each) — receive the already-sorted `topOpportunities`/`topConstraints` arrays plus `enrichment` (`AIEnrichmentState`) and `showAll` + `onToggleShowAll`. Parent adds `onToggleShowAllOpps` + `onToggleShowAllRisks` useCallbacks. Flag types import `AssessmentFlag` from `@ogden/shared`. `DataLayersSection` is the smallest extraction to date (12 JSX lines, 1 prop, typed `DataLayerRow[]`).
+- **Files touched:** 8 new section files, `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (modified — 8 imports + 2 useCallbacks + 8 JSX splices), `wiki/entities/web-app.md`, `wiki/log.md`.
+- **Verification:** `cd apps/web && npx tsc --noEmit` — clean after each phase. `SiteIntelligencePanel.tsx` reduced 2018 → 1755 lines (−263, beating the ≤1780 phase-2 gate). Cumulative since Sprint BJ: 4086 → 1755 (−2331 lines, **~57%**).
+- **Milestone:** Panel is now past the 2000-line mark in the opposite direction — more than half of the pre-BJ bulk has been relocated to 22 memo'd, profiler-wrapped section files. Pattern held cleanly for all eight extractions with zero TS errors across both splice rounds.
+- **Deferred (next sprint):** Site Context (Sprints O/P/BB) — 130-line toggleable with 5 sub-metric cards + `siteContextOpen` state; Community (Sprint V) — ~85-line toggleable demographics card; GAEZ v4 agro-climatic — ~97-line non-toggleable with fragment wrapper. After that trio, expect the panel to settle at ~1450 lines of pure orchestration + hooks. CSS-module migration for 384 inline style objects still deferred (stylistic refactor, separate sprint).
+
+---
+
+### 2026-04-20 — Sub-Component Extraction (Sprint BN)
+- **Scope:** Fifth wave of the BJ/BK/BL/BM extraction pattern. Tackled the two biggest remaining blocks (Site Summary + AI Narrative cluster, Assessment Scores breakdown) plus the two Sprint BD rollups still inlined (Hydrology Extensions, Energy Intelligence).
+- **Phase 1 — SiteSummaryNarrativeSection:** `sections/SiteSummaryNarrativeSection.tsx` (~90 lines). 3 props (`enrichment`, `siteSummary`, `landWants`). Bundles the Site Summary paragraph, "What This Land Wants" card, Design Recommendations multi-card AI block, and the AI loading spinner into one memo'd unit. Imports `AIEnrichmentState` from `store/siteDataStore.js`, `AILabel` from `_shared`, `Spinner` from `components/ui/Spinner`. Non-toggleable.
+- **Phase 2 — AssessmentScoresSection:** `sections/AssessmentScoresSection.tsx` (~100 lines). 3 props (`assessmentScores`, `expandedScore`, `onToggleExpandedScore`). Imports `AssessmentScore` type from `lib/computeScores.js`. Parent adds `onToggleExpandedScore` useCallback (same pattern as `onToggleExpandedCrop` from Sprint BK). Per-component ConfBadge + source-tag chips + sub-bar rendering all moved inside.
+- **Phase 3 — HydrologyExtensionsSection:** `sections/HydrologyExtensionsSection.tsx` (~105 lines). 3 props. Declares `AquiferMetrics`, `WaterStressMetrics`, `SeasonalFloodingMetrics` structural interfaces inline. Non-toggleable (top-level `if (!a && !b && !c) return null` short-circuit).
+- **Phase 4 — EnergyIntelligenceSection:** `sections/EnergyIntelligenceSection.tsx` (~80 lines). 1 prop (`energyIntelligence`). Imports `GeothermalResult`, `EnergyStorageResult` from `lib/energyIntelligence.js`; declares composite `EnergyIntelligenceData` wrapper. Non-toggleable.
+- **Files touched:** 4 new section files under `apps/web/src/components/panels/sections/`, `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (modified — 4 imports + 1 useCallback + 4 JSX replacements), `wiki/entities/web-app.md`, `wiki/log.md`.
+- **Verification:** `cd apps/web && npx tsc --noEmit` — clean after all 4 splices. `SiteIntelligencePanel.tsx` reduced 2232 → 2018 lines (−214). Cumulative since Sprint BJ: 4086 → 2018 (−2068 lines, **~51%**).
+- **Milestone:** Panel is now under 50% of its pre-sprint-BJ size. Site Summary cluster extraction consolidates 4 visually-related blocks (Site Summary, What This Land Wants, Design Recommendations, AI loading indicator) into one memo'd unit — same render boundary, zero prop duplication.
+- **Deferred (next sprint):** Remaining inlined sections: Fuzzy FAO Suitability, AHP weighted priority, Regional Species Context, Canopy Structure, Land-Use History, Site Context (O/P/BB), Community (V), GAEZ v4 agro-climatic, Opportunities list, Key Constraints list, Data Layers footer. CSS-module migration for inline style objects still deferred. Pattern holds cleanly across 14 extracted sections — the remaining blocks are smaller and should compact faster.
+
+---
+
+### 2026-04-20 — Sub-Component Extraction (Sprint BM)
+- **Scope:** Fourth wave of the Sprint BJ/BK/BL extraction pattern. Four more inlined JSX sections lifted out of `SiteIntelligencePanel.tsx`: Infrastructure Access (Sprint K/L/W), Environmental Risk (Sprint BG air/earthquake + Sprint BI Superfund/UST/LUST/brownfields/landfills/mine-hazard/FUDS), Climate Projections (Sprint BE Cat 5, IPCC AR6), Ecosystem Services (Sprint BE Cat 7, de Groot 2012 + wetland function).
+- **Phase 1 — InfrastructureAccessSection:** `sections/InfrastructureAccessSection.tsx` (200 lines). 4 props (`infraMetrics`, `proximityMetrics`, `infraOpen`, `onToggleInfra`). Declares structural `InfrastructureMetrics` + `ProximityMetrics` interfaces inline. Parent adds `onToggleInfra` useCallback.
+- **Phase 2 — EnvironmentalRiskSection:** `sections/EnvironmentalRiskSection.tsx`. 10 props covering all 8 hazard subsystems. Structural interfaces for all 8 metric shapes declared inline. `hasAny` short-circuit moved inside the component. Parent adds `onToggleEnvRisk` useCallback.
+- **Phase 3 — EcosystemServicesSection:** `sections/EcosystemServicesSection.tsx` (87 lines). 1 prop (`ecosystemIntelligence`). Non-toggleable (always expanded when data present, `cursor: 'default'` header). Imports `EcosystemValuation` + `WetlandFunction` from `lib/ecosystemValuation.js`; declares composite `EcosystemIntelligence` wrapper interface in the section.
+- **Phase 4 — ClimateProjectionsSection:** `sections/ClimateProjectionsSection.tsx` (90 lines). 1 prop (`climateProjections`). Non-toggleable. Imports `ClimateProjection` from `lib/climateProjections.js`.
+- **Files touched:** `apps/web/src/components/panels/sections/InfrastructureAccessSection.tsx` (new), `apps/web/src/components/panels/sections/EnvironmentalRiskSection.tsx` (new), `apps/web/src/components/panels/sections/EcosystemServicesSection.tsx` (new), `apps/web/src/components/panels/sections/ClimateProjectionsSection.tsx` (new), `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (modified — 4 imports + 2 useCallbacks + 4 JSX replacements), `wiki/entities/web-app.md`, `wiki/log.md`.
+- **Verification:** `cd apps/web && npx tsc --noEmit` — clean after each phase. `SiteIntelligencePanel.tsx` reduced 2677 → 2232 lines (−445). Cumulative since Sprint BJ: 4086 → 2232 (−1854 lines, ~45%).
+- **Pattern note:** Non-toggleable sections (Ecosystem, Climate) are the cheapest to extract — one prop, no open state, no useCallback wrapper required in parent. Toggleable sections with many sub-metrics (Environmental Risk, 10 props) remain the ceiling on prop-count complexity; still preferable to the prior inlined form.
+- **Deferred (next sprint):** Remaining inlined sections: Hydrology Extensions (aquifer + water stress + seasonal flooding), Energy Intelligence, Fuzzy FAO Suitability, AHP, Regional Species Context, Canopy Structure, Land-Use History, Site Context, Community, Site Summary + AI Narrative cluster, Assessment Scores breakdown, Opportunities, Constraints, GAEZ FAO, Data Layers. CSS-module migration for 384 inline style objects still deferred.
+
+---
+
+### 2026-04-20 — Sub-Component Extraction (Sprint BL)
+- **Scope:** Continuation of Sprint BK's extraction pattern. Four more inlined JSX sections lifted out of `SiteIntelligencePanel.tsx` into memo-wrapped, `<SectionProfiler>`-instrumented files under `components/panels/sections/`: Groundwater (Sprint M), Water Quality (Sprint M), Soil Intelligence (Sprint G), and the heavyweight Design Intelligence rollup (10 subsystems: passive solar, windbreak, water harvesting, septic, shadow, RWH sizing, pond volume, fire risk, footprint optimization, compost siting).
+- **Phase 1 — GroundwaterSection:** `sections/GroundwaterSection.tsx` (114 lines). 3 props. Declares structural `GroundwaterMetrics` interface inline (parent metric is an anonymous `useMemo` return). Parent adds `onToggleGroundwater` useCallback.
+- **Phase 2 — WaterQualitySection:** `sections/WaterQualitySection.tsx` (141 lines). 3 props. Declares structural `WaterQualityMetrics` interface inline. Parent adds `onToggleWq` useCallback.
+- **Phase 3 — SoilIntelligenceSection:** `sections/SoilIntelligenceSection.tsx` (209 lines). 3 props. Declares structural `SoilMetrics` interface inline covering all 13 fields rendered. Parent adds `onToggleSoil` useCallback.
+- **Phase 4 — DesignIntelligenceSection:** `sections/DesignIntelligenceSection.tsx` (406 lines — largest extraction to date). 3 props. Imports `DesignIntelligenceResult` from `lib/designIntelligence.js` (typed source). `hasAny` short-circuit check moved inside the component so parent passes raw nullable value. Parent adds `onToggleDi` useCallback.
+- **Files touched:** `apps/web/src/components/panels/sections/GroundwaterSection.tsx` (new), `apps/web/src/components/panels/sections/WaterQualitySection.tsx` (new), `apps/web/src/components/panels/sections/SoilIntelligenceSection.tsx` (new), `apps/web/src/components/panels/sections/DesignIntelligenceSection.tsx` (new), `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (modified — 4 imports + 4 useCallbacks + 4 JSX replacements), `wiki/entities/web-app.md`, `wiki/log.md`.
+- **Verification:** `cd apps/web && npx tsc --noEmit` — clean after each phase. `SiteIntelligencePanel.tsx` reduced 3364 → 2677 lines (~687 lines removed net). Cumulative since Sprint BJ: 4086 → 2677 (−1409 lines, ~34%).
+- **Gotcha reinforced:** As noted in Sprint BK, commenting out an old block with `{false && metric && (...)}` does **not** preserve TS null narrowing inside the dead subtree — it introduces dozens of TS18047 errors even though the code is unreachable. Must strip the dead block fully with Python before re-running `tsc`. Hit this once on Phase 3 (soil); recovered by splicing lines 1325–1497 out in one shot.
+- **Deferred (next sprint):** Remaining inlined sections: Infrastructure Access, Environmental Risk, Hydrology Extensions, Energy Intelligence, Climate Projections, Ecosystem Services, Fuzzy FAO Suitability, AHP, Regional Species Context, Canopy Structure, Land-Use History, Site Context, Community, Site Summary + AI Narrative cluster, Assessment Scores, Opportunities, Constraints, GAEZ FAO, Data Layers. Pattern is now battle-tested across 8 sections — future extractions should move faster. Migration of 384 inline style objects to CSS modules still deferred.
+- **Pattern reinforcement:** When the parent metric is an anonymous `useMemo` return, declare the shape as a structural `interface` in the section file. When the source is a lib-level computation with an exported result type, `import type` it instead (as in `DesignIntelligenceResult`). Both are first-class — the structural form avoids a round-trip of hoisting types up to lib.
+
+---
+
+### 2026-04-20 — Sub-Component Extraction (Sprint BK)
+- **Scope:** Follow-on to Sprint BJ's render-budget work. Sprint BJ's `React.memo` + `EMPTY_LAYERS` stabilization captured the easy wins; BK tackles the structural debt — 4086-line `SiteIntelligencePanel.tsx` with 4 massive JSX sub-trees each re-reconciling on every parent render. Goal: extract 4 clean, memo-wrapped section components into `components/panels/sections/`, establish a shared `_shared.tsx` + `_helpers.ts` module, and land the pattern so future extractions follow the same shape.
+- **Phase 1 — Shared module:** `components/panels/sections/_shared.tsx` (CREATE) — hosts the 4 Sprint BJ memo'd leaves (`AILabel`, `RefreshIcon`, `ConfBadge`, `ScoreCircle`) relocated from the parent so extracted sections can import without circular refs. `components/panels/sections/_helpers.ts` (CREATE) — pure helper functions (`severityColor`, `formatComponentName`, `capConf`, `getScoreColor`, `getHydroColor`, `getSoilPhColor`, `getCompactionColor`). Parent imports updated.
+- **Phase 2 — ScoresAndFlagsSection:** `components/panels/sections/ScoresAndFlagsSection.tsx` — blocking flags alert stack, overall suitability card (ScoreCircle + layer-completeness dots + derived-count caption), Tier 3 "Derived Analyses" rows, collapsible Live Data panel with conservation-authority card + last-fetched caption. 13 props, wrapped in `memo` + `<SectionProfiler id="site-intel-scores">`. Parent adds `onToggleLiveData` useCallback to avoid identity churn on the toggle prop.
+- **Phase 3 — CropMatchingSection:** `components/panels/sections/CropMatchingSection.tsx` — FAO EcoCrop crop-match list with category filter pills, per-crop expandable breakdown (limiting factors, factor bars, Sprint J agroforestry companions, Sprint BF annual-bed companion pairs). 8 props. Parent adds `onToggleExpandedCrop` + `onToggleShowAllCrops` useCallbacks.
+- **Phase 4 — RegulatoryHeritageSection:** `components/panels/sections/RegulatoryHeritageSection.tsx` — Sprint BC/BF/BH regulatory rollup: conservation easement, heritage site, BC ALR, EA/permit triggers, typical setbacks, mineral rights, water rights, ag use-value assessment, Ecological Gifts Program (CA). 9 props. Null-guards on each metric kept inside the section (moved `anyPresent` check inside so parent passes raw nullable values). `SetbackResult`, `EIATriggerResult`, `AgUseValueResult` imported from `lib/regulatoryIntelligence.ts`; other shapes declared structurally in the section file.
+- **Phase 5 — HydrologyIntelligenceSection:** `components/panels/sections/HydrologyIntelligenceSection.tsx` — Sprint F hydrology card (aridity, water balance, PET, harvest potential, storage sizing, irrigation deficit, growing period) + Sprint J wind power + Sprint K solar PV rows. 5 props. Parent adds `onToggleHydro` useCallback.
+- **Files touched:** `apps/web/src/components/panels/sections/_shared.tsx` (new), `apps/web/src/components/panels/sections/_helpers.ts` (new), `apps/web/src/components/panels/sections/ScoresAndFlagsSection.tsx` (new), `apps/web/src/components/panels/sections/CropMatchingSection.tsx` (new), `apps/web/src/components/panels/sections/RegulatoryHeritageSection.tsx` (new), `apps/web/src/components/panels/sections/HydrologyIntelligenceSection.tsx` (new), `apps/web/src/components/panels/SiteIntelligencePanel.tsx` (modified — imports + 4 JSX replacements + 4 useCallback wrappers), `wiki/entities/web-app.md`, `wiki/log.md`.
+- **Verification:** `cd apps/web && npx tsc --noEmit` — clean after each phase. `SiteIntelligencePanel.tsx` reduced 4086 → ~3364 lines (~720 lines removed net, excluding new section files).
+- **Deferred (next sprint):** Remaining inlined JSX blocks — groundwater, water quality, soil intelligence, infrastructure, demographics, ecosystem valuation card, AHP table, climate projections, design intelligence, hydrology extensions (aquifer + water stress + seasonal flooding), energy intelligence, storm events, air quality, earthquake, GAEZ, crop validation, proximity. Each is a candidate for the same extraction pattern but out of scope here — plan was explicitly sized at 4 sections to fit context budget. Migration of 384 inline style objects to CSS modules still deferred. Bylaw-level setback parsing, ESDAC, Fan et al. groundwater raster remain deferred from Sprint BH/BI.
+- **Pattern established:** Each extracted section is `export const X = memo(function X(props: XProps) { ... })`, wrapped in `<SectionProfiler id="site-intel-{slug}">`, receives state via props (no `useSiteData` subscription inside sections), and exports its own prop interfaces. Toggle callbacks are `useCallback`-wrapped in the parent to keep prop identity stable across parent renders so `memo` actually skips. This pattern is ready for the 10+ remaining sections and future gap-closing work.
+
+---
+
+### 2026-04-20 — UX/Performance Hardening (Sprint BJ)
+- **Scope:** First performance pass after closing data-coverage gaps. Two tracks: (A) debounce + cancel the layer-dispatch pipeline so rapid boundary edits coalesce and project switches don't leak in-flight work; (B) shave the `SiteIntelligencePanel` render budget (60 `useMemo` hooks keyed on `layers`, 4086 lines, no memoization) via `React.memo`, sub-component memoization, a stable `EMPTY_LAYERS` fallback, and dev-only `<Profiler>` telemetry.
+- **Phase 1 — Dispatch (Track A):** `lib/debounce.ts` (CREATE, 35 lines, no lodash). `lib/layerFetcher.ts` — added optional `signal?: AbortSignal` to `FetchLayerOptions`; `fetchAllLayersInternal` races `Promise.allSettled(fetchers)` against the signal and returns an `{ aborted: true }` sentinel on cancellation (in-flight HTTP continues silently — acceptable vs threading the signal through ~38 individual fetchers). In-flight promise dedup also races against the caller's signal via `raceWithSignal()`. `store/siteDataStore.ts` — per-project `AbortController` registry (`Map<string, AbortController>`); `takeController()` aborts any previous in-flight controller for the same projectId and replaces it, `releaseController()` clears in `finally`. Exported `abortFetchForProject(id)` for unmount cleanup. `fetchForProject` semantics changed: short-circuit only on `'complete'` status (was `'loading' || 'complete'`), so rapid boundary edits now **replace** the in-flight fetch rather than being dropped. `refreshProject` gets the same treatment. `pages/ProjectPage.tsx` — boundary-change effect wrapped in `debounce(fetchSiteData, 400)` with cleanup `cancel()`; new cleanup effect calls `abortFetchForProject(projectId)` on navigation away.
+- **Phase 2 — Render (Track B):** `lib/perfProfiler.tsx` (CREATE) — `<SectionProfiler id>` around React's built-in `<Profiler>`, logs renders over 16 ms, gated on `import.meta.env.DEV` so production tree-shakes. `SiteIntelligencePanel.tsx` — wrapped 4 pure sub-components in `memo` (`AILabel`, `RefreshIcon`, `ConfBadge`, `ScoreCircle`); extracted main body to `SiteIntelligencePanelImpl`, exported a `memo(SiteIntelligencePanelImpl)` wrapped in `<SectionProfiler id="site-intelligence-panel">`; added module-level `EMPTY_LAYERS: MockLayerResult[] = []` and swapped `siteData?.layers ?? []` → `?? EMPTY_LAYERS` so the fallback identity stops changing between renders (was minting a fresh `[]` each render and cascading through every memo keyed on `layers`).
+- **Files touched:** `apps/web/src/lib/debounce.ts` (new), `apps/web/src/lib/perfProfiler.tsx` (new), `apps/web/src/lib/layerFetcher.ts`, `apps/web/src/store/siteDataStore.ts`, `apps/web/src/pages/ProjectPage.tsx`, `apps/web/src/components/panels/SiteIntelligencePanel.tsx`, `wiki/entities/web-app.md`, `wiki/log.md`.
+- **Verification:** `cd apps/web && npx tsc --noEmit` — clean (baseline preserved since Sprint BI). No new deps.
+- **Deferred (follow-on sprint):** Full extraction of `SiteIntelligencePanel` into per-section memoized sub-components (the 12 heavy `useMemo` bodies — turf ops, FAO fuzzy membership, ecosystem valuation, full score recompute — each to their own file). Migration of 384 inline style objects to CSS modules. Zustand `shallow` selector adoption. Per-fetcher `AbortSignal` threading (current race gives immediate cancellation semantics; true HTTP cancel is a bigger change). Virtualized scrolling for tables (not needed at current cap of 20 rows). Bylaw-level setback parsing, ESDAC, Fan et al. groundwater raster (all pre-existing deferrals from Sprints BH/BI).
+- **Risks noted during implementation:** (1) Replacing (not skipping) in-flight fetches on rapid edits could thrash, but the 400 ms debounce in ProjectPage coalesces edits *before* they hit the store so the replace path only fires on genuine boundary changes. (2) `AbortError` from the inner race is caught and converted to the `aborted: true` sentinel so it never surfaces as an uncaught error. (3) `SiteIntelligencePanel` is only imported as a default import across the codebase — the internal rename to `SiteIntelligencePanelImpl` is safe.
+
+---
+
+### 2026-04-20 — Cat 12 FAO GAEZ v4 Self-Hosting (Sprint BI)
+- **Scope:** Close the last substantive Cat 12 data gap by self-hosting FAO GAEZ v4 Theme 4 (Suitability + Attainable Yield) rasters behind a Fastify point-query endpoint. Establish raster-hosting infrastructure reusable for future raster-backed layers (Fan et al. groundwater, ESDAC). Cat 12 → 8/10, total → ~119/120. Remaining deferred: ESDAC (registered key), Fan et al. (static raster — partial heuristic already shipped).
+- **Phase 1 — Ingest script + manifest schema:** `apps/api/scripts/ingest-gaez.md` (operator-facing README, covers portal navigation, naming scheme `{crop}_{waterSupply}_{inputLevel}_{variable}.tif`, gdal verification, verification query, S3 deployment path, CC BY-NC-SA 3.0 IGO license notice). `apps/api/scripts/convert-gaez-to-cog.ts` scans `data/gaez/raw/`, parses the naming scheme (12 crops × rainfed/irrigated × low/high × suitability/yield = 96 rasters), shells out to `gdal_translate -of COG -co COMPRESS=DEFLATE -co PREDICTOR=2`, emits `gaez-manifest.json`. Idempotent (skips if COG newer than raw). Registered as `pnpm --filter @ogden/api run ingest:gaez`. `.gitignore` excludes `apps/api/data/gaez/raw/` + `cog/*.tif`.
+- **Phase 2 — GaezRasterService + Fastify route:** `apps/api/src/services/gaez/GaezRasterService.ts` loads manifest on boot, exposes `query(lat, lng)` that parallel-samples all manifest entries via `geotiff.js` `fromFile` (local FS) or `fromUrl` (S3/HTTPS byte-range). Maps GAEZ suitability codes (1-9) → `S1/S2/S3/N/NS/WATER`. `computeSummary()` derives `best_crop` (highest attainable yield across management variants), `best_management`, `primary_suitability_class`, `top_3_crops`, full `crop_suitabilities[]`. Per-TIFF header cache (LRU, cap 128). Graceful NoData + out-of-bounds handling (returns null per-raster, skipped in summary). `apps/api/src/routes/gaez/index.ts` — `GET /api/v1/gaez/query?lat=&lng=` (unauth, public, Zod validation, `{ data, meta, error }` envelope). Registered in `app.ts` with `initGaezService()` invoked before onReady hooks.
+- **Phase 3 — Config + storage wiring:** `apps/api/src/lib/config.ts` extended with `GAEZ_DATA_DIR` (default `./data/gaez/cog`) + optional `GAEZ_S3_PREFIX` (HTTPS/S3 base URL). `GaezRasterService` resolves COGs transparently via local FS when prefix unset, HTTPS byte-range when set. `.env.example` documents both. No new dependencies — `geotiff@3.0.5` was already in use by `ElevationGridReader`.
+- **Phase 4 — Frontend LayerType + fetcher:** `'gaez_suitability'` added to `LayerType` union + `Tier1LayerType` Exclude list in `packages/shared/src/constants/dataSources.ts`. `LayerPanel.tsx` label `Agro-Climatic Suitability (GAEZ)` + icon `🌾`. `fetchGaezSuitability(lat, lng)` in `layerFetcher.ts` calls `/api/v1/gaez/query`, handles 4 branches: (1) network failure → null, (2) API up but manifest absent → informational "Estimated (...)" layer for operator visibility, (3) success with summary → `confidence: 'medium'`, `sourceApi: 'FAO GAEZ v4 (self-hosted)'` (qualifies as live), (4) service failed → failed layer. Dispatched in `runLayerFetch` via existing `trackLive()` pattern.
+- **Phase 5 — UI:** New `gaezMetrics` useMemo in `SiteIntelligencePanel.tsx`. New block rendered above the existing Crop Suitability section (GAEZ serves as a regional prior; EcoCrop as per-field detail). Rows: best crop + management (rainfed/irrigated × low/high), suitability badge (S1=green / S2=amber / S3=red / etc.), attainable yield (kg/ha/yr), top-3 crops with yield + suitability, resolution note, license attribution. Disabled state renders an operator-facing "Not available on this deployment" with the ingest-script pointer.
+- **Phase 6 — Wiki + ADR + log:** `gap-analysis.md` Cat 12 row → 8/10 (GAEZ row flipped from Deferred to Implemented with self-hosted rationale). Total → ~119/120. `api.md` routes table + services list updated. New ADR `wiki/decisions/2026-04-20-gaez-self-hosting.md` documents decision, alternatives (defer / scrape portal / gdal-async / precomputed grid), consequences, and flags CC BY-NC-SA 3.0 IGO non-commercial clause as a pre-launch legal-review blocker. Indexed in `wiki/index.md`.
+- **Verification:** `cd apps/api && npx tsc --noEmit` — no new errors (my 4 transient errors fixed; pre-existing baseline errors in NlcdAdapter / UsCountyGisAdapter / SsurgoAdapter test files remain from prior sprints and are not blocking). `cd apps/web && npx tsc --noEmit` — clean. Script (`scripts/convert-gaez-to-cog.ts`) is outside the tsconfig `include` globs, so it runs via `tsx` at invocation time.
+- **Endpoints + license:** FAO GAEZ v4 portal `gaez.fao.org/Gaez4/download` (manual download only — CC BY-NC-SA 3.0 IGO). Self-hosted COG layout: `{crop}_{waterSupply}_{inputLevel}_{variable}.tif`. API: `GET /api/v1/gaez/query?lat=&lng=`. Attribution: "FAO GAEZ v4 — CC BY-NC-SA 3.0 IGO" (baked into response + UI).
+- **Risks / known limitations:** (1) CC BY-NC-SA 3.0 IGO `NC` clause → pre-launch legal review required before commercial deployment. (2) Manual ingest step (cannot automate past the click-through license). (3) First-query cold start (~200–400 ms) — acceptable; optional preload optimization deferred. (4) Disk footprint ~1–3 GB post-COG; S3 sync documented. (5) Raster subset is 12 crops × 4 management × 1 climate scenario = 96 files — expanding is data-only (drop files, rerun ingest).
+
+---
+
+### 2026-04-20 — Cat 11 Regulatory & Legal Closure (Sprint BH)
+- **Scope:** Close the final 5 gaps in Cat 11 (Regulatory & Legal) using a max-coverage strategy (ship informational/static fallbacks where no REST endpoint exists). Target: 6/11 → 11/11. Total gap progress: ~113/120 → ~118/120. Also corrected a prior debrief mis-classification: Cat 9 (Renewable Energy) was already 6/6 complete per Sprints J (wind), K (solar PV), Q (biomass + micro-hydro), BD (geothermal + energy storage); no code work needed there.
+- **Phase 1 — Setbacks reclassification (no code):** Sprint BF's `estimateTypicalSetbacks()` in `regulatoryIntelligence.ts` already ships broad-class defaults (agricultural/residential/commercial × US/CA) and renders a UI row. Re-classified in gap-analysis.md as **Implemented (typical defaults)**. Per-municipality bylaw parsing remains indefinitely deferred (requires per-city scraping + NLP).
+- **Phase 2 — Water Rights:** `lib/waterRightsRegistry.ts` (CREATE) — 50-state `US_WATER_DOCTRINE` (riparian / prior_appropriation / hybrid), `US_WATER_RIGHTS_ENDPOINTS` table for 9 Western states (CO DWR, WA Ecology, OR OWRD, WY SEO, NM OSE, ID IDWR, MT DNRC, UT DWRi, NV DWR) with defensive field-name candidates, `US_WATER_RIGHTS_INFORMATIONAL` for CA/TX/AZ, `CA_PROV_WATER_RIGHTS` for ON/BC/AB/SK/QC. `getDoctrineSummary()` helper. New `water_rights` LayerType in `packages/shared/src/constants/dataSources.ts` + LayerPanel label/icon. `fetchWaterRights()` in layerFetcher.ts uses `resolveCountyFips()` → state code, then 5 km envelope ArcGIS query with great-circle nearest-POD ranking and priority-date / use-type / flow-rate extraction. Falls back to doctrine-only informational layer (confidence: low, sourceApi prefixed "Estimated") when no REST endpoint or query fails.
+- **Phase 3 — Mineral Rights composite:** `fetchMineralRightsComposite()` replaces `fetchBlmMineralRights` call in the dispatch. Still queries BLM federal mineral estate + mining claims (existing logic inlined), then chains state-specific registries via `US_STATE_MINERAL_REGISTRIES` table (TX RRC, ND Industrial Commission, WY WOGCC, CO ECMC, OK OCC, MT MBMG — ArcGIS 2 km envelope queries with type/status field picking). Non-registry states (PA, KY, WV, LA, CA, NM, AK) get `US_STATE_MINERAL_INFORMATIONAL` agency notes. CA branch: BC-only (`lng < -114`) queries BC Mineral Titles Online WFS (`openmaps.gov.bc.ca/.../MTA_ACQUIRED_TENURE_SVW`) via CQL_FILTER INTERSECTS — reuses the BC ALR WFS pattern from Sprint BC. Summary adds `state_registry_checked`, `state_wells_within_2km`, `state_well_types`, `state_regulatory_note`, `bc_mto_tenure_present`, `bc_mto_tenure_count`.
+- **Phase 4 — Ag Use-Value Assessment:** Pure compute in `regulatoryIntelligence.ts`. `US_AG_USE_VALUE_PROGRAMS` covers 30 states (CA Williamson Act, VA Land Use, MD Ag Use, NC PUV, FL Greenbelt, PA Clean & Green, OH CAUV, IN, IL, IA, MN Green Acres, WI, NY Ag Assessment, NJ Farmland, GA CUVA, TX 1-d-1, OK, CO, KS, NE, SD, ND, MT, WA Open Space, OR EFU, TN Greenbelt, KY, SC, AL, MS, AR, MI QAPE, MA Ch 61A). `CA_PROV_FARM_CLASS_PROGRAMS` covers 6 provinces (ON FPTP, BC Class 9, AB, SK, MB, QC PCTFA). `classifyAgUseValue()` takes `{stateCode, country, province, acreage, primaryLandCoverClass}` and returns `{program_available, program_name, eligibility: Eligible/Likely Eligible/Below Threshold/Verify, estimated_tax_reduction_range_pct, regulatory_note, statute_reference, jurisdiction}`. Non-catalogued US states fall through to generic "contact state tax assessor" note.
+- **Phase 5 — CA Ecological Gifts Program:** `fetchEcoGiftsProgram()` in layerFetcher.ts — Canada-only. ECCC publishes the canonical list at open.canada.ca CKAN dataset `b3a62c51-90b4-4b52-9df7-4f0d16ca2d2a` (non-spatial JSON bundle). Ships a representative 12-property `ECOGIFTS_SAMPLE` covering ON/QC/BC/AB/NS/PE/MB so the UI can surface a nearest-gift context; attribution caption directs users to ECCC for current authoritative listings. Merges into `conservation_easement` LayerType via the same additive-merge dispatch pattern Sprint BG used for WDPA (preserves NCED + adds ecogift fields `ecogift_nearby_count`, `nearest_ecogift_km`, `nearest_ecogift_name`, `nearest_ecogift_area_ha`, `nearest_ecogift_year`, `olta_directory_note`). Ontario Land Trust Alliance (OLTA) directory URL baked into `olta_directory_note` since OLTA is not REST-queryable.
+- **Phase 6 — UI:** `SiteIntelligencePanel.tsx` Regulatory & Heritage block extended with 4 new rows (inside the existing section — no new sections). New useMemos: `waterRightsMetrics`, extended `mineralRightsMetrics` (state/BC fields), `agUseValueMetrics` (derives `acreage` from parcel boundary via turf, resolves stateCode from water-rights/mineral-rights summary fields), `ecoGiftsMetrics` (CA-only). Badges follow existing `s.scoreBadge` pattern with confidence-coloured tint; statute references render as italic captions. `classifyAgUseValue` import added.
+- **Verification:** `cd apps/web && npx tsc --noEmit` — clean (baseline preserved since Sprint BG). All Phase 2 water-rights informational fallbacks use `sourceApi: 'Estimated (...)'` so `isLiveResult()` correctly excludes them from the live-count. Phase 5 EcoGifts also uses `Estimated` prefix (sample is curated, not an authoritative ECCC query). Live-only sources (Western US water-rights live registries, BC MTO WFS, state mineral-well ArcGIS, federal BLM) contribute to live-count as expected.
+- **Gap status:** Cat 11 → 11/11 **Complete**. Total: ~118/120. Remaining ~2: Cat 12 deferred items (FAO GAEZ v4 no REST; Fan et al. groundwater static raster — partial heuristic already shipped) and Cat 2 N-P-K partial (phosphorus + potassium, no free global dataset). Atlas's gap surface is now effectively closed for the documented analyst-grade decision set.
+- **Risks / known limitations:** State ArcGIS endpoints occasionally rate-limit or schema-drift — defensive `pickField()` candidate-list pattern and per-state try/catch with informational fallback protect against this. EcoGifts sample is curated (not live); caption directs users to ECCC for authoritative current list. Ag use-value programs drift periodically; each entry carries a `statute_reference` so users can verify with the source. BC MTO WFS follows identical schema pattern as BC ALR (Sprint BC).
+
+---
+
+### 2026-04-20 — Cat 12 Global Data Coverage (Sprint BG)
+- **Scope:** Close 5 of the 10 remaining Cat 12 gaps — widen Atlas from US+Ontario high-fidelity to global medium-confidence. Target: 0/10 → 7/10 (including 2 already-closed from prior sprints: SoilGrids Sprint BB, ECOCROP Sprint E). Total: ~108/120 → ~113/120.
+- **Phase 0 — Type widening:** `Project.country`, `FetchLayerOptions.country`, `RuleContext.country`, `deriveOpportunities/deriveRisks` signatures, `generateMockLayers`, `siteDataStore.fetchForProject/refreshProject` all widened from `'US' | 'CA'` to `string`. Two `as 'US' | 'CA'` casts retained at `syncService.ts` API boundary where backend still requires strict union.
+- **Phase 1 — Copernicus DEM (Gap 4):** `fetchElevationCopernicus(lat, lng, bbox)` in layerFetcher.ts. OpenTopography public API `portal.opentopography.org/API/globaldem` with `demtype=COP30` primary + `SRTMGL3` fallback on 503. AAIGrid (Arc ASCII grid) text parser — no geotiff dependency. Reuses Horn 3×3 slope + 8-bin aspect algorithm from `fetchElevationWCS`. Returns `mean_elevation_m`, slope stats, aspect, `dem_resolution_m`. Confidence: medium. Attribution: ESA Copernicus GLO-30 DEM via OpenTopography.
+- **Phase 2 — OpenMeteo ERA5 climate (Gap 2):** `fetchClimateOpenMeteo(lat, lng)`. `archive-api.open-meteo.com/v1/archive` 1991-2020 daily mean temp + precip sum, aggregated to monthly (12 bins × 30 years) + annual. Derives `annual_temp_mean_c`, `annual_precip_mm`, coldest/warmest month means, GDD base-10, growing-season days (>5 °C threshold), USDA hardiness zone from estimated abs-min, Köppen via existing `computeKoppen()` helper. Confidence: medium. Attribution: ERA5 Reanalysis (ECMWF) / WorldClim v2.1.
+- **Phase 3 — ESA WorldCover (Gap 5):** `fetchLandCoverWorldCover(lat, lng)`. Terrascope WMS GetFeatureInfo (`services.terrascope.be/wms/v2`), 3×3 grid sampling (9 points ±0.002°, ≈ 200 m). Class codes 10-100 per ESA 2021 legend. Returns `primary_class`, `worldcover_code`, `classes{}`, `tree_canopy_pct`, `cropland_pct`, `urban_pct`, `wetland_pct`. Downstream canopy-height (Sprint BF) + biodiversity IUCN-habitat (Sprint BB) consume these keys unchanged. Attribution: ESA WorldCover v200 (Zanaga et al. 2022, CC BY 4.0).
+- **Phase 4 — WDPA Protected Areas (Gap 7):** `fetchWdpaProtectedAreas(lat, lng)`. UNEP-WCMC public ArcGIS FeatureServer `data-gis.unep-wcmc.org`. Point-in-polygon query + 2 km envelope nearest-count. Merges into existing `conservation_easement` layer (custom dispatch in `runLayerFetch` appends WDPA summary keys to NCED result rather than replacing — US sites get both). Fields: `wdpa_site`, `wdpa_name`, `wdpa_designation`, `wdpa_iucn_category`, `wdpa_status_year`, `nearest_wdpa_within_2km_count`. Confidence: high when on-site, medium otherwise. Attribution: UNEP-WCMC & IUCN WDPA (CC BY 4.0).
+- **Phase 5 — Global groundwater heuristic (Gap 8):** `fetchGroundwaterHeuristicGlobal(lat, lng)`. Latitude-regime estimate: equatorial humid 4 m / tropical 10 m / subtropical arid 30 m / temperate 10 m / boreal 6 m. Explicit `confidence: 'low'`, `sourceApi: 'Estimated (heuristic — no global water-table REST API)'` so `isLiveResult()` does not count it as live. `heuristic_note` caption rendered in UI to discourage design use. No free global REST API exists for water-table depth (Fan et al. 2013 is static raster).
+- **UI:** No new panel sections — existing Site Context / Soil / Climate / Land Cover / Regulatory blocks render `layer.sourceApi` + `layer.attribution` automatically; the new source strings appear naturally on global sites. SiteIntelligencePanel rendering unchanged.
+- **Verification:** `npx tsc --noEmit` in `apps/web` — clean. Baseline preserved. US + CA sites continue to hit their existing authoritative fetchers first (USGS 3DEP, NOAA ACIS, MRLC NLCD, NCED, USGS NWIS); global fallbacks only run on `country !== 'US' && country !== 'CA'` or on US/CA fetcher failure.
+- **Gap status:** Cat 12 → 7/10 Complete (up from 0/10). Remaining 3 Deferred: FAO GAEZ v4 (download-only tiles), ESDAC (registered key required), Fan et al. groundwater (static raster — partial heuristic only). Atlas now renders medium-confidence data for any global site.
+
+---
+
+### 2026-04-19 — Remaining Gaps across Cat 1/6/7/8/11 (Sprint BF)
+- **Scope:** Close 8 of 11 remaining gaps spanning five categories — Cat 1 (fuzzy+AHP), Cat 6 (companion planting, invasive, native), Cat 7 (canopy height), Cat 8 (prior land use), Cat 11 (setbacks, federal mineral rights). Three remain Open with documented rationale (water rights, ag use-value, CA easements). Total: ~100/120 → ~108/120.
+- **Phase 1 — Fuzzy MCDM:** `apps/web/src/lib/fuzzyMCDM.ts` (CREATE)
+  - `computeFuzzyFAOMembership()` — trapezoidal membership functions per factor (pH, rooting depth, slope, AWC, EC, CEC, GDD, drainage) produce S1/S2/S3/N1/N2 memberships with gradual transitions. Geometric-mean aggregation across factors (ALUES tradition); max-membership defuzzification with confidence score.
+  - `computeAhpWeights(matrix)` — Saaty 1980 AHP via geometric-mean row-normalization (approximates principal eigenvector within ~1% for n ≤ 10). Returns weights + λmax + CR (vs Saaty RI table 1–10); flags inconsistency at CR > 0.10. Default 8×8 matrix (`DEFAULT_ATLAS_AHP_MATRIX`) for Atlas's scored categories.
+  - `computeOverallScore()` extended with optional `weights?: number[]` param; default remains uniform.
+- **Phase 2 — Companion planting + Species lists:**
+  - `apps/web/src/lib/companionPlanting.ts` (CREATE) — static matrix of ~60 food crops with companions/antagonists/rationale (Riotte *Carrots Love Tomatoes* + permaculture literature). `findCompanions(cropName)` with plural/alt-form normalization.
+  - `layerFetcher.ts::fetchUsdaPlantsByState()` — reverse-geocodes state (US) via existing `resolveCountyFips`, queries USDA PLANTS Database REST by state; returns two layers (`invasive_species` + `native_species`) with counts + top-10 common names. CA fallback: VASCAN (Canadensys) province checklist by coarse bbox. Graceful null + informational stub on API failure.
+- **Phase 3 — Canopy height:** `apps/web/src/lib/canopyHeight.ts` (CREATE)
+  - `estimateCanopyHeight({ treeCanopyPct, primaryLandCoverClass, meanAnnualTempC, annualPrecipMm, koppenClass })` — classifies biome (Tropical Moist/Dry Broadleaf, Temperate Broadleaf/Conifer, Boreal, Mediterranean, Savanna) from Köppen letter + temp/precip + land cover. Biome-specific height ranges from Simard et al. 2011 + FAO FRA 2020, modulated by tree-cover %. Result labelled `confidence: 'estimate'` — clearly not a direct GEDI lidar measurement.
+- **Phase 4 — Prior land-use history:** `layerFetcher.ts::fetchNlcdHistory()` (US only)
+  - Samples NLCD land cover across 6 epochs (2001, 2006, 2011, 2016, 2019, 2021) via MRLC GeoServer WMS GetFeatureInfo. Derives transitions list and `disturbance_flags[]` (wetland→any, forest→cropland, natural→developed). Buildability scoring extended with `prior_disturbance_flag` component (max −2).
+- **Phase 5 — Typical setbacks:** `apps/web/src/lib/regulatoryIntelligence.ts::estimateTypicalSetbacks()`
+  - Broad zoning classifier (agricultural/rural/residential/commercial/industrial) → default front/side/rear setbacks plus conditional waterbody buffer (if stream <200 m) and wetland buffer. Rule source: ICLEI model bylaws + Ontario PPS (for CA). Labelled explicitly as "typical defaults — verify with local bylaw".
+- **Phase 6 — Federal mineral rights:** `layerFetcher.ts::fetchBlmMineralRights()` (US only)
+  - BLM Mineral Estate MapServer (point-in-polygon) + Mining Claims MapServer (~2 km envelope). Returns `federal_mineral_estate` flag, claim count, unique claim types (lode/placer/mill site/tunnel site). Coverage note: federal minerals only — state/private mineral rights remain unqueryable.
+- **LayerTypes + wiring:** Added four new types to `packages/shared/src/constants/dataSources.ts` (`invasive_species`, `native_species`, `land_use_history`, `mineral_rights`); wired into `Tier1LayerType` Exclude, LayerPanel labels+icons, and `runLayerFetch()` Promise.allSettled dispatch. Fills in previously-missing LayerPanel entries for Sprint BA/BB/BC/BD types.
+- **Phase 7 — Documented Open (no code):** Water rights (50+ fragmented US state REST adapters), ag use-value assessment (county tax-assessor portals, mostly non-REST), CA conservation easements (OLTA data not aggregated into public REST) — documented rationale kept in gap-analysis row.
+- **Files touched:** `fuzzyMCDM.ts` (new), `companionPlanting.ts` (new), `canopyHeight.ts` (new), `layerFetcher.ts` (+3 fetchers, 4 helper functions), `regulatoryIntelligence.ts` (+setbacks), `computeScores.ts` (+prior_disturbance_flag, optional AHP weights), `dataSources.ts` (+4 LayerTypes), `LayerPanel.tsx` (+17 LAYER_LABELS/LAYER_ICONS entries).
+- **API endpoints:** USDA PLANTS (`plantsservices.sc.egov.usda.gov/api/PlantDistribution`), VASCAN (`data.canadensys.net/vascan/api/0.1/search.json`), MRLC NLCD epochs 2001–2021 (GeoServer WMS), BLM Mineral Layer + Mining Claims (gis.blm.gov ArcGIS).
+- **Verification:** `npx tsc --noEmit` passes clean. All fetchers wrapped in try/catch with graceful null or informational fallback stubs. Fuzzy + AHP are pure computation, no network dependency.
+
+---
+
+### 2026-04-19 — Cat 5 Climate Projections + Cat 7 Ecosystem Valuation (Sprint BE)
+- **Scope:** Close 3 remaining gaps — Cat 5 climate projections (closing Cat 5 at 10/10) + Cat 7 ecosystem valuation + wetland function (Cat 7: 5/8 → 7/8). All three are pure frontend computation — no new APIs. Total: ~97/120 → ~100/120.
+- **Phase 1 — Climate Projections:** `apps/web/src/lib/climateProjections.ts` (CREATE)
+  - `computeClimateProjections({ lat, lng, annualTempC, annualPrecipMm })` — looks up 26 IPCC AR6 reference regions by bbox containment. Each region carries ensemble-median ΔT and Δprecip% for SSP2-4.5 and SSP5-8.5 (mid-century 2041–2060) drawn from IPCC AR6 WG1 Ch. 12 regional factsheets. Deltas applied to historical NOAA/ECCC annual means.
+  - Returns region name, reference + projection periods, ΔT/Δprecip + projected T and precip for both scenarios, warming class (Low/Moderate/High/Severe on SSP5-8.5 ΔT), precipitation trend (Wetter/Stable/Drier/Strongly Drier on SSP5-8.5 Δprecip), and an adaptation advisory string.
+  - Global fallback (2.0/2.9 °C, 2/4%) for any lat/lng not matched by a region polygon.
+- **Phase 2 — Ecosystem Services Valuation + Wetland Function:** `apps/web/src/lib/ecosystemValuation.ts` (CREATE)
+  - `computeEcosystemValuation({ treeCanopyPct, wetlandPct, riparianBufferM, organicMatterPct, isCropland, carbonSeqTonsCO2HaYr, propertyAcres })` — InVEST-style composite from land cover, wetland, soil, and Sprint R carbon flux. Seven services: carbonStorage (seq × $50 SCC), pollination, waterRegulation, waterQuality, habitatProvision, erosionControl, recreation. Per-biome coefficients from de Groot et al. (2012) + Costanza et al. (2014). Returns per-service $/ha/yr, total $/ha/yr, site total ($/yr × acres), dominant service, and narrative.
+  - `classifyWetlandFunction({ wetlandPct, nearestStreamM, drainageClass, treeCanopyPct, organicMatterPct, riparianBufferM })` — simplified Cowardin (1979) classifier → five classes (Palustrine forested/emergent/shrub, Riverine, Lacustrine) + 0–100 function score (wetland cover + riparian buffer + OM + stream connectivity) + primary-function list per class.
+- **UI:** `apps/web/src/components/panels/SiteIntelligencePanel.tsx`
+  - Two new useMemos — `climateProjections` (reads climate layer + parcel centroid) and `ecosystemIntelligence` (composes valuation + wetland function; inlines the Sprint R carbon seq formula).
+  - New "Climate Projections (2041–2060)" block — region, warming by 2050 (both scenarios, color-coded class badge), precipitation change (both scenarios, trend badge), advisory + historical-vs-projected footer.
+  - New "Ecosystem Services" block — total ESV $/ha/yr + site $/yr, narrative, 7-service grid, optional Wetland Function sub-card (class badge + score + Cowardin narrative).
+- **Types:** No new LayerType additions — both features read from existing `climate`, `land_cover`, `wetlands_flood`, `soils`, `crop_validation`, and `watershed` layer summaries.
+- **Files Touched:** 2 created (`climateProjections.ts`, `ecosystemValuation.ts`) + 1 modified (`SiteIntelligencePanel.tsx`) + 2 wiki docs.
+
+---
+
+### 2026-04-19 — Cat 9 Renewable Energy + Cat 4 Hydrology (Sprint BD)
+- **Scope:** Close 5 remaining gaps — Cat 9 Renewable Energy (geothermal, energy storage) + Cat 4 Hydrology (aquifer type, water stress index, seasonal flooding). Takes Cat 9 from 4/6 → 6/6 and Cat 4 from 7/10 → 10/10 (both categories now complete). Total: ~92/120 → ~97/120.
+- **Phase 1 — Cat 9 Energy Intelligence (pure computation):** `apps/web/src/lib/energyIntelligence.ts` (CREATE)
+  - `computeGeothermalPotential()` — ground-source heat-pump feasibility from climate + soils. Ground temp ≈ mean annual air temp (ASHRAE). Soil thermal conductivity from USDA texture class per IGSHPA (sand 2.0, sandy 1.5, clay 1.35, loam 1.1, peat 0.4, shallow bedrock <1.5 m → 2.8 W/m·K). Selects loop type (vertical / horizontal / pond) from bedrock depth + drainage + conductivity. COP baseline 4.0 ± temp/K adjustments, clamped 2.8–5.2. Rating Excellent/Good/Fair/Marginal.
+  - `computeEnergyStorage()` — battery sizing for 5 kWp residential PV. Daily yield = PSH × kWp × 0.78 PR. Autonomy 1 day (grid-tied, 8 kWh load) or 3 days (off-grid, 20 kWh load). Battery = load × days / (0.8 DoD × 0.9 RTE). Rating Excellent/Good/Adequate/Limited on kWh/kWp/day.
+- **Phase 2 — Cat 4 Hydrology data fetchers:** `apps/web/src/lib/layerFetcher.ts`
+  - `fetchUsgsAquifer()` → USGS Principal Aquifers FeatureServer (ArcGIS) point-in-polygon, with National_Aquifers fallback. Classifies productivity by rock type: sand/gravel/unconsolidated = High; carbonate/limestone/dolomite/sandstone = Moderate; crystalline = Low. Layer type `aquifer`. US only.
+  - `fetchWaterStress()` → WRI Aqueduct 4.0 global FeatureServer. Returns `bws_score`, `bws_label`, drought risk, interannual variability, riverine flood risk. 5-tier class Low / Low-Medium / Medium-High / High / Extremely High. Layer type `water_stress`. Global coverage.
+  - `fetchSeasonalFlooding()` → USGS NWIS two-step: (1) bbox site query finds nearest discharge gauge within 30 km; (2) `/stat/?statReportType=monthly&parameterCd=00060` fetches monthly-mean discharge. Parses RDB (tab-separated). Variability index = (max−min)/annualMean classifies Low/Moderate/High/Extreme. Reports peak/low flow months. Layer type `seasonal_flooding`. US only.
+- **Scoring:** `computeScores.ts` — `computeWaterResilience` extended with three optional layer params + components:
+  - `baseline_water_stress` (penalty max −10): Low 0 / Low-Medium −2 / Medium-High −5 / High −8 / Extremely High −10.
+  - `aquifer_productivity` (max +5): High 5 / Moderate 3 / Low 1.
+  - `stream_seasonality` (penalty max −5): Low 0 / Moderate −1 / High −3 / Extreme −5.
+- **Types:** `packages/shared/src/constants/dataSources.ts` — `LayerType` union extended with `'aquifer' | 'water_stress' | 'seasonal_flooding'`; all three added to `Tier1LayerType` Exclude list (direct-fetch, not part of Tier 1 adapter registry).
+- **UI:** `apps/web/src/components/panels/SiteIntelligencePanel.tsx`
+  - Three new useMemo hooks `aquiferMetrics`, `waterStressMetrics`, `seasonalFloodingMetrics`.
+  - New `energyIntelligence` memo composing geothermal + storage from climate + soils + groundwater layers.
+  - New "Hydrology Extensions" block (3 rows: Principal Aquifer, Water Stress, Stream Seasonality) rendered before Site Context.
+  - New "Energy Intelligence" block with two sub-cards (Geothermal GSHP rating + recommendation + ground/K/COP footer; Solar+Battery Storage rating + sizing recommendation).
+- **Dispatch wiring:** `runLayerFetch()` pushes `fetchUsgsAquifer`, `fetchWaterStress`, `fetchSeasonalFlooding` into the Promise.allSettled block immediately after the Sprint BC `fetchBcAlr` call.
+- **Files Touched:** 1 created + 4 modified (`energyIntelligence.ts` new; `layerFetcher.ts`, `computeScores.ts`, `SiteIntelligencePanel.tsx`, `dataSources.ts` modified) + 2 wiki docs.
+
+---
+
+### 2026-04-19 — Cat 8 Environmental Risk + Cat 11 Regulatory (Sprint BC)
+- **Scope:** Close 7 of 13 remaining gaps across Cat 8 Environmental Risk (5 of 5) + Cat 11 Regulatory (3 of 8 via API + 1 via computation). 4 execution phases; remaining Cat 11 items (setbacks, mineral rights, water rights, ag use-value, CA easements) left Open with documented rationale (fragmented/non-REST sources).
+- **Phase 1 — EPA Envirofacts extensions (US + CA landfill):** `apps/web/src/lib/layerFetcher.ts`
+  - New `envirofactsBbox()` helper — generic lat/lng bbox query over `enviro.epa.gov/enviro/efservice/...` tables.
+  - `fetchEPAUst()` → `UST` + `LUST_RELEASE` tables. Fields: `nearest_ust_km`, `nearest_lust_km`, `lust_sites_within_1km`. Layer type `ust_lust`.
+  - `fetchEPABrownfields()` → `BF_PROPERTY` (ACRES). Fields: `nearest_brownfield_km`, `cleanup_status`, `sites_within_5km`. Layer type `brownfields`.
+  - `fetchEPALandfills()` → US: EPA FRS `FRS_FACILITIES` filtered post-fetch by NAICS 562212/562219. CA: Ontario LIO `LIO_Open08/9` Waste Management Sites. Layer type `landfills`.
+  - `computeScores.ts`: three new Buildability penalty components `ust_proximity`, `brownfield_proximity`, `landfill_proximity` (each max −3, tiered <0.5/<2/<5 km).
+- **Phase 2 — USGS MRDS + USACE FUDS:** `apps/web/src/lib/layerFetcher.ts`
+  - `fetchUsgsMineHazards()` → USGS MRDS WFS (`mrdata.usgs.gov/services/mrds`) with ArcGIS REST fallback. Fields: `nearest_mine_km`, `commodity`, `dev_stat`, `mines_within_10km`. Layer type `mine_hazards`. US-only, `resultRecordCount=100` cap.
+  - `fetchFuds()` → USACE FUDS public ArcGIS FeatureServer (`services.arcgis.com/ue9rwulIoeLEI9bj/...FUDS_Property_Points`). Fields: `nearest_fuds_km`, `project_type`, `sites_within_10km`. Layer type `fuds`.
+  - `computeScores.ts`: combined `legacy_contamination` penalty component (max −3) triggers if either `nearest_mine_km` or `nearest_fuds_km` <2 km.
+- **Phase 3 — NCED + Heritage:** `apps/web/src/lib/layerFetcher.ts`
+  - `fetchNced()` → NCED public ArcGIS (`gis.ducks.org/arcgis/rest/services/NCED/NCED_Public`). Point-in-polygon for overlap flag + bbox for nearby. Fields: `easement_present`, `easement_holder`, `easement_purpose`, `easement_acres`. Layer type `conservation_easement`. US-only.
+  - `fetchHeritage()` → US: NPS National Register of Historic Places ArcGIS (`mapservices.nps.gov/.../nrhp_locations`). CA: Parks Canada Historic Sites via open.canada.ca CKAN. Fields: `heritage_site_present`, `designation`, `nearest_heritage_km`. Layer type `heritage`. Flag-only, no score penalty (informational).
+- **Phase 4 — EIA triggers + BC ALR:**
+  - New file `apps/web/src/lib/regulatoryIntelligence.ts` — `computeEIATriggers({ areaHa, wetlandsPresent, regulatedAreaPct, floodZone, criticalHabitatPresent, slopeDeg, landCoverPrimaryClass, protectedAreasNearbyKm, heritageSitePresent, conservationEasementPresent })`. Flags up to 8 categorical triggers: CWA §404 wetlands, FEMA SFHA, ESA §7, slope+forest erosion permit, ≥5 ha natural-cover conversion, protected-area buffer <1 km, NHPA §106 / Ontario Heritage Act, conservation easement restrictions. Outputs `regulatoryBurden` Low (0) / Moderate (1–2) / High (3–4) / Extreme (5+).
+  - `fetchBcAlr()` in `layerFetcher.ts` — BC OATS ALR Polygons WFS (`openmaps.gov.bc.ca/.../OATS_ALR_POLYS`) with CQL_FILTER `INTERSECTS(SHAPE, POINT(lng lat))`. Fields: `in_alr`, `alr_region`. Layer type `alr_status`. Gated: `country=CA` AND `lng<-114` (BC-only).
+- **Shared type extensions:** `packages/shared/src/constants/dataSources.ts` — 8 new entries added to `LayerType` union (`ust_lust`, `brownfields`, `landfills`, `mine_hazards`, `fuds`, `conservation_easement`, `heritage`, `alr_status`) and all added to `Tier1LayerType` Exclude list.
+- **UI:** `SiteIntelligencePanel.tsx` — 8 new useMemo hooks (one per layer). Environmental Risk collapsible extended with 5 new rows (UST/LUST, Brownfields, Landfills, Mine Hazards, FUDS) after existing Superfund block. New always-open "Regulatory & Heritage" section with Conservation Easement, Heritage Site, BC ALR rows + EA/Permit Triggers list with regulatoryBurden badge.
+- **Gap analysis updated:** Cat 8: 3/8 → 7/8. Cat 11: 3/11 → 6/11. Total: ~85/120 → **~92/120** (7 gaps closed).
+- **Known Open (documented):** Cat 8 prior land use history (requires historical imagery). Cat 11 setbacks (bylaw parsing), mineral rights (fragmented state), water rights (state-by-state), ag use-value (tax-assessor), CA conservation easements (OLTA fragmented).
+
+---
+
+### 2026-04-19 — Footprint + Compost + Stoniness + SoilGrids + IUCN Habitat + GBIF Biodiversity (Sprint BB)
+- **Scope:** Close 7 remaining gaps across Cat 13 (2: footprint optimization, compost siting), Cat 2 (2: surface stoniness, SoilGrids + partial N-P-K), Cat 7 (2: IUCN habitat type, biodiversity index). Four execution phases.
+- **Phase 1 — Design Intelligence (pure computation):** `apps/web/src/lib/designIntelligence.ts`
+  - **Footprint optimization:** `computeFootprintOptimization()` — composite 0-100 from sub-scores terrain (slope + TPI flat %), solar (reuses `computePassiveSolar` `solarAdvantage`), wind (reuses `computeWindbreak` `avgWindSpeedMs` as exposure penalty), drainage (SSURGO drainage_class), flood zone flag from wetlands summary. Outputs rating, compositeScore, hemisphere-aware `bestAspectDirection` (S/SSE/SSW N-hem, N/NNE/NNW S-hem), recommendedBuildZone narrative, limitingFactors[].
+  - **Compost siting:** `computeCompostSiting()` — slope ≤8° preferred, drainage (well/moderately well preferred), downwind direction via new `opposite8()` helper (N↔S, NE↔SW, etc.) applied to `primaryWindDir`. Outputs rating, recommendedDirectionFromDwelling, slopeDeg, drainageClass, limitingFactors, recommendation narrative.
+  - `DesignIntelligenceResult` gains `footprint` + `compostSiting` fields. `computeDesignIntelligence` signature gains `wetlandsSummary` param. `SiteIntelligencePanel.tsx` extends Design Intelligence visibility guard and renders two new sub-sections mirroring Sprint AA style.
+- **Phase 2 — Surface stoniness (SSURGO extension):**
+  - `apps/api/src/services/pipeline/adapters/SsurgoAdapter.ts` — added `ch.frag3to10_r`, `ch.fraggt10_r` to chorizon SELECT; extended `HorizonRow` + `parseSdaRows` + `computeWeightedAverages` return shape; added `coarse_fragment_pct` to `SoilSummary` + `buildUnavailableResult` defaults.
+  - `apps/web/src/lib/layerFetcher.ts` — matching SDA query extension in `fetchSoils()`; sum `frag3to10_r + fraggt10_r` weighted to 0-30 cm → `coarse_fragment_pct` summary field.
+  - `apps/web/src/lib/computeScores.ts` — new `coarse_fragment_penalty` component in Agricultural Suitability (FAO S1-N2 thresholds: <15% = 0, 15–35% = −1, 35–55% = −2, >55% = −3; max magnitude 3).
+  - `SiteIntelligencePanel.tsx` — "Coarse Fragments" row in Soil Intelligence section.
+- **Phase 3 — SoilGrids global API:**
+  - `apps/web/src/lib/layerFetcher.ts` — new `fetchSoilGrids(lat, lng)` hitting `rest.isric.org/soilgrids/v2.0/properties/query` (free, no auth, CORS-friendly). Queries phh2o, nitrogen, soc, cec, bdod, clay, sand, silt, cfvo across depth layers 0–5, 5–15, 15–30 cm; depth-weighted mean (weights 5/10/15) with documented mapped-unit conversions (phh2o÷10, nitrogen×0.01, soc÷10, bdod×0.01, clay/sand/silt×0.1, cfvo×0.1). Returns layer type `soilgrids_global` with summary fields `sg_ph`, `sg_nitrogen_g_kg`, `sg_soc_g_kg`, `sg_cec_mmol_kg`, `sg_bulk_density_g_cm3`, `sg_clay_pct`, `sg_sand_pct`, `sg_silt_pct`, `sg_cfvo_pct`. Try/catch with null fallback on error.
+  - `packages/shared/src/constants/dataSources.ts` — extended `LayerType` union with `'soilgrids_global' | 'biodiversity'`; both added to `Tier1LayerType` Exclude list.
+  - `SiteIntelligencePanel.tsx` — SoilGrids pH/N/SOC + Texture/CFVO rows in Site Context collapsible.
+  - **Partial N-P-K closure:** nitrogen (g/kg) now available globally. Phosphorus + potassium remain Open (no free global dataset).
+- **Phase 4 — IUCN habitat + GBIF biodiversity index:**
+  - **IUCN habitat:** `iucnHabitatFromClass(primaryClass)` in `layerFetcher.ts` — maps CDL / AAFC / ESA WorldCover class strings to IUCN Habitat Classification Scheme v3.1 codes (1=Forest, 3=Shrubland, 4=Grassland, 5=Wetlands, 6=Rocky, 12=Marine, 14.1=Arable, 14.2=Pastureland, 14.5=Urban, 17=Other). Enriches `fetchLandCover` summary.
+  - **Biodiversity:** `fetchBiodiversity(lat, lng, landCoverPrimaryClass)` — GBIF Occurrence API (`api.gbif.org/v1/occurrence/search`) with 5 km bbox (0.045° lat, cosine-adjusted lng), 20-year window, `has_coordinate=true`, `facet=speciesKey` + `limit=0` for unique species count. Classified Low/Moderate/High/Very High at 50/150/400. Returns layer type `biodiversity` with `species_richness`, `biodiversity_class`, `iucn_habitat_code`, `iucn_habitat_label`.
+  - `computeScores.ts` — `computeHabitatSensitivity` gains optional `biodiversity` param + new `biodiversity_index` scoring component (max 5: ≥400=5, ≥150=4, ≥50=2, >0=1).
+  - `SiteIntelligencePanel.tsx` — Biodiversity badge + IUCN Habitat rows in Site Context collapsible; outer visibility guard extended.
+- **Gap analysis updated:** Cat 13: 8/10 → 10/10 (Complete). Cat 2: 12/16 → 14/16 (N-P-K partial via SoilGrids nitrogen; P/K + boron Open). Cat 7: 3/8 → 5/8. Total: ~78/120 → ~85/120.
+
+---
+
+### 2026-04-19 — RWH Sizing + Pond Volume + Fire Risk Zoning (Sprint AA)
+- **Scope:** Close the three remaining P3 computation gaps in Cat 13 Design Intelligence (rainwater harvesting sizing, pond volume estimation, fire risk zoning). All pure frontend computation on already-fetched layers — no new APIs.
+- **`apps/web/src/lib/designIntelligence.ts` additions:**
+  - **Constants:** `RWH_EFFICIENCY = 0.85` (EPA WaterSense runoff coefficient), `TYPICAL_ROOF_AREA_M2 = 200` (typical farmhouse), `WHO_BASIC_DAILY_LITERS = 400` (4-person household).
+  - **RWH:**
+    - New interface `RwhSizingResult` — yield per 100 m², typical farmhouse m³/yr, days of supply vs WHO demand, rating (Excellent ≥850 L/m²/yr, Good ≥425, Limited ≥170, Poor).
+    - `computeRainwaterHarvesting(annualPrecipMm)` — `yield = area × precip × 0.85`; both per-100m² normalized and typical-roof outputs.
+  - **Pond Volume:**
+    - New interface `PondVolumeResult` — total volume m³/gal, rating (Large ≥5000, Medium ≥500, Small ≥50, Very small), per-candidate dimensions, meanDepthM.
+    - `computePondVolumeEstimate(watershedDerivedSummary, countryCode)` — pyramidal model `cellCount × cellArea × depth × 0.5`. Cell area derived from DEM resolution: 100 m² (US 3DEP 10m) or 400 m² (CA HRDEM 20m). Depth = `clamp(1.0 + meanSlope × 0.3, 0.5, 3.0)`.
+  - **Fire Risk:**
+    - New interface `FireRiskResult` — risk class (Low/Moderate/High/Extreme), composite score, fuel loading 0-100, slope/wind factors, primary wind direction.
+    - `fuelByLandCoverClass(primaryClass, treeCanopyPct)` — NFDRS analogues: forest 60–85, shrub 50–70, cropland 20–35, grass 25–40, wetland 5, developed 10.
+    - `computeFireRisk(landCoverSummary, slopeDeg, avgWindSpeedMs, primaryWindDir)` — Rothermel-inspired `fuel × slopeFactor × windFactor`; slopeFactor = `1 + (slope/15)²`; windFactor = `1 + speed/10`.
+  - **`DesignIntelligenceResult`** gains `rwh`, `pondVolume`, `fireRisk` fields.
+  - **`computeDesignIntelligence`** signature extended with optional `climateSummary`, `landCoverSummary`, `countryCode` params (all default, backwards-compatible). Wind inputs for fire are reused from the already-computed windbreak result (no duplicate wind-rose aggregation).
+- **`SiteIntelligencePanel.tsx` changes:**
+  - useMemo reads `climate` + `land_cover` layers; passes `project.country ?? 'US'`. Dep array includes `project.country`.
+  - Outer visibility guard extended with `|| designIntelligence.rwh || designIntelligence.pondVolume || designIntelligence.fireRisk`.
+  - **RWH Potential sub-section:** rating badge, annual precip flag, yield per 100 m² (L + m³), typical farmhouse m³/yr and days-of-supply vs WHO demand, italic recommendation.
+  - **Pond Volume sub-section:** volume rating badge, volume m³ flag, estimated dimensions (area × depth + gallons), italic recommendation.
+  - **Fire Risk sub-section:** risk class badge (green/amber/red), composite score flag, fuel loading 0-100, slope/wind factor row, italic recommendation.
+  - Each section separated by hairline dividers within the Design Intelligence collapsible.
+- **Gap analysis updated:** Cat 13 Design Intelligence: 5/10 → 8/10; Total: ~75/120 → ~78/120. Remaining Cat 13: footprint optimization, compost siting (both P3, deferred).
+
+---
+
+### 2026-04-19 — Septic Suitability + Shadow Modeling (Sprint Z)
+- **Scope:** Add two more Design Intelligence capabilities: septic/leach-field suitability (USDA NRCS thresholds) and shadow/shade modeling (solar geometry). Both are pure frontend computation on already-fetched layers.
+- **`apps/web/src/lib/designIntelligence.ts` additions:**
+  - **Septic:**
+    - New interface `SepticSuitabilityResult` — rating Excellent/Good/Marginal/Unsuitable, recommendedSystem Conventional/Mound/Engineered/Not recommended, limitingFactors list, input echoes
+    - `classifyDrainage(drainageClass)` helper — substring match on SSURGO/LIO drainage phrases
+    - `computeSepticSuitability({ ksatUmS, bedrockDepthM, waterTableDepthM, drainageClass, slopeDeg })` — thresholds per USDA NRCS / EPA Onsite Wastewater Treatment Manual: Ksat 15–150 µm/s ideal, bedrock ≥1.8 m, water table ≥1.8 m, well/moderately well drainage, slope <8.5° (conventional). Factors that push rating: <1.0 m bedrock → engineered; <0.6 m water table → unsuitable
+  - **Shadow:**
+    - New interface `ShadowAnalysisResult` — winter/summer/equinox noon altitudes (degrees), winterShadeRisk Low/Moderate/High/Severe, sunAccessRating Excellent/Good/Limited/Poor
+    - `solarDeclination(dayOfYear)` — Cooper's equation: δ = 23.45° × sin(360/365 × (284 + n))
+    - `noonSolarAltitude(lat, dayOfYear)` — α = 90° − |lat − δ|
+    - `slopeAdjustedAltitude()` — adds slopeDeg on sun-facing aspect, subtracts on shady aspect, half-effect on SE/SW/NE/NW, neutral on E/W
+    - `computeShadowAnalysis(lat, aspect, slopeDeg)` — computes 3 checkpoints; winterShadeRisk compounded when N-facing + slope ≥10° at high lat; annualScore = 0.5×winter + 0.3×equinox + 0.2×summer
+  - **`DesignIntelligenceResult`** now has `septic` + `shadow` fields
+  - **`computeDesignIntelligence`** gains two optional params `soilsSummary` + `groundwaterSummary` (default null, backwards-compatible); extracts `ksat_um_s`, `depth_to_bedrock_m`, `drainage_class`, `groundwater_depth_m`
+- **`SiteIntelligencePanel.tsx` changes:**
+  - useMemo reads `soils` + `groundwater` layers and passes their summaries
+  - Outer visibility guard: added `|| designIntelligence.septic || designIntelligence.shadow`
+  - **Septic sub-section:** rating badge, recommended system, bulleted limiting factors, recommendation text
+  - **Sun Access sub-section:** annual rating badge, winter noon altitude (color-coded by shade risk), summer noon, equinox noon, recommendation
+  - Both sections separated by hairline dividers within the Design Intelligence collapsible
+- **Gap analysis updated:** Cat 13 Design Intelligence: 3/10 → 5/10; Total: ~73/120 → ~75/120
+
+---
+
+### 2026-04-19 — Water Harvesting Siting in Design Intelligence (Sprint Y)
+- **Scope:** Surface swale and pond siting candidates from the pre-computed `watershed_derived` layer in the Design Intelligence panel.
+- **Key insight:** `WatershedRefinementProcessor` already runs `computeSwaleCandidates` + `computePondCandidates` server-side and stores top 30 swales + top 20 ponds (sorted by suitabilityScore 0-100) in the `watershed_derived` summary. No new API calls or backend work required.
+- **`apps/web/src/lib/designIntelligence.ts` additions:**
+  - New interfaces: `SwaleCandidate`, `PondCandidate`, `WaterHarvestingResult`
+  - `computeWaterHarvesting(watershedDerivedSummary)` — extracts `swaleCandidates` + `pondCandidates`; derives `swaleRating` (Excellent/Good/Fair/Limited) and `pondRating` (Excellent/Good/Fair/None) from top suitabilityScore; generates recommendation text with candidate count, slope, elevation, accumulation
+  - `DesignIntelligenceResult` extended with `waterHarvesting: WaterHarvestingResult | null`
+  - `computeDesignIntelligence` gains optional 5th param `watershedDerivedSummary` (default `null` — fully backwards-compatible)
+- **`SiteIntelligencePanel.tsx` changes:**
+  - `designIntelligence` useMemo now reads `watershed_derived` layer and passes its summary to `computeDesignIntelligence`
+  - Outer visibility guard updated: `|| designIntelligence.waterHarvesting` added
+  - Water Harvesting sub-section added inside Design Intelligence collapsible: Swale Sites rating badge + candidate count, Best Swale row (slope + elevation + score), swale recommendation text, Pond Sites rating badge + candidate count, Best Pond row (slope + accumulation + score), pond recommendation text
+  - Separator `<div>` between windbreak and water harvesting blocks
+- **Gap analysis updated:** Cat 13 Design Intelligence: 2/10 → 3/10; Total: ~72/120 → ~73/120
+- **Swale suitability algorithm reference:** slope optimum 8° (range 2–15°) + flow accumulation P50–P90 + run length → score 0-100. Pond: accumulation ≥P75 + slope <3° → score 0-100.
+
+---
+
+### 2026-04-19 — 8-Layer UI Surface + Design Intelligence (Sprint X)
+- **Scope:** Surface 8 previously-fetched-but-hidden layers in SiteIntelligencePanel + implement passive solar / windbreak Design Intelligence utility.
+- **SiteIntelligencePanel additions (`apps/web/src/components/panels/SiteIntelligencePanel.tsx`):**
+  - 6 new collapsible sections added: Environmental Risk, Site Context, Community, Design Intelligence
+  - **Environmental Risk** — Superfund nearest km (color-coded by 2/5 km thresholds), air quality AQI class + PM2.5 percentile, seismic hazard PGA + class badge
+  - **Site Context** — CDL crop name + year + Active Cropland/Agricultural/Non-agricultural badge, critical habitat on-site/nearby/none with species name, FEMA disaster count (10yr) + most common type
+  - **Community** — Rural Class badge, population density /km², median income, median age (source: US Census ACS)
+  - **Design Intelligence** — passive solar advantage badge + building axis orientation, windbreak orientation + prevailing wind direction + secondary wind; both sourced purely from existing `elevation` + `climate` layers
+  - **Proximity rows** in Infrastructure Access — farmers market km + nearest town km from `proximity_data` layer (OSM Overpass)
+  - All sections null-safe: hidden when layer absent or not 'complete'
+- **New file: `apps/web/src/lib/designIntelligence.ts`:**
+  - `computePassiveSolarOrientation(aspect, lat, slopeDeg)` → `PassiveSolarResult` — angular deviation from hemisphere-optimal bearing → solarScore 0-100 → Excellent/Good/Moderate/Poor
+  - `computeWindbreakSiting(windRose)` → `WindbreakResult | null` — 16-sector wind rose energy weighting (freq × speed²) → dominant cardinal → perpendicular windbreak orientation
+  - `computeDesignIntelligence(aspect, lat, slope, windRose)` → `DesignIntelligenceResult` — graceful null handling when inputs absent
+- **Gap analysis updated:** Design Intelligence Cat 13: 0/10 → 2/10; Total: ~70/120 → ~72/120
+- **Layers now fully surfaced in UI:** groundwater, water_quality, superfund, critical_habitat, storm_events, crop_validation, air_quality, earthquake_hazard, census_demographics, proximity_data (all 10 extended layers visible)
+
+---
+
+### 2026-04-19 — Wiki Audit + Groundwater/Water Quality UI Surfacing
+- **Scope:** Wiki catch-up audit (gap analysis, scoring engine, data-pipeline pages were stale after Sprints I-W) + UI surfacing of groundwater and water quality layers in SiteIntelligencePanel.
+- **Wiki updates:**
+  - `wiki/entities/data-pipeline.md` — removed stale "Next focus: scoring engine refactor" note; updated frontend layerFetcher to 19 live layer types; confirmed scoring engine complete (Sprint M)
+  - `wiki/entities/gap-analysis.md` — updated summary table from ~60/120 to ~70/120; marked groundwater + water_quality as Implemented (Sprint M); added CDL crop validation (Sprint P); added critical habitat (Sprint O); added superfund/air quality/earthquake hazard (Sprints O, T, U); added biomass + micro-hydro (Sprint Q); updated extreme events (Sprint P FEMA); corrected counts for Cat 4 (5→7), 5 (8→9), 6 (6→7), 7 (2→3), 8 (0→3), 9 (2→4)
+  - `wiki/concepts/scoring-engine.md` — added Sprints N-W to sprint history table; updated component count to ~153; fixed "9 scoring functions" → "10-11 scoring functions"
+- **SiteIntelligencePanel UI additions (`apps/web/src/components/panels/SiteIntelligencePanel.tsx`):**
+  - Added collapsible **Groundwater** section: depth (m + ft), depth class label (shallow/moderate/deep), station name, distance, measurement date. Source: USGS NWIS (US) / Ontario PGMN (CA)
+  - Added collapsible **Water Quality** section: pH (color-coded), dissolved oxygen (mg/L), nitrate (mg/L), turbidity (NTU), station name + distance. Source: EPA WQP (US) / ECCC PWQMN (CA)
+  - Both sections null-safe — hidden when layer absent or fetch status not 'complete'
+- **Key insight from audit:** Sprints M-W had been implemented in `layerFetcher.ts` and `computeScores.ts` without corresponding wiki log entries. This session restores wiki accuracy.
+
+---
+
+### 2026-04-19 — Zoning Adapters: UsCountyGisAdapter + OntarioMunicipalAdapter (14/14 live — 100% Tier 1 complete)
+- **Scope:** Implemented zoning layer backend adapters (US + CA) — **all 7 Tier 1 layers now fully covered.**
+- **UsCountyGisAdapter (US — `apps/api/src/services/pipeline/adapters/UsCountyGisAdapter.ts`):**
+  - Step 1: FCC Census Block API (no auth) resolves lat/lng → 5-digit county FIPS + county name + state
+  - Step 2: `COUNTY_ZONING_REGISTRY` (9 curated counties) maps FIPS → ArcGIS REST endpoint + field map
+  - Supports both MapServer and FeatureServer URLs; multi-field fallback chains for zone/description/overlay fields
+  - `inferZoningDetails()`: regex + keyword pattern matching → permitted_uses, conditional_uses, is_agricultural
+  - Unregistered counties return structured "unavailable" result (intentional non-error, low confidence) with guidance text including county name + state
+  - Registry counties: Lancaster PA, Loudoun VA, Buncombe NC, Hamilton OH, Dane WI, Washington OR, Sonoma CA, Boulder CO, Whatcom WA
+- **OntarioMunicipalAdapter (CA — `apps/api/src/services/pipeline/adapters/OntarioMunicipalAdapter.ts`):**
+  - Parallel `Promise.allSettled`: LIO_Open06 planning layers + AAFC CLI
+  - LIO: tries layers 4, 5, 15, 26 sequentially (first match wins); 12-field fallback chains per field (ZONE_CODE, DESIGNATION, LAND_USE_CATEGORY, etc.)
+  - AAFC CLI: tries 2 service URLs (AAFC reorganizes periodically); CLI class 1-7 + subclass → human-readable capability + limitation descriptions
+  - Ontario-specific `inferZoningDetails()`: recognizes Greenbelt, Natural Heritage System, CLUPA, Niagara Escarpment designations
+  - Test note: concurrent execution of LIO + AAFC in `Promise.allSettled` required URL-routing `mockImplementation` for "CLI only" test scenario
+- **Orchestrator:** 2 new imports + 2 new `if` blocks in `resolveAdapter()`. Comment updated: "All Tier 1 adapters implemented — fallthrough should not occur in practice"
+- **Tests:** 15 US + 18 CA = 33 new tests; suite at 298/298 passing
+- **Completeness:** 14/14 adapters live; **100% of total Tier 1 completeness weight** (soils 20% + elevation 15% + watershed 15% + wetlands 15% + zoning 15% + climate 10% + land_cover 10%)
+- **Next:** Scoring engine refactor (plan file `clever-enchanting-moler.md`) or US county zoning registry expansion
+
+---
+
+### 2026-04-19 — Land Cover Adapters: NlcdAdapter + AafcLandCoverAdapter (12/14 live)
+- **Scope:** Implemented land_cover layer backend adapters (US + CA) — 6th of 7 Tier 1 layers complete.
+- **NlcdAdapter (US — `apps/api/src/services/pipeline/adapters/NlcdAdapter.ts`):**
+  - MRLC NLCD 2021 WMS GetFeatureInfo endpoint, 5-point sampling (centroid + 4 cardinal offsets at ±400 m)
+  - Builds real class distribution from sample pixel values rather than heuristic lookup
+  - Weighted-average tree_canopy_pct and impervious_pct across all valid samples
+  - Confidence: high (centroid returned value), medium (only offsets), low (latitude fallback)
+  - Handles GRAY_INDEX and value property names from WMS response
+- **AafcLandCoverAdapter (CA — `apps/api/src/services/pipeline/adapters/AafcLandCoverAdapter.ts`):**
+  - AAFC Annual Crop Inventory 2024 ImageServer Identify (single centroid point)
+  - 50+ AAFC class codes → primary_class, dominant_system, tree_canopy_pct, impervious_pct, is_agricultural, is_natural
+  - Handles NoData, cloud (code 1), and cloud-shadow (code 136) as fallback triggers
+  - Accepts code as number or string (AAFC may return either)
+- **Orchestrator:** Both wired into `resolveAdapter()` (2 new imports + 2 new `if` blocks)
+- **Tests:** 18 NlcdAdapter + 17 AafcLandCoverAdapter = 35 new tests; suite at 262/262 passing
+- **Completeness:** 12/14 adapters live; 85% of total completeness weight covered
+- **Remaining:** zoning US/CA (15% weight) — the final Tier 1 stub
+
+---
+
+### 2026-04-19 — Climate Adapters: NoaaClimateAdapter + EcccClimateAdapter (10/14 live)
+- **Scope:** Implemented climate layer backend adapters (US + CA) completing the 5th of 7 Tier 1 layers.
+- **NoaaClimateAdapter (US — `apps/api/src/services/pipeline/adapters/NoaaClimateAdapter.ts`):**
+  - Two-step NOAA ACIS POST API: StnMeta (nearest GHCN station with 1991-2020 coverage) → StnData (30-year monthly maxt/mint/pcpn in °F/inches)
+  - Station selection: prefers stations with valid 1991→2020 daterange, falls back to nearest
+  - Metric conversion + 12-month normal aggregation from up to 360 monthly rows
+  - Derives: `annual_precip_mm`, `annual_temp_mean_c`, `growing_season_days`, `last_frost_date`, `first_frost_date`, `hardiness_zone`, `growing_degree_days_base10c`, `koppen_classification`, `freeze_thaw_cycles_per_year`, `snow_months`, `monthly_normals[]`
+  - Confidence: high (<30 km station), medium (<60 km), low (>60 km or fallback)
+  - Fallback: latitude-based estimate when ACIS unavailable
+- **EcccClimateAdapter (CA — `apps/api/src/services/pipeline/adapters/EcccClimateAdapter.ts`):**
+  - ECCC OGC API Features GET with ±0.5° bbox, cosine-corrected nearest station selection
+  - Dual field fallback chains: ANNUAL_PRECIP / TOTAL_PRECIP, MEAN_TEMP / ANNUAL_MEAN_TEMP, FROST_FREE_PERIOD / FROST_FREE_DAYS, etc.
+  - Returns: `annual_precip_mm`, `annual_temp_mean_c`, `growing_season_days`, frost dates, hardiness zone, station name/distance, data period from NORMAL_CODE
+  - Confidence: based on distance + field completeness
+  - Fallback: latitude-based estimate when ECCC unavailable
+- **Orchestrator:** Wired both adapters into `DataPipelineOrchestrator.resolveAdapter()` (2 new `if` blocks + 2 new imports)
+- **Tests:** 14 NoaaClimateAdapter + 13 EcccClimateAdapter = 27 new tests; suite at 225/225 passing
+- **Completeness:** 10/14 adapters live; 75% of total completeness weight covered (soils 20% + elevation 15% + watershed 15% + wetlands 15% + climate 10%)
+- **Next priority:** land_cover adapters (MRLC NLCD US + AAFC CA, 10% weight) → would bring coverage to 85%
+
+---
+
+### 2026-04-16 — Sprint M: Tier 3 Integration + Scoring Calibration + UI Surfacing + Pipeline Fixes
+- **Scope:** Full Tier 3 scoring integration (terrain_analysis, watershed_derived, microclimate, soil_regeneration components wired into all 7 weighted scores), scoring calibration audit (3 bugs + 3 calibration fixes), SiteIntelligencePanel UI surfacing of WithConfidence data, and pipeline bug fixes.
+- **Scoring engine changes (`apps/web/src/lib/computeScores.ts`):**
+  - Integrated Tier 3 layer components across all 7 existing weighted scores (graceful degradation when absent)
+  - Added 8th weighted dimension: **Community Suitability** (6 census components: population density, median income, educational attainment, homeownership rate, poverty rate penalty, vacancy rate)
+  - **Bug fix:** `salinity_penalty` maxPossible corrected from 0 to -5
+  - **Bug fix:** WEIGHTS sum corrected from 1.05 to 1.00 (Design Complexity 0.15 → 0.10)
+  - **Calibration:** Buildability base lowered from 75 to 60
+  - **Calibration:** Community Suitability base raised from 10 to 25, added 4 new components (edu, homeownership, poverty, vacancy) — effective range improved from 10-40 to ~17-91
+  - All outputs now produce `ScoredResult` with `score_breakdown`, `confidence`, `dataSources`, `computedAt`
+- **UI changes (`SiteIntelligencePanel.tsx` + `.module.css`):**
+  - Added overall confidence badge next to "Overall Suitability" title
+  - Added per-score `dataSources` tags below each score bar
+  - Added `sourceLayer` attribution in breakdown rows
+  - Added `computedAt` timestamp per score breakdown
+  - Guards for empty `dataSources` and empty `score_breakdown` arrays
+- **Pipeline fixes (`DataPipelineOrchestrator.ts`):**
+  - Removed orphan `compute_assessment` job INSERT (no queue/worker existed)
+  - Fixed BullMQ retry status tracking: `status = 'queued'` → `status IN ('queued', 'failed')` across all 4 Tier 3 workers
+- **API fix (`routes/design-features/index.ts`):**
+  - Fixed TS2345 by casting `body.properties` and `body.style` to `Record<string, string>` for `db.json()` calls
+- **Scoring components:** ~129 → ~140+ (Tier 3 integration + Community Suitability)
+- **Weighted dimensions:** 7 → 8 (Community Suitability added at 5%)
+
+---
+
+### 2026-04-14 — Sprint L: Protected Areas + Infrastructure Rules + Scoring Polish
+- **Scope:** Extended Overpass query for protected areas (1 new Cat 7 gap), added 8 infrastructure assessment rules (first infrastructure-aware rules), wired untapped water supply scoring, and audited Cat 11 regulatory status (3 gaps reclassified as implemented via existing zoning fetcher).
+- **Files modified:**
+  - `apps/web/src/lib/layerFetcher.ts` — extended Overpass query with `boundary=protected_area` + `leisure=nature_reserve` tags; added `protected_area` bucket, distance, name, class, and count to infrastructure layer summary
+  - `apps/web/src/lib/computeScores.ts` — added `protected_area_proximity` (max 8) to Habitat Sensitivity (inverted — closer = higher sensitivity); added `water_supply_proximity` (max 3) to Buildability; threaded infrastructure to `computeHabitatSensitivity()`
+  - `apps/web/src/lib/rules/ruleEngine.ts` — added `infrastructure` to `RuleContext` interface and `buildContext()` layer extraction
+  - `apps/web/src/lib/rules/assessmentRules.ts` — added `infrastructure` category to `AssessmentRule` type; added 4 opportunity rules (good-road-access, grid-connected, market-accessible, masjid-nearby) + 4 risk rules (remote-from-hospital, no-road-access, no-grid-access, protected-area-constraint)
+  - `packages/shared/src/schemas/assessment.schema.ts` — added `'infrastructure'` to `AssessmentFlagCategory` enum
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added Protected Area row to Infrastructure Access section (distance + name + color coding); added protected area fields to `infraMetrics` useMemo
+- **Scoring components:** ~126 → ~129 (+1 protected area habitat, +1 water supply buildability, +1 infrastructure category)
+- **Assessment rules:** 28 → 36 (+4 opportunity, +4 risk — all infrastructure-based)
+- **Gaps closed:** 1 new (protected areas Cat 7) + 3 reclassified (Cat 11 zoning, overlay, floodplain already live)
+
+---
+
+### 2026-04-14 — Sprint K: Overpass Infrastructure Distances + Solar PV Potential
+- **Scope:** First sprint to add a new external API. Integrated OpenStreetMap Overpass API for distance-to-infrastructure (8 Category 10 gaps) plus solar PV potential from existing NASA POWER data (1 Category 9 gap). Added `infrastructure` layer type, Haversine distance computation, 6 new scoring components, Infrastructure Access panel section, and Solar PV row.
+- **Files modified:**
+  - `packages/shared/src/constants/dataSources.ts` — added `'infrastructure'` to LayerType union, excluded from Tier1LayerType
+  - `apps/web/src/lib/layerFetcher.ts` — added `haversineKm()` helper, `fetchInfrastructure()` (single batched Overpass query for 7 POI categories: hospital, masjid, market, power substation, drinking water, road), ~25km search bbox, wired into `fetchAllLayersInternal()`. Fixed `replaceLayer()` to push new layer types without mock entries
+  - `apps/web/src/lib/computeScores.ts` — added 4 infrastructure scoring components to Buildability (hospital_proximity max 5, road_access max 5, grid_proximity max 4, market_proximity max 3); added masjid_proximity (max 4) and solar_pv_potential (max 5) to Stewardship Readiness; threaded `infrastructure` layer and `solarRadiation` through scoring pipeline
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added Infrastructure Access collapsible section (6 rows: hospital, masjid, market, grid, road, water with color-coded distances); added Solar PV row to Hydrology Intelligence section (PSH/day, annual yield, class label); added `infraOpen` state, `infraMetrics` + `solarPV` useMemo hooks
+  - `apps/web/src/features/map/LayerPanel.tsx` — added `infrastructure` to LAYER_LABELS and LAYER_ICONS
+- **Scoring components:** 120 → ~126 (+4 infrastructure buildability, +1 masjid stewardship, +1 solar PV stewardship)
+- **Gaps closed:** 9 (8 infrastructure + 1 solar PV) — cumulative ~56/120
+- **New API:** OpenStreetMap Overpass (free, no auth, CORS-friendly)
+
+---
+
+### 2026-04-14 — Sprint J: Soil Degradation + WRB + Agroforestry + Wind Energy
+- **Scope:** Implemented 4 remaining frontend-computable gaps: soil degradation risk index, WRB soil classification, agroforestry species pairing, and wind energy potential — all from existing layer data, no new APIs. This exhausts all frontend-computable opportunities.
+- **Files modified:**
+  - `apps/web/src/lib/computeScores.ts` — added soil degradation risk component (composite of OM depletion, salinization, compaction, erosion, drainage — max 8) to Stewardship Readiness; added wind energy potential component (max 5) from wind rose power density; threaded elevation + windPowerDensity through Stewardship Readiness
+  - `apps/web/src/lib/cropMatching.ts` — added `findAgroforestryCompanions()` function: filters EcoCrop DB for perennial trees/shrubs, scores by structural diversity, family diversity, N-fixation, rooting depth complementarity. Returns top companions with compatibility scores. Added `CompanionMatch` interface + `rangesOverlap()` helper
+  - `apps/web/src/lib/hydrologyMetrics.ts` — added `computeWindEnergy()`: frequency-weighted cubic mean (Betz law), NREL power class, optimal direction, capacity factor. Added `WindEnergyResult` interface
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added WRB classification row to Soil Intelligence (USDA→WRB lookup + Gleyic/Calcic/Humic/Haplic qualifiers); Wind Power row to Hydrology Intelligence (W/m² + class + direction); agroforestry companions sub-list under expanded crop matches; wind energy useMemo + companion cache useMemo
+- **Scoring components:** 118 → 120 (+1 soil degradation, +1 wind energy)
+- **Gaps closed:** 4 (soil degradation risk, WRB classification, agroforestry pairing, wind energy potential)
+
+---
+
+### 2026-04-14 — Sprint I: LGP + Canada Soil Capability + Carbon Stock Estimation
+- **Scope:** Implemented three remaining frontend-computable gaps: Length of Growing Period (LGP), Canada Soil Capability Classification (CSCS), and carbon stock estimation — all from existing fetched layer data, no new APIs.
+- **Files modified:**
+  - `apps/web/src/lib/hydrologyMetrics.ts` — added `computeLGPDays()` using FAO AEZ monthly water balance (precip vs 0.5×PET with soil water carry-over); extended `HydroInputs` (monthlyNormals, awcCmCm, rootingDepthCm) and `HydroMetrics` (lgpDays, lgpClass)
+  - `apps/web/src/lib/computeScores.ts` — added `computeCanadaSoilCapability()` (8-limitation model mirroring USDA LCC with AAFC thresholds, Class 1-7 + T/W/D/E/F/M/R subclasses, CA sites only); added `length_of_growing_period` component (max 6) to Agricultural Suitability; added `carbon_stock` component (max 6) to Regenerative Potential using IPCC formula with Adams pedotransfer fallback for bulk density; threaded `country` parameter through `computeAssessmentScores()`
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added "Growing Period" row to Hydrology Intelligence section, "Carbon Stock" row (tC/ha + color coding) to Soil Intelligence section; passed monthly normals + soil params to hydro metrics; threaded `project.country` to scoring
+- **Scoring components:** 108 → 118 (+1 LGP, +8 CSCS, +1 carbon stock)
+- **Scoring functions:** 9 → 10 (for CA sites; 9 for US sites)
+- **Gaps closed:** 3 (LGP, Canada Soil Capability, carbon stock estimation)
+
+---
+
+### 2026-04-14 — Sprint H: Gap Audit + Wiki Update
+- **Scope:** Audited all gaps closed by Sprints A-G, updated gap analysis wiki page with per-gap status markers, rewrote scoring engine concept page to reflect current 9-dimension / 108-component architecture, and produced a prioritized "what's next" roadmap for Sprints I-J.
+- **Files modified:**
+  - `wiki/entities/gap-analysis.md` — updated Categories 1 (4/7), 2 (scoring wire-ups), 4 (5/10 hydrology), 6 (5/8 crop); rewrote summary table (~40/120); added completed sprint table (A-H) + next sprint candidates
+  - `wiki/concepts/scoring-engine.md` — rewrote from "5 assessment dimensions" to 7 weighted + 2 formal classifications, 108 components, sprint history table
+  - `wiki/log.md` — added Sprint F, G, H entries
+- **Key findings:** Gap analysis was significantly stale — Hydrology showed 0/10 when 5/10 were implemented (Sprint F), scoring engine page said 5 dimensions when there are 9.
+- **No code changes** — wiki-only sprint.
+
+---
+
+### 2026-04-14 — Sprint G: Soil Intelligence + Hardiness Zones + Rain-Fed vs Irrigated
+- **Scope:** Combined polish sprint wiring existing SSURGO data into scoring, adding Soil Intelligence panel section, USDA Hardiness Zone scoring, rain-fed vs irrigated crop distinction, and fixing a pH field name bug across 3 sites.
+- **Files modified:**
+  - `apps/web/src/lib/computeScores.ts` — added 4 scoring components: calcium_carbonate (max 4), permeability/Ksat (max 4), compaction_risk/bulk density (max 3), hardiness_zone (max 5). Fixed `ph_value` → `ph` bug at 2 sites (computeAgriculturalSuitability, computeFAOSuitability).
+  - `apps/web/src/lib/cropMatching.ts` — added `irrigationNeeded` + `irrigationGapMm` to CropMatch interface, rain-fed vs irrigated computation in `scoreCrop()`. Fixed third `ph_value` → `ph` bug in `siteConditionsFromLayers()`.
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added Soil Intelligence collapsible section (8 rows: pH, OM, CEC, texture, bulk density, Ksat, CaCO3, rooting depth), irrigation badges on crop list items ("+X mm" / "Rain-fed"), reordered useMemo hooks to fix dependency ordering.
+- **Bugs fixed:** `ph_value` → `ph` at 3 locations (SSURGO field is `ph`, not `ph_value`). pH scoring was silently returning 0 for all sites.
+- **Scoring components:** 97 → 108 (+4 soil + +1 hardiness + FAO/USDA retained)
+- **Gaps closed:** Rain-fed vs irrigated distinction (Cat 6), hardiness zone wired into scoring (Cat 1)
+
+---
+
+### 2026-04-14 — Sprint F: Hydrology Intelligence
+- **Scope:** Implemented 5 hydrology gaps as frontend-computed metrics from existing climate + watershed data. Created `hydrologyMetrics.ts` utility and added Hydrology Intelligence section to SiteIntelligencePanel.
+- **Files created:**
+  - `apps/web/src/lib/hydrologyMetrics.ts` — pure functions: Blaney-Criddle PET, aridity index (UNEP classification), irrigation water requirement, rainwater harvesting potential
+- **Files modified:**
+  - `apps/web/src/lib/computeScores.ts` — added 4 water resilience scoring components: pet_aridity (max 8), irrigation_requirement (max 6), rainwater_harvesting (max 5), drainage_density (max 4)
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added Hydrology Intelligence collapsible section (PET, aridity, RWH potential, irrigation requirement, drainage density) between scores and crop suitability
+  - `apps/api/src/services/terrain/WatershedRefinementProcessor.ts` — added drainage density computation from D8 flow accumulation grid (channel threshold = 100 cells, km/km² classification)
+- **Gaps closed:** 5 hydrology gaps (PET/ET, aridity index, irrigation requirement, rainwater harvesting, drainage density)
+- **Gaps remaining (hydrology):** 5 (groundwater depth, aquifer type, seasonal flooding duration, water stress index, surface water quality)
+
+---
+
+### 2026-04-14 — Sprint E: Crop Suitability — FAO EcoCrop Integration
+- **Scope:** Integrated the full FAO EcoCrop database (2071 crops, sourced from OpenCLIM/ecocrop GitHub under OGL v3) with a 9-factor crop suitability matching engine. Replaces the hand-curated 60-crop subset with authoritative FAO data covering cereals, legumes, vegetables, fruits, forestry, forage, medicinals, ornamentals, and more.
+- **Files created:**
+  - `apps/web/src/data/EcoCrop_DB.csv` — raw FAO EcoCrop database (2568 species, 53 columns)
+  - `apps/web/src/data/ecocrop_parsed.json` — parsed/normalized JSON (2071 crops with valid temperature data, 965 KB)
+  - `scripts/parse_ecocrop.py` — CSV→JSON converter with English name extraction, categorical field encoding
+  - `apps/web/src/lib/cropMatching.ts` — 9-factor matching engine: temperature, precipitation, pH, drainage, texture, soil depth, salinity, growing season, cold hardiness. Uses optimal/absolute range interpolation (same as OpenCLIM). Overall score: 40% min factor + 60% mean (Liebig's law blend). Returns FAO-style S1/S2/S3/N1/N2 classes.
+- **Files modified:**
+  - `apps/web/src/data/ecocropSubset.ts` — replaced hand-curated CropEntry interface with FAO-aligned schema; JSON import of full database
+  - `apps/web/src/components/panels/SiteIntelligencePanel.tsx` — added "Crop Suitability" section with category filter pills, expandable per-crop factor breakdowns, ScoreCircle reuse
+  - `apps/web/src/components/panels/SiteIntelligencePanel.module.css` — crop filter pill styles, crop metadata layout
+  - `wiki/entities/gap-analysis.md` — Category 6 updated: 4/8 implemented
+- **Gaps closed:** 4 (EcoCrop matching, perennial crop matching, forage suitability, lifecycle filtering)
+- **Gaps remaining in Category 6:** 4 (irrigated distinction, agroforestry pairing, companion planting, invasive/native species)
+
+---
+
+### 2026-04-14 — Sprint D: Formal Scoring — FAO S1-N2 + USDA LCC I-VIII
+- **Scope:** Implemented the two primary international land classification standards as new scoring dimensions in the scoring engine. Both use the soil, climate, and terrain data made available by Sprints A-C.
+- **Files modified:**
+  - `apps/web/src/lib/computeScores.ts` — added `computeFAOSuitability()` (8-factor: pH, rooting depth, drainage, AWC, salinity, CEC, topography, thermal regime → S1/S2/S3/N1/N2) and `computeUSDALCC()` (8-limitation: slope, drainage, soil depth, texture, erosion hazard, salinity, climate, drought susceptibility → Class I-VIII with e/w/s/c subclass). Both wired into `computeAssessmentScores()` as weight-0 classification entries.
+  - `wiki/entities/gap-analysis.md` — marked FAO + USDA LCC as implemented, updated summary table
+- **Architecture:** Classifications are ScoredResult entries with custom `rating` strings (e.g., "S1 — Highly Suitable", "Class IIe — Suited to cultivation"). Weight 0 in `computeOverallScore()` means they appear in the dashboard breakdown but don't affect the overall site score.
+- **Gaps closed:** FAO S1-N2, USDA LCC I-VIII (+ hardiness zones already existed)
+- **Gaps remaining (formal scoring):** Canada Soil Capability, fuzzy logic, AHP, LGP
+
+---
+
+### 2026-04-14 — Sprint C: Climate Foundation
+- **Scope:** Added Koppen-Geiger climate classification (computed from existing monthly normals), freeze-thaw cycle estimation, and NASA POWER solar radiation integration. Discovered 6/10 climate gaps were already implemented via NOAA ACIS + ECCC — gap analysis was outdated. Extended scoring with Koppen zone and GDD heat accumulation components.
+- **Key finding:** Atlas already had robust climate data from NOAA ACIS (US, 30-year normals) and ECCC OGC (CA). The gap analysis listed these as missing, but they were implemented in a prior session.
+- **Files modified:**
+  - `apps/web/src/lib/layerFetcher.ts` — added `computeKoppen()` (Koppen-Geiger classification from monthly temp/precip), `koppenLabel()` (human-readable labels), `computeFreezeThaw()` (transition month estimation), `fetchNasaPowerSolar()` (NASA POWER GHI API); extended all 3 climate return paths (NOAA, ECCC, fallback) with new fields
+  - `apps/web/src/features/climate/SolarClimateDashboard.tsx` — extended ClimateSummary interface, added Koppen, solar radiation, freeze-thaw, snow months display
+  - `apps/web/src/lib/computeScores.ts` — added koppen_zone (max 8 pts) and heat_accumulation/GDD (max 5 pts) to agricultural suitability
+  - `wiki/entities/gap-analysis.md` — corrected climate section: 8/10 implemented, updated summary table
+- **APIs connected:** NASA POWER (`power.larc.nasa.gov`) — global solar radiation, free, no key
+- **Gaps closed:** Koppen classification, freeze-thaw/snow load, solar radiation (kWh/m²/day)
+- **Gaps remaining (climate):** Extreme event frequency, climate change projections (RCP 4.5/8.5)
+
+---
+
+### 2026-04-14 — Sprint B: Soil Extended Properties (Display Gap)
+- **Scope:** Extended frontend SSURGO SDA query from 4 to 15 chorizon fields with weighted multi-component averages. Added derived indices (fertility index, salinization risk, USDA texture class). Expanded EcologicalDashboard from 6 to 16 soil metrics with assessment flags. Integrated new soil properties into scoring engine (pH, CEC, AWC in agricultural suitability; fertility + salinity penalty in stewardship readiness).
+- **Files modified:**
+  - `apps/web/src/lib/layerFetcher.ts` — rewrote US SSURGO query: removed TOP 1, added 9 chorizon fields (cec7_r, ec_r, dbthirdbar_r, ksat_r, awc_r, silttotal_r, caco3_r, sar_r) + resdepth_r, weighted average computation, deriveTextureClassFe, computeFertilityIndexFe, computeSalinizationRiskFe
+  - `apps/web/src/features/dashboard/pages/EcologicalDashboard.tsx` — extended SoilsSummary interface (14 new fields), added Physical Properties / Particle Size / Chemical Properties / Derived Indices sub-sections, soil assessment flags (pH extreme, salinity, compaction, low CEC, low AWC, sodicity)
+  - `apps/web/src/features/dashboard/pages/EcologicalDashboard.module.css` — added subSectionLabel style
+  - `apps/web/src/lib/computeScores.ts` — added ph_suitability (max 10), cation_exchange (max 5), water_holding (max 5) to agricultural suitability; soil_fertility (max 10) + salinity_penalty (max -5) to stewardship readiness
+  - `wiki/entities/gap-analysis.md` — marked 10/16 soil gaps as implemented
+- **Gaps closed:** pH, OC, CEC, EC, SAR, CaCO3, Ksat, AWC, rooting depth, bulk density
+- **Gaps remaining (soil):** N-P-K, surface stoniness, soil degradation, boron toxicity, WRB classification, SoilGrids
+
+---
+
+### 2026-04-14 — Sprint A (cont.): Cut/Fill + Erosion Hazard
+- **Scope:** Implemented the final 2 terrain gaps: cut/fill volume estimation and RUSLE erosion hazard mapping. Also added `kfact_r` (soil erodibility) to SSURGO adapter.
+- **Files created:**
+  - `algorithms/cutFill.ts` (~110 lines) — on-demand utility comparing existing DEM to target elevation within a polygon. Point-in-polygon rasterization, cut/fill/unchanged classification, volume + area output.
+  - `algorithms/erosionHazard.ts` (~160 lines) — RUSLE (R×K×LS×C×P) with tiered confidence: LS computed from DEM, K/R/C default when unavailable, upgrades when soil + climate data present. 6-class output (very_low through severe, t/ha/yr).
+  - `migrations/008_erosion_cutfill.sql` — 6 erosion columns on `terrain_analysis`.
+- **Files modified:**
+  - `TerrainAnalysisProcessor.ts` — erosion wired as 8th parallel analysis, GeoJSON + UPSERT extended.
+  - `SsurgoAdapter.ts` — added `h.kfact_r` to horizon SQL, HorizonRow, SoilSummary, weighted averages, and null fallback.
+  - `TerrainDashboard.tsx` — erosion hazard section with mean/max soil loss, confidence, 6-class progress bars.
+- **Gap analysis:** Terrain & Topography now **8/8 complete** (plus 3 bonus: frost pocket, cold air drainage, TPI).
+- **Next:** Sprint B (soil extended properties) or Sprint C (climate data).
+
+### 2026-04-14 — Sprint A: TWI + TRI Terrain Algorithms
+- **Scope:** Implemented Topographic Wetness Index (TWI) and Terrain Ruggedness Index (TRI) — the two remaining computation gaps in the terrain pipeline.
+- **Key discovery:** 5/8 terrain gaps from the gap analysis were already implemented (aspect, curvature, viewshed, frost pocket, TPI). Sprint A scope reduced to TWI + TRI only.
+- **Files created:**
+  - `apps/api/src/services/terrain/algorithms/twi.ts` (~105 lines) — `ln(catchment_area / tan(slope))`, 5-class classification (very_dry through very_wet), reuses `hydro.ts` components.
+  - `apps/api/src/services/terrain/algorithms/tri.ts` (~130 lines) — mean absolute elevation difference of 8 neighbours, Riley et al. 1999 7-class system with resolution scaling for high-res DEMs.
+  - `apps/api/src/db/migrations/007_twi_tri.sql` — 8 new columns on `terrain_analysis` table.
+- **Files modified:**
+  - `TerrainAnalysisProcessor.ts` — imports, Promise.all (5→7), GeoJSON conversion, UPSERT extended with 8 columns.
+  - `TerrainDashboard.tsx` — TWI wetness + TRI ruggedness sections with progress bars, reading from `terrain_analysis` layer.
+- **Gap analysis updated:** terrain section now shows 6/8 implemented, 2 remaining (cut/fill, erosion hazard).
+- **Next:** Build verification, then Sprint B (soil extended properties) or Sprint C (climate data).
+
+### 2026-04-14 — SSURGO Backend Adapter Implementation
+- **Scope:** Implemented `SsurgoAdapter` — the first real backend data adapter in the pipeline, replacing `ManualFlagAdapter` for soils/US.
+- **Files created:**
+  - `apps/api/src/services/pipeline/adapters/SsurgoAdapter.ts` (380 lines) — full SSURGO SDA adapter with two-phase queries (mukey spatial intersection → horizon data), weighted averages, USDA texture classification, fertility index (0-100), salinization risk, confidence determination, and Tier 3 processor compatibility aliases.
+  - `apps/api/src/tests/SsurgoAdapter.test.ts` (330 lines) — 27 tests across 8 suites, all passing.
+- **Files modified:** `DataPipelineOrchestrator.ts` — wired `SsurgoAdapter` into `resolveAdapter()`, exported `ProjectContext` interface.
+- **Adapter registry:** 1/14 live (was 0/14).
+- **Deferred:** DB upsert inside adapter (orchestrator handles), Tier 3 conditional trigger (orchestrator handles), UsgsElevationAdapter.
+- **Next:** Implement `UsgsElevationAdapter` (elevation/US) or CVE remediation (fast-jwt).
+
+### 2026-04-14 — Gap Analysis Wiki Ingestion + Triage
+- **Scope:** Ingested `infrastructure/OGDEN Atlas — Global Completeness Gap Analysis.md` into wiki as a formal entity page, then triaged all 13 categories by priority.
+- **Output:** `wiki/entities/gap-analysis.md` — structured synthesis of ~120 gaps, each tagged with gap type (data / computation / display), priority-ordered summary table (P0-P4), quick wins section, and 6-sprint implementation roadmap.
+- **Priority assignments:**
+  - **P0 (Quick Win):** Terrain computation (7 gaps, DEM live, `tier3-terrain` exists), Soil extended properties (5-8 gaps, SSURGO `chorizon` columns already available)
+  - **P1:** Climate data (free APIs: WorldClim/NASA POWER), Formal Scoring algorithms (FAO/USDA classification)
+  - **P2:** Crop Suitability (most significant strategic gap, depends on P1), Regulatory/Legal (fragmented sources)
+  - **P3:** Renewable Energy, Infrastructure, Ecological, Design Intelligence
+  - **P4:** Environmental Risk, Global Coverage
+- **Cross-references added:** atlas-platform.md, data-pipeline.md.
+- **Next:** Sprint A — implement terrain computation algorithms in `tier3-terrain` worker (aspect, curvature, TWI, TRI).
+
+### 2026-04-14 — Deep Technical Audit (ATLAS_DEEP_AUDIT.md)
+- **Scope:** Comprehensive 8-phase audit covering structural inventory, database schema, API layer, frontend features, data integration matrix, feature completeness matrix, technical debt, and synthesis report.
+- **Output:** `ATLAS_DEEP_AUDIT.md` (1,026 lines) saved to project root.
+- **Key findings:**
+  - Overall completion revised from ~65% to **~55%** — backend adapter registry is 100% stubbed (ManualFlagAdapter for all 14 adapters), which was previously obscured by frontend layerFetcher having 10 live API connections.
+  - 498 source files, 16 DB tables across 6 migrations, 50+ API endpoints, 26 Zustand stores, 14 dashboard pages.
+  - 28 data sources mapped (10 LIVE via frontend, 18 PLANNED). Backend pipeline has 0% real adapters.
+  - 14 security vulnerabilities (2 critical CVEs in fast-jwt via @fastify/jwt).
+  - TypeScript compiles clean (0 errors). Only 1 TODO remaining in codebase.
+  - Top recommendation: implement backend adapters starting with SSURGO (soils, 20% weight) and USGS 3DEP (elevation, 15% weight) to close the frontend/backend split.
+- **Wiki updates:** atlas-platform.md completion revised, data-pipeline.md current state expanded.
+- **Deferred:** UI browser verification, adapter implementation, CVE remediation.
+
+### 2026-04-13 — Local Stack Verification & Hardening
+- **Full LOCAL_VERIFICATION.md checklist run:** 22/24 API endpoint tests passed. Exports (Puppeteer) and terrain data skipped.
+- **Redis fault-tolerance:** `apps/api/src/plugins/redis.ts` — try/catch, connectTimeout, `family: 4` for WSL2 IPv4, retryStrategy. API now starts gracefully without Redis.
+- **BullMQ connection fix:** `apps/api/src/services/pipeline/DataPipelineOrchestrator.ts` — replaced `this.redis as never` casts with dedicated `ConnectionOptions` (host/port/password/family + `maxRetriesPerRequest: null`). All 5 queues + 5 workers now get their own connections.
+- **Pipeline startup guard:** `apps/api/src/app.ts` — added `redis.status === 'ready'` check before initializing orchestrator.
+- **Date serialization fix:** `packages/shared/src/lib/caseTransform.ts` — `instanceof Date` guard prevents object destructuring of timestamps in `toCamelCase`/`toSnakeCase`.
+- **jsonb double-stringification fix:** `apps/api/src/routes/design-features/index.ts` — `db.json()` / `sql.json()` for properties/style columns instead of `JSON.stringify()`.
+- **LOCAL_VERIFICATION.md doc fixes:** export type corrected, portal required fields added, migration env var instructions, full Redis WSL2 connectivity guide.
+- **New infrastructure files:** `db-setup.sql`, `run-migrations.sh`, `wsl-redis-url.sh`, `WINDOWS_DEV_NOTES.md`
+- **Commit:** `c6f7e1e` pushed to main.
+- **Deferred:** UI browser verification, Puppeteer PDF export test, terrain pipeline data test, WebSocket two-tab presence test.
+
+### 2026-04-13 — Pre-Launch Hardening: Remaining Deferred Items
+- **WS stale connection cleanup:** Added server-side stale connection timeout to `apps/api/src/plugins/websocket.ts`. Connections without heartbeat for 90s (3× client interval) are now auto-closed. `lastSeen` tracking was already in place but unused — now enforced via `setInterval` cleanup loop.
+- **Layers route snake_case → camelCase:** Applied `toCamelCase()` transform to layers API route (`apps/api/src/routes/layers/index.ts`), aligning with existing pattern in projects/design-features/files routes. Updated 222 snake_case field references across 18 frontend files + 4 test files. `MockLayerResult` interface updated to camelCase.
+- **Terrain DEM migration:** Replaced 4 `mapbox://` tile source URLs with MapTiler equivalents. Centralized as `TERRAIN_DEM_URL` and `CONTOUR_TILES_URL` in `lib/maplibre.ts`. Removed unused `MAPBOX_TOKEN` from API .env.
+- **Still deferred:** TypeScript composite references (structural tsconfig change, risk of build breakage), Docker initdb race condition (needs Docker env)

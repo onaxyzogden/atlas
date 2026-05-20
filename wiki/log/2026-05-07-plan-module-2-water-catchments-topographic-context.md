@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 2 · Water catchments topographic context
+
+
+Module 2 (Water) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-water-scholar-build-fresh.md`). `WaterCatchmentsCard` gains a "Topographic context" section above its precipitation block. Pulls `min/max/mean_elevation_m`, `mean_slope_deg` (+max), and `predominant_aspect` from the elevation layer summary in `siteDataStore` and renders one stat row per available field. Above the rows: a Yeomans-grounded callout ("Climate & Landform precede Water on the Scale of Permanence — read the slope & aspect before sizing catchments"). When the elevation layer isn't fetched, the panel renders an Observe-fetch hint instead of empty rows. Contour overlay + ridge/valley auto-trace remain deferred (those need raster work). Typecheck clean.

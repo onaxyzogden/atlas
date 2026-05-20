@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 3 · Zone overview polygon-line intersection refinement (turf)
+
+
+Module 3 follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-build-fresh.md`). `ZoneCirculationOverviewCard`'s orphan-high-frequency-path validation no longer relies on bbox-overlap alone. The card now runs a two-stage test: the existing bbox check stays as a cheap pre-filter, and surviving candidates pass through `@turf/boolean-intersects` (already in the bundle via `@turf/turf` ^7.1.0) for a real line ↔ polygon test. A `try/catch` around the turf call falls back to the bbox-positive answer on degenerate features so one bad geometry can't false-flag every daily/weekly path. Closes the bbox-only heuristic Scholar called out as a known false-fail mode (diagonal paths grazing rectangular zone bboxes). Typecheck clean.

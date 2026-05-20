@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 3 · Sector compass persistence
+
+
+Module 3 (Zones) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-zones-scholar-build-fresh.md`). `SectorOverlayCard`'s editable fire / view / noise compass pickers swapped from component-state to persistent storage via the new `apps/web/src/store/sectorStore.ts` (Zustand + persist, key `ogden-sectors` v1). Store shape is `byProject: { [projectId]: { fire?, view?, noise? } }` keyed by 8-point compass values; `setSector(projectId, key, null)` clears the key. Wind and downslope-aspect sectors stay derived live from the climate / elevation layers — only steward-authored Holmgren-P1 *Observe* notes persist. Card subscribes to `byProject` and derives its per-project slice via `useMemo` per the selector-stability ADR. Typecheck clean.

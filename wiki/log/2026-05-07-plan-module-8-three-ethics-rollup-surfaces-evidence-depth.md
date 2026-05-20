@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan Module 8 · Three-Ethics rollup surfaces evidence depth
+
+
+Module 8 (Principles) follow-up landed (parent: `wiki/decisions/2026-05-07-atlas-plan-principles-three-ethics-rollup.md`). `ThreeEthicsRollupCard` previously surfaced only met/partial/unmet status pills per principle — orthogonal to the linked-feature evidence the same checklist captures. Each rollup row now reads `checks[pid].linkedFeatureIds.length` and renders a "· N linked" meta-chip alongside the principle title; each ethic section gains an "Evidence depth: N linked features across M / 4 principles" caption beneath the blurb. Rolls the principle-by-principle linked-feature data the new 12 × 9 coverage matrix already pivots up to the 3-Ethics layer, so a steward who's only opened the rollup view can still spot ethics that have status pills set but zero feature evidence (the "performative met" failure mode). No store change. Typecheck clean.

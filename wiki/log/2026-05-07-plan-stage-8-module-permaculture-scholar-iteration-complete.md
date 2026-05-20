@@ -1,0 +1,4 @@
+# 2026-05-07 — Plan stage · 8-module Permaculture Scholar iteration complete
+
+
+Closed the 8-step Permaculture Scholar adjudication of every Plan-stage module against its OGDEN counterpart. Final tally: **5 BUILD_FRESH (3 additive, 2 net-new) · 3 KEEP_ATLAS · 0 PORT_OGDEN**. The original plan anticipated several PORT_OGDEN verdicts — none materialised; in every module where OGDEN had a candidate the Scholar either found Atlas's framing more orthodox (Modules 3, 6) or demanded a fresh additive build because both prototypes were missing the orthodox visualisation/validation layer (Modules 1, 2, 4, 5). Index ADR `wiki/decisions/2026-05-07-atlas-plan-modules-scholar-iteration.md` aggregates the 8 per-module ADRs, observed patterns, and ~16 deferred follow-ups across modules. `wiki/entities/web-app.md` now carries the post-iteration card inventory under "Plan v3 — 8-Module Permaculture Scholar Iteration (2026-05-07)."
