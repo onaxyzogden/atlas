@@ -244,6 +244,11 @@ export const MODULE_CARDS: Record<
     { label: 'Cover-crop planner', sectionId: 'plan-cover-crop-planner' },
     // B5.1 — cross-registered with soil-fertility; same sectionId, one render.
     { label: 'Living-roots audit', sectionId: 'plan-living-roots' },
+    // Nursery ledger — propagation inventory + germination calendar +
+    // readiness tracking. Cross-rendered from the Dashboard surface so
+    // operators can plan the propagation pipeline alongside the
+    // planting catalogue without leaving the Plan slide-up.
+    { label: 'Nursery ledger',     sectionId: 'nursery-ledger' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil

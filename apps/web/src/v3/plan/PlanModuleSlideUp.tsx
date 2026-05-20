@@ -105,6 +105,7 @@ const SubsystemsOverviewCard     = lazy(() => import('./cards/structures-subsyst
 const RegenerationMonitorCard    = lazy(() => import('../../features/plan/RegenerationMonitorCard.js'));
 const HabitatAllocationCard      = lazy(() => import('../../features/plan/HabitatAllocationCard.js'));
 const BiodiversityMonitorCard    = lazy(() => import('../../features/plan/BiodiversityMonitorCard.js'));
+const NurseryLedgerDashboard     = lazy(() => import('../../features/dashboard/pages/NurseryLedgerDashboard.js'));
 
 function renderPlanCard(
   sectionId: string,
@@ -197,6 +198,7 @@ function renderPlanCard(
     case 'plan-regeneration-monitor': return <RegenerationMonitorCard project={project} onSwitchToMap={noop} />;
     case 'plan-habitat-allocation': return <HabitatAllocationCard project={project} onSwitchToMap={noop} />;
     case 'plan-biodiversity-monitor': return <BiodiversityMonitorCard project={project} onSwitchToMap={noop} />;
+    case 'nursery-ledger':           return <NurseryLedgerDashboard project={project} onSwitchToMap={noop} />;
     default: return null;
   }
 }
