@@ -191,6 +191,22 @@ const REGENERATIVE_FARM: GoalTree = {
           deadlineYear: 3,
         },
         {
+          id: 'livestock-rotation-spine-presence-pct',
+          description:
+            'Projected rotation moves present on the work-item spine (%)',
+          unit: 'pct',
+          target: 90,
+          deadlineYear: 2,
+        },
+        {
+          id: 'livestock-rotation-moves-completed-pct',
+          description:
+            'Past-due rotation moves marked completed on the spine (%)',
+          unit: 'pct',
+          target: 90,
+          deadlineYear: 2,
+        },
+        {
           id: 'silvopasture-integration-pct',
           description:
             'Mean per-host silvopasture integration (fodder + canopy − toxicity) across the parcel (%)',
