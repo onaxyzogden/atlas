@@ -22,6 +22,13 @@ import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useAgribusinessStore } from '../../../store/agribusinessStore.js';
 import { usePolycultureStore } from '../../../store/polycultureStore.js';
 import {
+  assignRingPositions,
+  lonLatToMetresOffset,
+  metresToLonLatOffset,
+} from '../../../features/agroforestry/guildMemberPositions.js';
+import { findSpecies } from '../../../data/plantCatalog.js';
+import { LAYER_TINT } from '../cards/plant-systems/guildLayerOrder.js';
+import {
   useAllStructures,
   getAllStructures,
   updateStructure,
@@ -263,6 +270,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const selected = selectedItems[0] ?? null;
   const selectedGuildId =
     selected?.kind === 'guild' ? selected.id : null;
+  const selectedMemberKey =
+    selected?.kind === 'guild-member' && selected.memberIndex !== undefined
+      ? `${selected.id}:${selected.memberIndex}`
+      : null;
 
   const {
     polyFC,
@@ -274,6 +285,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     transectFC,
     conflictPointFC,
     conflictLineFC,
+    memberPointFC,
+    memberCanopyFC,
   } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
@@ -282,6 +295,12 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const setbacks: GeoJSON.Feature[] = [];
     const flows: GeoJSON.Feature[] = [];
     const transects: GeoJSON.Feature[] = [];
+    // Per-guild-member geometry — points (dots) + canopy disks (translucent).
+    // Built downstream from the same `assignRingPositions` + `Guild.center`
+    // pipeline the canopy-union math uses, so the on-parcel render and the
+    // SilvopastureIntegrationCard read from one geometric source of truth.
+    const memberPoints: GeoJSON.Feature[] = [];
+    const memberCanopies: GeoJSON.Feature[] = [];
     // Utility-conflict hazard halos — earthwork WaterNodes that intersected
     // a buried utility at draw-time (see ADR 2026-05-10-plan-earthwork-
     // utility-veto). Rendered in `#c4422a` as a 4 px outline behind the
@@ -504,6 +523,58 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         properties: props,
         geometry: { type: 'Point', coordinates: g.center },
       });
+
+      // Per-member geometry — one Point per member at the absolute lon/lat
+      // resolved from Guild.center + assignRingPositions output, plus an
+      // optional canopy disk for members whose species has canopySpreadM.
+      // The render mirrors the in-card GuildRingsCanvas layout so the steward
+      // sees the same spatial composition on the parcel as in the slide-up.
+      const memberPositions = assignRingPositions(g.members);
+      const [centerLng, centerLat] = g.center;
+      for (let i = 0; i < g.members.length; i += 1) {
+        const member = g.members[i]!;
+        const pos = memberPositions[i]!;
+        const [dLng, dLat] = metresToLonLatOffset(pos[0], pos[1], centerLat);
+        const lng = centerLng + dLng;
+        const lat = centerLat + dLat;
+        const species = findSpecies(member.speciesId);
+        const tint = LAYER_TINT[member.layer];
+        const memberProps = {
+          id: g.id,
+          kind: 'guild-member',
+          guildId: g.id,
+          memberIndex: i,
+          color: tint,
+          layer: member.layer,
+          speciesId: member.speciesId,
+          label: species?.commonName ?? member.speciesId,
+          yeomansRank: 8,
+          enterprise: g.enterprise ?? '',
+        };
+        memberPoints.push({
+          type: 'Feature',
+          id: `${g.id}:${i}`,
+          properties: memberProps,
+          geometry: { type: 'Point', coordinates: [lng, lat] },
+        });
+        const spread = species?.canopySpreadM;
+        if (spread && spread > 0) {
+          try {
+            const disk = turf.circle([lng, lat], spread / 2, {
+              units: 'meters',
+              steps: 32,
+            });
+            memberCanopies.push({
+              type: 'Feature',
+              id: `${g.id}:${i}:canopy`,
+              properties: memberProps,
+              geometry: disk.geometry,
+            });
+          } catch {
+            /* skip — invalid geometry */
+          }
+        }
+      }
     }
 
     // Fertility infra (point) — Module 6 Soil & Closed-Loop. Yeomans rank 7.
@@ -827,6 +898,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       transectFC: { type: 'FeatureCollection' as const, features: transects },
       conflictPointFC: { type: 'FeatureCollection' as const, features: conflictPoints },
       conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
+      memberPointFC: { type: 'FeatureCollection' as const, features: memberPoints },
+      memberCanopyFC: { type: 'FeatureCollection' as const, features: memberCanopies },
     };
   }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId]);
 
@@ -855,6 +928,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const transectSid = ensureSource('transect', transectFC);
       const conflictPointSid = ensureSource('utility-conflict-point', conflictPointFC);
       const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
+      const memberPointSid = ensureSource('guild-member-point', memberPointFC);
+      const memberCanopySid = ensureSource('guild-member-canopy', memberCanopyFC);
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
@@ -1094,6 +1169,55 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         },
       });
 
+      // Per-guild-member layers — only visible at zoom ≥ 17. Below that
+      // the parcel is too small for the dots to read; the guild centroid
+      // is the right abstraction.
+      const memberStrokeColorExpr = selectedMemberKey
+        ? [
+            'case',
+            ['==', ['id'], selectedMemberKey],
+            '#ffd166',
+            '#1f1d1a',
+          ]
+        : '#1f1d1a';
+      const memberStrokeWidthExpr = selectedMemberKey
+        ? ['case', ['==', ['id'], selectedMemberKey], 3, 1.5]
+        : 1.5;
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-member-canopy-fill`,
+        type: 'fill',
+        source: memberCanopySid,
+        minzoom: 17,
+        paint: {
+          'fill-color': ['get', 'color'] as never,
+          'fill-opacity': 0.10,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-member-canopy-line`,
+        type: 'line',
+        source: memberCanopySid,
+        minzoom: 17,
+        paint: {
+          'line-color': ['get', 'color'] as never,
+          'line-opacity': 0.30,
+          'line-width': 1,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-member-point`,
+        type: 'circle',
+        source: memberPointSid,
+        minzoom: 17,
+        paint: {
+          'circle-radius': 5,
+          'circle-color': ['get', 'color'] as never,
+          'circle-stroke-color': memberStrokeColorExpr as never,
+          'circle-stroke-width': memberStrokeWidthExpr as never,
+          'circle-opacity': 0.95,
+        },
+      });
+
       // Re-apply paint properties on existing layers so the toggle takes
       // effect for already-created layers (ensureLayer is a no-op when the
       // layer exists).
@@ -1133,6 +1257,18 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         map.setPaintProperty(`${LAYER_PREFIX}flow-line`, 'line-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}flow-arrow`, 'text-color', colorExpr as never);
         map.setPaintProperty(`${LAYER_PREFIX}transect-line`, 'line-color', colorExpr as never);
+        if (map.getLayer(`${LAYER_PREFIX}guild-member-point`)) {
+          map.setPaintProperty(
+            `${LAYER_PREFIX}guild-member-point`,
+            'circle-stroke-color',
+            memberStrokeColorExpr as never,
+          );
+          map.setPaintProperty(
+            `${LAYER_PREFIX}guild-member-point`,
+            'circle-stroke-width',
+            memberStrokeWidthExpr as never,
+          );
+        }
       } catch {
         /* layer may have been removed mid-toggle */
       }
@@ -1208,10 +1344,13 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     transectFC,
     conflictPointFC,
     conflictLineFC,
+    memberPointFC,
+    memberCanopyFC,
     lensEnabled,
     lensMode,
     enterprises,
     selectedGuildId,
+    selectedMemberKey,
     seededZonesVisible,
   ]);
 
@@ -1360,6 +1499,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         `${LAYER_PREFIX}poly-fill`,
         `${LAYER_PREFIX}line`,
         `${LAYER_PREFIX}point`,
+        `${LAYER_PREFIX}guild-member-point`,
         `${LAYER_PREFIX}flow-line`,
         `${LAYER_PREFIX}flow-arrow`,
         `${LAYER_PREFIX}transect-line`,
@@ -1395,6 +1535,276 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         map.off('mouseleave', layerId, onMouseLeave);
         map.off('mousedown', layerId, onMouseDown);
         map.off('click', onBgClick);
+        map.dragPan.enable();
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map, activeTool, setSelection, updateGuild, openForm, editable]);
+
+  // Per-member drag-to-place + click-to-edit on guild member dots. Mirrors
+  // the guild centroid block above; the write target is
+  // `GuildMember.position` (guild-local [east, north] metres) computed via
+  // `lonLatToMetresOffset` from the absolute lon/lat delta. First drag of
+  // a ring-derived member writes the field; subsequent drags update.
+  useEffect(() => {
+    if (!map) return;
+    if (!editable) return;
+    if (activeTool !== null) return;
+    const layerId = `${LAYER_PREFIX}guild-member-point`;
+    const DRAG_THRESHOLD_PX = 4;
+
+    type MemberDragState = {
+      guildId: string;
+      memberIndex: number;
+      startX: number;
+      startY: number;
+      startLng: number;
+      startLat: number;
+      centerLat: number;
+      origPosition: [number, number];
+      dragging: boolean;
+    };
+    let down: MemberDragState | null = null;
+
+    const onMouseEnter = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (f?.properties?.kind === 'guild-member') {
+        setCursorIntent('move');
+      }
+    };
+    const onMouseLeave = () => {
+      if (!down?.dragging) setCursorIntent(null);
+    };
+    const onMouseDown = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (!f || f.properties?.kind !== 'guild-member') return;
+      e.preventDefault();
+      const guildId = String(f.properties.guildId);
+      const memberIndex = Number(f.properties.memberIndex);
+      const g = usePolycultureStore
+        .getState()
+        .guilds.find((x) => x.id === guildId);
+      if (!g || !g.center) return;
+      const member = g.members[memberIndex];
+      if (!member) return;
+      const selItem = {
+        kind: 'guild-member' as const,
+        id: guildId,
+        memberIndex,
+      };
+      if (e.originalEvent.shiftKey) {
+        usePlanSelectionStore.getState().toggle(selItem);
+      } else {
+        setSelection([selItem]);
+      }
+      // Resolve the *initial* member position so the drag delta accumulates
+      // from a stable base. Explicit `position` wins; otherwise the ring
+      // positioner picks the slot we rendered at, which is the same the
+      // pointer-down event fired on.
+      const positions = assignRingPositions(g.members);
+      const origPosition: [number, number] = positions[memberIndex] ?? [0, 0];
+      const hadExplicitOrig = member.position !== undefined;
+      down = {
+        guildId,
+        memberIndex,
+        startX: e.point.x,
+        startY: e.point.y,
+        startLng: e.lngLat.lng,
+        startLat: e.lngLat.lat,
+        centerLat: g.center[1],
+        origPosition,
+        dragging: false,
+      };
+      let lastEastM = origPosition[0];
+      let lastNorthM = origPosition[1];
+      const undoWindow = beginDragUndoWindow(usePolycultureStore);
+
+      const onMove = (ev: maplibregl.MapMouseEvent) => {
+        if (!down) return;
+        const dx = ev.point.x - down.startX;
+        const dy = ev.point.y - down.startY;
+        if (!down.dragging && Math.hypot(dx, dy) >= DRAG_THRESHOLD_PX) {
+          down.dragging = true;
+          undoWindow.start();
+          map.dragPan.disable();
+          setCursorIntent('grabbing');
+        }
+        if (!down.dragging) return;
+        const dLng = ev.lngLat.lng - down.startLng;
+        const dLat = ev.lngLat.lat - down.startLat;
+        const [dEastM, dNorthM] = lonLatToMetresOffset(
+          dLng,
+          dLat,
+          down.centerLat,
+        );
+        const nextEast = down.origPosition[0] + dEastM;
+        const nextNorth = down.origPosition[1] + dNorthM;
+        lastEastM = nextEast;
+        lastNorthM = nextNorth;
+        const guildNow = usePolycultureStore
+          .getState()
+          .guilds.find((x) => x.id === down!.guildId);
+        if (!guildNow) return;
+        updateGuild(down.guildId, {
+          members: guildNow.members.map((m, i) =>
+            i === down!.memberIndex
+              ? { ...m, position: [nextEast, nextNorth] as [number, number] }
+              : m,
+          ),
+        });
+      };
+      const onUp = (ev: maplibregl.MapMouseEvent) => {
+        map.off('mousemove', onMove);
+        map.off('mouseup', onUp);
+        if (!down) return;
+        const wasDrag = down.dragging;
+        const guildId2 = down.guildId;
+        const memberIndex2 = down.memberIndex;
+        const origPos = down.origPosition;
+        const downXY = { x: down.startX, y: down.startY };
+        const hadExplicitOrigUp = hadExplicitOrig;
+        down = null;
+        map.dragPan.enable();
+        setCursorIntent(null);
+        if (wasDrag) {
+          const finalEast = lastEastM;
+          const finalNorth = lastNorthM;
+          undoWindow.commit(
+            () => {
+              const cur = usePolycultureStore
+                .getState()
+                .guilds.find((x) => x.id === guildId2);
+              if (!cur) return;
+              if (hadExplicitOrigUp) {
+                updateGuild(guildId2, {
+                  members: cur.members.map((m, i) =>
+                    i === memberIndex2
+                      ? { ...m, position: origPos }
+                      : m,
+                  ),
+                });
+              } else {
+                updateGuild(guildId2, {
+                  members: cur.members.map((m, i) => {
+                    if (i !== memberIndex2) return m;
+                    const { position: _drop, ...rest } = m;
+                    return rest;
+                  }),
+                });
+              }
+            },
+            () => {
+              const cur = usePolycultureStore
+                .getState()
+                .guilds.find((x) => x.id === guildId2);
+              if (!cur) return;
+              updateGuild(guildId2, {
+                members: cur.members.map((m, i) =>
+                  i === memberIndex2
+                    ? { ...m, position: [finalEast, finalNorth] as [number, number] }
+                    : m,
+                ),
+              });
+            },
+          );
+          return;
+        }
+        // Click-without-drag → popover with Snap to ring + Remove.
+        const anchor: [number, number] = ev?.lngLat
+          ? [ev.lngLat.lng, ev.lngLat.lat]
+          : (() => {
+              try {
+                const { lng, lat } = map.unproject([downXY.x, downXY.y]);
+                return [lng, lat] as [number, number];
+              } catch {
+                return [0, 0] as [number, number];
+              }
+            })();
+        const g2 = usePolycultureStore
+          .getState()
+          .guilds.find((x) => x.id === guildId2);
+        if (!g2) return;
+        const m2 = g2.members[memberIndex2];
+        if (!m2) return;
+        const speciesLabel =
+          findSpecies(m2.speciesId)?.commonName ?? m2.speciesId;
+        const hasExplicit = m2.position !== undefined;
+        openForm({
+          title: `Edit ${speciesLabel}`,
+          anchor,
+          fields: [],
+          initial: {},
+          onSave: () => {
+            /* no editable fields — actions only */
+          },
+          onCancel: () => {
+            /* no-op */
+          },
+          customActions: [
+            {
+              label: 'Snap to ring',
+              onClick: (_values, close) => {
+                if (!hasExplicit) {
+                  close();
+                  return;
+                }
+                const cur = usePolycultureStore
+                  .getState()
+                  .guilds.find((x) => x.id === guildId2);
+                if (!cur) {
+                  close();
+                  return;
+                }
+                updateGuild(guildId2, {
+                  members: cur.members.map((m, i) => {
+                    if (i !== memberIndex2) return m;
+                    const { position: _drop, ...rest } = m;
+                    return rest;
+                  }),
+                });
+                close();
+              },
+            },
+            {
+              label: 'Remove from guild',
+              variant: 'danger',
+              onClick: (_values, close) => {
+                if (
+                  typeof window !== 'undefined' &&
+                  !window.confirm(`Remove ${speciesLabel} from this guild?`)
+                ) {
+                  return;
+                }
+                const cur = usePolycultureStore
+                  .getState()
+                  .guilds.find((x) => x.id === guildId2);
+                if (!cur) {
+                  close();
+                  return;
+                }
+                updateGuild(guildId2, {
+                  members: cur.members.filter((_, i) => i !== memberIndex2),
+                });
+                close();
+              },
+            },
+          ],
+        });
+      };
+      map.on('mousemove', onMove);
+      map.on('mouseup', onUp);
+    };
+
+    map.on('mouseenter', layerId, onMouseEnter);
+    map.on('mouseleave', layerId, onMouseLeave);
+    map.on('mousedown', layerId, onMouseDown);
+
+    return () => {
+      try {
+        map.off('mouseenter', layerId, onMouseEnter);
+        map.off('mouseleave', layerId, onMouseLeave);
+        map.off('mousedown', layerId, onMouseDown);
         map.dragPan.enable();
       } catch {
         /* map already disposed */
