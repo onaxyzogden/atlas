@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import type { GuildMember } from '../../../store/polycultureStore.js';
 import {
   assignRingPositions,
+  lonLatToMetresOffset,
   metresToLonLatOffset,
   ringRadiusForLayer,
 } from '../guildMemberPositions.js';
@@ -108,5 +109,39 @@ describe('metresToLonLatOffset', () => {
   it('shrinks longitude by cos(lat) — 1° at lat 60° takes half the metres', () => {
     const [dLon] = metresToLonLatOffset(111_320 / 2, 0, 60);
     expect(dLon).toBeCloseTo(1, 3);
+  });
+});
+
+describe('lonLatToMetresOffset', () => {
+  it('returns [0, 0] for the origin', () => {
+    expect(lonLatToMetresOffset(0, 0, 0)).toEqual([0, 0]);
+    expect(lonLatToMetresOffset(0, 0, 60)).toEqual([0, 0]);
+  });
+
+  it('round-trips with metresToLonLatOffset at the equator', () => {
+    const east = 3;
+    const north = 4;
+    const [dLon, dLat] = metresToLonLatOffset(east, north, 0);
+    const [e2, n2] = lonLatToMetresOffset(dLon, dLat, 0);
+    expect(e2).toBeCloseTo(east, 9);
+    expect(n2).toBeCloseTo(north, 9);
+  });
+
+  it('round-trips at lat 60°', () => {
+    const east = -2;
+    const north = 6;
+    const [dLon, dLat] = metresToLonLatOffset(east, north, 60);
+    const [e2, n2] = lonLatToMetresOffset(dLon, dLat, 60);
+    expect(e2).toBeCloseTo(east, 9);
+    expect(n2).toBeCloseTo(north, 9);
+  });
+
+  it('round-trips at lat -45°', () => {
+    const east = 0;
+    const north = 0.5;
+    const [dLon, dLat] = metresToLonLatOffset(east, north, -45);
+    const [e2, n2] = lonLatToMetresOffset(dLon, dLat, -45);
+    expect(e2).toBeCloseTo(east, 9);
+    expect(n2).toBeCloseTo(north, 9);
   });
 });

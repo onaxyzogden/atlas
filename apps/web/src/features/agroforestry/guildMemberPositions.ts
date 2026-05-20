@@ -103,3 +103,20 @@ export function metresToLonLatOffset(
   const dLat = northM / M_PER_DEG_LAT;
   return [dLon, dLat];
 }
+
+/**
+ * Inverse of `metresToLonLatOffset`: convert a `[Δlon, Δlat]` pair
+ * (typically `eventLngLat - Guild.center`) back to a guild-local
+ * `[east, north]` metric offset. Used by the map-layer drag handler
+ * to write `GuildMember.position` from a dragged absolute lon/lat.
+ */
+export function lonLatToMetresOffset(
+  dLon: number,
+  dLat: number,
+  originLat: number,
+): [number, number] {
+  const cosLat = Math.cos((originLat * Math.PI) / 180);
+  const eastM = cosLat === 0 ? 0 : dLon * cosLat * M_PER_DEG_LON_EQUATOR;
+  const northM = dLat * M_PER_DEG_LAT;
+  return [eastM, northM];
+}
