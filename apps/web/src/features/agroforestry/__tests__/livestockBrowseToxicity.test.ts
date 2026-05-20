@@ -123,6 +123,50 @@ describe('toxicityForGuild', () => {
     const hits = toxicityForGuild([member('clover')], ['cattle']);
     expect(hits).toEqual([]);
   });
+
+  it('narrows to avian-only entries for a poultry herd', () => {
+    // black_locust ruminant row excludes poultry; the new poultry row
+    // (avoid) is the only black_locust hit. cherry has both a ruminant
+    // and an avian row — only the avian row should match. garlic same.
+    const hits = toxicityForGuild(
+      [member('cherry'), member('garlic'), member('black_locust')],
+      ['poultry'],
+    );
+    const keys = hits.map((h) => `${h.speciesId}:${h.tier}`).sort();
+    expect(keys).toEqual([
+      'black_locust:avoid',
+      'cherry:caution',
+      'garlic:caution',
+    ]);
+    for (const hit of hits) {
+      expect(hit.affects).toContain('poultry');
+    }
+  });
+
+  it('narrows to waterfowl-only entries for a ducks_geese herd', () => {
+    // white_oak ruminant row excludes ducks_geese; the new waterfowl row
+    // is the only white_oak hit. garlic_chive avian row covers ducks_geese.
+    const hits = toxicityForGuild(
+      [member('white_oak'), member('garlic_chive')],
+      ['ducks_geese'],
+    );
+    const ids = hits.map((h) => h.speciesId).sort();
+    expect(ids).toEqual(['garlic_chive', 'white_oak']);
+    for (const hit of hits) {
+      expect(hit.affects).toContain('ducks_geese');
+    }
+  });
+
+  it('returns both ruminant and avian rows for a mixed cattle+poultry herd on cherry', () => {
+    // cherry has two rows: ruminant (affects cattle...) and avian
+    // (affects poultry, ducks_geese). A mixed herd should surface both
+    // distinct entries so the steward sees per-species rationale.
+    const hits = toxicityForGuild([member('cherry')], ['cattle', 'poultry']);
+    expect(hits.length).toBe(2);
+    const tiers = hits.map((h) => h.tier).sort();
+    expect(tiers).toEqual(['avoid', 'caution']);
+    expect(hits.every((h) => h.speciesId === 'cherry')).toBe(true);
+  });
 });
 
 describe('covenant lock', () => {
