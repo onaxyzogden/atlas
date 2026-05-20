@@ -207,6 +207,7 @@ export const MODULE_CARDS: Record<
     { label: 'Rotation sequence',       sectionId: 'plan-livestock-rotation-sequence' },
     { label: 'Rotation plan',           sectionId: 'plan-livestock-rotation-plan' },
     { label: 'Rotation adherence',      sectionId: 'plan-livestock-rotation-adherence' },
+    { label: 'Rotation adherence — actions', sectionId: 'plan-livestock-rotation-adherence-actions' },
     // B4 — cross-registered with plant-systems. One sectionId, two
     // surfacing tabs; render is centralised in PlanModuleSlideUp.
     { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },

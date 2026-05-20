@@ -58,6 +58,7 @@ const RegenerationPlanCard        = lazy(() => import('../../features/livestock/
 const RotationSequenceCard        = lazy(() => import('../../features/livestock/RotationSequenceCard.js'));
 const RotationPlanCard            = lazy(() => import('../../features/livestock/RotationPlanCard.js'));
 const RotationAdherenceCard       = lazy(() => import('../../features/livestock/RotationAdherenceCard.js'));
+const RotationAdherenceActionsCard = lazy(() => import('../../features/livestock/RotationAdherenceActionsCard.js'));
 const SilvopastureIntegrationCard = lazy(() => import('../../features/agroforestry/SilvopastureIntegrationCard.js'));
 const BeneficialHabitatCard       = lazy(() => import('../../features/biodiversity/BeneficialHabitatCard.js'));
 const LivingRootsCard             = lazy(() => import('../../features/coverCrops/LivingRootsCard.js'));
@@ -142,6 +143,7 @@ function renderPlanCard(
     case 'plan-livestock-rotation-sequence': return <RotationSequenceCard projectId={project.id} />;
     case 'plan-livestock-rotation-plan':    return <RotationPlanCard projectId={project.id} />;
     case 'plan-livestock-rotation-adherence': return <RotationAdherenceCard projectId={project.id} />;
+    case 'plan-livestock-rotation-adherence-actions': return <RotationAdherenceActionsCard projectId={project.id} />;
     case 'plan-silvopasture-integration':     return <SilvopastureIntegrationCard projectId={project.id} />;
     case 'plan-beneficial-habitat':           return <BeneficialHabitatCard projectId={project.id} />;
     case 'plan-living-roots':                 return <LivingRootsCard projectId={project.id} />;
