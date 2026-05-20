@@ -1,10 +1,27 @@
 # 2026-05-19 — B4 guild ↔ livestock ↔ silvopasture integration
 
-**Status.** Implemented. Branch `feat/atlas-permaculture`. Commits
-`0e5c9cb2` (Part 1 catalog + tests) → `67b26296` (Part 2 math + tests)
-→ `61b37795` (Part 3 card + cross-registration + criterion) → this
-`docs(wiki)`. **Not pushed** (branch rebased out-of-band; never force
-without `git fetch` + `git rev-list --left-right --count HEAD...@{u}`).
+**Status.** Implemented and **pushed**
+(`origin/feat/atlas-permaculture`, commits `0e5c9cb2` → `67b26296` →
+`61b37795` + this ADR `856efec8`; verified 2026-05-20 from a parallel
+session that found all four commits already on origin). The earlier
+"Not pushed" claim was stale — the parallel session pushed the slice
+out-of-band before this ADR's first save propagated.
+
+**Follow-ups (queued).**
+- 2026-05-20 — canopy overlap dedup via host-envelope clip
+  ([wiki/log/2026-05-20-b4-canopy-dedup-host-envelope-cap.md](../log/2026-05-20-b4-canopy-dedup-host-envelope-cap.md)).
+  Closes the "multiple guilds on one host claim more canopy than
+  physically fits" gap by clipping `rawCanopyM2` at
+  `turf.area(host.geometry)` before division; surfaces the discount
+  on the card as `canopyClampedM2`. Denominator unchanged (still
+  total paddock area — coverage is over the grazed surface, not the
+  full silvopasture polygon).
+- *Still open:* poultry expansion of `LIVESTOCK_BROWSE_TOXICITY`
+  (catalog currently ruminant- and equine-focused; chicken/duck/goose
+  browse tolerances not represented).
+- *Still open:* per-member spatial positions inside hosts would let
+  us do real `turf.union` canopy dedup instead of the envelope-cap
+  approximation. Out of scope until the data model supports it.
 
 ## Context
 
