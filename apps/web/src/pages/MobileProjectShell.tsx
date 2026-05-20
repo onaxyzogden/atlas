@@ -15,7 +15,7 @@
  * NextBestActionsPanel). Other tabs reuse DashboardRouter / MapView.
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, FileText, Compass, Map as MapIcon, Brain, FileBarChart } from 'lucide-react';
 import type { LandZone } from '../store/zoneStore.js';
@@ -26,6 +26,7 @@ import LandVerdictCard from '../features/dashboard/LandVerdictCard.js';
 import CriticalConstraintAlert from '../features/dashboard/CriticalConstraintAlert.js';
 import DecisionTriad from '../features/dashboard/DecisionTriad.js';
 import NextBestActionsPanel from '../features/dashboard/NextBestActionsPanel.js';
+const DesignMapGeneratorModal = lazy(() => import('../features/dashboard/DesignMapGeneratorModal.js'));
 import DashboardRouter from '../features/dashboard/DashboardRouter.js';
 import MapView from '../features/map/MapView.js';
 import css from './MobileProjectShell.module.css';
@@ -68,8 +69,10 @@ export default function MobileProjectShell({
   onGenerateBrief,
 }: MobileProjectShellProps) {
   const [tab, setTab] = useState<MobileTab>('overview');
+  const [isDesignMapOpen, setIsDesignMapOpen] = useState(false);
   const setActiveDashboardSection = useUIStore((s) => s.setActiveDashboardSection);
   const touchStartX = useRef<number | null>(null);
+  const apiProjectId = project.serverId ?? project.id;
 
   // Sync the persisted dashboard section when entering Intelligence / Report
   // so deep-link copies of the URL still resolve to the right inner panel.
@@ -138,6 +141,7 @@ export default function MobileProjectShell({
               project={project}
               onGenerateBrief={onGenerateBrief}
               onSwitchToMap={switchToDesign}
+              onGenerateDesignMap={() => setIsDesignMapOpen(true)}
             />
             <CriticalConstraintAlert
               project={project}
@@ -175,6 +179,15 @@ export default function MobileProjectShell({
           <FileText size={14} strokeWidth={2.2} aria-hidden="true" />
           <span>Generate Land Brief</span>
         </button>
+      )}
+
+      {isDesignMapOpen && (
+        <Suspense fallback={null}>
+          <DesignMapGeneratorModal
+            projectId={apiProjectId}
+            onClose={() => setIsDesignMapOpen(false)}
+          />
+        </Suspense>
       )}
 
       <nav className={css.bottomNav} role="tablist">

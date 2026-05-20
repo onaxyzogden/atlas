@@ -35,6 +35,7 @@ import './mapRailDashboard.css';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 
 const DomainFloatingToolbar = lazy(() => import('./DomainFloatingToolbar.js'));
+const DesignMapGeneratorModal = lazy(() => import('../dashboard/DesignMapGeneratorModal.js'));
 const CesiumTerrainViewer = lazy(() => import('./CesiumTerrainViewer.js'));
 const ViewModeSwitcher = lazy(() => import('./ViewModeSwitcher.js'));
 // NOTE: CrossSectionTool, HistoricalImageryControl, and MeasureTools are
@@ -156,6 +157,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
   const [boundaryColor, setBoundaryColor] = useState<string>(mapTokens.boundary);
   const [mirrorFeatures, setMirrorFeatures] = useState<GeoJSON.FeatureCollection | null>(null);
   const [isAddingComment, setIsAddingComment] = useState(false);
+  const [isDesignMapOpen, setIsDesignMapOpen] = useState(false);
   const [pendingCommentLngLat, setPendingCommentLngLat] = useState<[number, number] | null>(null);
   const [pendingCommentText, setPendingCommentText] = useState('');
   const addComment = useCommentStore((s) => s.addComment);
@@ -657,6 +659,7 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
               isMapReady={!!mapRef}
               canEdit={effectiveCanEdit}
               onExport={onExport}
+              onOpenDesignMap={() => setIsDesignMapOpen(true)}
             />
           </Suspense>
         )}
@@ -669,6 +672,15 @@ export default function MapView({ project, zones, structures, onEdit, onExport, 
         ) && (
           <Suspense fallback={null}>
             <PaddockListFloating projectId={project.id} draw={drawRef} map={mapRef} />
+          </Suspense>
+        )}
+
+        {isDesignMapOpen && (
+          <Suspense fallback={null}>
+            <DesignMapGeneratorModal
+              projectId={apiProjectId}
+              onClose={() => setIsDesignMapOpen(false)}
+            />
           </Suspense>
         )}
       </div>

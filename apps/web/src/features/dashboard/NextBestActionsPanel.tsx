@@ -17,7 +17,7 @@
  */
 
 import { useMemo } from 'react';
-import { ArrowRight, AlertOctagon, Sparkles, Map, FileText, Calculator } from 'lucide-react';
+import { ArrowRight, AlertOctagon, Sparkles, Map, FileText, Calculator, Wand2 } from 'lucide-react';
 import { deriveOpportunities, deriveRisks } from '../../lib/computeScores.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData } from '../../store/siteDataStore.js';
@@ -43,12 +43,14 @@ interface NextBestActionsPanelProps {
   project: LocalProject;
   onGenerateBrief?: () => void;
   onSwitchToMap?: () => void;
+  onGenerateDesignMap?: () => void;
 }
 
 export default function NextBestActionsPanel({
   project,
   onGenerateBrief,
   onSwitchToMap,
+  onGenerateDesignMap,
 }: NextBestActionsPanelProps) {
   const siteData = useSiteData(project.id);
   const layers = siteData?.layers ?? EMPTY_LAYERS;
@@ -95,6 +97,17 @@ export default function NextBestActionsPanel({
       });
     }
 
+    if (onGenerateDesignMap && project.parcelBoundaryGeojson) {
+      queue.push({
+        id: 'design-map-generate',
+        icon: <Wand2 size={14} strokeWidth={2} />,
+        title: 'Generate candidate Design Map',
+        description: 'Orchards, swales, paddocks, and habitat corridors derived from the parcel and watershed.',
+        tone: 'opportunity',
+        onClick: onGenerateDesignMap,
+      });
+    }
+
     queue.push({
       id: 'run-feasibility',
       icon: <Calculator size={14} strokeWidth={2} />,
@@ -116,7 +129,7 @@ export default function NextBestActionsPanel({
     }
 
     return queue.slice(0, MAX_ACTIONS);
-  }, [layers, project.country, project.parcelBoundaryGeojson, onSwitchToMap, onGenerateBrief, setActiveSection]);
+  }, [layers, project.country, project.parcelBoundaryGeojson, onSwitchToMap, onGenerateBrief, onGenerateDesignMap, setActiveSection]);
 
   if (actions.length === 0) return null;
 

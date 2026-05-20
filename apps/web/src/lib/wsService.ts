@@ -67,6 +67,9 @@ function dispatchEvent(event: WsEvent) {
     case 'feature_deleted':
       handleFeatureDeleted(event);
       break;
+    case 'features_bulk_created':
+      handleFeaturesBulkCreated(event);
+      break;
     case 'comment_added':
       handleCommentAdded(event);
       break;
@@ -119,6 +122,14 @@ function handleFeatureCreated(event: WsEvent) {
     }
   } finally {
     setSyncGuard(false);
+  }
+}
+
+function handleFeaturesBulkCreated(event: WsEvent) {
+  const payload = event.payload as { features?: DesignFeatureSummary[] } | null;
+  const features = payload?.features ?? [];
+  for (const feature of features) {
+    handleFeatureCreated({ ...event, payload: feature as unknown as Record<string, unknown> });
   }
 }
 
