@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useCropStore } from '../../../store/cropStore.js';
 import { usePhaseStore } from '../../../store/phaseStore.js';
+import { useProjectStore } from '../../../store/projectStore.js';
 import { useWorkItemStore } from '../../../store/workItemStore.js';
 import type { CropArea, CropCoverWindow } from '../../../store/cropStore.js';
 import type { BuildPhase } from '../../../store/phaseStore.js';
@@ -328,6 +329,99 @@ describe('pushCoverCropPlanToSpine — preservation gate', () => {
     useWorkItemStore.getState().replaceCoverCropRows('p1', []);
     const items = useWorkItemStore.getState().items;
     expect(items.find((i) => i.id === 'gc1')).toBeDefined();
+  });
+
+  it('B5.2.x.c — seeds scheduledStart/scheduledEnd per project start year (wrap-aware)', () => {
+    void useProjectStore; // store reference kept for symmetry; pure path below
+    const items = seedCoverCropWorkItems({
+      projectId: 'p1',
+      catalog: CATALOG,
+      declaredPhases: [phase({ id: 'phase-1', order: 0, name: 'P1' })],
+      cropAreas: [area({ id: 'ca1', coverCropPlan: [win('winter_rye', 10, 3)] })],
+      projectStartYear: 2026,
+    });
+    expect(items[0]?.scheduledStart).toBe('2026-10-01');
+    expect(items[0]?.scheduledEnd).toBe('2027-03-28');
+  });
+
+  it('B5.2.x.c — seeds precedesAuto from cover-crop to cash-crop on shared CropArea', () => {
+    usePhaseStore.setState({ phases: [phase({ id: 'phase-1', order: 0, name: 'P1' })] });
+    useCropStore.setState({
+      cropAreas: [area({ id: 'ca1', coverCropPlan: [win('winter_rye', 9, 5)] })],
+    });
+    useWorkItemStore.setState({
+      items: [
+        manualWorkItem({
+          id: 'pc-tomato',
+          source: 'nursery-batch',
+          generatedFromPlantingCalendar: 'tomato:ca1:2026',
+          title: 'plant tomato',
+        }),
+      ],
+      migratedSources: [],
+    });
+
+    pushCoverCropPlanToSpine('p1');
+    const row = useWorkItemStore
+      .getState()
+      .items.find((i) => i.id === 'cc__ca1__0');
+    expect(row?.precedesAuto).toEqual(['pc-tomato']);
+    // Cash-crop row is *not* mutated — preserve single-writer-spine.
+    const cash = useWorkItemStore.getState().items.find((i) => i.id === 'pc-tomato');
+    expect(cash?.dependsOnAuto).toEqual([]);
+  });
+
+  it('B5.2.x.c — orphan area (no cash crop) emits no precedesAuto entry', () => {
+    usePhaseStore.setState({ phases: [phase({ id: 'phase-1', order: 0, name: 'P1' })] });
+    useCropStore.setState({
+      cropAreas: [area({ id: 'ca1', coverCropPlan: [win('winter_rye', 9, 5)] })],
+    });
+    useWorkItemStore.setState({ items: [], migratedSources: [] });
+    pushCoverCropPlanToSpine('p1');
+    const row = useWorkItemStore.getState().items.find((i) => i.id === 'cc__ca1__0');
+    expect(row?.precedesAuto ?? []).toEqual([]);
+  });
+
+  it('B5.2.x.c — replaceCoverCropDependencies preserves overridden cover-crop rows', () => {
+    useWorkItemStore.setState({
+      items: [
+        manualWorkItem({
+          id: 'cc__keep__0',
+          source: 'cover-crop',
+          overridden: true,
+          generatedFromCoverCropWindow: 'keep__0',
+          precedesAuto: ['existing'],
+          title: 'overridden',
+        }),
+      ],
+      migratedSources: [],
+    });
+    useWorkItemStore
+      .getState()
+      .replaceCoverCropDependencies('p1', new Map([['cc__keep__0', ['new']]]));
+    const row = useWorkItemStore.getState().items.find((i) => i.id === 'cc__keep__0');
+    // Overridden — untouched.
+    expect(row?.precedesAuto).toEqual(['existing']);
+  });
+
+  it('B5.2.x.c — replaceCoverCropDependencies leaves goal-compass rows untouched', () => {
+    useWorkItemStore.setState({
+      items: [
+        manualWorkItem({
+          id: 'gc1',
+          source: 'goal-compass',
+          dependsOnAuto: ['x'],
+          title: 'gc',
+        }),
+      ],
+      migratedSources: [],
+    });
+    useWorkItemStore
+      .getState()
+      .replaceCoverCropDependencies('p1', new Map([['gc1', ['y']]]));
+    const row = useWorkItemStore.getState().items.find((i) => i.id === 'gc1');
+    expect(row?.dependsOnAuto).toEqual(['x']);
+    expect(row?.precedesAuto ?? []).toEqual([]);
   });
 
   it('overridden cover-crop rows survive a wipe (overridden gate)', () => {

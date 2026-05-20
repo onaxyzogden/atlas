@@ -9,9 +9,15 @@
  *   3. Seed `costRangeAuto` via `replaceCoverCropCosts` (D3 Approach B).
  *   4. Seed `materialsAuto` via `replaceCoverCropResources` (D2 Approach B).
  *
- * Zero-prereq seeding — cover-crop windows have no `dependsOnAuto`
- * (terminate-before-cash-crop ordering is a future slice). No scheduled
- * dates — month-only window bounds lack a year reference. Phase joining
+ * B5.2.x.c extends this with:
+ *   5. `scheduledStart` / `scheduledEnd` via `inferCoverCropDates` against
+ *      the project's `startDate` year (fallback: current calendar year).
+ *   6. `precedesAuto` terminate-before edges to cash-crop (planting-calendar)
+ *      WorkItems sharing a CropArea, via `replaceCoverCropDependencies`.
+ *      Denormalized inverse edges live on the cover-crop side so the
+ *      goal-compass / planting-calendar sync engines never touch them.
+ *
+ * Phase joining
  * follows the same free-text-`CropArea.phase` → declared-phase rule used
  * by `coverCropEconomicsMath` (exact id match first, then case-insensitive
  * name match; otherwise `phaseId: null`).
@@ -29,6 +35,7 @@ import type { CropArea, CropCoverWindow } from '../../store/cropStore.js';
 import type { BuildPhase } from '../../store/phaseStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
 import { useWorkItemStore } from '../../store/workItemStore.js';
 import {
   COVER_CROP_CATALOG,
@@ -39,6 +46,11 @@ import {
   effectiveSeedCostPerAcre,
   effectiveLaborHrsPerAcre,
 } from './coverCropEconomicsMath.js';
+import {
+  inferCoverCropDates,
+  resolveProjectStartYear,
+} from './coverCropDateInference.js';
+import { seedCoverCropDependencies } from './coverCropDependencyGraph.js';
 
 const ACRES_PER_M2 = 1 / 4046.8564224;
 
@@ -75,10 +87,13 @@ export function seedCoverCropWorkItems(args: {
   projectId: string;
   cropAreas: CropArea[];
   declaredPhases: BuildPhase[];
+  projectStartYear?: number;
   catalog?: readonly CoverCropEntry[];
   now?: () => string;
 }): WorkItem[] {
   const { projectId, cropAreas, declaredPhases } = args;
+  const projectStartYear =
+    args.projectStartYear ?? new Date().getFullYear();
   const catalog = args.catalog ?? COVER_CROP_CATALOG;
   const nowFn = args.now ?? (() => new Date().toISOString());
   const created = nowFn();
@@ -92,6 +107,7 @@ export function seedCoverCropWorkItems(args: {
     windows.forEach((w, idx) => {
       const entry = catalog.find((e) => e.speciesId === w.speciesId);
       const provenance = coverCropProvenanceId(area.id, idx);
+      const { start, end } = inferCoverCropDates(w, projectStartYear);
       out.push({
         id: `cc__${provenance}`,
         projectId,
@@ -106,6 +122,9 @@ export function seedCoverCropWorkItems(args: {
         doneAt: null,
         dependsOn: [],
         dependsOnAuto: [],
+        precedesAuto: [],
+        scheduledStart: start,
+        scheduledEnd: end,
         materialsAuto: [],
         equipmentRequiredAuto: [],
         species: w.speciesId,
@@ -206,10 +225,15 @@ export function seedCoverCropResources(args: {
 export function pushCoverCropPlanToSpine(projectId: string): void {
   const cropAreas = useCropStore.getState().cropAreas;
   const declaredPhases = usePhaseStore.getState().getProjectPhases(projectId);
+  const project = useProjectStore
+    .getState()
+    .projects.find((p) => p.id === projectId);
+  const projectStartYear = resolveProjectStartYear(project?.startDate ?? null);
   const items = seedCoverCropWorkItems({
     projectId,
     cropAreas,
     declaredPhases,
+    projectStartYear,
   });
   const store = useWorkItemStore.getState();
   store.replaceCoverCropRows(projectId, items);
@@ -221,6 +245,19 @@ export function pushCoverCropPlanToSpine(projectId: string): void {
     projectId,
     seedCoverCropResources({ items, cropAreas }),
   );
+  // B5.2.x.c — terminate-before edges from cover-crop windows to cash-crop
+  // (planting-calendar) WorkItems on the same CropArea. Denormalized inverse
+  // edges written on the cover-crop side (`precedesAuto`) to preserve
+  // single-writer-spine.
+  const cashCropItems = store.items.filter(
+    (it) =>
+      it.projectId === projectId && !!it.generatedFromPlantingCalendar,
+  );
+  const edges = seedCoverCropDependencies({
+    coverCropItems: items,
+    cashCropItems,
+  });
+  store.replaceCoverCropDependencies(projectId, edges);
 }
 
 /** Helper used by `effectiveLaborHrsPerAcre`-aware callers (read-only). */

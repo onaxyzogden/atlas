@@ -145,6 +145,19 @@ interface WorkItemState {
     projectId: string,
     costsByItemId: Map<string, CostRange>,
   ) => void;
+  /**
+   * B5.2.x.c — replace the seeded terminate-before edges (`precedesAuto`)
+   * for cover-crop rows. Denormalized inverse: each entry means *this
+   * cover-crop row must complete before the listed WorkItem ids start*.
+   * Mirrors `replaceGoalCompassDependencies` preservation filter 1:1 (swap
+   * source to 'cover-crop', write `precedesAuto` instead of `dependsOnAuto`).
+   * Cross-source preserved: never touches goal-compass / manual / other rows.
+   * Idempotent (same edge map → same reference).
+   */
+  replaceCoverCropDependencies: (
+    projectId: string,
+    edgesByItemId: Map<string, string[]>,
+  ) => void;
 
   /**
    * Returns a freshly-allocated array. **Do NOT call inside a Zustand
@@ -461,6 +474,31 @@ export const useWorkItemStore = create<WorkItemState>()(
                 prev.high === next.high);
             if (same) return it;
             return { ...it, costRangeAuto: next, updatedAt: now() };
+          }),
+        })),
+
+      replaceCoverCropDependencies: (projectId, edgesByItemId) =>
+        set((s) => ({
+          items: s.items.map((it) => {
+            // Same gate as replaceCoverCropRows: only this project's
+            // generated, un-overridden cover-crop rows are engine-owned.
+            // Cross-source preserved — goal-compass / manual rows untouched.
+            if (
+              it.projectId !== projectId ||
+              it.source !== 'cover-crop' ||
+              it.overridden
+            ) {
+              return it;
+            }
+            const next = edgesByItemId.get(it.id) ?? [];
+            const prev = it.precedesAuto ?? [];
+            if (
+              prev.length === next.length &&
+              prev.every((d, i) => d === next[i])
+            ) {
+              return it;
+            }
+            return { ...it, precedesAuto: next, updatedAt: now() };
           }),
         })),
 
