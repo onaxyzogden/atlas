@@ -16,9 +16,16 @@ out-of-band before this ADR's first save propagated.
   on the card as `canopyClampedM2`. Denominator unchanged (still
   total paddock area — coverage is over the grazed surface, not the
   full silvopasture polygon).
-- *Still open:* poultry expansion of `LIVESTOCK_BROWSE_TOXICITY`
-  (catalog currently ruminant- and equine-focused; chicken/duck/goose
-  browse tolerances not represented).
+- 2026-05-20 — poultry/waterfowl expansion of
+  `LIVESTOCK_BROWSE_TOXICITY`
+  ([wiki/log/2026-05-20-b4-poultry-browse-toxicity.md](../log/2026-05-20-b4-poultry-browse-toxicity.md)).
+  Seven avian rows added (black_locust avoid for poultry;
+  cherry/peach/garlic/garlic_chive caution for poultry+ducks_geese;
+  borage caution for poultry; white_oak caution for ducks_geese).
+  Each is a separate row from the existing ruminant entry so the
+  steward sees per-species rationale and citation inline. No
+  infrastructure change — `toxicityForGuild`'s `affects.some` already
+  handles the narrowing.
 - *Still open:* per-member spatial positions inside hosts would let
   us do real `turf.union` canopy dedup instead of the envelope-cap
   approximation. Out of scope until the data model supports it.
