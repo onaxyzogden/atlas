@@ -103,6 +103,27 @@ describe('RestEditor', () => {
     ).toBe(45);
     expect(closed).toBe(true);
   });
+
+  it('Cancel discards the draft and closes without writing', () => {
+    seedCell(5, 30);
+    let closed = false;
+    render(
+      <RestEditor
+        projectId="p1"
+        paddockId="a"
+        onClose={() => {
+          closed = true;
+        }}
+      />,
+    );
+    const input = screen.getByLabelText(/target rest days/i) as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '99' } });
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    expect(
+      useRotationPlanStore.getState().byProject.p1!.cells[0]!.targetRestDays,
+    ).toBe(30);
+    expect(closed).toBe(true);
+  });
 });
 
 describe('UnplannedPaddockEditor', () => {
@@ -138,6 +159,27 @@ describe('UnplannedPaddockEditor', () => {
       targetGrazeDays: 3,
       targetRestDays: 30,
     });
+    expect(closed).toBe(true);
+  });
+
+  it('Cancel closes without inserting a new cell', () => {
+    let closed = false;
+    render(
+      <UnplannedPaddockEditor
+        projectId="p1"
+        paddockId="z"
+        onClose={() => {
+          closed = true;
+        }}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText(/cell group/i), {
+      target: { value: 'B' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    const plan = useRotationPlanStore.getState().byProject.p1;
+    // Either the project has no plan, or the plan has no cell for 'z'.
+    expect(plan?.cells.some((c) => c.paddockId === 'z') ?? false).toBe(false);
     expect(closed).toBe(true);
   });
 });

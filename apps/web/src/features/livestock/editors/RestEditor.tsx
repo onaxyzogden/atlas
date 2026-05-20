@@ -32,7 +32,8 @@ export function RestEditor({ projectId, paddockId, onClose }: Props) {
   }
 
   function save() {
-    upsertCell(projectId, { ...cell!, targetRestDays: draft });
+    if (!cell) return;
+    upsertCell(projectId, { ...cell, targetRestDays: draft });
     onClose();
   }
 

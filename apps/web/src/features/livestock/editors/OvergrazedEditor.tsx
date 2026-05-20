@@ -32,7 +32,8 @@ export function OvergrazedEditor({ projectId, paddockId, onClose }: Props) {
   }
 
   function save() {
-    upsertCell(projectId, { ...cell!, targetGrazeDays: draft });
+    if (!cell) return;
+    upsertCell(projectId, { ...cell, targetGrazeDays: draft });
     onClose();
   }
 
