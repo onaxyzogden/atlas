@@ -140,6 +140,37 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
     });
   }
 
+  function moveMember(memberIndex: number, position: [number, number]) {
+    if (!active) return;
+    updateGuild(active.id, {
+      members: active.members.map((m, i) =>
+        i === memberIndex ? { ...m, position } : m,
+      ),
+    });
+  }
+
+  function snapMember(memberIndex: number) {
+    if (!active) return;
+    updateGuild(active.id, {
+      members: active.members.map((m, i) => {
+        if (i !== memberIndex) return m;
+        const { position: _drop, ...rest } = m;
+        return rest;
+      }),
+    });
+  }
+
+  function snapAllToRings() {
+    if (!active) return;
+    updateGuild(active.id, {
+      members: active.members.map(({ position: _drop, ...rest }) => rest),
+    });
+  }
+
+  const anyMemberPositioned = active
+    ? active.members.some((m) => m.position !== undefined)
+    : false;
+
   function setAnchor(speciesId: string) {
     if (!active) return;
     updateGuild(active.id, { anchorSpeciesId: speciesId });
@@ -393,6 +424,8 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
                   setActiveRing(null);
                 }}
                 activeRing={activeRing}
+                onMemberDrag={moveMember}
+                onMemberSnap={snapMember}
               />
 
               <div>
@@ -537,6 +570,19 @@ export default function GuildSpatialBuilderCard({ project }: Props) {
             <div className={styles.btnRow} style={{ marginTop: 12 }}>
               <button type="button" className={styles.btn} onClick={startNewGuild}>
                 + New guild
+              </button>
+              <button
+                type="button"
+                className={styles.btn}
+                onClick={snapAllToRings}
+                disabled={!anyMemberPositioned}
+                title={
+                  anyMemberPositioned
+                    ? 'Clear every member position; layout snaps back to layer rings.'
+                    : 'No dragged members to snap.'
+                }
+              >
+                Snap all to rings
               </button>
               <button
                 type="button"
