@@ -15,9 +15,11 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import * as turf from '@turf/turf';
 import {
   computeSilvopastureIntegration,
   computeSilvopastureIntegrationPct,
+  hostCanopyUnion,
 } from '../guildLivestockMath.js';
 import { encodeHostId } from '../silvopastureHosts.js';
 import type { CropArea } from '../../../store/cropStore.js';
@@ -383,6 +385,39 @@ describe('computeSilvopastureIntegration — canopy union dedup', () => {
     // π·r² by ~1 m², so dedup carries that approximation residue.
     expect(row.canopyDedupedM2).toBeLessThan(2);
     expect(row.canopyClampedM2).toBe(0);
+  });
+});
+
+describe('hostCanopyUnion — return geometry shape + area parity', () => {
+  it('returns a Polygon or MultiPolygon unionGeometry when union succeeds', () => {
+    const hostId = encodeHostId('crop-area', 'h1');
+    const g1 = guildOf('g1', [5, 5], [m('black_walnut')], hostId);
+    const g2 = guildOf('g2', [5.00005, 5], [m('black_walnut')], hostId);
+
+    const u = hostCanopyUnion([g1, g2]);
+    expect(u).not.toBeNull();
+    expect(u!.unionGeometry).toBeDefined();
+    expect(['Polygon', 'MultiPolygon']).toContain(u!.unionGeometry.type);
+  });
+
+  it('unionGeometry area matches the reported unionAreaM2 (sub-cm²)', () => {
+    const hostId = encodeHostId('crop-area', 'h1');
+    const g1 = guildOf('g1', [5, 5], [m('black_walnut')], hostId);
+    const g2 = guildOf('g2', [5, 5], [m('black_walnut')], hostId);
+
+    const u = hostCanopyUnion([g1, g2]);
+    expect(u).not.toBeNull();
+    const measured = turf.area(turf.feature(u!.unionGeometry));
+    expect(measured).toBeCloseTo(u!.unionAreaM2, 4);
+  });
+
+  it('returns a single Polygon for one disk (no union needed)', () => {
+    const hostId = encodeHostId('crop-area', 'h1');
+    const g = guildOf('g1', [5, 5], [m('black_walnut')], hostId);
+
+    const u = hostCanopyUnion([g]);
+    expect(u).not.toBeNull();
+    expect(u!.unionGeometry.type).toBe('Polygon');
   });
 });
 
