@@ -24,6 +24,10 @@ import {
   generateKeylineSwales,
   type KeylineSwalesOptions,
 } from './algorithms/keylineSwales.js';
+import {
+  generatePaddockGrid,
+  type PaddockGridOptions,
+} from './algorithms/paddockGrid.js';
 
 // ── Input types ────────────────────────────────────────────────────────────
 
@@ -94,6 +98,7 @@ export interface GenerateDesignMapInput {
   options?: {
     orchard?: OrchardOnContourOptions;
     swale?: KeylineSwalesOptions;
+    paddock?: PaddockGridOptions;
   };
 }
 
@@ -173,7 +178,19 @@ export function generateDesignMap(
     warnings.push(...swales.warnings);
   }
 
-  // Remaining B.2.* algorithms (paddock, corridor) wire in here.
+  if (enterprises.includes('livestock')) {
+    const paddocks = generatePaddockGrid({
+      parcel: input.parcel,
+      acres: input.acres,
+      ...(input.options?.paddock ? { options: input.options.paddock } : {}),
+    });
+    features.push(...paddocks.features);
+    summary.paddocks = paddocks.paddockCount;
+    summary.totalPaddockAuDays = paddocks.totalPaddockAuDays;
+    warnings.push(...paddocks.warnings);
+  }
+
+  // Remaining B.2.* algorithms (corridor) wire in here.
 
   return { features, summary, warnings };
 }

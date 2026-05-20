@@ -32,6 +32,7 @@ describe('generateDesignMap — orchestrator', () => {
     const out = generateDesignMap({
       parcel: { boundary: squareParcel(900) },
       acres: 200,
+      enterprises: ['orchard'],
     });
     expect(out.features).toEqual([]);
     expect(out.summary).toEqual(emptySummary());
@@ -44,12 +45,33 @@ describe('generateDesignMap — orchestrator', () => {
     const out = generateDesignMap({
       parcel: { boundary: squareParcel(900) },
       acres: 200,
-      enterprises: ['livestock'],
+      enterprises: [],
     });
     expect(out.features).toEqual([]);
     expect(
       out.warnings.some((w) => w.includes('no contours provided')),
     ).toBe(false);
+  });
+
+  it('runs the paddock-grid algorithm when "livestock" is in the enterprise mix', () => {
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      enterprises: ['livestock'],
+    });
+    expect(out.summary.paddocks).toBeGreaterThan(0);
+    expect(out.summary.totalPaddockAuDays).toBeGreaterThan(0);
+    expect(out.features.every((f) => f.subtype === 'livestock')).toBe(true);
+  });
+
+  it('skips the paddock-grid algorithm when "livestock" is absent from the enterprise mix', () => {
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      enterprises: ['orchard'],
+    });
+    expect(out.summary.paddocks).toBe(0);
+    expect(out.summary.totalPaddockAuDays).toBe(0);
   });
 
   it('rejects a parcel with fewer than 3 boundary vertices', () => {
