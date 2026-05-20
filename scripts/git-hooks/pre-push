@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+# Refuse any push that deletes a wiki/log/*.md file relative to the
+# upstream branch. Per-day log files are append-only; a deletion means
+# a rebase silently dropped a parallel session's session-end entry.
+# See wiki/concepts/parallel-session-coordination.md.
+
+set -e
+
+upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || true)
+if [ -z "$upstream" ]; then
+  # No upstream configured (first push of a new branch) — nothing to compare.
+  exit 0
+fi
+
+remote_name=${upstream%%/*}
+remote_branch=${upstream#*/}
+
+git fetch -q "$remote_name" "$remote_branch" 2>/dev/null || true
+
+dropped=$(git diff --diff-filter=D --name-only "$upstream...HEAD" -- wiki/log/ || true)
+
+if [ -n "$dropped" ]; then
+  echo "pre-push: REFUSED — this push deletes wiki/log/ entries:" >&2
+  echo "" >&2
+  printf '  %s\n' $dropped >&2
+  echo "" >&2
+  echo "Per-day log files are append-only (see" >&2
+  echo "wiki/concepts/parallel-session-coordination.md). To restore:" >&2
+  echo "" >&2
+  for f in $dropped; do
+    echo "  git checkout $upstream -- $f" >&2
+  done
+  echo "" >&2
+  echo "Then commit the restoration and push again." >&2
+  exit 1
+fi
+
+exit 0
