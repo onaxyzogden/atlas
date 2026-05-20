@@ -106,9 +106,11 @@ renders two mutually exclusive sub-lines:
 ## Consequences
 
 **Newly unblocked (separate slices):**
-- Drag-to-place member positioning UI (`GuildSpatialBuilderCard` or
-  map-layer drag) — writes `GuildMember.position` directly; the math
-  already consumes it.
+- ~~Drag-to-place member positioning UI~~ — **closed
+  2026-05-22** via in-card SVG drag on `GuildRingsCanvas`; see
+  [2026-05-22 ADR](2026-05-22-atlas-b4-guild-member-drag-to-place.md).
+  Map-layer drag (per-member MapboxGL source + absolute-lon/lat
+  inverse arithmetic) remains its own future slice.
 - Per-member map-layer rendering as its own MapboxGL source + layer.
 - Ground-truthing the first-pass ring radii against
   extension-service plant-spacing guidance.
