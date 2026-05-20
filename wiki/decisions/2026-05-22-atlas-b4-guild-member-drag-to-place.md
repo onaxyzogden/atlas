@@ -109,10 +109,18 @@ takes over:
 **Newly closed (was open on 2026-05-21):**
 - Drag-to-place member positioning UI — shipped.
 
-**Still deferred (own slices):**
-- Map-layer drag (per-member MapboxGL source + layer with
+**Newly closed 2026-05-23:**
+- ~~Map-layer drag (per-member MapboxGL source + layer with
   absolute-lon/lat drag and inverse `metresToLonLatOffset`
-  arithmetic).
+  arithmetic).~~ — shipped via
+  [2026-05-23 ADR](2026-05-23-atlas-b4-guild-member-map-layer-drag.md):
+  per-member point + canopy-disk layers gated at `minzoom: 17` on
+  PlanDataLayers, drag handler block mirroring the guild-centroid
+  pattern, click-without-drag popover with Snap-to-ring + Remove
+  actions. The inverse helper `lonLatToMetresOffset` is the
+  load-bearing piece.
+
+**Still deferred (own slices):**
 - Layer ring-radius ground-truthing against extension-service
   plant-spacing guidance.
 - Snap-to-other-member / snap-to-grid alignment helpers.
