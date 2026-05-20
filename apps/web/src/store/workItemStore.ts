@@ -158,6 +158,22 @@ interface WorkItemState {
     projectId: string,
     edgesByItemId: Map<string, string[]>,
   ) => void;
+  /**
+   * B3 — replace all `source:'rotation-sequence'` work items for a project
+   * while preserving steward-edited (`overridden:true`) rows and never
+   * touching any other source. Mirrors `replaceCoverCropRows` 1:1 (swap
+   * source).
+   */
+  replaceRotationSequenceRows: (projectId: string, items: WorkItem[]) => void;
+  /**
+   * B3 — replace the seeded predecessor edges (`precedesAuto`) for
+   * rotation-sequence rows. Mirrors `replaceCoverCropDependencies` 1:1
+   * (swap source). Cross-source preserved.
+   */
+  replaceRotationSequenceDependencies: (
+    projectId: string,
+    edgesByItemId: Map<string, string[]>,
+  ) => void;
 
   /**
    * Returns a freshly-allocated array. **Do NOT call inside a Zustand
@@ -486,6 +502,42 @@ export const useWorkItemStore = create<WorkItemState>()(
             if (
               it.projectId !== projectId ||
               it.source !== 'cover-crop' ||
+              it.overridden
+            ) {
+              return it;
+            }
+            const next = edgesByItemId.get(it.id) ?? [];
+            const prev = it.precedesAuto ?? [];
+            if (
+              prev.length === next.length &&
+              prev.every((d, i) => d === next[i])
+            ) {
+              return it;
+            }
+            return { ...it, precedesAuto: next, updatedAt: now() };
+          }),
+        })),
+
+      replaceRotationSequenceRows: (projectId, items) =>
+        set((s) => {
+          const remaining = s.items.filter(
+            (it) =>
+              it.projectId !== projectId ||
+              it.source !== 'rotation-sequence' ||
+              it.overridden,
+          );
+          const incoming = items.filter(
+            (it) => it.source === 'rotation-sequence',
+          );
+          return { items: [...remaining, ...incoming] };
+        }),
+
+      replaceRotationSequenceDependencies: (projectId, edgesByItemId) =>
+        set((s) => ({
+          items: s.items.map((it) => {
+            if (
+              it.projectId !== projectId ||
+              it.source !== 'rotation-sequence' ||
               it.overridden
             ) {
               return it;
