@@ -124,9 +124,13 @@ function guildCanopyFootprintM2(members: GuildMember[]): number {
  * lacks `center` or when no member has a resolvable `canopySpreadM` —
  * caller falls back to the legacy envelope clip in those cases.
  */
-function hostCanopyUnion(
+export function hostCanopyUnion(
   guilds: Guild[],
-): { unionAreaM2: number; rawSumM2: number } | null {
+): {
+  unionAreaM2: number;
+  rawSumM2: number;
+  unionGeometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
+} | null {
   if (guilds.length === 0) return null;
   const circles: GeoJSON.Feature<GeoJSON.Polygon>[] = [];
   let rawSumM2 = 0;
@@ -159,7 +163,7 @@ function hostCanopyUnion(
     if (!merged) return null;
     const unionAreaM2 = turf.area(merged);
     if (!Number.isFinite(unionAreaM2)) return null;
-    return { unionAreaM2, rawSumM2 };
+    return { unionAreaM2, rawSumM2, unionGeometry: merged.geometry };
   } catch {
     return null;
   }
