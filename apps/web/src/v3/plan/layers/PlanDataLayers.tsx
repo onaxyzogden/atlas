@@ -2090,11 +2090,25 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     const onKey = (ev: KeyboardEvent) => {
       if (ev.key === 'Escape') setPinnedUnion(null);
     };
+    // Tap-outside-the-map-canvas dismisses a pinned tooltip on touch
+    // devices where ESC is unavailable. `pointerdown` unifies mouse +
+    // touch; taps inside the canvas still flow through MapLibre's
+    // `click` (toggle/replace), so this only fills the missing
+    // tap-anywhere-off-the-union dismissal affordance.
+    const onDocPointerDown = (ev: PointerEvent) => {
+      if (!pinnedUnion) return;
+      const canvasContainer = map.getCanvasContainer();
+      if (!canvasContainer) return;
+      const target = ev.target as Node | null;
+      if (target && canvasContainer.contains(target)) return;
+      setPinnedUnion(null);
+    };
 
     map.on('mousemove', layerId, onMove);
     map.on('mouseleave', layerId, onLeave);
     map.on('click', layerId, onClick);
     document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDocPointerDown);
 
     return () => {
       try {
@@ -2105,6 +2119,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         /* map already disposed */
       }
       document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDocPointerDown);
     };
   }, [map, pinnedUnion]);
 
