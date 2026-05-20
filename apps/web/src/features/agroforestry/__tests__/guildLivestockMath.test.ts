@@ -313,6 +313,65 @@ describe('computeSilvopastureIntegration — canopy coverage', () => {
   });
 });
 
+describe('computeSilvopastureIntegration — canopy envelope clip (overlap dedup)', () => {
+  // rect(0, 0, 10, 10) is ~1.2e9 m² in WGS84 — the existing tests use that
+  // scale and never trip the host-envelope clip. To exercise the clip we
+  // need a host whose turf.area is < rawCanopyM2. ~11 m square = ~123 m².
+  const tinyHost = (id: string) =>
+    silvopastureCrop(id, rect(0, 0, 0.0001, 0.0001));
+
+  it('clips raw canopy at host polygon area when guilds overstack', () => {
+    const host = tinyHost('h1');
+    const hostId = encodeHostId('crop-area', 'h1');
+    const paddock = paddockOf(
+      'p1',
+      rect(0, 0, 0.0001, 0.0001),
+      ['cattle'],
+      100,
+      hostId,
+    );
+    // Two separate guilds, each one black_walnut (~154 m²): rawCanopyM2 ~308,
+    // tinyHost ~123 m² → clip ~185 m², canopyClampedM2 > 0.
+    const g1 = guildOf('g1', [0.00005, 0.00005], [m('black_walnut')], hostId);
+    const g2 = guildOf('g2', [0.00005, 0.00005], [m('black_walnut')], hostId);
+
+    const r = computeSilvopastureIntegration({
+      projectId: PROJECT_ID,
+      cropAreas: [host],
+      designElements: [],
+      paddocks: [paddock],
+      guilds: [g1, g2],
+    });
+
+    const row = r.rows[0]!;
+    expect(row.hostAreaM2).toBeGreaterThan(0);
+    expect(row.canopyClampedM2).toBeGreaterThan(0);
+    // Clip pinned at host area: clippedCanopyM2 ≤ hostAreaM2.
+    expect(row.canopyClampedM2).toBeLessThan(308); // strictly less than raw sum
+    expect(row.canopyCoveragePct).toBe(100); // 123/100 capped
+  });
+
+  it('does not clip when raw canopy already fits within host envelope', () => {
+    const host = silvopastureCrop('h1', rect(0, 0, 10, 10)); // ~1.2e9 m²
+    const hostId = encodeHostId('crop-area', 'h1');
+    const paddock = paddockOf('p1', rect(1, 1, 9, 9), ['cattle'], 1000, hostId);
+    // One black_walnut (~154 m²) inside a 1.2e9 m² host — no clip possible.
+    const guild = guildOf('g1', [5, 5], [m('black_walnut')], hostId);
+
+    const r = computeSilvopastureIntegration({
+      projectId: PROJECT_ID,
+      cropAreas: [host],
+      designElements: [],
+      paddocks: [paddock],
+      guilds: [guild],
+    });
+
+    const row = r.rows[0]!;
+    expect(row.hostAreaM2).toBeGreaterThan(154);
+    expect(row.canopyClampedM2).toBe(0);
+  });
+});
+
 describe('computeSilvopastureIntegration — overallPct', () => {
   it('averages across non-empty hosts only', () => {
     const h1 = silvopastureCrop('h1', rect(0, 0, 10, 10));
