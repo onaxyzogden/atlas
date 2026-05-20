@@ -266,3 +266,71 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* B5.2.x.c — orphan-cash-crop warning banner */
+.orphanWarning {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(196, 162, 101, 0.08);
+  border: 1px solid rgba(196, 162, 101, 0.28);
+  color: rgba(220, 200, 160, 0.92);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+/* B5.2.x.c — multi-area bulk-apply chip group */
+.bulkApply {
+  margin-top: 8px;
+}
+
+.bulkToggle {
+  background: transparent;
+  border: 1px dashed rgba(232, 220, 200, 0.16);
+  color: rgba(220, 200, 160, 0.85);
+  padding: 4px 10px;
+  font-size: 11px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.bulkToggle:hover {
+  background: rgba(120, 160, 110, 0.08);
+  border-color: rgba(120, 160, 110, 0.32);
+}
+
+.bulkCount {
+  margin-left: 6px;
+  color: rgba(120, 160, 110, 0.95);
+  font-weight: 600;
+}
+
+.bulkChips {
+  list-style: none;
+  padding: 6px 0 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bulkChip {
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-size: 10.5px;
+  background: transparent;
+  border: 1px solid rgba(232, 220, 200, 0.16);
+  color: rgba(220, 200, 160, 0.78);
+  cursor: pointer;
+}
+
+.bulkChip:hover {
+  border-color: rgba(120, 160, 110, 0.4);
+  color: rgba(220, 235, 220, 0.95);
+}
+
+.bulkChipOn {
+  background: rgba(120, 160, 110, 0.22);
+  border-color: rgba(120, 160, 110, 0.55);
+  color: rgba(220, 235, 220, 0.98);
+}

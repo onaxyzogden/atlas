@@ -22,6 +22,7 @@
 
 import { useMemo, useState } from 'react';
 import { useCropStore, type CropArea, type CropCoverWindow } from '../../store/cropStore.js';
+import { useWorkItemStore } from '../../store/workItemStore.js';
 import { CATALOG_BY_ID } from '../../data/plantCatalog.js';
 import {
   COVER_CROP_CATALOG,
@@ -88,11 +89,30 @@ function seasonsFor(months: number[]): string[] {
 export default function CoverCropPlannerCard({ projectId }: Props) {
   const allCropAreas = useCropStore((s) => s.cropAreas);
   const updateCropArea = useCropStore((s) => s.updateCropArea);
+  const workItems = useWorkItemStore((s) => s.items);
 
   const areas = useMemo(
     () => allCropAreas.filter((a) => a.projectId === projectId),
     [projectId, allCropAreas],
   );
+
+  // B5.2.x.c — cropAreaIds that have at least one cash-crop
+  // (planting-calendar) WorkItem in this project. Areas not in this set
+  // surface an orphan-warning banner because their cover-crop window
+  // won't seed any terminate-before edge.
+  const cashCropAreaIds = useMemo(() => {
+    const out = new Set<string>();
+    for (const it of workItems) {
+      if (it.projectId !== projectId) continue;
+      const prov = it.generatedFromPlantingCalendar;
+      if (!prov) continue;
+      const parts = prov.split(':');
+      if (parts.length !== 3) continue;
+      const id = parts[1];
+      if (id) out.add(id);
+    }
+    return out;
+  }, [workItems, projectId]);
 
   const Head = () => (
     <div className={css.cardHead}>
@@ -127,8 +147,16 @@ export default function CoverCropPlannerCard({ projectId }: Props) {
           <AreaEditor
             key={area.id}
             area={area}
-            onSave={(next) => {
+            otherAreas={areas.filter((a) => a.id !== area.id)}
+            hasCashCrop={cashCropAreaIds.has(area.id)}
+            onSave={(next, alsoApplyTo) => {
               updateCropArea(area.id, { coverCropPlan: next });
+              for (const otherId of alsoApplyTo) {
+                const other = areas.find((a) => a.id === otherId);
+                if (!other) continue;
+                const merged = mergeWindows(other.coverCropPlan ?? [], next);
+                updateCropArea(otherId, { coverCropPlan: merged });
+              }
               pushCoverCropPlanToSpine(projectId);
             }}
           />
@@ -138,12 +166,34 @@ export default function CoverCropPlannerCard({ projectId }: Props) {
   );
 }
 
-interface AreaEditorProps {
-  area: CropArea;
-  onSave: (next: CropCoverWindow[]) => void;
+/** B5.2.x.c — append windows from `src` into `target`, skipping any window
+ *  that is structurally identical (species + role + months) to one already
+ *  present. Pure / order-preserving on the target side. */
+function mergeWindows(
+  target: CropCoverWindow[],
+  src: CropCoverWindow[],
+): CropCoverWindow[] {
+  const same = (a: CropCoverWindow, b: CropCoverWindow) =>
+    a.speciesId === b.speciesId &&
+    a.role === b.role &&
+    a.startMonth === b.startMonth &&
+    a.endMonth === b.endMonth;
+  const out = [...target];
+  for (const w of src) {
+    if (out.some((t) => same(t, w))) continue;
+    out.push(w);
+  }
+  return out;
 }
 
-function AreaEditor({ area, onSave }: AreaEditorProps) {
+interface AreaEditorProps {
+  area: CropArea;
+  otherAreas: CropArea[];
+  hasCashCrop: boolean;
+  onSave: (next: CropCoverWindow[], alsoApplyTo: string[]) => void;
+}
+
+function AreaEditor({ area, otherAreas, hasCashCrop, onSave }: AreaEditorProps) {
   const stored = area.coverCropPlan ?? [];
   const [draft, setDraft] = useState<CropCoverWindow[]>(stored);
   const [storedSnapshot, setStoredSnapshot] = useState<CropCoverWindow[]>(stored);
@@ -155,6 +205,8 @@ function AreaEditor({ area, onSave }: AreaEditorProps) {
   }
 
   const [adding, setAdding] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
 
   const dirty = !windowsEqual(draft, stored);
 
@@ -166,6 +218,13 @@ function AreaEditor({ area, onSave }: AreaEditorProps) {
           {area.type.replace(/_/g, ' ')} · {area.areaM2.toFixed(0)} m²
         </span>
       </div>
+
+      {!hasCashCrop && (
+        <div className={css.orphanWarning} role="status">
+          No cash crop scheduled on this area yet — a terminate-before
+          edge will be created when one is added.
+        </div>
+      )}
 
       {draft.length === 0 ? (
         <div className={css.noWindows}>No cover-crop windows yet.</div>
@@ -209,14 +268,61 @@ function AreaEditor({ area, onSave }: AreaEditorProps) {
         </button>
       )}
 
+      {otherAreas.length > 0 && (
+        <div className={css.bulkApply}>
+          <button
+            type="button"
+            className={css.bulkToggle}
+            onClick={() => setBulkOpen((v) => !v)}
+            aria-expanded={bulkOpen}
+          >
+            {bulkOpen ? '− Apply to other areas' : '+ Apply to other areas'}
+            {bulkSelected.size > 0 && (
+              <span className={css.bulkCount}>({bulkSelected.size})</span>
+            )}
+          </button>
+          {bulkOpen && (
+            <ul className={css.bulkChips} role="listbox" aria-label="Other crop areas">
+              {otherAreas.map((a) => {
+                const checked = bulkSelected.has(a.id);
+                return (
+                  <li key={a.id}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={checked}
+                      className={
+                        checked ? `${css.bulkChip} ${css.bulkChipOn}` : css.bulkChip
+                      }
+                      onClick={() => {
+                        setBulkSelected((cur) => {
+                          const next = new Set(cur);
+                          if (next.has(a.id)) next.delete(a.id);
+                          else next.add(a.id);
+                          return next;
+                        });
+                      }}
+                    >
+                      {a.name}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
       <div className={css.actions}>
         <button
           type="button"
           className={css.saveButton}
-          disabled={!dirty}
+          disabled={!dirty && bulkSelected.size === 0}
           onClick={() => {
-            onSave(draft);
+            onSave(draft, Array.from(bulkSelected));
             setStoredSnapshot(draft);
+            setBulkSelected(new Set());
+            setBulkOpen(false);
           }}
         >
           Save changes

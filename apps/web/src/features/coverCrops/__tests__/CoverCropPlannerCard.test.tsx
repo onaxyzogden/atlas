@@ -112,6 +112,86 @@ describe('CoverCropPlannerCard — B5.2.x', () => {
     expect(useCropStore.getState().cropAreas[0]!.coverCropPlan).toEqual([]);
   });
 
+  it('B5.2.x.c — shows orphan-cash-crop warning when no planting-calendar WorkItem on the area', () => {
+    useCropStore.setState({ cropAreas: [area()] });
+    render(<CoverCropPlannerCard projectId={PROJECT_ID} />);
+    expect(
+      screen.getByText(/No cash crop scheduled on this area yet/i),
+    ).toBeTruthy();
+  });
+
+  it('B5.2.x.c — orphan warning disappears once a cash-crop WorkItem on the area exists', () => {
+    useCropStore.setState({ cropAreas: [area()] });
+    useWorkItemStore.setState({
+      items: [
+        {
+          id: 'pc-1',
+          projectId: PROJECT_ID,
+          source: 'nursery-batch',
+          overridden: false,
+          createdAt: '2026-05-20T00:00:00.000Z',
+          updatedAt: '2026-05-20T00:00:00.000Z',
+          title: 'plant',
+          phaseId: null,
+          status: 'todo',
+          dependsOn: [],
+          dependsOnAuto: [],
+          materialsAuto: [],
+          equipmentRequiredAuto: [],
+          generatedFromPlantingCalendar: 'tomato:ca1:2026',
+        } as never,
+      ],
+    });
+    render(<CoverCropPlannerCard projectId={PROJECT_ID} />);
+    expect(screen.queryByText(/No cash crop scheduled/i)).toBeNull();
+  });
+
+  it('B5.2.x.c — bulk apply: select 2 other areas, save once, all 3 get the window', () => {
+    useCropStore.setState({
+      cropAreas: [
+        area({ id: 'ca1', name: 'North' }),
+        area({ id: 'ca2', name: 'East' }),
+        area({ id: 'ca3', name: 'West' }),
+      ],
+    });
+    render(<CoverCropPlannerCard projectId={PROJECT_ID} />);
+
+    // Open the add-window form on the first area
+    const addButtons = screen.getAllByText(/Add cover-crop window/i);
+    fireEvent.click(addButtons[0]!);
+    const speciesSelect = screen.getAllByLabelText(/Species/i)[0] as HTMLSelectElement;
+    fireEvent.change(speciesSelect, { target: { value: 'winter_rye' } });
+    fireEvent.click(screen.getByRole('button', { name: /Add window/i }));
+
+    // Open the bulk-apply chip list on the first area & select the others
+    const bulkToggles = screen.getAllByRole('button', {
+      name: /Apply to other areas/i,
+    });
+    fireEvent.click(bulkToggles[0]!);
+    fireEvent.click(screen.getByRole('option', { name: 'East' }));
+    fireEvent.click(screen.getByRole('option', { name: 'West' }));
+
+    // Save first area's changes
+    fireEvent.click(screen.getAllByRole('button', { name: /Save changes/i })[0]!);
+
+    const cropAreas = useCropStore.getState().cropAreas;
+    const byId = new Map(cropAreas.map((a) => [a.id, a]));
+    expect(byId.get('ca1')!.coverCropPlan).toHaveLength(1);
+    expect(byId.get('ca2')!.coverCropPlan).toHaveLength(1);
+    expect(byId.get('ca3')!.coverCropPlan).toHaveLength(1);
+
+    // pushCoverCropPlanToSpine called once → all 3 cover-crop WorkItems present
+    const items = useWorkItemStore
+      .getState()
+      .items.filter((i) => i.source === 'cover-crop');
+    expect(items).toHaveLength(3);
+    expect(items.map((i) => i.generatedFromCoverCropWindow).sort()).toEqual([
+      'ca1__0',
+      'ca2__0',
+      'ca3__0',
+    ]);
+  });
+
   it('pushes cover-crop WorkItems onto the spine on Save (B5.2.x.b C5)', () => {
     useCropStore.setState({ cropAreas: [area()] });
     render(<CoverCropPlannerCard projectId={PROJECT_ID} />);
