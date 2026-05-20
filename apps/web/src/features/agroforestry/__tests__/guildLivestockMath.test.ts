@@ -313,27 +313,15 @@ describe('computeSilvopastureIntegration — canopy coverage', () => {
   });
 });
 
-describe('computeSilvopastureIntegration — canopy envelope clip (overlap dedup)', () => {
-  // rect(0, 0, 10, 10) is ~1.2e9 m² in WGS84 — the existing tests use that
-  // scale and never trip the host-envelope clip. To exercise the clip we
-  // need a host whose turf.area is < rawCanopyM2. ~11 m square = ~123 m².
-  const tinyHost = (id: string) =>
-    silvopastureCrop(id, rect(0, 0, 0.0001, 0.0001));
-
-  it('clips raw canopy at host polygon area when guilds overstack', () => {
-    const host = tinyHost('h1');
+describe('computeSilvopastureIntegration — canopy union dedup', () => {
+  it('dedups two physically-overlapping guilds at the same center', () => {
+    const host = silvopastureCrop('h1', rect(0, 0, 10, 10));
     const hostId = encodeHostId('crop-area', 'h1');
-    const paddock = paddockOf(
-      'p1',
-      rect(0, 0, 0.0001, 0.0001),
-      ['cattle'],
-      100,
-      hostId,
-    );
-    // Two separate guilds, each one black_walnut (~154 m²): rawCanopyM2 ~308,
-    // tinyHost ~123 m² → clip ~185 m², canopyClampedM2 > 0.
-    const g1 = guildOf('g1', [0.00005, 0.00005], [m('black_walnut')], hostId);
-    const g2 = guildOf('g2', [0.00005, 0.00005], [m('black_walnut')], hostId);
+    const paddock = paddockOf('p1', rect(1, 1, 9, 9), ['cattle'], 1000, hostId);
+    // Two single-walnut guilds at the same center → one full disk worth
+    // of overlap (~154 m²). Raw sum ~308, union ~154, dedup ~154.
+    const g1 = guildOf('g1', [5, 5], [m('black_walnut')], hostId);
+    const g2 = guildOf('g2', [5, 5], [m('black_walnut')], hostId);
 
     const r = computeSilvopastureIntegration({
       projectId: PROJECT_ID,
@@ -344,18 +332,41 @@ describe('computeSilvopastureIntegration — canopy envelope clip (overlap dedup
     });
 
     const row = r.rows[0]!;
-    expect(row.hostAreaM2).toBeGreaterThan(0);
-    expect(row.canopyClampedM2).toBeGreaterThan(0);
-    // Clip pinned at host area: clippedCanopyM2 ≤ hostAreaM2.
-    expect(row.canopyClampedM2).toBeLessThan(308); // strictly less than raw sum
-    expect(row.canopyCoveragePct).toBe(100); // 123/100 capped
+    expect(row.canopyDedupedM2).toBeGreaterThan(100);
+    expect(row.canopyDedupedM2).toBeLessThan(200);
+    // Mutually exclusive with the clip path: the union ran cleanly.
+    expect(row.canopyClampedM2).toBe(0);
   });
 
-  it('does not clip when raw canopy already fits within host envelope', () => {
-    const host = silvopastureCrop('h1', rect(0, 0, 10, 10)); // ~1.2e9 m²
+  it('does not dedup when guilds are far apart on the same host', () => {
+    const host = silvopastureCrop('h1', rect(0, 0, 10, 10));
     const hostId = encodeHostId('crop-area', 'h1');
     const paddock = paddockOf('p1', rect(1, 1, 9, 9), ['cattle'], 1000, hostId);
-    // One black_walnut (~154 m²) inside a 1.2e9 m² host — no clip possible.
+    // Two walnut guilds 1° apart in lon ≈ 111 km — disks (~7 m radius)
+    // cannot overlap. Raw sum ~308 ≈ union ~308; dedup ~0.
+    const g1 = guildOf('g1', [1, 5], [m('black_walnut')], hostId);
+    const g2 = guildOf('g2', [9, 5], [m('black_walnut')], hostId);
+
+    const r = computeSilvopastureIntegration({
+      projectId: PROJECT_ID,
+      cropAreas: [host],
+      designElements: [],
+      paddocks: [paddock],
+      guilds: [g1, g2],
+    });
+
+    const row = r.rows[0]!;
+    // turf.circle uses a 32-gon polygon approximation that undershoots
+    // π·r² by ~0.6%, so dedup carries ~1 m² noise per disk even with no
+    // physical overlap. Two disks → < 5 m² ceiling for "no dedup".
+    expect(row.canopyDedupedM2).toBeLessThan(5);
+    expect(row.canopyClampedM2).toBe(0);
+  });
+
+  it('reports near-zero dedup for a lone canopy member (no self-overlap)', () => {
+    const host = silvopastureCrop('h1', rect(0, 0, 10, 10));
+    const hostId = encodeHostId('crop-area', 'h1');
+    const paddock = paddockOf('p1', rect(1, 1, 9, 9), ['cattle'], 1000, hostId);
     const guild = guildOf('g1', [5, 5], [m('black_walnut')], hostId);
 
     const r = computeSilvopastureIntegration({
@@ -368,7 +379,86 @@ describe('computeSilvopastureIntegration — canopy envelope clip (overlap dedup
 
     const row = r.rows[0]!;
     expect(row.hostAreaM2).toBeGreaterThan(154);
+    // Single disk → no self-overlap, but turf.circle's 32-gon undershoots
+    // π·r² by ~1 m², so dedup carries that approximation residue.
+    expect(row.canopyDedupedM2).toBeLessThan(2);
     expect(row.canopyClampedM2).toBe(0);
+  });
+});
+
+describe('computeSilvopastureIntegration — canopy envelope-clip fallback', () => {
+  // Fallback engages when any guild on the host lacks a `center` so the
+  // union cannot resolve absolute lon/lat for its members. We assert the
+  // legacy `Math.min(rawCanopyM2, hostAreaM2)` behaviour still applies.
+
+  it('falls back to envelope clip when a guild has no center', () => {
+    const host = silvopastureCrop('h1', rect(0, 0, 0.0001, 0.0001)); // ~123 m²
+    const hostId = encodeHostId('crop-area', 'h1');
+    const paddock = paddockOf(
+      'p1',
+      rect(0, 0, 0.0001, 0.0001),
+      ['cattle'],
+      100,
+      hostId,
+    );
+    // Construct two guilds without `center` — the union helper returns null
+    // and the math falls back to envelope clip. Raw ~308 m², host ~123 m²
+    // → clip discount ~185 m².
+    const noCenter = (id: string): Guild =>
+      ({
+        id,
+        projectId: PROJECT_ID,
+        name: `Guild ${id}`,
+        anchorSpeciesId: 'black_walnut',
+        members: [m('black_walnut')],
+        silvopastureId: hostId,
+        createdAt: 'now',
+      }) as unknown as Guild;
+    const g1 = noCenter('g1');
+    const g2 = noCenter('g2');
+
+    const r = computeSilvopastureIntegration({
+      projectId: PROJECT_ID,
+      cropAreas: [host],
+      designElements: [],
+      paddocks: [paddock],
+      guilds: [g1, g2],
+    });
+
+    const row = r.rows[0]!;
+    expect(row.hostAreaM2).toBeGreaterThan(0);
+    expect(row.canopyClampedM2).toBeGreaterThan(0);
+    expect(row.canopyClampedM2).toBeLessThan(308); // strictly less than raw sum
+    expect(row.canopyDedupedM2).toBe(0); // fallback path never sets dedup
+    expect(row.canopyCoveragePct).toBe(100); // host ~123 m² ÷ paddock 100 m² capped
+  });
+
+  it('does not clip when raw canopy already fits within host envelope (fallback path)', () => {
+    const host = silvopastureCrop('h1', rect(0, 0, 10, 10)); // ~1.2e9 m²
+    const hostId = encodeHostId('crop-area', 'h1');
+    const paddock = paddockOf('p1', rect(1, 1, 9, 9), ['cattle'], 1000, hostId);
+    const noCenterGuild = {
+      id: 'g1',
+      projectId: PROJECT_ID,
+      name: 'Guild g1',
+      anchorSpeciesId: 'black_walnut',
+      members: [m('black_walnut')],
+      silvopastureId: hostId,
+      createdAt: 'now',
+    } as unknown as Guild;
+
+    const r = computeSilvopastureIntegration({
+      projectId: PROJECT_ID,
+      cropAreas: [host],
+      designElements: [],
+      paddocks: [paddock],
+      guilds: [noCenterGuild],
+    });
+
+    const row = r.rows[0]!;
+    expect(row.hostAreaM2).toBeGreaterThan(154);
+    expect(row.canopyClampedM2).toBe(0);
+    expect(row.canopyDedupedM2).toBe(0);
   });
 });
 
