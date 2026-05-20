@@ -238,6 +238,8 @@ export const MODULE_CARDS: Record<
     { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },
     // B5 — cross-registered with habitat-allocation; same sectionId, one render.
     { label: 'Beneficial-organism audit', sectionId: 'plan-beneficial-habitat' },
+    // B5.1 — cross-registered with soil-fertility; same sectionId, one render.
+    { label: 'Living-roots audit', sectionId: 'plan-living-roots' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
@@ -255,6 +257,8 @@ export const MODULE_CARDS: Record<
     { label: 'Soil-building plan', sectionId: 'plan-soil-building-plan' },
     { label: 'Soil food-web', sectionId: 'plan-soil-foodweb' },
     { label: 'Compost cycle', sectionId: 'plan-compost-cycle' },
+    // B5.1 — cross-registered with plant-systems; same sectionId, one render.
+    { label: 'Living-roots audit', sectionId: 'plan-living-roots' },
   ],
   'cross-section-solar': [
     { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },

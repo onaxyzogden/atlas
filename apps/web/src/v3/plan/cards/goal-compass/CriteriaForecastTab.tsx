@@ -21,6 +21,7 @@ import { useDesignElementsForProject } from '../../../../store/builtEnvironmentS
 import { computeRestCompliancePct } from '../../../../features/livestock/rotationSequenceMath.js';
 import { computeSilvopastureIntegrationPct } from '../../../../features/agroforestry/guildLivestockMath.js';
 import { computeBeneficialHabitatPct } from '../../../../features/biodiversity/beneficialHabitatMath.js';
+import { computeLivingRootsCoveragePct } from '../../../../features/coverCrops/livingRootsMath.js';
 import { welfareSummaryForProject } from '../../../../features/livestock/welfarePass.js';
 import { runSequencingEngine } from '../../engine/goalCompass/sequencingEngine.js';
 import {
@@ -79,6 +80,10 @@ export default function CriteriaForecastTab({ project }: Props) {
         projectId: project.id,
         guilds: allGuilds,
         designElements,
+      }),
+      'living-roots-coverage-pct': computeLivingRootsCoveragePct({
+        projectId: project.id,
+        cropAreas: allCropAreas,
       }),
     };
   }, [

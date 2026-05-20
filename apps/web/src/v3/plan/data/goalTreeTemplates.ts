@@ -63,6 +63,14 @@ const REGENERATIVE_FARM: GoalTree = {
           target: 90,
           deadlineYear: 3,
         },
+        {
+          id: 'living-roots-coverage-pct',
+          description:
+            'Projected % of cropped area carrying living roots year-round (12-month coverage)',
+          unit: 'pct',
+          target: 70,
+          deadlineYear: 3,
+        },
       ],
     },
     {
