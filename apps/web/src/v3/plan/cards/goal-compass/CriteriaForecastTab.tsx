@@ -20,6 +20,7 @@ import { useCropStore } from '../../../../store/cropStore.js';
 import { useDesignElementsForProject } from '../../../../store/builtEnvironmentSelectors.js';
 import { computeRestCompliancePct } from '../../../../features/livestock/rotationSequenceMath.js';
 import { computeSilvopastureIntegrationPct } from '../../../../features/agroforestry/guildLivestockMath.js';
+import { computeBeneficialHabitatPct } from '../../../../features/biodiversity/beneficialHabitatMath.js';
 import { welfareSummaryForProject } from '../../../../features/livestock/welfarePass.js';
 import { runSequencingEngine } from '../../engine/goalCompass/sequencingEngine.js';
 import {
@@ -73,6 +74,11 @@ export default function CriteriaForecastTab({ project }: Props) {
         designElements,
         paddocks: allPaddocks,
         guilds: allGuilds,
+      }),
+      'beneficial-organism-habitat-pct': computeBeneficialHabitatPct({
+        projectId: project.id,
+        guilds: allGuilds,
+        designElements,
       }),
     };
   }, [

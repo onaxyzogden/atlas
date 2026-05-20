@@ -94,6 +94,14 @@ const REGENERATIVE_FARM: GoalTree = {
           target: 10,
           deadlineYear: 1,
         },
+        {
+          id: 'beneficial-organism-habitat-pct',
+          description:
+            'Composite beneficial-organism habitat coverage from guilds + structural elements (%)',
+          unit: 'pct',
+          target: 60,
+          deadlineYear: 3,
+        },
       ],
     },
     {

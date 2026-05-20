@@ -236,6 +236,8 @@ export const MODULE_CARDS: Record<
     { label: 'Succession path',        sectionId: 'plan-succession-path' },
     // B4 — cross-registered with livestock; same sectionId, one render.
     { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },
+    // B5 — cross-registered with habitat-allocation; same sectionId, one render.
+    { label: 'Beneficial-organism audit', sectionId: 'plan-beneficial-habitat' },
   ],
   'soil-fertility': [
     // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
@@ -290,6 +292,8 @@ export const MODULE_CARDS: Record<
   ],
   'habitat-allocation': [
     { label: 'Allocation & inventory', sectionId: 'plan-habitat-allocation' },
+    // B5 — cross-registered with plant-systems; same sectionId, one render.
+    { label: 'Beneficial-organism audit', sectionId: 'plan-beneficial-habitat' },
   ],
   'biodiversity-monitor': [
     { label: 'Outcome dashboard', sectionId: 'plan-biodiversity-monitor' },
