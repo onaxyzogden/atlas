@@ -26,9 +26,14 @@ out-of-band before this ADR's first save propagated.
   steward sees per-species rationale and citation inline. No
   infrastructure change — `toxicityForGuild`'s `affects.some` already
   handles the narrowing.
-- *Still open:* per-member spatial positions inside hosts would let
-  us do real `turf.union` canopy dedup instead of the envelope-cap
-  approximation. Out of scope until the data model supports it.
+- 2026-05-21 — per-member spatial positions + real `turf.union`
+  canopy dedup
+  ([wiki/decisions/2026-05-21-atlas-b4-canopy-union-dedup.md](2026-05-21-atlas-b4-canopy-union-dedup.md)).
+  `GuildMember` gains optional `position?: [number, number]`
+  (guild-local metres); a deterministic ring positioner fills
+  positions when undefined; the canopy block now `turf.union`s
+  per-member disks resolved through `Guild.center` + position;
+  envelope clip preserved as fallback.
 
 ## Context
 
