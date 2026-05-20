@@ -339,7 +339,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-work-item-proof', useProofEventStore, 'projectId-tagged', 1, tagged('events')),
   blob('ogden-livestock', useLivestockStore, 'projectId-tagged', 1, tagged('paddocks', 'fenceLines'), true),
   blob('ogden-polyculture', usePolycultureStore, 'projectId-tagged', 3, tagged('guilds', 'species'), true),
-  blob('ogden-crops', useCropStore, 'projectId-tagged', 2, tagged('cropAreas'), true),
+  blob('ogden-crops', useCropStore, 'projectId-tagged', 3, tagged('cropAreas'), true),
   blob('ogden-conventional-crops', useConventionalCropStore, 'projectId-tagged', 1, tagged('conventionalCrops'), true),
   blob('ogden-vision', useVisionStore, 'projectId-tagged', 3, taggedFind('visions')),
   blob('ogden-nursery', useNurseryStore, 'projectId-tagged', 1, tagged('batches', 'transfers')),
