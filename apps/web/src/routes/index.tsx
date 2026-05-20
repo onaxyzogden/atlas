@@ -76,10 +76,22 @@ const rootRoute = createRootRoute({
   component: Outlet,
 });
 
-// App shell wrapper for main routes
+// App shell wrapper for main routes. Authenticated routes only — any nested
+// route inherits this guard, so /home, /new, /project/*, /v3/project/* all
+// redirect unauthenticated visitors to /login with the intended path
+// preserved in ?redirect=. Public surfaces (/, /login, /portal/*,
+// /report-share/*) are siblings of this route and stay unaffected.
 const appShellRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
+  beforeLoad: ({ location }) => {
+    if (!isAuthenticated()) {
+      throw redirect({
+        to: '/login',
+        search: { redirect: location.href },
+      });
+    }
+  },
   component: () => (
     <AppShell>
       <Outlet />
@@ -305,6 +317,10 @@ const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   component: LoginPage,
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+    const r = search.redirect;
+    return typeof r === 'string' ? { redirect: r } : {};
+  },
 });
 
 // ─── Portal page (outside AppShell — own layout) ─────────────────────────
