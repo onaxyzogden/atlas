@@ -61,6 +61,41 @@ describe('HostCanopyUnionTooltip', () => {
     expect(screen.getByText('0 m²')).toBeTruthy();
   });
 
+  it('forwards `pinned` as data-pinned on the root element', () => {
+    const { rerender } = render(
+      <HostCanopyUnionTooltip
+        point={{ x: 100, y: 100 }}
+        hostName="Pin Host"
+        unionAreaM2={100}
+        rawSumM2={120}
+        guildCount={2}
+        memberCount={3}
+        pinned={true}
+      />,
+    );
+    expect(
+      screen.getByTestId('host-canopy-union-tooltip').getAttribute('data-pinned'),
+    ).toBe('true');
+
+    // Default (pinned unset) and explicit false both omit the attribute
+    // so unpinned tooltips remain visually identical to the 2026-05-25
+    // hover ship.
+    rerender(
+      <HostCanopyUnionTooltip
+        point={{ x: 100, y: 100 }}
+        hostName="Pin Host"
+        unionAreaM2={100}
+        rawSumM2={120}
+        guildCount={2}
+        memberCount={3}
+        pinned={false}
+      />,
+    );
+    expect(
+      screen.getByTestId('host-canopy-union-tooltip').hasAttribute('data-pinned'),
+    ).toBe(false);
+  });
+
   it('flips anchor to left-of-cursor when point is near the right edge', () => {
     // happy-dom defaults innerWidth to 1024; 1020 puts the cursor at the
     // right edge, so the default `point.x + width + gap` placement would
