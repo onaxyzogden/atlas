@@ -33,11 +33,14 @@ import {
   getAllStructures,
   updateStructure,
   getDesignElementsForProject,
+  useDesignElementsForProject,
 } from '../../../store/builtEnvironmentSelectors.js';
 import {
   resolveSilvopastureHosts,
   listHostsForSelection,
+  resolveMembers,
 } from '../../../features/agroforestry/silvopastureHosts.js';
+import { hostCanopyUnion } from '../../../features/agroforestry/guildLivestockMath.js';
 import {
   useLayeringLensStore,
   RANK_COLOR,
@@ -242,6 +245,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const marketNodes = useAgribusinessStore((s) => s.marketNodes);
   const guilds = usePolycultureStore((s) => s.guilds);
   const updateGuild = usePolycultureStore((s) => s.updateGuild);
+  const designElementsForProject = useDesignElementsForProject(projectId);
   const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
@@ -287,6 +291,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     conflictLineFC,
     memberPointFC,
     memberCanopyFC,
+    hostCanopyUnionFC,
   } = useMemo(() => {
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
@@ -301,6 +306,12 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     // SilvopastureIntegrationCard read from one geometric source of truth.
     const memberPoints: GeoJSON.Feature[] = [];
     const memberCanopies: GeoJSON.Feature[] = [];
+    // Per-host canopy-union polygons — one Polygon | MultiPolygon per
+    // silvopasture host whose member guilds (resolved through pin or
+    // spatial overlap) produce a non-null `hostCanopyUnion`. Renders as
+    // a soft grey halo beneath the individual member disks so the steward
+    // sees the aggregate footprint that `canopyDedupedM2` measures.
+    const hostCanopyUnions: GeoJSON.Feature[] = [];
     // Utility-conflict hazard halos — earthwork WaterNodes that intersected
     // a buried utility at draw-time (see ADR 2026-05-10-plan-earthwork-
     // utility-veto). Rendered in `#c4422a` as a 4 px outline behind the
@@ -575,6 +586,48 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           }
         }
       }
+    }
+
+    // Per-host canopy-union polygons. Iterates silvopasture hosts via the
+    // same selector the integration math uses (`resolveSilvopastureHosts` +
+    // `resolveMembers`), then plumbs each host's member guilds through
+    // `hostCanopyUnion` to recover the union geometry. Hosts with no
+    // canopy-bearing members yield `null` and are skipped. Render-only —
+    // selection, drag, and popover wiring all stay on the per-member layer.
+    const projectScopedGuilds = guilds.filter((g) => g.projectId === projectId);
+    const projectScopedPaddocks = paddocks.filter(
+      (p) => p.projectId === projectId,
+    );
+    const hosts = resolveSilvopastureHosts(
+      projectId,
+      cropAreas,
+      designElementsForProject,
+    );
+    for (const host of hosts) {
+      const hostMembers = resolveMembers(
+        host,
+        {
+          cropAreas,
+          designElements: designElementsForProject,
+          paddocks: projectScopedPaddocks,
+          guilds: projectScopedGuilds,
+        },
+        hosts,
+      );
+      const hostGuilds = hostMembers.guilds.map((m) => m.entity);
+      if (hostGuilds.length === 0) continue;
+      const union = hostCanopyUnion(hostGuilds);
+      if (!union) continue;
+      hostCanopyUnions.push({
+        type: 'Feature',
+        id: `${host.id}:canopy-union`,
+        properties: {
+          kind: 'host-canopy-union',
+          hostId: host.id,
+          unionAreaM2: union.unionAreaM2,
+        },
+        geometry: union.unionGeometry,
+      });
     }
 
     // Fertility infra (point) — Module 6 Soil & Closed-Loop. Yeomans rank 7.
@@ -900,8 +953,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
       memberPointFC: { type: 'FeatureCollection' as const, features: memberPoints },
       memberCanopyFC: { type: 'FeatureCollection' as const, features: memberCanopies },
+      hostCanopyUnionFC: { type: 'FeatureCollection' as const, features: hostCanopyUnions },
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId]);
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId, designElementsForProject]);
 
   useEffect(() => {
     if (!map) return;
@@ -930,6 +984,10 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const conflictLineSid = ensureSource('utility-conflict-line', conflictLineFC);
       const memberPointSid = ensureSource('guild-member-point', memberPointFC);
       const memberCanopySid = ensureSource('guild-member-canopy', memberCanopyFC);
+      const hostCanopyUnionSid = ensureSource(
+        'guild-host-canopy-union',
+        hostCanopyUnionFC,
+      );
 
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
@@ -1183,6 +1241,32 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       const memberStrokeWidthExpr = selectedMemberKey
         ? ['case', ['==', ['id'], selectedMemberKey], 3, 1.5]
         : 1.5;
+      // Per-host canopy-union — soft grey halo beneath the individual
+      // member disks so the steward sees the unioned footprint that
+      // `canopyDedupedM2` measures. Neutral colour (no LAYER_TINT) avoids
+      // suggesting any one layer dominates the union. Added before the
+      // member-canopy layers so members render on top.
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-host-canopy-union-fill`,
+        type: 'fill',
+        source: hostCanopyUnionSid,
+        minzoom: 17,
+        paint: {
+          'fill-color': '#a8a8a8',
+          'fill-opacity': 0.15,
+        },
+      });
+      ensureLayer({
+        id: `${LAYER_PREFIX}guild-host-canopy-union-line`,
+        type: 'line',
+        source: hostCanopyUnionSid,
+        minzoom: 17,
+        paint: {
+          'line-color': '#5a5a5a',
+          'line-opacity': 0.40,
+          'line-width': 1.25,
+        },
+      });
       ensureLayer({
         id: `${LAYER_PREFIX}guild-member-canopy-fill`,
         type: 'fill',
@@ -1346,6 +1430,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     conflictLineFC,
     memberPointFC,
     memberCanopyFC,
+    hostCanopyUnionFC,
     lensEnabled,
     lensMode,
     enterprises,
