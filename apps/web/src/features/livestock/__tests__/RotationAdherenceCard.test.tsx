@@ -104,8 +104,13 @@ describe('RotationAdherenceCard — B3', () => {
     useLivestockMoveLogStore.setState({
       events: [moveIn('m1', 'a', '2020-01-01T00:00:00.000Z')],
     });
-    render(<RotationAdherenceCard projectId="p1" />);
-    expect(screen.getByText(/grazed .* beyond/i)).toBeTruthy();
+    const { container } = render(<RotationAdherenceCard projectId="p1" />);
+    // Structural assertion — decoupled from engine recommendation copy
+    // so that wording changes in `rotationAdherence.ts` don't break
+    // the card test.
+    const rows = container.querySelectorAll('[data-testid="rec-row"]');
+    expect(rows.length).toBeGreaterThanOrEqual(1);
+    expect(rows[0]?.getAttribute('data-severity')).toBe('high');
     expect(screen.getByText(/HIGH/)).toBeTruthy();
   });
 

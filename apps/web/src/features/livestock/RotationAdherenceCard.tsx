@@ -39,6 +39,19 @@ const LIGHT_CLASS = {
   alert: css.lightAlert,
 } as const;
 
+/**
+ * Three-way severity → badge class map. `high` lights `.badgeAlert`
+ * (coral/red), `med` lights `.badgeWarn` (amber), `low` lights
+ * `.badgeGood` (green). Distinct colours preserve the engine's
+ * 3-tier severity signal rather than collapsing high+med onto one
+ * badge.
+ */
+const SEVERITY_CLASS = {
+  high: css.badgeAlert,
+  med: css.badgeWarn,
+  low: css.badgeGood,
+} as const;
+
 export default function RotationAdherenceCard({
   projectId,
 }: RotationAdherenceCardProps) {
@@ -62,23 +75,19 @@ export default function RotationAdherenceCard({
     [paddocks, plan, moves],
   );
 
-  const Head = () => (
-    <div className={css.cardHead}>
-      <div>
-        <h3 className={css.cardTitle}>Rotation adherence</h3>
-        <p className={css.cardHint}>
-          Plan-vs-actual audit {'—'} compares logged paddock moves against
-          the rotation plan and surfaces ranked agronomic drift.
-        </p>
-      </div>
-      <span className={css.modeBadge}>Read-only</span>
-    </div>
-  );
-
   if (paddocks.length === 0) {
     return (
       <section className={css.card}>
-        <Head />
+        <div className={css.cardHead}>
+          <div>
+            <h3 className={css.cardTitle}>Rotation adherence</h3>
+            <p className={css.cardHint}>
+              Plan-vs-actual audit {'—'} compares logged paddock moves against
+              the rotation plan and surfaces ranked agronomic drift.
+            </p>
+          </div>
+          <span className={css.modeBadge}>Read-only</span>
+        </div>
         <div className={css.empty}>No paddocks in this project yet.</div>
       </section>
     );
@@ -90,7 +99,16 @@ export default function RotationAdherenceCard({
   if (adherence.recommendations.length === 0) {
     return (
       <section className={css.card}>
-        <Head />
+        <div className={css.cardHead}>
+          <div>
+            <h3 className={css.cardTitle}>Rotation adherence</h3>
+            <p className={css.cardHint}>
+              Plan-vs-actual audit {'—'} compares logged paddock moves against
+              the rotation plan and surfaces ranked agronomic drift.
+            </p>
+          </div>
+          <span className={css.modeBadge}>Read-only</span>
+        </div>
         <div className={css.headline}>
           <span className={`${css.headlineNumber} ${lightClass}`}>
             {lightLabel}
@@ -108,7 +126,16 @@ export default function RotationAdherenceCard({
 
   return (
     <section className={css.card}>
-      <Head />
+      <div className={css.cardHead}>
+        <div>
+          <h3 className={css.cardTitle}>Rotation adherence</h3>
+          <p className={css.cardHint}>
+            Plan-vs-actual audit {'—'} compares logged paddock moves against
+            the rotation plan and surfaces ranked agronomic drift.
+          </p>
+        </div>
+        <span className={css.modeBadge}>Read-only</span>
+      </div>
 
       <div className={css.headline}>
         <span className={`${css.headlineNumber} ${lightClass}`}>
@@ -130,16 +157,13 @@ export default function RotationAdherenceCard({
         </div>
         <div className={css.moveList}>
           {adherence.recommendations.map((r) => (
-            <div key={r.id} className={css.recRow}>
-              <span
-                className={`${css.recSev} ${
-                  r.severity === 'high'
-                    ? css.badgeWarn
-                    : r.severity === 'med'
-                      ? css.badgeWarn
-                      : css.badgeGood
-                }`}
-              >
+            <div
+              key={r.id}
+              className={css.recRow}
+              data-testid="rec-row"
+              data-severity={r.severity}
+            >
+              <span className={`${css.recSev} ${SEVERITY_CLASS[r.severity]}`}>
                 [{r.severity.toUpperCase()}]
               </span>
               <span className={css.recMsg}>{r.message}</span>
