@@ -139,6 +139,69 @@ export const LIVESTOCK_BROWSE_TOXICITY: BrowseToxicityEntry[] = [
     citation:
       'Merck Veterinary Manual — Oak Poisoning (Quercus spp.)',
   },
+  {
+    speciesId: 'black_locust',
+    affects: ['poultry'],
+    tier: 'avoid',
+    rationale:
+      'Robin and phasin lectins in bark, leaves, and seeds cause GI and cardiac toxicity in chickens; bark-pecking and seed ingestion are the typical avian exposures.',
+    citation:
+      'Cornell University CALS, Plants Poisonous to Livestock — Robinia pseudoacacia (poultry)',
+  },
+  {
+    speciesId: 'cherry',
+    affects: ['poultry', 'ducks_geese'],
+    tier: 'caution',
+    rationale:
+      'Wilted Prunus leaves and pits release cyanogenic glycosides; free-range birds are sensitive to acute hydrogen-cyanide poisoning at lower doses than ruminants.',
+    citation:
+      'Merck Veterinary Manual — Cyanide Poisoning (avian, Prunus spp.)',
+  },
+  {
+    speciesId: 'peach',
+    affects: ['poultry', 'ducks_geese'],
+    tier: 'caution',
+    rationale:
+      'Same Prunus wilted-leaf cyanogenic-glycoside pathway as cherry; storm-downed branches near coops are the typical exposure.',
+    citation:
+      'Merck Veterinary Manual — Cyanide Poisoning (avian, Prunus spp.)',
+  },
+  {
+    speciesId: 'garlic',
+    affects: ['poultry', 'ducks_geese'],
+    tier: 'caution',
+    rationale:
+      'Allium n-propyl disulfide induces Heinz-body hemolytic anemia; birds are markedly more sensitive than ruminants and decline within days of sustained intake.',
+    citation:
+      'ASPCA Animal Poison Control — Allium spp. (avian)',
+  },
+  {
+    speciesId: 'garlic_chive',
+    affects: ['poultry', 'ducks_geese'],
+    tier: 'caution',
+    rationale:
+      'Same Allium-family hemolytic risk as garlic; volunteer chive stands in ground-cover layers are the realistic avian exposure.',
+    citation:
+      'ASPCA Animal Poison Control — Allium spp. (avian)',
+  },
+  {
+    speciesId: 'borage',
+    affects: ['poultry'],
+    tier: 'caution',
+    rationale:
+      'Pyrrolizidine alkaloids accumulate as hepatotoxins in laying hens on chronic ingestion; egg residues also documented.',
+    citation:
+      'Merck Veterinary Manual — Pyrrolizidine Alkaloids (avian, Boraginaceae)',
+  },
+  {
+    speciesId: 'white_oak',
+    affects: ['ducks_geese'],
+    tier: 'caution',
+    rationale:
+      'Hydrolysable gallotannins in green acorns cause waterfowl mast toxicosis on heavy autumn fall; ducks and geese are the primary avian risk group.',
+    citation:
+      'Merck Veterinary Manual — Oak Poisoning (waterfowl, Quercus spp.)',
+  },
 ];
 
 /**
