@@ -122,6 +122,11 @@ export default function MobileProjectShell({
         aria-label="Project content"
       >
         {tab === 'overview' && (
+          /*
+           * Mobile <30s glance order (Phase A.3): Verdict + first Next Best
+           * Action above the fold, then constraint alert + decision triad.
+           * Stack stays flat — no <details>, no compact mode.
+           */
           <div className={css.overviewStack}>
             <LandVerdictCard
               project={project}
@@ -129,16 +134,16 @@ export default function MobileProjectShell({
               onOpenDesignMap={switchToDesign}
               onGenerateBrief={onGenerateBrief}
             />
-            <CriticalConstraintAlert
-              project={project}
-              onCreateChecklist={() => setActiveDashboardSection('regulatory')}
-            />
-            <DecisionTriad project={project} />
             <NextBestActionsPanel
               project={project}
               onGenerateBrief={onGenerateBrief}
               onSwitchToMap={switchToDesign}
             />
+            <CriticalConstraintAlert
+              project={project}
+              onCreateChecklist={() => setActiveDashboardSection('regulatory')}
+            />
+            <DecisionTriad project={project} />
           </div>
         )}
 
