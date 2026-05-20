@@ -1,0 +1,43 @@
+/* B5.2.x.c — MonthBandPicker styles. */
+
+.band {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2px;
+  width: 100%;
+  padding: 4px;
+  border-radius: 6px;
+  background: rgba(20, 22, 20, 0.45);
+  border: 1px solid rgba(232, 220, 200, 0.12);
+}
+
+.cell {
+  appearance: none;
+  background: rgba(232, 220, 200, 0.04);
+  border: 1px solid transparent;
+  color: rgba(180, 165, 140, 0.7);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 5px 0;
+  border-radius: 3px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell:hover {
+  background: rgba(120, 160, 110, 0.14);
+  color: rgba(220, 235, 220, 0.95);
+}
+
+.cellOn {
+  background: rgba(120, 160, 110, 0.32);
+  color: rgba(220, 235, 220, 0.98);
+}
+
+.cellStart {
+  border-color: rgba(196, 162, 101, 0.72);
+}
+
+.cellEnd {
+  border-color: rgba(196, 162, 101, 0.72);
+}
