@@ -118,6 +118,35 @@ interface WorkItemState {
   replacePlantingCalendarBatches: (projectId: string, items: WorkItem[]) => void;
 
   /**
+   * B5.2.x.b — replace all `source:'cover-crop'` work items for a project
+   * while preserving steward-edited (`overridden:true`) rows and never
+   * touching any other source. Mirrors `replaceGoalCompassRows` 1:1.
+   */
+  replaceCoverCropRows: (projectId: string, items: WorkItem[]) => void;
+  /**
+   * B5.2.x.b — replace the seeded resourcing (`equipmentRequiredAuto` /
+   * `materialsAuto`) for cover-crop rows. Mirrors
+   * `replaceGoalCompassResources` preservation filter 1:1 (swap source).
+   * Idempotent. D2.
+   */
+  replaceCoverCropResources: (
+    projectId: string,
+    resourcesByItemId: Map<
+      string,
+      { equipment: string[]; materials: MaterialLine[] }
+    >,
+  ) => void;
+  /**
+   * B5.2.x.b — replace the seeded planned-cost band (`costRangeAuto`) for
+   * cover-crop rows. Mirrors `replaceGoalCompassCosts` 1:1 (swap source).
+   * Idempotent. D3. Strictly project cost — no financing/capital semantics.
+   */
+  replaceCoverCropCosts: (
+    projectId: string,
+    costsByItemId: Map<string, CostRange>,
+  ) => void;
+
+  /**
    * Returns a freshly-allocated array. **Do NOT call inside a Zustand
    * selector** — subscribe to `state.items` raw and derive in `useMemo`.
    * See: wiki/decisions/2026-04-26-zustand-selector-stability.md
@@ -344,6 +373,85 @@ export const useWorkItemStore = create<WorkItemState>()(
             const prev = it.costRangeAuto;
             // Idempotent: unchanged band (incl. both-absent) → same
             // reference (no updatedAt churn), so re-seeding is a no-op.
+            const same =
+              (prev === undefined && next === undefined) ||
+              (prev !== undefined &&
+                next !== undefined &&
+                prev.low === next.low &&
+                prev.mid === next.mid &&
+                prev.high === next.high);
+            if (same) return it;
+            return { ...it, costRangeAuto: next, updatedAt: now() };
+          }),
+        })),
+
+      replaceCoverCropRows: (projectId, items) =>
+        set((s) => {
+          // Preserve: any row not (this project's generated, un-overridden
+          // cover-crop row). Mirrors replaceGoalCompassRows exactly — swap
+          // 'goal-compass' for 'cover-crop'. Goal-compass / manual / every
+          // other source survives untouched (cross-source preservation gate).
+          const remaining = s.items.filter(
+            (it) =>
+              it.projectId !== projectId ||
+              it.source !== 'cover-crop' ||
+              it.overridden,
+          );
+          const incoming = items.filter((it) => it.source === 'cover-crop');
+          return { items: [...remaining, ...incoming] };
+        }),
+
+      replaceCoverCropResources: (projectId, resourcesByItemId) =>
+        set((s) => ({
+          items: s.items.map((it) => {
+            if (
+              it.projectId !== projectId ||
+              it.source !== 'cover-crop' ||
+              it.overridden
+            ) {
+              return it;
+            }
+            const seeded = resourcesByItemId.get(it.id);
+            const nextEquip = seeded?.equipment ?? [];
+            const nextMats = seeded?.materials ?? [];
+            const prevEquip = it.equipmentRequiredAuto ?? [];
+            const prevMats = it.materialsAuto ?? [];
+            const equipSame =
+              prevEquip.length === nextEquip.length &&
+              prevEquip.every((e, i) => e === nextEquip[i]);
+            const matsSame =
+              prevMats.length === nextMats.length &&
+              prevMats.every((m, i) => {
+                const n = nextMats[i]!;
+                return (
+                  m.label === n.label &&
+                  m.unit === n.unit &&
+                  m.quantityPerAcre === n.quantityPerAcre &&
+                  m.notes === n.notes
+                );
+              });
+            if (equipSame && matsSame) return it;
+            return {
+              ...it,
+              equipmentRequiredAuto: nextEquip,
+              materialsAuto: nextMats,
+              updatedAt: now(),
+            };
+          }),
+        })),
+
+      replaceCoverCropCosts: (projectId, costsByItemId) =>
+        set((s) => ({
+          items: s.items.map((it) => {
+            if (
+              it.projectId !== projectId ||
+              it.source !== 'cover-crop' ||
+              it.overridden
+            ) {
+              return it;
+            }
+            const next = costsByItemId.get(it.id);
+            const prev = it.costRangeAuto;
             const same =
               (prev === undefined && next === undefined) ||
               (prev !== undefined &&
