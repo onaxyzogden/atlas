@@ -99,6 +99,18 @@ export const FinancialPayload = z.object({
     community: z.number(),
   }),
   assumptions: z.array(z.string()),
+  /**
+   * Natural-capital appreciation — annualized ecosystem-services valuation of
+   * the stewarded land. Covenant framing: this is informational appreciation
+   * of stewardship value, NOT a financial yield to capital partners.
+   * Derived from `computeEcosystemValuation()` on the web client.
+   */
+  naturalCapital: z.object({
+    totalUsdHaYr: z.number(),
+    totalUsdYr: z.number().nullable(),
+    dominantService: z.string(),
+    narrative: z.string(),
+  }).optional(),
 });
 export type FinancialPayload = z.infer<typeof FinancialPayload>;
 

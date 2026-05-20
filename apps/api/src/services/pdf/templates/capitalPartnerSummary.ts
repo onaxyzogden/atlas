@@ -221,6 +221,43 @@ export function renderCapitalPartnerSummary(data: ExportDataBag): string {
     ? `<ul>${fin.assumptions.slice(0, 15).map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`
     : '<p>No assumptions recorded.</p>';
 
+  const nc = fin.naturalCapital;
+  const dominantLabelMap: Record<string, string> = {
+    carbonStorage: 'carbon sequestration',
+    pollination: 'pollination services',
+    waterRegulation: 'flood attenuation & baseflow',
+    waterQuality: 'water quality regulation',
+    habitatProvision: 'habitat provision',
+    erosionControl: 'erosion control',
+    recreation: 'recreation & aesthetic value',
+  };
+  const naturalCapitalSection = nc ? `
+    <div class="section">
+      <h2>Natural-Capital Appreciation (informational)</h2>
+      <p style="font-size:9pt;color:var(--text-muted);margin-bottom:8px">
+        Annualized ecosystem-services value of the stewarded land, derived from
+        on-site biophysical layers (canopy, wetlands, soils) using de Groot /
+        Costanza per-biome coefficients. This is <strong>appreciation of
+        stewardship value</strong>, not revenue to capital partners and not a
+        yield on contributed capital.
+      </p>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-header">Per-Hectare Value</div>
+          <div class="card-value" style="font-size:14pt">${fmtDollars(nc.totalUsdHaYr)}/ha/yr</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Site Total (annualized)</div>
+          <div class="card-value" style="font-size:14pt">${nc.totalUsdYr != null ? fmtDollars(nc.totalUsdYr) + '/yr' : '—'}</div>
+        </div>
+        <div class="card">
+          <div class="card-header">Dominant Service</div>
+          <div class="card-value" style="font-size:12pt">${esc(dominantLabelMap[nc.dominantService] ?? nc.dominantService)}</div>
+        </div>
+      </div>
+      <p style="font-size:9pt;margin-top:8px">${esc(nc.narrative)}</p>
+    </div>` : '';
+
   const capitalChannelsSection = `
     <div class="section">
       <h2>Permitted Capital Channels</h2>
@@ -255,5 +292,5 @@ export function renderCapitalPartnerSummary(data: ExportDataBag): string {
 
   return baseLayout('Capital Partner Summary', p.name,
     propertySection + highlightsSection + costsSection + revenueSection +
-    cashflowSection + missionSection + capitalChannelsSection + disclaimerSection);
+    cashflowSection + missionSection + naturalCapitalSection + capitalChannelsSection + disclaimerSection);
 }

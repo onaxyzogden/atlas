@@ -15,6 +15,7 @@ import { useSiteDataStore } from '../../store/siteDataStore.js';
 import { useVisionStore } from '../../store/visionStore.js';
 import { api } from '../../lib/apiClient.js';
 import { formatKRange } from '../../lib/formatRange.js';
+import { selectEcosystemValuationFromLayers } from '../../lib/ecosystemValuation.js';
 import { sage, success, warning, group, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
@@ -46,6 +47,12 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
     setStatus('generating');
     setError(null);
     try {
+      const natCap = siteData?.layers
+        ? selectEcosystemValuationFromLayers({
+            layers: siteData.layers,
+            propertyAcres: project.acreage ?? null,
+          })
+        : null;
       const { data } = await api.exports.generate(project.id, {
         exportType: 'capital_partner_summary',
         payload: {
@@ -70,6 +77,16 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
             enterprises: model.enterprises,
             missionScore: model.missionScore,
             assumptions: model.assumptions,
+            ...(natCap
+              ? {
+                  naturalCapital: {
+                    totalUsdHaYr: natCap.totalUsdHaYr,
+                    totalUsdYr: natCap.totalUsdYr,
+                    dominantService: natCap.dominantService,
+                    narrative: natCap.narrative,
+                  },
+                }
+              : {}),
           },
         },
       });
