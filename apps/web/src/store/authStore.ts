@@ -6,7 +6,7 @@
  */
 
 import { create } from 'zustand';
-import { api, setAuthToken, type ApiAuthUser } from '../lib/apiClient.js';
+import { api, setAuthToken, ApiError, type ApiAuthUser } from '../lib/apiClient.js';
 
 const TOKEN_KEY = 'ogden-auth-token';
 
@@ -57,11 +57,23 @@ export const useAuthStore = create<AuthState>((set) => ({
           user: { id: data.id, email: data.email, displayName: data.displayName ?? null },
           isLoaded: true,
         });
-      } catch {
-        // Token expired or invalid — clear it
-        localStorage.removeItem(TOKEN_KEY);
-        setAuthToken(null);
-        set({ token: null, user: null, isLoaded: true });
+      } catch (err) {
+        // Only nullify on a real auth rejection (401 / INVALID_TOKEN).
+        // Transient network/server errors must NOT yank the just-set token
+        // out from under concurrent in-flight authed requests — keep the
+        // token in place and let the next call re-verify implicitly.
+        const isAuthFailure =
+          err instanceof ApiError &&
+          (err.status === 401 || err.code === 'INVALID_TOKEN' || err.code === 'UNAUTHORIZED');
+
+        if (isAuthFailure) {
+          localStorage.removeItem(TOKEN_KEY);
+          setAuthToken(null);
+          set({ token: null, user: null, isLoaded: true });
+        } else {
+          // Transient — preserve token, leave user empty, mark loaded.
+          set({ token: stored, user: null, isLoaded: true });
+        }
       }
     } catch {
       set({ isLoaded: true });

@@ -30,9 +30,19 @@ design-system/
 ~55% Done, ~25% Partial, ~20% Stub/Not Started (revised 2026-04-14 deep audit).
 
 Revision rationale: The ~65% estimate counted frontend-only layer fetchers as
-"connected". The deep audit revealed ALL 14 backend adapters are stubbed
-(ManualFlagAdapter). Frontend has 10 live API connections, but backend pipeline
-— the intended production path — is 0% connected. See `ATLAS_DEEP_AUDIT.md`.
+"connected". The deep audit flagged backend adapter coverage as a gap. See
+`ATLAS_DEEP_AUDIT.md` for the original framing.
+
+**Correction (2026-05-20):** the "ALL 14 backend adapters are stubbed
+(ManualFlagAdapter)" claim is stale. Actual state: 17 live adapters under
+`apps/api/src/services/pipeline/adapters/` (SSURGO, USGS Elevation, NRCan
+HRDEM, OMAFRA, NHD, OHN, NWI/FEMA, Conservation Authority, NOAA, ECCC, NLCD,
+AAFC, US County GIS, Ontario Municipal, NWIS, PGMN, NASA POWER).
+`ManualFlagAdapter` is a defensive fallback used only when
+`ADAPTER_REGISTRY[layerType]?.[country]` is undefined — it is not the
+default. Adapter dispatch is gated by the boundary POST
+(`POST /api/v1/projects/:id/boundary`), not by project create or address
+input. See [2026-05-20 OLOS new-user-journey walkthrough](../decisions/2026-05-20-olos-new-user-journey-walkthrough.md).
 
 ## Key Metrics
 - 498 source files across monorepo

@@ -422,6 +422,24 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
         <div ref={containerRef} style={{ flex: 1 }} />
       )}
 
+      {/* Boundary-set confirmation */}
+      {data.parcelBoundaryGeojson && (
+        <div
+          role="status"
+          style={{
+            padding: '8px 20px',
+            background: 'var(--color-sage-50, rgba(40, 90, 50, 0.06))',
+            borderTop: '1px solid var(--color-border)',
+            fontSize: 12,
+            color: 'var(--color-sage-700, var(--color-text-muted))',
+            flexShrink: 0,
+            lineHeight: 1.5,
+          }}
+        >
+          Boundary captured. Public GIS layers (elevation, soils, hydrology, climate) will be fetched in the background as soon as the project is created.
+        </div>
+      )}
+
       {/* Nav */}
       <div style={{ padding: '0 20px 16px', background: 'var(--color-bg)' }}>
         <WizardNav onBack={onBack} onNext={onNext} isFirst={isFirst} isLast={isLast} />

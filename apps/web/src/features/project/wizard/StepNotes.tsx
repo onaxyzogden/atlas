@@ -71,7 +71,11 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
     return Object.keys(md).length > 0 ? md : undefined;
   };
 
-  const handleCreate = () => {
+  const [creating, setCreating] = useState(false);
+
+  const handleCreate = async () => {
+    if (creating) return;
+    setCreating(true);
     const metadata = buildMetadata();
 
     // Create the project
@@ -115,46 +119,42 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       addAttachment(project.id, attachment);
     }
 
-    // Navigate immediately — local copy is the source of truth. Land in the
-    // v3 / Land OS Observe stage (the active lifecycle surface), not the
-    // legacy project page; the v3 tree reads the same store.
-    navigate({
-      to: '/v3/project/$projectId/observe',
-      params: { projectId: project.id },
-    });
-
-    // Fire-and-forget backend sync (only when authenticated)
+    // Authenticated: await the server-side create + boundary push so the
+    // Observe stage mounts with a real serverId — prevents per-project
+    // fetches firing against an unknown project id and silently 404-ing.
+    // Unauthenticated: navigate immediately (local copy is source of truth).
     if (token) {
-      api.projects.create({
-        name: data.name,
-        description: data.description || undefined,
-        address: data.address || undefined,
-        parcelId: data.parcelId || undefined,
-        projectType: (data.projectType as any) || undefined,
-        country: data.country,
-        provinceState: data.provinceState || undefined,
-        units: data.units,
-        metadata,
-      }).then(async ({ data: serverProject }) => {
-        // Store the backend-assigned UUID so future syncs can reference it
+      try {
+        const { data: serverProject } = await api.projects.create({
+          name: data.name,
+          description: data.description || undefined,
+          address: data.address || undefined,
+          parcelId: data.parcelId || undefined,
+          projectType: (data.projectType as any) || undefined,
+          country: data.country,
+          provinceState: data.provinceState || undefined,
+          units: data.units,
+          metadata,
+        });
         updateProjectFn(project.id, { serverId: serverProject.id });
-
-        // Push boundary if one was drawn
         const geo = data.parcelBoundaryGeojson;
         if (geo) {
           await api.projects.setBoundary(serverProject.id, geo);
         }
-
-        // Upload file attachments to the server
+        // File uploads are non-blocking — fire-and-forget per attachment.
         for (const att of attachments) {
-          api.files.upload(serverProject.id, att.file).catch(() => {
-            // Upload failure is non-fatal — local attachment is still in store
-          });
+          api.files.upload(serverProject.id, att.file).catch(() => {});
         }
-      }).catch(() => {
-        // Backend unavailable — local copy is intact, sync will retry later
-      });
+      } catch {
+        // Backend unavailable — local copy is intact, sync will retry later.
+        // Proceed to navigate so the user is not blocked offline.
+      }
     }
+
+    navigate({
+      to: '/v3/project/$projectId/observe',
+      params: { projectId: project.id },
+    });
   };
 
   const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -442,7 +442,8 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
         onNext={handleCreate}
         isFirst={isFirst}
         isLast={isLast}
-        nextLabel="Create Project"
+        nextLabel={creating ? 'Creating…' : 'Create Project'}
+        nextDisabled={creating}
       />
     </div>
   );

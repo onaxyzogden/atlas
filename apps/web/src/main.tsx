@@ -30,12 +30,6 @@ cleanupArchivedV3();
 
 // Import projectStore to trigger seed-on-hydration (side-effect import)
 import './store/projectStore.js';
-// Import siteDataSync to bridge project boundaries → site-data fetches
-// independently of which UI surface (legacy / v3 / mobile) is mounted.
-// Must come AFTER projectStore so its top-level subscribe sees a fully-
-// constructed store; rehydration that follows still fires the subscriber
-// when boundaries land via IndexedDB-restore setState calls.
-import './store/siteDataSync.js';
 // Import connectivityStore to register online/offline listeners (side-effect import)
 import './store/connectivityStore.js';
 // Register window.__ogdenSeedFertilitySample dev handle for Plan-stage
@@ -45,16 +39,29 @@ import './dev/seedFertilitySample.js';
 // regenerate-preservation smoke-testing. Function reference only; no
 // auto-execution.
 import './dev/seedGoalCompassPlan.js';
-// Init auth from localStorage before first render (non-blocking — sets isLoaded when done)
 import { useAuthStore } from './store/authStore.js';
 import { syncService } from './lib/syncService.js';
 
-// Boot auth, then start sync if authenticated
-useAuthStore.getState().initFromStorage().then(() => {
-  if (useAuthStore.getState().token) {
-    syncService.start();
-  }
-});
+// Block first paint on auth init so the apiClient module-level token is
+// populated before any route effect / store subscriber fires authed fetches.
+// Hard 1500ms ceiling — if /auth/me hangs we proceed as unauthenticated
+// rather than freezing the app.
+async function bootAuth(): Promise<void> {
+  const init = useAuthStore.getState().initFromStorage();
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, 1500));
+  await Promise.race([init, timeout]);
+}
+
+await bootAuth();
+
+// siteDataSync subscribes to projectStore at import-time and would fire
+// authed fetches as soon as a project boundary lands. Import AFTER auth
+// is initialised so the Authorization header is always present.
+await import('./store/siteDataSync.js');
+
+if (useAuthStore.getState().token) {
+  syncService.start();
+}
 
 // React to auth changes: start sync on login, stop on logout
 useAuthStore.subscribe((state, prev) => {
