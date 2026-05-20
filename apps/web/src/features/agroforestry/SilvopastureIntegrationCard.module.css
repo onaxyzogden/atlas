@@ -121,6 +121,13 @@
   margin-bottom: 8px;
 }
 
+.canopyClipped {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.55);
+  font-style: italic;
+  margin: -4px 0 8px;
+}
+
 .hostEmpty {
   font-size: 11.5px;
   color: rgba(180, 165, 140, 0.5);

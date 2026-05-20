@@ -107,6 +107,15 @@ export default function SilvopastureIntegrationCard({ projectId }: Props) {
                 {row.guildCount} guild{row.guildCount === 1 ? '' : 's'} ·{' '}
                 canopy {row.canopyCoveragePct.toFixed(0)}%
               </div>
+              {row.canopyClampedM2 > 0 ? (
+                <div
+                  className={css.canopyClipped}
+                  data-testid="canopy-clipped"
+                >
+                  canopy claims clipped by {Math.round(row.canopyClampedM2)} m²
+                  at host envelope
+                </div>
+              ) : null}
 
               {fodderPreview.length > 0 ? (
                 <div className={css.fodderBlock}>
