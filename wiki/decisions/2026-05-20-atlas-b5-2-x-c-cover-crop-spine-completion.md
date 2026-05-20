@@ -229,3 +229,47 @@ Per-task explicit-path commits on `feat/atlas-permaculture`
 **No push** without `git fetch && git rev-list --left-right --count
 HEAD...@{u}` divergence check on `feat/atlas-permaculture` (rebased
 out-of-band; never force-push).
+
+---
+
+## Addendum (2026-05-20) — Map-entry wire-up closed
+
+The parked sub-item from §"Map entry" / "Explicit deferred follow-up"
+landed in a follow-up slice. `PlanCropAreaSelectionHandler` listens for
+`mousedown` on the Plan-stage map, queries live `crop-fill-*` layers,
+and routes a hit into `useCoverCropPopoverStore.openFor({ projectId,
+cropAreaId, anchor: { x, y } })`. Resolution chain:
+`properties.id` → `properties.cropAreaId` → strip `crop-fill-`
+prefix off `top.layer.id`. `e.preventDefault()` +
+`e.originalEvent.stopPropagation()` keep the click from also reaching
+draw-tool handlers.
+
+Mount: `apps/web/src/v3/plan/PlanLayout.tsx` — the new handler sits
+adjacent to `<PlanObserveSelectionHandler map={map} />` (mousedown
+peer), and `<CoverCropPopoverEditor />` mounts adjacent to
+`<InlineFeaturePopover map={map} />`. Append-only.
+
+**Resolved fork.** Chose per-feature-type store routing (Fork B from
+the parked discussion) over generalizing `useInlineFormStore` (Fork A).
+Reason: the field-spec API
+(`text|number|select|textarea|disclosure` at
+`apps/web/src/v3/plan/draw/inlineFormStore.ts:19-126`) cannot host
+arbitrary React content like the MonthBandPicker editor; generalizing
+it would ripple through 23 active map tools. Left-click → direct
+popover (vs. right-click context-menu or select-then-chip) — matches
+the `PlanObserveSelectionHandler` precedent (`mousedown` + live-layer
+query + `e.preventDefault()`) and is the smallest surface.
+
+**Posture.** Strictly-additive. No new store (the popover store
+already shipped in C6), no schema bump, no `inlineFormStore` change,
+no impact on the other 23 map tools. Single-writer preserved: Save
+still funnels through `updateCropArea` + `pushCoverCropPlanToSpine`
+(C4 behaviour).
+
+**Gate.** Targeted vitest **7/7 green** (`PlanCropAreaSelectionHandler`
+4-case suite + existing `CoverCropPopoverEditor` 3-case suite). Full
+apps/web vitest sweep **1536/1536** (150 files). `apps/web` tsc exit 0;
+`packages/shared` tsc exit 0. Covenant grep clean on the two new
+files. Map-canvas golden path not exercised under harness (MapLibre
+WebGL hang disclosure rule) — vitest + tsc are authoritative for this
+slice.
