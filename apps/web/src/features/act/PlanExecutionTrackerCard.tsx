@@ -33,6 +33,7 @@ import {
 import type { LocalProject } from '../../store/projectStore.js';
 import { usePhaseStore, type DesignLayer } from '../../store/phaseStore.js';
 import { useWorkItemStore } from '../../store/workItemStore.js';
+import { useWorkItemDraftStore } from '../../store/workItemDraftStore.js';
 import { toast } from '../../components/Toast.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 import FieldProofPanel from './FieldProofPanel.js';
@@ -142,6 +143,10 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
   const toggleDone = useWorkItemStore((s) => s.toggleDone);
   const addDependency = useWorkItemStore((s) => s.addDependency);
   const removeDependency = useWorkItemStore((s) => s.removeDependency);
+  const addItem = useWorkItemStore((s) => s.addItem);
+
+  const draft = useWorkItemDraftStore((s) => s.draft);
+  const clearDraft = useWorkItemDraftStore((s) => s.clearDraft);
 
   const [group, setGroup] = useState<GroupMode>('phase');
   const [openDepEditor, setOpenDepEditor] = useState<string | null>(null);
@@ -152,6 +157,27 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
   const [depError, setDepError] = useState<Record<string, string>>({});
 
   const today = todayISO();
+
+  function createFromDraft() {
+    if (!draft) return;
+    const now = new Date().toISOString();
+    addItem({
+      id: crypto.randomUUID(),
+      projectId: project.id,
+      source: 'goal-compass',
+      overridden: false,
+      createdAt: now,
+      updatedAt: now,
+      title: draft.title,
+      phaseId: null,
+      status: 'todo',
+      dependsOn: [],
+      dependsOnAuto: [],
+      materialsAuto: [],
+      equipmentRequiredAuto: [],
+    });
+    clearDraft();
+  }
 
   const projectItems = useMemo(
     () => allItems.filter((w) => w.projectId === project.id),
@@ -912,6 +938,28 @@ export default function PlanExecutionTrackerCard({ project }: Props) {
 
   return (
     <div className={styles.page}>
+      {draft ? (
+        <div
+          data-testid="adherence-draft-banner"
+          style={{
+            padding: 8,
+            border: '1px solid rgba(232,220,200,0.18)',
+            borderRadius: 6,
+            marginBottom: 8,
+          }}
+        >
+          <p style={{ margin: 0 }}>{draft.title}</p>
+          {draft.notes ? (
+            <p style={{ margin: 0, opacity: 0.7 }}>{draft.notes}</p>
+          ) : null}
+          <button type="button" onClick={createFromDraft}>
+            Create work item
+          </button>
+          <button type="button" onClick={clearDraft}>
+            Dismiss
+          </button>
+        </div>
+      ) : null}
       <header className={styles.hero} data-stage="act">
         <span className={styles.heroTag}>Act · Plan Execution Tracker</span>
         <h1 className={styles.title}>Plan execution tracker</h1>
