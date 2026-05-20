@@ -127,14 +127,22 @@ the underlying union geometry and π·r² sums are untouched.
 - Multi-feature fan-out when `resolveSilvopastureHosts` produces
   overlapping hosts.
 
+**Closed by [2026-05-28 ADR](2026-05-28-atlas-b4-tooltip-touch-dismiss-and-fade.md):**
+- Touch-device tap-to-show (genuine gap was tap-outside-to-dismiss
+  on tablets where ESC is unavailable; show was already covered
+  by MapLibre's synthesised `click` from the 2026-05-26 pin
+  handler).
+- Animated fade in/out — *enter* fade closed via CSS keyframe with
+  `prefers-reduced-motion` guard; exit fade still deferred.
+
 **Still deferred (own slices):**
-- Touch-device tap-to-show.
+- Animated fade **out** (exit) — would require keeping the portal
+  mounted past `activeUnion → null`.
 - Tooltip i18n.
 - Per-layer tinted accent stripe matching the dominant canopy
   layer of the host — the union is a per-host aggregate;
   layer-tinting would reintroduce the misleading-hue concern
   2026-05-24 called out for the halo itself.
-- Animated fade in/out.
 - All other 2026-05-24-still-deferred follow-ups (toggle UI,
   light/dark theming, ring-radius ground-truthing,
   snap-to-other-member, multi-select drag, z-order, member-catalog
@@ -153,10 +161,15 @@ framing in any new file.
 - ~~Union-area as a map label~~ (carried forward from 2026-05-24).
   Closed by
   [2026-05-26 ADR](2026-05-26-atlas-b4-union-tooltip-pin-and-label.md).
-- Touch tap-to-show.
+- ~~Touch tap-to-show.~~ Closed by
+  [2026-05-28 ADR](2026-05-28-atlas-b4-tooltip-touch-dismiss-and-fade.md)
+  (added tap-outside-to-dismiss; tap-to-show was already covered
+  by synthesised `click` from 2026-05-26).
 - Tooltip i18n.
 - Per-layer tinted stripe.
-- Animated transitions.
+- ~~Animated transitions.~~ Enter fade closed by
+  [2026-05-28 ADR](2026-05-28-atlas-b4-tooltip-touch-dismiss-and-fade.md);
+  exit fade still deferred.
 - ~~Multi-feature fan-out on overlapping hosts.~~ Closed by
   [2026-05-27 ADR](2026-05-27-atlas-b4-union-tooltip-multi-feature-fanout.md).
 - All other 2026-05-24-still-deferred follow-ups.
