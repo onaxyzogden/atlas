@@ -118,9 +118,12 @@ click-driven `InlineFeaturePopover`.
 **Per-rasterisation noise unchanged.** This is a presentation slice;
 the underlying union geometry and π·r² sums are untouched.
 
+**Closed by [2026-05-26 ADR](2026-05-26-atlas-b4-union-tooltip-pin-and-label.md):**
+- Click-to-pin variant of the tooltip.
+- Union-area as a map label (carried forward from the
+  2026-05-24-still-deferred list).
+
 **Still deferred (own slices):**
-- Click-to-pin variant of the tooltip (a separate slice if
-  stewards report needing to read while panning).
 - Touch-device tap-to-show.
 - Tooltip i18n.
 - Per-layer tinted accent stripe matching the dominant canopy
@@ -132,9 +135,9 @@ the underlying union geometry and π·r² sums are untouched.
   produces overlapping hosts (today the tooltip shows the topmost
   union via `e.features?.[0]`).
 - All other 2026-05-24-still-deferred follow-ups (toggle UI,
-  union-area as map label, light/dark theming, ring-radius
-  ground-truthing, snap-to-other-member, multi-select drag,
-  z-order, member-catalog edit via popover).
+  light/dark theming, ring-radius ground-truthing,
+  snap-to-other-member, multi-select drag, z-order, member-catalog
+  edit via popover).
 
 ## Covenant (non-financial / ecological only)
 
@@ -144,7 +147,11 @@ framing in any new file.
 
 ## Out of scope
 
-- Click-to-pin variant.
+- ~~Click-to-pin variant.~~ Closed by
+  [2026-05-26 ADR](2026-05-26-atlas-b4-union-tooltip-pin-and-label.md).
+- ~~Union-area as a map label~~ (carried forward from 2026-05-24).
+  Closed by
+  [2026-05-26 ADR](2026-05-26-atlas-b4-union-tooltip-pin-and-label.md).
 - Touch tap-to-show.
 - Tooltip i18n.
 - Per-layer tinted stripe.
