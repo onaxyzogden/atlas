@@ -89,6 +89,8 @@ const SectionAnnotationsCard  = lazy(() => import('./cards/cross-section/Section
 const PhasingMatrixCard       = lazy(() => import('../../features/plan/PhasingMatrixCard.js'));
 const SeasonalTaskCard        = lazy(() => import('../../features/plan/SeasonalTaskCard.js'));
 const LaborBudgetSummaryCard  = lazy(() => import('../../features/plan/LaborBudgetSummaryCard.js'));
+// B5.2.x.b — per-phase cover-crop seed-cost + seeding-labor rollup.
+const CoverCropEconomicsCard  = lazy(() => import('../../features/coverCrops/CoverCropEconomicsCard.js'));
 const PhasingScaleMatrixCard  = lazy(() => import('./cards/phasing-budgeting/PhasingScaleMatrixCard.js'));
 const CumulativeInvestmentCard = lazy(() => import('./cards/phasing-budgeting/CumulativeInvestmentCard.js'));
 const MaintenanceScheduleCard = lazy(() => import('./cards/phasing-budgeting/MaintenanceScheduleCard.js'));
@@ -176,6 +178,7 @@ function renderPlanCard(
     case 'plan-phasing-matrix':      return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-seasonal-tasks':      return <SeasonalTaskCard project={project} onSwitchToMap={noop} />;
     case 'plan-labor-budget':        return <LaborBudgetSummaryCard project={project} onSwitchToMap={noop} />;
+    case 'plan-cover-crop-economics': return <CoverCropEconomicsCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-scale-matrix': return <PhasingScaleMatrixCard project={project} onSwitchToMap={noop} />;
     case 'plan-cumulative-investment': return <CumulativeInvestmentCard project={project} onSwitchToMap={noop} />;
     case 'plan-maintenance-schedule': return <MaintenanceScheduleCard project={project} onSwitchToMap={noop} />;

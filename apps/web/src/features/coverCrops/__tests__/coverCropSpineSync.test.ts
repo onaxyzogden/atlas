@@ -97,7 +97,6 @@ function phase(over: Partial<BuildPhase> & { id: string; order: number; name: st
 
 function manualWorkItem(over: Partial<WorkItem> & { id: string }): WorkItem {
   return {
-    id: over.id,
     projectId: 'p1',
     source: 'manual',
     overridden: false,

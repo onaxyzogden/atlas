@@ -115,7 +115,7 @@ describe('CoverCropEconomicsCard — B5.2.x.b', () => {
           name: 'North field',
           phase: 'phase-1',
           coverCropPlan: [
-            { speciesId: 'winter_rye', startMonth: 9, endMonth: 11 },
+            { speciesId: 'winter_rye', role: 'winter_cover', startMonth: 9, endMonth: 11 },
           ],
         }),
         // phase-2: 2 acres, override $80/acre seed, override 1.0 h/acre labor
@@ -127,6 +127,7 @@ describe('CoverCropEconomicsCard — B5.2.x.b', () => {
           coverCropPlan: [
             {
               speciesId: 'winter_rye',
+              role: 'winter_cover',
               startMonth: 9,
               endMonth: 11,
               seedCostUSDPerAcreOverride: 80,
@@ -140,7 +141,7 @@ describe('CoverCropEconomicsCard — B5.2.x.b', () => {
           name: 'Orphan',
           phase: 'no-such-phase',
           coverCropPlan: [
-            { speciesId: 'clover', startMonth: 4, endMonth: 9 },
+            { speciesId: 'clover', role: 'living_mulch', startMonth: 4, endMonth: 9 },
           ],
         }),
       ],
