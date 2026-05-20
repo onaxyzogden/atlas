@@ -123,6 +123,10 @@ the underlying union geometry and π·r² sums are untouched.
 - Union-area as a map label (carried forward from the
   2026-05-24-still-deferred list).
 
+**Closed by [2026-05-27 ADR](2026-05-27-atlas-b4-union-tooltip-multi-feature-fanout.md):**
+- Multi-feature fan-out when `resolveSilvopastureHosts` produces
+  overlapping hosts.
+
 **Still deferred (own slices):**
 - Touch-device tap-to-show.
 - Tooltip i18n.
@@ -131,9 +135,6 @@ the underlying union geometry and π·r² sums are untouched.
   layer-tinting would reintroduce the misleading-hue concern
   2026-05-24 called out for the halo itself.
 - Animated fade in/out.
-- Multi-feature fan-out when `resolveSilvopastureHosts` ever
-  produces overlapping hosts (today the tooltip shows the topmost
-  union via `e.features?.[0]`).
 - All other 2026-05-24-still-deferred follow-ups (toggle UI,
   light/dark theming, ring-radius ground-truthing,
   snap-to-other-member, multi-select drag, z-order, member-catalog
@@ -156,7 +157,8 @@ framing in any new file.
 - Tooltip i18n.
 - Per-layer tinted stripe.
 - Animated transitions.
-- Multi-feature fan-out on overlapping hosts.
+- ~~Multi-feature fan-out on overlapping hosts.~~ Closed by
+  [2026-05-27 ADR](2026-05-27-atlas-b4-union-tooltip-multi-feature-fanout.md).
 - All other 2026-05-24-still-deferred follow-ups.
 
 ## Verification
