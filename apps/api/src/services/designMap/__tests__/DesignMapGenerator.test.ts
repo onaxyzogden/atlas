@@ -141,6 +141,105 @@ describe('generateDesignMap — orchestrator', () => {
     expect(subtypes.has('conservation')).toBe(true); // corridors
   });
 
+  it('aggregates feature output and warnings across all four algorithms in a full run', () => {
+    const mLat = metresPerDegLat();
+    const mLon = metresPerDegLon(ANCHOR_LAT);
+    const contour = (northingM: number) => ({
+      line: [
+        [ANCHOR_LON - 350 / mLon, ANCHOR_LAT + northingM / mLat],
+        [ANCHOR_LON + 350 / mLon, ANCHOR_LAT + northingM / mLat],
+      ] as [number, number][],
+      elevationM: 100 + northingM / 10,
+      meanSlopePct: 6,
+    });
+    const swaleCandidate = {
+      start: [ANCHOR_LON - 200 / mLon, ANCHOR_LAT - 50 / mLat] as [
+        number,
+        number,
+      ],
+      end: [ANCHOR_LON + 200 / mLon, ANCHOR_LAT - 50 / mLat] as [
+        number,
+        number,
+      ],
+      lengthCells: 20,
+      meanSlope: 6,
+      elevation: 100,
+      suitabilityScore: 0.8,
+    };
+    const riparianLine: [number, number][] = [
+      [ANCHOR_LON - 200 / mLon, ANCHOR_LAT + 50 / mLat],
+      [ANCHOR_LON + 200 / mLon, ANCHOR_LAT + 50 / mLat],
+    ];
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      contours: [contour(-150), contour(0), contour(150)],
+      swaleCandidates: [swaleCandidate],
+      riparianLines: [riparianLine],
+      enterprises: ['orchard', 'livestock'],
+    });
+    expect(out.summary.orchardRows).toBeGreaterThan(0);
+    expect(out.summary.swales).toBe(1);
+    expect(out.summary.paddocks).toBeGreaterThan(0);
+    expect(out.summary.corridors).toBeGreaterThan(1); // perimeter + 1 riparian
+    expect(out.summary.totalSpongeCapacityM3).toBeGreaterThan(0);
+    expect(out.summary.totalPaddockAuDays).toBeGreaterThan(0);
+    expect(out.summary.totalCorridorAcres).toBeGreaterThan(0);
+    expect(out.summary.estimatedTreeCount).toBeGreaterThan(0);
+  });
+
+  it('preserves a stable sortOrder ordering across algorithm families', () => {
+    const mLat = metresPerDegLat();
+    const mLon = metresPerDegLon(ANCHOR_LAT);
+    const contour = {
+      line: [
+        [ANCHOR_LON - 350 / mLon, ANCHOR_LAT],
+        [ANCHOR_LON + 350 / mLon, ANCHOR_LAT],
+      ] as [number, number][],
+      elevationM: 100,
+      meanSlopePct: 6,
+    };
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      contours: [contour],
+      enterprises: ['orchard', 'livestock'],
+    });
+    // Each algorithm reserves its own sortOrder band:
+    //   orchard 100s, swale 200s, paddock 300s, corridor 400s.
+    const ordersByGenerator: Record<string, number[]> = {};
+    for (const f of out.features) {
+      const gen = (f.properties as { generator: string }).generator;
+      const order = f.sortOrder ?? 0;
+      (ordersByGenerator[gen] ??= []).push(order);
+    }
+    for (const o of ordersByGenerator.orchardOnContour ?? []) {
+      expect(o).toBeGreaterThanOrEqual(100);
+      expect(o).toBeLessThan(200);
+    }
+    for (const o of ordersByGenerator.paddockGrid ?? []) {
+      expect(o).toBeGreaterThanOrEqual(300);
+      expect(o).toBeLessThan(400);
+    }
+    for (const o of ordersByGenerator.habitatCorridors ?? []) {
+      expect(o).toBeGreaterThanOrEqual(400);
+      expect(o).toBeLessThan(500);
+    }
+  });
+
+  it('aggregates "no candidates / no contours" warnings without dropping any', () => {
+    // No contours, no swale candidates, no enterprises beyond defaults.
+    const out = generateDesignMap({
+      parcel: { boundary: squareParcel(900) },
+      acres: 200,
+      enterprises: ['orchard'],
+    });
+    // Orchard warns about contours; corridor still runs and won't warn.
+    expect(
+      out.warnings.filter((w) => w.includes('no contours provided')),
+    ).toHaveLength(1);
+  });
+
   it('runs swales when candidates are present, regardless of enterprise mix', () => {
     const mLat = metresPerDegLat();
     const mLon = metresPerDegLon(ANCHOR_LAT);
