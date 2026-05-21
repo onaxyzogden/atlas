@@ -39,7 +39,7 @@ function safeArea(geom: GeoJSON.Geometry): number {
 
 /** Area of the overlap between a patch and a zone, 0 on any failure. */
 function overlapArea(
-  patch: GeoJSON.Polygon,
+  patch: GeoJSON.Polygon | GeoJSON.MultiPolygon,
   zone: GeoJSON.Polygon | GeoJSON.MultiPolygon,
 ): number {
   try {

@@ -1,9 +1,6 @@
 import { useState } from 'react';
-import * as turf from '@turf/turf';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
-import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
-import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
 import { DRAW_PREVIEW_COLORS } from './mapboxDrawStyles.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
@@ -14,6 +11,7 @@ import {
 } from '../../../plan/draw/dimensionDrawStore.js';
 import { useDimensionDrawTool } from '../../../plan/draw/useDimensionDrawTool.js';
 import DimensionPanel from '../../../plan/draw/DimensionPanel.js';
+import { subtractPatches, collectSubtractees } from './subtractPatches.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -27,39 +25,8 @@ interface Props {
  * Fill-remainder toggle lets an operator outline the property (or any
  * enclosing boundary) and have the tool subtract every crop / building
  * polygon already on the map — so they never have to trace around
- * individual patches by hand.
+ * individual patches by hand. Math lives in `./subtractPatches.ts`.
  */
-function subtractPatches(
-  boundary: GeoJSON.Polygon,
-  projectId: string,
-): GeoJSON.Polygon | GeoJSON.MultiPolygon | null {
-  const crops = useConventionalCropStore
-    .getState()
-    .conventionalCrops.filter((c) => c.projectId === projectId);
-  const buildings = useBuiltEnvironmentStore
-    .getState()
-    .buildings.filter((b) => b.projectId === projectId);
-  const subtractees = [
-    ...crops.map((c) => c.geometry),
-    ...buildings.map((b) => b.geometry),
-  ];
-  if (subtractees.length === 0) return boundary;
-
-  let acc: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon> | null =
-    turf.feature(boundary);
-  for (const g of subtractees) {
-    if (!acc) break;
-    try {
-      // @turf/turf v7 difference takes a FeatureCollection of [minuend, subtrahend].
-      acc = turf.difference(
-        turf.featureCollection([acc, turf.feature(g)]),
-      ) as typeof acc;
-    } catch {
-      /* malformed subtrahend — skip, keep current acc */
-    }
-  }
-  return acc ? acc.geometry : null;
-}
 
 export default function VegetationTool({ map, projectId }: Props) {
   const open = useAnnotationFormStore((s) => s.open);
@@ -71,7 +38,7 @@ export default function VegetationTool({ map, projectId }: Props) {
   const place = (geom: GeoJSON.Polygon) => {
     let finalGeom: GeoJSON.Polygon | GeoJSON.MultiPolygon | null = geom;
     if (fillRemainder) {
-      finalGeom = subtractPatches(geom, projectId);
+      finalGeom = subtractPatches(geom, collectSubtractees(projectId));
       if (!finalGeom) {
         // Boundary was fully covered by crops/buildings — nothing left to
         // place. Surface a console hint; a richer toast can come later.

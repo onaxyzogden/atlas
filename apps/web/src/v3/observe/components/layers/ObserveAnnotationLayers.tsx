@@ -706,7 +706,9 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         const boundary = turf.polygonToLine(
           turf.feature(p.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon),
         );
-        const ribbon = turf.buffer(boundary, 0.4, { units: 'meters' });
+        const ribbon = turf.buffer(boundary as never, 0.4, { units: 'meters' }) as
+          | GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon>
+          | undefined;
         if (!ribbon) continue;
         paddockFenceFeatures.push({
           type: 'Feature',

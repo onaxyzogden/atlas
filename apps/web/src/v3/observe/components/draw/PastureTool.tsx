@@ -1,9 +1,6 @@
 import { useState } from 'react';
-import * as turf from '@turf/turf';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
-import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
-import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
 import { DRAW_PREVIEW_COLORS } from './mapboxDrawStyles.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
@@ -14,6 +11,7 @@ import {
 } from '../../../plan/draw/dimensionDrawStore.js';
 import { useDimensionDrawTool } from '../../../plan/draw/useDimensionDrawTool.js';
 import DimensionPanel from '../../../plan/draw/DimensionPanel.js';
+import { subtractPatches, collectSubtractees } from './subtractPatches.js';
 import css from './ObserveDrawHost.module.css';
 
 interface Props {
@@ -26,37 +24,8 @@ interface Props {
  * grazed / fenced land. Crops and buildings sit on top as opaque patches.
  * The Fill-remainder toggle lets an operator outline a boundary and have
  * the tool subtract every crop / building polygon already on the map.
+ * Math lives in `./subtractPatches.ts`.
  */
-function subtractPatches(
-  boundary: GeoJSON.Polygon,
-  projectId: string,
-): GeoJSON.Polygon | GeoJSON.MultiPolygon | null {
-  const crops = useConventionalCropStore
-    .getState()
-    .conventionalCrops.filter((c) => c.projectId === projectId);
-  const buildings = useBuiltEnvironmentStore
-    .getState()
-    .buildings.filter((b) => b.projectId === projectId);
-  const subtractees = [
-    ...crops.map((c) => c.geometry),
-    ...buildings.map((b) => b.geometry),
-  ];
-  if (subtractees.length === 0) return boundary;
-
-  let acc: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon> | null =
-    turf.feature(boundary);
-  for (const g of subtractees) {
-    if (!acc) break;
-    try {
-      acc = turf.difference(
-        turf.featureCollection([acc, turf.feature(g)]),
-      ) as typeof acc;
-    } catch {
-      /* malformed subtrahend — skip, keep current acc */
-    }
-  }
-  return acc ? acc.geometry : null;
-}
 
 export default function PastureTool({ map, projectId }: Props) {
   const open = useAnnotationFormStore((s) => s.open);
@@ -68,7 +37,7 @@ export default function PastureTool({ map, projectId }: Props) {
   const place = (geom: GeoJSON.Polygon) => {
     let finalGeom: GeoJSON.Polygon | GeoJSON.MultiPolygon | null = geom;
     if (fillRemainder) {
-      finalGeom = subtractPatches(geom, projectId);
+      finalGeom = subtractPatches(geom, collectSubtractees(projectId));
       if (!finalGeom) {
         console.info(
           '[Fill remainder] Boundary fully covered by crop/building patches — no remainder to place.',
