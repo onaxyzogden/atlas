@@ -71,6 +71,7 @@ export const KIND_LABELS: Record<AnnotationKind, string> = {
   highPoint: 'Elevation point',
   drainageLine: 'Drainage line',
   watercourse: 'Watercourse',
+  waterbody: 'Waterbody',
   vegetation: 'Vegetation & cover',
   pasture: 'Pasture / paddock',
   conventionalCrop: 'Conventional crop',
@@ -204,6 +205,20 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           id: r.id,
           title: `${r.kind.charAt(0).toUpperCase()}${r.kind.slice(1)}`,
           subtitle: `${r.perennial ? 'Perennial' : 'Seasonal'}${r.notes ? ` · ${r.notes}` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'waterbody': {
+      return useWaterSystemsStore
+        .getState()
+        .waterbodies.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title:
+            r.name ||
+            `${r.kind.charAt(0).toUpperCase()}${r.kind.slice(1)}`,
+          subtitle: r.notes || undefined,
           createdAt: r.createdAt,
         }));
     }
@@ -531,6 +546,17 @@ export function getAnnotationRow(
         createdAt: r.createdAt,
       };
     }
+    case 'waterbody': {
+      const r = useWaterSystemsStore.getState().waterbodies.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: r.name || r.kind,
+        subtitle: r.notes,
+        createdAt: r.createdAt,
+      };
+    }
     case 'vegetation': {
       const r = useVegetationStore.getState().patches.find((x) => x.id === id);
       if (!r) return null;
@@ -669,6 +695,9 @@ export function removeAnnotation(kind: AnnotationKind, id: string): void {
       return;
     case 'watercourse':
       useWaterSystemsStore.getState().removeWatercourse(id);
+      return;
+    case 'waterbody':
+      useWaterSystemsStore.getState().removeWaterbody(id);
       return;
     case 'vegetation':
       useVegetationStore.getState().removePatch(id);

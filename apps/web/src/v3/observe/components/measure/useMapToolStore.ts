@@ -73,6 +73,10 @@ export type MapToolId =
   | 'observe.topography.drainage-line'
   // Observe Module 4 — Earth/Water/Ecology
   | 'observe.earth-water-ecology.watercourse'
+  // Adopt a basemap water feature (OpenMapTiles `water` polygons +
+  // `waterway` lines) into the project. Polygon hits create a `Waterbody`;
+  // line hits create a `Watercourse`. Mirrors the BE adopt-basemap idiom.
+  | 'observe.earth-water-ecology.adopt-water'
   | 'observe.earth-water-ecology.soil-sample'
   | 'observe.earth-water-ecology.vegetation'
   | 'observe.earth-water-ecology.pasture'

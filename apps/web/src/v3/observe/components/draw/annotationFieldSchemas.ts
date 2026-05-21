@@ -68,6 +68,7 @@ export type AnnotationKind =
   | 'highPoint'
   | 'drainageLine'
   | 'watercourse'
+  | 'waterbody'
   | 'vegetation'
   | 'pasture'
   | 'conventionalCrop'
@@ -562,6 +563,57 @@ const watercourse: FieldSchema = {
       geometry: ctx.geometry,
       kind: v.kind as 'stream' | 'creek' | 'ditch' | 'other',
       perennial: Boolean(v.perennial),
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const waterbody: FieldSchema = {
+  title: 'Waterbody',
+  fields: [
+    {
+      name: 'kind',
+      label: 'Kind',
+      type: 'select',
+      options: [
+        { value: 'lake', label: 'Lake' },
+        { value: 'pond', label: 'Pond' },
+        { value: 'wetland', label: 'Wetland' },
+        { value: 'reservoir', label: 'Reservoir' },
+        { value: 'other', label: 'Other' },
+      ],
+    },
+    { name: 'name', label: 'Name', type: 'text', placeholder: 'North pond' },
+    { name: 'notes', label: 'Notes', type: 'textarea' },
+  ],
+  defaults: { kind: 'pond', name: '', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useWaterSystemsStore.getState().waterbodies.find((w) => w.id === id);
+    if (!rec) return null;
+    return {
+      kind: rec.kind,
+      name: rec.name ?? '',
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useWaterSystemsStore.getState();
+    if (ctx.existingId) {
+      store.updateWaterbody(ctx.existingId, {
+        kind: v.kind as 'lake' | 'pond' | 'wetland' | 'reservoir' | 'other',
+        name: s(v.name),
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    store.addWaterbody({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      kind: v.kind as 'lake' | 'pond' | 'wetland' | 'reservoir' | 'other',
+      name: s(v.name),
       notes: s(v.notes),
       createdAt: nowIso(),
     });
@@ -1397,6 +1449,7 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   highPoint,
   drainageLine,
   watercourse,
+  waterbody,
   vegetation,
   pasture,
   conventionalCrop,
@@ -1436,6 +1489,7 @@ export const FIELD_REMOVERS: Readonly<Record<AnnotationKind, (id: string) => voi
   highPoint: (id) => useTopographyStore.getState().removeHighPoint(id),
   drainageLine: (id) => useTopographyStore.getState().removeDrainageLine(id),
   watercourse: (id) => useWaterSystemsStore.getState().removeWatercourse(id),
+  waterbody: (id) => useWaterSystemsStore.getState().removeWaterbody(id),
   vegetation: (id) => useVegetationStore.getState().removePatch(id),
   pasture: (id) => usePastureStore.getState().removePasture(id),
   conventionalCrop: (id) =>

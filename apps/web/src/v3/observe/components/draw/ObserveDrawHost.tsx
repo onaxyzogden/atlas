@@ -24,6 +24,7 @@ import ContourLineTool from './ContourLineTool.js';
 import HighPointTool from './HighPointTool.js';
 import DrainageLineTool from './DrainageLineTool.js';
 import WatercourseTool from './WatercourseTool.js';
+import AdoptBasemapWaterTool from './AdoptBasemapWaterTool.js';
 import SoilSampleTool from './SoilSampleTool.js';
 import VegetationTool from './VegetationTool.js';
 import PastureTool from './PastureTool.js';
@@ -100,6 +101,9 @@ export default function ObserveDrawHost({ map, projectId }: Props) {
       break;
     case 'observe.earth-water-ecology.watercourse':
       tool = <WatercourseTool map={map} projectId={projectId} />;
+      break;
+    case 'observe.earth-water-ecology.adopt-water':
+      tool = <AdoptBasemapWaterTool map={map} projectId={projectId} />;
       break;
     case 'observe.earth-water-ecology.soil-sample':
       tool = <SoilSampleTool map={map} projectId={projectId} />;

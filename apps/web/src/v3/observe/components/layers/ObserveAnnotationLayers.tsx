@@ -181,6 +181,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const drainageLines = useTopographyStore((s) => s.drainageLines);
   const hazards = useExternalForcesStore((s) => s.hazards);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
+  const waterbodies = useWaterSystemsStore((s) => s.waterbodies);
   const vegetationPatches = useVegetationStore((s) => s.patches);
   const pastures = usePastureStore((s) => s.pastures);
   const conventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
@@ -527,6 +528,46 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
               'line-width': 2,
               'line-opacity': 0.9,
               'line-dasharray': [3, 2],
+            },
+          },
+        ],
+      });
+    }
+
+    // ── Waterbodies (adopted from basemap — polygons) ──────────────────────
+    const waterbodyFeatures: GeoJSON.Feature[] = inProject(waterbodies).map((wb) => ({
+      type: 'Feature',
+      properties: {
+        kind: wb.kind,
+        label: wb.name ?? '',
+        annoKind: 'waterbody',
+        annoId: wb.id,
+      },
+      geometry: wb.geometry,
+    }));
+    if (waterbodyFeatures.length) {
+      result.push({
+        id: 'water-bodies',
+        toggleKey: 'water',
+        data: { type: 'FeatureCollection', features: waterbodyFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}water-bodies-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}water-bodies`,
+            paint: {
+              'fill-color': '#5b8aa8',
+              'fill-opacity': 0.45,
+            },
+          },
+          {
+            id: `${LAYER_PREFIX}water-bodies-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}water-bodies`,
+            paint: {
+              'line-color': PALETTE.water,
+              'line-width': 1.25,
+              'line-opacity': 0.9,
             },
           },
         ],
@@ -1017,6 +1058,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     drainageLines,
     hazards,
     watercourses,
+    waterbodies,
     vegetationPatches,
     pastures,
     conventionalCrops,

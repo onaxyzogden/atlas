@@ -365,6 +365,19 @@ export default function ObserveTools({
                   onToolClick,
                 },
               )}
+              {renderToolButton(
+                {
+                  id: 'adopt-water',
+                  label: 'Adopt water',
+                  Icon: Waves,
+                  toolId: 'observe.earth-water-ecology.adopt-water',
+                },
+                {
+                  activeTool,
+                  homesteadPlaced,
+                  onToolClick,
+                },
+              )}
             </div>
           </section>
         );
