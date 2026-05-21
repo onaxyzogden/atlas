@@ -389,3 +389,91 @@ Honest counts at session close (vs. pre-flight 2/2/0/0):
      checks only `kind`, not geom type) — MP MapboxDraw
      `direct_select` could crash; needs live-driven verification.
 
+
+---
+
+## F4 close-out (same day, later session) — 2026-05-21
+
+Both F4 spawn candidates above are resolved:
+
+### F4-1 — mtc baseline restored
+
+Closed by a parallel session — see
+[2026-05-21-mtc-observe-baseline-restoration.md](2026-05-21-mtc-observe-baseline-restoration.md).
+Shipped:
+
+- `apps/web/src/dev/seedMtcObserveBaseline.ts` (commit `12b5a31e`) —
+  idempotent seeder, exposed as `window.__ogdenSeedMtcObserveBaseline()`,
+  imported as a side-effect from `bootAuthed.ts`. Hand-authors 2
+  conventional crops (NW soy, NE corn) + 2 pastures (SW open-pasture,
+  SE paddock) inside the mtc mock boundary.
+- Wiki log (commit `95b6ad9a`) records the dynamic-import invocation
+  and four-store snapshot back to the canonical `(2, 2, 0, 0)`.
+
+### F4-2 — SelectionFloater MP gate unit-tested
+
+The gate logic itself shipped earlier the same day as commit `66ce7a9f`
+(SelectionFloater.tsx:98–115 reads the live geometry via
+`readPolygon(kind, id)`, disables Move when `type === 'MultiPolygon'`,
+surfaces the tooltip "Edit vertices not supported on MultiPolygon —
+delete and redraw," and subscribes to `vegetationStore.patches` +
+`pastureStore.pastures` so a Fill-remainder flip mid-selection re-
+evaluates the gate). That commit shipped without a regression test.
+
+This session closed that gap. New file:
+`apps/web/src/v3/observe/components/__tests__/SelectionFloater.test.tsx`
+(commit `55e803d1`, 269 lines, 5/5 vitest cases pass):
+
+1. Polygon vegetation patch selected → Move enabled, tooltip
+   "Move selected".
+2. MultiPolygon vegetation patch → Move disabled, tooltip contains
+   "MultiPolygon" + "delete and redraw".
+3. Polygon → MultiPolygon flip via `updatePatch` (wrapped in `act()`)
+   while selected → Move flips to disabled on re-render. Proves the
+   patches/pastures subscription on lines 62–63 actually re-evaluates.
+4. MultiPolygon pasture → Move disabled with MP tooltip.
+5. `soilSample` (point) selected while a MultiPolygon vegetation patch
+   exists in the store → Move stays enabled. The gate only fires on
+   polygon kinds; non-polygon kinds are unaffected.
+
+Mocks lucide-react with the same `vi.mock(... importOriginal())` +
+`React.forwardRef(<svg>)` stub pattern used in V3LifecycleSidebar.test.tsx
+(lucide's Icon.mjs spreads `[undefined]` into `<svg>` children when no
+children are passed, which happy-dom + React 19 rejects with "Objects
+are not valid as a React child"). Tooltip text is read via
+`btn.parentElement.querySelector('[role="tooltip"]').textContent` —
+`DelayedTooltip` renders the tip span unconditionally, hover state
+isn't required to read the label.
+
+### Phase 2 deferred — manual MP-selection preview verification
+
+The F4 close-out plan's Phase 2 (drive a live MultiPolygon selection
+in the preview and assert `disabled=true` on the Move button via
+`preview_eval`) was deferred. Rationale:
+
+- The unit test now covers the regression risk (gate flips on type;
+  subscription wires through; non-polygon kinds untouched).
+- The workspace has a merge conflict on
+  `packages/shared/src/builtEnvironment.ts` plus ~17 modified files
+  from concurrent work I don't own. Driving the live preview safely
+  would require reconciling that stash first, which is out of scope
+  for an F4 close-out and risks corrupting the user's WIP.
+- The manual verification can be replayed later via the
+  `__ogdenSeedMtcObserveBaseline()` helper + a synthesized splitter
+  crop, once the workspace is clean.
+
+### Disclosure — accidental WIP commit + recovery
+
+First commit attempt of the test file produced `f3ab5bd4` (13 files,
+499 insertions) because `git commit` after `git add <single-path>`
+still picks up everything currently staged in the index — and the
+workspace had ~12 pre-staged files from concurrent work. Recovered
+via `git reset --soft HEAD~1` + `git reset HEAD -- .` + re-add of
+only the test file. Replacement commit `55e803d1` is clean (1 file,
+269 insertions). Lesson logged: on a shared/dirty workspace, verify
+`git status --short` shows only the intended files before each
+commit.
+
+### Both F4 chips closed
+
+Spawn-task chips can be dismissed. No follow-up filed.
