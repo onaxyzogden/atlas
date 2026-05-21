@@ -1380,6 +1380,13 @@ export function buildPowerLineEditSchema(
         required: true,
         options: POWER_LINE_PLACEMENT_OPTIONS,
       },
+      {
+        key: 'widthM',
+        label: 'Width',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '0.2',
+      },
       { key: 'label', label: 'Label', kind: 'text' },
       {
         key: 'notes',
@@ -1390,6 +1397,7 @@ export function buildPowerLineEditSchema(
     ],
     initial: {
       placement: exist.placement ?? 'overhead',
+      widthM:    exist.widthM ?? '',
       label:     pl.label ?? '',
       notes:     pl.notes ?? '',
     },
@@ -1399,10 +1407,13 @@ export function buildPowerLineEditSchema(
         values.placement === 'buried' ? 'buried' : 'overhead';
       const label = String(values.label ?? '').trim();
       const notesRaw = String(values.notes ?? '').trim();
+      const widthMRaw = Number(values.widthM);
+      const widthM =
+        Number.isFinite(widthMRaw) && widthMRaw > 0 ? widthMRaw : undefined;
       store.updateMetadata(pl.id, {
         label: label || undefined,
         notes: notesRaw || undefined,
-        existing: { placement },
+        existing: { placement, widthM },
       });
     },
     onCancel: () => {
@@ -1432,6 +1443,13 @@ export function buildBuriedUtilityEditSchema(
         required: true,
         options: BURIED_UTILITY_SUBTYPE_OPTIONS,
       },
+      {
+        key: 'widthM',
+        label: 'Width',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '0.3',
+      },
       { key: 'label', label: 'Label', kind: 'text' },
       {
         key: 'notes',
@@ -1442,6 +1460,7 @@ export function buildBuriedUtilityEditSchema(
     ],
     initial: {
       subtype: exist.subtype ?? 'water_main',
+      widthM:  exist.widthM ?? '',
       label:   bu.label ?? '',
       notes:   bu.notes ?? '',
     },
@@ -1450,10 +1469,13 @@ export function buildBuriedUtilityEditSchema(
       const subtype = String(values.subtype ?? 'water_main');
       const label = String(values.label ?? '').trim();
       const notesRaw = String(values.notes ?? '').trim();
+      const widthMRaw = Number(values.widthM);
+      const widthM =
+        Number.isFinite(widthMRaw) && widthMRaw > 0 ? widthMRaw : undefined;
       store.updateMetadata(bu.id, {
         label: label || undefined,
         notes: notesRaw || undefined,
-        existing: { subtype },
+        existing: { subtype, widthM },
       });
     },
     onCancel: () => {
@@ -1483,6 +1505,13 @@ export function buildFenceEditSchema(
         required: true,
         options: FENCE_SUBTYPE_OPTIONS,
       },
+      {
+        key: 'widthM',
+        label: 'Width',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '0.1',
+      },
       { key: 'label', label: 'Label', kind: 'text' },
       {
         key: 'notes',
@@ -1493,6 +1522,7 @@ export function buildFenceEditSchema(
     ],
     initial: {
       subtype: exist.subtype ?? 'page_wire',
+      widthM:  exist.widthM ?? '',
       label:   f.label ?? '',
       notes:   f.notes ?? '',
     },
@@ -1501,10 +1531,13 @@ export function buildFenceEditSchema(
       const subtype = String(values.subtype ?? 'page_wire');
       const label = String(values.label ?? '').trim();
       const notesRaw = String(values.notes ?? '').trim();
+      const widthMRaw = Number(values.widthM);
+      const widthM =
+        Number.isFinite(widthMRaw) && widthMRaw > 0 ? widthMRaw : undefined;
       store.updateMetadata(f.id, {
         label: label || undefined,
         notes: notesRaw || undefined,
-        existing: { subtype },
+        existing: { subtype, widthM },
       });
     },
     onCancel: () => {
@@ -1570,6 +1603,13 @@ export function buildDrivewayEditSchema(
         required: true,
         options: DRIVEWAY_SURFACE_OPTIONS,
       },
+      {
+        key: 'widthM',
+        label: 'Width',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '3.5',
+      },
       { key: 'label', label: 'Label', kind: 'text' },
       {
         key: 'notes',
@@ -1580,6 +1620,7 @@ export function buildDrivewayEditSchema(
     ],
     initial: {
       surface: exist.surface ?? 'gravel',
+      widthM:  exist.widthM ?? '',
       label:   dw.label ?? '',
       notes:   dw.notes ?? '',
     },
@@ -1588,10 +1629,13 @@ export function buildDrivewayEditSchema(
       const surface = String(values.surface ?? 'gravel');
       const label = String(values.label ?? '').trim();
       const notesRaw = String(values.notes ?? '').trim();
+      const widthMRaw = Number(values.widthM);
+      const widthM =
+        Number.isFinite(widthMRaw) && widthMRaw > 0 ? widthMRaw : undefined;
       store.updateMetadata(dw.id, {
         label: label || undefined,
         notes: notesRaw || undefined,
-        existing: { surface },
+        existing: { surface, widthM },
       });
     },
     onCancel: () => {
@@ -1798,6 +1842,17 @@ export function buildHabitatFeatureEditSchema(
         placeholder: '0',
       },
     );
+  } else if (el.kind === 'insectary-strip') {
+    // LineString habitat kind — real-world strip width (metres). Persists to
+    // the DesignElement top-level `widthM`, not habitatMetadata, so the
+    // width-aware line paint in DesignElementLayers can read it.
+    fields.push({
+      key: 'widthM',
+      label: 'Width',
+      kind: 'number',
+      suffix: 'm',
+      placeholder: '1.2',
+    });
   }
 
   // --- Host-tree picker (mount-on-tree kinds only) ---
@@ -1847,6 +1902,8 @@ export function buildHabitatFeatureEditSchema(
   } else if (el.kind === 'snag') {
     initial.approxHeightM = md.approxHeightM ?? '';
     initial.cavityCount = md.cavityCount ?? '';
+  } else if (el.kind === 'insectary-strip') {
+    initial.widthM = el.widthM ?? '';
   }
   if (acceptsHost) {
     initial.hostTreeFeatureId = md.hostTreeFeatureId ?? '';
@@ -1890,10 +1947,18 @@ export function buildHabitatFeatureEditSchema(
 
       const cleanedMd = Object.keys(nextMd).length > 0 ? nextMd : undefined;
 
-      updateElement(projectId, el.id, {
+      const patch: Partial<Omit<DesignElement, 'id'>> = {
         label: labelStr || undefined,
         habitatMetadata: cleanedMd,
-      });
+      };
+
+      if (el.kind === 'insectary-strip') {
+        const rawW = Number(values.widthM);
+        patch.widthM =
+          Number.isFinite(rawW) && rawW > 0 ? rawW : undefined;
+      }
+
+      updateElement(projectId, el.id, patch);
     },
     onCancel: () => {
       /* no-op — record already exists */
