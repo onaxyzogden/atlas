@@ -334,22 +334,35 @@ ON CONFLICT (id) DO NOTHING;
 --    regardless of which concrete feature table the id lives in.
 -- ────────────────────────────────────────────────────────────────────────
 
+-- Resource vocab restricted to the project_relationships_resource_ck CHECK
+-- list: manure | greywater | compost | biomass | seed | forage | mulch |
+-- heat | shade | pollination | pest_predation | nutrient_uptake |
+-- surface_water. Edges below remap canon Needs/Yields to the closest
+-- semantic fit within that vocab.
 INSERT INTO project_relationships (id, project_id, created_by, from_id, from_output, to_id, to_input, ratio)
 VALUES
+  -- Livestock manure → pasture nutrient uptake
   ('00000000-0000-0000-0000-0000ed350001', '00000000-0000-0000-0000-000000357320', '00000000-0000-0000-0000-00000000a71a',
-    '00000000-0000-0000-0000-0000df35e00c', 'manure',         '00000000-0000-0000-0000-0000df35e00b', 'fertility',       0.85),
+    '00000000-0000-0000-0000-0000df35e00c', 'manure',         '00000000-0000-0000-0000-0000df35e00b', 'nutrient_uptake', 0.85),
+  -- Poultry coop pest-predation service → pasture
   ('00000000-0000-0000-0000-0000ed350002', '00000000-0000-0000-0000-000000357320', '00000000-0000-0000-0000-00000000a71a',
     '00000000-0000-0000-0000-0000df35e00d', 'pest_predation', '00000000-0000-0000-0000-0000df35e00c', 'pest_predation',  0.65),
+  -- Hedgerow forage (flowers/nectar) → pollination service on perennials
   ('00000000-0000-0000-0000-0000ed350003', '00000000-0000-0000-0000-000000357320', '00000000-0000-0000-0000-00000000a71a',
-    '00000000-0000-0000-0000-0000df35e015', 'pollinator_habitat', '00000000-0000-0000-0000-0000df35e00b', 'pollination', 0.70),
+    '00000000-0000-0000-0000-0000df35e015', 'forage',         '00000000-0000-0000-0000-0000df35e00b', 'pollination',     0.70),
+  -- Riparian buffer surface water → pasture surface water (filtered baseflow)
   ('00000000-0000-0000-0000-0000ed350004', '00000000-0000-0000-0000-000000357320', '00000000-0000-0000-0000-00000000a71a',
-    '00000000-0000-0000-0000-0000df35e005', 'water_quality',  '00000000-0000-0000-0000-0000df35e00c', 'baseflow',        0.55),
+    '00000000-0000-0000-0000-0000df35e005', 'surface_water',  '00000000-0000-0000-0000-0000df35e00c', 'surface_water',   0.55),
+  -- Cover crop mulch → pasture surface water (infiltration / runoff slowing)
   ('00000000-0000-0000-0000-0000ed350005', '00000000-0000-0000-0000-000000357320', '00000000-0000-0000-0000-00000000a71a',
-    '00000000-0000-0000-0000-0000df35e007', 'infiltration',   '00000000-0000-0000-0000-0000df35e00c', 'baseflow',        0.45),
+    '00000000-0000-0000-0000-0000df35e007', 'mulch',          '00000000-0000-0000-0000-0000df35e00c', 'surface_water',   0.45),
+  -- Soil-life compost outputs → east-field nutrient uptake
   ('00000000-0000-0000-0000-0000ed350006', '00000000-0000-0000-0000-000000357320', '00000000-0000-0000-0000-00000000a71a',
-    '00000000-0000-0000-0000-0000df35e009', 'soil_life',      '00000000-0000-0000-0000-0000df35e001', 'soil_recovery',   0.60),
+    '00000000-0000-0000-0000-0000df35e009', 'compost',        '00000000-0000-0000-0000-0000df35e001', 'nutrient_uptake', 0.60),
+  -- Propagation tunnel seed → hedgerow biomass establishment
   ('00000000-0000-0000-0000-0000ed350007', '00000000-0000-0000-0000-000000357320', '00000000-0000-0000-0000-00000000a71a',
-    '00000000-0000-0000-0000-0000df35e00e', 'planting_pipeline', '00000000-0000-0000-0000-0000df35e015', 'hedgerow_establishment', 0.75),
+    '00000000-0000-0000-0000-0000df35e00e', 'seed',           '00000000-0000-0000-0000-0000df35e015', 'biomass',         0.75),
+  -- Keyline pond surface water → poultry coop surface water (flock supply)
   ('00000000-0000-0000-0000-0000ed350008', '00000000-0000-0000-0000-000000357320', '00000000-0000-0000-0000-00000000a71a',
-    '00000000-0000-0000-0000-0000df35e012', 'water_storage',  '00000000-0000-0000-0000-0000df35e00d', 'flock_water',     0.50)
+    '00000000-0000-0000-0000-0000df35e012', 'surface_water',  '00000000-0000-0000-0000-0000df35e00d', 'surface_water',   0.50)
 ON CONFLICT (project_id, from_id, from_output, to_id, to_input) DO NOTHING;
