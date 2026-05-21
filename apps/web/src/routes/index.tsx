@@ -20,6 +20,7 @@ import {
 } from '@tanstack/react-router';
 import AppShell from '../app/AppShell.js';
 import HomePage from '../pages/HomePage.js';
+import ArchivePage from '../pages/ArchivePage.js';
 import { semantic } from '../lib/tokens.js';
 import NewProjectPage from '../pages/NewProjectPage.js';
 import LifecycleProjectPage from '../pages/LifecycleProjectPage.js';
@@ -104,6 +105,12 @@ const homeRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/home',
   component: HomePage,
+});
+
+const archiveRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/archive',
+  component: ArchivePage,
 });
 
 const newProjectRoute = createRoute({
@@ -354,6 +361,7 @@ const notFoundRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   appShellRoute.addChildren([
     homeRoute,
+    archiveRoute,
     newProjectRoute,
     cycleRoute,
     projectRoute,
