@@ -98,12 +98,15 @@ first four; the remainder are deferred.
 
 **Deferred (post-Phase-F):**
 
-- [ ] **Roll `emitEvidenceAudit` out to the remaining 7 Evidence panels.**
-  F.4 instrumented only `LandVerdictCard`. The other panels using
-  `selectEvidenceFor(...)` (DecisionTriad, IntelligenceSummaryCard,
-  SiteSummaryNarrativeSection, WaterStorageCard, ThreeEthicsRollupCard,
-  WaterRouterCard, CapitalPartnerSummaryExport) still emit Evidence
-  without audit-log writes. Roll out after F.4 is observed stable.
+- [x] **Roll `emitEvidenceAudit` out to the remaining Evidence panels
+  (F.6 + F.7).** Landed across six per-panel commits — DecisionTriad
+  (F.6), SiteSummaryNarrativeSection (F.7.1), WaterStorageCard (F.7.2),
+  ThreeEthicsRollupCard (F.7.3), WaterRouterCard (F.7.4),
+  CapitalPartnerSummaryExport (F.7.5). All 7 live Evidence consumers
+  now persist to `evidence_audit_log`; the 8th selector
+  (`intelligence-summary`) is orphaned (component decommissioned in
+  Phase A.1) and excluded. See
+  [[decisions/2026-05-21-atlas-phase-f-evidence-audit-rollout]].
 
 - [ ] **Per-zone SOM trajectory web surfaces.**
   F.3 lands the API; chart overlays + scenario consumers still read
