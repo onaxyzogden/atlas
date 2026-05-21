@@ -379,6 +379,15 @@ export const api = {
         'GET',
         `/api/v1/soil-regeneration/project/${projectId}/som-trajectory`,
       ),
+
+    // K.1 — per-zone SOM trajectory for the sidebar sparklines. Same
+    // endpoint, filtered by zone via the F.3 `?zoneId=` query param.
+    // Returns that zone's rows (zone_id = zoneId) ordered by year ASC.
+    getSomTrajectoryByZone: (projectId: string, zoneId: string) =>
+      request<import('../features/financial/somAppreciation.js').SomYearRow[]>(
+        'GET',
+        `/api/v1/soil-regeneration/project/${projectId}/som-trajectory?zoneId=${encodeURIComponent(zoneId)}`,
+      ),
   },
 
   evidenceAudit: {
