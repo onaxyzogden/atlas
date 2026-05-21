@@ -139,8 +139,14 @@ Verification:
 - **Single-hash replay mode.** v1 is sweep-only. A `--hash <hex>`
   variant is trivially additive against the same `replayEvidenceAuditSince`
   building blocks but not needed for the durability sweep.
-- **Nightly CI cron.** The script is operator-run. CI integration is
-  its own slice (requires a managed DB connection in CI secrets).
+- ~~**Nightly CI cron.** The script is operator-run. CI integration is
+  its own slice (requires a managed DB connection in CI secrets).~~
+  **Closed by Phase I (2026-05-21):**
+  [[decisions/2026-05-21-atlas-phase-i-evidence-replay-nightly-ci]] —
+  non-gating `.github/workflows/evidence-replay-nightly.yml` runs
+  `evidence:replay --all-since` daily at 08:00 UTC against the dev
+  DB via the operator-managed `DEV_DATABASE_URL` repo secret;
+  reports via `$GITHUB_STEP_SUMMARY`.
 - **Web UI surface for replay results.** Audit ledger remains a
   private reproducibility surface; no public-facing strings, no UI.
 - **Removing the orphan `'intelligence-summary'` selector.** Separate
