@@ -39,3 +39,6 @@ graphify-out/cache/
 # Transient typecheck/scratch dumps
 _t_*.txt
 .graphify_old.json
+
+# Anti-GIS snapshot output (Phase F.1) — keep the dir, ignore the PNGs.
+apps/web/screenshots/*.png
