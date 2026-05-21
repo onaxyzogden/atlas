@@ -155,12 +155,15 @@ and the 4 prerendered HTMLs. The 2026-05-04 CSRA erasure
 this surface. Capital framing is absent from the showcase by design —
 the only conversation handle is "schedule a call" / "send a note."
 
-**Phase 4 successor.** Phase 4 (template extraction + clone flow) will
-swap the per-tier `<ContactCTA>` terminus from Calendly/contact-form to
-template-instantiation deep links (Dreaming → sample boundary template;
-Transitioning → bring-your-own-parcel template; Stewarding stays
-conversation-first). The ContactCTA component shape is the right
-contract for that swap; no scene rewrites needed.
+**Phase 4 successor (LANDED 2026-05-21).** Phase 4 shipped the
+template-extraction + clone flow ([[entities/ecosystem-farm-template]]).
+The per-tier `<ContactCTA>` PRIMARY action now deep-links to
+`/register?next=instantiate&template=ecosystem-farm` with tier-specific
+flags (Dreaming → no flag = instant-instantiate empty boundary;
+Transitioning → `drawFirst=true`; Stewarding → `fullSetup=true`).
+Calendly / contact-form remain as the SECONDARY action so a low-touch
+conversation path stays open. See
+[[decisions/2026-05-21-atlas-ecosystem-farm-template-extraction]].
 
 **ADR back-links.**
 - Design ADR: [[decisions/2026-05-21-three-streams-showcase-design]].
@@ -170,6 +173,12 @@ contract for that swap; no scene rewrites needed.
   [[decisions/2026-05-21-atlas-showcase-bundle-split]].
 - Phase 3.5 session log:
   [[log/2026-05-21-atlas-phase-3.5-bundle-split]].
+- Phase 4 template-extraction ADR:
+  [[decisions/2026-05-21-atlas-ecosystem-farm-template-extraction]].
+- Phase 4 session log:
+  [[log/2026-05-21-atlas-phase-4-ecosystem-farm-template]].
+- Phase 4 template entity:
+  [[entities/ecosystem-farm-template]].
 - Canon source: [[entities/three-streams-farm]].
 - Phase 2 substrate this portal reads from:
   [[log/2026-05-20-atlas-phase-2-three-streams-demo-seed]].

@@ -285,6 +285,29 @@ from canon work).
   `ProjectTemplate`; substitutes generic Holmgren-grounded defaults
   for non-Ontario boundaries.
 
+### Phase 4: Template Lineage (landed 2026-05-21)
+
+Phase 4 extracted this canon into the public **Ecosystem Farm**
+template — `slug='ecosystem-farm'`, sentinel
+`00000000-0000-0000-0000-0000ec05fa12`, owned by `SYSTEM_USER_ID`,
+`public=true`. The snapshot is a deep JSONB carrying ~22 design
+features (centroid-normalized relative geometry), the 24-event
+regeneration trajectory (relative dates), 8 project relationships
+(name-keyed edges resolved on replay), and the 4-phase canon scaffold.
+
+Cold visitors land via per-tier ContactCTA deep links:
+`/register?next=instantiate&template=ecosystem-farm[&drawFirst=true|&fullSetup=true]`
+(Dreaming / Transitioning / Stewarding respectively). Server-side
+deep replay translates feature geometry into the visitor's boundary
+via PostGIS `ST_Translate`; client-side seeder auto-fires on any
+project whose `metadata.instantiatedFromTemplate === 'ecosystem-farm'`,
+populating phaseStore (canon names) + workItemStore + nurseryStore +
+siteProfileStore + ecologyStore (project-level `'mid'` succession at Y2).
+
+See [[entities/ecosystem-farm-template]] for the template entity and
+[[decisions/2026-05-21-atlas-ecosystem-farm-template-extraction]] for
+the ADR ratifying the 3 locked decisions + 4-prong approach.
+
 **ADR back-links.**
 - Showcase program log (program plan ratification):
   [[log/2026-05-20-atlas-apricot-lane-showcase-program.md]].
