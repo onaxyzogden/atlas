@@ -34,6 +34,11 @@
  */
 import { useLayoutEffect, useRef, useState } from 'react';
 import styles from './HostCanopyUnionTooltip.module.css';
+import {
+  formatAreaM2,
+  formatHostCounts,
+  tooltipStrings,
+} from './tooltipStrings.js';
 
 export interface HostBlockProps {
   hostName: string;
@@ -97,10 +102,6 @@ const SCROLL_CAP_THRESHOLD = 4;
 // it's scroll-capped.
 const SCROLL_CAP_RESERVE_PX = 80;
 
-function formatM2(n: number): string {
-  return `${Math.round(n)} m²`;
-}
-
 function HostBlock({
   entry,
   onEntryExited,
@@ -131,20 +132,18 @@ function HostBlock({
     >
       <div className={styles.hostName}>{hostName}</div>
       <div className={styles.counts}>
-        {guildCount} {guildCount === 1 ? 'guild' : 'guilds'} ·{' '}
-        {memberCount} canopy-bearing{' '}
-        {memberCount === 1 ? 'member' : 'members'}
+        {formatHostCounts(guildCount, memberCount)}
       </div>
       <div className={styles.rows}>
-        <div className={styles.label}>Union footprint</div>
-        <div className={styles.value}>{formatM2(unionAreaM2)}</div>
-        <div className={styles.label}>Raw π·r² sum</div>
-        <div className={styles.value}>{formatM2(rawSumM2)}</div>
+        <div className={styles.label}>{tooltipStrings.unionFootprint}</div>
+        <div className={styles.value}>{formatAreaM2(unionAreaM2)}</div>
+        <div className={styles.label}>{tooltipStrings.rawDiskSum}</div>
+        <div className={styles.value}>{formatAreaM2(rawSumM2)}</div>
         <div className={`${styles.label} ${styles.saved}`}>
-          Saved overlap
+          {tooltipStrings.savedOverlap}
         </div>
         <div className={`${styles.value} ${styles.saved}`}>
-          {formatM2(savedOverlapM2)}
+          {formatAreaM2(savedOverlapM2)}
         </div>
       </div>
     </div>
