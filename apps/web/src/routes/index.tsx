@@ -49,6 +49,7 @@ import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
 import { ShowcaseTierPage } from '../showcase/routes/showcase.$tier.js';
+import { ShowcaseCapturePage } from '../showcase/routes/showcase._capture.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
 // ActLayout but left importable for any future fallback need.
@@ -361,6 +362,20 @@ const showcaseTierRoute = createRoute({
   component: ShowcaseTierPage,
 });
 
+// Dev-only capture route — mounted as a public sibling of the showcase
+// routes so the Playwright snapshot script can navigate Chromium to it.
+// The component itself short-circuits to a 404-equivalent when
+// import.meta.env.DEV is false, so even though the route is registered in
+// production builds it never renders the capture surface there. Path uses
+// an underscore prefix on the static segment to signal "internal" and to
+// take precedence over the dynamic `$tier` route via TanStack Router's
+// static-over-dynamic resolution.
+const showcaseCaptureRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/showcase/three-streams/_capture',
+  component: ShowcaseCapturePage,
+});
+
 // ─── 404 catch-all ─────────────────────────────────────────────────────────
 const notFoundRoute = createRoute({
   getParentRoute: () => appShellRoute,
@@ -411,6 +426,7 @@ const routeTree = rootRoute.addChildren([
   portalRoute,
   reportShareRoute,
   showcaseRoute,
+  showcaseCaptureRoute,
   showcaseTierRoute,
 ]);
 
