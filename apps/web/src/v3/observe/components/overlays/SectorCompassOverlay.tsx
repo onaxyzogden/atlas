@@ -57,21 +57,31 @@ export default function SectorCompassOverlay({ projectId, map }: Props) {
     return null;
   }, [project?.location?.boundary, homestead]);
 
-  // Track basemap bearing so the compass SVG can counter-rotate and
-  // keep the gold north triangle pointing at true map-north. MapLibre
-  // `rotate` fires continuously during a Ctrl-drag yaw gesture;
-  // `rotateend` catches the final snap. CSS transform is GPU-
-  // accelerated so the per-frame re-render is cheap.
+  // Track basemap bearing + pitch so the compass can match the map's
+  // 3D view. Bearing counter-rotates the SVG so the gold north triangle
+  // keeps pointing at true map-north; pitch lays the disc back via a CSS
+  // 3D rotateX so the compass appears painted on the tilted ground
+  // plane. MapLibre `rotate`/`pitch` fire continuously during a
+  // Ctrl-drag gesture; the `…end` events catch the final snap. CSS
+  // transform is GPU-accelerated so the per-frame re-render is cheap.
   const [bearing, setBearing] = useState(0);
+  const [pitch, setPitch] = useState(0);
   useEffect(() => {
     if (!map) return;
-    setBearing(map.getBearing());
-    const onRotate = () => setBearing(map.getBearing());
-    map.on('rotate', onRotate);
-    map.on('rotateend', onRotate);
+    const sync = () => {
+      setBearing(map.getBearing());
+      setPitch(map.getPitch());
+    };
+    sync();
+    map.on('rotate', sync);
+    map.on('rotateend', sync);
+    map.on('pitch', sync);
+    map.on('pitchend', sync);
     return () => {
-      map.off('rotate', onRotate);
-      map.off('rotateend', onRotate);
+      map.off('rotate', sync);
+      map.off('rotateend', sync);
+      map.off('pitch', sync);
+      map.off('pitchend', sync);
     };
   }, [map]);
 
@@ -84,8 +94,9 @@ export default function SectorCompassOverlay({ projectId, map }: Props) {
         <span className={css.label}>Sector compass</span>
         <div
           style={{
-            transform: `rotate(${-bearing}deg)`,
+            transform: `perspective(420px) rotateX(${pitch}deg) rotateZ(${-bearing}deg)`,
             transformOrigin: 'center',
+            transformStyle: 'preserve-3d',
             transition: 'transform 80ms linear',
             lineHeight: 0,
           }}
