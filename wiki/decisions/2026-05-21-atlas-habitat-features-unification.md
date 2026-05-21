@@ -222,8 +222,15 @@ A-series additive covenant (`.passthrough()` schemas, no DB migration):
   Tree-planting: …"`). The data model on `PhaseCashflowRow` retains
   all four `ProgramSubtotal` fields — the collapse is render-only,
   so the rollup remains losslessly addressable for future
-  consumers. A richer ARIA-grade tooltip primitive is deferred to a
-  future slice.
+  consumers. ~~A richer ARIA-grade tooltip primitive is deferred to
+  a future slice.~~ **Closed by Slice 8-F** — the native `title`
+  attribute is replaced with the design-system `Tooltip` primitive
+  (`apps/web/src/components/ui/Tooltip.tsx` — `role="tooltip"` +
+  `aria-describedby` + keyboard-focusable trigger via
+  `<span tabIndex={0}>`). The per-program breakdown is now exposed
+  to touch users and screen readers, not just desktop hover. The
+  `BreakdownTrigger` cell component wraps each non-Phase cell's
+  value in a `Tooltip` whose content is the four-line breakdown.
 - **`habitatFeatureStore` is soft-deprecated.** Selector
   `habitatCommitments.ts` reads from both stores; new placements all flow
   through `DesignElement`. Full retirement of the legacy store is a

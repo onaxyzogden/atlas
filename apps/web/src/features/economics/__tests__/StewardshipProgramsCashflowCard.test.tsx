@@ -3,8 +3,9 @@
  *
  * Slice 7 (S7-B) — StewardshipProgramsCashflowCard render tests.
  * Slice 8-D — refactored to assert the compact
- * Phase | Labor (hrs) | Cost (USD) layout + per-program breakdown in
- * each cell's `title` attribute.
+ * Phase | Labor (hrs) | Cost (USD) layout + per-program breakdown.
+ * Slice 8-F — breakdown is rendered via the `Tooltip` primitive
+ * (role="tooltip" + aria-describedby) instead of native `title`.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
@@ -122,7 +123,7 @@ describe('StewardshipProgramsCashflowCard (Slice 8-D collapse)', () => {
     expect(within(table).getByText('Total')).toBeTruthy();
   });
 
-  it("Tree Year row carries per-program breakdown in each cell's title attribute", () => {
+  it('Tree Year row exposes per-program breakdown via role="tooltip" elements (Slice 8-F)', () => {
     usePhaseStore.setState({
       phases: [phase({ id: 'ph-trees', order: 1, name: 'Tree Year' })],
     });
@@ -158,17 +159,25 @@ describe('StewardshipProgramsCashflowCard (Slice 8-D collapse)', () => {
       .closest('tr') as HTMLTableRowElement;
     expect(treeRow).toBeTruthy();
     const cells = treeRow.querySelectorAll('td');
-    // Cell 0 = phase, cell 1 = labor (with title), cell 2 = cost (with title).
-    const laborTitle = cells[1]!.getAttribute('title') ?? '';
-    const costTitle = cells[2]!.getAttribute('title') ?? '';
-    expect(laborTitle).toMatch(/Cover-crop:/);
-    expect(laborTitle).toMatch(/Habitat:/);
-    expect(laborTitle).toMatch(/Agroforestry:/);
-    expect(laborTitle).toMatch(/Tree-planting:/);
-    expect(costTitle).toMatch(/Cover-crop:/);
-    expect(costTitle).toMatch(/Habitat:/);
-    expect(costTitle).toMatch(/Agroforestry:/);
-    expect(costTitle).toMatch(/Tree-planting:/);
+    // Each non-phase cell carries a tooltip primitive with the four
+    // per-program subtotals exposed via role="tooltip".
+    const laborTooltips = cells[1]!.querySelectorAll('[role="tooltip"]');
+    const costTooltips = cells[2]!.querySelectorAll('[role="tooltip"]');
+    expect(laborTooltips.length).toBeGreaterThan(0);
+    expect(costTooltips.length).toBeGreaterThan(0);
+    const laborText = laborTooltips[0]!.textContent ?? '';
+    const costText = costTooltips[0]!.textContent ?? '';
+    expect(laborText).toMatch(/Cover-crop:/);
+    expect(laborText).toMatch(/Habitat:/);
+    expect(laborText).toMatch(/Agroforestry:/);
+    expect(laborText).toMatch(/Tree-planting:/);
+    expect(costText).toMatch(/Cover-crop:/);
+    expect(costText).toMatch(/Habitat:/);
+    expect(costText).toMatch(/Agroforestry:/);
+    expect(costText).toMatch(/Tree-planting:/);
+    // The trigger is keyboard-focusable (WCAG 2.1 SC 1.4.13).
+    const trigger = cells[1]!.querySelector('span[tabindex="0"]');
+    expect(trigger).not.toBeNull();
   });
 
   it('renders a tree-planting work-item with populated cells (Slice 8-D)', () => {
@@ -198,9 +207,11 @@ describe('StewardshipProgramsCashflowCard (Slice 8-D collapse)', () => {
     // Oak-tree catalog: 1.5 hr, $8–$150.
     expect(cells[1]!.textContent).toMatch(/1\.5 hr/);
     expect(cells[2]!.textContent).toMatch(/\$8/);
-    // The title carries the per-program breakdown — confirm tree-planting
-    // line is non-zero.
-    expect(cells[1]!.getAttribute('title')).toMatch(/Tree-planting: 1\.5 hr/);
+    // The tooltip carries the per-program breakdown — confirm tree-planting
+    // line is non-zero (Slice 8-F).
+    const laborTooltip = cells[1]!.querySelector('[role="tooltip"]');
+    expect(laborTooltip).not.toBeNull();
+    expect(laborTooltip!.textContent).toMatch(/Tree-planting: 1\.5 hr/);
   });
 
   it('renders an unphased row for orphan habitat alongside a declared phase', () => {

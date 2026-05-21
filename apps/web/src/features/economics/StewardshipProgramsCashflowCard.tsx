@@ -2,10 +2,12 @@
  * Slice 7 (S7-B) of the 2026-05-21 habitat-feature unification —
  * read-only per-phase cashflow card combining cover-crop seeding +
  * habitat-feature install + agroforestry planting + tree-planting
- * economics. Slice 8-D collapses the per-program columns into a
- * compact "Phase | Labor (hrs) | Cost (USD)" layout with the
- * per-program breakdown surfaced via the native `title` tooltip on
- * each cell.
+ * economics. Slice 8-D collapsed the per-program columns into a
+ * compact "Phase | Labor (hrs) | Cost (USD)" layout. Slice 8-F
+ * replaced the native `title` tooltip with the design-system
+ * `Tooltip` primitive (role="tooltip" + aria-describedby + keyboard
+ * focus) so the per-program breakdown is exposed to touch users and
+ * screen readers, not just hover.
  *
  * Consumes `computeStewardshipProgramsCashflow` (pure helper). Rows are
  * ordered by `BuildPhase.order`; unphased bucket lands last as
@@ -28,6 +30,7 @@ import { usePhaseStore } from '../../store/phaseStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLandDesignStore } from '../../store/landDesignStore.js';
 import { formatUsdRange } from '../../lib/formatRange.js';
+import { Tooltip } from '../../components/ui/Tooltip.js';
 import {
   computeStewardshipProgramsCashflow,
   UNPHASED_CASHFLOW_BUCKET_ID,
@@ -130,11 +133,17 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
             }}
           >
             <Td>{totalsRow.phaseName}</Td>
-            <Td align="right" title={laborBreakdown(totalsRow)}>
-              {formatHrs(totalsRow.total.laborHrs)}
+            <Td align="right">
+              <BreakdownTrigger
+                value={formatHrs(totalsRow.total.laborHrs)}
+                breakdown={laborBreakdown(totalsRow)}
+              />
             </Td>
-            <Td align="right" title={costBreakdown(totalsRow)}>
-              {formatRange(totalsRow.total.costRange)}
+            <Td align="right">
+              <BreakdownTrigger
+                value={formatRange(totalsRow.total.costRange)}
+                breakdown={costBreakdown(totalsRow)}
+              />
             </Td>
           </tr>
         </tbody>
@@ -153,13 +162,51 @@ function CashflowRow({ row }: { row: PhaseCashflowRow }) {
       }}
     >
       <Td>{row.phaseName}</Td>
-      <Td align="right" title={laborBreakdown(row)}>
-        {formatHrs(row.total.laborHrs)}
+      <Td align="right">
+        <BreakdownTrigger
+          value={formatHrs(row.total.laborHrs)}
+          breakdown={laborBreakdown(row)}
+        />
       </Td>
-      <Td align="right" title={costBreakdown(row)}>
-        {formatRange(row.total.costRange)}
+      <Td align="right">
+        <BreakdownTrigger
+          value={formatRange(row.total.costRange)}
+          breakdown={costBreakdown(row)}
+        />
       </Td>
     </tr>
+  );
+}
+
+/**
+ * Per-cell trigger that exposes the four-line per-program breakdown via
+ * the design-system `Tooltip` primitive (role="tooltip" + aria-describedby
+ * + keyboard focus). Replaces the native `title` attribute (Slice 8-F)
+ * for touch-device + screen-reader parity.
+ */
+function BreakdownTrigger({
+  value,
+  breakdown,
+}: {
+  value: string;
+  breakdown: string;
+}) {
+  const lines = breakdown.split('\n');
+  return (
+    <Tooltip
+      position="top"
+      content={
+        <div style={{ fontSize: 11, lineHeight: 1.45, whiteSpace: 'nowrap' }}>
+          {lines.map((line, i) => (
+            <div key={i}>{line}</div>
+          ))}
+        </div>
+      }
+    >
+      <span tabIndex={0} style={{ outline: 'none' }}>
+        {value}
+      </span>
+    </Tooltip>
   );
 }
 
@@ -191,15 +238,12 @@ function Th({
 function Td({
   children,
   align,
-  title,
 }: {
   children: React.ReactNode;
   align?: 'left' | 'right';
-  title?: string;
 }) {
   return (
     <td
-      title={title}
       style={{
         padding: '6px 8px',
         textAlign: align ?? 'left',
