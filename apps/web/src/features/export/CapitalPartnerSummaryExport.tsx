@@ -26,6 +26,7 @@ import {
 } from '../financial/somAppreciation.js';
 import EvidenceSection from '../../components/evidence/EvidenceSection.js';
 import { selectEvidenceFor } from '../../lib/evidence/selectEvidence.js';
+import { emitEvidenceAudit } from '../../lib/evidence/auditEmit.js';
 import { sage, success, warning, group, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
@@ -67,7 +68,8 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
   }, [project.id]);
 
   // Phase E.6 — Tier-2 Evidence inputs for the modal-level disclosure.
-  const evidenceItem = useMemo(() => {
+  // Phase F.7.5 — emit audit.
+  const evidenceInputs = useMemo(() => {
     if (!model) return null;
     const totalCapitalUsd = model.totalInvestment.mid;
     const enterpriseCount = model.enterprises.length;
@@ -81,25 +83,39 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
       : null;
     const transitionYears = computeTransitionBudget(model.cashflow);
     const trough = jCurveTrough(transitionYears);
-    return selectEvidenceFor({
-      panelKey: 'capital-partner',
-      inputs: {
-        totalCapitalUsd,
-        enterpriseCount,
-        costLineItemCount,
-        revenueStreamCount,
-        natCapUsdYr: natCap?.totalUsdYr ?? undefined,
-        natCapUsdPerTc: USD_PER_TC_DEFAULT,
-        troughYear: trough.troughYear,
-        troughValueUsd: trough.troughValue,
-        breakevenYear: trough.breakevenYear,
-        somHasTrajectory: somHorizonYears != null,
-        somHorizonYears,
-        missionScore: model.missionScore.overall,
-        pdfAssumptionCount: Math.min(model.assumptions.length, 15),
-      },
-    });
+    return {
+      totalCapitalUsd,
+      enterpriseCount,
+      costLineItemCount,
+      revenueStreamCount,
+      natCapUsdYr: natCap?.totalUsdYr ?? undefined,
+      natCapUsdPerTc: USD_PER_TC_DEFAULT,
+      troughYear: trough.troughYear,
+      troughValueUsd: trough.troughValue,
+      breakevenYear: trough.breakevenYear,
+      somHasTrajectory: somHorizonYears != null,
+      somHorizonYears,
+      missionScore: model.missionScore.overall,
+      pdfAssumptionCount: Math.min(model.assumptions.length, 15),
+    };
   }, [model, siteData, project.acreage, somHorizonYears]);
+  const evidenceItem = useMemo(
+    () =>
+      evidenceInputs
+        ? selectEvidenceFor({ panelKey: 'capital-partner', inputs: evidenceInputs })
+        : null,
+    [evidenceInputs],
+  );
+  useEffect(() => {
+    if (!evidenceInputs || !evidenceItem) return;
+    emitEvidenceAudit({
+      projectId: project.id,
+      panelKey: 'CapitalPartnerSummaryExport',
+      selectorName: 'selectEvidenceFor(capital-partner)',
+      inputs: evidenceInputs,
+      output: evidenceItem,
+    });
+  }, [evidenceInputs, evidenceItem, project.id]);
 
   const totalInvestmentStr = model
     ? formatKRange(model.totalInvestment.low, model.totalInvestment.high)
