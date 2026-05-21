@@ -27,7 +27,8 @@ export type PanelKey =
   | 'water-storage'
   | 'three-ethics'
   | 'water-router'
-  | 'capital-partner';
+  | 'capital-partner'
+  | 'host-canopy-union';
 
 /**
  * Where an EvidenceFragment's value originated.

@@ -40,6 +40,10 @@ import {
   selectCapitalPartnerEvidence,
   type CapitalPartnerEvidenceInputs,
 } from './selectors/capitalPartner.js';
+import {
+  selectHostCanopyUnionEvidence,
+  type HostCanopyUnionEvidenceInputs,
+} from './selectors/hostCanopyUnion.js';
 
 /**
  * Discriminated input bundle keyed by `panelKey`. Adding a new panel
@@ -54,7 +58,8 @@ export type EvidenceDispatchInputs =
   | { panelKey: 'water-storage'; inputs: WaterStorageEvidenceInputs }
   | { panelKey: 'three-ethics'; inputs: ThreeEthicsEvidenceInputs }
   | { panelKey: 'water-router'; inputs: WaterRouterEvidenceInputs }
-  | { panelKey: 'capital-partner'; inputs: CapitalPartnerEvidenceInputs };
+  | { panelKey: 'capital-partner'; inputs: CapitalPartnerEvidenceInputs }
+  | { panelKey: 'host-canopy-union'; inputs: HostCanopyUnionEvidenceInputs };
 
 export function selectEvidenceFor(
   bundle: EvidenceDispatchInputs,
@@ -76,6 +81,8 @@ export function selectEvidenceFor(
       return selectWaterRouterEvidence(bundle.inputs);
     case 'capital-partner':
       return selectCapitalPartnerEvidence(bundle.inputs);
+    case 'host-canopy-union':
+      return selectHostCanopyUnionEvidence(bundle.inputs);
     default:
       // Exhaustiveness check. If a new PanelKey is added without a
       // corresponding dispatch arm, this assignment fails to compile.
@@ -98,3 +105,7 @@ export type { WaterStorageEvidenceInputs } from './selectors/waterStorage.js';
 export type { ThreeEthicsEvidenceInputs } from './selectors/threeEthics.js';
 export type { WaterRouterEvidenceInputs } from './selectors/waterRouter.js';
 export type { CapitalPartnerEvidenceInputs } from './selectors/capitalPartner.js';
+export type {
+  HostCanopyUnionEntry,
+  HostCanopyUnionEvidenceInputs,
+} from './selectors/hostCanopyUnion.js';
