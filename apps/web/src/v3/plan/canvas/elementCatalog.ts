@@ -80,6 +80,14 @@ export interface DesignElementSpec {
    * meaningful spacing applies (e.g. line / polygon kinds).
    */
   defaultSpacingM?: number;
+  /**
+   * Approximate real-world width (metres) for linear kinds. Drives the
+   * width-aware line rendering in DesignElementLayers — converts metres
+   * to screen pixels via a zoom-interpolated expression so a hedgerow
+   * (~2 m) reads visibly wider than a path (~0.8 m) at zoom ≥18.
+   * Omit for point / polygon kinds.
+   */
+  defaultWidthM?: number;
 }
 
 export interface DesignCategorySpec {
@@ -155,7 +163,7 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
     elements: [
       { kind: 'water-tank', category: 'water', label: 'Water Tank', icon: Droplets, geometry: 'point',   drawMode: 'draw_point',       phase: 'water', color: COLORS.water },
       { kind: 'pond',       category: 'water', label: 'Pond',       icon: Waves,    geometry: 'polygon', drawMode: 'draw_polygon',     phase: 'water', color: COLORS.water, earthworkDepthCm: 200 },
-      { kind: 'swale',      category: 'water', label: 'Swale',      icon: Sprout,   geometry: 'line',    drawMode: 'draw_line_string', phase: 'water', color: COLORS.water, earthworkDepthCm: 60 },
+      { kind: 'swale',      category: 'water', label: 'Swale',      icon: Sprout,   geometry: 'line',    drawMode: 'draw_line_string', phase: 'water', color: COLORS.water, earthworkDepthCm: 60, defaultWidthM: 1.5 },
       { kind: 'spring',     category: 'water', label: 'Spring',     icon: Leaf,     geometry: 'point',   drawMode: 'draw_point',       phase: 'water', color: COLORS.waterEphemeral },
     ],
   },
@@ -163,8 +171,8 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
     key: 'access',
     label: 'Access & Paths',
     elements: [
-      { kind: 'path',   category: 'access', label: 'Path',   icon: Footprints, geometry: 'line',  drawMode: 'draw_line_string', phase: 'access', color: COLORS.accessFoot },
-      { kind: 'road',   category: 'access', label: 'Road',   icon: Route,      geometry: 'line',  drawMode: 'draw_line_string', phase: 'access', color: COLORS.access, earthworkDepthCm: 40 },
+      { kind: 'path',   category: 'access', label: 'Path',   icon: Footprints, geometry: 'line',  drawMode: 'draw_line_string', phase: 'access', color: COLORS.accessFoot, defaultWidthM: 0.8 },
+      { kind: 'road',   category: 'access', label: 'Road',   icon: Route,      geometry: 'line',  drawMode: 'draw_line_string', phase: 'access', color: COLORS.access, earthworkDepthCm: 40, defaultWidthM: 4.0 },
       { kind: 'gate',   category: 'access', label: 'Gate',   icon: Compass,    geometry: 'point', drawMode: 'draw_point',       phase: 'access', color: COLORS.access },
       { kind: 'bridge', category: 'access', label: 'Bridge', icon: Route,      geometry: 'point', drawMode: 'draw_point',       phase: 'access', color: COLORS.access },
     ],
@@ -177,7 +185,7 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
       { kind: 'pine-tree',  category: 'vegetation', label: 'Pine Tree',  icon: Trees,         geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationPine,  defaultSpacingM: 6  },
       { kind: 'apple-tree', category: 'vegetation', label: 'Apple Tree', icon: TreeDeciduous, geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationApple, defaultSpacingM: 5  },
       { kind: 'shrub',      category: 'vegetation', label: 'Shrub',      icon: Leaf,          geometry: 'point', drawMode: 'draw_point',       phase: 'trees', color: COLORS.vegetationShrub, defaultSpacingM: 2  },
-      { kind: 'hedgerow',   category: 'vegetation', label: 'Hedgerow',   icon: Trees,         geometry: 'line',  drawMode: 'draw_line_string', phase: 'trees', color: COLORS.vegetationHedge },
+      { kind: 'hedgerow',   category: 'vegetation', label: 'Hedgerow',   icon: Trees,         geometry: 'line',  drawMode: 'draw_line_string', phase: 'trees', color: COLORS.vegetationHedge, defaultWidthM: 2.0 },
     ],
   },
   {
@@ -214,7 +222,7 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
       { kind: 'nest-box',        category: 'habitat', label: 'Nest box',        icon: Bird,    geometry: 'point',   drawMode: 'draw_point',       phase: 'trees', color: COLORS.habitatBox,       defaultSpacingM: 8  },
       { kind: 'brush-pile',      category: 'habitat', label: 'Brush pile',      icon: Sprout,  geometry: 'point',   drawMode: 'draw_point',       phase: 'soil',  color: COLORS.habitatBrush },
       { kind: 'snag',            category: 'habitat', label: 'Standing snag',   icon: TreeDeciduous, geometry: 'point', drawMode: 'draw_point',     phase: 'trees', color: COLORS.habitatSnag,      defaultSpacingM: 15 },
-      { kind: 'insectary-strip', category: 'habitat', label: 'Insectary strip', icon: Flower2, geometry: 'line',    drawMode: 'draw_line_string', phase: 'soil',  color: COLORS.habitatInsectary },
+      { kind: 'insectary-strip', category: 'habitat', label: 'Insectary strip', icon: Flower2, geometry: 'line',    drawMode: 'draw_line_string', phase: 'soil',  color: COLORS.habitatInsectary, defaultWidthM: 1.2 },
       { kind: 'wetland-edge',    category: 'habitat', label: 'Wetland edge',    icon: Waves,   geometry: 'polygon', drawMode: 'draw_polygon',     phase: 'water', color: COLORS.habitatWetland },
     ],
   },
