@@ -103,3 +103,18 @@ custom mode is only mounted during vertex-edit.
 — both slices committed the moment typecheck cleared, before any
 external rebase window. [[project-branch-rebase]] — fetched + verified
 no divergence prior to commit.
+
+**Smoke walk — deferred (second pass).** A scheduled smoke walk against
+a live API was attempted later in the day. Steps 1–3 cleared via
+programmatic store seeding (`addConventionalCrop` → `open({kind, id})`
+→ click "Edit vertices"); selection store correctly held
+`{ moveMode: true, selected: [...] }` with `activeTool: null`. But the
+MapboxDraw control never mounted — zero `gl-draw-*` layers, no
+`mapbox-gl-draw` sources. Could be (a) the programmatic seed path
+bypassing a React subscription the handler depends on, (b) HMR stale
+state, or (c) interaction with concurrent uncommitted WIP that
+broadened `readPolygon` / `writePolygon` to MultiPolygon for
+`vegetation` and `pasture`. The walk was halted to avoid mixing
+verification with in-flight work; a follow-up was filed to re-run on
+a clean tree (a real draw-then-click flow rather than programmatic
+seeding).
