@@ -170,25 +170,41 @@ export default async function projectRoutes(fastify: FastifyInstance) {
   });
 
   // GET /projects — list current user's projects (owned + shared) plus builtin samples.
-  fastify.get('/', { preHandler: [authenticate] }, async (req) => {
-    const rows = await db`
-      SELECT DISTINCT ON (p.id)
-        p.id, p.name, p.description, p.status, p.project_type,
-        p.country, p.province_state, p.conservation_auth_id,
-        p.address, p.parcel_id,
-        p.acreage::float8 AS acreage,
-        p.data_completeness_score::float8 AS data_completeness_score,
-        (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
-        p.is_builtin,
-        p.created_at, p.updated_at
-      FROM projects p
-      LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${req.userId}
-      WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL OR p.is_builtin = true)
-        AND p.status != 'archived'
-      ORDER BY p.id, p.updated_at DESC
-    `;
-    return { data: rows.map((r) => ProjectSummary.parse(toCamelCase(r))), meta: { total: rows.length }, error: null };
-  });
+  // ?status=active (default) | archived | all
+  fastify.get<{ Querystring: { status?: string } }>(
+    '/',
+    { preHandler: [authenticate] },
+    async (req) => {
+      const statusFilter = req.query?.status === 'archived'
+        ? 'archived'
+        : req.query?.status === 'all'
+          ? 'all'
+          : 'active';
+      const rows = await db`
+        SELECT DISTINCT ON (p.id)
+          p.id, p.name, p.description, p.status, p.project_type,
+          p.country, p.province_state, p.conservation_auth_id,
+          p.address, p.parcel_id,
+          p.acreage::float8 AS acreage,
+          p.data_completeness_score::float8 AS data_completeness_score,
+          (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+          p.is_builtin,
+          p.created_at, p.updated_at
+        FROM projects p
+        LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${req.userId}
+        WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL OR p.is_builtin = true)
+          AND ${
+            statusFilter === 'archived'
+              ? db`p.status = 'archived'`
+              : statusFilter === 'all'
+                ? db`TRUE`
+                : db`p.status != 'archived'`
+          }
+        ORDER BY p.id, p.updated_at DESC
+      `;
+      return { data: rows.map((r) => ProjectSummary.parse(toCamelCase(r))), meta: { total: rows.length }, error: null };
+    },
+  );
 
   // POST /projects — create a new project and enqueue Tier 1 data pipeline
   fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
@@ -280,6 +296,48 @@ export default async function projectRoutes(fastify: FastifyInstance) {
                   parcel_boundary IS NOT NULL AS has_parcel_boundary,
                   created_at, updated_at
       `;
+      return { data: ProjectSummary.parse(toCamelCase(updated)), meta: undefined, error: null };
+    },
+  );
+
+  // POST /projects/:id/archive — soft-delete via status flip (owner only)
+  fastify.post<{ Params: { id: string } }>(
+    '/:id/archive',
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
+    async (req) => {
+      await refuseIfBuiltin(req.projectId);
+      const [updated] = await db`
+        UPDATE projects SET status = 'archived'
+        WHERE id = ${req.projectId}
+        RETURNING id, name, description, status, project_type, country, province_state,
+                  conservation_auth_id, address, parcel_id,
+                  acreage::float8 AS acreage,
+                  data_completeness_score::float8 AS data_completeness_score,
+                  parcel_boundary IS NOT NULL AS has_parcel_boundary,
+                  created_at, updated_at
+      `;
+      if (!updated) throw new NotFoundError('Project', req.projectId);
+      return { data: ProjectSummary.parse(toCamelCase(updated)), meta: undefined, error: null };
+    },
+  );
+
+  // POST /projects/:id/unarchive — restore from archived (owner only)
+  fastify.post<{ Params: { id: string } }>(
+    '/:id/unarchive',
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner')] },
+    async (req) => {
+      await refuseIfBuiltin(req.projectId);
+      const [updated] = await db`
+        UPDATE projects SET status = 'active'
+        WHERE id = ${req.projectId}
+        RETURNING id, name, description, status, project_type, country, province_state,
+                  conservation_auth_id, address, parcel_id,
+                  acreage::float8 AS acreage,
+                  data_completeness_score::float8 AS data_completeness_score,
+                  parcel_boundary IS NOT NULL AS has_parcel_boundary,
+                  created_at, updated_at
+      `;
+      if (!updated) throw new NotFoundError('Project', req.projectId);
       return { data: ProjectSummary.parse(toCamelCase(updated)), meta: undefined, error: null };
     },
   );
