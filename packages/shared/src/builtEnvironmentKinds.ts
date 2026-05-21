@@ -740,6 +740,30 @@ export function isGeometryValidForKind(
   return !!spec && spec.geometryType === geometryType;
 }
 
+/**
+ * Default real-world width (metres) for line-geometry kinds. Drives the
+ * width-aware line-width paint expression in the Observe / Plan layers when
+ * a feature has no per-instance `widthM` override. Values reflect typical
+ * built-environment widths so visual differentiation matches site reality
+ * (driveway reads as a band, fence as a hairline).
+ */
+export const LINE_KIND_DEFAULT_WIDTH_M: Readonly<Record<string, number>> = Object.freeze({
+  'driveway': 3.5,
+  'fence': 0.1,
+  'power-line': 0.2,
+  'buried-utility': 0.3,
+  'hedgerow': 2.0,
+  'path': 0.8,
+  'road': 4.0,
+  'swale': 1.5,
+  'insectary-strip': 1.2,
+});
+
+/** Resolve the default line width (metres) for a kind, or undefined. */
+export function getLineKindDefaultWidthM(kind: string): number | undefined {
+  return LINE_KIND_DEFAULT_WIDTH_M[kind];
+}
+
 /** Filter kinds by category. */
 export function getKindsByCategory(
   category: BuiltEnvironmentCategory,

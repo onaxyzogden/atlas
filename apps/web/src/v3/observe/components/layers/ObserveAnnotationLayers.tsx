@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useMemo } from 'react';
-import type { Map as MaplibreMap } from 'maplibre-gl';
+import type { Map as MaplibreMap, ExpressionSpecification } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
@@ -50,6 +50,24 @@ import {
   tryRegisterMissingObserveIcon,
 } from '../../lib/lucideSprite.js';
 import type { AnnotationKind } from '../draw/annotationFieldSchemas.js';
+import { LINE_KIND_DEFAULT_WIDTH_M } from '@ogden/shared';
+
+/**
+ * Width-aware line-width paint expression. Converts the feature's
+ * `widthM` property (real-world metres) into screen pixels via a zoom-
+ * interpolated exponential. The `max(…)` floors keep narrow kinds
+ * (fence at 0.1 m, power-line at 0.2 m) legible at low zoom. Per the
+ * 2026-05-21 drawn-line-feature-width slice.
+ */
+const beLineWidthExpr = (defaultM: number): ExpressionSpecification =>
+  [
+    'interpolate',
+    ['exponential', 2],
+    ['zoom'],
+    12, ['max', 0.5, ['*', ['coalesce', ['get', 'widthM'], defaultM], 0.05]],
+    19, ['max', 1.5, ['*', ['coalesce', ['get', 'widthM'], defaultM], 1.6]],
+    22, ['max', 2,   ['*', ['coalesce', ['get', 'widthM'], defaultM], 25]],
+  ] as unknown as ExpressionSpecification;
 
 interface Props {
   map: MaplibreMap;
@@ -929,7 +947,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     // Power lines
     const powerLineFeatures: GeoJSON.Feature[] = inProject(powerLines).map((p) => ({
       type: 'Feature',
-      properties: { placement: p.placement, annoKind: 'powerLine', annoId: p.id },
+      properties: {
+        placement: p.placement,
+        annoKind: 'powerLine',
+        annoId: p.id,
+        widthM: p.widthM ?? LINE_KIND_DEFAULT_WIDTH_M['power-line'],
+      },
       geometry: p.geometry,
     }));
     if (powerLineFeatures.length) {
@@ -942,7 +965,11 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}be-power-lines`,
             type: 'line',
             source: `${SOURCE_PREFIX}be-power-lines`,
-            paint: { 'line-color': '#c87a3f', 'line-width': 2, 'line-opacity': 0.9 },
+            paint: {
+              'line-color': '#c87a3f',
+              'line-width': beLineWidthExpr(LINE_KIND_DEFAULT_WIDTH_M['power-line']),
+              'line-opacity': 0.9,
+            },
           },
         ],
       });
@@ -952,7 +979,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     const buriedUtilityFeatures: GeoJSON.Feature[] = inProject(buriedUtilities).map(
       (u) => ({
         type: 'Feature',
-        properties: { kind: u.kind, annoKind: 'buriedUtility', annoId: u.id },
+        properties: {
+          kind: u.kind,
+          annoKind: 'buriedUtility',
+          annoId: u.id,
+          widthM: u.widthM ?? LINE_KIND_DEFAULT_WIDTH_M['buried-utility'],
+        },
         geometry: u.geometry,
       }),
     );
@@ -968,7 +1000,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             source: `${SOURCE_PREFIX}be-buried-utilities`,
             paint: {
               'line-color': '#7a7a7a',
-              'line-width': 1.5,
+              'line-width': beLineWidthExpr(LINE_KIND_DEFAULT_WIDTH_M['buried-utility']),
               'line-opacity': 0.85,
               'line-dasharray': [2, 2],
             },
@@ -980,7 +1012,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     // Fences
     const fenceFeatures: GeoJSON.Feature[] = inProject(fences).map((f) => ({
       type: 'Feature',
-      properties: { kind: f.kind, annoKind: 'fence', annoId: f.id },
+      properties: {
+        kind: f.kind,
+        annoKind: 'fence',
+        annoId: f.id,
+        widthM: f.widthM ?? LINE_KIND_DEFAULT_WIDTH_M['fence'],
+      },
       geometry: f.geometry,
     }));
     if (fenceFeatures.length) {
@@ -993,7 +1030,11 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}be-fences`,
             type: 'line',
             source: `${SOURCE_PREFIX}be-fences`,
-            paint: { 'line-color': '#5a4a3a', 'line-width': 1.2, 'line-opacity': 0.85 },
+            paint: {
+              'line-color': '#5a4a3a',
+              'line-width': beLineWidthExpr(LINE_KIND_DEFAULT_WIDTH_M['fence']),
+              'line-opacity': 0.85,
+            },
           },
         ],
       });
@@ -1029,7 +1070,12 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     // Existing driveways
     const drivewayFeatures: GeoJSON.Feature[] = inProject(existingDriveways).map((d) => ({
       type: 'Feature',
-      properties: { surface: d.surface, annoKind: 'existingDriveway', annoId: d.id },
+      properties: {
+        surface: d.surface,
+        annoKind: 'existingDriveway',
+        annoId: d.id,
+        widthM: d.widthM ?? LINE_KIND_DEFAULT_WIDTH_M['driveway'],
+      },
       geometry: d.geometry,
     }));
     if (drivewayFeatures.length) {
@@ -1042,7 +1088,11 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}be-driveways`,
             type: 'line',
             source: `${SOURCE_PREFIX}be-driveways`,
-            paint: { 'line-color': '#8a6a3f', 'line-width': 2.5, 'line-opacity': 0.9 },
+            paint: {
+              'line-color': '#8a6a3f',
+              'line-width': beLineWidthExpr(LINE_KIND_DEFAULT_WIDTH_M['driveway']),
+              'line-opacity': 0.9,
+            },
           },
         ],
       });
