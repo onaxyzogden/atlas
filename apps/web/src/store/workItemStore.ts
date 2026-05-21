@@ -174,6 +174,14 @@ interface WorkItemState {
     projectId: string,
     edgesByItemId: Map<string, string[]>,
   ) => void;
+  /**
+   * Habitat-feature D0 spine write-seam — replace all
+   * `source:'habitat-feature'` work items for a project while preserving
+   * steward-edited (`overridden:true`) rows and never touching any other
+   * source. Mirrors `replaceCoverCropRows` 1:1 (swap source). Seeded from
+   * habitat-category DesignElements via `habitatFeatureSpineSync`.
+   */
+  replaceHabitatFeatureRows: (projectId: string, items: WorkItem[]) => void;
 
   /**
    * Returns a freshly-allocated array. **Do NOT call inside a Zustand
@@ -553,6 +561,25 @@ export const useWorkItemStore = create<WorkItemState>()(
             return { ...it, precedesAuto: next, updatedAt: now() };
           }),
         })),
+
+      replaceHabitatFeatureRows: (projectId, items) =>
+        set((s) => {
+          // Preserve: any row not (this project's generated, un-overridden
+          // habitat-feature row). Mirrors replaceCoverCropRows / Rotation-
+          // Sequence exactly — swap source. Goal-compass / cover-crop /
+          // manual / every other source survives untouched (cross-source
+          // preservation gate). Seeder owns idempotency via stable ids.
+          const remaining = s.items.filter(
+            (it) =>
+              it.projectId !== projectId ||
+              it.source !== 'habitat-feature' ||
+              it.overridden,
+          );
+          const incoming = items.filter(
+            (it) => it.source === 'habitat-feature',
+          );
+          return { items: [...remaining, ...incoming] };
+        }),
 
       replacePlantingCalendarBatches: (projectId, items) =>
         set((s) => {
