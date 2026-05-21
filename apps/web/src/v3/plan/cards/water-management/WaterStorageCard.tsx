@@ -15,7 +15,7 @@
  * absorbed.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import {
   useWaterSystemsStore,
@@ -31,6 +31,7 @@ import {
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
 import { selectEvidenceFor } from '../../../../lib/evidence/selectEvidence.js';
+import { emitEvidenceAudit } from '../../../../lib/evidence/auditEmit.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -78,8 +79,8 @@ export default function WaterStorageCard({ project, compactMode = false }: Props
   const [depthM, setDepthM] = useState<number>(0.5);
   const [overflowTo, setOverflowTo] = useState<string>('');
 
-  // Phase E.5 — Tier-2 Evidence inputs.
-  const evidenceItem = useMemo(() => {
+  // Phase E.5 — Tier-2 Evidence inputs. Phase F.7.2 — emit audit.
+  const evidenceInputs = useMemo(() => {
     const totalLitres = storageAndSwale.reduce(
       (sum, n) => sum + effectiveCapacityL(n),
       0,
@@ -100,11 +101,22 @@ export default function WaterStorageCard({ project, compactMode = false }: Props
         overflowWarnings.push(`${n.name}: overflow target not set`);
       }
     }
-    return selectEvidenceFor({
-      panelKey: 'water-storage',
-      inputs: { totalStorageM3, nodesByKind, overflowWarnings },
-    });
+    return { totalStorageM3, nodesByKind, overflowWarnings };
   }, [storageAndSwale]);
+  const evidenceItem = useMemo(
+    () => selectEvidenceFor({ panelKey: 'water-storage', inputs: evidenceInputs }),
+    [evidenceInputs],
+  );
+  useEffect(() => {
+    if (!evidenceItem) return;
+    emitEvidenceAudit({
+      projectId: project.id,
+      panelKey: 'WaterStorageCard',
+      selectorName: 'selectEvidenceFor(water-storage)',
+      inputs: evidenceInputs,
+      output: evidenceItem,
+    });
+  }, [evidenceInputs, evidenceItem, project.id]);
 
   function commit() {
     if (!name.trim()) return;
