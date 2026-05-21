@@ -105,5 +105,17 @@ export interface DesignElement {
     approxHeightM?: number;
     cavityCount?: number;
     notes?: string;
+    /**
+     * Slice 8-B (2026-05-21): host-tree linkage for box / perch habitat
+     * features. Steward names a vegetation-category point DesignElement
+     * (oak-tree / pine-tree / apple-tree / shrub) as the host; the
+     * habitat-feature spine seeder then projects the dependency into
+     * `WorkItem.dependsOnAuto = ['tree__<hostId>']`. Optional — when
+     * absent, the habitat WorkItem ships with empty `dependsOnAuto`.
+     * Stewardship sovereignty preserved: no auto-inference; the user
+     * names the host explicitly. A missing or non-vegetation host is
+     * silently treated as "no edge."
+     */
+    hostTreeFeatureId?: string;
   };
 }

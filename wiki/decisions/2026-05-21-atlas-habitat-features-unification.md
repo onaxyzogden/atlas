@@ -90,7 +90,7 @@ A-series additive covenant (`.passthrough()` schemas, no DB migration):
 | `habitatFeatureStore` retired now | No — kept as soft-deprecated read path; full retirement is a separate ADR once the rebase storm settles |
 | D2 (resourcing) seeder for habitat features | Deferred — rows ship with empty `materialsAuto` |
 | D3 (costing) seeder for habitat features | Deferred — no `costRangeAuto` |
-| D1 predecessor auto-edges (e.g. "install owl box only after host tree planted") | Out of scope — habitat rows ride existing engine without auto-edges |
+| ~~D1 predecessor auto-edges (e.g. "install owl box only after host tree planted")~~ | **Closed by Slice 8** — `habitatMetadata.hostTreeFeatureId` → `dependsOnAuto: ['tree__<hostId>']` projection. Tree-planting seeder (Slice 8-A) provides the dependency target id; `habitatFeatureDependencyGraph.seedHabitatFeatureDependencies` (Slice 8-B) validates the host as a placed vegetation-category point DesignElement and silently drops missing / non-vegetation / non-point hosts |
 | Bespoke per-kind inline popovers | Deferred (Slice 2 ships generic popover) |
 | 3D GLB models for habitat features | Out of scope (uses 2D layer styling) |
 | Server persistence | Not needed — design-elements + WorkItems sync client-local |
@@ -159,11 +159,28 @@ A-series additive covenant (`.passthrough()` schemas, no DB migration):
   cashflow. Citation backbone is the structured `HabitatSource[]` array
   (NRCS practice codes + extension orgs — Cornell NestWatch, Xerces,
   Audubon, UC IPM, USDA Forest Service, NRCS-WHC).
-- **D1 predecessor auto-edges deferred.** "Install owl box after host
-  tree is planted" is not auto-wired. Stewards can hand-author the edge
-  via `dependsOn`. The cleanest auto-seam would be a
-  `habitatMetadata.hostTreeFeatureId` → `dependsOnAuto` projection, but
-  that requires schema-level wiring not yet in place.
+- ~~**D1 predecessor auto-edges deferred.**~~ **Closed by Slice 8
+  (2026-05-21).** The auto-seam now exists end-to-end: (a) Slice 8-A-1
+  added `'tree-planting'` to `WorkItemSource` + a
+  `generatedFromTreeElement` provenance field +
+  `replaceTreePlantingRows` store action; (b) Slice 8-A-2 shipped
+  `treePlantingSpineSync` (one WorkItem per vegetation-category point
+  DesignElement of the four tree-planting kinds — `oak-tree`,
+  `pine-tree`, `apple-tree`, `shrub` — with stable id
+  `tree__<designElement.id>`); (c) Slice 8-B added
+  `habitatMetadata.hostTreeFeatureId?: string` to the inline schema +
+  `habitatFeatureDependencyGraph.seedHabitatFeatureDependencies` (pure
+  helper that validates the host as a placed vegetation-category point
+  with a tree-planting kind) + projected the edge into
+  `WorkItem.dependsOnAuto` via `seedHabitatFeatureWorkItems`. Missing /
+  non-vegetation / non-point / non-tree-kind hosts silently collapse to
+  `dependsOnAuto: []` — the habitat WorkItem stays valid, just
+  unblocked. Stewardship sovereignty preserved: the user names the
+  host; the system never auto-infers one. Line / polygon vegetation
+  (hedgerow, orchard, silvopasture) remains out of scope for tree-
+  planting WorkItem emission — those scale by length / area and ride
+  the existing engine without auto-spine rows; a future S8-C may close
+  that gap.
 - **`habitatFeatureStore` is soft-deprecated.** Selector
   `habitatCommitments.ts` reads from both stores; new placements all flow
   through `DesignElement`. Full retirement of the legacy store is a

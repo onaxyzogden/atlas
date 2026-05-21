@@ -49,6 +49,7 @@ import {
   scaledMaterials,
   type HabitatFeatureCatalogEntry,
 } from './habitatFeatureCatalog.js';
+import { seedHabitatFeatureDependencies } from './habitatFeatureDependencyGraph.js';
 
 /** Seven habitat-category kinds the seeder owns. */
 export const HABITAT_FEATURE_KINDS = [
@@ -122,6 +123,10 @@ export function seedHabitatFeatureWorkItems(args: {
   const catalog = args.catalog ?? HABITAT_FEATURE_CATALOG;
   const nowFn = args.now ?? (() => new Date().toISOString());
   const created = nowFn();
+  // Slice 8-B (D1): project steward-named host-tree linkages into
+  // per-WorkItem `dependsOnAuto`. Missing / non-vegetation / non-point
+  // hosts collapse to "no edge" — see `habitatFeatureDependencyGraph`.
+  const depsByItemId = seedHabitatFeatureDependencies({ designElements });
   const out: WorkItem[] = [];
   for (const el of designElements) {
     if (!isHabitatFeatureKind(el.kind)) continue;
@@ -154,7 +159,7 @@ export function seedHabitatFeatureWorkItems(args: {
       status: 'todo',
       doneAt: null,
       dependsOn: [],
-      dependsOnAuto: [],
+      dependsOnAuto: depsByItemId.get(habitatFeatureProvenanceId(el.id)) ?? [],
       precedesAuto: [],
       materialsAuto,
       equipmentRequiredAuto: [],
