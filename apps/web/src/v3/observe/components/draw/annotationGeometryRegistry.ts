@@ -25,6 +25,8 @@ import { useVegetationStore } from '../../../../store/vegetationStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
 import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
+import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
+import { usePastureStore } from '../../../../store/pastureStore.js';
 import type { AnnotationKind } from './annotationFieldSchemas.js';
 
 function lineLengthM(geom: GeoJSON.LineString): number {
@@ -76,6 +78,9 @@ export const POLYGON_KINDS: ReadonlySet<AnnotationKind> = new Set<AnnotationKind
   // Built-Environment polygons (Phase 4.5) — areaM2 recomputed on edit
   'building',
   'septic',
+  // Land-cover polygons — no cached scalar to recompute
+  'conventionalCrop',
+  'pasture',
 ]);
 
 /** Reposition a point annotation. Routes to the correct field name
@@ -188,6 +193,12 @@ export function writePolygon(
       useBuiltEnvironmentStore.getState().updateSeptic(id, { geometry, areaM2 });
       return;
     }
+    case 'conventionalCrop':
+      useConventionalCropStore.getState().updateConventionalCrop(id, { geometry });
+      return;
+    case 'pasture':
+      usePastureStore.getState().updatePasture(id, { geometry });
+      return;
     default:
       return;
   }
@@ -333,6 +344,18 @@ export function readPolygon(
       const r = useBuiltEnvironmentStore
         .getState()
         .septics.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'conventionalCrop': {
+      const r = useConventionalCropStore
+        .getState()
+        .conventionalCrops.find((x) => x.id === id);
+      return r ? r.geometry : null;
+    }
+    case 'pasture': {
+      const r = usePastureStore
+        .getState()
+        .pastures.find((x) => x.id === id);
       return r ? r.geometry : null;
     }
     default:
