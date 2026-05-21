@@ -133,11 +133,15 @@ the underlying union geometry and π·r² sums are untouched.
   by MapLibre's synthesised `click` from the 2026-05-26 pin
   handler).
 - Animated fade in/out — *enter* fade closed via CSS keyframe with
-  `prefers-reduced-motion` guard; exit fade still deferred.
+  `prefers-reduced-motion` guard.
+
+**Closed by [2026-05-29 ADR](2026-05-29-atlas-b4-tooltip-exit-fade.md):**
+- Animated fade **out** (exit) — `displayedUnion` mirror in
+  `PlanDataLayers` keeps the portal mounted past `activeUnion →
+  null` so the exit keyframe plays; `onAnimationEnd` (with a 180 ms
+  safety timeout) clears the mirror.
 
 **Still deferred (own slices):**
-- Animated fade **out** (exit) — would require keeping the portal
-  mounted past `activeUnion → null`.
 - Tooltip i18n.
 - Per-layer tinted accent stripe matching the dominant canopy
   layer of the host — the union is a per-host aggregate;
@@ -169,7 +173,8 @@ framing in any new file.
 - Per-layer tinted stripe.
 - ~~Animated transitions.~~ Enter fade closed by
   [2026-05-28 ADR](2026-05-28-atlas-b4-tooltip-touch-dismiss-and-fade.md);
-  exit fade still deferred.
+  exit fade closed by
+  [2026-05-29 ADR](2026-05-29-atlas-b4-tooltip-exit-fade.md).
 - ~~Multi-feature fan-out on overlapping hosts.~~ Closed by
   [2026-05-27 ADR](2026-05-27-atlas-b4-union-tooltip-multi-feature-fanout.md).
 - All other 2026-05-24-still-deferred follow-ups.

@@ -153,8 +153,12 @@ exclusively.
 reduced-motion preference see the prior snap-in behaviour, no
 opacity / transform animation.
 
+**Closed by [2026-05-29 ADR](2026-05-29-atlas-b4-tooltip-exit-fade.md):**
+- Animated fade **out** — `displayedUnion` mirror keeps the portal
+  mounted past `activeUnion → null`; CSS `tooltipFadeOut` keyframe
+  plays; `onAnimationEnd` + 180 ms safety timeout clear the mirror.
+
 **Still deferred (own slices):**
-- Animated fade **out** — needs deferred-unmount state.
 - Touch-only swipe-to-dismiss — gesture system too heavy.
 - Long-press-for-detail on touch — would force
   `pointer-events: auto` and risk the mouseleave-never-stolen
@@ -177,7 +181,8 @@ framing in any new file.
 
 ## Out of scope
 
-- Exit fade / leave animation.
+- ~~Exit fade / leave animation.~~ Closed by
+  [2026-05-29 ADR](2026-05-29-atlas-b4-tooltip-exit-fade.md).
 - Touch-only swipe-to-dismiss.
 - Long-press-for-detail on touch.
 - Tooltip i18n.
