@@ -40,6 +40,7 @@ export const WorkItemSource = z.enum([
   'rotation-sequence',
   'habitat-feature',
   'tree-planting',
+  'agroforestry',
   'manual',
 ]);
 export type WorkItemSource = z.infer<typeof WorkItemSource>;
@@ -175,6 +176,18 @@ export const WorkItemSchema = z
      * (A-series additive covenant).
      */
     generatedFromTreeElement: z.string().optional(),
+    /**
+     * DesignElement id of the agroforestry feature this row was seeded
+     * from (hedgerow line, orchard polygon, silvopasture polygon). Used
+     * by `agroforestrySpineSync` (Slice 8-C of the 2026-05-21 habitat-
+     * feature unification) to keep one "Plant <kind>" WorkItem per
+     * placed line / polygon element, idempotent on re-runs. Scaled
+     * cost / labor / materials are derived by joining this id to a
+     * DesignElement and looking up the per-kind entry in
+     * `AGROFORESTRY_CATALOG`. `.optional()` + the top-level
+     * `.passthrough()` ⇒ no DB migration (A-series additive covenant).
+     */
+    generatedFromAgroforestryElement: z.string().optional(),
     goalCriterionId: z.string().optional(),
     catalogVersion: z.string().optional(),
     createdAt: z.string(),

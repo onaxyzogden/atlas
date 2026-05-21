@@ -195,6 +195,18 @@ interface WorkItemState {
   replaceTreePlantingRows: (projectId: string, items: WorkItem[]) => void;
 
   /**
+   * Slice 8-C of the 2026-05-21 habitat-feature unification —
+   * single-writer spine for `source: 'agroforestry'` rows (hedgerow
+   * line, orchard polygon, silvopasture polygon). Replaces only the
+   * project's generated agroforestry rows, preserving steward-edited
+   * (`overridden:true`) rows and never touching any other source.
+   * Mirrors `replaceTreePlantingRows` 1:1 (swap source). Seeded from
+   * vegetation- and grazing-category line / polygon DesignElements
+   * via `agroforestrySpineSync`.
+   */
+  replaceAgroforestryRows: (projectId: string, items: WorkItem[]) => void;
+
+  /**
    * Returns a freshly-allocated array. **Do NOT call inside a Zustand
    * selector** — subscribe to `state.items` raw and derive in `useMemo`.
    * See: wiki/decisions/2026-04-26-zustand-selector-stability.md
@@ -606,6 +618,25 @@ export const useWorkItemStore = create<WorkItemState>()(
           );
           const incoming = items.filter(
             (it) => it.source === 'tree-planting',
+          );
+          return { items: [...remaining, ...incoming] };
+        }),
+
+      replaceAgroforestryRows: (projectId, items) =>
+        set((s) => {
+          // Slice 8-C: mirrors replaceTreePlantingRows exactly — swap
+          // source. Cross-source preservation: cover-crop / habitat-
+          // feature / tree-planting / goal-compass / manual rows
+          // survive untouched. Seeder owns idempotency via stable
+          // `agf__<designElementId>` ids.
+          const remaining = s.items.filter(
+            (it) =>
+              it.projectId !== projectId ||
+              it.source !== 'agroforestry' ||
+              it.overridden,
+          );
+          const incoming = items.filter(
+            (it) => it.source === 'agroforestry',
           );
           return { items: [...remaining, ...incoming] };
         }),

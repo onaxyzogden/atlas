@@ -33,12 +33,16 @@
  */
 
 import type { MaterialLine, CostRange } from '@ogden/shared';
-import type { DesignElement } from '../../store/designElementsStore.js';
 import {
   safeLineLengthM,
   safePolygonAreaM2,
-} from './beneficialHabitatMath.js';
+  elementScale,
+  scaledCostBandFor,
+  scaledMaterialsFor,
+} from './geometryHelpers.js';
 import type { HabitatFeatureKind } from './habitatFeatureSpineSync.js';
+
+export { safeLineLengthM, safePolygonAreaM2 };
 
 export type HabitatGeometry = 'point' | 'line' | 'polygon';
 
@@ -234,54 +238,37 @@ export function habitatCatalogEntryFor(
 }
 
 /**
- * Geometry-scale factor for a habitat DesignElement. Point kinds
- * always return 1 (per-element). Line kinds return the polyline length
- * in metres; polygon kinds return the polygon area in m². Bad/missing
- * geometry collapses to 0 (the seeder still emits the row but with a
- * zero-cost band, mirroring "no data ⇒ omitted" precedent at the
- * scale-factor boundary).
+ * Geometry-scale factor for a habitat DesignElement. Thin wrapper over
+ * the shared `elementScale` helper in `geometryHelpers.ts` (lifted in
+ * Slice 8-C so the agroforestry catalog consumes the same primitive).
+ * Point kinds always return 1 (per-element). Line kinds return the
+ * polyline length in metres; polygon kinds return the polygon area in
+ * m². Bad/missing geometry collapses to 0.
  */
-export function habitatElementScale(
-  el: Pick<DesignElement, 'geometry'>,
-  geometry: HabitatGeometry,
-): number {
-  if (geometry === 'point') return 1;
-  if (geometry === 'line') return safeLineLengthM(el.geometry);
-  return safePolygonAreaM2(el.geometry);
-}
+export const habitatElementScale = elementScale;
 
 /**
- * Apply the per-unit cost band to the geometry-scale factor.
- * Multiplies low/mid/high uniformly so band ordering is preserved.
+ * Apply the per-unit cost band to the geometry-scale factor. Thin
+ * wrapper over the shared `scaledCostBandFor` helper. Multiplies
+ * low/mid/high uniformly so band ordering is preserved.
  */
 export function scaledCostBand(
   entry: HabitatFeatureCatalogEntry,
   scale: number,
 ): CostRange {
-  return {
-    low: entry.costUSD.low * scale,
-    mid: entry.costUSD.mid * scale,
-    high: entry.costUSD.high * scale,
-  };
+  return scaledCostBandFor(entry, scale);
 }
 
 /**
  * Build the per-item materialsAuto BOM from the catalog entry's
- * `materialsKit`. Point kinds carry a flat "1 kit" note; geometry-
- * scaled kinds carry the computed quantity (rounded to 2 decimals) in
- * the unit declared by the catalog entry.
+ * `materialsKit`. Thin wrapper over the shared `scaledMaterialsFor`
+ * helper. Point kinds carry a flat "1" note; geometry-scaled kinds
+ * carry the computed quantity (rounded to 2 decimals) in the unit
+ * declared by the catalog entry.
  */
 export function scaledMaterials(
   entry: HabitatFeatureCatalogEntry,
   scale: number,
 ): MaterialLine[] {
-  if (entry.materialsKit.length === 0) return [];
-  if (entry.geometry === 'point') {
-    return entry.materialsKit.map((m) => ({ ...m, notes: '1' }));
-  }
-  const qty = Math.round(scale * 100) / 100;
-  return entry.materialsKit.map((m) => ({
-    ...m,
-    notes: `${qty} ${m.unit}`,
-  }));
+  return scaledMaterialsFor(entry, scale);
 }
