@@ -20,6 +20,10 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import { MAPLIBRE_DRAW_STYLES } from '../../observe/components/draw/mapboxDrawStyles.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
+import {
+  CLICK_DELETE_DIRECT_SELECT,
+  clickDeleteDirectSelect,
+} from './clickDeleteDirectSelect.js';
 
 export interface VertexEditTarget {
   kind: string;
@@ -87,6 +91,10 @@ export default function SharedVertexEditHandler({
       displayControlsDefault: false,
       controls: {},
       styles: MAPLIBRE_DRAW_STYLES,
+      modes: {
+        ...(MapboxDraw as unknown as { modes: Record<string, unknown> }).modes,
+        [CLICK_DELETE_DIRECT_SELECT]: clickDeleteDirectSelect,
+      },
     });
     map.addControl(draw);
 
@@ -101,7 +109,7 @@ export default function SharedVertexEditHandler({
       draw.add(feature);
       (
         draw.changeMode as (mode: string, opts?: { featureId: string }) => unknown
-      )('direct_select', { featureId });
+      )(CLICK_DELETE_DIRECT_SELECT, { featureId });
     } catch {
       // Malformed geometry (e.g. polygon with <3 points after a botched
       // migration) — bail cleanly without leaving the control attached.
