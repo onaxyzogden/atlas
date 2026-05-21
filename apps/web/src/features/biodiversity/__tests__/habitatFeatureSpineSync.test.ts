@@ -25,6 +25,7 @@ import {
   HABITAT_FEATURE_KINDS,
   habitatFeatureProvenanceId,
   pushHabitatFeaturesToSpine,
+  seedHabitatFeatureResources,
   seedHabitatFeatureWorkItems,
 } from '../habitatFeatureSpineSync.js';
 
@@ -360,5 +361,115 @@ describe('pushHabitatFeaturesToSpine — preservation gate', () => {
     expect(row).toBeDefined();
     expect(row?.title).toBe('overridden — steward-edited');
     expect(row?.overridden).toBe(true);
+  });
+});
+
+// ── Slice 6 (S6-A) — D2 BOM wiring ─────────────────────────────────────
+
+describe('seedHabitatFeatureWorkItems — D2 materialsAuto (Slice 6)', () => {
+  it('point kind (owl-box) emits a single flat kit line with notes="1"', () => {
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [pointElement({ id: 'a', kind: 'owl-box' })],
+    });
+    expect(items).toHaveLength(1);
+    expect(items[0]?.materialsAuto).toHaveLength(1);
+    expect(items[0]?.materialsAuto?.[0]?.label).toBe(
+      'Cedar barn-owl box kit (~20×20×40 cm)',
+    );
+    expect(items[0]?.materialsAuto?.[0]?.unit).toBe('kit');
+    expect(items[0]?.materialsAuto?.[0]?.notes).toBe('1');
+  });
+
+  it('empty-kit kinds (snag, brush-pile) emit materialsAuto: []', () => {
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [
+        pointElement({ id: 's', kind: 'snag' }),
+        pointElement({ id: 'b', kind: 'brush-pile' }),
+      ],
+    });
+    expect(items[0]?.materialsAuto).toEqual([]);
+    expect(items[1]?.materialsAuto).toEqual([]);
+  });
+
+  it('line kind (insectary-strip) scales notes by polyline length (m)', () => {
+    // lineElement default geometry is ~111 m (0.001° lat ≈ 111 m)
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [lineElement({ id: 'ins', kind: 'insectary-strip' })],
+    });
+    const note = items[0]?.materialsAuto?.[0]?.notes;
+    expect(note).toBeDefined();
+    // Length is ~111 m; allow a generous window so we don't pin a Turf
+    // internal constant. The shape ("<number> m") is the contract.
+    expect(note).toMatch(/^\d+(\.\d+)? m$/);
+    const m = Number(note!.replace(/ m$/, ''));
+    expect(m).toBeGreaterThan(50);
+    expect(m).toBeLessThan(200);
+  });
+
+  it('polygon kind (wetland-edge) scales notes by polygon area (m²)', () => {
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [polygonElement({ id: 'we', kind: 'wetland-edge' })],
+    });
+    const note = items[0]?.materialsAuto?.[0]?.notes;
+    expect(note).toBeDefined();
+    expect(note).toMatch(/^\d+(\.\d+)? m²$/);
+  });
+
+  it('non-habitat kinds still produce no rows (D2 wiring respects the kind filter)', () => {
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [
+        pointElement({ id: 'h', kind: 'hedgerow', category: 'vegetation' }),
+      ],
+    });
+    expect(items).toEqual([]);
+  });
+});
+
+describe('seedHabitatFeatureResources — public helper (Slice 6)', () => {
+  it('mirrors per-item materialsAuto for habitat-feature items', () => {
+    const elements = [
+      pointElement({ id: 'a', kind: 'owl-box' }),
+      lineElement({ id: 'ins', kind: 'insectary-strip' }),
+    ];
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: elements,
+    });
+    const map = seedHabitatFeatureResources({ items, designElements: elements });
+    expect(map.size).toBe(2);
+    const owlEntry = map.get('hf__a');
+    expect(owlEntry?.equipment).toEqual([]);
+    expect(owlEntry?.materials?.[0]?.unit).toBe('kit');
+    const insEntry = map.get('hf__ins');
+    expect(insEntry?.materials?.[0]?.unit).toBe('m');
+  });
+
+  it('omits items whose source DesignElement is missing', () => {
+    const item = manualWorkItem({
+      id: 'hf__orphan',
+      source: 'habitat-feature',
+      generatedFromHabitatElement: 'orphan',
+    });
+    const map = seedHabitatFeatureResources({
+      items: [item],
+      designElements: [],
+    });
+    expect(map.size).toBe(0);
+  });
+
+  it('ignores non-habitat-feature items (cross-source isolation)', () => {
+    const elements = [pointElement({ id: 'a', kind: 'owl-box' })];
+    const items: WorkItem[] = [
+      manualWorkItem({ id: 'cc1', source: 'cover-crop' }),
+      manualWorkItem({ id: 'gc1', source: 'goal-compass' }),
+      manualWorkItem({ id: 'm1', source: 'manual' }),
+    ];
+    const map = seedHabitatFeatureResources({ items, designElements: elements });
+    expect(map.size).toBe(0);
   });
 });

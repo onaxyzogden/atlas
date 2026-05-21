@@ -89,7 +89,9 @@ function hasTag(speciesId: string, tag: BeneficialPlantTag): boolean {
   return (plant.ecologicalFunction ?? []).includes(tag);
 }
 
-function safeLineLengthM(geometry: GeoJSON.Geometry | null | undefined): number {
+export function safeLineLengthM(
+  geometry: GeoJSON.Geometry | null | undefined,
+): number {
   if (!geometry || geometry.type !== 'LineString') return 0;
   try {
     return turf.length(turf.lineString(geometry.coordinates), {
@@ -100,7 +102,7 @@ function safeLineLengthM(geometry: GeoJSON.Geometry | null | undefined): number 
   }
 }
 
-function safePolygonAreaM2(
+export function safePolygonAreaM2(
   geometry: GeoJSON.Geometry | null | undefined,
 ): number {
   if (!geometry || geometry.type !== 'Polygon') return 0;

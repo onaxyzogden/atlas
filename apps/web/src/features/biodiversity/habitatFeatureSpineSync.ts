@@ -24,19 +24,27 @@
  *   phaseId:     null (no declared-phase auto-link — PhaseKey and
  *                BuildPhase are separate systems; steward can override)
  *
- * Covenant: strictly D0 work-tracking — no riba / gharar / CSRA /
- * salam / investor / financing / cost-of-capital semantics. D2
- * (resourcing) and D3 (costing) seeders are deferred — habitat
- * features ship with empty `materialsAuto` / no `costRangeAuto`.
+ * Covenant: strictly D0 work-tracking + D2/D3 project-cost surfaces —
+ * no riba / gharar / CSRA / salam / investor / financing /
+ * cost-of-capital semantics. D2 (resourcing) lands in Slice 6 via
+ * `seedHabitatFeatureResources` + the materialsAuto write below; D3
+ * (costing) + per-item laborHrs land in Slice 6 S6-B.
  *
  * See `~/.claude/plans/habitat-features-need-a-lively-oasis.md` and the
  * forthcoming ADR `wiki/decisions/2026-05-21-atlas-habitat-features-unification.md`.
  */
 
-import type { WorkItem } from '@ogden/shared';
+import type { WorkItem, MaterialLine } from '@ogden/shared';
 import type { DesignElement } from '../../store/designElementsStore.js';
 import { getDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
 import { useWorkItemStore } from '../../store/workItemStore.js';
+import {
+  HABITAT_FEATURE_CATALOG,
+  habitatCatalogEntryFor,
+  habitatElementScale,
+  scaledMaterials,
+  type HabitatFeatureCatalogEntry,
+} from './habitatFeatureCatalog.js';
 
 /** Seven habitat-category kinds the seeder owns. */
 export const HABITAT_FEATURE_KINDS = [
@@ -103,15 +111,27 @@ function phaseToDesignLayer(
 export function seedHabitatFeatureWorkItems(args: {
   projectId: string;
   designElements: DesignElement[];
+  catalog?: readonly HabitatFeatureCatalogEntry[];
   now?: () => string;
 }): WorkItem[] {
   const { projectId, designElements } = args;
+  const catalog = args.catalog ?? HABITAT_FEATURE_CATALOG;
   const nowFn = args.now ?? (() => new Date().toISOString());
   const created = nowFn();
   const out: WorkItem[] = [];
   for (const el of designElements) {
     if (!isHabitatFeatureKind(el.kind)) continue;
     const designLayer = phaseToDesignLayer(el.phase);
+    // Slice 6 (D2): pull catalog entry + scale BOM by geometry.
+    // Point kinds → flat "1 kit" notes; line/polygon kinds → scaled
+    // quantity in declared per-unit. Missing catalog entry (defensive,
+    // won't happen for the 7 known kinds) collapses to empty BOM.
+    const entry = catalog.find((e) => e.kind === el.kind);
+    let materialsAuto: MaterialLine[] = [];
+    if (entry) {
+      const scale = habitatElementScale(el, entry.geometry);
+      materialsAuto = scaledMaterials(entry, scale);
+    }
     const item: WorkItem = {
       id: habitatFeatureProvenanceId(el.id),
       projectId,
@@ -127,7 +147,7 @@ export function seedHabitatFeatureWorkItems(args: {
       dependsOn: [],
       dependsOnAuto: [],
       precedesAuto: [],
-      materialsAuto: [],
+      materialsAuto,
       equipmentRequiredAuto: [],
       linkedFeatureId: el.id,
       notes: '',
@@ -137,6 +157,44 @@ export function seedHabitatFeatureWorkItems(args: {
   }
   return out;
 }
+
+/**
+ * Slice 6 (D2): pure helper — derive habitat-feature-seeded resourcing
+ * per WorkItem id. Mirrors `seedCoverCropResources` shape: keyed by
+ * WorkItem.id, each entry carries empty `equipment` (habitat-feature
+ * install is hand-tool labor; no machinery in the per-element BOM)
+ * and the scaled `materials` array. Items lacking a catalog entry or
+ * a recoverable source DesignElement are omitted from the map.
+ *
+ * Exposed for downstream cashflow / phase-rollup consumers that want
+ * to compute resourcing without forcing a spine push.
+ */
+export function seedHabitatFeatureResources(args: {
+  items: WorkItem[];
+  designElements: DesignElement[];
+  catalog?: readonly HabitatFeatureCatalogEntry[];
+}): Map<string, { equipment: string[]; materials: MaterialLine[] }> {
+  const { items, designElements } = args;
+  const catalog = args.catalog ?? HABITAT_FEATURE_CATALOG;
+  const elById = new Map(designElements.map((e) => [e.id, e]));
+  const out = new Map<string, { equipment: string[]; materials: MaterialLine[] }>();
+  for (const it of items) {
+    if (it.source !== 'habitat-feature') continue;
+    const elId = it.generatedFromHabitatElement;
+    if (!elId) continue;
+    const el = elById.get(elId);
+    if (!el) continue;
+    const entry = catalog.find((e) => e.kind === el.kind);
+    if (!entry) continue;
+    const scale = habitatElementScale(el, entry.geometry);
+    out.set(it.id, { equipment: [], materials: scaledMaterials(entry, scale) });
+  }
+  return out;
+}
+
+// `habitatCatalogEntryFor` is re-exported here so downstream call sites
+// can stay on a single import surface (the spine-sync module).
+export { habitatCatalogEntryFor };
 
 /**
  * Push a fresh habitat-feature generation onto the spine. Preserves
