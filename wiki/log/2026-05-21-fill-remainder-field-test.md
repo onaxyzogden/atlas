@@ -172,3 +172,33 @@ this simulation; UI gestures that were live-driven say so explicitly.
 **Block A gate:** 5 / 6 pass + 1 substrate-only (Step 2 screenshot
 unresponsive, honestly flagged). Committing wiki log now.
 
+#### Block B — Pasture single-Polygon path
+
+##### Step 8 — Repeat steps 3-7 against PastureTool
+
+- Pre: 2 pastures + 0 vegetation in mtc; pasture dialog closed.
+- Action (popover render, live click): clicked the "Pasture / paddock"
+  tool button in the rail (found via text match — not nested under a
+  module group; lives at top level of the tool rail).
+  Dialog `aria-label="Pasture / paddock"` opened with body text
+  `"Outline grazed or fenced land (Freehand) or set Width × Depth /
+  Radius (Dimensions). Fill remainder (subtract crops & buildings)"`.
+  Checkbox present.
+- Action *(eval seam, steps 4-6)*: ticked the checkbox; built a
+  boundary with 40 % padding around the crop envelope (slightly wider
+  than Block A's so the pasture remainder differs from the vegetation
+  remainder); ran `subtractPatches(boundary, collectSubtractees('mtc'))`;
+  seeded via `usePastureStore.getState().addPasture({ projectId: 'mtc',
+  geometry: finalGeom, notes: 'F3 step-8 simulated pasture remainder
+  (eval seam)' })`.
+- Post: pasture count 2 → 3; last pasture `geometry.type === 'Polygon'`,
+  `coordinates.length === 3` (outer + 2 crop holes). Standalone
+  `gross = 73,147 m²`, `net = 56,215 m²` (`net < gross` ✓). KPI
+  rollup `netCoverAreaM2(...) = 64,681 m²` vs gross `70,325 m²` —
+  net positive and net < gross.
+- Action (step 8.7, eval seam): `useUndoCoordinatorStore.getState().undo()`.
+- Post: pasture count 3 → 2 (restored); KPI dropped to 8,466 m².
+- Observation: ✅ Pass.
+
+**Block B gate:** all 5 sub-criteria green. Committing.
+
