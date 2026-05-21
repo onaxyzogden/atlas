@@ -139,13 +139,6 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'watercourse',     label: 'Watercourse',         Icon: Waves,    toolId: 'observe.earth-water-ecology.watercourse' },
     { id: 'soil-sample',     label: 'Soil sample',         Icon: TestTube, toolId: 'observe.earth-water-ecology.soil-sample' },
     { id: 'vegetation',      label: 'Vegetation & cover',  Icon: Sprout,   toolId: 'observe.earth-water-ecology.vegetation' },
-    { id: 'pasture',         label: 'Pasture / paddock',   Icon: Fence,    toolId: 'observe.earth-water-ecology.pasture' },
-    { id: 'conventional-crop', label: 'Conventional crop', Icon: Wheat,    toolId: 'observe.earth-water-ecology.conventional-crop' },
-    // 2026-05-14 — Berm and Raised bed relocated from the Earthworks BE
-    // category (dropped). Use BE toolIds so the existing BE draw pipeline
-    // still handles persistence.
-    { id: 'be-berm',         label: 'Berm',                Icon: Mountain, toolId: 'observe.built-environment.berm' as MapToolId },
-    { id: 'be-raised-bed',   label: 'Raised bed',          Icon: Sprout,   toolId: 'observe.built-environment.raised-bed' as MapToolId },
   ],
   'sectors-zones': [
     { id: 'sun-summer',      label: 'Sun (summer)',        Icon: Sun,      toolId: 'observe.sectors-zones.sun-summer' },
@@ -428,13 +421,34 @@ export default function ObserveTools({
                 // 2026-05-14 — Terrace relocated from Earthworks BE category.
                 ...BE_TOOL_ITEMS.filter((i) => i.kind === 'terrace'),
               ]
-            : group.items;
-        const groupItems: ToolItem[] = sourceItems.map((bg) => ({
-          id: bg.kind,
-          label: bg.label,
-          Icon: bg.Icon,
-          toolId: `observe.built-environment.${bg.kind}` as MapToolId,
-        }));
+            : group.category === 'agricultural'
+              ? [
+                  ...group.items,
+                  // 2026-05-21 — Pasture & Conventional crop relocated from
+                  // the earth-water-ecology module group. EWE-prefixed
+                  // toolIds preserved below so the existing draw + store
+                  // pipeline is unchanged; only the rail grouping moves.
+                  { kind: 'pasture',           label: 'Pasture / paddock', Icon: Fence },
+                  { kind: 'conventional-crop', label: 'Conventional crop', Icon: Wheat },
+                  // 2026-05-21 — Berm + Raised bed relocated here from EWE
+                  // (originally moved out of the dropped Earthworks BE
+                  // section on 2026-05-14). BE toolIds preserved.
+                  ...BE_TOOL_ITEMS.filter(
+                    (i) => i.kind === 'berm' || i.kind === 'raised-bed',
+                  ),
+                ]
+              : group.items;
+        const groupItems: ToolItem[] = sourceItems.map((bg) => {
+          let toolId: MapToolId;
+          if (bg.kind === 'pasture') {
+            toolId = 'observe.earth-water-ecology.pasture';
+          } else if (bg.kind === 'conventional-crop') {
+            toolId = 'observe.earth-water-ecology.conventional-crop';
+          } else {
+            toolId = `observe.built-environment.${bg.kind}` as MapToolId;
+          }
+          return { id: bg.kind, label: bg.label, Icon: bg.Icon, toolId };
+        });
         return (
           <section
             key={`be-${group.category}`}
