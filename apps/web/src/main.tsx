@@ -39,6 +39,11 @@ import './dev/seedFertilitySample.js';
 // regenerate-preservation smoke-testing. Function reference only; no
 // auto-execution.
 import './dev/seedGoalCompassPlan.js';
+// Register window.__ogdenSeedThreeStreamsFarm + attach the auto-run
+// subscription that fires once when the Three Streams Farm builtin
+// hydrates into projectStore (Phase 2 showcase seed). Idempotent via
+// localStorage sentinel `three-streams-seeded@v1`.
+import './dev/seedThreeStreamsFarm.js';
 import { useAuthStore } from './store/authStore.js';
 import { useSessionExpiredStore } from './store/sessionExpiredStore.js';
 import { setSessionExpiredHandler } from './lib/apiClient.js';
