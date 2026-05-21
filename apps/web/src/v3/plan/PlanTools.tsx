@@ -17,11 +17,13 @@ import {
   Apple,
   ArrowRight,
   Beef,
+  Bird,
   CalendarClock,
   CircleDashed,
   Container,
   Disc,
   Droplet,
+  Eye,
   Fence,
   Flower2,
   FolderOpen,
@@ -191,6 +193,19 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   'soil-fertility': [
     { id: 'fertility-unit',  label: 'Fertility unit',  Icon: Recycle,    toolId: 'plan.soil-fertility.fertility-unit' },
     { id: 'flow-connector',  label: 'Flow connector',  Icon: ArrowRight, toolId: 'plan.soil-fertility.flow-connector' },
+  ],
+  // 2026-05-21 — Habitat Allocation (A2). The 7 habitat-feature kinds
+  // unify with the design-element pipeline so B5 audit math can read them
+  // directly. hedgerow / shrub / pond / wildlife pond reuse their
+  // plant-systems / water-management entries above (shared catalog kind).
+  'habitat-allocation': [
+    { id: 'owl-box',         label: 'Owl box',         Icon: Bird,           toolId: 'plan.habitat-allocation.owl-box' },
+    { id: 'raptor-perch',    label: 'Raptor perch',    Icon: Eye,            toolId: 'plan.habitat-allocation.raptor-perch' },
+    { id: 'nest-box',        label: 'Nest box',        Icon: Bird,           toolId: 'plan.habitat-allocation.nest-box' },
+    { id: 'brush-pile',      label: 'Brush pile',      Icon: Sprout,         toolId: 'plan.habitat-allocation.brush-pile' },
+    { id: 'snag',            label: 'Standing snag',   Icon: TreeDeciduous,  toolId: 'plan.habitat-allocation.snag' },
+    { id: 'insectary-strip', label: 'Insectary strip', Icon: Flower2,        toolId: 'plan.habitat-allocation.insectary-strip' },
+    { id: 'wetland-edge',    label: 'Wetland edge',    Icon: Waves,          toolId: 'plan.habitat-allocation.wetland-edge' },
   ],
   'principle-verification': [
     { id: 'note',     label: 'Note',     Icon: MapPin,   toolId: 'plan.principle-verification.note' },

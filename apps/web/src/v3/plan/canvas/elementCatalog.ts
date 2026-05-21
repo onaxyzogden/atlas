@@ -9,10 +9,13 @@
  */
 
 import {
+  Bird,
   Building2,
   Compass,
   Droplets,
+  Eye,
   Flame,
+  Flower2,
   Footprints,
   Fuel,
   Home,
@@ -45,6 +48,7 @@ export type DesignCategory =
   | 'amenity'
   | 'vegetation'
   | 'earthworks'
+  | 'habitat'
   | 'custom';
 
 export interface DesignElementSpec {
@@ -106,6 +110,12 @@ const COLORS = {
   earthworksBerm: '#8c6a4c',
   earthworksBed: '#735238',
   earthworksTerrace: '#806142',
+  habitatBox: '#6a4a7a',
+  habitatPerch: '#8a6a98',
+  habitatBrush: '#7a5a3a',
+  habitatSnag: '#5a4632',
+  habitatInsectary: '#b08a3f',
+  habitatWetland: '#4a8a98',
 } as const;
 
 export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
@@ -187,6 +197,25 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
       { kind: 'prayer-pavilion', category: 'amenity', label: 'Prayer Pavilion', icon: Home,          geometry: 'point',   drawMode: 'draw_point',   phase: 'buildings', color: COLORS.amenity },
       { kind: 'fire-circle',     category: 'amenity', label: 'Fire Circle',     icon: Flame,         geometry: 'point',   drawMode: 'draw_point',   phase: 'buildings', color: COLORS.amenityFire },
       { kind: 'compost',         category: 'amenity', label: 'Compost',         icon: Recycle,       geometry: 'polygon', drawMode: 'draw_polygon', phase: 'soil',      color: COLORS.amenityCompost },
+    ],
+  },
+  // 2026-05-21 — Habitat-feature unification (A2 ↔ B5 ↔ D0 wiring slice).
+  // The 9 habitat types from habitatFeatureStore become first-class
+  // design-element kinds. Three (hedgerow / shrub / pond) already live
+  // under Vegetation / Water; the remaining 7 land here under a new
+  // `habitat` category. B5 audit math reads designElementsStore directly,
+  // so placing these kinds now feeds the beneficial-habitat coverage score.
+  {
+    key: 'habitat',
+    label: 'Habitat Features',
+    elements: [
+      { kind: 'owl-box',         category: 'habitat', label: 'Owl box',         icon: Bird,    geometry: 'point',   drawMode: 'draw_point',       phase: 'trees', color: COLORS.habitatBox,       defaultSpacingM: 30 },
+      { kind: 'raptor-perch',    category: 'habitat', label: 'Raptor perch',    icon: Eye,     geometry: 'point',   drawMode: 'draw_point',       phase: 'trees', color: COLORS.habitatPerch,     defaultSpacingM: 50 },
+      { kind: 'nest-box',        category: 'habitat', label: 'Nest box',        icon: Bird,    geometry: 'point',   drawMode: 'draw_point',       phase: 'trees', color: COLORS.habitatBox,       defaultSpacingM: 8  },
+      { kind: 'brush-pile',      category: 'habitat', label: 'Brush pile',      icon: Sprout,  geometry: 'point',   drawMode: 'draw_point',       phase: 'soil',  color: COLORS.habitatBrush },
+      { kind: 'snag',            category: 'habitat', label: 'Standing snag',   icon: TreeDeciduous, geometry: 'point', drawMode: 'draw_point',     phase: 'trees', color: COLORS.habitatSnag,      defaultSpacingM: 15 },
+      { kind: 'insectary-strip', category: 'habitat', label: 'Insectary strip', icon: Flower2, geometry: 'line',    drawMode: 'draw_line_string', phase: 'soil',  color: COLORS.habitatInsectary },
+      { kind: 'wetland-edge',    category: 'habitat', label: 'Wetland edge',    icon: Waves,   geometry: 'polygon', drawMode: 'draw_polygon',     phase: 'water', color: COLORS.habitatWetland },
     ],
   },
 ];

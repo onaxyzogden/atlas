@@ -137,6 +137,12 @@ export type MapToolId =
   // strict-literal surface small while letting the kind registry grow:
   // dispatched in PlanDrawHost via prefix-match → BeV2ExistingTool.
   | `plan.structures-subsystems.be.${string}`
+  // Plan Module — Habitat Allocation (A2). Template-literal so the 7
+  // habitat-feature kinds added 2026-05-21 (owl-box / raptor-perch /
+  // nest-box / brush-pile / snag / insectary-strip / wetland-edge) flow
+  // through without growing the union. Dispatch in PlanDesignElementHost
+  // via `useToolIdToElementKind` switch.
+  | `plan.habitat-allocation.${string}`
   // Plan Module — Principle Verification (annotation marker, Tier B / B5)
   | 'plan.principle-verification.note'
   // Plan Module — Principle Verification (monitoring transect, Tier B / B4)
