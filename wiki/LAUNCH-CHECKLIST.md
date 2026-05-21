@@ -112,9 +112,14 @@ first four; the remainder are deferred.
   F.3 lands the API; chart overlays + scenario consumers still read
   whole-project rows only. Not gating.
 
-- [ ] **Tooltip Evidence retrofit.** `HostCanopyUnionTooltip` keeps its
-  B4 Slice M drill-down for now; re-wiring it under the Evidence
-  selector would duplicate work.
+- [x] **Tooltip Evidence retrofit (Phase H).** `HostUnionDrilldownCard`
+  (right-click sticky detail card) now composes `<EvidenceSection>` and
+  persists every distinct host-union snapshot to `evidence_audit_log`
+  via a new 9th `PanelKey` `'host-canopy-union'`. The
+  `HostCanopyUnionTooltip` hover peek (pointer-events: none) is
+  intentionally left Evidence-free — the drilldown is the explicit
+  persistent detail surface. ADR:
+  [[decisions/2026-05-21-atlas-phase-h-tooltip-evidence-retrofit]].
 
 - [ ] **PDF Evidence surface.** Static PDF lists assumptions truncated
   to 15; expanding requires a second page or a QR link back to the web
