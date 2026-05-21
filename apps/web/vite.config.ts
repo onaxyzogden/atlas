@@ -183,6 +183,24 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
+        // Translate upstream connection failures into the API's JSON
+        // envelope so apiClient.ts surfaces an actionable message
+        // instead of "Response not JSON (500)". Mirrors the shape of
+        // apps/api/src/app.ts setErrorHandler.
+        configure: (proxy) => {
+          proxy.on('error', (err: NodeJS.ErrnoException, _req, res) => {
+            if (res && 'writeHead' in res && !res.headersSent) {
+              res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+              res.end(JSON.stringify({
+                data: null,
+                error: {
+                  code: 'API_OFFLINE',
+                  message: `API server unreachable at http://localhost:3001 (${err.code ?? err.message}). Start it with:  pnpm --filter @ogden/api dev`,
+                },
+              }));
+            }
+          });
+        },
       },
       '/uploads': {
         target: 'http://localhost:3001',
