@@ -65,6 +65,15 @@ export interface MaterialFlow {
   notes?: string;
   phase?: string;
   enterprise?: string;
+  /** Optional monthly throughput quantities. All optional so legacy flows
+   *  (and flows authored without opening the Quantities sub-section) round-
+   *  trip unchanged; dashboard derivations fold over `?? 0`. */
+  massKgPerMonth?: number;
+  volumeLPerMonth?: number;
+  energyKwhPerMonth?: number;
+  nutrientNKgPerMonth?: number;
+  nutrientPKgPerMonth?: number;
+  nutrientKKgPerMonth?: number;
   createdAt: string;
   updatedAt?: string;
 }
