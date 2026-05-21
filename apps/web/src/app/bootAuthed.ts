@@ -28,6 +28,7 @@ import '../dev/seedFertilitySample.js';
 import '../dev/seedGoalCompassPlan.js';
 import '../dev/seedThreeStreamsFarm.js';
 import '../dev/seedApricotLane.js';
+import '../dev/seedMtcObserveBaseline.js';
 
 import { useAuthStore } from '../store/authStore.js';
 import { useSessionExpiredStore } from '../store/sessionExpiredStore.js';
