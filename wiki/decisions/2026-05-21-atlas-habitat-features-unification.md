@@ -147,10 +147,18 @@ A-series additive covenant (`.passthrough()` schemas, no DB migration):
 - **D0 spine carries a new source.** Goal Compass / cover-crop / rotation
   / habitat-feature rows now all live in `useWorkItemStore` with the same
   override-preservation contract.
-- **D2 / D3 deferred.** Habitat features ship with empty `materialsAuto`
-  / no `costRangeAuto`. A future ADR can add a habitat-catalog seeded
-  with mounting-hardware + labor estimates (NRCS practice payments may
-  serve as the citation backbone).
+- **D2 / D3 deferred.** ~~Habitat features ship with empty `materialsAuto`
+  / no `costRangeAuto`.~~ **Closed by Slice 6 (2026-05-21):** the
+  `habitatFeatureCatalog.ts` table now seeds per-kind kit lines
+  (`materialsAuto`), low/mid/high project-cost bands (`costRangeAuto`),
+  and per-element install labor (`laborHrs`) for all 7 habitat kinds.
+  Point kinds carry flat per-element values; insectary-strip +
+  wetland-edge scale by `safeLineLengthM` / `safePolygonAreaM2`.
+  `habitatFeatureEconomicsMath.computeHabitatFeatureProgramEconomics`
+  exposes the project- and per-kind labor + cost rollup for downstream
+  cashflow. Citation backbone is the structured `HabitatSource[]` array
+  (NRCS practice codes + extension orgs — Cornell NestWatch, Xerces,
+  Audubon, UC IPM, USDA Forest Service, NRCS-WHC).
 - **D1 predecessor auto-edges deferred.** "Install owl box after host
   tree is planted" is not auto-wired. Stewards can hand-author the edge
   via `dependsOn`. The cleanest auto-seam would be a

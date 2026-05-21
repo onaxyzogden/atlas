@@ -25,6 +25,7 @@ import {
   HABITAT_FEATURE_KINDS,
   habitatFeatureProvenanceId,
   pushHabitatFeaturesToSpine,
+  seedHabitatFeatureCosts,
   seedHabitatFeatureResources,
   seedHabitatFeatureWorkItems,
 } from '../habitatFeatureSpineSync.js';
@@ -470,6 +471,115 @@ describe('seedHabitatFeatureResources — public helper (Slice 6)', () => {
       manualWorkItem({ id: 'm1', source: 'manual' }),
     ];
     const map = seedHabitatFeatureResources({ items, designElements: elements });
+    expect(map.size).toBe(0);
+  });
+});
+
+// ── Slice 6 (S6-B) — D3 costRangeAuto + laborHrs wiring ───────────────
+
+describe('seedHabitatFeatureWorkItems — D3 costRangeAuto + laborHrs (Slice 6)', () => {
+  it('owl-box → catalog band $15/45/150 + 1.5 hr labor', () => {
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [pointElement({ id: 'a', kind: 'owl-box' })],
+    });
+    expect(items[0]?.costRangeAuto).toEqual({ low: 15, mid: 45, high: 150 });
+    expect(items[0]?.laborHrs).toBeCloseTo(1.5, 5);
+  });
+
+  it('snag → zero-cost band + 0.25 hr labor (labor is the steward\'s work)', () => {
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [pointElement({ id: 's', kind: 'snag' })],
+    });
+    expect(items[0]?.costRangeAuto).toEqual({ low: 0, mid: 0, high: 0 });
+    expect(items[0]?.laborHrs).toBeCloseTo(0.25, 5);
+  });
+
+  it('insectary-strip → cost band + labor scale with polyline length', () => {
+    // ~111 m line; per-m band $0.50 / $1.20 / $3.00 → ~$55 / $133 / $333
+    // labor 0.05 hr/m → ~5.55 hr
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [lineElement({ id: 'ins', kind: 'insectary-strip' })],
+    });
+    const cost = items[0]?.costRangeAuto;
+    expect(cost?.low).toBeGreaterThan(25);
+    expect(cost?.low).toBeLessThan(100);
+    expect(cost?.mid).toBeGreaterThan(60);
+    expect(cost?.mid).toBeLessThan(250);
+    expect(cost?.high).toBeGreaterThan(150);
+    expect(cost?.high).toBeLessThan(600);
+    expect(items[0]?.laborHrs).toBeGreaterThan(2);
+    expect(items[0]?.laborHrs).toBeLessThan(10);
+  });
+
+  it('wetland-edge → cost band + labor scale with polygon area', () => {
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: [polygonElement({ id: 'we', kind: 'wetland-edge' })],
+    });
+    const cost = items[0]?.costRangeAuto;
+    expect(cost).toBeDefined();
+    expect(cost!.low).toBeLessThanOrEqual(cost!.mid);
+    expect(cost!.mid).toBeLessThanOrEqual(cost!.high);
+    expect(items[0]?.laborHrs).toBeGreaterThan(0);
+  });
+
+  it('preserves band ordering (low ≤ mid ≤ high) for every emitted item', () => {
+    const elements = HABITAT_FEATURE_KINDS.map((k, i) =>
+      pointElement({ id: `e${i}`, kind: k }),
+    );
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: elements,
+    });
+    for (const it of items) {
+      const cost = it.costRangeAuto;
+      if (!cost) continue;
+      expect(cost.low).toBeLessThanOrEqual(cost.mid);
+      expect(cost.mid).toBeLessThanOrEqual(cost.high);
+    }
+  });
+});
+
+describe('seedHabitatFeatureCosts — public helper (Slice 6)', () => {
+  it('returns per-item CostRange for habitat-feature items', () => {
+    const elements = [
+      pointElement({ id: 'a', kind: 'owl-box' }),
+      pointElement({ id: 'b', kind: 'nest-box' }),
+    ];
+    const items = seedHabitatFeatureWorkItems({
+      projectId: 'p1',
+      designElements: elements,
+    });
+    const map = seedHabitatFeatureCosts({ items, designElements: elements });
+    expect(map.size).toBe(2);
+    expect(map.get('hf__a')).toEqual({ low: 15, mid: 45, high: 150 });
+    expect(map.get('hf__b')).toEqual({ low: 10, mid: 25, high: 75 });
+  });
+
+  it('omits items whose source DesignElement is missing', () => {
+    const item = manualWorkItem({
+      id: 'hf__orphan',
+      source: 'habitat-feature',
+      generatedFromHabitatElement: 'orphan',
+    });
+    const map = seedHabitatFeatureCosts({
+      items: [item],
+      designElements: [],
+    });
+    expect(map.size).toBe(0);
+  });
+
+  it('ignores non-habitat-feature items (cross-source isolation)', () => {
+    const elements = [pointElement({ id: 'a', kind: 'owl-box' })];
+    const items: WorkItem[] = [
+      manualWorkItem({ id: 'cc1', source: 'cover-crop' }),
+      manualWorkItem({ id: 'gc1', source: 'goal-compass' }),
+      manualWorkItem({ id: 'm1', source: 'manual' }),
+    ];
+    const map = seedHabitatFeatureCosts({ items, designElements: elements });
     expect(map.size).toBe(0);
   });
 });

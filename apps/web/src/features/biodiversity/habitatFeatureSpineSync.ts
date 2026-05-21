@@ -26,15 +26,18 @@
  *
  * Covenant: strictly D0 work-tracking + D2/D3 project-cost surfaces —
  * no riba / gharar / CSRA / salam / investor / financing /
- * cost-of-capital semantics. D2 (resourcing) lands in Slice 6 via
- * `seedHabitatFeatureResources` + the materialsAuto write below; D3
- * (costing) + per-item laborHrs land in Slice 6 S6-B.
+ * cost-of-capital semantics. Slice 6 closed D2 (materialsAuto via
+ * `seedHabitatFeatureResources`) and D3 (costRangeAuto via
+ * `seedHabitatFeatureCosts`, plus per-item laborHrs) by joining the
+ * placed element to `HABITAT_FEATURE_CATALOG` and scaling by element
+ * geometry. Project-wide rollup lives in
+ * `habitatFeatureEconomicsMath.computeHabitatFeatureProgramEconomics`.
  *
  * See `~/.claude/plans/habitat-features-need-a-lively-oasis.md` and the
  * forthcoming ADR `wiki/decisions/2026-05-21-atlas-habitat-features-unification.md`.
  */
 
-import type { WorkItem, MaterialLine } from '@ogden/shared';
+import type { WorkItem, MaterialLine, CostRange } from '@ogden/shared';
 import type { DesignElement } from '../../store/designElementsStore.js';
 import { getDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
 import { useWorkItemStore } from '../../store/workItemStore.js';
@@ -42,6 +45,7 @@ import {
   HABITAT_FEATURE_CATALOG,
   habitatCatalogEntryFor,
   habitatElementScale,
+  scaledCostBand,
   scaledMaterials,
   type HabitatFeatureCatalogEntry,
 } from './habitatFeatureCatalog.js';
@@ -122,15 +126,20 @@ export function seedHabitatFeatureWorkItems(args: {
   for (const el of designElements) {
     if (!isHabitatFeatureKind(el.kind)) continue;
     const designLayer = phaseToDesignLayer(el.phase);
-    // Slice 6 (D2): pull catalog entry + scale BOM by geometry.
-    // Point kinds → flat "1 kit" notes; line/polygon kinds → scaled
-    // quantity in declared per-unit. Missing catalog entry (defensive,
-    // won't happen for the 7 known kinds) collapses to empty BOM.
+    // Slice 6 (D2 + D3): pull catalog entry + scale by geometry.
+    // Point kinds → flat per-element values; line/polygon kinds → scaled
+    // by polyline length / polygon area. Missing catalog entry
+    // (defensive, won't happen for the 7 known kinds) collapses to
+    // empty BOM and no cost/labor estimate.
     const entry = catalog.find((e) => e.kind === el.kind);
     let materialsAuto: MaterialLine[] = [];
+    let costRangeAuto: CostRange | undefined;
+    let laborHrs: number | undefined;
     if (entry) {
       const scale = habitatElementScale(el, entry.geometry);
       materialsAuto = scaledMaterials(entry, scale);
+      costRangeAuto = scaledCostBand(entry, scale);
+      laborHrs = entry.installLaborHrs * scale;
     }
     const item: WorkItem = {
       id: habitatFeatureProvenanceId(el.id),
@@ -153,7 +162,38 @@ export function seedHabitatFeatureWorkItems(args: {
       notes: '',
     };
     if (designLayer) item.designLayer = designLayer;
+    if (costRangeAuto) item.costRangeAuto = costRangeAuto;
+    if (laborHrs !== undefined) item.laborHrs = laborHrs;
     out.push(item);
+  }
+  return out;
+}
+
+/**
+ * Slice 6 (D3): pure helper — derive habitat-feature-seeded
+ * `costRangeAuto` per WorkItem id. Mirrors `seedCoverCropCosts` shape.
+ * Items without a recoverable catalog entry or source DesignElement
+ * are omitted; the steward sees no auto-band on those rows.
+ */
+export function seedHabitatFeatureCosts(args: {
+  items: WorkItem[];
+  designElements: DesignElement[];
+  catalog?: readonly HabitatFeatureCatalogEntry[];
+}): Map<string, CostRange> {
+  const { items, designElements } = args;
+  const catalog = args.catalog ?? HABITAT_FEATURE_CATALOG;
+  const elById = new Map(designElements.map((e) => [e.id, e]));
+  const out = new Map<string, CostRange>();
+  for (const it of items) {
+    if (it.source !== 'habitat-feature') continue;
+    const elId = it.generatedFromHabitatElement;
+    if (!elId) continue;
+    const el = elById.get(elId);
+    if (!el) continue;
+    const entry = catalog.find((e) => e.kind === el.kind);
+    if (!entry) continue;
+    const scale = habitatElementScale(el, entry.geometry);
+    out.set(it.id, scaledCostBand(entry, scale));
   }
   return out;
 }
