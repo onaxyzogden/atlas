@@ -137,6 +137,15 @@
   padding: 6px 0 8px;
 }
 
+/* Phase H.2 — Evidence section slot. EvidenceSection brings its own
+   chrome; the slot just adds spacing + a top divider to keep the
+   member list and audit link visually distinct. */
+.evidenceSlot {
+  margin: 8px 0 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(242, 237, 227, 0.12);
+}
+
 .auditLink {
   display: block;
   width: 100%;

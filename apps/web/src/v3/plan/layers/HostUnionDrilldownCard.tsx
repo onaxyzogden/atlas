@@ -26,6 +26,8 @@
  */
 
 import { useLayoutEffect, useState } from 'react';
+import type { EvidenceItem } from '@ogden/shared/evidence';
+import EvidenceSection from '../../../components/evidence/EvidenceSection.js';
 import styles from './HostUnionDrilldownCard.module.css';
 import { drilldownStrings } from './drilldownStrings.js';
 import {
@@ -50,6 +52,14 @@ export interface HostUnionDrilldownCardProps {
   /** Pre-resolved canopy-bearing member rows. The caller iterates the
    *  same set the host-union tooltip's `memberCount` derives from. */
   members: DrilldownMemberRow[];
+  /**
+   * Phase H.2 — optional Evidence payload from
+   * `selectEvidenceFor({ panelKey: 'host-canopy-union', ... })`. Null /
+   * undefined → section omitted entirely (no empty shell).
+   */
+  evidenceItem?: EvidenceItem | null;
+  /** Optional project id passed to <EvidenceSection> for DetailsDrawer fetches. */
+  projectId?: string;
   onClose: () => void;
   onOpenAudit: (hostId: string) => void;
 }
@@ -65,6 +75,8 @@ export function HostUnionDrilldownCard({
   hostId,
   hostName,
   members,
+  evidenceItem,
+  projectId,
   onClose,
   onOpenAudit,
 }: HostUnionDrilldownCardProps): React.JSX.Element {
@@ -145,6 +157,15 @@ export function HostUnionDrilldownCard({
           ))}
         </ul>
       )}
+
+      {evidenceItem ? (
+        <div
+          className={styles.evidenceSlot}
+          data-testid="host-union-drilldown-evidence"
+        >
+          <EvidenceSection item={evidenceItem} projectId={projectId} />
+        </div>
+      ) : null}
 
       <button
         type="button"
