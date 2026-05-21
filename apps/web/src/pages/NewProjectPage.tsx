@@ -2,15 +2,22 @@
  * NewProjectPage — multi-step property intake wizard.
  *
  * Steps:
+ *   0. (Optional) Template — choose a public template or start blank
  *   1. Name & Type — project name, type, country, units
  *   2. Location — address, parcel ID, GPS coordinates
  *   3. Boundary — draw on map or import file (KML/GeoJSON/Shapefile)
  *   4. Notes & Attachments — owner notes, zoning, photos, documents
+ *
+ * Step 0 is auto-skipped when the URL carries a `prefillTemplate`
+ * search-param (the showcase ContactCTA + the /register tier paths
+ * thread it through). When skipped, the wizard starts on StepBasicInfo.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useSearch } from '@tanstack/react-router';
 import type { Country } from '@ogden/shared';
 import { StepIndicator } from '../components/ui/index.js';
+import StepTemplate from '../features/project/wizard/StepTemplate.js';
 import StepBasicInfo from '../features/project/wizard/StepBasicInfo.js';
 import StepLocation from '../features/project/wizard/StepLocation.js';
 import StepBoundary from '../features/project/wizard/StepBoundary.js';
@@ -18,6 +25,10 @@ import StepNotes from '../features/project/wizard/StepNotes.js';
 import styles from './NewProjectPage.module.css';
 
 export interface WizardData {
+  // Step 0 — template selection (optional)
+  templateSlug?: string;
+  drawFirst?: boolean;
+  fullSetup?: boolean;
   // Step 1
   name: string;
   projectType: string;
@@ -53,6 +64,9 @@ export interface WizardData {
 }
 
 const INITIAL_DATA: WizardData = {
+  templateSlug: undefined,
+  drawFirst: false,
+  fullSetup: false,
   name: '',
   projectType: '',
   country: 'US',
@@ -81,25 +95,68 @@ const INITIAL_DATA: WizardData = {
   soilBiologicalActivity: '',
 };
 
-const STEPS = [
-  { label: 'Name & Type', component: StepBasicInfo },
-  { label: 'Location', component: StepLocation },
-  { label: 'Boundary', component: StepBoundary },
-  { label: 'Notes', component: StepNotes },
-] as const;
-
-/** Map STEPS to the shape expected by StepIndicator */
-const STEP_IDS = STEPS.map((s, i) => ({ id: String(i), label: s.label }));
+interface NewProjectSearch {
+  prefillTemplate?: string;
+  drawFirst?: boolean | string;
+  fullSetup?: boolean | string;
+}
 
 export default function NewProjectPage() {
+  const search = useSearch({ strict: false }) as NewProjectSearch;
+
+  // Tier-aware initialisation: if the /register handoff (or a deep link)
+  // pre-fills a template, skip the template-picker step entirely.
+  const prefillTemplate =
+    typeof search.prefillTemplate === 'string' && search.prefillTemplate
+      ? search.prefillTemplate
+      : undefined;
+  const drawFirst =
+    search.drawFirst === true || search.drawFirst === 'true';
+  const fullSetup =
+    search.fullSetup === true || search.fullSetup === 'true';
+
+  const initialData: WizardData = useMemo(
+    () => ({
+      ...INITIAL_DATA,
+      templateSlug: prefillTemplate,
+      drawFirst,
+      fullSetup,
+      // Friendly default name when arriving from the showcase ContactCTA.
+      name:
+        prefillTemplate === 'ecosystem-farm'
+          ? INITIAL_DATA.name || 'My Ecosystem Farm'
+          : INITIAL_DATA.name,
+    }),
+    [prefillTemplate, drawFirst, fullSetup],
+  );
+
+  const STEPS = useMemo(() => {
+    const baseSteps = [
+      { label: 'Name & Type', component: StepBasicInfo },
+      { label: 'Location', component: StepLocation },
+      { label: 'Boundary', component: StepBoundary },
+      { label: 'Notes', component: StepNotes },
+    ] as const;
+    // Skip the template picker when the URL already pinned a template.
+    if (prefillTemplate) return baseSteps;
+    return [
+      { label: 'Template', component: StepTemplate },
+      ...baseSteps,
+    ] as const;
+  }, [prefillTemplate]);
+
   const [step, setStep] = useState(0);
-  const [data, setData] = useState<WizardData>(INITIAL_DATA);
+  const [data, setData] = useState<WizardData>(initialData);
 
   const StepComponent = STEPS[step]!.component;
   const isFirst = step === 0;
   const isLast = step === STEPS.length - 1;
-  const isBoundaryStep = step === 2;
+  // The boundary step occupies the third-from-last slot regardless of
+  // whether the template picker is mounted.
+  const isBoundaryStep =
+    STEPS[step]!.component === StepBoundary;
 
+  const STEP_IDS = STEPS.map((s, i) => ({ id: String(i), label: s.label }));
   const completedSteps = STEP_IDS.filter((_, i) => i < step).map((s) => s.id);
 
   const updateData = (updates: Partial<WizardData>) => {

@@ -76,9 +76,21 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
   const handleCreate = async () => {
     if (creating) return;
     setCreating(true);
-    const metadata = buildMetadata();
+    const baseMetadata = buildMetadata() ?? {};
+    // Phase 4 (2026-05-21): when the wizard arrived with a template
+    // slug (either via the StepTemplate picker or via a /register tier
+    // handoff), stamp `instantiatedFromTemplate` on the project so the
+    // client-side seedFromEcosystemFarmTemplate auto-fire hook
+    // recognises the project on subscribe.
+    const metadataWithTemplate: Record<string, unknown> | undefined =
+      data.templateSlug
+        ? { ...baseMetadata, instantiatedFromTemplate: data.templateSlug }
+        : Object.keys(baseMetadata).length > 0
+          ? baseMetadata
+          : undefined;
 
-    // Create the project
+    // Create the project (local Zustand copy — always created so the
+    // wizard can hand off cleanly even in offline / unauth contexts).
     const project = createProject({
       name: data.name,
       description: data.description || undefined,
@@ -88,7 +100,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       country: data.country,
       provinceState: data.provinceState || undefined,
       units: data.units,
-      metadata,
+      metadata: metadataWithTemplate,
     });
 
     // Calculate acreage from boundary if available
@@ -119,31 +131,48 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
       addAttachment(project.id, attachment);
     }
 
-    // Authenticated: await the server-side create + boundary push so the
-    // Observe stage mounts with a real serverId — prevents per-project
-    // fetches firing against an unknown project id and silently 404-ing.
+    // Authenticated: server-side create.
+    //  - Template branch (Phase 4): instantiate via the public template
+    //    route so the server deep-replays features + regen-events +
+    //    relationships, then mirror the serverId into the local copy.
+    //  - Vanilla branch: existing /projects + /boundary flow.
     // Unauthenticated: navigate immediately (local copy is source of truth).
     if (token) {
       try {
-        const { data: serverProject } = await api.projects.create({
-          name: data.name,
-          description: data.description || undefined,
-          address: data.address || undefined,
-          parcelId: data.parcelId || undefined,
-          projectType: (data.projectType as any) || undefined,
-          country: data.country,
-          provinceState: data.provinceState || undefined,
-          units: data.units,
-          metadata,
-        });
-        updateProjectFn(project.id, { serverId: serverProject.id });
-        const geo = data.parcelBoundaryGeojson;
-        if (geo) {
-          await api.projects.setBoundary(serverProject.id, geo);
-        }
-        // File uploads are non-blocking — fire-and-forget per attachment.
-        for (const att of attachments) {
-          api.files.upload(serverProject.id, att.file).catch(() => {});
+        if (data.templateSlug) {
+          const { data: serverProject } = await api.templates.instantiatePublic(
+            data.templateSlug,
+            {
+              name: data.name,
+              parcelBoundaryGeojson: data.parcelBoundaryGeojson ?? null,
+            },
+          );
+          updateProjectFn(project.id, { serverId: serverProject.id });
+          // File uploads are non-blocking — fire-and-forget per attachment.
+          for (const att of attachments) {
+            api.files.upload(serverProject.id, att.file).catch(() => {});
+          }
+        } else {
+          const { data: serverProject } = await api.projects.create({
+            name: data.name,
+            description: data.description || undefined,
+            address: data.address || undefined,
+            parcelId: data.parcelId || undefined,
+            projectType: (data.projectType as any) || undefined,
+            country: data.country,
+            provinceState: data.provinceState || undefined,
+            units: data.units,
+            metadata: metadataWithTemplate,
+          });
+          updateProjectFn(project.id, { serverId: serverProject.id });
+          const geo = data.parcelBoundaryGeojson;
+          if (geo) {
+            await api.projects.setBoundary(serverProject.id, geo);
+          }
+          // File uploads are non-blocking — fire-and-forget per attachment.
+          for (const att of attachments) {
+            api.files.upload(serverProject.id, att.file).catch(() => {});
+          }
         }
       } catch {
         // Backend unavailable — local copy is intact, sync will retry later.
