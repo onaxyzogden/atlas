@@ -191,3 +191,72 @@ Zero code edits in this pass; only this log entry.
 
 A `spawn_task` chip was filed for the source-loading regression so
 this pass can hand back cleanly without conflating the two scopes.
+
+---
+
+## 2026-05-21 (later) — Smoke walk re-attempt via Claude-in-Chrome MCP, partial confirmation
+
+**Context.** The headless-RAF source-load false alarm from earlier today
+([2026-05-21 observe-anno sources false alarm](2026-05-21-observe-anno-sources-false-alarm.md))
+cleared the way to retry the smoke walk in a real (non-headless) Chrome
+via `mcp__Claude_in_Chrome`. Pre-flight worked end-to-end: API +
+Vite up; fresh user `smoke-2026-05-21@ogden.local` registered against
+`/api/v1/auth/register`; token injected into `ogden-auth-token`; route
+landed cleanly on `/v3/project/mtc/observe`.
+
+**Verified visually (steps 1–3).**
+
+- **Step 1.** Conventional Crop tool armed from the Agricultural section;
+  five points clicked + double-click closed; annotation form opened;
+  Save persisted to `ogden-conventional-crops`. Polygon (ring length 7
+  = 6 unique + closing) rendered on the map in the live MapLibre source
+  `observe-anno-conventional-crop` (`featureCount: 1`,
+  `annoKind: "conventionalCrop"`, `annoId: b95bea48-30b5-443f-ba90-706a4dd23968`).
+- **Step 2.** Click on the polygon opened `SelectionFloater` with the
+  expected footer chips: `Conventional crop | Edit | Move | Delete |
+  × Clear`. The **Move** button (lucide `Move` icon) is the
+  vertex-edit entry — it replaces the planned "Edit vertices" footer
+  button described in `AnnotationDetailPanel.tsx`, because in this
+  flow clicks land on `SelectionFloater` first (the detail panel
+  only opens via the explicit Edit chip). Same handler:
+  `setMoveMode(true)` + selection retained.
+- **Step 3.** Clicking Move dismissed the floater label but kept the
+  polygon selected; six vertex handles + five midpoint dots rendered
+  on the polygon edges (visible in screenshot
+  `ss_3594lpic0`/`ss_1851moum7`); tooltip "Drag to reposition — click
+  to finish" appeared near the Move chip.
+
+**Blocked (steps 4–12).** The Claude-in-Chrome `computer` tool's click
+coordinate uses screenshot pixels while the page is rendered at
+`window.innerWidth=1744` vs the 1515-wide screenshot (DPR ≈ 1.10 ×
+viewport-fit ratio). A click at screenshot `(920, 400)` actually lands
+at DOM `(799, 348)` — the polygon body just *inside* the visible vertex
+handle — which MapboxDraw interprets as "click outside vertex → exit
+direct_select" rather than "click on vertex → click-delete." The
+vertex *handle radius* is on the order of 6–8 px, so the ≈ 100 px
+screenshot↔DOM offset is well outside any hit area. Synthesizing
+`PointerEvent`s directly on the canvas at the correctly-projected DOM
+coordinate (verified via `m.project(vertex)`) also failed to trigger
+the click-delete path — MapboxDraw's vertex hit-test consumes the
+real event pipeline, not raw dispatched events on the canvas. This
+is a harness limitation, not a code regression: the picking + handler
+mounting all work; we just can't *prove* the deletion mutation via
+synthetic input in this environment.
+
+**Implication.** Steps 4 (click-delete), 5 (drag-move), 6 (midpoint-
+add), 7 (min-vertex guard), 8 (Ctrl-Z), 9 (Esc exits), 10 (LineString),
+11–12 (Plan-stage zone vertex-edit) remain code-path-verified by the
+typecheck + the ADR's per-file rationale but not end-to-end
+keystroke-verified in this session. The next pass should drive the
+clicks from **outside the MCP layer** — either a native human run
+or a Playwright/Puppeteer harness with proper viewport sizing so
+screenshot pixel = CSS pixel.
+
+**Disposition.** Partial confirmation. The full 14-step walk is
+deferred to a setup where the cursor lands where the screenshot
+says it does. The four shipped files
+([clickDeleteDirectSelect.ts](../../apps/web/src/v3/builtEnvironment/handlers/clickDeleteDirectSelect.ts),
+[SharedVertexEditHandler.tsx](../../apps/web/src/v3/builtEnvironment/handlers/SharedVertexEditHandler.tsx),
+[AnnotationDetailPanel.tsx](../../apps/web/src/v3/observe/components/AnnotationDetailPanel.tsx),
+[annotationGeometryRegistry.ts](../../apps/web/src/v3/observe/components/draw/annotationGeometryRegistry.ts))
+stay merged on `feat/atlas-permaculture`; nothing reverted.
