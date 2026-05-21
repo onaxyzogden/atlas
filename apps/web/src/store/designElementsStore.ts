@@ -118,4 +118,11 @@ export interface DesignElement {
      */
     hostTreeFeatureId?: string;
   };
+  /**
+   * Optional real-world width (metres) for linear kinds (hedgerow, path,
+   * road, swale, insectary-strip). When absent, the kind's catalog
+   * `defaultWidthM` is used. Drives the width-aware line-width paint
+   * expression in `DesignElementLayers`. Ignored on point / polygon kinds.
+   */
+  widthM?: number;
 }
