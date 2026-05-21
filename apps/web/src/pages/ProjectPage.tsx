@@ -28,6 +28,7 @@ export default function ProjectPage() {
   const projects = useProjectStore((s) => s.projects);
   const setActiveProject = useProjectStore((s) => s.setActiveProject);
   const deleteProject = useProjectStore((s) => s.deleteProject);
+  const archiveProject = useProjectStore((s) => s.archiveProject);
   const duplicateProject = useProjectStore((s) => s.duplicateProject);
   const project = projects.find((p) => p.id === projectId);
 
@@ -103,9 +104,14 @@ export default function ProjectPage() {
     );
   }
 
-  const handleDelete = () => {
-    deleteProject(project.id);
-    navigate({ to: '/home' });
+  const handleDelete = async () => {
+    await deleteProject(project.id);
+    navigate({ to: '/v3/project' });
+  };
+
+  const handleArchive = async () => {
+    await archiveProject(project.id);
+    navigate({ to: '/v3/project' });
   };
 
   const handleDuplicate = () => {
@@ -141,6 +147,7 @@ export default function ProjectPage() {
           onEdit={() => setIsEditing(true)}
           onExport={() => setShowExport(true)}
           onDelete={() => setShowDeleteConfirm(true)}
+          onArchive={project.isBuiltin ? undefined : handleArchive}
           onDuplicate={handleDuplicate}
           onGenerateBrief={() => setShowExport(true)}
         />

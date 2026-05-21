@@ -17,7 +17,7 @@
 
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { Link } from '@tanstack/react-router';
-import { ArrowLeft, FileText, Compass, Map as MapIcon, Brain, FileBarChart } from 'lucide-react';
+import { ArrowLeft, FileText, Compass, Map as MapIcon, Brain, FileBarChart, MoreVertical } from 'lucide-react';
 import type { LandZone } from '../store/zoneStore.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { LocalProject } from '../store/projectStore.js';
@@ -47,6 +47,19 @@ const TAB_TO_SECTION: Record<Exclude<MobileTab, 'overview' | 'design'>, string> 
 
 const SWIPE_THRESHOLD = 60;
 
+function menuItemStyle(): React.CSSProperties {
+  return {
+    textAlign: 'left',
+    background: 'transparent',
+    border: 'none',
+    color: 'inherit',
+    padding: '8px 10px',
+    borderRadius: 4,
+    cursor: 'pointer',
+    fontSize: 13,
+  };
+}
+
 interface MobileProjectShellProps {
   project: LocalProject;
   zones: LandZone[];
@@ -54,6 +67,7 @@ interface MobileProjectShellProps {
   onEdit: () => void;
   onExport: () => void;
   onDelete: () => void;
+  onArchive?: () => void;
   onDuplicate: () => void;
   onGenerateBrief: () => void;
 }
@@ -65,11 +79,14 @@ export default function MobileProjectShell({
   onEdit,
   onExport,
   onDelete,
+  onArchive,
   onDuplicate,
   onGenerateBrief,
 }: MobileProjectShellProps) {
   const [tab, setTab] = useState<MobileTab>('overview');
   const [isDesignMapOpen, setIsDesignMapOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const showOverflow = !project.isBuiltin && (Boolean(onArchive) || Boolean(onDelete));
   const setActiveDashboardSection = useUIStore((s) => s.setActiveDashboardSection);
   const touchStartX = useRef<number | null>(null);
   const apiProjectId = project.serverId ?? project.id;
@@ -115,6 +132,65 @@ export default function MobileProjectShell({
         >
           <FileText size={18} strokeWidth={2} />
         </button>
+        {showOverflow && (
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              className={css.iconLink}
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="More project actions"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+            >
+              <MoreVertical size={18} strokeWidth={2} />
+            </button>
+            {menuOpen && (
+              <div
+                role="menu"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  minWidth: 180,
+                  background: 'var(--color-surface, #0f172a)',
+                  border: '1px solid var(--color-border, #334155)',
+                  borderRadius: 8,
+                  boxShadow: '0 10px 24px rgba(0,0,0,0.4)',
+                  padding: 4,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  zIndex: 50,
+                }}
+              >
+                {onArchive && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    style={menuItemStyle()}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onArchive();
+                    }}
+                  >
+                    Archive project
+                  </button>
+                )}
+                <button
+                  type="button"
+                  role="menuitem"
+                  style={{ ...menuItemStyle(), color: '#f87171' }}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onDelete();
+                  }}
+                >
+                  Delete forever
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       <div
