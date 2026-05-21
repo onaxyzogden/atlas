@@ -84,6 +84,19 @@ const ESTIMATED_W = 240;
 const CURSOR_GAP = 12;
 const EDGE_PADDING = 8;
 
+// Threshold above which a pinned tooltip gets the scroll-cap carve-out
+// (max-height + overflow-y: auto + pointer-events: auto). 1-3 hosts
+// retain the original pointer-events: none invariant; 4+ activates the
+// carve-out so the steward can scroll without the stack overflowing
+// off-screen. See ADR 2026-05-30-atlas-b4-tooltip-scroll-cap for the
+// invariant carve-out rationale.
+const SCROLL_CAP_THRESHOLD = 4;
+// Matches the CSS reserve `calc(100vh - 80px)` — used here only for
+// the edge-clamp ESTIMATED_H ceiling so the anchor decision doesn't
+// reserve more vertical space than the surface actually takes once
+// it's scroll-capped.
+const SCROLL_CAP_RESERVE_PX = 80;
+
 function formatM2(n: number): string {
   return `${Math.round(n)} m²`;
 }
@@ -151,7 +164,20 @@ export function HostCanopyUnionTooltip({
   const viewportH =
     typeof window === 'undefined' ? 768 : window.innerHeight;
 
-  const estimatedH = BASE_H + entries.length * PER_BLOCK_H;
+  const scrollable =
+    !!pinned && entries.length >= SCROLL_CAP_THRESHOLD;
+
+  // When the surface is scroll-capped, the on-screen height is bounded
+  // by the CSS max-height — using the raw `entries.length * PER_BLOCK_H`
+  // would over-reserve and push the anchor up unnecessarily.
+  const rawEstimatedH = BASE_H + entries.length * PER_BLOCK_H;
+  const scrollCapMaxH = Math.max(
+    PER_BLOCK_H,
+    viewportH - SCROLL_CAP_RESERVE_PX,
+  );
+  const estimatedH = scrollable
+    ? Math.min(rawEstimatedH, scrollCapMaxH)
+    : rawEstimatedH;
 
   const anchorRight =
     point.x + ESTIMATED_W + CURSOR_GAP > viewportW - EDGE_PADDING;
@@ -187,6 +213,7 @@ export function HostCanopyUnionTooltip({
       {...(visible && !exiting ? { 'data-visible': 'true' } : {})}
       {...(pinned ? { 'data-pinned': 'true' } : {})}
       {...(exiting ? { 'data-exiting': 'true' } : {})}
+      {...(scrollable ? { 'data-scrollable': 'true' } : {})}
       onTransitionEnd={(ev) => {
         // Container-level transitionend on opacity fires onExited only
         // when we're actively exiting. currentTarget===target filters

@@ -287,4 +287,77 @@ describe('HostCanopyUnionTooltip', () => {
     expect(onEntryExited).toHaveBeenCalledTimes(1);
     expect(onEntryExited).toHaveBeenCalledWith('gone');
   });
+
+  // Slice K — scroll-cap carve-out for large pinned multi-host stacks.
+  // The pointer-events: auto carve-out only engages when BOTH the
+  // tooltip is pinned AND entries.length >= 4. Below that threshold
+  // the 2026-05-25 invariant ("must never steal mouseleave") holds.
+  describe('scroll-cap carve-out (Slice K)', () => {
+    function stack(n: number): HostBlockEntry[] {
+      return Array.from({ length: n }, (_, i) =>
+        entry({ hostId: `h${i}`, hostName: `Host ${i}` }),
+      );
+    }
+
+    it('does not set data-scrollable below the threshold even when pinned', () => {
+      render(
+        <HostCanopyUnionTooltip
+          point={{ x: 100, y: 100 }}
+          entries={stack(3)}
+          pinned
+        />,
+      );
+      const root = screen.getByTestId('host-canopy-union-tooltip');
+      expect(root.hasAttribute('data-scrollable')).toBe(false);
+      expect(root.getAttribute('data-pinned')).toBe('true');
+    });
+
+    it('does not set data-scrollable when unpinned even with 4+ entries', () => {
+      // Hover mode with 4+ hosts keeps pointer-events: none so the
+      // underlying union layer still receives mouseleave — the
+      // 2026-05-25 invariant survives in hover mode.
+      render(
+        <HostCanopyUnionTooltip
+          point={{ x: 100, y: 100 }}
+          entries={stack(5)}
+        />,
+      );
+      const root = screen.getByTestId('host-canopy-union-tooltip');
+      expect(root.hasAttribute('data-scrollable')).toBe(false);
+    });
+
+    it('sets data-scrollable when pinned AND entries.length >= 4', () => {
+      render(
+        <HostCanopyUnionTooltip
+          point={{ x: 100, y: 100 }}
+          entries={stack(4)}
+          pinned
+        />,
+      );
+      const root = screen.getByTestId('host-canopy-union-tooltip');
+      expect(root.getAttribute('data-scrollable')).toBe('true');
+      expect(root.getAttribute('data-pinned')).toBe('true');
+    });
+
+    it('handles a very tall pinned stack without throwing on edge-clamp', () => {
+      // 20-host stack at a near-top cursor position used to over-reserve
+      // vertical space via `entries.length * PER_BLOCK_H`; with the
+      // scroll-cap active the estimatedH is bounded by viewport - 80.
+      render(
+        <HostCanopyUnionTooltip
+          point={{ x: 100, y: 40 }}
+          entries={stack(20)}
+          pinned
+        />,
+      );
+      const root = screen.getByTestId('host-canopy-union-tooltip');
+      expect(root.getAttribute('data-scrollable')).toBe('true');
+      // Edge-clamp should still produce a non-negative top.
+      const top = Number.parseFloat(
+        (root as HTMLDivElement).style.top.replace('px', ''),
+      );
+      expect(Number.isFinite(top)).toBe(true);
+      expect(top).toBeGreaterThanOrEqual(0);
+    });
+  });
 });

@@ -23,6 +23,7 @@
   min-width: 220px;
   max-width: 280px;
   padding: 8px 10px;
+  box-sizing: border-box;
   background: rgba(31, 29, 26, 0.96);
   color: #f2ede3;
   border: 1px solid rgba(242, 237, 227, 0.18);
@@ -46,6 +47,25 @@
 .tooltip[data-visible='true'] {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Scroll-cap carve-out for large multi-host stacks. Activates only when
+   the tooltip is pinned (steward has clicked to make it sticky) AND
+   entries.length >= 4. In that combined state the surface MUST capture
+   scroll events on its own scrollbar, so `pointer-events: auto`
+   overrides the base rule. The 2026-05-25 invariant ("must never steal
+   mouseleave from the underlying union layer") survives because
+   mouseleave is only the dismiss signal in *hover* mode, and the
+   carve-out only engages when the tooltip is pinned — where dismissal
+   is via ESC, click-again-on-host, or tap-outside-the-canvas. Hover
+   mode with 4+ hosts stays at pointer-events: none and accepts that
+   the bottom of the stack may clip below the viewport (rare; the
+   steward can pin to scroll). The 80px reserve leaves headroom for
+   the top DesignToolRail family. */
+.tooltip[data-scrollable='true'] {
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  pointer-events: auto;
 }
 
 /* Exit + reverse-in-flight: `data-exiting='true'` overrides to 0,

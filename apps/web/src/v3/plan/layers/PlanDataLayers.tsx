@@ -2123,6 +2123,21 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       if (!canvasContainer) return;
       const target = ev.target as Node | null;
       if (target && canvasContainer.contains(target)) return;
+      // Slice K carve-out: when the pinned tooltip has the scroll-cap
+      // active (4+ hosts), it carries pointer-events: auto so the
+      // steward can scroll. A pointerdown on the tooltip's scrollbar
+      // or its scrollable content would otherwise fall through here
+      // (target is not inside the canvas container) and dismiss the
+      // very surface the steward is interacting with. Exempt the
+      // tooltip explicitly via the testid query — the portal mount
+      // means the tooltip is a sibling of the canvas container, not
+      // a descendant of it.
+      if (
+        target instanceof Element &&
+        target.closest('[data-testid="host-canopy-union-tooltip"]')
+      ) {
+        return;
+      }
       setPinnedUnion(null);
     };
 
