@@ -1,0 +1,317 @@
+/**
+ * @vitest-environment happy-dom
+ *
+ * Slice 7 (S7-A) of the 2026-05-21 habitat-feature unification —
+ * combined cover-crop + habitat-feature per-phase cashflow rollup.
+ *
+ * Invariants:
+ *   - empty project → empty rows + zero totals
+ *   - cover-crop-only / habitat-only programs isolate cleanly
+ *   - mixed program sums per-phase + project-wide
+ *   - declared `BuildPhase.order` respected for row ordering
+ *   - habitat items lacking a resolvable phase fall into the
+ *     `__unphased__` synthetic bucket
+ *   - cross-source / orphan items silently ignored
+ */
+
+import { describe, it, expect } from 'vitest';
+import type { WorkItem } from '@ogden/shared';
+import type { DesignElement } from '../../../store/designElementsStore.js';
+import type { BuildPhase } from '../../../store/phaseStore.js';
+import type { CropArea, CropCoverWindow } from '../../../store/cropStore.js';
+import {
+  computeStewardshipProgramsCashflow,
+  UNPHASED_CASHFLOW_BUCKET_ID,
+} from '../stewardshipProgramsCashflow.js';
+
+const NOW = '2026-05-21T00:00:00.000Z';
+
+function buildPhase(over: Partial<BuildPhase> & { id: string; order: number; name: string }): BuildPhase {
+  return {
+    projectId: 'p1',
+    timeframe: '',
+    description: '',
+    color: '',
+    completed: false,
+    notes: '',
+    completedAt: null,
+    ...over,
+  } as BuildPhase;
+}
+
+function habitatPoint(over: Partial<DesignElement> & { id: string; kind: string }): DesignElement {
+  return {
+    category: 'habitat',
+    geometry: { type: 'Point', coordinates: [0, 0] },
+    phase: 'trees',
+    createdAt: NOW,
+    ...over,
+  } as DesignElement;
+}
+
+function workItem(over: Partial<WorkItem> & { id: string }): WorkItem {
+  return {
+    projectId: 'p1',
+    source: 'manual',
+    overridden: false,
+    createdAt: NOW,
+    updatedAt: NOW,
+    title: 'wi',
+    phaseId: null,
+    status: 'todo',
+    doneAt: null,
+    dependsOn: [],
+    dependsOnAuto: [],
+    precedesAuto: [],
+    materialsAuto: [],
+    equipmentRequiredAuto: [],
+    ...over,
+  };
+}
+
+function cropArea(over: Partial<CropArea> & { id: string; areaM2: number; coverCropPlan: CropCoverWindow[] }): CropArea {
+  return {
+    projectId: 'p1',
+    name: 'A',
+    color: '#000',
+    type: 'row_crop',
+    geometry: { type: 'Polygon', coordinates: [] },
+    species: [],
+    treeSpacingM: null,
+    rowSpacingM: null,
+    waterDemand: 'low',
+    irrigationType: 'rain_fed',
+    phase: '',
+    notes: '',
+    createdAt: NOW,
+    updatedAt: NOW,
+    ...over,
+  } as CropArea;
+}
+
+const PHASES: BuildPhase[] = [
+  buildPhase({ id: 'ph-soil', order: 1, name: 'Soil Year' }),
+  buildPhase({ id: 'ph-trees', order: 2, name: 'Tree Year' }),
+];
+
+describe('computeStewardshipProgramsCashflow', () => {
+  it('empty project → empty rows + zero totals', () => {
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items: [],
+      designElements: [],
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    expect(result.rows).toEqual([]);
+    expect(result.totals.coverCrop).toEqual({ laborHrs: 0, costRange: { low: 0, mid: 0, high: 0 } });
+    expect(result.totals.habitatFeature).toEqual({ laborHrs: 0, costRange: { low: 0, mid: 0, high: 0 } });
+    expect(result.totals.combined).toEqual({ laborHrs: 0, costRange: { low: 0, mid: 0, high: 0 } });
+  });
+
+  it('habitat-only program → owl-box ×2 → unphased bucket with $30/90/300 + 3hr', () => {
+    const elements = [
+      habitatPoint({ id: 'el-a', kind: 'owl-box' }),
+      habitatPoint({ id: 'el-b', kind: 'owl-box' }),
+    ];
+    const items = [
+      workItem({ id: 'hf__el-a', source: 'habitat-feature', generatedFromHabitatElement: 'el-a' }),
+      workItem({ id: 'hf__el-b', source: 'habitat-feature', generatedFromHabitatElement: 'el-b' }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    expect(result.rows.length).toBe(1);
+    const row = result.rows[0]!;
+    expect(row.phaseId).toBe(UNPHASED_CASHFLOW_BUCKET_ID);
+    expect(row.habitatFeature.laborHrs).toBeCloseTo(3.0, 5);
+    expect(row.habitatFeature.costRange).toEqual({ low: 30, mid: 90, high: 300 });
+    expect(row.coverCrop).toEqual({ laborHrs: 0, costRange: { low: 0, mid: 0, high: 0 } });
+    expect(row.total.laborHrs).toBeCloseTo(3.0, 5);
+    expect(row.total.costRange).toEqual({ low: 30, mid: 90, high: 300 });
+    expect(result.totals.habitatFeature.costRange).toEqual({ low: 30, mid: 90, high: 300 });
+    expect(result.totals.combined.costRange).toEqual({ low: 30, mid: 90, high: 300 });
+  });
+
+  it('habitat item with declared phaseId resolves into that phase bucket', () => {
+    const elements = [habitatPoint({ id: 'el-a', kind: 'owl-box' })];
+    const items = [
+      workItem({
+        id: 'hf__el-a',
+        source: 'habitat-feature',
+        generatedFromHabitatElement: 'el-a',
+        phaseId: 'ph-trees',
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    expect(result.rows.length).toBe(1);
+    const row = result.rows[0]!;
+    expect(row.phaseId).toBe('ph-trees');
+    expect(row.phaseName).toBe('Tree Year');
+    expect(row.phaseOrder).toBe(2);
+    expect(row.habitatFeature.costRange).toEqual({ low: 15, mid: 45, high: 150 });
+  });
+
+  it('cross-source / orphan items are silently ignored', () => {
+    const elements = [habitatPoint({ id: 'el-a', kind: 'owl-box' })];
+    const items = [
+      // Wrong source.
+      workItem({ id: 'm1', source: 'manual' }),
+      // Wrong project.
+      workItem({
+        id: 'hf__el-other',
+        projectId: 'p-other',
+        source: 'habitat-feature',
+        generatedFromHabitatElement: 'el-a',
+      }),
+      // No provenance.
+      workItem({ id: 'hf__nada', source: 'habitat-feature' }),
+      // Missing source DesignElement.
+      workItem({
+        id: 'hf__ghost',
+        source: 'habitat-feature',
+        generatedFromHabitatElement: 'el-missing',
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    expect(result.rows).toEqual([]);
+    expect(result.totals.combined).toEqual({ laborHrs: 0, costRange: { low: 0, mid: 0, high: 0 } });
+  });
+
+  it('cover-crop-only program → seeds a phase row with flat cost projected into low=mid=high', () => {
+    // Use injected catalog so the test doesn't depend on PLANT_CATALOG state.
+    const catalog = [
+      {
+        speciesId: 'sp-rye',
+        roles: ['winter_cover'] as const,
+        livingRootSeasons: ['winter'] as const,
+        plantingMonthWindow: [9, 11] as [number, number],
+        rationale: 'test',
+        citation: 'test',
+        seedCostUSDPerAcre: 40,
+        seedingLaborHrsPerAcre: 0.5,
+      },
+    ];
+    const areas = [
+      cropArea({
+        id: 'ca1',
+        areaM2: 4046.8564224, // exactly 1 acre
+        phase: 'ph-soil',
+        coverCropPlan: [
+          { speciesId: 'sp-rye', startMonth: 9, endMonth: 12, role: 'winter_cover' },
+        ],
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items: [],
+      designElements: [],
+      declaredPhases: PHASES,
+      cropAreas: areas,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      coverCropCatalog: catalog as any,
+    });
+    expect(result.rows.length).toBe(1);
+    const row = result.rows[0]!;
+    expect(row.phaseId).toBe('ph-soil');
+    expect(row.coverCrop.laborHrs).toBeCloseTo(0.5, 5);
+    expect(row.coverCrop.costRange.low).toBeCloseTo(40, 5);
+    expect(row.coverCrop.costRange.mid).toBeCloseTo(40, 5);
+    expect(row.coverCrop.costRange.high).toBeCloseTo(40, 5);
+    expect(row.habitatFeature).toEqual({ laborHrs: 0, costRange: { low: 0, mid: 0, high: 0 } });
+    expect(row.total.laborHrs).toBeCloseTo(0.5, 5);
+  });
+
+  it('mixed program → rows ordered by phase.order, unphased last, totals sum both programs', () => {
+    const elements = [habitatPoint({ id: 'el-a', kind: 'owl-box' })];
+    const items = [
+      // Habitat item assigned to ph-trees.
+      workItem({
+        id: 'hf__el-a',
+        source: 'habitat-feature',
+        generatedFromHabitatElement: 'el-a',
+        phaseId: 'ph-trees',
+      }),
+    ];
+    const catalog = [
+      {
+        speciesId: 'sp-rye',
+        roles: ['winter_cover'] as const,
+        livingRootSeasons: ['winter'] as const,
+        plantingMonthWindow: [9, 11] as [number, number],
+        rationale: 'test',
+        citation: 'test',
+        seedCostUSDPerAcre: 40,
+        seedingLaborHrsPerAcre: 0.5,
+      },
+    ];
+    const areas = [
+      // Cover-crop in ph-soil (order 1).
+      cropArea({
+        id: 'ca1',
+        areaM2: 4046.8564224,
+        phase: 'ph-soil',
+        coverCropPlan: [
+          { speciesId: 'sp-rye', startMonth: 9, endMonth: 12, role: 'winter_cover' },
+        ],
+      }),
+      // Cover-crop with unresolvable phase → unphased bucket.
+      cropArea({
+        id: 'ca2',
+        areaM2: 4046.8564224,
+        phase: 'no-such-phase',
+        coverCropPlan: [
+          { speciesId: 'sp-rye', startMonth: 9, endMonth: 12, role: 'winter_cover' },
+        ],
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: areas,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      coverCropCatalog: catalog as any,
+    });
+    expect(result.rows.length).toBe(3);
+    // ph-soil (order 1) → ph-trees (order 2) → unphased (MAX_SAFE_INTEGER).
+    expect(result.rows[0]!.phaseId).toBe('ph-soil');
+    expect(result.rows[1]!.phaseId).toBe('ph-trees');
+    expect(result.rows[2]!.phaseId).toBe(UNPHASED_CASHFLOW_BUCKET_ID);
+
+    // ph-soil: cover-crop only.
+    expect(result.rows[0]!.coverCrop.costRange.mid).toBeCloseTo(40, 5);
+    expect(result.rows[0]!.habitatFeature.costRange.mid).toBe(0);
+
+    // ph-trees: habitat only.
+    expect(result.rows[1]!.coverCrop.costRange.mid).toBe(0);
+    expect(result.rows[1]!.habitatFeature.costRange.mid).toBe(45);
+
+    // unphased: cover-crop only (ca2).
+    expect(result.rows[2]!.coverCrop.costRange.mid).toBeCloseTo(40, 5);
+    expect(result.rows[2]!.habitatFeature.costRange.mid).toBe(0);
+
+    // Totals.
+    expect(result.totals.coverCrop.costRange.mid).toBeCloseTo(80, 5);
+    expect(result.totals.habitatFeature.costRange.mid).toBe(45);
+    expect(result.totals.combined.costRange.mid).toBeCloseTo(125, 5);
+    expect(result.totals.combined.laborHrs).toBeCloseTo(0.5 + 0.5 + 1.5, 5);
+  });
+});
