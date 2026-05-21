@@ -11,6 +11,7 @@
     "download:gaez": "tsx scripts/download-gaez.ts",
     "enumerate:gaez-futures": "tsx scripts/enumerate-gaez-futures.ts",
     "ingest:gaez": "tsx scripts/convert-gaez-to-cog.ts",
+    "evidence:replay": "tsx src/scripts/replayEvidenceAudit.cli.ts",
     "lint": "tsc --noEmit",
     "typecheck": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
     "test": "vitest run",
