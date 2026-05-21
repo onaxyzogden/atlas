@@ -7,6 +7,12 @@
   margin-bottom: var(--space-4);
 }
 
+.headerActions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 .refreshBtn {
   background: none;
   border: none;

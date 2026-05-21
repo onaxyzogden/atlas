@@ -73,6 +73,8 @@ import p from '../../styles/panel.module.css';
 import s from './SiteIntelligencePanel.module.css';
 // Sprint BK: shared memoized leaves + helpers relocated to sections/
 import { DelayedTooltip } from '../ui/DelayedTooltip.js';
+import ImportSiteIntelButton from '../../v3/observe/components/ImportSiteIntelButton.js';
+import ExportButton from '../../v3/observe/components/ExportButton.js';
 import { AILabel, RefreshIcon, ConfBadge, ScoreCircle } from './sections/_shared.js';
 import {
   severityColor,
@@ -721,17 +723,21 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
       {/* Header */}
       <div className={s.headerRow}>
         <h2 className={p.title} style={{ marginBottom: 0 }}>Site Intelligence</h2>
-        <DelayedTooltip label="Layer refresh requires internet" disabled={!isOffline}>
-        <button
-          onClick={handleRefresh}
-          className={`${s.refreshBtn} ${isRefreshing ? s.refreshBtnSpinning : ''}`}
-          aria-label="Refresh site data"
-          disabled={isOffline || isRefreshing}
-        >
-          <RefreshIcon spinning={isRefreshing} />
-          {isRefreshing && <span className={s.refreshHint}>Refreshing...</span>}
-        </button>
-        </DelayedTooltip>
+        <div className={s.headerActions}>
+          <ImportSiteIntelButton projectId={project.id} />
+          <ExportButton projectId={project.id} />
+          <DelayedTooltip label="Layer refresh requires internet" disabled={!isOffline}>
+          <button
+            onClick={handleRefresh}
+            className={`${s.refreshBtn} ${isRefreshing ? s.refreshBtnSpinning : ''}`}
+            aria-label="Refresh site data"
+            disabled={isOffline || isRefreshing}
+          >
+            <RefreshIcon spinning={isRefreshing} />
+            {isRefreshing && <span className={s.refreshHint}>Refreshing...</span>}
+          </button>
+          </DelayedTooltip>
+        </div>
       </div>
 
       {/* ── Refresh banner ───────────────────────────────────────── */}
