@@ -10,7 +10,7 @@
  *   - plan-label      — symbol labels (one per feature)
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
@@ -269,17 +269,27 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     point: { x: number; y: number };
     entries: HostBlock[];
   } | null>(null);
-  // Pinned state for the same tooltip. Set by a click on the union
-  // fill; cleared by a second click whose hostId set is identical to
-  // the pinned stack's, or by ESC. While a union is pinned, transient
-  // mousemove writes to `hoveredUnion` are suppressed so the pinned
-  // read doesn't jitter. `hostIds` is the sorted set used for the
-  // set-equality unpin check on click.
-  const [pinnedUnion, setPinnedUnion] = useState<{
-    point: { x: number; y: number };
-    entries: HostBlock[];
-    hostIds: string[];
-  } | null>(null);
+  // Pinned state for the same tooltip. Slice L (multi-pin) retired the
+  // single-pin `pinnedUnion` shape in favor of a per-host Map keyed by
+  // hostId. Each entry is sticky across cursor motion until explicitly
+  // unpinned (map-click-toggle on the same host) or until ESC /
+  // tap-outside clears the whole set. Map insertion order is preserved
+  // by JS spec, so newly-pinned blocks land at the top of the pinned
+  // section in the visual stack — consistent with the 2026-05-27
+  // "topmost MapLibre feature first" convention. Hover entries continue
+  // to populate even when pins exist; the merge mirror shadows hover by
+  // hostId so a host that's both pinned and currently hovered renders
+  // once (as pinned).
+  const [pinnedHosts, setPinnedHosts] = useState<Map<string, HostBlock>>(
+    () => new Map(),
+  );
+  // Last cursor pixel inside the map canvas — freezes the tooltip
+  // anchor when the cursor leaves the canvas with pinned hosts still
+  // active. Without this, a pinned-only stack would have no `point`
+  // source (hoveredUnion is null on leave). Updated on every mousemove
+  // over the union layer; read only when hoveredUnion is null and at
+  // least one host is pinned.
+  const lastCursorPointRef = useRef<{ x: number; y: number } | null>(null);
   // Display-lifetime mirror of `activeUnion = pinnedUnion ?? hoveredUnion`.
   // Holds the tooltip mounted through its exit-fade after activeUnion → null
   // so the CSS opacity transition has time to interpolate to 0.
@@ -2064,18 +2074,13 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       return out;
     };
 
-    const sameHostIdSet = (a: string[], b: string[]): boolean => {
-      if (a.length !== b.length) return false;
-      for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i]) return false;
-      }
-      return true;
-    };
-
     const onMove = (e: maplibregl.MapLayerMouseEvent) => {
-      // Suppress hover writes while pinned so the pinned read doesn't
-      // jitter under cursor motion.
-      if (pinnedUnion) return;
+      // Slice L: hover writes continue even when pins exist. The merge
+      // mirror shadows hover by hostId so a host that's both pinned and
+      // currently hovered renders once (as pinned). Cursor pixel is
+      // stashed in a ref so the tooltip anchor stays at the last known
+      // position when the cursor leaves the canvas with pins active.
+      lastCursorPointRef.current = { x: e.point.x, y: e.point.y };
       const entries = unpackEntries(e.features);
       if (entries.length === 0) {
         setHoveredUnion(null);
@@ -2087,38 +2092,45 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       });
     };
     const onLeave = () => {
-      if (pinnedUnion) return;
+      // Drop transient hover entries; pinned hosts stay (the merge
+      // mirror keeps using `lastCursorPointRef` as the anchor source).
       setHoveredUnion(null);
     };
     const onClick = (e: maplibregl.MapLayerMouseEvent) => {
       const entries = unpackEntries(e.features);
       if (entries.length === 0) return;
-      const hostIds = entries.map((x) => x.hostId).sort();
-      // Toggle: clicking a stack whose hostId set matches the
-      // currently-pinned stack unpins it; clicking any other stack
-      // (or any stack when nothing is pinned) pins.
-      if (pinnedUnion && sameHostIdSet(pinnedUnion.hostIds, hostIds)) {
-        setPinnedUnion(null);
-        return;
-      }
-      setPinnedUnion({
-        point: { x: e.point.x, y: e.point.y },
-        entries,
-        hostIds,
+      // Slice L: per-host toggle. Each feature under the cursor flips
+      // its own pinned state — clicking on a host A while host B is
+      // already pinned adds A to the set (without touching B);
+      // clicking again on A removes only A. Multi-feature fan-out
+      // (2026-05-27) means a single click on two overlapping hosts
+      // toggles both at once.
+      setPinnedHosts((prev) => {
+        const next = new Map(prev);
+        for (const entry of entries) {
+          if (next.has(entry.hostId)) {
+            next.delete(entry.hostId);
+          } else {
+            next.set(entry.hostId, entry);
+          }
+        }
+        return next;
       });
-      // Clear hover so only one tooltip ever renders.
-      setHoveredUnion(null);
+      lastCursorPointRef.current = { x: e.point.x, y: e.point.y };
     };
     const onKey = (ev: KeyboardEvent) => {
-      if (ev.key === 'Escape') setPinnedUnion(null);
+      // Slice L: ESC clears all pinned hosts at once (matches steward
+      // intent — "get this off my screen" is rarely scoped to one host).
+      if (ev.key === 'Escape') setPinnedHosts(new Map());
     };
-    // Tap-outside-the-map-canvas dismisses a pinned tooltip on touch
+    // Tap-outside-the-map-canvas dismisses pinned tooltips on touch
     // devices where ESC is unavailable. `pointerdown` unifies mouse +
     // touch; taps inside the canvas still flow through MapLibre's
-    // `click` (toggle/replace), so this only fills the missing
-    // tap-anywhere-off-the-union dismissal affordance.
+    // `click` (per-host toggle), so this only fills the missing
+    // tap-anywhere-off-the-union dismissal affordance. Slice L: clears
+    // all pins, not just one.
     const onDocPointerDown = (ev: PointerEvent) => {
-      if (!pinnedUnion) return;
+      if (pinnedHosts.size === 0) return;
       const canvasContainer = map.getCanvasContainer();
       if (!canvasContainer) return;
       const target = ev.target as Node | null;
@@ -2138,7 +2150,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       ) {
         return;
       }
-      setPinnedUnion(null);
+      setPinnedHosts(new Map());
     };
 
     map.on('mousemove', layerId, onMove);
@@ -2158,7 +2170,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('pointerdown', onDocPointerDown);
     };
-  }, [map, pinnedUnion]);
+  }, [map, pinnedHosts]);
 
   // Click-to-edit + drag-to-move for placed Structures (poly fill).
   // Gated to `activeTool == null` so a Plan draw tool always wins.
@@ -3437,7 +3449,43 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // 'entering' transitions opacity from its current value back to 1
   // with no snap; flipping the container's phase from 'exiting' back
   // to 'entering' does the same at the container level.
-  const activeUnion = pinnedUnion ?? hoveredUnion;
+  // Slice L: activeUnion now merges pinned hosts (sticky) with hover
+  // entries (transient) into a single cursor-anchored stack. Pinned
+  // hosts come first in Map insertion order (newly-pinned blocks land
+  // at the top of the pinned section); hover-only entries that aren't
+  // already pinned follow in MapLibre topmost-first order. A host
+  // that's both pinned and currently hovered renders once (as pinned)
+  // — the dedupe lives on the `.filter(!pinnedHosts.has)` for hover.
+  // Anchor source: live cursor when hoveredUnion is non-null;
+  // otherwise the last known cursor pixel (so a pinned-only stack
+  // stays frozen at the last position when the cursor leaves).
+  const activeUnion = useMemo<
+    | {
+        point: { x: number; y: number };
+        entries: Array<HostBlock & { pinned: boolean }>;
+      }
+    | null
+  >(() => {
+    const hasPins = pinnedHosts.size > 0;
+    const hasHover = hoveredUnion !== null && hoveredUnion.entries.length > 0;
+    if (!hasPins && !hasHover) return null;
+    const point =
+      hoveredUnion?.point ?? lastCursorPointRef.current ?? { x: 0, y: 0 };
+    const pinnedEntries: Array<HostBlock & { pinned: boolean }> = [];
+    for (const host of pinnedHosts.values()) {
+      pinnedEntries.push({ ...host, pinned: true });
+    }
+    const hoverEntries: Array<HostBlock & { pinned: boolean }> = [];
+    if (hoveredUnion) {
+      for (const h of hoveredUnion.entries) {
+        if (!pinnedHosts.has(h.hostId)) {
+          hoverEntries.push({ ...h, pinned: false });
+        }
+      }
+    }
+    return { point, entries: [...pinnedEntries, ...hoverEntries] };
+  }, [pinnedHosts, hoveredUnion]);
+
   useEffect(() => {
     if (activeUnion) {
       setDisplayedUnion((prev) => {
@@ -3445,9 +3493,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         const prevEntries = prev?.entries ?? [];
         const prevIds = new Set(prevEntries.map((e) => e.hostId));
         // Preserve prev stack order (kept + still-exiting), then
-        // append brand-new hosts in their MapLibre topmost-first
-        // order. This keeps the visible block positions stable while
-        // a host fades out instead of having the stack reflow.
+        // append brand-new hosts in their active-set order. This keeps
+        // the visible block positions stable while a host fades out
+        // instead of having the stack reflow.
         const merged: HostBlockEntry[] = [];
         for (const p of prevEntries) {
           if (newIds.has(p.hostId)) {
@@ -3456,6 +3504,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
             )!;
             merged.push({ ...fresh, phase: 'entering' });
           } else {
+            // A dropped host: preserve its pinned state at the moment
+            // it dropped so the gold accent doesn't flicker during the
+            // exit fade.
             merged.push({ ...p, phase: 'exiting' });
           }
         }
@@ -3498,7 +3549,6 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     <HostCanopyUnionTooltip
       point={displayedUnion.point}
       entries={displayedUnion.entries}
-      pinned={!!pinnedUnion && displayedUnion.phase !== 'exiting'}
       exiting={displayedUnion.phase === 'exiting'}
       onExited={() => setDisplayedUnion(null)}
       onEntryExited={(hostId) => {

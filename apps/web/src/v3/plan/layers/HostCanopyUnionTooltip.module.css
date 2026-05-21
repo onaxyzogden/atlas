@@ -143,12 +143,19 @@
   color: #c4a265;
 }
 
-/* Pinned-state border accent — brand-gold, same hue as the saved-overlap
-   row, signalling "this tooltip is sticky." Subtle on purpose: the
-   unpinned hover surface should be visually unchanged from the
-   2026-05-25 ship. */
-.tooltip[data-pinned='true'] {
-  border-color: #c4a265;
+/* Slice L (multi-pin): pinned-state accent is per-block, not
+   container-level. A mixed stack can hold pinned hosts (sticky across
+   cursor motion) alongside hover-only hosts; the gold left-border lets
+   the steward see which blocks they pinned vs which are riding along
+   via current hover. Same #c4a265 brand-gold as the saved-overlap row,
+   so unpinned hover blocks remain visually unchanged from the
+   2026-05-25 ship. The 6px padding-left preserves text alignment with
+   unpinned blocks (the 2px border eats 2px; the additional 4px
+   compensates so the block's content edge stays consistent — the
+   tooltip container's 10px padding already provides the base inset). */
+.hostBlock[data-pinned='true'] {
+  border-left: 2px solid #c4a265;
+  padding-left: 6px;
 }
 
 /* Hairline rule between stacked host blocks when the cursor sits over

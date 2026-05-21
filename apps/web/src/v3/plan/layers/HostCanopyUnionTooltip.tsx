@@ -48,25 +48,29 @@ export interface HostBlockProps {
   memberCount: number;
 }
 
-// Per-entry phase + hostId carried on each block in the multi-host
-// stack. PlanDataLayers' `displayedUnion` mirror writes this — kept
-// hosts get phase='entering', dropped hosts get phase='exiting' and
-// stay in the array until their per-block transitionend fires
-// `onEntryExited`.
+// Per-entry phase + hostId + pinned carried on each block in the
+// multi-host stack. PlanDataLayers' `displayedUnion` mirror writes
+// this — kept hosts get phase='entering', dropped hosts get
+// phase='exiting' and stay in the array until their per-block
+// transitionend fires `onEntryExited`. Slice L (multi-pin): `pinned`
+// is per-block, not container-level. A mixed stack can hold pinned
+// hosts (sticky across cursor motion) alongside hover-only hosts
+// (transient); each pinned block writes `data-pinned='true'` on its
+// own root div so the CSS gold-accent border-left applies per-block.
 export interface HostBlockEntry extends HostBlockProps {
   hostId: string;
   phase: 'entering' | 'exiting';
+  pinned: boolean;
 }
 
 export interface HostCanopyUnionTooltipProps {
   point: { x: number; y: number };
   // All overlapping host unions currently in the displayed stack —
   // both newly-entered (phase='entering') and dropped-but-still-fading
-  // (phase='exiting'). Topmost first.
+  // (phase='exiting'). Topmost first. Each entry carries its own
+  // `pinned` flag (Slice L) so mixed pinned + hover stacks render
+  // correctly.
   entries: HostBlockEntry[];
-  // True when the tooltip is shown via click-to-pin (not hover).
-  // Forwarded as `data-pinned` so CSS can swap the border accent.
-  pinned?: boolean;
   // True while the container itself is playing its exit-fade (full
   // dismiss — activeUnion went null). PlanDataLayers holds the portal
   // mounted past activeUnion → null until onExited fires. When
@@ -109,7 +113,7 @@ function HostBlock({
   entry: HostBlockEntry;
   onEntryExited?: (hostId: string) => void;
 }): React.JSX.Element {
-  const { hostName, unionAreaM2, rawSumM2, guildCount, memberCount, phase, hostId } = entry;
+  const { hostName, unionAreaM2, rawSumM2, guildCount, memberCount, phase, hostId, pinned } = entry;
   const savedOverlapM2 = Math.max(0, rawSumM2 - unionAreaM2);
   const exiting = phase === 'exiting';
   return (
@@ -117,6 +121,7 @@ function HostBlock({
       className={styles.hostBlock}
       data-testid={`host-block-${hostId}`}
       {...(exiting ? { 'data-exiting': 'true' } : {})}
+      {...(pinned ? { 'data-pinned': 'true' } : {})}
       onTransitionEnd={(ev) => {
         // Only the block's own opacity transition fires onEntryExited.
         // Bubbled transitions from descendants (none today, but
@@ -153,7 +158,6 @@ function HostBlock({
 export function HostCanopyUnionTooltip({
   point,
   entries,
-  pinned,
   exiting,
   onExited,
   onEntryExited,
@@ -163,8 +167,14 @@ export function HostCanopyUnionTooltip({
   const viewportH =
     typeof window === 'undefined' ? 768 : window.innerHeight;
 
+  // Slice L: scroll-cap activates when at least one entry is pinned
+  // (the stack is sticky) AND the stack is large. Mixed pinned + hover
+  // stacks count as pinned-mode for the threshold rule — the gating
+  // semantic is "is this surface sticky or transient," not "is every
+  // block pinned." A pure-hover stack stays at pointer-events: none.
+  const anyPinned = entries.some((e) => e.pinned);
   const scrollable =
-    !!pinned && entries.length >= SCROLL_CAP_THRESHOLD;
+    anyPinned && entries.length >= SCROLL_CAP_THRESHOLD;
 
   // When the surface is scroll-capped, the on-screen height is bounded
   // by the CSS max-height — using the raw `entries.length * PER_BLOCK_H`
@@ -210,7 +220,6 @@ export function HostCanopyUnionTooltip({
       data-anchor-x={anchorRight ? 'left' : 'right'}
       data-anchor-y={anchorBottom ? 'top' : 'bottom'}
       {...(visible && !exiting ? { 'data-visible': 'true' } : {})}
-      {...(pinned ? { 'data-pinned': 'true' } : {})}
       {...(exiting ? { 'data-exiting': 'true' } : {})}
       {...(scrollable ? { 'data-scrollable': 'true' } : {})}
       onTransitionEnd={(ev) => {

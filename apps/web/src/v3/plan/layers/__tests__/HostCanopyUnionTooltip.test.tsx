@@ -57,6 +57,7 @@ function entry(overrides: Partial<HostBlockEntry> = {}): HostBlockEntry {
     guildCount: 3,
     memberCount: 7,
     phase: 'entering',
+    pinned: false,
     ...overrides,
   };
 }
@@ -105,33 +106,34 @@ describe('HostCanopyUnionTooltip', () => {
     expect(screen.getByText('0 m²')).toBeTruthy();
   });
 
-  it('forwards `pinned` as data-pinned on the root element', () => {
-    const baseEntries = [
-      entry({ hostName: 'Pin Host', unionAreaM2: 100, rawSumM2: 120, guildCount: 2, memberCount: 3 }),
-    ];
+  it('forwards per-entry `pinned` as data-pinned on each host block (Slice L)', () => {
+    // 2026-05-30 Slice L: pinned is per-entry, not container-level.
+    // The root tooltip element no longer carries data-pinned;
+    // individual blocks do, so mixed pinned + hover stacks can
+    // distinguish the sticky blocks from the hover-along ones.
     const { rerender } = render(
       <HostCanopyUnionTooltip
         point={{ x: 100, y: 100 }}
-        entries={baseEntries}
-        pinned={true}
+        entries={[
+          entry({ hostId: 'pin', hostName: 'Pin Host', pinned: true }),
+        ]}
       />,
     );
-    expect(
-      screen.getByTestId('host-canopy-union-tooltip').getAttribute('data-pinned'),
-    ).toBe('true');
+    const root = screen.getByTestId('host-canopy-union-tooltip');
+    const pinBlock = screen.getByTestId('host-block-pin');
+    expect(root.hasAttribute('data-pinned')).toBe(false);
+    expect(pinBlock.getAttribute('data-pinned')).toBe('true');
 
-    // Default (pinned unset) and explicit false both omit the attribute
-    // so unpinned tooltips remain visually identical to the 2026-05-25
-    // hover ship.
     rerender(
       <HostCanopyUnionTooltip
         point={{ x: 100, y: 100 }}
-        entries={baseEntries}
-        pinned={false}
+        entries={[
+          entry({ hostId: 'pin', hostName: 'Pin Host', pinned: false }),
+        ]}
       />,
     );
     expect(
-      screen.getByTestId('host-canopy-union-tooltip').hasAttribute('data-pinned'),
+      screen.getByTestId('host-block-pin').hasAttribute('data-pinned'),
     ).toBe(false);
   });
 
@@ -292,51 +294,60 @@ describe('HostCanopyUnionTooltip', () => {
   // The pointer-events: auto carve-out only engages when BOTH the
   // tooltip is pinned AND entries.length >= 4. Below that threshold
   // the 2026-05-25 invariant ("must never steal mouseleave") holds.
-  describe('scroll-cap carve-out (Slice K)', () => {
-    function stack(n: number): HostBlockEntry[] {
+  describe('scroll-cap carve-out (Slice K, migrated for Slice L)', () => {
+    // Slice L: scroll-cap derivation moved from container-level
+    // `pinned` prop to `entries.some(e => e.pinned)`. The threshold
+    // rule (>= 4) is unchanged. These tests build pinned stacks by
+    // setting `pinned: true` on each entry.
+    function pinnedStack(n: number): HostBlockEntry[] {
       return Array.from({ length: n }, (_, i) =>
-        entry({ hostId: `h${i}`, hostName: `Host ${i}` }),
+        entry({ hostId: `h${i}`, hostName: `Host ${i}`, pinned: true }),
+      );
+    }
+    function hoverStack(n: number): HostBlockEntry[] {
+      return Array.from({ length: n }, (_, i) =>
+        entry({ hostId: `h${i}`, hostName: `Host ${i}`, pinned: false }),
       );
     }
 
-    it('does not set data-scrollable below the threshold even when pinned', () => {
+    it('does not set data-scrollable below the threshold even when entries are pinned', () => {
       render(
         <HostCanopyUnionTooltip
           point={{ x: 100, y: 100 }}
-          entries={stack(3)}
-          pinned
+          entries={pinnedStack(3)}
         />,
       );
       const root = screen.getByTestId('host-canopy-union-tooltip');
       expect(root.hasAttribute('data-scrollable')).toBe(false);
-      expect(root.getAttribute('data-pinned')).toBe('true');
+      // Per-block accent still applies on each pinned block.
+      expect(
+        screen.getByTestId('host-block-h0').getAttribute('data-pinned'),
+      ).toBe('true');
     });
 
-    it('does not set data-scrollable when unpinned even with 4+ entries', () => {
+    it('does not set data-scrollable for a pure-hover stack even with 4+ entries', () => {
       // Hover mode with 4+ hosts keeps pointer-events: none so the
       // underlying union layer still receives mouseleave — the
       // 2026-05-25 invariant survives in hover mode.
       render(
         <HostCanopyUnionTooltip
           point={{ x: 100, y: 100 }}
-          entries={stack(5)}
+          entries={hoverStack(5)}
         />,
       );
       const root = screen.getByTestId('host-canopy-union-tooltip');
       expect(root.hasAttribute('data-scrollable')).toBe(false);
     });
 
-    it('sets data-scrollable when pinned AND entries.length >= 4', () => {
+    it('sets data-scrollable when at least one entry is pinned AND entries.length >= 4', () => {
       render(
         <HostCanopyUnionTooltip
           point={{ x: 100, y: 100 }}
-          entries={stack(4)}
-          pinned
+          entries={pinnedStack(4)}
         />,
       );
       const root = screen.getByTestId('host-canopy-union-tooltip');
       expect(root.getAttribute('data-scrollable')).toBe('true');
-      expect(root.getAttribute('data-pinned')).toBe('true');
     });
 
     it('handles a very tall pinned stack without throwing on edge-clamp', () => {
@@ -346,18 +357,115 @@ describe('HostCanopyUnionTooltip', () => {
       render(
         <HostCanopyUnionTooltip
           point={{ x: 100, y: 40 }}
-          entries={stack(20)}
-          pinned
+          entries={pinnedStack(20)}
         />,
       );
       const root = screen.getByTestId('host-canopy-union-tooltip');
       expect(root.getAttribute('data-scrollable')).toBe('true');
-      // Edge-clamp should still produce a non-negative top.
       const top = Number.parseFloat(
         (root as HTMLDivElement).style.top.replace('px', ''),
       );
       expect(Number.isFinite(top)).toBe(true);
       expect(top).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  // Slice L — multi-pin: pinned is per-entry, container can hold a
+  // mix of pinned + hover entries simultaneously, and scrollable
+  // activates when ANY entry is pinned (not all). Steward-facing
+  // affordance documented in
+  // wiki/decisions/2026-05-30-atlas-b4-tooltip-multi-pin.md.
+  describe('multi-pin (Slice L)', () => {
+    it('renders mixed pinned + hover entries — only pinned blocks carry data-pinned', () => {
+      render(
+        <HostCanopyUnionTooltip
+          point={{ x: 100, y: 100 }}
+          entries={[
+            entry({ hostId: 'sticky', hostName: 'Sticky Host', pinned: true }),
+            entry({ hostId: 'transient', hostName: 'Transient Host', pinned: false }),
+          ]}
+        />,
+      );
+      // Both blocks rendered.
+      expect(screen.getByText('Sticky Host')).toBeTruthy();
+      expect(screen.getByText('Transient Host')).toBeTruthy();
+      // Only the pinned block carries data-pinned.
+      expect(
+        screen.getByTestId('host-block-sticky').getAttribute('data-pinned'),
+      ).toBe('true');
+      expect(
+        screen.getByTestId('host-block-transient').hasAttribute('data-pinned'),
+      ).toBe(false);
+      // The container root never carries data-pinned (post-Slice L).
+      expect(
+        screen.getByTestId('host-canopy-union-tooltip').hasAttribute('data-pinned'),
+      ).toBe(false);
+      // Separator still renders between the two blocks.
+      expect(screen.getAllByRole('separator').length).toBe(1);
+    });
+
+    it('all-pinned stack: every block carries data-pinned and separators between them', () => {
+      render(
+        <HostCanopyUnionTooltip
+          point={{ x: 100, y: 100 }}
+          entries={[
+            entry({ hostId: 'a', hostName: 'Host A', pinned: true }),
+            entry({ hostId: 'b', hostName: 'Host B', pinned: true }),
+            entry({ hostId: 'c', hostName: 'Host C', pinned: true }),
+          ]}
+        />,
+      );
+      expect(
+        screen.getByTestId('host-block-a').getAttribute('data-pinned'),
+      ).toBe('true');
+      expect(
+        screen.getByTestId('host-block-b').getAttribute('data-pinned'),
+      ).toBe('true');
+      expect(
+        screen.getByTestId('host-block-c').getAttribute('data-pinned'),
+      ).toBe('true');
+      // Two separators (between A-B and B-C).
+      expect(screen.getAllByRole('separator').length).toBe(2);
+    });
+
+    it('all-hover stack: no block carries data-pinned', () => {
+      render(
+        <HostCanopyUnionTooltip
+          point={{ x: 100, y: 100 }}
+          entries={[
+            entry({ hostId: 'x', hostName: 'Host X' }),
+            entry({ hostId: 'y', hostName: 'Host Y' }),
+          ]}
+        />,
+      );
+      expect(
+        screen.getByTestId('host-block-x').hasAttribute('data-pinned'),
+      ).toBe(false);
+      expect(
+        screen.getByTestId('host-block-y').hasAttribute('data-pinned'),
+      ).toBe(false);
+    });
+
+    it('scrollable activates when ANY entry is pinned and entries.length >= 4 (regression guard)', () => {
+      // 1 pinned + 3 hover = 4 total, ≥ threshold, so scrollable
+      // engages. This guards against the scrollable predicate being
+      // tightened to "all pinned" — the steward-facing rule is "if
+      // the stack is sticky at all, allow scroll," because the only
+      // way the stack stays in view long enough to need scrolling is
+      // if at least one host is pinned holding it open.
+      render(
+        <HostCanopyUnionTooltip
+          point={{ x: 100, y: 100 }}
+          entries={[
+            entry({ hostId: 'a', hostName: 'Host A', pinned: true }),
+            entry({ hostId: 'b', hostName: 'Host B' }),
+            entry({ hostId: 'c', hostName: 'Host C' }),
+            entry({ hostId: 'd', hostName: 'Host D' }),
+          ]}
+        />,
+      );
+      const root = screen.getByTestId('host-canopy-union-tooltip');
+      expect(root.getAttribute('data-scrollable')).toBe('true');
     });
   });
 });
