@@ -114,7 +114,7 @@ export function renderCapitalPartnerSummary(data: ExportDataBag): string {
           <div class="card-value" style="font-size:16pt">${breakEvenLabel}</div>
         </div>
         <div class="card">
-          <div class="card-header">10-Year Project Yield</div>
+          <div class="card-header">Operating Estimate at Maturity (Year 10)</div>
           <div class="card-value" style="font-size:16pt">${fmtPercent(fin.breakEven.tenYearROI.mid)}</div>
           <p style="font-size:8pt;color:var(--text-muted)">${fmtPercent(fin.breakEven.tenYearROI.low)} – ${fmtPercent(fin.breakEven.tenYearROI.high)}</p>
         </div>

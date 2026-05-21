@@ -199,7 +199,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
             <MetricCard label="Total Capital Required (est.)" value={totalInvestmentStr} color={group.reporting} />
             <MetricCard label="Operating Self-Sufficiency (est.)" value={breakEvenStr} color={warning.DEFAULT} />
-            <MetricCard label="10-Year Project Yield (est.)" value={roiStr} color={group.reporting} />
+            <MetricCard label="Operating Estimate at Maturity, Year 10 (est.)" value={roiStr} color={group.reporting} />
           </div>
 
           {/* Year 5 / Year 10 cashflow preview */}
