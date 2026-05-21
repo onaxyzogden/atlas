@@ -63,8 +63,9 @@ describe('covenant: forbidden vocab is absent from showcase tree', () => {
       }
       const lines = body.split(/\r?\n/);
       for (let i = 0; i < lines.length; i++) {
-        if (FORBIDDEN_PATTERN.test(lines[i])) {
-          hits.push(`${rel}:${i + 1}: ${lines[i].trim()}`);
+        const line = lines[i] ?? '';
+        if (FORBIDDEN_PATTERN.test(line)) {
+          hits.push(`${rel}:${i + 1}: ${line.trim()}`);
         }
       }
     }

@@ -146,6 +146,20 @@ body {
   #root { height: auto; overflow: visible; }
 }
 
+/* ─── Showcase routes ────────────────────────────────────────────────────
+ * Public scrollytelling pages (/showcase/three-streams/*) need the document
+ * to scroll. Authed app shell locks body at 100vh; showcase routes opt-in
+ * to document scroll by toggling a `showcase-scroll` body class on mount.
+ */
+body.showcase-scroll {
+  overflow: auto;
+  height: auto;
+}
+body.showcase-scroll #root {
+  height: auto;
+  overflow: visible;
+}
+
 /* ─── Left tool spine buttons ─────────────────────────────────────────────
  * Shared styles for the 40 px icon-only triggers used by Cross-section,
  * Viewshed, Measure, Historical, and OSM overlays inside

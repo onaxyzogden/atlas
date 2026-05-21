@@ -1,5 +1,8 @@
 import { Navigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
+
+// Body overflow override — see ShowcasePage; showcase pages scroll the
+// document while authed app shell pages do not. Class is removed on unmount.
 import { AttributionFooter } from '../components/AttributionFooter.js';
 import { ContactCTA } from '../components/ContactCTA.js';
 import { SceneEngine } from '../components/SceneEngine.js';
@@ -27,6 +30,11 @@ export function ShowcaseTierPage() {
       // A future Task could surface a friendlier error UI.
     });
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.add('showcase-scroll');
+    return () => { document.body.classList.remove('showcase-scroll'); };
   }, []);
 
   if (!VALID.includes(tier as Tier)) {
