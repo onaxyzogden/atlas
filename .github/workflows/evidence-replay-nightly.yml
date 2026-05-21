@@ -1,0 +1,81 @@
+name: evidence-replay-nightly
+
+# Non-gating nightly sweep of evidence_audit_log via the Phase G
+# evidence:replay CLI against the dev DB. Reports to $GITHUB_STEP_SUMMARY;
+# never fails the branch. Closes the Phase G "Nightly CI cron" deferral
+# (ADR: wiki/decisions/2026-05-21-atlas-phase-i-evidence-replay-nightly-ci.md).
+
+on:
+  schedule:
+    - cron: '0 8 * * *'    # 08:00 UTC daily
+  workflow_dispatch: {}     # manual trigger from Actions tab
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true   # non-gating: a FAIL summary, not a red branch
+
+    steps:
+      - name: Guard — DEV_DATABASE_URL must be set
+        if: ${{ secrets.DEV_DATABASE_URL == '' }}
+        run: |
+          echo "::warning::DEV_DATABASE_URL secret not configured — skipping nightly replay."
+          {
+            echo "## evidence-replay skipped"
+            echo ""
+            echo "\`DEV_DATABASE_URL\` secret unset; configure under repo"
+            echo "Settings → Secrets and variables → Actions."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 0
+
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Compute --all-since window (last 24h)
+        id: window
+        run: |
+          since=$(date -u -d '24 hours ago' +"%Y-%m-%dT%H:%M:%SZ")
+          echo "since=$since" >> "$GITHUB_OUTPUT"
+
+      - name: Run evidence:replay
+        id: replay
+        env:
+          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+          # apps/api config schema validates these at import; the replay
+          # CLI itself never touches them. Dummies are intentional.
+          JWT_SECRET: dummy-not-used-by-replay-cli-but-config-validates-at-import
+          REDIS_URL: redis://localhost:6379
+        run: |
+          set +e
+          pnpm --filter @ogden/api evidence:replay -- --all-since "${{ steps.window.outputs.since }}" | tee replay.out
+          code=${PIPESTATUS[0]}
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Summarize
+        if: always()
+        run: |
+          {
+            echo "## evidence-replay nightly"
+            echo ""
+            echo "- Window: \`--all-since ${{ steps.window.outputs.since }}\`"
+            echo "- Exit code: \`${{ steps.replay.outputs.exit_code }}\`"
+            echo ""
+            echo '```'
+            tail -n 40 replay.out || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
