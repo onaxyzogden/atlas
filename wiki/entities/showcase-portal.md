@@ -1,6 +1,6 @@
 # Showcase Portal
 **Type:** app surface (public, static-prerendered)
-**Status:** shipped (Phase 3, 2026-05-21) — followups open
+**Status:** shipped (Phase 3, 2026-05-21); bundle-split landed (Phase 3.5, 2026-05-21) — followups open
 **Path:** `apps/web/src/showcase/`, `apps/web/public/showcase/`, `scripts/snapshot-three-streams.ts`, `scripts/snapshot-scene-images.ts`, `scripts/prerender-showcase.ts`
 
 ## Purpose
@@ -99,25 +99,30 @@ on the same Vite app.
 The portal ships functional + SEO-honest, but three followups are open
 and tracked here as the headline outstanding work:
 
-1. **Bundle-split (Important).** Lighthouse mobile pass returned
-   **FCP 11.2 s / LCP 11.5 s** against a **1.5 s / 2.5 s** budget — 7-8×
-   over. The showcase route currently ships the full authed-app bundle
-   (~6 MB including Cesium ~4 MB + `projectStore` + panel-compute +
-   panel-sections) that has no business on a public scroll surface. The
-   SSG promise is honored end-to-end for SEO and meta-tag crawl, but the
-   bundle-split promise from the spec is unhonored. Recommended Phase 3.5
-   followup: a separate Vite `rollupOptions.input` entry for the
-   showcase, or `React.lazy` route components; exclude Cesium from the
-   showcase chunk graph entirely. Until this lands, the prerendered HTML
-   is fast, but the hydrated JS is slow.
+1. **Bundle-split (Addressed in Phase 3.5, 2026-05-21).** Phase 3.5
+   shipped both prongs: route-aware bootstrap gating in `main.tsx`
+   (Prong A, commit `26228a53`) and a second Vite rollup input
+   (`apps/web/showcase.html` → `src/showcase-entry.tsx` →
+   `src/showcase/router.tsx`, Prong B). The `dist/showcase.html` preload
+   graph is now: `framework` 86 KB + `turf` 145 + `maplibre` 234 +
+   `panel-compute` 53 + `panel-sections` 58 + `ecocrop-db` 109 +
+   `showcase-app` 12 = **~697 KB gzip**. **`cesium` (1098 KB gzip)
+   absent. `main` (557 KB gzip) absent.** Both marquee Phase 3 leaks
+   eliminated. See [[decisions/2026-05-21-atlas-showcase-bundle-split]].
+   Remaining: `panel-compute`/`panel-sections`/`ecocrop-db` (~220 KB
+   gzip combined) are reachable transitively through `@ogden/shared`
+   barrel re-exports and not used by any showcase scene — tuning
+   `manualChunks` or splitting the shared barrel into deeper subpath
+   exports would drop the entry below the 600 KB target. Tracked as
+   Phase 3.5+; Cesium absence is the primary win. Lighthouse not yet
+   re-measured — deferred to a session with the preview server bootable.
 
-2. **FOUC on body-class scroll override (Nit; collapses with #1).** The
-   authed-app shell sets `body { overflow: hidden; }`; the showcase
-   routes apply a `body.showcase-scroll` override via `useEffect` after
-   first paint. With the current bundle weight there is a multi-second
-   non-scrollable flash on the prerendered HTML before hydration unlocks
-   scroll. Fix collapses naturally once #1 drops bundle weight; alternate
-   is an inline `<head>` script that flips the class before hydration.
+2. **FOUC on body-class scroll override (likely collapsed with #1).**
+   Authed-app shell set `body { overflow: hidden; }`; showcase routes
+   applied a `body.showcase-scroll` override via `useEffect` after first
+   paint. With Phase 3.5 the showcase entry no longer pulls the authed
+   shell at all, so the override is moot for the public surface. Confirm
+   on a live preview re-run alongside the deferred Lighthouse measurement.
 
 3. **tsc baseline (separate task).** 6 pre-existing TS errors block
    the `pnpm build` auto-chain on `apps/web` (`StepBoundary`,
@@ -161,6 +166,10 @@ contract for that swap; no scene rewrites needed.
 - Design ADR: [[decisions/2026-05-21-three-streams-showcase-design]].
 - Phase 3 session log:
   [[log/2026-05-21-atlas-phase-3-showcase-portal]].
+- Phase 3.5 bundle-split ADR:
+  [[decisions/2026-05-21-atlas-showcase-bundle-split]].
+- Phase 3.5 session log:
+  [[log/2026-05-21-atlas-phase-3.5-bundle-split]].
 - Canon source: [[entities/three-streams-farm]].
 - Phase 2 substrate this portal reads from:
   [[log/2026-05-20-atlas-phase-2-three-streams-demo-seed]].
