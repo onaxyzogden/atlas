@@ -8,7 +8,7 @@ Drawn linear features (driveway, fence, power line, buried utility) should rende
 ## Scope as shipped
 **Observe (BE V2)** — driveway 3.5 m, fence 0.1 m, power-line 0.2 m, buried-utility 0.3 m, with optional per-feature `widthM` override.
 
-**Plan (DesignElement linear kinds)** — scoped in the approved plan (hedgerow 2.0 m, path 0.8 m, road 4.0 m, swale 1.5 m, insectary-strip 1.2 m) but **not landed** this session: every edit to `apps/web/src/v3/plan/canvas/elementCatalog.ts`, `apps/web/src/store/designElementsStore.ts`, and `apps/web/src/v3/plan/canvas/layers/DesignElementLayers.tsx` was silently reverted by the linter / a parallel write, mirroring the V1 BE-store revert pattern previously observed. The Observe stage is the surviving delivery; Plan-stage width-awareness remains an open followup.
+**Plan (DesignElement linear kinds)** — hedgerow 2.0 m, path 0.8 m, road 4.0 m, swale 1.5 m, insectary-strip 1.2 m, with optional per-feature `widthM` override. Initially reverted by the linter on first attempt, then **re-landed successfully in a second slice** (see "Followup landed" below).
 
 ## Files (4)
 - `packages/shared/src/builtEnvironment.ts` — `widthM: z.number().nonnegative().optional()` added to `ExistingMetadata`.
@@ -33,10 +33,14 @@ Selection highlight overlay-layer pattern preserved (no `['case', selFlag, …]`
 - Dev server (`web`) boots without errors per Claude Preview logs.
 - Live in-browser visual differentiation between driveway and fence at z=19 deferred to the human steward (Claude Preview hangs on WebGL maps per the recorded gotcha).
 
-## Open followups
-- **Plan-stage width-awareness.** elementCatalog.ts `defaultWidthM`, designElementsStore.ts `widthM`, and DesignElementLayers.tsx paint expression all need to re-land. Recommend committing the moment each file verifies, per `feedback_commit_immediately_on_rebased_branches`.
-- **Inline-edit field for `widthM`.** Observe annotationFieldSchemas.ts (4 kinds) + Plan inlineEditSchemas.ts (5 kinds). The rendering path uses kind defaults when no override exists, so the user-visible behaviour already differentiates kinds — the override field is the remaining polish.
+## Followup landed (same day, second slice)
+- **Plan-stage width-awareness — DONE.** Re-landed all three files; this time the linter *integrated* the edits (system reminders confirmed "intentional") rather than reverting, even improving DesignElementLayers by moving `widthM` off the base `props` onto only the LineString feature builder. Commits: `66fd2103` (elementCatalog `defaultWidthM` on swale/path/road/hedgerow/insectary-strip), `8ff17011` (designElementsStore `widthM?`), `c1c2ef45` (DesignElementLayers width-aware paint + ObserveAnnotationLayers `beLineWidthExpr` signature fix for `noUncheckedIndexedAccess`).
+- **Inline-edit field for `widthM` — DONE.** Commit `ff8ad259`. Added the optional Width (m) field to the four V2 BE line builders in `inlineEditSchemas.ts` (power line `0.2`, buried utility `0.3`, fence `0.1`, driveway `3.5`) persisting via `existing.widthM`, plus insectary-strip in `buildHabitatFeatureEditSchema` persisting to the DesignElement top-level `widthM`. Empty/invalid clears the override → catalog default. Verified: web tsc clean, `buildHabitatFeatureEditSchema.test.ts` 8/8.
+  - **Deliberately NOT used:** Observe `annotationFieldSchemas.ts` — those four field schemas write through the V1 facade (`useBuiltEnvironmentStore.update*`) which has no `widthM`; the V2 builders above already serve both Plan and Observe stages, so the V2 path is the single source of the override UI. Plan hedgerow/path/road have no inline-edit form yet (pre-existing gap); swale uses the separate water-node form with its own `swaleWidthM`.
+
+## Remaining open followups
 - **V1 BE-store facade.** `apps/web/src/store/builtEnvironmentStore.ts` widthM passthrough was reverted by linter earlier. Routed through the V2 projection layer instead. Any future write path that goes through V1 directly will need this re-attempted.
+- **Inline-edit forms for plain Plan line kinds.** hedgerow/path/road have no `buildXxxEditSchema`; a width override for those awaits a bespoke (or generic line) Plan inline-edit builder.
 
 ## Stewardship posture
 Width values are NRCS / extension-typical defaults, not field-measured. Steward can override per feature. No public-facing string changes; no capital framing touched.
