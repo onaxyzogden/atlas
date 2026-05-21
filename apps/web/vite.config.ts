@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import mdx from '@mdx-js/rollup';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { resolve, join, dirname } from 'path';
@@ -21,7 +23,13 @@ export default defineConfig({
     include: ['cookie', 'set-cookie-parser'],
   },
   plugins: [
-    mdx({ /* providerImportSource: '@mdx-js/react' */ }),
+    mdx({
+      // Parse YAML front-matter (---...---) at the top of .mdx files and
+      // expose it as named exports (`frontmatter`, plus per-key). Without
+      // these plugins, @mdx-js/rollup hands the YAML block to acorn as a
+      // JS expression and throws ParseError, blocking every scene module.
+      remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter],
+    }),
     react(),
     VitePWA({
       registerType: 'autoUpdate',
