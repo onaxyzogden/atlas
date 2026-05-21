@@ -170,9 +170,17 @@ the mirror replaces synchronously with a new `key`; React remounts,
 the enter keyframe plays from `opacity: 0`. No visible flicker at
 120 ms cadence.
 
+**Closed by [2026-05-30 ADR](2026-05-30-atlas-b4-tooltip-perblock-fade-and-reverse.md):**
+- Reversing the in-flight exit animation on re-enter — switched the
+  fade machinery from CSS keyframes to CSS opacity/transform
+  transitions, which interpolate from the current computed value, so
+  re-enter mid-exit is automatic (no remount, no snap).
+- Per-block exit fade in multi-host stacks — `displayedUnion.entries`
+  now carry per-block phase; the mirror merges by hostId so a host
+  dropping out of the active set fades on its own while siblings
+  remain mounted.
+
 **Still deferred (own slices):**
-- Reversing the in-flight exit animation on re-enter (vs. remount).
-- Per-block exit fade in multi-host stacks.
 - Motion-token harmonisation across other map overlays
   (`InlineFeaturePopover`, etc.).
 - Tooltip i18n (separate 2026-05-25 deferral).
