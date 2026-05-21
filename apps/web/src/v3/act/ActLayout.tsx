@@ -192,7 +192,7 @@ export default function ActLayout() {
               ) : null}
               <ActDrawHost map={map} projectId={params.projectId ?? null} />
               <InlineFeaturePopover map={map} />
-              <SectorCompassOverlay projectId={id} />
+              <SectorCompassOverlay projectId={id} map={map} />
               <PlanSelectionFloater />
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
             </>

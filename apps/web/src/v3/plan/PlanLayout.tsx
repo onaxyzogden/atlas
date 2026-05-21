@@ -360,7 +360,7 @@ export default function PlanLayout() {
           <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} parcelBoundary={boundary} />
           <InlineFeaturePopover map={map} />
-          <SectorCompassOverlay projectId={id} />
+          <SectorCompassOverlay projectId={id} map={map} />
           <CoverCropPopoverEditor />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />

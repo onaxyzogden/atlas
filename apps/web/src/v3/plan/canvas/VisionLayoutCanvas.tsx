@@ -187,7 +187,7 @@ export default function VisionLayoutCanvas({
           <ObserveAnnotationLayers map={map} projectId={projectId} />
           <PlanObserveSelectionHandler map={map} />
           <InlineFeaturePopover map={map} />
-          <SectorCompassOverlay projectId={projectId} />
+          <SectorCompassOverlay projectId={projectId} map={map} />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           {/* Plan-data layers in non-editable mode: paddocks / zones /

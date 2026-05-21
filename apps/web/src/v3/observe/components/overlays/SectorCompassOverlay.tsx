@@ -14,7 +14,8 @@
  * Read-only display: clicks pass through to the card itself only.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type maplibregl from 'maplibre-gl';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
@@ -25,9 +26,17 @@ import css from './SectorCompassOverlay.module.css';
 
 interface Props {
   projectId: string | null;
+  /**
+   * Optional live MapLibre instance. When provided, the compass SVG
+   * counter-rotates by the map's current bearing so the gold north
+   * triangle continues to point at true map-north regardless of how
+   * the user has rotated the basemap (Ctrl-drag yaw). Null / omitted
+   * → stationary compass (legacy behaviour).
+   */
+  map?: maplibregl.Map | null;
 }
 
-export default function SectorCompassOverlay({ projectId }: Props) {
+export default function SectorCompassOverlay({ projectId, map }: Props) {
   const id = projectId ?? 'mtc';
   const project = useV3Project(id);
   const sectorsVisible = useMatrixTogglesStore((s) => s.sectors);
@@ -48,6 +57,24 @@ export default function SectorCompassOverlay({ projectId }: Props) {
     return null;
   }, [project?.location?.boundary, homestead]);
 
+  // Track basemap bearing so the compass SVG can counter-rotate and
+  // keep the gold north triangle pointing at true map-north. MapLibre
+  // `rotate` fires continuously during a Ctrl-drag yaw gesture;
+  // `rotateend` catches the final snap. CSS transform is GPU-
+  // accelerated so the per-frame re-render is cheap.
+  const [bearing, setBearing] = useState(0);
+  useEffect(() => {
+    if (!map) return;
+    setBearing(map.getBearing());
+    const onRotate = () => setBearing(map.getBearing());
+    map.on('rotate', onRotate);
+    map.on('rotateend', onRotate);
+    return () => {
+      map.off('rotate', onRotate);
+      map.off('rotateend', onRotate);
+    };
+  }, [map]);
+
   if (!sectorsVisible) return null;
   if (!centroidTuple && sectors.length === 0) return null;
 
@@ -55,12 +82,21 @@ export default function SectorCompassOverlay({ projectId }: Props) {
     <div className={css.dock} aria-hidden={false}>
       <div className={css.card}>
         <span className={css.label}>Sector compass</span>
-        <SectorCompassDiagram
-          centroid={centroidTuple}
-          sectors={sectors}
-          compact
-          className={css.svg}
-        />
+        <div
+          style={{
+            transform: `rotate(${-bearing}deg)`,
+            transformOrigin: 'center',
+            transition: 'transform 80ms linear',
+            lineHeight: 0,
+          }}
+        >
+          <SectorCompassDiagram
+            centroid={centroidTuple}
+            sectors={sectors}
+            compact
+            className={css.svg}
+          />
+        </div>
       </div>
     </div>
   );

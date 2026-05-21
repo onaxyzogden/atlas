@@ -56,8 +56,6 @@ import {
   DesignElementScenegraphLayer,
 } from '../builtEnvironment/layers/index.js';
 import SelectionFloater from './components/SelectionFloater.js';
-import ExportButton from './components/ExportButton.js';
-import ImportSiteIntelButton from './components/ImportSiteIntelButton.js';
 import SectorCompassOverlay from './components/overlays/SectorCompassOverlay.js';
 import {
   isObserveModule,
@@ -269,9 +267,7 @@ export default function ObserveLayout() {
               <SelectionFloater projectId={id} />
               <PlanSelectionFloater />
               <InlineFeaturePopover map={map} />
-              <SectorCompassOverlay projectId={id} />
-              <ExportButton projectId={id} />
-              <ImportSiteIntelButton projectId={id} />
+              <SectorCompassOverlay projectId={id} map={map} />
             </>
           )}
         </DiagnoseMap>
