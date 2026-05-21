@@ -5,6 +5,7 @@ import { RouterProvider } from '@tanstack/react-router';
 import { router } from './routes/index.js';
 import { GlobalErrorBoundary } from './components/ErrorBoundary.js';
 import { ToastContainer } from './components/Toast.js';
+import SessionExpiredBanner from './components/SessionExpiredBanner.js';
 import '@ogden/ui-components/style.css';
 import './app/index.css';
 
@@ -17,78 +18,27 @@ if (typeof navigator !== 'undefined' && /Claude\//.test(navigator.userAgent)) {
 }
 
 // One-time migrator: legacy `ogden-site-annotations` v3 blob → 7
-// Scholar-aligned namespace stores. Must run BEFORE any of the new stores
-// rehydrate (they live under `apps/web/src/store/` and are reached via
-// the side-effect imports below). Idempotent.
-// See ADR 2026-04-30-site-annotations-store-scholar-aligned-namespaces.md.
+// Scholar-aligned namespace stores. Cheap (localStorage-only, early-exits
+// when no legacy blob is present) and data-safety-critical — runs for every
+// path including showcase. Idempotent.
+// See ADR 2026-04-30-site-annotations-store-scholar-aligned-namespaces.md
+// and 2026-04-30-archive-v3-blob-cleanup.md.
 import { migrateLegacyBlob, cleanupArchivedV3 } from './store/site-annotations-migrate.js';
 migrateLegacyBlob();
-// Remove the `ogden-site-annotations.archived-v3` rollback hatch on every
-// boot — obsolete now that the namespace consolidation has shipped.
-// See ADR 2026-04-30-archive-v3-blob-cleanup.md.
 cleanupArchivedV3();
 
-// Import projectStore to trigger seed-on-hydration (side-effect import)
-import './store/projectStore.js';
-// Import connectivityStore to register online/offline listeners (side-effect import)
-import './store/connectivityStore.js';
-// Register window.__ogdenSeedFertilitySample dev handle for Plan-stage
-// zoneThresholds smoke-testing. Function reference only; no auto-execution.
-import './dev/seedFertilitySample.js';
-// Register window.__ogdenSeedGoalCompassPlan dev handle for D2
-// regenerate-preservation smoke-testing. Function reference only; no
-// auto-execution.
-import './dev/seedGoalCompassPlan.js';
-// Register window.__ogdenSeedThreeStreamsFarm + attach the auto-run
-// subscription that fires once when the Three Streams Farm builtin
-// hydrates into projectStore (Phase 2 showcase seed). Idempotent via
-// localStorage sentinel `three-streams-seeded@v1`.
-import './dev/seedThreeStreamsFarm.js';
-// Register window.__ogdenSeedApricotLane + attach the auto-run
-// subscription that fires once when the Apricot Lane Showcase builtin
-// hydrates into projectStore (Phase E.1 fixture). Idempotent via
-// localStorage sentinel `apricot-lane-seeded@v1`.
-import './dev/seedApricotLane.js';
-import { useAuthStore } from './store/authStore.js';
-import { useSessionExpiredStore } from './store/sessionExpiredStore.js';
-import { setSessionExpiredHandler } from './lib/apiClient.js';
-import SessionExpiredBanner from './components/SessionExpiredBanner.js';
-import { syncService } from './lib/syncService.js';
+// Route-aware bootstrap (Phase 3.5 Prong A). The authed-app store graph
+// (projectStore + 4 seeders + connectivityStore + bootAuth + siteDataSync +
+// syncService) is dead weight for cold visitors on `/showcase/*`. Gate the
+// heavy boot behind a path prefix check so the showcase chunk graph stays
+// clean. See wiki ADR 2026-05-21-atlas-showcase-bundle-split.
+const isShowcase =
+  typeof window !== 'undefined' && window.location.pathname.startsWith('/showcase/');
 
-// Block first paint on auth init so the apiClient module-level token is
-// populated before any route effect / store subscriber fires authed fetches.
-// Hard 1500ms ceiling — if /auth/me hangs we proceed as unauthenticated
-// rather than freezing the app.
-async function bootAuth(): Promise<void> {
-  const init = useAuthStore.getState().initFromStorage();
-  const timeout = new Promise<void>((resolve) => setTimeout(resolve, 1500));
-  await Promise.race([init, timeout]);
+if (!isShowcase) {
+  const { bootAuthedShell } = await import('./app/bootAuthed.js');
+  await bootAuthedShell();
 }
-
-await bootAuth();
-
-// Wire the apiClient → sessionExpiredStore bridge BEFORE createRoot so any
-// fetch fired during the first render (or a stale-token sync on boot)
-// triggers the global banner instead of leaking raw 401 copy into cards.
-setSessionExpiredHandler(() => useSessionExpiredStore.getState().trigger());
-
-// siteDataSync subscribes to projectStore at import-time and would fire
-// authed fetches as soon as a project boundary lands. Import AFTER auth
-// is initialised so the Authorization header is always present.
-await import('./store/siteDataSync.js');
-
-if (useAuthStore.getState().token) {
-  syncService.start();
-}
-
-// React to auth changes: start sync on login, stop on logout
-useAuthStore.subscribe((state, prev) => {
-  if (state.token && !prev.token) {
-    syncService.start();
-  } else if (!state.token && prev.token) {
-    syncService.stop();
-  }
-});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,6 +53,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>
+        {/* SessionExpiredBanner subscribes to sessionExpiredStore, which is
+            never triggered on the showcase path; mounting it is free. */}
         <SessionExpiredBanner />
         <RouterProvider router={router} />
         <ToastContainer />
