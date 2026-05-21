@@ -15,9 +15,13 @@
  * The slide-up is reserved for written reports — this stays small.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Map as MaplibreMap } from 'maplibre-gl';
-import { useInlineFormStore, type FieldSpec } from './inlineFormStore.js';
+import {
+  useInlineFormStore,
+  type FieldSpec,
+  type InlineFormPayload,
+} from './inlineFormStore.js';
 import css from './InlineFeaturePopover.module.css';
 
 interface Props {
@@ -25,9 +29,24 @@ interface Props {
   map: MaplibreMap;
 }
 
+// Matches the host-canopy-union tooltip's exit-transition slack
+// (120ms transition + 80ms jitter / prefers-reduced-motion fallback).
+const EXIT_TIMEOUT_MS = 200;
+
 export default function InlineFeaturePopover(_props: Props) {
   const active = useInlineFormStore((s) => s.active);
   const close = useInlineFormStore((s) => s.close);
+
+  // Mirror that lives one exit-transition longer than the store's `active`,
+  // so the popover can fade out after the steward saves/cancels/clicks
+  // outside — same pattern as PlanDataLayers.displayedUnion. While
+  // `active === null && displayed !== null` we're in the exit window:
+  // the form renders its last-seen content, `data-exiting='true'` engages
+  // the CSS exit transition, and either the opacity transitionend or the
+  // EXIT_TIMEOUT_MS safety fallback clears `displayed`.
+  const [displayed, setDisplayed] = useState<InlineFormPayload | null>(active);
+  const [exiting, setExiting] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   const [values, setValues] = useState<Record<string, string | number>>(() =>
     active ? { ...active.initial } : {},
@@ -40,12 +59,14 @@ export default function InlineFeaturePopover(_props: Props) {
   // Reset draft synchronously when the active payload changes (React's
   // "store info from previous render" pattern — avoids a race where a
   // `useEffect` reset would clobber a same-tick `setVal` patch from the
-  // caller's reactive `onValuesChange` hook).
+  // caller's reactive `onValuesChange` hook). Active-going-null is NOT a
+  // reset signal: the form stays mounted during the exit fade and the
+  // last-seen values should remain visible until `displayed` clears.
   if (prevActive !== active) {
     setPrevActive(active);
-    setValues(active ? { ...active.initial } : {});
-    // Auto-expand disclosures whose any child carries a non-empty initial value.
     if (active) {
+      setValues({ ...active.initial });
+      // Auto-expand disclosures whose any child carries a non-empty initial value.
       const nextExpanded: Record<string, boolean> = {};
       for (const f of active.fields) {
         if (f.kind === 'disclosure' && f.children) {
@@ -57,10 +78,41 @@ export default function InlineFeaturePopover(_props: Props) {
         }
       }
       setExpanded(nextExpanded);
-    } else {
-      setExpanded({});
     }
   }
+
+  // Drive the displayed mirror from active. New active → swap displayed +
+  // clear exiting. active=null with a non-null displayed → start exit fade;
+  // a safety setTimeout covers prefers-reduced-motion (where transitionend
+  // doesn't fire because there's no transition).
+  useEffect(() => {
+    if (active) {
+      setDisplayed(active);
+      setExiting(false);
+      return;
+    }
+    if (!displayed) return;
+    setExiting(true);
+    const t = window.setTimeout(() => {
+      setDisplayed(null);
+      setExiting(false);
+    }, EXIT_TIMEOUT_MS);
+    return () => window.clearTimeout(t);
+    // displayed is intentionally excluded from deps — including it would
+    // re-arm the timeout every time we set it inside the effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  // Flip data-visible='true' on mount so the enter transition fires from
+  // the initial opacity:0/translateY values to opacity:1/translateY(0).
+  // Clearing on displayed=null returns the next mount to its from-state.
+  useLayoutEffect(() => {
+    if (displayed && !exiting) {
+      setVisible(true);
+    } else if (!displayed) {
+      setVisible(false);
+    }
+  }, [displayed, exiting]);
 
   // ESC closes (cancels)
   useEffect(() => {
@@ -100,12 +152,16 @@ export default function InlineFeaturePopover(_props: Props) {
     return () => document.removeEventListener('mousedown', onDown);
   }, [active, close]);
 
-  if (!active) return null;
+  // Render guard reads `displayed` (lives through the exit fade), not
+  // `active` (clears at the moment the steward saves/cancels). Handlers
+  // that mutate the store still guard on `active` so a mid-fade event
+  // (which CSS pointer-events:none already blocks defensively) is a no-op.
+  if (!displayed) return null;
 
   // Flatten disclosure children so required validation covers them too.
   // Skip fields whose visibleWhen predicate is currently false — they are
   // not rendered so they can't be required.
-  const flatFields: FieldSpec[] = active.fields
+  const flatFields: FieldSpec[] = displayed.fields
     .filter((f) => !f.visibleWhen || f.visibleWhen(values))
     .flatMap((f) => (f.kind === 'disclosure' ? (f.children ?? []) : [f]))
     .filter((f) => !f.visibleWhen || f.visibleWhen(values));
@@ -117,14 +173,23 @@ export default function InlineFeaturePopover(_props: Props) {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!requiredOk) return;
+    if (!active || !requiredOk) return;
     active.onSave(values);
     close();
   };
 
   const onCancel = () => {
+    if (!active) return;
     active.onCancel();
     close();
+  };
+
+  const onPopoverTransitionEnd = (ev: React.TransitionEvent<HTMLFormElement>) => {
+    if (!exiting) return;
+    if (ev.target !== ev.currentTarget) return;
+    if (ev.propertyName !== 'opacity') return;
+    setDisplayed(null);
+    setExiting(false);
   };
 
   const setVal = (
@@ -237,10 +302,14 @@ export default function InlineFeaturePopover(_props: Props) {
       className={css.popover}
       onSubmit={onSubmit}
       role="dialog"
-      aria-label={active.title}
+      aria-label={displayed.title}
+      data-testid="inline-feature-popover"
+      onTransitionEnd={onPopoverTransitionEnd}
+      {...(visible && !exiting ? { 'data-visible': 'true' } : {})}
+      {...(exiting ? { 'data-exiting': 'true' } : {})}
     >
-      <span className={css.title}>{active.title}</span>
-      {active.fields.map((f) => renderField(f))}
+      <span className={css.title}>{displayed.title}</span>
+      {displayed.fields.map((f) => renderField(f))}
       <div className={css.btnRow}>
         <button
           type="button"
@@ -249,7 +318,7 @@ export default function InlineFeaturePopover(_props: Props) {
         >
           Cancel
         </button>
-        {(active.customActions ?? []).map((a, i) => (
+        {(displayed.customActions ?? []).map((a, i) => (
           <button
             key={i}
             type="button"

@@ -22,6 +22,39 @@
   pointer-events: auto;
   backdrop-filter: blur(4px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  /* Fade machinery — same shape as HostCanopyUnionTooltip's, consuming
+     the shared --motion-overlay-* tokens (tokens.css). useLayoutEffect
+     flips data-visible='true' after mount so the enter transition fires
+     from these initial values up to opacity:1/translateY(0). Unlike the
+     tooltip this surface is interactive (pointer-events: auto), so the
+     exit rule explicitly drops pointer-events to none — a click on a
+     mid-fade Cancel/Save would race the displayed-mirror cleanup. */
+  opacity: 0;
+  transform: translateY(var(--motion-overlay-translate));
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-out),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-out);
+}
+
+.popover[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.popover[data-exiting='true'] {
+  opacity: 0;
+  transform: translateY(var(--motion-overlay-translate));
+  pointer-events: none;
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-in),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-in);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover,
+  .popover[data-exiting='true'] {
+    transition: none;
+  }
 }
 
 .title {
