@@ -16,6 +16,11 @@ import { useVisionStore } from '../../store/visionStore.js';
 import { api } from '../../lib/apiClient.js';
 import { formatKRange } from '../../lib/formatRange.js';
 import { selectEcosystemValuationFromLayers } from '../../lib/ecosystemValuation.js';
+import {
+  computeTransitionBudget,
+  jCurveTrough,
+} from '../financial/engine/transitionBudget.js';
+import { naturalCapitalAppreciationByYear } from '../financial/somAppreciation.js';
 import { sage, success, warning, group, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
@@ -53,6 +58,46 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
             propertyAcres: project.acreage ?? null,
           })
         : null;
+
+      // §D.7 — J-curve payload. transitionBudgetMid is computed sync from
+      // the same cashflow that drives the operating runway; SOM trajectory
+      // is best-effort (skips silently if recompute has never run).
+      const transitionYears = computeTransitionBudget(model.cashflow);
+      const trough = jCurveTrough(transitionYears);
+      let natCapAppreciationByYear: Record<number, number> | undefined;
+      try {
+        if (project.acreage != null) {
+          const { data: trajectory } = await api.soilRegeneration.getSomTrajectory(project.id);
+          if (trajectory && trajectory.length > 0) {
+            natCapAppreciationByYear = naturalCapitalAppreciationByYear({
+              trajectory,
+              acres: project.acreage,
+            });
+          }
+        }
+      } catch {
+        // Best-effort: SOM trajectory not yet recomputed for this project.
+      }
+      const jCurvePayload =
+        transitionYears.length > 0
+          ? {
+              transitionYears: transitionYears.map((t) => ({
+                year: t.year,
+                phase: t.phase,
+                capex: t.capex,
+                opex: t.opex,
+                revenue: t.revenue,
+                netCashflow: t.netCashflow,
+                cumulativeNetCashflow: t.cumulativeNetCashflow,
+              })),
+              ...(natCapAppreciationByYear && {
+                naturalCapitalAppreciationByYear: natCapAppreciationByYear,
+              }),
+              troughYear: trough.troughYear,
+              troughValue: trough.troughValue,
+              breakevenYear: trough.breakevenYear,
+            }
+          : undefined;
       const { data } = await api.exports.generate(project.id, {
         exportType: 'capital_partner_summary',
         payload: {
@@ -87,6 +132,7 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
                   },
                 }
               : {}),
+            ...(jCurvePayload ? { jCurve: jCurvePayload } : {}),
           },
         },
       });

@@ -111,6 +111,39 @@ export const FinancialPayload = z.object({
     dominantService: z.string(),
     narrative: z.string(),
   }).optional(),
+  /**
+   * §D.7 J-curve payload — the Apricot-Lane Phase 3 bridge from
+   * regeneration spend to natural-capital appreciation. Mirrors the
+   * D.1 `TransitionYear[]` shape (subset of fields needed by the PDF
+   * renderer) plus the D.3 cumulative natural-capital appreciation
+   * by year and the precomputed trough / breakeven markers from
+   * `jCurveTrough(...)`.
+   *
+   * `chartSvg` is an optional pre-rendered inline SVG markup string —
+   * the web client produces it from the same `<JCurveChart>` component
+   * shown in-app, serialised via `renderToStaticMarkup`. When absent,
+   * the PDF template falls back to a server-side ASCII sparkline so
+   * the section still anchors the narrative.
+   *
+   * Covenant: appreciation of stewarded land value, not investor
+   * yield. See [[fiqh-csra-erased-2026-05-04]].
+   */
+  jCurve: z.object({
+    transitionYears: z.array(z.object({
+      year: z.number(),
+      phase: z.enum(['establishment', 'build-up', 'maturation']),
+      capex: z.number(),
+      opex: z.number(),
+      revenue: z.number(),
+      netCashflow: z.number(),
+      cumulativeNetCashflow: z.number(),
+    })),
+    naturalCapitalAppreciationByYear: z.record(z.number()).optional(),
+    troughYear: z.number().nullable(),
+    troughValue: z.number(),
+    breakevenYear: z.number().nullable(),
+    chartSvg: z.string().optional(),
+  }).optional(),
 });
 export type FinancialPayload = z.infer<typeof FinancialPayload>;
 
