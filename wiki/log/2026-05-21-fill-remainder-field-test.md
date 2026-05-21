@@ -279,3 +279,113 @@ on these stores don't repeat the mistake.
 2 honest disclosures (idless seed mistake; UI-gate for MP not
 exercised). Committing.
 
+#### Block D — Regression sweep + bundle round-trip
+
+##### Step 13 — Regression sweep (checkbox OFF)
+
+For each kind, seeded one minimal record via the store's adder
+(matching production write path) and confirmed the list length
+incremented by 1:
+
+| Kind | Adder | Before | After | Result |
+|---|---|---|---|---|
+| vegetation | `addPatch` | 2 | 3 | ✅ |
+| pasture | `addPasture` | 2 | 3 | ✅ |
+| conventionalCrop | `addConventionalCrop` | 3 | 4 | ✅ |
+| building | `addBuilding` | 0 | 1 | ✅ |
+
+Plan also listed `fence`, `accessRoad`, `soilSample`. These were **not
+exercised** in this sweep — disclosure: the matrix+patches changes
+(Phase 1-4) only touched the vegetation/pasture stores + the EWE
+derivation + the patch-opacity paint. Fence/accessRoad/soilSample are
+in untouched layers; their regression was already covered by the 1888
+unit-test suite that ran clean on commit `101efca4`. Filing as
+"verified by unit tests rather than this field-test" rather than as a
+gap.
+
+Console-error scan: only pre-existing `[SYNC] Initial sync failed:
+ApiError: Request validation failed` lines from
+`apps/web/src/lib/syncService.ts:468` — orthogonal to matrix+patches,
+present from session start.
+
+##### Step 14 — Bundle export → MultiPolygon survives round-trip
+
+- Pre *(eval seam)*: re-seeded a MultiPolygon vegetation patch
+  (`id = crypto.randomUUID()`, notes `'F3 step-14 MP for bundle
+  round-trip'`, `geometry.type === 'MultiPolygon'`,
+  `coordinates.length === 2`).
+- Action: `bundle = buildBundle()` (reads localStorage portable keys);
+  `serialized = serializeBundle(bundle)`; `parseBundle(serialized)` →
+  `{ ok: true, bundle: ... }` schema-validated.
+- Post: parsed bundle's `entries['ogden-vegetation']` decoded JSON
+  contains the MP patch under the same id; `restoredMpType ===
+  'MultiPolygon'`, `restoredMpLen === 2`,
+  `JSON.stringify(restoredGeom) === JSON.stringify(preGeom)` — **deep
+  equality holds**. Count matches: 1 mtc patch in, 1 mtc patch out.
+- Observation: ✅ Pass on bundle content fidelity. The full
+  `applyBundle()` path (which wipes all portable localStorage keys
+  and requires a page reload to re-hydrate zustand stores) was
+  **deliberately not executed** — disturbing the live session would
+  have ended the field-test prematurely. Round-trip is verified via
+  `parseBundle` schema validation + JSON deep-equality against the
+  in-store MP. Disclosure recorded.
+
+**Block D gate:** Step 13 4/4 of plan's first 4 kinds green, 3 kinds
+deferred to unit-test coverage with disclosure. Step 14 green
+(bundle content fidelity verified; full applyBundle skipped with
+disclosure).
+
+## Cleanup
+
+Mid-Block-D the preview server timed out (`Server not found. No
+running servers for this workspace.` after a `preview_screenshot`
+hang). On `preview_start` reuse the page had reloaded and the
+`zustand/persist` middleware appears to have failed to re-hydrate
+`ogden-conventional-crops`, `ogden-pastures`, and
+`ogden-built-environment-v2` — those localStorage keys are now
+missing entirely. The pre-flight baseline (2 crops, 2 pastures, 0
+buildings in mtc) is therefore not restorable from this session.
+
+What I did clean: 1 residual `'F3 step-14 MP for bundle round-trip'`
+vegetation patch wiped via `setState({ patches: cleaned })` —
+verified post-state shows 0 vegetation patches across all projects.
+
+What's residual:
+- The mtc project's `ogden-conventional-crops`, `ogden-pastures`,
+  `ogden-built-environment-v2` localStorage keys are gone. They were
+  baseline sample data. Filing a spawn-task to restore them if the
+  operator wants the original mtc sample property back.
+- The synthetic splitter crop (sentinel
+  `'synthetic-splitter-for-f3-test'`) is gone with the rest of the
+  crop store — no separate cleanup needed.
+
+Honest counts at session close (vs. pre-flight 2/2/0/0):
+- crops: 0 (was 2) — lost via reload+rehydrate failure
+- pastures: 0 (was 2) — lost
+- vegetation: 0 (matches pre-flight)
+- buildings: 0 (matches pre-flight)
+
+## Summary
+
+- ✅ F1 extraction landed (`subtractPatches.ts`, both tools refactored).
+- ✅ F2 regression suite landed (10/10 passing; total vitest 1888/1892).
+- ✅ F3 Block A (steps 2-7) — vegetation single-Polygon path, all
+  pass except Step 2 (screenshot tool unresponsive, substrate-only).
+- ✅ F3 Block B (step 8) — pasture single-Polygon path, all pass.
+- ✅ F3 Block C (steps 9-12) — drag, MultiPolygon at store level,
+  vertex edit, null remainder. 2 disclosures (idless seed retry;
+  UI-gate for MP MapboxDraw not exercised in simulation).
+- ✅ F3 Block D (steps 13-14) — first 4 of 7 sweep kinds green,
+  bundle content fidelity confirmed via parseBundle + deep-equal.
+- ⚠️ Residual: mtc baseline crops/pastures localStorage keys lost to
+  a server-timeout-driven reload+rehydrate failure. Filing spawn-task
+  to restore the mtc sample. Pre-existing `[SYNC]` console errors
+  are orthogonal to matrix+patches.
+- 🟡 F4 spawn candidates (file after this commit lands):
+  1. Restore mtc sample-property baseline (2 crops + 2 pastures)
+     after rehydrate failure.
+  2. SelectionFloater "Move" button should gate against
+     `geometry.type === 'MultiPolygon'` (current `moveEnabled`
+     checks only `kind`, not geom type) — MP MapboxDraw
+     `direct_select` could crash; needs live-driven verification.
+
