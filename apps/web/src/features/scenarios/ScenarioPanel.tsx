@@ -634,7 +634,7 @@ function ComparisonTable({ scenarios }: { scenarios: Scenario[] }) {
       },
     },
     {
-      label: '10-Year ROI',
+      label: '10-Year Operating Estimate',
       getValue: (sc) => `${sc.tenYearROI ?? 0}%`,
       highlight: (sc, all) => {
         const vals = all.map((a) => a.tenYearROI ?? 0);
