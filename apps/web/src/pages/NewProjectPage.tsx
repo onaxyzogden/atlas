@@ -13,7 +13,7 @@
  * thread it through). When skipped, the wizard starts on StepBasicInfo.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import type { Country } from '@ogden/shared';
 import { StepIndicator } from '../components/ui/index.js';
@@ -22,6 +22,8 @@ import StepBasicInfo from '../features/project/wizard/StepBasicInfo.js';
 import StepLocation from '../features/project/wizard/StepLocation.js';
 import StepBoundary from '../features/project/wizard/StepBoundary.js';
 import StepNotes from '../features/project/wizard/StepNotes.js';
+import { OrganizationSwitcherModal } from '../features/organizations/OrganizationSwitcherModal.js';
+import { useAuthStore } from '../store/authStore.js';
 import styles from './NewProjectPage.module.css';
 
 export interface WizardData {
@@ -29,6 +31,11 @@ export interface WizardData {
   templateSlug?: string;
   drawFirst?: boolean;
   fullSetup?: boolean;
+  // Phase 4.5 — workspace (organization) context.
+  // Populated from ?orgId search param, user's defaultOrgId, or the
+  // OrganizationSwitcherModal pick. Threaded into the create-project
+  // payload by StepNotes.handleCreate so projects land on the right org.
+  orgId?: string;
   // Step 1
   name: string;
   projectType: string;
@@ -67,6 +74,7 @@ const INITIAL_DATA: WizardData = {
   templateSlug: undefined,
   drawFirst: false,
   fullSetup: false,
+  orgId: undefined,
   name: '',
   projectType: '',
   country: 'US',
@@ -99,10 +107,12 @@ interface NewProjectSearch {
   prefillTemplate?: string;
   drawFirst?: boolean | string;
   fullSetup?: boolean | string;
+  orgId?: string;
 }
 
 export default function NewProjectPage() {
   const search = useSearch({ strict: false }) as NewProjectSearch;
+  const defaultOrgId = useAuthStore((s) => s.user?.defaultOrgId ?? null);
 
   // Tier-aware initialisation: if the /register handoff (or a deep link)
   // pre-fills a template, skip the template-picker step entirely.
@@ -114,6 +124,13 @@ export default function NewProjectPage() {
     search.drawFirst === true || search.drawFirst === 'true';
   const fullSetup =
     search.fullSetup === true || search.fullSetup === 'true';
+  const prefillOrgId =
+    typeof search.orgId === 'string' && search.orgId ? search.orgId : undefined;
+
+  // Phase 4.5: resolve effective workspace id. Priority: explicit URL param →
+  // user's default org (set at register-time by Prong 1) → undefined (modal
+  // will be shown to force a pick before submit).
+  const effectiveOrgId = prefillOrgId ?? defaultOrgId ?? undefined;
 
   const initialData: WizardData = useMemo(
     () => ({
@@ -121,13 +138,14 @@ export default function NewProjectPage() {
       templateSlug: prefillTemplate,
       drawFirst,
       fullSetup,
+      orgId: effectiveOrgId,
       // Friendly default name when arriving from the showcase ContactCTA.
       name:
         prefillTemplate === 'ecosystem-farm'
           ? INITIAL_DATA.name || 'My Ecosystem Farm'
           : INITIAL_DATA.name,
     }),
-    [prefillTemplate, drawFirst, fullSetup],
+    [prefillTemplate, drawFirst, fullSetup, effectiveOrgId],
   );
 
   const STEPS = useMemo(() => {
@@ -147,6 +165,19 @@ export default function NewProjectPage() {
 
   const [step, setStep] = useState(0);
   const [data, setData] = useState<WizardData>(initialData);
+
+  // Phase 4.5: open OrganizationSwitcherModal when the visitor arrived via the
+  // Stewarding-tier handoff (?fullSetup=true) without an explicit ?orgId.
+  // Returning users with multiple orgs can also surface this modal in future
+  // slices; v1 trigger is the locked decision-#2 hybrid path.
+  const [showOrgModal, setShowOrgModal] = useState<boolean>(
+    fullSetup && !prefillOrgId,
+  );
+  useEffect(() => {
+    if (fullSetup && !prefillOrgId && !data.orgId) {
+      setShowOrgModal(true);
+    }
+  }, [fullSetup, prefillOrgId, data.orgId]);
 
   const StepComponent = STEPS[step]!.component;
   const isFirst = step === 0;
@@ -200,6 +231,18 @@ export default function NewProjectPage() {
       </div>
 
       {/* Navigation is handled by each step's WizardNav component */}
+
+      {/* Phase 4.5 — workspace picker for Stewarding-tier returning users. */}
+      {showOrgModal && (
+        <OrganizationSwitcherModal
+          onPick={(orgId) => {
+            updateData({ orgId });
+            setShowOrgModal(false);
+          }}
+          onClose={() => setShowOrgModal(false)}
+          dismissable={Boolean(defaultOrgId)}
+        />
+      )}
     </div>
   );
 }

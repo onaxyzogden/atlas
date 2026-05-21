@@ -145,6 +145,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             {
               name: data.name,
               parcelBoundaryGeojson: data.parcelBoundaryGeojson ?? null,
+              orgId: data.orgId,
             },
           );
           updateProjectFn(project.id, { serverId: serverProject.id });
@@ -163,6 +164,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             provinceState: data.provinceState || undefined,
             units: data.units,
             metadata: metadataWithTemplate,
+            orgId: data.orgId,
           });
           updateProjectFn(project.id, { serverId: serverProject.id });
           const geo = data.parcelBoundaryGeojson;

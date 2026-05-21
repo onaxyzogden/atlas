@@ -78,12 +78,12 @@ export default function RegisterPage() {
 
       if (search.fullSetup) {
         // Stewarding tier — full org-creation precedes instantiate.
-        // Org-creation surface is the Phase-4.5 follow-up; for v1 we
-        // route into /new with the template pre-selected so the
-        // visitor can fill in org-shaped fields inline.
+        // Phase 4.5 introduced the /organizations/new prelude; route
+        // through it carrying the template handoff so the visitor lands
+        // on /new with both orgId and prefillTemplate set.
         navigate({
-          to: '/new',
-          search: { prefillTemplate: slug, fullSetup: 'true' } as never,
+          to: '/organizations/new',
+          search: { next: 'instantiate', template: slug } as never,
         });
         return;
       }

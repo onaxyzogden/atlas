@@ -31,6 +31,7 @@ import PortalPage from '../pages/PortalPage.js';
 import ReportSharePage from '../pages/ReportSharePage.js';
 import LoginPage from '../pages/LoginPage.js';
 import RegisterPage from '../pages/RegisterPage.js';
+import OrganizationCreatePage from '../pages/OrganizationCreatePage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
 import V3HomePage from '../v3/pages/HomePage.js';
@@ -373,6 +374,26 @@ const registerRoute = createRoute({
   },
 });
 
+// Phase 4.5 — /organizations/new prelude. Sibling-of-appShellRoute so it
+// renders without the authed app shell, but is itself auth-gated: the
+// component redirects to /register if no token is present. Search params
+// thread the post-handoff route just like /register does, so the
+// Stewarding ContactCTA can chain showcase → /register → /organizations/new
+// → /new without losing the template selection.
+const organizationCreateRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/organizations/new',
+  component: OrganizationCreatePage,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { next?: string; template?: string } => {
+    const out: { next?: string; template?: string } = {};
+    if (typeof search.next === 'string') out.next = search.next;
+    if (typeof search.template === 'string') out.template = search.template;
+    return out;
+  },
+});
+
 // ─── Portal page (outside AppShell — own layout) ─────────────────────────
 const portalRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -462,6 +483,7 @@ const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
   registerRoute,
+  organizationCreateRoute,
   portalRoute,
   reportShareRoute,
   showcaseRoute,

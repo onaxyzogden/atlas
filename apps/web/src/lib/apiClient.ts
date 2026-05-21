@@ -256,15 +256,17 @@ export const api = {
 
     instantiate: (
       id: string,
-      input: { name: string; parcelBoundaryGeojson?: unknown | null },
+      input: { name: string; parcelBoundaryGeojson?: unknown | null; orgId?: string },
     ) =>
       request<ProjectSummary>('POST', `/api/v1/templates/${id}/instantiate`, input),
 
     // Phase 4 (2026-05-21) — public ecosystem-template instantiation.
     // Still auth-gated; only the owner check is relaxed for public rows.
+    // Phase 4.5 — accepts optional orgId to attach the cloned project to a
+    // specific workspace (membership-checked server-side).
     instantiatePublic: (
       slug: string,
-      input: { name: string; parcelBoundaryGeojson?: unknown | null },
+      input: { name: string; parcelBoundaryGeojson?: unknown | null; orgId?: string },
     ) =>
       request<ProjectSummary>(
         'POST',
@@ -668,6 +670,16 @@ export const api = {
 
     create: (name: string) =>
       request<OrganizationRecord>('POST', '/api/v1/organizations', { name }),
+
+    update: (
+      orgId: string,
+      input: {
+        name?: string;
+        plan?: string;
+        jurisdiction?: string | null;
+        registryId?: string | null;
+      },
+    ) => request<OrganizationRecord>('PATCH', `/api/v1/organizations/${orgId}`, input),
 
     listMembers: (orgId: string) =>
       request<OrgMemberRecord[]>('GET', `/api/v1/organizations/${orgId}/members`),
