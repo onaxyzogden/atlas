@@ -748,3 +748,129 @@ export function computeRegenerationSequence(
 // ── Exported helpers for processor ─────────────────────────────────────────
 
 export { landCoverToDisturbance, drainageToCompaction };
+
+// ── D.3 — SOM trajectory ──────────────────────────────────────────────────
+//
+// Yearly soil-organic-matter trajectory producer for the Apricot-Lane J-curve
+// (migration 031, route /api/v1/soil-regeneration/.../som-trajectory).
+//
+// Stages mirror D.1 TransitionPhase ([[atlas-phase-d-jcurve-trajectory]])
+// so the J-curve renderer can pair cumulative cashflow with SOM stock on a
+// single year-indexed axis. Covenant: appreciation of stewarded land value,
+// not investor yield. See [[fiqh-csra-erased-2026-05-04]].
+
+/** SOC% = SOM% × 0.58 (already inline at L369; promoted here for reuse). */
+export const VAN_BEMMELEN_C_FACTOR = 0.58;
+/** Standard topsoil bulk density (g/cm³). */
+export const DEFAULT_BULK_DENSITY_GCM3 = 1.4;
+/** Standard IPCC topsoil reporting depth (cm). */
+export const DEFAULT_TOPSOIL_DEPTH_CM = 30;
+
+/** Year 0-2: 25% of mature sequestration rate. */
+export const ESTABLISHMENT_RATE_FRACTION = 0.25;
+/** Year 3-5: 60% of mature sequestration rate. */
+export const BUILD_UP_RATE_FRACTION = 0.6;
+/** Year 6+: 100% of mature sequestration rate. */
+export const MATURATION_RATE_FRACTION = 1.0;
+
+/** Mirrors D.1 TransitionPhase in features/financial/engine/transitionBudget.ts. */
+export type JCurveStage = 'establishment' | 'build-up' | 'maturation';
+
+export interface SomYearRow {
+  /** 0..horizonYears (absolute project year). */
+  year: number;
+  /** tC/ha at end-of-year (3 dp). */
+  som_stock_tc: number;
+  /** Annualised sequestration for `year` (tC/ha/yr, 3 dp). */
+  sequestration_tcyr: number;
+  j_curve_stage: JCurveStage;
+}
+
+/**
+ * SOM% → topsoil carbon stock (tC/ha).
+ *   stock = SOM% × VAN_BEMMELEN × bulkDensity × depth × 0.1
+ * The 0.1 collapses (g/cm³ × cm × %) into tC/ha.
+ */
+export function somPctToStockTcha(
+  somPct: number,
+  opts?: { bulkDensityGcm3?: number; depthCm?: number },
+): number {
+  const bd = opts?.bulkDensityGcm3 ?? DEFAULT_BULK_DENSITY_GCM3;
+  const depth = opts?.depthCm ?? DEFAULT_TOPSOIL_DEPTH_CM;
+  return +(somPct * VAN_BEMMELEN_C_FACTOR * bd * depth * 0.1).toFixed(3);
+}
+
+function stageFor(effectiveYear: number): JCurveStage {
+  if (effectiveYear <= 2) return 'establishment';
+  if (effectiveYear <= 5) return 'build-up';
+  return 'maturation';
+}
+
+function scalarFor(stage: JCurveStage): number {
+  switch (stage) {
+    case 'establishment':
+      return ESTABLISHMENT_RATE_FRACTION;
+    case 'build-up':
+      return BUILD_UP_RATE_FRACTION;
+    case 'maturation':
+      return MATURATION_RATE_FRACTION;
+  }
+}
+
+/**
+ * Pure trajectory generator. Applies the 3-band scalar (0.25 / 0.6 / 1.0)
+ * to the caller-supplied mature `annualSeqRate_tChaYr`, accumulates per
+ * year, and caps `som_stock_tc` at the target stock derived from
+ * `target_pct`. Pre-regeneration years (year < regenerationStartYear)
+ * emit baseline stock + zero sequestration + 'establishment' stage.
+ */
+export function projectSomTrajectory(input: {
+  baseline_pct: number;
+  target_pct: number;
+  annualSeqRate_tChaYr: number;
+  horizonYears: number;
+  regenerationStartYear?: number;
+}): SomYearRow[] {
+  const {
+    baseline_pct,
+    target_pct,
+    annualSeqRate_tChaYr,
+    horizonYears,
+    regenerationStartYear = 0,
+  } = input;
+
+  const baselineStock = somPctToStockTcha(baseline_pct);
+  const targetStock = somPctToStockTcha(target_pct);
+
+  const rows: SomYearRow[] = [];
+  let cumulativeStock = baselineStock;
+
+  for (let year = 0; year <= horizonYears; year++) {
+    if (year < regenerationStartYear) {
+      rows.push({
+        year,
+        som_stock_tc: +baselineStock.toFixed(3),
+        sequestration_tcyr: 0,
+        j_curve_stage: 'establishment',
+      });
+      continue;
+    }
+
+    const effectiveYear = year - regenerationStartYear;
+    const stage = stageFor(effectiveYear);
+    const targetRate = annualSeqRate_tChaYr * scalarFor(stage);
+
+    const headroom = Math.max(0, targetStock - cumulativeStock);
+    const appliedRate = Math.min(targetRate, headroom);
+    cumulativeStock = Math.min(targetStock, cumulativeStock + appliedRate);
+
+    rows.push({
+      year,
+      som_stock_tc: +cumulativeStock.toFixed(3),
+      sequestration_tcyr: +appliedRate.toFixed(3),
+      j_curve_stage: stage,
+    });
+  }
+
+  return rows;
+}
