@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ShowcaseMap } from '../components/ShowcaseMap.js';
 import { loadSnapshot, type ShowcaseSnapshot } from '../data/snapshot.js';
 import type { SceneId } from '../data/sceneManifest.js';
+import { getSharedSceneMapState } from '../data/sharedSceneFrontmatter.js';
 
 // Dev-only capture route — mounted at /showcase/three-streams/_capture and
 // guarded by import.meta.env.DEV. The Playwright snapshot script
@@ -11,28 +12,10 @@ import type { SceneId } from '../data/sceneManifest.js';
 // The route renders a full-bleed <ShowcaseMap> with no chrome, no
 // scrollytelling, no CTA, no attribution footer — the screenshot target is
 // the [data-testid="showcase-map"] element exclusively.
-
-type MapState = {
-  activeLayers: string[];
-  view: { center: [number, number]; zoom: number };
-  // `features` is part of the MDX frontmatter shape but at capture time we
-  // do not surface designed features (all 8 shared scenes have features:[]).
-  features: never[];
-};
-
-// Canonical map states for the 8 shared scenes. Kept in lockstep with the
-// frontmatter blocks in apps/web/src/showcase/scenes/_shared/*.mdx — if a
-// scene's frontmatter mapState changes, update this map too.
-const SHARED_SCENE_MAP_STATES: Record<string, MapState> = {
-  hero:               { activeLayers: [],                       view: { center: [-79.91, 43.56], zoom: 13 }, features: [] },
-  'y0-baseline':      { activeLayers: ['soils', 'land_cover'],  view: { center: [-79.91, 43.56], zoom: 14 }, features: [] },
-  'y1-water-cover':   { activeLayers: ['watershed'],            view: { center: [-79.91, 43.56], zoom: 14 }, features: [] },
-  'y2-current':       { activeLayers: ['soils', 'watershed'],   view: { center: [-79.91, 43.56], zoom: 14 }, features: [] },
-  'y5-projected':     { activeLayers: ['land_cover', 'watershed'], view: { center: [-79.91, 43.56], zoom: 14 }, features: [] },
-  'y8-projected':     { activeLayers: ['land_cover', 'watershed'], view: { center: [-79.91, 43.56], zoom: 14 }, features: [] },
-  methodology:        { activeLayers: [],                       view: { center: [-79.91, 43.56], zoom: 13 }, features: [] },
-  cta:                { activeLayers: [],                       view: { center: [-79.91, 43.56], zoom: 13 }, features: [] },
-};
+//
+// Map state is sourced directly from each scene's MDX frontmatter via
+// `getSharedSceneMapState` — there is no parallel literal here. The
+// single source of truth lives in apps/web/src/showcase/scenes/_shared/*.mdx.
 
 function readSceneFromQuery(): string | null {
   if (typeof window === 'undefined') return null;
@@ -67,7 +50,7 @@ export function ShowcaseCapturePage() {
   if (!sceneId) {
     return <div style={{ padding: 48 }}>Missing ?scene= query param.</div>;
   }
-  const mapState = SHARED_SCENE_MAP_STATES[sceneId];
+  const mapState = getSharedSceneMapState(sceneId);
   if (!mapState) {
     return <div style={{ padding: 48 }}>Unknown scene id: {sceneId}</div>;
   }
