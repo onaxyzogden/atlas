@@ -166,7 +166,7 @@ preserved:
 
 - Entity page: [[entities/showcase-portal]].
 - Canon source: [[entities/three-streams-farm]].
-- Covenant boundary: [[decisions/2026-05-04-atlas-csra-erasure]].
+- Covenant boundary: [[decisions/2026-05-09-atlas-csra-erasure]].
 - Phase 3 session log:
   [[log/2026-05-21-atlas-phase-3-showcase-portal]].
 - Walkthrough that motivated the program:
