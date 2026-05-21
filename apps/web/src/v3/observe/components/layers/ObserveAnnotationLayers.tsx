@@ -152,10 +152,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const sectorsVisible = useMatrixTogglesStore((s) => s.sectors);
   const topographyVisible = useMatrixTogglesStore((s) => s.topography);
   const zonesVisible = useMatrixTogglesStore((s) => s.zones);
-  const windVisible = useMatrixTogglesStore((s) => s.wind);
   const waterVisible = useMatrixTogglesStore((s) => s.water);
-  const hazardsVisible = useMatrixTogglesStore((s) => s.hazards);
-  const viewsVisible = useMatrixTogglesStore((s) => s.views);
   const builtEnvironmentVisible = useMatrixTogglesStore((s) => s.builtEnvironment);
   const scheduledMovesVisible = useMatrixTogglesStore((s) => s.scheduledMoves);
   const subToggles: Record<
@@ -168,10 +165,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     sectors: sectorsVisible,
     topography: topographyVisible,
     zones: zonesVisible,
-    wind: windVisible,
     water: waterVisible,
-    hazards: hazardsVisible,
-    views: viewsVisible,
     builtEnvironment: builtEnvironmentVisible,
     scheduledMoves: scheduledMovesVisible,
   };
@@ -1361,10 +1355,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     sectorsVisible,
     topographyVisible,
     zonesVisible,
-    windVisible,
     waterVisible,
-    hazardsVisible,
-    viewsVisible,
     builtEnvironmentVisible,
     openDetail,
     openForm,

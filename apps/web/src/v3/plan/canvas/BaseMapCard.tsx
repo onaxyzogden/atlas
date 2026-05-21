@@ -28,14 +28,9 @@ interface MapOverlayDef {
 const MAP_OVERLAYS_COLLAPSE_KEY = 'atlas.v3.mapOverlaysLegend.collapsed';
 
 const DEFAULT_OVERLAYS: MapOverlayDef[] = [
-  // 2026-05-21: Observe stage replaced the four sector wedge layer groups
-  // (solar / wind / hazards / views) with a single fixed-corner
-  // SectorCompass HUD that bundles all four signals into one rose; this
-  // legend row drives the HUD's visibility via the existing `sectors`
-  // key. The orphaned `wind` / `hazards` / `views` keys remain in
-  // matrixTogglesStore for back-compat with the legacy v3 DiagnosePage
-  // overlays (WindSectorsOverlay / SectorsOverlay) but are no longer
-  // surfaced in the canonical Overlays legend.
+  // Single Sector compass row drives the unified HUD (solar arcs + wind
+  // petals + manual sector arrows in one rose). See ADR
+  // wiki/decisions/2026-05-21-atlas-observe-sector-compass-hud.md.
   { key: 'sectors', label: 'Sector compass (solar · wind · hazards · views)', swatch: '#c4a265' },
   { key: 'zones', label: 'Permaculture zones (steward-drawn in Observe)', swatch: '#b07c4a' },
   { key: 'water', label: 'Water (streams · surface water)', swatch: '#5b8aa8' },

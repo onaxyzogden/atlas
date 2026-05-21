@@ -210,9 +210,9 @@ const v3HomeRoute = createRoute({
   path: 'home',
   component: V3HomePage,
 });
-// Legacy discover/diagnose routes redirect to the new Observe shell.
-// The underlying page components remain in the repo for reuse in Plan/Act
-// surfaces (Phase C) — only the routes are reshaped.
+// Legacy 7-stage redirect → Observe (page components retired 2026-05-21;
+// the redirects survive to preserve deep-link compatibility for any
+// bookmarks or external links to /discover or /diagnose).
 const v3DiscoverRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'discover',

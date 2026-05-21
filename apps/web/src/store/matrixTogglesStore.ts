@@ -23,10 +23,7 @@ export type MatrixToggleKey =
   | 'topography'
   | 'sectors'
   | 'zones'
-  | 'wind'
   | 'water'
-  | 'hazards'
-  | 'views'
   | 'builtEnvironment'
   | 'observeAnnotations'
   | 'sunPath'
@@ -36,14 +33,16 @@ export type MatrixToggleKey =
 
 export interface MatrixTogglesState {
   topography: boolean;
+  /**
+   * Drives the unified SectorCompass HUD (solar arcs + wind petals +
+   * manual sector arrows in one rose). See ADR
+   * 2026-05-21-atlas-observe-sector-compass-hud — replaced the v8-split
+   * `wind` / `hazards` / `views` sub-keys which were retired in v13
+   * alongside the legacy v3 DiagnosePage.
+   */
   sectors: boolean;
   zones: boolean;
-  wind: boolean;
   water: boolean;
-  /** Hazard sectors (fire / noise / wildlife). Split out of `sectors` in v8. */
-  hazards: boolean;
-  /** Sightline / view sectors. Split out of `sectors` in v8. */
-  views: boolean;
   /** Built-environment annotations (buildings, utilities, fences). v9. */
   builtEnvironment: boolean;
   /** OBSERVE annotations master toggle (default on). */
@@ -82,10 +81,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       topography: false,
       sectors: false,
       zones: false,
-      wind: false,
       water: false,
-      hazards: false,
-      views: false,
       builtEnvironment: false,
       observeAnnotations: true,
       sunPath: false,
@@ -98,10 +94,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           topography: value,
           sectors: value,
           zones: value,
-          wind: value,
           water: value,
-          hazards: value,
-          views: value,
           builtEnvironment: value,
           observeAnnotations: value,
           sunPath: value,
@@ -112,6 +105,12 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
     }),
     {
       name: 'ogden-atlas-matrix-toggles',
+      // v13 (2026-05-21): dropped wind / hazards / views keys. The legacy
+      //  v3 DiagnosePage (the only consumer of those keys outside of the
+      //  now-retired sector wedge layers) was retired this session; the
+      //  unified SectorCompass HUD reads only `sectors`. Persist migrate
+      //  strips the three keys from any older snapshot. See ADR
+      //  wiki/decisions/2026-05-21-atlas-observe-sector-compass-hud.md.
       // v12 (2026-05-17): added seededZones — show/hide for generator-seeded
       //  ("ring-seed") provisional zones on the Plan map. Defaults ON
       //  (unlike the off-by-default overlays) so existing stewards keep the
@@ -134,17 +133,20 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
-      version: 12,
+      version: 13,
       migrate: (persisted) => {
-        const prev = (persisted ?? {}) as Partial<MatrixTogglesState>;
+        const prev = (persisted ?? {}) as Partial<MatrixTogglesState> & {
+          // v13 drop list: retained here so the migrate signature is
+          // explicit about what we're discarding from older snapshots.
+          wind?: boolean;
+          hazards?: boolean;
+          views?: boolean;
+        };
         return {
           topography: prev.topography ?? false,
           sectors: prev.sectors ?? false,
           zones: prev.zones ?? false,
-          wind: prev.wind ?? false,
           water: prev.water ?? false,
-          hazards: prev.hazards ?? false,
-          views: prev.views ?? false,
           builtEnvironment: prev.builtEnvironment ?? false,
           observeAnnotations: prev.observeAnnotations ?? true,
           sunPath: prev.sunPath ?? false,
