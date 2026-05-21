@@ -21,7 +21,7 @@
  * Source: NotebookLM Permaculture Scholar (5aa3dcf3-…), 2026-05-07.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import {
   HOLMGREN_PRINCIPLES,
@@ -35,6 +35,7 @@ import {
 import { usePrincipleEvidenceVisibleIds } from './usePrincipleEvidenceVisibleIds.js';
 import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
 import { selectEvidenceFor } from '../../../../lib/evidence/selectEvidence.js';
+import { emitEvidenceAudit } from '../../../../lib/evidence/auditEmit.js';
 import type {
   EthicKey,
   EthicStatus,
@@ -128,8 +129,8 @@ export default function ThreeEthicsRollupCard({ project, compactMode = false }: 
     return styles.pillUnmet ?? '';
   }
 
-  // Phase E.5 — Tier-2 Evidence inputs.
-  const evidenceItem = useMemo(() => {
+  // Phase E.5 — Tier-2 Evidence inputs. Phase F.7.3 — emit audit.
+  const evidenceInputs = useMemo(() => {
     const perEthicStatus: Record<EthicKey, EthicStatus> = {
       'earth-care': 'unknown',
       'people-care': 'unknown',
@@ -152,16 +153,27 @@ export default function ThreeEthicsRollupCard({ project, compactMode = false }: 
       perEthicRationale[key] =
         `${r.met} met · ${r.partial} partial · ${r.unmet} unmet across ${r.total} principles`;
     }
-    return selectEvidenceFor({
-      panelKey: 'three-ethics',
-      inputs: {
-        perEthicStatus,
-        perEthicFeatureCount,
-        perEthicRationale,
-        principleCheckCount: Object.keys(checks).length,
-      },
-    });
+    return {
+      perEthicStatus,
+      perEthicFeatureCount,
+      perEthicRationale,
+      principleCheckCount: Object.keys(checks).length,
+    };
   }, [rollups, checks]);
+  const evidenceItem = useMemo(
+    () => selectEvidenceFor({ panelKey: 'three-ethics', inputs: evidenceInputs }),
+    [evidenceInputs],
+  );
+  useEffect(() => {
+    if (!evidenceItem) return;
+    emitEvidenceAudit({
+      projectId: project.id,
+      panelKey: 'ThreeEthicsRollupCard',
+      selectorName: 'selectEvidenceFor(three-ethics)',
+      inputs: evidenceInputs,
+      output: evidenceItem,
+    });
+  }, [evidenceInputs, evidenceItem, project.id]);
 
   return (
     <div className={styles.page}>
