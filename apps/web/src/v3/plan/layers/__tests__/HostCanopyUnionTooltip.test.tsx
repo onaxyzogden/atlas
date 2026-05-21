@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  *
- * HostCanopyUnionTooltip — render + edge-clamp + stack tests.
+ * HostCanopyUnionTooltip — render + edge-clamp + stack + fade tests.
  *
  * Pure presentational component with no map dependency. Asserts:
  *   - single-host entries render all six fields with Math.round-based
@@ -17,26 +17,56 @@
  *   - multi-host stacks render every block with one hairline
  *     separator between consecutive blocks (the 2026-05-27
  *     multi-feature fan-out)
+ *   - container exit: data-exiting + transitionend on opacity →
+ *     onExited (2026-05-30 transition-based refactor of the
+ *     2026-05-29 keyframe ship)
+ *   - reverse-in-flight: `exiting` flipping true → false during a
+ *     re-render does NOT fire onExited
+ *   - per-block exit: an entry with phase='exiting' carries
+ *     data-exiting and fires onEntryExited with its hostId on
+ *     transitionend; sibling entries with phase='entering' do not
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { HostCanopyUnionTooltip } from '../HostCanopyUnionTooltip.js';
+import { render, screen, fireEvent, createEvent } from '@testing-library/react';
+import {
+  HostCanopyUnionTooltip,
+  type HostBlockEntry,
+} from '../HostCanopyUnionTooltip.js';
+
+// happy-dom's TransitionEvent constructor silently drops the
+// `propertyName` init key, and @testing-library/dom's createEvent
+// hands the init straight to the constructor without a fallback —
+// so a naive `fireTransitionEnd(el, 'opacity')`
+// dispatches an event whose propertyName is undefined, defeating the
+// `ev.propertyName === 'opacity'` filter in the component. Defining
+// the property after construction (it's read-only on real
+// TransitionEvent but unset/undefined on happy-dom's) restores it.
+function fireTransitionEnd(el: Element, propertyName: string): void {
+  const ev = createEvent.transitionEnd(el, {});
+  Object.defineProperty(ev, 'propertyName', { value: propertyName });
+  fireEvent(el, ev);
+}
+
+function entry(overrides: Partial<HostBlockEntry> = {}): HostBlockEntry {
+  return {
+    hostId: 'h1',
+    hostName: 'South Pasture',
+    unionAreaM2: 142.7,
+    rawSumM2: 187.4,
+    guildCount: 3,
+    memberCount: 7,
+    phase: 'entering',
+    ...overrides,
+  };
+}
 
 describe('HostCanopyUnionTooltip', () => {
   it('renders host name, counts, and three rounded m² values', () => {
     render(
       <HostCanopyUnionTooltip
         point={{ x: 100, y: 100 }}
-        entries={[
-          {
-            hostName: 'South Pasture',
-            unionAreaM2: 142.7,
-            rawSumM2: 187.4,
-            guildCount: 3,
-            memberCount: 7,
-          },
-        ]}
+        entries={[entry()]}
       />,
     );
 
@@ -56,13 +86,13 @@ describe('HostCanopyUnionTooltip', () => {
       <HostCanopyUnionTooltip
         point={{ x: 50, y: 50 }}
         entries={[
-          {
+          entry({
             hostName: 'Loner Host',
             unionAreaM2: 50.2,
             rawSumM2: 50.2,
             guildCount: 1,
             memberCount: 1,
-          },
+          }),
         ]}
       />,
     );
@@ -77,13 +107,7 @@ describe('HostCanopyUnionTooltip', () => {
 
   it('forwards `pinned` as data-pinned on the root element', () => {
     const baseEntries = [
-      {
-        hostName: 'Pin Host',
-        unionAreaM2: 100,
-        rawSumM2: 120,
-        guildCount: 2,
-        memberCount: 3,
-      },
+      entry({ hostName: 'Pin Host', unionAreaM2: 100, rawSumM2: 120, guildCount: 2, memberCount: 3 }),
     ];
     const { rerender } = render(
       <HostCanopyUnionTooltip
@@ -119,13 +143,7 @@ describe('HostCanopyUnionTooltip', () => {
       <HostCanopyUnionTooltip
         point={{ x: 1020, y: 100 }}
         entries={[
-          {
-            hostName: 'Edge Host',
-            unionAreaM2: 100,
-            rawSumM2: 120,
-            guildCount: 2,
-            memberCount: 3,
-          },
+          entry({ hostName: 'Edge Host', unionAreaM2: 100, rawSumM2: 120, guildCount: 2, memberCount: 3 }),
         ]}
       />,
     );
@@ -139,20 +157,8 @@ describe('HostCanopyUnionTooltip', () => {
       <HostCanopyUnionTooltip
         point={{ x: 100, y: 100 }}
         entries={[
-          {
-            hostName: 'Upper Host',
-            unionAreaM2: 100,
-            rawSumM2: 130,
-            guildCount: 2,
-            memberCount: 4,
-          },
-          {
-            hostName: 'Lower Host',
-            unionAreaM2: 80,
-            rawSumM2: 95,
-            guildCount: 1,
-            memberCount: 3,
-          },
+          entry({ hostId: 'up', hostName: 'Upper Host', unionAreaM2: 100, rawSumM2: 130, guildCount: 2, memberCount: 4 }),
+          entry({ hostId: 'lo', hostName: 'Lower Host', unionAreaM2: 80, rawSumM2: 95, guildCount: 1, memberCount: 3 }),
         ]}
       />,
     );
@@ -170,25 +176,20 @@ describe('HostCanopyUnionTooltip', () => {
     expect(screen.getAllByRole('separator').length).toBe(1);
   });
 
-  it('forwards data-exiting and fires onExited on tooltipFadeOut animationend', () => {
-    // PlanDataLayers holds the portal mounted past activeUnion → null so
-    // the CSS exit-fade can play. The tooltip's contract: while
-    // `exiting`, expose `data-exiting='true'` (so the CSS keyframe
-    // engages) and call `onExited` when the fade-out animation reports
-    // its end. happy-dom doesn't run CSS animations, so we drive the
-    // event directly via fireEvent.animationEnd.
+  it('forwards data-exiting and fires onExited on container opacity transitionend', () => {
+    // 2026-05-30: PlanDataLayers holds the portal mounted past
+    // activeUnion → null so the CSS exit transition can interpolate
+    // opacity to 0. The tooltip's contract: while `exiting`, expose
+    // `data-exiting='true'` (so the CSS rule engages) and call
+    // `onExited` when the opacity transition reports its end.
+    // happy-dom doesn't run CSS transitions, so we drive the event
+    // directly via fireEvent.transitionEnd.
     const onExited = vi.fn();
     render(
       <HostCanopyUnionTooltip
         point={{ x: 100, y: 100 }}
         entries={[
-          {
-            hostName: 'Exit Host',
-            unionAreaM2: 100,
-            rawSumM2: 110,
-            guildCount: 1,
-            memberCount: 2,
-          },
+          entry({ hostId: 'ex', hostName: 'Exit Host', unionAreaM2: 100, rawSumM2: 110, guildCount: 1, memberCount: 2 }),
         ]}
         exiting={true}
         onExited={onExited}
@@ -198,15 +199,92 @@ describe('HostCanopyUnionTooltip', () => {
     const tip = screen.getByTestId('host-canopy-union-tooltip');
     expect(tip.getAttribute('data-exiting')).toBe('true');
 
-    // An unrelated animationend (e.g. the enter keyframe finishing in a
-    // re-enter scenario) must NOT fire onExited.
-    fireEvent.animationEnd(tip, { animationName: 'tooltipFadeIn' });
+    // A transform-property transitionend (the other tracked property
+    // — translateY interpolates alongside opacity) must NOT fire
+    // onExited, otherwise onExited would fire twice per dismiss.
+    fireTransitionEnd(tip, 'transform');
     expect(onExited).not.toHaveBeenCalled();
 
-    // The exit keyframe finishing does. CSS Modules scopes the keyframe
-    // name; the production handler uses .includes() so a scoped name
-    // like `_tooltipFadeOut_abc` still matches.
-    fireEvent.animationEnd(tip, { animationName: 'tooltipFadeOut' });
+    // The opacity transition completing does.
+    fireTransitionEnd(tip, 'opacity');
     expect(onExited).toHaveBeenCalledTimes(1);
+  });
+
+  it('does NOT fire onExited when exiting flips true → false mid-render (reverse-in-flight)', () => {
+    // The reverse-in-flight contract: when activeUnion returns
+    // non-null during the container's exit fade, PlanDataLayers
+    // flips `exiting` back to false. CSS transitions interpolate
+    // opacity from current value back to 1 with no snap — and
+    // critically, no spurious onExited fire (which would race-clear
+    // the mirror PlanDataLayers just restored).
+    const onExited = vi.fn();
+    const baseEntries = [entry({ hostId: 'rev', hostName: 'Reverse Host' })];
+    const { rerender } = render(
+      <HostCanopyUnionTooltip
+        point={{ x: 100, y: 100 }}
+        entries={baseEntries}
+        exiting={true}
+        onExited={onExited}
+      />,
+    );
+
+    rerender(
+      <HostCanopyUnionTooltip
+        point={{ x: 100, y: 100 }}
+        entries={baseEntries}
+        exiting={false}
+        onExited={onExited}
+      />,
+    );
+
+    const tip = screen.getByTestId('host-canopy-union-tooltip');
+    expect(tip.hasAttribute('data-exiting')).toBe(false);
+
+    // A transitionend that fires *after* exiting flipped to false
+    // (the reverse-back-to-visible transition completing) must not
+    // trigger onExited.
+    fireTransitionEnd(tip, 'opacity');
+    expect(onExited).not.toHaveBeenCalled();
+  });
+
+  it('fires onEntryExited with the hostId of a phase="exiting" block on opacity transitionend', () => {
+    // Per-block fade contract: when one host drops out of the active
+    // set while others remain, PlanDataLayers keeps it in the entries
+    // array with phase='exiting'. The tooltip carries data-exiting on
+    // that block, and the block's own opacity transitionend fires
+    // onEntryExited(hostId) so PlanDataLayers can drop it from the
+    // array. Sibling entries with phase='entering' must NOT fire.
+    const onEntryExited = vi.fn();
+    render(
+      <HostCanopyUnionTooltip
+        point={{ x: 100, y: 100 }}
+        entries={[
+          entry({ hostId: 'stay', hostName: 'Staying Host', phase: 'entering' }),
+          entry({ hostId: 'gone', hostName: 'Dropping Host', phase: 'exiting' }),
+        ]}
+        onEntryExited={onEntryExited}
+      />,
+    );
+
+    const stayBlock = screen.getByTestId('host-block-stay');
+    const goneBlock = screen.getByTestId('host-block-gone');
+    expect(stayBlock.hasAttribute('data-exiting')).toBe(false);
+    expect(goneBlock.getAttribute('data-exiting')).toBe('true');
+
+    // Firing transitionend on the entering block must not fire
+    // onEntryExited (no phase='exiting' on this block).
+    fireTransitionEnd(stayBlock, 'opacity');
+    expect(onEntryExited).not.toHaveBeenCalled();
+
+    // Transform transitionend on the dropping block doesn't fire
+    // either — the handler filters propertyName to 'opacity'.
+    fireTransitionEnd(goneBlock, 'transform');
+    expect(onEntryExited).not.toHaveBeenCalled();
+
+    // Opacity transitionend on the dropping block fires once with
+    // the dropping hostId.
+    fireTransitionEnd(goneBlock, 'opacity');
+    expect(onEntryExited).toHaveBeenCalledTimes(1);
+    expect(onEntryExited).toHaveBeenCalledWith('gone');
   });
 });

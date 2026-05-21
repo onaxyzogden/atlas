@@ -45,10 +45,13 @@ import { hostCanopyUnion } from '../../../features/agroforestry/guildLivestockMa
 import {
   HostCanopyUnionTooltip,
   type HostBlockProps,
+  type HostBlockEntry,
 } from './HostCanopyUnionTooltip.js';
 
 // A single host's block of tooltip data, plus the hostId used for
-// click-toggle stack-equality unpin (not rendered).
+// click-toggle stack-equality unpin (not rendered). hostId is the
+// stable identity used by the displayedUnion mirror to merge hover
+// snapshots and decide which blocks are entering/exiting.
 type HostBlock = HostBlockProps & { hostId: string };
 import {
   useLayeringLensStore,
@@ -279,15 +282,22 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   } | null>(null);
   // Display-lifetime mirror of `activeUnion = pinnedUnion ?? hoveredUnion`.
   // Holds the tooltip mounted through its exit-fade after activeUnion → null
-  // so the CSS `tooltipFadeOut` keyframe has time to play. `phase` drives
-  // the `data-exiting` attribute; the monotonic `key` forces React to
-  // remount (re-playing the enter keyframe) when a new activeUnion arrives
-  // mid-exit.
+  // so the CSS opacity transition has time to interpolate to 0.
+  //
+  // 2026-05-30 (Slice H) reshape: `entries` carry per-block phase so
+  // when the active set changes mid-display (one host drops out while
+  // others remain) only the dropped host fades. Container `phase`
+  // remains for the full-dismiss case (activeUnion → null).
+  //
+  // The 2026-05-29 monotonic `key` is gone: CSS transitions interpolate
+  // from the current computed value, so reverse-in-flight (re-enter
+  // mid-exit) no longer needs a remount — flipping `exiting` from true
+  // back to false naturally transitions opacity back to 1 from
+  // wherever it is.
   const [displayedUnion, setDisplayedUnion] = useState<{
     point: { x: number; y: number };
-    entries: HostBlock[];
+    entries: HostBlockEntry[];
     phase: 'entering' | 'exiting';
-    key: number;
   } | null>(null);
   const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
@@ -3389,23 +3399,62 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   }, [map]);
 
   // Mirror activeUnion into displayedUnion so the tooltip can play its
-  // CSS exit-fade after activeUnion → null. When activeUnion is non-null
-  // we set the mirror synchronously with a fresh monotonic `key` so the
-  // child remounts and re-plays the enter keyframe (covers re-enter
-  // during an in-flight exit). When activeUnion → null we flip the
-  // existing mirror's phase to 'exiting'; the tooltip's onAnimationEnd
-  // fires onExited which clears the mirror. The 180 ms safety timeout
-  // covers the prefers-reduced-motion case (where animationend never
-  // fires) and any other edge where the event is missed.
+  // CSS exit-fade after activeUnion → null. Two kinds of transition are
+  // managed here:
+  //
+  //   1. Container fade (full dismiss): activeUnion → null flips the
+  //      mirror's phase to 'exiting'. The tooltip's container
+  //      onTransitionEnd (propertyName='opacity') fires onExited which
+  //      clears the mirror. A 200 ms safety timeout covers the
+  //      prefers-reduced-motion case (where transitionend never fires
+  //      because `transition: none` makes the change instant) and any
+  //      other edge where the event is missed.
+  //
+  //   2. Per-block fade (partial set change): activeUnion's hostId set
+  //      changes while still non-null. We merge prev entries with the
+  //      new active set by hostId — kept hosts get phase='entering'
+  //      with refreshed data, dropped hosts get phase='exiting' and
+  //      remain in the array until their own per-block
+  //      onTransitionEnd fires onEntryExited, which drops them.
+  //
+  // Reverse-in-flight (re-enter mid-exit) is automatic with CSS
+  // transitions: flipping a host's phase from 'exiting' back to
+  // 'entering' transitions opacity from its current value back to 1
+  // with no snap; flipping the container's phase from 'exiting' back
+  // to 'entering' does the same at the container level.
   const activeUnion = pinnedUnion ?? hoveredUnion;
   useEffect(() => {
     if (activeUnion) {
-      setDisplayedUnion((prev) => ({
-        point: activeUnion.point,
-        entries: activeUnion.entries,
-        phase: 'entering',
-        key: (prev?.key ?? 0) + 1,
-      }));
+      setDisplayedUnion((prev) => {
+        const newIds = new Set(activeUnion.entries.map((e) => e.hostId));
+        const prevEntries = prev?.entries ?? [];
+        const prevIds = new Set(prevEntries.map((e) => e.hostId));
+        // Preserve prev stack order (kept + still-exiting), then
+        // append brand-new hosts in their MapLibre topmost-first
+        // order. This keeps the visible block positions stable while
+        // a host fades out instead of having the stack reflow.
+        const merged: HostBlockEntry[] = [];
+        for (const p of prevEntries) {
+          if (newIds.has(p.hostId)) {
+            const fresh = activeUnion.entries.find(
+              (e) => e.hostId === p.hostId,
+            )!;
+            merged.push({ ...fresh, phase: 'entering' });
+          } else {
+            merged.push({ ...p, phase: 'exiting' });
+          }
+        }
+        for (const e of activeUnion.entries) {
+          if (!prevIds.has(e.hostId)) {
+            merged.push({ ...e, phase: 'entering' });
+          }
+        }
+        return {
+          point: activeUnion.point,
+          entries: merged,
+          phase: 'entering',
+        };
+      });
       return;
     }
     setDisplayedUnion((prev) =>
@@ -3417,7 +3466,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       setDisplayedUnion((prev) =>
         prev?.phase === 'exiting' ? null : prev,
       );
-    }, 180);
+    }, 200);
     return () => window.clearTimeout(t);
   }, [activeUnion]);
 
@@ -3432,12 +3481,22 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   if (!canvasContainer) return null;
   return createPortal(
     <HostCanopyUnionTooltip
-      key={displayedUnion.key}
       point={displayedUnion.point}
       entries={displayedUnion.entries}
       pinned={!!pinnedUnion && displayedUnion.phase !== 'exiting'}
       exiting={displayedUnion.phase === 'exiting'}
       onExited={() => setDisplayedUnion(null)}
+      onEntryExited={(hostId) => {
+        setDisplayedUnion((prev) => {
+          if (!prev) return prev;
+          const next = prev.entries.filter((e) => e.hostId !== hostId);
+          if (next.length === prev.entries.length) return prev;
+          // If the last visible block just finished fading out, drop
+          // the mirror entirely so the container doesn't sit empty.
+          if (next.length === 0) return null;
+          return { ...prev, entries: next };
+        });
+      }}
     />,
     canvasContainer,
   );

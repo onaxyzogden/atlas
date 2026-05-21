@@ -2,7 +2,20 @@
    per-host canopy-union halo at minzoom 17. Dark-glass palette mirrors
    InlineFeaturePopover.module.css so the two map-overlay surfaces read
    as the same design family, but this surface is pointer-events: none
-   so it cannot steal the underlying layer's mouseleave events. */
+   so it cannot steal the underlying layer's mouseleave events.
+
+   Fade machinery is CSS-transition-based (not keyframe-based). The
+   2026-05-29 ship used `@keyframes tooltipFadeOut` for the exit, but
+   keyframes always restart from `from`, which means a mid-exit
+   re-enter (cursor returns before the fade completes) snaps opacity
+   back to 0 and replays the enter from scratch. Transitions, by
+   contrast, interpolate from the current computed value — so
+   reverse-in-flight is free: when `data-exiting` flips from true back
+   to false (or absent), opacity transitions from whatever it is right
+   now back to 1, with no snap. The same mechanism powers per-block
+   fades for the multi-host stack: when one host drops out of the
+   active set while others remain, only its `[data-exiting='true']`
+   block fades, and if it returns mid-fade it transitions back. */
 .tooltip {
   position: absolute;
   z-index: 6;
@@ -18,43 +31,53 @@
   line-height: 1.35;
   backdrop-filter: blur(8px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-  animation: tooltipFadeIn 120ms ease-out;
+  /* Initial mount value — useLayoutEffect flips data-visible='true'
+     after the first paint, which triggers the enter transition from
+     these values up to opacity:1/translateY(0). */
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
 }
 
-@keyframes tooltipFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.tooltip[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
 }
 
-/* Exit fade — paired with the enter keyframe so the surface feels
-   symmetric. `forwards` holds the final opacity:0 state so React can
-   unmount on `animationend` (via the tooltip's onAnimationEnd handler)
-   or via the PlanDataLayers safety timeout, whichever fires first. */
-@keyframes tooltipFadeOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-}
-
+/* Exit + reverse-in-flight: `data-exiting='true'` overrides to 0,
+   `data-exiting` removed transitions back from current value to the
+   visible state. ease-in feels right for an exit; ease-out for the
+   default enter / reverse-back-to-visible is already inherited from
+   the base rule's `transition` declaration. */
 .tooltip[data-exiting='true'] {
-  animation: tooltipFadeOut 120ms ease-in forwards;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 120ms ease-in, transform 120ms ease-in;
+}
+
+/* Per-block fade machinery for the multi-host stack. When the cursor
+   moves so host X drops out of `entries` but Y and Z remain, X gets
+   `data-exiting='true'` and fades on its own without the container
+   exiting. If X comes back, the attribute is removed and the
+   transition runs in reverse from whatever opacity X is at. */
+.hostBlock {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
+}
+
+.hostBlock[data-exiting='true'] {
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 120ms ease-in, transform 120ms ease-in;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tooltip,
-  .tooltip[data-exiting='true'] {
-    animation: none;
+  .tooltip[data-exiting='true'],
+  .hostBlock,
+  .hostBlock[data-exiting='true'] {
+    transition: none;
   }
 }
 
