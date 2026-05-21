@@ -906,6 +906,7 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
         landWants={landWants}
         acreage={project.acreage ?? null}
         layerCount={layers.length}
+        projectId={project.id}
       />
 
       <AssessmentScoresSection
