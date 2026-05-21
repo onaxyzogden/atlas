@@ -27,6 +27,7 @@ import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
+import SectorCompassOverlay from '../observe/components/overlays/SectorCompassOverlay.js';
 import PlanDataLayers from '../plan/layers/PlanDataLayers.js';
 import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import PlanSelectionFloater from '../plan/PlanSelectionFloater.js';
@@ -191,6 +192,7 @@ export default function ActLayout() {
               ) : null}
               <ActDrawHost map={map} projectId={params.projectId ?? null} />
               <InlineFeaturePopover map={map} />
+              <SectorCompassOverlay projectId={id} />
               <PlanSelectionFloater />
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
             </>

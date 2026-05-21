@@ -26,6 +26,7 @@ import DiagnoseMap from '../components/DiagnoseMap.js';
 import MapToolbar from '../observe/components/MapToolbar.js';
 import { useMapToolStore } from '../observe/components/measure/useMapToolStore.js';
 import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotationLayers.js';
+import SectorCompassOverlay from '../observe/components/overlays/SectorCompassOverlay.js';
 import PlanTools from './PlanTools.js';
 import PlanChecklistAside from './PlanChecklistAside.js';
 import PlanModuleBar from './PlanModuleBar.js';
@@ -301,6 +302,7 @@ export default function PlanLayout() {
           <PlanVertexEditHandler map={map} />
           <PlanDrawHost map={map} projectId={id} parcelBoundary={boundary} />
           <InlineFeaturePopover map={map} />
+          <SectorCompassOverlay projectId={id} />
           <CoverCropPopoverEditor />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
