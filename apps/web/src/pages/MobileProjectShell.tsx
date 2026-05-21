@@ -212,6 +212,7 @@ export default function MobileProjectShell({
               onViewConstraints={() => setActiveDashboardSection('regulatory')}
               onOpenDesignMap={switchToDesign}
               onGenerateBrief={onGenerateBrief}
+              compactMode
             />
             <NextBestActionsPanel
               project={project}
@@ -223,7 +224,7 @@ export default function MobileProjectShell({
               project={project}
               onCreateChecklist={() => setActiveDashboardSection('regulatory')}
             />
-            <DecisionTriad project={project} />
+            <DecisionTriad project={project} compactMode />
           </div>
         )}
 

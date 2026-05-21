@@ -14,6 +14,8 @@ import type { AIEnrichmentState } from '../../../store/siteDataStore.js';
 import { SectionProfiler } from '../../../lib/perfProfiler.js';
 import { semantic } from '../../../lib/tokens.js';
 import { Spinner } from '../../ui/Spinner.js';
+import EvidenceSection from '../../evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '../../../lib/evidence/selectEvidence.js';
 import { AILabel } from './_shared.js';
 import p from '../../../styles/panel.module.css';
 import s from '../SiteIntelligencePanel.module.css';
@@ -22,13 +24,34 @@ export interface SiteSummaryNarrativeSectionProps {
   enrichment: AIEnrichmentState | undefined;
   siteSummary: string;
   landWants: string;
+  /** Optional context for Evidence selector. */
+  acreage?: number | null;
+  layerCount?: number;
+  liveCount?: number;
+  /** Phase E.4 mobile guard. */
+  compactMode?: boolean;
 }
 
 export const SiteSummaryNarrativeSection = memo(function SiteSummaryNarrativeSection({
   enrichment,
   siteSummary,
   landWants,
+  acreage = null,
+  layerCount = 0,
+  liveCount,
+  compactMode = false,
 }: SiteSummaryNarrativeSectionProps) {
+  const evidenceItem = selectEvidenceFor({
+    panelKey: 'site-narrative',
+    inputs: {
+      acreage,
+      layerCount,
+      liveCount,
+      modelVersion: undefined,
+      hasAiNarrative: Boolean(enrichment?.aiNarrative),
+      caveat: enrichment?.aiNarrative?.caveat,
+    },
+  });
   return (
     <SectionProfiler id="site-intel-site-summary">
       {/* ── Site Summary ───────────────────────────────────────────── */}
@@ -83,6 +106,9 @@ export const SiteSummaryNarrativeSection = memo(function SiteSummaryNarrativeSec
           <span>Generating AI insights...</span>
         </div>
       )}
+
+      {/* ── Tier-2 Evidence (Phase E.4) ────────────────────────────── */}
+      <EvidenceSection item={evidenceItem} compactMode={compactMode} />
     </SectionProfiler>
   );
 });

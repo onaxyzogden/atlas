@@ -27,6 +27,8 @@ import {
 import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData } from '../../store/siteDataStore.js';
 import type { MockLayerResult } from '../../lib/mockLayerData.js';
+import EvidenceSection from '../../components/evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '../../lib/evidence/selectEvidence.js';
 import css from './DecisionTriad.module.css';
 
 const EMPTY_LAYERS: MockLayerResult[] = [];
@@ -58,12 +60,28 @@ interface FlagCardProps {
   flag: AssessmentFlag;
   bucket: 'risk' | 'opportunity';
   rolledConfidence: 'High' | 'Medium' | 'Low';
+  /** Phase E.4 mobile guard. */
+  compactMode?: boolean;
 }
 
-function FlagCard({ flag, bucket, rolledConfidence }: FlagCardProps) {
+function FlagCard({ flag, bucket, rolledConfidence, compactMode = false }: FlagCardProps) {
   const sevClass = bucket === 'opportunity'
     ? css.severity_opportunity
     : css[`severity_${flag.severity}`];
+
+  // Limitations are warning/info risks per the column wiring in DecisionTriad;
+  // map back so the Evidence selector's discriminated bucket is honest.
+  const evidenceBucket: 'risk' | 'opportunity' | 'limitation' =
+    bucket === 'opportunity'
+      ? 'opportunity'
+      : flag.severity === 'critical'
+        ? 'risk'
+        : 'limitation';
+
+  const evidenceItem = selectEvidenceFor({
+    panelKey: 'decision-triad',
+    inputs: { flag, bucket: evidenceBucket },
+  });
 
   return (
     <li className={css.item}>
@@ -89,6 +107,7 @@ function FlagCard({ flag, bucket, rolledConfidence }: FlagCardProps) {
           </span>
         )}
       </div>
+      <EvidenceSection item={evidenceItem} compactMode={compactMode} />
     </li>
   );
 }
@@ -99,9 +118,10 @@ interface BucketColumnProps {
   bucket: 'risk' | 'opportunity';
   rolledConfidence: 'High' | 'Medium' | 'Low';
   emptyText: string;
+  compactMode?: boolean;
 }
 
-function BucketColumn({ title, items, bucket, rolledConfidence, emptyText }: BucketColumnProps) {
+function BucketColumn({ title, items, bucket, rolledConfidence, emptyText, compactMode }: BucketColumnProps) {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? items : items.slice(0, COLLAPSED_LIMIT);
   const hasMore = items.length > COLLAPSED_LIMIT;
@@ -122,6 +142,7 @@ function BucketColumn({ title, items, bucket, rolledConfidence, emptyText }: Buc
               flag={flag}
               bucket={bucket}
               rolledConfidence={rolledConfidence}
+              compactMode={compactMode}
             />
           ))}
         </ul>
@@ -141,9 +162,11 @@ function BucketColumn({ title, items, bucket, rolledConfidence, emptyText }: Buc
 
 interface DecisionTriadProps {
   project: LocalProject;
+  /** Phase E.4 mobile guard for Evidence disclosures. */
+  compactMode?: boolean;
 }
 
-export default function DecisionTriad({ project }: DecisionTriadProps) {
+export default function DecisionTriad({ project, compactMode = false }: DecisionTriadProps) {
   const siteData = useSiteData(project.id);
   const layers = siteData?.layers ?? EMPTY_LAYERS;
 
@@ -178,6 +201,7 @@ export default function DecisionTriad({ project }: DecisionTriadProps) {
         items={critical}
         bucket="risk"
         rolledConfidence={rolledConfidence}
+        compactMode={compactMode}
         emptyText="No critical risks detected."
       />
       <BucketColumn
@@ -185,6 +209,7 @@ export default function DecisionTriad({ project }: DecisionTriadProps) {
         items={opportunities}
         bucket="opportunity"
         rolledConfidence={rolledConfidence}
+        compactMode={compactMode}
         emptyText="No opportunities surfaced from current data."
       />
       <BucketColumn
@@ -192,6 +217,7 @@ export default function DecisionTriad({ project }: DecisionTriadProps) {
         items={limitations}
         bucket="risk"
         rolledConfidence={rolledConfidence}
+        compactMode={compactMode}
         emptyText="No constraints flagged."
       />
     </div>

@@ -904,6 +904,8 @@ function SiteIntelligencePanelImpl({ project }: SiteIntelligencePanelProps) {
         enrichment={enrichment}
         siteSummary={siteSummary}
         landWants={landWants}
+        acreage={project.acreage ?? null}
+        layerCount={layers.length}
       />
 
       <AssessmentScoresSection

@@ -24,6 +24,8 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData } from '../../store/siteDataStore.js';
 import type { MockLayerResult } from '../../lib/mockLayerData.js';
 import { ScoreCircle } from '../../components/panels/sections/_shared.js';
+import EvidenceSection from '../../components/evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '../../lib/evidence/selectEvidence.js';
 import css from './LandVerdictCard.module.css';
 
 const EMPTY_LAYERS: MockLayerResult[] = [];
@@ -71,6 +73,12 @@ interface LandVerdictCardProps {
   onViewConstraints?: () => void;
   onOpenDesignMap?: () => void;
   onGenerateBrief?: () => void;
+  /**
+   * Phase E.4 mobile guard — when true, the Tier-2 Evidence section is
+   * suppressed so mobile Overview keeps its flat <30s glance.
+   * Honors [[feedback-mobile-overview-stack]].
+   */
+  compactMode?: boolean;
 }
 
 export default function LandVerdictCard({
@@ -78,6 +86,7 @@ export default function LandVerdictCard({
   onViewConstraints,
   onOpenDesignMap,
   onGenerateBrief,
+  compactMode = false,
 }: LandVerdictCardProps) {
   const siteData = useSiteData(project.id);
   const layers = siteData?.layers ?? EMPTY_LAYERS;
@@ -109,6 +118,27 @@ export default function LandVerdictCard({
   }, [opportunities]);
 
   const verdict = VERDICT_META[bandFor(overallScore)];
+
+  const evidenceItem = useMemo(() => {
+    // Top contributing flags (highest priority first), risks before
+    // opportunities so the Evidence roster mirrors the card body.
+    const topFlags = [...risks, ...opportunities]
+      .sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0))
+      .slice(0, 3);
+    const layerInputs = layers.map((l) => ({
+      layerType: l.layerType,
+      confidence: (l.confidence ?? undefined) as 'low' | 'medium' | 'high' | undefined,
+    }));
+    return selectEvidenceFor({
+      panelKey: 'land-verdict',
+      inputs: {
+        overallScore,
+        layers: layerInputs,
+        topFlags,
+        country: project.country ?? undefined,
+      },
+    });
+  }, [overallScore, layers, risks, opportunities, project.country]);
 
   return (
     <section
@@ -180,6 +210,12 @@ export default function LandVerdictCard({
             Generate Brief
           </button>
         </div>
+
+        <EvidenceSection
+          item={evidenceItem}
+          compactMode={compactMode}
+          projectId={project.id}
+        />
       </div>
     </section>
   );
