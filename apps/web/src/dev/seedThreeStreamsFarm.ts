@@ -31,9 +31,16 @@ import { usePhaseStore } from '../store/phaseStore.js';
 import { useSiteProfileStore } from '../store/siteProfileStore.js';
 import { useWorkItemStore } from '../store/workItemStore.js';
 import { useNurseryStore, type PropagationBatch } from '../store/nurseryStore.js';
+import { useEcologyStore } from '../store/ecologyStore.js';
 import { seedGoalCompassPlan } from './seedGoalCompassPlan.js';
 
-const SENTINEL_KEY = 'three-streams-seeded@v1';
+// Phase 4 (2026-05-21): keyed by projectId so a cold visitor who
+// instantiates the Ecosystem Farm template gets the same client-side
+// substrate as the canonical Three Streams builtin. Legacy
+// `three-streams-seeded@v1` flag is still honoured for the canonical
+// project (backward-compat with existing browsers).
+const SENTINEL_PREFIX = 'ecosystem-farm-seeded@v1:';
+const LEGACY_SENTINEL_KEY = 'three-streams-seeded@v1';
 
 interface SeedResult {
   ok: boolean;
@@ -194,14 +201,28 @@ function buildNurseryBatches(projectId: string): PropagationBatch[] {
 // id or serverId because the project lands via the builtins API.
 // ─────────────────────────────────────────────────────────────────────────
 
-function findTarget() {
-  return useProjectStore
-    .getState()
-    .projects.find(
-      (p) =>
-        p.id === THREE_STREAMS_PROJECT_ID ||
-        p.serverId === THREE_STREAMS_PROJECT_ID,
-    );
+function findTarget(projectId?: string) {
+  const projects = useProjectStore.getState().projects;
+  if (projectId) {
+    return projects.find((p) => p.id === projectId || p.serverId === projectId);
+  }
+  return projects.find(
+    (p) =>
+      p.id === THREE_STREAMS_PROJECT_ID ||
+      p.serverId === THREE_STREAMS_PROJECT_ID,
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 4 — set per-project succession stage to canon Y2 ("mid"). The
+// store carries one stage per project (vegetation-patch-level succession
+// lives in vegetationStore); canon Y2 polyculture maturation = "mid".
+// ─────────────────────────────────────────────────────────────────────────
+
+function setSuccessionToCanon(projectId: string): void {
+  const ecology = useEcologyStore.getState();
+  if (ecology.successionStageByProject[projectId]) return; // don't clobber
+  ecology.setSuccessionStage(projectId, 'mid');
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -277,11 +298,35 @@ function seedNursery(projectId: string): number {
 // Public entry point.
 // ─────────────────────────────────────────────────────────────────────────
 
-export function seedThreeStreamsFarm(opts: { force?: boolean } = {}): SeedResult {
+/**
+ * Phase 4 generalized seeder — call once per cloned project (or against
+ * the canonical Three Streams sentinel). Idempotent via per-project
+ * `ecosystem-farm-seeded@v1:<projectId>` localStorage key (plus the
+ * legacy `three-streams-seeded@v1` flag for the canonical project).
+ */
+export function seedFromEcosystemFarmTemplate(
+  projectId: string,
+  opts: { force?: boolean } = {},
+): SeedResult {
+  const sentinelKey = SENTINEL_PREFIX + projectId;
+  const isCanonical =
+    projectId === THREE_STREAMS_PROJECT_ID;
+
   if (!opts.force && typeof localStorage !== 'undefined') {
     try {
-      if (localStorage.getItem(SENTINEL_KEY)) {
-        return { ok: false, reason: 'three-streams-seeded@v1 sentinel already set; pass { force: true } to replay' };
+      if (localStorage.getItem(sentinelKey)) {
+        return {
+          ok: false,
+          reason: `${sentinelKey} sentinel already set; pass { force: true } to replay`,
+        };
+      }
+      if (isCanonical && localStorage.getItem(LEGACY_SENTINEL_KEY)) {
+        // Backward-compat: legacy sentinel honoured for the canonical
+        // project so existing browsers don't double-seed.
+        return {
+          ok: false,
+          reason: 'three-streams-seeded@v1 legacy sentinel set; pass { force: true } to replay',
+        };
       }
     } catch {
       // localStorage unavailable (privacy mode, etc.) — fall through and rely
@@ -289,11 +334,11 @@ export function seedThreeStreamsFarm(opts: { force?: boolean } = {}): SeedResult
     }
   }
 
-  const target = findTarget();
+  const target = findTarget(projectId);
   if (!target) {
     return {
       ok: false,
-      reason: `Three Streams Farm project not yet hydrated into the local store (id ${THREE_STREAMS_PROJECT_ID}). Wait for the builtins fetch or load the project.`,
+      reason: `Project not yet hydrated into the local store (id ${projectId}). Wait for the project fetch or load the project.`,
     };
   }
 
@@ -301,6 +346,7 @@ export function seedThreeStreamsFarm(opts: { force?: boolean } = {}): SeedResult
 
   const phasesCustomised = customisePhases(pid);
   setSiteProfileToCanon(pid);
+  setSuccessionToCanon(pid);
 
   const goalCompass = seedGoalCompassPlan(pid);
   const workItemCount = useWorkItemStore
@@ -312,7 +358,11 @@ export function seedThreeStreamsFarm(opts: { force?: boolean } = {}): SeedResult
 
   if (typeof localStorage !== 'undefined') {
     try {
-      localStorage.setItem(SENTINEL_KEY, new Date().toISOString());
+      localStorage.setItem(sentinelKey, new Date().toISOString());
+      if (isCanonical) {
+        // Also write the legacy sentinel so older code paths see consistency.
+        localStorage.setItem(LEGACY_SENTINEL_KEY, new Date().toISOString());
+      }
     } catch {
       // swallow — sentinel is best-effort.
     }
@@ -328,9 +378,6 @@ export function seedThreeStreamsFarm(opts: { force?: boolean } = {}): SeedResult
   };
 
   if (!goalCompass.ok) {
-    // The engine refused (already-populated spine, or a missing goal-tree
-    // edge). Still report success on the parts we did seed, but include
-    // the engine's reason so the operator can react.
     return {
       ...result,
       reason: `goal-compass engine: ${goalCompass.reason ?? 'unknown'}`,
@@ -338,15 +385,27 @@ export function seedThreeStreamsFarm(opts: { force?: boolean } = {}): SeedResult
   }
 
   console.info(
-    `[seedThreeStreamsFarm] customised ${phasesCustomised} phases, ${workItemCount} goal-compass WorkItems on spine, ${nurseryBatches} nursery batches added on "${target.name}" (${pid}).`,
+    `[seedFromEcosystemFarmTemplate] customised ${phasesCustomised} phases, ${workItemCount} goal-compass WorkItems on spine, ${nurseryBatches} nursery batches, succession='mid' on "${target.name}" (${pid}).`,
   );
 
   return result;
 }
 
+/**
+ * Legacy wrapper — preserves the public surface used by the auto-run
+ * hook + window global. Targets the canonical Three Streams sentinel.
+ */
+export function seedThreeStreamsFarm(opts: { force?: boolean } = {}): SeedResult {
+  const target = findTarget();
+  const pid = target?.id ?? THREE_STREAMS_PROJECT_ID;
+  return seedFromEcosystemFarmTemplate(pid, opts);
+}
+
 if (typeof window !== 'undefined') {
   (window as unknown as Record<string, unknown>).__ogdenSeedThreeStreamsFarm =
     seedThreeStreamsFarm;
+  (window as unknown as Record<string, unknown>).__ogdenSeedFromEcosystemFarmTemplate =
+    seedFromEcosystemFarmTemplate;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -360,35 +419,39 @@ if (typeof window !== 'undefined') {
 
 if (typeof window !== 'undefined') {
   try {
-    const unsubscribe = useProjectStore.subscribe((state) => {
-      const hit = state.projects.find(
-        (p) =>
-          p.id === THREE_STREAMS_PROJECT_ID ||
-          p.serverId === THREE_STREAMS_PROJECT_ID,
-      );
-      if (!hit) return;
-      unsubscribe();
-      // Defer to next tick so other builtin-row hydration (observe data,
-      // layer summaries) settles first.
+    // Tracks projects we've already kicked off a seed for in this tab so
+    // a single subscription can serve both the canonical Three Streams
+    // arrival and any number of Ecosystem-Farm-template instantiations.
+    const fired = new Set<string>();
+
+    const tryFireFor = (projectId: string) => {
+      if (fired.has(projectId)) return;
+      fired.add(projectId);
       queueMicrotask(() => {
-        seedThreeStreamsFarm();
+        seedFromEcosystemFarmTemplate(projectId);
       });
-    });
-    // Fire immediately if the project was already in the store at
+    };
+
+    const scan = (projects: ReturnType<typeof useProjectStore.getState>['projects']) => {
+      for (const p of projects) {
+        if (
+          p.id === THREE_STREAMS_PROJECT_ID ||
+          p.serverId === THREE_STREAMS_PROJECT_ID
+        ) {
+          tryFireFor(p.id);
+          continue;
+        }
+        const meta = (p as { metadata?: Record<string, unknown> }).metadata;
+        if (meta && meta.instantiatedFromTemplate === 'ecosystem-farm') {
+          tryFireFor(p.id);
+        }
+      }
+    };
+
+    useProjectStore.subscribe((state) => scan(state.projects));
+    // Fire immediately if matching projects were already in the store at
     // module-init (hot-reload, persisted store rehydration).
-    const already = useProjectStore
-      .getState()
-      .projects.find(
-        (p) =>
-          p.id === THREE_STREAMS_PROJECT_ID ||
-          p.serverId === THREE_STREAMS_PROJECT_ID,
-      );
-    if (already) {
-      unsubscribe();
-      queueMicrotask(() => {
-        seedThreeStreamsFarm();
-      });
-    }
+    scan(useProjectStore.getState().projects);
   } catch (err) {
     console.warn('[seedThreeStreamsFarm] auto-run hook failed to attach', err);
   }
