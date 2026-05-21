@@ -89,6 +89,8 @@ import {
   STORAGE_LABEL,
   SURFACE_LABEL,
 } from '../cards/water-management/waterMath.js';
+import type { DesignElement } from '../../../store/designElementsStore.js';
+import { TREE_PLANTING_KINDS } from '../../../features/vegetation/treePlantingSpineSync.js';
 
 // ---------- Silvopasture re-pin (shared) ----------
 //
@@ -1673,6 +1675,225 @@ export function buildGenericBeEditSchema(
       if (nextState !== e.state) {
         store.setState(e.id, nextState);
       }
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Habitat feature (Slice 8-E) ----------
+//
+// Inline editor for placed habitat-category DesignElements. The picker
+// surfaces `habitatMetadata.hostTreeFeatureId` for mount-on-tree kinds
+// (owl-box / raptor-perch / nest-box / snag) so the steward can wire the
+// host that the spine seeder will project into `dependsOnAuto`.
+//
+// Per-kind dimension fields mirror Slice 2's draw-tool popover:
+//   - owl-box / nest-box → mountingHeightM
+//   - raptor-perch       → heightM
+//   - snag               → approxHeightM + cavityCount
+// Universal label + notes. Other habitat kinds (brush-pile, insectary-
+// strip, wetland-edge) get only label + notes (no host).
+//
+// Save deep-patches `habitatMetadata` immutably and collapses fully-empty
+// metadata back to undefined so downstream consumers see a clean shape.
+
+/** Habitat kinds that mount on a host tree. Picker hides for non-members. */
+export const HOST_BEARING_HABITAT_KINDS: ReadonlySet<string> = new Set([
+  'owl-box',
+  'raptor-perch',
+  'nest-box',
+  'snag',
+]);
+
+export function habitatKindAcceptsHost(kind: string): boolean {
+  return HOST_BEARING_HABITAT_KINDS.has(kind);
+}
+
+function humanTreeKind(kind: string): string {
+  switch (kind) {
+    case 'oak-tree':   return 'Oak';
+    case 'pine-tree':  return 'Pine';
+    case 'apple-tree': return 'Apple';
+    case 'shrub':      return 'Shrub';
+    default:           return kind;
+  }
+}
+
+/** Vegetation-category point trees that qualify as habitat hosts. */
+export function listHabitatHostCandidates(
+  designElements: readonly DesignElement[],
+): { value: string; label: string }[] {
+  return designElements
+    .filter(
+      (el) =>
+        el.category === 'vegetation' &&
+        el.geometry.type === 'Point' &&
+        (TREE_PLANTING_KINDS as readonly string[]).includes(el.kind),
+    )
+    .map((el) => ({
+      value: el.id,
+      label: `${humanTreeKind(el.kind)}${el.label ? ` — ${el.label}` : ''}`,
+    }));
+}
+
+const HABITAT_KIND_TITLE: Record<string, string> = {
+  'owl-box':         'Edit owl box',
+  'raptor-perch':    'Edit raptor perch',
+  'nest-box':        'Edit nest box',
+  'brush-pile':      'Edit brush pile',
+  'snag':            'Edit snag',
+  'insectary-strip': 'Edit insectary strip',
+  'wetland-edge':    'Edit wetland edge',
+};
+
+export function buildHabitatFeatureEditSchema(
+  el: DesignElement,
+  projectId: string,
+  updateElement: (
+    projectId: string,
+    id: string,
+    patch: Partial<Omit<DesignElement, 'id'>>,
+  ) => void,
+  designElements: readonly DesignElement[],
+): Omit<InlineFormPayload, 'anchor'> {
+  const md = el.habitatMetadata ?? {};
+  const acceptsHost = habitatKindAcceptsHost(el.kind);
+  const candidates = acceptsHost ? listHabitatHostCandidates(designElements) : [];
+  const hostHasCandidates = candidates.length > 0;
+
+  const fields: FieldSpec[] = [];
+
+  // --- Per-kind dimension fields ---
+  if (el.kind === 'owl-box' || el.kind === 'nest-box') {
+    fields.push({
+      key: 'mountingHeightM',
+      label: 'Mounting height',
+      kind: 'number',
+      suffix: 'm',
+      placeholder: '3.0',
+    });
+  } else if (el.kind === 'raptor-perch') {
+    fields.push({
+      key: 'heightM',
+      label: 'Height',
+      kind: 'number',
+      suffix: 'm',
+      placeholder: '4.0',
+    });
+  } else if (el.kind === 'snag') {
+    fields.push(
+      {
+        key: 'approxHeightM',
+        label: 'Approx. height',
+        kind: 'number',
+        suffix: 'm',
+        placeholder: '8.0',
+      },
+      {
+        key: 'cavityCount',
+        label: 'Cavity count',
+        kind: 'number',
+        placeholder: '0',
+      },
+    );
+  }
+
+  // --- Host-tree picker (mount-on-tree kinds only) ---
+  if (acceptsHost) {
+    if (hostHasCandidates) {
+      fields.push({
+        key: 'hostTreeFeatureId',
+        label: 'Host tree',
+        kind: 'select',
+        options: [{ value: '', label: '(no host)' }, ...candidates],
+      });
+    } else {
+      fields.push({
+        key: 'hostTreeFeatureId',
+        label: 'Host tree',
+        kind: 'select',
+        readonly: true,
+        options: [
+          {
+            value: '',
+            label: 'Place an oak / pine / apple / shrub point first.',
+          },
+        ],
+      });
+    }
+  }
+
+  // --- Universal label + notes ---
+  fields.push(
+    { key: 'label', label: 'Label', kind: 'text' },
+    {
+      key: 'notes',
+      label: 'Notes',
+      kind: 'textarea',
+      placeholder: 'Free-form notes…',
+    },
+  );
+
+  const initial: Record<string, string | number> = {
+    label: el.label ?? '',
+    notes: md.notes ?? '',
+  };
+  if (el.kind === 'owl-box' || el.kind === 'nest-box') {
+    initial.mountingHeightM = md.mountingHeightM ?? '';
+  } else if (el.kind === 'raptor-perch') {
+    initial.heightM = md.heightM ?? '';
+  } else if (el.kind === 'snag') {
+    initial.approxHeightM = md.approxHeightM ?? '';
+    initial.cavityCount = md.cavityCount ?? '';
+  }
+  if (acceptsHost) {
+    initial.hostTreeFeatureId = md.hostTreeFeatureId ?? '';
+  }
+
+  return {
+    title: HABITAT_KIND_TITLE[el.kind] ?? 'Edit habitat feature',
+    fields,
+    initial,
+    onSave: (values) => {
+      const labelStr = String(values.label ?? '').trim();
+      const notesStr = String(values.notes ?? '').trim();
+
+      const nextMd: NonNullable<DesignElement['habitatMetadata']> = { ...md };
+
+      if (el.kind === 'owl-box' || el.kind === 'nest-box') {
+        const raw = Number(values.mountingHeightM);
+        if (Number.isFinite(raw) && raw > 0) nextMd.mountingHeightM = raw;
+        else delete nextMd.mountingHeightM;
+      } else if (el.kind === 'raptor-perch') {
+        const raw = Number(values.heightM);
+        if (Number.isFinite(raw) && raw > 0) nextMd.heightM = raw;
+        else delete nextMd.heightM;
+      } else if (el.kind === 'snag') {
+        const rawH = Number(values.approxHeightM);
+        if (Number.isFinite(rawH) && rawH > 0) nextMd.approxHeightM = rawH;
+        else delete nextMd.approxHeightM;
+        const rawC = Number(values.cavityCount);
+        if (Number.isFinite(rawC) && rawC >= 0) nextMd.cavityCount = rawC;
+        else delete nextMd.cavityCount;
+      }
+
+      if (acceptsHost) {
+        const raw = String(values.hostTreeFeatureId ?? '').trim();
+        if (raw) nextMd.hostTreeFeatureId = raw;
+        else delete nextMd.hostTreeFeatureId;
+      }
+
+      if (notesStr) nextMd.notes = notesStr;
+      else delete nextMd.notes;
+
+      const cleanedMd = Object.keys(nextMd).length > 0 ? nextMd : undefined;
+
+      updateElement(projectId, el.id, {
+        label: labelStr || undefined,
+        habitatMetadata: cleanedMd,
+      });
     },
     onCancel: () => {
       /* no-op — record already exists */

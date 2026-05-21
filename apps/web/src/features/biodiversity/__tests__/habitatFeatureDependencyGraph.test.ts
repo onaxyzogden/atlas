@@ -28,6 +28,8 @@ import {
 } from '../habitatFeatureSpineSync.js';
 import { seedHabitatFeatureDependencies } from '../habitatFeatureDependencyGraph.js';
 import { treePlantingProvenanceId } from '../../vegetation/treePlantingSpineSync.js';
+import { buildHabitatFeatureEditSchema } from '../../../v3/plan/layers/inlineEditSchemas.js';
+import { updateDesignElement } from '../../../store/builtEnvironmentSelectors.js';
 
 function treePoint(over: Partial<DesignElement> & { id: string; kind: string }): DesignElement {
   return {
@@ -143,6 +145,30 @@ describe('seedHabitatFeatureWorkItems (D1 projection)', () => {
     });
     const owl = items.find((i) => i.id === habitatFeatureProvenanceId('owl1'));
     expect(owl?.dependsOnAuto).toEqual([treePlantingProvenanceId('oak1')]);
+  });
+});
+
+describe('popover → store → seeder roundtrip (Slice 8-E)', () => {
+  it('schema onSave writes hostTreeFeatureId; subsequent push surfaces dependsOnAuto', () => {
+    const oak = treePoint({ id: 'oak1', kind: 'oak-tree' });
+    const owl = habitatPoint({ id: 'owl1', kind: 'owl-box' });
+    useLandDesignStore.setState({ byProject: { p1: [oak, owl] } });
+    const designElements = useLandDesignStore.getState().byProject.p1!;
+    const schema = buildHabitatFeatureEditSchema(
+      owl,
+      'p1',
+      updateDesignElement,
+      designElements,
+    );
+    schema.onSave({ ...schema.initial, hostTreeFeatureId: 'oak1' });
+    const stored = useLandDesignStore
+      .getState()
+      .byProject.p1!.find((e) => e.id === 'owl1');
+    expect(stored?.habitatMetadata?.hostTreeFeatureId).toBe('oak1');
+    pushHabitatFeaturesToSpine('p1');
+    const items = useWorkItemStore.getState().items;
+    const owlWi = items.find((i) => i.id === habitatFeatureProvenanceId('owl1'));
+    expect(owlWi?.dependsOnAuto).toEqual([treePlantingProvenanceId('oak1')]);
   });
 });
 

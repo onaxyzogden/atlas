@@ -38,10 +38,14 @@ import {
   getDesignElementsForProject,
   removeDesignElement,
   removeStructure,
+  updateDesignElement,
 } from '../../store/builtEnvironmentSelectors.js';
 import * as turf from '@turf/turf';
 import { useInlineFormStore } from './draw/inlineFormStore.js';
-import { buildPaddockEditSchema } from './layers/inlineEditSchemas.js';
+import {
+  buildPaddockEditSchema,
+  buildHabitatFeatureEditSchema,
+} from './layers/inlineEditSchemas.js';
 import {
   resolveSilvopastureHosts,
   listHostsForSelection,
@@ -212,6 +216,30 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
       : KIND_LABEL[single.kind]
     : `${items.length} selected`;
 
+  const habitatElement =
+    single && single.kind === 'design-element' && single.projectId
+      ? getDesignElementsForProject(single.projectId).find(
+          (el) => el.id === single.id && el.category === 'habitat',
+        ) ?? null
+      : null;
+
+  const onOpenHabitatEdit = () => {
+    if (!habitatElement || !single || !single.projectId) return;
+    const projectId = single.projectId;
+    const centroid = turf.centroid(turf.feature(habitatElement.geometry));
+    const [lng, lat] = centroid.geometry.coordinates as [number, number];
+    const designElements = getDesignElementsForProject(projectId);
+    useInlineFormStore.getState().open({
+      ...buildHabitatFeatureEditSchema(
+        habitatElement,
+        projectId,
+        updateDesignElement,
+        designElements,
+      ),
+      anchor: [lng, lat],
+    });
+  };
+
   const onOpenPaddockEdit = () => {
     if (!single || single.kind !== 'paddock') return;
     const pd = useLivestockStore
@@ -247,6 +275,16 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
           className={css.count}
           onClick={onOpenPaddockEdit}
           title="Edit paddock"
+          style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
+        >
+          {countLabel}
+        </button>
+      ) : habitatElement ? (
+        <button
+          type="button"
+          className={css.count}
+          onClick={onOpenHabitatEdit}
+          title="Edit habitat feature"
           style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
         >
           {countLabel}
