@@ -11,6 +11,7 @@ import { AppError } from '../../lib/errors.js';
 
 import { AIEnrichmentRequest } from '@ogden/shared';
 import { claudeClient } from '../../services/ai/ClaudeClient.js';
+import { runAgent } from '../../services/ai/agentRegistry.js';
 
 const ChatRequestSchema = z.object({
   messages: z.array(
@@ -22,8 +23,16 @@ const ChatRequestSchema = z.object({
   systemPrompt: z.string().max(64000),
 });
 
+const AgentChatParams = z.object({ projectId: z.string().uuid() });
+
+const AgentChatBody = z.object({
+  role: z.enum(['agro-designer', 'hydro-engineer', 'general']).optional(),
+  autoRoute: z.boolean().optional().default(true),
+  contextText: z.string().min(1).max(64000),
+});
+
 export default async function aiRoutes(fastify: FastifyInstance) {
-  const { authenticate } = fastify;
+  const { authenticate, resolveProjectRole } = fastify;
 
   // POST /ai/chat — proxy chat to Anthropic Messages API
   fastify.post('/chat', { preHandler: [authenticate] }, async (req) => {
@@ -93,4 +102,41 @@ export default async function aiRoutes(fastify: FastifyInstance) {
       error: null,
     };
   });
+
+  // POST /ai/project/:projectId/agent-chat — Phase C.6 agent workforce
+  // entry point. Wraps `claudeClient.chatWithRole` with a role registry
+  // that composes a per-role system addendum on top of the cached Atlas
+  // base prompt, parses the trailing HANDOFF: line into structured form,
+  // and never auto-chains: callers decide whether to act on a handoff.
+  //
+  // Gated on `authenticate + resolveProjectRole` — any authenticated
+  // project member may call it (reads-only, no writes).
+  fastify.post<{ Params: { projectId: string } }>(
+    '/project/:projectId/agent-chat',
+    { preHandler: [authenticate, resolveProjectRole] },
+    async (req) => {
+      if (!config.ANTHROPIC_API_KEY) {
+        throw new AppError(
+          'AI_NOT_CONFIGURED',
+          'AI features are not configured. Set ANTHROPIC_API_KEY in the server environment.',
+          503,
+        );
+      }
+      const { projectId } = AgentChatParams.parse(req.params);
+      const body = AgentChatBody.parse(req.body ?? {});
+
+      const result = await runAgent({
+        role: body.role,
+        autoRoute: body.autoRoute,
+        contextText: body.contextText,
+        projectId,
+      });
+
+      return {
+        data: result,
+        meta: undefined,
+        error: null,
+      };
+    },
+  );
 }

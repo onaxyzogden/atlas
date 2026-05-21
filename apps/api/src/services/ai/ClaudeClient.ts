@@ -41,7 +41,7 @@ const REQUEST_TIMEOUT_MS = 60_000;
 
 // ─── System prompt (shared, cacheable) ───────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are Atlas, a land intelligence agent helping restoration-minded stewards understand the properties they are evaluating. You analyze real geospatial data — soils, elevation, watershed, climate, wetlands, zoning, land cover — and translate it into plain, contemplative language.
+export const SYSTEM_PROMPT = `You are Atlas, a land intelligence agent helping restoration-minded stewards understand the properties they are evaluating. You analyze real geospatial data — soils, elevation, watershed, climate, wetlands, zoning, land cover — and translate it into plain, contemplative language.
 
 Core principles:
 - Cite specific data values from the layers provided. Do not invent numbers, regulations, or determinations.
@@ -151,17 +151,33 @@ interface AnthropicMessageResponse {
   usage?: { input_tokens: number; output_tokens: number };
 }
 
+export interface SystemBlock {
+  type: 'text';
+  text: string;
+  cache_control?: { type: 'ephemeral' };
+}
+
 /**
  * POST to the Anthropic Messages API. System prompt is sent as a
  * cacheable block (prompt caching) to reduce cost on repeated tasks.
+ *
+ * Accepts either a string (wrapped as a single ephemeral-cached block,
+ * back-compat with the three original public methods) or a pre-composed
+ * `SystemBlock[]` (used by `chatWithRole` to keep the Atlas base prompt
+ * cached while varying a per-role addendum).
  */
 async function callAnthropic(
   apiKey: string,
-  systemPrompt: string,
+  systemPrompt: string | SystemBlock[],
   userMessage: string,
-): Promise<{ text: string; model: string }> {
+): Promise<{ text: string; model: string; inputTokens: number; outputTokens: number }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  const systemBlocks: SystemBlock[] =
+    typeof systemPrompt === 'string'
+      ? [{ type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } }]
+      : systemPrompt;
 
   try {
     const response = await fetch(ANTHROPIC_URL, {
@@ -174,10 +190,7 @@ async function callAnthropic(
       body: JSON.stringify({
         model: MODEL_ID,
         max_tokens: MAX_TOKENS,
-        system: [
-          // Prompt caching on the stable system prompt (Sonnet supports cache_control)
-          { type: 'text', text: systemPrompt, cache_control: { type: 'ephemeral' } },
-        ],
+        system: systemBlocks,
         messages: [{ role: 'user', content: userMessage }],
       }),
       signal: controller.signal,
@@ -195,7 +208,12 @@ async function callAnthropic(
       .map((c) => c.text as string)
       .join('\n');
 
-    return { text, model: data.model };
+    return {
+      text,
+      model: data.model,
+      inputTokens: data.usage?.input_tokens ?? 0,
+      outputTokens: data.usage?.output_tokens ?? 0,
+    };
   } catch (err) {
     if (err instanceof AppError) throw err;
     if (err instanceof DOMException && err.name === 'AbortError') {
@@ -314,6 +332,25 @@ export class ClaudeClient {
       generatedAt: new Date().toISOString(),
       modelId: model,
     };
+  }
+
+  /**
+   * Multi-block system prompt: the Atlas base prompt stays cached
+   * (`cache_control: ephemeral`) while the per-role addendum varies.
+   * Used by the agentRegistry to compose `@Agro-Designer` /
+   * `@Hydro-Engineer` / `@general` agents without invalidating the
+   * cache key.
+   */
+  async chatWithRole(input: {
+    roleSystemAddendum: string;
+    userMessage: string;
+  }): Promise<{ text: string; model: string; inputTokens: number; outputTokens: number }> {
+    const key = this.requireKey();
+    const system: SystemBlock[] = [
+      { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: input.roleSystemAddendum },
+    ];
+    return callAnthropic(key, system, input.userMessage);
   }
 }
 
