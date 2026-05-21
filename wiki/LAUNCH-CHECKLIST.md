@@ -127,9 +127,16 @@ first four; the remainder are deferred.
   Evidence fragments use a single `confidence: 'low' | 'medium' | 'high'`
   pill; range-band variants would mirror D.7's `CostRange`.
 
-- [ ] **Server-side replay tool for `evidence_audit_log`.**
-  Given an `input_hash`, recompute the selector and assert byte-identical
-  output — durability test, not gating.
+- [x] **Server-side replay tool for `evidence_audit_log` (Phase G).**
+  Given a `--all-since <ISO>` window, recompute every row's selector
+  and assert byte-identical output against the stored `evidence_output`,
+  and recompute `hashInputs(input_payload)` against the stored
+  `input_hash`. Three failure modes caught: selector drift,
+  hash-function drift, schema drift. Durability sweep, not gating.
+  Landed: G.1 promoted selectors to `packages/shared/evidence`; G.2
+  shipped `replayEvidenceAuditSince` + the `evidence:replay` CLI; G.3
+  added a self-cleaning pgtest. See
+  [[decisions/2026-05-21-atlas-phase-g-evidence-audit-replay]].
 
 - [ ] **Playwright CI integration.** F.1 is a manual `pnpm` script;
   wiring it into CI requires a logged-in `storageState` fixture managed
