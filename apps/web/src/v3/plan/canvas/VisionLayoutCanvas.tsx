@@ -43,6 +43,7 @@ import { useActiveElementKind } from './useToolIdToElementKind.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import BeV2ExistingTool from '../../observe/components/draw/BeV2ExistingTool.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
+import SectorCompassOverlay from '../../observe/components/overlays/SectorCompassOverlay.js';
 import PlanObserveSelectionHandler from '../draw/PlanObserveSelectionHandler.js';
 import InlineFeaturePopover from '../draw/InlineFeaturePopover.js';
 import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
@@ -186,6 +187,7 @@ export default function VisionLayoutCanvas({
           <ObserveAnnotationLayers map={map} projectId={projectId} />
           <PlanObserveSelectionHandler map={map} />
           <InlineFeaturePopover map={map} />
+          <SectorCompassOverlay projectId={projectId} />
           <UtilityConflictDialog map={map} />
           <ObserveLinkPopover map={map} />
           {/* Plan-data layers in non-editable mode: paddocks / zones /

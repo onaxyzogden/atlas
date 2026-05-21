@@ -1,6 +1,6 @@
 .dock {
   position: absolute;
-  right: 12px;
+  left: 12px;
   bottom: 12px;
   z-index: 3;
   pointer-events: none;
@@ -40,7 +40,7 @@
 
 .popover {
   position: absolute;
-  right: 0;
+  left: 0;
   bottom: calc(100% + 8px);
   min-width: 180px;
   display: flex;

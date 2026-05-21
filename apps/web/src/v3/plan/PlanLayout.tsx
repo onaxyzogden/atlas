@@ -53,6 +53,10 @@ import PlanObserveSelectionHandler from './draw/PlanObserveSelectionHandler.js';
 import PlanCropAreaSelectionHandler from './draw/PlanCropAreaSelectionHandler.js';
 import CoverCropPopoverEditor from '../../features/coverCrops/CoverCropPopoverEditor.js';
 import { pushHabitatFeaturesToSpine } from '../../features/biodiversity/habitatFeatureSpineSync.js';
+import {
+  TREE_PLANTING_KINDS,
+  pushTreePlantingsToSpine,
+} from '../../features/vegetation/treePlantingSpineSync.js';
 import { useDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
 import ObserveLinkPopover from './draw/ObserveLinkPopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
@@ -137,6 +141,31 @@ export default function PlanLayout() {
     if (!id) return;
     pushHabitatFeaturesToSpine(id);
   }, [id, habitatFeatureSignature]);
+
+  // Tree-planting → D0 work-item spine bridge (Slice 8-A of the 2026-05-21
+  // habitat-feature unification — D1 predecessor auto-edges). Mirrors the
+  // habitat-feature effect above: whenever the steward commits / edits /
+  // deletes a vegetation-category point DesignElement of one of the four
+  // tree-planting kinds, re-seed `source:'tree-planting'` rows. Override
+  // + cross-source preservation enforced inside `replaceTreePlantingRows`.
+  const treePlantingSignature = useMemo(
+    () =>
+      planDesignElements
+        .filter(
+          (el) =>
+            el.category === 'vegetation' &&
+            (TREE_PLANTING_KINDS as readonly string[]).includes(el.kind) &&
+            el.geometry.type === 'Point',
+        )
+        .map((el) => `${el.id}:${el.kind}:${el.phase}`)
+        .sort()
+        .join('|'),
+    [planDesignElements],
+  );
+  useEffect(() => {
+    if (!id) return;
+    pushTreePlantingsToSpine(id);
+  }, [id, treePlantingSignature]);
 
   // Hydrate machinery inventory from the server and bridge local store
   // mutations to /api/v1/machinery-items. Skipped for the MTC fallback id
