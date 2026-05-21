@@ -39,6 +39,7 @@ export const WorkItemSource = z.enum([
   'cover-crop',
   'rotation-sequence',
   'habitat-feature',
+  'tree-planting',
   'manual',
 ]);
 export type WorkItemSource = z.infer<typeof WorkItemSource>;
@@ -162,6 +163,18 @@ export const WorkItemSchema = z
      * migration (A-series additive covenant).
      */
     generatedFromHabitatElement: z.string().optional(),
+    /**
+     * DesignElement id of the vegetation-category tree this row was
+     * seeded from (oak-tree / pine-tree / apple-tree / shrub). Used by
+     * `treePlantingSpineSync` (Slice 8-A of the 2026-05-21 habitat-feature
+     * unification) to keep one "Plant <kind>" WorkItem per placed tree
+     * element, idempotent on re-runs. Also the target id for
+     * `habitatFeatureSpineSync` D1 predecessor projection
+     * (`habitatMetadata.hostTreeFeatureId` → `dependsOnAuto`).
+     * `.optional()` + the top-level `.passthrough()` ⇒ no DB migration
+     * (A-series additive covenant).
+     */
+    generatedFromTreeElement: z.string().optional(),
     goalCriterionId: z.string().optional(),
     catalogVersion: z.string().optional(),
     createdAt: z.string(),

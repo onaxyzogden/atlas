@@ -184,6 +184,17 @@ interface WorkItemState {
   replaceHabitatFeatureRows: (projectId: string, items: WorkItem[]) => void;
 
   /**
+   * Slice 8-A of the 2026-05-21 habitat-feature unification —
+   * single-writer spine for `source: 'tree-planting'` rows. Replaces
+   * only the project's generated tree-planting rows, preserving
+   * steward-edited (`overridden:true`) rows and never touching any
+   * other source. Mirrors `replaceHabitatFeatureRows` 1:1 (swap
+   * source). Seeded from vegetation-category point DesignElements via
+   * `treePlantingSpineSync`.
+   */
+  replaceTreePlantingRows: (projectId: string, items: WorkItem[]) => void;
+
+  /**
    * Returns a freshly-allocated array. **Do NOT call inside a Zustand
    * selector** — subscribe to `state.items` raw and derive in `useMemo`.
    * See: wiki/decisions/2026-04-26-zustand-selector-stability.md
@@ -577,6 +588,24 @@ export const useWorkItemStore = create<WorkItemState>()(
           );
           const incoming = items.filter(
             (it) => it.source === 'habitat-feature',
+          );
+          return { items: [...remaining, ...incoming] };
+        }),
+
+      replaceTreePlantingRows: (projectId, items) =>
+        set((s) => {
+          // Mirrors replaceHabitatFeatureRows exactly — swap source.
+          // Cross-source preservation: cover-crop / habitat-feature /
+          // goal-compass / manual rows survive untouched. Seeder owns
+          // idempotency via stable `tree__<designElementId>` ids.
+          const remaining = s.items.filter(
+            (it) =>
+              it.projectId !== projectId ||
+              it.source !== 'tree-planting' ||
+              it.overridden,
+          );
+          const incoming = items.filter(
+            (it) => it.source === 'tree-planting',
           );
           return { items: [...remaining, ...incoming] };
         }),
