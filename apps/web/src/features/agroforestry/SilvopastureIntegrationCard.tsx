@@ -18,25 +18,60 @@
  * / cost-of-capital framing.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
 import { computeSilvopastureIntegration } from './guildLivestockMath.js';
+import { useSilvopastureDrilldownStore } from '../../v3/plan/layers/silvopastureDrilldownStore.js';
 import css from './SilvopastureIntegrationCard.module.css';
 
 interface Props {
   projectId: string;
+  /** Slice M (host-union drilldown) — when set, the matching host row
+   *  scrolls into view on mount and renders with a gold border-left
+   *  that fades after ~2 s. Set via `useSilvopastureDrilldownStore`'s
+   *  `requestOpenAudit(hostId)` from the drilldown card's "Open full
+   *  audit →" link, or via direct prop. The prop wins over the store
+   *  read so an explicit caller can override the routing. */
+  targetHostId?: string;
 }
 
 const FODDER_PREVIEW_CAP = 8;
 
-export default function SilvopastureIntegrationCard({ projectId }: Props) {
+export default function SilvopastureIntegrationCard({
+  projectId,
+  targetHostId,
+}: Props) {
   const allPaddocks = useLivestockStore((s) => s.paddocks);
   const allGuilds = usePolycultureStore((s) => s.guilds);
   const allCropAreas = useCropStore((s) => s.cropAreas);
   const designElements = useDesignElementsForProject(projectId);
+  const storeTargetHostId = useSilvopastureDrilldownStore(
+    (s) => s.targetHostId,
+  );
+  // Prop wins over store; both are optional. Slice M routes via the
+  // store; tests / direct callers can override via the prop.
+  const effectiveTargetHostId = targetHostId ?? storeTargetHostId ?? null;
+
+  // Highlight fade: data-target='true' carries the gold border-left,
+  // data-target-faded='true' transitions it away after ~2 s so the
+  // accent reads on entry without becoming permanent visual noise.
+  const [highlightFaded, setHighlightFaded] = useState(false);
+  const targetRowRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!effectiveTargetHostId) return;
+    // Re-arm the highlight whenever the target id changes.
+    setHighlightFaded(false);
+    const row = targetRowRef.current;
+    if (row && typeof row.scrollIntoView === 'function') {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    const t = window.setTimeout(() => setHighlightFaded(true), 2000);
+    return () => window.clearTimeout(t);
+  }, [effectiveTargetHostId]);
 
   const report = useMemo(
     () =>
@@ -93,8 +128,18 @@ export default function SilvopastureIntegrationCard({ projectId }: Props) {
         {report.rows.map((row) => {
           const fodderPreview = row.fodderMatches.slice(0, FODDER_PREVIEW_CAP);
           const fodderRest = row.fodderMatches.length - fodderPreview.length;
+          const isTarget = row.hostId === effectiveTargetHostId;
           return (
-            <div key={row.hostId} className={css.hostRow}>
+            <div
+              key={row.hostId}
+              ref={isTarget ? targetRowRef : undefined}
+              className={css.hostRow}
+              data-host-id={row.hostId}
+              {...(isTarget ? { 'data-target': 'true' } : {})}
+              {...(isTarget && highlightFaded
+                ? { 'data-target-faded': 'true' }
+                : {})}
+            >
               <div className={css.hostHead}>
                 <span className={css.hostName}>{row.hostName}</span>
                 <span className={css.hostScore}>

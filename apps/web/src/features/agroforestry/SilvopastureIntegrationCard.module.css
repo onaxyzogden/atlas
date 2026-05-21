@@ -93,6 +93,25 @@
   border-radius: 8px;
   background: rgba(232, 220, 200, 0.022);
   border: 1px solid rgba(232, 220, 200, 0.08);
+  border-left: 2px solid transparent;
+  transition: border-left-color 600ms ease-out,
+    background 600ms ease-out;
+}
+
+/* Slice M (host-union drilldown) — when routed in via
+   `useSilvopastureDrilldownStore`'s targetHostId, the matching
+   host row carries a gold border-left (matching the Slice L
+   per-block pinned accent #c4a265) plus a faint gold tint, both
+   transitioning back to neutral after ~2 s via the data-target-faded
+   flip from the component. */
+.hostRow[data-target='true'] {
+  border-left-color: #c4a265;
+  background: rgba(212, 182, 99, 0.06);
+}
+
+.hostRow[data-target='true'][data-target-faded='true'] {
+  border-left-color: transparent;
+  background: rgba(232, 220, 200, 0.022);
 }
 
 .hostHead {

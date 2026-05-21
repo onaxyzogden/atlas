@@ -53,6 +53,7 @@ import PlanCropAreaSelectionHandler from './draw/PlanCropAreaSelectionHandler.js
 import CoverCropPopoverEditor from '../../features/coverCrops/CoverCropPopoverEditor.js';
 import ObserveLinkPopover from './draw/ObserveLinkPopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
+import { useSilvopastureDrilldownStore } from './layers/silvopastureDrilldownStore.js';
 import PlanVertexEditHandler from './layers/PlanVertexEditHandler.js';
 import PlanContoursOverlay from './layers/PlanContoursOverlay.js';
 import PlanZoneRingsOverlay from './layers/PlanZoneRingsOverlay.js';
@@ -116,6 +117,22 @@ export default function PlanLayout() {
   // since it isn't a real server project.
   useServerMachineryInventory(id === 'mtc' ? undefined : id);
 
+  // Slice M (host-union drilldown) — subscribe to the silvopasture
+  // drilldown store's pending "Open full audit →" request. When set,
+  // navigate to the matching plan module + open the slide-up, then
+  // consume the request so it does not refire on re-mount. The
+  // `targetHostId` payload remains in the store for
+  // SilvopastureIntegrationCard to read on its mount.
+  const pendingOpenModule = useSilvopastureDrilldownStore(
+    (s) => s.pendingOpenModule,
+  );
+  const consumePendingOpen = useSilvopastureDrilldownStore(
+    (s) => s.consumePendingOpen,
+  );
+  const clearDrilldownTarget = useSilvopastureDrilldownStore(
+    (s) => s.clearTarget,
+  );
+
   const handleSelectModule = (mod: PlanModule | null) => {
     if (!params.projectId) return;
     if (mod === null) {
@@ -132,6 +149,32 @@ export default function PlanLayout() {
     });
     setSlideUpOpen(false);
   };
+
+  // Slice M routing: when the drilldown card's "Open full audit →" fires
+  // `requestOpenAudit(hostId)`, the store populates `pendingOpenModule`.
+  // We consume it here — navigate to the requested module and open the
+  // slide-up so SilvopastureIntegrationCard mounts. The card reads
+  // `targetHostId` from the same store and handles the scroll +
+  // gold-border accent itself.
+  useEffect(() => {
+    if (!pendingOpenModule) return;
+    if (!params.projectId) return;
+    const req = consumePendingOpen();
+    if (!req) return;
+    if (isPlanModule(req.module)) {
+      navigate({
+        to: '/v3/project/$projectId/plan/$module',
+        params: { projectId: params.projectId, module: req.module },
+      });
+    }
+    setSlideUpOpen(true);
+  }, [pendingOpenModule, params.projectId, consumePendingOpen, navigate]);
+
+  // Clear the drilldown target when the slide-up closes so re-opening
+  // the card without an explicit target doesn't replay a stale scroll.
+  useEffect(() => {
+    if (!slideUpOpen) clearDrilldownTarget();
+  }, [slideUpOpen, clearDrilldownTarget]);
 
   const handleBoundaryDrawn = (polygon: GeoJSON.Polygon) => {
     updateProject(id, {

@@ -47,6 +47,12 @@ import {
   type HostBlockProps,
   type HostBlockEntry,
 } from './HostCanopyUnionTooltip.js';
+import { HostUnionContextMenu } from './HostUnionContextMenu.js';
+import {
+  HostUnionDrilldownCard,
+  type DrilldownMemberRow,
+} from './HostUnionDrilldownCard.js';
+import { useSilvopastureDrilldownStore } from './silvopastureDrilldownStore.js';
 
 // A single host's block of tooltip data, plus the hostId used for
 // click-toggle stack-equality unpin (not rendered). hostId is the
@@ -282,6 +288,29 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // once (as pinned).
   const [pinnedHosts, setPinnedHosts] = useState<Map<string, HostBlock>>(
     () => new Map(),
+  );
+  // Slice M (host-union drilldown) — two sequential floating-surface
+  // states routed from the right-click / long-press trigger.
+  //   contextMenu — small "Open detail" menu opened by the trigger;
+  //     closed when the steward picks the item, ESC, or click-outside.
+  //   drilldownHost — sticky per-member card opened by the menu's
+  //     action; persists across cursor motion until ESC, close button,
+  //     click-outside, or "Open full audit" routes to the slide-up.
+  // The two are not concurrent: opening the card closes the menu.
+  // See wiki/decisions/2026-05-30-atlas-b4-tooltip-drilldown.md.
+  const [contextMenu, setContextMenu] = useState<{
+    point: { x: number; y: number };
+    hostId: string;
+    hostName: string;
+  } | null>(null);
+  const [drilldownHost, setDrilldownHost] = useState<{
+    point: { x: number; y: number };
+    hostId: string;
+    hostName: string;
+    members: DrilldownMemberRow[];
+  } | null>(null);
+  const requestOpenAudit = useSilvopastureDrilldownStore(
+    (s) => s.requestOpenAudit,
   );
   // Last cursor pixel inside the map canvas — freezes the tooltip
   // anchor when the cursor leaves the canvas with pinned hosts still
@@ -2172,6 +2201,175 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     };
   }, [map, pinnedHosts]);
 
+  // Slice M (host-union drilldown): right-click + touch long-press
+  // trigger on the guild-host-canopy-union-fill layer opens the
+  // floating context menu. Long-press is synthesised from
+  // `pointerdown` + 500 ms timer + 10px movement abort (the threshold
+  // prevents map drag/scroll from triggering the menu). Both triggers
+  // route through the same `setContextMenu` setter so the menu
+  // component is trigger-agnostic.
+  //
+  // ESC + click-outside dismiss handlers live in their own effect
+  // gated on whether the menu / card is open (below) so they only run
+  // when a surface is mounted.
+  useEffect(() => {
+    if (!map) return;
+    const layerId = `${LAYER_PREFIX}guild-host-canopy-union-fill`;
+
+    type HostHit = { hostId: string; hostName: string };
+    const hitTestTopHost = (point: {
+      x: number;
+      y: number;
+    }): HostHit | null => {
+      try {
+        const features = map.queryRenderedFeatures(
+          [point.x, point.y],
+          { layers: [layerId] },
+        );
+        const seen = new Set<string>();
+        for (const f of features) {
+          const p = f.properties;
+          if (!p || p.kind !== 'host-canopy-union') continue;
+          const hostId = String(p.hostId ?? '');
+          if (!hostId || seen.has(hostId)) continue;
+          return {
+            hostId,
+            hostName: String(p.hostName ?? ''),
+          };
+        }
+      } catch {
+        /* layer may not exist yet */
+      }
+      return null;
+    };
+
+    const onContextMenu = (e: maplibregl.MapMouseEvent) => {
+      const hit = hitTestTopHost(e.point);
+      if (!hit) return;
+      e.preventDefault();
+      // Suppress the OS context menu so the surface can take over.
+      e.originalEvent.preventDefault();
+      setContextMenu({
+        point: { x: e.point.x, y: e.point.y },
+        hostId: hit.hostId,
+        hostName: hit.hostName,
+      });
+      // Closing the drilldown card if one is up — only one surface at
+      // a time.
+      setDrilldownHost(null);
+    };
+
+    // Touch long-press synthesis. MapLibre does not synthesise
+    // `contextmenu` from a held touch, so we wire it manually.
+    type PressState = {
+      timer: number;
+      startX: number;
+      startY: number;
+    };
+    let press: PressState | null = null;
+    const clearPress = () => {
+      if (press) {
+        window.clearTimeout(press.timer);
+        press = null;
+      }
+    };
+    const onPointerDown = (e: maplibregl.MapMouseEvent) => {
+      const oe = e.originalEvent as PointerEvent;
+      if (oe.pointerType !== 'touch') return;
+      const hit = hitTestTopHost(e.point);
+      if (!hit) return;
+      const startX = e.point.x;
+      const startY = e.point.y;
+      const timer = window.setTimeout(() => {
+        setContextMenu({
+          point: { x: startX, y: startY },
+          hostId: hit.hostId,
+          hostName: hit.hostName,
+        });
+        setDrilldownHost(null);
+        press = null;
+      }, 500);
+      press = { timer, startX, startY };
+    };
+    const onPointerMove = (e: maplibregl.MapMouseEvent) => {
+      if (!press) return;
+      const dx = e.point.x - press.startX;
+      const dy = e.point.y - press.startY;
+      // 10px squared movement budget aborts the long-press so a touch
+      // scroll on the map doesn't unexpectedly open the menu.
+      if (dx * dx + dy * dy > 100) clearPress();
+    };
+    const onPointerUp = () => clearPress();
+
+    map.on('contextmenu', onContextMenu);
+    map.on('pointerdown', onPointerDown);
+    map.on('pointermove', onPointerMove);
+    map.on('pointerup', onPointerUp);
+    map.on('pointercancel', onPointerUp);
+
+    return () => {
+      clearPress();
+      try {
+        map.off('contextmenu', onContextMenu);
+        map.off('pointerdown', onPointerDown);
+        map.off('pointermove', onPointerMove);
+        map.off('pointerup', onPointerUp);
+        map.off('pointercancel', onPointerUp);
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map]);
+
+  // Slice M dismiss handlers — ESC + document-level click-outside
+  // for the context menu and drilldown card. Both surfaces are
+  // pointer-events: auto sibling portals; the carve-out pattern from
+  // Slice K's tap-outside (target.closest on a data-testid) is
+  // reused per-surface here so a pointerdown inside either surface
+  // does not dismiss it.
+  useEffect(() => {
+    if (!map) return;
+    if (!contextMenu && !drilldownHost) return;
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key !== 'Escape') return;
+      if (contextMenu) setContextMenu(null);
+      if (drilldownHost) setDrilldownHost(null);
+    };
+    const onDocPointerDown = (ev: PointerEvent) => {
+      const target = ev.target;
+      if (target instanceof Element) {
+        // Click inside a Slice M surface or the tooltip is exempt —
+        // these are interactive (menu) / sticky (card) surfaces.
+        if (
+          target.closest('[data-testid="host-union-context-menu"]') ||
+          target.closest('[data-testid="host-union-drilldown-card"]') ||
+          target.closest('[data-testid="host-canopy-union-tooltip"]')
+        ) {
+          return;
+        }
+      }
+      // Map-canvas-internal pointerdowns close the *menu* (steward
+      // clicked elsewhere on the map) but NOT the drilldown card —
+      // the card is sticky and dismisses only via close button / ESC
+      // / click-outside-the-map. This matches the steward intent:
+      // the card persists while they explore the map, the menu is
+      // a transient one-shot affordance.
+      if (contextMenu) setContextMenu(null);
+      const canvasContainer = map.getCanvasContainer();
+      const insideCanvas =
+        canvasContainer && target instanceof Node
+          ? canvasContainer.contains(target)
+          : false;
+      if (drilldownHost && !insideCanvas) setDrilldownHost(null);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDocPointerDown);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onDocPointerDown);
+    };
+  }, [map, contextMenu, drilldownHost]);
+
   // Click-to-edit + drag-to-move for placed Structures (poly fill).
   // Gated to `activeTool == null` so a Plan draw tool always wins.
   useEffect(() => {
@@ -3542,27 +3740,127 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   // other JSX is emitted — PlanDataLayers remains a side-effect-only
   // component for everything else.
   // Pinned tooltip takes precedence over hover; only one ever renders.
-  if (!displayedUnion || !map) return null;
+  //
+  // Slice M adds two sibling portals into the same canvas container:
+  // the right-click / long-press `HostUnionContextMenu` and the
+  // sticky `HostUnionDrilldownCard`. Each is gated on its own state
+  // slot so they mount independently of the tooltip mirror.
+  if (!map) return null;
   const canvasContainer = map.getCanvasContainer();
   if (!canvasContainer) return null;
-  return createPortal(
-    <HostCanopyUnionTooltip
-      point={displayedUnion.point}
-      entries={displayedUnion.entries}
-      exiting={displayedUnion.phase === 'exiting'}
-      onExited={() => setDisplayedUnion(null)}
-      onEntryExited={(hostId) => {
-        setDisplayedUnion((prev) => {
-          if (!prev) return prev;
-          const next = prev.entries.filter((e) => e.hostId !== hostId);
-          if (next.length === prev.entries.length) return prev;
-          // If the last visible block just finished fading out, drop
-          // the mirror entirely so the container doesn't sit empty.
-          if (next.length === 0) return null;
-          return { ...prev, entries: next };
+  if (!displayedUnion && !contextMenu && !drilldownHost) return null;
+
+  // Slice M open-detail handler: resolve the host's canopy-bearing
+  // member roster via the same `resolveMembers` call the
+  // canopy-union polygons use at line ~706, flatten guild members
+  // to a flat row list filtered to canopy-bearing (canopySpreadM>0)
+  // so the card's count stays honest with the tooltip's
+  // `memberCount`, then write the drilldown state slot.
+  const openDrilldownFor = (m: {
+    point: { x: number; y: number };
+    hostId: string;
+    hostName: string;
+  }) => {
+    const projectScopedGuilds = guilds.filter(
+      (g) => g.projectId === projectId,
+    );
+    const projectScopedPaddocks = paddocks.filter(
+      (p) => p.projectId === projectId,
+    );
+    const hosts = resolveSilvopastureHosts(
+      projectId,
+      cropAreas,
+      designElementsForProject,
+    );
+    const host = hosts.find((h) => h.id === m.hostId);
+    const rows: DrilldownMemberRow[] = [];
+    if (host) {
+      const hostMembers = resolveMembers(
+        host,
+        {
+          cropAreas,
+          designElements: designElementsForProject,
+          paddocks: projectScopedPaddocks,
+          guilds: projectScopedGuilds,
+        },
+        hosts,
+      );
+      for (const gm of hostMembers.guilds) {
+        const guild = gm.entity;
+        guild.members.forEach((member, idx) => {
+          const spread = findSpecies(member.speciesId)?.canopySpreadM;
+          if (typeof spread !== 'number' || !(spread > 0)) return;
+          const name =
+            findSpecies(member.speciesId)?.commonName ?? member.speciesId;
+          rows.push({
+            key: `${guild.id}:${idx}`,
+            name,
+            layer: member.layer,
+          });
         });
-      }}
-    />,
-    canvasContainer,
+      }
+    }
+    setDrilldownHost({
+      point: m.point,
+      hostId: m.hostId,
+      hostName: m.hostName,
+      members: rows,
+    });
+  };
+
+  return (
+    <>
+      {displayedUnion
+        ? createPortal(
+            <HostCanopyUnionTooltip
+              point={displayedUnion.point}
+              entries={displayedUnion.entries}
+              exiting={displayedUnion.phase === 'exiting'}
+              onExited={() => setDisplayedUnion(null)}
+              onEntryExited={(hostId) => {
+                setDisplayedUnion((prev) => {
+                  if (!prev) return prev;
+                  const next = prev.entries.filter(
+                    (e) => e.hostId !== hostId,
+                  );
+                  if (next.length === prev.entries.length) return prev;
+                  if (next.length === 0) return null;
+                  return { ...prev, entries: next };
+                });
+              }}
+            />,
+            canvasContainer,
+          )
+        : null}
+      {contextMenu
+        ? createPortal(
+            <HostUnionContextMenu
+              point={contextMenu.point}
+              hostName={contextMenu.hostName}
+              onOpenDetail={() => {
+                openDrilldownFor(contextMenu);
+              }}
+              onClose={() => setContextMenu(null)}
+            />,
+            canvasContainer,
+          )
+        : null}
+      {drilldownHost
+        ? createPortal(
+            <HostUnionDrilldownCard
+              point={drilldownHost.point}
+              hostId={drilldownHost.hostId}
+              hostName={drilldownHost.hostName}
+              members={drilldownHost.members}
+              onClose={() => setDrilldownHost(null)}
+              onOpenAudit={(hostId) => {
+                requestOpenAudit(hostId);
+                setDrilldownHost(null);
+              }}
+            />,
+            canvasContainer,
+          )
+        : null}
+    </>
   );
 }
