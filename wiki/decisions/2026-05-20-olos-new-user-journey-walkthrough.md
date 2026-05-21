@@ -394,3 +394,87 @@ current HEAD. Only #10 (deferred-by-program) remains 🟡.
 
 Phase 0 deliverable: a clean platform ready for Phase 1 (Three Streams
 Farm canon).
+
+---
+
+## Update — 2026-05-20 (Three Streams Farm re-run — Task 2.7)
+
+Phase 2 ([[log/2026-05-20-atlas-phase-2-three-streams-demo-seed]])
+landed migrations `029` + `030` plus the client seeder
+[seedThreeStreamsFarm.ts](../../apps/web/src/dev/seedThreeStreamsFarm.ts).
+This update re-runs the 6-step walkthrough against the Three Streams
+Farm built-in (sentinel
+`00000000-0000-0000-0000-000000357320`).
+
+Mid-session migrate hit
+`PostgresError: project_relationships_resource_ck` on `'fertility'`;
+transaction rolled back cleanly, no Three Streams rows orphaned;
+patched `029`'s 8 relationship edges in-place to use the allowed
+vocab (`manure | greywater | compost | biomass | seed | forage |
+mulch | heat | shade | pollination | pest_predation |
+nutrient_uptake | surface_water`) with inline `--` comments
+preserving canon intent. Re-ran migrate → `029`, `030`, `031` applied
+cleanly. Committed as `7c2a4491`.
+
+Sandbox denied API dev-server boot (privileged background process
+with env-loaded credentials), so visual + client-state surfaces are
+🟡 deferred to a user-initiated preview session. Substrate verified
+via `psql`:
+
+- **Step 1 — Create + Observe — ✅ substrate.** Project metadata
+  exact to canon (CA/ON, CH jurisdiction, ~160 acres polygon
+  measured vs ~180 canon-narrative — see soft follow-up in re-run
+  log); 6 layers populated with canonical key shape (6+4+5+4+7+8 keys
+  respectively).
+- **Step 2 — Site Scorecard — ✅ substrate.** `score_breakdown` JSONB
+  carries 4 partition categories × 14 facets — Phase-0
+  `CORE_EIGHT_LABELS` partition will render 8 visible + 6 collapsed.
+  FAO `S2` + USDA `Class III` overrides land on the same row.
+- **Step 3 — Design — ✅ substrate / 🟡 visual.** 27 designed
+  elements (14 zones + 4 structures + 7 paths + 2 spiritual zones —
+  honest overshoot vs plan's "~22"); 8 relationship edges aligned to
+  CHECK-constraint vocab. Map render of polygons / lines / symbols
+  needs preview boot.
+- **Step 4 — Phasing (Goal Compass) — 🟡 deferred.** Client-state —
+  `phaseStore` + `workItemStore` + `siteProfileStore` are populated
+  by the seeder on project-load via a one-shot
+  `useProjectStore.subscribe`. Substrate exists; firing needs
+  preview.
+- **Step 5 — Act / command centre — 🟡 deferred.** Same client-state
+  dependency. D5 schedule lights run off
+  `workItemStore.items[].scheduledEnd` which the seeder populates
+  via the real engine path.
+- **Step 6 — Monitor + adapt — ✅ substrate.** 24-event MDPI
+  Y0/5/9-cadence trajectory across 6 protocols
+  (soil_organic_matter, bird_species_richness, soil_biology,
+  infiltration_rate_mm_per_hr, pollinator_visitation, plus
+  water_retention + intervention milestones); cropped-field OM
+  1.65 → 2.25 % (+36 %) verified live in `observations` JSONB.
+  Built-in monitor guard does *not* fire (real DB `serverId`), so
+  monitor cards fetch the real trajectory rather than show the
+  cold-start `BuiltInMonitorBanner` — the design.
+
+Verdict deltas vs the original 5/20 walkthrough (which ran against
+the cold-start `Noble Sun Test Farm` and produced 🟡 on every step
+except Step 4):
+
+- Step 1: 🟡 → ✅ (substrate-resolved)
+- Step 2: 🟡 → ✅ (substrate-resolved)
+- Step 3: 🟡 catalogue → ✅ substrate / 🟡 visual (visual half needs
+  preview boot)
+- Step 4: ✅ → 🟡 deferred (substrate enables, client-state needs
+  preview boot)
+- Step 5: 🟡 → 🟡 deferred (same)
+- Step 6: 🟡 → ✅ substrate (trajectory + built-in guard verified;
+  visible chart needs preview boot)
+
+Re-run details + full per-step substrate evidence in
+[[log/2026-05-20-three-streams-walkthrough-rerun]].
+
+Follow-up debt:
+- Soft canon-vs-polygon acreage discrepancy (~160 measured vs ~180
+  narrative); next session option (a) widen polygon, or (b) update
+  canon to acknowledge.
+- 🟡 Steps 3-visual / 4 / 5 close on user-initiated preview boot.
+
+Task 2.7 substrate-complete; live-preview tail deferred.
