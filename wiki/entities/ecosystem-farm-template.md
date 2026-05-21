@@ -126,10 +126,14 @@ Three Phase 4 decisions are binding and must not drift:
 
 ## Open Followups
 
-1. **Fully-fledged org-creation prelude** — currently
-   `fullSetup=true` routes through `/new?fullSetup=true` with the
-   same wizard. A dedicated org-creation surface is a Phase 4.5
-   followup.
+1. ~~**Fully-fledged org-creation prelude**~~ — **closed (Phase 4.5,
+   2026-05-21)**. `/register?fullSetup=true` now routes Stewarding
+   visitors to `/organizations/new` (progressive-disclosure form with
+   member invites + jurisdiction + registry_id), which threads the
+   chosen `orgId` into the new-project wizard handoff. Returning users
+   with multiple workspaces hitting `/new` see an
+   `OrganizationSwitcherModal`. See [[entities/organization]] and
+   [[decisions/2026-05-21-atlas-org-creation-prelude]].
 2. **Region-aware fallback** — non-Ontario visitors today receive a
    one-time warning banner; the canon's Halton-specific palette
    lands regardless. Generic Holmgren-grounded defaults for

@@ -22,6 +22,7 @@ Read this first at the start of every session.
 - [PlacedFeaturesCard](entities/placed-features-card.md) — Right-rail inventory of every feature placed on the map, unified across three stores (built / design / zone) and scoped per stage (observe / plan)
 - [Three Streams Farm](entities/three-streams-farm.md) — Fictional Ontario showcase farm canon (rural Milton, ~180 acres, 8-year arc)
 - [Ecosystem Farm Template](entities/ecosystem-farm-template.md) — Public, system-owned project template extracted from Three Streams canon; per-tier ContactCTA deep links instantiate against visitor boundary (Phase 4, shipped 2026-05-21)
+- [Organization](entities/organization.md) — Multi-tenant workspace primitive: register-time auto-org for all tiers, `projects.org_id NOT NULL` invariant, Stewarding-tier `/organizations/new` prelude with progressive disclosure (Phase 4.5, shipped 2026-05-21)
 
 ## Concepts
 - [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens

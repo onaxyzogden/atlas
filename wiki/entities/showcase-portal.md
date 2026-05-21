@@ -165,6 +165,16 @@ Calendly / contact-form remain as the SECONDARY action so a low-touch
 conversation path stays open. See
 [[decisions/2026-05-21-atlas-ecosystem-farm-template-extraction]].
 
+**Phase 4.5 Stewarding handoff (LANDED 2026-05-21).** The Stewarding tier
+deep link (`fullSetup=true`) now routes through the org-creation prelude
+at `/organizations/new` before reaching the project wizard. Visitors
+customize the auto-created `${displayName}'s Workspace` (jurisdiction,
+registry_id, member invites), then thread the chosen `orgId` into the
+wizard handoff. Dreaming and Transitioning continue to attach to the
+register-time default org without a prelude step. See
+[[entities/organization]] and
+[[decisions/2026-05-21-atlas-org-creation-prelude]].
+
 **ADR back-links.**
 - Design ADR: [[decisions/2026-05-21-three-streams-showcase-design]].
 - Phase 3 session log:
