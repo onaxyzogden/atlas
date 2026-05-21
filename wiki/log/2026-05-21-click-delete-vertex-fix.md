@@ -82,3 +82,87 @@ restore, Esc exit, LineString variant, Plan-stage zone vertex-edit,
 regression checks). The shipped behaviour is now grounded in the
 MapboxDraw source rather than the original (incorrect) hook choice; the
 remaining walk is confirmation, not discovery.
+
+---
+
+## 2026-05-21 (later² — vertex-edit polish)
+
+User reported two follow-ups after the `90fef60a` fix landed:
+
+1. **"When delete vertex occurs, remain in edit mode."** The mode and
+   the `SharedVertexEditHandler` mount were *not* actually exiting —
+   `target` (kind+id) was stable across `writePolygon`, so the
+   `useEffect` cleanup never ran. But two visual cliffs read as "I lost
+   edit mode":
+   - `state.selectedCoordPaths = []` after deletion left no armed
+     vertex, so the next click couldn't continue the delete-train
+     without re-targeting.
+   - [`MAPLIBRE_DRAW_STYLES`](../../apps/web/src/v3/observe/components/draw/mapboxDrawStyles.ts)
+     never had `gl-draw-polygon-and-line-vertex-*` layers — the
+     supplementary points emitted by `direct_select` were either
+     painted by the generic `gl-draw-point` layer (uniform with
+     midpoints, no active highlight) or fell through with no style at
+     all. Either way the user had no visible affordance to grab
+     another vertex.
+
+2. **"Ctrl-Z (undo) should apply to polygon/feature moves."** The hook
+   [`useGlobalAnnotationUndo`](../../apps/web/src/v3/observe/hooks/useGlobalAnnotationUndo.ts)
+   already exists and is mounted from `AppShell.tsx:33`, dispatching
+   into `useUndoCoordinatorStore`. The gap was that the coordinator's
+   `STORES` table only listed the 14 OBSERVE-section stores —
+   conventionalCrop, pasture, vegetation, habitatFeature,
+   regenerationPlan, utilityRun, setback, monitoringTransect,
+   ecologicalNote, agribusiness all have their own zundo
+   `temporal()` middleware but were never registered. Net effect: a
+   vertex delete on a Conventional Crop polygon updated the
+   per-store history, but Ctrl-Z couldn't find it on the global
+   timeline.
+
+**Fix (`792f9a0f`, `a2a7c8b1`).**
+
+- `clickDeleteDirectSelect.onClick`: after `feature.removeCoordinate`,
+  compute a neighbor coord-path via a new `neighborCoordPath()` helper
+  (prev vertex on the same ring/line, capped at the new last unique
+  index) and assign it to `state.selectedCoordPaths`. User stays
+  armed for the next click-delete without re-entering edit mode.
+- `mapboxDrawStyles.ts`: tighten `gl-draw-point` to exclude
+  `meta=vertex|midpoint`, then add explicit
+  `gl-draw-polygon-and-line-vertex-inactive` (white fill, earth-800
+  ring), `gl-draw-polygon-and-line-vertex-active` (boundary-coloured
+  fill, larger radius for the armed neighbor) and
+  `gl-draw-polygon-and-line-midpoint` (small hollow dot, distinct
+  from real vertices).
+- `undoCoordinatorStore.ts`: register the 10 missing temporal-wrapped
+  annotation stores in `STORES` + extend the `UndoableStoreName`
+  union. `setupUndoCoordinator()`'s hydration-gated subscriber wiring
+  picks them up automatically.
+
+**Verification.**
+
+- `pnpm --filter @ogden/web typecheck` exit 0.
+- Source-grounded reasoning: confirmed `createSupplementaryPoints`
+  emits `meta:'vertex'|'midpoint'` + `active:'true'|'false'` (matches
+  the new style filters); confirmed `useGlobalAnnotationUndo` is the
+  only Cmd/Ctrl-Z surface in the OBSERVE stage and routes through
+  `useUndoCoordinatorStore`; confirmed all 10 newly-registered stores
+  use `persist(...)` (required for the coordinator's
+  `onFinishHydration` hook).
+- Real-browser keystroke walk still owed (carried over from the
+  earlier follow-up).
+
+**Branch hygiene.**
+
+- Stashed unrelated parallel-session changes
+  (`CapitalPartnerSummaryExport.tsx`, `PastureTool.tsx`,
+  `VegetationTool.tsx`, new `subtractPatches.ts`) before committing
+  to keep slices clean per [[feedback-no-deletion]] +
+  [[project-branch-rebase]].
+- `git fetch origin feat/atlas-permaculture` was 1/0 (one local
+  parallel-session commit ahead, none behind) before push; push
+  fast-forwarded.
+
+**Files touched.**
+
+- [`apps/web/src/v3/builtEnvironment/handlers/clickDeleteDirectSelect.ts`](../../apps/web/src/v3/builtEnvironment/handlers/clickDeleteDirectSelect.ts) — `792f9a0f`
+- [`apps/web/src/v3/observe/components/draw/mapboxDrawStyles.ts`](../../apps/web/src/v3/observe/components/draw/mapboxDrawStyles.ts) — `792f9a0f`
+- [`apps/web/src/store/undoCoordinatorStore.ts`](../../apps/web/src/store/undoCoordinatorStore.ts) — `a2a7c8b1`
