@@ -17,6 +17,7 @@ Read this first at the start of every session.
 - [Data Pipeline](entities/data-pipeline.md) — BullMQ orchestration, layer adapters, workers
 - [PDF Export Service](entities/pdf-export-service.md) — Puppeteer templates, S3 storage, 7 export types
 - [Gap Analysis](entities/gap-analysis.md) — ~120 gaps against global frameworks (FAO, USDA, ASTM, IUCN), triage roadmap
+- [Showcase Portal](entities/showcase-portal.md) — Public scrollytelling portal at `/showcase/three-streams` + 3 tier sub-routes; cold-visitor Y0→Y2 narrative on static SSG (Phase 3, shipped 2026-05-21)
 - [Site Annotations Store](entities/site-annotations-store.md) — Persisted store for user-authored OBSERVE annotations (hazards, transects, sectors, ecology, succession, SWOT)
 - [PlacedFeaturesCard](entities/placed-features-card.md) — Right-rail inventory of every feature placed on the map, unified across three stores (built / design / zone) and scoped per stage (observe / plan)
 - [Three Streams Farm](entities/three-streams-farm.md) — Fictional Ontario showcase farm canon (rural Milton, ~180 acres, 8-year arc)
