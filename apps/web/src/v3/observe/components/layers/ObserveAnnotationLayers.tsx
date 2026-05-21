@@ -883,6 +883,46 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
+    // Paddock fence — extruded ribbon around the boundary (paddock subtype only).
+    // ~1.5 m tall, ~0.4 m wide; only visible when the camera is tilted.
+    const paddockFenceFeatures: GeoJSON.Feature[] = [];
+    for (const p of inProject(pastures)) {
+      if (p.kind !== 'paddock') continue;
+      try {
+        const boundary = turf.polygonToLine(
+          turf.feature(p.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon),
+        );
+        const ribbon = turf.buffer(boundary, 0.4, { units: 'meters' });
+        if (!ribbon) continue;
+        paddockFenceFeatures.push({
+          type: 'Feature',
+          properties: { annoKind: 'pastureFence', annoId: p.id },
+          geometry: ribbon.geometry,
+        });
+      } catch {
+        // skip malformed geometry
+      }
+    }
+    if (paddockFenceFeatures.length) {
+      result.push({
+        id: 'pasture-fence',
+        data: { type: 'FeatureCollection', features: paddockFenceFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}pasture-fence-extrusion`,
+            type: 'fill-extrusion',
+            source: `${SOURCE_PREFIX}pasture-fence`,
+            paint: {
+              'fill-extrusion-color': '#5a4326',
+              'fill-extrusion-height': 1.5,
+              'fill-extrusion-base': 0,
+              'fill-extrusion-opacity': 0.92,
+            },
+          },
+        ],
+      });
+    }
+
     // ── Conventional crop ──────────────────────────────────────────────────
     const CROP_COLOR: Record<string, string> = {
       'annual-row': '#a8854a',
@@ -912,9 +952,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}conventional-crop-fill`,
             type: 'fill',
             source: `${SOURCE_PREFIX}conventional-crop`,
+            // Crops are "patches" that sit on top of the vegetation / pasture
+            // matrix wash (0.22). Raised opacity so they read as occluding
+            // patches instead of additive blends — operator can then draw the
+            // ground-cover matrix once across the whole area without tracing
+            // around individual crop blocks.
             paint: {
               'fill-color': ['get', 'color'],
-              'fill-opacity': 0.22,
+              'fill-opacity': 0.55,
             },
           },
           {
@@ -997,7 +1042,8 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
             id: `${LAYER_PREFIX}be-buildings-fill`,
             type: 'fill',
             source: `${SOURCE_PREFIX}be-buildings`,
-            paint: { 'fill-color': '#6a6a6a', 'fill-opacity': 0.35 },
+            // Patch-on-matrix: buildings occlude ground-cover wash beneath.
+            paint: { 'fill-color': '#6a6a6a', 'fill-opacity': 0.6 },
           },
           {
             id: `${LAYER_PREFIX}be-buildings-line`,

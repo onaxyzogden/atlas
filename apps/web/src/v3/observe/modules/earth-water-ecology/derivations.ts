@@ -1,3 +1,4 @@
+import * as turf from '@turf/turf';
 import type { MockLayerResult } from '../../../../lib/mockLayerData.js';
 import type {
   EcologyObservation,
@@ -114,6 +115,50 @@ export interface EcologyCounts {
   zones: number;
   successionStage: SuccessionStage | null;
   trophicLevels: TrophicLevel[];
+}
+
+/**
+ * Net ground-cover area in m². Vegetation (and pasture) are the matrix;
+ * crops / buildings sitting on top *override* the matrix. Subtracting each
+ * patch's overlap with each subtractee yields the steward-truthful area
+ * actually under ground cover, so a single boundary-spanning vegetation
+ * polygon with crop patches on top no longer double-counts.
+ *
+ * `subtractees` overlap subtraction is done per-subtractee (not
+ * pre-unioned), which is a tolerable approximation: if two crop blocks
+ * also overlap each other, that pairwise overlap is double-subtracted.
+ * Real-world crops rarely overlap each other, so this stays simple.
+ */
+export function netCoverAreaM2(
+  patches: ReadonlyArray<{ geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon }>,
+  subtractees: ReadonlyArray<{
+    geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
+  }>,
+): number {
+  let net = 0;
+  for (const p of patches) {
+    let coverage: number;
+    try {
+      coverage = turf.area(turf.feature(p.geometry));
+    } catch {
+      continue;
+    }
+    const patchFeat = turf.feature(p.geometry);
+    for (const s of subtractees) {
+      try {
+        // @turf/turf v7 changed `intersect` to take a FeatureCollection of
+        // exactly two polygons rather than two positional Feature args.
+        const inter = turf.intersect(
+          turf.featureCollection([patchFeat, turf.feature(s.geometry)]),
+        );
+        if (inter) coverage -= turf.area(inter);
+      } catch {
+        /* malformed geometry — skip */
+      }
+    }
+    if (coverage > 0) net += coverage;
+  }
+  return net;
 }
 
 export function ecologyCounts(
@@ -331,9 +376,20 @@ export function ecologyDetailKpis(
   observations: EcologyObservation[],
   zones: VegetationPatch[],
   stage: SuccessionStage | undefined,
+  subtractees: ReadonlyArray<{
+    geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
+  }> = [],
 ): KpiItem[] {
   const habitat = getCriticalHabitatLayer(layers);
   const counts = ecologyCounts(observations, zones, stage);
+  const netCoverM2 = zones.length === 0 ? 0 : netCoverAreaM2(zones, subtractees);
+  const netCoverHa = netCoverM2 / 10000;
+  const netCoverVal =
+    zones.length === 0
+      ? DASH
+      : netCoverHa >= 1
+        ? `${netCoverHa.toFixed(2)} ha`
+        : `${Math.round(netCoverM2)} m²`;
 
   return [
     {
@@ -349,6 +405,18 @@ export function ecologyDetailKpis(
       value: String(counts.zones),
       note: counts.zones === 0 ? 'Map habitat patches' : 'Mapped habitat zones',
       tone: counts.zones === 0 ? 'dim' : 'green',
+    },
+    {
+      iconKey: 'leaf',
+      label: 'Ground cover (net)',
+      value: netCoverVal,
+      note:
+        zones.length === 0
+          ? 'Outline vegetation patches'
+          : subtractees.length === 0
+            ? 'Vegetation area'
+            : 'Vegetation minus overlapping patches',
+      tone: zones.length === 0 ? 'dim' : 'green',
     },
     {
       iconKey: 'mountain',

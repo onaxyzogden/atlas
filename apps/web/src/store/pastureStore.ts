@@ -16,7 +16,9 @@ export type PastureKind = 'open-pasture' | 'paddock' | 'hayfield';
 export interface Pasture {
   id: string;
   projectId: string;
-  geometry: GeoJSON.Polygon;
+  // MultiPolygon permitted so Fill-remainder can store boundary-minus-
+  // patches results that turf.difference may split into disjoint pieces.
+  geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
   kind: PastureKind;
   label?: string;
   notes?: string;

@@ -621,7 +621,11 @@ const vegetation: FieldSchema = {
       });
       return;
     }
-    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    if (
+      !ctx.geometry ||
+      (ctx.geometry.type !== 'Polygon' && ctx.geometry.type !== 'MultiPolygon')
+    )
+      return;
     store.addPatch({
       id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
@@ -671,7 +675,11 @@ const pasture: FieldSchema = {
       });
       return;
     }
-    if (!ctx.geometry || ctx.geometry.type !== 'Polygon') return;
+    if (
+      !ctx.geometry ||
+      (ctx.geometry.type !== 'Polygon' && ctx.geometry.type !== 'MultiPolygon')
+    )
+      return;
     store.addPasture({
       id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,

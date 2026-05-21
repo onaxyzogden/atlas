@@ -169,31 +169,38 @@ export function writeLineString(
   }
 }
 
-/** Replace the geometry of a Polygon annotation (vertex edit). */
+/** Replace the geometry of a Polygon annotation (vertex edit).
+ *  `vegetation` and `pasture` accept MultiPolygon as well so the
+ *  Fill-remainder tool can write boundary-minus-patches results;
+ *  the MapboxDraw vertex-edit pipeline still only emits Polygon. */
 export function writePolygon(
   kind: AnnotationKind,
   id: string,
-  geometry: GeoJSON.Polygon,
+  geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon,
 ): void {
   switch (kind) {
     case 'frostPocket':
     case 'hazardZone':
+      if (geometry.type !== 'Polygon') return;
       useExternalForcesStore.getState().updateHazard(id, { geometry });
       return;
     case 'vegetation':
       useVegetationStore.getState().updatePatch(id, { geometry });
       return;
     case 'building': {
+      if (geometry.type !== 'Polygon') return;
       const areaM2 = polygonAreaM2(geometry);
       useBuiltEnvironmentStore.getState().updateBuilding(id, { geometry, areaM2 });
       return;
     }
     case 'septic': {
+      if (geometry.type !== 'Polygon') return;
       const areaM2 = polygonAreaM2(geometry);
       useBuiltEnvironmentStore.getState().updateSeptic(id, { geometry, areaM2 });
       return;
     }
     case 'conventionalCrop':
+      if (geometry.type !== 'Polygon') return;
       useConventionalCropStore.getState().updateConventionalCrop(id, { geometry });
       return;
     case 'pasture':
@@ -315,11 +322,12 @@ export function readLineString(
   }
 }
 
-/** Read the *current* Polygon geometry, or null if the record vanished. */
+/** Read the *current* Polygon (or MultiPolygon, for `vegetation` /
+ *  `pasture`) geometry, or null if the record vanished. */
 export function readPolygon(
   kind: AnnotationKind,
   id: string,
-): GeoJSON.Polygon | null {
+): GeoJSON.Polygon | GeoJSON.MultiPolygon | null {
   switch (kind) {
     case 'frostPocket':
     case 'hazardZone': {

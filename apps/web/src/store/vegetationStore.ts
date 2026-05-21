@@ -43,7 +43,10 @@ export {
 export interface VegetationPatch {
   id: string;
   projectId: string;
-  geometry: GeoJSON.Polygon;
+  // MultiPolygon is permitted so a vegetation matrix produced by the
+  // Fill-remainder tool (boundary minus crop / building patches) can
+  // store the disconnected pieces that turf.difference leaves behind.
+  geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
   successionStage: SuccessionStage;
   groundCover: GroundCoverState;
   label?: string;

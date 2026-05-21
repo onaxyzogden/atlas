@@ -14,6 +14,8 @@ import {
 import { useParams } from '@tanstack/react-router';
 import { useEcologyStore } from '../../../../store/ecologyStore.js';
 import { useVegetationStore } from '../../../../store/vegetationStore.js';
+import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
+import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useZoneStore } from '../../../../store/zoneStore.js';
 import { useRegenerationPlanStore } from '../../../../store/regenerationPlanStore.js';
 import { useSiteDataStore } from '../../../../store/siteDataStore.js';
@@ -59,6 +61,22 @@ export default function EcologicalDetail() {
   const zones = useMemo(() => allZones.filter((z) => z.projectId === id), [allZones, id]);
   const successionStage = successionByProject[id];
 
+  // Matrix-and-patches: crops + buildings sit on top of the vegetation
+  // matrix. Pass them to the net-area derivation so a boundary-spanning
+  // vegetation polygon doesn't double-count area that is actually crop
+  // or building footprint.
+  const allCrops = useConventionalCropStore((s) => s.conventionalCrops);
+  const allBuildings = useBuiltEnvironmentStore((s) => s.buildings);
+  const subtractees = useMemo(
+    () => [
+      ...allCrops.filter((c) => c.projectId === id).map((c) => ({ geometry: c.geometry })),
+      ...allBuildings
+        .filter((b) => b.projectId === id)
+        .map((b) => ({ geometry: b.geometry })),
+    ],
+    [allCrops, allBuildings, id],
+  );
+
   const allLandZones = useZoneStore((s) => s.zones);
   const landZones = useMemo(
     () => allLandZones.filter((z) => z.projectId === id),
@@ -92,7 +110,7 @@ export default function EcologicalDetail() {
     });
   };
 
-  const kpis = ecologyDetailKpis(layers, observations, zones, successionStage);
+  const kpis = ecologyDetailKpis(layers, observations, zones, successionStage, subtractees);
   const counts = ecologyCounts(observations, zones, successionStage);
 
   const completenessPct = useMemo(() => {

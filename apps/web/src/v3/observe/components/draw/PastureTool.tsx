@@ -1,5 +1,9 @@
+import { useState } from 'react';
+import * as turf from '@turf/turf';
 import type { Map as MaplibreMap } from 'maplibre-gl';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
+import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
+import { useBuiltEnvironmentStore } from '../../../../store/builtEnvironmentStore.js';
 import { useMapboxDrawTool } from './useMapboxDrawTool.js';
 import { DRAW_PREVIEW_COLORS } from './mapboxDrawStyles.js';
 import DrawAreaReadout from './DrawAreaReadout.js';
@@ -17,21 +21,69 @@ interface Props {
   projectId: string;
 }
 
+/**
+ * Matrix + patches model: pasture describes the *ground-cover matrix* of
+ * grazed / fenced land. Crops and buildings sit on top as opaque patches.
+ * The Fill-remainder toggle lets an operator outline a boundary and have
+ * the tool subtract every crop / building polygon already on the map.
+ */
+function subtractPatches(
+  boundary: GeoJSON.Polygon,
+  projectId: string,
+): GeoJSON.Polygon | GeoJSON.MultiPolygon | null {
+  const crops = useConventionalCropStore
+    .getState()
+    .conventionalCrops.filter((c) => c.projectId === projectId);
+  const buildings = useBuiltEnvironmentStore
+    .getState()
+    .buildings.filter((b) => b.projectId === projectId);
+  const subtractees = [
+    ...crops.map((c) => c.geometry),
+    ...buildings.map((b) => b.geometry),
+  ];
+  if (subtractees.length === 0) return boundary;
+
+  let acc: GeoJSON.Feature<GeoJSON.Polygon | GeoJSON.MultiPolygon> | null =
+    turf.feature(boundary);
+  for (const g of subtractees) {
+    if (!acc) break;
+    try {
+      acc = turf.difference(
+        turf.featureCollection([acc, turf.feature(g)]),
+      ) as typeof acc;
+    } catch {
+      /* malformed subtrahend — skip, keep current acc */
+    }
+  }
+  return acc ? acc.geometry : null;
+}
+
 export default function PastureTool({ map, projectId }: Props) {
   const open = useAnnotationFormStore((s) => s.open);
   const dimMode = useDimensionDrawStore((s) => s.mode);
   const dimShape = useDimensionDrawStore((s) => s.shape);
   const dimValues = useDimensionValues();
+  const [fillRemainder, setFillRemainder] = useState(false);
 
   const place = (geom: GeoJSON.Polygon) => {
+    let finalGeom: GeoJSON.Polygon | GeoJSON.MultiPolygon | null = geom;
+    if (fillRemainder) {
+      finalGeom = subtractPatches(geom, projectId);
+      if (!finalGeom) {
+        console.info(
+          '[Fill remainder] Boundary fully covered by crop/building patches — no remainder to place.',
+        );
+        return;
+      }
+    }
     const id = createWithDefaults(FIELD_SCHEMAS.pasture, {
       projectId,
-      geometry: geom,
+      geometry: finalGeom,
     });
     if (id)
       open({
         kind: 'pasture',
-        geometry: geom,
+        geometry: finalGeom,
         mode: 'edit',
         existingId: id,
         projectId,
@@ -61,6 +113,23 @@ export default function PastureTool({ map, projectId }: Props) {
       <span className={css.hint}>
         Outline grazed or fenced land (Freehand) or set Width × Depth / Radius (Dimensions).
       </span>
+      <label
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 11,
+          marginTop: 4,
+          cursor: 'pointer',
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={fillRemainder}
+          onChange={(e) => setFillRemainder(e.target.checked)}
+        />
+        <span>Fill remainder (subtract crops &amp; buildings)</span>
+      </label>
       <DimensionPanel allowedShapes={['rect', 'circle']} />
       {liveArea !== null && (
         <div className={css.readout}>
