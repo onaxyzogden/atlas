@@ -8,7 +8,7 @@
  * analysis is informational planning, not a sale of future returns.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useFinancialModel } from '../financial/hooks/useFinancialModel.js';
 import { useSiteDataStore } from '../../store/siteDataStore.js';
@@ -20,7 +20,12 @@ import {
   computeTransitionBudget,
   jCurveTrough,
 } from '../financial/engine/transitionBudget.js';
-import { naturalCapitalAppreciationByYear } from '../financial/somAppreciation.js';
+import {
+  naturalCapitalAppreciationByYear,
+  USD_PER_TC_DEFAULT,
+} from '../financial/somAppreciation.js';
+import EvidenceSection from '../../components/evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '../../lib/evidence/selectEvidence.js';
 import { sage, success, warning, group, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
@@ -36,6 +41,65 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
   const [status, setStatus] = useState<'idle' | 'generating' | 'done' | 'error'>('idle');
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Phase E.6 — SOM trajectory presence flag for the Evidence section. */
+  const [somHorizonYears, setSomHorizonYears] = useState<number | undefined>(undefined);
+
+  // Best-effort SOM trajectory fetch — feeds the Evidence section's
+  // "SOM trajectory" fragment. Skips silently if the API errors or the
+  // project has no recompute yet. Independent from the PDF generation
+  // path's fetch so the disclosure stays useful before clicking Generate.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const { data: trajectory } = await api.soilRegeneration.getSomTrajectory(project.id);
+        if (cancelled) return;
+        if (trajectory && trajectory.length > 0) {
+          setSomHorizonYears(trajectory[trajectory.length - 1]!.year);
+        }
+      } catch {
+        // best-effort
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [project.id]);
+
+  // Phase E.6 — Tier-2 Evidence inputs for the modal-level disclosure.
+  const evidenceItem = useMemo(() => {
+    if (!model) return null;
+    const totalCapitalUsd = model.totalInvestment.mid;
+    const enterpriseCount = model.enterprises.length;
+    const costLineItemCount = model.costLineItems.length;
+    const revenueStreamCount = model.revenueStreams.length;
+    const natCap = siteData?.layers
+      ? selectEcosystemValuationFromLayers({
+          layers: siteData.layers,
+          propertyAcres: project.acreage ?? null,
+        })
+      : null;
+    const transitionYears = computeTransitionBudget(model.cashflow);
+    const trough = jCurveTrough(transitionYears);
+    return selectEvidenceFor({
+      panelKey: 'capital-partner',
+      inputs: {
+        totalCapitalUsd,
+        enterpriseCount,
+        costLineItemCount,
+        revenueStreamCount,
+        natCapUsdYr: natCap?.totalUsdYr ?? undefined,
+        natCapUsdPerTc: USD_PER_TC_DEFAULT,
+        troughYear: trough.troughYear,
+        troughValueUsd: trough.troughValue,
+        breakevenYear: trough.breakevenYear,
+        somHasTrajectory: somHorizonYears != null,
+        somHorizonYears,
+        missionScore: model.missionScore.overall,
+        pdfAssumptionCount: Math.min(model.assumptions.length, 15),
+      },
+    });
+  }, [model, siteData, project.acreage, somHorizonYears]);
 
   const totalInvestmentStr = model
     ? formatKRange(model.totalInvestment.low, model.totalInvestment.high)
@@ -395,6 +459,15 @@ export default function CapitalPartnerSummaryExport({ project, onClose }: Props)
                 </ul>
               </details>
             )}
+          </div>
+
+          {/* ── Tier-2 Evidence — Show assumptions & derivations (Phase E.6) */}
+          <div style={{ marginBottom: 16 }}>
+            <EvidenceSection
+              item={evidenceItem}
+              toggleLabel="Show assumptions & derivations"
+              projectId={project.id}
+            />
           </div>
 
           <div style={{ fontSize: 9, color: '#6b7280', textAlign: 'center', borderTop: '1px solid rgba(21,128,61,0.15)', paddingTop: 12 }}>
