@@ -8,7 +8,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "migrate": "pnpm --filter @ogden/api migrate",
-    "db:studio": "pnpm --filter @ogden/api db:studio"
+    "db:studio": "pnpm --filter @ogden/api db:studio",
+    "snapshot:showcase": "tsx scripts/snapshot-three-streams.ts"
   },
   "dependencies": {
     "@ogden/ui-components": "github:onaxyzogden/ogden-ui-components#v0.1.0"

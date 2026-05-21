@@ -1,0 +1,1580 @@
+{
+  "project": {
+    "id": "00000000-0000-0000-0000-000000357320",
+    "name": "Three Streams Farm — Apricot-Lane Showcase",
+    "is_builtin": true,
+    "country": "CA",
+    "province_state": "ON",
+    "conservation_auth_id": "CH",
+    "acreage": "159.7112",
+    "bioregion": "Mixedwood Plains (Ontario)",
+    "climate_region": "Niagara Escarpment edge — Carolinian / Mixedwood Plains transition",
+    "parcel_boundary": {
+      "type": "MultiPolygon",
+      "coordinates": [
+        [
+          [
+            [
+              -79.9145,
+              43.556
+            ],
+            [
+              -79.9055,
+              43.556
+            ],
+            [
+              -79.9055,
+              43.564
+            ],
+            [
+              -79.9145,
+              43.564
+            ],
+            [
+              -79.9145,
+              43.556
+            ]
+          ]
+        ]
+      ]
+    },
+    "metadata": {
+      "county": "Halton Region",
+      "bioregion": "Mixedwood Plains (Ontario)",
+      "centerLat": 43.56,
+      "centerLng": -79.91,
+      "soilNotes": {
+        "ph": "6.6 (pasture half, 2025-09 lab test); 6.9 (former crop half, 2025-09 lab test)",
+        "compaction": "Plow pan documented at 18 cm depth across the row-crop half (Y0). Subsoiled along contour where Y1 swales were cut; remainder addressed via cover-crop tap-root + livestock impact Y2 onward.",
+        "organicMatter": "1.4–1.9% baseline (Y0, 2024 row-crop ground); 2.1–2.6% Y2 trajectory on pasture half",
+        "biologicalActivity": "Earthworm casts negligible at Y0 on row-crop half (counts 0–2/m²); rising in Y1 cover-crop blocks (4–6/m² post-rye+clover); pasture half holds 8–12/m² steady."
+      },
+      "municipality": "Town of Milton",
+      "climateRegion": "Niagara Escarpment edge — Carolinian / Mixedwood Plains transition",
+      "mapProjection": "EPSG:4326 (WGS84) for storage; UTM 17N (EPSG:26917) for area calc",
+      "showcaseProgram": {
+        "program": "Apricot-Lane-inspired OLOS showcase",
+        "attribution": "inspired by farms like Apricot Lane Farms and the rehabilitation arc shown in The Biggest Little Farm; Three Streams Farm is a fictional Ontario operation",
+        "canonWikiPath": "wiki/entities/three-streams-farm.md",
+        "forwardScenes": [
+          "Y5 (2029)",
+          "Y8 (2032)"
+        ],
+        "yearOfShowcase": "Y2 (2026) — primary loadable demo state"
+      },
+      "legalDescription": "PT LT 14 CON 6 TRAFALGAR; TOWN OF MILTON",
+      "fieldObservations": "Three small Sixteen Mile Creek tributaries thread the lot (the farm namesake). Y0 baseline: depleted topsoil under 14-year continuous-corn rotation, plow pan at ~18 cm, organic matter 1.4–1.9% on cropped portions, ephemeral cut gully on the south slope, single ageing windbreak along the north edge, no riparian buffer on any of the three tributaries. Y2 trajectory: keyline swales + buffers installed Y1, first cow-calf + mobile poultry landing Y2.",
+      "restrictionsCovenants": "Conservation Halton regulated area on the three creek corridors (O.Reg. 162/06). Niagara Escarpment Plan transition designation on the western strip."
+    }
+  },
+  "layers": [
+    {
+      "layer_type": "climate",
+      "source_api": "eccc_normals",
+      "data_date": "2021-12-31T00:00:00.000Z",
+      "summary_data": {
+        "hardiness_zone": "5b",
+        "last_frost_date": "2025-05-08",
+        "annual_precip_mm": 885,
+        "first_frost_date": "2025-10-12",
+        "annual_temp_mean_c": 7.4,
+        "growing_degree_days": 2780,
+        "growing_season_days": 152,
+        "koppen_classification": "Dfb"
+      }
+    },
+    {
+      "layer_type": "elevation",
+      "source_api": "nrcan_hrdem",
+      "data_date": "2024-08-15T00:00:00.000Z",
+      "summary_data": {
+        "max_slope_deg": 13.4,
+        "mean_slope_deg": 5.8,
+        "max_elevation_m": 262.7,
+        "min_elevation_m": 218.4,
+        "mean_elevation_m": 238.6,
+        "predominant_aspect": "S"
+      }
+    },
+    {
+      "layer_type": "land_cover",
+      "source_api": "aafc_annual_crop",
+      "data_date": "2024-09-30T00:00:00.000Z",
+      "summary_data": {
+        "soyPct": 8,
+        "barePct": 4,
+        "cornPct": 62,
+        "builtPct": 2,
+        "waterPct": 1,
+        "forestPct": 9,
+        "pasturePct": 14
+      }
+    },
+    {
+      "layer_type": "soils",
+      "source_api": "omafra_cansis",
+      "data_date": "2023-11-01T00:00:00.000Z",
+      "summary_data": {
+        "drainage": "Imperfectly to moderately well drained",
+        "agCapability": "Class 2 (mechanical limitation: stoniness on escarpment edge) / Class 3 (drainage limitation in tributary swales)",
+        "dominantSeries": "Chinguacousy clay loam + Oneida loam complex",
+        "depthToBedrockM": 1.4
+      }
+    },
+    {
+      "layer_type": "watershed",
+      "source_api": "ontario_hydro_network",
+      "data_date": "2024-04-10T00:00:00.000Z",
+      "summary_data": {
+        "streamOrder": 1,
+        "subWatershed": "Trafalgar Tributaries (3 branches on-lot)",
+        "watershedName": "Sixteen Mile Creek — Upper / Headwaters",
+        "tributaryCount": 3,
+        "onLotChannelLengthM": 1180
+      }
+    },
+    {
+      "layer_type": "wetlands_flood",
+      "source_api": "conservation_authority",
+      "data_date": "2024-04-10T00:00:00.000Z",
+      "summary_data": {
+        "wetlandPresent": false,
+        "floodplainAreaHa": 2.1,
+        "regulatedSetbackM": 30,
+        "regulatedCorridors": 3
+      }
+    }
+  ],
+  "designFeatures": [
+    {
+      "id": "00000000-0000-0000-0000-0000df35e005",
+      "feature_type": "path",
+      "name": "Central-branch riparian buffer (Y1)",
+      "properties": {
+        "setbackM": 30,
+        "speciesMix": [
+          "red-osier dogwood",
+          "elderberry",
+          "silver maple",
+          "sedge mix"
+        ],
+        "channelLengthM": 480,
+        "establishedYear": 2025
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.91,
+            43.564
+          ],
+          [
+            -79.91,
+            43.56
+          ],
+          [
+            -79.91,
+            43.556
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e006",
+      "feature_type": "path",
+      "name": "East-branch riparian buffer (Y1)",
+      "properties": {
+        "setbackM": 30,
+        "speciesMix": [
+          "red-osier dogwood",
+          "serviceberry",
+          "staghorn sumac",
+          "native grass mix"
+        ],
+        "channelLengthM": 290,
+        "establishedYear": 2025
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.9075,
+            43.564
+          ],
+          [
+            -79.907,
+            43.561
+          ],
+          [
+            -79.9065,
+            43.5575
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e007",
+      "feature_type": "path",
+      "name": "West-branch keyline swale (Y1)",
+      "properties": {
+        "lengthM": 290,
+        "slopePct": 1,
+        "plantedWith": "comfrey + black locust",
+        "subsoiledDepthCm": 35
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.9143,
+            43.5585
+          ],
+          [
+            -79.9108,
+            43.5588
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e008",
+      "feature_type": "path",
+      "name": "East-branch keyline swale (Y1)",
+      "properties": {
+        "lengthM": 300,
+        "slopePct": 1.1,
+        "plantedWith": "comfrey + sea buckthorn",
+        "subsoiledDepthCm": 35
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.9093,
+            43.5588
+          ],
+          [
+            -79.9057,
+            43.559
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e004",
+      "feature_type": "path",
+      "name": "West-branch riparian buffer (Y1)",
+      "properties": {
+        "setbackM": 30,
+        "speciesMix": [
+          "red-osier dogwood",
+          "nannyberry",
+          "crack willow",
+          "reed canary grass"
+        ],
+        "channelLengthM": 410,
+        "establishedYear": 2025
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.9135,
+            43.5635
+          ],
+          [
+            -79.9128,
+            43.5605
+          ],
+          [
+            -79.912,
+            43.557
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e013",
+      "feature_type": "path",
+      "name": "Primary Farm Lane (gravel)",
+      "properties": {
+        "widthM": 4,
+        "lengthM": 445,
+        "surface": "gravel"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.91,
+            43.556
+          ],
+          [
+            -79.91,
+            43.56
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e014",
+      "feature_type": "path",
+      "name": "Pasture Rotation Access Lane",
+      "properties": {
+        "use": "livestock + ATV",
+        "widthM": 3,
+        "lengthM": 420,
+        "surface": "grass"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.91,
+            43.5615
+          ],
+          [
+            -79.9135,
+            43.562
+          ],
+          [
+            -79.9135,
+            43.5635
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e003",
+      "feature_type": "structure",
+      "name": "Legacy North Windbreak (Y0 inherited)",
+      "properties": {
+        "rows": 1,
+        "species": [
+          "norway spruce"
+        ],
+        "condition": "ageing, gappy",
+        "establishedYear": 1998
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.9145,
+            43.564
+          ],
+          [
+            -79.9055,
+            43.564
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e010",
+      "feature_type": "structure",
+      "name": "Y2 Pole Barn (livestock shelter + hay)",
+      "properties": {
+        "use": [
+          "winter cow-calf shelter",
+          "hay storage",
+          "equipment"
+        ],
+        "builtYear": 2026,
+        "footprintM2": 280
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.91,
+              43.56
+            ],
+            [
+              -79.9095,
+              43.56
+            ],
+            [
+              -79.9095,
+              43.5604
+            ],
+            [
+              -79.91,
+              43.5604
+            ],
+            [
+              -79.91,
+              43.56
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e011",
+      "feature_type": "structure",
+      "name": "Y2 Egg-Pack Room + Cold Storage",
+      "properties": {
+        "use": [
+          "egg wash + grade",
+          "cold storage for orchard + market crops"
+        ],
+        "builtYear": 2026,
+        "footprintM2": 48
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9095,
+              43.56
+            ],
+            [
+              -79.9092,
+              43.56
+            ],
+            [
+              -79.9092,
+              43.5603
+            ],
+            [
+              -79.9095,
+              43.5603
+            ],
+            [
+              -79.9095,
+              43.56
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e012",
+      "feature_type": "structure",
+      "name": "Y2 Rainwater Cistern (pole barn roof)",
+      "properties": {
+        "use": [
+          "livestock water backup",
+          "nursery irrigation"
+        ],
+        "capacityLitres": 22000,
+        "catchmentRoofM2": 280
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9099,
+              43.5602
+            ],
+            [
+              -79.9098,
+              43.5602
+            ],
+            [
+              -79.9098,
+              43.5603
+            ],
+            [
+              -79.9099,
+              43.5603
+            ],
+            [
+              -79.9099,
+              43.5602
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e009",
+      "feature_type": "zone",
+      "name": "Y1 Cover Crop — Winter Rye + Crimson Clover (West)",
+      "properties": {
+        "areaHa": 3.2,
+        "speciesMix": [
+          "winter rye",
+          "crimson clover",
+          "hairy vetch"
+        ],
+        "seedingDate": "2025-09-20"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.914,
+              43.5565
+            ],
+            [
+              -79.911,
+              43.5565
+            ],
+            [
+              -79.911,
+              43.5595
+            ],
+            [
+              -79.914,
+              43.5595
+            ],
+            [
+              -79.914,
+              43.5565
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e00a",
+      "feature_type": "zone",
+      "name": "Y1 Cover Crop — Oats + Tillage Radish (East)",
+      "properties": {
+        "areaHa": 2.9,
+        "speciesMix": [
+          "oats",
+          "tillage radish",
+          "field peas"
+        ],
+        "seedingDate": "2025-08-10"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.909,
+              43.5565
+            ],
+            [
+              -79.906,
+              43.5565
+            ],
+            [
+              -79.906,
+              43.5595
+            ],
+            [
+              -79.909,
+              43.5595
+            ],
+            [
+              -79.909,
+              43.5565
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e00b",
+      "feature_type": "zone",
+      "name": "Y2 Orchard Block 1 — Apple + Pear + Plum (south bench)",
+      "properties": {
+        "trees": 68,
+        "areaHa": 1.2,
+        "varieties": [
+          "liberty apple",
+          "goldrush apple",
+          "harrow sweet pear",
+          "superior plum"
+        ],
+        "understorey": "comfrey + alfalfa",
+        "establishedYear": 2026
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9115,
+              43.557
+            ],
+            [
+              -79.9095,
+              43.557
+            ],
+            [
+              -79.9095,
+              43.5585
+            ],
+            [
+              -79.9115,
+              43.5585
+            ],
+            [
+              -79.9115,
+              43.557
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e00c",
+      "feature_type": "zone",
+      "name": "Y2 Cow-Calf Rotation Pasture (north strip)",
+      "properties": {
+        "speciesMix": "orchardgrass + meadow fescue + red clover + chicory",
+        "initialHerd": "80 head Black Angus / Devon-cross",
+        "rotationDays": 3,
+        "paddockCellsY2": 12
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.914,
+              43.5615
+            ],
+            [
+              -79.906,
+              43.5615
+            ],
+            [
+              -79.906,
+              43.5638
+            ],
+            [
+              -79.914,
+              43.5638
+            ],
+            [
+              -79.914,
+              43.5615
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e00d",
+      "feature_type": "zone",
+      "name": "Y2 Mobile Poultry Follow (3-day lag)",
+      "properties": {
+        "shelter": "mobile coop + electric netting",
+        "flockSize": "200 layers + seasonal broiler shifts",
+        "followLagDays": 3
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.914,
+              43.5615
+            ],
+            [
+              -79.906,
+              43.5615
+            ],
+            [
+              -79.906,
+              43.5638
+            ],
+            [
+              -79.914,
+              43.5638
+            ],
+            [
+              -79.914,
+              43.5615
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e00e",
+      "feature_type": "zone",
+      "name": "Y2 Nursery + Propagation Area",
+      "properties": {
+        "beds": 8,
+        "focus": [
+          "hedgerow whips",
+          "cover-crop seed increase",
+          "kitchen garden transplants"
+        ],
+        "propagationTunnels": 1
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9108,
+              43.5598
+            ],
+            [
+              -79.91,
+              43.5598
+            ],
+            [
+              -79.91,
+              43.5604
+            ],
+            [
+              -79.9108,
+              43.5604
+            ],
+            [
+              -79.9108,
+              43.5598
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e00f",
+      "feature_type": "zone",
+      "name": "Y2 Kitchen Garden + Herb Spiral",
+      "properties": {
+        "beds": 14,
+        "watering": "drip + hand",
+        "speciesCount": 42
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9105,
+              43.5598
+            ],
+            [
+              -79.9098,
+              43.5598
+            ],
+            [
+              -79.9098,
+              43.5604
+            ],
+            [
+              -79.9105,
+              43.5604
+            ],
+            [
+              -79.9105,
+              43.5598
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e001",
+      "feature_type": "zone",
+      "name": "West Field — Y0 baseline (continuous-corn)",
+      "properties": {
+        "cropHistory": "14-year corn-soy rotation",
+        "baselineCondition": "depleted topsoil, plow pan 18 cm, OM 1.4-1.9%"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9145,
+              43.556
+            ],
+            [
+              -79.9105,
+              43.556
+            ],
+            [
+              -79.9105,
+              43.5615
+            ],
+            [
+              -79.9145,
+              43.5615
+            ],
+            [
+              -79.9145,
+              43.556
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e002",
+      "feature_type": "zone",
+      "name": "East Field — Y0 baseline (continuous-corn)",
+      "properties": {
+        "cropHistory": "14-year corn-soy rotation",
+        "baselineCondition": "depleted topsoil, plow pan 18 cm, OM 1.4-1.9%"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9095,
+              43.556
+            ],
+            [
+              -79.9055,
+              43.556
+            ],
+            [
+              -79.9055,
+              43.5615
+            ],
+            [
+              -79.9095,
+              43.5615
+            ],
+            [
+              -79.9095,
+              43.556
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e015",
+      "feature_type": "zone",
+      "name": "Y2 North Boundary Hedgerow Plant (renovation)",
+      "properties": {
+        "lengthM": 830,
+        "species": [
+          "hawthorn",
+          "red-osier dogwood",
+          "serviceberry",
+          "elderberry",
+          "nannyberry",
+          "staghorn sumac"
+        ],
+        "underlying": "adjacent to legacy windbreak",
+        "establishedYear": 2026
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9145,
+              43.5638
+            ],
+            [
+              -79.9055,
+              43.5638
+            ],
+            [
+              -79.9055,
+              43.564
+            ],
+            [
+              -79.9145,
+              43.564
+            ],
+            [
+              -79.9145,
+              43.5638
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e016",
+      "feature_type": "zone",
+      "name": "Y2 West Boundary Hedgerow Plant (new)",
+      "properties": {
+        "lengthM": 890,
+        "species": [
+          "hawthorn",
+          "serviceberry",
+          "red-osier dogwood",
+          "elderberry"
+        ],
+        "establishedYear": 2026
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9143,
+              43.556
+            ],
+            [
+              -79.9145,
+              43.556
+            ],
+            [
+              -79.9145,
+              43.564
+            ],
+            [
+              -79.9143,
+              43.564
+            ],
+            [
+              -79.9143,
+              43.556
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e017",
+      "feature_type": "zone",
+      "name": "Y3 Planned Orchard Block 2 — Stone fruit + nut",
+      "properties": {
+        "areaHa": 1.2,
+        "plannedYear": 2027,
+        "plannedSpecies": [
+          "sweet cherry",
+          "peach",
+          "seedling chestnut",
+          "hazelnut"
+        ]
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.909,
+              43.557
+            ],
+            [
+              -79.907,
+              43.557
+            ],
+            [
+              -79.907,
+              43.5585
+            ],
+            [
+              -79.909,
+              43.5585
+            ],
+            [
+              -79.909,
+              43.557
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e018",
+      "feature_type": "zone",
+      "name": "Y3+ Planned Silvopasture Strip",
+      "properties": {
+        "plannedYear": 2027,
+        "plannedSpecies": [
+          "black walnut",
+          "white oak",
+          "honeylocust"
+        ],
+        "densityTreesPerHa": 85,
+        "overstoryClosurePctTarget": 35
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.913,
+              43.5615
+            ],
+            [
+              -79.907,
+              43.5615
+            ],
+            [
+              -79.907,
+              43.5625
+            ],
+            [
+              -79.913,
+              43.5625
+            ],
+            [
+              -79.913,
+              43.5615
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e019",
+      "feature_type": "zone",
+      "name": "Y5+ Planned Woodlot Extension (escarpment-edge)",
+      "properties": {
+        "plannedYear": 2029,
+        "plannedSpecies": [
+          "white pine",
+          "sugar maple",
+          "shagbark hickory",
+          "white ash (EAB-resistant)"
+        ],
+        "escarpmentTransition": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9145,
+              43.556
+            ],
+            [
+              -79.9135,
+              43.556
+            ],
+            [
+              -79.9135,
+              43.5615
+            ],
+            [
+              -79.9145,
+              43.5615
+            ],
+            [
+              -79.9145,
+              43.556
+            ]
+          ]
+        ]
+      }
+    }
+  ],
+  "regenerationEvents": [
+    {
+      "id": "00000000-0000-0000-0000-0000ee350001",
+      "event_date": "2024-04-12T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "labRef": "A&L Canada",
+        "metric": "soil_organic_matter",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y0",
+        "samplePoints": 12,
+        "plowPanDepthCm": 18,
+        "mean_om_pct_cropped": 1.65,
+        "mean_om_pct_pasture": 2.6
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350002",
+      "event_date": "2024-05-22T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "total": 11,
+        "method": "6x 8-min point counts",
+        "metric": "bird_species_richness",
+        "shared": 4,
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "crop_half": 7,
+        "cohortYear": "Y0",
+        "pasture_half": 8
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350003",
+      "event_date": "2024-05-28T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "method": "20x20cm spade",
+        "metric": "soil_biology",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y0",
+        "worms_m2_cropped": 0.8,
+        "worms_m2_pasture": 8.4,
+        "anecic_present_cropped": false,
+        "anecic_present_pasture": true
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350004",
+      "event_date": "2024-06-08T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "method": "double-ring infiltrometer 8 sites",
+        "metric": "infiltration_rate_mm_per_hr",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y0",
+        "mean_cropped": 11.8,
+        "mean_pasture": 26.4
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350005",
+      "event_date": "2024-07-14T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "method": "3x 30-min transects",
+        "metric": "pollinator_visitation",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y0",
+        "cropped_total": 5,
+        "pasture_total": 26,
+        "windbreak_total": 39
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350006",
+      "event_date": "2024-09-15T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "method": "gravimetric 16 samples",
+        "metric": "water_retention_pct_by_weight",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y0",
+        "mean_cropped": 24.2,
+        "mean_pasture": 30.1
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350007",
+      "event_date": "2025-04-22T00:00:00.000Z",
+      "event_type": "intervention",
+      "phase": "stabilize_erosion",
+      "observations": {
+        "cohortYear": "Y1",
+        "swaleLengthM": 590,
+        "plantedSpecies": [
+          "comfrey",
+          "black locust",
+          "sea buckthorn"
+        ],
+        "interventionGroup": "water"
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350008",
+      "event_date": "2025-05-08T00:00:00.000Z",
+      "event_type": "intervention",
+      "phase": "stabilize_erosion",
+      "observations": {
+        "branches": 3,
+        "setbackM": 30,
+        "cohortYear": "Y1",
+        "interventionGroup": "water",
+        "bufferChannelLengthM": 1180
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350013",
+      "event_date": "2025-05-21T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "total": 13,
+        "metric": "bird_species_richness",
+        "cohortYear": "Y1",
+        "new_species": [
+          "swamp sparrow",
+          "kingfisher",
+          "bobolink"
+        ],
+        "baselineCompare": "Y0 = 11"
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350009",
+      "event_date": "2025-06-30T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "metric": "soil_biology",
+        "cohortYear": "Y1",
+        "baselineCompare": "Y0 cropped half = 0.8",
+        "worms_m2_distal": 0.9,
+        "worms_m2_adjacent": 3.8
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350010",
+      "event_date": "2025-08-10T00:00:00.000Z",
+      "event_type": "intervention",
+      "phase": "build_organic_matter",
+      "observations": {
+        "cohortYear": "Y1",
+        "speciesMix": [
+          "oats",
+          "tillage radish",
+          "field peas"
+        ],
+        "cracksToDepthCm": 30,
+        "interventionGroup": "cover",
+        "radishBiomassHeightCm": 60
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350011",
+      "event_date": "2025-09-20T00:00:00.000Z",
+      "event_type": "intervention",
+      "phase": "build_organic_matter",
+      "observations": {
+        "cohortYear": "Y1",
+        "speciesMix": [
+          "winter rye",
+          "crimson clover",
+          "hairy vetch"
+        ],
+        "germinationPct": 90,
+        "residueStrategy": "roller-crimp + plant-through",
+        "interventionGroup": "cover"
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350012",
+      "event_date": "2025-11-05T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "metric": "infiltration_rate_mm_per_hr",
+        "cohortYear": "Y1",
+        "mean_distal": 13.2,
+        "baselineCompare": "Y0 cropped = 11.8",
+        "mean_swale_adjacent": 20.6
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350014",
+      "event_date": "2025-12-15T00:00:00.000Z",
+      "event_type": "milestone",
+      "phase": "stabilize_erosion",
+      "observations": {
+        "cohortYear": "Y1",
+        "milestoneType": "phase_close",
+        "yeomansCapClosed": "water"
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350015",
+      "event_date": "2026-03-30T00:00:00.000Z",
+      "event_type": "milestone",
+      "phase": "introduce_perennials",
+      "observations": {
+        "cohortYear": "Y2",
+        "structures": [
+          "pole_barn",
+          "egg_pack_room",
+          "cistern_22000L"
+        ],
+        "milestoneType": "structure_complete"
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350019",
+      "event_date": "2026-04-10T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "metric": "soil_organic_matter",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y2",
+        "samplePoints": 12,
+        "baselineCompare": {
+          "Y0_cropped": 1.65,
+          "Y0_pasture": 2.6
+        },
+        "mean_om_pct_cropped": 2.25,
+        "mean_om_pct_pasture": 2.85
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350016",
+      "event_date": "2026-04-25T00:00:00.000Z",
+      "event_type": "milestone",
+      "phase": "introduce_perennials",
+      "observations": {
+        "trees": 68,
+        "areaHa": 1.2,
+        "varieties": [
+          "liberty apple",
+          "goldrush apple",
+          "harrow sweet pear",
+          "superior plum"
+        ],
+        "cohortYear": "Y2",
+        "understorey": [
+          "comfrey",
+          "alfalfa"
+        ],
+        "milestoneType": "perennials_planted"
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350017",
+      "event_date": "2026-05-04T00:00:00.000Z",
+      "event_type": "milestone",
+      "phase": null,
+      "observations": {
+        "herd": {
+          "cows": 62,
+          "bulls": 2,
+          "calves": 18
+        },
+        "breed": "Black Angus / Devon-cross",
+        "cohortYear": "Y2",
+        "paddockCells": 12,
+        "rotationDays": 3,
+        "milestoneType": "livestock_arrival"
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350018",
+      "event_date": "2026-05-15T00:00:00.000Z",
+      "event_type": "milestone",
+      "phase": null,
+      "observations": {
+        "flock": {
+          "layers": 200,
+          "broilers_shelters": 3
+        },
+        "cohortYear": "Y2",
+        "observation": "fly_reduction_pct_60",
+        "followLagDays": 3,
+        "milestoneType": "livestock_arrival"
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350020",
+      "event_date": "2026-05-22T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "total": 17,
+        "metric": "bird_species_richness",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y2",
+        "new_species": [
+          "yellow warbler",
+          "common yellowthroat",
+          "eastern kingbird",
+          "tree swallow"
+        ],
+        "baselineCompare": {
+          "Y0": 11,
+          "Y1": 13
+        },
+        "breedingConfirmed": [
+          "bobolink"
+        ]
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350021",
+      "event_date": "2026-05-25T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "metric": "soil_biology",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y2",
+        "baselineCompare": {
+          "Y0_cropped": 0.8,
+          "Y0_pasture": 8.4
+        },
+        "worms_m2_cropped": 4.6,
+        "worms_m2_pasture": 11.2,
+        "anecic_present_cropped": true
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350022",
+      "event_date": "2026-05-28T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "metric": "infiltration_rate_mm_per_hr",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y2",
+        "mean_cropped": 24.8,
+        "mean_pasture": 36.8,
+        "baselineCompare": {
+          "Y0_cropped": 11.8,
+          "Y0_pasture": 26.4
+        },
+        "trajectoryMultiplier": {
+          "cropped": 2.1,
+          "pasture": 1.4
+        }
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350024",
+      "event_date": "2026-05-30T00:00:00.000Z",
+      "event_type": "milestone",
+      "phase": "introduce_perennials",
+      "observations": {
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y2",
+        "milestoneType": "trajectory_reflection",
+        "trajectorySummary": {
+          "om_cropped_pct_gain": 36,
+          "bird_richness_pct_gain": 55,
+          "worms_cropped_pct_gain": 475,
+          "pollinator_cropped_pct_gain": 360,
+          "infiltration_cropped_pct_gain": 110
+        }
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350023",
+      "event_date": "2026-05-30T00:00:00.000Z",
+      "event_type": "observation",
+      "phase": null,
+      "observations": {
+        "metric": "pollinator_visitation",
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y2",
+        "cropped_total": 23,
+        "orchard_total": 82,
+        "pasture_total": 58,
+        "baselineCompare": {
+          "Y0_cropped": 5,
+          "Y0_pasture": 26
+        }
+      },
+      "parent_event_id": null
+    }
+  ],
+  "spiritualZones": [
+    {
+      "id": "00000000-0000-0000-0000-00000352e001",
+      "name": "Musalla — central-branch confluence prayer corner",
+      "properties": {
+        "notes": "Quiet 6 m² flat-stone prayer corner at the confluence of the central tributary and one of its small east-branch feeders. Used for daily salah by farm stewards and for the dawn Fajr after rotation moves. Qibla bearing computed from centroid; double-checked with compass on 2026-04-12.",
+        "zone_type": "prayer_space",
+        "solar_events": null,
+        "qibla_bearing": 55.85
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.91,
+              43.5598
+            ],
+            [
+              -79.9098,
+              43.5598
+            ],
+            [
+              -79.9098,
+              43.56
+            ],
+            [
+              -79.91,
+              43.56
+            ],
+            [
+              -79.91,
+              43.5598
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-00000352e002",
+      "name": "Gathering Circle (homestead grove)",
+      "properties": {
+        "notes": "Stone seat ring under a Y2-planted cluster of white pines near the pole barn. Used for community iftars in Ramadan, seasonal harvest gatherings, and the annual sponsor-and-allies welcome circle. No-build / no-cut perimeter.",
+        "zone_type": "gathering_circle",
+        "solar_events": null,
+        "qibla_bearing": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -79.9098,
+          43.5602
+        ]
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "from_output": "manure",
+      "to_input": "nutrient_uptake",
+      "ratio": "0.85"
+    },
+    {
+      "from_output": "pest_predation",
+      "to_input": "pest_predation",
+      "ratio": "0.65"
+    },
+    {
+      "from_output": "forage",
+      "to_input": "pollination",
+      "ratio": "0.70"
+    },
+    {
+      "from_output": "surface_water",
+      "to_input": "surface_water",
+      "ratio": "0.55"
+    },
+    {
+      "from_output": "mulch",
+      "to_input": "surface_water",
+      "ratio": "0.45"
+    },
+    {
+      "from_output": "compost",
+      "to_input": "nutrient_uptake",
+      "ratio": "0.60"
+    },
+    {
+      "from_output": "seed",
+      "to_input": "biomass",
+      "ratio": "0.75"
+    },
+    {
+      "from_output": "surface_water",
+      "to_input": "surface_water",
+      "ratio": "0.50"
+    }
+  ]
+}
