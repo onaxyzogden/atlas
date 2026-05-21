@@ -27,6 +27,7 @@ import SensitivityAnalysisCard from './SensitivityAnalysisCard.js';
 import HiddenCostsContingencyCard from './HiddenCostsContingencyCard.js';
 import TotalCostOfOwnershipCard from './TotalCostOfOwnershipCard.js';
 import CostByFeaturePhaseCard from './CostByFeaturePhaseCard.js';
+import StewardshipProgramsCashflowCard from './StewardshipProgramsCashflowCard.js';
 import LandownerPartnershipCard from './LandownerPartnershipCard.js';
 import RevenueStreamTaggingCard from './RevenueStreamTaggingCard.js';
 
@@ -477,6 +478,11 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       {activeTab === 'costs' && (
         <div className={`${p.section} ${p.sectionGapLg}`}>
           <CostByFeaturePhaseCard model={model} />
+          {/* Slice 7 (S7-B): combined cover-crop + habitat-feature
+              per-phase cashflow rollup — sibling to the cross-feature pivot
+              above, so the steward sees the budget-line view first, then
+              the stewardship-program detail breakdown. */}
+          <StewardshipProgramsCashflowCard projectId={project.id} />
           {costLineItems.length === 0 && (
             <div className={p.empty}>No cost items. Place features on the map.</div>
           )}
