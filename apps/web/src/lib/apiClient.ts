@@ -362,6 +362,26 @@ export const api = {
       ),
   },
 
+  evidenceAudit: {
+    // F.4 — passive reproducibility ledger. Fire-and-forget from the
+    // client; the caller does not await this in render paths.
+    log: (
+      projectId: string,
+      body: {
+        panelKey: string;
+        inputHash: string;
+        inputPayload: unknown;
+        selectorName: string;
+        evidenceOutput: unknown;
+      },
+    ) =>
+      request<{ id: string }>(
+        'POST',
+        `/api/v1/projects/${projectId}/evidence-audit/log`,
+        body,
+      ),
+  },
+
   projectState: {
     list: (projectId: string) =>
       request<ProjectStateBlob[]>('GET', `/api/v1/project-state/project/${projectId}`),

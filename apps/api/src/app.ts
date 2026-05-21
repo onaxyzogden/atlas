@@ -55,6 +55,7 @@ import activityRoutes from './routes/activity/index.js';
 import suggestionRoutes from './routes/suggestions/index.js';
 import regenerationEventRoutes from './routes/regeneration-events/index.js';
 import soilRegenerationRoutes from './routes/soil-regeneration/index.js';
+import evidenceAuditRoutes from './routes/evidence-audit/index.js';
 import telemetryRoutes from './routes/telemetry/index.js';
 
 // ── Scaffolded sections (Batch 1: §§2, 3, 4, 26) ──
@@ -223,6 +224,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(suggestionRoutes,    { prefix: '/api/v1/projects' });
   await app.register(regenerationEventRoutes, { prefix: '/api/v1/projects' });
   await app.register(soilRegenerationRoutes, { prefix: '/api/v1/soil-regeneration' });
+  await app.register(evidenceAuditRoutes, { prefix: '/api/v1/projects' });
   await app.register(telemetryRoutes,     { prefix: '/api/v1/telemetry' });
   await app.register(wsRoutes,            { prefix: '/api/v1/ws' });
 

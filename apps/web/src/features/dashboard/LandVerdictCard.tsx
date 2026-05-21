@@ -13,7 +13,7 @@
  *    0-39  → Not Recommended
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   computeAssessmentScores,
   computeOverallScore,
@@ -26,6 +26,7 @@ import type { MockLayerResult } from '../../lib/mockLayerData.js';
 import { ScoreCircle } from '../../components/panels/sections/_shared.js';
 import EvidenceSection from '../../components/evidence/EvidenceSection.js';
 import { selectEvidenceFor } from '../../lib/evidence/selectEvidence.js';
+import { emitEvidenceAudit } from '../../lib/evidence/auditEmit.js';
 import css from './LandVerdictCard.module.css';
 
 const EMPTY_LAYERS: MockLayerResult[] = [];
@@ -119,7 +120,7 @@ export default function LandVerdictCard({
 
   const verdict = VERDICT_META[bandFor(overallScore)];
 
-  const evidenceItem = useMemo(() => {
+  const evidenceInputs = useMemo(() => {
     // Top contributing flags (highest priority first), risks before
     // opportunities so the Evidence roster mirrors the card body.
     const topFlags = [...risks, ...opportunities]
@@ -129,16 +130,33 @@ export default function LandVerdictCard({
       layerType: l.layerType,
       confidence: (l.confidence ?? undefined) as 'low' | 'medium' | 'high' | undefined,
     }));
-    return selectEvidenceFor({
-      panelKey: 'land-verdict',
-      inputs: {
-        overallScore,
-        layers: layerInputs,
-        topFlags,
-        country: project.country ?? undefined,
-      },
-    });
+    return {
+      overallScore,
+      layers: layerInputs,
+      topFlags,
+      country: project.country ?? undefined,
+    };
   }, [overallScore, layers, risks, opportunities, project.country]);
+
+  const evidenceItem = useMemo(
+    () => selectEvidenceFor({ panelKey: 'land-verdict', inputs: evidenceInputs }),
+    [evidenceInputs],
+  );
+
+  // F.4 — passive reproducibility-ledger write. Fire-and-forget; the
+  // emit helper hashes inputs internally and the dependency-array gate
+  // means React only re-fires when the inputs object identity changes
+  // (useMemo above stabilises this).
+  useEffect(() => {
+    if (!evidenceItem) return;
+    emitEvidenceAudit({
+      projectId: project.id,
+      panelKey: 'LandVerdictCard',
+      selectorName: 'selectEvidenceFor(land-verdict)',
+      inputs: evidenceInputs,
+      output: evidenceItem,
+    });
+  }, [evidenceInputs, evidenceItem, project.id]);
 
   return (
     <section
