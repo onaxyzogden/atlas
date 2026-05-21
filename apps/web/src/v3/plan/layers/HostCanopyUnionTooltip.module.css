@@ -32,8 +32,28 @@
   }
 }
 
+/* Exit fade — paired with the enter keyframe so the surface feels
+   symmetric. `forwards` holds the final opacity:0 state so React can
+   unmount on `animationend` (via the tooltip's onAnimationEnd handler)
+   or via the PlanDataLayers safety timeout, whichever fires first. */
+@keyframes tooltipFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+}
+
+.tooltip[data-exiting='true'] {
+  animation: tooltipFadeOut 120ms ease-in forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .tooltip {
+  .tooltip,
+  .tooltip[data-exiting='true'] {
     animation: none;
   }
 }

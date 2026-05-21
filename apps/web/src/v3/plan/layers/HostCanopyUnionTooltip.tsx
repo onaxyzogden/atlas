@@ -43,6 +43,12 @@ export interface HostCanopyUnionTooltipProps {
   // True when the tooltip is shown via click-to-pin (not hover).
   // Forwarded as `data-pinned` so CSS can swap the border accent.
   pinned?: boolean;
+  // True while the tooltip is playing its exit-fade animation; the
+  // host (PlanDataLayers) holds the portal mounted past activeUnion
+  // → null until onExited fires. data-exiting drives the CSS exit
+  // keyframe.
+  exiting?: boolean;
+  onExited?: () => void;
 }
 
 // Approximate dimensions used only for the edge-clamp decision —
@@ -94,6 +100,8 @@ export function HostCanopyUnionTooltip({
   point,
   entries,
   pinned,
+  exiting,
+  onExited,
 }: HostCanopyUnionTooltipProps): React.JSX.Element {
   const viewportW =
     typeof window === 'undefined' ? 1024 : window.innerWidth;
@@ -121,6 +129,12 @@ export function HostCanopyUnionTooltip({
       data-anchor-x={anchorRight ? 'left' : 'right'}
       data-anchor-y={anchorBottom ? 'top' : 'bottom'}
       {...(pinned ? { 'data-pinned': 'true' } : {})}
+      {...(exiting ? { 'data-exiting': 'true' } : {})}
+      onAnimationEnd={(ev) => {
+        if (exiting && ev.animationName.includes('tooltipFadeOut')) {
+          onExited?.();
+        }
+      }}
       style={{ left, top }}
     >
       {entries.map((entry, i) => (

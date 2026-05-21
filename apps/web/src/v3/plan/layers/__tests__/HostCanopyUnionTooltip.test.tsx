@@ -19,8 +19,8 @@
  *     multi-feature fan-out)
  */
 
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { HostCanopyUnionTooltip } from '../HostCanopyUnionTooltip.js';
 
 describe('HostCanopyUnionTooltip', () => {
@@ -168,5 +168,45 @@ describe('HostCanopyUnionTooltip', () => {
     // Exactly one hairline separator between two blocks (length-1
     // stacks omit the separator entirely).
     expect(screen.getAllByRole('separator').length).toBe(1);
+  });
+
+  it('forwards data-exiting and fires onExited on tooltipFadeOut animationend', () => {
+    // PlanDataLayers holds the portal mounted past activeUnion → null so
+    // the CSS exit-fade can play. The tooltip's contract: while
+    // `exiting`, expose `data-exiting='true'` (so the CSS keyframe
+    // engages) and call `onExited` when the fade-out animation reports
+    // its end. happy-dom doesn't run CSS animations, so we drive the
+    // event directly via fireEvent.animationEnd.
+    const onExited = vi.fn();
+    render(
+      <HostCanopyUnionTooltip
+        point={{ x: 100, y: 100 }}
+        entries={[
+          {
+            hostName: 'Exit Host',
+            unionAreaM2: 100,
+            rawSumM2: 110,
+            guildCount: 1,
+            memberCount: 2,
+          },
+        ]}
+        exiting={true}
+        onExited={onExited}
+      />,
+    );
+
+    const tip = screen.getByTestId('host-canopy-union-tooltip');
+    expect(tip.getAttribute('data-exiting')).toBe('true');
+
+    // An unrelated animationend (e.g. the enter keyframe finishing in a
+    // re-enter scenario) must NOT fire onExited.
+    fireEvent.animationEnd(tip, { animationName: 'tooltipFadeIn' });
+    expect(onExited).not.toHaveBeenCalled();
+
+    // The exit keyframe finishing does. CSS Modules scopes the keyframe
+    // name; the production handler uses .includes() so a scoped name
+    // like `_tooltipFadeOut_abc` still matches.
+    fireEvent.animationEnd(tip, { animationName: 'tooltipFadeOut' });
+    expect(onExited).toHaveBeenCalledTimes(1);
   });
 });

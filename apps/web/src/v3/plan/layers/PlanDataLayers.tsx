@@ -277,6 +277,18 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     entries: HostBlock[];
     hostIds: string[];
   } | null>(null);
+  // Display-lifetime mirror of `activeUnion = pinnedUnion ?? hoveredUnion`.
+  // Holds the tooltip mounted through its exit-fade after activeUnion → null
+  // so the CSS `tooltipFadeOut` keyframe has time to play. `phase` drives
+  // the `data-exiting` attribute; the monotonic `key` forces React to
+  // remount (re-playing the enter keyframe) when a new activeUnion arrives
+  // mid-exit.
+  const [displayedUnion, setDisplayedUnion] = useState<{
+    point: { x: number; y: number };
+    entries: HostBlock[];
+    phase: 'entering' | 'exiting';
+    key: number;
+  } | null>(null);
   const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
@@ -3376,21 +3388,56 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     };
   }, [map]);
 
+  // Mirror activeUnion into displayedUnion so the tooltip can play its
+  // CSS exit-fade after activeUnion → null. When activeUnion is non-null
+  // we set the mirror synchronously with a fresh monotonic `key` so the
+  // child remounts and re-plays the enter keyframe (covers re-enter
+  // during an in-flight exit). When activeUnion → null we flip the
+  // existing mirror's phase to 'exiting'; the tooltip's onAnimationEnd
+  // fires onExited which clears the mirror. The 180 ms safety timeout
+  // covers the prefers-reduced-motion case (where animationend never
+  // fires) and any other edge where the event is missed.
+  const activeUnion = pinnedUnion ?? hoveredUnion;
+  useEffect(() => {
+    if (activeUnion) {
+      setDisplayedUnion((prev) => ({
+        point: activeUnion.point,
+        entries: activeUnion.entries,
+        phase: 'entering',
+        key: (prev?.key ?? 0) + 1,
+      }));
+      return;
+    }
+    setDisplayedUnion((prev) =>
+      prev && prev.phase !== 'exiting'
+        ? { ...prev, phase: 'exiting' }
+        : prev,
+    );
+    const t = window.setTimeout(() => {
+      setDisplayedUnion((prev) =>
+        prev?.phase === 'exiting' ? null : prev,
+      );
+    }, 180);
+    return () => window.clearTimeout(t);
+  }, [activeUnion]);
+
   // Per-host union hover tooltip is portalled into the map's canvas
   // container so the cursor-pixel coordinates from `e.point` resolve
   // directly against the tooltip's `position: absolute` origin. No
   // other JSX is emitted — PlanDataLayers remains a side-effect-only
   // component for everything else.
   // Pinned tooltip takes precedence over hover; only one ever renders.
-  const activeUnion = pinnedUnion ?? hoveredUnion;
-  if (!activeUnion || !map) return null;
+  if (!displayedUnion || !map) return null;
   const canvasContainer = map.getCanvasContainer();
   if (!canvasContainer) return null;
   return createPortal(
     <HostCanopyUnionTooltip
-      point={activeUnion.point}
-      entries={activeUnion.entries}
-      pinned={!!pinnedUnion}
+      key={displayedUnion.key}
+      point={displayedUnion.point}
+      entries={displayedUnion.entries}
+      pinned={!!pinnedUnion && displayedUnion.phase !== 'exiting'}
+      exiting={displayedUnion.phase === 'exiting'}
+      onExited={() => setDisplayedUnion(null)}
     />,
     canvasContainer,
   );
