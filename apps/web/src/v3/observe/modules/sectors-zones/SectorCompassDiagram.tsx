@@ -203,6 +203,32 @@ export default function SectorCompassDiagram({
       {/* Centre dot */}
       <circle cx={CX} cy={CY} r={5} fill="#7aaa7a" />
 
+      {/* North indicator — gold triangle just outside the outer ring,
+          drawn last so it sits above wind/solar/manual wedges. Visible
+          in both compact and full modes so the compass orientation is
+          always legible. */}
+      <polygon
+        points={`${CX},${CY - R_OUTER - 8} ${CX - 7},${CY - R_OUTER + 6} ${CX + 7},${CY - R_OUTER + 6}`}
+        fill="#c4a265"
+        stroke="#2a2218"
+        strokeWidth={0.75}
+        strokeLinejoin="round"
+      />
+      {compact && (
+        <text
+          x={CX}
+          y={CY - R_OUTER - 12}
+          textAnchor="middle"
+          dominantBaseline="alphabetic"
+          fontSize={11}
+          fontWeight={700}
+          fill="#c4a265"
+          fontFamily="system-ui, sans-serif"
+        >
+          N
+        </text>
+      )}
+
       {/* Cardinal labels (hidden in compact mode) */}
       {!compact &&
         COMPASS_DIRS.map((label, i) => {
