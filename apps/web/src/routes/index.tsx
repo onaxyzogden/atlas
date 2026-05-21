@@ -9,6 +9,8 @@
  *   /project/$id   → Project view (map + dashboard)
  *   /login         → Login / register (outside AppShell)
  *   /portal/$slug  → Public project portal (outside AppShell)
+ *   /showcase/three-streams           → Public showcase hero (no auth)
+ *   /showcase/three-streams/$tier     → Per-tier scrollytelling (no auth)
  */
 
 import {
@@ -45,6 +47,8 @@ import ObserveLayout from '../v3/observe/ObserveLayout.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
+import { ShowcasePage } from '../showcase/routes/showcase.js';
+import { ShowcaseTierPage } from '../showcase/routes/showcase.$tier.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
 // ActLayout but left importable for any future fallback need.
@@ -344,6 +348,19 @@ const reportShareRoute = createRoute({
   component: ReportSharePage,
 });
 
+// ─── Showcase (public scrollytelling — outside AppShell, no auth) ────────
+const showcaseRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/showcase/three-streams',
+  component: ShowcasePage,
+});
+
+const showcaseTierRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/showcase/three-streams/$tier',
+  component: ShowcaseTierPage,
+});
+
 // ─── 404 catch-all ─────────────────────────────────────────────────────────
 const notFoundRoute = createRoute({
   getParentRoute: () => appShellRoute,
@@ -393,6 +410,8 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   portalRoute,
   reportShareRoute,
+  showcaseRoute,
+  showcaseTierRoute,
 ]);
 
 export const router = createRouter({ routeTree });

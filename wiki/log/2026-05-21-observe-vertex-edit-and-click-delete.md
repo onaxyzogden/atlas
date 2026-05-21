@@ -118,3 +118,76 @@ broadened `readPolygon` / `writePolygon` to MultiPolygon for
 verification with in-flight work; a follow-up was filed to re-run on
 a clean tree (a real draw-then-click flow rather than programmatic
 seeding).
+
+**Smoke walk — deferred (third pass, diagnostic).** Re-run attempted
+against a live API + Vite preview. The 14-step walk was again not
+completed, but the open question from the second pass is closed and a
+new larger blocker was identified.
+
+*Closed.* Hypothesis (c) — the uncommitted MultiPolygon guard in
+[AnnotationVertexEditHandler.tsx](../../apps/web/src/v3/observe/components/draw/AnnotationVertexEditHandler.tsx)
+(`g && g.type === 'Polygon' ? g : null`) — is **not** the cause. The
+guard only sits in the working tree (part of the in-flight Pasture /
+Vegetation Fill-remainder feature), not in shipped commits
+`14db482f` / `bcd5e0ad`. For `conventionalCrop` the store path writes
+only `Polygon`, so even with the guard active `readPolygon` returns
+non-null.
+
+*New finding.* On the offline / no-auth path, four
+Observe-annotation MapboxGL sources never reach `loaded:true`:
+`observe-anno-conventional-crop`, `observe-anno-pasture`,
+`observe-anno-pasture-fence`, `observe-anno-selection`. All other
+sources (`be-v2-*`, `plan-data-*`, `matrix-*`, `mapbox-gl-draw-*`,
+`maptiler_*`, `terrain_rgb`, `contours`, `diagnose-parcel-boundary`)
+load fine. The conventional-crop source has
+`_data.features.length === 2` with valid coordinates and correct
+`annoId` / `annoKind` props, the layer is visible and unfiltered, yet
+`m.isSourceLoaded()` returns `false`, `m.querySourceFeatures()`
+returns 0, and `m.queryRenderedFeatures()` at the polygon centroid
+returns 0 even at zoom 16. **A real user click on a saved Conventional
+Crop polygon cannot reach the selection store**, because the fill
+layer's pick surface has no rendered features. This is the upstream
+explanation for hypothesis (a): the prior pass's programmatic seed
+(`addConventionalCrop` + `open({kind, id})`) pushed the selection
+into the store, but
+[useMapboxDrawTool](../../apps/web/src/v3/observe/components/draw/useMapboxDrawTool.ts)'s
+gating chain for vertex-edit leans on an active-tool / selection
+combo the broken source pipeline never produces in normal use, so no
+MapboxDraw instance was mounted.
+
+*The vertex-edit code is sound.* The blocker is upstream in the
+observe-anno source loading layer, not in
+`AnnotationVertexEditHandler` / `SharedVertexEditHandler` /
+`clickDeleteDirectSelect`. Steps 2–10 of the smoke checklist cannot
+run while the source pipeline is broken.
+
+*Other things noticed.* Mid-diagnosis `window.location.reload()` put
+the Vite client into a connect / reconnect loop and the React app
+failed to re-mount (`__atlasMap` undefined, body 367 bytes). API role
+gating surfaced once the API was up: `role: viewer` /
+`You do not have access to this project` against project `mtc` — the
+cached `ogden-auth-token` belongs to a stale demo user without owner
+rights. Next pass needs a clean Vite restart and a freshly-registered
+user owning a new project.
+
+*No commits / no push this pass.* Working tree's uncommitted Pasture /
+Vegetation Fill-remainder + EWE derivations changes left untouched
+([[project-branch-rebase]] — they belong to a parallel session).
+Zero code edits in this pass; only this log entry.
+
+*Next-pass repro recipe.*
+
+1. `preview_stop` then `preview_start name=web` for a clean Vite.
+2. Clear `ogden-auth-token` and register a fresh user via the login
+   flow; create a new project owned by that user (don't reuse `mtc`).
+3. Before drawing, snapshot `m.getStyle().sources` keyed by
+   `m.isSourceLoaded(...)`; confirm `observe-anno-conventional-crop`
+   reaches `loaded:true` after the first crop is drawn. If it stays
+   `false`, the regression is in
+   [ObserveAnnotationLayers.tsx](../../apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx)
+   (also in the uncommitted diff right now — diff against
+   `origin/feat/atlas-permaculture` first).
+4. Only after the source loads should steps 1–14 be attempted.
+
+A `spawn_task` chip was filed for the source-loading regression so
+this pass can hand back cleanly without conflating the two scopes.
