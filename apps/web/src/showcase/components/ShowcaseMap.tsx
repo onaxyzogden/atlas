@@ -31,6 +31,14 @@ export function ShowcaseMap({
   const ref = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
+  // TODO(Task 12): Split this monolithic effect before per-layer overlay
+  // rendering lands. Today, any prop change (incl. activeLayerIds toggle)
+  // tears down + rebuilds the MapLibre instance — fine for v1 because
+  // overlay toggling is a no-op stub, but Task 12 must replace this with
+  // (a) one-time init effect on [], (b) data-update effect calling
+  // setData() on existing GeoJSON sources, (c) visibility effect on
+  // activeLayerIds calling setLayoutProperty('visibility', ...).
+  // See code review on commit 8385112c for full rationale.
   useEffect(() => {
     if (!ref.current) return;
     const map = new maplibregl.Map({
