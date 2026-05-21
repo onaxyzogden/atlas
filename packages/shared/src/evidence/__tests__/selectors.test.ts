@@ -10,7 +10,6 @@ import type { AssessmentFlag } from '../../schemas/assessment.schema.js';
 import { selectEvidenceFor } from '../selectEvidence.js';
 import { selectVerdictEvidence } from '../selectors/verdict.js';
 import { selectTriadEvidence } from '../selectors/triad.js';
-import { selectIntelligenceEvidence } from '../selectors/intelligence.js';
 import { selectSiteNarrativeEvidence } from '../selectors/siteNarrative.js';
 import { selectWaterStorageEvidence } from '../selectors/waterStorage.js';
 import { selectThreeEthicsEvidence } from '../selectors/threeEthics.js';
@@ -113,52 +112,6 @@ describe('selectTriadEvidence', () => {
       bucket: 'opportunity',
     });
     expect(item.summary.label).toBe('opportunity');
-  });
-});
-
-describe('selectIntelligenceEvidence', () => {
-  it('includes synthesis score, layer count, flag count fragments', () => {
-    const item = selectIntelligenceEvidence({
-      overallScore: 68,
-      layers: [{ layerType: 'soils' }, { layerType: 'land_cover' }, { layerType: 'climate' }],
-      topFlags: [sampleFlag()],
-    });
-    expect(item.panelKey).toBe('intelligence-summary');
-    expect(item.evidence.length).toBeGreaterThanOrEqual(3);
-  });
-
-  it('appends optional AI model + caveat fragments when provided', () => {
-    const item = selectIntelligenceEvidence({
-      overallScore: 60,
-      layers: [],
-      topFlags: [],
-      aiModelVersion: 'claude-opus-4-7',
-      aiNarrativeCaveat: 'Layer coverage thin; treat as advisory.',
-    });
-    const labels = item.evidence.map((f) => f.label);
-    expect(labels).toContain('AI model');
-    expect(labels).toContain('Caveat');
-  });
-
-  it('omits AI fragments when not provided', () => {
-    const item = selectIntelligenceEvidence({
-      overallScore: 60,
-      layers: [],
-      topFlags: [],
-    });
-    const labels = item.evidence.map((f) => f.label);
-    expect(labels).not.toContain('AI model');
-    expect(labels).not.toContain('Caveat');
-  });
-
-  it('reports high layer-count confidence when ≥ 5 layers', () => {
-    const item = selectIntelligenceEvidence({
-      overallScore: 70,
-      layers: Array.from({ length: 5 }, (_, i) => ({ layerType: `t${i}` })),
-      topFlags: [],
-    });
-    const layerFragment = item.evidence.find((f) => f.label === 'Layers analysed');
-    expect(layerFragment?.source.confidence).toBe('high');
   });
 });
 
@@ -575,19 +528,5 @@ describe('selectEvidenceFor — Apricot-Lane integration', () => {
       expect(item).not.toBeNull();
       expect(item!.evidence.length).toBeGreaterThan(0);
     }
-  });
-
-  it('intelligence selector returns non-empty Evidence for the fixture', () => {
-    const item = selectEvidenceFor({
-      panelKey: 'intelligence-summary',
-      inputs: {
-        overallScore: 62,
-        layers: fixtureLayers,
-        topFlags: fixtureFlags,
-        aiModelVersion: 'claude-opus-4-7',
-      },
-    });
-    expect(item).not.toBeNull();
-    expect(item!.evidence.length).toBeGreaterThanOrEqual(4);
   });
 });

@@ -60,12 +60,12 @@ interface AuditRow {
 const KNOWN_PANEL_KEYS = new Set<EvidenceDispatchInputs['panelKey']>([
   'land-verdict',
   'decision-triad',
-  'intelligence-summary',
   'site-narrative',
   'water-storage',
   'three-ethics',
   'water-router',
   'capital-partner',
+  'host-canopy-union',
 ]);
 
 function isKnownPanelKey(

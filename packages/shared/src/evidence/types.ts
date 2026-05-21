@@ -22,7 +22,6 @@
 export type PanelKey =
   | 'land-verdict'
   | 'decision-triad'
-  | 'intelligence-summary'
   | 'site-narrative'
   | 'water-storage'
   | 'three-ethics'

@@ -17,10 +17,6 @@ import {
   type TriadEvidenceInputs,
 } from './selectors/triad.js';
 import {
-  selectIntelligenceEvidence,
-  type IntelligenceEvidenceInputs,
-} from './selectors/intelligence.js';
-import {
   selectSiteNarrativeEvidence,
   type SiteNarrativeEvidenceInputs,
 } from './selectors/siteNarrative.js';
@@ -53,7 +49,6 @@ import {
 export type EvidenceDispatchInputs =
   | { panelKey: 'land-verdict'; inputs: VerdictEvidenceInputs }
   | { panelKey: 'decision-triad'; inputs: TriadEvidenceInputs }
-  | { panelKey: 'intelligence-summary'; inputs: IntelligenceEvidenceInputs }
   | { panelKey: 'site-narrative'; inputs: SiteNarrativeEvidenceInputs }
   | { panelKey: 'water-storage'; inputs: WaterStorageEvidenceInputs }
   | { panelKey: 'three-ethics'; inputs: ThreeEthicsEvidenceInputs }
@@ -69,8 +64,6 @@ export function selectEvidenceFor(
       return selectVerdictEvidence(bundle.inputs);
     case 'decision-triad':
       return selectTriadEvidence(bundle.inputs);
-    case 'intelligence-summary':
-      return selectIntelligenceEvidence(bundle.inputs);
     case 'site-narrative':
       return selectSiteNarrativeEvidence(bundle.inputs);
     case 'water-storage':
@@ -99,7 +92,6 @@ function assertExhaustive(_value: never): null {
 export type { EvidenceItem, EvidenceFragment, EvidenceSource, PanelKey } from './types.js';
 export type { VerdictEvidenceInputs } from './selectors/verdict.js';
 export type { TriadEvidenceInputs } from './selectors/triad.js';
-export type { IntelligenceEvidenceInputs } from './selectors/intelligence.js';
 export type { SiteNarrativeEvidenceInputs } from './selectors/siteNarrative.js';
 export type { WaterStorageEvidenceInputs } from './selectors/waterStorage.js';
 export type { ThreeEthicsEvidenceInputs } from './selectors/threeEthics.js';
