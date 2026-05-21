@@ -211,4 +211,78 @@ describe('POST /api/v1/soil-regeneration/project/:projectId/som-trajectory/recom
     const body = JSON.parse(res.body);
     expect(body.error.code).toBe('FORBIDDEN');
   });
+
+  // ---------------------------------------------------------------------
+  // F.3 — per-zone trajectory + GET ?zoneId filter
+  // ---------------------------------------------------------------------
+
+  it('F.3: POST with zones[] also upserts per-zone rows + returns zoneRowCount', async () => {
+    enqueue(rbacOwnerRow());
+    // Transaction: 1 DELETE (project) + 11 INSERTs (project) +
+    // 2 DELETEs (one per zoneId, dedup) + 22 INSERTs (2 zones × 11 yrs).
+    // Total = 36 enqueued empty result-sets.
+    for (let i = 0; i < 36; i += 1) enqueue();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/soil-regeneration/project/${TEST_PROJ_ID}/som-trajectory/recompute`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: {
+        ...validBody,
+        zones: [
+          { zoneId: 'food-prod-A', baseline_pct: 1.5, target_pct: 3.5, annualSeqRate_tChaYr: 0.7 },
+          { zoneId: 'livestock-B', baseline_pct: 0.8, target_pct: 2.5, annualSeqRate_tChaYr: 0.6 },
+        ],
+      },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.error).toBeNull();
+    expect(body.data.zoneRowCount).toBe(22); // 2 zones × 11 years
+    expect(body.data.zoneIds).toEqual(expect.arrayContaining(['food-prod-A', 'livestock-B']));
+    expect(body.data.rowCount).toBe(33); // 11 project + 22 zone
+    // Whole-project trajectory still returned in `trajectory` field.
+    expect(body.data.trajectory).toHaveLength(11);
+  });
+
+  it('F.3: POST without zones is behaviour-identical to v1 (no extra rows)', async () => {
+    enqueue(rbacOwnerRow());
+    for (let i = 0; i < 12; i += 1) enqueue();
+
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/soil-regeneration/project/${TEST_PROJ_ID}/som-trajectory/recompute`,
+      headers: { authorization: `Bearer ${authToken}` },
+      payload: validBody, // no zones field
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data.rowCount).toBe(11);
+    expect(body.data.zoneRowCount).toBe(0);
+    expect(body.data.zoneIds).toEqual([]);
+  });
+});
+
+describe('GET /api/v1/soil-regeneration/.../som-trajectory?zoneId — F.3 filter', () => {
+  it('F.3: filters to per-zone rows when ?zoneId is provided', async () => {
+    enqueue(rbacOwnerRow()); // resolveProjectRole
+    enqueue(
+      { ...fakeTrajectoryRow(0), zone_id: 'food-prod-A' },
+      { ...fakeTrajectoryRow(1), zone_id: 'food-prod-A' },
+      { ...fakeTrajectoryRow(2), zone_id: 'food-prod-A' },
+    );
+
+    const res = await app.inject({
+      method: 'GET',
+      url: `/api/v1/soil-regeneration/project/${TEST_PROJ_ID}/som-trajectory?zoneId=food-prod-A`,
+      headers: { authorization: `Bearer ${authToken}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.data).toHaveLength(3);
+    expect(body.meta.total).toBe(3);
+  });
 });

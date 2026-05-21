@@ -13,6 +13,7 @@ import {
   BUILD_UP_RATE_FRACTION,
   MATURATION_RATE_FRACTION,
   projectSomTrajectory,
+  projectSomTrajectoryWithZones,
   somPctToStockTcha,
 } from '../soilRegeneration.js';
 
@@ -143,5 +144,84 @@ describe('projectSomTrajectory — cap behaviour', () => {
       expect(rows[y]!.som_stock_tc).toBe(targetStock);
       expect(rows[y]!.sequestration_tcyr).toBe(0);
     }
+  });
+});
+
+describe('projectSomTrajectoryWithZones — F.3 per-zone variant', () => {
+  it('with no zones, returns the same projectRows as projectSomTrajectory', () => {
+    const inputs = {
+      baseline_pct: 1.2,
+      target_pct: 3.0,
+      annualSeqRate_tChaYr: 0.5,
+      horizonYears: 10,
+    };
+    const { projectRows, zoneRows } = projectSomTrajectoryWithZones(inputs);
+    expect(zoneRows).toEqual([]);
+    expect(projectRows).toEqual(projectSomTrajectory(inputs));
+  });
+
+  it('with no zones (empty array), is still behaviour-identical to v1', () => {
+    const inputs = {
+      baseline_pct: 1.2,
+      target_pct: 3.0,
+      annualSeqRate_tChaYr: 0.5,
+      horizonYears: 10,
+    };
+    const { projectRows, zoneRows } = projectSomTrajectoryWithZones({ ...inputs, zones: [] });
+    expect(zoneRows).toEqual([]);
+    expect(projectRows).toEqual(projectSomTrajectory(inputs));
+  });
+
+  it('emits one trajectory per input zone, each with horizonYears + 1 rows', () => {
+    const { projectRows, zoneRows } = projectSomTrajectoryWithZones({
+      baseline_pct: 1.2,
+      target_pct: 3.0,
+      annualSeqRate_tChaYr: 0.5,
+      horizonYears: 5,
+      zones: [
+        { zoneId: 'food-prod-A', baseline_pct: 1.5, target_pct: 3.5, annualSeqRate_tChaYr: 0.7 },
+        { zoneId: 'livestock-B', baseline_pct: 0.8, target_pct: 2.5, annualSeqRate_tChaYr: 0.6 },
+      ],
+    });
+
+    expect(projectRows).toHaveLength(6);
+    expect(zoneRows).toHaveLength(12); // 2 zones × 6 years
+
+    const zoneA = zoneRows.filter((r) => r.zoneId === 'food-prod-A');
+    const zoneB = zoneRows.filter((r) => r.zoneId === 'livestock-B');
+    expect(zoneA).toHaveLength(6);
+    expect(zoneB).toHaveLength(6);
+
+    // Each zone trajectory is identical to a standalone projectSomTrajectory call
+    // with the same per-zone inputs.
+    const standaloneA = projectSomTrajectory({
+      baseline_pct: 1.5,
+      target_pct: 3.5,
+      annualSeqRate_tChaYr: 0.7,
+      horizonYears: 5,
+    });
+    for (let i = 0; i < zoneA.length; i++) {
+      expect(zoneA[i]!.year).toBe(standaloneA[i]!.year);
+      expect(zoneA[i]!.som_stock_tc).toBe(standaloneA[i]!.som_stock_tc);
+      expect(zoneA[i]!.sequestration_tcyr).toBe(standaloneA[i]!.sequestration_tcyr);
+      expect(zoneA[i]!.j_curve_stage).toBe(standaloneA[i]!.j_curve_stage);
+    }
+  });
+
+  it('per-zone trajectories inherit regenerationStartYear from project input', () => {
+    const { zoneRows } = projectSomTrajectoryWithZones({
+      baseline_pct: 1.2,
+      target_pct: 3.0,
+      annualSeqRate_tChaYr: 0.5,
+      horizonYears: 5,
+      regenerationStartYear: 2,
+      zones: [
+        { zoneId: 'z1', baseline_pct: 1.5, target_pct: 3.5, annualSeqRate_tChaYr: 0.7 },
+      ],
+    });
+    // Pre-regen years emit zero sequestration even at the zone level.
+    expect(zoneRows[0]!.sequestration_tcyr).toBe(0);
+    expect(zoneRows[1]!.sequestration_tcyr).toBe(0);
+    expect(zoneRows[2]!.sequestration_tcyr).toBeGreaterThan(0);
   });
 });

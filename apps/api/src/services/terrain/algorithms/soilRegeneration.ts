@@ -824,13 +824,32 @@ function scalarFor(stage: JCurveStage): number {
  * `target_pct`. Pre-regeneration years (year < regenerationStartYear)
  * emit baseline stock + zero sequestration + 'establishment' stage.
  */
-export function projectSomTrajectory(input: {
+export interface ProjectSomTrajectoryInput {
   baseline_pct: number;
   target_pct: number;
   annualSeqRate_tChaYr: number;
   horizonYears: number;
   regenerationStartYear?: number;
-}): SomYearRow[] {
+}
+
+/**
+ * Per-zone trajectory input (Phase F.3). Same per-year math as the
+ * whole-project trajectory, but scoped to a single client-side zone
+ * sentinel. `zoneId` is opaque TEXT (zones live client-side in
+ * Zustand; the server has no `zones` table — only the `zone_id`
+ * column on `som_trajectory_yearly`).
+ */
+export interface ZoneTrajectoryInput {
+  zoneId: string;
+  baseline_pct: number;
+  target_pct: number;
+  annualSeqRate_tChaYr: number;
+}
+
+/** Per-zone trajectory row — `SomYearRow` enriched with the zone sentinel. */
+export type ZoneSomYearRow = SomYearRow & { zoneId: string };
+
+export function projectSomTrajectory(input: ProjectSomTrajectoryInput): SomYearRow[] {
   const {
     baseline_pct,
     target_pct,
@@ -873,4 +892,40 @@ export function projectSomTrajectory(input: {
   }
 
   return rows;
+}
+
+/**
+ * Phase F.3: per-zone variant. Computes the whole-project trajectory
+ * exactly as `projectSomTrajectory` does, plus a per-zone trajectory
+ * for each `zones[]` entry using the same horizon + regeneration-start.
+ * Each zone inherits the project-level `horizonYears` +
+ * `regenerationStartYear` so the bands line up.
+ *
+ * Backward-compatible: with `zones` omitted or empty, the result's
+ * `zoneRows` is `[]` and `projectRows` is identical to what
+ * `projectSomTrajectory(input)` would have returned.
+ */
+export function projectSomTrajectoryWithZones(input: ProjectSomTrajectoryInput & {
+  zones?: ZoneTrajectoryInput[];
+}): { projectRows: SomYearRow[]; zoneRows: ZoneSomYearRow[] } {
+  const { zones, ...projectInput } = input;
+  const projectRows = projectSomTrajectory(projectInput);
+
+  const zoneRows: ZoneSomYearRow[] = [];
+  if (zones && zones.length > 0) {
+    for (const z of zones) {
+      const trajectory = projectSomTrajectory({
+        baseline_pct: z.baseline_pct,
+        target_pct: z.target_pct,
+        annualSeqRate_tChaYr: z.annualSeqRate_tChaYr,
+        horizonYears: projectInput.horizonYears,
+        regenerationStartYear: projectInput.regenerationStartYear,
+      });
+      for (const row of trajectory) {
+        zoneRows.push({ ...row, zoneId: z.zoneId });
+      }
+    }
+  }
+
+  return { projectRows, zoneRows };
 }
