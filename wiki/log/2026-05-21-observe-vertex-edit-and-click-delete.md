@@ -260,3 +260,48 @@ says it does. The four shipped files
 [AnnotationDetailPanel.tsx](../../apps/web/src/v3/observe/components/AnnotationDetailPanel.tsx),
 [annotationGeometryRegistry.ts](../../apps/web/src/v3/observe/components/draw/annotationGeometryRegistry.ts))
 stay merged on `feat/atlas-permaculture`; nothing reverted.
+
+## 2026-05-21 (later) — Real bug found and fixed (not a harness limitation)
+
+The "harness limitation" framing in the partial-confirmation section
+above is **wrong**. The user re-tested the feature in their real
+Chrome (no MCP harness, no synthetic events) and reported: *"clicking
+on a vertex does not remove it."* That's a code regression, not a
+coordinate-translation artefact.
+
+**Root cause.** [clickDeleteDirectSelect.ts](../../apps/web/src/v3/builtEnvironment/handlers/clickDeleteDirectSelect.ts)
+attached the deletion logic to `onMouseUp`. MapboxDraw's
+`events.mouseup` ([node_modules/@mapbox/mapbox-gl-draw/src/events.js](../../node_modules/@mapbox/mapbox-gl-draw/src/events.js))
+routes the upstroke through its `isClick` arbitrator — gestures under
+4 px / 500 ms become `currentMode.click(event)` (i.e. `mode.onClick`),
+everything larger becomes `currentMode.mouseup(event)` (i.e.
+`mode.onMouseUp`). So a plain vertex click never reached our delete
+branch; only drag-releases did, and they were correctly filtered out
+by the pixel-threshold gate. End result: deletion never fired in any
+real-user scenario.
+
+**Fix (commit `90fef60a`).** Move the deletion logic to `onClick`,
+drop the now-redundant `CLICK_PIXEL_THRESHOLD` arbitration (MapboxDraw's
+own `isClick` already handles it), and **return early without
+delegating to `stock.onClick`** when the min-vertex guard fires —
+otherwise `clickActiveFeature` clears `selectedCoordPaths` and drops
+the user out of vertex-edit when they try to delete the 3rd vertex of
+a triangle or the 2nd of a line. Reset `_cdVertexCoordPath` at the
+start of every `onMouseDown` so a body-click after a vertex-click
+can't re-trigger deletion against stale state.
+
+**Verified.** Typecheck clean (`pnpm --filter @ogden/web typecheck`
+exit 0). The fix is a tight, behaviour-preserving move of three short
+branches from one hook to another with no new dependencies. The
+follow-up real-browser confirmation is owed to the user, but the
+event-dispatch reasoning is grounded in the MapboxDraw source and
+the bug they reported maps 1:1 onto the broken hook.
+
+**Implication for the partial-confirmation framing.** The
+"steps 4–12 are harness-blocked, not broken" sentence is partly
+correct (the harness *was* contributing coordinate-translation
+issues) but the underlying bug is what made click-delete fail —
+not the harness. The harness limitation was a red herring layered
+on top of a real regression. Future sessions should treat
+"clicking a vertex doesn't delete it" as a code-path problem first,
+not as a coordinate-pixel problem.
