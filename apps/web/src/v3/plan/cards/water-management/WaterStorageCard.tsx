@@ -29,16 +29,20 @@ import {
   formatLitres,
 } from './waterMath.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
+import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '../../../../lib/evidence/selectEvidence.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
+  /** Phase E.5 mobile guard for Evidence disclosures. */
+  compactMode?: boolean;
 }
 
 type AddKind = 'storage' | 'swale' | 'sink';
 
-export default function WaterStorageCard({ project }: Props) {
+export default function WaterStorageCard({ project, compactMode = false }: Props) {
   const all = useWaterSystemsStore((s) => s.waterNodes);
   const add = useWaterSystemsStore((s) => s.addWaterNode);
   const update = useWaterSystemsStore((s) => s.updateWaterNode);
@@ -73,6 +77,34 @@ export default function WaterStorageCard({ project }: Props) {
   const [widthM, setWidthM] = useState<number>(0.6);
   const [depthM, setDepthM] = useState<number>(0.5);
   const [overflowTo, setOverflowTo] = useState<string>('');
+
+  // Phase E.5 — Tier-2 Evidence inputs.
+  const evidenceItem = useMemo(() => {
+    const totalLitres = storageAndSwale.reduce(
+      (sum, n) => sum + effectiveCapacityL(n),
+      0,
+    );
+    const totalStorageM3 = totalLitres / 1000;
+    const nodesByKind = storageAndSwale.reduce<Record<string, number>>(
+      (acc, n) => {
+        const key = n.kind === 'storage' && n.storageKind ? n.storageKind : n.kind;
+        acc[key] = (acc[key] ?? 0) + 1;
+        return acc;
+      },
+      {},
+    );
+    const overflowWarnings: string[] = [];
+    for (const n of storageAndSwale) {
+      if (n.kind === 'sink') continue;
+      if (n.overflowToNodeId == null) {
+        overflowWarnings.push(`${n.name}: overflow target not set`);
+      }
+    }
+    return selectEvidenceFor({
+      panelKey: 'water-storage',
+      inputs: { totalStorageM3, nodesByKind, overflowWarnings },
+    });
+  }, [storageAndSwale]);
 
   function commit() {
     if (!name.trim()) return;
@@ -356,6 +388,9 @@ export default function WaterStorageCard({ project }: Props) {
           </ul>
         )}
       </section>
+
+      {/* ── Tier-2 Evidence (Phase E.5) ────────────────────────────── */}
+      <EvidenceSection item={evidenceItem} compactMode={compactMode} />
     </div>
   );
 }

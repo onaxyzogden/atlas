@@ -40,6 +40,8 @@ import type { LocalProject } from '../../../../store/projectStore.js';
 import { useLandDesignStore } from '../../../../store/landDesignStore.js';
 import type { DesignElement } from '../../../../store/designElementsStore.js';
 import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
+import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '../../../../lib/evidence/selectEvidence.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 import {
   aspectToBearingDeg,
@@ -56,6 +58,8 @@ import {
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
+  /** Phase E.5 mobile guard for Evidence disclosures. */
+  compactMode?: boolean;
 }
 
 /** Element kinds counted as a "water-harvest element" for the router audit. */
@@ -128,7 +132,7 @@ function formatCoord(c: [number, number]): string {
   return `${c[1].toFixed(5)}, ${c[0].toFixed(5)}`;
 }
 
-export default function WaterRouterCard({ project }: Props) {
+export default function WaterRouterCard({ project, compactMode = false }: Props) {
   const siteData = useSiteData(project.id);
   const byProject = useLandDesignStore((s) => s.byProject);
 
@@ -201,6 +205,32 @@ export default function WaterRouterCard({ project }: Props) {
   if (!elevationReady) missing.push('elevation summary (min/max)');
   if (!aspectReady) missing.push('predominant aspect');
   const gated = missing.length > 0;
+
+  // Phase E.5 — Tier-2 Evidence inputs.
+  const evidenceItem = useMemo(() => {
+    // Treat each scored element as a routed edge. Confidence is a function
+    // of input availability: full inputs → 0.8 baseline; missing aspect/DEM
+    // depresses it. Per-tier flagged share further depresses mean confidence.
+    const baseConfidence = !gated ? 0.8 : 0.3;
+    const flaggedShare = scoredCount === 0 ? 0 : flaggedCount / scoredCount;
+    const meanRoutingConfidence = Math.max(0, baseConfidence - 0.3 * flaggedShare);
+    const warnings: string[] = [];
+    for (const m of missing) warnings.push(`missing ${m}`);
+    if (flaggedCount > 0) {
+      warnings.push(`${flaggedCount} low-potential placement${flaggedCount === 1 ? '' : 's'}`);
+    }
+    return selectEvidenceFor({
+      panelKey: 'water-router',
+      inputs: {
+        routedEdgeCount: scoredCount,
+        meanRoutingConfidence,
+        hadDem: elevationReady,
+        hadAspect: aspectReady,
+        headLossBudgetM: 2.0,
+        warnings,
+      },
+    });
+  }, [scoredCount, flaggedCount, gated, elevationReady, aspectReady, missing]);
 
   return (
     <div className={styles.page}>
@@ -336,6 +366,9 @@ export default function WaterRouterCard({ project }: Props) {
           )}
         </>
       )}
+
+      {/* ── Tier-2 Evidence (Phase E.5) ────────────────────────────── */}
+      <EvidenceSection item={evidenceItem} compactMode={compactMode} />
     </div>
   );
 }

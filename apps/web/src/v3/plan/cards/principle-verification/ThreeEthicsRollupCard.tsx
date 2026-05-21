@@ -33,11 +33,19 @@ import {
   type PrincipleStatus,
 } from '../../../../store/principleCheckStore.js';
 import { usePrincipleEvidenceVisibleIds } from './usePrincipleEvidenceVisibleIds.js';
+import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
+import { selectEvidenceFor } from '../../../../lib/evidence/selectEvidence.js';
+import type {
+  EthicKey,
+  EthicStatus,
+} from '../../../../lib/evidence/selectors/threeEthics.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
   project: LocalProject;
   onSwitchToMap: () => void;
+  /** Phase E.5 mobile guard for Evidence disclosures. */
+  compactMode?: boolean;
 }
 
 const STATUS_LABEL: Record<PrincipleStatus, string> = {
@@ -59,7 +67,7 @@ interface EthicRollup {
   evidencedPrinciples: number;
 }
 
-export default function ThreeEthicsRollupCard({ project }: Props) {
+export default function ThreeEthicsRollupCard({ project, compactMode = false }: Props) {
   const byProject = usePrincipleCheckStore((s) => s.byProject);
   const checks = useMemo(() => byProject[project.id] ?? {}, [byProject, project.id]);
 
@@ -119,6 +127,41 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
     if (status === 'partial') return styles.pillPartial ?? '';
     return styles.pillUnmet ?? '';
   }
+
+  // Phase E.5 — Tier-2 Evidence inputs.
+  const evidenceItem = useMemo(() => {
+    const perEthicStatus: Record<EthicKey, EthicStatus> = {
+      'earth-care': 'unknown',
+      'people-care': 'unknown',
+      'fair-share': 'unknown',
+    };
+    const perEthicFeatureCount: Record<EthicKey, number> = {
+      'earth-care': 0,
+      'people-care': 0,
+      'fair-share': 0,
+    };
+    const perEthicRationale: Partial<Record<EthicKey, string>> = {};
+    for (const r of rollups) {
+      const key = r.ethic.id as EthicKey;
+      const score = r.total === 0
+        ? 0
+        : Math.round(((r.met + 0.5 * r.partial) / r.total) * 100);
+      perEthicStatus[key] =
+        score >= 70 ? 'met' : score >= 30 ? 'partial' : r.met + r.partial === 0 ? 'unmet' : 'partial';
+      perEthicFeatureCount[key] = r.evidenceLinks;
+      perEthicRationale[key] =
+        `${r.met} met · ${r.partial} partial · ${r.unmet} unmet across ${r.total} principles`;
+    }
+    return selectEvidenceFor({
+      panelKey: 'three-ethics',
+      inputs: {
+        perEthicStatus,
+        perEthicFeatureCount,
+        perEthicRationale,
+        principleCheckCount: Object.keys(checks).length,
+      },
+    });
+  }, [rollups, checks]);
 
   return (
     <div className={styles.page}>
@@ -190,6 +233,9 @@ export default function ThreeEthicsRollupCard({ project }: Props) {
           </section>
         );
       })}
+
+      {/* ── Tier-2 Evidence (Phase E.5) ────────────────────────────── */}
+      <EvidenceSection item={evidenceItem} compactMode={compactMode} />
     </div>
   );
 }
