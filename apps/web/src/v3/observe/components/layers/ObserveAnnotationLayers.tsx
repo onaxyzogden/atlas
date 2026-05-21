@@ -59,15 +59,20 @@ import { LINE_KIND_DEFAULT_WIDTH_M } from '@ogden/shared';
  * (fence at 0.1 m, power-line at 0.2 m) legible at low zoom. Per the
  * 2026-05-21 drawn-line-feature-width slice.
  */
-const beLineWidthExpr = (defaultM: number): ExpressionSpecification =>
-  [
+// Accept `number | undefined` because `noUncheckedIndexedAccess` makes
+// `LINE_KIND_DEFAULT_WIDTH_M[kind]` return that union; a missing kind
+// falls back to 1 m so the paint expression always has a positive number.
+const beLineWidthExpr = (defaultM: number | undefined): ExpressionSpecification => {
+  const m = defaultM ?? 1;
+  return [
     'interpolate',
     ['exponential', 2],
     ['zoom'],
-    12, ['max', 0.5, ['*', ['coalesce', ['get', 'widthM'], defaultM], 0.05]],
-    19, ['max', 1.5, ['*', ['coalesce', ['get', 'widthM'], defaultM], 1.6]],
-    22, ['max', 2,   ['*', ['coalesce', ['get', 'widthM'], defaultM], 25]],
+    12, ['max', 0.5, ['*', ['coalesce', ['get', 'widthM'], m], 0.05]],
+    19, ['max', 1.5, ['*', ['coalesce', ['get', 'widthM'], m], 1.6]],
+    22, ['max', 2,   ['*', ['coalesce', ['get', 'widthM'], m], 25]],
   ] as unknown as ExpressionSpecification;
+};
 
 interface Props {
   map: MaplibreMap;
