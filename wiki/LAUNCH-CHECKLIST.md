@@ -63,3 +63,72 @@ oversights — they are tracked to prevent quiet violation at launch.
 ## Compliance
 
 _(Future sprints append blockers here.)_
+
+## Post-Protocol Aspirations (Phase E + F follow-ups)
+
+Atlas passes the **Apricot-Lane Validation Protocol at 4/4** as of Phase E
+([decisions/2026-05-21-atlas-phase-e-tier2-evidence-and-protocol-rerun.md](decisions/2026-05-21-atlas-phase-e-tier2-evidence-and-protocol-rerun.md)).
+The items below are **not pre-commercial blockers** — they are accepted
+post-protocol aspirations tracked for transparency. Phase F lands the
+first four; the remainder are deferred.
+
+**Landed in Phase F:**
+
+- [x] **Playwright Anti-GIS screenshot pass (F.1).**
+  Programmatic Playwright driver at `apps/web/scripts/anti-gis-snapshot.ts`
+  boots a 390×844 mobile viewport against the seeded Apricot-Lane fixture,
+  asserts Verdict + first Next Best Action are above the fold, and writes
+  a PNG to `apps/web/screenshots/anti-gis-apricot-lane.png`. Closes the E
+  ADR deferred "Live Playwright Anti-GIS screenshot" item.
+
+- [x] **Per-zone SOM trajectory (F.3).**
+  `projectSomTrajectory` + `/api/v1/soil-regeneration/.../som-trajectory`
+  now accept an optional `zones[]` payload and `?zoneId=<id>` GET filter
+  alongside the existing whole-project rows. Schema (migration 031) already
+  supported `(project_id, zone_id, year)`; no new migration. Web consumers
+  unchanged in F.3 — UI surfacing of per-zone overlays is deferred.
+
+- [x] **`evidence_audit_log` persistence (F.4).**
+  Migration 033 + `POST /api/v1/projects/:id/evidence-audit/log` route
+  + client-side SHA-256 hash + fire-and-forget emit hook. Initial
+  adoption on `LandVerdictCard` only — every Evidence emission writes a
+  row with a hash of its selector inputs. Identical inputs → identical
+  hash (reproducibility anchor). Closes the E ADR deferred
+  "`evidence_audit` server-side persistence" item.
+
+**Deferred (post-Phase-F):**
+
+- [ ] **Roll `emitEvidenceAudit` out to the remaining 7 Evidence panels.**
+  F.4 instrumented only `LandVerdictCard`. The other panels using
+  `selectEvidenceFor(...)` (DecisionTriad, IntelligenceSummaryCard,
+  SiteSummaryNarrativeSection, WaterStorageCard, ThreeEthicsRollupCard,
+  WaterRouterCard, CapitalPartnerSummaryExport) still emit Evidence
+  without audit-log writes. Roll out after F.4 is observed stable.
+
+- [ ] **Per-zone SOM trajectory web surfaces.**
+  F.3 lands the API; chart overlays + scenario consumers still read
+  whole-project rows only. Not gating.
+
+- [ ] **Tooltip Evidence retrofit.** `HostCanopyUnionTooltip` keeps its
+  B4 Slice M drill-down for now; re-wiring it under the Evidence
+  selector would duplicate work.
+
+- [ ] **PDF Evidence surface.** Static PDF lists assumptions truncated
+  to 15; expanding requires a second page or a QR link back to the web
+  modal.
+
+- [ ] **i18n on Evidence strings.** English-only today; B4 Slice N
+  pattern (`*Strings.ts` modules) is available later without redesign.
+
+- [ ] **Per-fragment confidence ranges (low/mid/high band).**
+  Evidence fragments use a single `confidence: 'low' | 'medium' | 'high'`
+  pill; range-band variants would mirror D.7's `CostRange`.
+
+- [ ] **Server-side replay tool for `evidence_audit_log`.**
+  Given an `input_hash`, recompute the selector and assert byte-identical
+  output — durability test, not gating.
+
+- [ ] **Playwright CI integration.** F.1 is a manual `pnpm` script;
+  wiring it into CI requires a logged-in `storageState` fixture managed
+  in the CI secret store.
+
