@@ -99,6 +99,10 @@ export type CreateTemplateInput = z.infer<typeof CreateTemplateInput>;
 export const InstantiateTemplateInput = z.object({
   name: z.string().min(1).max(200),
   parcelBoundaryGeojson: z.unknown().nullable().optional(),
+  // Phase 4.5 — explicit workspace attach for the new project. When omitted,
+  // the server resolves the caller's oldest owner-role membership (the
+  // personal default org created at register-time by Prong 1).
+  orgId: z.string().uuid().optional(),
 });
 export type InstantiateTemplateInput = z.infer<typeof InstantiateTemplateInput>;
 

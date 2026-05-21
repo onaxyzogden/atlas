@@ -87,6 +87,7 @@ describe('GET /api/v1/projects', () => {
 
 describe('POST /api/v1/projects', () => {
   it('creates a project and returns 201', async () => {
+    enqueue({ org_id: 'd0000000-0000-0000-0000-000000000001' }); // SELECT default org (Phase 4.5)
     enqueue(projectRow()); // INSERT → project row
     enqueue();             // INSERT data_pipeline_jobs
 

@@ -120,6 +120,10 @@ export const CreateProjectInput = z.object({
   provinceState: z.string().max(10).optional(),
   units: z.enum(['metric', 'imperial']).default('metric'),
   metadata: ProjectMetadata.optional(),
+  // Phase 4.5 — explicit workspace attach. When omitted, the server falls
+  // back to the caller's default org (set at register-time by Prong 1).
+  // Membership-checked server-side: caller must be a member of the org.
+  orgId: z.string().uuid().optional(),
 });
 export type CreateProjectInput = z.infer<typeof CreateProjectInput>;
 

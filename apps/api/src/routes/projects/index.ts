@@ -210,12 +210,44 @@ export default async function projectRoutes(fastify: FastifyInstance) {
   fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
     const body = CreateProjectInput.parse(req.body);
 
+    // Phase 4.5 — resolve workspace (org) for project attach.
+    // Migration 036 made projects.org_id NOT NULL. The client may pass
+    // body.orgId explicitly (e.g. via OrganizationSwitcherModal); otherwise
+    // we fall back to the caller's oldest owner-role membership (the
+    // personal default org created at register-time by Prong 1).
+    let orgId: string | null = null;
+    if (body.orgId) {
+      const [member] = await db`
+        SELECT 1 FROM organization_members
+        WHERE org_id = ${body.orgId} AND user_id = ${req.userId}
+      `;
+      if (!member) {
+        throw new ForbiddenError(
+          'You are not a member of the requested workspace.',
+        );
+      }
+      orgId = body.orgId;
+    } else {
+      const [defaultOrg] = await db`
+        SELECT org_id FROM organization_members
+        WHERE user_id = ${req.userId} AND role = 'owner'
+        ORDER BY joined_at ASC
+        LIMIT 1
+      `;
+      if (!defaultOrg) {
+        throw new ValidationError(
+          'No workspace is available for this account. Create a workspace first.',
+        );
+      }
+      orgId = defaultOrg.org_id;
+    }
+
     const [project] = await db`
       INSERT INTO projects (
-        owner_id, name, description, project_type,
+        owner_id, org_id, name, description, project_type,
         country, province_state, units, metadata
       ) VALUES (
-        ${req.userId}, ${body.name}, ${body.description ?? null},
+        ${req.userId}, ${orgId}, ${body.name}, ${body.description ?? null},
         ${body.projectType ?? null}, ${body.country}, ${body.provinceState ?? null},
         ${body.units}, ${db.json((body.metadata ?? {}) as never)}
       )

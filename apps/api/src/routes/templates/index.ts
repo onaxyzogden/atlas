@@ -9,7 +9,7 @@ import {
   extractPolygonalGeometry,
   toCamelCase,
 } from '@ogden/shared';
-import { NotFoundError, ForbiddenError } from '../../lib/errors.js';
+import { NotFoundError, ForbiddenError, ValidationError } from '../../lib/errors.js';
 
 const SYSTEM_USER_ID = '00000000-0000-0000-0000-00000000a71a';
 
@@ -118,10 +118,16 @@ export default async function templateRoutes(fastify: FastifyInstance) {
       }
 
       const snapshot = TemplateSnapshot.parse(tpl.snapshot);
+      const orgId = await resolveOrgForCaller({
+        fastify,
+        userId: req.userId!,
+        requestedOrgId: body.orgId,
+      });
       const project = await instantiateFromSnapshot({
         fastify,
         snapshot,
         userId: req.userId!,
+        orgId,
         projectName: body.name,
         boundaryOverride: body.parcelBoundaryGeojson ?? null,
       });
@@ -151,10 +157,16 @@ export default async function templateRoutes(fastify: FastifyInstance) {
       if (!tpl) throw new NotFoundError('PublicTemplate', req.params.slug);
 
       const snapshot = TemplateSnapshot.parse(tpl.snapshot);
+      const orgId = await resolveOrgForCaller({
+        fastify,
+        userId: req.userId!,
+        requestedOrgId: body.orgId,
+      });
       const project = await instantiateFromSnapshot({
         fastify,
         snapshot,
         userId: req.userId!,
+        orgId,
         projectName: body.name,
         boundaryOverride: body.parcelBoundaryGeojson ?? null,
       });
@@ -163,6 +175,49 @@ export default async function templateRoutes(fastify: FastifyInstance) {
       return { data: ProjectSummary.parse(toCamelCase(project)), meta: undefined, error: null };
     },
   );
+}
+
+/**
+ * Phase 4.5 — resolve which workspace (org) a newly-instantiated project
+ * should land in. Mirrors the same fallback semantics as POST /projects:
+ *   - If the caller passed orgId explicitly, verify membership; 403 otherwise.
+ *   - If omitted, pick the caller's oldest owner-role membership (the
+ *     personal default org created at register-time by Prong 1).
+ *   - If neither resolves, 422 — the caller has no available workspace.
+ */
+async function resolveOrgForCaller(args: {
+  fastify: FastifyInstance;
+  userId: string;
+  requestedOrgId?: string;
+}): Promise<string> {
+  const { fastify, userId, requestedOrgId } = args;
+  const { db } = fastify;
+
+  if (requestedOrgId) {
+    const [member] = await db`
+      SELECT 1 FROM organization_members
+      WHERE org_id = ${requestedOrgId} AND user_id = ${userId}
+    `;
+    if (!member) {
+      throw new ForbiddenError(
+        'You are not a member of the requested workspace.',
+      );
+    }
+    return requestedOrgId;
+  }
+
+  const [defaultOrg] = await db`
+    SELECT org_id FROM organization_members
+    WHERE user_id = ${userId} AND role = 'owner'
+    ORDER BY joined_at ASC
+    LIMIT 1
+  `;
+  if (!defaultOrg) {
+    throw new ValidationError(
+      'No workspace is available for this account. Create a workspace first.',
+    );
+  }
+  return defaultOrg.org_id as string;
 }
 
 /**
@@ -179,19 +234,20 @@ async function instantiateFromSnapshot(args: {
   fastify: FastifyInstance;
   snapshot: TemplateSnapshot;
   userId: string;
+  orgId: string;
   projectName: string;
   boundaryOverride: unknown;
 }) {
-  const { fastify, snapshot, userId, projectName, boundaryOverride } = args;
+  const { fastify, snapshot, userId, orgId, projectName, boundaryOverride } = args;
   const { db } = fastify;
 
   const [project] = await db`
     INSERT INTO projects (
-      owner_id, name, description, project_type,
+      owner_id, org_id, name, description, project_type,
       country, province_state, units, metadata,
       owner_notes, zoning_notes, access_notes, water_rights_notes
     ) VALUES (
-      ${userId}, ${projectName}, ${snapshot.description},
+      ${userId}, ${orgId}, ${projectName}, ${snapshot.description},
       ${snapshot.projectType}, ${snapshot.country}, ${snapshot.provinceState},
       ${snapshot.units}, ${db.json(snapshot.metadata as never)},
       ${snapshot.ownerNotes}, ${snapshot.zoningNotes},
