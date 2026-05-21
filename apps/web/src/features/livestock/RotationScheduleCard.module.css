@@ -537,8 +537,96 @@
   color: rgba(180, 165, 140, 0.7);
 }
 
+/* ── C.7 cycle engine summary ── */
+.engineSummary {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(196, 162, 101, 0.04);
+  border: 1px solid rgba(196, 162, 101, 0.18);
+}
+
+.engineHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.engineTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(196, 162, 101, 0.85);
+}
+
+.engineHint {
+  font-size: 10.5px;
+  color: rgba(180, 165, 140, 0.6);
+  font-style: italic;
+}
+
+.engineMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.engineMetric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.engineMetricValue {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(232, 220, 200, 0.95);
+  line-height: 1.1;
+}
+
+.engineMetricLabel {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(180, 165, 140, 0.6);
+}
+
+.engineBadge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  align-self: flex-start;
+  line-height: 1.2;
+}
+
+.engineBadgeOk {
+  background: rgba(160, 195, 130, 0.14);
+  color: rgba(180, 210, 150, 0.9);
+  border: 1px solid rgba(160, 195, 130, 0.3);
+}
+
+.engineBadgeWarn {
+  background: rgba(220, 180, 100, 0.14);
+  color: rgba(230, 195, 130, 0.9);
+  border: 1px solid rgba(220, 180, 100, 0.32);
+}
+
+.engineUtilOk { color: rgba(180, 210, 150, 0.92); }
+.engineUtilTight { color: rgba(230, 195, 130, 0.92); }
+.engineUtilOver { color: rgba(225, 145, 120, 0.92); }
+
 @media (max-width: 720px) {
   .statusRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .engineMetrics {
     grid-template-columns: repeat(2, 1fr);
   }
 }

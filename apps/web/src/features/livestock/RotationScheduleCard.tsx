@@ -39,6 +39,7 @@ import {
   type RecoveryStatus,
   type RotationEntry,
 } from './livestockAnalysis.js';
+import { computeRotationCalendar } from './engine/rotationEngine.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
 import css from './RotationScheduleCard.module.css';
 
@@ -288,6 +289,24 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
   const paddocks = useMemo(
     () => allPaddocks.filter((p) => p.projectId === projectId),
     [allPaddocks, projectId],
+  );
+
+  // C.7 engine summary — implied mob = total area (ha) at 1 AU/ha. This card
+  // doesn't track herd size today; the heuristic is clearly labelled so
+  // stewards know it's a placeholder until herd-size capture lands.
+  const impliedMobAu = useMemo(() => {
+    const totalHa = paddocks.reduce((sum, p) => sum + (p.areaM2 ?? 0) / 10_000, 0);
+    return Math.max(1, Math.round(totalHa));
+  }, [paddocks]);
+  const engineCalendar = useMemo(
+    () =>
+      computeRotationCalendar({
+        paddocks,
+        herdSize: impliedMobAu,
+        parasiteBreakDays: 60,
+        grazeDaysPerPaddock: 3,
+      }),
+    [paddocks, impliedMobAu],
   );
 
   const allEvents = useLivestockMoveLogStore((s) => s.events);
@@ -551,6 +570,58 @@ export default function RotationScheduleCard({ projectId }: RotationScheduleCard
         <div className={`${css.statusPill} ${css.pillActive}`}>
           <span className={css.pillCount}>{summary.active}</span>
           <span className={css.pillLabel}>Active</span>
+        </div>
+      </div>
+
+      {/* C.7 cycle engine summary — additive, implied mob heuristic */}
+      <div className={css.engineSummary}>
+        <div className={css.engineHead}>
+          <span className={css.engineTitle}>Cycle engine</span>
+          <span className={css.engineHint}>
+            Implied mob: {impliedMobAu} AU (~1 AU/ha)
+          </span>
+        </div>
+        <div className={css.engineMetrics}>
+          <div className={css.engineMetric}>
+            <span className={css.engineMetricValue}>{engineCalendar.cyclesPerYear}</span>
+            <span className={css.engineMetricLabel}>Cycles / yr</span>
+          </div>
+          <div className={css.engineMetric}>
+            <span className={css.engineMetricValue}>
+              {engineCalendar.annualAuDays.toLocaleString()}
+            </span>
+            <span className={css.engineMetricLabel}>AU-days / yr</span>
+          </div>
+          <div className={css.engineMetric}>
+            <span
+              className={`${css.engineBadge} ${
+                engineCalendar.parasiteBreakCompliant
+                  ? css.engineBadgeOk
+                  : css.engineBadgeWarn
+              }`}
+            >
+              {engineCalendar.parasiteBreakCompliant
+                ? `Parasite-break ≥ ${engineCalendar.inputs.parasiteBreakDays}d`
+                : `Parasite-break < ${engineCalendar.inputs.parasiteBreakDays}d`}
+            </span>
+            <span className={css.engineMetricLabel}>Recovery floor</span>
+          </div>
+          <div className={css.engineMetric}>
+            <span
+              className={`${css.engineMetricValue} ${
+                engineCalendar.status === 'over'
+                  ? css.engineUtilOver
+                  : engineCalendar.status === 'tight'
+                  ? css.engineUtilTight
+                  : css.engineUtilOk
+              }`}
+            >
+              {engineCalendar.utilizationPct}%
+            </span>
+            <span className={css.engineMetricLabel}>
+              Utilization ({engineCalendar.status})
+            </span>
+          </div>
         </div>
       </div>
 
