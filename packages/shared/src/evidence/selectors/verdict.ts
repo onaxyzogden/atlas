@@ -7,7 +7,7 @@
 // contributing flags (already sorted by priority). Returns the
 // canonical Tier-2 fragments the verdict card should disclose.
 
-import type { AssessmentFlag } from '@ogden/shared';
+import type { AssessmentFlag } from '../../schemas/assessment.schema.js';
 import type { EvidenceItem, EvidenceFragment } from '../types.js';
 
 export interface VerdictEvidenceInputs {

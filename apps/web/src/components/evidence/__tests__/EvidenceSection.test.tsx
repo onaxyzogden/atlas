@@ -6,7 +6,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import EvidenceSection from '../EvidenceSection.js';
-import type { EvidenceItem } from '../../../lib/evidence/types.js';
+import type { EvidenceItem } from '@ogden/shared/evidence';
 
 const ITEM: EvidenceItem = {
   panelKey: 'land-verdict',

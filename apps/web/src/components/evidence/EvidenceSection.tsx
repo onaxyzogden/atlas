@@ -24,7 +24,7 @@ import {
   useCallback,
   type KeyboardEvent,
 } from 'react';
-import type { EvidenceItem, EvidenceFragment, EvidenceSource } from '../../lib/evidence/types.js';
+import type { EvidenceItem, EvidenceFragment, EvidenceSource } from '@ogden/shared/evidence';
 import DetailsDrawer from './DetailsDrawer.js';
 import s from './EvidenceSection.module.css';
 

@@ -30,7 +30,7 @@ import {
 } from './waterMath.js';
 import { usePhaseStoreCappedEntities } from '../../usePhaseStoreCappedEntities.js';
 import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
-import { selectEvidenceFor } from '../../../../lib/evidence/selectEvidence.js';
+import { selectEvidenceFor } from '@ogden/shared/evidence';
 import { emitEvidenceAudit } from '../../../../lib/evidence/auditEmit.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 

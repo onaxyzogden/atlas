@@ -5,7 +5,7 @@
 // round-trip case per panel key.
 
 import { describe, expect, it } from 'vitest';
-import type { AssessmentFlag } from '@ogden/shared';
+import type { AssessmentFlag } from '../../schemas/assessment.schema.js';
 
 import { selectEvidenceFor } from '../selectEvidence.js';
 import { selectVerdictEvidence } from '../selectors/verdict.js';

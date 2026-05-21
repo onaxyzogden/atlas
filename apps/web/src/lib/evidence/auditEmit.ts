@@ -12,7 +12,7 @@
  */
 
 import { api } from '../apiClient.js';
-import { hashInputs } from './hashInputs.js';
+import { hashInputs } from '@ogden/shared/evidence';
 
 export interface EmitEvidenceAuditArgs {
   projectId: string;

@@ -13,7 +13,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../lib/apiClient.js';
-import type { EvidenceItem } from '../../lib/evidence/types.js';
+import type { EvidenceItem } from '@ogden/shared/evidence';
 import s from './DetailsDrawer.module.css';
 
 interface DetailsDrawerProps {

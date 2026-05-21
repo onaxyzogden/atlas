@@ -15,7 +15,7 @@ import { SectionProfiler } from '../../../lib/perfProfiler.js';
 import { semantic } from '../../../lib/tokens.js';
 import { Spinner } from '../../ui/Spinner.js';
 import EvidenceSection from '../../evidence/EvidenceSection.js';
-import { selectEvidenceFor } from '../../../lib/evidence/selectEvidence.js';
+import { selectEvidenceFor } from '@ogden/shared/evidence';
 import { emitEvidenceAudit } from '../../../lib/evidence/auditEmit.js';
 import { AILabel } from './_shared.js';
 import p from '../../../styles/panel.module.css';

@@ -28,7 +28,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import { useSiteData } from '../../store/siteDataStore.js';
 import type { MockLayerResult } from '../../lib/mockLayerData.js';
 import EvidenceSection from '../../components/evidence/EvidenceSection.js';
-import { selectEvidenceFor } from '../../lib/evidence/selectEvidence.js';
+import { selectEvidenceFor } from '@ogden/shared/evidence';
 import { emitEvidenceAudit } from '../../lib/evidence/auditEmit.js';
 import css from './DecisionTriad.module.css';
 

@@ -34,12 +34,12 @@ import {
 } from '../../../../store/principleCheckStore.js';
 import { usePrincipleEvidenceVisibleIds } from './usePrincipleEvidenceVisibleIds.js';
 import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
-import { selectEvidenceFor } from '../../../../lib/evidence/selectEvidence.js';
+import { selectEvidenceFor } from '@ogden/shared/evidence';
 import { emitEvidenceAudit } from '../../../../lib/evidence/auditEmit.js';
 import type {
   EthicKey,
   EthicStatus,
-} from '../../../../lib/evidence/selectors/threeEthics.js';
+} from '@ogden/shared/evidence';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {

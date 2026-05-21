@@ -28,6 +28,10 @@
     "./regeneration": {
       "types": "./src/regeneration/index.ts",
       "default": "./src/regeneration/index.ts"
+    },
+    "./evidence": {
+      "types": "./src/evidence/index.ts",
+      "default": "./src/evidence/index.ts"
     }
   },
   "scripts": {

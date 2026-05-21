@@ -25,7 +25,7 @@ import {
   USD_PER_TC_DEFAULT,
 } from '../financial/somAppreciation.js';
 import EvidenceSection from '../../components/evidence/EvidenceSection.js';
-import { selectEvidenceFor } from '../../lib/evidence/selectEvidence.js';
+import { selectEvidenceFor } from '@ogden/shared/evidence';
 import { emitEvidenceAudit } from '../../lib/evidence/auditEmit.js';
 import { sage, success, warning, group, semantic, zIndex } from '../../lib/tokens.js';
 

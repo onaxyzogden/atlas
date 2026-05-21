@@ -8,7 +8,7 @@
 // available as a composite for any future surface that wants a single
 // Tier-2 disclosure covering both the verdict and the AI narrative.
 
-import type { AssessmentFlag } from '@ogden/shared';
+import type { AssessmentFlag } from '../../schemas/assessment.schema.js';
 import type { EvidenceItem, EvidenceFragment } from '../types.js';
 
 export interface IntelligenceEvidenceInputs {

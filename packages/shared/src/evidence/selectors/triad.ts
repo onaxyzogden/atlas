@@ -6,7 +6,7 @@
 // and the disclosure exposes the rule id + source layer + confidence
 // that produced it. The caller invokes this once per visible flag.
 
-import type { AssessmentFlag } from '@ogden/shared';
+import type { AssessmentFlag } from '../../schemas/assessment.schema.js';
 import type { EvidenceItem, EvidenceFragment } from '../types.js';
 
 export interface TriadEvidenceInputs {
