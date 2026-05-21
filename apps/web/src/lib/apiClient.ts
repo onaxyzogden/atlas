@@ -350,6 +350,18 @@ export const api = {
       request<void>('DELETE', `/api/v1/succession/${id}`),
   },
 
+  // D.4 — SOM trajectory consumer for the J-curve secondary axis.
+  // Producer (POST recompute) is owner|designer-gated on the API; the web
+  // client only needs the GET today. Returns whole-project rows (zone_id
+  // NULL) ordered by year ASC.
+  soilRegeneration: {
+    getSomTrajectory: (projectId: string) =>
+      request<import('../features/financial/somAppreciation.js').SomYearRow[]>(
+        'GET',
+        `/api/v1/soil-regeneration/project/${projectId}/som-trajectory`,
+      ),
+  },
+
   projectState: {
     list: (projectId: string) =>
       request<ProjectStateBlob[]>('GET', `/api/v1/project-state/project/${projectId}`),

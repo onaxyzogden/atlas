@@ -39,6 +39,10 @@ import BuildCostRevenueRangesCard from './BuildCostRevenueRangesCard.js';
 import LayoutOptionABCComparisonCard from './LayoutOptionABCComparisonCard.js';
 import VisitorEventOverflowSimCard from './VisitorEventOverflowSimCard.js';
 import EmergencyResilienceSimCard from './EmergencyResilienceSimCard.js';
+import JCurveChart from '../financial/JCurveChart.js';
+import { computeTransitionBudget } from '../financial/engine/transitionBudget.js';
+import { naturalCapitalAppreciationByYear } from '../financial/somAppreciation.js';
+import { api } from '../../lib/apiClient.js';
 
 interface ScenarioPanelProps {
   project: LocalProject;
@@ -114,7 +118,7 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
     return computeAssessmentScores(siteData.layers, project.acreage);
   }, [siteData, project.acreage]);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!name.trim() || !model) return;
 
     // Build AllFeaturesInput for mission re-scoring with variant weights
@@ -157,6 +161,30 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
       structureTypes[st.type] = (structureTypes[st.type] ?? 0) + 1;
     }
 
+    // D.4 — transition budget producer. Sync from the model's cashflow
+    // so we never block scenario creation on a network call.
+    const transitionBudgetMid = computeTransitionBudget(model.cashflow);
+
+    // D.4 — best-effort natural-capital appreciation producer. The SOM
+    // trajectory is only present once an owner/designer has called the
+    // recompute route; until then we capture the scenario without the
+    // secondary-axis series and the chart suppresses it. Never blocks.
+    let natCap: Record<number, number> | undefined;
+    if (project.acreage != null) {
+      try {
+        const { data } = await api.soilRegeneration.getSomTrajectory(project.id);
+        const trajectory = data ?? [];
+        if (trajectory.length > 0) {
+          natCap = naturalCapitalAppreciationByYear({
+            trajectory,
+            acres: project.acreage,
+          });
+        }
+      } catch {
+        // Best-effort: SOM trajectory not yet recomputed for this project.
+      }
+    }
+
     const scenario: Scenario = {
       id: crypto.randomUUID(),
       projectId: project.id,
@@ -183,6 +211,8 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
       tenYearROI: model.breakEven.tenYearROI.mid,
       annualRevenueMid: model.annualRevenueAtMaturity.mid,
       missionScore: effectiveMission,
+      transitionBudgetMid,
+      ...(natCap && { naturalCapitalAppreciationByYear: natCap }),
     };
 
     addScenario(scenario);
@@ -388,17 +418,28 @@ export default function ScenarioPanel({ project }: ScenarioPanelProps) {
           )}
           <div className={`${p.section} ${p.sectionGapLg}`}>
             {scenarios.map((sc) => (
-              <ScenarioCard
-                key={sc.id}
-                scenario={sc}
-                isSelected={compareIds.includes(sc.id)}
-                isRecommended={recommended?.id === sc.id}
-                onToggleSelect={() => handleToggleCompare(sc.id)}
-                onDelete={() => {
-                  deleteScenario(sc.id);
-                  setCompareIds((ids) => ids.filter((id) => id !== sc.id));
-                }}
-              />
+              <div key={sc.id}>
+                <ScenarioCard
+                  scenario={sc}
+                  isSelected={compareIds.includes(sc.id)}
+                  isRecommended={recommended?.id === sc.id}
+                  onToggleSelect={() => handleToggleCompare(sc.id)}
+                  onDelete={() => {
+                    deleteScenario(sc.id);
+                    setCompareIds((ids) => ids.filter((id) => id !== sc.id));
+                  }}
+                />
+                {/* D.4 — captured-snapshot J-curve. Older scenarios captured
+                    pre-D.4 lack `transitionBudgetMid`; gracefully skip render
+                    rather than back-fill so the snapshot stays faithful to the
+                    moment it was taken ([[feedback-no-deletion]]). */}
+                {sc.transitionBudgetMid && sc.transitionBudgetMid.length > 0 && (
+                  <JCurveChart
+                    transitionYears={sc.transitionBudgetMid}
+                    naturalCapitalAppreciationByYear={sc.naturalCapitalAppreciationByYear}
+                  />
+                )}
+              </div>
             ))}
           </div>
         </>
