@@ -3,11 +3,12 @@
  * `direct_select` and adds click-to-delete on existing vertices, while
  * preserving drag-to-move and midpoint-click-to-add.
  *
- * Click vs drag arbitration: on mousedown we stash the screen-point of the
- * cursor; on mouseup we compare. If the cursor moved less than
- * `CLICK_PIXEL_THRESHOLD` pixels, the gesture is a click and (if the
- * mousedown was on a vertex) we remove that vertex. Anything larger is
- * treated as a drag and falls through to stock behaviour.
+ * Click vs drag arbitration is handled by MapboxDraw's own events.js: it
+ * fires `mode.onClick` for gestures under its 4 px / 500 ms threshold and
+ * `mode.onMouseUp` for everything larger. So we attach the deletion to
+ * `onClick` (NOT `onMouseUp` — that branch only sees drag releases) and
+ * gate on the vertex coord-path stashed during the mousedown→onVertex
+ * dispatch.
  *
  * Minimum-vertex guard: silently refuses deletes that would drop a polygon
  * ring below 3 unique vertices (4 entries incl. closing) or a line below 2.
@@ -15,14 +16,7 @@
 
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 
-const CLICK_PIXEL_THRESHOLD = 4;
-
 export const CLICK_DELETE_DIRECT_SELECT = 'click_delete_direct_select';
-
-interface ScreenPoint {
-  x: number;
-  y: number;
-}
 
 // MapboxDraw doesn't export rich types for mode internals; the state object
 // is duck-typed across the library. We keep `any` confined to this file.
@@ -48,9 +42,11 @@ function canRemoveCoordinate(feature: any, coordPath: string): boolean {
 export const clickDeleteDirectSelect = {
   ...stock,
 
+  // Reset the per-gesture vertex hint on every mousedown so a body-click
+  // immediately following a vertex-click can't accidentally re-trigger
+  // deletion against stale state.
   onMouseDown(this: any, state: any, e: any) {
-    const p = e?.point as ScreenPoint | undefined;
-    state._cdDownPoint = p ? { x: p.x, y: p.y } : null;
+    state._cdVertexCoordPath = null;
     return stock.onMouseDown.call(this, state, e);
   },
 
@@ -62,31 +58,30 @@ export const clickDeleteDirectSelect = {
 
   onMidpoint(this: any, state: any, e: any) {
     // Midpoint click adds a new vertex (stock behaviour). Disqualify the
-    // resulting selectedCoordPath from delete-on-mouseup so the freshly
+    // resulting selectedCoordPath from delete-on-click so the freshly
     // added vertex doesn't get immediately removed.
     state._cdVertexCoordPath = null;
     return stock.onMidpoint.call(this, state, e);
   },
 
-  onMouseUp(this: any, state: any, e: any) {
-    const result = stock.onMouseUp.call(this, state, e);
-
-    const down: ScreenPoint | null = state._cdDownPoint ?? null;
+  onClick(this: any, state: any, e: any) {
     const candidatePath: string | null = state._cdVertexCoordPath ?? null;
-    state._cdDownPoint = null;
     state._cdVertexCoordPath = null;
 
-    if (!down || !candidatePath) return result;
-
-    const up = e?.point as ScreenPoint | undefined;
-    if (!up) return result;
-    const dx = up.x - down.x;
-    const dy = up.y - down.y;
-    if (Math.hypot(dx, dy) > CLICK_PIXEL_THRESHOLD) return result;
+    if (!candidatePath) {
+      return stock.onClick?.call(this, state, e);
+    }
 
     const feature = state.feature;
-    if (!feature || typeof feature.removeCoordinate !== 'function') return result;
-    if (!canRemoveCoordinate(feature, candidatePath)) return result;
+    if (!feature || typeof feature.removeCoordinate !== 'function') {
+      return stock.onClick?.call(this, state, e);
+    }
+    if (!canRemoveCoordinate(feature, candidatePath)) {
+      // Silent gate: triangle / 2-vertex line stays put. Don't fall through
+      // to stock onClick — that would clear selectedCoordPaths via
+      // clickActiveFeature and drop the user out of vertex-edit.
+      return;
+    }
 
     feature.removeCoordinate(candidatePath);
     state.selectedCoordPaths = [];
@@ -97,7 +92,5 @@ export const clickDeleteDirectSelect = {
       action: 'change_coordinates',
       features: [feature.toGeoJSON()],
     });
-
-    return result;
   },
 };
