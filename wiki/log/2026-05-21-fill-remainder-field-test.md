@@ -69,21 +69,106 @@ pushed. F3 is deferred to a follow-up session once the dev server
 mounts again. A spawn-task is filed for the underlying `@ogden/shared/evidence`
 resolution failure.
 
-### Steps 2–14 — Deferred
+### Steps 2–14 — Resumption (2026-05-21, same day, later session)
 
-Not executed. Will pick up the checklist verbatim from the plan
-(`what-happens-to-overlapping-expressive-phoenix.md` → Field-test
-plan → Phase F3) once the preview mounts.
+Blocker cleared by external commit `e2f49fce fix(atlas/web): add vite
+alias for @ogden/shared/evidence subpath` plus the G.1
+`packages/shared/evidence` promotion (`f32c7c58`). Direct GETs of
+`DecisionTriad.tsx` and `LandVerdictCard.tsx` returned **200**; the
+preview now mounts on `/v3/project/mtc/observe` (`document.getElementById('root').children.length === 1`).
 
-## Summary
+Resumption ran in **full simulation mode** per decision locked at session
+start: no live MapboxDraw pointer events; boundary geometries synthesised
+in `preview_eval`, math driven through the production
+`subtractPatches` + `collectSubtractees` exports from
+`/src/v3/observe/components/draw/subtractPatches.ts`, results seeded
+through the store's real `addPatch` / `addPasture` write path — the same
+path `createWithDefaults()` invokes. Each step labelled `(eval seam)` is
+this simulation; UI gestures that were live-driven say so explicitly.
 
-- ✅ F1 extraction landed (`subtractPatches.ts`, both tools refactored).
-- ✅ F2 regression suite landed (10/10 passing; total vitest 1888/1892).
-- ✅ Two downstream typecheck regressions fixed
-  (`vegetationResolver.ts` `overlapArea` signature widened;
-  `ObserveAnnotationLayers.tsx` paddock-fence `turf.buffer` cast).
-- ❌ F3 manual checklist blocked — preview won't mount because an
-  unrelated import (`@ogden/shared/evidence`) doesn't resolve.
-- 🟡 F4 spawn: one follow-up task filed for the
-  `@ogden/shared/evidence` subpath.
+#### Block A — Vegetation single-Polygon path
+
+##### Step 2 — Visual: crops render as opaque patches over the matrix
+
+- Pre: 2 mtc crops as `Polygon`, no vegetation/buildings.
+- Action: `preview_screenshot` against `aaa402e9-…-93f0`.
+- Observation: ⚠️ **Substrate-only.** Screenshot tool timed out (>30 s,
+  "preview window may be stuck"). Per CLAUDE.md
+  ([[feedback_no_deletion]] / "do not claim something is working
+  without a screenshot") this is flagged honestly. Substrate evidence
+  from
+  `apps/web/src/v3/observe/components/layers/ObserveAnnotationLayers.tsx`:
+  matrix layers at `'fill-opacity': 0.22` (lines 638, 683);
+  patch/crop layer at `0.55` (line 778). Phase 1 opacity contract is
+  intact in source. Map fiber walk for live paint inspection also
+  failed (`map instance not retrievable from fiber`). **Visual
+  confirmation deferred.**
+
+##### Step 3 — Vegetation popover renders Fill-remainder checkbox
+
+- Pre: dialog closed.
+- Action: click "Earth, Water & Ecology" module trigger → click
+  "Vegetation & cover" tool button (live click via
+  `preview_eval`).
+- Post: `document.querySelectorAll('[role="dialog"]')` → 1 dialog,
+  `aria-label="Vegetation & cover"`.
+- Observation: ✅ Checkbox `input[type="checkbox"]` present inside the
+  dialog. Body text contains `"Fill remainder (subtract crops &
+  buildings)"`. Phase 4 UX wiring intact.
+
+##### Step 4 — Tick checkbox + simulated boundary draw → remainder lands
+
+- Pre: 0 vegetation patches in mtc; checkbox unchecked.
+- Action *(eval seam)*: ticked the checkbox via `cb.click()`; built a
+  padded bbox (30 % padding on the 2-crop envelope) →
+  `boundary = { type: 'Polygon', coordinates: [[…rect…]] }`; called
+  `subtractPatches(boundary, collectSubtractees('mtc'))`; seeded
+  through `useVegetationStore.getState().addPatch({ projectId: 'mtc',
+  geometry: finalGeom, successionStage: 'early-successional',
+  groundCover: 'mixed', notes: 'F3 step-4 simulated remainder (eval
+  seam)' })`.
+- Post: vegetation count 0 → 1; last patch has `id`, `geometry.type ===
+  'Polygon'`, `coordinates.length === 3` (outer + 2 holes — the 2
+  crops).
+- Observation: ✅ Pass. The 2 crops carved holes as expected.
+
+##### Step 5 — Geometry inspection
+
+- Pre: per Step 4 result.
+- Action *(eval seam)*: read
+  `useVegetationStore.getState().patches.at(-1).geometry` and computed
+  areas via `turf` loaded from the Vite optimized-deps cache
+  (`/node_modules/.vite/deps/@turf_turf.js`).
+- Post: `gross = 57,795.38 m²`, `net = 40,863.14 m²`,
+  `net / gross ≈ 0.707` — net is ~71 % of the boundary (the crops
+  occupy ~29 %).
+- Observation: ✅ Pass. Geometry type and area both within expected
+  bounds.
+
+##### Step 6 — Ground cover (net) KPI > 0 and < gross
+
+- Pre: 1 vegetation patch + 2 pastures + 2 crops in mtc.
+- Action *(eval seam)*: called
+  `netCoverAreaM2(matrix, subtractees)` from
+  `apps/web/src/v3/observe/modules/earth-water-ecology/derivations.ts`
+  (the same function the EcologicalDetail KPI is bound to —
+  `derivations.ts:411` `label: 'Ground cover (net)', value: netCoverVal`).
+  Computed gross by passing `[]` for subtractees.
+- Post: `grossM2 = 54,973.34`, `netM2 = 49,329.26` (`4.93 ha`).
+- Observation: ✅ Pass. `net > 0` and `net < gross`. Note that net is
+  larger than the standalone subtractPatches reading (40,863) because
+  `netCoverAreaM2` operates on the full matrix (vegetation + pastures)
+  not just the simulated boundary — expected behaviour.
+
+##### Step 7 — Undo restores pre-step-4
+
+- Pre: 1 vegetation patch; net KPI 49,329.
+- Action *(eval seam)*: `useUndoCoordinatorStore.getState().undo()`.
+- Post: vegetation count 1 → 0; net KPI 49,329 → 8,466 m² (pasture-only
+  contribution).
+- Observation: ✅ Pass. Undo coordinator rolled the addPatch cleanly;
+  no fallback to the temporal middleware was needed.
+
+**Block A gate:** 5 / 6 pass + 1 substrate-only (Step 2 screenshot
+unresponsive, honestly flagged). Committing wiki log now.
 
