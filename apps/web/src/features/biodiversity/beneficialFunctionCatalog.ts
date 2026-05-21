@@ -36,7 +36,18 @@ export type BeneficialPlantTag =
   | 'wildlife_food'
   | 'n_fixer';
 
-export type BeneficialStructureKind = 'hedgerow' | 'pond' | 'shrub';
+export type BeneficialStructureKind =
+  | 'hedgerow'
+  | 'pond'
+  | 'shrub'
+  // 2026-05-21 habitat-feature unification — 7 first-class habitat kinds.
+  | 'owl-box'
+  | 'raptor-perch'
+  | 'nest-box'
+  | 'brush-pile'
+  | 'snag'
+  | 'insectary-strip'
+  | 'wetland-edge';
 
 export interface PlantFunctionEntry {
   /** plantCatalog ecologicalFunction tag. */
@@ -113,6 +124,65 @@ export const BENEFICIAL_STRUCTURE_FUNCTIONS: StructureFunctionEntry[] = [
       'Mid-storey shrub structure provides nesting sites for passerines (cardinals, catbirds, towhees) and an additional flowering layer for pollinators.',
     citation:
       'Audubon Society — Plants for Birds: Shrub Layer Habitat Guidance',
+  },
+  // 2026-05-21 — habitat-feature unification. Each new kind cites an
+  // extension / conservation-NGO source, preserving the B5 cite-every-
+  // claim covenant.
+  {
+    kind: 'owl-box',
+    categories: ['avian_shelter'],
+    rationale:
+      'Properly mounted barn-owl / screech-owl nest boxes provide cavity-nesting shelter that recruits resident owls as a primary rodent-control biocontrol on working farms.',
+    citation:
+      'Cornell Lab of Ornithology — NestWatch: Right Bird, Right House (barn-owl / screech-owl box specifications)',
+  },
+  {
+    kind: 'raptor-perch',
+    categories: ['avian_shelter'],
+    rationale:
+      'Tall perches in open pasture / row-crop give hunting raptors (red-tailed hawks, kestrels) a vantage point, integrating them into the on-farm rodent-control guild.',
+    citation:
+      'Audubon Society — Working Lands Program: Raptor Perch and Roost Guidance for Farms',
+  },
+  {
+    kind: 'nest-box',
+    categories: ['avian_shelter', 'small_bird_nesting'],
+    rationale:
+      'Species-specific nest boxes (bluebird, kestrel, swallow, wood-duck) substitute for missing natural cavities; box-nesting passerines deliver substantial insectivory in orchards and row crops.',
+    citation:
+      'Cornell Lab of Ornithology — NestWatch: Right Bird, Right House Database (species nest-box dimensions)',
+  },
+  {
+    kind: 'brush-pile',
+    categories: ['small_bird_nesting', 'avian_shelter'],
+    rationale:
+      'Loose woody-debris piles create cover and winter refuge for sparrows, wrens, towhees, and small mammals; a low-cost augmentation of shrub-layer habitat where mature hedgerows are absent.',
+    citation:
+      'USDA NRCS — Wildlife Habitat Management Sheet: Brush Piles (Wildlife Habitat Council guidance)',
+  },
+  {
+    kind: 'snag',
+    categories: ['avian_shelter', 'predatory_insectary'],
+    rationale:
+      'Standing dead wood hosts wood-boring insects and the woodpeckers that prey on them; abandoned woodpecker cavities are then adopted by secondary cavity-nesting passerines.',
+    citation:
+      'USDA Forest Service — Snags: Standing Dead Trees as Wildlife Habitat (PNW-GTR-181)',
+  },
+  {
+    kind: 'insectary-strip',
+    categories: ['predatory_insectary', 'pollinator'],
+    rationale:
+      'Linear plantings of umbel / composite-flowering insectary species adjacent to crop rows provision adult parasitoid wasps, syrphid flies, and lacewings — a primary in-field biological-control lever.',
+    citation:
+      'Xerces Society — Habitat Planning for Beneficial Insects: Guidelines for Conservation Biological Control (Conservation Practice Standard 422)',
+  },
+  {
+    kind: 'wetland-edge',
+    categories: ['amphibian_predator', 'wildlife_food', 'avian_shelter'],
+    rationale:
+      'Vegetated wetland fringe (sedges, rushes, willows around an open-water core) supports breeding amphibians, waterfowl forage, and shoreline cover for wading and dabbling birds.',
+    citation:
+      'USDA NRCS — Conservation Practice Standard 657: Wetland Restoration (vegetated-edge / hemi-marsh design guidance)',
   },
 ];
 

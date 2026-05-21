@@ -140,6 +140,23 @@ describe('beneficialCategoriesForStructure', () => {
     expect(beneficialCategoriesForStructure('road')).toEqual([]);
     expect(beneficialCategoriesForStructure('not-a-kind')).toEqual([]);
   });
+
+  // 2026-05-21 — habitat-feature unification.
+  it('covers all 7 new habitat kinds with cited categories', () => {
+    const newKinds = [
+      'owl-box',
+      'raptor-perch',
+      'nest-box',
+      'brush-pile',
+      'snag',
+      'insectary-strip',
+      'wetland-edge',
+    ];
+    for (const k of newKinds) {
+      const cats = beneficialCategoriesForStructure(k);
+      expect(cats.length).toBeGreaterThan(0);
+    }
+  });
 });
 
 describe('beneficialFunctionCatalog covenant lock', () => {

@@ -8,7 +8,12 @@
  * dimensions into a 0..100 `coveragePct`:
  *
  *   plant-richness band  : min(40, distinctBeneficialSpecies * 4)
- *   structural-habitat   : min(40, (hedgerowM/100 + pondM²/500 + shrubs) * 4)
+ *   structural-habitat   : min(40, structuralPoints * 4) where
+ *                          structuralPoints =
+ *                            hedgerowM/100 + pondM²/500 + shrubs
+ *                            + owlBoxes + raptorPerches + nestBoxes
+ *                            + brushPiles + snags
+ *                            + insectaryStripM/100 + wetlandEdgeM²/500
  *   functional-diversity : min(20, distinct BeneficialCategorys * 5)
  *
  * "Coverage" here is strictly ecological (plants × structures × functional
@@ -35,6 +40,18 @@ export interface BeneficialHabitatOverall {
   hedgerowLengthM: number;
   pondAreaM2: number;
   shrubCount: number;
+  /**
+   * 2026-05-21 habitat-feature unification — tallies for the 7 first-class
+   * habitat DesignElement kinds. Each carries its own contribution to the
+   * structural band of the composite score (see `computeBeneficialHabitatReport`).
+   */
+  owlBoxCount: number;
+  raptorPerchCount: number;
+  nestBoxCount: number;
+  brushPileCount: number;
+  snagCount: number;
+  insectaryStripLengthM: number;
+  wetlandEdgeAreaM2: number;
   categoriesPresent: BeneficialCategory[];
   /** Composite 0..100: plant-richness band + structural band + functional-diversity bonus. */
   coveragePct: number;
@@ -141,6 +158,17 @@ export function computeBeneficialHabitatReport(
   let hedgerowLengthM = 0;
   let pondAreaM2 = 0;
   let shrubCount = 0;
+  // 2026-05-21 — habitat-feature unification. The 7 new habitat-only
+  // DesignElement kinds contribute to the structural band alongside
+  // hedgerow / pond / shrub. Point kinds count as 1 structural point;
+  // linear and areal kinds reuse hedgerow / pond's normalisation.
+  let owlBoxCount = 0;
+  let raptorPerchCount = 0;
+  let nestBoxCount = 0;
+  let brushPileCount = 0;
+  let snagCount = 0;
+  let insectaryStripLengthM = 0;
+  let wetlandEdgeAreaM2 = 0;
   const structureCategories = new Set<BeneficialCategory>();
 
   for (const el of projectElements) {
@@ -159,16 +187,62 @@ export function computeBeneficialHabitatReport(
       for (const c of beneficialCategoriesForStructure('shrub')) {
         structureCategories.add(c);
       }
+    } else if (el.kind === 'owl-box') {
+      owlBoxCount += 1;
+      for (const c of beneficialCategoriesForStructure('owl-box')) {
+        structureCategories.add(c);
+      }
+    } else if (el.kind === 'raptor-perch') {
+      raptorPerchCount += 1;
+      for (const c of beneficialCategoriesForStructure('raptor-perch')) {
+        structureCategories.add(c);
+      }
+    } else if (el.kind === 'nest-box') {
+      nestBoxCount += 1;
+      for (const c of beneficialCategoriesForStructure('nest-box')) {
+        structureCategories.add(c);
+      }
+    } else if (el.kind === 'brush-pile') {
+      brushPileCount += 1;
+      for (const c of beneficialCategoriesForStructure('brush-pile')) {
+        structureCategories.add(c);
+      }
+    } else if (el.kind === 'snag') {
+      snagCount += 1;
+      for (const c of beneficialCategoriesForStructure('snag')) {
+        structureCategories.add(c);
+      }
+    } else if (el.kind === 'insectary-strip') {
+      insectaryStripLengthM += safeLineLengthM(el.geometry);
+      for (const c of beneficialCategoriesForStructure('insectary-strip')) {
+        structureCategories.add(c);
+      }
+    } else if (el.kind === 'wetland-edge') {
+      wetlandEdgeAreaM2 += safePolygonAreaM2(el.geometry);
+      for (const c of beneficialCategoriesForStructure('wetland-edge')) {
+        structureCategories.add(c);
+      }
     }
   }
 
   // ── Composite score ──
   const distinctBeneficialSpecies = distinctBeneficial.size;
   const plantRichnessBand = Math.min(40, distinctBeneficialSpecies * 4);
-  const structuralBand = Math.min(
-    40,
-    (hedgerowLengthM / 100 + pondAreaM2 / 500 + shrubCount) * 4,
-  );
+  const structuralPoints =
+    hedgerowLengthM / 100 +
+    pondAreaM2 / 500 +
+    shrubCount +
+    // Each point habitat element (owl box, perch, nest box, brush pile, snag)
+    // contributes 1 structural point; insectary strip per 100 m (hedgerow-
+    // analogue); wetland edge per 500 m² (pond-analogue).
+    owlBoxCount +
+    raptorPerchCount +
+    nestBoxCount +
+    brushPileCount +
+    snagCount +
+    insectaryStripLengthM / 100 +
+    wetlandEdgeAreaM2 / 500;
+  const structuralBand = Math.min(40, structuralPoints * 4);
 
   // Functional-diversity bonus across plant + structure categories.
   const plantCategories = new Set<BeneficialCategory>();
@@ -197,6 +271,13 @@ export function computeBeneficialHabitatReport(
       hedgerowLengthM,
       pondAreaM2,
       shrubCount,
+      owlBoxCount,
+      raptorPerchCount,
+      nestBoxCount,
+      brushPileCount,
+      snagCount,
+      insectaryStripLengthM,
+      wetlandEdgeAreaM2,
       categoriesPresent: Array.from(allCategories),
       coveragePct,
     },

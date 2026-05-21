@@ -79,6 +79,51 @@ function shrubElement(id: string, coord: [number, number]): DesignElement {
   };
 }
 
+function habitatPoint(
+  id: string,
+  kind:
+    | 'owl-box'
+    | 'raptor-perch'
+    | 'nest-box'
+    | 'brush-pile'
+    | 'snag',
+  coord: [number, number],
+): DesignElement {
+  return {
+    id,
+    category: 'habitat',
+    kind,
+    geometry: { type: 'Point', coordinates: coord },
+    phase: 'trees',
+    createdAt: '2026-01-01',
+  };
+}
+
+function insectaryStrip(
+  id: string,
+  coords: [number, number][],
+): DesignElement {
+  return {
+    id,
+    category: 'habitat',
+    kind: 'insectary-strip',
+    geometry: { type: 'LineString', coordinates: coords },
+    phase: 'soil',
+    createdAt: '2026-01-01',
+  };
+}
+
+function wetlandEdge(id: string, ring: [number, number][]): DesignElement {
+  return {
+    id,
+    category: 'habitat',
+    kind: 'wetland-edge',
+    geometry: { type: 'Polygon', coordinates: [ring] },
+    phase: 'water',
+    createdAt: '2026-01-01',
+  };
+}
+
 // Small square polygon roughly 1 ha in WGS84 near (0,0) — Turf.area returns m²
 function squareRing(sizeDeg: number): [number, number][] {
   return [
@@ -310,6 +355,111 @@ describe('computeBeneficialHabitatReport — combined + edge', () => {
     });
     expect(Number.isFinite(r.overall.hedgerowLengthM)).toBe(true);
     expect(Number.isFinite(r.overall.coveragePct)).toBe(true);
+  });
+});
+
+describe('computeBeneficialHabitatReport — habitat-feature unification (2026-05-21)', () => {
+  it('zero-state: new habitat tallies are 0 on an empty parcel', () => {
+    const r = computeBeneficialHabitatReport({
+      projectId: PROJECT_ID,
+      guilds: [],
+      designElements: [],
+    });
+    expect(r.overall.owlBoxCount).toBe(0);
+    expect(r.overall.raptorPerchCount).toBe(0);
+    expect(r.overall.nestBoxCount).toBe(0);
+    expect(r.overall.brushPileCount).toBe(0);
+    expect(r.overall.snagCount).toBe(0);
+    expect(r.overall.insectaryStripLengthM).toBe(0);
+    expect(r.overall.wetlandEdgeAreaM2).toBe(0);
+  });
+
+  it('counts each habitat point kind independently', () => {
+    const r = computeBeneficialHabitatReport({
+      projectId: PROJECT_ID,
+      guilds: [],
+      designElements: [
+        habitatPoint('o1', 'owl-box', [0, 0]),
+        habitatPoint('o2', 'owl-box', [0.001, 0]),
+        habitatPoint('p1', 'raptor-perch', [0.002, 0]),
+        habitatPoint('n1', 'nest-box', [0.003, 0]),
+        habitatPoint('b1', 'brush-pile', [0.004, 0]),
+        habitatPoint('s1', 'snag', [0.005, 0]),
+        habitatPoint('s2', 'snag', [0.006, 0]),
+      ],
+    });
+    expect(r.overall.owlBoxCount).toBe(2);
+    expect(r.overall.raptorPerchCount).toBe(1);
+    expect(r.overall.nestBoxCount).toBe(1);
+    expect(r.overall.brushPileCount).toBe(1);
+    expect(r.overall.snagCount).toBe(2);
+  });
+
+  it('sums insectary-strip length and wetland-edge area', () => {
+    const r = computeBeneficialHabitatReport({
+      projectId: PROJECT_ID,
+      guilds: [],
+      designElements: [
+        insectaryStrip('i1', [
+          [0, 0],
+          [0.0009, 0],
+        ]),
+        wetlandEdge('w1', squareRing(0.001)),
+      ],
+    });
+    expect(r.overall.insectaryStripLengthM).toBeGreaterThan(50);
+    expect(r.overall.insectaryStripLengthM).toBeLessThan(150);
+    expect(r.overall.wetlandEdgeAreaM2).toBeGreaterThan(0);
+  });
+
+  it('habitat kinds contribute to the structural band (monotonic)', () => {
+    const empty = computeBeneficialHabitatReport({
+      projectId: PROJECT_ID,
+      guilds: [],
+      designElements: [],
+    });
+    const withHabitats = computeBeneficialHabitatReport({
+      projectId: PROJECT_ID,
+      guilds: [],
+      designElements: [
+        habitatPoint('o1', 'owl-box', [0, 0]),
+        habitatPoint('p1', 'raptor-perch', [0.001, 0]),
+        habitatPoint('s1', 'snag', [0.002, 0]),
+      ],
+    });
+    expect(withHabitats.overall.coveragePct).toBeGreaterThan(
+      empty.overall.coveragePct,
+    );
+  });
+
+  it('habitat kinds populate categoriesPresent via beneficialFunctionCatalog', () => {
+    const r = computeBeneficialHabitatReport({
+      projectId: PROJECT_ID,
+      guilds: [],
+      designElements: [
+        habitatPoint('o1', 'owl-box', [0, 0]),
+        habitatPoint('s1', 'snag', [0.001, 0]),
+        insectaryStrip('i1', [
+          [0, 0.001],
+          [0.0009, 0.001],
+        ]),
+      ],
+    });
+    // avian_shelter from owl-box + snag; predatory_insectary + pollinator from
+    // insectary-strip + snag. We just require >= 2 distinct categories.
+    expect(r.overall.categoriesPresent.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('composite still capped at 100 with many habitat features', () => {
+    const points = Array.from({ length: 50 }, (_, i) =>
+      habitatPoint(`o${i}`, 'owl-box', [i * 0.001, 0]),
+    );
+    const r = computeBeneficialHabitatReport({
+      projectId: PROJECT_ID,
+      guilds: [],
+      designElements: points,
+    });
+    expect(r.overall.coveragePct).toBeLessThanOrEqual(100);
   });
 });
 
