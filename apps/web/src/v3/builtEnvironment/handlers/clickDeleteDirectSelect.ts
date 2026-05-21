@@ -39,6 +39,37 @@ function canRemoveCoordinate(feature: any, coordPath: string): boolean {
   return false;
 }
 
+/**
+ * After deleting the vertex at `coordPath`, compute a sensible neighbor
+ * coord-path so vertex-edit stays armed with handles visible on the same
+ * feature. Returns null if no neighbor exists (shouldn't happen given the
+ * min-vertex guard above already ran).
+ */
+function neighborCoordPath(feature: any, deletedPath: string): string | null {
+  const geom = feature?.toGeoJSON?.()?.geometry;
+  if (!geom) return null;
+  if (geom.type === 'Polygon') {
+    const parts = deletedPath.split('.');
+    const ringIdx = Number(parts[0] ?? 0);
+    const vertIdx = Number(parts[1] ?? 0);
+    const ring = geom.coordinates[ringIdx];
+    if (!Array.isArray(ring) || ring.length < 4) return null;
+    // Polygon ring is closed (first == last). Unique vertex count is
+    // ring.length - 1; valid indices are 0..(ring.length-2).
+    const lastUnique = ring.length - 2;
+    const prev = Math.max(0, Math.min(vertIdx - 1, lastUnique));
+    return `${ringIdx}.${prev}`;
+  }
+  if (geom.type === 'LineString') {
+    const vertIdx = Number(deletedPath);
+    const coords = geom.coordinates;
+    if (!Array.isArray(coords) || coords.length < 2) return null;
+    const prev = Math.max(0, Math.min(vertIdx - 1, coords.length - 1));
+    return String(prev);
+  }
+  return null;
+}
+
 export const clickDeleteDirectSelect = {
   ...stock,
 
@@ -84,7 +115,13 @@ export const clickDeleteDirectSelect = {
     }
 
     feature.removeCoordinate(candidatePath);
-    state.selectedCoordPaths = [];
+
+    // Arm a neighbor vertex so handles stay visible and the user can
+    // keep click-deleting on the same feature without re-entering
+    // vertex-edit. Fall back to clearing if no neighbor (shouldn't
+    // happen — guard above already ensured at least one remains).
+    const neighbor = neighborCoordPath(feature, candidatePath);
+    state.selectedCoordPaths = neighbor ? [neighbor] : [];
 
     // Emit through the public event surface — SharedVertexEditHandler's
     // `draw.update` listener will persist the new geometry to the store.

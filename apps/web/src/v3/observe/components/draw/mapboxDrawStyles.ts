@@ -83,14 +83,76 @@ export const MAPLIBRE_DRAW_STYLES = [
     },
   },
   {
+    // Restrict the generic point layer so it doesn't also paint the
+    // supplementary vertex/midpoint points emitted by direct_select —
+    // those get their own dedicated layers below for finer styling.
     id: 'gl-draw-point',
     type: 'circle',
-    filter: ['all', ['==', '$type', 'Point']],
+    filter: [
+      'all',
+      ['==', '$type', 'Point'],
+      ['!=', 'meta', 'vertex'],
+      ['!=', 'meta', 'midpoint'],
+    ],
     paint: {
       'circle-radius': 5,
       'circle-color': mapTokens.boundary,
       'circle-stroke-width': 2,
       'circle-stroke-color': '#fff',
+    },
+  },
+  {
+    // All non-active vertex handles for a feature in direct_select.
+    // Without this layer the inactive vertices would be invisible after a
+    // click-delete (when `selectedCoordPaths` is reduced to a single
+    // neighbor), making vertex-edit feel "lost." Keep it visible so the
+    // user can pick another vertex immediately.
+    id: 'gl-draw-polygon-and-line-vertex-inactive',
+    type: 'circle',
+    filter: [
+      'all',
+      ['==', '$type', 'Point'],
+      ['==', 'meta', 'vertex'],
+      ['!=', 'mode', 'static'],
+    ],
+    paint: {
+      'circle-radius': 4,
+      'circle-color': '#fff',
+      'circle-stroke-width': 2,
+      'circle-stroke-color': earth[800],
+    },
+  },
+  {
+    // The currently-armed vertex (the one in `selectedCoordPaths`).
+    // Slightly larger + accent-coloured so the user can tell which
+    // vertex the next click-delete will target.
+    id: 'gl-draw-polygon-and-line-vertex-active',
+    type: 'circle',
+    filter: [
+      'all',
+      ['==', '$type', 'Point'],
+      ['==', 'meta', 'vertex'],
+      ['==', 'active', 'true'],
+    ],
+    paint: {
+      'circle-radius': 6,
+      'circle-color': mapTokens.boundary,
+      'circle-stroke-width': 2,
+      'circle-stroke-color': '#fff',
+    },
+  },
+  {
+    // Midpoint dots — click one to insert a new vertex. Keep them
+    // visually distinct from real vertices (smaller, hollow) so users
+    // don't confuse "add here" with "delete this".
+    id: 'gl-draw-polygon-and-line-midpoint',
+    type: 'circle',
+    filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'midpoint']],
+    paint: {
+      'circle-radius': 3,
+      'circle-color': 'rgba(255,255,255,0.85)',
+      'circle-stroke-width': 1,
+      'circle-stroke-color': earth[800],
     },
   },
 ];
