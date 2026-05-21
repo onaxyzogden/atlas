@@ -38,10 +38,10 @@ export async function buildSnapshot(db: Queryable, projectId: string): Promise<S
   const designFeatures = (await db.query(
     `SELECT id, feature_type, label AS name, properties,
             ST_AsGeoJSON(geometry)::json AS geometry
-       FROM design_features WHERE project_id = $1`, [projectId])).rows;
+       FROM design_features WHERE project_id = $1 ORDER BY id`, [projectId])).rows;
   const regenerationEvents = (await db.query(
     `SELECT id, event_date, event_type, phase, observations, parent_event_id
-       FROM regeneration_events WHERE project_id = $1 ORDER BY event_date`, [projectId])).rows;
+       FROM regeneration_events WHERE project_id = $1 ORDER BY event_date, id`, [projectId])).rows;
   // `spiritual_zones` has discrete columns (zone_type, notes, qibla_bearing,
   // solar_events) rather than a single `properties` JSONB. Synthesise a
   // `properties` object so the snapshot shape matches `designFeatures`.
@@ -54,9 +54,10 @@ export async function buildSnapshot(db: Queryable, projectId: string): Promise<S
               'solar_events', solar_events
             ) AS properties,
             ST_AsGeoJSON(geometry)::json AS geometry
-       FROM spiritual_zones WHERE project_id = $1`, [projectId])).rows;
+       FROM spiritual_zones WHERE project_id = $1 ORDER BY id`, [projectId])).rows;
   const relationships = (await db.query(
-    `SELECT from_output, to_input, ratio FROM project_relationships WHERE project_id = $1`,
+    `SELECT from_output, to_input, ratio FROM project_relationships WHERE project_id = $1
+       ORDER BY from_output, to_input, ratio`,
     [projectId])).rows;
 
   return { project, layers, designFeatures, regenerationEvents, spiritualZones, relationships };
@@ -83,6 +84,9 @@ async function main() {
   const sql = postgres(url, { onnotice: () => {} });
   try {
     const snap = await buildSnapshot(postgresAdapter(sql), THREE_STREAMS_PROJECT_ID);
+    if (!snap.project) {
+      throw new Error(`Project ${THREE_STREAMS_PROJECT_ID} not found in DATABASE_URL=${process.env.DATABASE_URL ?? '(unset)'}`);
+    }
     const outPath = resolve(process.cwd(), 'apps/web/public/showcase/three-streams.json');
     await mkdir(dirname(outPath), { recursive: true });
     await writeFile(outPath, JSON.stringify(snap, null, 2), 'utf8');

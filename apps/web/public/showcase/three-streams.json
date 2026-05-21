@@ -147,6 +147,137 @@
   ],
   "designFeatures": [
     {
+      "id": "00000000-0000-0000-0000-0000df35e001",
+      "feature_type": "zone",
+      "name": "West Field — Y0 baseline (continuous-corn)",
+      "properties": {
+        "cropHistory": "14-year corn-soy rotation",
+        "baselineCondition": "depleted topsoil, plow pan 18 cm, OM 1.4-1.9%"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9145,
+              43.556
+            ],
+            [
+              -79.9105,
+              43.556
+            ],
+            [
+              -79.9105,
+              43.5615
+            ],
+            [
+              -79.9145,
+              43.5615
+            ],
+            [
+              -79.9145,
+              43.556
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e002",
+      "feature_type": "zone",
+      "name": "East Field — Y0 baseline (continuous-corn)",
+      "properties": {
+        "cropHistory": "14-year corn-soy rotation",
+        "baselineCondition": "depleted topsoil, plow pan 18 cm, OM 1.4-1.9%"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9095,
+              43.556
+            ],
+            [
+              -79.9055,
+              43.556
+            ],
+            [
+              -79.9055,
+              43.5615
+            ],
+            [
+              -79.9095,
+              43.5615
+            ],
+            [
+              -79.9095,
+              43.556
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e003",
+      "feature_type": "structure",
+      "name": "Legacy North Windbreak (Y0 inherited)",
+      "properties": {
+        "rows": 1,
+        "species": [
+          "norway spruce"
+        ],
+        "condition": "ageing, gappy",
+        "establishedYear": 1998
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.9145,
+            43.564
+          ],
+          [
+            -79.9055,
+            43.564
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e004",
+      "feature_type": "path",
+      "name": "West-branch riparian buffer (Y1)",
+      "properties": {
+        "setbackM": 30,
+        "speciesMix": [
+          "red-osier dogwood",
+          "nannyberry",
+          "crack willow",
+          "reed canary grass"
+        ],
+        "channelLengthM": 410,
+        "establishedYear": 2025
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.9135,
+            43.5635
+          ],
+          [
+            -79.9128,
+            43.5605
+          ],
+          [
+            -79.912,
+            43.557
+          ]
+        ]
+      }
+    },
+    {
       "id": "00000000-0000-0000-0000-0000df35e005",
       "feature_type": "path",
       "name": "Central-branch riparian buffer (Y1)",
@@ -256,237 +387,6 @@
           [
             -79.9057,
             43.559
-          ]
-        ]
-      }
-    },
-    {
-      "id": "00000000-0000-0000-0000-0000df35e004",
-      "feature_type": "path",
-      "name": "West-branch riparian buffer (Y1)",
-      "properties": {
-        "setbackM": 30,
-        "speciesMix": [
-          "red-osier dogwood",
-          "nannyberry",
-          "crack willow",
-          "reed canary grass"
-        ],
-        "channelLengthM": 410,
-        "establishedYear": 2025
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -79.9135,
-            43.5635
-          ],
-          [
-            -79.9128,
-            43.5605
-          ],
-          [
-            -79.912,
-            43.557
-          ]
-        ]
-      }
-    },
-    {
-      "id": "00000000-0000-0000-0000-0000df35e013",
-      "feature_type": "path",
-      "name": "Primary Farm Lane (gravel)",
-      "properties": {
-        "widthM": 4,
-        "lengthM": 445,
-        "surface": "gravel"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -79.91,
-            43.556
-          ],
-          [
-            -79.91,
-            43.56
-          ]
-        ]
-      }
-    },
-    {
-      "id": "00000000-0000-0000-0000-0000df35e014",
-      "feature_type": "path",
-      "name": "Pasture Rotation Access Lane",
-      "properties": {
-        "use": "livestock + ATV",
-        "widthM": 3,
-        "lengthM": 420,
-        "surface": "grass"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -79.91,
-            43.5615
-          ],
-          [
-            -79.9135,
-            43.562
-          ],
-          [
-            -79.9135,
-            43.5635
-          ]
-        ]
-      }
-    },
-    {
-      "id": "00000000-0000-0000-0000-0000df35e003",
-      "feature_type": "structure",
-      "name": "Legacy North Windbreak (Y0 inherited)",
-      "properties": {
-        "rows": 1,
-        "species": [
-          "norway spruce"
-        ],
-        "condition": "ageing, gappy",
-        "establishedYear": 1998
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -79.9145,
-            43.564
-          ],
-          [
-            -79.9055,
-            43.564
-          ]
-        ]
-      }
-    },
-    {
-      "id": "00000000-0000-0000-0000-0000df35e010",
-      "feature_type": "structure",
-      "name": "Y2 Pole Barn (livestock shelter + hay)",
-      "properties": {
-        "use": [
-          "winter cow-calf shelter",
-          "hay storage",
-          "equipment"
-        ],
-        "builtYear": 2026,
-        "footprintM2": 280
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              -79.91,
-              43.56
-            ],
-            [
-              -79.9095,
-              43.56
-            ],
-            [
-              -79.9095,
-              43.5604
-            ],
-            [
-              -79.91,
-              43.5604
-            ],
-            [
-              -79.91,
-              43.56
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "id": "00000000-0000-0000-0000-0000df35e011",
-      "feature_type": "structure",
-      "name": "Y2 Egg-Pack Room + Cold Storage",
-      "properties": {
-        "use": [
-          "egg wash + grade",
-          "cold storage for orchard + market crops"
-        ],
-        "builtYear": 2026,
-        "footprintM2": 48
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              -79.9095,
-              43.56
-            ],
-            [
-              -79.9092,
-              43.56
-            ],
-            [
-              -79.9092,
-              43.5603
-            ],
-            [
-              -79.9095,
-              43.5603
-            ],
-            [
-              -79.9095,
-              43.56
-            ]
-          ]
-        ]
-      }
-    },
-    {
-      "id": "00000000-0000-0000-0000-0000df35e012",
-      "feature_type": "structure",
-      "name": "Y2 Rainwater Cistern (pole barn roof)",
-      "properties": {
-        "use": [
-          "livestock water backup",
-          "nursery irrigation"
-        ],
-        "capacityLitres": 22000,
-        "catchmentRoofM2": 280
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              -79.9099,
-              43.5602
-            ],
-            [
-              -79.9098,
-              43.5602
-            ],
-            [
-              -79.9098,
-              43.5603
-            ],
-            [
-              -79.9099,
-              43.5603
-            ],
-            [
-              -79.9099,
-              43.5602
-            ]
           ]
         ]
       }
@@ -771,48 +671,57 @@
       }
     },
     {
-      "id": "00000000-0000-0000-0000-0000df35e001",
-      "feature_type": "zone",
-      "name": "West Field — Y0 baseline (continuous-corn)",
+      "id": "00000000-0000-0000-0000-0000df35e010",
+      "feature_type": "structure",
+      "name": "Y2 Pole Barn (livestock shelter + hay)",
       "properties": {
-        "cropHistory": "14-year corn-soy rotation",
-        "baselineCondition": "depleted topsoil, plow pan 18 cm, OM 1.4-1.9%"
+        "use": [
+          "winter cow-calf shelter",
+          "hay storage",
+          "equipment"
+        ],
+        "builtYear": 2026,
+        "footprintM2": 280
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
             [
-              -79.9145,
-              43.556
+              -79.91,
+              43.56
             ],
             [
-              -79.9105,
-              43.556
+              -79.9095,
+              43.56
             ],
             [
-              -79.9105,
-              43.5615
+              -79.9095,
+              43.5604
             ],
             [
-              -79.9145,
-              43.5615
+              -79.91,
+              43.5604
             ],
             [
-              -79.9145,
-              43.556
+              -79.91,
+              43.56
             ]
           ]
         ]
       }
     },
     {
-      "id": "00000000-0000-0000-0000-0000df35e002",
-      "feature_type": "zone",
-      "name": "East Field — Y0 baseline (continuous-corn)",
+      "id": "00000000-0000-0000-0000-0000df35e011",
+      "feature_type": "structure",
+      "name": "Y2 Egg-Pack Room + Cold Storage",
       "properties": {
-        "cropHistory": "14-year corn-soy rotation",
-        "baselineCondition": "depleted topsoil, plow pan 18 cm, OM 1.4-1.9%"
+        "use": [
+          "egg wash + grade",
+          "cold storage for orchard + market crops"
+        ],
+        "builtYear": 2026,
+        "footprintM2": 48
       },
       "geometry": {
         "type": "Polygon",
@@ -820,24 +729,115 @@
           [
             [
               -79.9095,
-              43.556
+              43.56
             ],
             [
-              -79.9055,
-              43.556
+              -79.9092,
+              43.56
             ],
             [
-              -79.9055,
-              43.5615
-            ],
-            [
-              -79.9095,
-              43.5615
+              -79.9092,
+              43.5603
             ],
             [
               -79.9095,
-              43.556
+              43.5603
+            ],
+            [
+              -79.9095,
+              43.56
             ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e012",
+      "feature_type": "structure",
+      "name": "Y2 Rainwater Cistern (pole barn roof)",
+      "properties": {
+        "use": [
+          "livestock water backup",
+          "nursery irrigation"
+        ],
+        "capacityLitres": 22000,
+        "catchmentRoofM2": 280
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -79.9099,
+              43.5602
+            ],
+            [
+              -79.9098,
+              43.5602
+            ],
+            [
+              -79.9098,
+              43.5603
+            ],
+            [
+              -79.9099,
+              43.5603
+            ],
+            [
+              -79.9099,
+              43.5602
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e013",
+      "feature_type": "path",
+      "name": "Primary Farm Lane (gravel)",
+      "properties": {
+        "widthM": 4,
+        "lengthM": 445,
+        "surface": "gravel"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.91,
+            43.556
+          ],
+          [
+            -79.91,
+            43.56
+          ]
+        ]
+      }
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000df35e014",
+      "feature_type": "path",
+      "name": "Pasture Rotation Access Lane",
+      "properties": {
+        "use": "livestock + ATV",
+        "widthM": 3,
+        "lengthM": 420,
+        "surface": "grass"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -79.91,
+            43.5615
+          ],
+          [
+            -79.9135,
+            43.562
+          ],
+          [
+            -79.9135,
+            43.5635
           ]
         ]
       }
@@ -1441,25 +1441,6 @@
       "parent_event_id": null
     },
     {
-      "id": "00000000-0000-0000-0000-0000ee350024",
-      "event_date": "2026-05-30T00:00:00.000Z",
-      "event_type": "milestone",
-      "phase": "introduce_perennials",
-      "observations": {
-        "protocol": "MDPI Apricot Lane Y0/5/9",
-        "cohortYear": "Y2",
-        "milestoneType": "trajectory_reflection",
-        "trajectorySummary": {
-          "om_cropped_pct_gain": 36,
-          "bird_richness_pct_gain": 55,
-          "worms_cropped_pct_gain": 475,
-          "pollinator_cropped_pct_gain": 360,
-          "infiltration_cropped_pct_gain": 110
-        }
-      },
-      "parent_event_id": null
-    },
-    {
       "id": "00000000-0000-0000-0000-0000ee350023",
       "event_date": "2026-05-30T00:00:00.000Z",
       "event_type": "observation",
@@ -1474,6 +1455,25 @@
         "baselineCompare": {
           "Y0_cropped": 5,
           "Y0_pasture": 26
+        }
+      },
+      "parent_event_id": null
+    },
+    {
+      "id": "00000000-0000-0000-0000-0000ee350024",
+      "event_date": "2026-05-30T00:00:00.000Z",
+      "event_type": "milestone",
+      "phase": "introduce_perennials",
+      "observations": {
+        "protocol": "MDPI Apricot Lane Y0/5/9",
+        "cohortYear": "Y2",
+        "milestoneType": "trajectory_reflection",
+        "trajectorySummary": {
+          "om_cropped_pct_gain": 36,
+          "bird_richness_pct_gain": 55,
+          "worms_cropped_pct_gain": 475,
+          "pollinator_cropped_pct_gain": 360,
+          "infiltration_cropped_pct_gain": 110
         }
       },
       "parent_event_id": null
@@ -1537,14 +1537,9 @@
   ],
   "relationships": [
     {
-      "from_output": "manure",
+      "from_output": "compost",
       "to_input": "nutrient_uptake",
-      "ratio": "0.85"
-    },
-    {
-      "from_output": "pest_predation",
-      "to_input": "pest_predation",
-      "ratio": "0.65"
+      "ratio": "0.60"
     },
     {
       "from_output": "forage",
@@ -1552,9 +1547,9 @@
       "ratio": "0.70"
     },
     {
-      "from_output": "surface_water",
-      "to_input": "surface_water",
-      "ratio": "0.55"
+      "from_output": "manure",
+      "to_input": "nutrient_uptake",
+      "ratio": "0.85"
     },
     {
       "from_output": "mulch",
@@ -1562,9 +1557,9 @@
       "ratio": "0.45"
     },
     {
-      "from_output": "compost",
-      "to_input": "nutrient_uptake",
-      "ratio": "0.60"
+      "from_output": "pest_predation",
+      "to_input": "pest_predation",
+      "ratio": "0.65"
     },
     {
       "from_output": "seed",
@@ -1575,6 +1570,11 @@
       "from_output": "surface_water",
       "to_input": "surface_water",
       "ratio": "0.50"
+    },
+    {
+      "from_output": "surface_water",
+      "to_input": "surface_water",
+      "ratio": "0.55"
     }
   ]
 }
