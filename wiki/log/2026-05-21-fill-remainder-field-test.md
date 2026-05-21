@@ -202,3 +202,80 @@ unresponsive, honestly flagged). Committing wiki log now.
 
 **Block B gate:** all 5 sub-criteria green. Committing.
 
+#### Block C — Edits + MultiPolygon + null-remainder
+
+**Pre-block setup — synthetic splitter crop.**
+Per session decision #2, seeded one narrow vertical strip into
+`useConventionalCropStore` for `mtc` with sentinel notes
+`'synthetic-splitter-for-f3-test'`. Conventional crop count: 2 → 3.
+The splitter sits at the bbox midpoint (X) and extends 2× past the
+bbox in Y so any wide boundary that crosses it splits into ≥ 2
+disjoint remainders.
+
+**Note on eval-seam ergonomics.** First Block-C attempt seeded patches
+without supplying `id` (`addPatch` does NOT auto-generate — it just
+appends the payload via `set((s) => ({ patches: [...s.patches, p] }))`,
+[`vegetationStore.ts:84`]). Caught the omission, cleaned up the
+2 idless patches via `setState`, then re-ran with explicit
+`crypto.randomUUID()` ids. Disclosure recorded so future field-tests
+on these stores don't repeat the mistake.
+
+##### Step 9 — Drag-reposition the vegetation patch
+
+- Pre *(eval seam)*: added a left-half single-Polygon vegetation patch
+  (left of the splitter) via `addPatch({ id: crypto.randomUUID(),
+  projectId: 'mtc', geometry, ... })`. Pre-move KPI 16,548 m².
+- Action *(eval seam)*: translated the geometry by `[+0.00005, 0]`
+  (lon) and wrote back via `updatePatch(id, { geometry: newGeom })`.
+- Post: read-back confirms first X coord shifted by exactly 0.00005;
+  KPI recomputed to 16,031 m².
+- Observation: ✅ Pass. `updatePatch` write path is faithful.
+
+##### Step 10 — MultiPolygon vertex-edit = graceful no-op
+
+- Pre *(eval seam)*: ran `subtractPatches(wideBoundary, …)` where
+  `wideBoundary` straddles the splitter; result =
+  `{ type: 'MultiPolygon', coordinates.length: 2 }` (two disjoint
+  remainders).
+- Action: seeded via `addPatch({ id, geometry, … })`; then exercised
+  `updatePatch(id, { notes: '… (touched)' })` to confirm the store's
+  write path accepts MultiPolygon without crashing.
+- Post: stored patch has `geometry.type === 'MultiPolygon'`,
+  `coordsLen: 2`; no error.
+- Observation: ✅ Pass at the store level (Phase 3 schema bump holds).
+  ⚠️ **UI-gate limitation, honestly disclosed:** the SelectionFloater
+  "Move" button's `moveEnabled` (`SelectionFloater.tsx:92-96`) checks
+  only `POLYGON_KINDS.has(kind)`, not `geometry.type` — so the button
+  is enabled for both `Polygon` and `MultiPolygon` vegetation
+  patches. Whether MapboxDraw `direct_select` crashes when handed a
+  MultiPolygon cannot be exercised in pure simulation mode (would
+  require live map click + draw-mode transition). Filing a F4
+  spawn-candidate for explicit MP-aware gating in SelectionFloater
+  if the issue ever surfaces in live testing.
+
+##### Step 11 — Vertex-edit on single-Polygon = real edit
+
+- Pre *(eval seam)*: KPI 54,726 m².
+- Action *(eval seam)*: nudged the step-9 patch's first outer-ring
+  vertex by `[-0.0001, -0.0001]`; wrote back via `updatePatch`.
+- Post: KPI 56,046 m². Geometry mutated; recompute happened.
+- Observation: ✅ Pass.
+
+##### Step 12 — Null remainder → no patch + console.info
+
+- Pre *(eval seam)*: built a tiny boundary fully interior to the
+  splitter crop. Vegetation count = 2.
+- Action: `subtractPatches(tinyBoundary, collectSubtractees('mtc'))`.
+- Post: returned `null`; vegetation count unchanged (2).
+- Observation: ✅ Pass on the math. The literal `console.info(
+  '[Fill remainder] Boundary fully covered by crop/building patches
+  — no remainder to place.')` line in `VegetationTool.tsx:43-46` was
+  emitted from the eval block itself (option (a) of the plan's two
+  alternatives — explicitly disclosed). The production `place()`
+  early-return path was not driven because no MapboxDraw
+  `draw.create` event was fired in simulation mode.
+
+**Block C gate:** all 4 steps green at the store + math level, with
+2 honest disclosures (idless seed mistake; UI-gate for MP not
+exercised). Committing.
+
