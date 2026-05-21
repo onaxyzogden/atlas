@@ -46,6 +46,12 @@ import {
   type AgroforestryCatalogEntry,
 } from '../vegetation/agroforestryCatalog.js';
 import {
+  TREE_PLANTING_CATALOG,
+  treePlantingElementScale,
+  scaledTreePlantingCostBand,
+  type TreePlantingCatalogEntry,
+} from '../vegetation/treePlantingCatalog.js';
+import {
   computeCoverCropEconomics,
   UNPHASED_BUCKET_ID as COVER_CROP_UNPHASED,
 } from '../coverCrops/coverCropEconomicsMath.js';
@@ -80,6 +86,12 @@ export interface PhaseCashflowRow {
    * 2026-05-21 unification.
    */
   agroforestry: ProgramSubtotal;
+  /**
+   * Tree-planting subtotal for this phase (oak / pine / apple /
+   * shrub point kinds, source='tree-planting'). Added in Slice 8-D
+   * of the 2026-05-21 unification.
+   */
+  treePlanting: ProgramSubtotal;
   /** Combined program total for this phase. */
   total: ProgramSubtotal;
 }
@@ -92,6 +104,7 @@ export interface StewardshipProgramsCashflow {
     coverCrop: ProgramSubtotal;
     habitatFeature: ProgramSubtotal;
     agroforestry: ProgramSubtotal;
+    treePlanting: ProgramSubtotal;
     combined: ProgramSubtotal;
   };
 }
@@ -123,6 +136,7 @@ export function computeStewardshipProgramsCashflow(args: {
   habitatCatalog?: readonly HabitatFeatureCatalogEntry[];
   coverCropCatalog?: readonly CoverCropEntry[];
   agroforestryCatalog?: readonly AgroforestryCatalogEntry[];
+  treePlantingCatalog?: readonly TreePlantingCatalogEntry[];
 }): StewardshipProgramsCashflow {
   const {
     projectId,
@@ -134,6 +148,8 @@ export function computeStewardshipProgramsCashflow(args: {
   const habitatCatalog = args.habitatCatalog ?? HABITAT_FEATURE_CATALOG;
   const agroforestryCatalog =
     args.agroforestryCatalog ?? AGROFORESTRY_CATALOG;
+  const treePlantingCatalog =
+    args.treePlantingCatalog ?? TREE_PLANTING_CATALOG;
 
   const projectPhases = declaredPhases
     .filter((p) => p.projectId === projectId)
@@ -150,6 +166,7 @@ export function computeStewardshipProgramsCashflow(args: {
     coverCrop: ProgramSubtotal;
     habitatFeature: ProgramSubtotal;
     agroforestry: ProgramSubtotal;
+    treePlanting: ProgramSubtotal;
   };
 
   const accumByPhase = new Map<string, Accum>();
@@ -167,6 +184,7 @@ export function computeStewardshipProgramsCashflow(args: {
       coverCrop: emptySubtotal(),
       habitatFeature: emptySubtotal(),
       agroforestry: emptySubtotal(),
+      treePlanting: emptySubtotal(),
     };
     accumByPhase.set(phaseId, fresh);
     return fresh;
@@ -274,6 +292,42 @@ export function computeStewardshipProgramsCashflow(args: {
     };
   }
 
+  /* ------------------- tree-planting rollup ------------------- */
+  /* Slice 8-D: oak / pine / apple / shrub point kinds, scale=1 per
+   * element. Mirrors the agroforestry loop with a different catalog
+   * + provenance field. */
+
+  let totalTreePlanting: ProgramSubtotal = emptySubtotal();
+
+  for (const it of items) {
+    if (it.projectId !== projectId) continue;
+    if (it.source !== 'tree-planting') continue;
+    const elId = it.generatedFromTreeElement;
+    if (!elId) continue;
+    const el = elById.get(elId);
+    if (!el) continue;
+    const entry = treePlantingCatalog.find((e) => e.kind === el.kind);
+    if (!entry) continue;
+    const scale = treePlantingElementScale(el, entry.geometry);
+    const itemLabor = entry.installLaborHrs * scale;
+    const itemCost = scaledTreePlantingCostBand(entry, scale);
+
+    const declared = it.phaseId ? phaseById.get(it.phaseId) : undefined;
+    const targetId = declared ? declared.id : UNPHASED_CASHFLOW_BUCKET_ID;
+    const targetName = declared ? declared.name : UNPHASED_NAME;
+    const targetOrder = declared ? declared.order : UNPHASED_ORDER;
+    const bucket = getOrCreate(targetId, targetName, targetOrder);
+
+    bucket.treePlanting = {
+      laborHrs: bucket.treePlanting.laborHrs + itemLabor,
+      costRange: addCostRange(bucket.treePlanting.costRange, itemCost),
+    };
+    totalTreePlanting = {
+      laborHrs: totalTreePlanting.laborHrs + itemLabor,
+      costRange: addCostRange(totalTreePlanting.costRange, itemCost),
+    };
+  }
+
   /* ------------------- compose rows --------------------------- */
 
   const rows: PhaseCashflowRow[] = Array.from(accumByPhase.values())
@@ -284,14 +338,19 @@ export function computeStewardshipProgramsCashflow(args: {
       coverCrop: a.coverCrop,
       habitatFeature: a.habitatFeature,
       agroforestry: a.agroforestry,
+      treePlanting: a.treePlanting,
       total: {
         laborHrs:
           a.coverCrop.laborHrs +
           a.habitatFeature.laborHrs +
-          a.agroforestry.laborHrs,
+          a.agroforestry.laborHrs +
+          a.treePlanting.laborHrs,
         costRange: addCostRange(
-          addCostRange(a.coverCrop.costRange, a.habitatFeature.costRange),
-          a.agroforestry.costRange,
+          addCostRange(
+            addCostRange(a.coverCrop.costRange, a.habitatFeature.costRange),
+            a.agroforestry.costRange,
+          ),
+          a.treePlanting.costRange,
         ),
       },
     }))
@@ -301,10 +360,14 @@ export function computeStewardshipProgramsCashflow(args: {
     laborHrs:
       totalCoverCrop.laborHrs +
       totalHabitat.laborHrs +
-      totalAgroforestry.laborHrs,
+      totalAgroforestry.laborHrs +
+      totalTreePlanting.laborHrs,
     costRange: addCostRange(
-      addCostRange(totalCoverCrop.costRange, totalHabitat.costRange),
-      totalAgroforestry.costRange,
+      addCostRange(
+        addCostRange(totalCoverCrop.costRange, totalHabitat.costRange),
+        totalAgroforestry.costRange,
+      ),
+      totalTreePlanting.costRange,
     ),
   };
 
@@ -314,6 +377,7 @@ export function computeStewardshipProgramsCashflow(args: {
       coverCrop: totalCoverCrop,
       habitatFeature: totalHabitat,
       agroforestry: totalAgroforestry,
+      treePlanting: totalTreePlanting,
       combined,
     },
   };

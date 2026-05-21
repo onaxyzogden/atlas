@@ -49,6 +49,17 @@ function habitatPoint(over: Partial<DesignElement> & { id: string; kind: string 
   } as DesignElement;
 }
 
+function treePoint(id: string, kind: string): DesignElement {
+  return {
+    id,
+    category: 'vegetation',
+    kind,
+    geometry: { type: 'Point', coordinates: [0, 0] },
+    phase: 'trees',
+    createdAt: NOW,
+  } as DesignElement;
+}
+
 function hedgerow(id: string): DesignElement {
   return {
     id,
@@ -416,7 +427,9 @@ describe('computeStewardshipProgramsCashflow', () => {
         generatedFromAgroforestryElement: 'h1',
         phaseId: 'ph-trees',
       }),
-      // Tree-planting items must be ignored (out-of-scope for cashflow).
+      // Tree-planting WorkItem whose source DesignElement is a habitat
+      // owl-box → no tree-planting catalog entry for kind='owl-box', so
+      // the loop silently skips it (B4/B5 "omitted-not-stubbed").
       workItem({
         id: 'tree__t1',
         source: 'tree-planting',
@@ -477,7 +490,163 @@ describe('computeStewardshipProgramsCashflow', () => {
     expect(result.totals.combined.laborHrs).toBeCloseTo(
       result.totals.coverCrop.laborHrs +
         result.totals.habitatFeature.laborHrs +
-        result.totals.agroforestry.laborHrs,
+        result.totals.agroforestry.laborHrs +
+        result.totals.treePlanting.laborHrs,
+      6,
+    );
+  });
+
+  /* ---------------- Slice 8-D: tree-planting -------------------- */
+
+  it('tree-planting-only program → oak-tree contributes a per-phase row with flat band', () => {
+    const elements = [treePoint('o1', 'oak-tree')];
+    const items = [
+      workItem({
+        id: 'tree__o1',
+        source: 'tree-planting',
+        generatedFromTreeElement: 'o1',
+        phaseId: 'ph-trees',
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    expect(result.rows.length).toBe(1);
+    const row = result.rows[0]!;
+    expect(row.phaseId).toBe('ph-trees');
+    // Catalog oak-tree: 8/35/150, 1.5 hr (flat per-element).
+    expect(row.treePlanting.costRange).toEqual({ low: 8, mid: 35, high: 150 });
+    expect(row.treePlanting.laborHrs).toBeCloseTo(1.5, 6);
+    // No cross-program leakage.
+    expect(row.coverCrop.costRange.mid).toBe(0);
+    expect(row.habitatFeature.costRange.mid).toBe(0);
+    expect(row.agroforestry.costRange.mid).toBe(0);
+    // Combined matches tree-planting alone for this row.
+    expect(row.total.costRange.mid).toBe(35);
+    expect(row.total.laborHrs).toBeCloseTo(1.5, 6);
+    expect(result.totals.treePlanting.costRange).toEqual({
+      low: 8,
+      mid: 35,
+      high: 150,
+    });
+  });
+
+  it('oak-tree join via generatedFromTreeElement pulls the right catalog entry', () => {
+    const elements = [
+      treePoint('o1', 'oak-tree'),
+      treePoint('p1', 'pine-tree'),
+    ];
+    const items = [
+      workItem({
+        id: 'tree__o1',
+        source: 'tree-planting',
+        generatedFromTreeElement: 'o1',
+        phaseId: 'ph-trees',
+      }),
+      workItem({
+        id: 'tree__p1',
+        source: 'tree-planting',
+        generatedFromTreeElement: 'p1',
+        phaseId: 'ph-trees',
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    const row = result.rows[0]!;
+    // oak 8/35/150 + pine 5/25/100 = 13/60/250
+    expect(row.treePlanting.costRange).toEqual({ low: 13, mid: 60, high: 250 });
+    // 1.5 + 0.75 = 2.25 hr
+    expect(row.treePlanting.laborHrs).toBeCloseTo(2.25, 6);
+  });
+
+  it('mixed CC + HF + AF + TP → combined sums all four programs', () => {
+    const elements = [
+      habitatPoint({ id: 'el-a', kind: 'owl-box' }),
+      hedgerow('h1'),
+      treePoint('o1', 'oak-tree'),
+    ];
+    const items = [
+      workItem({
+        id: 'hf__el-a',
+        source: 'habitat-feature',
+        generatedFromHabitatElement: 'el-a',
+        phaseId: 'ph-trees',
+      }),
+      workItem({
+        id: 'agf__h1',
+        source: 'agroforestry',
+        generatedFromAgroforestryElement: 'h1',
+        phaseId: 'ph-trees',
+      }),
+      workItem({
+        id: 'tree__o1',
+        source: 'tree-planting',
+        generatedFromTreeElement: 'o1',
+        phaseId: 'ph-trees',
+      }),
+    ];
+    const catalog = [
+      {
+        speciesId: 'sp-rye',
+        roles: ['winter_cover'] as const,
+        livingRootSeasons: ['winter'] as const,
+        plantingMonthWindow: [9, 11] as [number, number],
+        rationale: 'test',
+        citation: 'test',
+        seedCostUSDPerAcre: 40,
+        seedingLaborHrsPerAcre: 0.5,
+      },
+    ];
+    const areas = [
+      cropArea({
+        id: 'ca1',
+        areaM2: 4046.8564224,
+        phase: 'ph-soil',
+        coverCropPlan: [
+          { speciesId: 'sp-rye', startMonth: 9, endMonth: 12, role: 'winter_cover' },
+        ],
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: areas,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      coverCropCatalog: catalog as any,
+    });
+
+    const trees = result.rows.find((r) => r.phaseId === 'ph-trees')!;
+    expect(trees.habitatFeature.costRange.mid).toBe(45);
+    expect(trees.agroforestry.costRange.mid).toBeGreaterThan(0);
+    expect(trees.treePlanting.costRange.mid).toBe(35);
+    expect(trees.total.costRange.mid).toBeCloseTo(
+      45 + trees.agroforestry.costRange.mid + 35,
+      6,
+    );
+
+    expect(result.totals.combined.costRange.mid).toBeCloseTo(
+      result.totals.coverCrop.costRange.mid +
+        result.totals.habitatFeature.costRange.mid +
+        result.totals.agroforestry.costRange.mid +
+        result.totals.treePlanting.costRange.mid,
+      6,
+    );
+    expect(result.totals.combined.laborHrs).toBeCloseTo(
+      result.totals.coverCrop.laborHrs +
+        result.totals.habitatFeature.laborHrs +
+        result.totals.agroforestry.laborHrs +
+        result.totals.treePlanting.laborHrs,
       6,
     );
   });

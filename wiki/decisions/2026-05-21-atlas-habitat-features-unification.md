@@ -199,6 +199,31 @@ A-series additive covenant (`.passthrough()` schemas, no DB migration):
   D1 predecessor auto-edges for the three new kinds remain deferred —
   the `hostTreeFeatureId` pattern doesn't transfer cleanly to line /
   polygon plantings; future slice if needed.
+- ~~**Tree-planting D2/D3 deferred.**~~ **Closed by Slice 8-D
+  (2026-05-21).** `treePlantingCatalog.ts` ships 4 per-kind entries
+  (`oak-tree` 1.5 hr / $8–$150, `pine-tree` 0.75 hr / $5–$100,
+  `apple-tree` 1.5 hr / $20–$150, `shrub` 0.5 hr / $6–$50) — all
+  point geometry, flat `installLaborHrs`, structured
+  `TreePlantingSource[]` citing NRCS 612 (Tree/Shrub Establishment) +
+  ≥1 extension org (USDA Forest Service, Arbor Day Foundation, USDA
+  NAC, Cornell Cooperative Extension, UMass Extension).
+  `seedTreePlantingWorkItems` now writes `materialsAuto` (1
+  rolled-up kit line per item), `costRangeAuto` (per-element band),
+  and `laborHrs` (flat from catalog). Missing-catalog kinds silently
+  fall through to empty `materialsAuto` / undefined cost+labor —
+  identical to agroforestry's omitted-not-stubbed precedent.
+  `computeTreePlantingProgramEconomics` mirrors the agroforestry
+  rollup shape. `stewardshipProgramsCashflow` gains a fourth
+  `treePlanting: ProgramSubtotal` field on every `PhaseCashflowRow`
+  + totals. The cashflow card was **refactored from 9 columns to 3**
+  — **Phase | Labor (hrs) | Cost (USD)** — with the per-program
+  breakdown moved into each cell's native `title` attribute
+  (newline-joined `"Cover-crop: … / Habitat: … / Agroforestry: … /
+  Tree-planting: …"`). The data model on `PhaseCashflowRow` retains
+  all four `ProgramSubtotal` fields — the collapse is render-only,
+  so the rollup remains losslessly addressable for future
+  consumers. A richer ARIA-grade tooltip primitive is deferred to a
+  future slice.
 - **`habitatFeatureStore` is soft-deprecated.** Selector
   `habitatCommitments.ts` reads from both stores; new placements all flow
   through `DesignElement`. Full retirement of the legacy store is a

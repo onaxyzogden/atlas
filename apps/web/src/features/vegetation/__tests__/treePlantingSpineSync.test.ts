@@ -93,7 +93,15 @@ describe('seedTreePlantingWorkItems (pure)', () => {
       expect(it.designLayer).toBe('vegetation');
       expect(it.overridden).toBe(false);
       expect(it.phaseId).toBeNull();
-      expect(it.materialsAuto).toEqual([]);
+      // Slice 8-D: catalog now drives D2/D3, so per-kind rows carry
+      // a rolled-up kit line + populated cost band + flat labor hrs.
+      expect(it.materialsAuto.length).toBe(1);
+      expect(it.materialsAuto[0]!.notes).toBe('1');
+      expect(it.costRangeAuto).toBeDefined();
+      expect(it.costRangeAuto!.low).toBeGreaterThanOrEqual(0);
+      expect(it.costRangeAuto!.mid).toBeGreaterThanOrEqual(it.costRangeAuto!.low);
+      expect(it.costRangeAuto!.high).toBeGreaterThanOrEqual(it.costRangeAuto!.mid);
+      expect(it.laborHrs).toBeGreaterThan(0);
     }
     const oak = result.find((i) => i.id === treePlantingProvenanceId('el-oak-tree-0'));
     expect(oak?.title).toBe('Plant oak tree');
@@ -120,6 +128,37 @@ describe('seedTreePlantingWorkItems (pure)', () => {
     });
     expect(result.length).toBe(1);
     expect(result[0]!.id).toBe(treePlantingProvenanceId('shouldEmit'));
+  });
+
+  it('writes catalog-driven cost band + labor for known kinds (Slice 8-D)', () => {
+    const elements: DesignElement[] = [
+      treePoint({ id: 'oak1', kind: 'oak-tree' }),
+      treePoint({ id: 'apple1', kind: 'apple-tree' }),
+    ];
+    const result = seedTreePlantingWorkItems({
+      projectId: 'p1',
+      designElements: elements,
+    });
+    const oak = result.find((i) => i.id === treePlantingProvenanceId('oak1'))!;
+    expect(oak.costRangeAuto).toEqual({ low: 8, mid: 35, high: 150 });
+    expect(oak.laborHrs).toBeCloseTo(1.5, 6);
+    expect(oak.materialsAuto[0]!.label).toMatch(/oak/i);
+    const apple = result.find((i) => i.id === treePlantingProvenanceId('apple1'))!;
+    expect(apple.costRangeAuto).toEqual({ low: 20, mid: 50, high: 150 });
+    expect(apple.laborHrs).toBeCloseTo(1.5, 6);
+  });
+
+  it('falls back to empty materialsAuto when no catalog entry matches', () => {
+    const elements: DesignElement[] = [treePoint({ id: 'oak1', kind: 'oak-tree' })];
+    const result = seedTreePlantingWorkItems({
+      projectId: 'p1',
+      designElements: elements,
+      catalog: [], // empty catalog forces the D0-floor fallback
+    });
+    expect(result.length).toBe(1);
+    expect(result[0]!.materialsAuto).toEqual([]);
+    expect(result[0]!.costRangeAuto).toBeUndefined();
+    expect(result[0]!.laborHrs).toBeUndefined();
   });
 
   it('is idempotent under repeated calls', () => {

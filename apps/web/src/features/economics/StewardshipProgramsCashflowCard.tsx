@@ -1,14 +1,17 @@
 /**
  * Slice 7 (S7-B) of the 2026-05-21 habitat-feature unification —
  * read-only per-phase cashflow card combining cover-crop seeding +
- * habitat-feature install economics.
+ * habitat-feature install + agroforestry planting + tree-planting
+ * economics. Slice 8-D collapses the per-program columns into a
+ * compact "Phase | Labor (hrs) | Cost (USD)" layout with the
+ * per-program breakdown surfaced via the native `title` tooltip on
+ * each cell.
  *
- * Consumes `computeStewardshipProgramsCashflow` (S7-A pure helper) and
- * renders a phase × program table: rows ordered by `BuildPhase.order`,
- * unphased bucket last as "Unscheduled". Columns show each program's
- * `{laborHrs, costRange}` plus the combined total. Empty-project copy
- * mirrors the rest of the EconomicsPanel ("Place habitat features or
- * cover-crop windows to populate the cashflow").
+ * Consumes `computeStewardshipProgramsCashflow` (pure helper). Rows are
+ * ordered by `BuildPhase.order`; unphased bucket lands last as
+ * "Unscheduled". The data model retains the four `ProgramSubtotal`
+ * fields per row — the collapse is render-only, so the rollup remains
+ * losslessly addressable for future consumers.
  *
  * Pure presentation: stores read, no writes, no map overlays. Mounts
  * on EconomicsPanel's Costs tab as a sibling to `CostByFeaturePhaseCard`.
@@ -29,6 +32,7 @@ import {
   computeStewardshipProgramsCashflow,
   UNPHASED_CASHFLOW_BUCKET_ID,
   type PhaseCashflowRow,
+  type ProgramSubtotal,
 } from './stewardshipProgramsCashflow.js';
 import p from '../../styles/panel.module.css';
 
@@ -60,12 +64,23 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
           Stewardship Programs Cashflow
         </h3>
         <div className={p.empty} style={{ padding: '12px 0', fontSize: 12 }}>
-          Place habitat features, agroforestry plantings, or schedule
-          cover-crop windows to populate the per-phase cashflow.
+          Place habitat features, agroforestry plantings, tree-plantings,
+          or schedule cover-crop windows to populate the per-phase cashflow.
         </div>
       </div>
     );
   }
+
+  const totalsRow: PhaseCashflowRow = {
+    phaseId: '__total__',
+    phaseName: 'Total',
+    phaseOrder: Number.MAX_SAFE_INTEGER,
+    coverCrop: rollup.totals.coverCrop,
+    habitatFeature: rollup.totals.habitatFeature,
+    agroforestry: rollup.totals.agroforestry,
+    treePlanting: rollup.totals.treePlanting,
+    total: rollup.totals.combined,
+  };
 
   return (
     <div className={p.card} aria-label="Stewardship Programs Cashflow">
@@ -80,10 +95,11 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
           lineHeight: 1.5,
         }}
       >
-        Per-phase cover-crop seeding + habitat-feature install + agroforestry
-        planting cost & labor. Low/mid/high reflects DIY-to-contracted variance
-        on habitat and agroforestry installs; cover-crop seed cost is a flat
-        per-acre figure projected into all three columns.
+        Per-phase combined labor + cost across cover-crop seeding,
+        habitat-feature installs, agroforestry plantings, and tree-planting.
+        Hover any cell for the per-program breakdown. Low/mid/high reflects
+        DIY-to-contracted variance on the install programs; cover-crop seed
+        cost is a flat per-acre figure projected uniformly into the band.
       </div>
 
       <table
@@ -99,14 +115,8 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
         <thead>
           <tr style={{ textAlign: 'left' }}>
             <Th>Phase</Th>
-            <Th align="right">Cover-crop labor</Th>
-            <Th align="right">Cover-crop cost</Th>
-            <Th align="right">Habitat labor</Th>
-            <Th align="right">Habitat cost</Th>
-            <Th align="right">Agroforestry labor</Th>
-            <Th align="right">Agroforestry cost</Th>
-            <Th align="right">Combined labor</Th>
-            <Th align="right">Combined cost</Th>
+            <Th align="right">Labor (hrs)</Th>
+            <Th align="right">Cost (USD)</Th>
           </tr>
         </thead>
         <tbody>
@@ -119,15 +129,13 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
               fontWeight: 600,
             }}
           >
-            <Td>Total</Td>
-            <Td align="right">{formatHrs(rollup.totals.coverCrop.laborHrs)}</Td>
-            <Td align="right">{formatRange(rollup.totals.coverCrop.costRange)}</Td>
-            <Td align="right">{formatHrs(rollup.totals.habitatFeature.laborHrs)}</Td>
-            <Td align="right">{formatRange(rollup.totals.habitatFeature.costRange)}</Td>
-            <Td align="right">{formatHrs(rollup.totals.agroforestry.laborHrs)}</Td>
-            <Td align="right">{formatRange(rollup.totals.agroforestry.costRange)}</Td>
-            <Td align="right">{formatHrs(rollup.totals.combined.laborHrs)}</Td>
-            <Td align="right">{formatRange(rollup.totals.combined.costRange)}</Td>
+            <Td>{totalsRow.phaseName}</Td>
+            <Td align="right" title={laborBreakdown(totalsRow)}>
+              {formatHrs(totalsRow.total.laborHrs)}
+            </Td>
+            <Td align="right" title={costBreakdown(totalsRow)}>
+              {formatRange(totalsRow.total.costRange)}
+            </Td>
           </tr>
         </tbody>
       </table>
@@ -145,14 +153,12 @@ function CashflowRow({ row }: { row: PhaseCashflowRow }) {
       }}
     >
       <Td>{row.phaseName}</Td>
-      <Td align="right">{formatHrs(row.coverCrop.laborHrs)}</Td>
-      <Td align="right">{formatRange(row.coverCrop.costRange)}</Td>
-      <Td align="right">{formatHrs(row.habitatFeature.laborHrs)}</Td>
-      <Td align="right">{formatRange(row.habitatFeature.costRange)}</Td>
-      <Td align="right">{formatHrs(row.agroforestry.laborHrs)}</Td>
-      <Td align="right">{formatRange(row.agroforestry.costRange)}</Td>
-      <Td align="right">{formatHrs(row.total.laborHrs)}</Td>
-      <Td align="right">{formatRange(row.total.costRange)}</Td>
+      <Td align="right" title={laborBreakdown(row)}>
+        {formatHrs(row.total.laborHrs)}
+      </Td>
+      <Td align="right" title={costBreakdown(row)}>
+        {formatRange(row.total.costRange)}
+      </Td>
     </tr>
   );
 }
@@ -185,12 +191,15 @@ function Th({
 function Td({
   children,
   align,
+  title,
 }: {
   children: React.ReactNode;
   align?: 'left' | 'right';
+  title?: string;
 }) {
   return (
     <td
+      title={title}
       style={{
         padding: '6px 8px',
         textAlign: align ?? 'left',
@@ -216,3 +225,24 @@ function formatRange(range: { low: number; mid: number; high: number }): string 
   }
   return formatUsdRange(range.low, range.high);
 }
+
+function laborBreakdown(row: PhaseCashflowRow): string {
+  return [
+    `Cover-crop: ${formatHrs(row.coverCrop.laborHrs)}`,
+    `Habitat: ${formatHrs(row.habitatFeature.laborHrs)}`,
+    `Agroforestry: ${formatHrs(row.agroforestry.laborHrs)}`,
+    `Tree-planting: ${formatHrs(row.treePlanting.laborHrs)}`,
+  ].join('\n');
+}
+
+function costBreakdown(row: PhaseCashflowRow): string {
+  return [
+    `Cover-crop: ${formatRange(row.coverCrop.costRange)}`,
+    `Habitat: ${formatRange(row.habitatFeature.costRange)}`,
+    `Agroforestry: ${formatRange(row.agroforestry.costRange)}`,
+    `Tree-planting: ${formatRange(row.treePlanting.costRange)}`,
+  ].join('\n');
+}
+
+// Silence "unused" warnings for re-exported helper types.
+export type { ProgramSubtotal };

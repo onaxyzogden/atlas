@@ -2,10 +2,9 @@
  * @vitest-environment happy-dom
  *
  * Slice 7 (S7-B) — StewardshipProgramsCashflowCard render tests.
- *
- * Asserts the empty-state copy, the three-phase happy-path render
- * (cover-crop in Soil Year, habitat in Tree Year, unphased bucket
- * for orphan habitat), and ARIA table structure.
+ * Slice 8-D — refactored to assert the compact
+ * Phase | Labor (hrs) | Cost (USD) layout + per-program breakdown in
+ * each cell's `title` attribute.
  */
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
@@ -43,6 +42,16 @@ function habitatPoint(over: Partial<DesignElement> & { id: string; kind: string 
   } as DesignElement;
 }
 
+function treePoint(over: Partial<DesignElement> & { id: string; kind: string }): DesignElement {
+  return {
+    category: 'vegetation',
+    geometry: { type: 'Point', coordinates: [0, 0] },
+    phase: 'trees',
+    createdAt: NOW,
+    ...over,
+  } as DesignElement;
+}
+
 function wi(over: Partial<WorkItem> & { id: string }): WorkItem {
   return {
     projectId: 'p1',
@@ -71,7 +80,7 @@ beforeEach(() => {
   useLandDesignStore.setState({ byProject: {} });
 });
 
-describe('StewardshipProgramsCashflowCard', () => {
+describe('StewardshipProgramsCashflowCard (Slice 8-D collapse)', () => {
   it('renders the empty-state copy when there is nothing to roll up', () => {
     render(<StewardshipProgramsCashflowCard projectId="p1" />);
     expect(
@@ -79,7 +88,122 @@ describe('StewardshipProgramsCashflowCard', () => {
     ).toBeTruthy();
   });
 
-  it('renders a row per declared phase + an unphased row for orphan habitat', () => {
+  it('renders the compact 3-column layout (Phase | Labor (hrs) | Cost (USD))', () => {
+    usePhaseStore.setState({
+      phases: [phase({ id: 'ph-trees', order: 1, name: 'Tree Year' })],
+    });
+    useLandDesignStore.setState({
+      byProject: {
+        p1: [habitatPoint({ id: 'el-a', kind: 'owl-box' })],
+      },
+    });
+    useWorkItemStore.setState({
+      items: [
+        wi({
+          id: 'hf__el-a',
+          source: 'habitat-feature',
+          generatedFromHabitatElement: 'el-a',
+          phaseId: 'ph-trees',
+        }),
+      ],
+    });
+
+    render(<StewardshipProgramsCashflowCard projectId="p1" />);
+    const table = screen.getByRole('table');
+    // Compact header set — the per-program columns are gone.
+    expect(within(table).getByText('Phase')).toBeTruthy();
+    expect(within(table).getByText(/Labor \(hrs\)/i)).toBeTruthy();
+    expect(within(table).getByText(/Cost \(USD\)/i)).toBeTruthy();
+    // Per-program column headers no longer exist.
+    expect(within(table).queryByText(/Combined cost/i)).toBeNull();
+    expect(within(table).queryByText(/Agroforestry cost/i)).toBeNull();
+    // Row + total still rendered.
+    expect(within(table).getByText('Tree Year')).toBeTruthy();
+    expect(within(table).getByText('Total')).toBeTruthy();
+  });
+
+  it("Tree Year row carries per-program breakdown in each cell's title attribute", () => {
+    usePhaseStore.setState({
+      phases: [phase({ id: 'ph-trees', order: 1, name: 'Tree Year' })],
+    });
+    useLandDesignStore.setState({
+      byProject: {
+        p1: [
+          habitatPoint({ id: 'el-a', kind: 'owl-box' }),
+          treePoint({ id: 'oak1', kind: 'oak-tree' }),
+        ],
+      },
+    });
+    useWorkItemStore.setState({
+      items: [
+        wi({
+          id: 'hf__el-a',
+          source: 'habitat-feature',
+          generatedFromHabitatElement: 'el-a',
+          phaseId: 'ph-trees',
+        }),
+        wi({
+          id: 'tree__oak1',
+          source: 'tree-planting',
+          generatedFromTreeElement: 'oak1',
+          phaseId: 'ph-trees',
+        }),
+      ],
+    });
+
+    render(<StewardshipProgramsCashflowCard projectId="p1" />);
+    const table = screen.getByRole('table');
+    const treeRow = within(table)
+      .getByText('Tree Year')
+      .closest('tr') as HTMLTableRowElement;
+    expect(treeRow).toBeTruthy();
+    const cells = treeRow.querySelectorAll('td');
+    // Cell 0 = phase, cell 1 = labor (with title), cell 2 = cost (with title).
+    const laborTitle = cells[1]!.getAttribute('title') ?? '';
+    const costTitle = cells[2]!.getAttribute('title') ?? '';
+    expect(laborTitle).toMatch(/Cover-crop:/);
+    expect(laborTitle).toMatch(/Habitat:/);
+    expect(laborTitle).toMatch(/Agroforestry:/);
+    expect(laborTitle).toMatch(/Tree-planting:/);
+    expect(costTitle).toMatch(/Cover-crop:/);
+    expect(costTitle).toMatch(/Habitat:/);
+    expect(costTitle).toMatch(/Agroforestry:/);
+    expect(costTitle).toMatch(/Tree-planting:/);
+  });
+
+  it('renders a tree-planting work-item with populated cells (Slice 8-D)', () => {
+    usePhaseStore.setState({
+      phases: [phase({ id: 'ph-trees', order: 1, name: 'Tree Year' })],
+    });
+    useLandDesignStore.setState({
+      byProject: { p1: [treePoint({ id: 'oak1', kind: 'oak-tree' })] },
+    });
+    useWorkItemStore.setState({
+      items: [
+        wi({
+          id: 'tree__oak1',
+          source: 'tree-planting',
+          generatedFromTreeElement: 'oak1',
+          phaseId: 'ph-trees',
+        }),
+      ],
+    });
+
+    render(<StewardshipProgramsCashflowCard projectId="p1" />);
+    const table = screen.getByRole('table');
+    const treeRow = within(table)
+      .getByText('Tree Year')
+      .closest('tr') as HTMLTableRowElement;
+    const cells = treeRow.querySelectorAll('td');
+    // Oak-tree catalog: 1.5 hr, $8–$150.
+    expect(cells[1]!.textContent).toMatch(/1\.5 hr/);
+    expect(cells[2]!.textContent).toMatch(/\$8/);
+    // The title carries the per-program breakdown — confirm tree-planting
+    // line is non-zero.
+    expect(cells[1]!.getAttribute('title')).toMatch(/Tree-planting: 1\.5 hr/);
+  });
+
+  it('renders an unphased row for orphan habitat alongside a declared phase', () => {
     usePhaseStore.setState({
       phases: [
         phase({ id: 'ph-soil', order: 1, name: 'Soil Year' }),
@@ -102,7 +226,6 @@ describe('StewardshipProgramsCashflowCard', () => {
           generatedFromHabitatElement: 'el-a',
           phaseId: 'ph-trees',
         }),
-        // No phaseId — falls into Unscheduled bucket.
         wi({
           id: 'hf__el-b',
           source: 'habitat-feature',
@@ -112,55 +235,10 @@ describe('StewardshipProgramsCashflowCard', () => {
     });
 
     render(<StewardshipProgramsCashflowCard projectId="p1" />);
-
     const table = screen.getByRole('table');
-    expect(table).toBeTruthy();
-    // Tree Year row + Unscheduled row + Total row.
     expect(within(table).getByText('Tree Year')).toBeTruthy();
     expect(within(table).getByText('(Unscheduled)')).toBeTruthy();
     expect(within(table).getByText('Total')).toBeTruthy();
-
-    // Column headers present.
-    expect(within(table).getByText('Phase')).toBeTruthy();
-    expect(within(table).getByText(/Combined cost/i)).toBeTruthy();
-  });
-
-  it('renders the agroforestry column for a hedgerow work-item (Slice 8-C)', () => {
-    usePhaseStore.setState({
-      phases: [phase({ id: 'ph-trees', order: 1, name: 'Tree Year' })],
-    });
-    const hedgerow: DesignElement = {
-      id: 'el-h1',
-      category: 'vegetation',
-      kind: 'hedgerow',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [0, 0],
-          [0.001, 0],
-        ],
-      },
-      phase: 'trees',
-      createdAt: NOW,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-    useLandDesignStore.setState({ byProject: { p1: [hedgerow] } });
-    useWorkItemStore.setState({
-      items: [
-        wi({
-          id: 'agf__el-h1',
-          source: 'agroforestry',
-          generatedFromAgroforestryElement: 'el-h1',
-          phaseId: 'ph-trees',
-        }),
-      ],
-    });
-
-    render(<StewardshipProgramsCashflowCard projectId="p1" />);
-    const table = screen.getByRole('table');
-    expect(within(table).getByText(/Agroforestry labor/i)).toBeTruthy();
-    expect(within(table).getByText(/Agroforestry cost/i)).toBeTruthy();
-    expect(within(table).getByText('Tree Year')).toBeTruthy();
   });
 
   it('cover-crop rows render with a degenerate (single-value) cost when low=high', () => {
