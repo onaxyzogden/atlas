@@ -75,7 +75,7 @@ describe('StewardshipProgramsCashflowCard', () => {
   it('renders the empty-state copy when there is nothing to roll up', () => {
     render(<StewardshipProgramsCashflowCard projectId="p1" />);
     expect(
-      screen.getByText(/Place habitat features or schedule cover-crop/i),
+      screen.getByText(/Place habitat features.*cover-crop/i),
     ).toBeTruthy();
   });
 
@@ -123,6 +123,44 @@ describe('StewardshipProgramsCashflowCard', () => {
     // Column headers present.
     expect(within(table).getByText('Phase')).toBeTruthy();
     expect(within(table).getByText(/Combined cost/i)).toBeTruthy();
+  });
+
+  it('renders the agroforestry column for a hedgerow work-item (Slice 8-C)', () => {
+    usePhaseStore.setState({
+      phases: [phase({ id: 'ph-trees', order: 1, name: 'Tree Year' })],
+    });
+    const hedgerow: DesignElement = {
+      id: 'el-h1',
+      category: 'vegetation',
+      kind: 'hedgerow',
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [0, 0],
+          [0.001, 0],
+        ],
+      },
+      phase: 'trees',
+      createdAt: NOW,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+    useLandDesignStore.setState({ byProject: { p1: [hedgerow] } });
+    useWorkItemStore.setState({
+      items: [
+        wi({
+          id: 'agf__el-h1',
+          source: 'agroforestry',
+          generatedFromAgroforestryElement: 'el-h1',
+          phaseId: 'ph-trees',
+        }),
+      ],
+    });
+
+    render(<StewardshipProgramsCashflowCard projectId="p1" />);
+    const table = screen.getByRole('table');
+    expect(within(table).getByText(/Agroforestry labor/i)).toBeTruthy();
+    expect(within(table).getByText(/Agroforestry cost/i)).toBeTruthy();
+    expect(within(table).getByText('Tree Year')).toBeTruthy();
   });
 
   it('cover-crop rows render with a degenerate (single-value) cost when low=high', () => {

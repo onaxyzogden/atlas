@@ -180,7 +180,25 @@ A-series additive covenant (`.passthrough()` schemas, no DB migration):
   (hedgerow, orchard, silvopasture) remains out of scope for tree-
   planting WorkItem emission — those scale by length / area and ride
   the existing engine without auto-spine rows; a future S8-C may close
-  that gap.
+  that gap. **Closed by Slice 8-C (2026-05-21):** hedgerow / orchard /
+  silvopasture now emit `agf__<id>` WorkItems under a new
+  `'agroforestry'` `WorkItemSource` value with D0 + D2 (rolled-up
+  per-unit `materialsAuto`) + D3 (scaled `costRangeAuto` + per-unit
+  `laborHrs`) all shipping together. `agroforestryCatalog.ts` carries
+  3 entries (hedgerow per-meter, orchard / silvopasture per-m²) each
+  citing ≥1 NRCS practice code (CP379 / CP380 / CP422 / CP666) +
+  ≥1 extension source (Xerces, Cornell Cooperative Extension, UMass
+  Extension, USDA NAC, NRCS Agroforestry).
+  `computeAgroforestryProgramEconomics` mirrors the habitat-feature
+  rollup shape; `stewardshipProgramsCashflow` + the cashflow card
+  gained a third per-phase column. Geometry helpers
+  (`safeLineLengthM` / `safePolygonAreaM2` / `elementScale` /
+  `scaledCostBandFor` / `scaledMaterialsFor`) were lifted into a
+  shared `biodiversity/geometryHelpers.ts` so the agroforestry catalog
+  consumes them without importing habitat-feature internals.
+  D1 predecessor auto-edges for the three new kinds remain deferred —
+  the `hostTreeFeatureId` pattern doesn't transfer cleanly to line /
+  polygon plantings; future slice if needed.
 - **`habitatFeatureStore` is soft-deprecated.** Selector
   `habitatCommitments.ts` reads from both stores; new placements all flow
   through `DesignElement`. Full retirement of the legacy store is a

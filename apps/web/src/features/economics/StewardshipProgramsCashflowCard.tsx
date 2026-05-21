@@ -60,8 +60,8 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
           Stewardship Programs Cashflow
         </h3>
         <div className={p.empty} style={{ padding: '12px 0', fontSize: 12 }}>
-          Place habitat features or schedule cover-crop windows to populate
-          the per-phase cashflow.
+          Place habitat features, agroforestry plantings, or schedule
+          cover-crop windows to populate the per-phase cashflow.
         </div>
       </div>
     );
@@ -80,10 +80,10 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
           lineHeight: 1.5,
         }}
       >
-        Per-phase cover-crop seeding + habitat-feature install cost & labor.
-        Low/mid/high reflects DIY-to-contracted variance on habitat installs;
-        cover-crop seed cost is a flat per-acre figure projected into all
-        three columns.
+        Per-phase cover-crop seeding + habitat-feature install + agroforestry
+        planting cost & labor. Low/mid/high reflects DIY-to-contracted variance
+        on habitat and agroforestry installs; cover-crop seed cost is a flat
+        per-acre figure projected into all three columns.
       </div>
 
       <table
@@ -103,6 +103,8 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
             <Th align="right">Cover-crop cost</Th>
             <Th align="right">Habitat labor</Th>
             <Th align="right">Habitat cost</Th>
+            <Th align="right">Agroforestry labor</Th>
+            <Th align="right">Agroforestry cost</Th>
             <Th align="right">Combined labor</Th>
             <Th align="right">Combined cost</Th>
           </tr>
@@ -122,6 +124,8 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
             <Td align="right">{formatRange(rollup.totals.coverCrop.costRange)}</Td>
             <Td align="right">{formatHrs(rollup.totals.habitatFeature.laborHrs)}</Td>
             <Td align="right">{formatRange(rollup.totals.habitatFeature.costRange)}</Td>
+            <Td align="right">{formatHrs(rollup.totals.agroforestry.laborHrs)}</Td>
+            <Td align="right">{formatRange(rollup.totals.agroforestry.costRange)}</Td>
             <Td align="right">{formatHrs(rollup.totals.combined.laborHrs)}</Td>
             <Td align="right">{formatRange(rollup.totals.combined.costRange)}</Td>
           </tr>
@@ -145,6 +149,8 @@ function CashflowRow({ row }: { row: PhaseCashflowRow }) {
       <Td align="right">{formatRange(row.coverCrop.costRange)}</Td>
       <Td align="right">{formatHrs(row.habitatFeature.laborHrs)}</Td>
       <Td align="right">{formatRange(row.habitatFeature.costRange)}</Td>
+      <Td align="right">{formatHrs(row.agroforestry.laborHrs)}</Td>
+      <Td align="right">{formatRange(row.agroforestry.costRange)}</Td>
       <Td align="right">{formatHrs(row.total.laborHrs)}</Td>
       <Td align="right">{formatRange(row.total.costRange)}</Td>
     </tr>

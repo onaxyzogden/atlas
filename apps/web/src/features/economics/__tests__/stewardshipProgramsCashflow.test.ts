@@ -49,6 +49,23 @@ function habitatPoint(over: Partial<DesignElement> & { id: string; kind: string 
   } as DesignElement;
 }
 
+function hedgerow(id: string): DesignElement {
+  return {
+    id,
+    category: 'vegetation',
+    kind: 'hedgerow',
+    geometry: {
+      type: 'LineString',
+      coordinates: [
+        [0, 0],
+        [0.001, 0],
+      ],
+    },
+    phase: 'trees',
+    createdAt: NOW,
+  } as DesignElement;
+}
+
 function workItem(over: Partial<WorkItem> & { id: string }): WorkItem {
   return {
     projectId: 'p1',
@@ -313,5 +330,155 @@ describe('computeStewardshipProgramsCashflow', () => {
     expect(result.totals.habitatFeature.costRange.mid).toBe(45);
     expect(result.totals.combined.costRange.mid).toBeCloseTo(125, 5);
     expect(result.totals.combined.laborHrs).toBeCloseTo(0.5 + 0.5 + 1.5, 5);
+  });
+
+  /* ---------------- Slice 8-C: agroforestry --------------------- */
+
+  it('agroforestry-only program → hedgerow contributes a per-phase row', () => {
+    const elements = [hedgerow('h1')];
+    const items = [
+      workItem({
+        id: 'agf__h1',
+        source: 'agroforestry',
+        generatedFromAgroforestryElement: 'h1',
+        phaseId: 'ph-trees',
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    expect(result.rows.length).toBe(1);
+    const row = result.rows[0]!;
+    expect(row.phaseId).toBe('ph-trees');
+    expect(row.agroforestry.costRange.mid).toBeGreaterThan(0);
+    expect(row.agroforestry.laborHrs).toBeGreaterThan(0);
+    // No cross-program leakage.
+    expect(row.coverCrop.costRange.mid).toBe(0);
+    expect(row.habitatFeature.costRange.mid).toBe(0);
+    // Combined matches agroforestry alone.
+    expect(row.total.costRange.mid).toBeCloseTo(row.agroforestry.costRange.mid, 6);
+    expect(result.totals.agroforestry.costRange.mid).toBeCloseTo(
+      row.agroforestry.costRange.mid,
+      6,
+    );
+  });
+
+  it('hedgerow length scales the cost band (per-meter mid 4.0)', () => {
+    const elements = [hedgerow('h1')];
+    const items = [
+      workItem({
+        id: 'agf__h1',
+        source: 'agroforestry',
+        generatedFromAgroforestryElement: 'h1',
+        phaseId: 'ph-trees',
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    const row = result.rows[0]!;
+    // Length is ~111 m for a 0.001° longitude segment at equator.
+    // Per-meter mid is 4.0 → ~$444 mid; assert order-of-magnitude.
+    expect(row.agroforestry.costRange.mid).toBeGreaterThan(100);
+    expect(row.agroforestry.costRange.mid).toBeLessThan(1000);
+    // Band ordering preserved.
+    expect(row.agroforestry.costRange.low).toBeLessThanOrEqual(
+      row.agroforestry.costRange.mid,
+    );
+    expect(row.agroforestry.costRange.mid).toBeLessThanOrEqual(
+      row.agroforestry.costRange.high,
+    );
+  });
+
+  it('mixed CC + HF + agroforestry → combined sums all three programs', () => {
+    const elements = [
+      habitatPoint({ id: 'el-a', kind: 'owl-box' }),
+      hedgerow('h1'),
+    ];
+    const items = [
+      workItem({
+        id: 'hf__el-a',
+        source: 'habitat-feature',
+        generatedFromHabitatElement: 'el-a',
+        phaseId: 'ph-trees',
+      }),
+      workItem({
+        id: 'agf__h1',
+        source: 'agroforestry',
+        generatedFromAgroforestryElement: 'h1',
+        phaseId: 'ph-trees',
+      }),
+      // Tree-planting items must be ignored (out-of-scope for cashflow).
+      workItem({
+        id: 'tree__t1',
+        source: 'tree-planting',
+        generatedFromTreeElement: 'el-a',
+        phaseId: 'ph-trees',
+      }),
+    ];
+    const catalog = [
+      {
+        speciesId: 'sp-rye',
+        roles: ['winter_cover'] as const,
+        livingRootSeasons: ['winter'] as const,
+        plantingMonthWindow: [9, 11] as [number, number],
+        rationale: 'test',
+        citation: 'test',
+        seedCostUSDPerAcre: 40,
+        seedingLaborHrsPerAcre: 0.5,
+      },
+    ];
+    const areas = [
+      cropArea({
+        id: 'ca1',
+        areaM2: 4046.8564224,
+        phase: 'ph-soil',
+        coverCropPlan: [
+          { speciesId: 'sp-rye', startMonth: 9, endMonth: 12, role: 'winter_cover' },
+        ],
+      }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: areas,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      coverCropCatalog: catalog as any,
+    });
+
+    // Two rows: ph-soil (cover-crop) + ph-trees (habitat + agroforestry).
+    expect(result.rows.length).toBe(2);
+    const trees = result.rows.find((r) => r.phaseId === 'ph-trees')!;
+    expect(trees.habitatFeature.costRange.mid).toBe(45);
+    expect(trees.agroforestry.costRange.mid).toBeGreaterThan(0);
+    // ph-trees total = habitat + agroforestry (no cover-crop there).
+    expect(trees.total.costRange.mid).toBeCloseTo(
+      45 + trees.agroforestry.costRange.mid,
+      6,
+    );
+
+    // Combined totals = sum of all three program totals.
+    expect(result.totals.combined.costRange.mid).toBeCloseTo(
+      result.totals.coverCrop.costRange.mid +
+        result.totals.habitatFeature.costRange.mid +
+        result.totals.agroforestry.costRange.mid,
+      6,
+    );
+    expect(result.totals.combined.laborHrs).toBeCloseTo(
+      result.totals.coverCrop.laborHrs +
+        result.totals.habitatFeature.laborHrs +
+        result.totals.agroforestry.laborHrs,
+      6,
+    );
   });
 });
