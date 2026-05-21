@@ -38,19 +38,12 @@ import {
   useGatesForProject,
   useExistingDrivewaysForProject,
 } from '../../../../store/builtEnvironmentSelectors.js';
-import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useMatrixTogglesStore } from '../../../../store/matrixTogglesStore.js';
 import { useAnnotationDetailStore } from '../../../../store/annotationDetailStore.js';
 import { useAnnotationFormStore } from '../../../../store/annotationFormStore.js';
 import { useObserveSelectionStore } from '../../../../store/observeSelectionStore.js';
 import { useMapToolStore } from '../measure/useMapToolStore.js';
 import { openBeInlineEditByObserveKind } from '../../../builtEnvironment/inline/openBeInlineEdit.js';
-import { useProjectStore } from '../../../../store/projectStore.js';
-import { DEFAULT_SECTOR_RADIUS_M } from '../../lib/sectorRadius.js';
-import type {
-  SectorType,
-  SectorIntensity,
-} from '../../../../store/externalForcesStore.js';
 import type { MatrixToggleKey } from '../../../../store/matrixTogglesStore.js';
 import {
   registerObserveIcons,
@@ -123,68 +116,6 @@ const PALETTE = {
   swotT: '#7c5a8a',
 };
 
-const SECTOR_TYPE_COLOR: Record<string, string> = {
-  sun_summer: '#e0b860',
-  sun_winter: '#c89048',
-  wind_prevailing: PALETTE.sectorWind,
-  wind_storm: '#3a5a7a',
-  fire: PALETTE.sectorFire,
-  noise: '#7a7a7a',
-  wildlife: PALETTE.sectorView,
-  view: '#9a8aa8',
-};
-
-// Sector grouping for per-group legend toggles. Each `SectorType` belongs to
-// exactly one of four groups, and each group maps to a `MatrixToggleKey`.
-// Splitting the legacy single `sectors` spec by group lets the steward gate
-// "Solar / Wind / Hazard / View" wedges independently from the legend.
-type SectorGroup = 'solar' | 'wind' | 'hazard' | 'view';
-
-const SECTOR_GROUP: Record<SectorType, SectorGroup> = {
-  sun_summer: 'solar',
-  sun_winter: 'solar',
-  wind_prevailing: 'wind',
-  wind_storm: 'wind',
-  fire: 'hazard',
-  noise: 'hazard',
-  wildlife: 'hazard',
-  view: 'view',
-};
-
-const GROUP_TOGGLE: Record<
-  SectorGroup,
-  Exclude<
-    MatrixToggleKey,
-    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
-  >
-> = {
-  solar: 'sectors',
-  wind: 'wind',
-  hazard: 'hazards',
-  view: 'views',
-};
-
-// Wind-sector visual upgrade (Option B, 2026-05-08): scale wedge radius by
-// intensity so high-intensity sectors read as longer reaches, mirroring the
-// proportional-wedge style of the climatology-driven prevailing rose. Each
-// wind wedge also emits a Point feature mid-arc so a compass+intensity label
-// can render via a sibling symbol layer.
-const INTENSITY_RADIUS_MULT: Record<SectorIntensity, number> = {
-  low: 0.4,
-  med: 0.7,
-  high: 1.0,
-};
-const INTENSITY_LABEL: Record<SectorIntensity, string> = {
-  low: 'low',
-  med: 'med',
-  high: 'high',
-};
-function compassFromBearing(deg: number): string {
-  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  const idx = Math.round(((deg % 360) + 360) % 360 / 45) % 8;
-  return dirs[idx]!;
-}
-
 const SWOT_COLOR: Record<string, string> = {
   S: PALETTE.swotS,
   W: PALETTE.swotW,
@@ -208,31 +139,6 @@ function circlePolygon(
 ): GeoJSON.Polygon {
   const f = turf.circle(center, radiusM / 1000, { steps, units: 'kilometers' });
   return f.geometry;
-}
-
-/** Build a wedge (sector) polygon anchored at `center`, opening along
- *  `bearingDeg` ± `arcDeg/2`, with outer radius `radiusM`. */
-function wedgePolygon(
-  center: [number, number],
-  bearingDeg: number,
-  arcDeg: number,
-  radiusM: number,
-  steps = 24,
-): GeoJSON.Polygon {
-  const half = arcDeg / 2;
-  const start = bearingDeg - half;
-  const end = bearingDeg + half;
-  const ring: [number, number][] = [center];
-  for (let i = 0; i <= steps; i++) {
-    const b = start + ((end - start) * i) / steps;
-    const dest = turf.destination(turf.point(center), radiusM / 1000, b, {
-      units: 'kilometers',
-    });
-    const c = dest.geometry.coordinates as [number, number];
-    ring.push(c);
-  }
-  ring.push(center);
-  return { type: 'Polygon', coordinates: [ring] };
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -280,7 +186,6 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const highPoints = useTopographyStore((s) => s.highPoints);
   const drainageLines = useTopographyStore((s) => s.drainageLines);
   const hazards = useExternalForcesStore((s) => s.hazards);
-  const sectors = useExternalForcesStore((s) => s.sectors);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const vegetationPatches = useVegetationStore((s) => s.patches);
   const pastures = usePastureStore((s) => s.pastures);
@@ -301,19 +206,6 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const fences = useFencesForProject(beProjectId);
   const gates = useGatesForProject(beProjectId);
   const existingDriveways = useExistingDrivewaysForProject(beProjectId);
-  const homesteadByProject = useHomesteadStore((s) => s.byProject);
-  const homestead = projectId ? homesteadByProject[projectId] : undefined;
-  // Per-project sector wedge outer radius (metres). Falls back to
-  // DEFAULT_SECTOR_RADIUS_M when unset / non-finite / non-positive.
-  // Subscribed directly so a metadata edit triggers a re-render.
-  const sectorRadiusM = useProjectStore((s) => {
-    if (!projectId) return DEFAULT_SECTOR_RADIUS_M;
-    const v = s.projects.find((p) => p.id === projectId)?.metadata
-      ?.sectorRadiusM;
-    return typeof v === 'number' && Number.isFinite(v) && v > 0
-      ? v
-      : DEFAULT_SECTOR_RADIUS_M;
-  });
 
   const layerSpecs = useMemo<LayerSpec[]>(() => {
     if (!projectId) return [];
@@ -507,123 +399,10 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       });
     }
 
-    // ── Sectors (anchor on homestead, fall back to map center) ──────────────
-    // Partitioned into four groups (solar / wind / hazard / view) so the
-    // legend can gate them independently. Each non-empty group emits its own
-    // source + fill/line layer pair; click handlers (wireClick) pick up the
-    // new layer ids automatically because every feature still carries
-    // `annoKind: 'sector'` + `annoId`.
-    const projectSectors = inProject(sectors);
-    if (projectSectors.length) {
-      const center = map.getCenter();
-      const anchor: [number, number] = homestead ?? [center.lng, center.lat];
-      const grouped: Record<SectorGroup, GeoJSON.Feature[]> = {
-        solar: [],
-        wind: [],
-        hazard: [],
-        view: [],
-      };
-      for (const s of projectSectors) {
-        const g = SECTOR_GROUP[s.type];
-        // Wind wedges scale radius by intensity (Option B); other groups
-        // keep the uniform `sectorRadiusM` reach so solar arcs / hazard
-        // wedges / view cones still read as full-length sightlines.
-        const radius =
-          g === 'wind'
-            ? sectorRadiusM *
-              (INTENSITY_RADIUS_MULT[s.intensity ?? 'med'] ?? 0.7)
-            : sectorRadiusM;
-        const color = SECTOR_TYPE_COLOR[s.type] ?? PALETTE.sector;
-        grouped[g].push({
-          type: 'Feature',
-          properties: {
-            kind: s.type,
-            color,
-            annoKind: 'sector',
-            annoId: s.id,
-          },
-          geometry: wedgePolygon(anchor, s.bearingDeg, s.arcDeg, radius),
-        });
-        // Emit a label Point for wind only — mirrors the climatology rose's
-        // mid-wedge text. Label = compass + intensity (e.g. "NW · high").
-        if (g === 'wind') {
-          const labelDest = turf.destination(
-            turf.point(anchor),
-            (radius * 0.6) / 1000,
-            s.bearingDeg,
-            { units: 'kilometers' },
-          );
-          const compass = compassFromBearing(s.bearingDeg);
-          const intensityLabel = INTENSITY_LABEL[s.intensity ?? 'med'];
-          grouped[g].push({
-            type: 'Feature',
-            properties: {
-              kind: s.type,
-              color,
-              annoKind: 'sector',
-              annoId: s.id,
-              label: `${compass} · ${intensityLabel}`,
-            },
-            geometry: {
-              type: 'Point',
-              coordinates: labelDest.geometry.coordinates as [number, number],
-            },
-          });
-        }
-      }
-      (Object.keys(grouped) as SectorGroup[]).forEach((group) => {
-        const features = grouped[group];
-        if (!features.length) return;
-        const layers: maplibregl.LayerSpecification[] = [
-          {
-            id: `${LAYER_PREFIX}sectors-${group}-fill`,
-            type: 'fill',
-            source: `${SOURCE_PREFIX}sectors-${group}`,
-            filter: ['==', ['geometry-type'], 'Polygon'],
-            paint: {
-              'fill-color': ['get', 'color'],
-              'fill-opacity': group === 'wind' ? 0.18 : 0.16,
-            },
-          },
-          {
-            id: `${LAYER_PREFIX}sectors-${group}-line`,
-            type: 'line',
-            source: `${SOURCE_PREFIX}sectors-${group}`,
-            filter: ['==', ['geometry-type'], 'Polygon'],
-            paint: {
-              'line-color': ['get', 'color'],
-              'line-width': group === 'wind' ? 1.4 : 1,
-              'line-opacity': group === 'wind' ? 0.7 : 0.55,
-            },
-          },
-        ];
-        if (group === 'wind') {
-          layers.push({
-            id: `${LAYER_PREFIX}sectors-wind-label`,
-            type: 'symbol',
-            source: `${SOURCE_PREFIX}sectors-wind`,
-            filter: ['==', ['geometry-type'], 'Point'],
-            layout: {
-              'text-field': ['get', 'label'],
-              'text-size': 11,
-              'text-allow-overlap': false,
-              'text-ignore-placement': false,
-            },
-            paint: {
-              'text-color': '#1f3340',
-              'text-halo-color': '#f2ede3',
-              'text-halo-width': 1.2,
-            },
-          });
-        }
-        result.push({
-          id: `sectors-${group}`,
-          toggleKey: GROUP_TOGGLE[group],
-          data: { type: 'FeatureCollection', features },
-          layers,
-        });
-      });
-    }
+    // Sector wedges are no longer rendered as MapLibre layers — the
+    // `SectorCompassOverlay` HUD (mounted in `ObserveLayout`) now summarises
+    // wind petals + solar arcs + manual sector arrows in a single compass
+    // rose at the bottom-right of the map.
 
     // ── Topography: lines (contours + drainage) ─────────────────────────────
     const topoLines: GeoJSON.Feature[] = [
@@ -1243,7 +1022,6 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     highPoints,
     drainageLines,
     hazards,
-    sectors,
     watercourses,
     vegetationPatches,
     pastures,
@@ -1258,8 +1036,6 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     fences,
     gates,
     existingDriveways,
-    homestead,
-    sectorRadiusM,
     map,
   ]);
 
