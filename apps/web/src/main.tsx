@@ -44,6 +44,11 @@ import './dev/seedGoalCompassPlan.js';
 // hydrates into projectStore (Phase 2 showcase seed). Idempotent via
 // localStorage sentinel `three-streams-seeded@v1`.
 import './dev/seedThreeStreamsFarm.js';
+// Register window.__ogdenSeedApricotLane + attach the auto-run
+// subscription that fires once when the Apricot Lane Showcase builtin
+// hydrates into projectStore (Phase E.1 fixture). Idempotent via
+// localStorage sentinel `apricot-lane-seeded@v1`.
+import './dev/seedApricotLane.js';
 import { useAuthStore } from './store/authStore.js';
 import { useSessionExpiredStore } from './store/sessionExpiredStore.js';
 import { setSessionExpiredHandler } from './lib/apiClient.js';
