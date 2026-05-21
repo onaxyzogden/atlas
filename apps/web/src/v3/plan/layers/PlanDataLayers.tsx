@@ -53,6 +53,11 @@ import {
   type DrilldownMemberRow,
 } from './HostUnionDrilldownCard.js';
 import { useSilvopastureDrilldownStore } from './silvopastureDrilldownStore.js';
+import {
+  selectEvidenceFor,
+  type HostCanopyUnionEvidenceInputs,
+} from '@ogden/shared/evidence';
+import { emitEvidenceAudit } from '../../../lib/evidence/auditEmit.js';
 
 // A single host's block of tooltip data, plus the hostId used for
 // click-toggle stack-equality unpin (not rendered). hostId is the
@@ -338,6 +343,80 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     entries: HostBlockEntry[];
     phase: 'entering' | 'exiting';
   } | null>(null);
+
+  // Phase H.3 — host-canopy-union Evidence inputs / item / emit hook.
+  //
+  // Snapshot the displayedUnion entry that matches the currently-open
+  // drilldown host, project to the selector's input shape, run the
+  // selector, and emit a single audit row when the drilldown opens
+  // (or when the underlying numeric inputs materially change).
+  //
+  // String-signature dep key (F.7.4 precedent): without this, every
+  // displayedUnion mutation during hover would reseed evidenceInputs
+  // by reference, even when rounded numeric values are unchanged,
+  // flooding evidence_audit_log. The key collapses entry identity +
+  // rounded m² + cardinals to a stable string so the emit useEffect
+  // fires once per *meaningful* change.
+  const drilldownEvidenceDepKey = useMemo(() => {
+    if (!drilldownHost || !displayedUnion) return '';
+    const e = displayedUnion.entries.find(
+      (x) => x.hostId === drilldownHost.hostId,
+    );
+    if (!e) return '';
+    return [
+      e.hostId,
+      Math.round(e.unionAreaM2),
+      Math.round(e.rawSumM2),
+      e.guildCount,
+      e.memberCount,
+    ].join(':');
+  }, [drilldownHost, displayedUnion]);
+
+  const drilldownEvidenceInputs = useMemo<HostCanopyUnionEvidenceInputs | null>(
+    () => {
+      if (!drilldownHost || !displayedUnion) return null;
+      const e = displayedUnion.entries.find(
+        (x) => x.hostId === drilldownHost.hostId,
+      );
+      if (!e) return null;
+      return {
+        entries: [
+          {
+            hostId: e.hostId,
+            hostName: e.hostName,
+            unionAreaM2: e.unionAreaM2,
+            rawSumM2: e.rawSumM2,
+            guildCount: e.guildCount,
+            memberCount: e.memberCount,
+          },
+        ],
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [drilldownEvidenceDepKey],
+  );
+
+  const drilldownEvidenceItem = useMemo(() => {
+    if (!drilldownEvidenceInputs) return null;
+    return selectEvidenceFor({
+      panelKey: 'host-canopy-union',
+      inputs: drilldownEvidenceInputs,
+    });
+  }, [drilldownEvidenceInputs]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    if (!drilldownEvidenceInputs || !drilldownEvidenceItem) return;
+    emitEvidenceAudit({
+      projectId,
+      panelKey: 'host-canopy-union',
+      inputs: drilldownEvidenceInputs,
+      output: drilldownEvidenceItem,
+      selectorName: 'selectHostCanopyUnionEvidence',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, drilldownEvidenceDepKey]);
+
   const structures = useAllStructures();
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
@@ -3852,6 +3931,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
               hostId={drilldownHost.hostId}
               hostName={drilldownHost.hostName}
               members={drilldownHost.members}
+              evidenceItem={drilldownEvidenceItem}
+              projectId={projectId}
               onClose={() => setDrilldownHost(null)}
               onOpenAudit={(hostId) => {
                 requestOpenAudit(hostId);
