@@ -86,4 +86,24 @@ export interface DesignElement {
    * filter) — `hidden` hides everywhere.
    */
   hidden?: boolean;
+  /**
+   * Optional steward-authored metadata for kinds in the `habitat`
+   * DesignCategory (owl-box / raptor-perch / nest-box / brush-pile /
+   * snag / insectary-strip / wetland-edge). Fields are kind-specific:
+   *   - boxes (owl-box, nest-box): mountingHeightM
+   *   - raptor-perch: heightM
+   *   - snag: approxHeightM, cavityCount
+   *   - notes is universal
+   * Carried as a single optional shape so adding new fields is additive;
+   * the field is never required by B5 audit math (which scores by
+   * presence + geometry, not metadata). Per the 2026-05-21 habitat-
+   * feature unification slice.
+   */
+  habitatMetadata?: {
+    mountingHeightM?: number;
+    heightM?: number;
+    approxHeightM?: number;
+    cavityCount?: number;
+    notes?: string;
+  };
 }
