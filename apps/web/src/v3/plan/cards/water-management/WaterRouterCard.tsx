@@ -35,13 +35,14 @@
  * to" action, no flow-path vector drawing. See backlog file for v2 follow-ups.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useLandDesignStore } from '../../../../store/landDesignStore.js';
 import type { DesignElement } from '../../../../store/designElementsStore.js';
 import { useSiteData, getLayerSummary } from '../../../../store/siteDataStore.js';
 import EvidenceSection from '../../../../components/evidence/EvidenceSection.js';
 import { selectEvidenceFor } from '../../../../lib/evidence/selectEvidence.js';
+import { emitEvidenceAudit } from '../../../../lib/evidence/auditEmit.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 import {
   aspectToBearingDeg,
@@ -206,8 +207,11 @@ export default function WaterRouterCard({ project, compactMode = false }: Props)
   if (!aspectReady) missing.push('predominant aspect');
   const gated = missing.length > 0;
 
-  // Phase E.5 — Tier-2 Evidence inputs.
-  const evidenceItem = useMemo(() => {
+  // Phase E.5 — Tier-2 Evidence inputs. Phase F.7.4 — emit audit.
+  // Note: deps use primitives (parcelReady/elevationReady/aspectReady)
+  // rather than the per-render `missing` array so memo identity stays
+  // stable across re-renders with unchanged inputs.
+  const evidenceInputs = useMemo(() => {
     // Treat each scored element as a routed edge. Confidence is a function
     // of input availability: full inputs → 0.8 baseline; missing aspect/DEM
     // depresses it. Per-tier flagged share further depresses mean confidence.
@@ -215,22 +219,35 @@ export default function WaterRouterCard({ project, compactMode = false }: Props)
     const flaggedShare = scoredCount === 0 ? 0 : flaggedCount / scoredCount;
     const meanRoutingConfidence = Math.max(0, baseConfidence - 0.3 * flaggedShare);
     const warnings: string[] = [];
-    for (const m of missing) warnings.push(`missing ${m}`);
+    if (!parcelReady) warnings.push('missing parcel boundary');
+    if (!elevationReady) warnings.push('missing elevation summary (min/max)');
+    if (!aspectReady) warnings.push('missing predominant aspect');
     if (flaggedCount > 0) {
       warnings.push(`${flaggedCount} low-potential placement${flaggedCount === 1 ? '' : 's'}`);
     }
-    return selectEvidenceFor({
-      panelKey: 'water-router',
-      inputs: {
-        routedEdgeCount: scoredCount,
-        meanRoutingConfidence,
-        hadDem: elevationReady,
-        hadAspect: aspectReady,
-        headLossBudgetM: 2.0,
-        warnings,
-      },
+    return {
+      routedEdgeCount: scoredCount,
+      meanRoutingConfidence,
+      hadDem: elevationReady,
+      hadAspect: aspectReady,
+      headLossBudgetM: 2.0,
+      warnings,
+    };
+  }, [scoredCount, flaggedCount, gated, parcelReady, elevationReady, aspectReady]);
+  const evidenceItem = useMemo(
+    () => selectEvidenceFor({ panelKey: 'water-router', inputs: evidenceInputs }),
+    [evidenceInputs],
+  );
+  useEffect(() => {
+    if (!evidenceItem) return;
+    emitEvidenceAudit({
+      projectId: project.id,
+      panelKey: 'WaterRouterCard',
+      selectorName: 'selectEvidenceFor(water-router)',
+      inputs: evidenceInputs,
+      output: evidenceItem,
     });
-  }, [scoredCount, flaggedCount, gated, elevationReady, aspectReady, missing]);
+  }, [evidenceInputs, evidenceItem, project.id]);
 
   return (
     <div className={styles.page}>
