@@ -155,6 +155,11 @@ export default defineConfig({
     },
   },
   build: {
+    // Bumped from default ('modules' = ES2017) to es2022 so top-level-await
+    // in transitively-bundled deps doesn't crash the production build.
+    // Required for the Task 14 prerender chain (vite build → postbuild
+    // → Playwright capture) to run without a manual `--target` flag.
+    target: 'es2022',
     rollupOptions: {
       output: {
         manualChunks(id: string) {
