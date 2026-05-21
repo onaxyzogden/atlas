@@ -40,6 +40,13 @@ dependency (turf was already imported).
   current Observe context and default pitch is 0. The wall is invisible
   at pitch 0 by definition; raising default pitch is a follow-up, not
   bundled here.
+- **Act stage already covered (verified, no code change).** Steward
+  asked whether the extrusion appears in Act as well. `ActLayout.tsx`
+  reuses the same `DiagnoseMap` and mounts `ObserveAnnotationLayers`
+  read-only (lines 27, 29, 161, 175 of `apps/web/src/v3/act/ActLayout.tsx`).
+  The paddock-fence layer therefore renders in Act automatically —
+  same pitch-0 caveat applies. Confirmed by source inspection on
+  2026-05-21; no Act-specific parallel implementation needed.
 
 ## Verification
 
