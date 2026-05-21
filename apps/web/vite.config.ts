@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import mdx from '@mdx-js/rollup';
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import { resolve, join, dirname } from 'path';
@@ -20,6 +21,7 @@ export default defineConfig({
     include: ['cookie', 'set-cookie-parser'],
   },
   plugins: [
+    mdx({ /* providerImportSource: '@mdx-js/react' */ }),
     react(),
     VitePWA({
       registerType: 'autoUpdate',

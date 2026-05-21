@@ -1,0 +1,30 @@
+---
+id: y0-baseline
+title: Year 0 — The starting line
+tiers: [dreaming, transitioning, stewarding]
+mapState:
+  activeLayers: [soils, land_cover]
+  features: []
+  view: { center: [-79.91, 43.56], zoom: 14 }
+---
+
+import { MapThumbnail } from '../../components/MapThumbnail';
+
+## Year 0 — The starting line
+
+Purchased in 2024. The east and west fields had been in continuous corn for nineteen years. Soil organic matter in the cropped half measured **1.65%** — the worm count was **0.8 per square metre**, and no anecic (deep-burrowing) earthworms were found. Infiltration on the cropped soil clocked at **11.8 mm/hr** — half the rate of the still-living pasture half.
+
+The MDPI Apricot Lane Y0/5/9 protocol was used end-to-end to anchor the baseline. Eleven bird species were observed across six 8-minute point counts.
+
+This is the ground every later number reads against.
+
+<MapThumbnail
+  sceneId="y0-baseline"
+  alt="Three Streams Farm at Year 0 — soils + land cover layers"
+  mapProps={{
+    boundary: props.snapshot.project.parcel_boundary,
+    layers: props.snapshot.layers,
+    features: [],
+    activeLayerIds: ['soils', 'land_cover'],
+  }}
+/>
