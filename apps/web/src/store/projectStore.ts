@@ -9,6 +9,7 @@ import type { CreateProjectInput, ProjectMetadata } from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
 import { cascadeCloneProject } from './cascadeClone.js';
 import { geodataCache } from '../lib/geodataCache.js';
+import { api } from '../lib/apiClient.js';
 import {
   seedBuiltinObserveData,
   BUILTIN_PROJECT_NARRATIVE,
@@ -154,7 +155,9 @@ interface ProjectState {
   // Actions
   createProject: (input: CreateProjectInput) => LocalProject;
   updateProject: (id: string, updates: Partial<LocalProject>) => void;
-  deleteProject: (id: string) => void;
+  deleteProject: (id: string) => Promise<void>;
+  archiveProject: (id: string) => Promise<void>;
+  unarchiveProject: (id: string) => Promise<void>;
   /**
    * Duplicate an existing project — clones the project metadata + parcel
    * boundary + all design-intent entities (zones, structures, paths,
@@ -268,14 +271,59 @@ export const useProjectStore = create<ProjectState>()(
         }));
       },
 
-      deleteProject: (id) => {
+      deleteProject: async (id) => {
         // Builtin sample projects are read-only — silently no-op on delete.
         const target = get().projects.find((p) => p.id === id);
         if (target?.isBuiltin) return;
+        if (target?.serverId) {
+          try {
+            await api.projects.delete(target.serverId);
+          } catch (err) {
+            console.warn('[OGDEN] deleteProject API failed, removing locally:', err);
+          }
+        }
         cascadeDeleteProject(id);
         set((state) => ({
           projects: state.projects.filter((p) => p.id !== id),
           activeProjectId: state.activeProjectId === id ? null : state.activeProjectId,
+        }));
+      },
+
+      archiveProject: async (id) => {
+        const target = get().projects.find((p) => p.id === id);
+        if (!target || target.isBuiltin) return;
+        if (target.serverId) {
+          try {
+            await api.projects.archive(target.serverId);
+          } catch (err) {
+            console.warn('[OGDEN] archiveProject API failed, mutating locally:', err);
+          }
+        }
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === id
+              ? { ...p, status: 'archived', updatedAt: new Date().toISOString() }
+              : p,
+          ),
+        }));
+      },
+
+      unarchiveProject: async (id) => {
+        const target = get().projects.find((p) => p.id === id);
+        if (!target || target.isBuiltin) return;
+        if (target.serverId) {
+          try {
+            await api.projects.unarchive(target.serverId);
+          } catch (err) {
+            console.warn('[OGDEN] unarchiveProject API failed, mutating locally:', err);
+          }
+        }
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === id
+              ? { ...p, status: 'active', updatedAt: new Date().toISOString() }
+              : p,
+          ),
         }));
       },
 
