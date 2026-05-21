@@ -14,6 +14,11 @@ import {
   type HabitatFeature,
   type HabitatFeatureType,
 } from '../../../store/habitatFeatureStore.js';
+import { useDesignElementsForProject } from '../../../store/builtEnvironmentSelectors.js';
+import {
+  selectPlacedHabitatCommitments,
+  type HabitatCommitmentTally,
+} from '../../biodiversity/habitatCommitments.js';
 
 interface Props {
   projectId: string;
@@ -41,10 +46,21 @@ function rollup(features: HabitatFeature[]): string {
   return parts.join(' · ');
 }
 
+function formatCommitmentValue(row: HabitatCommitmentTally): string {
+  if (row.unit === 'length-m') return `${Math.round(row.totalLengthM)} m`;
+  if (row.unit === 'area-m2') return `${Math.round(row.totalAreaM2)} m²`;
+  return `×${row.placed}`;
+}
+
 export default function FeatureInventoryPanel({ projectId }: Props) {
   const features = useHabitatFeatureStore((s) => s.features);
   const addFeature = useHabitatFeatureStore((s) => s.addFeature);
   const removeFeature = useHabitatFeatureStore((s) => s.removeFeature);
+  const designElements = useDesignElementsForProject(projectId);
+  const placedCommitments = useMemo(
+    () => selectPlacedHabitatCommitments(designElements),
+    [designElements],
+  );
 
   const mine = useMemo(
     () => featuresForProject(features, projectId),
@@ -80,6 +96,49 @@ export default function FeatureInventoryPanel({ projectId }: Props) {
 
   return (
     <div>
+      {placedCommitments.length > 0 && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: '10px 12px',
+            borderRadius: 8,
+            border: '1px solid rgba(127,209,174,0.25)',
+            background: 'rgba(79,176,165,0.06)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: 0.4,
+              textTransform: 'uppercase',
+              color: 'rgba(189,240,212,0.85)',
+              marginBottom: 6,
+            }}
+          >
+            Placed on map
+          </div>
+          {placedCommitments.map((row) => (
+            <div
+              key={row.kind}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 10,
+                fontSize: 12,
+                color: 'rgba(232,220,200,0.85)',
+                padding: '3px 0',
+              }}
+            >
+              <span>{row.label}</span>
+              <span style={{ color: 'rgba(232,220,200,0.7)' }}>
+                {formatCommitmentValue(row)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <p
         style={{
           fontSize: 13,

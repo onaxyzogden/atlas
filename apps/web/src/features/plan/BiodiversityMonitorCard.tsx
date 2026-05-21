@@ -26,6 +26,11 @@ import {
 } from './regenerationMonitor/aggregate.js';
 import TrajectoryChart from './regenerationMonitor/TrajectoryChart.js';
 import SampleEntryForm from './regenerationMonitor/SampleEntryForm.js';
+import { useDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
+import {
+  selectPlacedHabitatCommitments,
+  type HabitatCommitmentTally,
+} from '../biodiversity/habitatCommitments.js';
 
 interface Props {
   project: LocalProject;
@@ -90,9 +95,20 @@ function BuiltInBiodiversityBanner() {
   );
 }
 
+function formatHabitatCommitmentValue(row: HabitatCommitmentTally): string {
+  if (row.unit === 'length-m') return `${Math.round(row.totalLengthM)} m`;
+  if (row.unit === 'area-m2') return `${Math.round(row.totalAreaM2)} m²`;
+  return `×${row.placed}`;
+}
+
 function BiodiversityMonitorCardInner({ project }: Props) {
   const apiProjectId = project.serverId ?? project.id;
   const projectEvents = useRegenerationEventsForProject(apiProjectId);
+  const designElements = useDesignElementsForProject(project.id);
+  const placedCommitments = useMemo(
+    () => selectPlacedHabitatCommitments(designElements),
+    [designElements],
+  );
 
   const ensureDefault = useGoalTreeStore((s) => s.ensureDefault);
   const goalTree = useGoalTreeStore(
@@ -161,6 +177,46 @@ function BiodiversityMonitorCardInner({ project }: Props) {
           <span>{summary.totalSamples}</span>
         </div>
       </section>
+
+      {placedCommitments.length > 0 && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Planned habitat commitments</h2>
+          <p
+            style={{
+              fontSize: 12,
+              color: 'rgba(232,220,200,0.55)',
+              margin: '0 0 12px',
+              lineHeight: 1.5,
+            }}
+          >
+            Habitat features placed on the Plan canvas — what's promised to
+            arrive in the landscape. Observed monitoring readings appear in
+            the trajectory sections below.
+          </p>
+          <div>
+            {placedCommitments.map((row) => (
+              <div
+                key={row.kind}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  fontSize: 13,
+                  color: 'rgba(232,220,200,0.85)',
+                  padding: '6px 0',
+                  borderBottom: '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                <span>{row.label}</span>
+                <span style={{ color: 'rgba(232,220,200,0.7)' }}>
+                  {formatHabitatCommitmentValue(row)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className={styles.section}>
         <SampleEntryForm projectId={apiProjectId} domain="biodiversity" />
