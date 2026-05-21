@@ -1,36 +1,47 @@
 import type { ShowcaseRegenerationEvent } from '../data/snapshot';
 
-export function MetricChart({
-  metric, events, unit, title,
-}: { metric: string; events: ShowcaseRegenerationEvent[]; unit: string; title?: string }) {
+export type MetricChartProps = {
+  events: ShowcaseRegenerationEvent[];
+  metric: string;
+  unit?: string;
+  title?: string;
+  width?: number;
+  height?: number;
+};
+
+export function MetricChart({ events, metric, unit, title, width = 480, height = 200 }: MetricChartProps) {
   const points = events
     .filter((e) => (e.observations as any)?.metric === metric)
-    .map((e) => {
-      const obs = e.observations as any;
-      const value = obs.mean_om_pct_cropped ?? obs.value ?? obs.mean ?? obs.count ?? null;
-      return { date: e.event_date, phase: e.phase, value: typeof value === 'number' ? value : null };
-    })
-    .filter((p) => p.value !== null) as { date: string; phase: string|null; value: number }[];
-
-  const xs = points.map((p) => new Date(p.date).getTime());
-  const ys = points.map((p) => p.value);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const W = 480, H = 200, pad = 32;
-  const scaleX = (t: number) => pad + ((t - minX) / (maxX - minX || 1)) * (W - 2 * pad);
-  const scaleY = (v: number) => H - pad - ((v - minY) / (maxY - minY || 1)) * (H - 2 * pad);
-  const path = points.map((p, i) => `${i ? 'L' : 'M'} ${scaleX(new Date(p.date).getTime()).toFixed(1)} ${scaleY(p.value).toFixed(1)}`).join(' ');
-
+    .map((e) => ({
+      t: new Date(e.event_date).getTime(),
+      v: Number((e.observations as any)?.mean_om_pct_cropped ?? (e.observations as any)?.value ?? (e.observations as any)?.mean ?? (e.observations as any)?.count ?? NaN),
+      phase: e.phase,
+    }))
+    .filter((p) => Number.isFinite(p.v))
+    .sort((a, b) => a.t - b.t);
+  if (points.length === 0) {
+    return (
+      <figure>
+        <figcaption>{title ?? metric} ({unit ?? ''})</figcaption>
+        <svg data-testid="metric-chart-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${title ?? metric} chart (no data)`} />
+      </figure>
+    );
+  }
+  const xs = points.map((p) => p.t); const ys = points.map((p) => p.v);
+  const xmin = Math.min(...xs), xmax = Math.max(...xs);
+  const ymin = Math.min(...ys), ymax = Math.max(...ys);
+  const pad = 32;
+  const sx = (t: number) => pad + ((t - xmin) / Math.max(1, xmax - xmin)) * (width - 2 * pad);
+  const sy = (v: number) => height - pad - ((v - ymin) / Math.max(0.0001, ymax - ymin)) * (height - 2 * pad);
+  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${sx(p.t)} ${sy(p.v)}`).join(' ');
   return (
-    <figure style={{ margin: 0 }}>
-      <figcaption style={{ fontSize: 13, color: '#555', marginBottom: 6 }}>
-        {title ?? metric} <span style={{ color: '#888' }}>({unit})</span>
-      </figcaption>
-      <svg data-testid="metric-chart-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${metric} trajectory chart`}>
-        <path d={path} fill="none" stroke="#0a7d2c" strokeWidth={2.5} />
-        {points.map((p) => (
-          <circle key={p.date} cx={scaleX(new Date(p.date).getTime())} cy={scaleY(p.value)} r={3} fill="#0a7d2c">
-            <title>{`${p.phase ?? ''} ${p.date}: ${p.value} ${unit}`}</title>
+    <figure>
+      <figcaption>{title ?? metric} ({unit ?? ''})</figcaption>
+      <svg data-testid="metric-chart-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${title ?? metric} chart, ${points.length} points`}>
+        <path d={d} fill="none" stroke="#0a7d2c" strokeWidth={2.5} />
+        {points.map((p, i) => (
+          <circle key={i} cx={sx(p.t)} cy={sy(p.v)} r={3} fill="#0a7d2c">
+            <title>{`${new Date(p.t).getFullYear()} (${p.phase ?? '?'}): ${p.v}${unit ?? ''}`}</title>
           </circle>
         ))}
       </svg>
