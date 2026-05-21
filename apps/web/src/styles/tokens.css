@@ -424,6 +424,21 @@
   --ease-out:     cubic-bezier(0, 0, 0.2, 1);
   --ease-bounce:  cubic-bezier(0.34, 1.56, 0.64, 1);
 
+  /* --- Map-overlay motion (host-canopy-union tooltip + future overlays) ---
+   * Shared duration + translateY magnitude + easing for short-lived map
+   * surfaces (tooltip, popover) so a single design call governs all overlay
+   * fades. Values preserve the 2026-05-30 host-canopy-union tooltip ship
+   * verbatim: 120ms is intentionally shorter than --duration-base so the
+   * tooltip doesn't feel "draggy" under cursor motion; ease-out/ease-in are
+   * the bare CSS keywords (not the cubic-bezier --ease-* tokens) since the
+   * tooltip predates that family and we don't want a visual change as part
+   * of token extraction. A future ADR may align overlay easing onto the
+   * cubic-bezier family once the visual delta is verified. */
+  --motion-overlay-duration:  120ms;
+  --motion-overlay-translate: 2px;
+  --motion-overlay-ease-out:  ease-out;
+  --motion-overlay-ease-in:   ease-in;
+
   /* ========================================================================
      BREAKPOINTS  (reference values -- use in @media queries directly)
      ======================================================================== */

@@ -33,10 +33,14 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   /* Initial mount value — useLayoutEffect flips data-visible='true'
      after the first paint, which triggers the enter transition from
-     these values up to opacity:1/translateY(0). */
+     these values up to opacity:1/translateY(0). Duration / translate /
+     easing consumed from --motion-overlay-* tokens (tokens.css) so
+     future overlay surfaces share one design call. */
   opacity: 0;
-  transform: translateY(2px);
-  transition: opacity 120ms ease-out, transform 120ms ease-out;
+  transform: translateY(var(--motion-overlay-translate));
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-out),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-out);
 }
 
 .tooltip[data-visible='true'] {
@@ -51,8 +55,10 @@
    the base rule's `transition` declaration. */
 .tooltip[data-exiting='true'] {
   opacity: 0;
-  transform: translateY(2px);
-  transition: opacity 120ms ease-in, transform 120ms ease-in;
+  transform: translateY(var(--motion-overlay-translate));
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-in),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-in);
 }
 
 /* Per-block fade machinery for the multi-host stack. When the cursor
@@ -63,13 +69,17 @@
 .hostBlock {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 120ms ease-out, transform 120ms ease-out;
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-out),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-out);
 }
 
 .hostBlock[data-exiting='true'] {
   opacity: 0;
-  transform: translateY(2px);
-  transition: opacity 120ms ease-in, transform 120ms ease-in;
+  transform: translateY(var(--motion-overlay-translate));
+  transition:
+    opacity   var(--motion-overlay-duration) var(--motion-overlay-ease-in),
+    transform var(--motion-overlay-duration) var(--motion-overlay-ease-in);
 }
 
 @media (prefers-reduced-motion: reduce) {
