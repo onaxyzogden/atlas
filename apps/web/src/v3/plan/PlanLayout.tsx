@@ -57,6 +57,10 @@ import {
   TREE_PLANTING_KINDS,
   pushTreePlantingsToSpine,
 } from '../../features/vegetation/treePlantingSpineSync.js';
+import {
+  AGROFORESTRY_KINDS,
+  pushAgroforestryToSpine,
+} from '../../features/vegetation/agroforestrySpineSync.js';
 import { useDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
 import ObserveLinkPopover from './draw/ObserveLinkPopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
@@ -166,6 +170,31 @@ export default function PlanLayout() {
     if (!id) return;
     pushTreePlantingsToSpine(id);
   }, [id, treePlantingSignature]);
+
+  // Agroforestry → D0 work-item spine bridge (Slice 8-C of the 2026-05-21
+  // habitat-feature unification). Sibling effect to the habitat-feature
+  // and tree-planting pushes above: whenever the steward commits / edits
+  // / deletes a hedgerow (vegetation/line), orchard (grazing/polygon),
+  // or silvopasture (grazing/polygon) DesignElement, re-seed
+  // `source:'agroforestry'` rows. Override + cross-source preservation
+  // enforced inside `replaceAgroforestryRows`. Three near-identical
+  // effects is acceptable for now; can be lifted into a shared
+  // `useDesignElementSpineSync(projectId)` hook in a follow-up.
+  const agroforestrySignature = useMemo(
+    () =>
+      planDesignElements
+        .filter((el) =>
+          (AGROFORESTRY_KINDS as readonly string[]).includes(el.kind),
+        )
+        .map((el) => `${el.id}:${el.kind}:${el.phase}`)
+        .sort()
+        .join('|'),
+    [planDesignElements],
+  );
+  useEffect(() => {
+    if (!id) return;
+    pushAgroforestryToSpine(id);
+  }, [id, agroforestrySignature]);
 
   // Hydrate machinery inventory from the server and bridge local store
   // mutations to /api/v1/machinery-items. Skipped for the MTC fallback id
