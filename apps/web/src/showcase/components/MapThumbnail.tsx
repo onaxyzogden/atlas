@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ShowcaseMap, type ShowcaseMapProps } from './ShowcaseMap';
 
 export function MapThumbnail({ sceneId, alt, mapProps }: { sceneId: string; alt: string; mapProps: ShowcaseMapProps }) {
+  // Intentionally one-way: re-collapsing would yank the map out from under
+  // a scrolling reader. The thumbnail is a hydration gate, not a toggle.
   const [live, setLive] = useState(false);
   if (live) return <div style={{ width: '100%', minHeight: 480 }}><ShowcaseMap {...mapProps} interactive /></div>;
   return (
