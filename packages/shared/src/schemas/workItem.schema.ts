@@ -38,6 +38,7 @@ export const WorkItemSource = z.enum([
   'nursery-batch',
   'cover-crop',
   'rotation-sequence',
+  'habitat-feature',
   'manual',
 ]);
 export type WorkItemSource = z.infer<typeof WorkItemSource>;
@@ -152,6 +153,15 @@ export const WorkItemSchema = z
      * livestock-move emitted by `computeMoveCalendar`.
      */
     generatedFromRotationMove: z.string().optional(),
+    /**
+     * DesignElement id of the habitat-category feature this row was seeded
+     * from (owl-box / raptor-perch / nest-box / brush-pile / snag /
+     * insectary-strip / wetland-edge). Used by `habitatFeatureSpineSync`
+     * to keep one WorkItem per placed habitat element, idempotent on
+     * re-runs. `.optional()` + the top-level `.passthrough()` ⇒ no DB
+     * migration (A-series additive covenant).
+     */
+    generatedFromHabitatElement: z.string().optional(),
     goalCriterionId: z.string().optional(),
     catalogVersion: z.string().optional(),
     createdAt: z.string(),
