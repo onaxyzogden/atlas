@@ -51,6 +51,8 @@ import UtilityConflictDialog from './draw/UtilityConflictDialog.js';
 import PlanObserveSelectionHandler from './draw/PlanObserveSelectionHandler.js';
 import PlanCropAreaSelectionHandler from './draw/PlanCropAreaSelectionHandler.js';
 import CoverCropPopoverEditor from '../../features/coverCrops/CoverCropPopoverEditor.js';
+import { pushHabitatFeaturesToSpine } from '../../features/biodiversity/habitatFeatureSpineSync.js';
+import { useDesignElementsForProject } from '../../store/builtEnvironmentSelectors.js';
 import ObserveLinkPopover from './draw/ObserveLinkPopover.js';
 import PlanDataLayers from './layers/PlanDataLayers.js';
 import { useSilvopastureDrilldownStore } from './layers/silvopastureDrilldownStore.js';
@@ -111,6 +113,29 @@ export default function PlanLayout() {
   useEffect(() => {
     usePhaseStore.getState().ensureDefaults(id);
   }, [id]);
+
+  // Habitat-feature → D0 work-item spine bridge (Slice 5 of the 2026-05-21
+  // habitat-feature unification). Mirrors the cover-crop editor-driven push:
+  // whenever the steward commits / edits / deletes a habitat-category
+  // DesignElement, re-seed `source:'habitat-feature'` rows via
+  // `replaceHabitatFeatureRows`. Override + cross-source preservation is
+  // enforced inside the store action — this effect just fires the rebuild.
+  // The signature key (id+kind+phase, sorted) keeps the effect from
+  // re-firing on cosmetic re-renders.
+  const planDesignElements = useDesignElementsForProject(id);
+  const habitatFeatureSignature = useMemo(
+    () =>
+      planDesignElements
+        .filter((el) => el.category === 'habitat')
+        .map((el) => `${el.id}:${el.kind}:${el.phase}`)
+        .sort()
+        .join('|'),
+    [planDesignElements],
+  );
+  useEffect(() => {
+    if (!id) return;
+    pushHabitatFeaturesToSpine(id);
+  }, [id, habitatFeatureSignature]);
 
   // Hydrate machinery inventory from the server and bridge local store
   // mutations to /api/v1/machinery-items. Skipped for the MTC fallback id
