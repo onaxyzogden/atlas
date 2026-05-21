@@ -240,6 +240,8 @@ export const api = {
         ownerId: string;
         name: string;
         sourceProjectId: string | null;
+        slug?: string | null;
+        public?: boolean;
         createdAt: string;
       }>>('GET', '/api/v1/templates'),
 
@@ -252,8 +254,23 @@ export const api = {
         createdAt: string;
       }>('POST', '/api/v1/templates', input),
 
-    instantiate: (id: string, input: { name: string }) =>
+    instantiate: (
+      id: string,
+      input: { name: string; parcelBoundaryGeojson?: unknown | null },
+    ) =>
       request<ProjectSummary>('POST', `/api/v1/templates/${id}/instantiate`, input),
+
+    // Phase 4 (2026-05-21) — public ecosystem-template instantiation.
+    // Still auth-gated; only the owner check is relaxed for public rows.
+    instantiatePublic: (
+      slug: string,
+      input: { name: string; parcelBoundaryGeojson?: unknown | null },
+    ) =>
+      request<ProjectSummary>(
+        'POST',
+        `/api/v1/templates/public/${encodeURIComponent(slug)}/instantiate`,
+        input,
+      ),
   },
 
   designFeatures: {

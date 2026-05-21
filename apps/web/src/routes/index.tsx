@@ -30,6 +30,7 @@ import CompareCandidatesPage from '../features/project/compare/CompareCandidates
 import PortalPage from '../pages/PortalPage.js';
 import ReportSharePage from '../pages/ReportSharePage.js';
 import LoginPage from '../pages/LoginPage.js';
+import RegisterPage from '../pages/RegisterPage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
 import V3HomePage from '../v3/pages/HomePage.js';
@@ -335,6 +336,43 @@ const loginRoute = createRoute({
   },
 });
 
+// ─── Register page (outside AppShell — Phase 4 sibling) ────────────────
+// Dedicated /register surface so the Three Streams showcase ContactCTA
+// can hand off into tier-aware post-register routing. Search params
+// drive the post-register behaviour:
+//   ?next=instantiate&template=<slug>           → instant-instantiate (Dreaming)
+//   ?next=instantiate&template=<slug>&drawFirst=true   → draw-boundary-first (Transitioning)
+//   ?next=instantiate&template=<slug>&fullSetup=true   → org-creation-first (Stewarding)
+const registerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/register',
+  component: RegisterPage,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): {
+    next?: string;
+    template?: string;
+    drawFirst?: boolean;
+    fullSetup?: boolean;
+  } => {
+    const out: {
+      next?: string;
+      template?: string;
+      drawFirst?: boolean;
+      fullSetup?: boolean;
+    } = {};
+    if (typeof search.next === 'string') out.next = search.next;
+    if (typeof search.template === 'string') out.template = search.template;
+    if (search.drawFirst === true || search.drawFirst === 'true') {
+      out.drawFirst = true;
+    }
+    if (search.fullSetup === true || search.fullSetup === 'true') {
+      out.fullSetup = true;
+    }
+    return out;
+  },
+});
+
 // ─── Portal page (outside AppShell — own layout) ─────────────────────────
 const portalRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -423,6 +461,7 @@ const routeTree = rootRoute.addChildren([
   ]),
   landingRoute,
   loginRoute,
+  registerRoute,
   portalRoute,
   reportShareRoute,
   showcaseRoute,
