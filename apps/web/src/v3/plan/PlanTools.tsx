@@ -47,6 +47,7 @@ import {
   Trees,
   Waves,
   Wheat,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import {
@@ -666,6 +667,19 @@ export default function PlanTools({
           Icon: bg.Icon,
           toolId: `plan.structures-subsystems.be.${bg.kind}` as MapToolId,
         }));
+        // C4 — the typed utility-point tool (utilityStore) lives alongside the
+        // BE utility kinds. Appended after the BE map so it keeps its non-BE
+        // toolId (routed via PlanDrawHost switch, not the be.* prefix branch).
+        // Offers the 11 utility types with no BE equivalent; the 4 overlapping
+        // kinds (well/septic/tank/solar) are authored via the be.* tools.
+        if (group.category === 'utility') {
+          groupItems.push({
+            id: 'plan-utility-point',
+            label: 'Utility point',
+            Icon: Zap,
+            toolId: 'plan.structures-subsystems.utility-point' as MapToolId,
+          });
+        }
         return (
           <section
             key={`be-${group.category}`}

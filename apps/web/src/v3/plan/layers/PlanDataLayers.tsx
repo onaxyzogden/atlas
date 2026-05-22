@@ -74,6 +74,10 @@ import { useMatrixTogglesStore } from '../../../store/matrixTogglesStore.js';
 import { useEcologicalNoteStore } from '../../../store/ecologicalNoteStore.js';
 import { useUtilityRunStore } from '../../../store/utilityRunStore.js';
 import {
+  useUtilityStore,
+  UTILITY_TYPE_CONFIG,
+} from '../../../store/utilityStore.js';
+import {
   useSetbackStore,
   type SetbackSourceKind,
 } from '../../../store/setbackStore.js';
@@ -422,6 +426,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const ecologicalNotes = useEcologicalNoteStore((s) => s.notes);
   const utilityRuns = useUtilityRunStore((s) => s.runs);
   const updateUtilityRun = useUtilityRunStore((s) => s.updateRun);
+  const utilities = useUtilityStore((s) => s.utilities);
   const setbackRings = useSetbackStore((s) => s.rings);
   const updateSetbackRing = useSetbackStore((s) => s.updateRing);
   const flowConnectors = useClosedLoopStore((s) => s.materialFlows);
@@ -901,6 +906,36 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       });
     }
 
+    // Utility points (point) — typed utilityStore promotion (C2), reachable
+    // via UtilityPointTool (C4). The 11 utility types with no Built-
+    // Environment equivalent. Yeomans rank 6 (Buildings / structures band).
+    // Color/label from UTILITY_TYPE_CONFIG. Full edit stays with the legacy
+    // UtilityPanel; this layer renders + makes the point selectable.
+    for (const u of utilities) {
+      if (u.projectId !== projectId) continue;
+      const cfg = UTILITY_TYPE_CONFIG[u.type];
+      const props = {
+        id: u.id,
+        kind: 'utility-point',
+        color: cfg?.color ?? '#8a8a8a',
+        label: u.name,
+        yeomansRank: 6,
+        enterprise: '',
+      };
+      points.push({
+        type: 'Feature',
+        id: u.id,
+        properties: props,
+        geometry: { type: 'Point', coordinates: u.center },
+      });
+      labels.push({
+        type: 'Feature',
+        id: u.id,
+        properties: props,
+        geometry: { type: 'Point', coordinates: u.center },
+      });
+    }
+
     // Water nodes — Plan Module 2. Yeomans rank 2 (Water).
     //   - catchment → polygon footprint (if `geometry` set) + label at
     //     `center`; emits a marker point so the catchment is selectable
@@ -1172,7 +1207,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       hostCanopyUnionFC: { type: 'FeatureCollection' as const, features: hostCanopyUnions },
       hostCanopyUnionLabelFC: { type: 'FeatureCollection' as const, features: hostCanopyUnionLabels },
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId, designElementsForProject]);
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, utilities, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId, designElementsForProject]);
 
   useEffect(() => {
     if (!map) return;

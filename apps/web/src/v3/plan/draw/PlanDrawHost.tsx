@@ -23,6 +23,7 @@ import GuildTool from './tools/GuildTool.js';
 import PlanDesignElementHost from './tools/PlanDesignElementHost.js';
 import StructureTool from './tools/StructureTool.js';
 import UtilityRunTool from './tools/UtilityRunTool.js';
+import UtilityPointTool from './tools/UtilityPointTool.js';
 import BufferRingTool from './tools/BufferRingTool.js';
 import EcologicalNoteTool from './tools/EcologicalNoteTool.js';
 import MonitoringTransectTool from './tools/MonitoringTransectTool.js';
@@ -169,6 +170,9 @@ export default function PlanDrawHost({
       break;
     case 'plan.structures-subsystems.utility-run':
       tool = <UtilityRunTool map={map} projectId={projectId} />;
+      break;
+    case 'plan.structures-subsystems.utility-point':
+      tool = <UtilityPointTool map={map} projectId={projectId} />;
       break;
     case 'plan.principle-verification.note':
       tool = <EcologicalNoteTool map={map} projectId={projectId} />;

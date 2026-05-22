@@ -160,6 +160,14 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
   {
     key: 'water',
     label: 'Water Systems',
+    // Canonical-ownership note (C4, 2026-05-22): infrastructure utilities —
+    // water tank, well/pump, solar array, septic — are authored as Built-
+    // Environment V2 features via the `be.*` tools, which are the canonical
+    // owner. The typed utility-point tool (UtilityPointTool → utilityStore)
+    // covers the 11 utility types with NO BE equivalent. This `water-tank`
+    // sketch kind is retained for legacy freeform sketches only; do not delete
+    // (existing projects may reference it). See
+    // wiki/decisions/2026-05-22-atlas-canonical-feature-ownership-c4.md.
     elements: [
       { kind: 'water-tank', category: 'water', label: 'Water Tank', icon: Droplets, geometry: 'point',   drawMode: 'draw_point',       phase: 'water', color: COLORS.water },
       { kind: 'pond',       category: 'water', label: 'Pond',       icon: Waves,    geometry: 'polygon', drawMode: 'draw_polygon',     phase: 'water', color: COLORS.water, earthworkDepthCm: 200 },

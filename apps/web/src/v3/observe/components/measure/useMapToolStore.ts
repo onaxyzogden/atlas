@@ -136,6 +136,9 @@ export type MapToolId =
   | 'plan.structures-subsystems.structure'
   // Plan Module — Structures & Subsystems (utility runs, Tier B / B1)
   | 'plan.structures-subsystems.utility-run'
+  // Plan Module — Structures & Subsystems (typed utility points, C4 — reaches
+  // the C2 utilityStore promotion; offers the 11 non-BE utility types)
+  | 'plan.structures-subsystems.utility-point'
   // Plan Module — Built Environment (registry-driven, all 31 BE kinds with
   // `state: 'proposed'`). Mirrors Observe's BE rail. Pattern keeps the
   // strict-literal surface small while letting the kind registry grow:
