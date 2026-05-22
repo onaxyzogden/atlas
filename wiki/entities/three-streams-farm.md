@@ -285,6 +285,43 @@ from canon work).
   `ProjectTemplate`; substitutes generic Holmgren-grounded defaults
   for non-Ontario boundaries.
 
+### Phase 2.5: Livestock Substrate (landed 2026-05-21)
+
+Phase 2 deliberately deferred the Y2 livestock substrate pending the
+parallel-session B-track rotation engine; that work has now landed
+(`rotationEngine.ts` + `livestockRevenue.ts` + `RotationScheduleCard.tsx`
++ `LivestockMoveCard.tsx`, `6a61d6cf`). Phase 2.5 (Slice A) closes the gap
+so the Three Streams demo's Act + Monitor surfaces render real paddocks /
+rotation timeline / move log.
+
+Per the **Species & Guild Canon** above, the seeded Y2 state is 80-head
+cow-calf on 3-day rotational moves through **12 paddock cells**
+(~33-day rest per cell) plus a 200-bird mobile poultry flock following
+at a 3-day lag. (Sheep are Y4 — omitted from the Y2 seed.)
+
+Migration `038_three_streams_paddock_grid.sql` subdivides the Y2 cow-calf
+north strip (`[-79.9140..-79.9060] × [43.5615..43.5638]`) into 12 paddock
+cells as `design_features` (`feature_type='zone'`, `subtype='paddock'`,
+pinned sentinel UUIDs `…df35ad01..ad0c`, `grazingCellGroup='cowcalf-Y2'`,
+1-based `sequenceOrder`, `targetGrazeDays=3`, `targetRestDays=33`,
+`parentZone='zone_pasture_cowcalf'`). The client seeder's `seedLivestock`
+block writes the operational substrate to client Zustand stores
+(`useLivestockStore` paddocks, `useRotationPlanStore` 12-cell plan with
+`startDateISO '2026-05-01'` / `horizonCycles 4`, `useLivestockMoveLogStore`
+cow-calf + poultry move events) then calls `pushRotationSequenceToSpine`,
+projecting 12 × 4 = 48 `source:'rotation-sequence'` WorkItems onto the
+spine. The idempotency sentinel bumped **v1 → v2** so existing v1-seeded
+browsers re-run once to gain the livestock substrate.
+
+The Y2 goal-tree gate
+`livestock-rotation-spine-presence-pct` (target 90, deadlineYear 2) lights
+up at **100%** on the seeded demo; `livestock-rotation-rest-compliance-pct`
+(target 90, deadlineYear 3) correctly stays **below 90** — the 12-cell,
+3-graze-day plan honours a 33-day rest, short of cattle's 45-day recovery
+window. That gap is a Y3 target, not a Y2 regression.
+
+See [[log/2026-05-21-atlas-phase-2.5-livestock-seed]] for the slice log.
+
 ### Phase 4: Template Lineage (landed 2026-05-21)
 
 Phase 4 extracted this canon into the public **Ecosystem Farm**
