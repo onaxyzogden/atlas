@@ -54,7 +54,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         const { data } = await api.auth.me();
         set({
           token: stored,
-          user: { id: data.id, email: data.email, displayName: data.displayName ?? null },
+          user: {
+            id: data.id,
+            email: data.email,
+            displayName: data.displayName ?? null,
+            defaultOrgId: data.defaultOrgId,
+          },
           isLoaded: true,
         });
       } catch (err) {

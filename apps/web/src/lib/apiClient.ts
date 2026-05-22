@@ -141,6 +141,8 @@ export interface ApiAuthUser {
   id: string;
   email: string;
   displayName: string | null;
+  /** Phase 4.5 — personal default org created at register time; always present post-migration-036. */
+  defaultOrgId: string;
 }
 
 // ─── Projects ────────────────────────────────────────────────────────────────
@@ -158,7 +160,9 @@ export const api = {
       ),
 
     me: () =>
-      request<{ id: string; email: string; displayName: string | null }>('GET', '/api/v1/auth/me'),
+      request<{ id: string; email: string; displayName: string | null; defaultOrgId: string }>(
+        'GET', '/api/v1/auth/me',
+      ),
   },
 
   projects: {
