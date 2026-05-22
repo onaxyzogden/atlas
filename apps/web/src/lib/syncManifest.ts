@@ -92,6 +92,7 @@ import { useWaterSystemsStore } from '../store/waterSystemsStore.js';
 import { useRotationPlanStore } from '../store/rotationPlanStore.js';
 import { useCompostCycleStore } from '../store/compostCycleStore.js';
 import { useSuccessionPathStore } from '../store/successionPathStore.js';
+import { useLandDesignStore } from '../store/landDesignStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -296,7 +297,6 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // --- typed-design-feature: already on the design_features typed path ---
   { storeKey: 'ogden-zones', classification: 'typed-design-feature' },
   { storeKey: 'ogden-built-environment-v2', classification: 'typed-design-feature' },
-  { storeKey: 'ogden-atlas-design-elements', classification: 'typed-design-feature' },
   // ogden-paths promoted from versioned-blob → typed design_features
   // (featureType `path`) on 2026-05-22 so access paths are server-queryable
   // and appear in the master-plan PDF feature roster. Transport lives in
@@ -323,6 +323,12 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-hazards', useHazardsStore, 'byProject', 1, byKey('byProject', 'hazards', [])),
   blob('ogden-sectors', useSectorStore, 'byProject', 1, byKey('byProject', null, {})),
   blob('ogden-soil-tests', useSoilTestStore, 'byProject', 1, byKey('byProject', null, [])),
+  // ogden-atlas-design-elements reclassified typed-design-feature →
+  // versioned-blob on 2026-05-22: it was on the typed path but NO transport
+  // was ever wired (silent no-sync). It has no design_features mapper and is
+  // not a PDC roster deliverable, so an opaque per-(project,storeKey) blob is
+  // the correct transport. byProject Record<projectId, DesignElement[]>, v2.
+  blob('ogden-atlas-design-elements', useLandDesignStore, 'byProject', 2, byKey('byProject', null, [])),
   blob('ogden-goal-trees', useGoalTreeStore, 'byProject', 1, byKey('goalTreesByProject', null, null)),
   blob('ogden-site-profiles', useSiteProfileStore, 'byProject', 2, byKey('profilesByProject', null, {})),
   blob('ogden-act-actuals', useActualsStore, 'byProject', 1, byKey('byProject', null, {})),

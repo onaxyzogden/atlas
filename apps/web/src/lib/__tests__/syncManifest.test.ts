@@ -109,7 +109,6 @@ describe('syncManifest coverage guard', () => {
   it('keeps the design_features-mapped stores on the typed-design-feature path (no blob double-write)', () => {
     const designFeatureKeys = [
       'ogden-built-environment-v2',
-      'ogden-atlas-design-elements',
       'ogden-zones',
     ];
     for (const key of designFeatureKeys) {
@@ -222,20 +221,21 @@ describe('syncManifest coverage guard', () => {
     expect(hzStore.byProject.A.hazards).toEqual([{ id: 'a1' }, { id: 'a2' }]);
     expect(hzStore.byProject.B.hazards).toEqual([{ id: 'b1' }]); // untouched
 
-    // projectId-tagged shape
-    const pa = SYNCED_STORES.find((d) => d.storeKey === 'ogden-paths')!;
-    let paStore: any = { paths: [{ id: 'p1', projectId: 'A' }, { id: 'p2', projectId: 'B' }] };
-    const paHandle = {
-      getState: () => paStore,
+    // projectId-tagged shape (ogden-utility-runs stays a versioned-blob per
+    // the 2026-05-22 typed-promotion ADR, so it is a stable example here)
+    const ur = SYNCED_STORES.find((d) => d.storeKey === 'ogden-utility-runs')!;
+    let urStore: any = { runs: [{ id: 'r1', projectId: 'A' }, { id: 'r2', projectId: 'B' }] };
+    const urHandle = {
+      getState: () => urStore,
       setState: (p: any) => {
-        paStore = { ...paStore, ...(typeof p === 'function' ? p(paStore) : p) };
+        urStore = { ...urStore, ...(typeof p === 'function' ? p(urStore) : p) };
       },
     };
-    expect(pa.selectForProject!(paStore, 'A')).toEqual({ paths: [{ id: 'p1', projectId: 'A' }] });
-    pa.applyForProject!(paHandle as never, 'A', { paths: [{ id: 'p1b', projectId: 'A' }] });
-    expect(paStore.paths).toEqual([
-      { id: 'p2', projectId: 'B' },
-      { id: 'p1b', projectId: 'A' },
+    expect(ur.selectForProject!(urStore, 'A')).toEqual({ runs: [{ id: 'r1', projectId: 'A' }] });
+    ur.applyForProject!(urHandle as never, 'A', { runs: [{ id: 'r1b', projectId: 'A' }] });
+    expect(urStore.runs).toEqual([
+      { id: 'r2', projectId: 'B' },
+      { id: 'r1b', projectId: 'A' },
     ]);
   });
 
