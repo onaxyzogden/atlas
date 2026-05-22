@@ -54,7 +54,6 @@ import PlanDrawHost from '../draw/PlanDrawHost.js';
 import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
 import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
 import PlanSelectionFloater from '../PlanSelectionFloater.js';
-import MapSheetExportControl from '../MapSheetExportControl.js';
 import type { PlanView } from '../types.js';
 
 /**
@@ -173,13 +172,11 @@ export default function VisionLayoutCanvas({
           />
           <BaseMapCard stage="plan" hiddenOverlays={VISION_DEAD_OVERLAYS} />
           {/* Captured-map PDF export (Master Plan / Base Map / Zone Map /
-              Planting Plan). Re-homed here from the retired DesignPage: the
-              7-stage→3-stage nav left this A5/Phase-B feature orphaned (its only
-              mount was on the unrouted DesignMap surface). Top-left slot is free
-              — MapToolbar + BaseMapCard are bottom-left, DesignToolRail is the
-              right edge. Capture works because DiagnoseMap now sets
-              preserveDrawingBuffer. */}
-          <MapSheetExportControl map={map} projectId={projectId} />
+              Planting Plan) now lives in the DesignToolRail (right edge) as the
+              "Export sheet" button — see useMapSheetExport + DesignToolRail.
+              The floating green pill that used to sit here was relocated so
+              export is one consistent control alongside the other map tools,
+              available on both the Current and Vision canvases. */}
           <SilvopasturePopover projectId={projectId} />
           <SilvopastureMemberOutline map={map} projectId={projectId} />
           <MapToolbar

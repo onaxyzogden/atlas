@@ -31,8 +31,8 @@ import { captureMapImage } from "./captureMapImage.js";
 import { MapControlPopover } from "../../components/ui/MapControlPopover.js";
 import { group, warning } from "../../lib/tokens.js";
 
-type MapSheetType = "master_plan" | "base_map_sheet" | "zone_map_sheet";
-type SheetExportType = MapSheetType | "planting_plan";
+export type MapSheetType = "master_plan" | "base_map_sheet" | "zone_map_sheet";
+export type SheetExportType = MapSheetType | "planting_plan";
 type Captured = Awaited<ReturnType<typeof captureMapImage>>;
 
 interface MapSheetExportControlProps {
@@ -40,14 +40,14 @@ interface MapSheetExportControlProps {
   projectId: string;
 }
 
-const SHEET_EXPORTS: { type: SheetExportType; label: string }[] = [
+export const SHEET_EXPORTS: { type: SheetExportType; label: string }[] = [
   { type: "master_plan", label: "Master Plan" },
   { type: "base_map_sheet", label: "Base Map" },
   { type: "zone_map_sheet", label: "Zone Map" },
   { type: "planting_plan", label: "Planting Plan" },
 ];
 
-const SHEET_LABEL: Record<SheetExportType, string> = {
+export const SHEET_LABEL: Record<SheetExportType, string> = {
   master_plan: "Master Plan",
   base_map_sheet: "Base Map",
   zone_map_sheet: "Zone Map",

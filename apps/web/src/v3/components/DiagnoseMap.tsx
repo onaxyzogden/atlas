@@ -124,10 +124,11 @@ export default function DiagnoseMap({
       transformRequest: maptilerTransformRequest,
       // Capture-ready: keep the WebGL drawing buffer so `captureMapImage`'s
       // `toDataURL` reads real pixels instead of a cleared backbuffer. Required
-      // by MapSheetExportControl (mounted on the Plan Vision canvas) and shared
-      // by every DiagnoseMap surface (Plan Current + Observe) for free. Without
-      // this the browser clears the buffer after compositing and the export PNG
-      // comes back near-blank even though tiles are visible on screen.
+      // by the DesignToolRail "Export sheet" button (via useMapSheetExport, on
+      // both Plan Current + Vision) and the legacy MapSheetExportControl, and
+      // shared by every DiagnoseMap surface (Observe) for free. Without this the
+      // browser clears the buffer after compositing and the export PNG comes
+      // back near-blank even though tiles are visible on screen.
       preserveDrawingBuffer: true,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");

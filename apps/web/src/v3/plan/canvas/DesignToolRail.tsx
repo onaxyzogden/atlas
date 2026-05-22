@@ -12,14 +12,19 @@
  *   - Zoom +/-: MapLibre `zoomIn` / `zoomOut`.
  *   - Layers: opens a small popover toggling the visibility of the
  *     `design-el-*` map layers (polygons / lines / points / labels).
+ *   - Export: opens a popover that captures the live map and POSTs one of the
+ *     four sheet PDFs (Master Plan / Base Map / Zone Map / Planting Plan) via
+ *     `useMapSheetExport`. Mutually exclusive with the Layers popover.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import {
   Copy,
+  FileDown,
   Hand,
   Layers,
+  Loader2,
   MousePointer2,
   Pencil,
   Plus,
@@ -33,6 +38,8 @@ import {
 import type { DesignElement } from '../../../store/designElementsStore.js';
 import { usePlanSelectionStore } from '../../../store/planSelectionStore.js';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
+import { useMapSheetExport } from '../useMapSheetExport.js';
+import { SHEET_EXPORTS, SHEET_LABEL } from '../MapSheetExportControl.js';
 import css from './DesignToolRail.module.css';
 
 export type ToolMode = 'pan' | 'select';
@@ -103,12 +110,19 @@ export default function DesignToolRail({
   setMode,
 }: Props) {
   const [layersOpen, setLayersOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
   const railRef = useRef<HTMLDivElement>(null);
 
   const elements = useDesignElementsForProject(projectId);
   const setPlanSelection = usePlanSelectionStore((s) => s.set);
   const clearPlanSelection = usePlanSelectionStore((s) => s.clear);
+
+  // Captured-map PDF export — shares the orchestration with the legacy
+  // floating MapSheetExportControl via this hook. Open/close lives here so the
+  // export popover coordinates with the Layers popover (mutually exclusive).
+  const { generatingType, error: exportError, downloadUrl, handleExport } =
+    useMapSheetExport(map, projectId);
 
   const zoomIn = () => map.zoomIn();
   const zoomOut = () => map.zoomOut();
@@ -161,17 +175,18 @@ export default function DesignToolRail({
     }
   }, [map, hidden, elements]); // re-run when elements arrive (layers might mount late)
 
-  // ── Click-outside: close the Layers popover ────────────────────────────
+  // ── Click-outside: close the Layers / Export popovers ──────────────────
   useEffect(() => {
-    if (!layersOpen) return;
+    if (!layersOpen && !exportOpen) return;
     const onDoc = (e: MouseEvent) => {
       if (!railRef.current) return;
       if (e.target instanceof Node && railRef.current.contains(e.target)) return;
       setLayersOpen(false);
+      setExportOpen(false);
     };
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
-  }, [layersOpen]);
+  }, [layersOpen, exportOpen]);
 
   // Clear stale selection if the underlying element is gone.
   useEffect(() => {
@@ -304,7 +319,10 @@ export default function DesignToolRail({
           type="button"
           className={css.btn}
           data-active={layersOpen}
-          onClick={() => setLayersOpen((o) => !o)}
+          onClick={() => {
+            setLayersOpen((o) => !o);
+            setExportOpen(false);
+          }}
           aria-label="Layers"
           aria-expanded={layersOpen}
         >
@@ -330,6 +348,63 @@ export default function DesignToolRail({
               </label>
             );
           })}
+        </div>
+      )}
+
+      <div className={css.divider} aria-hidden="true" />
+      <DelayedTooltip label="Export sheet" position="left">
+        <button
+          type="button"
+          className={css.btn}
+          data-active={exportOpen}
+          onClick={() => {
+            setExportOpen((o) => !o);
+            setLayersOpen(false);
+          }}
+          disabled={generatingType !== null}
+          aria-label="Export sheet"
+          aria-haspopup="menu"
+          aria-expanded={exportOpen}
+        >
+          {generatingType !== null ? (
+            <Loader2 size={15} strokeWidth={1.75} className={css.spin} />
+          ) : (
+            <FileDown size={15} strokeWidth={1.75} />
+          )}
+        </button>
+      </DelayedTooltip>
+
+      {exportOpen && (
+        <div className={css.popover} role="menu" aria-label="Export map sheet">
+          <div className={css.popoverTitle}>Export sheet</div>
+          {SHEET_EXPORTS.map((sheet) => (
+            <button
+              key={sheet.type}
+              type="button"
+              role="menuitem"
+              className={css.popoverAction}
+              onClick={() => handleExport(sheet.type)}
+              disabled={generatingType !== null}
+            >
+              {sheet.label}
+            </button>
+          ))}
+          {generatingType !== null && (
+            <div className={css.popoverStatus}>
+              Exporting {SHEET_LABEL[generatingType]}…
+            </div>
+          )}
+          {exportError && <div className={css.popoverError}>{exportError}</div>}
+          {downloadUrl && (
+            <a
+              href={downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={css.popoverLink}
+            >
+              Download PDF
+            </a>
+          )}
         </div>
       )}
     </div>
