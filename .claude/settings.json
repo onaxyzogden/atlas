@@ -3,5 +3,17 @@
     "command": "npm run dev",
     "cwd": "apps/web",
     "port": 5173
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/ensure-deps.mjs"
+          }
+        ]
+      }
+    ]
   }
 }
