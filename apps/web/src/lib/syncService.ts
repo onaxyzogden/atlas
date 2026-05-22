@@ -20,6 +20,7 @@ import { SYNCED_STORES, type SyncedStoreDescriptor } from './syncManifest.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
 import { usePathStore, type DesignPath } from '../store/pathStore.js';
+import { useUtilityStore, type Utility } from '../store/utilityStore.js';
 import { useVegetationStore, type VegetationPatch } from '../store/vegetationStore.js';
 import { useSuccessionStore, type SuccessionMilestone } from '../store/successionStore.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
@@ -42,6 +43,8 @@ import {
   designFeatureToStructure,
   pathToDesignFeature,
   designFeatureToPath,
+  utilityToDesignFeature,
+  designFeatureToPoint,
 } from './featureMapping.js';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -198,6 +201,21 @@ function subscribeToPaths() {
     for (const p of added) syncPathCreate(p);
     for (const p of updated) syncPathUpdate(p);
     for (const p of removed) syncPathDelete(p);
+  });
+}
+
+function subscribeToUtilities() {
+  let prevUtilities = useUtilityStore.getState().utilities;
+
+  return useUtilityStore.subscribe((state) => {
+    if (isSyncing) return;
+    const curr = state.utilities;
+    const { added, removed, updated } = diffArrayById(curr, prevUtilities);
+    prevUtilities = curr;
+
+    for (const u of added) syncUtilityCreate(u);
+    for (const u of updated) syncUtilityUpdate(u);
+    for (const u of removed) syncUtilityDelete(u);
   });
 }
 
@@ -537,6 +555,61 @@ async function syncPathDelete(p: DesignPath) {
   } catch (err) {
     console.warn('[SYNC] Path delete failed, queuing:', err);
     await syncQueue.enqueue({ storeType: 'path', action: 'delete', localId: p.id, payload: { serverId: p.serverId } });
+  }
+}
+
+// ─── Sync handlers (utility / point) ─────────────────────────────────────────
+
+async function syncUtilityCreate(u: Utility) {
+  const projectServerId = getProjectServerId(u.projectId);
+  if (!projectServerId) return;
+
+  try {
+    const input = utilityToDesignFeature(u, projectServerId);
+    const { data } = await api.designFeatures.create(projectServerId, input);
+
+    isSyncing = true;
+    useUtilityStore.getState().updateUtility(u.id, { serverId: data.id });
+    isSyncing = false;
+  } catch (err) {
+    console.warn('[SYNC] Utility create failed, queuing:', err);
+    await syncQueue.enqueue({ storeType: 'point', action: 'create', localId: u.id, payload: u });
+  }
+}
+
+async function syncUtilityUpdate(u: Utility) {
+  if (!u.serverId) return;
+
+  try {
+    const projectServerId = getProjectServerId(u.projectId);
+    if (!projectServerId) return;
+    const input = utilityToDesignFeature(u, projectServerId);
+    await api.designFeatures.update(u.serverId, {
+      subtype: input.subtype,
+      geometry: input.geometry,
+      label: input.label,
+      properties: input.properties,
+      phaseTag: input.phaseTag,
+      style: input.style,
+    });
+  } catch (err) {
+    console.warn('[SYNC] Utility update failed, queuing:', err);
+    await syncQueue.enqueue({ storeType: 'point', action: 'update', localId: u.id, payload: u });
+  }
+}
+
+async function syncUtilityDelete(u: Utility) {
+  if (!u.serverId) {
+    await syncQueue.dequeueByLocalId(u.id);
+    return;
+  }
+
+  try {
+    await api.designFeatures.delete(u.serverId);
+    await syncQueue.dequeueByLocalId(u.id);
+  } catch (err) {
+    console.warn('[SYNC] Utility delete failed, queuing:', err);
+    await syncQueue.enqueue({ storeType: 'point', action: 'delete', localId: u.id, payload: { serverId: u.serverId } });
   }
 }
 
@@ -889,6 +962,34 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
         console.warn(`[SYNC] Failed to push path "${p.name}":`, err);
       }
     }
+
+    // Fetch utilities from server (typed-promotion 2026-05-22)
+    const { data: serverUtilities } = await api.designFeatures.list(project.serverId, 'point');
+    const localUtilities = useUtilityStore.getState().utilities.filter((u) => u.projectId === project.id);
+    const localUtilityByServerId = new Map(localUtilities.filter((u) => u.serverId).map((u) => [u.serverId!, u]));
+
+    for (const su of serverUtilities) {
+      const existing = localUtilityByServerId.get(su.id);
+      if (existing) {
+        const merged = designFeatureToPoint(su, project.id);
+        useUtilityStore.getState().updateUtility(existing.id, { ...merged, id: existing.id });
+      } else {
+        useUtilityStore.getState().addUtility(designFeatureToPoint(su, project.id));
+      }
+    }
+
+    const unsyncedUtilities = useUtilityStore.getState().utilities.filter(
+      (u) => u.projectId === project.id && !u.serverId,
+    );
+    for (const u of unsyncedUtilities) {
+      try {
+        const input = utilityToDesignFeature(u, project.serverId);
+        const { data } = await api.designFeatures.create(project.serverId, input);
+        useUtilityStore.getState().updateUtility(u.id, { serverId: data.id });
+      } catch (err) {
+        console.warn(`[SYNC] Failed to push utility "${u.name}":`, err);
+      }
+    }
   } catch (err) {
     console.warn(`[SYNC] Failed to merge design features for project "${project.name}":`, err);
   }
@@ -1235,6 +1336,17 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
       }
       break;
     }
+    case 'point': {
+      if (op.action === 'create') {
+        await syncUtilityCreate(payload as unknown as Utility);
+      } else if (op.action === 'update') {
+        await syncUtilityUpdate(payload as unknown as Utility);
+      } else if (op.action === 'delete') {
+        const serverId = payload.serverId as string;
+        if (serverId) await api.designFeatures.delete(serverId);
+      }
+      break;
+    }
     case 'vegetation': {
       if (op.action === 'create') {
         await syncVegetationCreate(payload as unknown as VegetationPatch);
@@ -1341,6 +1453,7 @@ export const syncService = {
     unsubscribers.push(subscribeToZones());
     unsubscribers.push(subscribeToStructures());
     unsubscribers.push(subscribeToPaths());
+    unsubscribers.push(subscribeToUtilities());
 
     // Generic versioned-blob write-through for the remaining ~62
     // project-scoped stores. Disabled by default — Phase 2 is a push-only

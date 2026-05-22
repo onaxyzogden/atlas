@@ -88,7 +88,6 @@ import { useSoilSampleStore } from '../store/soilSampleStore.js';
 import { useTopographyStore } from '../store/topographyStore.js';
 import { useTemplateStore } from '../store/templateStore.js';
 import { useUtilityRunStore } from '../store/utilityRunStore.js';
-import { useUtilityStore } from '../store/utilityStore.js';
 import { useWaterSystemsStore } from '../store/waterSystemsStore.js';
 import { useRotationPlanStore } from '../store/rotationPlanStore.js';
 import { useCompostCycleStore } from '../store/compostCycleStore.js';
@@ -303,6 +302,13 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // and appear in the master-plan PDF feature roster. Transport lives in
   // syncService (subscribeToPaths + mergeDesignFeatures), not the blob loop.
   { storeKey: 'ogden-paths', classification: 'typed-design-feature' },
+  // ogden-utilities promoted from versioned-blob → typed design_features
+  // (featureType `point`) on 2026-05-22 so utility points are server-queryable
+  // and appear in the master-plan PDF feature roster. Transport lives in
+  // syncService (subscribeToUtilities + mergeDesignFeatures), not the blob loop.
+  // Note: ogden-utility-runs (connector lines) stays a versioned-blob — it is
+  // not the PDC "utility points" deliverable.
+  { storeKey: 'ogden-utilities', classification: 'typed-design-feature' },
 
   // --- typed-table: server should query/reason about these ---
   { storeKey: 'ogden-vegetation', classification: 'typed-table' },
@@ -374,7 +380,6 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-topography', useTopographyStore, 'projectId-tagged', 2, tagged('transects', 'contours', 'highPoints', 'drainageLines'), true),
   blob('ogden-templates', useTemplateStore, 'projectId-tagged', 1, tagged('customTemplates')),
   blob('ogden-utility-runs', useUtilityRunStore, 'projectId-tagged', 1, tagged('runs'), true),
-  blob('ogden-utilities', useUtilityStore, 'projectId-tagged', 1, tagged('utilities'), true),
   blob('ogden-water-systems', useWaterSystemsStore, 'projectId-tagged', 1, tagged('earthworks', 'storageInfra', 'watercourses', 'waterNodes'), true),
 
   // --- B-series additive design slices (byProject / projectId-tagged) ---

@@ -10,6 +10,7 @@ import type { CreateDesignFeatureInput, DesignFeatureSummary } from '@ogden/shar
 import type { LandZone } from '../store/zoneStore.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
 import type { DesignPath } from '../store/pathStore.js';
+import type { Utility } from '../store/utilityStore.js';
 
 export function zoneToDesignFeature(zone: LandZone, _projectServerId: string): CreateDesignFeatureInput {
   return {
@@ -134,6 +135,50 @@ export function designFeatureToPath(df: DesignFeatureSummary, projectLocalId: st
     enterprise: props.enterprise as string | undefined,
     accessible: props.accessible as boolean | undefined,
     restPointAnchors: props.restPointAnchors as [number, number][] | undefined,
+    createdAt: df.createdAt,
+    updatedAt: df.updatedAt,
+    serverId: df.id,
+  };
+}
+
+export function utilityToDesignFeature(u: Utility, _projectServerId: string): CreateDesignFeatureInput {
+  return {
+    featureType: 'point',
+    subtype: u.type,
+    geometry: { type: 'Point', coordinates: u.center },
+    label: u.name,
+    properties: {
+      localId: u.id,
+      center: u.center,
+      demandKwhPerDay: u.demandKwhPerDay,
+      capacityGal: u.capacityGal,
+      isTemporary: u.isTemporary,
+      seasonalMonths: u.seasonalMonths,
+      notes: u.notes,
+    },
+    phaseTag: u.phase || undefined,
+    sortOrder: 0,
+  };
+}
+
+export function designFeatureToPoint(df: DesignFeatureSummary, projectLocalId: string): Utility {
+  const props = df.properties as Record<string, unknown>;
+  const geom = df.geometry as GeoJSON.Point | undefined;
+  return {
+    id: (props.localId as string) || crypto.randomUUID(),
+    projectId: projectLocalId,
+    name: df.label ?? '',
+    type: (df.subtype ?? 'water_tank') as Utility['type'],
+    center:
+      (props.center as [number, number]) ??
+      (geom?.coordinates as [number, number] | undefined) ??
+      [0, 0],
+    phase: df.phaseTag ?? '',
+    notes: (props.notes as string) ?? '',
+    demandKwhPerDay: props.demandKwhPerDay as number | undefined,
+    capacityGal: props.capacityGal as number | undefined,
+    isTemporary: props.isTemporary as boolean | undefined,
+    seasonalMonths: props.seasonalMonths as number[] | undefined,
     createdAt: df.createdAt,
     updatedAt: df.updatedAt,
     serverId: df.id,
