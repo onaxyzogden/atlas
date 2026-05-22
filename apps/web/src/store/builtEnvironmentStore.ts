@@ -86,6 +86,9 @@ export interface PowerLine {
   geometry: GeoJSON.LineString;
   placement: PowerLinePlacement;
   lengthM: number;
+  /** Optional real-world width override (metres). Falls back to the
+   *  kind's catalog default in `lineKindDefaultWidthM`. */
+  widthM?: number;
   label?: string;
   notes?: string;
   createdAt: string;
@@ -99,6 +102,9 @@ export interface BuriedUtility {
   geometry: GeoJSON.LineString;
   kind: BuriedUtilityKind;
   lengthM: number;
+  /** Optional real-world width override (metres). Falls back to the
+   *  kind's catalog default in `lineKindDefaultWidthM`. */
+  widthM?: number;
   label?: string;
   notes?: string;
   createdAt: string;
@@ -112,6 +118,9 @@ export interface Fence {
   geometry: GeoJSON.LineString;
   kind: FenceKind;
   lengthM: number;
+  /** Optional real-world width override (metres). Falls back to the
+   *  kind's catalog default in `lineKindDefaultWidthM`. */
+  widthM?: number;
   label?: string;
   notes?: string;
   createdAt: string;
@@ -140,6 +149,9 @@ export interface ExistingDriveway {
   geometry: GeoJSON.LineString;
   surface: DrivewaySurface;
   lengthM: number;
+  /** Optional real-world width override (metres). Falls back to the
+   *  kind's catalog default in `lineKindDefaultWidthM`. */
+  widthM?: number;
   label?: string;
   notes?: string;
   createdAt: string;
@@ -285,6 +297,7 @@ function projectPowerLine(e: BuiltEnvironmentEntity): PowerLine | undefined {
     geometry,
     placement,
     lengthM: e.existing?.lengthM ?? 0,
+    widthM: e.existing?.widthM,
     label: e.label,
     notes: e.notes,
     createdAt: e.createdAt,
@@ -305,6 +318,7 @@ function projectBuriedUtility(e: BuiltEnvironmentEntity): BuriedUtility | undefi
     geometry,
     kind,
     lengthM: e.existing?.lengthM ?? 0,
+    widthM: e.existing?.widthM,
     label: e.label,
     notes: e.notes,
     createdAt: e.createdAt,
@@ -329,6 +343,7 @@ function projectFence(e: BuiltEnvironmentEntity): Fence | undefined {
     geometry,
     kind,
     lengthM: e.existing?.lengthM ?? 0,
+    widthM: e.existing?.widthM,
     label: e.label,
     notes: e.notes,
     createdAt: e.createdAt,
@@ -360,6 +375,7 @@ function projectDriveway(e: BuiltEnvironmentEntity): ExistingDriveway | undefine
     geometry,
     surface,
     lengthM: e.existing?.lengthM ?? 0,
+    widthM: e.existing?.widthM,
     label: e.label,
     notes: e.notes,
     createdAt: e.createdAt,
@@ -600,7 +616,7 @@ export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) =>
         geometry: p.geometry,
         label: p.label,
         notes: p.notes,
-        existing: { placement: p.placement, lengthM: p.lengthM },
+        existing: { placement: p.placement, lengthM: p.lengthM, ...(p.widthM !== undefined ? { widthM: p.widthM } : {}) },
       },
       p.id,
     ),
@@ -608,10 +624,11 @@ export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) =>
     const update: Parameters<BuiltEnvironmentV2State['updateMetadata']>[1] = {};
     if (patch.label !== undefined) update.label = patch.label;
     if (patch.notes !== undefined) update.notes = patch.notes;
-    if (patch.placement !== undefined || patch.lengthM !== undefined) {
+    if (patch.placement !== undefined || patch.lengthM !== undefined || patch.widthM !== undefined) {
       update.existing = {
         ...(patch.placement !== undefined ? { placement: patch.placement } : {}),
         ...(patch.lengthM !== undefined ? { lengthM: patch.lengthM } : {}),
+        ...(patch.widthM !== undefined ? { widthM: patch.widthM } : {}),
       };
     }
     v2Api().updateMetadata(id, update);
@@ -628,7 +645,7 @@ export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) =>
         geometry: u.geometry,
         label: u.label,
         notes: u.notes,
-        existing: { subtype: u.kind, lengthM: u.lengthM },
+        existing: { subtype: u.kind, lengthM: u.lengthM, ...(u.widthM !== undefined ? { widthM: u.widthM } : {}) },
       },
       u.id,
     ),
@@ -636,10 +653,11 @@ export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) =>
     const update: Parameters<BuiltEnvironmentV2State['updateMetadata']>[1] = {};
     if (patch.label !== undefined) update.label = patch.label;
     if (patch.notes !== undefined) update.notes = patch.notes;
-    if (patch.kind !== undefined || patch.lengthM !== undefined) {
+    if (patch.kind !== undefined || patch.lengthM !== undefined || patch.widthM !== undefined) {
       update.existing = {
         ...(patch.kind !== undefined ? { subtype: patch.kind } : {}),
         ...(patch.lengthM !== undefined ? { lengthM: patch.lengthM } : {}),
+        ...(patch.widthM !== undefined ? { widthM: patch.widthM } : {}),
       };
     }
     v2Api().updateMetadata(id, update);
@@ -656,7 +674,7 @@ export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) =>
         geometry: f.geometry,
         label: f.label,
         notes: f.notes,
-        existing: { subtype: f.kind, lengthM: f.lengthM },
+        existing: { subtype: f.kind, lengthM: f.lengthM, ...(f.widthM !== undefined ? { widthM: f.widthM } : {}) },
       },
       f.id,
     ),
@@ -664,10 +682,11 @@ export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) =>
     const update: Parameters<BuiltEnvironmentV2State['updateMetadata']>[1] = {};
     if (patch.label !== undefined) update.label = patch.label;
     if (patch.notes !== undefined) update.notes = patch.notes;
-    if (patch.kind !== undefined || patch.lengthM !== undefined) {
+    if (patch.kind !== undefined || patch.lengthM !== undefined || patch.widthM !== undefined) {
       update.existing = {
         ...(patch.kind !== undefined ? { subtype: patch.kind } : {}),
         ...(patch.lengthM !== undefined ? { lengthM: patch.lengthM } : {}),
+        ...(patch.widthM !== undefined ? { widthM: patch.widthM } : {}),
       };
     }
     v2Api().updateMetadata(id, update);
@@ -710,7 +729,7 @@ export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) =>
         geometry: d.geometry,
         label: d.label,
         notes: d.notes,
-        existing: { surface: d.surface, lengthM: d.lengthM },
+        existing: { surface: d.surface, lengthM: d.lengthM, ...(d.widthM !== undefined ? { widthM: d.widthM } : {}) },
       },
       d.id,
     ),
@@ -718,10 +737,11 @@ export const useBuiltEnvironmentStore = create<BuiltEnvironmentState>()((set) =>
     const update: Parameters<BuiltEnvironmentV2State['updateMetadata']>[1] = {};
     if (patch.label !== undefined) update.label = patch.label;
     if (patch.notes !== undefined) update.notes = patch.notes;
-    if (patch.surface !== undefined || patch.lengthM !== undefined) {
+    if (patch.surface !== undefined || patch.lengthM !== undefined || patch.widthM !== undefined) {
       update.existing = {
         ...(patch.surface !== undefined ? { surface: patch.surface } : {}),
         ...(patch.lengthM !== undefined ? { lengthM: patch.lengthM } : {}),
+        ...(patch.widthM !== undefined ? { widthM: patch.widthM } : {}),
       };
     }
     v2Api().updateMetadata(id, update);
