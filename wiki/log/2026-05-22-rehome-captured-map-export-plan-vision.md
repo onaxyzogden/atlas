@@ -75,9 +75,11 @@ visual claimed, per the preview-verification rule:
   source incl. `maptiler_planet`), consistent with the software-WebGL/headless
   preview.
 
-- **typecheck:** `cd apps/web && npm run typecheck` — (see commit gate; root
-  turbo `npm run typecheck` fails with an env-only "cannot find binary path"
-  error and was not used).
+- **typecheck:** `cd apps/web && npm run typecheck` (the 8 GB
+  `--max-old-space-size` node script) exits 0 at the **3-error pre-existing
+  baseline** (`StepBoundary.tsx`, two `HostUnion*` tests) — **none in the two
+  edited files**. The root turbo `npm run typecheck` was *not* used: it fails
+  with an env-only "cannot find binary path" error before running.
 
 ## Stage C — server PDF round-trip: deferred
 
