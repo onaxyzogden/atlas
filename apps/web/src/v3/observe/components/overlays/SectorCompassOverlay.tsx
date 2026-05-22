@@ -91,7 +91,6 @@ export default function SectorCompassOverlay({ projectId, map }: Props) {
   return (
     <div className={css.dock} aria-hidden={false}>
       <div className={css.card}>
-        <span className={css.label}>Sector compass</span>
         <div
           style={{
             transform: `perspective(420px) rotateX(${pitch}deg) rotateZ(${-bearing}deg)`,
