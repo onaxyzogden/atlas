@@ -34,6 +34,10 @@ const MANUAL_COLORS: Record<string, string> = {
   view:            '#4a8a7a',
 };
 
+/** Manual sector types that read as solar — rendered as an edge rim band
+ *  (matching the auto-computed solar arcs) rather than an interior wedge. */
+const SOLAR_SECTOR_TYPES = new Set<string>(['sun_summer', 'sun_winter']);
+
 function bearingToXY(bearingDeg: number, r: number): [number, number] {
   const rad = ((bearingDeg - 90) * Math.PI) / 180;
   return [CX + r * Math.cos(rad), CY + r * Math.sin(rad)];
@@ -121,8 +125,6 @@ export default function SectorCompassDiagram({
     return computeSolarSectors(centroid);
   }, [centroid]);
 
-  const manualWedges = useMemo(() => sectors.map(arrowToWedge), [sectors]);
-
   const size = compact ? 180 : 300;
 
   return (
@@ -195,10 +197,17 @@ export default function SectorCompassDiagram({
         />
       ))}
 
-      {/* Layer 3 — Manual sector arrows */}
-      {manualWedges.map((w) => (
-        <WedgePath key={w.id} wedge={w} rOuter={R_OUTER * 0.78} rInner={12} opacity={0.7} />
-      ))}
+      {/* Layer 3 — Manual sector arrows. Solar types hug the outer rim as a
+          thin band (like the auto-computed solar arcs); all others stay
+          interior wedges. */}
+      {sectors.map((a) => {
+        const w = arrowToWedge(a);
+        return SOLAR_SECTOR_TYPES.has(a.type) ? (
+          <WedgePath key={w.id} wedge={w} rOuter={R_OUTER} rInner={R_OUTER * 0.82} opacity={0.7} />
+        ) : (
+          <WedgePath key={w.id} wedge={w} rOuter={R_OUTER * 0.78} rInner={12} opacity={0.7} />
+        );
+      })}
 
       {/* Centre dot */}
       <circle cx={CX} cy={CY} r={5} fill="#7aaa7a" />
