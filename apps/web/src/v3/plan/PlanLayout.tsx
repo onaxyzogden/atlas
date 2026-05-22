@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
@@ -110,13 +110,18 @@ export default function PlanLayout() {
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   // Which specific rail section the steward picked. Several sections share a
   // module (the BE categories → `structures-subsystems`), so module equality
-  // alone lights them all. Lifted here (next to `slideUpOpen`) so BOTH the
-  // main rail (`PlanTools`) and the mini rail (`PlanChecklistAside`) narrow to
-  // the same single section — true cross-rail parity. Derived lazily into
-  // `effectiveSectionId`: a stale id (reload, bottom-bar nav, deselect, or the
-  // brief transient before async navigation resolves) routes to a different
-  // module and is ignored, falling back to the whole-family highlight.
-  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  // alone lights them all. Persisted in the URL `?section=` search param (the
+  // same way `$module` is the source of truth for the active module) so the
+  // single-section narrow survives reloads, back/forward nav, and shared links
+  // — and so BOTH the main rail (`PlanTools`) and the mini rail
+  // (`PlanChecklistAside`) read the same value (true cross-rail parity). Read
+  // loosely (no route `validateSearch`, matching `ObserveDeepLinkFocus`).
+  // Derived lazily into `effectiveSectionId`: a stale id (manual URL edit,
+  // bottom-bar nav, or the brief transient before async navigation resolves)
+  // routes to a different module and is ignored, falling back to the
+  // whole-family highlight.
+  const search = useSearch({ strict: false }) as { section?: string };
+  const activeSectionId = search.section ?? null;
   const effectiveSectionId =
     activeSectionId && planSectionIdModule(activeSectionId) === validModule
       ? activeSectionId
@@ -231,43 +236,43 @@ export default function PlanLayout() {
     (s) => s.clearTarget,
   );
 
-  // Pure navigation primitive (the former `handleSelectModule` body).
-  const navigateModule = (mod: PlanModule | null) => {
+  // Single navigation primitive: writes both the `$module` path param AND the
+  // `?section=` search param atomically (and closes the slide-up), so the
+  // active module and the narrowed section never disagree. `search` is always
+  // passed explicitly so the param is set/cleared deterministically.
+  const navigateModuleSection = (
+    mod: PlanModule | null,
+    sectionId: string | null,
+  ) => {
     if (!params.projectId) return;
+    setSlideUpOpen(false);
     if (mod === null) {
       navigate({
         to: '/v3/project/$projectId/plan',
         params: { projectId: params.projectId },
+        search: {},
       });
-      setSlideUpOpen(false);
       return;
     }
     navigate({
       to: '/v3/project/$projectId/plan/$module',
       params: { projectId: params.projectId, module: mod },
+      search: sectionId ? { section: sectionId } : {},
     });
-    setSlideUpOpen(false);
   };
 
   // Programmatic / bottom-module-bar / slide-up module selection: clears any
   // section narrowing so the picked module shows its whole family.
-  const handleSelectModule = (mod: PlanModule | null) => {
-    setActiveSectionId(null);
-    navigateModule(mod);
-  };
+  const handleSelectModule = (mod: PlanModule | null) =>
+    navigateModuleSection(mod, null);
 
   // Rail section clicks (main rail + mini rail). Toggles on strict identity so
   // re-clicking the sole-active section deselects; otherwise narrows to /
   // switches to the clicked section across both rails.
   const handleSelectSection = (mod: PlanModule, sectionId: string) => {
     if (!params.projectId) return;
-    if (effectiveSectionId === sectionId) {
-      setActiveSectionId(null);
-      navigateModule(null);
-    } else {
-      setActiveSectionId(sectionId);
-      navigateModule(mod);
-    }
+    if (effectiveSectionId === sectionId) navigateModuleSection(null, null);
+    else navigateModuleSection(mod, sectionId);
   };
 
   // Slice M routing: when the drilldown card's "Open full audit →" fires
@@ -282,9 +287,11 @@ export default function PlanLayout() {
     const req = consumePendingOpen();
     if (!req) return;
     if (isPlanModule(req.module)) {
+      // Programmatic module-open clears any section narrowing (whole family).
       navigate({
         to: '/v3/project/$projectId/plan/$module',
         params: { projectId: params.projectId, module: req.module },
+        search: {},
       });
     }
     setSlideUpOpen(true);

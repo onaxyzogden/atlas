@@ -19,7 +19,7 @@
  */
 
 import { useState } from 'react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import ObserveDeepLinkFocus from './components/ObserveDeepLinkFocus.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
@@ -108,11 +108,15 @@ export default function ObserveLayout() {
   const [slideUpOpen, setSlideUpOpen] = useState(false);
   // Which specific rail section the steward picked. The BE categories all
   // route to `built-environment`, so module equality alone lights them all.
-  // Lifted here (next to `slideUpOpen`) so BOTH the main rail (`ObserveTools`)
-  // and the mini rail (`ObserveChecklistAside`) narrow to the same single
-  // section. Derived lazily into `effectiveSectionId`: a stale id routes to a
-  // different module and is ignored, falling back to the whole-family view.
-  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  // Persisted in the URL `?section=` search param (single source of truth,
+  // mirroring how `$module` already is) so the single-section highlight
+  // survives reloads, back/forward nav, and shared links. BOTH the main rail
+  // (`ObserveTools`) and the mini rail (`ObserveChecklistAside`) read the same
+  // reconciled value. Derived lazily into `effectiveSectionId`: a stale id
+  // routes to a different module and is ignored, falling back to the
+  // whole-family view.
+  const search = useSearch({ strict: false }) as { section?: string };
+  const activeSectionId = search.section ?? null;
   const effectiveSectionId =
     activeSectionId && observeSectionIdModule(activeSectionId) === validModule
       ? activeSectionId
@@ -121,43 +125,43 @@ export default function ObserveLayout() {
   const [hovering, setHovering] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Pure navigation primitive (the former `handleSelectModule` body).
-  const navigateModule = (mod: ObserveModule | null) => {
+  // Single navigation primitive: writes the `$module` path param AND the
+  // `?section` search param atomically (and closes the slide-up), so path and
+  // search update together. `navigate`'s `search` REPLACES the object, so it
+  // is passed explicitly every time — omitting it would strip the section.
+  const navigateModuleSection = (
+    mod: ObserveModule | null,
+    sectionId: string | null,
+  ) => {
     if (!params.projectId) return;
+    setSlideUpOpen(false);
     if (mod === null) {
       navigate({
         to: '/v3/project/$projectId/observe',
         params: { projectId: params.projectId },
+        search: {},
       });
-      setSlideUpOpen(false);
       return;
     }
     navigate({
       to: '/v3/project/$projectId/observe/$module',
       params: { projectId: params.projectId, module: mod },
+      search: sectionId ? { section: sectionId } : {},
     });
-    setSlideUpOpen(false);
   };
 
   // Programmatic / bottom-module-bar / slide-up module selection: clears any
   // section narrowing so the picked module shows its whole family.
-  const handleSelectModule = (mod: ObserveModule | null) => {
-    setActiveSectionId(null);
-    navigateModule(mod);
-  };
+  const handleSelectModule = (mod: ObserveModule | null) =>
+    navigateModuleSection(mod, null);
 
   // Rail section clicks (main rail + mini rail). Toggles on strict identity so
   // re-clicking the sole-active section deselects; otherwise narrows to /
   // switches to the clicked section across both rails.
   const handleSelectSection = (mod: ObserveModule, sectionId: string) => {
     if (!params.projectId) return;
-    if (effectiveSectionId === sectionId) {
-      setActiveSectionId(null);
-      navigateModule(null);
-    } else {
-      setActiveSectionId(sectionId);
-      navigateModule(mod);
-    }
+    if (effectiveSectionId === sectionId) navigateModuleSection(null, null);
+    else navigateModuleSection(mod, sectionId);
   };
 
   const moduleBar = (

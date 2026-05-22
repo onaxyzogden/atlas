@@ -318,15 +318,21 @@ export default function DesignElementLayers({
       // Width-aware line rendering: real-world `widthM` (per-feature override
       // or kind default from elementCatalog, stamped onto the GeoJSON props
       // above) is interpolated across zoom into screen pixels. The `max(…)`
-      // floors keep narrow kinds legible at low zoom. Selection adds +2 px
-      // on top of the data-driven width via a `case` wrap.
+      // floors keep narrow kinds legible at low zoom. The +2 px selection
+      // emphasis is folded into each interpolate stop's OUTPUT (not wrapped
+      // around the whole expression): MapLibre requires the zoom curve to be
+      // the outermost expression of `line-width` and forbids more than one
+      // zoom-based sub-expression, so a `['case', selFlag, ['+', expr, 2],
+      // expr]` wrapper — which nests the zoom interpolate twice — throws
+      // "Only one zoom-based step/interpolate subexpression may be used" on
+      // every repaint. feature-state is allowed in the stop outputs.
       const lineWidthExpr: ExpressionSpecification = [
         'interpolate',
         ['exponential', 2],
         ['zoom'],
-        12, ['max', 0.5, ['*', ['coalesce', ['get', 'widthM'], 1], 0.05]],
-        19, ['max', 1.5, ['*', ['coalesce', ['get', 'widthM'], 1], 1.6]],
-        22, ['max', 2,   ['*', ['coalesce', ['get', 'widthM'], 1], 25]],
+        12, ['+', ['max', 0.5, ['*', ['coalesce', ['get', 'widthM'], 1], 0.05]], ['case', selFlag, 2, 0]],
+        19, ['+', ['max', 1.5, ['*', ['coalesce', ['get', 'widthM'], 1], 1.6]],  ['case', selFlag, 2, 0]],
+        22, ['+', ['max', 2,   ['*', ['coalesce', ['get', 'widthM'], 1], 25]],   ['case', selFlag, 2, 0]],
       ];
       ensureLayer({
         id: `${LAYER_PREFIX}line`,
@@ -334,7 +340,7 @@ export default function DesignElementLayers({
         source: lineSid,
         paint: {
           'line-color': ['case', selFlag, SEL_GOLD, ['get', 'color']],
-          'line-width': ['case', selFlag, ['+', lineWidthExpr, 2], lineWidthExpr],
+          'line-width': lineWidthExpr,
           'line-opacity': ['case', draftFlag, 0.65, 0.9],
           'line-dasharray': [2, 1],
         },
