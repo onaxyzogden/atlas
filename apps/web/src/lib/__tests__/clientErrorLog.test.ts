@@ -22,7 +22,12 @@ vi.mock('../apiClient', () => ({
 
 // VITE_ATLAS_TELEMETRY_ENABLED defaults to dev-mode 'true'; vitest reports
 // import.meta.env.DEV = true, so no override needed.
-import { recordClientError, flush, __test } from '../clientErrorLog';
+import {
+  recordClientError,
+  flush,
+  setClientErrorProjectIdResolver,
+  __test,
+} from '../clientErrorLog';
 
 const evt = (overrides: Partial<Parameters<typeof recordClientError>[0]> = {}) => ({
   source: 'persist_rehydrate' as const,
@@ -190,5 +195,39 @@ describe('clientErrorLog', () => {
 
     const e = firstCallEvents()[0] as { projectId: string | null };
     expect(e.projectId).toBeNull();
+  });
+
+  describe('projectId resolver', () => {
+    it('fills projectId from the resolver when the caller omits it', async () => {
+      setClientErrorProjectIdResolver(() => 'proj-123');
+      recordClientError({ source: 'react_error_boundary', name: 'TypeError' });
+      vi.advanceTimersByTime(1500);
+      await Promise.resolve();
+
+      const e = firstCallEvents()[0] as { projectId: string | null };
+      expect(e.projectId).toBe('proj-123');
+    });
+
+    it('lets an explicit null override the resolver (persist helper case)', async () => {
+      setClientErrorProjectIdResolver(() => 'proj-123');
+      recordClientError({ source: 'persist_rehydrate', name: 'SyntaxError', projectId: null });
+      vi.advanceTimersByTime(1500);
+      await Promise.resolve();
+
+      const e = firstCallEvents()[0] as { projectId: string | null };
+      expect(e.projectId).toBeNull();
+    });
+
+    it('falls back to null when the resolver throws (never breaks recording)', async () => {
+      setClientErrorProjectIdResolver(() => {
+        throw new Error('store not ready');
+      });
+      recordClientError({ source: 'unhandled_rejection', name: 'Error' });
+      vi.advanceTimersByTime(1500);
+      await Promise.resolve();
+
+      const e = firstCallEvents()[0] as { projectId: string | null };
+      expect(e.projectId).toBeNull();
+    });
   });
 });

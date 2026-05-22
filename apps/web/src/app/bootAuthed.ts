@@ -34,6 +34,9 @@ import { useAuthStore } from '../store/authStore.js';
 import { useSessionExpiredStore } from '../store/sessionExpiredStore.js';
 import { setSessionExpiredHandler } from '../lib/apiClient.js';
 import { syncService } from '../lib/syncService.js';
+import { useProjectStore } from '../store/projectStore.js';
+import { setClientErrorProjectIdResolver } from '../lib/clientErrorLog.js';
+import { installGlobalErrorHandlers } from '../lib/globalErrorHandlers.js';
 
 /**
  * Block first paint on auth init so the apiClient module-level token is
@@ -54,6 +57,12 @@ async function bootAuth(): Promise<void> {
  */
 export async function bootAuthedShell(): Promise<void> {
   await bootAuth();
+
+  // Client-error telemetry wiring (authed-only — see showcase bundle-split
+  // ADR). Register the active-project resolver so boundary / unhandled-
+  // rejection errors get a projectId, then install the global handlers.
+  setClientErrorProjectIdResolver(() => useProjectStore.getState().activeProjectId ?? null);
+  installGlobalErrorHandlers();
 
   // Wire the apiClient → sessionExpiredStore bridge BEFORE createRoot so any
   // fetch fired during the first render (or a stale-token sync on boot)

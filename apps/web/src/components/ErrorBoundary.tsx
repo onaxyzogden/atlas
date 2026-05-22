@@ -8,6 +8,35 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { earth, semantic, error as errorToken } from '../lib/tokens.js';
 
+/**
+ * Fire-and-forget client-error telemetry for a caught render error.
+ *
+ * The dynamic import is load-bearing: GlobalErrorBoundary is mounted on every
+ * path including `/showcase/*`, and `clientErrorLog` statically imports
+ * apiClient. A static import here would pull the authed graph into the
+ * showcase initial chunk and regress the bundle split
+ * (wiki ADR 2026-05-21-atlas-showcase-bundle-split). Deferring it to the catch
+ * path keeps it out of the entry graph and no-ops when telemetry is disabled.
+ */
+function reportBoundaryError(error: Error, info: ErrorInfo, boundary: string): void {
+  void import('../lib/clientErrorLog.js')
+    .then(({ recordClientError }) =>
+      recordClientError({
+        source: 'react_error_boundary',
+        name: error.name || 'Error',
+        message: error.message,
+        stack: error.stack,
+        context: {
+          boundary,
+          componentStack: info.componentStack?.slice(0, 4000),
+        },
+      }),
+    )
+    .catch(() => {
+      /* telemetry must never break the boundary's fallback render */
+    });
+}
+
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
@@ -32,6 +61,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   override componentDidCatch(error: Error, info: ErrorInfo) {
     console.error(`[OGDEN ErrorBoundary${this.props.name ? ` \u2014 ${this.props.name}` : ''}]`, error, info.componentStack);
+    reportBoundaryError(error, info, this.props.name ?? 'unnamed');
   }
 
   handleReset = () => {
@@ -90,6 +120,7 @@ export class GlobalErrorBoundary extends Component<{ children: ReactNode }, Stat
 
   override componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('[OGDEN Global Error]', error, info.componentStack);
+    reportBoundaryError(error, info, 'global');
   }
 
   handleReset = () => {

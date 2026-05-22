@@ -5,9 +5,11 @@
  * POST /api/v1/telemetry/client-errors (migration 039). First consumer:
  * the zustand persist `rehydrateWithLogging` helper, whose failures were
  * previously only visible via console.error (see
- * wiki/log/2026-05-21-persist-rehydrate-instrumentation.md). Future
- * consumers: apiClient failures, a React error boundary, unhandled
- * rejections.
+ * wiki/log/2026-05-21-persist-rehydrate-instrumentation.md). Also consumed by
+ * the React error boundaries (`react_error_boundary`, via a lazy dynamic
+ * import to stay out of the showcase chunk) and the global unhandled-
+ * rejection handler (`unhandled_rejection`, see globalErrorHandlers.ts).
+ * Future consumer: apiClient failures (`api_client`).
  *
  * Shape deliberately mirrors actInteractionLog.ts (queue + idle/ceiling/
  * beacon flush + capped retry + flag gate + session id + __test hooks) so
@@ -44,6 +46,34 @@ const TELEMETRY_ENABLED =
   'true';
 
 export const isClientErrorTelemetryEnabled = (): boolean => TELEMETRY_ENABLED;
+
+// ─── Project-id resolver ─────────────────────────────────────────────────────
+//
+// Non-React emitters (the React error boundaries, the global unhandled-
+// rejection handler) have no project context of their own. Rather than make
+// them import projectStore directly — which would drag the authed store graph
+// into the always-mounted code path and regress the showcase bundle split
+// (see wiki ADR 2026-05-21-atlas-showcase-bundle-split) — the authed
+// bootstrap registers a resolver here. recordClientError uses it only when a
+// caller omits projectId; an explicit value (including explicit null from the
+// persist helper) always wins.
+
+let projectIdResolver: (() => string | null) | null = null;
+
+/** Register a resolver for the active project id. Called from bootAuthed. */
+export function setClientErrorProjectIdResolver(fn: () => string | null): void {
+  projectIdResolver = fn;
+}
+
+const safeResolveProjectId = (): string | null => {
+  if (!projectIdResolver) return null;
+  try {
+    return projectIdResolver();
+  } catch {
+    // Resolver must never break the observed code path.
+    return null;
+  }
+};
 
 // ─── Session id ──────────────────────────────────────────────────────────────
 
@@ -182,7 +212,7 @@ export function recordClientError(input: RecordClientErrorInput): void {
     const evt: QueuedError = {
       sessionId: getSessionId(),
       occurredAt: new Date().toISOString(),
-      projectId: input.projectId ?? null,
+      projectId: input.projectId !== undefined ? input.projectId : safeResolveProjectId(),
       source: input.source,
       name: cap(input.name, 200) || 'Error',
       message: cap(input.message, 4000),
@@ -214,6 +244,7 @@ export const __test = {
     queue = [];
     sessionId = null;
     unloadHookInstalled = false;
+    projectIdResolver = null;
   },
   getQueueLength: () => queue.length,
   getQueueSnapshot: () => [...queue],
