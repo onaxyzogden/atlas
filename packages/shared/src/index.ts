@@ -50,6 +50,7 @@ export * from './schemas/section29.schema.js';
 export * from './schemas/elevation.schema.js';
 export * from './schemas/actTelemetry.schema.js';
 export * from './schemas/clientErrorTelemetry.schema.js';
+export * from './schemas/showcaseTelemetry.schema.js';
 export * from './schemas/workItem.schema.js';
 export * from './schemas/crewMember.schema.js';
 export * from './schemas/costRange.schema.js';

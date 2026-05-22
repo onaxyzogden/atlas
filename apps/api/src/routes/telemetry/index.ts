@@ -26,8 +26,10 @@ import {
   PostActInteractionsBody,
   GetActAffinityAggregateQuery,
   PostClientErrorsBody,
+  PostShowcaseEventsBody,
   type ActInteractionEventInput,
 } from '@ogden/shared';
+import type { JwtPayload } from '../../plugins/auth.js';
 
 export default async function telemetryRoutes(fastify: FastifyInstance) {
   const { db, authenticate } = fastify;
@@ -118,6 +120,70 @@ export default async function telemetryRoutes(fastify: FastifyInstance) {
           fastify.log.warn(
             { err, source: evt.source, projectId: evt.projectId },
             'telemetry: skipped client error during bulk insert',
+          );
+        }
+      }
+
+      reply.code(201);
+      return { data: { ingested }, meta: undefined, error: null };
+    },
+  );
+
+  // POST /showcase-events — PUBLIC bulk-insert for cold-visitor showcase
+  // telemetry. No authenticate preHandler: a showcase visitor is anonymous by
+  // definition (see migration 040 + showcaseTelemetry.schema.ts). user_id is
+  // stamped best-effort only if a bearer token happens to be present (e.g. a
+  // visitor_registered event posted right after sign-up). Rate-limited tighter
+  // than the global default since it accepts unauthenticated writes.
+  fastify.post(
+    '/showcase-events',
+    {
+      config: {
+        rateLimit: {
+          max: 60,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (req, reply) => {
+      const body = PostShowcaseEventsBody.parse(req.body);
+
+      // Best-effort user resolution: a cold visitor has no token, but a
+      // post-registration event may carry one. Never required.
+      let userId: string | null = null;
+      try {
+        const payload = await req.jwtVerify<JwtPayload>();
+        userId = payload.sub;
+      } catch {
+        userId = null;
+      }
+
+      let ingested = 0;
+
+      for (const evt of body.events) {
+        try {
+          await db`
+            INSERT INTO showcase_visitor_events (
+              session_id, occurred_at, tier, event_type,
+              user_id, project_id, payload
+            ) VALUES (
+              ${evt.sessionId},
+              ${evt.occurredAt},
+              ${evt.tier},
+              ${evt.eventType},
+              ${userId},
+              ${evt.projectId},
+              ${db.json(evt.payload as never) as unknown as string}
+            )
+          `;
+          ingested += 1;
+        } catch (err) {
+          // FK miss (unknown project_id) or constraint violation: drop the
+          // single event and continue. Telemetry is best-effort; one bad
+          // event must not poison a whole batch.
+          fastify.log.warn(
+            { err, eventType: evt.eventType, sessionId: evt.sessionId },
+            'telemetry: skipped showcase event during bulk insert',
           );
         }
       }
