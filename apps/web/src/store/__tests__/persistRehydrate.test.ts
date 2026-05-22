@@ -13,6 +13,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+
+// Mock the durable telemetry sink so we can assert rehydrate failures are
+// forwarded to it without exercising the real buffer/network path.
+const { recordClientError } = vi.hoisted(() => ({ recordClientError: vi.fn() }));
+vi.mock('../../lib/clientErrorLog', () => ({ recordClientError }));
+
 import { rehydrateWithLogging } from '../persistRehydrate.js';
 
 interface Probe {
@@ -50,6 +56,7 @@ describe('rehydrateWithLogging', () => {
 
   beforeEach(() => {
     errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    recordClientError.mockClear();
   });
   afterEach(() => {
     errSpy.mockRestore();
@@ -71,6 +78,27 @@ describe('rehydrateWithLogging', () => {
     await flush();
     expect(errSpy).not.toHaveBeenCalled();
     expect(store.getState().value).toBe(7);
+  });
+
+  it('forwards a rehydrate failure to the durable client-error sink', async () => {
+    const store = makeStore('ogden-conventional-crops', '{ not valid json');
+    rehydrateWithLogging(store);
+    await flush();
+    expect(recordClientError).toHaveBeenCalledTimes(1);
+    expect(recordClientError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'persist_rehydrate',
+        projectId: null,
+        context: { persistKey: 'ogden-conventional-crops' },
+      }),
+    );
+  });
+
+  it('does NOT call the sink on a clean rehydrate', async () => {
+    const store = makeStore('probe-clean', JSON.stringify({ state: { value: 1 }, version: 0 }));
+    rehydrateWithLogging(store);
+    await flush();
+    expect(recordClientError).not.toHaveBeenCalled();
   });
 
   it('auto-derives the persist name from getOptions when no override is passed', async () => {
