@@ -4,7 +4,7 @@
     {
       "name": "web",
       "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "cd apps\\web && node ../../node_modules/vite/bin/vite.js"],
+      "runtimeArgs": ["/c", "cd apps\\web && npx vite"],
       "port": 5200
     },
     {
@@ -16,19 +16,19 @@
     {
       "name": "web-wt",
       "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "cd apps\\web && node ../../node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5210 --strictPort"],
+      "runtimeArgs": ["/c", "cd apps\\web && npx vite --host 127.0.0.1 --port 5210 --strictPort"],
       "port": 5210
     },
     {
       "name": "atlas-ui",
       "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "cd apps\\atlas-ui && node ../../node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5300 --strictPort"],
+      "runtimeArgs": ["/c", "cd apps\\atlas-ui && npx vite --host 127.0.0.1 --port 5300 --strictPort"],
       "port": 5300
     },
     {
       "name": "web-a1",
       "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "cd apps\\web && node ../../node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5240 --strictPort"],
+      "runtimeArgs": ["/c", "cd apps\\web && npx vite --host 127.0.0.1 --port 5240 --strictPort"],
       "port": 5240
     }
   ]
