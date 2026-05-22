@@ -12,8 +12,14 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { buildMapSheetPayload } from "../MapSheetExportControl.js";
+import {
+  buildMapSheetPayload,
+  buildPlantingSchedule,
+  buildPlantingPlanPayload,
+} from "../MapSheetExportControl.js";
 import type { LandZone } from "../../../store/zoneStore.js";
+import type { Guild } from "../../../store/polycultureStore.js";
+import type { CropArea } from "../../../store/cropStore.js";
 
 const captured = {
   dataUrl: "data:image/png;base64,AAAA",
@@ -93,5 +99,111 @@ describe("buildMapSheetPayload", () => {
 
     const zone = buildMapSheetPayload("zone_map_sheet", captured, zones).mapSheet.mapImages[0]!;
     expect(zone.caption).toContain("Zone Map");
+  });
+});
+
+function makeGuild(overrides: Partial<Guild>): Guild {
+  return {
+    id: "g1",
+    projectId: "p1",
+    name: "Apple guild",
+    anchorSpeciesId: "black_walnut",
+    members: [],
+    createdAt: "2026-05-22T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function makeCropArea(overrides: Partial<CropArea>): CropArea {
+  return {
+    id: "c1",
+    projectId: "p1",
+    name: "North orchard",
+    color: "#6ba47a",
+    type: "orchard",
+    geometry: { type: "Polygon", coordinates: [] },
+    areaM2: 2500,
+    species: [],
+    treeSpacingM: 6,
+    rowSpacingM: 8,
+    waterDemand: "medium",
+    irrigationType: "drip",
+    phase: "phase-1",
+    notes: "",
+    createdAt: "2026-05-22T00:00:00.000Z",
+    updatedAt: "2026-05-22T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+describe("buildPlantingSchedule", () => {
+  it("resolves a known catalog id to common + latin name + spacing (guild anchor)", () => {
+    const rows = buildPlantingSchedule([makeGuild({})], []);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      species: "Black walnut",
+      latinName: "Juglans nigra",
+      layer: "canopy",
+      source: "Apple guild",
+      sourceKind: "guild",
+      count: 1,
+      spacingM: 12,
+    });
+  });
+
+  it("dedupes guild members by species and counts them", () => {
+    const guild = makeGuild({
+      anchorSpeciesId: "black_walnut",
+      members: [
+        { speciesId: "black_walnut", layer: "canopy" },
+        { speciesId: "comfrey_xyz", layer: "herbaceous" },
+      ],
+    });
+    const rows = buildPlantingSchedule([guild], []);
+    const walnut = rows.find((r) => r.species === "Black walnut")!;
+    // anchor + one member of the same species → count 2
+    expect(walnut.count).toBe(2);
+    expect(rows).toHaveLength(2);
+  });
+
+  it("crop-area species: derives layer from crop type, carries area, passes raw text through", () => {
+    const crop = makeCropArea({
+      type: "row_crop",
+      name: "Veg beds",
+      species: ["some_unlisted_crop"],
+      areaM2: 400,
+      treeSpacingM: null,
+    });
+    const rows = buildPlantingSchedule([], [crop]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      species: "some_unlisted_crop",
+      layer: "herbaceous",
+      source: "Veg beds",
+      sourceKind: "crop_area",
+      areaM2: 400,
+    });
+    expect(rows[0]!.spacingM).toBeUndefined();
+  });
+
+  it("merges both sources into one schedule", () => {
+    const rows = buildPlantingSchedule(
+      [makeGuild({})],
+      [makeCropArea({ species: ["apple"] })],
+    );
+    expect(rows.filter((r) => r.sourceKind === "guild")).toHaveLength(1);
+    expect(rows.filter((r) => r.sourceKind === "crop_area")).toHaveLength(1);
+  });
+});
+
+describe("buildPlantingPlanPayload", () => {
+  it("returns plantingPlan (not mapSheet) with legend + schedule + one image", () => {
+    const schedule = buildPlantingSchedule([makeGuild({})], []);
+    const out = buildPlantingPlanPayload(captured, zones, schedule);
+    expect("plantingPlan" in out).toBe(true);
+    expect(out.plantingPlan.mapImages).toHaveLength(1);
+    expect(out.plantingPlan.legend).toBeDefined();
+    expect(out.plantingPlan.schedule).toHaveLength(1);
+    expect(out.plantingPlan.mapImages[0]!.caption).toContain("Planting Plan");
   });
 });

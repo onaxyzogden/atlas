@@ -96,6 +96,7 @@ import { renderBuiltEnvironmentReport } from './builtEnvironmentReport.js';
 import { renderHumanContextReport } from './humanContextReport.js';
 import { renderMasterPlan } from './masterPlan.js';
 import { renderBaseMapSheet, renderZoneMapSheet } from './mapSheet.js';
+import { renderPlantingPlan } from './plantingPlan.js';
 
 export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   site_assessment: renderSiteAssessment,
@@ -117,4 +118,5 @@ export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   master_plan: renderMasterPlan,
   base_map_sheet: renderBaseMapSheet,
   zone_map_sheet: renderZoneMapSheet,
+  planting_plan: renderPlantingPlan,
 };

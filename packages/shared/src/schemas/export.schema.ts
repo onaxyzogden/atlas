@@ -23,6 +23,7 @@ export const ExportType = z.enum([
   'master_plan',
   'base_map_sheet',
   'zone_map_sheet',
+  'planting_plan',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -582,6 +583,38 @@ export const MasterPlanPayload = z.object({
 });
 export type MasterPlanPayload = z.infer<typeof MasterPlanPayload>;
 
+/**
+ * A single row in the planting-plan species schedule (OSU PDC Weeks 7–8).
+ * Merged client-side from guild members (polycultureStore) and crop-area
+ * species (cropStore); see `buildPlantingSchedule`.
+ */
+export const PlantingScheduleRow = z.object({
+  /** Resolved common name from the plant catalog, else raw steward text. */
+  species: z.string(),
+  latinName: z.string().optional(),
+  /** Food-forest layer (guild member) or crop-type-derived layer. */
+  layer: z.string().optional(),
+  /** Guild name or crop-area name this row came from. */
+  source: z.string(),
+  sourceKind: z.enum(['guild', 'crop_area']),
+  /** Guild member count for this species within its guild. */
+  count: z.number().optional(),
+  /** Catalog `spacingM.inRow` (guild) or `cropArea.treeSpacingM` (crop area). */
+  spacingM: z.number().optional(),
+  /** Crop-area area (m²); guild rows leave this undefined. */
+  areaM2: z.number().optional(),
+});
+export type PlantingScheduleRow = z.infer<typeof PlantingScheduleRow>;
+
+/**
+ * Planting-plan export payload — the captured crop-zone map (reusing the
+ * master-plan map/legend/narrative base) plus a merged species schedule.
+ */
+export const PlantingPlanPayload = MasterPlanPayload.extend({
+  schedule: z.array(PlantingScheduleRow).default([]),
+});
+export type PlantingPlanPayload = z.infer<typeof PlantingPlanPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -599,6 +632,7 @@ export const CreateExportInput = z.object({
     builtEnvironment: BuiltEnvironmentPayload.optional(),
     humanContext: HumanContextPayload.optional(),
     mapSheet: MasterPlanPayload.optional(),
+    plantingPlan: PlantingPlanPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;
