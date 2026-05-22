@@ -103,7 +103,7 @@ export default async function organizationRoutes(fastify: FastifyInstance) {
       // Build dynamic SET — only update provided fields. postgres.js does not
       // accept SET fragments via tagged template easily, so we run targeted
       // UPDATEs per provided key. All run inside a single tx for atomicity.
-      const updated = await db.begin(async (sql) => {
+      const updated = await db.begin(async (sql: any) => {
         if (body.name !== undefined) {
           await sql`UPDATE organizations SET name = ${body.name} WHERE id = ${orgId}`;
         }

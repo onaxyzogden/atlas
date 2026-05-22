@@ -62,7 +62,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
     // Wrap user + personal-org + owner-membership in one tx so a register either
     // produces a fully-attached user or rolls back cleanly. Phase 4.5 invariant:
     // every user owns at least one org from the moment of register.
-    const { user, defaultOrgId } = await db.begin(async (sql) => {
+    const { user, defaultOrgId } = await db.begin(async (sql: any) => {
       const [newUser] = await sql`
         INSERT INTO users (email, display_name, password_hash, auth_provider)
         VALUES (${body.email}, ${body.displayName ?? null}, ${passwordHash}, 'local')
