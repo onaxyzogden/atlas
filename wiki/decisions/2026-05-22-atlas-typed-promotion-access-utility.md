@@ -124,17 +124,23 @@ exactly one transport owns each store.
   seeded project + headless WebGL + MapTiler key). Stated, not claimed (per
   project CLAUDE.md). Covered meanwhile by the mapper unit tests + typecheck.
 
-## Deferred (Phase C remainder)
+## Phase C remainder
 
-- **C3 — `landDesign` no-sync bug.** `ogden-atlas-design-elements` is
-  classified `typed-design-feature` in `syncManifest.ts` but has **no
-  transport wired** → localStorage-only, silently won't sync. The store is a
+- **C3 — `landDesign` no-sync bug. DONE (commit `15612b75`,
+  2026-05-22).** `ogden-atlas-design-elements` was classified
+  `typed-design-feature` in `syncManifest.ts` but had **no transport wired**
+  → localStorage-only, silently never synced. The store is a
   `byProject: Record<projectId, DesignElement[]>` map (schemaVersion 2, not
-  temporal). Minimal correct fix: reclassify to `versioned-blob` with
-  `byKey('byProject', null, [])` + add the `useLandDesignStore` import. This
-  is a `versioned-blob` (not a second typed promotion) because the freeform
-  sketch kinds it holds have no clean `design_features` feature_type and are
-  not a PDC roster deliverable.
+  temporal). Fixed by reclassifying to `versioned-blob` with
+  `byKey('byProject', null, [])` + the `useLandDesignStore` import (no
+  `syncService` change — the generic blob loop handles it). A
+  `versioned-blob` (not a second typed promotion) because the freeform sketch
+  kinds it holds have no clean `design_features` feature_type and are not a
+  PDC roster deliverable. The C3 commit also fixed a C1 test regression (the
+  `syncManifest.test.ts` round-trip example still used `ogden-paths`, now
+  `typed-design-feature` with no `selectForProject` → runtime throw; repointed
+  to `ogden-utility-runs`). Verified `syncManifest` 77/77 + tsc at baseline.
+  Log: [[log/2026-05-22-landdesign-no-sync-fix-pdc-phase-c3]].
 - **C4** — canonical access/utility ownership (designed access →
   `pathStore`, designed utility → `utilityStore`, BE driveway/power/well/
   septic = Observe record of existing infra, `landDesign` path/road kinds =
