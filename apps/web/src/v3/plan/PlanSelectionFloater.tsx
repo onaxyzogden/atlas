@@ -45,6 +45,7 @@ import { useInlineFormStore } from './draw/inlineFormStore.js';
 import {
   buildPaddockEditSchema,
   buildHabitatFeatureEditSchema,
+  buildLineFeatureEditSchema,
 } from './layers/inlineEditSchemas.js';
 import {
   resolveSilvopastureHosts,
@@ -78,6 +79,12 @@ const POLYGON_KINDS: ReadonlySet<PlanSelectionItem['kind']> = new Set([
   // record's geometry is a Polygon — checked dynamically below.
   'design-element',
 ]);
+
+/** Plain LineString DesignElement kinds whose only inline-edit affordance is
+ *  the real-world `widthM` override + label (no bespoke metadata axis).
+ *  `swale` is excluded (edited via its own water form); habitat lines like
+ *  `insectary-strip` go through `buildHabitatFeatureEditSchema`. */
+const LINE_EDIT_KINDS: ReadonlySet<string> = new Set(['hedgerow', 'path', 'road']);
 
 /** Returns the geometry type for a design-element selection (used to
  *  decide whether Edit-vertices is available). */
@@ -223,6 +230,13 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
         ) ?? null
       : null;
 
+  const lineElement =
+    single && single.kind === 'design-element' && single.projectId
+      ? getDesignElementsForProject(single.projectId).find(
+          (el) => el.id === single.id && LINE_EDIT_KINDS.has(el.kind),
+        ) ?? null
+      : null;
+
   const onOpenHabitatEdit = () => {
     if (!habitatElement || !single || !single.projectId) return;
     const projectId = single.projectId;
@@ -236,6 +250,17 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
         updateDesignElement,
         designElements,
       ),
+      anchor: [lng, lat],
+    });
+  };
+
+  const onOpenLineEdit = () => {
+    if (!lineElement || !single || !single.projectId) return;
+    const projectId = single.projectId;
+    const centroid = turf.centroid(turf.feature(lineElement.geometry));
+    const [lng, lat] = centroid.geometry.coordinates as [number, number];
+    useInlineFormStore.getState().open({
+      ...buildLineFeatureEditSchema(lineElement, projectId, updateDesignElement),
       anchor: [lng, lat],
     });
   };
@@ -285,6 +310,16 @@ export default function PlanSelectionFloater({ onOpenGuildBuilder }: Props = {})
           className={css.count}
           onClick={onOpenHabitatEdit}
           title="Edit habitat feature"
+          style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
+        >
+          {countLabel}
+        </button>
+      ) : lineElement ? (
+        <button
+          type="button"
+          className={css.count}
+          onClick={onOpenLineEdit}
+          title="Edit width & label"
           style={{ border: 'none', background: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', padding: 0 }}
         >
           {countLabel}

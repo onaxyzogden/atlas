@@ -91,6 +91,7 @@ import {
 } from '../cards/water-management/waterMath.js';
 import type { DesignElement } from '../../../store/designElementsStore.js';
 import { TREE_PLANTING_KINDS } from '../../../features/vegetation/treePlantingSpineSync.js';
+import { findElementSpec } from '../canvas/elementCatalog.js';
 
 // ---------- Silvopasture re-pin (shared) ----------
 //
@@ -1959,6 +1960,56 @@ export function buildHabitatFeatureEditSchema(
       }
 
       updateElement(projectId, el.id, patch);
+    },
+    onCancel: () => {
+      /* no-op — record already exists */
+    },
+  };
+}
+
+// ---------- Plain line DesignElement kinds (hedgerow / path / road) ----------
+//
+// These three are LineString DesignElements with a catalog `defaultWidthM`
+// and width-aware paint, but no bespoke metadata axis — so the inline form
+// is just the real-world Width (m) override + label. `widthM` persists to the
+// DesignElement top-level field (read by the width-aware line paint in
+// DesignElementLayers); empty/invalid clears the override → catalog default.
+
+export function buildLineFeatureEditSchema(
+  el: DesignElement,
+  projectId: string,
+  updateElement: (
+    projectId: string,
+    id: string,
+    patch: Partial<Omit<DesignElement, 'id'>>,
+  ) => void,
+): Omit<InlineFormPayload, 'anchor'> {
+  const spec = findElementSpec(el.kind);
+  const fields: FieldSpec[] = [
+    {
+      key: 'widthM',
+      label: 'Width',
+      kind: 'number',
+      suffix: 'm',
+      placeholder: spec?.defaultWidthM != null ? String(spec.defaultWidthM) : '',
+    },
+    { key: 'label', label: 'Label', kind: 'text' },
+  ];
+  return {
+    title: `Edit ${spec?.label ?? el.kind}`,
+    fields,
+    initial: {
+      widthM: el.widthM ?? '',
+      label: el.label ?? '',
+    },
+    onSave: (values) => {
+      const labelStr = String(values.label ?? '').trim();
+      const rawW = Number(values.widthM);
+      const widthM = Number.isFinite(rawW) && rawW > 0 ? rawW : undefined;
+      updateElement(projectId, el.id, {
+        label: labelStr || undefined,
+        widthM,
+      });
     },
     onCancel: () => {
       /* no-op — record already exists */
