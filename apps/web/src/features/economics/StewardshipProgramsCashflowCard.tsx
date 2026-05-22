@@ -29,15 +29,24 @@ import { useWorkItemStore } from '../../store/workItemStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useCropStore } from '../../store/cropStore.js';
 import { useLandDesignStore } from '../../store/landDesignStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
+import { useFinancialStore } from '../../store/financialStore.js';
+import { deriveCostRegion } from '../financial/engine/regionLocality.js';
+import { getRegionMultiplier } from '../financial/engine/costDatabase.js';
+import { REGION_LABELS, type CostRegion } from '../financial/engine/types.js';
 import { formatUsdRange } from '../../lib/formatRange.js';
 import { Tooltip } from '../../components/ui/Tooltip.js';
+import CitationSection from '../../components/evidence/CitationSection.js';
 import {
   computeStewardshipProgramsCashflow,
   UNPHASED_CASHFLOW_BUCKET_ID,
   type PhaseCashflowRow,
   type ProgramSubtotal,
 } from './stewardshipProgramsCashflow.js';
+import { collectStewardshipCitations } from './stewardshipCitations.js';
 import p from '../../styles/panel.module.css';
+
+const AUTO_SENTINEL = '__auto__';
 
 interface Props {
   projectId: string;
@@ -48,6 +57,12 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
   const phases = usePhaseStore((s) => s.phases);
   const cropAreas = useCropStore((s) => s.cropAreas);
   const byProject = useLandDesignStore((s) => s.byProject);
+  const project = useProjectStore((s) => s.projects.find((pr) => pr.id === projectId));
+  const stewardshipCostRegion = useFinancialStore((s) => s.stewardshipCostRegion);
+  const setStewardshipCostRegion = useFinancialStore((s) => s.setStewardshipCostRegion);
+
+  const derivedRegion = deriveCostRegion(project?.country, project?.provinceState);
+  const effectiveRegion: CostRegion = stewardshipCostRegion ?? derivedRegion;
 
   const rollup = useMemo(() => {
     const designElements = byProject[projectId] ?? [];
@@ -57,8 +72,14 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
       designElements,
       declaredPhases: phases,
       cropAreas,
+      region: effectiveRegion,
     });
-  }, [projectId, items, byProject, phases, cropAreas]);
+  }, [projectId, items, byProject, phases, cropAreas, effectiveRegion]);
+
+  const citations = useMemo(() => {
+    const designElements = byProject[projectId] ?? [];
+    return collectStewardshipCitations({ projectId, items, designElements });
+  }, [projectId, items, byProject]);
 
   if (rollup.rows.length === 0) {
     return (
@@ -103,7 +124,15 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
         Hover any cell for the per-program breakdown. Low/mid/high reflects
         DIY-to-contracted variance on the install programs; cover-crop seed
         cost is a flat per-acre figure projected uniformly into the band.
+        Costs are region-adjusted (×{getRegionMultiplier(effectiveRegion).toFixed(2)});
+        labor hours are not.
       </div>
+
+      <RegionSelect
+        derivedRegion={derivedRegion}
+        override={stewardshipCostRegion}
+        onChange={setStewardshipCostRegion}
+      />
 
       <table
         role="table"
@@ -148,7 +177,60 @@ export default function StewardshipProgramsCashflowCard({ projectId }: Props) {
           </tr>
         </tbody>
       </table>
+
+      <CitationSection citations={citations} />
     </div>
+  );
+}
+
+/**
+ * Cost-region picker. Defaults to "Auto", which derives the region from the
+ * project's location; the steward can override to any of the seven regions.
+ * The override persists in `financialStore` (`stewardshipCostRegion`).
+ */
+function RegionSelect({
+  derivedRegion,
+  override,
+  onChange,
+}: {
+  derivedRegion: CostRegion;
+  override: CostRegion | null;
+  onChange: (region: CostRegion | null) => void;
+}) {
+  return (
+    <label
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        fontSize: 11,
+        color: 'rgba(180, 165, 140, 0.8)',
+        marginBottom: 10,
+      }}
+    >
+      Cost region:
+      <select
+        value={override ?? AUTO_SENTINEL}
+        onChange={(e) =>
+          onChange(e.target.value === AUTO_SENTINEL ? null : (e.target.value as CostRegion))
+        }
+        style={{
+          fontSize: 11,
+          padding: '2px 6px',
+          background: 'rgba(20, 18, 14, 0.6)',
+          color: 'rgba(220, 210, 185, 0.95)',
+          border: '1px solid rgba(232, 220, 200, 0.18)',
+          borderRadius: 4,
+        }}
+      >
+        <option value={AUTO_SENTINEL}>Auto — {REGION_LABELS[derivedRegion]}</option>
+        {(Object.keys(REGION_LABELS) as CostRegion[]).map((r) => (
+          <option key={r} value={r}>
+            {REGION_LABELS[r]}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
