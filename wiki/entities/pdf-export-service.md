@@ -24,7 +24,7 @@ POST /api/v1/projects/:id/exports
 - `PdfExportService.ts` — Orchestrator class (data gathering, template dispatch, render, upload)
 - `templates/baseLayout.ts` — Shared CSS (design system tokens), score gauges, utility helpers
 - `templates/index.ts` — Template registry + `ExportDataBag` type definition
-- `templates/*.ts` — 7 individual template functions
+- `templates/*.ts` — individual template functions (incl. `masterPlan.ts` + `mapSheet.ts` for the captured-map exports)
 
 ## Export Types
 | Type | Data Source | Description |
@@ -45,6 +45,9 @@ POST /api/v1/projects/:id/exports
 | `sectors_zones_report` | payload.sectorsZones | Observe Module 5 — sector arrows (type · bearing · arc · intensity), zones by area (category · PC zone · invasive · succession), sector-by-type and zone-by-category mini-grids, heuristic actions covering fire-buffer · windbreak · sun-zone food · sector↔zone gaps |
 | `built_environment_report` | payload.builtEnvironment | Observe Module 1 — full eight-kind asset inventory (buildings · wells · septics · power lines · buried utilities · fences · gates · driveways), water-system mean-depth callout, overhead-power fall-zone flag, buried-utility earthworks-veto warning, design-implications cards, heuristic actions covering pin-missing-kinds · fence-walk · Plan-stage handoff |
 | `human_context_report` | payload.humanContext | Observe Module 1 (people) — module-health KPI strip (people · place · vision · milestones), steward profile + archetype card, indigenous & regional context chips (place-names · strengths · challenges · local network), vision detail (statement · core functions · experience goals · success metrics · principles · guiding values · constraints), phased intent table, milestones table, heuristic actions covering survey gaps · network seeding · vision statement · phased sketch |
+| `master_plan` | payload.mapSheet | **Plan-stage** — composes a client-captured MapLibre canvas image (base64 data URL) with hero header, legend grid, design narrative, zone roster table (+ total row), feature-inventory KPI cards by `feature_type`, and a phasing table (>1 phase). Zone roster prefers `payload.mapSheet.zones` else derives from `designFeatures`. The gradeable annotated-map artifact for OSU PDC Weeks 2/4/9/10. ADR: [[2026-05-21-atlas-master-plan-map-export]] |
+| `base_map_sheet` | payload.mapSheet | Thin variant — captured map image + legend + optional narrative under a "Base Map" title (PDC Week 2). |
+| `zone_map_sheet` | payload.mapSheet | Thin variant — captured map image + legend + optional narrative under a "Zone Map" title (PDC Week 4). |
 
 ## Design System
 - Earth Green `#15803D`, Harvest Gold `#CA8A04`, Background `#F0FDF4`
@@ -75,3 +78,4 @@ POST /api/v1/projects/:id/exports
 - `PUPPETEER_EXECUTABLE_PATH` env var for custom Chrome binary (Docker deployments)
 - Frontend integration: SWOT trio (Journal · Diagnosis Report · Synthesis) + Topography Report + Earth · Water · Ecology Report + Macroclimate & Hazards Report + Sectors & Zones Report + Built Environment Report wired via `api.exports.generate()` + `window.open(data.storageUrl)`; remaining Observe panels (Resources & Inputs, Boundaries) still use `window.print()`
 - Payload-builder helpers `pickDefined` / `pickTruthy` live in `packages/shared/src/store-mirrors/pickHelpers.ts` and are reused across Topography, EWE, and Macroclimate dashboard handlers (rule-of-three lift, see 2026-05-10 Macroclimate ADR)
+- **Captured-map exports** (`master_plan` / `base_map_sheet` / `zone_map_sheet`): no server-side map renderer — the web client captures the live MapLibre canvas (`apps/web/src/v3/plan/captureMapImage.ts`, needs `preserveDrawingBuffer: true` on map init) to a base64 PNG and ships it in `payload.mapSheet.mapImages[]`. The image is interpolated unescaped into `<img src>`, gated by an `isImageDataUrl` regex (png/jpeg/jpg/webp base64 only) to block injection. Web trigger is `MasterPlanExportButton.tsx` inside the DesignPage DesignMap render-prop (the only mount with the live map instance). See [[2026-05-21-atlas-master-plan-map-export]].
