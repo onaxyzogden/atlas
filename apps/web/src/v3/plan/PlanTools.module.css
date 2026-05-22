@@ -82,6 +82,22 @@
 .group[data-module='phasing-budgeting']      { --group-dot: #c4a265; }
 .group[data-module='principle-verification'] { --group-dot: #e88aa4; }
 
+/*
+ * Built-Environment family accents (parity with ObserveTools.module.css).
+ * Each BE category routes to a Plan module via BE_CATEGORY_TO_PLAN_MODULE
+ * (PlanTools.tsx); five route to 'structures-subsystems' (so they'd all
+ * share its terracotta-brown) and 'machinery' has no module color (grey
+ * default). These per-data-be-category overrides — equal specificity to the
+ * data-module rules above, declared after them, so they win — give each
+ * category its own distinct hue. Hexes match the Observe rail exactly.
+ */
+.group[data-be-category='building']        { --group-dot: #c08457; } /* terracotta */
+.group[data-be-category='agricultural']    { --group-dot: #d9a45b; } /* wheat / amber */
+.group[data-be-category='utility']         { --group-dot: #6aa6d9; } /* steel blue */
+.group[data-be-category='infrastructure']  { --group-dot: #9a8bd6; } /* periwinkle */
+.group[data-be-category='machinery']       { --group-dot: #c0705e; } /* rust */
+.group[data-be-category='amenity']         { --group-dot: #46b39d; } /* teal */
+
 .groupHeader {
   display: flex;
   align-items: center;
