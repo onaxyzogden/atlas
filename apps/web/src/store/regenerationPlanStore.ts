@@ -29,6 +29,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 import type { GroundCoverState, SuccessionStage } from './zoneStore.js';
 
@@ -321,7 +322,7 @@ export const useRegenerationPlanStore = create<RegenerationPlanState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useRegenerationPlanStore.persist.rehydrate();
+rehydrateWithLogging(useRegenerationPlanStore);
 
 if (typeof window !== 'undefined') {
   (window as unknown as Record<string, unknown>).__ogdenRegenerationPlanStore =

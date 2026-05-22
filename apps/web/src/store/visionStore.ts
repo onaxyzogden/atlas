@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -370,4 +371,4 @@ export const useVisionStore = create<VisionState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useVisionStore.persist.rehydrate();
+rehydrateWithLogging(useVisionStore);

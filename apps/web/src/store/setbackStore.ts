@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Setback / buffer-ring store â€” outward polygon offsets around existing
  * Plan features (Plan toolbar Tier B / B2).
  *
@@ -28,6 +28,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type SetbackPurpose =
@@ -109,4 +110,4 @@ export const useSetbackStore = create<SetbackState>()(
   ),
 );
 
-useSetbackStore.persist.rehydrate();
+rehydrateWithLogging(useSetbackStore);

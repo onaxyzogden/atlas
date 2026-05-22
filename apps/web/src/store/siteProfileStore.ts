@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type {
   Facet,
   FacetProvenance,
@@ -172,4 +173,4 @@ export const useSiteProfileStore = create<SiteProfileState>()(
   ),
 );
 
-useSiteProfileStore.persist.rehydrate();
+rehydrateWithLogging(useSiteProfileStore);

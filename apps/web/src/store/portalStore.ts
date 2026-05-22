@@ -1,10 +1,11 @@
-﻿/**
+/**
  * Portal store â€” public storytelling portal configuration per project.
  * Zustand persist (localStorage) + backend sync via api.portal.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { api } from '../lib/apiClient.js';
 
 export interface StoryScene {
@@ -266,4 +267,4 @@ export const usePortalStore = create<PortalState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-usePortalStore.persist.rehydrate();
+rehydrateWithLogging(usePortalStore);

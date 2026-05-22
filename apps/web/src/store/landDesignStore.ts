@@ -33,6 +33,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { DesignElement } from './designElementsStore.js';
 
 export interface LandDesignState {
@@ -125,4 +126,4 @@ export const useLandDesignStore = create<LandDesignState>()(
   ),
 );
 
-useLandDesignStore.persist.rehydrate();
+rehydrateWithLogging(useLandDesignStore);

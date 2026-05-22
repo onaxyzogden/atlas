@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { utility } from '../lib/tokens';
 
 export type UtilityType =
@@ -123,4 +124,4 @@ export const useUtilityStore = create<UtilityState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useUtilityStore.persist.rehydrate();
+rehydrateWithLogging(useUtilityStore);

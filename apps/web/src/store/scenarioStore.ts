@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { TransitionYear } from '../features/financial/engine/transitionBudget.js';
 
 export interface ScenarioVariantConfig {
@@ -155,4 +156,4 @@ export const useScenarioStore = create<ScenarioState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useScenarioStore.persist.rehydrate();
+rehydrateWithLogging(useScenarioStore);

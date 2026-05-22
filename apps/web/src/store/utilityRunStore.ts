@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Utility-run store â€” line-strings representing shared infrastructure
  * runs across the parcel (Plan toolbar Tier B / B1).
  *
@@ -21,6 +21,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type UtilityRunKind = 'water' | 'septic' | 'power' | 'data';
@@ -85,4 +86,4 @@ export const useUtilityRunStore = create<UtilityRunState>()(
   ),
 );
 
-useUtilityRunStore.persist.rehydrate();
+rehydrateWithLogging(useUtilityRunStore);

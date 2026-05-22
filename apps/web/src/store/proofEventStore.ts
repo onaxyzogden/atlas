@@ -23,6 +23,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { ProofEvent } from '@ogden/shared';
 
 interface ProofEventState {
@@ -55,4 +56,4 @@ export const useProofEventStore = create<ProofEventState>()(
   ),
 );
 
-useProofEventStore.persist.rehydrate();
+rehydrateWithLogging(useProofEventStore);

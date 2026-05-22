@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { LivestockSpecies } from './livestockStore.js';
 
 export type LivestockMoveDirection = 'move_in' | 'move_out' | 'rotate_through';
@@ -308,4 +309,4 @@ export const useLivestockMoveLogStore = create<LivestockMoveLogState>()(
   ),
 );
 
-useLivestockMoveLogStore.persist.rehydrate();
+rehydrateWithLogging(useLivestockMoveLogStore);

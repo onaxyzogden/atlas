@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { EdgeSchema, type Edge } from '@ogden/shared/relationships';
 
 /**
@@ -196,5 +197,5 @@ export const useRelationshipsStore = create<RelationshipsState>()(
 );
 
 if (typeof window !== 'undefined') {
-  useRelationshipsStore.persist.rehydrate();
+  rehydrateWithLogging(useRelationshipsStore);
 }

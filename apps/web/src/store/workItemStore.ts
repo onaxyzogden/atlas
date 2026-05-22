@@ -16,6 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { WorkItem, MaterialLine, CostRange } from '@ogden/shared';
 import { runWorkItemMigration } from './workItemStore.migration';
 
@@ -678,5 +679,5 @@ export const useWorkItemStore = create<WorkItemState>()(
 
 // Hydrate from localStorage (Zustand v5), then run the one-time idempotent
 // legacy supersede so the spine is authoritative on first read.
-useWorkItemStore.persist.rehydrate();
+rehydrateWithLogging(useWorkItemStore);
 useWorkItemStore.getState().ensureMigrated();

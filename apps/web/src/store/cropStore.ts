@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Crop store â€” orchards, gardens, food forests, agroforestry bands.
  *
  * Phase 2: Draw crop areas on the map, assign species, plan spacing.
@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 import { resolveSpeciesId } from '../data/plantCatalogAliases.js';
 
@@ -158,4 +159,4 @@ export const useCropStore = create<CropState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useCropStore.persist.rehydrate();
+rehydrateWithLogging(useCropStore);

@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 // ── Hazards ──────────────────────────────────────────────────────────────────
@@ -122,4 +123,4 @@ export const useExternalForcesStore = create<ExternalForcesState>()(
   ),
 );
 
-useExternalForcesStore.persist.rehydrate();
+rehydrateWithLogging(useExternalForcesStore);

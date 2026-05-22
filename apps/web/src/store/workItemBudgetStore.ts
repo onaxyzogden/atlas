@@ -26,6 +26,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { CostRange } from '@ogden/shared';
 
 const now = () => new Date().toISOString();
@@ -89,4 +90,4 @@ export const useWorkItemBudgetStore = create<WorkItemBudgetState>()(
   ),
 );
 
-useWorkItemBudgetStore.persist.rehydrate();
+rehydrateWithLogging(useWorkItemBudgetStore);

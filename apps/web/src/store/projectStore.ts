@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { CreateProjectInput, ProjectMetadata } from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
 import { cascadeCloneProject } from './cascadeClone.js';
@@ -841,7 +842,7 @@ async function migrateLegacyIdbBoundaries(): Promise<void> {
 }
 
 // Hydrate from localStorage (Zustand v5 requires explicit rehydrate)
-useProjectStore.persist.rehydrate();
+rehydrateWithLogging(useProjectStore);
 // After rehydrate completes, run the one-time legacy IDB migrator. This
 // is fire-and-forget; if the legacy entry exists it is folded into the
 // next zustand persist cycle automatically when state changes.

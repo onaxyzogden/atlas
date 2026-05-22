@@ -15,6 +15,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { rehydrateWithLogging } from "./persistRehydrate.js";
 import type { BuildTaskStatus } from "../v3/types.js";
 
 function key(projectId: string, taskId: string): string {
@@ -59,7 +60,7 @@ export const useBuildTaskStore = create<BuildTaskState>()(
   ),
 );
 
-useBuildTaskStore.persist.rehydrate();
+rehydrateWithLogging(useBuildTaskStore);
 
 /** Read a single override for the given (project, task). */
 export function getBuildTaskOverride(

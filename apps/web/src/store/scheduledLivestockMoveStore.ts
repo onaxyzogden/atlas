@@ -24,6 +24,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import {
   useLivestockMoveLogStore,
   type LivestockMoveDirection,
@@ -173,4 +174,4 @@ export const useScheduledLivestockMoveStore = create<ScheduledLivestockMoveState
   ),
 );
 
-useScheduledLivestockMoveStore.persist.rehydrate();
+rehydrateWithLogging(useScheduledLivestockMoveStore);

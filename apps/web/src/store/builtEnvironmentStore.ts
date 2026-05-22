@@ -766,8 +766,17 @@ useBuiltEnvironmentStoreV2.subscribe((s, prev) => {
 // Force V2 to hydrate from localStorage on first import so the facade
 // captures any pre-existing entities. V2's `persist` middleware runs
 // rehydration asynchronously; we trigger it explicitly and then re-project.
-void Promise.resolve(useBuiltEnvironmentStoreV2.persist.rehydrate()).then(() => {
-  useBuiltEnvironmentStore.setState(
-    projectV2ToV1Slices(useBuiltEnvironmentStoreV2.getState().entities),
-  );
-});
+// V2's own module-level rehydrate (builtEnvironmentStoreV2.ts) is wrapped with
+// rehydrateWithLogging, which installs an error-logging onRehydrateStorage via
+// setOptions before this facade call runs (import order guarantees it). So a
+// rehydrate failure here is already surfaced under [persist:ogden-built-environment-v2].
+// The .catch below additionally guards the projection step.
+void Promise.resolve(useBuiltEnvironmentStoreV2.persist.rehydrate())
+  .then(() => {
+    useBuiltEnvironmentStore.setState(
+      projectV2ToV1Slices(useBuiltEnvironmentStoreV2.getState().entities),
+    );
+  })
+  .catch((error) => {
+    console.error('[persist:builtEnvironment-facade] V2 rehydrate/projection failed', error);
+  });

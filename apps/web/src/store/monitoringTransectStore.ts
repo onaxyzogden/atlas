@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Monitoring transect store â€” recurring observation walks recorded as
  * line-strings on the map (Plan Toolbar Tier B / B4). Lives under
  * `principle-verification` in the PLAN toolbar alongside ecological
@@ -27,6 +27,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type TransectMonitoringKind =
@@ -181,4 +182,4 @@ export const useMonitoringTransectStore = create<MonitoringTransectState>()(
   ),
 );
 
-useMonitoringTransectStore.persist.rehydrate();
+rehydrateWithLogging(useMonitoringTransectStore);

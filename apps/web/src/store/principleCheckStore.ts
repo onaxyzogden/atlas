@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Principle-check store â€” PLAN-stage Module 8.
  *
  * Tracks the steward's running self-assessment against Holmgren's twelve
@@ -14,6 +14,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type PrincipleStatus = 'unmet' | 'partial' | 'met';
 
@@ -63,4 +64,4 @@ export const usePrincipleCheckStore = create<PrincipleCheckState>()(
   ),
 );
 
-usePrincipleCheckStore.persist.rehydrate();
+rehydrateWithLogging(usePrincipleCheckStore);

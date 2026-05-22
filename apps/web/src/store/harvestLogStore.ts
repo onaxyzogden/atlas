@@ -14,6 +14,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type HarvestUnit = 'kg' | 'lb' | 'count' | 'L';
 export type HarvestQuality = 'A' | 'B' | 'C';
@@ -89,4 +90,4 @@ export const useHarvestLogStore = create<HarvestLogState>()(
   ),
 );
 
-useHarvestLogStore.persist.rehydrate();
+rehydrateWithLogging(useHarvestLogStore);

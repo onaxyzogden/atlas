@@ -9,6 +9,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type ConventionalCropKind =
   | 'annual-row'
@@ -80,4 +81,4 @@ export const useConventionalCropStore = create<ConventionalCropState>()(
   ),
 );
 
-useConventionalCropStore.persist.rehydrate();
+rehydrateWithLogging(useConventionalCropStore);

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Pilot-plot store â€” ACT-stage Module 2 (Small-and-Slow piloting).
  *
  * The "Use small and slow solutions" Holmgren principle says: test on a
@@ -8,6 +8,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type PilotStatus = 'running' | 'success' | 'fail' | 'inconclusive';
 
@@ -47,4 +48,4 @@ export const usePilotPlotStore = create<PilotPlotState>()(
   ),
 );
 
-usePilotPlotStore.persist.rehydrate();
+rehydrateWithLogging(usePilotPlotStore);

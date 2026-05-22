@@ -10,6 +10,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type PastureKind = 'open-pasture' | 'paddock' | 'hayfield';
 
@@ -48,4 +49,4 @@ export const usePastureStore = create<PastureState>()(
   ),
 );
 
-usePastureStore.persist.rehydrate();
+rehydrateWithLogging(usePastureStore);

@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { phase } from '../lib/tokens';
 import type { PhaseKey } from '../v3/plan/types.js';
 import type {
@@ -411,4 +412,4 @@ export const usePhaseStore = create<PhaseState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-usePhaseStore.persist.rehydrate();
+rehydrateWithLogging(usePhaseStore);

@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { CostRange, CostRegion, MissionWeights } from '../features/financial/engine/types.js';
 
 interface FinancialState {
@@ -70,4 +71,4 @@ export const useFinancialStore = create<FinancialState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useFinancialStore.persist.rehydrate();
+rehydrateWithLogging(useFinancialStore);

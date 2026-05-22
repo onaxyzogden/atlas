@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 // ── Earthworks (swales / drains / diversions) ───────────────────────────────
@@ -276,4 +277,4 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
   ),
 );
 
-useWaterSystemsStore.persist.rehydrate();
+rehydrateWithLogging(useWaterSystemsStore);

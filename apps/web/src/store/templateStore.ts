@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Template store â€” reusable project templates and design frameworks.
  * Templates include pre-configured zones, structures, and phasing plans
  * that can be applied to new or existing projects.
@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { zone } from '../lib/tokens';
 
 export interface ZoneTemplate {
@@ -54,7 +55,7 @@ export const useTemplateStore = create<TemplateState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useTemplateStore.persist.rehydrate();
+rehydrateWithLogging(useTemplateStore);
 
 // â”€â”€ Built-in Templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

@@ -27,6 +27,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 import {
   type BuiltEnvironmentEntity,
@@ -577,7 +578,7 @@ export const useBuiltEnvironmentStoreV2 = create<BuiltEnvironmentV2State>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useBuiltEnvironmentStoreV2.persist.rehydrate();
+rehydrateWithLogging(useBuiltEnvironmentStoreV2);
 
 // ─────────────────────────────────────────────────────────────────────────
 // Selectors

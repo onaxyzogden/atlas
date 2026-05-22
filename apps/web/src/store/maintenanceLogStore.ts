@@ -16,6 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type MaintenanceSourceKind = 'earthwork' | 'storage' | 'structure';
 
@@ -72,4 +73,4 @@ export const useMaintenanceLogStore = create<MaintenanceLogState>()(
   ),
 );
 
-useMaintenanceLogStore.persist.rehydrate();
+rehydrateWithLogging(useMaintenanceLogStore);
