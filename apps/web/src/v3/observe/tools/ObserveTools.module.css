@@ -83,6 +83,23 @@
 .group[data-module='sectors-zones']         { --group-dot: #d68bd0; }
 .group[data-module='swot-synthesis']        { --group-dot: #e88aa4; }
 
+/*
+ * Built-Environment family accents. All BE sections share
+ * data-module='built-environment', so the per-module block above never
+ * colors them — they fell back to the grey --color-text-muted default.
+ * The base rule colors the "From map" meta-section; each data-be-category
+ * override (equal specificity, declared after) gives each category its own
+ * distinct hue. Tones are chosen to stay clear of the six module accents
+ * already in use (mint/gold/lime/cyan/orchid/rose).
+ */
+.group[data-module='built-environment']    { --group-dot: #8a93a6; } /* From map — slate */
+.group[data-be-category='building']        { --group-dot: #c08457; } /* terracotta */
+.group[data-be-category='agricultural']    { --group-dot: #d9a45b; } /* wheat / amber */
+.group[data-be-category='utility']         { --group-dot: #6aa6d9; } /* steel blue */
+.group[data-be-category='infrastructure']  { --group-dot: #9a8bd6; } /* periwinkle */
+.group[data-be-category='machinery']       { --group-dot: #c0705e; } /* rust */
+.group[data-be-category='amenity']         { --group-dot: #46b39d; } /* teal */
+
 .groupHeader {
   display: flex;
   align-items: center;
