@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { recordShowcaseEvent } from '../lib/showcaseEventLog';
 const TIERS = [
   { id: 'dreaming', label: 'I am dreaming about my own land', sub: "You're envisioning a future project." },
   { id: 'transitioning', label: 'I am transitioning an operation', sub: 'You have land in production today.' },
@@ -9,7 +10,13 @@ export function TierChooser() {
   return (
     <nav aria-label="Choose your path" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, maxWidth: 720, margin: '32px auto' }}>
       {TIERS.map((t) => (
-        <Link key={t.id} to="/showcase/three-streams/$tier" params={{ tier: t.id }} style={{ padding: 24, border: '1px solid #ddd', borderRadius: 12, textDecoration: 'none', color: 'inherit' }}>
+        <Link
+          key={t.id}
+          to="/showcase/three-streams/$tier"
+          params={{ tier: t.id }}
+          onClick={() => recordShowcaseEvent({ eventType: 'tier_selected', tier: t.id })}
+          style={{ padding: 24, border: '1px solid #ddd', borderRadius: 12, textDecoration: 'none', color: 'inherit' }}
+        >
           <strong style={{ display: 'block', fontSize: 18 }}>{t.label}</strong>
           <span style={{ color: '#555' }}>{t.sub}</span>
         </Link>

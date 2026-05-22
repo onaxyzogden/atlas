@@ -28,6 +28,8 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useAuthStore } from '../store/authStore.js';
 import { api } from '../lib/apiClient.js';
+import { recordShowcaseEvent } from '../showcase/lib/showcaseEventLog.js';
+import type { ShowcaseTier } from '@ogden/shared';
 import styles from './LoginPage.module.css';
 
 interface RegisterSearch {
@@ -62,6 +64,17 @@ export default function RegisterPage() {
   // Project-name default for the instant-instantiate path.
   const defaultProjectName = wantsTemplate ? 'My Ecosystem Farm' : '';
 
+  // Infer the audience tier the visitor arrived as, from the locked
+  // Phase 4 flag mapping (fullSetup → stewarding, drawFirst →
+  // transitioning, else dreaming). Used to stamp showcase telemetry.
+  const arrivalTier: ShowcaseTier | null = !wantsTemplate
+    ? null
+    : search.fullSetup
+      ? 'stewarding'
+      : search.drawFirst
+        ? 'transitioning'
+        : 'dreaming';
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -69,6 +82,10 @@ export default function RegisterPage() {
     try {
       // 1. Register (authStore stores the token).
       await register(email, password, displayName || undefined);
+
+      // Showcase conversion signal — a cold visitor who arrived via a
+      // tier CTA just completed registration. Best-effort; never blocks.
+      recordShowcaseEvent({ eventType: 'visitor_registered', tier: arrivalTier });
 
       // 2. Route based on the locked tier-aware flags.
       if (!wantsTemplate) {
@@ -104,6 +121,14 @@ export default function RegisterPage() {
       const { data: project } = await api.templates.instantiatePublic(slug, {
         name: defaultProjectName,
         parcelBoundaryGeojson: null,
+      });
+      // Conversion terminus — the visitor instantiated a project from the
+      // public template. Stamp the new project id + arrival tier.
+      recordShowcaseEvent({
+        eventType: 'template_instantiated',
+        tier: arrivalTier,
+        projectId: project.id,
+        payload: { template: slug },
       });
       navigate({
         to: '/v3/project/$projectId',

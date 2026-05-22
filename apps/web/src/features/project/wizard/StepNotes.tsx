@@ -9,6 +9,7 @@ import { parcelAcreage } from '../../../lib/geo.js';
 import { useProjectStore, type ProjectAttachment } from '../../../store/projectStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { api } from '../../../lib/apiClient.js';
+import { recordShowcaseEvent } from '../../../showcase/lib/showcaseEventLog.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
 
@@ -149,6 +150,15 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             },
           );
           updateProjectFn(project.id, { serverId: serverProject.id });
+          // Showcase conversion terminus — a visitor who arrived through a
+          // tier CTA (drawFirst/fullSetup paths) instantiated the template
+          // via the wizard. Tier isn't tracked through the wizard, so it is
+          // left null; the server id + template slug carry the signal.
+          recordShowcaseEvent({
+            eventType: 'template_instantiated',
+            projectId: serverProject.id,
+            payload: { template: data.templateSlug },
+          });
           // File uploads are non-blocking — fire-and-forget per attachment.
           for (const att of attachments) {
             api.files.upload(serverProject.id, att.file).catch(() => {});

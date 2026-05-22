@@ -9,6 +9,7 @@ import { SceneEngine } from '../components/SceneEngine.js';
 import { SCENE_COMPONENTS } from '../data/sceneComponents.js';
 import { scenesForTier, type Tier } from '../data/sceneManifest.js';
 import { loadSnapshot, type ShowcaseSnapshot } from '../data/snapshot.js';
+import { recordShowcaseEvent } from '../lib/showcaseEventLog.js';
 
 const VALID: Tier[] = ['dreaming', 'transitioning', 'stewarding'];
 
@@ -34,8 +35,14 @@ export function ShowcaseTierPage() {
 
   useEffect(() => {
     document.body.classList.add('showcase-scroll');
+    // Deep-linked tier visit (e.g. shared /showcase/three-streams/dreaming URL)
+    // — record a showcase_view stamped with the entry tier. Invalid tiers
+    // redirect before this fires meaningfully; guard to keep payload clean.
+    if (VALID.includes(tier as Tier)) {
+      recordShowcaseEvent({ eventType: 'showcase_view', tier: tier as Tier });
+    }
     return () => { document.body.classList.remove('showcase-scroll'); };
-  }, []);
+  }, [tier]);
 
   if (!VALID.includes(tier as Tier)) {
     return <Navigate to="/showcase/three-streams" />;

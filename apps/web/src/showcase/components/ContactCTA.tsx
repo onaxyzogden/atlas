@@ -16,6 +16,7 @@
  */
 
 import type { Tier } from '../data/sceneManifest';
+import { recordShowcaseEvent } from '../lib/showcaseEventLog';
 
 interface TierCopy {
   headline: string;
@@ -90,6 +91,13 @@ export function ContactCTA({ tier }: { tier: Tier }) {
       >
         <a
           href={c.primary.href}
+          onClick={() =>
+            recordShowcaseEvent({
+              eventType: 'cta_primary_click',
+              tier,
+              payload: { href: c.primary.href },
+            })
+          }
           style={{
             display: 'inline-block',
             padding: '12px 24px',
@@ -104,6 +112,13 @@ export function ContactCTA({ tier }: { tier: Tier }) {
         </a>
         <a
           href={c.secondary.href}
+          onClick={() =>
+            recordShowcaseEvent({
+              eventType: 'cta_secondary_click',
+              tier,
+              payload: { href: c.secondary.href },
+            })
+          }
           style={{
             display: 'inline-block',
             padding: '8px 16px',

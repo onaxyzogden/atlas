@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { AttributionFooter } from '../components/AttributionFooter.js';
+import { recordShowcaseEvent } from '../lib/showcaseEventLog.js';
 import HeroScene from '../scenes/_shared/hero.mdx';
 
 // Public showcase hero — outside AppShell, no auth. The hero MDX scene
@@ -13,6 +14,7 @@ import HeroScene from '../scenes/_shared/hero.mdx';
 export function ShowcasePage() {
   useEffect(() => {
     document.body.classList.add('showcase-scroll');
+    recordShowcaseEvent({ eventType: 'showcase_view' });
     return () => { document.body.classList.remove('showcase-scroll'); };
   }, []);
 
