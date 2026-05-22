@@ -102,6 +102,20 @@ const PLAN_BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
   toolId: `plan.structures-subsystems.be.${it.kind}` as MapToolId,
 }));
 
+/** BE tools for one category, converted to Plan rail `ToolItem`s. Mirrors the
+ *  per-section conversion in the BE_TOOL_GROUPS render loop below so a BE
+ *  category can be folded into a hand-authored module group (see machinery). */
+function beCategoryToolItems(category: BuiltEnvironmentCategory): ToolItem[] {
+  const group = BE_TOOL_GROUPS.find((g) => g.category === category);
+  if (!group) return [];
+  return group.items.map((bg) => ({
+    id: `be-${bg.kind}`,
+    label: bg.label,
+    Icon: bg.Icon,
+    toolId: `plan.structures-subsystems.be.${bg.kind}` as MapToolId,
+  }));
+}
+
 /**
  * 2026-05-14 — BE flatten. Each `BuiltEnvironmentCategory` surfaces as its
  * own top-level rail section; clicking it activates the routed Plan
@@ -146,11 +160,14 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'road',        label: 'Road',        Icon: Milestone,     toolId: 'plan.zone-circulation.road' },
     { id: 'bridge',      label: 'Bridge',      Icon: Link2,         toolId: 'plan.zone-circulation.bridge' },
   ],
-  // 2026-05-11 — Machinery group surfaces from elementCatalog. Turnaround
-  // is the only machinery kind not already covered by Built Environment's
-  // registry (machinery-shed / equipment-yard / fuel-station live there).
+  // 2026-05-22 — Single Machinery group. Turnaround is the only machinery kind
+  // with Plan-only draw semantics (toolId plan.machinery.turnaround); the BE
+  // machinery kinds (machinery-shed / fuel-station / equipment-yard) are folded
+  // in here so the rail shows one Machinery card. The BE machinery category
+  // card is suppressed in the BE_TOOL_GROUPS render loop below.
   machinery: [
     { id: 'turnaround', label: 'Turnaround', Icon: RotateCw, toolId: 'plan.machinery.turnaround' },
+    ...beCategoryToolItems('machinery'),
   ],
   'structures-subsystems': PLAN_BE_TOOLS,
   livestock: [
@@ -646,6 +663,10 @@ export default function PlanTools({
         // already surface in the `plant-systems` rail section as plant
         // tools; the BE category card is redundant in Plan.
         if (group.category === 'vegetation') return null;
+        // 2026-05-22 — Machinery BE kinds (Shed/Fuel/Equipment Yard) are folded
+        // into the single module-level Machinery group above; skip the duplicate
+        // BE category card here.
+        if (group.category === 'machinery') return null;
         // 2026-05-14 — Earthworks BE section dropped. Berm and Raised bed
         // now appear inline in Water Management / Plant Systems above;
         // Terrace is appended to the Amenities group below.

@@ -202,6 +202,21 @@ body.showcase-scroll #root {
   cursor: not-allowed;
 }
 
+/* ─── Native <select> dropdown popups ─────────────────────────────────────
+ * Browsers render the open <option> list with a white background by default,
+ * clashing with the dark UI. Token-driven so light and dark themes each get
+ * correct contrast. (Chromium + Firefox honor these on <option>.)
+ */
+select option {
+  background-color: var(--color-surface-raised);
+  color: var(--color-panel-text);
+}
+select option:checked,
+select option:hover {
+  background-color: var(--color-gold-brand);
+  color: #1a1a1a;
+}
+
 /* ─── Utility ────────────────────────────────────────────────────────────── */
 .sr-only {
   position: absolute;
