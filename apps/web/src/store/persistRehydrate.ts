@@ -19,11 +19,20 @@
  * rehydration. The next silent recurrence becomes diagnosable, e.g.:
  *   [persist:ogden-conventional-crops] rehydrate failed SyntaxError: ...
  *
+ * Beyond the dev console, the same failure is forwarded to the general
+ * client-error telemetry sink (`recordClientError`, source
+ * `persist_rehydrate`) so it is captured server-side in production, not
+ * only when an engineer happens to have the console open. That call is
+ * best-effort and never throws — see clientErrorLog.ts.
+ *
  * The persist key is auto-derived from `getOptions().name`, so call sites are a
  * uniform one-arg swap: `rehydrateWithLogging(useConventionalCropStore);`
  *
- * See wiki/log/2026-05-21-persist-rehydrate-instrumentation.md.
+ * See wiki/log/2026-05-21-persist-rehydrate-instrumentation.md and
+ * wiki/log/2026-05-21-client-error-telemetry-sink.md.
  */
+
+import { recordClientError } from '../lib/clientErrorLog.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- structural shape spans
    ~60 differently-typed persist stores; `any` on the state param keeps the
@@ -62,6 +71,18 @@ export function rehydrateWithLogging(
       return (hydratedState, error) => {
         if (error) {
           console.error(`[persist:${name}] rehydrate failed`, error);
+          // Forward to the durable client-error sink (best-effort, never
+          // throws). projectId is null: a persist store is global and may
+          // rehydrate at boot before any project/login context exists.
+          const e = error instanceof Error ? error : undefined;
+          recordClientError({
+            source: 'persist_rehydrate',
+            name: e?.name ?? 'Error',
+            message: e?.message ?? String(error),
+            stack: e?.stack,
+            projectId: null,
+            context: { persistKey: name },
+          });
         }
         if (innerCallback) innerCallback(hydratedState, error);
       };

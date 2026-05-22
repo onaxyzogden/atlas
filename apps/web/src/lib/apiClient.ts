@@ -44,6 +44,7 @@ import type {
   ElevationPointResponse,
   ActInteractionEventInput,
   GetActAffinityAggregateResult,
+  ClientErrorEventInput,
   ProjectStateBlob,
   UpsertProjectStateInput,
   VegetationPatchSummary,
@@ -844,6 +845,13 @@ export const api = {
         `/api/v1/telemetry/act-interactions/aggregate${suffix}`,
       );
     },
+
+    postClientErrors: (events: ClientErrorEventInput[]) =>
+      request<{ ingested: number }>(
+        'POST',
+        '/api/v1/telemetry/client-errors',
+        { events },
+      ),
   },
 };
 

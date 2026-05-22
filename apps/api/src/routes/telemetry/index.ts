@@ -1,5 +1,6 @@
 /**
- * Telemetry routes — Act-stage interaction event log + affinity aggregate.
+ * Telemetry routes — Act-stage interaction event log + affinity aggregate,
+ * plus the general client-error sink.
  *
  * Registered at prefix /api/v1/telemetry (see app.ts).
  *
@@ -7,6 +8,11 @@
  * pen-and-paper review of projectTypeModuleAffinity.ts. POST ingests
  * batched events from the web client buffer; GET returns a server-side
  * aggregate grouped by (projectType, module, eventType).
+ *
+ * POST /client-errors captures front-end failures (persist rehydrate, api
+ * client, error boundary, unhandled rejection) into client_error_events
+ * (migration 039). project_id is optional there — a rehydrate failure has
+ * no project context.
  *
  * No project-role preHandler is applied: telemetry is per-user, not
  * per-project, and aggregate reads filter by req.userId. POST trusts
@@ -19,6 +25,7 @@ import { z } from 'zod';
 import {
   PostActInteractionsBody,
   GetActAffinityAggregateQuery,
+  PostClientErrorsBody,
   type ActInteractionEventInput,
 } from '@ogden/shared';
 
@@ -60,6 +67,57 @@ export default async function telemetryRoutes(fastify: FastifyInstance) {
           fastify.log.warn(
             { err, eventType: evt.eventType, projectId: evt.projectId },
             'telemetry: skipped event during bulk insert',
+          );
+        }
+      }
+
+      reply.code(201);
+      return { data: { ingested }, meta: undefined, error: null };
+    },
+  );
+
+  // POST /client-errors — bulk-insert a batch of front-end error events.
+  // project_id is optional (null for global-store failures like persist
+  // rehydrate). Auth-required: no open write endpoint. Best-effort per
+  // event, mirroring /act-interactions.
+  fastify.post(
+    '/client-errors',
+    { preHandler: [authenticate] },
+    async (req, reply) => {
+      const body = PostClientErrorsBody.parse(req.body);
+
+      const userId = req.userId;
+      let ingested = 0;
+
+      for (const evt of body.events) {
+        try {
+          await db`
+            INSERT INTO client_error_events (
+              user_id, project_id, session_id, occurred_at,
+              source, name, message, stack, context, url, user_agent, app_version
+            ) VALUES (
+              ${userId},
+              ${evt.projectId},
+              ${evt.sessionId},
+              ${evt.occurredAt},
+              ${evt.source},
+              ${evt.name},
+              ${evt.message},
+              ${evt.stack ?? null},
+              ${db.json(evt.context as never) as unknown as string},
+              ${evt.url ?? null},
+              ${evt.userAgent ?? null},
+              ${evt.appVersion ?? null}
+            )
+          `;
+          ingested += 1;
+        } catch (err) {
+          // FK miss (unknown project_id) or constraint violation: drop the
+          // single event and continue. Telemetry is best-effort; one bad
+          // event must not poison a whole batch.
+          fastify.log.warn(
+            { err, source: evt.source, projectId: evt.projectId },
+            'telemetry: skipped client error during bulk insert',
           );
         }
       }
