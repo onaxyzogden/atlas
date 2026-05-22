@@ -67,6 +67,12 @@ import {
   type UtilityRunKind,
 } from '../../../store/utilityRunStore.js';
 import {
+  UTILITY_TYPE_CONFIG,
+  type Utility,
+  type UtilityType,
+} from '../../../store/utilityStore.js';
+import { UTILITY_POINT_TYPE_OPTIONS } from '../draw/tools/utilityPointTypes.js';
+import {
   SETBACK_PURPOSE_CONFIG,
   type SetbackPurpose,
   type SetbackRing,
@@ -512,6 +518,75 @@ export function buildPathEditSchema(
         type: t,
         color: PATH_TYPE_CONFIG[t].color,
         usageFrequency: values.usageFrequency as DesignPath['usageFrequency'],
+      });
+    },
+    onCancel: () => {
+      /* no-op */
+    },
+  };
+}
+
+// ---------- Utility point ----------
+//
+// Click-to-edit parity for typed utility points (`utilityStore`, C2/C4).
+// Mirrors the C4 draw-form field set (`UtilityPointTool.tsx`) so editing a
+// placed point behaves identically to placing one. `phaseField` is passed in
+// by the caller (PlanDataLayers) because the phase options come from the
+// `usePhaseFieldSpec` hook, which this pure builder cannot call. `color` is
+// intentionally NOT written — the render layer derives it from
+// `UTILITY_TYPE_CONFIG[type].color`, and `Utility` has no `color` field.
+
+export function buildUtilityPointEditSchema(
+  u: Utility,
+  updateUtility: (id: string, updates: Partial<Utility>) => void,
+  phaseField: FieldSpec,
+): Omit<InlineFormPayload, 'anchor'> {
+  return {
+    title: 'Edit utility point',
+    fields: [
+      {
+        key: 'type',
+        label: 'Type',
+        kind: 'select',
+        required: true,
+        options: UTILITY_POINT_TYPE_OPTIONS,
+      },
+      { key: 'name', label: 'Name', kind: 'text', required: true },
+      {
+        key: 'demandKwhPerDay',
+        label: 'Energy demand',
+        kind: 'number',
+        suffix: 'kWh/day',
+        placeholder: 'e.g. 4',
+      },
+      {
+        key: 'capacityGal',
+        label: 'Storage capacity',
+        kind: 'number',
+        suffix: 'gal',
+        placeholder: 'e.g. 250',
+      },
+      phaseField,
+    ],
+    initial: {
+      type: u.type,
+      name: u.name,
+      demandKwhPerDay: u.demandKwhPerDay ?? '',
+      capacityGal: u.capacityGal ?? '',
+      phase: u.phase,
+    },
+    onSave: (values) => {
+      const type = (values.type as UtilityType) ?? u.type;
+      const demand = Number(values.demandKwhPerDay);
+      const cap = Number(values.capacityGal);
+      updateUtility(u.id, {
+        type,
+        name:
+          String(values.name ?? '').trim() || UTILITY_TYPE_CONFIG[type].label,
+        phase: String(values.phase ?? u.phase),
+        demandKwhPerDay:
+          Number.isFinite(demand) && demand > 0 ? demand : undefined,
+        capacityGal: Number.isFinite(cap) && cap > 0 ? cap : undefined,
       });
     },
     onCancel: () => {

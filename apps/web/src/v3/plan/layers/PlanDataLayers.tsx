@@ -90,6 +90,7 @@ import {
 } from '../../../store/planSelectionStore.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import { useInlineFormStore } from '../draw/inlineFormStore.js';
+import { usePhaseFieldSpec } from '../draw/usePhaseFieldSpec.js';
 import {
   STRUCTURE_TEMPLATES,
   createFootprintPolygon,
@@ -107,6 +108,7 @@ import {
   buildFertilityEditSchema,
   buildGuildEditSchema,
   buildWaterNodeEditSchema,
+  buildUtilityPointEditSchema,
   buildUtilityRunEditSchema,
   buildSetbackRingEditSchema,
   buildFlowConnectorEditSchema,
@@ -427,6 +429,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const utilityRuns = useUtilityRunStore((s) => s.runs);
   const updateUtilityRun = useUtilityRunStore((s) => s.updateRun);
   const utilities = useUtilityStore((s) => s.utilities);
+  const updateUtility = useUtilityStore((s) => s.updateUtility);
   const setbackRings = useSetbackStore((s) => s.rings);
   const updateSetbackRing = useSetbackStore((s) => s.updateRing);
   const flowConnectors = useClosedLoopStore((s) => s.materialFlows);
@@ -438,6 +441,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   );
   const activeTool = useMapToolStore((s) => s.activeTool);
   const openForm = useInlineFormStore((s) => s.open);
+  const { field: utilPhaseField } = usePhaseFieldSpec(projectId);
   const seededZonesVisible = useMatrixTogglesStore((s) => s.seededZones);
   const lensEnabled = useLayeringLensStore((s) => s.enabled);
   const lensMode = useLayeringLensStore((s) => s.mode);
@@ -451,6 +455,8 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
   const selected = selectedItems[0] ?? null;
   const selectedGuildId =
     selected?.kind === 'guild' ? selected.id : null;
+  const selectedStructureId =
+    selectedItems.find((i) => i.kind === 'structure')?.id ?? null;
   const selectedMemberKey =
     selected?.kind === 'guild-member' && selected.memberIndex !== undefined
       ? `${selected.id}:${selected.memberIndex}`
@@ -1245,6 +1251,35 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         hostCanopyUnionLabelFC,
       );
 
+      // Orientation indicator — a single facing chevron on the SELECTED
+      // structure only (zero clutter; live while the steward edits its
+      // Rotation). Rebuilt here (not in the FC memo) because selection is an
+      // `apply()`-level concern, like `selectedGuildId` styling. Empty
+      // collection ⇒ no arrow when nothing (or a non-structure) is selected.
+      const orientFeatures: GeoJSON.Feature[] = [];
+      if (selectedStructureId) {
+        const st = structures.find(
+          (s) => s.id === selectedStructureId && s.projectId === projectId,
+        );
+        if (st) {
+          try {
+            const ctr = turf.centroid(st.geometry).geometry;
+            orientFeatures.push({
+              type: 'Feature',
+              id: st.id,
+              properties: { id: st.id, rotationDeg: st.rotationDeg ?? 0 },
+              geometry: ctr,
+            });
+          } catch {
+            /* skip — degenerate geometry */
+          }
+        }
+      }
+      const orientSid = ensureSource('orient', {
+        type: 'FeatureCollection',
+        features: orientFeatures,
+      });
+
       const ensureLayer = (spec: maplibregl.LayerSpecification) => {
         if (!map.getLayer(spec.id)) map.addLayer(spec);
       };
@@ -1676,6 +1711,32 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
           'text-halo-width': 1.2,
         },
       });
+      // Orientation chevron for the selected structure. `▲` points north at
+      // 0°; `text-rotate` is clockwise-from-north, while
+      // `createFootprintPolygon` rotates CCW in metric space (+y = north), so
+      // the stored `rotationDeg` is negated to keep the glyph aligned with the
+      // footprint's "front." (Sign/offset confirmed against the footprint math;
+      // final visual nudge is preview-gated.) `text-keep-upright:false` so the
+      // arrow actually turns instead of snapping upright (flow-arrow precedent).
+      ensureLayer({
+        id: `${LAYER_PREFIX}orient`,
+        type: 'symbol',
+        source: orientSid,
+        layout: {
+          'text-field': '▲',
+          'text-size': 20,
+          'text-rotate': ['*', ['coalesce', ['get', 'rotationDeg'], 0], -1] as never,
+          'text-rotation-alignment': 'map',
+          'text-keep-upright': false,
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        paint: {
+          'text-color': '#ffd166',
+          'text-halo-color': 'rgba(31, 29, 26, 0.85)',
+          'text-halo-width': 1.4,
+        },
+      });
     };
 
     apply();
@@ -1718,6 +1779,9 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     enterprises,
     selectedGuildId,
     selectedMemberKey,
+    selectedStructureId,
+    structures,
+    projectId,
     seededZonesVisible,
   ]);
 
@@ -3449,6 +3513,43 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
     editable,
   ]);
 
+  // Click-to-edit for typed utility points (`utilityStore`, C2/C4). A
+  // dedicated `click` listener — NOT folded into the fertility/water
+  // drag handler above — because `utilityStore` has no temporal (zundo)
+  // middleware, so it cannot join `beginDragUndoWindow`. Utility points are
+  // therefore click-to-edit + selectable, but not drag-translatable (a
+  // deferred nicety). Selection writes are idempotent with the read-only
+  // KIND_MAP listener below.
+  useEffect(() => {
+    if (!map) return;
+    if (!editable) return;
+    if (activeTool !== null) return;
+    const layerId = `${LAYER_PREFIX}point`;
+
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const f = e.features?.[0];
+      if (f?.properties?.kind !== 'utility-point') return;
+      const id = String(f.properties.id);
+      const r = useUtilityStore.getState().utilities.find((x) => x.id === id);
+      if (!r) return;
+      setSelection([{ kind: 'utility-point', id }]);
+      const anchor: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      openForm({
+        ...buildUtilityPointEditSchema(r, updateUtility, utilPhaseField),
+        anchor,
+      });
+    };
+
+    map.on('click', layerId, onClick);
+    return () => {
+      try {
+        map.off('click', layerId, onClick);
+      } catch {
+        /* map already disposed */
+      }
+    };
+  }, [map, activeTool, editable, openForm, setSelection, updateUtility, utilPhaseField]);
+
   // Click-to-edit for setback rings. Rings are anchored to their source
   // feature via sourceKind+sourceId — they are NOT drag-translatable,
   // since translating would detach them from the "X metres of clearance
@@ -3676,6 +3777,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       path: 'path',
       water_swale: 'water',
       utility: 'utility',
+      'utility-point': 'utility-point',
       fertility: 'fertility',
       water_storage: 'water',
       water_sink: 'water',

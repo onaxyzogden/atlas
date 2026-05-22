@@ -22,6 +22,7 @@ export type PlanSelectionKind =
   | 'fertility'
   | 'water'
   | 'utility'
+  | 'utility-point'
   | 'setback'
   | 'flow'
   | 'transect'

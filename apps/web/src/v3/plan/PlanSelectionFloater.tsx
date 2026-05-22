@@ -64,6 +64,7 @@ const KIND_LABEL: Record<PlanSelectionItem['kind'], string> = {
   fertility: 'Fertility node',
   water: 'Water node',
   utility: 'Utility run',
+  'utility-point': 'Utility point',
   setback: 'Setback ring',
   flow: 'Flow connector',
   transect: 'Monitoring transect',
