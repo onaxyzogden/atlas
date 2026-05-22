@@ -14,8 +14,8 @@
  * submissions client-side, the route trims + re-checks, and the DB CHECK is the
  * final backstop. `rating` (1-5) and `contact` are optional, opt-in only.
  *
- * Covenant-clean copy per the 2026-05-04 erasure ADR: no CSRA / advance-
- * purchase / yield-share / investor language anywhere in this surface.
+ * Covenant-clean copy per the 2026-05-04 erasure ADR: none of the forbidden
+ * capital-framing vocabulary appears anywhere in this surface.
  */
 
 import { useState, type FormEvent } from 'react';
