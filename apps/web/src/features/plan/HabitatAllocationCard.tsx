@@ -5,9 +5,8 @@
  * aside enough land to undisturbed habitat / biological corridors? Sums
  * the habitat-category zones from `zoneStore` against the parcel area
  * and charts the share against the goal tree's `regen-habitat-pct`
- * target (the Apricot Lane ~10% set-aside). Adds a local-first
- * habitat-feature inventory (wildlife pond, owl boxes, hawk perches,
- * hedgerow). Pure client-side — no DB migration, no new endpoint.
+ * target (the Apricot Lane ~10% set-aside). Pure client-side — no DB
+ * migration, no new endpoint.
  */
 
 import { useEffect, useMemo } from 'react';
@@ -21,7 +20,6 @@ import {
   acresToM2,
 } from './habitatAllocation/allocate.js';
 import AllocationGauge from './habitatAllocation/AllocationGauge.js';
-import FeatureInventoryPanel from './habitatAllocation/FeatureInventoryPanel.js';
 
 interface Props {
   project: LocalProject;
@@ -61,8 +59,6 @@ export default function HabitatAllocationCard({ project, onSwitchToMap }: Props)
     [projectZones, parcelM2, targetPct],
   );
 
-  const apiProjectId = project.serverId ?? project.id;
-
   return (
     <div className={styles.page}>
       <header className={styles.hero} data-stage="plan">
@@ -74,7 +70,7 @@ export default function HabitatAllocationCard({ project, onSwitchToMap }: Props)
           undisturbed wildlife habitat and biological corridors. This
           dashboard sums your conservation, buffer, and water-retention
           zones against the parcel and checks the share against the goal
-          tree — then tracks the habitat features you've committed to.
+          tree.
         </p>
       </header>
 
@@ -116,11 +112,6 @@ export default function HabitatAllocationCard({ project, onSwitchToMap }: Props)
         ) : (
           <AllocationGauge a={allocation} />
         )}
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Habitat features</h2>
-        <FeatureInventoryPanel projectId={apiProjectId} />
       </section>
     </div>
   );

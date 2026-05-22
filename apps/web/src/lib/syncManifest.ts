@@ -94,7 +94,6 @@ import { useWaterSystemsStore } from '../store/waterSystemsStore.js';
 import { useRotationPlanStore } from '../store/rotationPlanStore.js';
 import { useCompostCycleStore } from '../store/compostCycleStore.js';
 import { useSuccessionPathStore } from '../store/successionPathStore.js';
-import { useHabitatFeatureStore } from '../store/habitatFeatureStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -379,7 +378,6 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-rotation-plan', useRotationPlanStore, 'byProject', 1, byKey('byProject', null, {})),
   blob('ogden-compost-cycle', useCompostCycleStore, 'byProject', 1, byKey('byProject', null, [])),
   blob('ogden-succession-path', useSuccessionPathStore, 'byProject', 1, byKey('byProject', null, {})),
-  blob('ogden-habitat-features', useHabitatFeatureStore, 'projectId-tagged', 1, tagged('features'), true),
 ];
 
 /**

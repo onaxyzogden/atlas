@@ -6,7 +6,6 @@
  * Reads from the post-unification truth source: every habitat commitment
  * is a placed DesignElement (point / line / polygon) with a known
  * `kind`. Used by:
- *   - `FeatureInventoryPanel` (A2) — "Placed on map" summary block.
  *   - `BiodiversityMonitorCard` (A3) — planned-commitments sub-panel.
  *
  * Strictly informational; no covenant. Counts derive from geometry, never

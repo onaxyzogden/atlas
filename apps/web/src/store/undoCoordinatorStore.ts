@@ -46,7 +46,6 @@ import { useBuiltEnvironmentStoreV2 } from './builtEnvironmentStoreV2.js';
 import { useConventionalCropStore } from './conventionalCropStore.js';
 import { usePastureStore } from './pastureStore.js';
 import { useVegetationStore } from './vegetationStore.js';
-import { useHabitatFeatureStore } from './habitatFeatureStore.js';
 import { useRegenerationPlanStore } from './regenerationPlanStore.js';
 import { useUtilityRunStore } from './utilityRunStore.js';
 import { useSetbackStore } from './setbackStore.js';
@@ -72,7 +71,6 @@ export type UndoableStoreName =
   | 'conventionalCrop'
   | 'pasture'
   | 'vegetation'
-  | 'habitatFeature'
   | 'regenerationPlan'
   | 'utilityRun'
   | 'setback'
@@ -135,7 +133,6 @@ const STORES: Record<UndoableStoreName, StoreWithMiddleware> = {
   conventionalCrop: useConventionalCropStore as unknown as StoreWithMiddleware,
   pasture: usePastureStore as unknown as StoreWithMiddleware,
   vegetation: useVegetationStore as unknown as StoreWithMiddleware,
-  habitatFeature: useHabitatFeatureStore as unknown as StoreWithMiddleware,
   regenerationPlan: useRegenerationPlanStore as unknown as StoreWithMiddleware,
   utilityRun: useUtilityRunStore as unknown as StoreWithMiddleware,
   setback: useSetbackStore as unknown as StoreWithMiddleware,
