@@ -158,9 +158,21 @@ exactly one transport owns each store.
   `elementCatalog.ts` got a clarity comment only. Log:
   [[log/2026-05-22-canonical-feature-ownership-c4]]; ADR:
   [[decisions/2026-05-22-atlas-canonical-feature-ownership-c4]].
-- **C5** — properties-panel polish: structure `rotationDeg` field + live
-  orientation indicator; confirm path/utility edit fields present.
-- **C6** — full e2e verify + consolidation ADR.
+- **C5** — properties-panel polish. **DONE (commit `5ad3c3b4`,
+  2026-05-22).** Exploration found `rotationDeg` already fully wired (draw +
+  edit forms, with `createFootprintPolygon` regeneration), so the two genuine
+  gaps were narrower: a selected-structure **orientation chevron** (rotation
+  was invisible unless the edit form was open) and **utility-point v3 edit
+  parity** (`'utility-point'` `PlanSelectionKind` + `buildUtilityPointEditSchema`
+  + a dedicated click-to-edit listener — utility points rendered but were
+  neither selectable nor editable). Log:
+  [[log/2026-05-22-c5-structure-orientation-utility-edit-parity]].
+- **C6** — full e2e verify + consolidation ADR. **DONE (2026-05-22).** Phase C
+  unit surface re-confirmed green + web tsc at baseline; live DOM regression
+  check (`/v3/project/mtc/plan` loads with a canvas, no C5 console errors); the
+  live-WebGL chevron/edit-form visual stays deferred (stated, not claimed). ADR:
+  [[decisions/2026-05-22-atlas-phase-c-consolidation]]; log:
+  [[log/2026-05-22-c6-phase-c-consolidation]]. **Phase C complete.**
 
 ## Related
 

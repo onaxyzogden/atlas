@@ -153,10 +153,22 @@ matching label. **5/5 green.**
 
 ## Phase C remainder
 
-- **C5** — properties-panel polish: structure `rotationDeg` field + live
-  orientation indicator (`ProposedMetadata` already carries `rotationDeg`);
-  confirm path/utility edit fields present.
-- **C6** — full e2e verify + the consolidation ADR.
+- **C5** — properties-panel polish. **DONE (commit `5ad3c3b4`,
+  2026-05-22).** `ProposedMetadata.rotationDeg` was already wired through both
+  the draw and edit forms, so C5 added the missing halves: a **selected-only
+  orientation chevron** (rotation was invisible unless the edit form was open)
+  and **utility-point v3 edit parity** — a `'utility-point'`
+  `PlanSelectionKind`, `buildUtilityPointEditSchema` (mirrors the C4 draw form,
+  no `color` write), and a dedicated click-to-edit listener (utilityStore has
+  no temporal store, so it's a separate listener from the fertility/water
+  drag path). Log:
+  [[log/2026-05-22-c5-structure-orientation-utility-edit-parity]].
+- **C6** — full e2e verify + the consolidation ADR. **DONE (2026-05-22).**
+  Phase C unit surface green + web tsc baseline + a live DOM regression check
+  (no C5 console errors on the seeded Plan view); live-WebGL visual deferred
+  (stated, not claimed). ADR:
+  [[decisions/2026-05-22-atlas-phase-c-consolidation]]; log:
+  [[log/2026-05-22-c6-phase-c-consolidation]]. **Phase C complete.**
 
 ## Covenant + IA
 
