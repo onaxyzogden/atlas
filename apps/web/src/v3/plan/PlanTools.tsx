@@ -10,7 +10,7 @@
  * replaces "Tools coming soon" until they get the same map-first treatment.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams } from '@tanstack/react-router';
 import {
   Activity,
@@ -76,6 +76,7 @@ import {
   PLAN_MODULE_FULL_LABEL,
   type PlanModule,
 } from './types.js';
+import { BE_CATEGORY_TO_PLAN_MODULE } from './planSectionMap.js';
 import { usePlanView } from './PlanViewContext.js';
 import CustomModelPalette from './canvas/CustomModelPalette.js';
 import css from './PlanTools.module.css';
@@ -115,27 +116,6 @@ function beCategoryToolItems(category: BuiltEnvironmentCategory): ToolItem[] {
     toolId: `plan.structures-subsystems.be.${bg.kind}` as MapToolId,
   }));
 }
-
-/**
- * 2026-05-14 — BE flatten. Each `BuiltEnvironmentCategory` surfaces as its
- * own top-level rail section; clicking it activates the routed Plan
- * module below. Plan has dedicated modules for several BE category
- * concerns (machinery, plant-systems, water-management, zone-circulation),
- * so the mapping is more specific than Observe's.
- */
-const BE_CATEGORY_TO_PLAN_MODULE: Record<
-  BuiltEnvironmentCategory,
-  PlanModule
-> = {
-  building: 'structures-subsystems',
-  agricultural: 'structures-subsystems',
-  utility: 'structures-subsystems',
-  infrastructure: 'structures-subsystems',
-  machinery: 'machinery',
-  amenity: 'structures-subsystems',
-  vegetation: 'plant-systems',
-  earthworks: 'water-management',
-};
 
 /** Modules with map-first draw tools. Others fall back to "Open module". */
 const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
@@ -262,46 +242,29 @@ const ZONE_GENERATOR_ACTIONS: ZoneGeneratorAction[] = [
 
 interface Props {
   activeModule: PlanModule | null;
+  /**
+   * The reconciled picked-section id (owned by `PlanLayout`, shared with the
+   * mini rail). Non-null → exactly that section lights; null → fall back to
+   * whole-family module-equality highlight.
+   */
+  effectiveSectionId: string | null;
+  /** Module-only selection (the "Open module" fallback button). */
   onSelectModule: (mod: PlanModule | null) => void;
+  /** Section selection — narrows / toggles the cross-rail highlight. */
+  onSelectSection: (mod: PlanModule, sectionId: string) => void;
   onOpenSlideUp?: () => void;
-}
-
-/**
- * Maps a rail-section id back to the Plan module it activates. Section ids
- * reuse each section's React `key`: BE category sections are `be-<category>`
- * (routed via BE_CATEGORY_TO_PLAN_MODULE), every other section's id IS its
- * module. Used to lazily reconcile the picked-section discriminator against
- * `activeModule` (see `effectiveId` below) without a race-prone effect.
- */
-function sectionIdModule(sectionId: string): PlanModule | null {
-  if (sectionId.startsWith('be-')) {
-    const category = sectionId.slice(3) as BuiltEnvironmentCategory;
-    return BE_CATEGORY_TO_PLAN_MODULE[category] ?? null;
-  }
-  return sectionId as PlanModule;
 }
 
 export default function PlanTools({
   activeModule,
+  effectiveSectionId,
   onSelectModule,
+  onSelectSection,
   onOpenSlideUp,
 }: Props) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
   const view = usePlanView();
-
-  // Which specific rail section the steward picked. Several sections share a
-  // module (the 5 BE categories → `structures-subsystems`), so module
-  // equality alone lights them all. This discriminator narrows the highlight
-  // to the one that was clicked. Derived lazily into `effectiveId` below: a
-  // stale id (whose module no longer matches `activeModule` — reload, bottom-
-  // bar activation, deselect, or the brief transient before async navigation
-  // resolves) is ignored, falling back to today's whole-family highlight.
-  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
-  const effectiveId =
-    activeSectionId && sectionIdModule(activeSectionId) === activeModule
-      ? activeSectionId
-      : null;
 
   const activeTool = useMapToolStore((s) => s.activeTool);
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
@@ -429,20 +392,6 @@ export default function PlanTools({
     setActiveTool(activeTool === toolId ? null : toolId);
   };
 
-  const onSectionActivate = (mod: PlanModule, sectionId: string) => {
-    if (!projectId) return;
-    if (effectiveId === sectionId) {
-      // Already the sole active section → deselect.
-      setActiveSectionId(null);
-      onSelectModule(null);
-    } else {
-      // Narrow to / switch to this section (also collapses a family-lit
-      // fallback state to just the clicked card).
-      setActiveSectionId(sectionId);
-      onSelectModule(mod);
-    }
-  };
-
   return (
     <div
       ref={toolboxRef}
@@ -457,7 +406,9 @@ export default function PlanTools({
         if (mod === 'structures-subsystems') return null;
         const items = TOOL_GROUPS[mod];
         const isActive =
-          effectiveId === null ? activeModule === mod : effectiveId === mod;
+          effectiveSectionId !== null
+            ? effectiveSectionId === mod
+            : activeModule === mod;
         const headerLabel = PLAN_MODULE_FULL_LABEL[mod];
         const sectionClassName = [
           css.group,
@@ -475,11 +426,11 @@ export default function PlanTools({
               title: isActive
                 ? `Deselect ${headerLabel}`
                 : `Switch to ${headerLabel}`,
-              onClick: () => onSectionActivate(mod, mod),
+              onClick: () => onSelectSection(mod, mod),
               onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  onSectionActivate(mod, mod);
+                  onSelectSection(mod, mod);
                 }
               },
             }
@@ -674,9 +625,9 @@ export default function PlanTools({
         const routed = BE_CATEGORY_TO_PLAN_MODULE[group.category];
         const sectionId = `be-${group.category}`;
         const isActive =
-          effectiveId === null
-            ? activeModule === routed
-            : effectiveId === sectionId;
+          effectiveSectionId !== null
+            ? effectiveSectionId === sectionId
+            : activeModule === routed;
         const sectionClassName = [
           css.group,
           isActive ? css.groupActive : '',
@@ -692,11 +643,11 @@ export default function PlanTools({
               title: isActive
                 ? `Deselect ${PLAN_MODULE_FULL_LABEL[routed]}`
                 : `Switch to ${PLAN_MODULE_FULL_LABEL[routed]}`,
-              onClick: () => onSectionActivate(routed, sectionId),
+              onClick: () => onSelectSection(routed, sectionId),
               onKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  onSectionActivate(routed, sectionId);
+                  onSelectSection(routed, sectionId);
                 }
               },
             }

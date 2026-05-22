@@ -24,25 +24,7 @@ import {
 } from '../_shared/builtEnvironmentTools.js';
 import type { BuiltEnvironmentCategory } from '@ogden/shared';
 import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
-
-/**
- * 2026-05-14 — BE flatten. Mirrors `BE_CATEGORY_TO_PLAN_MODULE` in
- * `PlanTools.tsx`. Each BE category routes to a relevant pre-existing
- * Plan module so click-to-activate opens the right slide-up.
- */
-const BE_CATEGORY_TO_PLAN_MODULE: Record<
-  BuiltEnvironmentCategory,
-  PlanModule
-> = {
-  building: 'structures-subsystems',
-  agricultural: 'structures-subsystems',
-  utility: 'structures-subsystems',
-  infrastructure: 'structures-subsystems',
-  machinery: 'machinery',
-  amenity: 'structures-subsystems',
-  vegetation: 'plant-systems',
-  earthworks: 'water-management',
-};
+import { BE_CATEGORY_TO_PLAN_MODULE } from './planSectionMap.js';
 import PlanProjectTypeCard from './PlanProjectTypeCard.js';
 import PlacedFeaturesCard from '../../features/shared/placedFeatures/PlacedFeaturesCard.js';
 import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';
@@ -179,7 +161,16 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
 
 interface Props {
   activeModule: PlanModule | null;
+  /**
+   * The reconciled picked-section id (owned by `PlanLayout`, shared with the
+   * main rail). Non-null → exactly that card lights; null → fall back to
+   * whole-family module-equality highlight.
+   */
+  effectiveSectionId: string | null;
+  /** Module-only selection (kept for `PlanProjectTypeCard`). */
   onSelectModule: (module: PlanModule | null) => void;
+  /** Section selection — narrows / toggles the cross-rail highlight. */
+  onSelectSection: (module: PlanModule, sectionId: string) => void;
   slideUpOpen: boolean;
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
@@ -190,7 +181,7 @@ function PlanGuidanceCard({
   active,
   projectId,
   slideUpOpen,
-  onSelectModule,
+  onSelectSection,
   onOpenSlideUp,
   onCloseSlideUp,
 }: {
@@ -198,7 +189,7 @@ function PlanGuidanceCard({
   active: boolean;
   projectId: string | null;
   slideUpOpen: boolean;
-  onSelectModule: (module: PlanModule | null) => void;
+  onSelectSection: (module: PlanModule, sectionId: string) => void;
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
 }) {
@@ -226,7 +217,7 @@ function PlanGuidanceCard({
       guidance={PLAN_MODULE_GUIDANCE[module]}
       checkedList={checkedList}
       onToggle={(i) => projectId && toggle(projectId, module, i)}
-      onSelect={() => onSelectModule(module)}
+      onSelect={() => onSelectSection(module, module)}
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       checksDisabled={!projectId}
@@ -249,7 +240,9 @@ function PlanGuidanceCard({
 
 export default function PlanChecklistAside({
   activeModule,
+  effectiveSectionId,
   onSelectModule,
+  onSelectSection,
   slideUpOpen,
   onOpenSlideUp,
   onCloseSlideUp,
@@ -275,14 +268,18 @@ export default function PlanChecklistAside({
         // 2026-05-14 — BE flatten: parent `structures-subsystems` card
         // is replaced by 9 per-category cards rendered below.
         if (mod === 'structures-subsystems') return null;
+        const active =
+          effectiveSectionId !== null
+            ? effectiveSectionId === mod
+            : activeModule === mod;
         return (
           <PlanGuidanceCard
             key={mod}
             module={mod}
-            active={activeModule === mod}
+            active={active}
             projectId={projectId}
             slideUpOpen={slideUpOpen}
-            onSelectModule={onSelectModule}
+            onSelectSection={onSelectSection}
             onOpenSlideUp={onOpenSlideUp}
             onCloseSlideUp={onCloseSlideUp}
           />
@@ -299,7 +296,11 @@ export default function PlanChecklistAside({
         if (group.category === 'earthworks') return null;
         const routed = BE_CATEGORY_TO_PLAN_MODULE[group.category];
         const guidance = BE_CATEGORY_GUIDANCE[group.category];
-        const active = activeModule === routed;
+        const sectionId = `be-${group.category}`;
+        const active =
+          effectiveSectionId !== null
+            ? effectiveSectionId === sectionId
+            : activeModule === routed;
         return (
           <GuidanceCard
             key={`be-${group.category}`}
@@ -315,7 +316,7 @@ export default function PlanChecklistAside({
                * slot — disabling the UI affordance here keeps the parent
                * module the single source of truth. */
             }}
-            onSelect={() => onSelectModule(routed)}
+            onSelect={() => onSelectSection(routed, sectionId)}
             onOpenSlideUp={onOpenSlideUp}
             onCloseSlideUp={onCloseSlideUp}
             checksDisabled

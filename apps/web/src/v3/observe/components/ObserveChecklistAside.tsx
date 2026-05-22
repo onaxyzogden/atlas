@@ -31,28 +31,9 @@ import {
   OBSERVE_MODULE_LABEL,
   type ObserveModule,
 } from '../types.js';
+import { BE_CATEGORY_TO_OBSERVE_MODULE } from '../observeSectionMap.js';
 import PlacedFeaturesCard from '../../../features/shared/placedFeatures/PlacedFeaturesCard.js';
 import css from './ObserveChecklistAside.module.css';
-
-/**
- * 2026-05-14 — BE flatten. Mirrors `BE_CATEGORY_TO_OBSERVE_MODULE` in
- * `ObserveTools.tsx`. Kept here (instead of in `_shared/`) so the right
- * rail can be edited without touching the rail registry — but the two
- * tables must agree.
- */
-const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
-  BuiltEnvironmentCategory,
-  ObserveModule
-> = {
-  building: 'built-environment',
-  agricultural: 'built-environment',
-  utility: 'built-environment',
-  infrastructure: 'built-environment',
-  machinery: 'built-environment',
-  amenity: 'built-environment',
-  vegetation: 'earth-water-ecology',
-  earthworks: 'topography',
-};
 
 /**
  * Stable empty-array reference for the zustand selector. DO NOT inline `?? []`
@@ -146,7 +127,14 @@ const OBSERVE_MODULE_DOT: Record<ObserveModule, string> = {
 
 interface ObserveChecklistAsideProps {
   activeModule: ObserveModule | null;
-  onSelectModule: (module: ObserveModule | null) => void;
+  /**
+   * The reconciled picked-section id (owned by `ObserveLayout`, shared with
+   * the main rail). Non-null → exactly that card lights; null → fall back to
+   * whole-family module-equality highlight.
+   */
+  effectiveSectionId: string | null;
+  /** Section selection — narrows / toggles the cross-rail highlight. */
+  onSelectSection: (module: ObserveModule, sectionId: string) => void;
   slideUpOpen: boolean;
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
@@ -157,7 +145,7 @@ function ObserveGuidanceCard({
   active,
   projectId,
   slideUpOpen,
-  onSelectModule,
+  onSelectSection,
   onOpenSlideUp,
   onCloseSlideUp,
 }: {
@@ -165,7 +153,7 @@ function ObserveGuidanceCard({
   active: boolean;
   projectId: string | null;
   slideUpOpen: boolean;
-  onSelectModule: (module: ObserveModule | null) => void;
+  onSelectSection: (module: ObserveModule, sectionId: string) => void;
   onOpenSlideUp: () => void;
   onCloseSlideUp: () => void;
 }) {
@@ -185,7 +173,7 @@ function ObserveGuidanceCard({
       guidance={MODULE_GUIDANCE[module]}
       checkedList={checkedList}
       onToggle={(i) => projectId && toggle(projectId, module, i)}
-      onSelect={() => onSelectModule(module)}
+      onSelect={() => onSelectSection(module, module)}
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       checksDisabled={!projectId}
@@ -195,7 +183,8 @@ function ObserveGuidanceCard({
 
 export default function ObserveChecklistAside({
   activeModule,
-  onSelectModule,
+  effectiveSectionId,
+  onSelectSection,
   slideUpOpen,
   onOpenSlideUp,
   onCloseSlideUp,
@@ -219,14 +208,18 @@ export default function ObserveChecklistAside({
         // 2026-05-14 — BE flatten: parent `built-environment` guidance
         // card is replaced by 9 per-category cards rendered below.
         if (mod === 'built-environment') return null;
+        const active =
+          effectiveSectionId !== null
+            ? effectiveSectionId === mod
+            : mod === activeModule;
         return (
           <ObserveGuidanceCard
             key={mod}
             module={mod}
-            active={mod === activeModule}
+            active={active}
             projectId={projectId}
             slideUpOpen={slideUpOpen}
-            onSelectModule={onSelectModule}
+            onSelectSection={onSelectSection}
             onOpenSlideUp={onOpenSlideUp}
             onCloseSlideUp={onCloseSlideUp}
           />
@@ -243,7 +236,11 @@ export default function ObserveChecklistAside({
         if (group.category === 'earthworks') return null;
         const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
         const guidance = BE_CATEGORY_GUIDANCE[group.category];
-        const active = routed === activeModule;
+        const sectionId = `be-${group.category}`;
+        const active =
+          effectiveSectionId !== null
+            ? effectiveSectionId === sectionId
+            : routed === activeModule;
         return (
           <GuidanceCard
             key={`be-${group.category}`}
@@ -259,7 +256,7 @@ export default function ObserveChecklistAside({
                * routed module's slot. checksDisabled flag below suppresses
                * the UI affordance entirely. */
             }}
-            onSelect={() => onSelectModule(routed)}
+            onSelect={() => onSelectSection(routed, sectionId)}
             onOpenSlideUp={onOpenSlideUp}
             onCloseSlideUp={onCloseSlideUp}
             checksDisabled

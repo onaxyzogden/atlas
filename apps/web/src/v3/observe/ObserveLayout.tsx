@@ -61,6 +61,7 @@ import {
   isObserveModule,
   type ObserveModule,
 } from './types.js';
+import { observeSectionIdModule } from './observeSectionMap.js';
 import StageShell from '../_shell/StageShell.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -105,11 +106,23 @@ export default function ObserveLayout() {
     activeTool && activeTool.startsWith('observe.') ? activeTool : null;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
+  // Which specific rail section the steward picked. The BE categories all
+  // route to `built-environment`, so module equality alone lights them all.
+  // Lifted here (next to `slideUpOpen`) so BOTH the main rail (`ObserveTools`)
+  // and the mini rail (`ObserveChecklistAside`) narrow to the same single
+  // section. Derived lazily into `effectiveSectionId`: a stale id routes to a
+  // different module and is ignored, falling back to the whole-family view.
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const effectiveSectionId =
+    activeSectionId && observeSectionIdModule(activeSectionId) === validModule
+      ? activeSectionId
+      : null;
   const [mode, setMode] = useState<ToolMode>('pan');
   const [hovering, setHovering] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const handleSelectModule = (mod: ObserveModule | null) => {
+  // Pure navigation primitive (the former `handleSelectModule` body).
+  const navigateModule = (mod: ObserveModule | null) => {
     if (!params.projectId) return;
     if (mod === null) {
       navigate({
@@ -124,6 +137,27 @@ export default function ObserveLayout() {
       params: { projectId: params.projectId, module: mod },
     });
     setSlideUpOpen(false);
+  };
+
+  // Programmatic / bottom-module-bar / slide-up module selection: clears any
+  // section narrowing so the picked module shows its whole family.
+  const handleSelectModule = (mod: ObserveModule | null) => {
+    setActiveSectionId(null);
+    navigateModule(mod);
+  };
+
+  // Rail section clicks (main rail + mini rail). Toggles on strict identity so
+  // re-clicking the sole-active section deselects; otherwise narrows to /
+  // switches to the clicked section across both rails.
+  const handleSelectSection = (mod: ObserveModule, sectionId: string) => {
+    if (!params.projectId) return;
+    if (effectiveSectionId === sectionId) {
+      setActiveSectionId(null);
+      navigateModule(null);
+    } else {
+      setActiveSectionId(sectionId);
+      navigateModule(mod);
+    }
   };
 
   const moduleBar = (
@@ -144,7 +178,8 @@ export default function ObserveLayout() {
       leftRail={
         <ObserveTools
           activeModule={validModule}
-          onSelectModule={handleSelectModule}
+          effectiveSectionId={effectiveSectionId}
+          onSelectSection={handleSelectSection}
         />
       }
       canvas={
@@ -275,7 +310,8 @@ export default function ObserveLayout() {
       rightRail={
         <ObserveChecklistAside
           activeModule={validModule}
-          onSelectModule={handleSelectModule}
+          effectiveSectionId={effectiveSectionId}
+          onSelectSection={handleSelectSection}
           slideUpOpen={slideUpOpen && validModule !== null}
           onOpenSlideUp={() => setSlideUpOpen(true)}
           onCloseSlideUp={() => setSlideUpOpen(false)}

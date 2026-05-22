@@ -44,6 +44,7 @@ import {
 } from '../builtEnvironment/layers/index.js';
 import VisionLayoutCanvas from './canvas/VisionLayoutCanvas.js';
 import { isPlanModule, type PlanModule, type PlanView } from './types.js';
+import { planSectionIdModule } from './planSectionMap.js';
 import { PlanViewProvider } from './PlanViewContext.js';
 import StageShell from '../_shell/StageShell.js';
 import PlanDrawHost from './draw/PlanDrawHost.js';
@@ -107,6 +108,19 @@ export default function PlanLayout() {
   const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
+  // Which specific rail section the steward picked. Several sections share a
+  // module (the BE categories → `structures-subsystems`), so module equality
+  // alone lights them all. Lifted here (next to `slideUpOpen`) so BOTH the
+  // main rail (`PlanTools`) and the mini rail (`PlanChecklistAside`) narrow to
+  // the same single section — true cross-rail parity. Derived lazily into
+  // `effectiveSectionId`: a stale id (reload, bottom-bar nav, deselect, or the
+  // brief transient before async navigation resolves) routes to a different
+  // module and is ignored, falling back to the whole-family highlight.
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const effectiveSectionId =
+    activeSectionId && planSectionIdModule(activeSectionId) === validModule
+      ? activeSectionId
+      : null;
   const [activeView, setActiveView] = useState<PlanView>('vision');
   const [currentMode, setCurrentMode] = useState<ToolMode>('pan');
   const [currentHovering, setCurrentHovering] = useState(false);
@@ -217,7 +231,8 @@ export default function PlanLayout() {
     (s) => s.clearTarget,
   );
 
-  const handleSelectModule = (mod: PlanModule | null) => {
+  // Pure navigation primitive (the former `handleSelectModule` body).
+  const navigateModule = (mod: PlanModule | null) => {
     if (!params.projectId) return;
     if (mod === null) {
       navigate({
@@ -232,6 +247,27 @@ export default function PlanLayout() {
       params: { projectId: params.projectId, module: mod },
     });
     setSlideUpOpen(false);
+  };
+
+  // Programmatic / bottom-module-bar / slide-up module selection: clears any
+  // section narrowing so the picked module shows its whole family.
+  const handleSelectModule = (mod: PlanModule | null) => {
+    setActiveSectionId(null);
+    navigateModule(mod);
+  };
+
+  // Rail section clicks (main rail + mini rail). Toggles on strict identity so
+  // re-clicking the sole-active section deselects; otherwise narrows to /
+  // switches to the clicked section across both rails.
+  const handleSelectSection = (mod: PlanModule, sectionId: string) => {
+    if (!params.projectId) return;
+    if (effectiveSectionId === sectionId) {
+      setActiveSectionId(null);
+      navigateModule(null);
+    } else {
+      setActiveSectionId(sectionId);
+      navigateModule(mod);
+    }
   };
 
   // Slice M routing: when the drilldown card's "Open full audit →" fires
@@ -394,7 +430,9 @@ export default function PlanLayout() {
       leftRail={
         <PlanTools
           activeModule={validModule}
+          effectiveSectionId={effectiveSectionId}
           onSelectModule={handleSelectModule}
+          onSelectSection={handleSelectSection}
           onOpenSlideUp={() => setSlideUpOpen(true)}
         />
       }
@@ -417,7 +455,9 @@ export default function PlanLayout() {
       rightRail={
         <PlanChecklistAside
           activeModule={validModule}
+          effectiveSectionId={effectiveSectionId}
           onSelectModule={handleSelectModule}
+          onSelectSection={handleSelectSection}
           slideUpOpen={slideUpOpen && validModule !== null}
           onOpenSlideUp={() => setSlideUpOpen(true)}
           onCloseSlideUp={() => setSlideUpOpen(false)}

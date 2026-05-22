@@ -51,7 +51,6 @@ import {
   BE_TOOL_ITEMS,
   BE_TOOL_GROUPS,
 } from '../../_shared/builtEnvironmentTools.js';
-import type { BuiltEnvironmentCategory } from '@ogden/shared';
 import { DelayedTooltip } from '../../../components/ui/DelayedTooltip.js';
 import {
   useMapToolStore,
@@ -62,17 +61,25 @@ import {
   OBSERVE_MODULE_LABEL,
   type ObserveModule,
 } from '../types.js';
+import { BE_CATEGORY_TO_OBSERVE_MODULE } from '../observeSectionMap.js';
 import css from './ObserveTools.module.css';
 
 interface ObserveToolsProps {
   activeModule: ObserveModule | null;
   /**
-   * Optional handler to switch the active OBSERVE module from the toolbar.
-   * When provided, each section becomes a button that navigates to its
-   * module — mirroring the bottom `ObserveModuleBar`. Clicking the already-
-   * active section deselects (passes `null` to clear the URL module).
+   * The reconciled picked-section id (owned by `ObserveLayout`, shared with
+   * the mini rail). Non-null → exactly that section lights; null → fall back
+   * to whole-family module-equality highlight.
    */
-  onSelectModule?: (module: ObserveModule | null) => void;
+  effectiveSectionId: string | null;
+  /**
+   * Optional handler to narrow / toggle the cross-rail section highlight.
+   * When provided, each section becomes a button: clicking an inactive
+   * section narrows to it (and navigates to its module); clicking the sole-
+   * active section deselects. Section ids reuse each section's React `key`
+   * (`mod`, `be-from-map`, or `be-<category>`).
+   */
+  onSelectSection?: (module: ObserveModule, sectionId: string) => void;
 }
 
 interface ToolItem {
@@ -97,27 +104,6 @@ const BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
   Icon: it.Icon,
   toolId: `observe.built-environment.${it.kind}` as MapToolId,
 }));
-
-/**
- * 2026-05-14 — BE flatten. Each `BuiltEnvironmentCategory` surfaces as its
- * own top-level rail section; clicking it activates the routed Observe
- * module below. Observe has fewer modules than Plan, so most categories
- * fall back to `built-environment`; vegetation / earthworks route to
- * ecology / topography respectively.
- */
-const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
-  BuiltEnvironmentCategory,
-  ObserveModule
-> = {
-  building: 'built-environment',
-  agricultural: 'built-environment',
-  utility: 'built-environment',
-  infrastructure: 'built-environment',
-  machinery: 'built-environment',
-  amenity: 'built-environment',
-  vegetation: 'earth-water-ecology',
-  earthworks: 'topography',
-};
 
 const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
   'human-context': [
@@ -161,7 +147,8 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
 
 export default function ObserveTools({
   activeModule,
-  onSelectModule,
+  effectiveSectionId,
+  onSelectSection,
 }: ObserveToolsProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
   // Match ObserveLayout's projectId normalisation (`params.projectId ?? 'mtc'`)
@@ -232,7 +219,7 @@ export default function ObserveTools({
     setActiveTool(activeTool === toolId ? null : toolId);
   };
 
-  const canSelectModules = Boolean(onSelectModule);
+  const canSelectModules = Boolean(onSelectSection);
 
   return (
     <aside
@@ -248,15 +235,18 @@ export default function ObserveTools({
         // still reachable via the bottom-rail tile.
         if (mod === 'built-environment') return null;
         const items = TOOL_GROUPS[mod];
-        const isActive = mod === activeModule;
+        const isActive =
+          effectiveSectionId !== null
+            ? effectiveSectionId === mod
+            : mod === activeModule;
         const headerLabel = OBSERVE_MODULE_LABEL[mod];
-        // Active sections also act as a button — clicking the active group
-        // deselects (mirrors the bottom rail's "click active card" behavior
-        // when no slide-up is open). Inactive sections navigate to that
-        // module. Both paths run through the same onSelectModule.
+        // Active sections also act as a button — clicking the sole-active
+        // section deselects (handled in `onSelectSection`'s toggle). Inactive
+        // sections narrow the cross-rail highlight to this module. Section id
+        // reuses the React `key` (`mod`).
         const onSectionActivate = () => {
-          if (!canSelectModules || !onSelectModule) return;
-          onSelectModule(isActive ? null : mod);
+          if (!canSelectModules || !onSelectSection) return;
+          onSelectSection(mod, mod);
         };
         const sectionInteractionProps = canSelectModules
           ? {
@@ -311,10 +301,14 @@ export default function ObserveTools({
        *  click-to-activate still opens the parent BE slide-up. */}
       {(() => {
         const routed: ObserveModule = 'built-environment';
-        const isActive = routed === activeModule;
+        const sectionId = 'be-from-map';
+        const isActive =
+          effectiveSectionId !== null
+            ? effectiveSectionId === sectionId
+            : routed === activeModule;
         const onSectionActivate = () => {
-          if (!canSelectModules || !onSelectModule) return;
-          onSelectModule(isActive ? null : routed);
+          if (!canSelectModules || !onSelectSection) return;
+          onSelectSection(routed, sectionId);
         };
         const sectionInteractionProps = canSelectModules
           ? {
@@ -398,10 +392,14 @@ export default function ObserveTools({
         // appended to the Amenities group below.
         if (group.category === 'earthworks') return null;
         const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
-        const isActive = routed === activeModule;
+        const sectionId = `be-${group.category}`;
+        const isActive =
+          effectiveSectionId !== null
+            ? effectiveSectionId === sectionId
+            : routed === activeModule;
         const onSectionActivate = () => {
-          if (!canSelectModules || !onSelectModule) return;
-          onSelectModule(isActive ? null : routed);
+          if (!canSelectModules || !onSelectSection) return;
+          onSelectSection(routed, sectionId);
         };
         const sectionInteractionProps = canSelectModules
           ? {
