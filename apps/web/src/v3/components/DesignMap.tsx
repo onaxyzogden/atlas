@@ -122,6 +122,7 @@ export default function DesignMap({
       center: initialCenter,
       zoom,
       attributionControl: { compact: true },
+      preserveDrawingBuffer: true, // Required for master-plan canvas capture (toDataURL)
       transformRequest: maptilerTransformRequest,
     });
     setMap(m);
