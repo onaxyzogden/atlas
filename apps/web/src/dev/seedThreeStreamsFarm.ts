@@ -12,10 +12,15 @@
  * logged-in user can traverse Observe → Plan → Goal Compass →
  * Act → Monitor with every surface populated to canon.
  *
- * Idempotent: a `three-streams-seeded@v1` localStorage sentinel
- * guards against re-seeding on every reload. The inner
- * `seedGoalCompassPlan` call also refuses if any goal-compass
- * WorkItems already exist on the spine — defence in depth.
+ * Idempotent: an `ecosystem-farm-seeded@v2` localStorage sentinel
+ * guards against re-seeding on every reload. Each store's own
+ * id-equality guard provides defence in depth (so a v1→v2 re-seed
+ * adds only the new livestock slice without duplicating phases /
+ * nursery / goal-compass rows).
+ *
+ * Phase 2.5 added the livestock substrate: 12 cow-calf paddock cells,
+ * the 12-cell rotation plan, a Y2 move log, and the rotation-sequence
+ * WorkItems pushed onto the canonical spine for the Y2 goal-tree gate.
  *
  * Auto-runs from `projectStore.applyBuiltinsToStore` when the
  * Three Streams project lands in the local store (see hook at
@@ -32,6 +37,14 @@ import { useSiteProfileStore } from '../store/siteProfileStore.js';
 import { useWorkItemStore } from '../store/workItemStore.js';
 import { useNurseryStore, type PropagationBatch } from '../store/nurseryStore.js';
 import { useEcologyStore } from '../store/ecologyStore.js';
+import { useLivestockStore, type Paddock } from '../store/livestockStore.js';
+import { useRotationPlanStore } from '../store/rotationPlanStore.js';
+import {
+  useLivestockMoveLogStore,
+  buildRotatePair,
+} from '../store/livestockMoveLogStore.js';
+import type { RotationCell } from '../features/livestock/rotationSequenceMath.js';
+import { pushRotationSequenceToSpine } from '../features/livestock/rotationSequenceSpineSync.js';
 import { seedGoalCompassPlan } from './seedGoalCompassPlan.js';
 
 // Phase 4 (2026-05-21): keyed by projectId so a cold visitor who
@@ -39,8 +52,15 @@ import { seedGoalCompassPlan } from './seedGoalCompassPlan.js';
 // substrate as the canonical Three Streams builtin. Legacy
 // `three-streams-seeded@v1` flag is still honoured for the canonical
 // project (backward-compat with existing browsers).
-const SENTINEL_PREFIX = 'ecosystem-farm-seeded@v1:';
-const LEGACY_SENTINEL_KEY = 'three-streams-seeded@v1';
+//
+// Phase 2.5 (2026-05-21): bumped v1 → v2 to claim the new livestock
+// substrate (paddocks + rotation plan + move log + rotation-sequence
+// spine WorkItems). Browsers that seeded under v1 re-run once on next
+// load to gain the livestock slice; the per-store id-equality guards
+// keep that re-run non-destructive of the already-seeded phases /
+// nursery / goal-compass rows.
+const SENTINEL_PREFIX = 'ecosystem-farm-seeded@v2:';
+const LEGACY_SENTINEL_KEY = 'three-streams-seeded@v2';
 
 interface SeedResult {
   ok: boolean;
@@ -49,6 +69,10 @@ interface SeedResult {
     phasesCustomised: number;
     workItems: number;
     nurseryBatches: number;
+    paddocks: number;
+    rotationCells: number;
+    moveEvents: number;
+    rotationSpineItems: number;
   };
 }
 
@@ -295,6 +319,256 @@ function seedNursery(projectId: string): number {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// Phase 2.5 — livestock substrate. Seeds the 12 Y2 cow-calf paddock
+// cells (mirroring migration 038's design-feature grid), the 12-cell
+// rotation plan, a representative Y2 move log (cattle + poultry follow),
+// then pushes the rotation-sequence WorkItems onto the canonical spine
+// so the Y2 goal-tree criterion
+// `livestock-rotation-spine-presence-pct` (deadlineYear 2) can light up.
+//
+// Canon (wiki/entities/three-streams-farm.md): 80-head Black Angus /
+// Devon-cross cow-calf on a 3-day rotational move through 12 cells with
+// ~33-day rest; 200-bird mobile poultry flock following at a 3-day lag.
+// Sheep arrive Y4 — out of scope for the Y2 seed.
+// ─────────────────────────────────────────────────────────────────────────
+
+// 13 longitude boundaries → 12 cells, mirroring migration 038 exactly.
+const PADDOCK_LON_BOUNDS = [
+  -79.914000, -79.913333, -79.912667, -79.912000, -79.911333, -79.910667,
+  -79.910000, -79.909333, -79.908667, -79.908000, -79.907333, -79.906667,
+  -79.906000,
+];
+const PADDOCK_LAT_SOUTH = 43.5615;
+const PADDOCK_LAT_NORTH = 43.5638;
+const COWCALF_CELL_GROUP = 'cowcalf-Y2';
+const COWCALF_PHASE_NAME = 'Perennials + Livestock'; // resolves by name match
+const COWCALF_HEAD = 80;
+const POULTRY_HEAD = 200;
+
+/** Sentinel UUID for paddock cell i (1-based), matching migration 038. */
+function paddockId(i: number): string {
+  return `00000000-0000-0000-0000-0000df35ad${i.toString(16).padStart(2, '0')}`;
+}
+
+/** Rough equirectangular area (m²) of a lon/lat-aligned rectangle. */
+function rectAreaM2(
+  lonWest: number,
+  lonEast: number,
+  latSouth: number,
+  latNorth: number,
+): number {
+  const latMid = (latSouth + latNorth) / 2;
+  const mPerDegLat = 111_320;
+  const mPerDegLon = 111_320 * Math.cos((latMid * Math.PI) / 180);
+  const widthM = Math.abs(lonEast - lonWest) * mPerDegLon;
+  const heightM = Math.abs(latNorth - latSouth) * mPerDegLat;
+  return Math.round(widthM * heightM);
+}
+
+/** Add `days` to a yyyy-mm-dd string in UTC, returning yyyy-mm-dd. */
+function addDaysISO(dateISO: string, days: number): string {
+  const d = new Date(`${dateISO}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function buildPaddocks(projectId: string): Paddock[] {
+  const now = new Date().toISOString();
+  // Total cow-calf footprint (all 12 cells) → uniform stocking density.
+  let totalM2 = 0;
+  for (let i = 1; i <= 12; i++) {
+    totalM2 += rectAreaM2(
+      PADDOCK_LON_BOUNDS[i - 1]!,
+      PADDOCK_LON_BOUNDS[i]!,
+      PADDOCK_LAT_SOUTH,
+      PADDOCK_LAT_NORTH,
+    );
+  }
+  const totalHa = totalM2 / 10_000;
+  const stockingDensity = totalHa > 0 ? Math.round(COWCALF_HEAD / totalHa) : null;
+
+  const paddocks: Paddock[] = [];
+  for (let i = 1; i <= 12; i++) {
+    const w = PADDOCK_LON_BOUNDS[i - 1]!;
+    const e = PADDOCK_LON_BOUNDS[i]!;
+    const s = PADDOCK_LAT_SOUTH;
+    const n = PADDOCK_LAT_NORTH;
+    paddocks.push({
+      id: paddockId(i),
+      projectId,
+      name: `Paddock ${i}`,
+      color: '#65a30d',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [w, s],
+            [e, s],
+            [e, n],
+            [w, n],
+            [w, s],
+          ],
+        ],
+      },
+      areaM2: rectAreaM2(w, e, s, n),
+      grazingCellGroup: COWCALF_CELL_GROUP,
+      species: ['cattle'],
+      stockingDensity,
+      pastureQuality: 'fair',
+      fencing: 'electric',
+      guestSafeBuffer: true,
+      waterPointNote: 'Mobile trough on the rotation lane; gravity-fed from cistern.',
+      shelterNote: 'Hedgerow windbreak on north + west boundary provides shade.',
+      phase: COWCALF_PHASE_NAME,
+      notes:
+        'Y2 cow-calf cell — 3-day graze / ~33-day rest. Poultry follow at 3-day lag.',
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+  return paddocks;
+}
+
+function buildRotationCells(): RotationCell[] {
+  const cells: RotationCell[] = [];
+  for (let i = 1; i <= 12; i++) {
+    cells.push({
+      paddockId: paddockId(i),
+      cellGroup: COWCALF_CELL_GROUP,
+      sequenceOrder: i - 1, // 0-based within cellGroup
+      targetGrazeDays: 3,
+      targetRestDays: 33,
+    });
+  }
+  return cells;
+}
+
+function seedLivestock(projectId: string): {
+  paddocks: number;
+  rotationCells: number;
+  moveEvents: number;
+  rotationSpineItems: number;
+} {
+  // 1) Paddocks (global store, filtered by projectId; id-equality guard).
+  const livestock = useLivestockStore.getState();
+  const existingPaddockIds = new Set(
+    livestock.paddocks.filter((p) => p.projectId === projectId).map((p) => p.id),
+  );
+  let paddocksAdded = 0;
+  for (const p of buildPaddocks(projectId)) {
+    if (existingPaddockIds.has(p.id)) continue;
+    livestock.addPaddock(p);
+    paddocksAdded++;
+  }
+
+  // 2) Rotation plan (per-project store). setPlan first, then options.
+  const rotationCells = buildRotationCells();
+  const rotation = useRotationPlanStore.getState();
+  const existingPlan = rotation.byProject[projectId];
+  if (!existingPlan || existingPlan.cells.length === 0) {
+    rotation.setPlan(projectId, rotationCells);
+    rotation.setPlanOptions(projectId, {
+      startDateISO: '2026-05-01',
+      horizonCycles: 4,
+    });
+  }
+
+  // 3) Representative Y2 move log (cattle herd + poultry follow). Each
+  //    event is id-guarded so a v1→v2 re-seed does not duplicate.
+  const moveLog = useLivestockMoveLogStore.getState();
+  const existingEventIds = new Set(
+    moveLog.events.filter((e) => e.projectId === projectId).map((e) => e.id),
+  );
+  let moveEventsAdded = 0;
+  const addEventIfNew = (e: Parameters<typeof moveLog.addEvent>[0]) => {
+    if (existingEventIds.has(e.id)) return;
+    moveLog.addEvent(e);
+    existingEventIds.add(e.id);
+    moveEventsAdded++;
+  };
+
+  const cattleStart = '2026-05-01';
+  // Turn-out: herd enters Paddock 1 from the home pole-barn.
+  addEventIfNew({
+    id: 'ts-lvm-cattle-0',
+    projectId,
+    toPaddockId: paddockId(1),
+    date: cattleStart,
+    direction: 'move_in',
+    species: 'cattle',
+    headCount: COWCALF_HEAD,
+    who: 'Rotation crew',
+    notes: 'Spring turn-out — cow-calf herd onto the Y2 rotation spine.',
+  });
+  // 6 rotations: Paddock k → Paddock k+1 every 3 days.
+  for (let k = 1; k <= 6; k++) {
+    const date = addDaysISO(cattleStart, 3 * k);
+    const [exitLeg, entryLeg] = buildRotatePair({
+      projectId,
+      entryDate: date,
+      species: 'cattle',
+      headCount: COWCALF_HEAD,
+      from: { paddockId: paddockId(k) },
+      to: { paddockId: paddockId(k + 1) },
+      who: 'Rotation crew',
+      notes: `3-day rotational move ${k}: Paddock ${k} → Paddock ${k + 1}.`,
+      idSeed: `ts-cattle-${k}`,
+    });
+    addEventIfNew(exitLeg);
+    addEventIfNew(entryLeg);
+  }
+
+  // Poultry follow enters Paddock 1 three days behind the herd, then
+  // tracks the cattle rotation at the same 3-day lag.
+  const poultryStart = addDaysISO(cattleStart, 3);
+  addEventIfNew({
+    id: 'ts-lvm-poultry-0',
+    projectId,
+    toPaddockId: paddockId(1),
+    date: poultryStart,
+    direction: 'move_in',
+    species: 'poultry',
+    headCount: POULTRY_HEAD,
+    who: 'Rotation crew',
+    notes: 'Mobile poultry follow — 3-day lag behind the cow-calf herd.',
+  });
+  for (let k = 1; k <= 5; k++) {
+    const date = addDaysISO(poultryStart, 3 * k);
+    const [exitLeg, entryLeg] = buildRotatePair({
+      projectId,
+      entryDate: date,
+      species: 'poultry',
+      headCount: POULTRY_HEAD,
+      from: { paddockId: paddockId(k) },
+      to: { paddockId: paddockId(k + 1) },
+      who: 'Rotation crew',
+      notes: `Poultry follow move ${k}: Paddock ${k} → Paddock ${k + 1}.`,
+      idSeed: `ts-poultry-${k}`,
+    });
+    addEventIfNew(exitLeg);
+    addEventIfNew(entryLeg);
+  }
+
+  // 4) Project the rotation plan onto the canonical spine. This writes
+  //    the `source:'rotation-sequence'` WorkItems the Y2 spine-presence
+  //    criterion measures against. Reads paddocks + plan + declaredPhases
+  //    from their stores, so must run AFTER the writes above.
+  pushRotationSequenceToSpine(projectId);
+  const rotationSpineItems = useWorkItemStore
+    .getState()
+    .items.filter(
+      (it) => it.projectId === projectId && it.source === 'rotation-sequence',
+    ).length;
+
+  return {
+    paddocks: paddocksAdded,
+    rotationCells: rotationCells.length,
+    moveEvents: moveEventsAdded,
+    rotationSpineItems,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // Public entry point.
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -325,7 +599,7 @@ export function seedFromEcosystemFarmTemplate(
         // project so existing browsers don't double-seed.
         return {
           ok: false,
-          reason: 'three-streams-seeded@v1 legacy sentinel set; pass { force: true } to replay',
+          reason: 'three-streams-seeded@v2 legacy sentinel set; pass { force: true } to replay',
         };
       }
     } catch {
@@ -355,6 +629,7 @@ export function seedFromEcosystemFarmTemplate(
     .length;
 
   const nurseryBatches = seedNursery(pid);
+  const livestock = seedLivestock(pid);
 
   if (typeof localStorage !== 'undefined') {
     try {
@@ -374,6 +649,10 @@ export function seedFromEcosystemFarmTemplate(
       phasesCustomised,
       workItems: workItemCount,
       nurseryBatches,
+      paddocks: livestock.paddocks,
+      rotationCells: livestock.rotationCells,
+      moveEvents: livestock.moveEvents,
+      rotationSpineItems: livestock.rotationSpineItems,
     },
   };
 
@@ -385,7 +664,7 @@ export function seedFromEcosystemFarmTemplate(
   }
 
   console.info(
-    `[seedFromEcosystemFarmTemplate] customised ${phasesCustomised} phases, ${workItemCount} goal-compass WorkItems on spine, ${nurseryBatches} nursery batches, succession='mid' on "${target.name}" (${pid}).`,
+    `[seedFromEcosystemFarmTemplate] customised ${phasesCustomised} phases, ${workItemCount} goal-compass WorkItems on spine, ${nurseryBatches} nursery batches, ${livestock.paddocks} paddocks, ${livestock.rotationCells}-cell rotation plan, ${livestock.moveEvents} move events, ${livestock.rotationSpineItems} rotation-sequence WorkItems, succession='mid' on "${target.name}" (${pid}).`,
   );
 
   return result;
