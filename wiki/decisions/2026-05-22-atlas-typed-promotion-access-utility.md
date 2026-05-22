@@ -141,11 +141,23 @@ exactly one transport owns each store.
   `typed-design-feature` with no `selectForProject` → runtime throw; repointed
   to `ogden-utility-runs`). Verified `syncManifest` 77/77 + tsc at baseline.
   Log: [[log/2026-05-22-landdesign-no-sync-fix-pdc-phase-c3]].
-- **C4** — canonical access/utility ownership (designed access →
-  `pathStore`, designed utility → `utilityStore`, BE driveway/power/well/
-  septic = Observe record of existing infra, `landDesign` path/road kinds =
-  freeform sketch) + `elementCatalog.ts` UI clarity. No destructive
-  migration.
+- **C4** — canonical access/utility ownership + reach the C2 utility-point
+  promotion. **DONE (commit `b498fe8a`, 2026-05-22).** The C2 promotion was
+  **unreachable** — `utilityStore` had no Plan draw tool and no v3 render
+  layer, so a utility point could be neither drawn nor seen even though it
+  round-tripped through sync. C4 wires a new `UtilityPointTool` (mode
+  `plan.structures-subsystems.utility-point`, mounts on Current + Vision) +
+  renders utility points in `PlanDataLayers`, and resolves the
+  overlapping-authoring confusion via a **type-split**: the new tool offers
+  **only the 11 non-BE utility types**; the 4 BE-overlapping kinds
+  (solar/tank/well/septic) are authored via the existing `be.*` tools (BE V2
+  canonical per the 2026-05-10 BE-unification ADR). A pure
+  `utilityPointTypes.ts` module holds `BE_OWNED_UTILITY_TYPES` (the 4) +
+  `UTILITY_POINT_TYPES` (derived = all minus BE-owned), pinned by a 5/5
+  partition test. **No data moves** — clarity + wiring, not a migration.
+  `elementCatalog.ts` got a clarity comment only. Log:
+  [[log/2026-05-22-canonical-feature-ownership-c4]]; ADR:
+  [[decisions/2026-05-22-atlas-canonical-feature-ownership-c4]].
 - **C5** — properties-panel polish: structure `rotationDeg` field + live
   orientation indicator; confirm path/utility edit fields present.
 - **C6** — full e2e verify + consolidation ADR.
