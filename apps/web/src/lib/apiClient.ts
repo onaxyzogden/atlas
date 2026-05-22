@@ -547,8 +547,22 @@ export const api = {
       onProgress?: (pct: number) => void,
     ): Promise<ApiEnvelope<ProjectFile>> =>
       new Promise((resolve, reject) => {
+        const path = `/api/v1/projects/${projectId}/files`;
+        // Report an ApiError to the client-error sink, then reject with it.
+        const fail = (apiError: ApiError) => {
+          reportApiFailure({
+            name: 'ApiError',
+            message: apiError.message,
+            status: apiError.status,
+            code: apiError.code,
+            method: 'POST',
+            path,
+          });
+          reject(apiError);
+        };
+
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', `/api/v1/projects/${projectId}/files`);
+        xhr.open('POST', path);
 
         if (authToken) {
           xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
@@ -568,7 +582,7 @@ export const api = {
             if (xhr.status >= 200 && xhr.status < 300 && !json.error) {
               resolve(json);
             } else {
-              reject(new ApiError(
+              fail(new ApiError(
                 json.error?.code ?? 'UNKNOWN',
                 json.error?.message ?? `Upload failed (${xhr.status})`,
                 xhr.status,
@@ -576,12 +590,12 @@ export const api = {
               ));
             }
           } catch {
-            reject(new ApiError('PARSE_ERROR', `Response not JSON (${xhr.status})`, xhr.status));
+            fail(new ApiError('PARSE_ERROR', `Response not JSON (${xhr.status})`, xhr.status));
           }
         };
 
         xhr.onerror = () => {
-          reject(new ApiError('NETWORK_ERROR', 'Network error during upload', 0));
+          fail(new ApiError('NETWORK_ERROR', 'Network error during upload', 0));
         };
 
         const formData = new FormData();
@@ -699,7 +713,7 @@ export const api = {
         `/api/v1/projects/${projectId}/regeneration-events/${eventId}`,
       ),
 
-    uploadMedia: (projectId: string, file: File): Promise<ApiEnvelope<{
+    uploadMedia: async (projectId: string, file: File): Promise<ApiEnvelope<{
       url: string;
       contentType: string;
       size: number;
@@ -709,21 +723,42 @@ export const api = {
       formData.append('file', file);
       const headers: Record<string, string> = {};
       if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-      return fetch(`/api/v1/projects/${projectId}/regeneration-events/media`, {
-        method: 'POST',
-        headers,
-        body: formData,
-      }).then(async (res) => {
-        const json = await res.json();
-        if (!res.ok || json.error) {
-          throw new ApiError(
-            json.error?.code ?? 'UPLOAD_FAILED',
-            json.error?.message ?? json.message ?? `Upload failed (${res.status})`,
-            res.status,
-          );
+      const path = `/api/v1/projects/${projectId}/regeneration-events/media`;
+      let res: Response;
+      try {
+        res = await fetch(path, { method: 'POST', headers, body: formData });
+      } catch (err) {
+        // AbortError = deliberate cancellation, not a failure.
+        if (!(err instanceof Error && err.name === 'AbortError')) {
+          reportApiFailure({
+            name: err instanceof Error ? err.name : 'NetworkError',
+            message: err instanceof Error ? err.message : String(err),
+            status: 0,
+            code: 'NETWORK_ERROR',
+            method: 'POST',
+            path,
+          });
         }
-        return json;
-      });
+        throw err;
+      }
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        const apiError = new ApiError(
+          json.error?.code ?? 'UPLOAD_FAILED',
+          json.error?.message ?? json.message ?? `Upload failed (${res.status})`,
+          res.status,
+        );
+        reportApiFailure({
+          name: 'ApiError',
+          message: apiError.message,
+          status: apiError.status,
+          code: apiError.code,
+          method: 'POST',
+          path,
+        });
+        throw apiError;
+      }
+      return json;
     },
   },
 

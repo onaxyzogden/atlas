@@ -94,3 +94,102 @@ describe('apiClient → api_client telemetry reporter', () => {
     await expect(api.projects.list()).rejects.toMatchObject({ status: 500 });
   });
 });
+
+// Minimal XMLHttpRequest stand-in: files.upload uses open/setRequestHeader/
+// upload.onprogress/onload/onerror/send/status/responseText. Each test assigns
+// the static `onSend` hook to drive the desired outcome when send() fires.
+class FakeXHR {
+  status = 0;
+  responseText = '';
+  upload: { onprogress: ((e: ProgressEvent) => void) | null } = { onprogress: null };
+  onload: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  static onSend: ((xhr: FakeXHR) => void) | null = null;
+  open(): void {}
+  setRequestHeader(): void {}
+  send(): void {
+    FakeXHR.onSend?.(this);
+  }
+}
+
+describe('apiClient upload sites → api_client telemetry reporter', () => {
+  it('files.upload (XHR): reports an ApiError on a non-2xx response', async () => {
+    FakeXHR.onSend = (xhr) => {
+      xhr.status = 500;
+      xhr.responseText = JSON.stringify(errBody('INTERNAL_ERROR', 'upload boom'));
+      xhr.onload?.();
+    };
+    vi.stubGlobal('XMLHttpRequest', FakeXHR);
+
+    await expect(api.files.upload('p1', new File(['x'], 'a.txt'))).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 500,
+    });
+
+    expect(reporter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'ApiError',
+        code: 'INTERNAL_ERROR',
+        status: 500,
+        method: 'POST',
+        path: '/api/v1/projects/p1/files',
+      }),
+    );
+  });
+
+  it('files.upload (XHR): reports a NETWORK_ERROR on xhr.onerror', async () => {
+    FakeXHR.onSend = (xhr) => {
+      xhr.onerror?.();
+    };
+    vi.stubGlobal('XMLHttpRequest', FakeXHR);
+
+    await expect(api.files.upload('p1', new File(['x'], 'a.txt'))).rejects.toMatchObject({
+      code: 'NETWORK_ERROR',
+      status: 0,
+    });
+
+    expect(reporter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        code: 'NETWORK_ERROR',
+        status: 0,
+        method: 'POST',
+        path: '/api/v1/projects/p1/files',
+      }),
+    );
+  });
+
+  it('regenerationEvents.uploadMedia (fetch): reports an ApiError on a non-2xx response', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(fakeResponse(413, errBody('TOO_LARGE', 'too big'))));
+
+    await expect(api.regenerationEvents.uploadMedia('p1', new File(['x'], 'a.png'))).rejects.toMatchObject({
+      status: 413,
+    });
+
+    expect(reporter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'ApiError',
+        code: 'TOO_LARGE',
+        status: 413,
+        method: 'POST',
+        path: '/api/v1/projects/p1/regeneration-events/media',
+      }),
+    );
+  });
+
+  it('regenerationEvents.uploadMedia (fetch): reports a network rejection and re-throws the original error', async () => {
+    const netErr = new TypeError('Failed to fetch');
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(netErr));
+
+    await expect(api.regenerationEvents.uploadMedia('p1', new File(['x'], 'a.png'))).rejects.toBe(netErr);
+
+    expect(reporter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'TypeError',
+        code: 'NETWORK_ERROR',
+        status: 0,
+        method: 'POST',
+        path: '/api/v1/projects/p1/regeneration-events/media',
+      }),
+    );
+  });
+});
