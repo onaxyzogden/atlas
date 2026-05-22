@@ -75,6 +75,12 @@ HUD on the Observe map.
 - The `compact` prop on `SectorCompassDiagram` is now consumed at
   two call sites (Sectors & Zones dashboard tool-card preview, new
   Observe HUD); the component remains unchanged.
+  - **Superseded 2026-05-22:** `SectorCompassDiagram`'s Layer 3 (manual
+    sectors) was modified so manual solar types (`sun_summer` /
+    `sun_winter`) render as an outer rim band instead of an interior
+    wedge — see [2026-05-22 log entry](../log/2026-05-22-observe-solar-sector-rim-band.md).
+    The "component remains unchanged" claim above no longer holds for
+    Layer 3.
 
 ## References
 
