@@ -1,12 +1,17 @@
 /**
- * WasteVectorDashboardView — visual shell of the closed-loop dashboard.
+ * WasteVectorDashboardView — the closed-loop dashboard.
  *
- * Read-mostly bento overview rendered when the user toggles the
- * Dashboard view inside the Module 5 "Waste-to-resource vectors" tab.
- * Sample data is hardcoded for the shell pass; wiring to closedLoopStore
- * / compostInventoryStore is the subject of a follow-up plan.
+ * Read-mostly bento overview rendered when the user toggles the Dashboard
+ * view inside the Module 5 "Waste-to-resource vectors" tab. Every panel
+ * except the scenarios row is derived live from project-scoped
+ * `materialFlows` + `fertilityInfra` via stable selectors + `useMemo`
+ * (selector-stability rule, 2026-04-26). Risks/interventions share the
+ * `useClosedLoopValidation` hook with `ClosedLoopGraphCard` so the two
+ * surfaces can never report different counts. The scenarios row stays
+ * sample-backed (scenarioStore has no closed-loop snapshot).
  */
 
+import { useMemo } from 'react';
 import {
   Sprout,
   Recycle,
@@ -17,120 +22,100 @@ import {
   AlertTriangle,
   CircleCheck,
   CircleDot,
-  TrendingUp,
-  TrendingDown,
   ChevronRight,
   Pencil,
   FlaskConical,
   Download,
 } from 'lucide-react';
-import { MATERIAL_KIND_CONFIG } from '../../store/closedLoopStore.js';
+import type { LocalProject } from '../../store/projectStore.js';
+import {
+  useClosedLoopStore,
+  MATERIAL_KIND_CONFIG,
+  type MaterialFlow,
+  type MaterialKind,
+  type FertilityInfraType,
+} from '../../store/closedLoopStore.js';
+import { useFlowEndpointOptions } from './useFlowEndpointOptions.js';
+import { useClosedLoopValidation } from './useClosedLoopValidation.js';
 import shared from '../../v3/_shared/stageCard/stageCard.module.css';
 import styles from './WasteVectorDashboardView.module.css';
 
 interface Props {
+  project: LocalProject;
   onSwitchToList: () => void;
 }
 
-// SAMPLE DATA — replaced by store-derived selectors in a follow-up plan.
+// ── Derivation helpers (pure) ───────────────────────────────────────────────
 
-type Trend = 'up' | 'down';
+/** Fold an optional numeric field over a flow list, treating missing as 0. */
+function sum(fs: MaterialFlow[], pick: (f: MaterialFlow) => number | undefined): number {
+  return fs.reduce((acc, f) => acc + (pick(f) ?? 0), 0);
+}
+
+/** Loop efficiency = share of flows with both endpoints pinned, as a 0–100 %. */
+function efficiency(fs: MaterialFlow[]): number {
+  if (fs.length === 0) return 0;
+  const closed = fs.filter((f) => f.sourceId && f.sinkId).length;
+  return Math.round((closed / fs.length) * 100);
+}
+
+/** Compact number format: integers get thousands separators; fractions ≤1 dp. */
+function fmt(n: number): string {
+  return n % 1 === 0
+    ? n.toLocaleString()
+    : n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+
+/** Human label for a flow endpoint: pinned-feature name → free-text → placeholder. */
+function resolveEndpoint(
+  id: string | null,
+  fallback: string | undefined,
+  labelById: Map<string, string>,
+): string {
+  if (id && labelById.has(id)) return labelById.get(id)!;
+  if (fallback) return fallback;
+  return '(unpinned)';
+}
+
+/** Stream-inventory unit by material kind. */
+function streamUnit(kind: MaterialKind): string {
+  return kind === 'water' || kind === 'greywater' ? 'L/mo' : 'kg/mo';
+}
+
+const plural = (n: number): string => (n === 1 ? '' : 's');
+
+type Severity = 'high' | 'medium' | 'low';
+
+/** Rules-based remedy per risk category (static; no store). */
+const RISK_TO_INTERVENTION: Record<string, { label: string; impact: 'High' | 'Medium' }> = {
+  'orphan-fertility':       { label: 'Wire feedstock + a destination into orphaned fertility units', impact: 'High' },
+  'fertility-no-feedstock': { label: 'Declare an incoming feedstock for outgoing-only units',         impact: 'Medium' },
+  'dangling-water':         { label: 'Route water / greywater outflow into a reuse sink',             impact: 'High' },
+  'dangling-flow':          { label: 'Pin an endpoint for free-floating flows',                       impact: 'Medium' },
+  'isolated-zone':          { label: 'Connect isolated features via a material vector',               impact: 'Medium' },
+};
+
+interface FNode {
+  id: string;
+  label: string;
+  meta: string;
+  x: number;
+  y: number;
+}
 
 interface Kpi {
   id: string;
   Icon: typeof Sprout;
   label: string;
+  /** Formatted value, or '—' when the field carries no data yet. */
   value: string;
+  /** Suffix unit; '' when the value is the em-dash placeholder. */
   unit: string;
   cadence: string;
-  delta: string;
-  trend: Trend;
 }
 
-const KPIS: Kpi[] = [
-  { id: 'organic',  Icon: Sprout,   label: 'Organic waste captured', value: '1,246', unit: 'kg', cadence: '/month', delta: '12% vs last month', trend: 'up' },
-  { id: 'compost',  Icon: Recycle,  label: 'Compost output',         value: '842',   unit: 'kg', cadence: '/month', delta: '18% vs last month', trend: 'up' },
-  { id: 'npk',      Icon: Leaf,     label: 'Nutrient recovery (NPK)', value: '92',    unit: '%',  cadence: 'efficiency', delta: '8% vs last month',  trend: 'up' },
-  { id: 'water',    Icon: Droplets, label: 'Water reuse',            value: '1,580', unit: 'L',  cadence: '/day',   delta: '15% vs last month', trend: 'up' },
-  { id: 'energy',   Icon: Zap,      label: 'Energy value',           value: '3.6',   unit: 'kWh', cadence: '/day',  delta: '9% vs last month',  trend: 'up' },
-  { id: 'loop',     Icon: RefreshCw, label: 'Loop efficiency',       value: '84',    unit: '%',  cadence: 'overall', delta: '7% vs last month',  trend: 'up' },
-];
-
-interface Node {
-  id: string;
-  label: string;
-  meta: string;
-  kind: keyof typeof MATERIAL_KIND_CONFIG;
-}
-
-const SOURCES: Node[] = [
-  { id: 'kitchen',  label: 'Kitchen scraps', meta: '245 kg/mo',  kind: 'organic_matter' },
-  { id: 'manure',   label: 'Manure',         meta: '380 kg/mo',  kind: 'manure' },
-  { id: 'greywater', label: 'Greywater',     meta: '1,580 L/day', kind: 'greywater' },
-  { id: 'leaf',     label: 'Leaf litter',    meta: '310 kg/mo',  kind: 'organic_matter' },
-];
-
-const PROCESSORS: Node[] = [
-  { id: 'compost',  label: 'Compost bays',   meta: 'Aerobic',      kind: 'compost' },
-  { id: 'worm',     label: 'Worm bins',      meta: 'Vermicompost', kind: 'compost' },
-  { id: 'mulch',    label: 'Mulch system',   meta: 'Sheet + woodchip', kind: 'mulch' },
-  { id: 'wetland',  label: 'Constructed wetland', meta: 'Greywater', kind: 'greywater' },
-];
-
-const DESTINATIONS: Node[] = [
-  { id: 'garden',   label: 'Garden beds',    meta: 'Vegetables',   kind: 'mulch' },
-  { id: 'orchard',  label: 'Orchards',       meta: 'Fruit trees',  kind: 'compost' },
-  { id: 'livestock', label: 'Livestock',     meta: 'Paddocks + coop', kind: 'grain' },
-  { id: 'soil',     label: 'Soil building',  meta: 'SOM',          kind: 'organic_matter' },
-];
-
-interface Flow { from: string; to: string; kind: keyof typeof MATERIAL_KIND_CONFIG }
-
-const FLOWS: Flow[] = [
-  { from: 'kitchen',   to: 'compost',  kind: 'organic_matter' },
-  { from: 'kitchen',   to: 'worm',     kind: 'organic_matter' },
-  { from: 'manure',    to: 'compost',  kind: 'manure' },
-  { from: 'manure',    to: 'mulch',    kind: 'manure' },
-  { from: 'greywater', to: 'wetland',  kind: 'greywater' },
-  { from: 'leaf',      to: 'mulch',    kind: 'organic_matter' },
-  { from: 'leaf',      to: 'compost',  kind: 'organic_matter' },
-  { from: 'compost',   to: 'garden',   kind: 'compost' },
-  { from: 'compost',   to: 'orchard',  kind: 'compost' },
-  { from: 'worm',      to: 'garden',   kind: 'compost' },
-  { from: 'mulch',     to: 'orchard',  kind: 'mulch' },
-  { from: 'mulch',     to: 'soil',     kind: 'organic_matter' },
-  { from: 'wetland',   to: 'orchard',  kind: 'greywater' },
-  { from: 'compost',   to: 'soil',     kind: 'organic_matter' },
-];
-
-const STREAM_INVENTORY = [
-  { label: 'Total streams', value: 12, tone: 'met'  as const },
-  { label: 'Active flows',  value: 28, tone: 'met'  as const },
-  { label: 'Idle / seasonal', value: 4, tone: 'partial' as const },
-  { label: 'At risk',       value: 2, tone: 'unmet' as const },
-];
-
-const PROCESSING_METHODS = [
-  { label: 'Composting (aerobic)',    status: 'Active' },
-  { label: 'Vermicomposting',         status: 'Active' },
-  { label: 'Mulching',                status: 'Active' },
-  { label: 'Anaerobic digestion',     status: 'Active' },
-  { label: 'Constructed wetland',     status: 'Active' },
-];
-
-const RISKS = [
-  { label: 'Excess nitrogen risk', severity: 'high' as const },
-  { label: 'Greywater overload',   severity: 'medium' as const },
-  { label: 'Seasonal leaf glut',   severity: 'medium' as const },
-  { label: 'Manure storage',       severity: 'low' as const },
-];
-
-const INTERVENTIONS = [
-  { label: 'Increase carbon inputs', impact: 'High' },
-  { label: 'Expand mulch zones',     impact: 'High' },
-  { label: 'Add willow to wetland',  impact: 'Medium' },
-  { label: 'Cover manure piles',     impact: 'Low' },
-];
+// SAMPLE DATA — the scenarios row stays sample-backed (scenarioStore has no
+// closed-loop snapshot); every other panel is now store-derived below.
 
 const SCENARIOS = [
   { id: 'regen-max', name: 'Regenerative max', blurb: 'Balanced for fertility & biomass', eff: 84, inputs: '1,246 kg/mo', outputs: '842 kg/mo' },
@@ -157,28 +142,237 @@ function curve(x1: number, y1: number, x2: number, y2: number): string {
   return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
 }
 
-export default function WasteVectorDashboardView({ onSwitchToList }: Props) {
-  const sourceY  = Object.fromEntries(SOURCES.map((n, i) => [n.id, nodeY(i)]));
-  const procY    = Object.fromEntries(PROCESSORS.map((n, i) => [n.id, nodeY(i)]));
-  const destY    = Object.fromEntries(DESTINATIONS.map((n, i) => [n.id, nodeY(i)]));
-  const yOf = (id: string): number => sourceY[id] ?? procY[id] ?? destY[id] ?? 0;
-  const xOf = (id: string): number => {
-    if (id in sourceY) return COL_X.source + 56;
-    if (id in procY)   return COL_X.processor + 56;
-    return COL_X.dest + 56;
-  };
-  const endX = (id: string): number => {
-    if (id in procY)   return COL_X.processor - 56;
-    if (id in destY)   return COL_X.dest - 56;
-    return COL_X.source - 56;
-  };
+export default function WasteVectorDashboardView({ project, onSwitchToList }: Props) {
+  // Raw slices — derive project-scoped views in useMemo (selector stability).
+  const allFlows = useClosedLoopStore((s) => s.materialFlows);
+  const allInfra = useClosedLoopStore((s) => s.fertilityInfra);
+  const flows = useMemo(
+    () => allFlows.filter((f) => f.projectId === project.id),
+    [allFlows, project.id],
+  );
+  const projectInfra = useMemo(
+    () => allInfra.filter((i) => i.projectId === project.id),
+    [allInfra, project.id],
+  );
+  const endpointOptions = useFlowEndpointOptions(project.id);
+  const validation = useClosedLoopValidation(project);
+  const loopEff = efficiency(flows);
+
+  // ── KPI strip — six store-derived chips ───────────────────────────────────
+  const kpis = useMemo<Kpi[]>(() => {
+    const isOrganic = (f: MaterialFlow) =>
+      f.materialKind === 'organic_matter' || f.materialKind === 'manure' || f.materialKind === 'mulch';
+    const isWater = (f: MaterialFlow) => f.materialKind === 'water' || f.materialKind === 'greywater';
+    const isCompost = (f: MaterialFlow) => f.materialKind === 'compost';
+    const isEnergy = (f: MaterialFlow) => f.materialKind === 'energy';
+
+    const organicTotal = sum(flows.filter(isOrganic), (f) => f.massKgPerMonth);
+    const organicHas = flows.some((f) => isOrganic(f) && f.massKgPerMonth != null);
+
+    const compostTotal = sum(flows.filter(isCompost), (f) => f.massKgPerMonth);
+    const compostHas = flows.some((f) => isCompost(f) && f.massKgPerMonth != null);
+
+    const npkTotal = sum(
+      flows.filter(isCompost),
+      (f) => (f.nutrientNKgPerMonth ?? 0) + (f.nutrientPKgPerMonth ?? 0) + (f.nutrientKKgPerMonth ?? 0),
+    );
+    const npkHas = flows.some(
+      (f) =>
+        isCompost(f) &&
+        (f.nutrientNKgPerMonth != null || f.nutrientPKgPerMonth != null || f.nutrientKKgPerMonth != null),
+    );
+
+    const waterTotal = sum(flows.filter(isWater), (f) => f.volumeLPerMonth);
+    const waterHas = flows.some((f) => isWater(f) && f.volumeLPerMonth != null);
+
+    const energyTotal = sum(flows.filter(isEnergy), (f) => f.energyKwhPerMonth);
+    const energyHas = flows.some((f) => isEnergy(f) && f.energyKwhPerMonth != null);
+
+    const mk = (
+      id: string,
+      Icon: typeof Sprout,
+      label: string,
+      cadence: string,
+      total: number,
+      unit: string,
+      has: boolean,
+    ): Kpi => ({ id, Icon, label, cadence, value: has ? fmt(total) : '—', unit: has ? unit : '' });
+
+    return [
+      mk('organic', Sprout, 'Organic waste captured', 'per month', organicTotal, 'kg/mo', organicHas),
+      mk('compost', Recycle, 'Compost output', 'per month', compostTotal, 'kg/mo', compostHas),
+      mk('npk', Leaf, 'NPK recovery', 'per month', npkTotal, 'kg/mo', npkHas),
+      mk('water', Droplets, 'Water reuse', 'per month', waterTotal, 'L/mo', waterHas),
+      mk('energy', Zap, 'Energy value', 'per month', energyTotal, 'kWh/mo', energyHas),
+      {
+        id: 'loop',
+        Icon: RefreshCw,
+        label: 'Loop efficiency',
+        cadence: 'closed flows',
+        value: flows.length > 0 ? String(loopEff) : '—',
+        unit: flows.length > 0 ? '%' : '',
+      },
+    ];
+  }, [flows, loopEff]);
+
+  // ── Stream inventory — one row per material kind present ───────────────────
+  const streamRows = useMemo(() => {
+    const totals = new Map<MaterialKind, number>();
+    for (const f of flows) {
+      const v = f.massKgPerMonth ?? f.volumeLPerMonth ?? 0;
+      totals.set(f.materialKind, (totals.get(f.materialKind) ?? 0) + v);
+    }
+    return [...totals.entries()]
+      .map(([kind, value]) => ({
+        kind,
+        label: MATERIAL_KIND_CONFIG[kind].label,
+        value,
+        tone: value > 0 ? ('met' as const) : ('partial' as const),
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [flows]);
+
+  // ── Flow-map adjacency — stable Bézier positions across re-renders ─────────
+  const flowGraph = useMemo(() => {
+    const labelById = new Map<string, string>();
+    for (const o of endpointOptions) {
+      const idx = o.label.indexOf(' · ');
+      labelById.set(o.id, idx >= 0 ? o.label.slice(idx + 3) : o.label);
+    }
+    const procIds = new Set(projectInfra.map((i) => i.id));
+    const hasProc = projectInfra.length > 0;
+
+    const sources = new Map<string, FNode>();
+    const processors = new Map<string, FNode>();
+    const dests = new Map<string, FNode>();
+
+    // Pre-seed processor column from fertility infra (3-column mode).
+    if (hasProc)
+      for (const inf of projectInfra)
+        processors.set(inf.id, {
+          id: inf.id,
+          label: labelById.get(inf.id) ?? inf.type.replace(/_/g, ' '),
+          meta: '',
+          x: 0,
+          y: 0,
+        });
+
+    const keyOf = (id: string | null, label: string) => id ?? `txt:${label}`;
+    interface Edge { fromKey: string; toKey: string; kind: MaterialKind }
+    const edges: Edge[] = [];
+
+    for (const f of flows) {
+      const srcLabel = resolveEndpoint(f.sourceId, f.sourceLabel, labelById);
+      const dstLabel = resolveEndpoint(f.sinkId, f.sinkLabel, labelById);
+      const srcKey = keyOf(f.sourceId, srcLabel);
+      const dstKey = keyOf(f.sinkId, dstLabel);
+      const srcIsProc = hasProc && f.sourceId != null && procIds.has(f.sourceId);
+      const dstIsProc = hasProc && f.sinkId != null && procIds.has(f.sinkId);
+
+      if (!srcIsProc && !sources.has(srcKey))
+        sources.set(srcKey, { id: srcKey, label: srcLabel, meta: '', x: 0, y: 0 });
+      if (!dstIsProc && !dests.has(dstKey))
+        dests.set(dstKey, { id: dstKey, label: dstLabel, meta: '', x: 0, y: 0 });
+      edges.push({ fromKey: srcKey, toKey: dstKey, kind: f.materialKind });
+    }
+
+    const place = (map: Map<string, FNode>, x: number): FNode[] => {
+      const arr = [...map.values()].sort((a, b) => a.label.localeCompare(b.label)).slice(0, 8);
+      arr.forEach((n, i) => {
+        n.x = x;
+        n.y = nodeY(i);
+      });
+      return arr;
+    };
+    const srcNodes = place(sources, COL_X.source);
+    const procNodes = hasProc ? place(processors, COL_X.processor) : [];
+    const dstNodes = place(dests, hasProc ? COL_X.dest : COL_X.processor);
+
+    const pos = new Map<string, FNode>();
+    for (const n of [...srcNodes, ...procNodes, ...dstNodes]) pos.set(n.id, n);
+    const renderEdges = edges
+      .filter((e) => pos.has(e.fromKey) && pos.has(e.toKey))
+      .map((e) => {
+        const a = pos.get(e.fromKey)!;
+        const b = pos.get(e.toKey)!;
+        return { d: curve(a.x + 56, a.y, b.x - 56, b.y), color: MATERIAL_KIND_CONFIG[e.kind].color };
+      });
+
+    const maxRows = Math.max(srcNodes.length, procNodes.length, dstNodes.length, 1);
+    const height = Math.max(220, ROW_TOP + maxRows * ROW_GAP + 20);
+    return { srcNodes, procNodes, dstNodes, edges: renderEdges, hasProc, height };
+  }, [flows, projectInfra, endpointOptions]);
+
+  // ── Processing methods — one row per fertility infra type ──────────────────
+  const processingRows = useMemo(() => {
+    const counts = new Map<FertilityInfraType, number>();
+    for (const inf of projectInfra) counts.set(inf.type, (counts.get(inf.type) ?? 0) + 1);
+    return [...counts.entries()]
+      .map(([type, count]) => ({ type, label: type.replace(/_/g, ' '), count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  }, [projectInfra]);
+
+  // ── Risks — shared validation surface (parity with ClosedLoopGraphCard) ────
+  const riskRows = useMemo(() => {
+    const { orphanFertility, fertilityWithoutFeedstock, isolatedFeatures, vectors } = validation;
+    const dangling = vectors.filter((v) => !v.sourceId || !v.sinkId);
+    const danglingWater = dangling.filter(
+      (v) => v.materialKind === 'water' || v.materialKind === 'greywater',
+    );
+    const danglingOther = dangling.filter(
+      (v) => v.materialKind !== 'water' && v.materialKind !== 'greywater',
+    );
+    const rows: { id: string; label: string; severity: Severity }[] = [];
+    if (orphanFertility.length > 0)
+      rows.push({
+        id: 'orphan-fertility',
+        label: `${orphanFertility.length} orphan fertility unit${plural(orphanFertility.length)}`,
+        severity: 'medium',
+      });
+    if (fertilityWithoutFeedstock.length > 0)
+      rows.push({
+        id: 'fertility-no-feedstock',
+        label: `${fertilityWithoutFeedstock.length} fertility unit${plural(
+          fertilityWithoutFeedstock.length,
+        )} without feedstock`,
+        severity: 'medium',
+      });
+    if (danglingWater.length > 0)
+      rows.push({
+        id: 'dangling-water',
+        label: `${danglingWater.length} dangling water flow${plural(danglingWater.length)}`,
+        severity: 'high',
+      });
+    if (danglingOther.length > 0)
+      rows.push({
+        id: 'dangling-flow',
+        label: `${danglingOther.length} dangling flow${plural(danglingOther.length)}`,
+        severity: 'medium',
+      });
+    if (isolatedFeatures.length > 0)
+      rows.push({
+        id: 'isolated-zone',
+        label: `${isolatedFeatures.length} isolated feature${plural(isolatedFeatures.length)}`,
+        severity: 'low',
+      });
+    return rows.slice(0, 4);
+  }, [validation]);
+
+  const interventionRows = useMemo(
+    () => riskRows.map((r) => ({ id: r.id, ...RISK_TO_INTERVENTION[r.id]! })),
+    [riskRows],
+  );
+
+  const sevPill = (s: Severity): string =>
+    (s === 'high' ? shared.pillUnmet : s === 'medium' ? shared.pillPartial : shared.pill) ?? '';
 
   return (
     <>
       {/* Panel 1 — KPI strip */}
       <section className={`${shared.section} ${styles.kpiSection}`}>
         <div className={styles.kpiGrid}>
-          {KPIS.map(({ id, Icon, label, value, unit, cadence, delta, trend }) => (
+          {kpis.map(({ id, Icon, label, value, unit, cadence }) => (
             <div key={id} className={styles.kpi}>
               <div className={styles.kpiHead}>
                 <Icon size={16} aria-hidden />
@@ -186,13 +380,9 @@ export default function WasteVectorDashboardView({ onSwitchToList }: Props) {
               </div>
               <div className={styles.kpiValueRow}>
                 <span className={styles.kpiValue}>{value}</span>
-                <span className={styles.kpiUnit}>{unit}</span>
+                {unit && <span className={styles.kpiUnit}>{unit}</span>}
               </div>
               <div className={styles.kpiCadence}>{cadence}</div>
-              <div className={`${styles.kpiDelta} ${trend === 'up' ? styles.kpiDeltaUp : styles.kpiDeltaDown}`}>
-                {trend === 'up' ? <TrendingUp size={11} aria-hidden /> : <TrendingDown size={11} aria-hidden />}
-                <span>{delta}</span>
-              </div>
             </div>
           ))}
         </div>
@@ -209,97 +399,117 @@ export default function WasteVectorDashboardView({ onSwitchToList }: Props) {
             <li><span className={styles.legendSwatch} style={{ background: MATERIAL_KIND_CONFIG.energy.color }} /> Energy</li>
           </ul>
         </div>
-        <div className={styles.flowMapWrap}>
-          <svg
-            viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-            preserveAspectRatio="xMidYMid meet"
-            className={styles.flowSvg}
-            role="img"
-            aria-label="Sample resource flow map showing sources, processors and destinations"
-          >
-            {/* Column headers */}
-            <text x={COL_X.source} y={20}    className={styles.flowColHead} textAnchor="middle">Sources (inputs)</text>
-            <text x={COL_X.processor} y={20} className={styles.flowColHead} textAnchor="middle">Processing nodes</text>
-            <text x={COL_X.dest} y={20}      className={styles.flowColHead} textAnchor="middle">Destinations (outputs)</text>
+        {flows.length === 0 ? (
+          <p className={shared.empty}>Add waste vectors to populate this panel.</p>
+        ) : (
+          <div className={styles.flowMapWrap}>
+            <svg
+              viewBox={`0 0 ${SVG_W} ${flowGraph.height}`}
+              preserveAspectRatio="xMidYMid meet"
+              className={styles.flowSvg}
+              role="img"
+              aria-label="Resource flow map showing sources, processing nodes and destinations"
+            >
+              {/* Column headers */}
+              <text x={COL_X.source} y={20} className={styles.flowColHead} textAnchor="middle">Sources (inputs)</text>
+              {flowGraph.hasProc && (
+                <text x={COL_X.processor} y={20} className={styles.flowColHead} textAnchor="middle">Processing nodes</text>
+              )}
+              <text x={flowGraph.hasProc ? COL_X.dest : COL_X.processor} y={20} className={styles.flowColHead} textAnchor="middle">Destinations (outputs)</text>
 
-            {/* Flow paths */}
-            {FLOWS.map((f, i) => (
-              <path
-                key={`f-${i}`}
-                d={curve(xOf(f.from), yOf(f.from), endX(f.to), yOf(f.to))}
-                stroke={MATERIAL_KIND_CONFIG[f.kind].color}
-                strokeWidth={1.6}
-                strokeOpacity={0.55}
-                fill="none"
-              />
-            ))}
+              {/* Flow paths */}
+              {flowGraph.edges.map((e, i) => (
+                <path
+                  key={`f-${i}`}
+                  d={e.d}
+                  stroke={e.color}
+                  strokeWidth={1.6}
+                  strokeOpacity={0.55}
+                  fill="none"
+                />
+              ))}
 
-            {/* Source nodes */}
-            {SOURCES.map((n, i) => (
-              <g key={n.id} transform={`translate(${COL_X.source}, ${nodeY(i)})`}>
-                <rect x={-56} y={-22} width={112} height={44} rx={6} className={styles.flowNodeRect} />
-                <text x={0} y={-3} className={styles.flowNodeLabel} textAnchor="middle">{n.label}</text>
-                <text x={0} y={12} className={styles.flowNodeMeta} textAnchor="middle">{n.meta}</text>
+              {/* Source nodes */}
+              {flowGraph.srcNodes.map((n) => (
+                <g key={n.id} transform={`translate(${n.x}, ${n.y})`}>
+                  <rect x={-56} y={-22} width={112} height={44} rx={6} className={styles.flowNodeRect} />
+                  <text x={0} y={4} className={styles.flowNodeLabel} textAnchor="middle">{n.label}</text>
+                </g>
+              ))}
+
+              {/* Processor nodes */}
+              {flowGraph.procNodes.map((n) => (
+                <g key={n.id} transform={`translate(${n.x}, ${n.y})`}>
+                  <rect x={-56} y={-22} width={112} height={44} rx={6} className={styles.flowNodeRect} data-emph="true" />
+                  <text x={0} y={4} className={styles.flowNodeLabel} textAnchor="middle">{n.label}</text>
+                </g>
+              ))}
+
+              {/* Destination nodes */}
+              {flowGraph.dstNodes.map((n) => (
+                <g key={n.id} transform={`translate(${n.x}, ${n.y})`}>
+                  <rect x={-56} y={-22} width={112} height={44} rx={6} className={styles.flowNodeRect} />
+                  <text x={0} y={4} className={styles.flowNodeLabel} textAnchor="middle">{n.label}</text>
+                </g>
+              ))}
+
+              {/* Loop-efficiency badge */}
+              <g transform={`translate(${SVG_W - 72}, ${flowGraph.height - 72})`}>
+                <circle r={36} className={styles.loopBadgeBg} />
+                <text y={-2} textAnchor="middle" className={styles.loopBadgeValue}>{loopEff}%</text>
+                <text y={14} textAnchor="middle" className={styles.loopBadgeLabel}>Loop eff.</text>
               </g>
-            ))}
-
-            {/* Processor nodes */}
-            {PROCESSORS.map((n, i) => (
-              <g key={n.id} transform={`translate(${COL_X.processor}, ${nodeY(i)})`}>
-                <rect x={-56} y={-22} width={112} height={44} rx={6} className={styles.flowNodeRect} data-emph="true" />
-                <text x={0} y={-3} className={styles.flowNodeLabel} textAnchor="middle">{n.label}</text>
-                <text x={0} y={12} className={styles.flowNodeMeta} textAnchor="middle">{n.meta}</text>
-              </g>
-            ))}
-
-            {/* Destination nodes */}
-            {DESTINATIONS.map((n, i) => (
-              <g key={n.id} transform={`translate(${COL_X.dest}, ${nodeY(i)})`}>
-                <rect x={-56} y={-22} width={112} height={44} rx={6} className={styles.flowNodeRect} />
-                <text x={0} y={-3} className={styles.flowNodeLabel} textAnchor="middle">{n.label}</text>
-                <text x={0} y={12} className={styles.flowNodeMeta} textAnchor="middle">{n.meta}</text>
-              </g>
-            ))}
-
-            {/* Loop-efficiency badge */}
-            <g transform={`translate(${SVG_W - 72}, ${SVG_H - 72})`}>
-              <circle r={36} className={styles.loopBadgeBg} />
-              <text y={-2} textAnchor="middle" className={styles.loopBadgeValue}>84%</text>
-              <text y={14} textAnchor="middle" className={styles.loopBadgeLabel}>Loop eff.</text>
-            </g>
-          </svg>
-        </div>
+            </svg>
+          </div>
+        )}
       </section>
 
       {/* Panel 3 — Stream inventory + Processing methods */}
       <div className={styles.twoCol}>
         <section className={shared.section}>
           <h2 className={shared.sectionTitle}>Stream inventory</h2>
-          <ul className={styles.metaList}>
-            {STREAM_INVENTORY.map((row) => (
-              <li key={row.label} className={styles.metaRow}>
-                <span className={styles.metaIcon}>
-                  {row.tone === 'met'     && <CircleCheck size={14} className={styles.toneMet} aria-hidden />}
-                  {row.tone === 'partial' && <CircleDot   size={14} className={styles.tonePartial} aria-hidden />}
-                  {row.tone === 'unmet'   && <AlertTriangle size={14} className={styles.toneUnmet} aria-hidden />}
-                </span>
-                <span className={styles.metaLabel}>{row.label}</span>
-                <span className={styles.metaValue}>{row.value}</span>
-              </li>
-            ))}
-          </ul>
+          {streamRows.length === 0 ? (
+            <p className={shared.empty}>Add waste vectors to populate this panel.</p>
+          ) : (
+            <ul className={styles.metaList}>
+              {streamRows.slice(0, 6).map((row) => (
+                <li key={row.kind} className={styles.metaRow}>
+                  <span className={styles.metaIcon}>
+                    {row.tone === 'met' ? (
+                      <CircleCheck size={14} className={styles.toneMet} aria-hidden />
+                    ) : (
+                      <CircleDot size={14} className={styles.tonePartial} aria-hidden />
+                    )}
+                  </span>
+                  <span className={styles.metaLabel}>{row.label}</span>
+                  <span className={styles.metaValue}>{fmt(row.value)} {streamUnit(row.kind)}</span>
+                </li>
+              ))}
+              {streamRows.length > 6 && (
+                <li className={styles.metaRow}>
+                  <span className={styles.metaIcon} />
+                  <span className={styles.metaLabel}>+{streamRows.length - 6} more stream{plural(streamRows.length - 6)}</span>
+                  <span className={styles.metaValue} />
+                </li>
+              )}
+            </ul>
+          )}
         </section>
 
         <section className={shared.section}>
           <h2 className={shared.sectionTitle}>Processing methods</h2>
-          <ul className={styles.metaList}>
-            {PROCESSING_METHODS.map((m) => (
-              <li key={m.label} className={styles.metaRow}>
-                <span className={styles.metaLabel}>{m.label}</span>
-                <span className={`${shared.pill} ${shared.pillMet}`}>{m.status}</span>
-              </li>
-            ))}
-          </ul>
+          {processingRows.length === 0 ? (
+            <p className={shared.empty}>No fertility infrastructure placed yet.</p>
+          ) : (
+            <ul className={styles.metaList}>
+              {processingRows.map((m) => (
+                <li key={m.type} className={styles.metaRow}>
+                  <span className={styles.metaLabel}>{m.label}</span>
+                  <span className={`${shared.pill} ${shared.pillMet}`}>Active · {m.count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
 
@@ -307,39 +517,51 @@ export default function WasteVectorDashboardView({ onSwitchToList }: Props) {
       <div className={styles.twoCol}>
         <section className={shared.section}>
           <h2 className={shared.sectionTitle}>Risks &amp; constraints</h2>
-          <ul className={styles.metaList}>
-            {RISKS.map((r) => (
-              <li key={r.label} className={styles.metaRow}>
-                <span className={styles.metaIcon}><AlertTriangle size={14} className={r.severity === 'high' ? styles.toneUnmet : styles.tonePartial} aria-hidden /></span>
-                <span className={styles.metaLabel}>{r.label}</span>
-                <span className={`${shared.pill} ${r.severity === 'high' ? shared.pillUnmet : r.severity === 'medium' ? shared.pillPartial : shared.pill}`}>
-                  {r.severity}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {riskRows.length === 0 ? (
+            <p className={shared.empty}>No closed-loop issues detected.</p>
+          ) : (
+            <ul className={styles.metaList}>
+              {riskRows.map((r) => (
+                <li key={r.id} className={styles.metaRow}>
+                  <span className={styles.metaIcon}>
+                    <AlertTriangle
+                      size={14}
+                      className={r.severity === 'high' ? styles.toneUnmet : r.severity === 'medium' ? styles.tonePartial : styles.metaLabel}
+                      aria-hidden
+                    />
+                  </span>
+                  <span className={styles.metaLabel}>{r.label}</span>
+                  <span className={`${shared.pill} ${sevPill(r.severity)}`}>{r.severity}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className={shared.section}>
           <h2 className={shared.sectionTitle}>Recommended interventions</h2>
-          <ul className={styles.metaList}>
-            {INTERVENTIONS.map((i) => (
-              <li key={i.label} className={styles.metaRow}>
-                <span className={styles.metaLabel}>{i.label}</span>
-                <span className={`${shared.pill} ${i.impact === 'High' ? shared.pillMet : i.impact === 'Medium' ? shared.pillPartial : shared.pill}`}>
-                  {i.impact} impact
-                </span>
-              </li>
-            ))}
-          </ul>
+          {interventionRows.length === 0 ? (
+            <p className={shared.empty}>No closed-loop issues detected.</p>
+          ) : (
+            <ul className={styles.metaList}>
+              {interventionRows.map((i) => (
+                <li key={i.id} className={styles.metaRow}>
+                  <span className={styles.metaLabel}>{i.label}</span>
+                  <span className={`${shared.pill} ${i.impact === 'High' ? shared.pillMet : shared.pillPartial}`}>
+                    {i.impact} impact
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
 
-      {/* Panel 5 — Closed-loop scenarios */}
+      {/* Panel 5 — Closed-loop scenarios (sample) */}
       <section className={shared.section}>
         <div className={styles.flowHead}>
           <h2 className={shared.sectionTitle}>Closed-loop scenarios</h2>
-          <span className={styles.hint}>Sample · swipe to compare</span>
+          <span className={styles.hint}>(sample) · swipe to compare</span>
         </div>
         <div className={styles.scenarioRow}>
           {SCENARIOS.map((s) => (

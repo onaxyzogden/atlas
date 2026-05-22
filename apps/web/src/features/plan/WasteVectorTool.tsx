@@ -61,7 +61,7 @@ export default function WasteVectorTool({ project }: Props) {
       {view === 'list' ? (
         <WasteVectorListView project={project} />
       ) : (
-        <WasteVectorDashboardView onSwitchToList={() => setView('list')} />
+        <WasteVectorDashboardView project={project} onSwitchToList={() => setView('list')} />
       )}
     </div>
   );
