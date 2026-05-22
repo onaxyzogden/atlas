@@ -165,6 +165,48 @@ describe('computeStewardshipProgramsCashflow', () => {
     expect(result.totals.combined.costRange).toEqual({ low: 30, mid: 90, high: 300 });
   });
 
+  it('region scales the cost band (×1.20 for ca-ontario) but leaves labor unchanged', () => {
+    const elements = [
+      habitatPoint({ id: 'el-a', kind: 'owl-box' }),
+      habitatPoint({ id: 'el-b', kind: 'owl-box' }),
+    ];
+    const items = [
+      workItem({ id: 'hf__el-a', source: 'habitat-feature', generatedFromHabitatElement: 'el-a' }),
+      workItem({ id: 'hf__el-b', source: 'habitat-feature', generatedFromHabitatElement: 'el-b' }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+      region: 'ca-ontario', // ×1.20
+    });
+    const row = result.rows[0]!;
+    // Base owl-box ×2 = {30, 90, 300}; ×1.20 = {36, 108, 360}.
+    expect(row.habitatFeature.costRange).toEqual({ low: 36, mid: 108, high: 360 });
+    // Labor is a cost-index-invariant — unchanged from the ×1.00 baseline.
+    expect(row.habitatFeature.laborHrs).toBeCloseTo(3.0, 5);
+    expect(result.totals.combined.costRange).toEqual({ low: 36, mid: 108, high: 360 });
+    expect(result.totals.combined.laborHrs).toBeCloseTo(3.0, 5);
+  });
+
+  it('omitting region is the ×1.00 identity (unchanged from baseline)', () => {
+    const elements = [habitatPoint({ id: 'el-a', kind: 'owl-box' })];
+    const items = [
+      workItem({ id: 'hf__el-a', source: 'habitat-feature', generatedFromHabitatElement: 'el-a' }),
+    ];
+    const result = computeStewardshipProgramsCashflow({
+      projectId: 'p1',
+      items,
+      designElements: elements,
+      declaredPhases: PHASES,
+      cropAreas: [],
+    });
+    // Single owl-box base band, no scaling.
+    expect(result.rows[0]!.habitatFeature.costRange).toEqual({ low: 15, mid: 45, high: 150 });
+  });
+
   it('habitat item with declared phaseId resolves into that phase bucket', () => {
     const elements = [habitatPoint({ id: 'el-a', kind: 'owl-box' })];
     const items = [

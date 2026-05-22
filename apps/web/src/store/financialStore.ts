@@ -11,11 +11,17 @@ import type { CostRange, CostRegion, MissionWeights } from '../features/financia
 
 interface FinancialState {
   region: CostRegion;
+  /**
+   * Steward override for the stewardship-program cashflow cost region.
+   * `null` ⇒ auto-derive from the project's location (see `deriveCostRegion`).
+   */
+  stewardshipCostRegion: CostRegion | null;
   missionWeights: MissionWeights;
   costOverrides: Record<string, Partial<CostRange>>;
   revenueOverrides: Record<string, Partial<CostRange>>;
 
   setRegion: (region: CostRegion) => void;
+  setStewardshipCostRegion: (region: CostRegion | null) => void;
   setMissionWeights: (weights: MissionWeights) => void;
   setCostOverride: (itemId: string, override: Partial<CostRange>) => void;
   clearCostOverride: (itemId: string) => void;
@@ -27,11 +33,13 @@ export const useFinancialStore = create<FinancialState>()(
   persist(
     (set) => ({
       region: 'ca-ontario',
+      stewardshipCostRegion: null,
       missionWeights: { financial: 0.4, ecological: 0.25, spiritual: 0.2, community: 0.15 },
       costOverrides: {},
       revenueOverrides: {},
 
       setRegion: (region) => set({ region }),
+      setStewardshipCostRegion: (stewardshipCostRegion) => set({ stewardshipCostRegion }),
       setMissionWeights: (missionWeights) => set({ missionWeights }),
       setCostOverride: (itemId, override) =>
         set((s) => ({ costOverrides: { ...s.costOverrides, [itemId]: override } })),
@@ -52,6 +60,7 @@ export const useFinancialStore = create<FinancialState>()(
       migrate: (persisted) => persisted as never,
       partialize: (state) => ({
         region: state.region,
+        stewardshipCostRegion: state.stewardshipCostRegion,
         missionWeights: state.missionWeights,
         costOverrides: state.costOverrides,
         revenueOverrides: state.revenueOverrides,

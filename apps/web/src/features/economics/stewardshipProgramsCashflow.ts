@@ -33,6 +33,8 @@ import type { WorkItem, CostRange } from '@ogden/shared';
 import type { DesignElement } from '../../store/designElementsStore.js';
 import type { BuildPhase } from '../../store/phaseStore.js';
 import type { CropArea } from '../../store/cropStore.js';
+import type { CostRegion } from '../financial/engine/types.js';
+import { getRegionMultiplier } from '../financial/engine/costDatabase.js';
 import {
   HABITAT_FEATURE_CATALOG,
   habitatElementScale,
@@ -122,6 +124,20 @@ function addCostRange(a: CostRange, b: CostRange): CostRange {
 }
 
 /**
+ * Scale a cost band by the regional cost index, rounding each edge — mirrors
+ * `costDatabase.applyCostRangeMultiplier`. `mult === 1` is the identity so the
+ * unadjusted (no-region) path is byte-for-byte unchanged.
+ */
+function scaleBand(cr: CostRange, mult: number): CostRange {
+  if (mult === 1) return cr;
+  return {
+    low: Math.round(cr.low * mult),
+    mid: Math.round(cr.mid * mult),
+    high: Math.round(cr.high * mult),
+  };
+}
+
+/**
  * Compose the combined per-phase cashflow rollup. Pure — no store
  * reads, all dependencies injected. Items lacking a recoverable
  * source DesignElement or catalog entry are silently skipped
@@ -137,6 +153,12 @@ export function computeStewardshipProgramsCashflow(args: {
   coverCropCatalog?: readonly CoverCropEntry[];
   agroforestryCatalog?: readonly AgroforestryCatalogEntry[];
   treePlantingCatalog?: readonly TreePlantingCatalogEntry[];
+  /**
+   * Regional cost index. When supplied, every program's cost band is scaled
+   * by `getRegionMultiplier(region)`; labor hours are never scaled (the
+   * multiplier is a cost index, not a labor index). Omitted ⇒ ×1.00.
+   */
+  region?: CostRegion;
 }): StewardshipProgramsCashflow {
   const {
     projectId,
@@ -144,7 +166,9 @@ export function computeStewardshipProgramsCashflow(args: {
     designElements,
     declaredPhases,
     cropAreas,
+    region,
   } = args;
+  const mult = region ? getRegionMultiplier(region) : 1;
   const habitatCatalog = args.habitatCatalog ?? HABITAT_FEATURE_CATALOG;
   const agroforestryCatalog =
     args.agroforestryCatalog ?? AGROFORESTRY_CATALOG;
@@ -207,11 +231,14 @@ export function computeStewardshipProgramsCashflow(args: {
     const targetName = isUnphased ? UNPHASED_NAME : row.phaseName;
     const targetOrder = isUnphased ? UNPHASED_ORDER : row.order;
     const bucket = getOrCreate(targetId, targetName, targetOrder);
-    const cost: CostRange = {
-      low: row.totalSeedCostUSD,
-      mid: row.totalSeedCostUSD,
-      high: row.totalSeedCostUSD,
-    };
+    const cost: CostRange = scaleBand(
+      {
+        low: row.totalSeedCostUSD,
+        mid: row.totalSeedCostUSD,
+        high: row.totalSeedCostUSD,
+      },
+      mult,
+    );
     bucket.coverCrop = {
       laborHrs: bucket.coverCrop.laborHrs + row.totalSeedingLaborHrs,
       costRange: addCostRange(bucket.coverCrop.costRange, cost),
@@ -238,7 +265,7 @@ export function computeStewardshipProgramsCashflow(args: {
     if (!entry) continue;
     const scale = habitatElementScale(el, entry.geometry);
     const itemLabor = entry.installLaborHrs * scale;
-    const itemCost = scaledCostBand(entry, scale);
+    const itemCost = scaleBand(scaledCostBand(entry, scale), mult);
 
     const declared = it.phaseId ? phaseById.get(it.phaseId) : undefined;
     const targetId = declared ? declared.id : UNPHASED_CASHFLOW_BUCKET_ID;
@@ -274,7 +301,7 @@ export function computeStewardshipProgramsCashflow(args: {
     if (!entry) continue;
     const scale = agroforestryElementScale(el, entry.geometry);
     const itemLabor = entry.installLaborHrs * scale;
-    const itemCost = scaledAgroforestryCostBand(entry, scale);
+    const itemCost = scaleBand(scaledAgroforestryCostBand(entry, scale), mult);
 
     const declared = it.phaseId ? phaseById.get(it.phaseId) : undefined;
     const targetId = declared ? declared.id : UNPHASED_CASHFLOW_BUCKET_ID;
@@ -310,7 +337,7 @@ export function computeStewardshipProgramsCashflow(args: {
     if (!entry) continue;
     const scale = treePlantingElementScale(el, entry.geometry);
     const itemLabor = entry.installLaborHrs * scale;
-    const itemCost = scaledTreePlantingCostBand(entry, scale);
+    const itemCost = scaleBand(scaledTreePlantingCostBand(entry, scale), mult);
 
     const declared = it.phaseId ? phaseById.get(it.phaseId) : undefined;
     const targetId = declared ? declared.id : UNPHASED_CASHFLOW_BUCKET_ID;
