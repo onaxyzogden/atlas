@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 // document while authed app shell pages do not. Class is removed on unmount.
 import { AttributionFooter } from '../components/AttributionFooter.js';
 import { ContactCTA } from '../components/ContactCTA.js';
+import { FeedbackForm } from '../components/FeedbackForm.js';
 import { SceneEngine } from '../components/SceneEngine.js';
 import { SCENE_COMPONENTS } from '../data/sceneComponents.js';
 import { scenesForTier, type Tier } from '../data/sceneManifest.js';
@@ -68,6 +69,7 @@ export function ShowcaseTierPage() {
         })}
       </SceneEngine>
       <ContactCTA tier={typedTier} />
+      <FeedbackForm tier={typedTier} />
       <AttributionFooter />
     </main>
   );

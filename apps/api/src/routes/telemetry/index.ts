@@ -27,6 +27,7 @@ import {
   GetActAffinityAggregateQuery,
   PostClientErrorsBody,
   PostShowcaseEventsBody,
+  PostShowcaseFeedbackBody,
   type ActInteractionEventInput,
 } from '@ogden/shared';
 import type { JwtPayload } from '../../plugins/auth.js';
@@ -190,6 +191,55 @@ export default async function telemetryRoutes(fastify: FastifyInstance) {
 
       reply.code(201);
       return { data: { ingested }, meta: undefined, error: null };
+    },
+  );
+
+  // POST /showcase-feedback — PUBLIC single-row insert for the qualitative
+  // half of the observation loop (FeedbackForm.tsx). No authenticate
+  // preHandler: feedback comes from anonymous cold visitors (see migration
+  // 041 + showcaseTelemetry.schema.ts). `message` is the one required field;
+  // the DB CHECK + this route + the form all reject empty/whitespace. Rate-
+  // limited like /showcase-events since it accepts unauthenticated writes.
+  fastify.post(
+    '/showcase-feedback',
+    {
+      config: {
+        rateLimit: {
+          max: 60,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    async (req, reply) => {
+      const body = PostShowcaseFeedbackBody.parse(req.body);
+
+      // Defence-in-depth: the schema enforces min(1), but trim and re-check so
+      // a whitespace-only message can never reach the table (the DB CHECK is
+      // the final backstop).
+      const message = body.message.trim();
+      if (message.length === 0) {
+        reply.code(400);
+        return {
+          data: null,
+          meta: undefined,
+          error: { code: 'EMPTY_MESSAGE', message: 'Feedback message is required.' },
+        };
+      }
+
+      await db`
+        INSERT INTO showcase_feedback (
+          session_id, tier, rating, message, contact
+        ) VALUES (
+          ${body.sessionId},
+          ${body.tier},
+          ${body.rating},
+          ${message},
+          ${body.contact}
+        )
+      `;
+
+      reply.code(201);
+      return { data: { ok: true }, meta: undefined, error: null };
     },
   );
 
