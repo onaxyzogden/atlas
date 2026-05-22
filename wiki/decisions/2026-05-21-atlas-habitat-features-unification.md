@@ -87,7 +87,7 @@ A-series additive covenant (`.passthrough()` schemas, no DB migration):
 | Decision | Choice |
 |---|---|
 | Habitat features get geometry on the map | Yes — promoted to `DesignElement` kinds |
-| `habitatFeatureStore` retired now | No — kept as soft-deprecated read path; full retirement is a separate ADR once the rebase storm settles |
+| ~~`habitatFeatureStore` retired now~~ | **Closed by the [[2026-05-21-atlas-habitatfeaturestore-retirement]] ADR** — the legacy store + its last consumer `FeatureInventoryPanel` are deleted; the unified `DesignElement` `'habitat'` path is the single source of truth. No migration (geometry-less records can't be faithfully placed without inventing steward locations) |
 | D2 (resourcing) seeder for habitat features | Deferred — rows ship with empty `materialsAuto` |
 | D3 (costing) seeder for habitat features | Deferred — no `costRangeAuto` |
 | ~~D1 predecessor auto-edges (e.g. "install owl box only after host tree planted")~~ | **Closed by Slice 8** — `habitatMetadata.hostTreeFeatureId` → `dependsOnAuto: ['tree__<hostId>']` projection. Tree-planting seeder (Slice 8-A) provides the dependency target id; `habitatFeatureDependencyGraph.seedHabitatFeatureDependencies` (Slice 8-B) validates the host as a placed vegetation-category point DesignElement and silently drops missing / non-vegetation / non-point hosts |
@@ -231,10 +231,15 @@ A-series additive covenant (`.passthrough()` schemas, no DB migration):
   to touch users and screen readers, not just desktop hover. The
   `BreakdownTrigger` cell component wraps each non-Phase cell's
   value in a `Tooltip` whose content is the four-line breakdown.
-- **`habitatFeatureStore` is soft-deprecated.** Selector
+- ~~**`habitatFeatureStore` is soft-deprecated.** Selector
   `habitatCommitments.ts` reads from both stores; new placements all flow
   through `DesignElement`. Full retirement of the legacy store is a
-  separate ADR once branch stability returns.
+  separate ADR once branch stability returns.~~ **Closed by the
+  [[2026-05-21-atlas-habitatfeaturestore-retirement]] ADR (2026-05-21).**
+  The legacy store + its last consumer `FeatureInventoryPanel` are
+  deleted; `habitatCommitments.ts` reads only `DesignElement`s (the
+  dual-read described in Slice 4 was never actually wired). A3
+  `BiodiversityMonitorCard` is the surviving habitat readout.
 - **Rebase-storm discipline held.** Slices 1–4 were verified at HEAD
   during plan-mode (no re-application needed). Slice 5 committed in five
   micro-commits (A schema → B store → C seeder → D host → E ADR) the
