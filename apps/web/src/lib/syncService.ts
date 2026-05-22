@@ -19,6 +19,7 @@ import { pushProjectStateBlob, buildBlobEnvelope, blobLocalId } from './blobSync
 import { SYNCED_STORES, type SyncedStoreDescriptor } from './syncManifest.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
+import { usePathStore, type DesignPath } from '../store/pathStore.js';
 import { useVegetationStore, type VegetationPatch } from '../store/vegetationStore.js';
 import { useSuccessionStore, type SuccessionMilestone } from '../store/successionStore.js';
 import type { ProjectedStructure as Structure } from '@ogden/shared';
@@ -39,6 +40,8 @@ import {
   structureToDesignFeature,
   designFeatureToZone,
   designFeatureToStructure,
+  pathToDesignFeature,
+  designFeatureToPath,
 } from './featureMapping.js';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -180,6 +183,21 @@ function subscribeToStructures() {
     for (const structure of removed) {
       syncStructureDelete(structure);
     }
+  });
+}
+
+function subscribeToPaths() {
+  let prevPaths = usePathStore.getState().paths;
+
+  return usePathStore.subscribe((state) => {
+    if (isSyncing) return;
+    const curr = state.paths;
+    const { added, removed, updated } = diffArrayById(curr, prevPaths);
+    prevPaths = curr;
+
+    for (const p of added) syncPathCreate(p);
+    for (const p of updated) syncPathUpdate(p);
+    for (const p of removed) syncPathDelete(p);
   });
 }
 
@@ -464,6 +482,61 @@ async function syncStructureDelete(structure: Structure) {
       localId: structure.id,
       payload: { serverId: structure.serverId },
     });
+  }
+}
+
+// ─── Sync handlers (path) ────────────────────────────────────────────────────
+
+async function syncPathCreate(p: DesignPath) {
+  const projectServerId = getProjectServerId(p.projectId);
+  if (!projectServerId) return;
+
+  try {
+    const input = pathToDesignFeature(p, projectServerId);
+    const { data } = await api.designFeatures.create(projectServerId, input);
+
+    isSyncing = true;
+    usePathStore.getState().updatePath(p.id, { serverId: data.id });
+    isSyncing = false;
+  } catch (err) {
+    console.warn('[SYNC] Path create failed, queuing:', err);
+    await syncQueue.enqueue({ storeType: 'path', action: 'create', localId: p.id, payload: p });
+  }
+}
+
+async function syncPathUpdate(p: DesignPath) {
+  if (!p.serverId) return;
+
+  try {
+    const projectServerId = getProjectServerId(p.projectId);
+    if (!projectServerId) return;
+    const input = pathToDesignFeature(p, projectServerId);
+    await api.designFeatures.update(p.serverId, {
+      subtype: input.subtype,
+      geometry: input.geometry,
+      label: input.label,
+      properties: input.properties,
+      phaseTag: input.phaseTag,
+      style: input.style,
+    });
+  } catch (err) {
+    console.warn('[SYNC] Path update failed, queuing:', err);
+    await syncQueue.enqueue({ storeType: 'path', action: 'update', localId: p.id, payload: p });
+  }
+}
+
+async function syncPathDelete(p: DesignPath) {
+  if (!p.serverId) {
+    await syncQueue.dequeueByLocalId(p.id);
+    return;
+  }
+
+  try {
+    await api.designFeatures.delete(p.serverId);
+    await syncQueue.dequeueByLocalId(p.id);
+  } catch (err) {
+    console.warn('[SYNC] Path delete failed, queuing:', err);
+    await syncQueue.enqueue({ storeType: 'path', action: 'delete', localId: p.id, payload: { serverId: p.serverId } });
   }
 }
 
@@ -786,6 +859,34 @@ async function mergeDesignFeatures(project: LocalProject): Promise<void> {
         updateStructure(structure.id, { serverId: data.id });
       } catch (err) {
         console.warn(`[SYNC] Failed to push structure "${structure.name}":`, err);
+      }
+    }
+
+    // Fetch paths from server (typed-promotion 2026-05-22)
+    const { data: serverPaths } = await api.designFeatures.list(project.serverId, 'path');
+    const localPaths = usePathStore.getState().paths.filter((p) => p.projectId === project.id);
+    const localPathByServerId = new Map(localPaths.filter((p) => p.serverId).map((p) => [p.serverId!, p]));
+
+    for (const sp of serverPaths) {
+      const existing = localPathByServerId.get(sp.id);
+      if (existing) {
+        const merged = designFeatureToPath(sp, project.id);
+        usePathStore.getState().updatePath(existing.id, { ...merged, id: existing.id });
+      } else {
+        usePathStore.getState().addPath(designFeatureToPath(sp, project.id));
+      }
+    }
+
+    const unsyncedPaths = usePathStore.getState().paths.filter(
+      (p) => p.projectId === project.id && !p.serverId,
+    );
+    for (const p of unsyncedPaths) {
+      try {
+        const input = pathToDesignFeature(p, project.serverId);
+        const { data } = await api.designFeatures.create(project.serverId, input);
+        usePathStore.getState().updatePath(p.id, { serverId: data.id });
+      } catch (err) {
+        console.warn(`[SYNC] Failed to push path "${p.name}":`, err);
       }
     }
   } catch (err) {
@@ -1123,6 +1224,17 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
       }
       break;
     }
+    case 'path': {
+      if (op.action === 'create') {
+        await syncPathCreate(payload as unknown as DesignPath);
+      } else if (op.action === 'update') {
+        await syncPathUpdate(payload as unknown as DesignPath);
+      } else if (op.action === 'delete') {
+        const serverId = payload.serverId as string;
+        if (serverId) await api.designFeatures.delete(serverId);
+      }
+      break;
+    }
     case 'vegetation': {
       if (op.action === 'create') {
         await syncVegetationCreate(payload as unknown as VegetationPatch);
@@ -1228,6 +1340,7 @@ export const syncService = {
     unsubscribers.push(subscribeToProjects());
     unsubscribers.push(subscribeToZones());
     unsubscribers.push(subscribeToStructures());
+    unsubscribers.push(subscribeToPaths());
 
     // Generic versioned-blob write-through for the remaining ~62
     // project-scoped stores. Disabled by default — Phase 2 is a push-only

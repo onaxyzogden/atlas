@@ -60,7 +60,6 @@ import { useCropStore } from '../store/cropStore.js';
 import { useConventionalCropStore } from '../store/conventionalCropStore.js';
 import { useVisionStore } from '../store/visionStore.js';
 import { useNurseryStore } from '../store/nurseryStore.js';
-import { usePathStore } from '../store/pathStore.js';
 import { useHumanContextStore } from '../store/humanContextStore.js';
 import { useEnterpriseStore } from '../store/enterpriseStore.js';
 import { useVersionStore } from '../store/versionStore.js';
@@ -299,6 +298,11 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   { storeKey: 'ogden-zones', classification: 'typed-design-feature' },
   { storeKey: 'ogden-built-environment-v2', classification: 'typed-design-feature' },
   { storeKey: 'ogden-atlas-design-elements', classification: 'typed-design-feature' },
+  // ogden-paths promoted from versioned-blob → typed design_features
+  // (featureType `path`) on 2026-05-22 so access paths are server-queryable
+  // and appear in the master-plan PDF feature roster. Transport lives in
+  // syncService (subscribeToPaths + mergeDesignFeatures), not the blob loop.
+  { storeKey: 'ogden-paths', classification: 'typed-design-feature' },
 
   // --- typed-table: server should query/reason about these ---
   { storeKey: 'ogden-vegetation', classification: 'typed-table' },
@@ -342,7 +346,6 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-conventional-crops', useConventionalCropStore, 'projectId-tagged', 1, tagged('conventionalCrops'), true),
   blob('ogden-vision', useVisionStore, 'projectId-tagged', 3, taggedFind('visions')),
   blob('ogden-nursery', useNurseryStore, 'projectId-tagged', 1, tagged('batches', 'transfers')),
-  blob('ogden-paths', usePathStore, 'projectId-tagged', 1, tagged('paths'), true),
   blob('ogden-human-context', useHumanContextStore, 'projectId-tagged', 1, tagged('neighbours', 'households', 'accessRoads', 'permacultureZones'), true),
   blob('ogden-enterprises', useEnterpriseStore, 'projectId-tagged', 1, tagged('enterprises')),
   blob('ogden-versions', useVersionStore, 'projectId-tagged', 1, tagged('snapshots')),

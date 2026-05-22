@@ -74,6 +74,13 @@ export interface DesignPath {
    * = no rest points captured yet.
    */
   restPointAnchors?: [number, number][];
+  /**
+   * Server design_features id once synced (PLAN-stage typed-promotion,
+   * 2026-05-22). Paths round-trip through the typed `design_features` table
+   * (featureType `path`) like zones/structures — present once the create
+   * sync returns. Absent = not yet pushed.
+   */
+  serverId?: string;
   createdAt: string;
   updatedAt: string;
 }

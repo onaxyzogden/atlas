@@ -18,6 +18,8 @@ export type SyncStoreType =
   | 'project'
   | 'zone'
   | 'structure'
+  | 'path'
+  | 'point'
   | 'comment'
   | 'state-blob'
   | 'vegetation'
