@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Soil sample store â€” manual lab results + biological-activity field notes
  * captured by stewards. Pre-site-visit, pre-API: free-form data entry that
  * sits alongside the SSURGO / SoilGrids canonical layers and surfaces on
@@ -17,6 +17,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 /** Coarse texture vocabulary â€” aligned with USDA soil texture triangle
@@ -136,7 +137,7 @@ export const useSoilSampleStore = create<SoilSampleState>()(
   ),
 );
 
-useSoilSampleStore.persist.rehydrate();
+rehydrateWithLogging(useSoilSampleStore);
 
 // â”€â”€â”€ Vocabulary helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

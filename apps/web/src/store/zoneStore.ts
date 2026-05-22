@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 import { zone } from '../lib/tokens';
 
@@ -400,7 +401,7 @@ export const useZoneStore = create<ZoneState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useZoneStore.persist.rehydrate();
+rehydrateWithLogging(useZoneStore);
 
 if (typeof window !== 'undefined') {
   (window as unknown as Record<string, unknown>).__ogdenZoneStore = useZoneStore;

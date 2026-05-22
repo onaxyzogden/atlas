@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Ecological note store â€” point-based site annotations for permaculture
  * design intelligence (Plan toolbar Tier B / B5).
  *
@@ -22,6 +22,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type EcologicalNoteKind =
@@ -91,4 +92,4 @@ export const useEcologicalNoteStore = create<EcologicalNoteState>()(
   ),
 );
 
-useEcologicalNoteStore.persist.rehydrate();
+rehydrateWithLogging(useEcologicalNoteStore);

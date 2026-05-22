@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Appropriate-tech store â€” ACT-stage Module 6 (Disaster Preparedness).
  *
  * Backup-systems registry: gravity water, solar generators, woodstoves,
@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type AppropriateTechSystem =
   | 'water'
@@ -49,4 +50,4 @@ export const useAppropriateTechStore = create<AppropriateTechState>()(
   ),
 );
 
-useAppropriateTechStore.persist.rehydrate();
+rehydrateWithLogging(useAppropriateTechStore);

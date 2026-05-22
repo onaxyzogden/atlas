@@ -17,6 +17,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 import {
   type SuccessionStage,
@@ -107,7 +108,7 @@ export const useVegetationStore = create<VegetationState>()(
   ),
 );
 
-useVegetationStore.persist.rehydrate();
+rehydrateWithLogging(useVegetationStore);
 
 /**
  * One-time absorb: drain legacy `EcologyZone` records out of the

@@ -13,6 +13,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { rehydrateWithLogging } from "./persistRehydrate.js";
 
 export type FieldTaskCategory =
   | "ops"
@@ -81,4 +82,4 @@ export const useFieldTaskStore = create<FieldTaskState>()(
   ),
 );
 
-useFieldTaskStore.persist.rehydrate();
+rehydrateWithLogging(useFieldTaskStore);

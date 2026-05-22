@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { api } from '../lib/apiClient.js';
 import { syncQueue } from '../lib/syncQueue.js';
 import type { CommentRecord, CreateCommentInput } from '@ogden/shared';
@@ -192,4 +193,4 @@ export const useCommentStore = create<CommentState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useCommentStore.persist.rehydrate();
+rehydrateWithLogging(useCommentStore);

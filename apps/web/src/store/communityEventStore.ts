@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Community-event store â€” ACT-stage Module 5 (Social Permaculture).
  *
  * Work-days, harvest-shares, meetups, tours. Attendees reference
@@ -8,6 +8,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type CommunityEventType = 'work_day' | 'meetup' | 'harvest_share' | 'tour';
 
@@ -43,4 +44,4 @@ export const useCommunityEventStore = create<CommunityEventState>()(
   ),
 );
 
-useCommunityEventStore.persist.rehydrate();
+rehydrateWithLogging(useCommunityEventStore);

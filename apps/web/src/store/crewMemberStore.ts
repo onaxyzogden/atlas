@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { CrewMember } from '@ogden/shared';
 
 export const newCrewMemberId = (): string => crypto.randomUUID();
@@ -53,4 +54,4 @@ export const useCrewMemberStore = create<CrewMemberState>()(
   ),
 );
 
-useCrewMemberStore.persist.rehydrate();
+rehydrateWithLogging(useCrewMemberStore);

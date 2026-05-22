@@ -16,6 +16,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type SlaughterKind = 'mobile' | 'on-farm' | 'shared' | 'contract';
@@ -187,4 +188,4 @@ export const useAgribusinessStore = create<AgribusinessState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useAgribusinessStore.persist.rehydrate();
+rehydrateWithLogging(useAgribusinessStore);

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Network store â€” ACT-stage Module 5 (Social Permaculture).
  *
  * External-network address book: vendors, consultants, tradespeople,
@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type NetworkRole =
   | 'vendor'
@@ -52,4 +53,4 @@ export const useNetworkStore = create<NetworkState>()(
   ),
 );
 
-useNetworkStore.persist.rehydrate();
+rehydrateWithLogging(useNetworkStore);

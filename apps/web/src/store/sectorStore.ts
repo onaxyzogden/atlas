@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Sector store â€” PLAN-stage Module 3 (Zones), Sector overlay tab.
  *
  * Persists the editable fire / view / noise compass directions the
@@ -22,6 +22,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type Compass8 =
   | 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
@@ -121,4 +122,4 @@ export const useSectorStore = create<SectorState>()(
   ),
 );
 
-useSectorStore.persist.rehydrate();
+rehydrateWithLogging(useSectorStore);

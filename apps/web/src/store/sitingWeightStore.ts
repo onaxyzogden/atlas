@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { RuleWeightCategory } from '../features/rules/SitingRules.js';
 
 /* ------------------------------------------------------------------ */
@@ -80,4 +81,4 @@ export const useSitingWeightStore = create<SitingWeightState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useSitingWeightStore.persist.rehydrate();
+rehydrateWithLogging(useSitingWeightStore);

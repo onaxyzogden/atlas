@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { LocalProject } from './projectStore.js';
 
 export interface ProjectSnapshot {
@@ -113,4 +114,4 @@ export const useVersionStore = create<VersionState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useVersionStore.persist.rehydrate();
+rehydrateWithLogging(useVersionStore);

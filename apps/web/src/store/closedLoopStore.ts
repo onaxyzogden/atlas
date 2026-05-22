@@ -19,6 +19,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 const FLOW_CONNECTOR_LEGACY_KEY = 'ogden-flow-connectors';
@@ -336,4 +337,4 @@ export const useClosedLoopStore = create<ClosedLoopState>()(
   ),
 );
 
-useClosedLoopStore.persist.rehydrate();
+rehydrateWithLogging(useClosedLoopStore);

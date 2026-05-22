@@ -1,10 +1,11 @@
-﻿/**
+/**
  * Fieldwork store â€” advanced field data collection for site visits.
  * Soil samples, water/structure issues, measurements, walk routes.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type FieldworkType = 'soil_sample' | 'water_issue' | 'structure_issue' | 'measurement' | 'annotation' | 'observation' | 'question' | 'issue';
 export type NoteType = 'observation' | 'question' | 'measurement' | 'issue';
@@ -106,4 +107,4 @@ export const useFieldworkStore = create<FieldworkState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useFieldworkStore.persist.rehydrate();
+rehydrateWithLogging(useFieldworkStore);

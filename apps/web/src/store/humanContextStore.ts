@@ -1,4 +1,4 @@
-﻿/**
+/**
  * humanContextStore â€” OBSERVE Module 1 (Human Context) annotations.
  *
  * Permaculture Scholar (notebook 5aa3dcf3-...): Holmgren P1 "Observe and
@@ -13,6 +13,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 import { useHomesteadStore } from './homesteadStore.js';
 
@@ -174,4 +175,4 @@ export const useHumanContextStore = create<HumanContextState>()(
   ),
 );
 
-useHumanContextStore.persist.rehydrate();
+rehydrateWithLogging(useHumanContextStore);

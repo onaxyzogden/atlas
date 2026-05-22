@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Compost-inventory store â€” PLAN-stage Module 5 (Soil Fertility), Greens & Browns tab.
  *
  * Persists per-project Greens/Browns feedstock volumes the steward
@@ -20,6 +20,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 /** Volumes in cubic metres, keyed by the card's feedstock id. */
 export type FeedstockVolumes = Record<string, number>;
@@ -69,4 +70,4 @@ export const useCompostInventoryStore = create<CompostInventoryState>()(
   ),
 );
 
-useCompostInventoryStore.persist.rehydrate();
+rehydrateWithLogging(useCompostInventoryStore);

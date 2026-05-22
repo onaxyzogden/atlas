@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Enterprise store â€” project-scoped enterprise tags for Multi-Enterprise
  * permaculture sites (PLAN spec Â§15 / project-type "Multi-Enterprise"
  * checklist items #1, #2, #6).
@@ -17,6 +17,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export interface Enterprise {
   id: string;
@@ -58,4 +59,4 @@ export const useEnterpriseStore = create<EnterpriseState>()(
   ),
 );
 
-useEnterpriseStore.persist.rehydrate();
+rehydrateWithLogging(useEnterpriseStore);

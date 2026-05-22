@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Succession store â€” ACT-stage Module 4 (Ecological Monitoring & Yield).
  *
  * Multi-year canopy / pioneer-species milestones per zone. Permaculture
@@ -12,6 +12,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type SuccessionPhase = 'pioneer' | 'mid' | 'climax';
 
@@ -56,4 +57,4 @@ export const useSuccessionStore = create<SuccessionState>()(
   ),
 );
 
-useSuccessionStore.persist.rehydrate();
+rehydrateWithLogging(useSuccessionStore);

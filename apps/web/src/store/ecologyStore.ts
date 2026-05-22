@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type TrophicLevel =
@@ -89,4 +90,4 @@ export const useEcologyStore = create<EcologyState>()(
   ),
 );
 
-useEcologyStore.persist.rehydrate();
+rehydrateWithLogging(useEcologyStore);

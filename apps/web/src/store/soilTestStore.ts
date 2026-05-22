@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Soil-test store â€” PLAN-stage Module 5 (Soil Fertility & Closed-Loop).
  *
  * Persists the steward's jar-test / percolation / pH readings authored in
@@ -15,6 +15,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export interface SoilTest {
   id: string;
@@ -75,7 +76,7 @@ export const useSoilTestStore = create<SoilTestState>()(
   ),
 );
 
-useSoilTestStore.persist.rehydrate();
+rehydrateWithLogging(useSoilTestStore);
 
 export function newSoilTestId(): string {
   return `st-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

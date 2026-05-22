@@ -10,6 +10,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 import { resolveSpeciesId } from '../data/plantCatalogAliases.js';
 
@@ -167,4 +168,4 @@ export const usePolycultureStore = create<PolycultureState>()(
   ),
 );
 
-usePolycultureStore.persist.rehydrate();
+rehydrateWithLogging(usePolycultureStore);

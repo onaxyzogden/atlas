@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type HazardKind =
   | 'frost'
@@ -121,7 +122,7 @@ export const useHazardsStore = create<HazardsState>()(
   ),
 );
 
-useHazardsStore.persist.rehydrate();
+rehydrateWithLogging(useHazardsStore);
 
 export function makeHazardId(): string {
   return `hz_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;

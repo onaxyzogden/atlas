@@ -12,6 +12,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type VerticalElementType = 'structure' | 'tree' | 'shrub' | 'swale' | 'pond';
@@ -213,4 +214,4 @@ export const useTopographyStore = create<TopographyState>()(
   ),
 );
 
-useTopographyStore.persist.rehydrate();
+rehydrateWithLogging(useTopographyStore);

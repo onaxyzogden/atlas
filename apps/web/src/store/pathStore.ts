@@ -1,9 +1,10 @@
-﻿/**
+/**
  * Path store â€” roads, trails, corridors, animal movement routes.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 import { path } from '../lib/tokens';
 
@@ -123,4 +124,4 @@ export const usePathStore = create<PathState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-usePathStore.persist.rehydrate();
+rehydrateWithLogging(usePathStore);

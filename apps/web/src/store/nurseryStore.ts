@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Nursery store â€” propagation inventory, stock transfers, seed saving.
  *
  * Tracks plant stock by species, propagation method, quantity, and growth stage.
@@ -7,6 +7,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export type PropagationMethod = 'seed' | 'cutting' | 'division' | 'graft';
 export type GrowthStage = 'seed' | 'germinating' | 'seedling' | 'juvenile' | 'ready_to_plant';
@@ -119,4 +120,4 @@ export const useNurseryStore = create<NurseryState>()(
   ),
 );
 
-useNurseryStore.persist.rehydrate();
+rehydrateWithLogging(useNurseryStore);

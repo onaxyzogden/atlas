@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SWOT store â€” Scholar-aligned namespace consolidation
  * (plan few-concerns-shiny-quokka.md, ADR
  * 2026-04-30-site-annotations-store-scholar-aligned-namespaces.md).
@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type SwotBucket = 'S' | 'W' | 'O' | 'T';
@@ -50,4 +51,4 @@ export const useSwotStore = create<SwotState>()(
   ),
 );
 
-useSwotStore.persist.rehydrate();
+rehydrateWithLogging(useSwotStore);

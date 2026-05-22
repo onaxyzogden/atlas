@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Livestock store â€” paddocks, grazing cells, species, stocking density.
  *
  * Phase 2: Draw paddocks on the map, assign species, plan rotational grazing.
@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 import { temporal } from 'zundo';
 
 export type FenceType = 'electric' | 'post_wire' | 'post_rail' | 'woven_wire' | 'temporary' | 'none';
@@ -161,4 +162,4 @@ export const useLivestockStore = create<LivestockState>()(
 );
 
 // Hydrate from localStorage (Zustand v5)
-useLivestockStore.persist.rehydrate();
+rehydrateWithLogging(useLivestockStore);

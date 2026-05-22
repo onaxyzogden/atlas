@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @deprecated RETIRED by Sub-project D3 (2026-05-18). Superseded by
  * `workItemBudgetStore` (`ogden-work-item-actuals`), the actuals ledger on
  * the canonical WorkItem spine. This store is PRESERVED for audit only
@@ -23,6 +23,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { rehydrateWithLogging } from './persistRehydrate.js';
 
 export interface TaskActual {
   /** PhaseTask.id â€” the join key against `phaseStore.BuildPhase.tasks`. */
@@ -71,4 +72,4 @@ export const useActualsStore = create<ActualsState>()(
   ),
 );
 
-useActualsStore.persist.rehydrate();
+rehydrateWithLogging(useActualsStore);
