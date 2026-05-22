@@ -38,7 +38,7 @@ import DesignSoilsOverlay from "../components/overlays/design/DesignSoilsOverlay
 import DesignWetlandsOverlay from "../components/overlays/design/DesignWetlandsOverlay.js";
 import DesignPlacementsOverlay from "../components/overlays/design/DesignPlacementsOverlay.js";
 import DesignDropController from "../components/DesignDropController.js";
-import MasterPlanExportButton from "../plan/MasterPlanExportButton.js";
+import MapSheetExportControl from "../plan/MapSheetExportControl.js";
 import { useV3Project } from "../data/useV3Project.js";
 import { useDesignMetrics } from "../data/useDesignMetrics.js";
 import StageShell from "../_shell/StageShell.js";
@@ -254,7 +254,7 @@ export default function DesignPage() {
                 <DesignSoilsOverlay visible={!!overlays.soils} projectId={project.id} />
                 <DesignWetlandsOverlay visible={!!overlays.wetlands} projectId={project.id} />
                 <DesignPlacementsOverlay map={map} projectId={project.id} />
-                <MasterPlanExportButton map={map} projectId={project.id} />
+                <MapSheetExportControl map={map} projectId={project.id} />
                 <DesignDropController
                   map={map}
                   projectId={project.id}
