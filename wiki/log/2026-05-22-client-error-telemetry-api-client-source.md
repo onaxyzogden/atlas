@@ -78,12 +78,24 @@ New `apps/web/src/lib/__tests__/apiClient.clientError.test.ts` (happy-dom,
 `tsc` on `apps/web` (8 GB heap) shows only the 3 pre-existing unrelated baseline
 errors (StepBoundary.tsx:365, two HostUnion test files) — count unchanged.
 
-## Out of scope / deferred
+## Follow-up — upload throw sites wired (same session)
 
-The two XHR-based throw sites (file upload, `regenerationEvents.uploadMedia`)
-are not yet wired — low traffic, separate code paths; `request()` covers the
-overwhelming majority. A minor follow-up could route them through the same
-`reportApiFailure` helper.
+The two upload throw sites that `request()` does not cover are now also routed
+through `reportApiFailure`, so **every** API failure path emits `api_client`
+telemetry:
+
+- **`files.upload`** (XHR, for upload-progress events) — a `path` const and a
+  `fail(apiError)` helper were added; the three `reject(new ApiError(...))`
+  sites (non-2xx `onload`, JSON-parse `catch`, `onerror` network failure) now
+  call `fail(...)`, which reports then rejects with the unchanged error.
+- **`regenerationEvents.uploadMedia`** (fetch) — converted to `async`; the
+  `fetch` is wrapped in try/catch (non-abort rejections reported as
+  `NETWORK_ERROR`/`status 0`, original error re-thrown) and the `ApiError`
+  throw site reports before throwing — mirroring the main `request()` pattern.
+
+Four new test cases cover both sites (XHR stub for `files.upload`: non-2xx and
+`onerror`; fetch mock for `uploadMedia`: non-2xx and network reject + original
+re-throw). The test file is now 10 cases, all green.
 
 ## Push
 
