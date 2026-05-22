@@ -9,6 +9,10 @@
 import { useMemo } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../../store/zoneStore.js';
+import {
+  PERMACULTURE_ZONE_LABEL,
+  type PermacultureZoneLevel,
+} from '../../lib/zones/permacultureLabels.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -16,14 +20,9 @@ interface Props {
   onSwitchToMap: () => void;
 }
 
-const ZONE_LEVELS: Array<{ value: 0 | 1 | 2 | 3 | 4 | 5; label: string }> = [
-  { value: 0, label: 'Z0 — Home (most-used)' },
-  { value: 1, label: 'Z1 — Daily kitchen garden' },
-  { value: 2, label: 'Z2 — Frequent (orchard, small livestock)' },
-  { value: 3, label: 'Z3 — Weekly (main crops, pasture)' },
-  { value: 4, label: 'Z4 — Occasional (woodlot, foraging)' },
-  { value: 5, label: 'Z5 — Wilderness / unmanaged' },
-];
+const ZONE_LEVELS: Array<{ value: PermacultureZoneLevel; label: string }> = (
+  [0, 1, 2, 3, 4, 5] as const
+).map((value) => ({ value, label: PERMACULTURE_ZONE_LABEL[value] }));
 
 export default function ZoneLevelLayer({ project }: Props) {
   const allZones = useZoneStore((s) => s.zones);

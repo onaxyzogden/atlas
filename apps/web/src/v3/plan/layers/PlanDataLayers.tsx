@@ -16,6 +16,7 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import * as turf from '@turf/turf';
 import { useWaterSystemsStore } from '../../../store/waterSystemsStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
+import { zoneDisplayLabel } from '../../../lib/zones/permacultureLabels.js';
 import { usePathStore } from '../../../store/pathStore.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
@@ -530,7 +531,7 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
         id: z.id,
         kind: 'zone',
         color: z.color,
-        label: z.name,
+        label: zoneDisplayLabel(z),
         yeomansRank: 4,
         enterprise: z.enterprise ?? '',
         // Stamp Z-level on the feature so the fill-opacity ramp and the

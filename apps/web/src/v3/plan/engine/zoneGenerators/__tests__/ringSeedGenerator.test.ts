@@ -12,6 +12,7 @@ import * as turf from '@turf/turf';
 import { ringSeedGenerator } from '../ringSeedGenerator.js';
 import type { ZoneGeneratorContext } from '../types.js';
 import type { LandZone } from '../../../../../store/zoneStore.js';
+import { PERMACULTURE_ZONE_LABEL } from '../../../../../lib/zones/permacultureLabels.js';
 
 const PID = 'proj-seed';
 
@@ -60,6 +61,12 @@ describe('ringSeedGenerator', () => {
     expect(home.isHomeCentre).toBe(true);
     expect(home.seedProvenance).toBe('ring-seed');
     expect(home.category).toBe('habitation');
+    expect(home.name).toBe('Home centre');
+
+    // Seeded Z1–Z5 carry the canonical permaculture label, not "(seeded)".
+    for (const level of [1, 2, 3, 4, 5] as const) {
+      expect(byZ.get(level)!.name).toBe(PERMACULTURE_ZONE_LABEL[level]);
+    }
 
     // Z4/Z5 wire through the shared Z→category map (zoneStore).
     expect(byZ.get(4)!.category).toBe('livestock');
