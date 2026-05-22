@@ -1,6 +1,6 @@
 # Showcase Portal
 **Type:** app surface (public, static-prerendered)
-**Status:** shipped (Phase 3, 2026-05-21); bundle-split landed (Phase 3.5, 2026-05-21) — followups open
+**Status:** shipped (Phase 3, 2026-05-21); bundle-split landed (Phase 3.5, 2026-05-21); observation loop landed (Phase 5, 2026-05-21) — followups open
 **Path:** `apps/web/src/showcase/`, `apps/web/public/showcase/`, `scripts/snapshot-three-streams.ts`, `scripts/snapshot-scene-images.ts`, `scripts/prerender-showcase.ts`
 
 ## Purpose
@@ -94,10 +94,55 @@ on the same Vite app.
   with **14/14** showcase tests green and the full web suite at
   **1772/1772**.
 
+## Observation (Phase 5, LANDED 2026-05-21)
+
+The portal now closes its feedback loop with an **anonymous-first**
+observation path that runs *parallel* to the authed
+`act_interaction_events` telemetry pipeline (which is left untouched). A cold
+visitor has no token and no project, so the authed pipeline — `authenticate`
+preHandler + NOT-NULL `user_id`/`project_id` — can hold none of their events.
+Phase 5 added a path whose NOT-NULL invariants are inverted. Full rationale +
+privacy posture in [[decisions/2026-05-21-atlas-showcase-observation-loop]].
+
+- **Quantitative — `showcase_visitor_events`** (migration `040`). Nullable
+  `user_id` + `project_id`; an ephemeral `session_id` (`sessionStorage` key
+  `'ogden-showcase-session'`) is the cross-event correlation handle. CHECK
+  constrains 7 lifecycle events (`showcase_view`, `tier_selected`,
+  `scene_viewed`, `cta_primary_click`, `cta_secondary_click`,
+  `visitor_registered`, `template_instantiated`). Written by
+  **`POST /api/v1/telemetry/showcase-events`** — PUBLIC, rate-limited `60/min`,
+  best-effort `jwtVerify` stamps `user_id` only if a token happens to be
+  present. Client logger `showcaseEventLog.ts` batches via plain `fetch` +
+  `navigator.sendBeacon` with type-only `@ogden/shared` imports — the Phase 3.5
+  bundle-leanness discipline, so no `authStore`/`projectStore`/Cesium leak.
+  Instrumented surfaces: `TierChooser`, `ContactCTA`, route mount, and the
+  register / instantiate sites.
+- **Qualitative — `showcase_feedback`** (migration `041`). Single-row "what was
+  confusing?" capture; `message` is the only required column, `session_id` /
+  `tier` / `rating` (1–5) / `contact` all opt-in. Written by
+  **`POST /api/v1/telemetry/showcase-feedback`** — PUBLIC, rate-limited
+  `60/min`, returns `400 EMPTY_MESSAGE` before insert; DB CHECK
+  (`length(btrim(message)) > 0`) is the last line of defence. Surfaced by
+  `FeedbackForm.tsx`, mounted between `<ContactCTA>` and `<AttributionFooter>`
+  on `showcase.$tier.tsx`; posts via plain `fetch` + `keepalive`. Fully
+  anonymous — no `user_id` column, no `jwtVerify`. The form reads (does not
+  create) the telemetry `session_id` so written feedback cross-links to the
+  behavioural trail. It deliberately does **not** gate on
+  `VITE_ATLAS_TELEMETRY_ENABLED` — a submitted form is explicit opt-in, not
+  passive telemetry.
+- **Privacy posture.** Anonymous by default (no cookie / fingerprint / PII);
+  the only PII channel is the opt-in `contact` field; `session_id` correlates
+  within a session but does not identify a person; no consent banner in v1.
+- **Covenant.** `FeedbackForm` + `showcaseEventLog` fell under the existing
+  `covenant.test.ts` wildcard subtree scan the moment they were committed — no
+  test-logic change. One catch-and-fix: the FeedbackForm docstring originally
+  enumerated the forbidden tokens and tripped the ratchet on its own prose;
+  reworded (commit `f3a5aeb8`).
+
 ## Open Followups
 
-The portal ships functional + SEO-honest, but three followups are open
-and tracked here as the headline outstanding work:
+The portal ships functional + SEO-honest, but the followups below remain
+open and are tracked here as the headline outstanding work:
 
 1. **Bundle-split (Addressed in Phase 3.5, 2026-05-21).** Phase 3.5
    shipped both prongs: route-aware bootstrap gating in `main.tsx`
@@ -189,6 +234,10 @@ register-time default org without a prelude step. See
   [[log/2026-05-21-atlas-phase-4-ecosystem-farm-template]].
 - Phase 4 template entity:
   [[entities/ecosystem-farm-template]].
+- Phase 5 observation-loop ADR:
+  [[decisions/2026-05-21-atlas-showcase-observation-loop]].
+- Phase 5 session log:
+  [[log/2026-05-21-atlas-phase-5-observation]].
 - Canon source: [[entities/three-streams-farm]].
 - Phase 2 substrate this portal reads from:
   [[log/2026-05-20-atlas-phase-2-three-streams-demo-seed]].
