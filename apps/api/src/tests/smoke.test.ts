@@ -72,6 +72,7 @@ const TEST_PASSWORD = 'password123';
 const TEST_USER_ID  = 'a0000000-0000-0000-0000-000000000001';
 const TEST_PROJ_ID  = 'b0000000-0000-0000-0000-000000000002';
 const FAKE_PROJ_ID  = 'c0000000-0000-0000-0000-000000000099';
+const TEST_ORG_ID   = 'd0000000-0000-0000-0000-000000000001';
 const NOW           = '2026-01-01T00:00:00.000Z';
 
 let app: FastifyInstance;
@@ -126,7 +127,9 @@ beforeEach(() => { clear(); });
 describe('POST /api/v1/auth/register', () => {
   it('returns 201 with a token', async () => {
     enqueue();                                                               // SELECT → no existing user
-    enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null });   // INSERT → created user
+    enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null });   // INSERT users → created user
+    enqueue({ id: TEST_ORG_ID });                                           // INSERT organizations → default org (Phase 4.5)
+    enqueue();                                                               // INSERT organization_members (no RETURNING)
 
     const res = await app.inject({
       method: 'POST',
@@ -147,6 +150,7 @@ describe('POST /api/v1/auth/login', () => {
       display_name:  null,
       password_hash: loginHash,
     });
+    enqueue({ org_id: TEST_ORG_ID });                                        // SELECT default owner-org (Phase 4.5)
 
     const res = await app.inject({
       method: 'POST',
@@ -162,6 +166,7 @@ describe('POST /api/v1/auth/login', () => {
 describe('GET /api/v1/auth/me', () => {
   it('returns 200 with a valid token', async () => {
     enqueue({ id: TEST_USER_ID, email: TEST_EMAIL, display_name: null });   // SELECT user
+    enqueue({ org_id: TEST_ORG_ID });                                        // SELECT default owner-org (Phase 4.5)
 
     const res = await app.inject({
       method: 'GET',

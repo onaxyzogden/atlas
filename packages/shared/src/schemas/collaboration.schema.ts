@@ -76,9 +76,22 @@ export const OrganizationRecord = z.object({
   id: z.string().uuid(),
   name: z.string(),
   plan: z.string(),
+  jurisdiction: z.string().nullable().optional(),
+  registryId: z.string().nullable().optional(),
   createdAt: z.string(),
 });
 export type OrganizationRecord = z.infer<typeof OrganizationRecord>;
+
+export const UpdateOrganizationInput = z.object({
+  name: z.string().min(1).max(200).optional(),
+  plan: z.string().min(1).max(50).optional(),
+  jurisdiction: z.string().max(200).nullable().optional(),
+  registryId: z.string().max(200).nullable().optional(),
+}).refine(
+  (v) => Object.keys(v).length > 0,
+  { message: 'At least one field must be provided' },
+);
+export type UpdateOrganizationInput = z.infer<typeof UpdateOrganizationInput>;
 
 export const OrgMemberRecord = z.object({
   userId: z.string().uuid(),
