@@ -32,10 +32,10 @@ import '../dev/seedMtcObserveBaseline.js';
 
 import { useAuthStore } from '../store/authStore.js';
 import { useSessionExpiredStore } from '../store/sessionExpiredStore.js';
-import { setSessionExpiredHandler } from '../lib/apiClient.js';
+import { setSessionExpiredHandler, setApiClientErrorReporter } from '../lib/apiClient.js';
 import { syncService } from '../lib/syncService.js';
 import { useProjectStore } from '../store/projectStore.js';
-import { setClientErrorProjectIdResolver } from '../lib/clientErrorLog.js';
+import { recordClientError, setClientErrorProjectIdResolver } from '../lib/clientErrorLog.js';
 import { installGlobalErrorHandlers } from '../lib/globalErrorHandlers.js';
 
 /**
@@ -63,6 +63,18 @@ export async function bootAuthedShell(): Promise<void> {
   // rejection errors get a projectId, then install the global handlers.
   setClientErrorProjectIdResolver(() => useProjectStore.getState().activeProjectId ?? null);
   installGlobalErrorHandlers();
+
+  // Wire the apiClient → client-error sink (source: 'api_client'). projectId is
+  // omitted so the resolver registered above stamps the active project. The
+  // telemetry-endpoint loop guard lives inside apiClient's reportApiFailure.
+  setApiClientErrorReporter((r) =>
+    recordClientError({
+      source: 'api_client',
+      name: r.name,
+      message: r.message,
+      context: { code: r.code, status: r.status, method: r.method, path: r.path },
+    }),
+  );
 
   // Wire the apiClient → sessionExpiredStore bridge BEFORE createRoot so any
   // fetch fired during the first render (or a stale-token sync on boot)

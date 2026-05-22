@@ -92,6 +92,45 @@ export function setSessionExpiredHandler(fn: (() => void) | null) {
   sessionExpiredHandler = fn;
 }
 
+// Module-global client-error reporter. Wired once at app boot from
+// `bootAuthed.ts` (authed-only) — mirrors the `sessionExpiredHandler`
+// injection above to keep apiClient store-agnostic. A direct
+// `apiClient → clientErrorLog` import is forbidden: clientErrorLog already
+// imports `api` from here (module cycle) and pulling the telemetry buffer
+// into always-mounted code would regress the showcase bundle split
+// (see wiki ADR 2026-05-21-atlas-showcase-bundle-split).
+export interface ApiClientErrorReport {
+  /** 'ApiError' for server-returned failures, else the network error's name. */
+  name: string;
+  message: string;
+  /** HTTP status, or 0 for network/offline (fetch-reject) failures. */
+  status: number;
+  /** ApiError.code, or 'NETWORK_ERROR'. */
+  code: string;
+  method: string;
+  path: string;
+}
+
+let clientErrorReporter: ((r: ApiClientErrorReport) => void) | null = null;
+
+export function setApiClientErrorReporter(fn: ((r: ApiClientErrorReport) => void) | null) {
+  clientErrorReporter = fn;
+}
+
+const TELEMETRY_PATH_PREFIX = '/api/v1/telemetry/';
+
+function reportApiFailure(r: ApiClientErrorReport): void {
+  if (!clientErrorReporter) return;
+  // Loop guard: a failed telemetry POST must NEVER be reported, or the
+  // client-errors POST failing would enqueue another api_client event → ∞.
+  if (r.path.startsWith(TELEMETRY_PATH_PREFIX)) return;
+  try {
+    clientErrorReporter(r);
+  } catch {
+    // Reporting must never break the request path.
+  }
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -106,12 +145,30 @@ async function request<T>(
     headers['Authorization'] = `Bearer ${authToken}`;
   }
 
-  const response = await fetch(path, {
-    method,
-    headers,
-    body: body != null ? JSON.stringify(body) : undefined,
-    signal,
-  });
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      method,
+      headers,
+      body: body != null ? JSON.stringify(body) : undefined,
+      signal,
+    });
+  } catch (err) {
+    // Network/offline/DNS/CORS rejection. An AbortError is a deliberate
+    // cancellation (component unmount / debounced refetch), not a failure —
+    // do not report it. Re-throw the original error unchanged either way.
+    if (!(err instanceof Error && err.name === 'AbortError')) {
+      reportApiFailure({
+        name: err instanceof Error ? err.name : 'NetworkError',
+        message: err instanceof Error ? err.message : String(err),
+        status: 0,
+        code: 'NETWORK_ERROR',
+        method,
+        path,
+      });
+    }
+    throw err;
+  }
 
   const json = await response.json().catch(() => ({
     data: null,
@@ -125,12 +182,21 @@ async function request<T>(
     ) {
       sessionExpiredHandler?.();
     }
-    throw new ApiError(
+    const apiError = new ApiError(
       json.error?.code ?? 'UNKNOWN',
       json.error?.message ?? `Request failed (${response.status})`,
       response.status,
       json.error?.details,
     );
+    reportApiFailure({
+      name: 'ApiError',
+      message: apiError.message,
+      status: apiError.status,
+      code: apiError.code,
+      method,
+      path,
+    });
+    throw apiError;
   }
 
   return json;
