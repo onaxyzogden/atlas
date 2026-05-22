@@ -20,6 +20,9 @@ export const ExportType = z.enum([
   'sectors_zones_report',
   'built_environment_report',
   'human_context_report',
+  'master_plan',
+  'base_map_sheet',
+  'zone_map_sheet',
 ]);
 export type ExportType = z.infer<typeof ExportType>;
 
@@ -533,6 +536,52 @@ export const HumanContextPayload = z.object({
 });
 export type HumanContextPayload = z.infer<typeof HumanContextPayload>;
 
+// ─── Master plan / map sheet payload ──────────────────────────────────────────
+
+/** A single map image captured client-side from the MapLibre canvas. */
+export const MapSheetImage = z.object({
+  /** PNG data URL from map.getCanvas().toDataURL() (needs preserveDrawingBuffer). */
+  dataUrl: z.string(),
+  caption: z.string().optional(),
+  /** Natural canvas pixel dimensions, used to preserve aspect ratio in the PDF. */
+  widthPx: z.number().optional(),
+  heightPx: z.number().optional(),
+});
+export type MapSheetImage = z.infer<typeof MapSheetImage>;
+
+/** A legend swatch describing a feature class drawn on the captured map. */
+export const MapLegendEntry = z.object({
+  label: z.string(),
+  color: z.string(),
+  kind: z.enum(['fill', 'line', 'point']).optional(),
+});
+export type MapLegendEntry = z.infer<typeof MapLegendEntry>;
+
+/**
+ * Shared payload for the captured-map exports (master_plan, base_map_sheet,
+ * zone_map_sheet). The map image(s) are required; the zone roster and
+ * narrative are optional enrichments — the template falls back to deriving an
+ * inventory from the project's persisted design features when absent.
+ */
+export const MasterPlanPayload = z.object({
+  mapImages: z.array(MapSheetImage).min(1),
+  legend: z.array(MapLegendEntry).optional(),
+  /** Free-form designer narrative rendered above the inventory. */
+  narrative: z.string().optional(),
+  /** Pre-computed zone roster (area computed client-side via turf). */
+  zones: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    category: z.string(),
+    primaryUse: z.string().optional(),
+    areaM2: z.number().optional(),
+    permacultureZone: z.number().optional(),
+    phaseTag: z.string().optional(),
+  })).optional(),
+  prevailingWind: z.string().optional(),
+});
+export type MasterPlanPayload = z.infer<typeof MasterPlanPayload>;
+
 // ─── Request / Response ───────────────────────────────────────────────────────
 
 export const CreateExportInput = z.object({
@@ -549,6 +598,7 @@ export const CreateExportInput = z.object({
     sectorsZones: SectorsZonesPayload.optional(),
     builtEnvironment: BuiltEnvironmentPayload.optional(),
     humanContext: HumanContextPayload.optional(),
+    mapSheet: MasterPlanPayload.optional(),
   }).optional(),
 });
 export type CreateExportInput = z.infer<typeof CreateExportInput>;

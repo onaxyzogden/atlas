@@ -94,6 +94,8 @@ import { renderMacroclimateReport } from './macroclimateReport.js';
 import { renderSectorsZonesReport } from './sectorsZonesReport.js';
 import { renderBuiltEnvironmentReport } from './builtEnvironmentReport.js';
 import { renderHumanContextReport } from './humanContextReport.js';
+import { renderMasterPlan } from './masterPlan.js';
+import { renderBaseMapSheet, renderZoneMapSheet } from './mapSheet.js';
 
 export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   site_assessment: renderSiteAssessment,
@@ -112,4 +114,7 @@ export const TEMPLATE_REGISTRY: Record<ExportType, TemplateFn> = {
   sectors_zones_report: renderSectorsZonesReport,
   built_environment_report: renderBuiltEnvironmentReport,
   human_context_report: renderHumanContextReport,
+  master_plan: renderMasterPlan,
+  base_map_sheet: renderBaseMapSheet,
+  zone_map_sheet: renderZoneMapSheet,
 };
