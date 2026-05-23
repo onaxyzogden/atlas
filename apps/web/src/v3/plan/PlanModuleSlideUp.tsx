@@ -28,6 +28,7 @@ import PlanViewBadge from './PlanViewBadge.js';
 const GoalTreeTab             = lazy(() => import('./cards/goal-compass/GoalTreeTab.js'));
 const SiteProfileTab          = lazy(() => import('./cards/goal-compass/SiteProfileTab.js'));
 const GeneratedPlanTab        = lazy(() => import('./cards/goal-compass/GeneratedPlanTab.js'));
+const GoalCompassSequenceCard = lazy(() => import('./cards/goal-compass/GoalCompassSequenceCard.js'));
 const DevelopPlanTab          = lazy(() => import('./cards/goal-compass/DevelopPlanTab.js'));
 const CriteriaForecastTab     = lazy(() => import('./cards/goal-compass/CriteriaForecastTab.js'));
 const PermanenceScalesCard    = lazy(() => import('../../features/plan/PermanenceScalesCard.js'));
@@ -119,6 +120,7 @@ function renderPlanCard(
     case 'plan-goal-tree':           return <GoalTreeTab project={project} onSwitchToMap={noop} />;
     case 'plan-site-profile':        return <SiteProfileTab project={project} onSwitchToMap={noop} />;
     case 'plan-proposal':            return <GeneratedPlanTab project={project} onSwitchToMap={noop} />;
+    case 'plan-goal-compass-sequence': return <GoalCompassSequenceCard project={project} onSwitchToMap={noop} />;
     case 'plan-develop-plan':        return <DevelopPlanTab project={project} onSwitchModule={onSwitchModule ?? noop} />;
     case 'plan-criteria-forecast':   return <CriteriaForecastTab project={project} onSwitchToMap={noop} />;
     case 'plan-permanence-scales':   return <PermanenceScalesCard project={project} onSwitchToMap={noop} />;

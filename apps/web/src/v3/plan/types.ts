@@ -157,6 +157,7 @@ export const MODULE_CARDS: Record<
     { label: 'Goal tree',         sectionId: 'plan-goal-tree' },
     { label: 'Site profile',      sectionId: 'plan-site-profile' },
     { label: 'Proposal',          sectionId: 'plan-proposal' },
+    { label: 'Build sequence',    sectionId: 'plan-goal-compass-sequence' },
     { label: 'Develop plan',      sectionId: 'plan-develop-plan' },
     { label: 'Criteria forecast', sectionId: 'plan-criteria-forecast' },
   ],
