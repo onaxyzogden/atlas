@@ -7,12 +7,16 @@ land and, through **The Steward's Atlas**, moving from fragmentation → shared
 memory → an honest reading of the land → a capacity-based build sequence →
 on-the-ground execution → a living seasonal loop. This page cross-references the
 12 capabilities the story depicts against what actually exists in the codebase
-(verified 2026-05-23). **Verdict: the story is almost entirely realized — ~7 of
-12 capabilities are fully shipped, 5 are partial, none is missing.** The genuinely
+(verified 2026-05-23; rows #10 and #7 both updated 2026-05-23 as their features
+shipped).
+**Verdict: the story is almost entirely realized — ~9 of
+12 capabilities are fully shipped, 3 are partial, none is missing.** The genuinely
 remaining gaps are narrow: inline needs-&-yields edge authoring in the Plan
-slide-up, a dedicated Goal-Compass sequencing UI, a collaboration audit trail,
-the real observation→confidence feedback wire, and the cinematic
-design-overlay-on-satellite / flyover.
+slide-up, a collaboration audit trail,
+and the cinematic design-overlay-on-satellite / flyover. (Two former entries
+here have since shipped: the observation→confidence feedback wire as a
+**distinct field-verification axis** — row #10; and the **Goal-Compass
+sequencing UI** — row #7.)
 
 This is distinct from [Gap Analysis](../entities/gap-analysis.md) (which tracks
 FAO/USDA/IUCN *dataset* coverage) and complements
@@ -41,7 +45,7 @@ lifecycle stages: **Observe → Plan → Act**.
 | # | Story capability (chapter) | Status | Key code | Remaining gap |
 |---|---|---|---|---|
 | 6 | **Dependency mapping (needs & yields)** — web of needs/yields; produce no waste; integrate (Ch3, Ch11) | ✅ **Full (engine)** / ⚠️ UI authoring | `packages/shared/src/relationships/` (integrationScoreFromEdges, orphanOutputs, unmetInputs, closedLoops); `store/relationshipsStore.ts`; `v3/plan/cards/principle-verification/NeedsYieldsAuditCard.tsx` (readout); integration score weighted 0.10 in scoring | Inline "connect this output" edge authoring is still legacy-canvas-only (MapView); Plan slide-up readout is textual. |
-| 7 | **Goal Compass** — capacity-based phases, dependency-driven, milestones, Yeomans Scale of Permanence (Ch12) | ✅ **Full (engine)** / ⚠️ UI | `v3/plan/engine/goalCompass/sequencingEngine.ts` (topological sort by prerequisites + Yeomans phase); `v3/plan/data/goalCompassTypes.ts`, `homesteadGoalTree.ts`, `interventionCatalog`; `store/phaseStore.ts` (`yeomansCap`, `generatedFromGoalCompass`) | The engine generates work items → phaseStore, but there is no dedicated UI surface visualizing the sequence / dependency graph / permanence ladder. |
+| 7 | **Goal Compass** — capacity-based phases, dependency-driven, milestones, Yeomans Scale of Permanence (Ch12) | ✅ **Full** | `v3/plan/engine/goalCompass/sequencingEngine.ts` (topological sort by prerequisites + Yeomans phase); `v3/plan/data/goalCompassTypes.ts`, `homesteadGoalTree.ts`, `interventionCatalog`; `store/phaseStore.ts` (`yeomansCap`, `generatedFromGoalCompass`). **Sequence UI (2026-05-23):** read-only **Build sequence** tab in the Goal-Compass slide-up — `v3/plan/engine/goalCompass/goalCompassSequenceLayout.ts` (pure `buildSequenceLayout` → permanence swimlane bands + nodes in build order + dependency edges) + `v3/plan/cards/goal-compass/GoalCompassSequenceCard.tsx` (bespoke SVG, re-runs the pure engine in a `useMemo`, surfaces `skipped[]`); registered via `MODULE_CARDS['goal-compass']` + `PlanModuleSlideUp.tsx`. | None material. The dependency graph / permanence ladder / build-order surface now exists and also exposes the engine's `skipped[]` reasoning. Deferred (optional): drag-to-reorder, `asOf` year-scrubber decay animation. See [[2026-05-23-atlas-goal-compass-sequence-ui]]. |
 | 11 | **Housing readiness** — house comes late, only when access/water/power support it (Ch11) | ✅ **Full** | `store/phaseStore.ts` (Yeomans-cap gating, habitation ~phase 3+); `features/zones/ZoneSiteSuitabilityCard.tsx`; `features/structures/PermitReadinessCard.tsx` (residential/septic/well/electrical/ag-exemption gates) | Heuristic siting gate only; no permit-tracking schema (follow-on). |
 
 ### ACT
@@ -50,10 +54,13 @@ lifecycle stages: **Observe → Plan → Act**.
 |---|---|---|---|---|
 | 8 | **Command Centre** — tasks with photos, materials, cost, completion criteria (Ch13–14) | ✅ **Full** | `store/workItemStore.ts` (canonical WorkItem spine, shipped ~2026-05-19; photos/materials/cost/`completionCriteria` bound to rows + `fulfilWorkItem`); `features/act/PlanExecutionTrackerCard.tsx`; `FieldProofPanel.tsx` (who/dates/notes/photoRef/sign-off via proofEventStore) | — |
 | 9 | **Collaboration / accountability** — who does what + change history (Ch14) | ⚠️ **Partial** | `features/collaboration/SuggestEditPanel.tsx` (suggest-edit → approval); `MembersTab.tsx` (RBAC) | No version-diff, change-log, or activity timeline (audit trail). |
-| 10 | **Living seasonal loop** — observe over real seasons/years, feed back (Ch15) | ✅ **Full (design-time)** / ⚠️ real-time | Design-time: `v3/plan/canvas/temporalScrubStore.ts` (year cursor 1–50); `v3/plan/cards/plant-systems/CanopySuccessionCard.tsx`, `SuccessionPathCard.tsx`. Real-time: `features/regeneration/RegenerationTimelineCard.tsx`, `PhotoComparePane.tsx` | Multi-year observation is *logged* (proofEventStore) but not yet *fed back* into layer confidence — confidence stays static unless data is manually re-uploaded. |
+| 10 | **Living seasonal loop** — observe over real seasons/years, feed back (Ch15) | ✅ **Full** | Design-time: `v3/plan/canvas/temporalScrubStore.ts` (year cursor 1–50); `v3/plan/cards/plant-systems/CanopySuccessionCard.tsx`, `SuccessionPathCard.tsx`. Real-time: `features/regeneration/RegenerationTimelineCard.tsx`, `PhotoComparePane.tsx`. **Feedback wire (2026-05-23):** `packages/shared/src/fieldVerification/` (pure decay/aggregate core) + `apps/web/src/lib/fieldVerification/` (`buildVerificationZones`, `useFieldVerification`) derive a **distinct field-verification axis** from logged soil samples + monitoring transects, surfaced via `FieldVerificationBadge` (in `DataCompletenessWidget` + `EducationalAtlasPanel`) and a decaying glow on the Observe map (`ObserveAnnotationLayers` field-verification LayerSpec). | Logged multi-year observation now feeds back as a sub-region, decay-weighted *field-verification* level shown **alongside** source confidence. By design the source-confidence enum itself stays static (the axes are kept distinct so ground-truth can't masquerade as institutional provenance). Deferred: factoring verification into `computeScores`; year-scrubber `asOf` decay animation. See [[2026-05-23-atlas-field-verification-axis]]. |
 | 12 | **Closing / 3D vision** — design overlaid on satellite with fade, drone flyover (Ch17) | ⚠️ **Partial** | `features/map/CesiumTerrainViewer.tsx` (3D Cesium terrain); deck.gl scenegraph + custom GLB upload; `features/reporting/ReportingPanel.tsx` (screenshot) | No design-overlay-on-satellite compositing/fade and no automated flyover. Lowest priority — presentation, not workflow. |
 
-**Tally:** 7 Full · 5 Partial · 0 Missing.
+**Tally:** 9 Full · 3 Partial · 0 Missing. (On 2026-05-23 two rows moved
+Partial → Full: #10 when the observation→confidence feedback wire shipped as a
+distinct field-verification axis, and #7 when the Goal-Compass sequencing UI
+shipped as a read-only Build-sequence tab.)
 
 ## Where It's Used
 
@@ -69,13 +76,18 @@ This mapping spans all three lifecycle stages and is implemented across:
    rows were stale within weeks because the underlying features ship fast. Re-verify
    against current code before acting on any status here — a "Full" claim names a
    file that existed when this page was written, not necessarily now.
-2. **The five remaining gaps are the actionable surface.** In rough priority:
-   (a) real observation→confidence feedback wire (#10); (b) Goal-Compass
-   sequencing UI (#7); (c) inline needs-&-yields edge authoring in Plan (#6);
-   (d) collaboration audit trail (#9); (e) design-overlay-on-satellite + flyover
-   (#12, presentation-only, lowest).
-3. **Don't relitigate shipped capabilities.** #1–5, #8, #11 and the engines
-   behind #6/#7/#10 are done; treat them as load-bearing, not as backlog.
+2. **The three remaining gaps are the actionable surface.** In rough priority:
+   (a) inline needs-&-yields edge authoring in Plan (#6); (b) collaboration audit
+   trail (#9); (c) design-overlay-on-satellite + flyover (#12, presentation-only,
+   lowest). Two former top items shipped 2026-05-23: the observation→confidence
+   feedback wire (#10) as a distinct field-verification axis
+   ([[2026-05-23-atlas-field-verification-axis]]) — its only deferred remnants
+   being the (deliberately optional) `computeScores` tie-in and the year-scrubber
+   `asOf` decay animation; and the Goal-Compass sequencing UI (#7) as a read-only
+   Build-sequence tab ([[2026-05-23-atlas-goal-compass-sequence-ui]]) — deferred
+   remnants being drag-to-reorder and the same `asOf` decay animation.
+3. **Don't relitigate shipped capabilities.** #1–5, #7, #8, #10, #11 and the
+   engine behind #6 are done; treat them as load-bearing, not as backlog.
 4. **Covenant framing is preserved.** Capital-contributor language elsewhere in
    the product remains "capital partners & allies" per the 2026-05-04 fiqh
    decision; nothing in this mapping reintroduces advance-purchase framing.
