@@ -20,7 +20,7 @@ import card from '../../../_shared/stageCard/stageCard.module.css';
 import obsx from '../../../_shared/stageCard/observeExtras.module.css';
 import ObserveHero from '../../components/ObserveHero.js';
 import Ring from '../../../_shared/stageCard/Ring.js';
-import { compassKpis, type KpiIconKey } from './derivations.js';
+import { compassKpis, computedSectorRows, type KpiIconKey } from './derivations.js';
 import { polygonCentroid } from '../macroclimate-hazards/derivations.js';
 
 type SectorTypeKey = SectorArrow['type'];
@@ -83,6 +83,21 @@ const removeBtnStyle: React.CSSProperties = {
   padding: '0 4px',
 };
 
+// Auto-derived climate layers (wind rose + solar arcs) — listed read-only so the
+// table mirrors the compass diagram. Muted to read as context, not steward input.
+const computedDividerStyle: React.CSSProperties = {
+  color: 'rgba(232,220,200,0.5)',
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  paddingTop: 12,
+};
+
+const computedRowStyle: React.CSSProperties = {
+  color: 'rgba(232,220,200,0.55)',
+};
+
 export default function SectorCompassDetail() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const id = projectId ?? 'mtc';
@@ -110,6 +125,8 @@ export default function SectorCompassDetail() {
       (a, b) => (order[b.intensity ?? 'low'] ?? 0) - (order[a.intensity ?? 'low'] ?? 0),
     );
   }, [sectors]);
+
+  const computedRows = useMemo(() => computedSectorRows(centroidTuple), [centroidTuple]);
 
   const coveragePct = Math.min(100, sectors.length * 12);
 
@@ -219,7 +236,8 @@ export default function SectorCompassDetail() {
         </h2>
         {sortedSectors.length === 0 ? (
           <p className={card.empty}>No sectors logged yet — add one below or from the map toolbar.</p>
-        ) : (
+        ) : null}
+        {sortedSectors.length > 0 || computedRows.length > 0 ? (
           <table className={card.table}>
             <thead>
               <tr>
@@ -294,9 +312,27 @@ export default function SectorCompassDetail() {
                   </tr>
                 );
               })}
+              {computedRows.length > 0 ? (
+                <>
+                  <tr>
+                    <td colSpan={5} style={computedDividerStyle}>
+                      Computed climate layers · auto-derived, read-only
+                    </td>
+                  </tr>
+                  {computedRows.map((row) => (
+                    <tr key={row.id} style={computedRowStyle}>
+                      <td>{'—'}</td>
+                      <td>{row.bearing}</td>
+                      <td>{row.label}</td>
+                      <td>{row.strength}</td>
+                      <td />
+                    </tr>
+                  ))}
+                </>
+              ) : null}
             </tbody>
           </table>
-        )}
+        ) : null}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 12 }}>
           <select
             value={draftType}

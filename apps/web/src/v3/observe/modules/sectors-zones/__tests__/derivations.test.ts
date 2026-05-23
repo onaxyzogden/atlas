@@ -8,6 +8,7 @@ import {
   dominantWindDir,
   sectorsKpis,
   compassKpis,
+  computedSectorRows,
 } from '../derivations.js';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -163,5 +164,52 @@ describe('compassKpis', () => {
     const kpis = compassKpis([makeSector('view', 45), makeSector('fire', 225)], undefined);
     const arrowKpi = kpis.find((k) => k.label === 'Sector arrows');
     expect(arrowKpi?.value).toBe('2');
+  });
+});
+
+// ── computedSectorRows ────────────────────────────────────────────────────────
+
+describe('computedSectorRows', () => {
+  // Ottawa-ish, mid-northern latitude — all 3 solar arcs resolve.
+  const CENTROID: [number, number] = [-75.7, 45.4];
+
+  it('returns empty array for null centroid', () => {
+    expect(computedSectorRows(null)).toEqual([]);
+  });
+
+  it('produces 8 wind rows and 3 solar rows for a mid-latitude centroid', () => {
+    const rows = computedSectorRows(CENTROID);
+    expect(rows.filter((r) => r.group === 'wind')).toHaveLength(8);
+    expect(rows.filter((r) => r.group === 'solar')).toHaveLength(3);
+  });
+
+  it('sorts wind rows by frequency descending (W dominant)', () => {
+    const wind = computedSectorRows(CENTROID).filter((r) => r.group === 'wind');
+    expect(wind[0]?.label).toBe('Prevailing wind — W');
+    expect(wind[0]?.strength).toBe('27%');
+  });
+
+  it('formats wind bearing as a single degree and solar as a sweep range', () => {
+    const rows = computedSectorRows(CENTROID);
+    const wind = rows.find((r) => r.group === 'wind');
+    const solar = rows.find((r) => r.group === 'solar');
+    expect(wind?.bearing).toMatch(/^\d+°$/);
+    expect(solar?.bearing).toMatch(/^\d+°–\d+°$/);
+    expect(solar?.strength).toBe('—');
+  });
+
+  it('omits solar rows when latitude is out of range', () => {
+    const rows = computedSectorRows([0, 120]);
+    expect(rows.filter((r) => r.group === 'solar')).toHaveLength(0);
+    expect(rows.filter((r) => r.group === 'wind')).toHaveLength(8);
+  });
+
+  it('carries the canonical solar arc labels', () => {
+    const solarLabels = computedSectorRows(CENTROID)
+      .filter((r) => r.group === 'solar')
+      .map((r) => r.label);
+    expect(solarLabels).toContain('Summer solstice sun arc');
+    expect(solarLabels).toContain('Winter solstice sun arc');
+    expect(solarLabels).toContain('Equinox sun arc');
   });
 });
