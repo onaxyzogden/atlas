@@ -177,6 +177,25 @@ All use `persist` middleware with localStorage. Key stores:
 - Token exported as `mapboxToken` from `maplibre.ts` (name preserved for import compatibility)
 
 ## Current State
+- **Data-derived Observe progress + soft Observe→Plan gate (2026-05-23)** —
+  the Observe progress segments (`ObserveModuleBar` + header `LevelNavigator`
+  carousel) are no longer decorative. A new **pure engine**
+  `v3/observe/progress/objectives.ts` (`OBSERVE_OBJECTIVES` registry +
+  `evaluateModule`/`evaluateObserve`, no React/store) evaluates each module's
+  required + optional objectives as predicates over persisted store data;
+  `useObserveProgress.ts` (raw subscriptions + one `useMemo`, selector-stability
+  rule) feeds real `PillarTask[]` into the **existing** `taskColorFn`/`columnId`
+  + `gateIndicators` rendering — so both surfaces light up with **zero rendering
+  changes**. `V3LevelNavBridge` now emits real tasks + a gate diamond after
+  `swot-synthesis`; `ObserveReadyCue` ticks from the same progress. A **soft**
+  `StageGateOverlay` (mounted in `PlanLayout`) lists remaining required
+  objectives with **"Continue anyway"** (persisted per-project in new
+  `stageGateOverrideStore`) — navigation never hard-blocked. Required: one
+  objective/module (boundary · built feature · hazard-or-sector · contour-or-marker
+  · any earth-water-ecology obs · zone-or-patch · SWOT entry) + 1–3 optional each.
+  Observe-only this round; Plan→Act gating is a follow-up. The manual
+  `observeHowChecksStore` How-checks stay guidance-only. See
+  [[2026-05-23-atlas-observe-data-derived-progress-gate]].
 - **Vision Layout UX consolidation (2026-05-17)** — three Vision Layout
   (also `terrain3d`) Plan-canvas rough edges fixed, no behavior/layer
   deletion. `BaseMapCard` gained an optional `hiddenOverlays` prop (mount
