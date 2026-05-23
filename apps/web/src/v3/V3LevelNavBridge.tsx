@@ -15,12 +15,14 @@ import {
   type Level,
   type Pillar,
   type PillarTask,
+  type GateIndicator,
 } from "../components/LevelNavigator/index.js";
 import {
   OBSERVE_MODULES,
   OBSERVE_MODULE_LABEL,
   isObserveModule,
 } from "./observe/types.js";
+import { useObserveProgress } from "./observe/progress/useObserveProgress.js";
 
 const LEVELS: Level[] = [
   {
@@ -54,18 +56,8 @@ const OBSERVE_PILLARS: Pillar[] = OBSERVE_MODULES.map((mod) => ({
   label: OBSERVE_MODULE_LABEL[mod],
 }));
 
-const PLACEHOLDER_SUBSEG_COUNT = 5;
-
-const OBSERVE_PILLAR_TASKS: Record<string, PillarTask[]> = Object.fromEntries(
-  OBSERVE_MODULES.map((mod) => [
-    mod,
-    Array.from({ length: PLACEHOLDER_SUBSEG_COUNT }, (_, i) => ({
-      id: `${mod}-step-${i + 1}`,
-      title: `${OBSERVE_MODULE_LABEL[mod]} step ${i + 1} — Phase B`,
-      columnId: "observe_to_do",
-    })),
-  ]),
-);
+/** The Observe→Plan gate hangs off the last module segment. */
+const OBSERVE_GATE_AFTER_SEGMENT = "swot-synthesis";
 
 interface V3RouteInfo {
   enabled: boolean;
@@ -95,9 +87,26 @@ export default function V3LevelNavBridge({ children }: V3LevelNavBridgeProps) {
   const navigate = useNavigate();
   const { enabled, projectId, stage, module } = parseV3Route(pathname);
 
+  // Hook must run unconditionally; it self-handles a null projectId.
+  const progress = useObserveProgress(projectId);
+
   if (!enabled || !projectId || !stage) {
     return <>{children}</>;
   }
+
+  const observePillarTasks: Record<string, PillarTask[]> = Object.fromEntries(
+    OBSERVE_MODULES.map((mod) => [mod, progress.byModule[mod].tasks]),
+  );
+
+  const observeGate: GateIndicator = {
+    afterSegmentId: OBSERVE_GATE_AFTER_SEGMENT,
+    label: "Plan",
+    status: progress.overall.requiredComplete
+      ? "complete"
+      : progress.overall.doneCount > 0
+        ? "in-progress"
+        : "pending",
+  };
 
   const moduleSlug = module && isObserveModule(module) ? module : undefined;
 
@@ -154,7 +163,8 @@ export default function V3LevelNavBridge({ children }: V3LevelNavBridgeProps) {
       controlledLevel={stage}
       onLevelChange={handleLevelChange}
       pillars={stage === "observe" ? OBSERVE_PILLARS : []}
-      pillarTasks={stage === "observe" ? OBSERVE_PILLAR_TASKS : {}}
+      pillarTasks={stage === "observe" ? observePillarTasks : {}}
+      gateIndicators={stage === "observe" ? [observeGate] : undefined}
       currentPillarId={moduleSlug}
       onSegmentClick={handleSegmentClick}
     >

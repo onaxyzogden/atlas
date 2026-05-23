@@ -1,0 +1,99 @@
+.scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--surface, #11160f) 55%, transparent);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+.card {
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px;
+  border: 1px solid var(--border, #d8dcd6);
+  border-radius: 12px;
+  background: var(--surface-2, #f6f8f4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  color: var(--text, #2b3327);
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.lede {
+  font-size: 12.5px;
+  color: var(--text-muted, #6b7466);
+  margin: 0;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text, #2b3327);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border, #c4ccc0);
+  flex: none;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.primary {
+  flex: 1;
+  padding: 7px 12px;
+  border: 1px solid #4f9d5b;
+  border-radius: 7px;
+  background: #4f9d5b;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:hover {
+  background: #44894f;
+}
+
+.secondary {
+  padding: 7px 12px;
+  border: 1px solid var(--border, #c4ccc0);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted, #6b7466);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary:hover {
+  color: var(--text, #2b3327);
+  border-color: var(--text-muted, #6b7466);
+}

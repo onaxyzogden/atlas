@@ -76,6 +76,7 @@ import PlanStampToast from './draw/PlanStampToast.js';
 import StampModePicker from './canvas/StampModePicker.js';
 import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
 import DesignStatusChip from './header/DesignStatusChip.js';
+import StageGateOverlay from './StageGateOverlay.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -446,6 +447,7 @@ export default function PlanLayout() {
       canvas={
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
           {canvasContent}
+          <StageGateOverlay projectId={params.projectId ?? null} />
           <DesignStatusChip
             project={project}
             onOpenAudit={() => {
