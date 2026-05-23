@@ -32,6 +32,7 @@ import {
   type MoveCalendarEntry,
   type RotationPlan,
 } from './rotationSequenceMath.js';
+import { buildRotationMoveKit } from './rotationMoveMaterials.js';
 
 function resolvePhaseId(
   paddockPhase: string,
@@ -134,6 +135,7 @@ export function seedRotationSequenceWorkItems(args: {
       e.sequenceOrder,
       e.cycleIndex,
     );
+    const kit = buildRotationMoveKit({ paddock, grazeDays: e.grazeDays });
     out.push({
       id: `rs__${provenance}`,
       projectId,
@@ -151,8 +153,8 @@ export function seedRotationSequenceWorkItems(args: {
       precedesAuto: [],
       scheduledStart: e.moveInDateISO,
       scheduledEnd: e.moveOutDateISO,
-      materialsAuto: [],
-      equipmentRequiredAuto: [],
+      materialsAuto: kit.materials,
+      equipmentRequiredAuto: kit.equipment,
       linkedFeatureId: paddock.id,
       notes: '',
     });

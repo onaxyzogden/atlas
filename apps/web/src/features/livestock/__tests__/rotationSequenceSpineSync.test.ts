@@ -283,6 +283,62 @@ describe('seedRotationSequenceWorkItems', () => {
     expect(items[0]?.scheduledStart).toBe('2026-06-15');
     expect(items[1]?.id).toBe('rs__g1__pa__0__1');
   });
+
+  it('attaches the per-move materials kit (salt/mineral/water + fencing) for a stocked paddock', () => {
+    const paddocks = [
+      paddock({
+        id: 'pa',
+        name: 'A',
+        species: ['cattle'],
+        stockingDensity: 2,
+        areaM2: 10_000,
+      }),
+    ];
+    const plan: RotationPlan = {
+      projectId: 'p1',
+      cells: [cell({ paddockId: 'pa', sequenceOrder: 0, targetGrazeDays: 4 })],
+    };
+    const items = seedRotationSequenceWorkItems({
+      projectId: 'p1',
+      paddocks,
+      plan,
+      declaredPhases: DECLARED_PHASES,
+      startDateISO: '2026-05-01',
+      cycles: 1,
+    });
+    expect(items).toHaveLength(1);
+    const row = items[0]!;
+    expect(row.materialsAuto.map((m) => m.label)).toEqual([
+      'Free-choice salt',
+      'Loose mineral mix',
+      'Water haul',
+    ]);
+    expect(row.equipmentRequiredAuto).toHaveLength(1);
+    expect(row.equipmentRequiredAuto[0]).toContain('Portable electric fence');
+    // 2.5 AU x 4 graze-days x 45 L/AU/day = 450 L water haul.
+    expect(row.materialsAuto[2]?.notes).toContain('450 L total');
+    // Per-move totals live in notes; quantityPerAcre stays unset.
+    expect(row.materialsAuto.every((m) => m.quantityPerAcre === undefined)).toBe(
+      true,
+    );
+  });
+
+  it('emits only the fencing equipment line (no consumables) for an unstocked paddock', () => {
+    const paddocks = [paddock({ id: 'pa', name: 'A' })]; // species [], stockingDensity null
+    const plan: RotationPlan = {
+      projectId: 'p1',
+      cells: [cell({ paddockId: 'pa', sequenceOrder: 0 })],
+    };
+    const items = seedRotationSequenceWorkItems({
+      projectId: 'p1',
+      paddocks,
+      plan,
+      declaredPhases: DECLARED_PHASES,
+      startDateISO: '2026-05-01',
+    });
+    expect(items[0]?.materialsAuto).toEqual([]);
+    expect(items[0]?.equipmentRequiredAuto).toHaveLength(1);
+  });
 });
 
 describe('seedRotationSequenceDependencies', () => {
@@ -408,6 +464,13 @@ describe('pushRotationSequenceToSpine — preservation gate', () => {
     expect(items.find((i) => i.id === 'rs__stale__paX__0__0')).toBeDefined();
     expect(items.find((i) => i.id === 'rs__gone__paY__0__0')).toBeUndefined();
     expect(items.find((i) => i.id === 'rs__g1__pa__0__0')).toBeDefined();
+    // Overridden rotation-sequence rows keep their own materials — the per-move
+    // kit is never re-applied to them.
+    const keptOverride = items.find((i) => i.id === 'rs__stale__paX__0__0');
+    expect(keptOverride?.materialsAuto).toEqual([]);
+    // The engine-owned replacement row still receives the always-on fencing line.
+    const fresh = items.find((i) => i.id === 'rs__g1__pa__0__0');
+    expect(fresh?.equipmentRequiredAuto).toHaveLength(1);
   });
 
   it('writes precedesAuto edges only on rotation-sequence rows; cross-source untouched', () => {
