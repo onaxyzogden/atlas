@@ -32,6 +32,10 @@
     "./evidence": {
       "types": "./src/evidence/index.ts",
       "default": "./src/evidence/index.ts"
+    },
+    "./fieldVerification": {
+      "types": "./src/fieldVerification/index.ts",
+      "default": "./src/fieldVerification/index.ts"
     }
   },
   "scripts": {
