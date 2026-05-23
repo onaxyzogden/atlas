@@ -28,6 +28,7 @@ import { usePastureStore } from '../../../../store/pastureStore.js';
 import { useConventionalCropStore } from '../../../../store/conventionalCropStore.js';
 import { useSwotStore } from '../../../../store/swotStore.js';
 import { useSoilSampleStore } from '../../../../store/soilSampleStore.js';
+import { useFieldVerification } from '../../../../lib/fieldVerification/useFieldVerification.js';
 import {
   useBuildingsForProject,
   useWellsForProject,
@@ -210,6 +211,11 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
   const conventionalCrops = useConventionalCropStore((s) => s.conventionalCrops);
   const swot = useSwotStore((s) => s.swot);
   const soilSamples = useSoilSampleStore((s) => s.samples);
+  // Field-verification axis (OLOS gap #10): buffered influence zones derived
+  // on the fly from soil samples + monitoring transects. Glows brighter where
+  // the ground has been read recently, fades as observations decay. Falls
+  // under the `observeAnnotations` master toggle (no independent sub-toggle).
+  const { zones: verificationZones } = useFieldVerification(projectId ?? undefined);
   // Phase 6.B: read built-environment slices directly from V2 via the
   // project-filtered selector hooks. Each hook is already memoized so
   // identity stays stable when nothing in this project's slice changed —
@@ -232,6 +238,60 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       arr.filter((x) => x.projectId === projectId);
 
     const result: LayerSpec[] = [];
+
+    // ── Field-verification zones (OLOS gap #10) ─────────────────────────────
+    // Pushed FIRST so it renders beneath every annotation: a soft sub-regional
+    // glow showing where the ground has been corroborated/verified by recent
+    // field observations. Distinct earth-green ramp (verified = deep, the same
+    // climax green as ecology) so it reads as "ground-truth" not "hazard".
+    // Opacity scales with level so verified zones glow brighter than merely
+    // corroborated ones; both fade as their underlying observations decay.
+    if (verificationZones.features.length) {
+      const levelColor: ExpressionSpecification = [
+        'match',
+        ['get', 'level'],
+        'verified',
+        '#2a6a3a',
+        'corroborated',
+        '#7a8a3c',
+        '#8a7a68',
+      ] as unknown as ExpressionSpecification;
+      const levelFillOpacity: ExpressionSpecification = [
+        'match',
+        ['get', 'level'],
+        'verified',
+        0.22,
+        'corroborated',
+        0.14,
+        0.07,
+      ] as unknown as ExpressionSpecification;
+      result.push({
+        id: 'field-verification',
+        data: verificationZones as GeoJSON.FeatureCollection,
+        layers: [
+          {
+            id: `${LAYER_PREFIX}field-verification-fill`,
+            type: 'fill',
+            source: `${SOURCE_PREFIX}field-verification`,
+            paint: {
+              'fill-color': levelColor,
+              'fill-opacity': levelFillOpacity,
+            },
+          },
+          {
+            id: `${LAYER_PREFIX}field-verification-line`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}field-verification`,
+            paint: {
+              'line-color': levelColor,
+              'line-width': 1,
+              'line-opacity': 0.5,
+              'line-dasharray': [2, 2],
+            },
+          },
+        ],
+      });
+    }
 
     // ── Human Context: points (neighbours + households) ─────────────────────
     const humanPoints: GeoJSON.Feature[] = [
@@ -1121,6 +1181,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     conventionalCrops,
     swot,
     soilSamples,
+    verificationZones,
     buildings,
     wells,
     septics,
