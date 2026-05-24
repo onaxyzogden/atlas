@@ -10,7 +10,7 @@
 
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { Telescope, ArrowRight, Lock, Compass } from 'lucide-react';
-import { useFitGate } from '../useFitGate.js';
+import { useFitGate } from './useFitGate.js';
 import FitGateSeverity from './FitGateSeverity.js';
 import css from './FitGatePage.module.css';
 
