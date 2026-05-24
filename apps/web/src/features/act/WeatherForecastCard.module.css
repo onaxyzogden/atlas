@@ -222,7 +222,7 @@
 .signalSpray {
   background: rgba(80, 180, 120, 0.1);
   border-color: rgba(80, 180, 120, 0.3);
-  color: rgba(140, 220, 170, 0.95);
+  color: rgba(var(--color-pos-text-rgb), 0.95);
 }
 .signalHeat {
   background: rgba(220, 120, 80, 0.1);

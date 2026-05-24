@@ -103,7 +103,7 @@
   border-radius: 4px;
 }
 .rowDelete:hover {
-  color: rgba(220,140,140,0.8);
+  color: rgba(var(--color-neg-text-rgb),0.8);
   background: rgba(220,140,140,0.08);
 }
 

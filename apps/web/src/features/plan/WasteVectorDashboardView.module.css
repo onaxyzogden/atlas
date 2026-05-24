@@ -67,8 +67,8 @@
   font-size: 11px;
   font-weight: 600;
 }
-.kpiDeltaUp   { color: rgba(140, 220, 170, 0.9); }
-.kpiDeltaDown { color: rgba(220, 140, 140, 0.9); }
+.kpiDeltaUp   { color: rgba(var(--color-pos-text-rgb), 0.9); }
+.kpiDeltaDown { color: rgba(var(--color-neg-text-rgb), 0.9); }
 
 /* ── Flow map ────────────────────────────────────────────────────────────── */
 
@@ -201,9 +201,9 @@
   color: var(--color-text);
   font-weight: 600;
 }
-.toneMet     { color: rgba(140, 220, 170, 0.9); }
+.toneMet     { color: rgba(var(--color-pos-text-rgb), 0.9); }
 .tonePartial { color: rgba(var(--color-gold-rgb), 0.85); }
-.toneUnmet   { color: rgba(220, 140, 140, 0.9); }
+.toneUnmet   { color: rgba(var(--color-neg-text-rgb), 0.9); }
 
 /* ── Scenarios scroll-snap ───────────────────────────────────────────────── */
 

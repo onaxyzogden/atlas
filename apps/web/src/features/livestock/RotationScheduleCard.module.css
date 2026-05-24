@@ -511,7 +511,7 @@
 }
 .variancePositive {
   background: rgba(80, 180, 120, 0.12);
-  color: rgba(140, 220, 170, 0.95);
+  color: rgba(var(--color-pos-text-rgb), 0.95);
   border: 1px solid rgba(80, 180, 120, 0.28);
 }
 .varianceTolerant {

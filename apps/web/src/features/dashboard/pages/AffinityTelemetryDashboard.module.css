@@ -63,7 +63,7 @@
 .errorBox {
   background: rgba(220, 80, 80, 0.12);
   border: 1px solid rgba(220, 80, 80, 0.4);
-  color: #f0c0c0;
+  color: rgba(var(--color-neg-text-rgb), 1);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;

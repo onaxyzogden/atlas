@@ -190,14 +190,14 @@
   background: var(--color-hover-overlay);
 }
 /* Plan semantic pills */
-.pillUnmet   { background: rgba(220,80,80,0.12);                    color: rgba(220,140,140,0.95);                    border: 1px solid rgba(220,80,80,0.3); }
+.pillUnmet   { background: rgba(220,80,80,0.12);                    color: rgba(var(--color-neg-text-rgb),0.95);                    border: 1px solid rgba(220,80,80,0.3); }
 .pillPartial { background: rgba(var(--color-gold-rgb), 0.1);        color: rgba(var(--color-gold-rgb), 0.95);         border: 1px solid rgba(var(--color-gold-rgb), 0.3); }
-.pillMet     { background: rgba(80,180,120,0.12);                   color: rgba(140,220,170,0.95);                    border: 1px solid rgba(80,180,120,0.3); }
+.pillMet     { background: rgba(80,180,120,0.12);                   color: rgba(var(--color-pos-text-rgb),0.95);                    border: 1px solid rgba(80,180,120,0.3); }
 /* Act lifecycle pills */
-.pillPlanned { background: rgba(120,140,220,0.12);                  color: rgba(170,190,240,0.95);                    border: 1px solid rgba(120,140,220,0.3); }
+.pillPlanned { background: rgba(120,140,220,0.12);                  color: rgba(var(--color-info-text-rgb),0.95);                    border: 1px solid rgba(120,140,220,0.3); }
 .pillRunning { background: rgba(var(--color-gold-rgb), 0.1);        color: rgba(var(--color-gold-rgb), 0.95);         border: 1px solid rgba(var(--color-gold-rgb), 0.3); }
-.pillSuccess { background: rgba(80,180,120,0.12);                   color: rgba(140,220,170,0.95);                    border: 1px solid rgba(80,180,120,0.3); }
-.pillFail    { background: rgba(220,80,80,0.12);                    color: rgba(220,140,140,0.95);                    border: 1px solid rgba(220,80,80,0.3); }
+.pillSuccess { background: rgba(80,180,120,0.12);                   color: rgba(var(--color-pos-text-rgb),0.95);                    border: 1px solid rgba(80,180,120,0.3); }
+.pillFail    { background: rgba(220,80,80,0.12);                    color: rgba(var(--color-neg-text-rgb),0.95);                    border: 1px solid rgba(220,80,80,0.3); }
 .pillIncon   { background: rgba(180,180,180,0.08);                  color: var(--color-text);                    border: 1px solid rgba(180,180,180,0.2); }
 
 .tag {

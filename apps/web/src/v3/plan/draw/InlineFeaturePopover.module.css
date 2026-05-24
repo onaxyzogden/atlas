@@ -174,7 +174,7 @@
   font-weight: 600;
   cursor: pointer;
   background: transparent;
-  color: rgba(220, 140, 140, 0.95);
+  color: rgba(var(--color-neg-text-rgb), 0.95);
   border: 1px solid rgba(220, 80, 80, 0.5);
 }
 
