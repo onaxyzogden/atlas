@@ -22,8 +22,11 @@ export default function StageCompassPage() {
 
   // "The outer ring readies the stage; the center runs it." The hub unlocks
   // only once every Observe objective is fully verified.
-  const ready =
-    data.views.length > 0 && data.views.every((v) => v.progress.pct === 100);
+  // TEMP ("unlock for now" — steward request): the Command Centre is unlocked
+  // unconditionally so it can be entered without all objectives verified.
+  // Restore the readiness gate by reverting to:
+  //   data.views.length > 0 && data.views.every((v) => v.progress.pct === 100)
+  const ready = data.views.length > 0;
 
   // Default selection: first objective that isn't fully verified, else first.
   const defaultModule = useMemo<string | null>(() => {
