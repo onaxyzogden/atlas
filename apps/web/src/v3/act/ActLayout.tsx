@@ -189,7 +189,11 @@ export default function ActLayout() {
                 <ActStructureClickHandler map={map} projectId={params.projectId} />
               ) : null}
               {params.projectId ? (
-                <ActDataLayers map={map} projectId={params.projectId} />
+                <ActDataLayers
+                  map={map}
+                  projectId={params.projectId}
+                  activeModule={validModule}
+                />
               ) : null}
               <ActDrawHost map={map} projectId={params.projectId ?? null} />
               <InlineFeaturePopover map={map} />
