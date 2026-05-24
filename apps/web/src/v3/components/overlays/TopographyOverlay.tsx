@@ -26,10 +26,19 @@ const LABEL_LAYER = "matrix-topography-label";
 
 export interface TopographyOverlayProps {
   map: maplibregl.Map;
+  /**
+   * Force the overlay on regardless of the manual toggle. Set while an
+   * objective whose `requiredLayers` resolve to the topography module is
+   * focused; clearing it (on focus exit) reverts to the toggle state.
+   */
+  forceVisible?: boolean;
 }
 
-export default function TopographyOverlay({ map }: TopographyOverlayProps) {
-  const visible = useMatrixTogglesStore((s) => s.topography);
+export default function TopographyOverlay({
+  map,
+  forceVisible,
+}: TopographyOverlayProps) {
+  const visible = useMatrixTogglesStore((s) => s.topography) || !!forceVisible;
 
   useEffect(() => {
     if (!map) return;
@@ -123,7 +132,7 @@ export default function TopographyOverlay({ map }: TopographyOverlayProps) {
     return () => {
       map.off("styledata", onStyle);
     };
-  }, [map, visible]);
+  }, [map, visible, forceVisible]);
 
   return null;
 }

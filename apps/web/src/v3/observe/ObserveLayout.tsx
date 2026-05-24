@@ -18,7 +18,7 @@
  * module).
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import ObserveDeepLinkFocus from './components/ObserveDeepLinkFocus.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
@@ -60,6 +60,7 @@ import SectorCompassOverlay from './components/overlays/SectorCompassOverlay.js'
 import ObserveObjectiveCompletePrompt from '../compass/ObserveObjectiveCompletePrompt.js';
 import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
 import { useFieldObjective } from '../objectives/useFieldObjectives.js';
+import { requiredLayersToModules } from '../objectives/fieldObjective.js';
 import ObjectiveMapFocus from './objective/ObjectiveMapFocus.js';
 import ObjectiveBanner from './objective/ObjectiveBanner.js';
 import ObjectiveExecutionAside from './objective/ObjectiveExecutionAside.js';
@@ -131,6 +132,24 @@ export default function ObserveLayout() {
   // narrows the tool rail, flies + highlights the map, and shows a banner.
   const focusView = useFieldObjective(id, search.objective);
   const focusObjective = focusView?.objective ?? null;
+  // Objective focus actuates the map: foreground the union of the objective's
+  // `requiredLayers` (normalized to modules). Memoized on the objective id +
+  // its requiredLayers so the layer effect doesn't re-run every render.
+  const focusModules = useMemo(
+    () =>
+      focusObjective
+        ? requiredLayersToModules(
+            focusObjective.requiredLayers,
+            focusObjective.module,
+          )
+        : null,
+    [focusObjective],
+  );
+  // Prop-driven base-raster actuation: focusing an objective that needs the
+  // topography / water layers forces those overlays on without touching the
+  // persisted toggles, so exiting focus (focusModules → null) auto-reverts.
+  const forceTopo = !!focusModules?.includes('topography');
+  const forceWater = !!focusModules?.includes('earth-water-ecology');
   const exitFocus = () => {
     if (!params.projectId) return;
     navigate({
@@ -225,8 +244,8 @@ export default function ObserveLayout() {
                   (computed default Zone 0–5 rings) is NOT mounted: the
                   Zones toggle gates only the steward-drawn permaculture-
                   zone polygons. */}
-              <TopographyOverlay map={map} />
-              <WaterOverlay map={map} />
+              <TopographyOverlay map={map} forceVisible={forceTopo} />
+              <WaterOverlay map={map} forceVisible={forceWater} />
               <MapToolbar
                 map={map}
                 projectId={id}
@@ -273,6 +292,7 @@ export default function ObserveLayout() {
                 map={map}
                 projectId={id}
                 activeModule={validModule}
+                focusModules={focusModules}
               />
               {params.projectId ? (
                 <PlanDataLayers
