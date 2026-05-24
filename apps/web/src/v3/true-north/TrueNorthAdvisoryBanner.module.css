@@ -1,6 +1,6 @@
 .banner {
   position: fixed;
-  top: var(--space-4);
+  top: calc(48px + var(--space-3));
   left: 50%;
   transform: translateX(-50%);
   z-index: 60;

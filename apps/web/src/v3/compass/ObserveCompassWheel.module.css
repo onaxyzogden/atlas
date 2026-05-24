@@ -4,12 +4,19 @@
 
 .wheelHost {
   position: relative;
-  width: 100%;
-  max-width: 440px;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 1;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* The shared wheel caps itself at 540px; lift that so it fills the host square
+   (which is sized to min(available width, available height) above). */
+.wheelHost :global(.mcw-svg) {
+  max-width: 100%;
 }
 
 /* Center-unlock overlay (Goal 5). A transparent circular button sized to the
