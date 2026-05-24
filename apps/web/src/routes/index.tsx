@@ -48,6 +48,7 @@ import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
 import StageCompassPage from '../v3/compass/StageCompassPage.js';
 import PlanStageCompassPage from '../v3/plan/compass/PlanStageCompassPage.js';
+import ActStageCompassPage from '../v3/act/compass/ActStageCompassPage.js';
 import ObserveCommandCentrePage from '../v3/command/ObserveCommandCentrePage.js';
 import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
 import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
@@ -298,6 +299,13 @@ const v3PlanModuleRoute = createRoute({
   path: 'plan/$module',
   component: PlanLayout,
 });
+// Act Stage Compass — per-stage "mission select". Static path resolves before
+// the `act/$module` param route.
+const v3ActCompassRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/compass',
+  component: ActStageCompassPage,
+});
 const v3ActRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'act',
@@ -512,6 +520,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanCompassRoute,
       v3PlanRoute,
       v3PlanModuleRoute,
+      v3ActCompassRoute,
       v3ActRoute,
       v3ActModuleRoute,
       v3DesignRoute,

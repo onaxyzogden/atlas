@@ -6,6 +6,17 @@ import {
   aggregateProgress,
   type RawEvidenceMap,
 } from '../compassGating.js';
+// NOTE: planCompassConfig is intentionally NOT imported here — it pulls in
+// PlanChecklistAside.tsx, whose transitive store chain (waterSystemsStore →
+// persistRehydrate) runs a top-level rehydrate that throws under vitest. The
+// Plan gating is exercised through its store seed instead; the Act config is
+// data-only and safe to import directly.
+import { planSeedFor } from '../../../store/planCompassStore.js';
+import {
+  ACT_COMPASS_OBJECTIVES,
+  actObjectiveById,
+} from '../../act/compass/actCompassConfig.js';
+import { actSeedFor } from '../../../store/actCompassStore.js';
 
 const NONE: readonly number[] = [];
 
@@ -111,5 +122,58 @@ describe('aggregateProgress', () => {
 
   it('returns 0% for an empty set', () => {
     expect(aggregateProgress([])).toEqual({ verified: 0, total: 0, pct: 0 });
+  });
+});
+
+describe('Plan compass seed', () => {
+  it('resolves the goal-compass seed (2 verified, 1 evidence-in)', () => {
+    const seed = planSeedFor('goal-compass'); // { 0: verified, 1: verified, 2: evidence-in }
+    expect(seed).toEqual({ 0: 'verified', 1: 'verified', 2: 'evidence-in' });
+    // Against a 3+ node objective the first three nodes resolve in order.
+    const states = resolveNodeStates(3, seed, NONE);
+    expect(states).toEqual(['verified', 'verified', 'evidence-in']);
+    expect(objectiveProgress(3, seed, NONE).verified).toBe(2);
+  });
+
+  it('returns an empty seed for an unstarted Plan module (machinery)', () => {
+    const seed = planSeedFor('machinery'); // {}
+    expect(seed).toEqual({});
+    expect(resolveNodeStates(2, seed, NONE)).toEqual(['open', 'locked']);
+  });
+});
+
+describe('Act compass config + seed', () => {
+  it('builds one objective per Act module with full metadata', () => {
+    expect(ACT_COMPASS_OBJECTIVES).toHaveLength(8);
+    ACT_COMPASS_OBJECTIVES.forEach((o, i) => {
+      expect(o.ordinal).toBe(i + 1);
+      expect(o.label.length).toBeGreaterThan(0);
+      expect(o.accent).toMatch(/^#/);
+      expect(o.icon).toBeTruthy(); // lucide icon (forwardRef component)
+      expect(o.nodes.length).toBeGreaterThan(0);
+      expect(o.pitfall && o.pitfall.length).toBeGreaterThan(0);
+      o.nodes.forEach((n, idx) => expect(n.index).toBe(idx));
+    });
+  });
+
+  it('resolves the tracker seed against its node count', () => {
+    const obj = actObjectiveById('tracker');
+    const seed = actSeedFor('tracker'); // { 0: verified, 1: verified, 2: evidence-in }
+    const progress = objectiveProgress(obj.nodes.length, seed, NONE);
+    expect(progress.verified).toBe(2);
+    expect(progress.total).toBe(obj.nodes.length);
+    const states = resolveNodeStates(obj.nodes.length, seed, NONE);
+    expect(states[0]).toBe('verified');
+    expect(states[1]).toBe('verified');
+    expect(states[2]).toBe('evidence-in');
+  });
+
+  it('locks every node for an unstarted Act module (review)', () => {
+    const obj = actObjectiveById('review');
+    const seed = actSeedFor('review'); // {}
+    const states = resolveNodeStates(obj.nodes.length, seed, NONE);
+    expect(states[0]).toBe('open');
+    states.slice(1).forEach((s) => expect(s).toBe('locked'));
+    expect(objectiveProgress(obj.nodes.length, seed, NONE).verified).toBe(0);
   });
 });
