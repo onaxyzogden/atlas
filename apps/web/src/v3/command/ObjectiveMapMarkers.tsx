@@ -31,12 +31,18 @@ function buildPin(view: FieldObjectiveView): HTMLDivElement {
   const { objective, run } = view;
   const color = OBSERVE_MODULE_DOT[objective.module];
   const done = run.status === 'complete';
+  // Outer element: MapLibre owns its inline `transform` for positioning, so we
+  // must never write `transform` here — doing so wipes the translate and snaps
+  // the marker to the map origin. The hover scale lives on the inner pin.
   const el = document.createElement('div');
   el.setAttribute(
     'aria-label',
     `${OBSERVE_MODULE_LABEL[objective.module]} objective: ${objective.title} (${STATUS_LABEL[run.status]})`,
   );
-  el.style.cssText = [
+  el.style.cssText = ['cursor:pointer', 'user-select:none', 'line-height:0'].join(';');
+
+  const pin = document.createElement('div');
+  pin.style.cssText = [
     'width:26px',
     'height:26px',
     'border-radius:50%',
@@ -50,16 +56,16 @@ function buildPin(view: FieldObjectiveView): HTMLDivElement {
     'font-size:13px',
     'font-weight:700',
     "font-family:'Apple Color Emoji','Segoe UI Emoji',sans-serif",
-    'cursor:pointer',
-    'user-select:none',
     'transition:transform 120ms ease',
   ].join(';');
-  el.textContent = done ? '✓' : '';
+  pin.textContent = done ? '✓' : '';
+  el.appendChild(pin);
+
   el.addEventListener('mouseenter', () => {
-    el.style.transform = 'scale(1.15)';
+    pin.style.transform = 'scale(1.15)';
   });
   el.addEventListener('mouseleave', () => {
-    el.style.transform = 'scale(1)';
+    pin.style.transform = 'scale(1)';
   });
   return el;
 }
