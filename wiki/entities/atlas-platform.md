@@ -52,6 +52,7 @@ input. See [2026-05-20 OLOS new-user-journey walkthrough](../decisions/2026-05-2
 - 14 security vulnerabilities (2 critical CVEs in fast-jwt via @fastify/jwt)
 
 ## Current State
+- v3 stage flow: **Stage 0 "True North / Fit Gate" → Observe → Plan → Act** (2026-05-24). New projects now open on True North — an 8-segment intent/non-negotiables questionnaire feeding a pure deterministic Fit Gate verdict (Green→Black severity, advisory soft-gate, never auto-blocks); the chosen archetype tailors the Observe compass + Command-Centre dashboards. See [2026-05-24 ADR](../decisions/2026-05-24-atlas-true-north-fit-gate-stage-0.md).
 - Project CRUD, map drawing, zone/structure/paddock/crop/path placement: **production-ready**
 - Authentication (JWT): **working**
 - Data pipeline orchestration: **working** (adapters mostly stubbed)
