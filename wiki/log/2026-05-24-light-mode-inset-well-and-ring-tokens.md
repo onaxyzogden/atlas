@@ -1,0 +1,38 @@
+# 2026-05-24 — Light-mode repair: light chrome + neutral-text tokenization + inset-well/ring tokens
+
+**Branch.** `feat/atlas-permaculture`. Three explicit-path commits: `5fc9f672` (light chrome + neutral text tokenization), `334b2939` (theme-flipping inset-well token), `b5a2c1fe` (theme-flipping progress-ring core + rim).
+
+## Why
+
+Steward reported light mode "terrible in many areas and especially in the module slideup and the top header bar," with a screenshot of the Observe → Human Context module-slideup Dashboard showing a **dark top header**, **faint/washed-out stat-card labels**, a **black "0%" circle** (the progress ring), and a mojibake glyph (`â€"`). Root cause is structural: the Atlas web app was authored assuming a **permanently dark UI** — chrome was deliberately kept dark even in light mode (the "estate frame" intent in `tokens.css`), and ~1,150 hardcoded color literals across ~247 files bypass the token system (parchment text `rgba(232,220,200,…)`, warm-tan icons, white hairline borders, dark-green `rgba(15,26,18,…)` / `rgba(0,0,0,0.2)` backgrounds). None of these adapt, so light mode renders dark-on-dark chrome and low-contrast / invisible card UI.
+
+## Approach — tokenize + high-leverage
+
+Steward decision: chrome turns **light** in light mode (override the estate-frame intent); fix via **theme-flipping tokens + global find-replace**, not by hand-editing 247 files; **dark mode must not regress** (top constraint); **"neutrals now, hues later"** (map neutral parchment/grey literals to text tokens this round; leave hue-coded green/blue/amber/peach status colors for a separate pass).
+
+Token structure: `:root` in `tokens.css` holds **light** values; `dark-mode.css` overrides them in **two** blocks — `:root[data-theme="dark"]` (2-space indent) **and** `@media (prefers-color-scheme: dark)` (4-space indent). Every new theme-flipping token is added to **all three** locations, with its **dark value set to exactly the old hardcoded literal** so dark mode stays pixel-identical.
+
+## What shipped
+
+**Commit `5fc9f672` — light chrome + neutral text tokenization.** Flipped the chrome token light values in `tokens.css` `:root` from dark to light (chrome bg → `#f6f4ee`-family parchment; chrome bg-translucent → `rgba(246,244,238,0.95)`; sidebar/map-header text → `#1f231e` dark, icons/muted → `#5a5443`; sidebar/map active → light-primary gold AA on white; page-dimming scrim left dark in both modes). Added theme-flipping overlay/hairline/text tokens — `--color-hairline` (dark `rgba(255,255,255,0.06)` / light `rgba(0,0,0,0.08)`), `--color-hover-overlay`, `--color-active-overlay`, `--color-text` (light `#1f231e` / dark `#f3ecd7`), `--color-text-muted`, `--color-text-subtle` — and global-replaced the common neutral literals across `apps/web/src/**/*.css` with them. Hand-fixed the chrome components (sidebars, tab bar, map overlays, module slideup scrim/sheet/tabs) that hardcode parchment/warm-tan/white/dark-green.
+
+**Commit `334b2939` — `--color-inset-well` token.** The muddy-grey inset cards (`.kpiBlock`, `.blockquote`, and 23 other card `.module.css` files) used `background: rgba(0,0,0,0.2)` — a dark wash that reads as mud on a light surface. New `--color-inset-well` (light `rgba(0,0,0,0.04)` / dark `rgba(0,0,0,0.2)` — **exact** old literal) added to all three token locations; script-replaced `background: rgba(0,0,0,0.2)` → `var(--color-inset-well)` across 25 files (re-grep after the run returned **zero** remaining matches). Files: EventFlowLightingCard, PublicPrivateCirculationCard, AiOutputFeedbackCard, WhyHerePanelsCard, SeasonalWindBalanceCard, SolarClimatePanel, CartographicStylePresetsCard, PlantingToolDashboard, BestUseSummaryCard, MaintenanceComplexityCard, GPSFieldStatusCard, OfflineSyncStatusCard, HydrologyPanel, BrowsePressureRiskCard, PortalShareSnapshotCard, RegulatoryRiskNotesCard, AccessEfficiencyCard, GuestPrivacyCard, SafetyBufferRulesCard, PunchListCard, ServiceExpansionPreservationCard, observeExtras.module.css, stageCard.module.css (+ tokens.css/dark-mode.css).
+
+**Commit `b5a2c1fe` — progress-ring core + rim tokens.** The "0%" gauge in `observeExtras.module.css` `.ring` hardcoded a near-black disc (`#091412`) and inner-bevel rim (`rgba(10,16,14,0.9)`) — invisible black-on-light text and a black puck in light mode. New `--color-ring-core` (light `#efe9dc` / dark `#091412`) + `--color-ring-rim` (light `rgba(0,0,0,0.06)` / dark `rgba(10,16,14,0.9)`) added to all three token locations; `.ring` `radial-gradient` core → `var(--color-ring-core)`, `box-shadow` inset rim → `var(--color-ring-rim)`. The white-08 conic **track** and the gold conic **arc** were intentionally left unchanged (preserves dark exactly; the gold arc is a hue, deferred to the "hues later" pass).
+
+## Diagnosis: header + labels were stale-browser, not bugs
+
+The steward's "dark header" and "washed-out labels" were **stale-browser artifacts** — the committed build already renders the header bg as `rgba(246,244,238,0.95)` (light) and the KPI labels as `#1f231e` (dark-on-light), confirmed by computed-style probes. Recommended a hard refresh (Ctrl+Shift+R). The two **genuinely reproducible** light-mode bugs were the muddy inset cards and the black ring disc — both fixed above.
+
+## Verification
+
+`preview_screenshot` **times out** in this environment (known WebGL/backgrounded-tab issue — stated, not assumed; no visual claimed). Verified instead with **computed-style probes** (`preview_inspect` / `preview_eval`) in **both** light and dark: inset-well resolves light `rgba(0,0,0,0.04)` / dark `rgba(0,0,0,0.2)`; ring core resolves light `#efe9dc` / dark `#091412`; ring rim light `rgba(0,0,0,0.06)` / dark `rgba(10,16,14,0.9)`. **Dark values confirmed exact-match to the originals = zero regression.** Opening the slideup needed `preview_eval` `element.click()` (coordinate clicks hit child elements, not the `.tileHit` button) + a `setTimeout` await for the React mount — confirmed `dialog: true, kpi: 4`.
+
+## Deferred (not started without confirmation)
+
+- **Mojibake encoding** (`â€"`, `Generatingâ€¦` in `HumanContextDashboard.tsx` lines ~224/266/286/482/601 and elsewhere) — out of CSS scope; a background task chip was spawned and a `_mojibake_inventory.txt` scratch file written (untracked, not committed).
+- **Hue-coded colors** — the gold gauge arc/track and the green/blue/amber/peach status colors across cards still need light variants ("hues later").
+
+## Discipline notes
+
+Each fix committed as its own slice the moment it verified, staging **only** the relevant CSS files by explicit path per [[feedback-commit-immediately-on-rebased-branches]]; foreign in-progress WIP (`EconomicsPanel*`, `CapitalPartnerSummaryExport`, `capitalPartner*`, `ZoneSomSidebar*`, `MapCoordinateReadout*`, `MapCanvas`, the `*Map.tsx` trio, `launch.json`) left untouched per [[feedback-no-deletion]]. Fetched + checked divergence before pushing (3 ahead / 0 behind upstream). Covenant clean; 3-item Observe/Plan/Act IA unchanged. Plan: `~/.claude/plans/light-mode-of-the-splendid-crayon.md`.
