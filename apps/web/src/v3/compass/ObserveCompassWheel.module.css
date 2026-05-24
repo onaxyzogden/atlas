@@ -10,3 +10,13 @@
   align-items: center;
   justify-content: center;
 }
+
+/* Quiet the segments' coloured background fill so the wheel reads in the
+   biophilic register the original hand-built donut used (translucent wedge,
+   ~0.22 accent). The bright progress arc (`.mcw-seg-current`) stays opaque so
+   it still reads as the verified-progress indicator. Scoped to this wheel so
+   the OPA dashboard wheel is unaffected. fill-opacity (not opacity) keeps the
+   path hit-testable, so segment clicks still fire. */
+.wheelHost :global(.mcw-band) {
+  fill-opacity: 0.22;
+}
