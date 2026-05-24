@@ -1,25 +1,29 @@
 /**
  * ObserveCommandCentrePage — the aggregate "run the stage" surface for Observe.
  *
- * The doc's mechanic: "the outer ring readies the stage; the center runs it."
- * The Stage Compass center unlocks (all objectives verified) and opens this
- * Command Centre — one place to see the whole Observe stage instead of the
- * scattered per-module maps. Rendered full-bleed by V3ProjectLayout (the
- * `command-centre` path skips LandOsShell, like the compass).
+ * Two modes, per the OLOS Stage Command Center doc:
+ *   1. Command Centre (awareness) — THIS page: site map with objective markers,
+ *      assigned-objective launch cards, an observation timeline, plus the
+ *      aggregate Observe summary / evidence / gaps / module dashboards.
+ *   2. Objective Focus Mode (execution) — ObserveLayout driven by `?objective`,
+ *      launched by clicking a card or marker here.
  *
- * Readiness mirrors the compass exactly (`useCompassData` → every objective at
- * 100%). Reaching this route while not ready shows a quiet "locked" state with
- * a path back to the compass rather than a hard redirect.
- *
- * Composition: a full site map, the Observe summary, an evidence-library tally,
- * a gaps heuristic, the seven embedded module dashboards, and a Plan-readiness
- * banner. Each module card deep-links back to its working surface.
+ * The center of the Stage Compass still opens this route. It is no longer
+ * gated on 100% completion: a steward runs objectives from here at any time
+ * (the doc's "Command Centre for awareness, Objective Workspace for
+ * execution"). Readiness now only changes emphasis — the Plan-readiness banner
+ * activates once every objective is verified. Rendered full-bleed by
+ * V3ProjectLayout (the `command-centre` path skips LandOsShell).
  */
 
+import { useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
-import { Compass, ArrowRight, Lock, Check } from 'lucide-react';
+import { Compass, ArrowRight, Check } from 'lucide-react';
 import { useCompassData } from '../compass/useCompassData.js';
+import { useFieldObjectives } from '../objectives/useFieldObjectives.js';
 import SiteMapPanel from './SiteMapPanel.js';
+import AssignedObjectivesPanel from './AssignedObjectivesPanel.js';
+import ObservationTimelinePanel from './ObservationTimelinePanel.js';
 import EvidenceLibraryPanel from './EvidenceLibraryPanel.js';
 import GapsPanel from './GapsPanel.js';
 import ModuleDashboardsPanel from './ModuleDashboardsPanel.js';
@@ -30,6 +34,8 @@ export default function ObserveCommandCentrePage() {
   const projectId = params.projectId ?? 'mtc';
   const navigate = useNavigate();
   const data = useCompassData(projectId);
+  const objectiveViews = useFieldObjectives(projectId);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const ready =
     data.views.length > 0 && data.views.every((v) => v.progress.pct === 100);
@@ -37,30 +43,17 @@ export default function ObserveCommandCentrePage() {
   const backToCompass = () =>
     navigate({ to: '/v3/project/$projectId/compass', params: { projectId } });
 
-  if (!ready) {
-    return (
-      <div className={css.lockedPage}>
-        <div className={css.lockedCard}>
-          <span className={css.lockedIcon}>
-            <Lock size={26} strokeWidth={1.75} />
-          </span>
-          <h1 className={css.lockedTitle}>Command Centre locked</h1>
-          <p className={css.lockedBody}>
-            Complete and verify every Observe objective to open the Command
-            Centre. You&apos;re at {data.stage.pct}% across {data.views.length}{' '}
-            objectives.
-          </p>
-          <button
-            type="button"
-            className={css.primaryBtn}
-            onClick={backToCompass}
-          >
-            <Compass size={16} strokeWidth={2} /> Back to Stage Compass
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Launch action: open Objective Focus Mode for the chosen objective by
+  // deep-linking into ObserveLayout with its module + the `?objective` driver.
+  const launchObjective = (objectiveId: string) => {
+    const view = objectiveViews.find((v) => v.objective.id === objectiveId);
+    if (!view) return;
+    navigate({
+      to: '/v3/project/$projectId/observe/$module',
+      params: { projectId, module: view.objective.module },
+      search: { objective: objectiveId },
+    });
+  };
 
   return (
     <div className={css.page}>
@@ -69,8 +62,9 @@ export default function ObserveCommandCentrePage() {
           <p className="eyebrow">Observe · Command Centre</p>
           <h1 className={css.title}>Observe Command Centre</h1>
           <p className={css.subtitle}>
-            Foundation verified across all {data.views.length} objectives — run
-            the Observe stage from one place.
+            {ready
+              ? `Foundation verified across all ${data.views.length} objectives — run the Observe stage from one place.`
+              : `Run the Observe stage from one place. ${data.stage.pct}% verified across ${data.views.length} objectives — launch an assigned objective to keep going.`}
           </p>
         </div>
         <button type="button" className={css.ghostBtn} onClick={backToCompass}>
@@ -79,7 +73,17 @@ export default function ObserveCommandCentrePage() {
       </header>
 
       <div className={css.sections}>
-        <SiteMapPanel projectId={projectId} />
+        <SiteMapPanel
+          projectId={projectId}
+          views={objectiveViews}
+          onSelectObjective={setSelectedId}
+        />
+
+        <AssignedObjectivesPanel
+          views={objectiveViews}
+          selectedId={selectedId}
+          onLaunch={launchObjective}
+        />
 
         <div className={css.grid}>
           <section
@@ -98,14 +102,17 @@ export default function ObserveCommandCentrePage() {
                   <span className={css.objectiveMeta}>
                     {v.progress.verified}/{v.progress.total} verified
                   </span>
-                  <span className={css.objectiveCheck}>
-                    <Check size={15} strokeWidth={2.5} />
-                  </span>
+                  {v.progress.pct === 100 && (
+                    <span className={css.objectiveCheck}>
+                      <Check size={15} strokeWidth={2.5} />
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
           </section>
 
+          <ObservationTimelinePanel views={objectiveViews} />
           <EvidenceLibraryPanel projectId={projectId} />
           <GapsPanel projectId={projectId} />
         </div>
@@ -121,8 +128,9 @@ export default function ObserveCommandCentrePage() {
         >
           <p className="eyebrow">Plan readiness</p>
           <p className={css.planBody}>
-            Observation is complete — the Plan stage is unlocked. Carry this
-            verified intelligence into design.
+            {ready
+              ? 'Observation is complete — the Plan stage is unlocked. Carry this verified intelligence into design.'
+              : 'Complete and verify every Observe objective to unlock the Plan stage. You can still preview Plan at any time.'}
           </p>
           <button
             type="button"
