@@ -1,10 +1,12 @@
 /**
- * StageSpine — top 3-stage strip (Observe / Plan / Act) for the Stage Compass.
+ * StageSpine — top 3-stage strip (Observe / Plan / Act) for the global header.
  *
- * Stage-agnostic: the page passes the `activeStage`, that stage's aggregate
- * `progress`, and an `onNavigateStage` callback (so route literals stay in the
- * typed page wrapper). The active stage is highlighted; the others show 0% and
- * navigate via the callback.
+ * Presentational + stage-agnostic. The header wrapper (HeaderStageSpine) passes
+ * the current `activeStage` (null on the Report route — spine shown, none
+ * highlighted), Observe's aggregate `observeProgress`, and an `onNavigateStage`
+ * callback so route literals stay in the typed wrapper. Observe shows its real
+ * verified %; Plan and Act read an em dash until their own header progress
+ * source is wired in.
  */
 
 import { Telescope, PencilRuler, Hammer, type LucideIcon } from 'lucide-react';
@@ -19,15 +21,16 @@ const STAGES: { id: Stage; label: string; icon: LucideIcon }[] = [
 ];
 
 interface SpineProps {
-  activeStage: Stage;
-  /** Aggregate progress for the active stage (others render 0%). */
-  progress: ObjectiveProgress;
+  /** The active lifecycle stage, or null (e.g. Report route) for none. */
+  activeStage: Stage | null;
+  /** Observe's aggregate progress — only the Observe segment shows a %. */
+  observeProgress: ObjectiveProgress;
   onNavigateStage: (stage: Stage) => void;
 }
 
 export default function StageSpine({
   activeStage,
-  progress,
+  observeProgress,
   onNavigateStage,
 }: SpineProps) {
   return (
@@ -35,13 +38,17 @@ export default function StageSpine({
       {STAGES.map((stage, i) => {
         const active = stage.id === activeStage;
         const Icon = stage.icon;
-        const pct = active ? progress.pct : 0;
+        // Observe shows its real verified %; Plan/Act have no header progress
+        // source yet, so they read an em dash.
+        const readout =
+          stage.id === 'observe' ? `${observeProgress.pct}%` : '—';
         return (
           <div key={stage.id} className={css.segment}>
             <button
               type="button"
               className={css.stage}
               data-active={active}
+              data-stage={stage.id}
               onClick={() => onNavigateStage(stage.id)}
               aria-current={active ? 'step' : undefined}
             >
@@ -49,7 +56,7 @@ export default function StageSpine({
                 <Icon size={16} strokeWidth={1.75} />
               </span>
               <span className={css.stageLabel}>{stage.label}</span>
-              <span className={css.stagePct}>{pct}%</span>
+              <span className={css.stagePct}>{readout}</span>
             </button>
             {i < STAGES.length - 1 && <span className={css.connector} />}
           </div>
