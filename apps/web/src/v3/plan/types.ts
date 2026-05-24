@@ -154,8 +154,8 @@ export const MODULE_CARDS: Record<
   Array<{ label: string; sectionId: string; group?: string }>
 > = {
   'goal-compass': [
-    { label: 'Goal tree',         sectionId: 'plan-goal-tree' },
-    { label: 'Site profile',      sectionId: 'plan-site-profile' },
+    // Goal-tree + site-profile capture relocated to Stage 0 (True North).
+    // The Plan Goal Compass now only generates from that captured data.
     { label: 'Proposal',          sectionId: 'plan-proposal' },
     { label: 'Build sequence',    sectionId: 'plan-goal-compass-sequence' },
     { label: 'Develop plan',      sectionId: 'plan-develop-plan' },

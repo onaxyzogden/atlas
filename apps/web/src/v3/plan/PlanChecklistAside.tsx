@@ -37,8 +37,7 @@ const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
   'goal-compass': {
     why: 'Goal Compass lets the steward declare measurable success criteria and have a deterministic sequencing engine propose a phased, costed, labor-budgeted plan against a curated permaculture intervention catalog (Mollison, Yeomans, Holmgren P1: Observe & interact).',
     how: [
-      'Edit the Goal tree — parent goal, sub-goals, and measurable criteria with deadline years.',
-      'Fill the Site profile facets; manual entries lower the forecast confidence until verified from Observe.',
+      'Your goal tree and site profile come from Stage 0 (True North) — revisit it there to refine them.',
       'Click Generate to materialise BuildPhase + PhaseTask rows into the shared phase store.',
       'Open Criteria forecast to see projected values at Year 1 / 3 / 5 / 7 / 10 / 20.',
     ],

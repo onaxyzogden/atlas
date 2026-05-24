@@ -24,9 +24,8 @@ import type { PlanModule } from './types.js';
 import { MODULE_CARDS, PLAN_MODULE_FULL_LABEL } from './types.js';
 import PlanViewBadge from './PlanViewBadge.js';
 
-// All 18 plan cards lazy-loaded.
-const GoalTreeTab             = lazy(() => import('./cards/goal-compass/GoalTreeTab.js'));
-const SiteProfileTab          = lazy(() => import('./cards/goal-compass/SiteProfileTab.js'));
+// Plan cards lazy-loaded. Goal-tree + site-profile capture moved to Stage 0
+// (True North); their tab components remain on disk but are no longer mounted here.
 const GeneratedPlanTab        = lazy(() => import('./cards/goal-compass/GeneratedPlanTab.js'));
 const GoalCompassSequenceCard = lazy(() => import('./cards/goal-compass/GoalCompassSequenceCard.js'));
 const DevelopPlanTab          = lazy(() => import('./cards/goal-compass/DevelopPlanTab.js'));
@@ -117,8 +116,6 @@ function renderPlanCard(
   const noop = () => {};
   const closeSlideUp = onClose ?? noop;
   switch (sectionId) {
-    case 'plan-goal-tree':           return <GoalTreeTab project={project} onSwitchToMap={noop} />;
-    case 'plan-site-profile':        return <SiteProfileTab project={project} onSwitchToMap={noop} />;
     case 'plan-proposal':            return <GeneratedPlanTab project={project} onSwitchToMap={noop} />;
     case 'plan-goal-compass-sequence': return <GoalCompassSequenceCard project={project} onSwitchToMap={noop} />;
     case 'plan-develop-plan':        return <DevelopPlanTab project={project} onSwitchModule={onSwitchModule ?? noop} />;
