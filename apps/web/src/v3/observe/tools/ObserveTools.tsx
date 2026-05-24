@@ -1,9 +1,12 @@
 /**
  * ObserveTools — left-rail tool palette for the Observe stage.
  *
- * Always renders the full set of tools across all six modules so contributors
- * can drop annotations without first switching the active module. The active
- * module's section is highlighted; everything else is visible but quieter.
+ * 2026-05-24 — Stage Compass focus (mirrors Goal 2's right-rail change): the
+ * rail follows the compass's single-objective focus. It renders ONLY the tool
+ * section(s) belonging to the chosen objective (active module) — so the steward
+ * sees just the tools needed to complete it, not every module's palette. With
+ * no objective selected, a quiet prompt links back to the Stage Compass. All
+ * section-rendering code is preserved (gated on the active module), not removed.
  *
  * Each button toggles a flat `MapToolId` ("observe.<module>.<tool>") on the
  * shared `useMapToolStore`; only one tool can be active at a time across all
@@ -17,7 +20,7 @@
 import { useEffect, useRef } from 'react';
 import { useEffectiveHomestead } from '../hooks/useEffectiveHomestead.js';
 import { useObserveTelemetry } from '../../../lib/observeInteractionLog.js';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   AlertTriangle,
   Bird,
@@ -151,6 +154,7 @@ export default function ObserveTools({
   onSelectSection,
 }: ObserveToolsProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
+  const navigate = useNavigate();
   // Match ObserveLayout's projectId normalisation (`params.projectId ?? 'mtc'`)
   // so the homestead selector here reads from the same partitioned-key slot
   // ObserveLayout writes to. Previously this was `?? null`, which meant the
@@ -221,6 +225,47 @@ export default function ObserveTools({
 
   const canSelectModules = Boolean(onSelectSection);
 
+  // 2026-05-24 — Stage Compass focus: with no objective selected, show a quiet
+  // prompt back to the compass instead of every module's tool palette. Mirrors
+  // the right-rail ObserveChecklistAside empty state (Goal 2).
+  if (activeModule === null) {
+    return (
+      <aside
+        ref={toolboxRef}
+        className={css.toolbox}
+        data-has-active={false}
+        aria-label="Observe tools"
+      >
+        <div className={css.emptyPrompt}>
+          <p className={css.emptyText}>No objective selected.</p>
+          <p className={css.emptyHint}>
+            Pick one from the module bar below, or open the Stage Compass to
+            choose your next objective.
+          </p>
+          {params.projectId && (
+            <button
+              type="button"
+              className={css.compassLink}
+              onClick={() =>
+                navigate({
+                  to: '/v3/project/$projectId/compass',
+                  params: { projectId: params.projectId! },
+                })
+              }
+            >
+              Open Stage Compass
+            </button>
+          )}
+        </div>
+      </aside>
+    );
+  }
+
+  // Focus mode: render ONLY the section(s) belonging to the chosen objective.
+  // Built Environment is one objective surfaced as its "From map" meta-section
+  // plus its per-category sections; every other module is a single section.
+  const showBuiltEnvironment = activeModule === 'built-environment';
+
   return (
     <aside
       ref={toolboxRef}
@@ -234,6 +279,10 @@ export default function ObserveTools({
         // 9 per-category sections appended after this loop. Slide-up is
         // still reachable via the bottom-rail tile.
         if (mod === 'built-environment') return null;
+        // Focus mode: only the chosen objective's section renders. `activeModule`
+        // is non-null here (empty state returned above), so this yields exactly
+        // one non-BE section.
+        if (mod !== activeModule) return null;
         const items = TOOL_GROUPS[mod];
         const isActive =
           effectiveSectionId !== null
@@ -299,7 +348,7 @@ export default function ObserveTools({
        *  BE module section. Surfaces as its own leading "From map" section
        *  now that BE is flattened — kept routed to `built-environment` so
        *  click-to-activate still opens the parent BE slide-up. */}
-      {(() => {
+      {showBuiltEnvironment && (() => {
         const routed: ObserveModule = 'built-environment';
         const sectionId = 'be-from-map';
         const isActive =
@@ -392,6 +441,10 @@ export default function ObserveTools({
         // appended to the Amenities group below.
         if (group.category === 'earthworks') return null;
         const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
+        // Focus mode: only categories belonging to the chosen objective render.
+        // (vegetation→EWE / earthworks→topography already skipped above; the
+        // remaining six all route to built-environment.)
+        if (routed !== activeModule) return null;
         const sectionId = `be-${group.category}`;
         const isActive =
           effectiveSectionId !== null
