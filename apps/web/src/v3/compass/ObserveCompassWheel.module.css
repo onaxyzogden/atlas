@@ -3,12 +3,75 @@
    styles; we just centre and size-cap its container. */
 
 .wheelHost {
+  position: relative;
   width: 100%;
   max-width: 440px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Center-unlock overlay (Goal 5). A transparent circular button sized to the
+   hub, so the wheel's "OBSERVE"/% text shows through and the ring segments
+   underneath stay hit-testable (the hotspot only covers the inner hub). */
+.centerHotspot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 130px;
+  height: 130px;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: default;
+}
+
+/* Ready state — the one intentional emphasis in the otherwise quiet biophilic
+   register (paired with the wheel's built-in forceConverged hub aura). A
+   restrained accent activation ring; brighter on hover/focus. */
+.centerHotspot[data-ready] {
+  cursor: pointer;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+.centerHotspot[data-ready]:hover,
+.centerHotspot[data-ready]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* Hint pill below the hub, so it never covers the OBSERVE/% readout. Setup
+   hint is a quiet persistent "Locked" badge; Ready hint reveals on hover/focus. */
+.centerHint {
+  position: absolute;
+  top: calc(50% + 70px);
+  left: 50%;
+  transform: translate(-50%, 0);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity var(--duration-base) var(--ease-default);
+}
+.centerHint[data-ready] {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  opacity: 0;
+}
+.centerHotspot[data-ready]:hover .centerHint,
+.centerHotspot[data-ready]:focus-visible .centerHint {
+  opacity: 1;
 }
 
 /* Quiet the segments' coloured background fill so the wheel reads in the
@@ -24,7 +87,7 @@
 /* Also soften the inner progress arc so the whole wheel sits in the quiet
    translucent register rather than a saturated solid fill. Still opaque enough
    to read as the progress indicator; the selected segment stays emphasised via
-   the `forceHover` highlight. */
+   the runtime-injected selection ring (see ObserveCompassWheel.tsx). */
 .wheelHost :global(.mcw-seg-current) {
   fill-opacity: 0.5;
 }

@@ -25,9 +25,20 @@
  * ring — a runtime-injected <style> that targets the selected band by its
  * `aria-label` (the objective label), scoped to this host via a unique id.
  * Clicking the already-selected segment toggles it back off (deselect).
+ *
+ * Center-unlock (Goal 5): "the outer ring readies the stage; the center runs
+ * it." The shared wheel's hub is not natively clickable and accepts no center
+ * slot, so the center affordance is an absolutely-positioned overlay button
+ * sized to the hub (never covering the ring segments). In Setup mode (`!ready`)
+ * it is dim, `aria-disabled`, and carries a quiet "locked" hint. In Ready mode
+ * (all objectives verified) the hub glows via the wheel's built-in
+ * `forceConverged`, the overlay gains an accent activation ring, and clicking it
+ * opens the Observe Command Centre. The hub "OBSERVE"/% text stays readable —
+ * the overlay is transparent (ring + pill, not an opaque cover).
  */
 
 import { useId } from 'react';
+import { Lock, ArrowRight } from 'lucide-react';
 import { MaqasidComparisonWheel } from '@ogden/ui-components';
 import { MemoryRouter } from 'react-router-dom';
 import type { ObserveModule } from '../observe/types.js';
@@ -41,6 +52,10 @@ interface WheelProps {
   views: ObjectiveView[];
   selected: ObserveModule | null;
   onSelect: (module: ObserveModule | null) => void;
+  /** All objectives verified — unlocks the center Command Centre affordance. */
+  ready: boolean;
+  /** Invoked when the steward activates the unlocked center. */
+  onEnterCommandCentre: () => void;
 }
 
 /** Escape a string for use inside a double-quoted CSS attribute selector. */
@@ -52,6 +67,8 @@ export default function ObserveCompassWheel({
   views,
   selected,
   onSelect,
+  ready,
+  onEnterCommandCentre,
 }: WheelProps) {
   // Unique, CSS-selector-safe host id so the injected selection-ring <style>
   // only touches this wheel (useId yields colons, invalid in CSS ids).
@@ -110,6 +127,7 @@ export default function ObserveCompassWheel({
           nextActions={nextActions}
           showNextCard
           showDiacritics={false}
+          forceConverged={ready}
           onSegmentSelect={(arg: string | { id: string }) => {
             const id = (typeof arg === 'string' ? arg : arg.id) as ObserveModule;
             // Toggle: clicking the already-selected objective deselects it.
@@ -117,6 +135,38 @@ export default function ObserveCompassWheel({
           }}
         />
       </MemoryRouter>
+
+      {/* Center-unlock overlay — transparent circle over the hub only, so the
+          "OBSERVE"/% text reads through and the ring segments stay clickable. */}
+      <button
+        type="button"
+        className={css.centerHotspot}
+        data-ready={ready ? '' : undefined}
+        aria-disabled={!ready}
+        aria-label={
+          ready
+            ? 'Open the Observe Command Centre'
+            : 'Complete and verify all objectives to unlock the Command Centre'
+        }
+        title={
+          ready
+            ? 'Open Command Centre'
+            : 'Complete all objectives to unlock the Command Centre'
+        }
+        onClick={() => {
+          if (ready) onEnterCommandCentre();
+        }}
+      >
+        {ready ? (
+          <span className={css.centerHint} data-ready="">
+            Open Command Centre <ArrowRight size={12} strokeWidth={2.25} />
+          </span>
+        ) : (
+          <span className={css.centerHint}>
+            <Lock size={11} strokeWidth={2} /> Locked
+          </span>
+        )}
+      </button>
     </div>
   );
 }

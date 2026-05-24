@@ -9,7 +9,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useParams, useNavigate } from '@tanstack/react-router';
 import { useCompassData } from './useCompassData.js';
 import StageSpine from './StageSpine.js';
 import StageProgressionRail from './StageProgressionRail.js';
@@ -28,7 +28,19 @@ const LEGEND: { state: string; label: string }[] = [
 export default function StageCompassPage() {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? 'mtc';
+  const navigate = useNavigate();
   const data = useCompassData(projectId);
+
+  // "The outer ring readies the stage; the center runs it." The hub unlocks
+  // only once every Observe objective is fully verified.
+  const ready =
+    data.views.length > 0 && data.views.every((v) => v.progress.pct === 100);
+
+  const goCommandCentre = () =>
+    navigate({
+      to: '/v3/project/$projectId/observe/command-centre',
+      params: { projectId },
+    });
 
   // Default selection: first objective that isn't fully verified, else first.
   const defaultModule = useMemo<ObserveModule>(() => {
@@ -55,6 +67,8 @@ export default function StageCompassPage() {
               views={data.views}
               selected={selected}
               onSelect={setSelected}
+              ready={ready}
+              onEnterCommandCentre={goCommandCentre}
             />
           </div>
           <ul className={css.legend}>
