@@ -10,41 +10,41 @@
 import { useMemo } from 'react';
 import { useObserveCompassStore, seedFor } from '../../store/observeCompassStore.js';
 import { useObserveHowChecksStore } from '../../store/observeHowChecksStore.js';
+import { useGoalTreeStore } from '../../store/goalTreeStore.js';
 import type { ObserveModule } from '../observe/types.js';
 import {
   OBSERVE_COMPASS_OBJECTIVES,
-  type CompassObjective,
+  objectivesForArchetype,
 } from './observeCompassConfig.js';
 import {
   aggregateProgress,
   objectiveProgress,
   resolveNodeStates,
-  type NodeState,
   type ObjectiveProgress,
 } from './compassGating.js';
+import type { ObjectiveView, CompassData } from './compassTypes.js';
+
+// Re-export the shared view-model shapes so existing importers keep working.
+export type { ObjectiveView, CompassData } from './compassTypes.js';
 
 const EMPTY_CHECKS: readonly number[] = [];
-
-export interface ObjectiveView {
-  objective: CompassObjective;
-  states: NodeState[];
-  progress: ObjectiveProgress;
-}
-
-export interface CompassData {
-  views: ObjectiveView[];
-  byId: Record<ObserveModule, ObjectiveView>;
-  stage: ObjectiveProgress;
-}
 
 export function useCompassData(projectId: string): CompassData {
   const evidence = useObserveCompassStore((s) => s.byProject[projectId]);
   const checks = useObserveHowChecksStore((s) => s.byProject[projectId]);
+  const archetype = useGoalTreeStore(
+    (s) => s.goalTreesByProject[projectId]?.archetype ?? null,
+  );
 
   return useMemo(() => {
-    const views: ObjectiveView[] = OBSERVE_COMPASS_OBJECTIVES.map((objective) => {
-      const raw = evidence?.[objective.id] ?? seedFor(objective.id);
-      const checked = checks?.[objective.id] ?? EMPTY_CHECKS;
+    const objectives = objectivesForArchetype(archetype);
+    const views: ObjectiveView[] = objectives.map((objective) => {
+      // The shared CompassObjective.id is a plain string; in this Observe-only
+      // hook every id is a concrete ObserveModule (the config is built from
+      // OBSERVE_MODULES), so narrowing back is sound.
+      const id = objective.id as ObserveModule;
+      const raw = evidence?.[id] ?? seedFor(id);
+      const checked = checks?.[id] ?? EMPTY_CHECKS;
       const count = objective.nodes.length;
       return {
         objective,
@@ -57,11 +57,11 @@ export function useCompassData(projectId: string): CompassData {
         acc[v.objective.id] = v;
         return acc;
       },
-      {} as Record<ObserveModule, ObjectiveView>,
+      {} as Record<string, ObjectiveView>,
     );
     const stage = aggregateProgress(views.map((v) => v.progress));
     return { views, byId, stage };
-  }, [evidence, checks]);
+  }, [evidence, checks, archetype]);
 }
 
 /** Single-objective progress (used by the in-map return-to-compass prompt). */

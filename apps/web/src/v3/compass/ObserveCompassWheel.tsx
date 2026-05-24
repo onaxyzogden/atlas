@@ -41,21 +41,34 @@ import { useId } from 'react';
 import { Lock, ArrowRight } from 'lucide-react';
 import { MaqasidComparisonWheel } from '@ogden/ui-components';
 import { MemoryRouter } from 'react-router-dom';
-import type { ObserveModule } from '../observe/types.js';
-import type { ObjectiveView } from './useCompassData.js';
+import type { ObjectiveView } from './compassTypes.js';
 import css from './ObserveCompassWheel.module.css';
 
-/** Neutral Observe base fill; per-segment `color` overrides each wedge. */
-const OBSERVE_ACCENT = '#8b7355';
+/** Neutral default base fill; per-segment `color` overrides each wedge. */
+const DEFAULT_ACCENT = '#8b7355';
+
+/**
+ * Center-unlock affordance for stages that have a Command Centre (Observe).
+ * Stages without one (Plan / Act, for now) omit `commandCentre` and the wheel
+ * renders no center overlay — the hub stays a non-interactive progress display.
+ */
+export interface CommandCentreAffordance {
+  /** All objectives verified — unlocks the center affordance. */
+  ready: boolean;
+  /** Invoked when the steward activates the unlocked center. */
+  onEnter: () => void;
+}
 
 interface WheelProps {
   views: ObjectiveView[];
-  selected: ObserveModule | null;
-  onSelect: (module: ObserveModule | null) => void;
-  /** All objectives verified — unlocks the center Command Centre affordance. */
-  ready: boolean;
-  /** Invoked when the steward activates the unlocked center. */
-  onEnterCommandCentre: () => void;
+  selected: string | null;
+  onSelect: (id: string | null) => void;
+  /** Hub label (e.g. "OBSERVE" / "PLAN" / "ACT"). */
+  centerLabel: string;
+  /** Base wheel fill; per-segment accent colours override each wedge. */
+  accent?: string;
+  /** When present, renders the center-unlock overlay (Observe Command Centre). */
+  commandCentre?: CommandCentreAffordance;
 }
 
 /** Escape a string for use inside a double-quoted CSS attribute selector. */
@@ -67,8 +80,9 @@ export default function ObserveCompassWheel({
   views,
   selected,
   onSelect,
-  ready,
-  onEnterCommandCentre,
+  centerLabel,
+  accent = DEFAULT_ACCENT,
+  commandCentre,
 }: WheelProps) {
   // Unique, CSS-selector-safe host id so the injected selection-ring <style>
   // only touches this wheel (useId yields colons, invalid in CSS ids).
@@ -121,15 +135,15 @@ export default function ObserveCompassWheel({
       )}
       <MemoryRouter>
         <MaqasidComparisonWheel
-          centerLabel="OBSERVE"
-          levelColor={OBSERVE_ACCENT}
+          centerLabel={centerLabel}
+          levelColor={accent}
           segments={segments}
           nextActions={nextActions}
           showNextCard
           showDiacritics={false}
-          forceConverged={ready}
+          forceConverged={commandCentre?.ready ?? false}
           onSegmentSelect={(arg: string | { id: string }) => {
-            const id = (typeof arg === 'string' ? arg : arg.id) as ObserveModule;
+            const id = typeof arg === 'string' ? arg : arg.id;
             // Toggle: clicking the already-selected objective deselects it.
             onSelect(id === selected ? null : id);
           }}
@@ -137,36 +151,39 @@ export default function ObserveCompassWheel({
       </MemoryRouter>
 
       {/* Center-unlock overlay — transparent circle over the hub only, so the
-          "OBSERVE"/% text reads through and the ring segments stay clickable. */}
-      <button
-        type="button"
-        className={css.centerHotspot}
-        data-ready={ready ? '' : undefined}
-        aria-disabled={!ready}
-        aria-label={
-          ready
-            ? 'Open the Observe Command Centre'
-            : 'Complete and verify all objectives to unlock the Command Centre'
-        }
-        title={
-          ready
-            ? 'Open Command Centre'
-            : 'Complete all objectives to unlock the Command Centre'
-        }
-        onClick={() => {
-          if (ready) onEnterCommandCentre();
-        }}
-      >
-        {ready ? (
-          <span className={css.centerHint} data-ready="">
-            Open Command Centre <ArrowRight size={12} strokeWidth={2.25} />
-          </span>
-        ) : (
-          <span className={css.centerHint}>
-            <Lock size={11} strokeWidth={2} /> Locked
-          </span>
-        )}
-      </button>
+          hub label/% text reads through and the ring segments stay clickable.
+          Only stages with a Command Centre (Observe) render it. */}
+      {commandCentre && (
+        <button
+          type="button"
+          className={css.centerHotspot}
+          data-ready={commandCentre.ready ? '' : undefined}
+          aria-disabled={!commandCentre.ready}
+          aria-label={
+            commandCentre.ready
+              ? 'Open the Observe Command Centre'
+              : 'Complete and verify all objectives to unlock the Command Centre'
+          }
+          title={
+            commandCentre.ready
+              ? 'Open Command Centre'
+              : 'Complete all objectives to unlock the Command Centre'
+          }
+          onClick={() => {
+            if (commandCentre.ready) commandCentre.onEnter();
+          }}
+        >
+          {commandCentre.ready ? (
+            <span className={css.centerHint} data-ready="">
+              Open Command Centre <ArrowRight size={12} strokeWidth={2.25} />
+            </span>
+          ) : (
+            <span className={css.centerHint}>
+              <Lock size={11} strokeWidth={2} /> Locked
+            </span>
+          )}
+        </button>
+      )}
     </div>
   );
 }

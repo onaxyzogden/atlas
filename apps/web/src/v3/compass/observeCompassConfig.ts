@@ -28,27 +28,12 @@ import {
   MODULE_GUIDANCE,
   OBSERVE_MODULE_DOT,
 } from '../observe/moduleGuidance.js';
+import { getObserveModulesForGoal } from '../observe/observeGoalAffinity.js';
+import type { ProjectArchetype } from '../plan/data/goalCompassTypes.js';
+import type { CompassObjective } from './compassTypes.js';
 
-export interface CompassNode {
-  /** Index into MODULE_GUIDANCE[module].how — the canonical checklist item. */
-  index: number;
-  label: string;
-}
-
-export interface CompassObjective {
-  id: ObserveModule;
-  /** 1-based position used for the ordinal badge. */
-  ordinal: number;
-  label: string;
-  icon: LucideIcon;
-  /** Accent colour, reused from the existing per-module dot palette. */
-  accent: string;
-  /** Short right-panel body — the only net-new copy. */
-  summary: string;
-  /** Each node is one checklist item (one MODULE_GUIDANCE `how` step). */
-  nodes: CompassNode[];
-  pitfall?: string;
-}
+// Re-export the shared shapes so existing importers of this module keep working.
+export type { CompassNode, CompassObjective } from './compassTypes.js';
 
 const ICON: Record<ObserveModule, LucideIcon> = {
   'human-context': Users,
@@ -77,17 +62,35 @@ const SUMMARY: Record<ObserveModule, string> = {
     'Synthesize an honest diagnosis — strengths, weaknesses, opportunities, threats — before prescribing any design treatment.',
 };
 
-export const OBSERVE_COMPASS_OBJECTIVES: readonly CompassObjective[] =
-  OBSERVE_MODULES.map((id, i) => ({
+function buildObjective(id: ObserveModule, ordinal: number): CompassObjective {
+  return {
     id,
-    ordinal: i + 1,
+    ordinal,
     label: OBSERVE_MODULE_LABEL[id],
     icon: ICON[id],
     accent: OBSERVE_MODULE_DOT[id],
     summary: SUMMARY[id],
     nodes: MODULE_GUIDANCE[id].how.map((label, index) => ({ index, label })),
     pitfall: MODULE_GUIDANCE[id].pitfall,
-  }));
+  };
+}
+
+/** Canonical full objective set (all modules, default order). */
+export const OBSERVE_COMPASS_OBJECTIVES: readonly CompassObjective[] =
+  OBSERVE_MODULES.map((id, i) => buildObjective(id, i + 1));
+
+/**
+ * Goal-tailored objective set — the subset/order the True North archetype
+ * emphasizes (Phase 5). A null archetype yields the canonical full set, so
+ * pre-Stage-0 projects are unchanged.
+ */
+export function objectivesForArchetype(
+  archetype: ProjectArchetype | null | undefined,
+): readonly CompassObjective[] {
+  return getObserveModulesForGoal(archetype).map((id, i) =>
+    buildObjective(id, i + 1),
+  );
+}
 
 export function objectiveById(id: ObserveModule): CompassObjective {
   const found = OBSERVE_COMPASS_OBJECTIVES.find((o) => o.id === id);

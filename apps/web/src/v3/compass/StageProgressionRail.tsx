@@ -1,24 +1,28 @@
 /**
  * StageProgressionRail — left rail for the Stage Compass.
  *
- * Three things, top to bottom: per-stage progress (Observe live from gating,
- * Plan/Act stubbed at 0% until their compasses exist), the static "Real Outcome
- * Rule" explainer, and a Recent Activity feed (seeded for the prototype).
+ * Three things, top to bottom: per-stage progress (the active stage live from
+ * gating, the other two stubbed at 0% until viewed on their own compass), the
+ * static "Real Outcome Rule" explainer, and a Recent Activity feed (seeded for
+ * the prototype).
  */
 
 import { ShieldCheck } from 'lucide-react';
 import type { ObjectiveProgress } from './compassGating.js';
+import type { Stage } from './compassTypes.js';
 import css from './StageProgressionRail.module.css';
 
 interface RailProps {
-  observeProgress: ObjectiveProgress;
+  activeStage: Stage;
+  /** Aggregate progress for the active stage. */
+  progress: ObjectiveProgress;
 }
 
-const STAGE_ROWS = [
+const STAGE_ROWS: { id: Stage; label: string }[] = [
   { id: 'observe', label: 'Observe' },
   { id: 'plan', label: 'Plan' },
   { id: 'act', label: 'Act' },
-] as const;
+];
 
 // Prototype seed — a plausible stewardship trail. Real activity will derive
 // from verification events once the evidence backend lands.
@@ -28,14 +32,17 @@ const RECENT_ACTIVITY: { who: string; what: string; when: string }[] = [
   { who: 'You', what: 'Verified "Walk the boundary"', when: '2 days ago' },
 ];
 
-export default function StageProgressionRail({ observeProgress }: RailProps) {
+export default function StageProgressionRail({
+  activeStage,
+  progress,
+}: RailProps) {
   return (
     <aside className={css.rail} aria-label="Stage progression">
       <section className={css.block}>
         <p className="eyebrow">Stage progression</p>
         <ul className={css.stages}>
           {STAGE_ROWS.map((row) => {
-            const pct = row.id === 'observe' ? observeProgress.pct : 0;
+            const pct = row.id === activeStage ? progress.pct : 0;
             return (
               <li key={row.id} className={css.stageRow}>
                 <div className={css.stageHead}>

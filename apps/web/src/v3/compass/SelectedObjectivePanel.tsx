@@ -6,9 +6,8 @@
  * action that enters the existing Observe map for that module.
  */
 
-import { useNavigate } from '@tanstack/react-router';
 import { Check, Lock, Circle, CircleDot, MapPin, AlertTriangle } from 'lucide-react';
-import type { ObjectiveView } from './useCompassData.js';
+import type { ObjectiveView } from './compassTypes.js';
 import type { NodeState } from './compassGating.js';
 import css from './SelectedObjectivePanel.module.css';
 
@@ -28,12 +27,11 @@ const STATE_LABEL: Record<NodeState, string> = {
 
 interface PanelProps {
   view: ObjectiveView | null;
-  projectId: string;
+  /** Enter the stage's working map for this objective's module. */
+  onOpenMap: (moduleId: string) => void;
 }
 
-export default function SelectedObjectivePanel({ view, projectId }: PanelProps) {
-  const navigate = useNavigate();
-
+export default function SelectedObjectivePanel({ view, onOpenMap }: PanelProps) {
   // No objective selected (deselected on the wheel) — quiet prompt rather than
   // a stale detail view.
   if (!view) {
@@ -53,12 +51,7 @@ export default function SelectedObjectivePanel({ view, projectId }: PanelProps) 
   const { objective, states, progress } = view;
   const accent = objective.accent;
 
-  const openOnMap = () =>
-    navigate({
-      to: '/v3/project/$projectId/observe/$module',
-      params: { projectId, module: objective.id },
-      search: {},
-    });
+  const openOnMap = () => onOpenMap(objective.id);
 
   return (
     <section className={css.panel} aria-label={`${objective.label} detail`}>
