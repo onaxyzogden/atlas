@@ -12,9 +12,8 @@
  */
 
 import { useRef } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useObserveHowChecksStore } from '../../../store/observeHowChecksStore.js';
-import ObserveReadyCue from './ObserveReadyCue.js';
 import { useAutoScrollToActiveModule } from '../../_shared/hooks/useAutoScrollToActiveModule.js';
 import { GuidanceCard } from '../../_shared/components/GuidanceCard.js';
 import {
@@ -30,7 +29,6 @@ import {
 } from '../types.js';
 import { MODULE_GUIDANCE, OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
 import { BE_CATEGORY_TO_OBSERVE_MODULE } from '../observeSectionMap.js';
-import PlacedFeaturesCard from '../../../features/shared/placedFeatures/PlacedFeaturesCard.js';
 import css from './ObserveChecklistAside.module.css';
 
 /**
@@ -106,78 +104,125 @@ export default function ObserveChecklistAside({
 }: ObserveChecklistAsideProps) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
+  const navigate = useNavigate();
 
   const asideRef = useRef<HTMLElement | null>(null);
   useAutoScrollToActiveModule(activeModule, asideRef);
+
+  // 2026-05-24 — Goal 2 (Stage Compass focus): the rail follows the compass's
+  // single-objective focus. With no objective selected, show a quiet prompt
+  // back to the compass instead of the full card menu.
+  if (activeModule === null) {
+    return (
+      <aside
+        ref={asideRef}
+        className={css.checklistBox}
+        data-has-active={false}
+        aria-label="Observe guidance"
+      >
+        <div className={css.emptyPrompt}>
+          <p className={css.emptyText}>No objective selected.</p>
+          <p className={css.emptyHint}>
+            Pick one from the module bar below, or open the Stage Compass to
+            choose your next objective.
+          </p>
+          {projectId && (
+            <button
+              type="button"
+              className={css.compassLink}
+              onClick={() =>
+                navigate({
+                  to: '/v3/project/$projectId/compass',
+                  params: { projectId },
+                })
+              }
+            >
+              Open Stage Compass
+            </button>
+          )}
+        </div>
+      </aside>
+    );
+  }
+
+  // Focus mode: render ONLY the active objective's card(s). Built Environment
+  // is one objective surfaced as its per-category cards; every other module is
+  // a single guidance card. Context cards (ReadyCue, PlacedFeatures) are
+  // intentionally omitted so the rail mirrors the compass's single focus.
+  const showBuiltEnvironment = activeModule === 'built-environment';
 
   return (
     <aside
       ref={asideRef}
       className={css.checklistBox}
-      data-has-active={activeModule !== null}
+      data-has-active
       aria-label="Observe guidance"
     >
-      <ObserveReadyCue projectId={projectId} />
-      <PlacedFeaturesCard stage="observe" projectId={projectId} />
-      {OBSERVE_MODULES.map((mod) => {
-        // 2026-05-14 — BE flatten: parent `built-environment` guidance
-        // card is replaced by 9 per-category cards rendered below.
-        if (mod === 'built-environment') return null;
-        const active =
-          effectiveSectionId !== null
-            ? effectiveSectionId === mod
-            : mod === activeModule;
-        return (
-          <ObserveGuidanceCard
-            key={mod}
-            module={mod}
-            active={active}
-            projectId={projectId}
-            slideUpOpen={slideUpOpen}
-            onSelectSection={onSelectSection}
-            onOpenSlideUp={onOpenSlideUp}
-            onCloseSlideUp={onCloseSlideUp}
-          />
-        );
-      })}
-      {BE_TOOL_GROUPS.map((group) => {
-        // 2026-05-14 — Vegetation BE category suppressed in Observe to
-        // match the rail; mature trees / shrubs live under the
-        // `earth-water-ecology` module guidance instead.
-        if (group.category === 'vegetation') return null;
-        // 2026-05-14 — Earthworks BE category dropped; Berm / Raised bed /
-        // Terrace surface inside EWE / Amenities sections. No standalone
-        // guidance card.
-        if (group.category === 'earthworks') return null;
-        const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
-        const guidance = BE_CATEGORY_GUIDANCE[group.category];
-        const sectionId = `be-${group.category}`;
-        const active =
-          effectiveSectionId !== null
-            ? effectiveSectionId === sectionId
-            : routed === activeModule;
-        return (
-          <GuidanceCard
-            key={`be-${group.category}`}
-            moduleKey={`be-${group.category}` as `be-${BuiltEnvironmentCategory}`}
-            label={BE_CATEGORY_LABEL[group.category]}
-            dotColor={OBSERVE_MODULE_DOT[routed]}
-            active={active}
-            slideUpOpen={slideUpOpen}
-            guidance={guidance}
-            checkedList={EMPTY_CHECKS}
-            onToggle={() => {
-              /* category cards don't persist how-checks — they share the
-               * routed module's slot. checksDisabled flag below suppresses
-               * the UI affordance entirely. */
-            }}
-            onSelect={() => onSelectSection(routed, sectionId)}
-            onOpenSlideUp={onOpenSlideUp}
-            onCloseSlideUp={onCloseSlideUp}
-            checksDisabled
-          />
-        );
-      })}
+      {!showBuiltEnvironment &&
+        OBSERVE_MODULES.map((mod) => {
+          // Render only the active module's card. `activeModule` is already
+          // narrowed to exclude `built-environment` here (handled by the
+          // branch below), so a single equality check yields exactly one card.
+          if (mod !== activeModule) return null;
+          const active =
+            effectiveSectionId !== null
+              ? effectiveSectionId === mod
+              : mod === activeModule;
+          return (
+            <ObserveGuidanceCard
+              key={mod}
+              module={mod}
+              active={active}
+              projectId={projectId}
+              slideUpOpen={slideUpOpen}
+              onSelectSection={onSelectSection}
+              onOpenSlideUp={onOpenSlideUp}
+              onCloseSlideUp={onCloseSlideUp}
+            />
+          );
+        })}
+      {showBuiltEnvironment &&
+        BE_TOOL_GROUPS.map((group) => {
+          // 2026-05-14 — Vegetation BE category suppressed in Observe to
+          // match the rail; mature trees / shrubs live under the
+          // `earth-water-ecology` module guidance instead.
+          if (group.category === 'vegetation') return null;
+          // 2026-05-14 — Earthworks BE category dropped; Berm / Raised bed /
+          // Terrace surface inside EWE / Amenities sections. No standalone
+          // guidance card.
+          if (group.category === 'earthworks') return null;
+          const routed = BE_CATEGORY_TO_OBSERVE_MODULE[group.category];
+          // Only categories that belong to the active Built Environment
+          // objective render here (vegetation/earthworks already skipped).
+          if (routed !== activeModule) return null;
+          const guidance = BE_CATEGORY_GUIDANCE[group.category];
+          const sectionId = `be-${group.category}`;
+          const active =
+            effectiveSectionId !== null
+              ? effectiveSectionId === sectionId
+              : routed === activeModule;
+          return (
+            <GuidanceCard
+              key={`be-${group.category}`}
+              moduleKey={`be-${group.category}` as `be-${BuiltEnvironmentCategory}`}
+              label={BE_CATEGORY_LABEL[group.category]}
+              dotColor={OBSERVE_MODULE_DOT[routed]}
+              active={active}
+              slideUpOpen={slideUpOpen}
+              guidance={guidance}
+              checkedList={EMPTY_CHECKS}
+              onToggle={() => {
+                /* category cards don't persist how-checks — they share the
+                 * routed module's slot. checksDisabled flag below suppresses
+                 * the UI affordance entirely. */
+              }}
+              onSelect={() => onSelectSection(routed, sectionId)}
+              onOpenSlideUp={onOpenSlideUp}
+              onCloseSlideUp={onCloseSlideUp}
+              checksDisabled
+            />
+          );
+        })}
     </aside>
   );
 }
