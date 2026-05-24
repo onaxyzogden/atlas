@@ -11,14 +11,18 @@
  * 100%). Reaching this route while not ready shows a quiet "locked" state with
  * a path back to the compass rather than a hard redirect.
  *
- * Slice A scaffolds the header, locked guard, Observe summary, and Plan-
- * readiness card. The site map, evidence library, module dashboards, and gaps
- * panels are layered in by Slice C.
+ * Composition: a full site map, the Observe summary, an evidence-library tally,
+ * a gaps heuristic, the seven embedded module dashboards, and a Plan-readiness
+ * banner. Each module card deep-links back to its working surface.
  */
 
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { Compass, ArrowRight, Lock, Check } from 'lucide-react';
 import { useCompassData } from '../compass/useCompassData.js';
+import SiteMapPanel from './SiteMapPanel.js';
+import EvidenceLibraryPanel from './EvidenceLibraryPanel.js';
+import GapsPanel from './GapsPanel.js';
+import ModuleDashboardsPanel from './ModuleDashboardsPanel.js';
 import css from './ObserveCommandCentrePage.module.css';
 
 export default function ObserveCommandCentrePage() {
@@ -74,29 +78,41 @@ export default function ObserveCommandCentrePage() {
         </button>
       </header>
 
-      <div className={css.grid}>
-        <section
-          className={`${css.panel} ${css.summaryPanel}`}
-          aria-label="Observe summary"
-        >
-          <p className="eyebrow">Observe summary</p>
-          <ul className={css.objectiveList}>
-            {data.views.map((v) => (
-              <li key={v.objective.id} className={css.objectiveRow}>
-                <span
-                  className={css.objectiveDot}
-                  style={{ background: v.objective.accent }}
-                />
-                <span className={css.objectiveLabel}>{v.objective.label}</span>
-                <span className={css.objectiveMeta}>
-                  {v.progress.verified}/{v.progress.total} verified
-                </span>
-                <span className={css.objectiveCheck}>
-                  <Check size={15} strokeWidth={2.5} />
-                </span>
-              </li>
-            ))}
-          </ul>
+      <div className={css.sections}>
+        <SiteMapPanel projectId={projectId} />
+
+        <div className={css.grid}>
+          <section
+            className={`${css.panel} ${css.summaryPanel}`}
+            aria-label="Observe summary"
+          >
+            <p className="eyebrow">Observe summary</p>
+            <ul className={css.objectiveList}>
+              {data.views.map((v) => (
+                <li key={v.objective.id} className={css.objectiveRow}>
+                  <span
+                    className={css.objectiveDot}
+                    style={{ background: v.objective.accent }}
+                  />
+                  <span className={css.objectiveLabel}>{v.objective.label}</span>
+                  <span className={css.objectiveMeta}>
+                    {v.progress.verified}/{v.progress.total} verified
+                  </span>
+                  <span className={css.objectiveCheck}>
+                    <Check size={15} strokeWidth={2.5} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <EvidenceLibraryPanel projectId={projectId} />
+          <GapsPanel projectId={projectId} />
+        </div>
+
+        <section className={css.modSection} aria-label="Module dashboards">
+          <p className="eyebrow">Module dashboards</p>
+          <ModuleDashboardsPanel projectId={projectId} />
         </section>
 
         <section
