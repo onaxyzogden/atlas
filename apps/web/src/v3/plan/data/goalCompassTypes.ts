@@ -259,6 +259,38 @@ export interface Facet<T> {
 export type SoilCompaction = 'low' | 'med' | 'high';
 export type WaterPosture = 'rainfed' | 'irrigated' | 'pond-fed' | 'mixed';
 
+/**
+ * Fit-Gate property facets (Stage 0 / True North). These capture the
+ * legal/physical disqualifier dimensions the Fit Gate engine grades on a
+ * Green→Black severity scale. Each value is ordered worst-to-best for
+ * severity mapping; `'unknown'` is the empty-but-flagged state that the
+ * verdict surfaces as "needs confirmation".
+ */
+export type ZoningFit =
+  | 'permitted'
+  | 'conditional'
+  | 'variance-needed'
+  | 'prohibited'
+  | 'unknown';
+export type LegalAccessStatus =
+  | 'deeded'
+  | 'easement'
+  | 'shared'
+  | 'none'
+  | 'unknown';
+export type ConservationOverlay =
+  | 'none'
+  | 'buffer-only'
+  | 'partial'
+  | 'extensive'
+  | 'unknown';
+export type FloodplainExtent =
+  | 'none'
+  | 'fringe'
+  | 'partial'
+  | 'extensive'
+  | 'unknown';
+
 export interface Household {
   adults: number;
   children: number;
@@ -277,6 +309,11 @@ export interface SiteProfile {
   household: Facet<Household>;
   lastFrostDate: Facet<string>;
   firstFrostDate: Facet<string>;
+  // Fit-Gate facets (Stage 0). Added 2026-05-24.
+  zoningFit: Facet<ZoningFit>;
+  legalAccess: Facet<LegalAccessStatus>;
+  conservationOverlay: Facet<ConservationOverlay>;
+  floodplainExtent: Facet<FloodplainExtent>;
 }
 
 export function emptyFacet<T>(): Facet<T> {
@@ -297,6 +334,10 @@ export function emptySiteProfile(projectId: string): SiteProfile {
     household: emptyFacet<Household>(),
     lastFrostDate: emptyFacet<string>(),
     firstFrostDate: emptyFacet<string>(),
+    zoningFit: emptyFacet<ZoningFit>(),
+    legalAccess: emptyFacet<LegalAccessStatus>(),
+    conservationOverlay: emptyFacet<ConservationOverlay>(),
+    floodplainExtent: emptyFacet<FloodplainExtent>(),
   };
 }
 

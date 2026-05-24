@@ -9,12 +9,16 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import type {
+  ConservationOverlay,
   Facet,
   FacetProvenance,
+  FloodplainExtent,
   Household,
+  LegalAccessStatus,
   SiteProfile,
   SoilCompaction,
   WaterPosture,
+  ZoningFit,
 } from '../v3/plan/data/goalCompassTypes.js';
 import { emptySiteProfile } from '../v3/plan/data/goalCompassTypes.js';
 
@@ -29,7 +33,11 @@ type FacetKey =
   | 'hazards'
   | 'household'
   | 'lastFrostDate'
-  | 'firstFrostDate';
+  | 'firstFrostDate'
+  | 'zoningFit'
+  | 'legalAccess'
+  | 'conservationOverlay'
+  | 'floodplainExtent';
 
 type FacetValueMap = {
   acres: number;
@@ -43,7 +51,29 @@ type FacetValueMap = {
   household: Household;
   lastFrostDate: string;
   firstFrostDate: string;
+  zoningFit: ZoningFit;
+  legalAccess: LegalAccessStatus;
+  conservationOverlay: ConservationOverlay;
+  floodplainExtent: FloodplainExtent;
 };
+
+const FACET_KEYS: FacetKey[] = [
+  'acres',
+  'climateZone',
+  'primaryLandform',
+  'avgSlopePct',
+  'currentLandCover',
+  'soilCompaction',
+  'waterPosture',
+  'hazards',
+  'household',
+  'lastFrostDate',
+  'firstFrostDate',
+  'zoningFit',
+  'legalAccess',
+  'conservationOverlay',
+  'floodplainExtent',
+];
 
 interface SiteProfileState {
   profilesByProject: Record<string, SiteProfile>;
@@ -111,19 +141,9 @@ export const useSiteProfileStore = create<SiteProfileState>()(
       countFilledFacets: (projectId) => {
         const p = get().profilesByProject[projectId];
         if (!p) return { filled: 0, manual: 0, observe: 0 };
-        const facets = [
-          p.acres,
-          p.climateZone,
-          p.primaryLandform,
-          p.avgSlopePct,
-          p.currentLandCover,
-          p.soilCompaction,
-          p.waterPosture,
-          p.hazards,
-          p.household,
-          p.lastFrostDate,
-          p.firstFrostDate,
-        ];
+        const facets = FACET_KEYS.map(
+          (k) => (p as unknown as Record<string, Facet<unknown>>)[k],
+        );
         const filled = facets.filter((f) => f.value !== null);
         return {
           filled: filled.length,
@@ -134,25 +154,18 @@ export const useSiteProfileStore = create<SiteProfileState>()(
     }),
     {
       name: 'ogden-site-profiles',
-      version: 2,
+      version: 3,
       partialize: (state) => ({ profilesByProject: state.profilesByProject }),
+      // v3 added the Fit-Gate facets (zoningFit, legalAccess,
+      // conservationOverlay, floodplainExtent). The normalizer below is
+      // idempotent: it backfills any missing facet against the current key
+      // set, so it handles both the v1→ and v2→v3 upgrades uniformly.
       migrate: (persisted: unknown, fromVersion: number) => {
-        if (fromVersion >= 2) return persisted as { profilesByProject: Record<string, SiteProfile> };
+        if (fromVersion >= 3) {
+          return persisted as { profilesByProject: Record<string, SiteProfile> };
+        }
         const state = (persisted as { profilesByProject?: Record<string, SiteProfile> }) ?? {};
         const profilesByProject = state.profilesByProject ?? {};
-        const FACET_KEYS: FacetKey[] = [
-          'acres',
-          'climateZone',
-          'primaryLandform',
-          'avgSlopePct',
-          'currentLandCover',
-          'soilCompaction',
-          'waterPosture',
-          'hazards',
-          'household',
-          'lastFrostDate',
-          'firstFrostDate',
-        ];
         const migrated: Record<string, SiteProfile> = {};
         for (const [pid, profile] of Object.entries(profilesByProject)) {
           const next = { ...emptySiteProfile(pid), ...profile, projectId: pid } as SiteProfile;
