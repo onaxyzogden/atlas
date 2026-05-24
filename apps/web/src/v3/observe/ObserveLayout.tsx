@@ -58,6 +58,7 @@ import {
 import SelectionFloater from './components/SelectionFloater.js';
 import SectorCompassOverlay from './components/overlays/SectorCompassOverlay.js';
 import ObserveObjectiveCompletePrompt from '../compass/ObserveObjectiveCompletePrompt.js';
+import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
 import {
   isObserveModule,
   type ObserveModule,
@@ -325,6 +326,7 @@ export default function ObserveLayout() {
       bottomTray={moduleBar}
       overlay={
         <>
+          <TrueNorthAdvisoryBanner projectId={id} />
           <ModuleSlideUp
             module={validModule}
             open={slideUpOpen && validModule !== null}

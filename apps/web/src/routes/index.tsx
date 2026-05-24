@@ -48,6 +48,8 @@ import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
 import StageCompassPage from '../v3/compass/StageCompassPage.js';
 import ObserveCommandCentrePage from '../v3/command/ObserveCommandCentrePage.js';
+import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
+import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
@@ -146,7 +148,7 @@ const projectRoute = createRoute({
   beforeLoad: ({ params }) => {
     const { projectId } = params as { projectId: string };
     throw redirect({
-      to: '/v3/project/$projectId/compass',
+      to: '/v3/project/$projectId/true-north',
       params: { projectId },
     });
   },
@@ -240,6 +242,20 @@ const v3DiagnoseRoute = createRoute({
       params: { projectId, module: 'human-context' },
     });
   },
+});
+// True North — Stage 0 "define your goal" compass, rendered before Observe.
+// Full-bleed (V3ProjectLayout skips LandOsShell for `true-north`).
+const v3TrueNorthRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'true-north',
+  component: TrueNorthCompassPage,
+});
+// Fit Gate — Stage 0 verdict surface the True North center unlocks into.
+// Static path resolves before any sibling param routes.
+const v3FitGateRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'true-north/fit-gate',
+  component: FitGatePage,
 });
 // Stage Compass — per-project full-screen "mission select" landing for Observe.
 const v3CompassRoute = createRoute({
@@ -479,6 +495,8 @@ const routeTree = rootRoute.addChildren([
       v3HomeRoute,
       v3DiscoverRoute,
       v3DiagnoseRoute,
+      v3TrueNorthRoute,
+      v3FitGateRoute,
       v3CompassRoute,
       v3ObserveCommandCentreRoute,
       v3ObserveIndexRoute,

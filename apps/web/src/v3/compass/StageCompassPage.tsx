@@ -15,6 +15,7 @@ import StageSpine from './StageSpine.js';
 import StageProgressionRail from './StageProgressionRail.js';
 import ObserveCompassWheel from './ObserveCompassWheel.js';
 import SelectedObjectivePanel from './SelectedObjectivePanel.js';
+import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
 import type { ObserveModule } from '../observe/types.js';
 import css from './StageCompassPage.module.css';
 
@@ -54,6 +55,7 @@ export default function StageCompassPage() {
 
   return (
     <div className={css.page}>
+      <TrueNorthAdvisoryBanner projectId={projectId} />
       <header className={css.top}>
         <StageSpine projectId={projectId} observeProgress={data.stage} />
       </header>

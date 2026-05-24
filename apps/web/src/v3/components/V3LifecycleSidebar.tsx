@@ -159,6 +159,15 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
       </header>
 
       <Link
+        to="/v3/project/$projectId/true-north"
+        params={{ projectId }}
+        className={css.homeLink}
+        data-active={pathname.includes('/true-north') ? 'true' : 'false'}
+      >
+        True North · Stage 0
+      </Link>
+
+      <Link
         to="/v3/project/$projectId/home"
         params={{ projectId }}
         className={css.homeLink}

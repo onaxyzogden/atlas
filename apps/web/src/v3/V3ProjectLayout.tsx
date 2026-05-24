@@ -71,14 +71,20 @@ export default function V3ProjectLayout() {
     if (params.projectId) setActiveProject(params.projectId);
   }, [params.projectId, setActiveProject]);
 
-  // The Stage Compass and the Observe Command Centre are full-screen surfaces
-  // that own their own chrome — skip LandOsShell (sidebar/rail) and
-  // ProjectBundleBar entirely.
+  // The Stage Compass, Observe Command Centre, and the Stage 0 True North /
+  // Fit Gate are full-screen surfaces that own their own chrome — skip
+  // LandOsShell (sidebar/rail) and ProjectBundleBar entirely.
   if (
     pathname
       .split("/")
       .filter(Boolean)
-      .some((seg) => seg === "compass" || seg === "command-centre")
+      .some(
+        (seg) =>
+          seg === "compass" ||
+          seg === "command-centre" ||
+          seg === "true-north" ||
+          seg === "fit-gate",
+      )
   ) {
     return <Outlet />;
   }

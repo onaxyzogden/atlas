@@ -1,0 +1,159 @@
+/* FitGateSeverity — Green→Black severity scale. Tokens + explicit severity hues
+   (the scale is semantic, not themed), biophilic register (no glow). */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Severity hue scale — shared by banner tag and per-finding chips. */
+.chip,
+.verdictTag {
+  --sev: var(--color-text-subtle);
+  --sev-soft: var(--color-panel-card);
+}
+.chip[data-severity='green'],
+.verdictTag[data-severity='green'] {
+  --sev: #4f8a4f;
+  --sev-soft: color-mix(in srgb, #4f8a4f 14%, transparent);
+}
+.chip[data-severity='yellow'],
+.verdictTag[data-severity='yellow'] {
+  --sev: #b08a2a;
+  --sev-soft: color-mix(in srgb, #b08a2a 16%, transparent);
+}
+.chip[data-severity='orange'],
+.verdictTag[data-severity='orange'] {
+  --sev: #c47a35;
+  --sev-soft: color-mix(in srgb, #c47a35 16%, transparent);
+}
+.chip[data-severity='red'],
+.verdictTag[data-severity='red'] {
+  --sev: #b04a3a;
+  --sev-soft: color-mix(in srgb, #b04a3a 14%, transparent);
+}
+.chip[data-severity='black'],
+.verdictTag[data-severity='black'] {
+  --sev: #3a3a3a;
+  --sev-soft: color-mix(in srgb, #3a3a3a 12%, transparent);
+}
+
+/* Verdict banner */
+.banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--sev, var(--color-accent));
+  background: var(--color-panel-bg);
+}
+.banner[data-verdict='proceed'] {
+  --sev: #4f8a4f;
+}
+.banner[data-verdict='caution'] {
+  --sev: #c47a35;
+}
+.banner[data-verdict='pause'] {
+  --sev: #b04a3a;
+}
+.banner[data-verdict='reject'] {
+  --sev: #3a3a3a;
+}
+.verdictTag {
+  align-self: flex-start;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--sev-soft);
+  color: var(--sev);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.verdictTitle {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+  line-height: var(--leading-tight);
+}
+.verdictBlurb {
+  margin: 0;
+  max-width: 64ch;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+}
+
+/* Per-dimension findings */
+.findingList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.finding {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-bg);
+}
+.chip {
+  flex-shrink: 0;
+  min-width: 116px;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--sev-soft);
+  color: var(--sev);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  text-align: center;
+}
+.findingBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.findingLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+}
+.findingRationale {
+  font-size: var(--text-xs);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+}
+
+/* Unknowns to confirm */
+.unknowns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border);
+  background: var(--color-panel-card);
+}
+.unknownList {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.unknownItem {
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+}
