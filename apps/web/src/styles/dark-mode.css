@@ -25,6 +25,7 @@
   --color-hairline:        rgba(255, 255, 255, 0.06);
   --color-hover-overlay:   rgba(255, 255, 255, 0.05);
   --color-active-overlay:  rgba(255, 255, 255, 0.10);
+  --color-inset-well:      rgba(0, 0, 0, 0.2);
 
   /* -- Borders (gold-tinted, very low alpha) ------------------------------- */
   --color-border:          rgba(212, 175, 95, 0.18);
@@ -126,6 +127,7 @@
     --color-hairline:        rgba(255, 255, 255, 0.06);
     --color-hover-overlay:   rgba(255, 255, 255, 0.05);
     --color-active-overlay:  rgba(255, 255, 255, 0.10);
+    --color-inset-well:      rgba(0, 0, 0, 0.2);
 
     --color-border:          rgba(212, 175, 95, 0.18);
     --color-border-subtle:   rgba(212, 175, 95, 0.10);

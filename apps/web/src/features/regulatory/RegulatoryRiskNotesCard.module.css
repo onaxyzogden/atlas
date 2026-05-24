@@ -131,7 +131,7 @@
   text-transform: uppercase;
   padding: 2px 7px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   white-space: nowrap;
 }
 

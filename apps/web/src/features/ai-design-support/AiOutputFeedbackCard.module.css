@@ -313,7 +313,7 @@
   line-height: 1.5;
   padding: 8px 10px;
   border-radius: 5px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   border: 1px solid rgba(232, 220, 200, 0.1);
   color: var(--color-text);
   resize: vertical;

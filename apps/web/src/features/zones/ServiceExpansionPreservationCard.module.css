@@ -188,7 +188,7 @@
 .metric {
   padding: 5px 8px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   display: flex;
   flex-direction: column;
   gap: 2px;

@@ -190,6 +190,10 @@
   --color-hairline:        rgba(0, 0, 0, 0.08);
   --color-hover-overlay:   rgba(0, 0, 0, 0.04);
   --color-active-overlay:  rgba(0, 0, 0, 0.06);
+  /* Inset "well" panels (KPI blocks, blockquotes, mini-cards) that hardcoded
+   * a 20%-black backdrop for the dark UI. Dark value matches the old literal
+   * so dark mode is unchanged; light value is a faint tint, not a grey box. */
+  --color-inset-well:      rgba(0, 0, 0, 0.04);
 
   /* --- Panel / Sidebar / Header --- */
   --color-header-bg:       var(--color-chrome-bg-translucent);

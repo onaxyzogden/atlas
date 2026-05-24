@@ -90,7 +90,7 @@
 .legend {
   margin-top: 6px;
   padding: 6px 8px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   border-radius: 6px;
   font-size: 10px;
 }

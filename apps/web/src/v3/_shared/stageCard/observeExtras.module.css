@@ -37,7 +37,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 12px 14px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   border: 1px solid var(--color-hairline);
   border-radius: 8px;
 }
@@ -200,7 +200,7 @@
 .blockquote {
   margin: 0;
   padding: 12px 14px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   border-left: 3px solid rgba(var(--color-gold-rgb), 0.5);
   border-radius: 4px;
   font-style: italic;

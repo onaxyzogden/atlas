@@ -207,7 +207,7 @@
   letter-spacing: 0.08em;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   color: var(--color-text);
 }
 

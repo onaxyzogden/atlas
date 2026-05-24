@@ -262,7 +262,7 @@
 
 .catBarTrack {
   height: 8px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   border-radius: 4px;
   overflow: hidden;
 }

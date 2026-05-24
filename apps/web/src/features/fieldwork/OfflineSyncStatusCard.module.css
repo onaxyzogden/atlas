@@ -121,7 +121,7 @@
   padding: 8px 10px;
   border-radius: 6px;
   border: 1px solid rgba(232, 220, 200, 0.06);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   display: flex;
   flex-direction: column;
   gap: 2px;

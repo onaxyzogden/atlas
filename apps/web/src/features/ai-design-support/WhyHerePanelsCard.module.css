@@ -167,7 +167,7 @@
 .panel {
   padding: 10px 12px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   border: 1px solid rgba(232, 220, 200, 0.05);
   display: flex;
   flex-direction: column;

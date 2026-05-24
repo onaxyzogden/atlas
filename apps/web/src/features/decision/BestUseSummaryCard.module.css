@@ -60,7 +60,7 @@
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--color-hairline);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   margin-bottom: 14px;
 }
 
@@ -162,7 +162,7 @@
 .row {
   padding: 6px 8px;
   border-radius: 5px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   border: 1px solid var(--color-hairline);
 }
 

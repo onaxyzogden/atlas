@@ -84,7 +84,7 @@
 }
 
 .metricBox {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--color-inset-well);
   border-radius: 6px;
   padding: 6px 8px;
 }
