@@ -206,35 +206,35 @@ export default function HydrologyDetail() {
           <h2 className={card.sectionTitle}>Watershed profile</h2>
           <div className={card.statRow}>
             <span>Flow direction</span>
-            <span>{watershed?.summary.flow_direction ?? 'â€”'}</span>
+            <span>{watershed?.summary.flow_direction ?? '—'}</span>
           </div>
           <div className={card.statRow}>
             <span>Catchment area</span>
             <span>
               {watershed?.summary.catchment_area_ha != null
                 ? `${watershed.summary.catchment_area_ha} ha`
-                : 'â€”'}
+                : '—'}
             </span>
           </div>
           <div className={card.statRow}>
             <span>Stream order</span>
-            <span>{watershed?.summary.stream_order ?? 'â€”'}</span>
+            <span>{watershed?.summary.stream_order ?? '—'}</span>
           </div>
           <div className={card.statRow}>
             <span>Nearest stream</span>
             <span>
               {watershed?.summary.nearest_stream_m != null
                 ? `${watershed.summary.nearest_stream_m} m`
-                : 'â€”'}
+                : '—'}
             </span>
           </div>
           <div className={card.statRow}>
             <span>Watershed name</span>
-            <span>{watershed?.summary.watershed_name ?? 'â€”'}</span>
+            <span>{watershed?.summary.watershed_name ?? '—'}</span>
           </div>
           <div className={card.statRow}>
             <span>HUC code</span>
-            <span>{watershed?.summary.huc_code ?? 'â€”'}</span>
+            <span>{watershed?.summary.huc_code ?? '—'}</span>
           </div>
         </section>
 
@@ -242,12 +242,12 @@ export default function HydrologyDetail() {
           <h2 className={card.sectionTitle}>Wetlands &amp; coverage</h2>
           <div className={card.statRow}>
             <span>Flood zone</span>
-            <span>{wetlands?.summary.flood_zone ?? 'â€”'}</span>
+            <span>{wetlands?.summary.flood_zone ?? '—'}</span>
           </div>
           <div className={card.statRow}>
             <span>Wetland cover</span>
             <span>
-              {wetlands?.summary.wetland_pct != null ? `${wetlands.summary.wetland_pct}%` : 'â€”'}
+              {wetlands?.summary.wetland_pct != null ? `${wetlands.summary.wetland_pct}%` : '—'}
             </span>
           </div>
           <div className={card.statRow}>
@@ -255,7 +255,7 @@ export default function HydrologyDetail() {
             <span>
               {wetlands?.summary.riparian_buffer_m != null
                 ? `${wetlands.summary.riparian_buffer_m} m`
-                : 'â€”'}
+                : '—'}
             </span>
           </div>
           <div className={card.statRow}>
@@ -263,7 +263,7 @@ export default function HydrologyDetail() {
             <span>
               {wetlands?.summary.regulated_area_pct != null
                 ? `${wetlands.summary.regulated_area_pct}%`
-                : 'â€”'}
+                : '—'}
             </span>
           </div>
           <div className={card.statRow}>
@@ -294,7 +294,7 @@ export default function HydrologyDetail() {
             <div key={r.title} className={card.statRow}>
               <span>
                 <Icon aria-hidden="true" size={12} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-                {r.title} <small style={{ opacity: 0.6 }}>Â· {r.note}</small>
+                {r.title} <small style={{ opacity: 0.6 }}>· {r.note}</small>
               </span>
               <span
                 className={`${card.pill} ${

@@ -220,7 +220,7 @@ export default function HumanContextDashboard() {
           title=""
           projectId={projectId ?? null}
           kinds={['neighbourPin', 'household', 'accessRoad']}
-          emptyHint="No neighbours, households, or access roads pinned yet â€” drop one with the tools panel."
+          emptyHint="No neighbours, households, or access roads pinned yet — drop one with the tools panel."
         />
       </section>
     </div>
@@ -263,7 +263,7 @@ function HumanHero({ vision, profiles, onExport, exporting }: HumanHeroProps) {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generatingâ€¦' : 'Export human-context report'}
+          {exporting ? 'Generating…' : 'Export human-context report'}
         </button>
       </div>
 
@@ -283,7 +283,7 @@ function HumanHero({ vision, profiles, onExport, exporting }: HumanHeroProps) {
           </div>
           <KpiBlock icon={Eye} label="Vision phases" value={`${phases.filled} / ${phases.total}`} note="Captured" />
           <KpiBlock icon={Flag} label="Milestones" value={String(milestones)} note="Defined" />
-          <KpiBlock icon={MapPin} label="Regional context" value={regional.total > 0 ? String(regional.total) : 'â€”'} note="Captured" />
+          <KpiBlock icon={MapPin} label="Regional context" value={regional.total > 0 ? String(regional.total) : '—'} note="Captured" />
         </div>
       </section>
     </>
@@ -399,7 +399,7 @@ function RegionalCard({ projectId, vision }: ProjectVisionProps) {
       ].map(([label, value]) => (
         <div key={String(label)} className={card.statRow}>
           <span>{label}</span>
-          <span>{Number(value) > 0 ? value : 'â€”'}</span>
+          <span>{Number(value) > 0 ? value : '—'}</span>
         </div>
       ))}
 
@@ -478,8 +478,8 @@ function HealthStrip({ vision, profiles }: HealthStripProps) {
         {overall.pct >= 70
           ? 'Strong foundation with clear direction.'
           : overall.pct >= 30
-          ? 'Forming â€” keep filling in the picture.'
-          : 'Sparse â€” start with the steward survey.'}
+          ? 'Forming — keep filling in the picture.'
+          : 'Sparse — start with the steward survey.'}
       </p>
       <div className={card.statRow}>
         <span>People &amp; capacity</span>
@@ -597,8 +597,8 @@ function SynthesisPanel({ vision, roster }: SynthesisPanelProps) {
                 {overall.pct >= 70
                   ? 'Strong foundation.'
                   : overall.pct >= 30
-                  ? 'Forming â€” keep building.'
-                  : 'Sparse â€” capture the basics first.'}
+                  ? 'Forming — keep building.'
+                  : 'Sparse — capture the basics first.'}
               </p>
             </div>
           </div>

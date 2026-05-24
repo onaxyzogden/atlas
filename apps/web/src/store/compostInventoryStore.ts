@@ -1,5 +1,5 @@
 /**
- * Compost-inventory store â€” PLAN-stage Module 5 (Soil Fertility), Greens & Browns tab.
+ * Compost-inventory store — PLAN-stage Module 5 (Soil Fertility), Greens & Browns tab.
  *
  * Persists per-project Greens/Browns feedstock volumes the steward
  * inventoried in `SoilResourcesCard`. Holmgren P6 (*Produce No Waste*)
@@ -8,8 +8,8 @@
  * verdict in the card survives a page reload.
  *
  * Schema is deliberately minimal: a `Record<feedstockId, volumeM3>` per
- * project. The card owns the static feedstock catalog (id â†’ name, C:N
- * ratio, notes). The store only persists volumes â€” if the card later
+ * project. The card owns the static feedstock catalog (id → name, C:N
+ * ratio, notes). The store only persists volumes — if the card later
  * adds or removes feedstock entries from its catalog, persisted volumes
  * for unknown ids are quietly ignored at read time.
  *
@@ -26,9 +26,9 @@ import { rehydrateWithLogging } from './persistRehydrate.js';
 export type FeedstockVolumes = Record<string, number>;
 
 interface CompostInventoryState {
-  /** projectId â†’ { feedstockId â†’ mÂ³ }. */
+  /** projectId → { feedstockId → m³ }. */
   byProject: Record<string, FeedstockVolumes>;
-  /** Set the volume of a single feedstock for a project. Volumes â‰¤ 0 remove the key. */
+  /** Set the volume of a single feedstock for a project. Volumes ≤ 0 remove the key. */
   setVolume: (projectId: string, feedstockId: string, volumeM3: number) => void;
   /** Replace the entire inventory for a project (used by the card on bulk edit). */
   replaceInventory: (projectId: string, inventory: FeedstockVolumes) => void;

@@ -18,7 +18,7 @@ interface CrossSectionToolProps {
 }
 
 /**
- * Â§2 cross-section profile tool. On activate, switches MapboxDraw into
+ * §2 cross-section profile tool. On activate, switches MapboxDraw into
  * `draw_line_string` mode. On completion, POSTs the LineString to
  * `/api/v1/elevation/profile` and renders the returned samples as an inline
  * SVG line chart in a floating panel.
@@ -210,10 +210,10 @@ function ProfilePanel({ projectId, loading, profile, error, drawnLine, onClose }
           style={{ background: 'transparent', border: 'none', color: '#c4b49a', cursor: 'pointer', fontSize: 16 }}
           aria-label="Close"
         >
-          Ã—
+          ×
         </button>
       </div>
-      {loading && <div style={{ color: '#c4b49a', fontSize: 12 }}>Sampling DEMâ€¦</div>}
+      {loading && <div style={{ color: '#c4b49a', fontSize: 12 }}>Sampling DEM…</div>}
       {error && <div style={{ color: '#d07b7b', fontSize: 12 }}>{error}</div>}
       {profile && <ProfileChart profile={profile} />}
       {profile && drawnLine ? (
@@ -250,7 +250,7 @@ function ProfilePanel({ projectId, loading, profile, error, drawnLine, onClose }
               opacity: canSave ? 1 : 0.6,
             }}
           >
-            {savedId !== null ? 'Saved âœ“' : 'Save as transect'}
+            {savedId !== null ? 'Saved ✓' : 'Save as transect'}
           </button>
         </div>
       ) : null}
@@ -298,9 +298,9 @@ function ProfileChart({ profile }: { profile: ElevationProfileResponse }) {
         <polyline points={points} fill="none" stroke={semantic.primary} strokeWidth={1.5} />
       </svg>
       <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#c4b49a', marginTop: 4 }}>
-        <span>min {minM?.toFixed(1) ?? 'â€”'} m</span>
-        <span>max {maxM?.toFixed(1) ?? 'â€”'} m</span>
-        <span>relief {reliefM?.toFixed(1) ?? 'â€”'} m</span>
+        <span>min {minM?.toFixed(1) ?? '—'} m</span>
+        <span>max {maxM?.toFixed(1) ?? '—'} m</span>
+        <span>relief {reliefM?.toFixed(1) ?? '—'} m</span>
         <span style={{ marginLeft: 'auto', opacity: 0.7 }}>{sourceApi}</span>
       </div>
     </div>

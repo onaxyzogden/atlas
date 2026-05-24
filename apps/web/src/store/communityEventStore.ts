@@ -1,5 +1,5 @@
 /**
- * Community-event store â€” ACT-stage Module 5 (Social Permaculture).
+ * Community-event store — ACT-stage Module 5 (Social Permaculture).
  *
  * Work-days, harvest-shares, meetups, tours. Attendees reference
  * `networkStore.NetworkContact.id` so the same address book powers both

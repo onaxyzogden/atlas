@@ -1,9 +1,9 @@
 /**
- * Pilot-plot store â€” ACT-stage Module 2 (Small-and-Slow piloting).
+ * Pilot-plot store — ACT-stage Module 2 (Small-and-Slow piloting).
  *
  * The "Use small and slow solutions" Holmgren principle says: test on a
  * small plot before committing the whole site. This store tracks those
- * experiments â€” what was tried, what was learned, whether to scale.
+ * experiments — what was tried, what was learned, whether to scale.
  */
 
 import { create } from 'zustand';
@@ -21,7 +21,7 @@ export interface PilotPlot {
   plotSizeM2: number;
   /** ISO date. */
   startDate: string;
-  /** ISO date â€” undefined while pilot is still running. */
+  /** ISO date — undefined while pilot is still running. */
   endDate?: string;
   status: PilotStatus;
   /** Free-text takeaways; populated as the pilot progresses. */

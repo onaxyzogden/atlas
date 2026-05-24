@@ -1,5 +1,5 @@
 /**
- * Fieldwork store â€” advanced field data collection for site visits.
+ * Fieldwork store — advanced field data collection for site visits.
  * Soil samples, water/structure issues, measurements, walk routes.
  */
 

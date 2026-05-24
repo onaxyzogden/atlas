@@ -1,8 +1,8 @@
 /**
- * Appropriate-tech store â€” ACT-stage Module 6 (Disaster Preparedness).
+ * Appropriate-tech store — ACT-stage Module 6 (Disaster Preparedness).
  *
  * Backup-systems registry: gravity water, solar generators, woodstoves,
- * radios, root cellars. Status moves planned â†’ installed â†’ tested (or
+ * radios, root cellars. Status moves planned → installed → tested (or
  * `failed` if the test reveals the system can't carry load). The
  * `AppropriateTechLogCard` groups items by `system` so the steward sees
  * resilience coverage at a glance per resource axis.

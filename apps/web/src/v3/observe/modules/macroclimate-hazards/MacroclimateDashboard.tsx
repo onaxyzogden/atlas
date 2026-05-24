@@ -155,7 +155,7 @@ export default function MacroclimateDashboard() {
           disabled={exporting}
         >
           <Download aria-hidden="true" size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
-          {exporting ? 'Generatingâ€¦' : 'Export macroclimate report'}
+          {exporting ? 'Generating…' : 'Export macroclimate report'}
         </button>
       </div>
 
@@ -269,7 +269,7 @@ export default function MacroclimateDashboard() {
           top.map((h) => (
             <div key={h.id} className={card.statRow}>
               <span>
-                {h.label} <span style={{ color: 'rgba(232,220,200,0.45)', marginLeft: 6, fontSize: 11 }}>{statusLabel(h.status)} Â· {h.mitigationPct}%</span>
+                {h.label} <span style={{ color: 'rgba(232,220,200,0.45)', marginLeft: 6, fontSize: 11 }}>{statusLabel(h.status)} · {h.mitigationPct}%</span>
               </span>
               <span className={`${card.pill} ${riskPill(h.risk)}`}>{riskLabel(h.risk)}</span>
             </div>
@@ -333,7 +333,7 @@ export default function MacroclimateDashboard() {
           title=""
           projectId={projectId ?? null}
           kinds={['frostPocket', 'hazardZone']}
-          emptyHint="No frost pockets or hazard zones recorded yet â€” outline one with the tools panel."
+          emptyHint="No frost pockets or hazard zones recorded yet — outline one with the tools panel."
         />
       </section>
     </div>

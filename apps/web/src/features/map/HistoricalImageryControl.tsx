@@ -5,7 +5,7 @@ import { mapZIndex, semantic } from '../../lib/tokens.js';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
 import { MapControlPopover } from '../../components/ui/MapControlPopover.js';
 
-// Esri Wayback â€” free global historical World Imagery archive. Releases are
+// Esri Wayback — free global historical World Imagery archive. Releases are
 // quarterly snapshots of the World Imagery tile service.
 const WAYBACK_CONFIG_URL =
   'https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json';
@@ -114,7 +114,7 @@ export default function HistoricalImageryControl({ map, boundaryGeojson, compact
         } else if (map.getLayer(LAYER_ID)) {
           map.setPaintProperty(LAYER_ID, 'raster-opacity', overlayOpacity);
         }
-        // Boundary mirror â€” re-add above the raster so the parcel stays visible.
+        // Boundary mirror — re-add above the raster so the parcel stays visible.
         if (boundaryGeojson) {
           if (!map.getSource(BOUNDARY_SRC_OVERLAY)) {
             map.addSource(BOUNDARY_SRC_OVERLAY, { type: 'geojson', data: boundaryGeojson });
@@ -184,10 +184,10 @@ export default function HistoricalImageryControl({ map, boundaryGeojson, compact
         <button onClick={() => setOpen((v) => !v)} style={btnStyle} aria-pressed={!!release}>
           {release
             ? tileStatus === 'loading'
-              ? `Historical Â· ${release.date} Â· â€¦`
+              ? `Historical · ${release.date} · …`
               : tileStatus === 'empty'
-              ? `Historical Â· ${release.date} Â· no coverage`
-              : `Historical Â· ${release.date}`
+              ? `Historical · ${release.date} · no coverage`
+              : `Historical · ${release.date}`
             : 'Historical'}
         </button>
       )}
@@ -204,7 +204,7 @@ export default function HistoricalImageryControl({ map, boundaryGeojson, compact
           }}
         >
           {err && <div style={{ color: '#d07b7b', fontSize: 11, padding: 4 }}>{err}</div>}
-          {!releases && !err && <div style={{ color: '#c4b49a', fontSize: 11, padding: 4 }}>Loading releasesâ€¦</div>}
+          {!releases && !err && <div style={{ color: '#c4b49a', fontSize: 11, padding: 4 }}>Loading releases…</div>}
           {releases && (
             <>
               <button

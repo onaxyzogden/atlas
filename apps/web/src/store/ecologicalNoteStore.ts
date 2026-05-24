@@ -1,20 +1,20 @@
 /**
- * Ecological note store â€” point-based site annotations for permaculture
+ * Ecological note store — point-based site annotations for permaculture
  * design intelligence (Plan toolbar Tier B / B5).
  *
  * Notes are lightweight markers stewards drop on the map to capture an
  * observation that doesn't fit into any of the spatial draw types. Each
  * note has a kind drawn from a small enum:
- *   - indicator-species  â€” wildlife or plant sighting (Conservation #6)
- *   - rest-point         â€” resting bench / waystation along a journey
+ *   - indicator-species  — wildlife or plant sighting (Conservation #6)
+ *   - rest-point         — resting bench / waystation along a journey
  *                          (Educational Farm #4)
- *   - disturbed-ground   â€” already-impacted area suitable for new
+ *   - disturbed-ground   — already-impacted area suitable for new
  *                          construction (Conservation #4)
- *   - asset              â€” existing ecological asset worth ranking
+ *   - asset              — existing ecological asset worth ranking
  *                          (Conservation #1)
- *   - hazard             â€” site-specific risk warranting a marker
+ *   - hazard             — site-specific risk warranting a marker
  *
- * Lives under `principle-verification` in the PLAN toolbar â€” flips the
+ * Lives under `principle-verification` in the PLAN toolbar — flips the
  * cross-check chip from "non-spatial" to "spatial-when-present" for the
  * Holmgren / verification module by virtue of being the first map
  * artifact that module owns.
@@ -38,12 +38,12 @@ export interface EcologicalNote {
   name: string;
   kind: EcologicalNoteKind;
   geometry: GeoJSON.Point;
-  /** Hex colour â€” defaults to the kind's palette entry but can be overridden. */
+  /** Hex colour — defaults to the kind's palette entry but can be overridden. */
   color: string;
   notes: string;
-  /** Build-phase id from `phaseStore`. Optional â€” undefined = unassigned. */
+  /** Build-phase id from `phaseStore`. Optional — undefined = unassigned. */
   phase?: string;
-  /** Multi-Enterprise tag. Optional â€” undefined = unassigned. */
+  /** Multi-Enterprise tag. Optional — undefined = unassigned. */
   enterprise?: string;
   createdAt: string;
   updatedAt: string;

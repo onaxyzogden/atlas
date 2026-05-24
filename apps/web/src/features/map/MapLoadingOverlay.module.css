@@ -1,4 +1,4 @@
-/* MapLoadingOverlay â€” full-canvas initial-load state with a shimmer bar. */
+/* MapLoadingOverlay — full-canvas initial-load state with a shimmer bar. */
 
 @keyframes overlayShimmer {
   0%   { transform: translateX(-100%); }

@@ -1,9 +1,9 @@
 /**
- * Enterprise store â€” project-scoped enterprise tags for Multi-Enterprise
- * permaculture sites (PLAN spec Â§15 / project-type "Multi-Enterprise"
+ * Enterprise store — project-scoped enterprise tags for Multi-Enterprise
+ * permaculture sites (PLAN spec §15 / project-type "Multi-Enterprise"
  * checklist items #1, #2, #6).
  *
- * Enterprises are operational sub-businesses inside a single parcel â€”
+ * Enterprises are operational sub-businesses inside a single parcel —
  * e.g. "Market garden", "Sheep dairy", "Retreat lodging", "Education".
  * Every placeable Plan feature (zone, path, structure, paddock, crop,
  * guild, fertility unit, water node) can be tagged with one enterprise

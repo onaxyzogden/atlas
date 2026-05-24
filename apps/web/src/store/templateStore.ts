@@ -1,5 +1,5 @@
 /**
- * Template store â€” reusable project templates and design frameworks.
+ * Template store — reusable project templates and design frameworks.
  * Templates include pre-configured zones, structures, and phasing plans
  * that can be applied to new or existing projects.
  */
@@ -57,7 +57,7 @@ export const useTemplateStore = create<TemplateState>()(
 // Hydrate from localStorage (Zustand v5)
 rehydrateWithLogging(useTemplateStore);
 
-// â”€â”€ Built-in Templates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Built-in Templates ──────────────────────────────────────────────────
 
 export const BUILT_IN_TEMPLATES: ProjectTemplate[] = [
   {
@@ -159,7 +159,7 @@ export const BUILT_IN_TEMPLATES: ProjectTemplate[] = [
   {
     id: 'tpl-moontrance',
     name: 'OGDEN Model',
-    description: 'The signature Moontrance template: regenerative agriculture, spiritual spaces, education, community hospitality â€” all integrated.',
+    description: 'The signature Moontrance template: regenerative agriculture, spiritual spaces, education, community hospitality — all integrated.',
     icon: '\u2726',
     category: 'moontrance',
     isBuiltIn: true,
@@ -188,9 +188,9 @@ export const BUILT_IN_TEMPLATES: ProjectTemplate[] = [
     ],
     phases: [
       { name: 'Site Intelligence', yearRange: '0-1', description: 'Establish presence, secure water, build core infrastructure. The foundation from which all else grows.', features: ['Well drilling & water system', 'Road grading & access', 'Off-grid solar installation', 'Main cabin construction', 'Initial soil amendment & cover cropping', 'Emergency fencing', 'Conservation Halton pre-consultation', 'Tile drain assessment & control structures'] },
-      { name: 'Design Atlas', yearRange: '1-3', description: 'Establish productive systems â€” food, water, livestock â€” generating sustenance and early revenue.', features: ['Keyline pond & swale network', '8-paddock rotational grazing', 'Orchard planting (200 trees)', 'Market garden with irrigation', 'Livestock acquisition', 'Forest edge reforestation'] },
+      { name: 'Design Atlas', yearRange: '1-3', description: 'Establish productive systems — food, water, livestock — generating sustenance and early revenue.', features: ['Keyline pond & swale network', '8-paddock rotational grazing', 'Orchard planting (200 trees)', 'Market garden with irrigation', 'Livestock acquisition', 'Forest edge reforestation'] },
       { name: 'Collaboration & Community', yearRange: '3-5', description: 'Open the land to guests, seekers, and community. Build the hospitality and educational infrastructure.', features: ['4 guest cabins', 'Prayer pavilion & contemplation garden', 'Community hall & classroom', 'Educational farm trail', 'Event lawn & fire circle', 'Guest-safe livestock buffers'] },
-      { name: 'Full Vision', yearRange: '5+', description: 'The mature expression â€” a living sanctuary for land, spirit, family, and community.', features: ['Expanded retreat (8+ units)', "Men's cohort facilities", 'Mature food forest canopy', 'Carbon monitoring program', 'Atlas template publication', 'Advanced water system management'] },
+      { name: 'Full Vision', yearRange: '5+', description: 'The mature expression — a living sanctuary for land, spirit, family, and community.', features: ['Expanded retreat (8+ units)', "Men's cohort facilities", 'Mature food forest canopy', 'Carbon monitoring program', 'Atlas template publication', 'Advanced water system management'] },
     ],
     costEstimateRange: [525, 843],
     createdAt: '2025-01-01',

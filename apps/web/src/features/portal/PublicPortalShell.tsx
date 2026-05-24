@@ -1,5 +1,5 @@
 /**
- * PublicPortalShell â€” full-page storytelling layout for the public portal.
+ * PublicPortalShell — full-page storytelling layout for the public portal.
  * Dark earth-tone aesthetic, scroll-spy navigation, OGDEN footer.
  */
 
@@ -141,7 +141,7 @@ export default function PublicPortalShell({ config, project }: Props) {
           OGDEN
         </div>
         <div style={{ fontSize: 11, color: earth[800] }}>
-          Land Design Atlas â€” A tool for seeing land whole and building it wisely.
+          Land Design Atlas — A tool for seeing land whole and building it wisely.
         </div>
         <div style={{ fontSize: 10, color: earth[800], marginTop: 12 }}>
           {project.address && <span>{project.address}</span>}

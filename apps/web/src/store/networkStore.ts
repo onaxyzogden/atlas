@@ -1,5 +1,5 @@
 /**
- * Network store â€” ACT-stage Module 5 (Social Permaculture).
+ * Network store — ACT-stage Module 5 (Social Permaculture).
  *
  * External-network address book: vendors, consultants, tradespeople,
  * nurseries, community contacts. Distinct from `memberStore` (which is the

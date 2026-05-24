@@ -1,5 +1,5 @@
 /**
- * Nursery store â€” propagation inventory, stock transfers, seed saving.
+ * Nursery store — propagation inventory, stock transfers, seed saving.
  *
  * Tracks plant stock by species, propagation method, quantity, and growth stage.
  * Zustand with localStorage persistence, same pattern as livestockStore.

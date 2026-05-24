@@ -1,5 +1,5 @@
 /**
- * Monitoring transect store â€” recurring observation walks recorded as
+ * Monitoring transect store — recurring observation walks recorded as
  * line-strings on the map (Plan Toolbar Tier B / B4). Lives under
  * `principle-verification` in the PLAN toolbar alongside ecological
  * notes (B5 / Holmgren principle 1: Observe and interact).
@@ -10,14 +10,14 @@
  *     indicator-species / soil-health / water-quality / wildlife / general)
  *   - cadence: how often the walk repeats (weekly / monthly / quarterly
  *     / yearly / one-off)
- *   - observations: chronological log of dated entries â€” bare-bones in v1
+ *   - observations: chronological log of dated entries — bare-bones in v1
  *     (date + free-text notes); a follow-up may add structured species
  *     counts, photos, density grids, etc.
  *
  * Surfaces in:
  *   - Conservation #5 (invasives-monitoring transect)
  *   - Conservation #6 (indicator-species + baseline-monitoring protocol)
- *   - Educational Farm â€” broadly applicable for any "demo plot
+ *   - Educational Farm — broadly applicable for any "demo plot
  *     observation walk" use case (not currently a checklist item)
  *
  * Cross-check chip: any transect created for a project flips
@@ -49,7 +49,7 @@ export interface TransectObservation {
   id: string;
   /** ISO date-time when the walk was performed. */
   date: string;
-  /** Free-text notes from the walk â€” counts, sightings, conditions. */
+  /** Free-text notes from the walk — counts, sightings, conditions. */
   notes: string;
 }
 
@@ -59,7 +59,7 @@ export interface MonitoringTransect {
   name: string;
   monitoringKind: TransectMonitoringKind;
   geometry: GeoJSON.LineString;
-  /** Hex colour â€” defaults to the monitoring-kind palette entry. */
+  /** Hex colour — defaults to the monitoring-kind palette entry. */
   color: string;
   cadence: TransectCadence;
   /** Chronological observation log; newest first by convention. */

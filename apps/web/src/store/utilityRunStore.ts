@@ -1,9 +1,9 @@
 /**
- * Utility-run store â€” line-strings representing shared infrastructure
+ * Utility-run store — line-strings representing shared infrastructure
  * runs across the parcel (Plan toolbar Tier B / B1).
  *
  * Stewards drop a run when they want to place a literal pipe / cable /
- * trench between features â€” e.g., a single trench from cabin cluster to
+ * trench between features — e.g., a single trench from cabin cluster to
  * septic field, a power feed from the inverter shed to the barn, a
  * coax/fibre data drop to a teaching pavilion. Lives under
  * `structures-subsystems` in the PLAN toolbar.
@@ -11,9 +11,9 @@
  * Surfaces in:
  *   - Retreat Center #4 (cluster accommodations on shared utilities)
  *   - Educational Farm #5 (classroom / barn / restroom shared utility trench)
- *   - Multi-Enterprise #2 (shared infrastructure â€” water / power / processing)
+ *   - Multi-Enterprise #2 (shared infrastructure — water / power / processing)
  *
- * Kinds intentionally minimal for v1 â€” water / septic / power / data â€”
+ * Kinds intentionally minimal for v1 — water / septic / power / data —
  * matched to the four most commonly-shared trench occupants on a small
  * permaculture parcel. New kinds (gas, irrigation-mainline, IT-only) can
  * be added without a schema bump.
@@ -31,7 +31,7 @@ export interface UtilityRun {
   projectId: string;
   name: string;
   kind: UtilityRunKind;
-  /** Hex colour â€” defaults to the kind's palette entry. */
+  /** Hex colour — defaults to the kind's palette entry. */
   color: string;
   geometry: GeoJSON.LineString;
   /** Length in metres derived from the geometry at draw time. */

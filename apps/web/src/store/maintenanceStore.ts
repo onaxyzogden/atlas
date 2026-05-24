@@ -1,5 +1,5 @@
 /**
- * Maintenance store â€” ACT-stage Module 3 (Maintenance & Operations).
+ * Maintenance store — ACT-stage Module 3 (Maintenance & Operations).
  *
  * Recurring stewardship tasks bucketed by cadence (daily / weekly / monthly /
  * quarterly / annual). Each task can link to a feature (zone, crop area,

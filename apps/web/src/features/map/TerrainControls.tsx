@@ -1,5 +1,5 @@
 /**
- * TerrainControls â€” adds hillshade, contour lines, slope/aspect heatmaps
+ * TerrainControls — adds hillshade, contour lines, slope/aspect heatmaps
  * to the MapLibre map using MapTiler Terrain DEM tiles.
  *
  * These are P1 features from Section 2 of the Atlas spec.
@@ -81,7 +81,7 @@ export default function TerrainControls({ map, isMapReady }: TerrainControlsProp
           padding: 0,
         }}
       >
-        Terrain {collapsed ? 'â–¸' : 'â–¾'}
+        Terrain {collapsed ? '▸' : '▾'}
       </button>
 
       {!collapsed && (
@@ -155,7 +155,7 @@ function TerrainToggle({
   );
 }
 
-// â”€â”€â”€ Map layer management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Map layer management ──────────────────────────────────────────────────
 
 const DEM_SOURCE = 'mapbox-dem';
 

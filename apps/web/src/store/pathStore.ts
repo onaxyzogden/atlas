@@ -1,5 +1,5 @@
 /**
- * Path store â€” roads, trails, corridors, animal movement routes.
+ * Path store — roads, trails, corridors, animal movement routes.
  */
 
 import { create } from 'zustand';
@@ -32,8 +32,8 @@ export interface DesignPath {
   phase: string;
   notes: string;
   /**
-   * Optional marker for temporary or seasonal paths (Â§15 Timeline,
-   * Phasing & Staged Buildout â€” "temporary vs permanent, seasonal phase
+   * Optional marker for temporary or seasonal paths (§15 Timeline,
+   * Phasing & Staged Buildout — "temporary vs permanent, seasonal phase
    * view"). `true` = present only for this phase or a subset of the year
    * (e.g., winter-only grazing route); `false` / undefined = permanent.
    * The PhasingDashboard uses this to offer a "Hide temporary" toggle and
@@ -47,18 +47,18 @@ export interface DesignPath {
    */
   seasonalMonths?: number[];
   /**
-   * PLAN-stage Module 3 â€” usage frequency tag drives stroke-width scaling
+   * PLAN-stage Module 3 — usage frequency tag drives stroke-width scaling
    * on the Plan-stage path-frequency layer and informs zone-of-use logic.
    * Optional; unset paths render at the default width.
    */
   usageFrequency?: 'daily' | 'weekly' | 'occasional' | 'rare';
   /**
-   * PLAN-stage Multi-Enterprise â€” `enterpriseStore` enterprise id this
+   * PLAN-stage Multi-Enterprise — `enterpriseStore` enterprise id this
    * path belongs to. Optional; undefined = unassigned.
    */
   enterprise?: string;
   /**
-   * Accessibility flag â€” true when the path is wheelchair / mobility-aid
+   * Accessibility flag — true when the path is wheelchair / mobility-aid
    * usable (graded surface, no steps, gentle slope). Surfaces in:
    *   - Educational Farm checklist item #4 (Wheelchair-accessible primary
    *     paths + rest points)

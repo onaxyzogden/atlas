@@ -90,7 +90,7 @@ function elementsToFc(elements: OverpassElement[]): OsmFc {
 }
 
 /**
- * Â§2 Phase 5 â€” OSM roads/water/buildings overlay. Fetches features in the
+ * §2 Phase 5 — OSM roads/water/buildings overlay. Fetches features in the
  * parcel bbox from the Overpass API once on mount; visibility of each kind is
  * controlled via mapStore.osmLayersVisible. Paint opacity is multiplied by the
  * global overlayOpacity so the dedicated slider dims everything together.
@@ -173,7 +173,7 @@ export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOver
     const sync = () => {
       if (!map.isStyleLoaded()) return;
 
-      // â”€â”€ Roads â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // ── Roads ─────────────────────────────────────────────────────────
       if (osmVisible.roads) {
         if (!map.getSource(SOURCE_IDS.roads)) {
           map.addSource(SOURCE_IDS.roads, { type: 'geojson', data: data.roads });
@@ -199,7 +199,7 @@ export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOver
         map.removeSource(SOURCE_IDS.roads);
       }
 
-      // â”€â”€ Water â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // ── Water ─────────────────────────────────────────────────────────
       if (osmVisible.water) {
         if (!map.getSource(SOURCE_IDS.water)) {
           map.addSource(SOURCE_IDS.water, { type: 'geojson', data: data.water });
@@ -226,7 +226,7 @@ export default function OsmVectorOverlay({ map, boundaryGeojson }: OsmVectorOver
         map.removeSource(SOURCE_IDS.water);
       }
 
-      // â”€â”€ Buildings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // ── Buildings ─────────────────────────────────────────────────────
       if (osmVisible.buildings) {
         if (!map.getSource(SOURCE_IDS.buildings)) {
           map.addSource(SOURCE_IDS.buildings, { type: 'geojson', data: data.buildings });
@@ -335,7 +335,7 @@ export function OsmVectorControls({ disabled, compact = false }: OsmVectorContro
             <ToggleRow label="Buildings" on={buildings} onChange={(v) => setOsmLayerVisible('buildings', v)} />
           </div>
           <div style={{ fontSize: 10, color: '#c4b49a', marginBottom: 4, letterSpacing: '0.05em' }}>
-            OVERLAY OPACITY Â· {Math.round(opacity * 100)}%
+            OVERLAY OPACITY · {Math.round(opacity * 100)}%
           </div>
           <input
             type="range"
@@ -350,7 +350,7 @@ export function OsmVectorControls({ disabled, compact = false }: OsmVectorContro
             Source: OpenStreetMap via Overpass API
           </div>
           {status === 'loading' && (
-            <div style={{ fontSize: 10, color: '#c4b49a', marginTop: 4 }}>Fetching OSM featuresâ€¦</div>
+            <div style={{ fontSize: 10, color: '#c4b49a', marginTop: 4 }}>Fetching OSM features…</div>
           )}
           {status === 'error' && error && (
             <div style={{ fontSize: 10, color: '#d07b7b', marginTop: 4 }}>

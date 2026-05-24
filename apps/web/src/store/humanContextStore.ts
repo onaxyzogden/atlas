@@ -1,13 +1,13 @@
 /**
- * humanContextStore â€” OBSERVE Module 1 (Human Context) annotations.
+ * humanContextStore — OBSERVE Module 1 (Human Context) annotations.
  *
  * Permaculture Scholar (notebook 5aa3dcf3-...): Holmgren P1 "Observe and
  * Interact" begins with the human residents. This namespace holds the
- * site-anchored social fabric â€” primary households, neighbour interfaces,
+ * site-anchored social fabric — primary households, neighbour interfaces,
  * existing access roads, and the concentric Permaculture Zones radiating
  * from the homestead anchor.
  *
- * Distinct from homesteadStore (single anchor point) â€” this store holds
+ * Distinct from homesteadStore (single anchor point) — this store holds
  * the broader human-context annotations layered on top of that anchor.
  */
 
@@ -51,21 +51,21 @@ export interface AccessRoad {
 }
 
 /**
- * Six concentric radii (metres) from the homestead anchor â€” Mollison Zones
- * 0â€“5. anchorPoint is copied at create time so the zone survives if the
+ * Six concentric radii (metres) from the homestead anchor — Mollison Zones
+ * 0–5. anchorPoint is copied at create time so the zone survives if the
  * homestead anchor is later moved or cleared.
  */
 export interface PermacultureZone {
   id: string;
   projectId: string;
-  /** Zones 0â€“5 outer radii, ascending. Zone 0 is the home itself. */
+  /** Zones 0–5 outer radii, ascending. Zone 0 is the home itself. */
   ringRadiiM: [number, number, number, number, number, number];
-  /** [lng, lat] â€” copied from the effective anchor at create time. */
+  /** [lng, lat] — copied from the effective anchor at create time. */
   anchorPoint: [number, number];
   /**
    * Where the anchorPoint came from at create time:
-   *   - 'explicit' â€” steward-placed homesteadStore entry
-   *   - 'derived'  â€” single-residence centroid fallback (ADR
+   *   - 'explicit' — steward-placed homesteadStore entry
+   *   - 'derived'  — single-residence centroid fallback (ADR
    *                 wiki/decisions/2026-05-13-atlas-residence-zone0-derivation.md)
    * Optional for backward-compat with persisted records written before
    * the field existed; treat absence as 'explicit'.

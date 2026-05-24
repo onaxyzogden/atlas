@@ -26,7 +26,7 @@ interface SplitScreenCompareProps {
 }
 
 /**
- * Â§2 split-screen compare. Mounts a second maplibre map inside a resizable
+ * §2 split-screen compare. Mounts a second maplibre map inside a resizable
  * right pane and syncs its camera with the primary map via `move` events.
  * The compare pane is read-only: no draw, no edit, no layers except boundary
  * + an optional mirror of the primary map's drawn features.
@@ -91,7 +91,7 @@ export default function SplitScreenCompare({ primaryMap, boundaryGeojson, mirror
       setReady(true);
     });
 
-    // â”€â”€ Move sync â€” primary â†’ right only, rAF-throttled so fast pans stay
+    // ── Move sync — primary → right only, rAF-throttled so fast pans stay
     // smooth instead of firing a jumpTo per 'move' tick. Right pane is
     // read-only.
     let pending = 0;

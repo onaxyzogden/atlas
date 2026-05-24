@@ -1,8 +1,8 @@
 /**
- * Principle-check store â€” PLAN-stage Module 8.
+ * Principle-check store — PLAN-stage Module 8.
  *
  * Tracks the steward's running self-assessment against Holmgren's twelve
- * permaculture-design principles. Each (project Ã— principle) pair carries
+ * permaculture-design principles. Each (project × principle) pair carries
  * a justification narrative, a list of linked feature ids drawn from the
  * other PLAN/OBSERVE stores (zones, paths, structures, transects, guilds,
  * earthworks, etc.), and a status pill.
@@ -27,11 +27,11 @@ export interface PrincipleCheck {
   updatedAt: string;
 }
 
-/** principleId â†’ check, keyed inside one project. */
+/** principleId → check, keyed inside one project. */
 export type ProjectPrincipleChecks = Record<string, PrincipleCheck>;
 
 interface PrincipleCheckState {
-  /** projectId â†’ principleId â†’ check. */
+  /** projectId → principleId → check. */
   byProject: Record<string, ProjectPrincipleChecks>;
   upsertCheck: (projectId: string, check: PrincipleCheck) => void;
   removeCheck: (projectId: string, principleId: string) => void;
