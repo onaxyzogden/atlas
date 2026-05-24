@@ -62,6 +62,7 @@ import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
 import { useFieldObjective } from '../objectives/useFieldObjectives.js';
 import { requiredLayersToModules } from '../objectives/fieldObjective.js';
 import ObjectiveMapFocus from './objective/ObjectiveMapFocus.js';
+import ObjectiveAnnotationAutoCapture from './objective/ObjectiveAnnotationAutoCapture.js';
 import ObjectiveBanner from './objective/ObjectiveBanner.js';
 import ObjectiveExecutionAside from './objective/ObjectiveExecutionAside.js';
 import {
@@ -348,6 +349,9 @@ export default function ObserveLayout() {
               />
               {focusObjective && (
                 <ObjectiveMapFocus map={map} objective={focusObjective} />
+              )}
+              {focusView && (
+                <ObjectiveAnnotationAutoCapture projectId={id} view={focusView} />
               )}
               {focusView && (
                 <ObjectiveBanner view={focusView} onBack={exitFocus} />

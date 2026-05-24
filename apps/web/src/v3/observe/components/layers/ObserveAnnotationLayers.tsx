@@ -89,6 +89,15 @@ interface Props {
    * scoped here.
    */
   activeModule?: ObserveModule | null;
+  /**
+   * Objective focus: the union of modules a focused `FieldObjective` declares
+   * via its `requiredLayers` (normalized through `requiredLayersToModules`).
+   * When set to a non-empty array it SUPERSEDES `activeModule` — only specs
+   * whose module is in this set stay visible, so an objective can foreground
+   * layers from several modules at once (e.g. topography + hydrology).
+   * `null`/empty = fall back to the single-`activeModule` gate above.
+   */
+  focusModules?: ObserveModule[] | null;
 }
 
 const SOURCE_PREFIX = 'observe-anno-';
@@ -215,7 +224,14 @@ export default function ObserveAnnotationLayers({
   map,
   projectId,
   activeModule = null,
+  focusModules = null,
 }: Props) {
+  // Objective focus supersedes the single-module gate: build the lookup once.
+  // Empty/null ⇒ no set ⇒ the existing `activeModule` path is used unchanged.
+  // (Referenced inline inside the apply effect below — like `subToggles` — with
+  // the source prop `focusModules` carried in the dependency array.)
+  const focusSet =
+    focusModules && focusModules.length > 0 ? new Set(focusModules) : null;
   const visible = useMatrixTogglesStore((s) => s.observeAnnotations);
   // Per-group sub-toggles. A spec with a `toggleKey` is gated SOLELY by
   // its own sub-toggle (each is an independent overlay row in
@@ -1427,11 +1443,15 @@ export default function ObserveAnnotationLayers({
         } else {
           map.addSource(sid, { type: 'geojson', data: spec.data });
         }
-        // Single-objective focus: when a module is active, only its specs
-        // stay visible (AND'd into the existing toggle gate). `null` =
-        // full overlays, so this is a no-op outside focus mode.
-        const moduleMatch =
-          activeModule == null || SPEC_MODULE[spec.id] === activeModule;
+        // Single-objective focus: when a module is active (or an objective's
+        // requiredLayers set is in focus), only matching specs stay visible
+        // (AND'd into the existing toggle gate). Neither set ⇒ full overlays,
+        // so this is a no-op outside focus mode. `focusSet` supersedes the
+        // single `activeModule` gate so an objective can span several modules.
+        const specModule = SPEC_MODULE[spec.id];
+        const moduleMatch = focusSet
+          ? specModule != null && focusSet.has(specModule)
+          : activeModule == null || specModule === activeModule;
         const specVisible =
           moduleMatch &&
           (spec.toggleKey ? subToggles[spec.toggleKey] : visible);
@@ -1452,8 +1472,10 @@ export default function ObserveAnnotationLayers({
       // Apply visibility to all our layers: toggleKey'd specs follow their
       // own independent sub-toggle; untoggled specs follow the master.
       for (const spec of layerSpecs) {
-        const moduleMatch =
-          activeModule == null || SPEC_MODULE[spec.id] === activeModule;
+        const specModule = SPEC_MODULE[spec.id];
+        const moduleMatch = focusSet
+          ? specModule != null && focusSet.has(specModule)
+          : activeModule == null || specModule === activeModule;
         const specVisible =
           moduleMatch &&
           (spec.toggleKey ? subToggles[spec.toggleKey] : visible);
@@ -1580,6 +1602,7 @@ export default function ObserveAnnotationLayers({
     clearSelection,
     projectId,
     activeModule,
+    focusModules,
   ]);
 
   // Clean up everything when the component unmounts (route change).

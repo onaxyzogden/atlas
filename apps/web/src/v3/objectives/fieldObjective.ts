@@ -15,6 +15,7 @@
  */
 
 import type { ObserveModule } from '../observe/types.js';
+import { OBSERVE_MODULES } from '../observe/types.js';
 import type { MapToolId } from '../observe/components/measure/useMapToolStore.js';
 
 /** Lifecycle of a single objective, per the doc's status states. */
@@ -202,4 +203,64 @@ export function evaluateObjectiveCompletion(
     canSubmit,
     pct,
   };
+}
+
+/**
+ * Some `requiredLayers` tokens are not `ObserveModule`s in their own right —
+ * they name a finer concept that lives inside a module's layer set. Map those
+ * aliases to their owning module so the layer engine (which gates by module)
+ * can foreground them. e.g. `hydrology` features (watercourses / waterbodies)
+ * are part of the Earth, Water & Ecology module.
+ */
+const REQUIRED_LAYER_ALIAS: Record<string, ObserveModule> = {
+  hydrology: 'earth-water-ecology',
+};
+
+const OBSERVE_MODULE_SET = new Set<string>(OBSERVE_MODULES);
+
+/**
+ * Normalize an objective's `requiredLayers` (a mix of module names and finer
+ * alias tokens) into the set of `ObserveModule`s the focus workspace should
+ * foreground on the map. The objective's own `module` is always included (so
+ * its layers are never hidden even if `requiredLayers` omits it); aliases are
+ * resolved; unknown tokens are dropped; the result is de-duplicated.
+ *
+ * Pure — no store, no side effects — so it is trivially unit-testable.
+ */
+export function requiredLayersToModules(
+  requiredLayers: string[],
+  ownModule: ObserveModule,
+): ObserveModule[] {
+  const out = new Set<ObserveModule>([ownModule]);
+  for (const token of requiredLayers) {
+    if (OBSERVE_MODULE_SET.has(token)) {
+      out.add(token as ObserveModule);
+    } else if (REQUIRED_LAYER_ALIAS[token]) {
+      out.add(REQUIRED_LAYER_ALIAS[token]);
+    }
+    // unknown tokens are dropped
+  }
+  return [...out];
+}
+
+/**
+ * Find the first `annotation`-kind evidence spec on an objective that is not
+ * yet satisfied by its run — i.e. whose captured count is below its `min`
+ * (default 1). Returns `null` when every annotation requirement is met (or the
+ * objective declares none). Used by the auto-capture listener to decide which
+ * spec a freshly-placed feature should advance.
+ *
+ * Pure — no store, no side effects — so it is trivially unit-testable.
+ */
+export function firstUnsatisfiedAnnotationSpec(
+  objective: FieldObjective,
+  run: ObjectiveRun,
+): EvidenceSpec | null {
+  for (const spec of objective.evidence) {
+    if (spec.kind !== 'annotation') continue;
+    const min = spec.min ?? 1;
+    const count = run.evidence.filter((e) => e.specId === spec.id).length;
+    if (count < min) return spec;
+  }
+  return null;
 }

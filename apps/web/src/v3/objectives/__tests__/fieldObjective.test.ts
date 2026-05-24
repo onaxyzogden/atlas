@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   evaluateObjectiveCompletion,
   emptyObjectiveRun,
+  requiredLayersToModules,
+  firstUnsatisfiedAnnotationSpec,
   type FieldObjective,
   type ObjectiveRun,
 } from '../fieldObjective.js';
@@ -129,6 +131,103 @@ describe('evaluateObjectiveCompletion', () => {
     const e = evaluateObjectiveCompletion(obj, run({ checkedChecklist: ['c1'] }));
     expect(e.canSubmit).toBe(true);
     expect(e.pct).toBe(100);
+  });
+});
+
+describe('requiredLayersToModules', () => {
+  it('always includes the objective own module', () => {
+    expect(requiredLayersToModules([], 'topography')).toEqual(['topography']);
+  });
+
+  it('resolves the hydrology alias to earth-water-ecology', () => {
+    const mods = requiredLayersToModules(['topography', 'hydrology'], 'topography');
+    expect(mods).toContain('topography');
+    expect(mods).toContain('earth-water-ecology');
+    expect(mods).toHaveLength(2);
+  });
+
+  it('passes through valid module tokens and de-duplicates', () => {
+    const mods = requiredLayersToModules(
+      ['earth-water-ecology', 'hydrology'],
+      'earth-water-ecology',
+    );
+    // own module + the valid token + the alias all collapse to one
+    expect(mods).toEqual(['earth-water-ecology']);
+  });
+
+  it('drops unknown tokens', () => {
+    const mods = requiredLayersToModules(['not-a-module', 'built-environment'], 'topography');
+    expect(mods).toContain('topography');
+    expect(mods).toContain('built-environment');
+    expect(mods).not.toContain('not-a-module' as never);
+    expect(mods).toHaveLength(2);
+  });
+
+  it('returns only known Observe modules for every seeded objective', () => {
+    for (const o of SEED_FIELD_OBJECTIVES) {
+      const mods = requiredLayersToModules(o.requiredLayers, o.module);
+      for (const m of mods) expect(OBSERVE_MODULES).toContain(m);
+      expect(mods).toContain(o.module);
+    }
+  });
+});
+
+describe('firstUnsatisfiedAnnotationSpec', () => {
+  /** Objective with two annotation specs (one min 2) plus a non-annotation. */
+  const annObjective = fixture({
+    evidence: [
+      { id: 'note', kind: 'note', label: 'Note', required: true },
+      { id: 'a1', kind: 'annotation', label: 'Mark one', required: true },
+      { id: 'a2', kind: 'annotation', label: 'Mark two', min: 2, required: true },
+    ],
+  });
+
+  it('returns the first annotation spec when nothing is captured', () => {
+    const spec = firstUnsatisfiedAnnotationSpec(annObjective, emptyObjectiveRun());
+    expect(spec?.id).toBe('a1');
+  });
+
+  it('skips a satisfied spec and returns the next short one', () => {
+    const spec = firstUnsatisfiedAnnotationSpec(
+      annObjective,
+      run({
+        evidence: [
+          { specId: 'a1', kind: 'annotation', value: 'x', capturedAt: 't' },
+        ],
+      }),
+    );
+    expect(spec?.id).toBe('a2');
+  });
+
+  it('respects a spec min greater than 1', () => {
+    const oneShort = firstUnsatisfiedAnnotationSpec(
+      annObjective,
+      run({
+        evidence: [
+          { specId: 'a1', kind: 'annotation', value: 'x', capturedAt: 't' },
+          { specId: 'a2', kind: 'annotation', value: 'y', capturedAt: 't' },
+        ],
+      }),
+    );
+    expect(oneShort?.id).toBe('a2');
+  });
+
+  it('returns null when every annotation spec is satisfied', () => {
+    const spec = firstUnsatisfiedAnnotationSpec(
+      annObjective,
+      run({
+        evidence: [
+          { specId: 'a1', kind: 'annotation', value: 'x', capturedAt: 't' },
+          { specId: 'a2', kind: 'annotation', value: 'y', capturedAt: 't' },
+          { specId: 'a2', kind: 'annotation', value: 'z', capturedAt: 't' },
+        ],
+      }),
+    );
+    expect(spec).toBeNull();
+  });
+
+  it('returns null for an objective with no annotation specs', () => {
+    expect(firstUnsatisfiedAnnotationSpec(fixture(), emptyObjectiveRun())).toBeNull();
   });
 });
 
