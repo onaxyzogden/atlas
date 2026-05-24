@@ -30,8 +30,10 @@
   margin: 0;
 }
 
+/* Relaxed cap (global wheel standard): grow to the centered column width
+   instead of a fixed px cap; the page scrolls so taller is fine. */
 .wheel {
-  width: min(360px, 70vw, 60vh);
+  width: 100%;
   height: auto;
 }
 

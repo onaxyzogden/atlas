@@ -1,100 +1,18 @@
 /* ObserveCompassWheel — host wrapper only. The wheel itself is the shared
-   @ogden/ui-components `MaqasidComparisonWheel`, which ships its own `mcw-*`
-   styles; we just centre and size-cap its container. */
+   @ogden/ui-components `MaqasidComparisonWheel` (`mcw-*` styles). Sizing, the
+   quiet wedge register, and the proportional center overlay are the global
+   wheel standard, composed from `components/wheel-shared/wheelFit.module.css`. */
 
 .wheelHost {
-  position: relative;
-  height: 100%;
-  max-width: 100%;
-  aspect-ratio: 1;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  composes: fillHost quiet from '../../components/wheel-shared/wheelFit.module.css';
 }
 
-/* The shared wheel caps itself at 540px; lift that so it fills the host square
-   (which is sized to min(available width, available height) above). */
-.wheelHost :global(.mcw-svg) {
-  max-width: 100%;
-}
-
-/* Center-unlock overlay (Goal 5). A transparent circular button sized to the
-   hub, so the wheel's "OBSERVE"/% text shows through and the ring segments
-   underneath stay hit-testable (the hotspot only covers the inner hub). */
+/* Center-unlock overlay (Goal 5) — transparent circle over the hub; ready-state
+   accent ring and the hover-revealed hint come from the shared standard. */
 .centerHotspot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 130px;
-  height: 130px;
-  transform: translate(-50%, -50%);
-  padding: 0;
-  border: none;
-  border-radius: var(--radius-full);
-  background: transparent;
-  cursor: default;
+  composes: hotspot from '../../components/wheel-shared/wheelFit.module.css';
 }
 
-/* Ready state — the one intentional emphasis in the otherwise quiet biophilic
-   register (paired with the wheel's built-in forceConverged hub aura). A
-   restrained accent activation ring; brighter on hover/focus. */
-.centerHotspot[data-ready] {
-  cursor: pointer;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 55%, transparent);
-}
-.centerHotspot[data-ready]:hover,
-.centerHotspot[data-ready]:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--color-accent);
-}
-
-/* Hint pill below the hub, so it never covers the OBSERVE/% readout. Setup
-   hint is a quiet persistent "Locked" badge; Ready hint reveals on hover/focus. */
 .centerHint {
-  position: absolute;
-  top: calc(50% + 70px);
-  left: 50%;
-  transform: translate(-50%, 0);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-full);
-  background: var(--color-panel-bg);
-  border: 1px solid var(--color-border);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0.7;
-  transition: opacity var(--duration-base) var(--ease-default);
-}
-.centerHint[data-ready] {
-  color: var(--color-text);
-  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
-  opacity: 0;
-}
-.centerHotspot[data-ready]:hover .centerHint,
-.centerHotspot[data-ready]:focus-visible .centerHint {
-  opacity: 1;
-}
-
-/* Quiet the segments' coloured background fill so the wheel reads in the
-   biophilic register the original hand-built donut used (translucent wedge,
-   ~0.22 accent). The bright progress arc (`.mcw-seg-current`) stays opaque so
-   it still reads as the verified-progress indicator. Scoped to this wheel so
-   the OPA dashboard wheel is unaffected. fill-opacity (not opacity) keeps the
-   path hit-testable, so segment clicks still fire. */
-.wheelHost :global(.mcw-band) {
-  fill-opacity: 0.22;
-}
-
-/* Also soften the inner progress arc so the whole wheel sits in the quiet
-   translucent register rather than a saturated solid fill. Still opaque enough
-   to read as the progress indicator; the selected segment stays emphasised via
-   the runtime-injected selection ring (see ObserveCompassWheel.tsx). */
-.wheelHost :global(.mcw-seg-current) {
-  fill-opacity: 0.5;
+  composes: hint from '../../components/wheel-shared/wheelFit.module.css';
 }

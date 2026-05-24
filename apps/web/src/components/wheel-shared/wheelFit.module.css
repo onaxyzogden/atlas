@@ -1,0 +1,111 @@
+/* wheelFit — shared sizing + center-overlay standard for every wheel host.
+   Consumers `composes` the host variant they need (no TSX changes). The wheels
+   are the shared @ogden/ui-components `MaqasidComparisonWheel` (`.mcw-svg`),
+   which ships a 540px self-cap we lift here so the host's own bounds govern. */
+
+/* Dedicated full-bleed surfaces (Observe/Plan/Act + True North compasses): the
+   wheel is the sole focal element in a definite-height flex cell. Height-driven
+   square fit sizes it to min(available width, available height) and stays
+   square; explicit width would overflow tall cells, so we drive from height. */
+.fillHost {
+  position: relative;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fillHost :global(.mcw-svg) {
+  max-width: 100%;
+}
+
+/* Content-flow surfaces (Cycle page, Workflow/OPA dashboard): the wheel shares
+   a scrolling column with sibling content (titles, StageNavigator). Width-driven
+   so it grows to the column with no fixed cap, without disturbing siblings. */
+.relaxedHost {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.relaxedHost :global(.mcw-svg) {
+  max-width: 100%;
+}
+
+/* Biophilic quiet register — soften the wedge fills (fill-opacity keeps paths
+   hit-testable so segment clicks still fire). Composed only by the stage
+   compasses; the OPA dashboard wheel intentionally keeps its saturated fills. */
+.quiet :global(.mcw-band) {
+  fill-opacity: 0.22;
+}
+.quiet :global(.mcw-seg-current) {
+  fill-opacity: 0.5;
+}
+
+/* Center-unlock overlay, proportional so it tracks the hub at any wheel size.
+   The hub disc is ~28% of the square wheel; 29.5% mirrors the original
+   130px/440px hotspot and covers the hub. A transparent circular button — the
+   hub "OBSERVE"/% text reads through and the ring segments stay hit-testable. */
+.hotspot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 29.5%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: default;
+}
+
+/* Ready state — the one intentional emphasis in the quiet register (paired with
+   the wheel's built-in forceConverged hub aura); brighter on hover/focus. */
+.hotspot[data-ready] {
+  cursor: pointer;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+.hotspot[data-ready]:hover,
+.hotspot[data-ready]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* Hint pill below the hub. The hint is a child of `.hotspot`, so `top` resolves
+   against the hotspot box (which is itself 29.5% of the wheel) — 103.8% mirrors
+   the original `calc(50% + 70px)` on the 130px hotspot, keeping the pill just
+   below the hub readout at any wheel size. */
+.hint {
+  position: absolute;
+  top: 103.8%;
+  left: 50%;
+  transform: translate(-50%, 0);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.7;
+  transition: opacity var(--duration-base) var(--ease-default);
+}
+.hint[data-ready] {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  opacity: 0;
+}
+.hotspot[data-ready]:hover .hint,
+.hotspot[data-ready]:focus-visible .hint {
+  opacity: 1;
+}
