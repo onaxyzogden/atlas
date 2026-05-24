@@ -1,77 +1,12 @@
-.wheel {
+/* ObserveCompassWheel — host wrapper only. The wheel itself is the shared
+   @ogden/ui-components `MaqasidComparisonWheel`, which ships its own `mcw-*`
+   styles; we just centre and size-cap its container. */
+
+.wheelHost {
   width: 100%;
-  height: 100%;
-  max-width: 560px;
-  max-height: 560px;
-  display: block;
+  max-width: 440px;
   margin: 0 auto;
-}
-
-.wedge {
-  cursor: pointer;
-  transition:
-    fill-opacity var(--duration-base) var(--ease-default),
-    stroke-opacity var(--duration-base) var(--ease-default);
-}
-.wedge:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-}
-.wedgeGroup:hover .wedge[data-active='false'] {
-  fill-opacity: 0.14;
-}
-
-.iconWrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.wedgeLabel {
-  font-family: var(--font-sans);
-  font-size: 10px;
-  font-weight: var(--font-medium);
-  letter-spacing: 0.02em;
-  fill: var(--color-text-muted);
-}
-.wedgeLabel[data-active='true'] {
-  fill: var(--color-text);
-  font-weight: var(--font-semibold);
-}
-.wedgePct {
-  font-size: 9px;
-  font-weight: var(--font-semibold);
-  fill: var(--color-text-subtle);
-}
-
-.nodeSpine {
-  stroke-width: 1;
-  stroke-opacity: 0.22;
-  stroke-dasharray: 2 3;
-}
-
-.node {
-  stroke-width: 1.25;
-  transition: fill var(--duration-base) var(--ease-default);
-}
-
-.hub {
-  fill: var(--color-ring-core);
-  stroke: rgba(var(--color-earth-600-rgb), 0.35);
-  stroke-width: 1;
-}
-.hubEyebrow {
-  font-family: var(--font-sans);
-  font-size: 10px;
-  font-weight: var(--font-semibold);
-  letter-spacing: 0.18em;
-  fill: var(--color-text-muted);
-}
-.hubLabel {
-  font-family: var(--font-serif);
-  font-size: 18px;
-  font-weight: var(--font-semibold);
-  fill: var(--color-text);
 }
