@@ -33,7 +33,7 @@ import css from './PlanChecklistAside.module.css';
 
 const EMPTY_CHECKS: readonly number[] = [];
 
-const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
+export const PLAN_MODULE_GUIDANCE: Record<PlanModule, GuidanceCardData> = {
   'goal-compass': {
     why: 'Goal Compass lets the steward declare measurable success criteria and have a deterministic sequencing engine propose a phased, costed, labor-budgeted plan against a curated permaculture intervention catalog (Mollison, Yeomans, Holmgren P1: Observe & interact).',
     how: [

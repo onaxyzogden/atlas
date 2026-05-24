@@ -47,6 +47,7 @@ import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTele
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
 import StageCompassPage from '../v3/compass/StageCompassPage.js';
+import PlanStageCompassPage from '../v3/plan/compass/PlanStageCompassPage.js';
 import ObserveCommandCentrePage from '../v3/command/ObserveCommandCentrePage.js';
 import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
 import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
@@ -280,6 +281,13 @@ const v3ObserveModuleRoute = createRoute({
   path: 'observe/$module',
   component: ObserveLayout,
 });
+// Plan Stage Compass — per-stage "mission select". Static path resolves before
+// the `plan/$module` param route.
+const v3PlanCompassRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/compass',
+  component: PlanStageCompassPage,
+});
 const v3PlanRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan',
@@ -501,6 +509,7 @@ const routeTree = rootRoute.addChildren([
       v3ObserveCommandCentreRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
+      v3PlanCompassRoute,
       v3PlanRoute,
       v3PlanModuleRoute,
       v3ActRoute,
