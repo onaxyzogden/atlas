@@ -62,6 +62,7 @@ import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
 import { useFieldObjective } from '../objectives/useFieldObjectives.js';
 import ObjectiveMapFocus from './objective/ObjectiveMapFocus.js';
 import ObjectiveBanner from './objective/ObjectiveBanner.js';
+import ObjectiveExecutionAside from './objective/ObjectiveExecutionAside.js';
 import {
   isObserveModule,
   type ObserveModule,
@@ -339,14 +340,18 @@ export default function ObserveLayout() {
         </DiagnoseMap>
       }
       rightRail={
-        <ObserveChecklistAside
-          activeModule={validModule}
-          effectiveSectionId={effectiveSectionId}
-          onSelectSection={handleSelectSection}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
+        focusView ? (
+          <ObjectiveExecutionAside projectId={id} view={focusView} />
+        ) : (
+          <ObserveChecklistAside
+            activeModule={validModule}
+            effectiveSectionId={effectiveSectionId}
+            onSelectSection={handleSelectSection}
+            slideUpOpen={slideUpOpen && validModule !== null}
+            onOpenSlideUp={() => setSlideUpOpen(true)}
+            onCloseSlideUp={() => setSlideUpOpen(false)}
+          />
+        )
       }
       bottomTray={moduleBar}
       overlay={
