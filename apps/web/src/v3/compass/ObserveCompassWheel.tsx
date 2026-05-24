@@ -18,12 +18,16 @@
  * segment, not just the id) and short-circuits the internal navigate; we read
  * `.id` off it (and tolerate a bare id string for forward-compat).
  *
- * `forceHover={selected}` pins the wheel's highlighted ("hovered") state to the
- * currently-selected objective, so the selected segment keeps its emphasised
- * look (and the hub/Next card track it) instead of reverting to the flat
- * resting state after the pointer leaves.
+ * Selection vs. hover: the shared wheel only tracks ONE highlighted segment
+ * (`forceHover || internalHover`), so pinning the selection with `forceHover`
+ * would suppress the native pointer-hover preview entirely. Instead we leave
+ * hover fully native and mark the *selected* objective with our own persistent
+ * ring — a runtime-injected <style> that targets the selected band by its
+ * `aria-label` (the objective label), scoped to this host via a unique id.
+ * Clicking the already-selected segment toggles it back off (deselect).
  */
 
+import { useId } from 'react';
 import { MaqasidComparisonWheel } from '@ogden/ui-components';
 import { MemoryRouter } from 'react-router-dom';
 import type { ObserveModule } from '../observe/types.js';
@@ -35,8 +39,13 @@ const OBSERVE_ACCENT = '#8b7355';
 
 interface WheelProps {
   views: ObjectiveView[];
-  selected: ObserveModule;
-  onSelect: (module: ObserveModule) => void;
+  selected: ObserveModule | null;
+  onSelect: (module: ObserveModule | null) => void;
+}
+
+/** Escape a string for use inside a double-quoted CSS attribute selector. */
+function cssAttrEscape(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
 export default function ObserveCompassWheel({
@@ -44,6 +53,10 @@ export default function ObserveCompassWheel({
   selected,
   onSelect,
 }: WheelProps) {
+  // Unique, CSS-selector-safe host id so the injected selection-ring <style>
+  // only touches this wheel (useId yields colons, invalid in CSS ids).
+  const hostId = `cw-${useId().replace(/:/g, '')}`;
+
   const segments = views.map((v) => ({
     id: v.objective.id,
     label: v.objective.label,
@@ -68,22 +81,40 @@ export default function ObserveCompassWheel({
     }),
   );
 
+  // The selected objective's accent + label drive the persistent ring. The
+  // band element carries `aria-label="<objective label>"`, so we target it by
+  // attribute selector scoped under this host's unique id.
+  const selectedObjective = selected
+    ? views.find((v) => v.objective.id === selected)?.objective
+    : undefined;
+
   return (
-    <div className={css.wheelHost}>
+    <div id={hostId} className={css.wheelHost}>
+      {selectedObjective && (
+        <style>{`
+          #${hostId} :where(.mcw-band[aria-label="${cssAttrEscape(
+            selectedObjective.label,
+          )}"]) {
+            stroke: ${selectedObjective.accent};
+            stroke-width: 2.5px;
+            stroke-opacity: 0.9;
+            fill-opacity: 0.42;
+          }
+        `}</style>
+      )}
       <MemoryRouter>
         <MaqasidComparisonWheel
           centerLabel="OBSERVE"
           levelColor={OBSERVE_ACCENT}
           segments={segments}
           nextActions={nextActions}
-          forceHover={selected}
           showNextCard
           showDiacritics={false}
-          onSegmentSelect={(arg: string | { id: string }) =>
-            onSelect(
-              (typeof arg === 'string' ? arg : arg.id) as ObserveModule,
-            )
-          }
+          onSegmentSelect={(arg: string | { id: string }) => {
+            const id = (typeof arg === 'string' ? arg : arg.id) as ObserveModule;
+            // Toggle: clicking the already-selected objective deselects it.
+            onSelect(id === selected ? null : id);
+          }}
         />
       </MemoryRouter>
     </div>

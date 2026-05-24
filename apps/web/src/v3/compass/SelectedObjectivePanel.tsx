@@ -27,12 +27,29 @@ const STATE_LABEL: Record<NodeState, string> = {
 };
 
 interface PanelProps {
-  view: ObjectiveView;
+  view: ObjectiveView | null;
   projectId: string;
 }
 
 export default function SelectedObjectivePanel({ view, projectId }: PanelProps) {
   const navigate = useNavigate();
+
+  // No objective selected (deselected on the wheel) — quiet prompt rather than
+  // a stale detail view.
+  if (!view) {
+    return (
+      <section className={css.panel} aria-label="No objective selected">
+        <div className={css.empty}>
+          <p className="eyebrow">No objective selected</p>
+          <p className={css.emptyHint}>
+            Pick an objective on the compass to see its checklist, pitfalls, and
+            map entry point.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   const { objective, states, progress } = view;
   const accent = objective.accent;
 

@@ -37,8 +37,8 @@ export default function StageCompassPage() {
     return (firstIncomplete ?? data.views[0]!).objective.id;
   }, [data.views]);
 
-  const [selected, setSelected] = useState<ObserveModule>(defaultModule);
-  const selectedView = data.byId[selected] ?? data.views[0];
+  const [selected, setSelected] = useState<ObserveModule | null>(defaultModule);
+  const selectedView = selected ? (data.byId[selected] ?? null) : null;
 
   return (
     <div className={css.page}>
