@@ -345,6 +345,11 @@
   font-size: var(--text-xs);
   color: var(--color-success, #4caf7d);
 }
+.autoHint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
 
 /* ── Completion / review footer ─────────────────────────────────────────── */
 .footer {

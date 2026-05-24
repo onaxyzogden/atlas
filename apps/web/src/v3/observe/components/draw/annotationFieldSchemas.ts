@@ -18,6 +18,7 @@ import * as turf from '@turf/turf';
 import { useHumanContextStore } from '../../../../store/humanContextStore.js';
 import { useHomesteadStore } from '../../../../store/homesteadStore.js';
 import { useTopographyStore } from '../../../../store/topographyStore.js';
+import { usePlacementSignalStore } from '../../../../store/placementSignalStore.js';
 import { useExternalForcesStore } from '../../../../store/externalForcesStore.js';
 import { useWaterSystemsStore } from '../../../../store/waterSystemsStore.js';
 import {
@@ -151,6 +152,10 @@ export function createWithDefaults(
   if (!ctx.geometry) return null;
   const newId = crypto.randomUUID();
   schema.save(schema.defaults, { ...ctx, existingId: undefined, newId });
+  // Pulse the placement signal so the objective workspace can auto-capture
+  // annotation evidence when a feature is drawn with a required tool. Tools
+  // stay oblivious to focus; the listener lives in ObjectiveAnnotationAutoCapture.
+  usePlacementSignalStore.getState().signal(newId);
   return newId;
 }
 

@@ -141,10 +141,17 @@ export default function ObjectiveEvidenceCapture({
     );
   }
 
-  // annotation (and audio fallback): manual record capture for v1.
+  // annotation (and audio fallback): auto-captured when a feature is placed
+  // with one of the objective's tools; the manual button stays as a fallback.
   return (
     <div className={css.evItem}>
       {header}
+      {spec.kind === 'annotation' && (
+        <p className={css.autoHint}>
+          Placing a feature with this objective&apos;s tools records this
+          automatically.
+        </p>
+      )}
       {count > 0 && (
         <div className={css.recordRow}>
           {items.map(({ index }, i) => (
