@@ -51,6 +51,7 @@ import {
   tryRegisterMissingObserveIcon,
 } from '../../lib/lucideSprite.js';
 import type { AnnotationKind } from '../draw/annotationFieldSchemas.js';
+import type { ObserveModule } from '../../types.js';
 import { LINE_KIND_DEFAULT_WIDTH_M } from '@ogden/shared';
 
 /**
@@ -78,10 +79,53 @@ const beLineWidthExpr = (defaultM: number | undefined): ExpressionSpecification 
 interface Props {
   map: MaplibreMap;
   projectId: string | null;
+  /**
+   * When a single OBSERVE objective is focused in the map (reached via the
+   * compass's "Open on Map"), only the data layers belonging to that module
+   * stay visible — every other annotation group is hidden, mirroring the
+   * strict single-objective rail focus. `null`/omitted = full overlays (the
+   * bare `/observe` view), so nothing changes outside focus mode. The sector
+   * compass HUD (`SectorCompassOverlay`) stays always-ambient and is not
+   * scoped here.
+   */
+  activeModule?: ObserveModule | null;
 }
 
 const SOURCE_PREFIX = 'observe-anno-';
 const LAYER_PREFIX = 'observe-anno-';
+
+/**
+ * Maps each annotation `LayerSpec.id` to the OBSERVE module it represents,
+ * so single-objective focus can hide everything outside the active module.
+ * Permaculture zones (`human-zones`, sourced from the human-context store)
+ * belong to the steward's "Sectors & Zones" objective. `field-verification`
+ * is cross-module ground-truth with no single home — omitted here so it is
+ * hidden under strict focus (shown only when no objective is active).
+ */
+const SPEC_MODULE: Record<string, ObserveModule> = {
+  'human-points': 'human-context',
+  'human-roads': 'human-context',
+  'human-zones': 'sectors-zones',
+  hazards: 'macroclimate-hazards',
+  'topography-lines': 'topography',
+  'topography-points': 'topography',
+  'water-lines': 'earth-water-ecology',
+  'water-bodies': 'earth-water-ecology',
+  'soil-points': 'earth-water-ecology',
+  ecology: 'earth-water-ecology',
+  pasture: 'earth-water-ecology',
+  'pasture-fence': 'earth-water-ecology',
+  'conventional-crop': 'earth-water-ecology',
+  swot: 'swot-synthesis',
+  'be-buildings': 'built-environment',
+  'be-wells': 'built-environment',
+  'be-septics': 'built-environment',
+  'be-power-lines': 'built-environment',
+  'be-buried-utilities': 'built-environment',
+  'be-fences': 'built-environment',
+  'be-gates': 'built-environment',
+  'be-driveways': 'built-environment',
+};
 const HALO_SOURCE = 'observe-anno-selection';
 const HALO_LAYER_CIRCLE = 'observe-anno-selection-circle';
 const HALO_LAYER_LINE = 'observe-anno-selection-line';
@@ -167,7 +211,11 @@ function circlePolygon(
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
-export default function ObserveAnnotationLayers({ map, projectId }: Props) {
+export default function ObserveAnnotationLayers({
+  map,
+  projectId,
+  activeModule = null,
+}: Props) {
   const visible = useMatrixTogglesStore((s) => s.observeAnnotations);
   // Per-group sub-toggles. A spec with a `toggleKey` is gated SOLELY by
   // its own sub-toggle (each is an independent overlay row in
@@ -1379,9 +1427,14 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
         } else {
           map.addSource(sid, { type: 'geojson', data: spec.data });
         }
-        const specVisible = spec.toggleKey
-          ? subToggles[spec.toggleKey]
-          : visible;
+        // Single-objective focus: when a module is active, only its specs
+        // stay visible (AND'd into the existing toggle gate). `null` =
+        // full overlays, so this is a no-op outside focus mode.
+        const moduleMatch =
+          activeModule == null || SPEC_MODULE[spec.id] === activeModule;
+        const specVisible =
+          moduleMatch &&
+          (spec.toggleKey ? subToggles[spec.toggleKey] : visible);
         for (const layer of spec.layers) {
           if (!map.getLayer(layer.id)) {
             map.addLayer(layer as AnnoLayer);
@@ -1399,9 +1452,11 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
       // Apply visibility to all our layers: toggleKey'd specs follow their
       // own independent sub-toggle; untoggled specs follow the master.
       for (const spec of layerSpecs) {
-        const specVisible = spec.toggleKey
-          ? subToggles[spec.toggleKey]
-          : visible;
+        const moduleMatch =
+          activeModule == null || SPEC_MODULE[spec.id] === activeModule;
+        const specVisible =
+          moduleMatch &&
+          (spec.toggleKey ? subToggles[spec.toggleKey] : visible);
         for (const layer of spec.layers) {
           if (map.getLayer(layer.id)) {
             map.setLayoutProperty(
@@ -1524,6 +1579,7 @@ export default function ObserveAnnotationLayers({ map, projectId }: Props) {
     toggleSelection,
     clearSelection,
     projectId,
+    activeModule,
   ]);
 
   // Clean up everything when the component unmounts (route change).

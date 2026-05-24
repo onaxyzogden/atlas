@@ -272,6 +272,7 @@ export default function ObserveLayout() {
               <ObserveAnnotationLayers
                 map={map}
                 projectId={id}
+                activeModule={validModule}
               />
               {params.projectId ? (
                 <PlanDataLayers
