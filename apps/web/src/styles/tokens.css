@@ -194,6 +194,11 @@
    * a 20%-black backdrop for the dark UI. Dark value matches the old literal
    * so dark mode is unchanged; light value is a faint tint, not a grey box. */
   --color-inset-well:      rgba(0, 0, 0, 0.04);
+  /* Progress-ring (gauge) core disc + inner-bevel rim. Hardcoded near-black
+   * for the dark UI, which left the centred % label dark-on-dark in light
+   * mode. Dark values match the old literals; light values let the label read. */
+  --color-ring-core:       #efe9dc;
+  --color-ring-rim:        rgba(0, 0, 0, 0.06);
 
   /* --- Panel / Sidebar / Header --- */
   --color-header-bg:       var(--color-chrome-bg-translucent);

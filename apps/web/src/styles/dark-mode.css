@@ -26,6 +26,8 @@
   --color-hover-overlay:   rgba(255, 255, 255, 0.05);
   --color-active-overlay:  rgba(255, 255, 255, 0.10);
   --color-inset-well:      rgba(0, 0, 0, 0.2);
+  --color-ring-core:       #091412;
+  --color-ring-rim:        rgba(10, 16, 14, 0.9);
 
   /* -- Borders (gold-tinted, very low alpha) ------------------------------- */
   --color-border:          rgba(212, 175, 95, 0.18);
@@ -128,6 +130,8 @@
     --color-hover-overlay:   rgba(255, 255, 255, 0.05);
     --color-active-overlay:  rgba(255, 255, 255, 0.10);
     --color-inset-well:      rgba(0, 0, 0, 0.2);
+    --color-ring-core:       #091412;
+    --color-ring-rim:        rgba(10, 16, 14, 0.9);
 
     --color-border:          rgba(212, 175, 95, 0.18);
     --color-border-subtle:   rgba(212, 175, 95, 0.10);
