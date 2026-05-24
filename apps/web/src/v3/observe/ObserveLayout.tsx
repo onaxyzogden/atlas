@@ -341,7 +341,11 @@ export default function ObserveLayout() {
       }
       rightRail={
         focusView ? (
-          <ObjectiveExecutionAside projectId={id} view={focusView} />
+          <ObjectiveExecutionAside
+            projectId={id}
+            view={focusView}
+            onExit={exitFocus}
+          />
         ) : (
           <ObserveChecklistAside
             activeModule={validModule}

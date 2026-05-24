@@ -12,7 +12,7 @@
  * write-back) arrive in Phase 5; this rail is the capture surface.
  */
 
-import { Check } from 'lucide-react';
+import { Check, CheckCircle2, Send } from 'lucide-react';
 import { useFieldObjectiveStore } from '../../../store/fieldObjectiveStore.js';
 import { OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL } from '../types.js';
@@ -42,16 +42,38 @@ const STATUS_CLASS: Record<ObjectiveStatus, string> = {
 interface Props {
   projectId: string;
   view: FieldObjectiveView;
+  /** Return to the Command Centre overview (used after submit / completion). */
+  onExit: () => void;
 }
 
-export default function ObjectiveExecutionAside({ projectId, view }: Props) {
+export default function ObjectiveExecutionAside({
+  projectId,
+  view,
+  onExit,
+}: Props) {
   const { objective, run, evaluation } = view;
   const toggleCheck = useFieldObjectiveStore((s) => s.toggleCheck);
   const addEvidence = useFieldObjectiveStore((s) => s.addEvidence);
   const removeEvidence = useFieldObjectiveStore((s) => s.removeEvidence);
   const setSummary = useFieldObjectiveStore((s) => s.setSummary);
+  const setStatus = useFieldObjectiveStore((s) => s.setStatus);
 
   const checkedSet = new Set(run.checkedChecklist);
+
+  // Submit advances to "evidence submitted" and returns to the overview, where
+  // a reviewer sees the card in its new state. Completing/sending back are the
+  // reviewer's two actions on a submitted objective.
+  const submitForReview = () => {
+    setStatus(projectId, objective.id, 'evidence-submitted');
+    onExit();
+  };
+  const markComplete = () => {
+    setStatus(projectId, objective.id, 'complete');
+    onExit();
+  };
+  const sendBack = () => {
+    setStatus(projectId, objective.id, 'needs-review');
+  };
 
   return (
     <aside className={css.box} aria-label="Objective workspace">
@@ -182,6 +204,62 @@ export default function ObjectiveExecutionAside({ projectId, view }: Props) {
           })}
         </div>
       </section>
+
+      <footer className={css.footer}>
+        {run.status === 'evidence-submitted' ? (
+          <>
+            <p className={css.reviewNote}>
+              Evidence submitted — awaiting review.
+            </p>
+            <div className={css.reviewActions}>
+              <button
+                type="button"
+                className={css.ghostBtn}
+                onClick={sendBack}
+              >
+                Send back
+              </button>
+              <button
+                type="button"
+                className={`${css.ghostBtn} ${css.successBtn}`}
+                onClick={markComplete}
+              >
+                <CheckCircle2 size={15} strokeWidth={2} /> Mark complete
+              </button>
+            </div>
+          </>
+        ) : run.status === 'complete' ? (
+          <>
+            <p className={css.completeNote}>
+              <CheckCircle2 size={16} strokeWidth={2} /> Objective complete
+            </p>
+            <button type="button" className={css.ghostBtn} onClick={onExit}>
+              Back to Command Centre
+            </button>
+          </>
+        ) : (
+          <>
+            {run.status === 'needs-review' && (
+              <p className={`${css.reviewNote} ${css.reviewNoteFlag}`}>
+                Sent back for review — address the gaps and resubmit.
+              </p>
+            )}
+            {!evaluation.canSubmit && (
+              <p className={css.gateHint}>
+                Complete the required checklist and evidence to submit.
+              </p>
+            )}
+            <button
+              type="button"
+              className={css.primaryBtn}
+              disabled={!evaluation.canSubmit}
+              onClick={submitForReview}
+            >
+              <Send size={15} strokeWidth={2} /> Submit for review
+            </button>
+          </>
+        )}
+      </footer>
     </aside>
   );
 }
