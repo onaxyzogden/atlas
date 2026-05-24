@@ -21,6 +21,7 @@ import type { FieldObjectiveView } from '../../objectives/useFieldObjectives.js'
 import ObjectiveEvidenceCapture, {
   type IndexedEvidence,
 } from './ObjectiveEvidenceCapture.js';
+import ObservationTimelinePanel from '../../command/ObservationTimelinePanel.js';
 import css from './ObjectiveExecutionAside.module.css';
 
 const STATUS_LABEL: Record<ObjectiveStatus, string> = {
@@ -203,6 +204,16 @@ export default function ObjectiveExecutionAside({
             );
           })}
         </div>
+      </section>
+
+      {/* Focus-mode timeline filter: the observation timeline scoped to just
+          this objective (a single-view array yields only its events). */}
+      <section className={css.section} aria-label="Objective timeline">
+        <ObservationTimelinePanel
+          views={[view]}
+          heading="This objective's activity"
+          emptyNote="No observations recorded for this objective yet."
+        />
       </section>
 
       <footer className={css.footer}>

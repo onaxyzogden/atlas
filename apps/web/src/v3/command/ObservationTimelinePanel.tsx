@@ -21,6 +21,11 @@ import css from './ObserveCommandCentrePage.module.css';
 
 interface Props {
   views: FieldObjectiveView[];
+  /** Eyebrow heading. Defaults to the global "Observation timeline". In focus
+   *  mode the aside passes a single-objective view + contextual copy. */
+  heading?: string;
+  /** Empty-state text when there are no events for the given views. */
+  emptyNote?: string;
 }
 
 interface TimelineEvent {
@@ -83,16 +88,18 @@ function formatWhen(at: string): string {
   });
 }
 
-export default function ObservationTimelinePanel({ views }: Props) {
+export default function ObservationTimelinePanel({
+  views,
+  heading = 'Observation timeline',
+  emptyNote = 'No observations recorded yet. Launch an objective to begin field work.',
+}: Props) {
   const events = buildEvents(views);
 
   return (
-    <section className={css.panel} aria-label="Observation timeline">
-      <p className="eyebrow">Observation timeline</p>
+    <section className={css.panel} aria-label={heading}>
+      <p className="eyebrow">{heading}</p>
       {events.length === 0 ? (
-        <p className={css.emptyNote}>
-          No observations recorded yet. Launch an objective to begin field work.
-        </p>
+        <p className={css.emptyNote}>{emptyNote}</p>
       ) : (
         <ul className={css.timelineList}>
           {events.map((e) => (
