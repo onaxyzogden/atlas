@@ -27,9 +27,31 @@ import {
   phaseIndex,
   yeomansCapForYear,
   type PlanView,
+  type PlanModule,
 } from '../../types.js';
 import { findElementSpec } from '../elementCatalog.js';
+import type { DesignCategory } from '../elementCatalog.js';
 import type { DesignElement } from '../../../../store/designElementsStore.js';
+
+/**
+ * Maps a design-element category to the Plan objective (module) it belongs to.
+ * Used to scope the Vision design-element canvas to a single objective when the
+ * Plan map is in single-objective focus (an objective is "Open on Map"). When
+ * `activeModule` is null the full design-element set renders. `custom` has no
+ * home objective, so it is hidden under focus.
+ */
+const CATEGORY_MODULE: Record<DesignCategory, PlanModule | null> = {
+  water: 'water-management',
+  access: 'zone-circulation',
+  grazing: 'livestock',
+  structure: 'structures-subsystems',
+  machinery: 'machinery',
+  amenity: 'structures-subsystems',
+  vegetation: 'plant-systems',
+  earthworks: 'water-management',
+  habitat: 'habitat-allocation',
+  custom: null,
+};
 
 interface Props {
   map: MaplibreMap;
@@ -45,6 +67,11 @@ interface Props {
    *  a direct map click. Lets the parent mirror the local `selectedId` state
    *  that drives the gold-outline feature-state highlight. */
   onSelect?: (id: string | null) => void;
+  /** When set, scope the canvas to a single Plan objective: only design
+   *  elements whose category maps to `activeModule` render (CATEGORY_MODULE).
+   *  Null = full design-element set (no focus). Mirrors the strict
+   *  single-objective rail/overlay focus. */
+  activeModule?: PlanModule | null;
 }
 
 const SOURCE_PREFIX = 'design-el-';
@@ -57,6 +84,7 @@ export default function DesignElementLayers({
   selectedId,
   onHoverChange,
   onSelect,
+  activeModule = null,
 }: Props) {
   // Opt into draft rows so the generated-design review layer renders;
   // every other consumer excludes drafts by default (ADR 2026-05-14).
@@ -86,7 +114,15 @@ export default function DesignElementLayers({
         if (originView === 'current')
           return !(el.hiddenInViews ?? []).includes(view);
         return false;
-      });
+      })
+      // Single-objective focus (2026-05-24): when an objective is "Open on
+      // Map", show only design elements whose category maps to it. `custom`
+      // (CATEGORY_MODULE = null) is hidden under focus. Full set when null.
+      .filter(
+        (el) =>
+          activeModule == null ||
+          CATEGORY_MODULE[el.category] === activeModule,
+      );
 
     const polys: GeoJSON.Feature[] = [];
     const lines: GeoJSON.Feature[] = [];
@@ -179,7 +215,7 @@ export default function DesignElementLayers({
       conflictPolyFC: { type: 'FeatureCollection' as const, features: conflictPolys },
       conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
     };
-  }, [elements, view, currentYear]);
+  }, [elements, view, currentYear, activeModule]);
 
   useEffect(() => {
     if (!map) return;

@@ -96,6 +96,7 @@ import {
   createFootprintPolygon,
 } from '../../../features/structures/footprints.js';
 import type { StructureType } from '@ogden/shared';
+import type { PlanModule } from '../types.js';
 import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
 import { translateByDelta } from './translateGeometry.js';
 import { beginDragUndoWindow } from './dragUndo.js';
@@ -138,10 +139,57 @@ interface Props {
    * relocated. Defaults to true (Plan stage behavior).
    */
   editable?: boolean;
+  /**
+   * When a single Plan objective is focused in the map (via the compass's
+   * "Open on Map"), only features belonging to that module stay rendered —
+   * every other Plan group is dropped from the shared collections, mirroring
+   * the strict single-objective rail focus. `null`/omitted = full overlays
+   * (the bare `/plan` view), so nothing changes outside focus mode. The
+   * read-only cross-stage substrate (Observe annotations mounted alongside in
+   * the Plan map) stays always-ambient and is not scoped here. Modules with
+   * no map geometry (e.g. goal-compass, phasing-budgeting) correctly yield an
+   * empty Plan overlay when focused — only the ambient substrate remains.
+   */
+  activeModule?: PlanModule | null;
 }
 
 const SOURCE_PREFIX = 'plan-data-';
 const LAYER_PREFIX = 'plan-data-';
+
+/**
+ * Maps each plan-data feature `kind` to the Plan module it belongs to, so
+ * single-objective focus can drop everything outside the active module.
+ * Derived from the per-feature module comments in the FC builder below
+ * (e.g. crops/guilds → Plant Systems; paddocks/fences/product-chain →
+ * Livestock; water nodes + their conflict halos → Water Management).
+ */
+const KIND_MODULE: Record<string, PlanModule> = {
+  zone: 'zone-circulation',
+  path: 'zone-circulation',
+  setback: 'zone-circulation',
+  crop: 'plant-systems',
+  guild: 'plant-systems',
+  'guild-member': 'plant-systems',
+  'host-canopy-union': 'plant-systems',
+  'host-canopy-union-label': 'plant-systems',
+  paddock: 'livestock',
+  'fence-line': 'livestock',
+  slaughter_point: 'livestock',
+  cold_chain_unit: 'livestock',
+  market_node: 'livestock',
+  utility: 'structures-subsystems',
+  'utility-point': 'structures-subsystems',
+  structure: 'structures-subsystems',
+  fertility: 'soil-fertility',
+  flow: 'soil-fertility',
+  note: 'principle-verification',
+  transect: 'principle-verification',
+  water_catchment: 'water-management',
+  water_storage: 'water-management',
+  water_swale: 'water-management',
+  water_sink: 'water-management',
+  utility_conflict: 'water-management',
+};
 
 const WATER_COLOR: Record<string, string> = {
   catchment: '#5fc7d4',
@@ -247,7 +295,12 @@ function enterpriseColorExpr(
   ];
 }
 
-export default function PlanDataLayers({ map, projectId, editable = true }: Props) {
+export default function PlanDataLayers({
+  map,
+  projectId,
+  editable = true,
+  activeModule = null,
+}: Props) {
   const waterNodes = useWaterSystemsStore((s) => s.waterNodes);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const zones = useZoneStore((s) => s.zones);
@@ -1198,22 +1251,34 @@ export default function PlanDataLayers({ map, projectId, editable = true }: Prop
       labels.push({ type: 'Feature', id: n.id, properties: props, geometry: n.geometry });
     }
 
-    return {
-      polyFC: { type: 'FeatureCollection' as const, features: polys },
-      lineFC: { type: 'FeatureCollection' as const, features: lines },
-      pointFC: { type: 'FeatureCollection' as const, features: points },
-      labelFC: { type: 'FeatureCollection' as const, features: labels },
-      setbackFC: { type: 'FeatureCollection' as const, features: setbacks },
-      flowFC: { type: 'FeatureCollection' as const, features: flows },
-      transectFC: { type: 'FeatureCollection' as const, features: transects },
-      conflictPointFC: { type: 'FeatureCollection' as const, features: conflictPoints },
-      conflictLineFC: { type: 'FeatureCollection' as const, features: conflictLines },
-      memberPointFC: { type: 'FeatureCollection' as const, features: memberPoints },
-      memberCanopyFC: { type: 'FeatureCollection' as const, features: memberCanopies },
-      hostCanopyUnionFC: { type: 'FeatureCollection' as const, features: hostCanopyUnions },
-      hostCanopyUnionLabelFC: { type: 'FeatureCollection' as const, features: hostCanopyUnionLabels },
+    // Single-objective focus: when a module is active, drop every feature
+    // whose kind belongs to a different module. `null` = full overlays, so
+    // this is an identity pass outside focus mode. Features with an unmapped
+    // kind are dropped under focus (strict single-objective view).
+    const focus = (feats: GeoJSON.Feature[]): GeoJSON.Feature[] => {
+      if (activeModule == null) return feats;
+      return feats.filter((f) => {
+        const kind = (f.properties as { kind?: string } | null)?.kind;
+        return kind != null && KIND_MODULE[kind] === activeModule;
+      });
     };
-  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, utilities, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId, designElementsForProject]);
+
+    return {
+      polyFC: { type: 'FeatureCollection' as const, features: focus(polys) },
+      lineFC: { type: 'FeatureCollection' as const, features: focus(lines) },
+      pointFC: { type: 'FeatureCollection' as const, features: focus(points) },
+      labelFC: { type: 'FeatureCollection' as const, features: focus(labels) },
+      setbackFC: { type: 'FeatureCollection' as const, features: focus(setbacks) },
+      flowFC: { type: 'FeatureCollection' as const, features: focus(flows) },
+      transectFC: { type: 'FeatureCollection' as const, features: focus(transects) },
+      conflictPointFC: { type: 'FeatureCollection' as const, features: focus(conflictPoints) },
+      conflictLineFC: { type: 'FeatureCollection' as const, features: focus(conflictLines) },
+      memberPointFC: { type: 'FeatureCollection' as const, features: focus(memberPoints) },
+      memberCanopyFC: { type: 'FeatureCollection' as const, features: focus(memberCanopies) },
+      hostCanopyUnionFC: { type: 'FeatureCollection' as const, features: focus(hostCanopyUnions) },
+      hostCanopyUnionLabelFC: { type: 'FeatureCollection' as const, features: focus(hostCanopyUnionLabels) },
+    };
+  }, [waterNodes, zones, paths, cropAreas, fertilityInfra, paddocks, fenceLines, guilds, structures, ecologicalNotes, utilityRuns, utilities, setbackRings, flowConnectors, monitoringTransects, slaughterPoints, coldChainUnits, marketNodes, projectId, designElementsForProject, activeModule]);
 
   useEffect(() => {
     if (!map) return;

@@ -378,7 +378,7 @@ export default function PlanLayout() {
           />
           <PlanObserveSelectionHandler map={map} />
           <PlanCropAreaSelectionHandler map={map} projectId={id} />
-          <PlanDataLayers map={map} projectId={id} />
+          <PlanDataLayers map={map} projectId={id} activeModule={validModule} />
           {/* DesignElementLayers also mounts on Current (2026-05-11) so
               orchard / silvopasture / pasture-mix polygons drawn from
               PlanTools persist to designElementsStore and surface their
@@ -392,6 +392,7 @@ export default function PlanLayout() {
             selectedId={currentSelectedId}
             onHoverChange={setCurrentHovering}
             onSelect={setCurrentSelectedId}
+            activeModule={validModule}
           />
           <PlanContoursOverlay map={map} />
           <PlanZoneRingsOverlay map={map} projectId={id} />
