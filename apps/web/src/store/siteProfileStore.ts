@@ -143,7 +143,7 @@ export const useSiteProfileStore = create<SiteProfileState>()(
         if (!p) return { filled: 0, manual: 0, observe: 0 };
         const facets = FACET_KEYS.map(
           (k) => (p as unknown as Record<string, Facet<unknown>>)[k],
-        );
+        ).filter((f): f is Facet<unknown> => f != null);
         const filled = facets.filter((f) => f.value !== null);
         return {
           filled: filled.length,

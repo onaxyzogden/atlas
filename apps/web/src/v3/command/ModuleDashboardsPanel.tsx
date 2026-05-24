@@ -11,10 +11,11 @@ import type { FC } from 'react';
 import { Link } from '@tanstack/react-router';
 import { ArrowUpRight } from 'lucide-react';
 import {
-  OBSERVE_MODULES,
   OBSERVE_MODULE_LABEL,
   type ObserveModule,
 } from '../observe/types.js';
+import { getObserveModulesForGoal } from '../observe/observeGoalAffinity.js';
+import { useGoalTreeStore } from '../../store/goalTreeStore.js';
 import HumanContextDashboard from '../observe/modules/human-context/HumanContextDashboard.js';
 import BuiltEnvironmentDashboard from '../observe/modules/built-environment/BuiltEnvironmentDashboard.js';
 import MacroclimateDashboard from '../observe/modules/macroclimate-hazards/MacroclimateDashboard.js';
@@ -39,9 +40,13 @@ interface Props {
 }
 
 export default function ModuleDashboardsPanel({ projectId }: Props) {
+  const archetype = useGoalTreeStore(
+    (s) => s.goalTreesByProject[projectId]?.archetype ?? null,
+  );
+  const modules = getObserveModulesForGoal(archetype);
   return (
     <div className={css.modGrid}>
-      {OBSERVE_MODULES.map((module) => {
+      {modules.map((module) => {
         const Dashboard = DASHBOARD[module];
         return (
           <section key={module} className={css.modCard} aria-label={OBSERVE_MODULE_LABEL[module]}>
