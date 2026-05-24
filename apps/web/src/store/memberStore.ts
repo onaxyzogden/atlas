@@ -15,6 +15,12 @@ interface MemberState {
 
   fetchMembers: (projectId: string) => Promise<void>;
   fetchMyRole: (projectId: string) => Promise<void>;
+  /**
+   * Seed a local roster for the offline/demo flow (no auth, no backend).
+   * No-op when members are already present so a real fetched roster is never
+   * clobbered. Used by the builtin sample seed.
+   */
+  seedLocalMembers: (members: ProjectMemberRecord[]) => void;
   inviteMember: (projectId: string, email: string, role: Exclude<ProjectRole, 'owner'>) => Promise<ProjectMemberRecord | null>;
   updateRole: (projectId: string, userId: string, role: Exclude<ProjectRole, 'owner'>) => Promise<void>;
   removeMember: (projectId: string, userId: string) => Promise<void>;
@@ -38,6 +44,11 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  seedLocalMembers: (members: ProjectMemberRecord[]) => {
+    if (get().members.length > 0) return;
+    set({ members });
   },
 
   fetchMyRole: async (projectId: string) => {

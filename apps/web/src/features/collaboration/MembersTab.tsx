@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useMemberStore } from '../../store/memberStore.js';
+import { useVisionStore } from '../../store/visionStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import type { ProjectRole } from '@ogden/shared';
@@ -38,6 +39,16 @@ export default function MembersTab({ project }: MembersTabProps) {
 
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = !!user;
+
+  // Cross-reference Human Context profiles: a member is a "steward" once they
+  // have a human-context overlay recorded (visionStore.stewardProfiles).
+  const stewardProfiles = useVisionStore(
+    (s) => s.getVisionData(project.serverId ?? project.id)?.stewardProfiles,
+  );
+  const isSteward = useCallback(
+    (userId: string) => !!stewardProfiles && userId in stewardProfiles,
+    [stewardProfiles],
+  );
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<Exclude<ProjectRole, 'owner'>>('reviewer');
@@ -182,6 +193,16 @@ export default function MembersTab({ project }: MembersTabProps) {
                 <div className={`${p.text12} ${p.fontMedium}`} style={{ color: 'var(--color-panel-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {m.displayName ?? m.email.split('@')[0]}
                   {isCurrentUser && <span className={`${p.text10} ${p.muted}`} style={{ marginLeft: 4 }}>(you)</span>}
+                  {isSteward(m.userId) && (
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, letterSpacing: 0.3, marginLeft: 6,
+                      color: 'var(--color-green-brand, #6a994e)',
+                      background: 'rgba(106,153,78,0.15)', padding: '1px 6px',
+                      borderRadius: 4, textTransform: 'uppercase', whiteSpace: 'nowrap',
+                    }}>
+                      {'\u{1F331}'} Steward
+                    </span>
+                  )}
                 </div>
                 <div className={`${p.text10} ${p.muted}`} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {m.email}

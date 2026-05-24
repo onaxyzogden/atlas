@@ -16,6 +16,7 @@ import { useParams } from '@tanstack/react-router';
 import { pickTruthy } from '@ogden/shared';
 import AnnotationListCard from '../../components/AnnotationListCard.js';
 import { useVisionStore } from '../../../../store/visionStore.js';
+import type { StewardProfile } from '../../../../store/visionStore.js';
 import { useV3Project } from '../../../data/useV3Project.js';
 import { api } from '../../../../lib/apiClient.js';
 import ParcelSatelliteSnapshot from '../../../components/ParcelSatelliteSnapshot.js';
@@ -30,11 +31,14 @@ import {
   phaseNotesCaptured,
   regionalCompleteness,
   regionalCounts,
+  rosterCapacityHours,
+  rosterCompleteness,
   stewardCompleteness,
   totalHoursPerWeek,
   visionCompleteness,
   visionCounts,
 } from './derivations.js';
+import { useStewardRoster, type StewardRosterEntry } from './roster.js';
 
 export default function HumanContextDashboard() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
@@ -42,6 +46,7 @@ export default function HumanContextDashboard() {
 
   const ensureDefaults = useVisionStore((s) => s.ensureDefaults);
   const vision = useVisionStore((s) => s.getVisionData(id));
+  const roster = useStewardRoster(id);
 
   useEffect(() => {
     ensureDefaults(id);
@@ -52,54 +57,72 @@ export default function HumanContextDashboard() {
     if (exporting) return;
     setExporting(true);
     try {
-      const steward = vision?.steward;
+      const sharedVision = vision?.sharedVision;
       const regional = vision?.regional;
-      const archetype = archetypeFor(steward);
-      const overall = moduleCompleteness(vision);
-      const sw = stewardCompleteness(steward);
+      const profiles = roster.map((r) => r.profile);
+      const overall = moduleCompleteness(vision, profiles);
+      const rosterPct = rosterCompleteness(profiles).pct;
       const rg = regionalCompleteness(regional);
       const vs = visionCompleteness(vision);
-      const totalHrs = totalHoursPerWeek(steward);
+      const totalHrs = rosterCapacityHours(profiles);
 
-      const stewardPayload = steward
+      const stewardsPayload = roster.map(({ member, profile }) => {
+        const archetype = archetypeFor(profile);
+        const completeness = stewardCompleteness(profile);
+        return {
+          userId: member.userId,
+          name: member.displayName ?? member.email,
+          role: member.role,
+          ...pickTruthy(profile, [
+            'relationship',
+            'occupation',
+            'lifestyle',
+            'budget',
+            'personalVision',
+          ]),
+          ...(profile.age != null ? { age: profile.age } : {}),
+          ...(profile.maintenanceHrsInitial != null
+            ? { maintenanceHrsInitial: profile.maintenanceHrsInitial }
+            : {}),
+          ...(profile.maintenanceHrsOngoing != null
+            ? { maintenanceHrsOngoing: profile.maintenanceHrsOngoing }
+            : {}),
+          ...(profile.skills && profile.skills.length > 0
+            ? { skills: profile.skills }
+            : {}),
+          ...(profile.personalExperienceGoals &&
+          profile.personalExperienceGoals.length > 0
+            ? { personalExperienceGoals: profile.personalExperienceGoals }
+            : {}),
+          hoursPerWeek: totalHoursPerWeek(profile),
+          completenessPct: completeness.pct,
+          archetype: { name: archetype.name, blurb: archetype.blurb },
+        };
+      });
+
+      const visionPayload = sharedVision
         ? {
-            ...pickTruthy(steward, [
-              'name',
-              'occupation',
-              'lifestyle',
-              'budget',
-              'vision',
-            ]),
-            ...(steward.age != null ? { age: steward.age } : {}),
-            ...(steward.maintenanceHrsInitial != null
-              ? { maintenanceHrsInitial: steward.maintenanceHrsInitial }
+            ...pickTruthy(sharedVision, ['statement']),
+            ...(sharedVision.coreFunctions && sharedVision.coreFunctions.length > 0
+              ? { coreFunctions: sharedVision.coreFunctions }
               : {}),
-            ...(steward.maintenanceHrsOngoing != null
-              ? { maintenanceHrsOngoing: steward.maintenanceHrsOngoing }
+            ...(sharedVision.experienceGoals && sharedVision.experienceGoals.length > 0
+              ? { experienceGoals: sharedVision.experienceGoals }
               : {}),
-            ...(steward.skills && steward.skills.length > 0
-              ? { skills: steward.skills }
+            ...(sharedVision.successMetrics && sharedVision.successMetrics.length > 0
+              ? { successMetrics: sharedVision.successMetrics }
               : {}),
-            ...(steward.coreFunctions && steward.coreFunctions.length > 0
-              ? { coreFunctions: steward.coreFunctions }
+            ...(sharedVision.principles && sharedVision.principles.length > 0
+              ? { principles: sharedVision.principles }
               : {}),
-            ...(steward.experienceGoals && steward.experienceGoals.length > 0
-              ? { experienceGoals: steward.experienceGoals }
+            ...(sharedVision.guidingValues && sharedVision.guidingValues.length > 0
+              ? { guidingValues: sharedVision.guidingValues }
               : {}),
-            ...(steward.successMetrics && steward.successMetrics.length > 0
-              ? { successMetrics: steward.successMetrics }
+            ...(sharedVision.constraints && sharedVision.constraints.length > 0
+              ? { constraints: sharedVision.constraints }
               : {}),
-            ...(steward.principles && steward.principles.length > 0
-              ? { principles: steward.principles }
-              : {}),
-            ...(steward.guidingValues && steward.guidingValues.length > 0
-              ? { guidingValues: steward.guidingValues }
-              : {}),
-            ...(steward.constraints && steward.constraints.length > 0
-              ? { constraints: steward.constraints }
-              : {}),
-            ...(steward.moodboardImages
-              ? { moodboardImageCount: steward.moodboardImages.length }
+            ...(sharedVision.moodboardImages
+              ? { moodboardImageCount: sharedVision.moodboardImages.length }
               : {}),
           }
         : {};
@@ -134,7 +157,8 @@ export default function HumanContextDashboard() {
         exportType: 'human_context_report',
         payload: {
           humanContext: {
-            steward: stewardPayload,
+            stewards: stewardsPayload,
+            vision: visionPayload,
             regional: regionalPayload,
             phaseNotes: (vision?.phaseNotes ?? []).map((p) => ({
               phaseKey: p.phaseKey,
@@ -147,15 +171,15 @@ export default function HumanContextDashboard() {
               note: m.note,
               targetDate: m.targetDate,
             })),
-            archetype: { name: archetype.name, blurb: archetype.blurb },
             totals: {
               overallPct: overall.pct,
-              stewardPct: sw.pct,
+              stewardPct: rosterPct,
               regionalPct: rg.pct,
               visionPct: vs.pct,
               totalHoursPerWeek: totalHrs,
+              stewardCount: roster.length,
               milestonesDefined: vision?.milestones?.length ?? 0,
-              moodboardImageCount: steward?.moodboardImages?.length ?? 0,
+              moodboardImageCount: sharedVision?.moodboardImages?.length ?? 0,
             },
           },
         },
@@ -168,20 +192,27 @@ export default function HumanContextDashboard() {
     }
   };
 
+  const profiles = roster.map((r) => r.profile);
+
   return (
     <div className={card.page}>
-      <HumanHero vision={vision} onExport={handleExport} exporting={exporting} />
+      <HumanHero
+        vision={vision}
+        profiles={profiles}
+        onExport={handleExport}
+        exporting={exporting}
+      />
 
       <div className={card.grid}>
-        <StewardCard projectId={id} vision={vision} />
+        <StewardCard projectId={id} vision={vision} roster={roster} />
         <RegionalCard projectId={id} vision={vision} />
       </div>
 
       <VisionSummaryCard projectId={id} vision={vision} />
 
-      <HealthStrip vision={vision} />
+      <HealthStrip vision={vision} profiles={profiles} />
 
-      <SynthesisPanel vision={vision} />
+      <SynthesisPanel vision={vision} roster={roster} />
 
       <section className={card.section}>
         <h2 className={card.sectionTitle}>Field annotations</h2>
@@ -207,12 +238,13 @@ interface ProjectVisionProps extends VisionProps {
 }
 
 interface HumanHeroProps extends VisionProps {
+  profiles: StewardProfile[];
   onExport: () => void;
   exporting: boolean;
 }
 
-function HumanHero({ vision, onExport, exporting }: HumanHeroProps) {
-  const overall = moduleCompleteness(vision);
+function HumanHero({ vision, profiles, onExport, exporting }: HumanHeroProps) {
+  const overall = moduleCompleteness(vision, profiles);
   const phases = phaseNotesCaptured(vision);
   const milestones = vision?.milestones?.length ?? 0;
   const regional = regionalCounts(vision?.regional);
@@ -278,47 +310,62 @@ function KpiBlock({ icon: Icon, label, value, note }: KpiBlockProps) {
   );
 }
 
-function StewardCard({ vision }: ProjectVisionProps) {
-  const steward = vision?.steward;
-  const completeness = stewardCompleteness(steward);
-  const archetype = archetypeFor(steward);
-  const totalHrs = totalHoursPerWeek(steward);
-  const skills = (steward?.skills ?? []).slice(0, 3);
-  const ArchetypeIcon =
-    archetype.name === 'Cartographer-Steward'
-      ? Compass
-      : archetype.name === 'Practical Builder'
-      ? Hammer
-      : archetype.name === 'Hands-Off Caretaker'
-      ? Leaf
-      : Users;
+interface StewardCardProps extends ProjectVisionProps {
+  roster: StewardRosterEntry[];
+}
+
+function StewardCard({ roster }: StewardCardProps) {
+  const profiles = roster.map((r) => r.profile);
+  const rosterPct = rosterCompleteness(profiles).pct;
+  const capacity = rosterCapacityHours(profiles);
 
   return (
     <section className={card.section}>
       <div className={hc.cardEyebrow}><b>1</b> Steward Survey</div>
       <h2 className={card.sectionTitle}>Who is stewarding this land</h2>
-      <p className={card.sectionBody} style={{ marginBottom: 12 }}>What they bring.</p>
+      <p className={card.sectionBody} style={{ marginBottom: 12 }}>
+        {roster.length > 0
+          ? `${roster.length} ${roster.length === 1 ? 'steward' : 'stewards'} and what they bring.`
+          : 'Add stewards from your project team.'}
+      </p>
 
       <div className={card.statRow}>
-        <span>Profile completeness</span>
-        <span>{completeness.pct}%</span>
+        <span>Stewards</span>
+        <span>{roster.length > 0 ? roster.length : '—'}</span>
       </div>
       <div className={card.statRow}>
-        <span>Archetype</span>
-        <span><ArchetypeIcon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} /> {archetype.name}</span>
+        <span>Roster completeness</span>
+        <span>{roster.length > 0 ? `${rosterPct}%` : '—'}</span>
       </div>
       <div className={card.statRow}>
-        <span>Capacity</span>
-        <span>{totalHrs > 0 ? `${totalHrs} hrs / week` : 'â€”'}</span>
+        <span>Combined capacity</span>
+        <span>{capacity > 0 ? `${capacity} hrs / week` : '—'}</span>
       </div>
 
-      <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        {skills.length > 0 ? (
-          skills.map((s) => (
-            <span key={s} className={`${card.pill} ${card.pillPartial}`}>{s}</span>
-          ))
+      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {roster.length > 0 ? (
+          roster.map(({ member, profile }) => {
+            const archetype = archetypeFor(profile);
+            const ArchetypeIcon =
+              archetype.name === 'Cartographer-Steward'
+                ? Compass
+                : archetype.name === 'Practical Builder'
+                ? Hammer
+                : archetype.name === 'Hands-Off Caretaker'
+                ? Leaf
+                : Users;
+            return (
+              <div key={member.userId} className={card.statRow}>
+                <span>{member.displayName ?? member.email}</span>
+                <span>
+                  <ArchetypeIcon aria-hidden="true" size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+                  {archetype.name}
+                </span>
+              </div>
+            );
+          })
         ) : (
-          <span className={card.empty}>No skills captured yet.</span>
+          <span className={card.empty}>No stewards on the roster yet.</span>
         )}
       </div>
     </section>
@@ -370,9 +417,9 @@ function RegionalCard({ projectId, vision }: ProjectVisionProps) {
 }
 
 function VisionSummaryCard({ vision }: ProjectVisionProps) {
-  const steward = vision?.steward;
-  const counts = visionCounts(steward);
-  const themes = (steward?.coreFunctions ?? []).slice(0, 5);
+  const sv = vision?.sharedVision;
+  const counts = visionCounts(sv);
+  const themes = (sv?.coreFunctions ?? []).slice(0, 5);
 
   return (
     <section className={card.section}>
@@ -381,7 +428,7 @@ function VisionSummaryCard({ vision }: ProjectVisionProps) {
       <p className={card.sectionBody} style={{ marginBottom: 12 }}>And what success looks like.</p>
 
       <blockquote className={hc.blockquote} style={{ marginBottom: 12 }}>
-        {steward?.vision || 'Not yet captured.'}
+        {sv?.statement || 'Not yet captured.'}
       </blockquote>
 
       <div style={{ marginBottom: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -410,9 +457,13 @@ function VisionSummaryCard({ vision }: ProjectVisionProps) {
   );
 }
 
-function HealthStrip({ vision }: VisionProps) {
-  const overall = moduleCompleteness(vision);
-  const sw = stewardCompleteness(vision?.steward);
+interface HealthStripProps extends VisionProps {
+  profiles: StewardProfile[];
+}
+
+function HealthStrip({ vision, profiles }: HealthStripProps) {
+  const overall = moduleCompleteness(vision, profiles);
+  const sw = rosterCompleteness(profiles);
   const rg = regionalCompleteness(vision?.regional);
   const vs = visionCompleteness(vision);
   const challenges = vision?.regional?.culturalChallenges?.length ?? 0;
@@ -450,36 +501,51 @@ function HealthStrip({ vision }: VisionProps) {
   );
 }
 
-function SynthesisPanel({ vision }: VisionProps) {
-  const overall = moduleCompleteness(vision);
-  const steward = vision?.steward;
+interface SynthesisPanelProps extends VisionProps {
+  roster: StewardRosterEntry[];
+}
+
+function SynthesisPanel({ vision, roster }: SynthesisPanelProps) {
+  const profiles = roster.map((r) => r.profile);
+  const overall = moduleCompleteness(vision, profiles);
+  const sv = vision?.sharedVision;
   const regional = vision?.regional;
-  const archetype = archetypeFor(steward);
-  const totalHrs = totalHoursPerWeek(steward);
-  const skills = steward?.skills ?? [];
+  const totalHrs = rosterCapacityHours(profiles);
+  const skills = profiles.flatMap((p) => p.skills ?? []);
+  // Lead steward (or the first on the roster) drives the headline archetype.
+  const lead = roster.find((r) => r.profile.relationship === 'lead') ?? roster[0];
+  const archetype = archetypeFor(lead?.profile);
   const empty =
-    !steward?.vision &&
+    roster.length === 0 &&
+    !sv?.statement &&
     (regional?.indigenousNames?.length ?? 0) === 0 &&
     (regional?.culturalStrengths?.length ?? 0) === 0;
 
   const insights: string[] = [];
+  if (roster.length > 0) {
+    insights.push(
+      `${roster.length} ${roster.length === 1 ? 'steward' : 'stewards'} on the roster${
+        totalHrs > 0 ? ` - ${totalHrs} hrs/week combined capacity.` : '.'
+      }`,
+    );
+  }
   if (totalHrs > 0) {
     insights.push(
       totalHrs >= 20
-        ? `${totalHrs} hrs/week of stewardship capacity â€” strong foundation.`
-        : `${totalHrs} hrs/week â€” light-touch capacity, favour resilient systems.`,
+        ? `${totalHrs} hrs/week of stewardship capacity - strong foundation.`
+        : `${totalHrs} hrs/week - light-touch capacity, favour resilient systems.`,
     );
   }
   if (archetype.name !== 'Observer-In-Residence') {
-    insights.push(`Archetype: ${archetype.name}. ${archetype.blurb}`);
+    insights.push(`Lead archetype: ${archetype.name}. ${archetype.blurb}`);
   }
   if ((regional?.culturalStrengths?.length ?? 0) > 0) {
     insights.push(
-      `${regional?.culturalStrengths?.length ?? 0} cultural strengths identified â€” leverage them in design.`,
+      `${regional?.culturalStrengths?.length ?? 0} cultural strengths identified - leverage them in design.`,
     );
   }
   if (insights.length === 0) {
-    insights.push('Capture steward, regional, and vision details to generate insights.');
+    insights.push('Capture stewards, regional, and vision details to generate insights.');
   }
 
   const implications: string[] = [];
@@ -492,7 +558,7 @@ function SynthesisPanel({ vision }: VisionProps) {
   if ((regional?.culturalChallenges?.length ?? 0) > 0) {
     implications.push('Address cultural challenges in early design phases.');
   }
-  if ((steward?.coreFunctions?.length ?? 0) > 0) {
+  if ((sv?.coreFunctions?.length ?? 0) > 0) {
     implications.push('Vision themes should drive zone prioritization.');
   }
   if (implications.length === 0) {
@@ -500,10 +566,13 @@ function SynthesisPanel({ vision }: VisionProps) {
   }
 
   const nextSteps: string[] = [];
+  if (roster.length === 0) {
+    nextSteps.push('Add stewards from your project team.');
+  }
   if ((regional?.localNetwork?.length ?? 0) === 0) {
     nextSteps.push('Add at least one local network contact.');
   }
-  if (!steward?.vision) {
+  if (!sv?.statement) {
     nextSteps.push('Write a one-sentence vision statement.');
   }
   if ((vision?.phaseNotes ?? []).every((p) => !p.notes.trim())) {

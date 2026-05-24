@@ -50,8 +50,12 @@ export const ProjectMetadata = z.object({
   avgDailySolarKwhM2: z.number().optional(),
   prevailingWindDir: z.string().max(20).optional(),
   climateNormals: z.string().max(100).optional(),
-  // Human-context fields captured by intake wizard / steward survey
+  // Human-context fields captured by intake wizard / steward survey.
+  // `stewardName` is the legacy single-steward convenience (still read by the
+  // atlas-ui StewardSurveyPage); `stewardNames` is the denormalized roster of
+  // all stewards on the project (multi-steward model). Keep both in sync.
   stewardName: z.string().max(200).optional(),
+  stewardNames: z.array(z.string().max(200)).max(50).optional(),
   visionStatement: z.string().max(2000).optional(),
   // OBSERVE sector wedge outer radius in metres. Falls back to
   // DEFAULT_SECTOR_RADIUS_M (250) when unset. 5 km cap is a sanity

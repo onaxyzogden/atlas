@@ -480,17 +480,44 @@ export const BuiltEnvironmentPayload = z.object({
 });
 export type BuiltEnvironmentPayload = z.infer<typeof BuiltEnvironmentPayload>;
 
+/** One steward in the roster: member identity + profile overlay + derived stats. */
+export const StewardPayload = z.object({
+  /** Member userId (roster key). */
+  userId: z.string(),
+  /** Display name from the members roster. */
+  name: z.string().optional(),
+  /** App-permission role (owner/designer/reviewer/viewer). */
+  role: z.string().optional(),
+  /** Domain relationship to the project (lead/co-steward/family/ally/contributor). */
+  relationship: z.string().optional(),
+  age: z.number().optional(),
+  occupation: z.string().optional(),
+  lifestyle: z.enum(['active', 'sedentary']).optional(),
+  maintenanceHrsInitial: z.number().optional(),
+  maintenanceHrsOngoing: z.number().optional(),
+  budget: z.string().optional(),
+  skills: z.array(z.string()).optional(),
+  /** This steward's personal vision (hybrid model). */
+  personalVision: z.string().optional(),
+  /** This steward's personal experience goals (hybrid model). */
+  personalExperienceGoals: z.array(z.string()).optional(),
+  /** Derived: initial + ongoing hours/week. */
+  hoursPerWeek: z.number().optional(),
+  /** Derived: per-steward profile completeness 0–100. */
+  completenessPct: z.number().optional(),
+  /** Derived: per-steward archetype. */
+  archetype: z.object({
+    name: z.string(),
+    blurb: z.string(),
+  }).optional(),
+});
+export type StewardPayload = z.infer<typeof StewardPayload>;
+
 export const HumanContextPayload = z.object({
-  steward: z.object({
-    name: z.string().optional(),
-    age: z.number().optional(),
-    occupation: z.string().optional(),
-    lifestyle: z.enum(['active', 'sedentary']).optional(),
-    maintenanceHrsInitial: z.number().optional(),
-    maintenanceHrsOngoing: z.number().optional(),
-    budget: z.string().optional(),
-    skills: z.array(z.string()).optional(),
-    vision: z.string().optional(),
+  stewards: z.array(StewardPayload),
+  /** Project-level shared vision package (hybrid model). */
+  vision: z.object({
+    statement: z.string().optional(),
     coreFunctions: z.array(z.string()).optional(),
     experienceGoals: z.array(z.string()).optional(),
     successMetrics: z.array(z.string()).optional(),
@@ -521,16 +548,15 @@ export const HumanContextPayload = z.object({
     note: z.string(),
     targetDate: z.string().nullable(),
   })),
-  archetype: z.object({
-    name: z.string(),
-    blurb: z.string(),
-  }),
   totals: z.object({
     overallPct: z.number(),
     stewardPct: z.number(),
     regionalPct: z.number(),
     visionPct: z.number(),
+    /** Combined hours/week rolled across all stewards. */
     totalHoursPerWeek: z.number(),
+    /** Number of stewards in the roster. */
+    stewardCount: z.number(),
     milestonesDefined: z.number(),
     moodboardImageCount: z.number(),
   }),
