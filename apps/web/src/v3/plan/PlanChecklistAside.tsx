@@ -7,10 +7,17 @@
  * module; the active card toggles the slide-up. Active card auto-scrolls
  * into view; How bullets are individually checkable with strikethrough on
  * completion (persisted via planHowChecksStore).
+ *
+ * 2026-05-24 — Stage Compass focus (mirrors Observe / Goal 2): the rail follows
+ * the compass's single-objective focus. It renders ONLY the active objective's
+ * card(s); with no objective selected, a quiet prompt links back to the Plan
+ * Compass. The context cards (PlanProjectTypeCard, PlacedFeaturesCard) are
+ * intentionally omitted in focus mode. All card-rendering code is preserved
+ * (gated on the active module), not removed.
  */
 
 import { useRef } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { usePlanHowChecksStore } from '../../store/planHowChecksStore.js';
 import { useAutoScrollToActiveModule } from '../_shared/hooks/useAutoScrollToActiveModule.js';
 import {
@@ -25,8 +32,10 @@ import {
 import type { BuiltEnvironmentCategory } from '@ogden/shared';
 import { PLAN_MODULES, PLAN_MODULE_LABEL, type PlanModule } from './types.js';
 import { BE_CATEGORY_TO_PLAN_MODULE } from './planSectionMap.js';
-import PlanProjectTypeCard from './PlanProjectTypeCard.js';
-import PlacedFeaturesCard from '../../features/shared/placedFeatures/PlacedFeaturesCard.js';
+// 2026-05-24 — Stage Compass focus: PlanProjectTypeCard + PlacedFeaturesCard
+// context cards are intentionally not rendered in single-objective focus mode
+// (mirrors Goal 2's strict Observe view). The components are preserved; this
+// consumer simply no longer mounts them.
 import { useModuleProjectTypeReferences } from './hooks/useModuleProjectTypeReferences.js';
 import { PLAN_MODULE_DOT } from './data/planModulePalette.js';
 import css from './PlanChecklistAside.module.css';
@@ -248,25 +257,58 @@ export default function PlanChecklistAside({
 }: Props) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
+  const navigate = useNavigate();
 
   const asideRef = useRef<HTMLDivElement | null>(null);
   useAutoScrollToActiveModule(activeModule, asideRef);
+
+  // 2026-05-24 — Stage Compass focus: with no objective selected, show a quiet
+  // prompt back to the Plan Compass instead of the full card menu.
+  if (activeModule === null) {
+    return (
+      <div
+        ref={asideRef}
+        className={css.checklistBox}
+        data-has-active="false"
+      >
+        <div className={css.emptyPrompt}>
+          <p className={css.emptyText}>No objective selected.</p>
+          <p className={css.emptyHint}>
+            Pick one from the module bar below, or open the Plan Compass to
+            choose your next objective.
+          </p>
+          {projectId && (
+            <button
+              type="button"
+              className={css.compassLink}
+              onClick={() =>
+                navigate({
+                  to: '/v3/project/$projectId/plan/compass',
+                  params: { projectId },
+                })
+              }
+            >
+              Open Plan Compass
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
       ref={asideRef}
       className={css.checklistBox}
-      data-has-active={activeModule !== null ? 'true' : 'false'}
+      data-has-active="true"
     >
-      <PlanProjectTypeCard
-        onSelectModule={onSelectModule}
-        onOpenSlideUp={onOpenSlideUp}
-      />
-      <PlacedFeaturesCard stage="plan" projectId={projectId} />
       {PLAN_MODULES.map((mod) => {
         // 2026-05-14 — BE flatten: parent `structures-subsystems` card
         // is replaced by 9 per-category cards rendered below.
         if (mod === 'structures-subsystems') return null;
+        // 2026-05-24 — Stage Compass focus: render only the active objective's
+        // card. `activeModule` is non-null here (empty state returned above).
+        if (mod !== activeModule) return null;
         const active =
           effectiveSectionId !== null
             ? effectiveSectionId === mod
@@ -294,6 +336,9 @@ export default function PlanChecklistAside({
         // Plant Systems / Amenities. No standalone guidance card.
         if (group.category === 'earthworks') return null;
         const routed = BE_CATEGORY_TO_PLAN_MODULE[group.category];
+        // 2026-05-24 — Stage Compass focus: only BE category cards belonging to
+        // the active objective render (all route to structures-subsystems).
+        if (routed !== activeModule) return null;
         const guidance = BE_CATEGORY_GUIDANCE[group.category];
         const sectionId = `be-${group.category}`;
         const active =

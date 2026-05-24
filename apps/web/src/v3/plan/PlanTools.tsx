@@ -8,10 +8,16 @@
  *
  * Other modules expose a single "Open module" button as an honest fallback —
  * replaces "Tools coming soon" until they get the same map-first treatment.
+ *
+ * 2026-05-24 — Stage Compass focus (mirrors Observe / Goal 2): the rail follows
+ * the compass's single-objective focus. It renders ONLY the section(s) for the
+ * chosen objective (active module); with no objective selected, a quiet prompt
+ * links back to the Plan Compass. All section-rendering code is preserved
+ * (gated on the active module), not removed.
  */
 
 import { useEffect, useRef } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   Activity,
   Apple,
@@ -265,6 +271,7 @@ export default function PlanTools({
 }: Props) {
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? null;
+  const navigate = useNavigate();
   const view = usePlanView();
 
   const activeTool = useMapToolStore((s) => s.activeTool);
@@ -393,6 +400,43 @@ export default function PlanTools({
     setActiveTool(activeTool === toolId ? null : toolId);
   };
 
+  // 2026-05-24 — Stage Compass focus (mirrors Observe / Goal 2): with no
+  // objective selected, show a quiet prompt back to the Plan compass instead
+  // of every module's tool palette. The view-scoped CustomModelPalette still
+  // renders in Vision / Terrain authoring so that flow is unaffected.
+  if (activeModule === null) {
+    return (
+      <div
+        ref={toolboxRef}
+        className={css.toolbox}
+        data-has-active="false"
+      >
+        <div className={css.emptyPrompt}>
+          <p className={css.emptyText}>No objective selected.</p>
+          <p className={css.emptyHint}>
+            Pick one from the module bar below, or open the Plan Compass to
+            choose your next objective.
+          </p>
+          {params.projectId && (
+            <button
+              type="button"
+              className={css.compassLink}
+              onClick={() =>
+                navigate({
+                  to: '/v3/project/$projectId/plan/compass',
+                  params: { projectId: params.projectId! },
+                })
+              }
+            >
+              Open Plan Compass
+            </button>
+          )}
+        </div>
+        {(view === 'vision' || view === 'terrain3d') && <CustomModelPalette />}
+      </div>
+    );
+  }
+
   return (
     <div
       ref={toolboxRef}
@@ -405,6 +449,10 @@ export default function PlanTools({
         // as 9 per-category sections appended after this loop. The
         // module slide-up is still reachable via the bottom-rail tile.
         if (mod === 'structures-subsystems') return null;
+        // 2026-05-24 — Stage Compass focus: only the chosen objective's section
+        // renders. `activeModule` is non-null here (empty state returned
+        // above), so this yields exactly one non-BE section.
+        if (mod !== activeModule) return null;
         const items = TOOL_GROUPS[mod];
         const isActive =
           effectiveSectionId !== null
@@ -624,6 +672,10 @@ export default function PlanTools({
         // Terrace is appended to the Amenities group below.
         if (group.category === 'earthworks') return null;
         const routed = BE_CATEGORY_TO_PLAN_MODULE[group.category];
+        // 2026-05-24 — Stage Compass focus: only BE categories belonging to the
+        // chosen objective render (all remaining categories route to
+        // structures-subsystems / Built Environment).
+        if (routed !== activeModule) return null;
         const sectionId = `be-${group.category}`;
         const isActive =
           effectiveSectionId !== null
