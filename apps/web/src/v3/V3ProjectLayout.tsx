@@ -71,9 +71,15 @@ export default function V3ProjectLayout() {
     if (params.projectId) setActiveProject(params.projectId);
   }, [params.projectId, setActiveProject]);
 
-  // The Stage Compass is a full-screen "mission select" that owns its own
-  // chrome — skip LandOsShell (sidebar/rail) and ProjectBundleBar entirely.
-  if (pathname.split("/").filter(Boolean).includes("compass")) {
+  // The Stage Compass and the Observe Command Centre are full-screen surfaces
+  // that own their own chrome — skip LandOsShell (sidebar/rail) and
+  // ProjectBundleBar entirely.
+  if (
+    pathname
+      .split("/")
+      .filter(Boolean)
+      .some((seg) => seg === "compass" || seg === "command-centre")
+  ) {
     return <Outlet />;
   }
 
