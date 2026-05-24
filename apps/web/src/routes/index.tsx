@@ -46,6 +46,7 @@ import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
+import StageCompassPage from '../v3/compass/StageCompassPage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
@@ -144,7 +145,7 @@ const projectRoute = createRoute({
   beforeLoad: ({ params }) => {
     const { projectId } = params as { projectId: string };
     throw redirect({
-      to: '/v3/project/$projectId/observe',
+      to: '/v3/project/$projectId/compass',
       params: { projectId },
     });
   },
@@ -238,6 +239,12 @@ const v3DiagnoseRoute = createRoute({
       params: { projectId, module: 'human-context' },
     });
   },
+});
+// Stage Compass — per-project full-screen "mission select" landing for Observe.
+const v3CompassRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'compass',
+  component: StageCompassPage,
 });
 const v3ObserveIndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
@@ -464,6 +471,7 @@ const routeTree = rootRoute.addChildren([
       v3HomeRoute,
       v3DiscoverRoute,
       v3DiagnoseRoute,
+      v3CompassRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
       v3PlanRoute,

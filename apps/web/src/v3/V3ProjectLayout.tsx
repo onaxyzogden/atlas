@@ -71,6 +71,12 @@ export default function V3ProjectLayout() {
     if (params.projectId) setActiveProject(params.projectId);
   }, [params.projectId, setActiveProject]);
 
+  // The Stage Compass is a full-screen "mission select" that owns its own
+  // chrome — skip LandOsShell (sidebar/rail) and ProjectBundleBar entirely.
+  if (pathname.split("/").filter(Boolean).includes("compass")) {
+    return <Outlet />;
+  }
+
   const rail = SELF_RAILED_STAGES.has(stage)
     ? undefined
     : <DecisionRail stage={stage} project={project} activeModule={module} />;

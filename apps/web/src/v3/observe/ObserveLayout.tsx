@@ -57,6 +57,7 @@ import {
 } from '../builtEnvironment/layers/index.js';
 import SelectionFloater from './components/SelectionFloater.js';
 import SectorCompassOverlay from './components/overlays/SectorCompassOverlay.js';
+import ObserveObjectiveCompletePrompt from '../compass/ObserveObjectiveCompletePrompt.js';
 import {
   isObserveModule,
   type ObserveModule,
@@ -332,6 +333,10 @@ export default function ObserveLayout() {
           />
           <AnnotationFormSlideUp />
           <AnnotationDetailPanel projectId={id} />
+          <ObserveObjectiveCompletePrompt
+            projectId={params.projectId ?? id}
+            module={validModule}
+          />
         </>
       }
     />
