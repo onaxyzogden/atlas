@@ -83,6 +83,13 @@ interface ObserveToolsProps {
    * (`mod`, `be-from-map`, or `be-<category>`).
    */
   onSelectSection?: (module: ObserveModule, sectionId: string) => void;
+  /**
+   * Objective Focus Mode: when provided, the rail shows ONLY these tools (and
+   * hides any section left with no allowed tools). Lets a launched objective
+   * narrow the palette to exactly the tools its field work needs. Omitted in
+   * normal module browsing, where the active module's full palette shows.
+   */
+  restrictToTools?: MapToolId[];
 }
 
 interface ToolItem {
@@ -152,7 +159,12 @@ export default function ObserveTools({
   activeModule,
   effectiveSectionId,
   onSelectSection,
+  restrictToTools,
 }: ObserveToolsProps) {
+  // Objective Focus Mode tool gate. Null set → no restriction (normal browse).
+  const restrictSet = restrictToTools ? new Set(restrictToTools) : null;
+  const allowTool = (toolId: MapToolId) =>
+    restrictSet === null || restrictSet.has(toolId);
   const params = useParams({ strict: false }) as { projectId?: string };
   const navigate = useNavigate();
   // Match ObserveLayout's projectId normalisation (`params.projectId ?? 'mtc'`)
@@ -283,7 +295,10 @@ export default function ObserveTools({
         // is non-null here (empty state returned above), so this yields exactly
         // one non-BE section.
         if (mod !== activeModule) return null;
-        const items = TOOL_GROUPS[mod];
+        const items = TOOL_GROUPS[mod].filter((it) => allowTool(it.toolId));
+        // Focus mode may filter every tool out of this module — hide the
+        // empty section rather than render a header with no buttons.
+        if (items.length === 0) return null;
         const isActive =
           effectiveSectionId !== null
             ? effectiveSectionId === mod
@@ -351,6 +366,23 @@ export default function ObserveTools({
       {showBuiltEnvironment && (() => {
         const routed: ObserveModule = 'built-environment';
         const sectionId = 'be-from-map';
+        const adoptCandidates: ToolItem[] = [
+          {
+            id: 'adopt-basemap',
+            label: 'Adopt from map',
+            Icon: MousePointer,
+            toolId: 'observe.built-environment.adopt-basemap',
+          },
+          {
+            id: 'adopt-water',
+            label: 'Adopt water',
+            Icon: Waves,
+            toolId: 'observe.earth-water-ecology.adopt-water',
+          },
+        ];
+        const adoptItems = adoptCandidates.filter((it) => allowTool(it.toolId));
+        // Focus mode may exclude both adopt meta-tools — hide the section.
+        if (adoptItems.length === 0) return null;
         const isActive =
           effectiveSectionId !== null
             ? effectiveSectionId === sectionId
@@ -395,31 +427,12 @@ export default function ObserveTools({
               <span className={css.groupLabel}>From map</span>
             </header>
             <div className={css.itemGrid}>
-              {renderToolButton(
-                {
-                  id: 'adopt-basemap',
-                  label: 'Adopt from map',
-                  Icon: MousePointer,
-                  toolId: 'observe.built-environment.adopt-basemap',
-                },
-                {
+              {adoptItems.map((it) =>
+                renderToolButton(it, {
                   activeTool,
                   homesteadPlaced,
                   onToolClick,
-                },
-              )}
-              {renderToolButton(
-                {
-                  id: 'adopt-water',
-                  label: 'Adopt water',
-                  Icon: Waves,
-                  toolId: 'observe.earth-water-ecology.adopt-water',
-                },
-                {
-                  activeTool,
-                  homesteadPlaced,
-                  onToolClick,
-                },
+                }),
               )}
             </div>
           </section>
@@ -502,17 +515,21 @@ export default function ObserveTools({
                   ),
                 ]
               : group.items;
-        const groupItems: ToolItem[] = sourceItems.map((bg) => {
-          let toolId: MapToolId;
-          if (bg.kind === 'pasture') {
-            toolId = 'observe.earth-water-ecology.pasture';
-          } else if (bg.kind === 'conventional-crop') {
-            toolId = 'observe.earth-water-ecology.conventional-crop';
-          } else {
-            toolId = `observe.built-environment.${bg.kind}` as MapToolId;
-          }
-          return { id: bg.kind, label: bg.label, Icon: bg.Icon, toolId };
-        });
+        const groupItems: ToolItem[] = sourceItems
+          .map((bg) => {
+            let toolId: MapToolId;
+            if (bg.kind === 'pasture') {
+              toolId = 'observe.earth-water-ecology.pasture';
+            } else if (bg.kind === 'conventional-crop') {
+              toolId = 'observe.earth-water-ecology.conventional-crop';
+            } else {
+              toolId = `observe.built-environment.${bg.kind}` as MapToolId;
+            }
+            return { id: bg.kind, label: bg.label, Icon: bg.Icon, toolId };
+          })
+          .filter((it) => allowTool(it.toolId));
+        // Focus mode may filter every kind out of this BE category — hide it.
+        if (groupItems.length === 0) return null;
         return (
           <section
             key={`be-${group.category}`}

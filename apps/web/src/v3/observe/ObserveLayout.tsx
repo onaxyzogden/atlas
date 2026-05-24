@@ -59,6 +59,9 @@ import SelectionFloater from './components/SelectionFloater.js';
 import SectorCompassOverlay from './components/overlays/SectorCompassOverlay.js';
 import ObserveObjectiveCompletePrompt from '../compass/ObserveObjectiveCompletePrompt.js';
 import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
+import { useFieldObjective } from '../objectives/useFieldObjectives.js';
+import ObjectiveMapFocus from './objective/ObjectiveMapFocus.js';
+import ObjectiveBanner from './objective/ObjectiveBanner.js';
 import {
   isObserveModule,
   type ObserveModule,
@@ -117,8 +120,23 @@ export default function ObserveLayout() {
   // reconciled value. Derived lazily into `effectiveSectionId`: a stale id
   // routes to a different module and is ignored, falling back to the
   // whole-family view.
-  const search = useSearch({ strict: false }) as { section?: string };
+  const search = useSearch({ strict: false }) as {
+    section?: string;
+    objective?: string;
+  };
   const activeSectionId = search.section ?? null;
+  // Objective Focus Mode: a launched objective rides in via `?objective=<id>`
+  // (set when a Command Centre card / marker is clicked). When present it
+  // narrows the tool rail, flies + highlights the map, and shows a banner.
+  const focusView = useFieldObjective(id, search.objective);
+  const focusObjective = focusView?.objective ?? null;
+  const exitFocus = () => {
+    if (!params.projectId) return;
+    navigate({
+      to: '/v3/project/$projectId/observe/command-centre',
+      params: { projectId: params.projectId },
+    });
+  };
   const effectiveSectionId =
     activeSectionId && observeSectionIdModule(activeSectionId) === validModule
       ? activeSectionId
@@ -186,6 +204,7 @@ export default function ObserveLayout() {
           activeModule={validModule}
           effectiveSectionId={effectiveSectionId}
           onSelectSection={handleSelectSection}
+          restrictToTools={focusObjective?.requiredTools}
         />
       }
       canvas={
@@ -305,6 +324,12 @@ export default function ObserveLayout() {
                 activeModule={validModule}
                 projectId={params.projectId ?? null}
               />
+              {focusObjective && (
+                <ObjectiveMapFocus map={map} objective={focusObjective} />
+              )}
+              {focusView && (
+                <ObjectiveBanner view={focusView} onBack={exitFocus} />
+              )}
               <SelectionFloater projectId={id} />
               <PlanSelectionFloater />
               <InlineFeaturePopover map={map} />
