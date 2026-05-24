@@ -71,6 +71,9 @@
   --color-map-header-bg:     rgba(10, 13, 11, 0.95);
   --color-map-header-text:   #f3ecd7;
   --color-map-header-muted:  #cfc9b8;
+  /* Floating map-canvas glass panels — warm-dark glass + parchment lines. */
+  --color-map-panel-rgb:        31, 29, 26;
+  --color-map-panel-line-rgb:   242, 237, 227;
 
   /* -- Status (semantic) — sage success, gold warn, terracotta error ------- */
   --color-success:         #8fc89a;
@@ -167,6 +170,8 @@
     --color-map-header-bg:     rgba(10, 13, 11, 0.95);
     --color-map-header-text:   #f3ecd7;
     --color-map-header-muted:  #cfc9b8;
+    --color-map-panel-rgb:        31, 29, 26;
+    --color-map-panel-line-rgb:   242, 237, 227;
 
     --color-success:         #8fc89a;
     --color-success-muted:   rgba(143, 200, 154, 0.15);

@@ -12,7 +12,7 @@
   align-items: center;
   gap: 4px;
   padding: 8px 8px 6px;
-  background: rgba(31, 29, 26, 0.85);
+  background: rgba(var(--color-map-panel-rgb), 0.85);
   border: 1px solid rgba(196, 162, 101, 0.4);
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(20, 16, 10, 0.35);

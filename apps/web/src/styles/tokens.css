@@ -217,6 +217,12 @@
   --color-map-header-bg:   rgba(255, 255, 255, 0.92);
   --color-map-header-text: #1f231e;
   --color-map-header-muted: #5a5443;
+  /* Floating map-canvas glass panels (basemap card, tool rail, map toolbar,
+     compass dock). RGB form so each panel keeps its own alpha; flips white
+     glass + black-alpha lines in light, warm-dark glass + parchment lines in
+     dark. Consumed as rgba(var(--color-map-panel-rgb), A). */
+  --color-map-panel-rgb:        255, 255, 255;
+  --color-map-panel-line-rgb:   0, 0, 0;
 
   /* ========================================================================
      ZONE CATEGORY IDENTITY
