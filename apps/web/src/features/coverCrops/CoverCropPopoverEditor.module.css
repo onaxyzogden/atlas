@@ -10,7 +10,7 @@
   background: rgba(28, 30, 28, 0.96);
   border: 1px solid rgba(232, 220, 200, 0.14);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .head {
@@ -24,13 +24,13 @@
 .title {
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .closeBtn {
   background: transparent;
   border: 1px solid rgba(232, 220, 200, 0.12);
-  color: rgba(180, 165, 140, 0.8);
+  color: var(--color-text-subtle);
   border-radius: 4px;
   width: 22px;
   height: 22px;
@@ -47,7 +47,7 @@
 
 .empty {
   font-size: 11.5px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   padding: 4px 0;
 }
 
@@ -73,7 +73,7 @@
 }
 
 .species {
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -81,7 +81,7 @@
   padding: 1px 6px;
   border-radius: 10px;
   background: rgba(120, 160, 110, 0.18);
-  color: rgba(200, 220, 200, 0.92);
+  color: var(--color-text);
   font-size: 10px;
 }
 
@@ -110,7 +110,7 @@
   background: rgba(232, 220, 200, 0.025);
   border: 1px dashed rgba(232, 220, 200, 0.16);
   border-radius: 6px;
-  color: rgba(232, 220, 200, 0.78);
+  color: var(--color-text);
   cursor: pointer;
 }
 
@@ -135,7 +135,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .select {
@@ -144,7 +144,7 @@
   background: rgba(20, 22, 20, 0.4);
   border: 1px solid rgba(232, 220, 200, 0.12);
   border-radius: 4px;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .actions {
@@ -160,7 +160,7 @@
   font-weight: 600;
   background: rgba(120, 160, 110, 0.28);
   border: 1px solid rgba(120, 160, 110, 0.5);
-  color: rgba(220, 235, 220, 0.95);
+  color: var(--color-text);
   border-radius: 4px;
   cursor: pointer;
 }
@@ -175,7 +175,7 @@
   font-size: 11.5px;
   background: transparent;
   border: 1px solid rgba(232, 220, 200, 0.12);
-  color: rgba(180, 165, 140, 0.8);
+  color: var(--color-text-subtle);
   border-radius: 4px;
   cursor: pointer;
 }

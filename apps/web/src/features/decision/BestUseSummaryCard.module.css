@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .hint {
   margin: 0;
   font-size: 10.5px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
 }
 
 .badge {
@@ -52,14 +52,14 @@
   background: rgba(255, 255, 255, 0.015);
   font-size: 11px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
   margin: 0;
 }
 
 .currentBanner {
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-hairline);
   background: rgba(0, 0, 0, 0.2);
   margin-bottom: 14px;
 }
@@ -82,7 +82,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   margin-bottom: 4px;
 }
 
@@ -97,20 +97,20 @@
 .currentName {
   font-size: 13px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
 }
 
 .currentScore {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
 .currentNote {
   font-size: 10.5px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.8);
+  color: var(--color-text-subtle);
 }
 
 .band {
@@ -140,14 +140,14 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
 }
 
 .bandEmpty {
   margin: 0;
   font-size: 10.5px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .list {
@@ -163,7 +163,7 @@
   padding: 6px 8px;
   border-radius: 5px;
   background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-hairline);
 }
 
 .rowMain {
@@ -177,7 +177,7 @@
 .rowName {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   display: flex;
   align-items: baseline;
   gap: 6px;
@@ -198,7 +198,7 @@
 .rowScore {
   font-size: 11.5px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -207,7 +207,7 @@
   flex-wrap: wrap;
   gap: 8px;
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
 }
 
 .metaGood {
@@ -224,10 +224,10 @@
 .footnote {
   margin: 12px 0 0;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
-.footnote em { color: rgba(180, 165, 140, 0.8); font-style: normal; font-weight: 600; }
-.footnote strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }
+.footnote em { color: var(--color-text-subtle); font-style: normal; font-weight: 600; }
+.footnote strong { color: var(--color-text); font-weight: 600; }

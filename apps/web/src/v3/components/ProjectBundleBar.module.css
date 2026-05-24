@@ -90,7 +90,7 @@
 
 .solidBtn {
   background: #6a4a1a;
-  color: #f9f4e8;
+  color: var(--color-text);
 }
 
 .solidBtn:hover {
@@ -99,7 +99,7 @@
 
 .dangerBtn {
   background: #8b1f1f;
-  color: #fdf2f2;
+  color: var(--color-text);
 }
 
 .dangerBtn:hover {

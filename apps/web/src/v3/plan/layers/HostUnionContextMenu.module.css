@@ -19,7 +19,7 @@
   padding: 4px;
   box-sizing: border-box;
   background: rgba(31, 29, 26, 0.96);
-  color: #f2ede3;
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.18);
   border-radius: 8px;
   font-size: 12px;

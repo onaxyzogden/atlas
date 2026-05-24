@@ -21,7 +21,7 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -43,7 +43,7 @@
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   border: 1px solid rgba(180, 165, 140, 0.25);
   padding: 2px 6px;
   border-radius: 4px;
@@ -53,12 +53,12 @@
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 620px;
 }
 
 .cardHint em {
-  color: rgba(220, 210, 185, 0.82);
+  color: var(--color-text);
   font-style: normal;
   font-weight: 600;
 }
@@ -81,18 +81,18 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .presetName {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .presetFit {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -115,7 +115,7 @@
 
 .fit_custom {
   background: rgba(232, 220, 200, 0.04);
-  border-color: rgba(232, 220, 200, 0.12);
+  border-color: var(--color-text);
 }
 
 /* ─── Stats row ───────────────────────────────────────────────────── */
@@ -141,19 +141,19 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .statValue {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .statDim {
   font-size: 11.5px;
   font-weight: 400;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-left: 3px;
 }
 
@@ -189,18 +189,18 @@
 .rowName {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   flex: 1 1 auto;
 }
 
 .rowCount {
   font-size: 11.5px;
-  color: rgba(220, 210, 185, 0.82);
+  color: var(--color-text);
   font-weight: 600;
 }
 
 .rowCountDim {
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-weight: 400;
   margin-left: 2px;
 }
@@ -209,7 +209,7 @@
   margin: 0 0 8px;
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 /* ─── Tone pills ──────────────────────────────────────────────────── */
@@ -231,15 +231,15 @@
 }
 
 .toneMedium {
-  color: rgba(220, 210, 185, 0.82);
+  color: var(--color-text);
   background: rgba(232, 220, 200, 0.06);
-  border-color: rgba(232, 220, 200, 0.15);
+  border-color: var(--color-text);
 }
 
 .toneNeutral {
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   background: rgba(232, 220, 200, 0.04);
-  border-color: rgba(232, 220, 200, 0.1);
+  border-color: var(--color-text);
 }
 
 .toneLow {
@@ -290,7 +290,7 @@
 .meterValue {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
   min-width: 26px;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -298,7 +298,7 @@
 
 .meterDelta {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   min-width: 32px;
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -343,7 +343,7 @@
 .rowEmpty {
   margin: 0;
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -353,13 +353,13 @@
   margin: 0;
   font-size: 10.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   border-top: 1px solid rgba(232, 220, 200, 0.06);
   padding-top: 10px;
 }
 
 .footnote em {
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
   font-style: normal;
   font-weight: 600;
 }

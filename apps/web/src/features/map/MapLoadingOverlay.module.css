@@ -22,7 +22,7 @@
   width: min(220px, 50%);
   height: 3px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-hover-overlay);
   overflow: hidden;
 }
 

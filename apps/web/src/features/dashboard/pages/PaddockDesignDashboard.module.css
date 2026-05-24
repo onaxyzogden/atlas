@@ -10,14 +10,14 @@
   font-family: var(--font-display);
   font-size: 32px;
   font-weight: 600;
-  color: rgba(232,220,200,0.95);
+  color: var(--color-text);
   margin: 0 0 12px;
   line-height: 1.2;
 }
 .desc {
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(180,165,140,0.55);
+  color: var(--color-text-subtle);
   max-width: 560px;
   margin: 0 0 24px;
 }
@@ -41,7 +41,7 @@
 .summaryCard {
   padding: 16px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--color-hairline);
   background: rgba(255,255,255,0.025);
   text-align: center;
 }
@@ -51,14 +51,14 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-bottom: 6px;
 }
 .summaryValue {
   font-family: var(--font-display);
   font-size: 26px;
   font-weight: 600;
-  color: rgba(232,220,200,0.9);
+  color: var(--color-text);
 }
 
 /* Paddock grid */
@@ -78,8 +78,8 @@
 .paddockCard {
   padding: 18px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.07);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 .paddockCardHeader {
   display: flex;
@@ -91,13 +91,13 @@
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
-  color: rgba(232,220,200,0.9);
+  color: var(--color-text);
   margin: 0;
 }
 .paddockSub {
   display: block;
   font-size: 11px;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-top: 2px;
 }
 .paddockStatus {
@@ -119,18 +119,18 @@
 .metaLabel {
   display: block;
   font-size: 10px;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
 }
 .metaValue {
   font-size: 16px;
   font-weight: 700;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
 }
 
 .forageType {
   display: block;
   font-size: 11px;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   margin-bottom: 10px;
   font-style: italic;
 }
@@ -139,7 +139,7 @@
 .biomassLabel {
   display: block;
   font-size: 10px;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-bottom: 4px;
 }
 
@@ -147,15 +147,15 @@
 .scheduleSection {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
   margin-bottom: 20px;
 }
 .scheduleTitle {
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   margin: 0 0 16px;
 }
 
@@ -173,18 +173,18 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.35);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  color: var(--color-text-subtle);
+  border-bottom: 1px solid var(--color-hairline);
 }
 .scheduleRow {
   display: grid;
   grid-template-columns: 2fr 1.5fr 1fr 2fr;
   gap: 12px;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid var(--color-hairline);
   transition: background 100ms;
 }
-.scheduleRow:hover { background: rgba(255,255,255,0.02); }
+.scheduleRow:hover { background: var(--color-hover-overlay); }
 
 @container paddockPage (max-width: 520px) {
   .scheduleSection { padding: 14px; }
@@ -204,12 +204,12 @@
 
 .scheduleCell {
   font-size: 13px;
-  color: rgba(232,220,200,0.8);
+  color: var(--color-text);
   font-weight: 500;
 }
 .scheduleCellMuted {
   font-size: 12px;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -234,13 +234,13 @@
 
 .soilNote {
   font-size: 11px;
-  color: rgba(180,165,140,0.5);
+  color: var(--color-text-subtle);
   margin: -8px 0 16px;
 }
 .soilNoteLabel {
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
 }
 
 /* ── Responsive (viewport-level — supplements container queries) ── */

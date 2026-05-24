@@ -10,7 +10,7 @@
   gap: 24px;
   margin-bottom: 28px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--color-hairline);
   flex-wrap: wrap;
 }
 
@@ -18,7 +18,7 @@
   font-family: var(--font-display);
   font-size: 15px;
   font-weight: 500;
-  color: rgba(232,220,200,0.7);
+  color: var(--color-text);
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
@@ -37,17 +37,17 @@
   text-transform: uppercase;
   border: none;
   background: none;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   cursor: pointer;
   border-radius: 5px;
   transition: color 120ms, background 120ms;
 }
-.suiteTab:hover { color: rgba(180,165,140,0.7); background: rgba(255,255,255,0.04); }
+.suiteTab:hover { color: var(--color-text-subtle); background: var(--color-hover-overlay); }
 
 .suiteTabActive {
   composes: suiteTab;
-  color: rgba(232,220,200,0.9);
-  background: rgba(255,255,255,0.06);
+  color: var(--color-text);
+  background: var(--color-hover-overlay);
   border-bottom: 2px solid var(--color-group-hydrology);
 }
 
@@ -63,14 +63,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255,255,255,0.07);
+  border: 1px solid var(--color-hairline);
   border-radius: 7px;
-  background: rgba(255,255,255,0.03);
-  color: rgba(180,165,140,0.45);
+  background: var(--color-hover-overlay);
+  color: var(--color-text-subtle);
   cursor: pointer;
   transition: background 120ms, color 120ms;
 }
-.suiteIconBtn:hover { background: rgba(255,255,255,0.07); color: rgba(232,220,200,0.75); }
+.suiteIconBtn:hover { background: var(--color-hover-overlay); color: var(--color-text); }
 
 /* ─── Overview tab ──────────────────────────────────────────────────────── */
 
@@ -81,14 +81,14 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-bottom: 8px;
 }
 .title {
   font-family: var(--font-display);
   font-size: 30px;
   font-weight: 600;
-  color: rgba(232,220,200,0.95);
+  color: var(--color-text);
   margin: 0 0 12px;
   line-height: 1.2;
 }
@@ -96,7 +96,7 @@
 .desc {
   font-size: 14px;
   line-height: 1.7;
-  color: rgba(180,165,140,0.55);
+  color: var(--color-text-subtle);
   max-width: 540px;
   margin: 0 0 16px;
 }
@@ -107,12 +107,12 @@
   font-weight: 600;
   border: 1px solid rgba(255,255,255,0.12);
   border-radius: 6px;
-  background: rgba(255,255,255,0.04);
-  color: rgba(232,220,200,0.75);
+  background: var(--color-hover-overlay);
+  color: var(--color-text);
   cursor: pointer;
   transition: background 150ms;
 }
-.heroBtn:hover { background: rgba(255,255,255,0.08); }
+.heroBtn:hover { background: var(--color-active-overlay); }
 
 /* Top metrics */
 .metricsRow {
@@ -126,7 +126,7 @@
 .metricCard {
   padding: 20px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--color-hairline);
   background: rgba(255,255,255,0.025);
 }
 .metricLabel {
@@ -135,7 +135,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-bottom: 8px;
 }
 .metricValueRow { display: flex; align-items: baseline; gap: 6px; }
@@ -144,7 +144,7 @@
   font-family: var(--font-display);
   font-size: 36px;
   font-weight: 600;
-  color: rgba(232,220,200,0.95);
+  color: var(--color-text);
   line-height: 1;
 }
 .metricUnit {
@@ -152,13 +152,13 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-top: 4px;
 }
 .metricNote {
   display: block;
   font-size: 9px;
-  color: rgba(180,165,140,0.3);
+  color: var(--color-text-subtle);
   margin-top: 6px;
 }
 .metricTrend {
@@ -179,20 +179,20 @@
 .aquiferCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 .aquiferTitle {
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 .aquiferDesc {
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(180,165,140,0.5);
+  color: var(--color-text-subtle);
   margin: 0;
 }
 
@@ -207,7 +207,7 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   margin-bottom: 8px;
 }
 .droughtValueRow {
@@ -219,7 +219,7 @@
   font-family: var(--font-display);
   font-size: 48px;
   font-weight: 600;
-  color: rgba(232,220,200,0.95);
+  color: var(--color-text);
   line-height: 1;
 }
 .droughtIcons { display: flex; flex-direction: column; gap: 6px; }
@@ -234,7 +234,7 @@
 .flowCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--color-hairline);
   background: rgba(255,255,255,0.025);
   margin-bottom: 20px;
 }
@@ -243,7 +243,7 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   margin-bottom: 14px;
 }
 .flowStats { display: flex; gap: 0; }
@@ -253,13 +253,13 @@
   flex-direction: column;
   gap: 4px;
   padding: 0 16px 0 0;
-  border-right: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid var(--color-hairline);
   padding-right: 16px;
 }
 .flowStat:last-child { border-right: none; padding-left: 16px; padding-right: 0; }
 .flowStat:first-child { padding-left: 0; }
-.flowStatLabel { font-size: 11px; color: rgba(180,165,140,0.4); }
-.flowStatValue { font-size: 16px; font-weight: 700; color: rgba(232,220,200,0.9); }
+.flowStatLabel { font-size: 11px; color: var(--color-text-subtle); }
+.flowStatValue { font-size: 16px; font-weight: 700; color: var(--color-text); }
 
 /* §16 Scenario controls — water-flood-drought-scenario-sim. */
 .scenarioCard {
@@ -280,10 +280,10 @@
   margin: 4px 0 0 0;
   font-size: 12px;
   line-height: 1.5;
-  color: rgba(180,165,140,0.7);
+  color: var(--color-text-subtle);
 }
 .scenarioSub strong {
-  color: rgba(232,220,200,0.92);
+  color: var(--color-text);
   font-weight: 600;
 }
 .scenarioReset {
@@ -291,8 +291,8 @@
   padding: 6px 12px;
   border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.03);
-  color: rgba(232,220,200,0.85);
+  background: var(--color-hover-overlay);
+  color: var(--color-text);
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -300,7 +300,7 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 .scenarioReset:hover {
-  background: rgba(255,255,255,0.06);
+  background: var(--color-hover-overlay);
   border-color: rgba(255,255,255,0.18);
 }
 .scenarioPresets {
@@ -312,18 +312,18 @@
 .scenarioPreset {
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-hairline);
   background: rgba(255,255,255,0.025);
-  color: rgba(200,190,170,0.85);
+  color: var(--color-text);
   font-size: 11.5px;
   letter-spacing: 0.02em;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 .scenarioPreset:hover {
-  background: rgba(255,255,255,0.06);
+  background: var(--color-hover-overlay);
   border-color: rgba(255,255,255,0.18);
-  color: rgba(232,220,200,0.95);
+  color: var(--color-text);
 }
 .scenarioPresetActive {
   background: rgba(140, 175, 220, 0.18);
@@ -350,10 +350,10 @@
   font-size: 11px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.6);
+  color: var(--color-text-subtle);
 }
 .scenarioSliderValue {
-  color: rgba(232,220,200,0.9);
+  color: var(--color-text);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -362,7 +362,7 @@
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255,255,255,0.08);
+  background: var(--color-active-overlay);
   border-radius: 2px;
   outline: none;
   cursor: pointer;
@@ -390,15 +390,15 @@
 .comparisonCard {
   padding: 24px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
   margin-bottom: 20px;
 }
 .comparisonTitle {
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 .comparisonLegend { display: flex; gap: 16px; margin-bottom: 16px; }
@@ -409,7 +409,7 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
 }
 .legendDot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
 .comparisonChart {
@@ -437,7 +437,7 @@
 .barLabel {
   font-size: 9px;
   font-weight: 600;
-  color: rgba(180,165,140,0.35);
+  color: var(--color-text-subtle);
   margin-top: 6px;
 }
 .chartPeak {
@@ -446,7 +446,7 @@
   right: 30%;
   font-size: 10px;
   font-style: italic;
-  color: rgba(180,165,140,0.35);
+  color: var(--color-text-subtle);
 }
 
 /* Stewardship guidance */
@@ -461,7 +461,7 @@
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 500;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   margin: 0 0 16px;
 }
 .guidanceItem { display: flex; gap: 12px; margin-bottom: 16px; }
@@ -470,14 +470,14 @@
 .guidanceText {
   font-size: 13px;
   line-height: 1.5;
-  color: rgba(232,220,200,0.8);
+  color: var(--color-text);
   margin: 0 0 4px;
 }
 .guidanceText strong { font-weight: 700; }
 .guidanceDetail {
   font-size: 12px;
   line-height: 1.5;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   margin: 0;
 }
 
@@ -525,14 +525,14 @@
   font-family: var(--font-display);
   font-size: 26px;
   font-weight: 600;
-  color: rgba(232,220,200,0.95);
+  color: var(--color-text);
   margin: 0 0 8px;
   line-height: 1.2;
 }
 .ledgerDesc {
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(180,165,140,0.5);
+  color: var(--color-text-subtle);
   margin: 0;
   max-width: 480px;
 }
@@ -559,7 +559,7 @@
 .pumpCard {
   padding: 22px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--color-hairline);
   background: rgba(255,255,255,0.025);
 }
 .pumpCardHeader {
@@ -573,14 +573,14 @@
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   margin-bottom: 4px;
 }
 .pumpCardSub {
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.1em;
-  color: rgba(180,165,140,0.35);
+  color: var(--color-text-subtle);
 }
 .liveBadge {
   font-size: 9px;
@@ -608,7 +608,7 @@
   left: 42%;
   font-size: 9px;
   font-style: italic;
-  color: rgba(180,165,140,0.35);
+  color: var(--color-text-subtle);
 }
 
 .pumpStats { display: flex; gap: 0; }
@@ -618,7 +618,7 @@
   flex-direction: column;
   gap: 3px;
   padding: 0 16px;
-  border-right: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid var(--color-hairline);
 }
 .pumpStat:first-child { padding-left: 0; }
 .pumpStat:last-child { border-right: none; }
@@ -626,14 +626,14 @@
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
-  color: rgba(232,220,200,0.9);
+  color: var(--color-text);
   line-height: 1;
 }
 .pumpStatUnit {
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: rgba(180,165,140,0.35);
+  color: var(--color-text-subtle);
 }
 
 /* Asset health cards */
@@ -647,8 +647,8 @@
 .assetCard {
   padding: 18px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 .assetCardHeader {
   display: flex;
@@ -662,11 +662,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-hairline);
   border-radius: 8px;
-  background: rgba(255,255,255,0.03);
+  background: var(--color-hover-overlay);
   font-size: 16px;
-  color: rgba(180,165,140,0.6);
+  color: var(--color-text-subtle);
 }
 .healthBadge {
   font-size: 9px;
@@ -680,13 +680,13 @@
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 500;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   margin: 0 0 6px;
 }
 .assetNote {
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   margin: 0 0 12px;
 }
 .assetMeta { display: flex; gap: 16px; }
@@ -695,46 +695,46 @@
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: rgba(180,165,140,0.3);
+  color: var(--color-text-subtle);
 }
 .assetMetaValue {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(232,220,200,0.7);
+  color: var(--color-text);
 }
 
 /* Field observations */
 .fieldObsCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 .fieldObsTitle {
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 500;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   margin: 0 0 14px;
 }
 .fieldObsList { display: flex; flex-direction: column; gap: 12px; }
 .fieldObsItem { display: flex; gap: 10px; align-items: flex-start; }
 .fieldObsDot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-.fieldObsText { font-size: 12px; line-height: 1.5; color: rgba(232,220,200,0.7); margin: 0 0 3px; }
-.fieldObsDate { font-size: 10px; color: rgba(180,165,140,0.35); }
+.fieldObsText { font-size: 12px; line-height: 1.5; color: var(--color-text); margin: 0 0 3px; }
+.fieldObsDate { font-size: 10px; color: var(--color-text-subtle); }
 
 /* Maintenance sidebar */
 .maintenanceCard {
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 .maintenanceTitle {
   font-family: var(--font-display);
   font-size: 15px;
   font-weight: 500;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   margin: 0 0 16px;
 }
 .maintenanceList { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
@@ -750,13 +750,13 @@
 .maintenanceLabel {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232,220,200,0.8);
+  color: var(--color-text);
   margin: 0 0 3px;
 }
 .maintenanceNote {
   font-size: 11px;
   line-height: 1.4;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin: 0;
 }
 .maintenanceLogBtn {
@@ -766,14 +766,14 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-hairline);
   border-radius: 6px;
   background: transparent;
-  color: rgba(180,165,140,0.5);
+  color: var(--color-text-subtle);
   cursor: pointer;
   transition: background 150ms, color 150ms;
 }
-.maintenanceLogBtn:hover { background: rgba(255,255,255,0.04); color: rgba(232,220,200,0.7); }
+.maintenanceLogBtn:hover { background: var(--color-hover-overlay); color: var(--color-text); }
 
 /* Quote card */
 .quoteCard {
@@ -788,13 +788,13 @@
   font-style: italic;
   font-weight: 500;
   line-height: 1.6;
-  color: rgba(232,220,200,0.75);
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 .quoteDetail {
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin: 0;
 }
 

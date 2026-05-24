@@ -20,19 +20,19 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
 .cardHint em {
-  color: rgba(220, 210, 185, 0.82);
+  color: var(--color-text);
   font-style: normal;
   font-weight: 600;
 }
@@ -72,7 +72,7 @@
 .summaryValue {
   font-size: 18px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   letter-spacing: -0.01em;
 }
 
@@ -81,7 +81,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .section {
@@ -108,7 +108,7 @@
   background: rgba(232, 220, 200, 0.02);
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .list {
@@ -169,7 +169,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   min-width: 70px;
 }
 
@@ -177,13 +177,13 @@
   flex: 1;
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .rowToggle {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   width: 14px;
   text-align: center;
 }
@@ -199,7 +199,7 @@
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(220, 210, 185, 0.85);
+  color: var(--color-text);
 }
 
 .lineLabel {
@@ -207,7 +207,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   margin-right: 4px;
 }
 
@@ -226,21 +226,21 @@
 .checklist li {
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(220, 210, 185, 0.82);
+  color: var(--color-text);
   margin-bottom: 3px;
 }
 
 .footnote {
   margin: 0;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .footnote em {
-  color: rgba(180, 165, 140, 0.78);
+  color: var(--color-text-subtle);
   font-style: normal;
   font-weight: 600;
 }

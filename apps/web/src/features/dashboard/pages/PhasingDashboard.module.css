@@ -23,7 +23,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-bottom: 6px;
 }
 
@@ -31,13 +31,13 @@
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 
 .desc {
   font-size: 13px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   max-width: 620px;
   line-height: 1.55;
   margin: 0;
@@ -91,14 +91,14 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .arcValue {
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   line-height: 1.1;
 }
 
@@ -106,19 +106,19 @@
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 500;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
   line-height: 1.3;
 }
 
 .arcDetail {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .arcValueSuffix {
   font-size: 16px;
   font-weight: 500;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-left: 2px;
 }
 
@@ -159,7 +159,7 @@
 
 .phaseCardCompleted {
   background: rgba(20, 22, 20, 0.35);
-  border-color: rgba(180, 165, 140, 0.2);
+  border-color: var(--color-text-subtle);
 }
 
 .phaseCardCompleted .phaseName,
@@ -184,7 +184,7 @@
 }
 
 .phaseCheckbox:hover {
-  border-color: rgba(180, 165, 140, 0.6);
+  border-color: var(--color-text-subtle);
 }
 
 .phaseCheckboxChecked {
@@ -243,7 +243,7 @@
 .phaseName {
   font-size: 15px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
 }
 
 .phaseYears {
@@ -254,7 +254,7 @@
 
 .phaseDesc {
   font-size: 12px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   line-height: 1.5;
 }
 
@@ -279,7 +279,7 @@
   font-family: var(--font-display);
   font-size: 18px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
@@ -288,7 +288,7 @@
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 /* ── Feature list within a phase ───────────────────────────────── */
@@ -321,11 +321,11 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .featureName {
-  color: rgba(232, 220, 200, 0.82);
+  color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -333,14 +333,14 @@
 
 .featureSub {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
 }
 
 .featureMore {
   padding: 6px 0;
   font-size: 11px;
   font-style: italic;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
 }
 
 /* ── Empty state ────────────────────────────────────────────────── */
@@ -355,7 +355,7 @@
 
 .empty p {
   font-size: 13px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin: 0;
 }
 
@@ -381,13 +381,13 @@
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.88);
+  color: var(--color-text);
   margin: 0;
 }
 
 .cardHint {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   letter-spacing: 0.04em;
 }
 
@@ -443,23 +443,23 @@
 
 .warnName {
   font-size: 13px;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .warnPhase {
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   font-weight: 400;
 }
 
 .warnReason {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   line-height: 1.5;
 }
 
 .warnReason strong {
-  color: rgba(232, 220, 200, 0.75);
+  color: var(--color-text);
   font-weight: 600;
 }
 
@@ -478,7 +478,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .phaseNotesInput {
@@ -487,7 +487,7 @@
   background: rgba(15, 17, 15, 0.55);
   border: 1px solid rgba(180, 165, 140, 0.15);
   border-radius: 4px;
-  color: rgba(232, 220, 200, 0.88);
+  color: var(--color-text);
   font-family: inherit;
   font-size: 12px;
   line-height: 1.5;
@@ -503,7 +503,7 @@
 }
 
 .phaseNotesInput::placeholder {
-  color: rgba(180, 165, 140, 0.35);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -511,7 +511,7 @@
 
 .footnote {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.4);
+  color: var(--color-text-subtle);
   padding-top: 8px;
   line-height: 1.6;
 }
@@ -535,14 +535,14 @@
   border-radius: 4px;
   font-size: 11px;
   letter-spacing: 0.04em;
-  color: rgba(232, 220, 200, 0.75);
+  color: var(--color-text);
   cursor: pointer;
   user-select: none;
   transition: border-color 120ms ease, background 120ms ease;
 }
 
 .hideTempToggle:hover {
-  border-color: rgba(180, 165, 140, 0.32);
+  border-color: var(--color-text-subtle);
   background: rgba(20, 22, 20, 0.8);
 }
 
@@ -553,7 +553,7 @@
 
 .featureItemTemporary {
   border-bottom-style: dashed !important;
-  border-bottom-color: rgba(180, 165, 140, 0.22) !important;
+  border-bottom-color: var(--color-text-subtle) !important;
   opacity: 0.78;
 }
 
@@ -576,7 +576,7 @@
   padding: 2px 6px;
   border: 1px dashed rgba(180, 165, 140, 0.42);
   border-radius: 3px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   background: rgba(180, 165, 140, 0.05);
 }
 

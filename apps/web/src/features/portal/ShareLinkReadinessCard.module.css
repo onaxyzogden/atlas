@@ -20,19 +20,19 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
 .cardHint em {
-  color: rgba(220, 210, 185, 0.82);
+  color: var(--color-text);
   font-style: normal;
   font-weight: 600;
 }
@@ -48,7 +48,7 @@
   white-space: nowrap;
   flex-shrink: 0;
   background: rgba(232, 220, 200, 0.05);
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
   border: 1px solid rgba(232, 220, 200, 0.12);
 }
 
@@ -160,14 +160,14 @@
 .summaryValue {
   font-size: 18px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   letter-spacing: -0.01em;
 }
 
 .summaryDenom {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
 }
 
 .toneBlocker {
@@ -183,7 +183,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .checkList {
@@ -219,7 +219,7 @@
 }
 
 .checkFailed.level_nice {
-  border-left-color: rgba(180, 165, 140, 0.45);
+  border-left-color: var(--color-text-subtle);
 }
 
 .checkIcon {
@@ -233,7 +233,7 @@
   justify-content: center;
   flex-shrink: 0;
   background: rgba(180, 165, 140, 0.12);
-  color: rgba(180, 165, 140, 0.85);
+  color: var(--color-text-subtle);
 }
 
 .checkPassed .checkIcon {
@@ -269,7 +269,7 @@
 .checkLabel {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .levelTag {
@@ -280,7 +280,7 @@
   padding: 2px 7px;
   border-radius: 3px;
   background: rgba(232, 220, 200, 0.05);
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
   border: 1px solid rgba(232, 220, 200, 0.12);
 }
 
@@ -298,14 +298,14 @@
 
 .levelTag_nice {
   background: rgba(180, 165, 140, 0.1);
-  color: rgba(180, 165, 140, 0.85);
-  border-color: rgba(180, 165, 140, 0.22);
+  color: var(--color-text-subtle);
+  border-color: var(--color-text-subtle);
 }
 
 .checkDetail {
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.78);
+  color: var(--color-text-subtle);
 }
 
 .calloutBlock {
@@ -337,7 +337,7 @@
 .calloutList li {
   font-size: 11px;
   line-height: 1.55;
-  color: rgba(220, 210, 185, 0.85);
+  color: var(--color-text);
   padding-left: 16px;
   position: relative;
 }
@@ -353,14 +353,14 @@
 .footnote {
   margin: 12px 0 0;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .footnote em {
-  color: rgba(180, 165, 140, 0.78);
+  color: var(--color-text-subtle);
   font-style: normal;
   font-weight: 600;
 }

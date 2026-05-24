@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
@@ -78,12 +78,12 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
 }
 
 .caseSublabel {
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin-bottom: 6px;
 }
 
@@ -100,13 +100,13 @@
 
 .metricKey {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .metricVal {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -132,7 +132,7 @@
 
 .spreadLabel {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .spreadVal {
@@ -153,12 +153,12 @@
   border-left: 2px solid rgba(220, 130, 110, 0.5);
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(220, 200, 185, 0.85);
+  color: var(--color-text);
   margin-bottom: 12px;
 }
 
 .callout strong {
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   font-weight: 700;
 }
 
@@ -167,8 +167,8 @@
 .footnote {
   margin: 0;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }

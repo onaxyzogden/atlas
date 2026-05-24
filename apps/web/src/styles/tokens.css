@@ -173,23 +173,30 @@
   --color-info-muted:      rgba(61, 127, 158, 0.15);
 
   /* --- Chrome neutrals (estate palette 2026-04-28) ---------------------
-   * Near-black green-tinted chrome anchors the frame without competing with
-   * the biophilic map imagery. Chrome stays dark even in light mode so the
-   * sidebar/header read as a unified estate frame around the canvas. */
-  --color-chrome-bg:             #0a0d0b;
-  --color-chrome-bg-translucent: rgba(10, 13, 11, 0.97);
-  /* Page-dimming overlay (loading states, modal scrims) — intentionally
-   * lower opacity than chrome-bg-translucent so underlying map remains
-   * partially legible during async loads. */
+   * Light-mode chrome (2026-05-23): chrome now adapts to the active theme.
+   * In light mode the header/sidebar/map overlays read as warm parchment
+   * surfaces; dark-mode.css restores the near-black estate frame. */
+  --color-chrome-bg:             #f6f4ee;
+  --color-chrome-bg-translucent: rgba(246, 244, 238, 0.95);
+  /* Page-dimming overlay (loading states, modal scrims) — stays dark in both
+   * modes: a dark scrim over light or dark content reads as a dimmer. */
   --color-chrome-bg-overlay:     rgba(10, 13, 11, 0.72);
   --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
+
+  /* --- Theme-flipping overlays/hairlines (2026-05-23) -------------------
+   * Replace the ad-hoc rgba(255,255,255,0.0x) overlays that components
+   * hardcoded for the always-dark UI. Dark values (in dark-mode.css) match
+   * the old literals so dark mode is unchanged; light values invert them. */
+  --color-hairline:        rgba(0, 0, 0, 0.08);
+  --color-hover-overlay:   rgba(0, 0, 0, 0.04);
+  --color-active-overlay:  rgba(0, 0, 0, 0.06);
 
   /* --- Panel / Sidebar / Header --- */
   --color-header-bg:       var(--color-chrome-bg-translucent);
   --color-sidebar-bg:      var(--color-chrome-bg-translucent);
-  --color-sidebar-icon:    #cfc9b8;
-  --color-sidebar-active:  #d4af5f;
-  --color-sidebar-text:    #e8e2d1;
+  --color-sidebar-icon:    #5a5443;
+  --color-sidebar-active:  #b08a3a;
+  --color-sidebar-text:    #1f231e;
   --color-panel-bg:        #ffffff;
   --color-panel-text:      #1f231e;
   --color-panel-muted:     #5a5443;
@@ -198,9 +205,9 @@
   --color-panel-title:     #1f231e;
   --color-panel-section:   #5a5443;
   --color-panel-subtle:    rgba(0, 0, 0, 0.03);
-  --color-map-header-bg:   rgba(10, 13, 11, 0.92);
-  --color-map-header-text: #e8e2d1;
-  --color-map-header-muted: #cfc9b8;
+  --color-map-header-bg:   rgba(255, 255, 255, 0.92);
+  --color-map-header-text: #1f231e;
+  --color-map-header-muted: #5a5443;
 
   /* ========================================================================
      ZONE CATEGORY IDENTITY

@@ -29,7 +29,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-bottom: 6px;
 }
 
@@ -37,13 +37,13 @@
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   margin: 0 0 8px;
 }
 
 .desc {
   font-size: 13px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   max-width: 560px;
   line-height: 1.55;
   margin: 0;
@@ -111,7 +111,7 @@
 
 .scoreCaption {
   font-size: 12px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   letter-spacing: 0.04em;
 }
 
@@ -140,12 +140,12 @@
 }
 
 .breakdownLabel {
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .breakdownScore {
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
   font-variant-numeric: tabular-nums;
 }
 
@@ -164,7 +164,7 @@
 
 .breakdownDetail {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
 }
 
 /* ── Cards ──────────────────────────────────────────────────────── */
@@ -189,13 +189,13 @@
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.88);
+  color: var(--color-text);
   margin: 0;
 }
 
 .cardHint {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-text-subtle);
   letter-spacing: 0.04em;
 }
 
@@ -206,7 +206,7 @@
 
 .empty p {
   font-size: 13px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin: 0 0 12px;
 }
 
@@ -268,20 +268,20 @@
 
 .utilName {
   font-size: 13px;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
   font-weight: 500;
 }
 
 .utilMeta {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 /* ── Footnote ───────────────────────────────────────────────────── */
 
 .footnote {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.4);
+  color: var(--color-text-subtle);
   padding-top: 8px;
   line-height: 1.6;
 }

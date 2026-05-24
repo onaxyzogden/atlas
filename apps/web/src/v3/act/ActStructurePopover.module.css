@@ -8,7 +8,7 @@
   max-width: 280px;
   padding: 12px 14px;
   background: rgba(31, 29, 26, 0.96);
-  color: #f2ede3;
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.18);
   border-radius: 8px;
   font-size: 12px;
@@ -45,7 +45,7 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #f8f4ea;
+  color: var(--color-text);
 }
 
 .subtitle {
@@ -110,7 +110,7 @@
   font-weight: 600;
   cursor: pointer;
   background: transparent;
-  color: #f2ede3;
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.25);
 }
 

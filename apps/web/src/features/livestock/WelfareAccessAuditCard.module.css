@@ -20,19 +20,19 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
 .cardHint em {
-  color: rgba(220, 210, 185, 0.82);
+  color: var(--color-text);
   font-style: normal;
   font-weight: 600;
 }
@@ -74,7 +74,7 @@
   font-size: 18px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .summaryLabel {
@@ -82,7 +82,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   text-align: center;
 }
 
@@ -92,9 +92,9 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--color-hairline);
 }
 
 .list {
@@ -130,7 +130,7 @@
 
 .row_missing {
   background: rgba(180, 165, 140, 0.07);
-  border-left-color: rgba(180, 165, 140, 0.6);
+  border-left-color: var(--color-text-subtle);
 }
 
 .rowHead {
@@ -173,14 +173,14 @@
 
 .tag_missing {
   background: rgba(180, 165, 140, 0.12);
-  color: rgba(200, 190, 170, 0.85);
+  color: var(--color-text);
   border: 1px solid rgba(180, 165, 140, 0.22);
 }
 
 .rowTitle {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .kindBadge {
@@ -211,7 +211,7 @@
   gap: 8px;
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(200, 190, 170, 0.85);
+  color: var(--color-text);
   flex-wrap: wrap;
 }
 
@@ -233,7 +233,7 @@
   text-transform: uppercase;
   font-size: 9.5px;
   letter-spacing: 0.06em;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
   flex-shrink: 0;
 }
 
@@ -286,20 +286,20 @@
   border: 1px solid rgba(180, 200, 150, 0.18);
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(220, 210, 185, 0.82);
+  color: var(--color-text);
 }
 
 .footnote {
   margin: 14px 0 0;
   padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .footnote em {
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
   font-style: normal;
   font-weight: 600;
 }

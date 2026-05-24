@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
@@ -48,7 +48,7 @@
   padding: 20px;
   text-align: center;
   font-size: 12px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   background: rgba(232, 220, 200, 0.018);
   border-radius: 8px;
   border: 1px dashed rgba(232, 220, 200, 0.08);
@@ -81,7 +81,7 @@
 .pillCount {
   font-size: 18px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   line-height: 1.1;
 }
 
@@ -90,7 +90,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
 }
 
 /* ── Group block ── */
@@ -112,12 +112,12 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(220, 210, 185, 0.85);
+  color: var(--color-text);
 }
 
 .groupMeta {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 /* ── Rotation rows ── */
@@ -152,12 +152,12 @@
 .paddockName {
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .speciesIcons {
   font-size: 12px;
-  color: rgba(220, 210, 185, 0.7);
+  color: var(--color-text-muted);
   letter-spacing: 0.08em;
 }
 
@@ -213,7 +213,7 @@
   background: rgba(150, 175, 200, 0.05);
   border: 1px dashed rgba(150, 175, 200, 0.18);
   font-size: 11px;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
 }
 .plannedLine b {
   font-weight: 700;
@@ -254,8 +254,8 @@
 
 .plannedChipDismiss {
   background: rgba(232, 220, 200, 0.04);
-  border-color: rgba(232, 220, 200, 0.14);
-  color: rgba(220, 210, 185, 0.7);
+  border-color: var(--color-text);
+  color: var(--color-text-muted);
   padding: 2px 6px;
   letter-spacing: 0;
   font-size: 11px;
@@ -296,7 +296,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .quickLogField input,
@@ -306,7 +306,7 @@
   border-radius: 4px;
   background: rgba(28, 26, 22, 0.55);
   border: 1px solid rgba(232, 220, 200, 0.12);
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   font-family: inherit;
   min-width: 0;
 }
@@ -415,12 +415,12 @@
   padding: 2px 7px;
   border-radius: 3px;
   background: rgba(232, 220, 200, 0.03);
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
 }
 
 .daysNote {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 /* ── Logged moves section (per-paddock event log) ── */
@@ -435,7 +435,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-bottom: 6px;
 }
 
@@ -463,7 +463,7 @@
   align-items: baseline;
   gap: 6px;
   font-size: 11px;
-  color: rgba(220, 210, 185, 0.85);
+  color: var(--color-text);
 }
 
 .loggedMoveDirection b {
@@ -476,27 +476,27 @@
 
 .loggedMoveMeta {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   line-height: 1.5;
 }
 
 .loggedMoveEmpty {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.45);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
 /* ── Plan-vs-actual rest variance ── */
 .varianceSummary {
   font-size: 10.5px;
-  color: rgba(220, 210, 185, 0.75);
+  color: var(--color-text);
   margin-bottom: 6px;
   display: flex;
   align-items: baseline;
   gap: 8px;
   flex-wrap: wrap;
 }
-.varianceSummary b { font-weight: 600; color: rgba(232, 220, 200, 0.9); }
+.varianceSummary b { font-weight: 600; color: var(--color-text); }
 
 .varianceBadge {
   display: inline-block;
@@ -516,7 +516,7 @@
 }
 .varianceTolerant {
   background: rgba(180, 180, 180, 0.08);
-  color: rgba(220, 220, 220, 0.85);
+  color: var(--color-text);
   border: 1px solid rgba(180, 180, 180, 0.2);
 }
 .varianceNegative {
@@ -534,7 +534,7 @@
   border: 1px solid rgba(232, 220, 200, 0.06);
   font-size: 11px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 /* ── C.7 cycle engine summary ── */
@@ -564,7 +564,7 @@
 
 .engineHint {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -583,7 +583,7 @@
 .engineMetricValue {
   font-size: 16px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   line-height: 1.1;
 }
 
@@ -592,7 +592,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .engineBadge {

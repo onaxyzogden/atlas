@@ -41,9 +41,9 @@
   top: 16px;
   left: 16px;
   z-index: var(--z-map-panel);
-  background: rgba(15, 26, 18, 0.82);
+  background: var(--color-map-header-bg);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-hairline);
   border-radius: 10px;
   padding: 12px 16px;
   pointer-events: none;
@@ -54,7 +54,7 @@
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-map-header-text);
   line-height: 1.2;
   font-family: var(--font-display);
 }
@@ -63,7 +63,7 @@
   font-size: 9px;
   font-weight: 400;
   letter-spacing: 0.14em;
-  color: rgba(180, 165, 140, 0.5);
+  color: var(--color-map-header-muted);
   text-transform: uppercase;
   margin-top: 4px;
 }
@@ -100,7 +100,7 @@
   font-weight: var(--font-medium);
   border: 1px solid rgba(var(--color-gold-rgb), 0.3);
   border-radius: var(--radius-md);
-  background: rgba(15, 26, 18, 0.75);
+  background: var(--color-map-header-bg);
   color: var(--color-primary);
   cursor: pointer;
   backdrop-filter: blur(8px);
@@ -111,12 +111,12 @@
 
 .headerStats {
   font-size: var(--text-xs);
-  color: rgba(180, 165, 140, 0.6);
-  background: rgba(15, 26, 18, 0.7);
+  color: var(--color-map-header-muted);
+  background: var(--color-map-header-bg);
   backdrop-filter: blur(8px);
   padding: 4px 10px;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-hairline);
 }
 
 /* ─── Cesium 3D terrain overlay ──────────────────────────────────────── */
@@ -133,8 +133,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 26, 18, 0.9);
-  color: rgba(232, 220, 200, 0.7);
+  background: var(--color-map-header-bg);
+  color: var(--color-map-header-text);
   font-size: 14px;
   letter-spacing: 0.05em;
 }
@@ -179,7 +179,7 @@
   left: 0;
   right: 0;
   height: 56px;
-  background: var(--color-panel-bg, #1a1611);
+  background: var(--color-panel-bg);
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;

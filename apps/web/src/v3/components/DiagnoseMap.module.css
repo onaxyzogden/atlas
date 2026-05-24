@@ -30,7 +30,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   background: rgba(31, 29, 26, 0.85);
-  color: #f2ede3;
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.25);
   border-radius: 6px;
   cursor: pointer;

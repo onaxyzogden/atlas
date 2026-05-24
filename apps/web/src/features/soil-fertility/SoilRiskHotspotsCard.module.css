@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .hint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
@@ -58,7 +58,7 @@
   padding: 16px;
   text-align: center;
   font-size: 11.5px;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   border: 1px dashed rgba(180, 165, 140, 0.18);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.014);
@@ -104,13 +104,13 @@
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
 }
 
 .kindValue {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -156,7 +156,7 @@
 .rowName {
   font-size: 12.5px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .rowCat {
@@ -167,7 +167,7 @@
 
 .rowArea {
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   font-style: italic;
   font-variant-numeric: tabular-nums;
 }
@@ -203,7 +203,7 @@
   background: rgba(255, 255, 255, 0.022);
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(220, 210, 185, 0.85);
+  color: var(--color-text);
 }
 
 .flag_high   { border-left: 2px solid rgba(220, 130, 110, 0.8); }
@@ -229,7 +229,7 @@
 .flagText {
   flex: 1;
   font-style: italic;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
 }
 
 .clearNote {
@@ -244,8 +244,8 @@
 .footnote {
   margin: 0;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }

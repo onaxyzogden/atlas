@@ -20,17 +20,17 @@
   margin: 0 0 4px;
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 10.5px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
-.cardHint em { color: rgba(180, 165, 140, 0.8); font-style: normal; font-weight: 600; }
-.cardHint strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }
+.cardHint em { color: var(--color-text-subtle); font-style: normal; font-weight: 600; }
+.cardHint strong { color: var(--color-text); font-weight: 600; }
 
 .heuristicBadge {
   display: inline-block;
@@ -69,13 +69,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .statVal {
   font-size: 12.5px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   line-height: 1.1;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
@@ -88,9 +88,9 @@
   background: rgba(255, 255, 255, 0.015);
   font-size: 11px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
 }
-.empty strong { color: rgba(232, 220, 200, 0.9); font-weight: 600; }
+.empty strong { color: var(--color-text); font-weight: 600; }
 .empty em { color: rgba(220, 200, 150, 0.85); font-style: normal; font-weight: 600; }
 
 .infoLine {
@@ -100,7 +100,7 @@
   border: 1px solid rgba(232, 220, 200, 0.08);
   font-size: 10.5px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
   margin-bottom: 8px;
 }
 
@@ -116,8 +116,8 @@
 .routeRow {
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 
 .tierExcellent {
@@ -137,7 +137,7 @@
   background: rgba(220, 130, 110, 0.05);
 }
 .tierNeutral {
-  border-color: rgba(232, 220, 200, 0.12);
+  border-color: var(--color-text);
   background: rgba(232, 220, 200, 0.03);
 }
 
@@ -152,7 +152,7 @@
 .routeName {
   font-size: 12px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   letter-spacing: -0.01em;
 }
 
@@ -188,13 +188,13 @@
 }
 .tierChip.tierNeutral {
   background: rgba(232, 220, 200, 0.08);
-  color: rgba(220, 210, 185, 0.85);
-  border-color: rgba(232, 220, 200, 0.18);
+  color: var(--color-text);
+  border-color: var(--color-text);
 }
 
 .routeMeta {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -239,10 +239,10 @@
 .footnote {
   margin: 14px 0 0;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
-.footnote em { color: rgba(180, 165, 140, 0.75); font-style: normal; font-weight: 600; }
-.footnote strong { color: rgba(232, 220, 200, 0.85); font-weight: 600; }
+.footnote em { color: var(--color-text-subtle); font-style: normal; font-weight: 600; }
+.footnote strong { color: var(--color-text); font-weight: 600; }

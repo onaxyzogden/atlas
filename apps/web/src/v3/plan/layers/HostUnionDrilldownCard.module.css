@@ -21,7 +21,7 @@
   padding: 10px 12px;
   box-sizing: border-box;
   background: rgba(31, 29, 26, 0.96);
-  color: #f2ede3;
+  color: var(--color-text);
   border: 1px solid rgba(242, 237, 227, 0.18);
   border-radius: 8px;
   font-size: 12px;
@@ -65,13 +65,13 @@
 
 .hostName {
   font-weight: 600;
-  color: #f2ede3;
+  color: var(--color-text);
 }
 
 .closeButton {
   background: transparent;
   border: 0;
-  color: rgba(242, 237, 227, 0.7);
+  color: var(--color-text-muted);
   font-size: 16px;
   line-height: 1;
   padding: 2px 6px;
@@ -112,7 +112,7 @@
 }
 
 .memberName {
-  color: #f2ede3;
+  color: var(--color-text);
 }
 
 /* Per-layer tint pill. The colour comes from `LAYER_TINT` (Slice O ADR
@@ -132,7 +132,7 @@
 }
 
 .empty {
-  color: rgba(242, 237, 227, 0.6);
+  color: var(--color-text-muted);
   font-style: italic;
   padding: 6px 0 8px;
 }

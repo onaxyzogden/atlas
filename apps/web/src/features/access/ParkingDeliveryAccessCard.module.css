@@ -21,7 +21,7 @@
   margin: 0 0 3px;
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   letter-spacing: 0.01em;
 }
 
@@ -29,7 +29,7 @@
   margin: 0;
   font-size: 10.5px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .heuristicBadge {
@@ -53,7 +53,7 @@
   border-radius: 8px;
   border: 1px dashed rgba(180, 165, 140, 0.18);
   background: rgba(255, 255, 255, 0.015);
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -63,8 +63,8 @@
 .facet {
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
   margin-bottom: 10px;
 }
 
@@ -94,7 +94,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .verdictWord {
@@ -102,7 +102,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(232, 220, 200, 0.88);
+  color: var(--color-text);
 }
 
 .tone_good .verdictWord { color: rgba(180, 200, 150, 0.95); }
@@ -113,7 +113,7 @@
   margin: 0 0 8px;
   font-size: 11px;
   line-height: 1.45;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
 }
 
 /* ── Stat strip ──────────────────────────────────────────────────────── */
@@ -140,19 +140,19 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .statVal {
   font-size: 16px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   line-height: 1;
 }
 
 .statNote {
   font-size: 9.5px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-top: 1px;
 }
 
@@ -168,7 +168,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .demandRows {
@@ -192,16 +192,16 @@
 }
 
 .demandType {
-  color: rgba(220, 210, 185, 0.85);
+  color: var(--color-text);
 }
 
 .demandCount {
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   font-size: 10px;
 }
 
 .demandStalls {
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   font-weight: 700;
   min-width: 24px;
   text-align: right;
@@ -249,18 +249,18 @@
 .flagTitle {
   font-size: 11px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
   line-height: 1.35;
 }
 
 .flagType {
   font-weight: 500;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
 }
 
 .flagSub {
   font-size: 10px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   line-height: 1.45;
 }
 
@@ -269,14 +269,14 @@
 .footnote {
   margin: 12px 0 0;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .footnote em {
-  color: rgba(180, 165, 140, 0.75);
+  color: var(--color-text-subtle);
   font-style: normal;
   font-weight: 600;
 }

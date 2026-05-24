@@ -82,6 +82,14 @@ body {
 }
 .maplibregl-ctrl-bottom-left {
   bottom: 8px !important;
+  /* Center the native scale bar along the bottom edge instead of the
+     bottom-left corner, where the floating MapToolbar dock would hide it. */
+  left: 50% !important;
+  transform: translateX(-50%);
+}
+/* Zero MapLibre's default 10px left margin so the control lands truly centered. */
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl {
+  margin-left: 0 !important;
 }
 
 /* ─── Left toolbar scrollbar hide ────────────────────────────────────────── */
@@ -176,7 +184,7 @@ body.showcase-scroll #root {
   background: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #c4b49a;
+  color: var(--color-text);
   cursor: pointer;
   transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
   padding: 0;
@@ -184,7 +192,7 @@ body.showcase-scroll #root {
 }
 .spine-btn:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: #e9decb;
+  color: var(--color-text);
 }
 .spine-btn:focus-visible {
   outline: 2px solid rgba(180, 165, 140, 0.6);

@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .hint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 720px;
 }
 
@@ -77,21 +77,21 @@
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-weight: 600;
 }
 
 .tileValue {
   font-size: 20px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 
 .tileSub {
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   line-height: 1.4;
 }
 
@@ -136,7 +136,7 @@
   gap: 14px;
   padding: 6px 8px 2px;
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .legendItem {
@@ -175,12 +175,12 @@
   padding: 5px 6px;
   text-align: center;
   border-bottom: 1px solid rgba(232, 220, 200, 0.04);
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
 }
 
 .table th {
   font-weight: 600;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-size: 10px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -189,7 +189,7 @@
 .rowLabel {
   text-align: left !important;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.85) !important;
+  color: var(--color-text) !important;
   white-space: nowrap;
 }
 
@@ -207,8 +207,8 @@
 .footnote {
   margin: 0;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }

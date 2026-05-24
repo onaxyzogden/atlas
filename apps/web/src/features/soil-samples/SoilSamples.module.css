@@ -17,13 +17,13 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   margin: 0;
 }
 
 .headerHint {
   font-size: 11px;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-right: auto;
   margin-left: 12px;
   font-style: italic;
@@ -48,9 +48,9 @@
 .empty {
   padding: 16px 18px;
   border-radius: 10px;
-  border: 1px dashed rgba(255,255,255,0.08);
+  border: 1px dashed var(--color-hairline);
   background: rgba(255,255,255,0.015);
-  color: rgba(180,165,140,0.55);
+  color: var(--color-text-subtle);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -66,8 +66,8 @@
 .row {
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 
 .rowHeader {
@@ -80,7 +80,7 @@
 
 .rowDate {
   font-size: 11px;
-  color: rgba(180,165,140,0.55);
+  color: var(--color-text-subtle);
   letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
 }
@@ -88,7 +88,7 @@
 .rowLabel {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232,220,200,0.92);
+  color: var(--color-text);
   flex: 1;
   min-width: 0;
 }
@@ -96,7 +96,7 @@
 .rowDelete {
   background: transparent;
   border: none;
-  color: rgba(180,165,140,0.35);
+  color: var(--color-text-subtle);
   font-size: 11px;
   cursor: pointer;
   padding: 2px 6px;
@@ -124,16 +124,16 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: rgba(255,255,255,0.04);
-  color: rgba(180,165,140,0.7);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: var(--color-hover-overlay);
+  color: var(--color-text-subtle);
+  border: 1px solid var(--color-hairline);
 }
 
 .chipBio_high { background: rgba(107,164,122,0.18); color: #a8d4ba; }
 .chipBio_moderate { background: rgba(212,197,100,0.16); color: #d4c564; }
 .chipBio_low { background: rgba(180,140,90,0.16); color: #c4a888; }
 .chipBio_none { background: rgba(160,80,80,0.16); color: #c89090; }
-.chipBio_unknown { background: rgba(255,255,255,0.04); color: rgba(180,165,140,0.45); }
+.chipBio_unknown { background: var(--color-hover-overlay); color: var(--color-text-subtle); }
 
 .metricsGrid {
   display: grid;
@@ -146,7 +146,7 @@
   padding: 8px 10px;
   border-radius: 8px;
   background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.04);
+  border: 1px solid var(--color-hairline);
 }
 .metricLabel {
   display: block;
@@ -154,31 +154,31 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.4);
+  color: var(--color-text-subtle);
   margin-bottom: 3px;
 }
 .metricValue {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: rgba(232,220,200,0.9);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
 
 .notes {
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid var(--color-hairline);
   font-size: 12px;
   line-height: 1.55;
-  color: rgba(232,220,200,0.75);
+  color: var(--color-text);
   white-space: pre-wrap;
 }
 
 .metaLine {
   margin-top: 6px;
   font-size: 11px;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
@@ -215,15 +215,15 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(180,165,140,0.55);
+  color: var(--color-text-subtle);
 }
 
 .input,
 .select,
 .textarea {
   background: rgba(0,0,0,0.18);
-  border: 1px solid rgba(255,255,255,0.07);
-  color: rgba(232,220,200,0.92);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-text);
   padding: 7px 9px;
   border-radius: 6px;
   font-size: 12px;
@@ -251,19 +251,19 @@
 .locationCoords {
   flex: 1;
   font-size: 11px;
-  color: rgba(180,165,140,0.55);
+  color: var(--color-text-subtle);
   font-variant-numeric: tabular-nums;
 }
 .locationBtn {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: rgba(180,165,140,0.75);
+  background: var(--color-hover-overlay);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-text-subtle);
   padding: 5px 10px;
   border-radius: 6px;
   font-size: 11px;
   cursor: pointer;
 }
-.locationBtn:hover { background: rgba(255,255,255,0.08); }
+.locationBtn:hover { background: var(--color-active-overlay); }
 
 .formActions {
   display: flex;
@@ -274,15 +274,15 @@
 
 .cancelBtn {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.08);
-  color: rgba(180,165,140,0.7);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-text-subtle);
   padding: 6px 14px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
 }
-.cancelBtn:hover { background: rgba(255,255,255,0.04); }
+.cancelBtn:hover { background: var(--color-hover-overlay); }
 
 .saveBtn {
   background: rgba(107,164,122,0.22);
@@ -304,6 +304,6 @@
 .formHint {
   margin-top: 8px;
   font-size: 11px;
-  color: rgba(180,165,140,0.45);
+  color: var(--color-text-subtle);
   line-height: 1.5;
 }

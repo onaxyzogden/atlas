@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
@@ -48,7 +48,7 @@
   padding: 20px;
   text-align: center;
   font-size: 12px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   background: rgba(232, 220, 200, 0.018);
   border-radius: 8px;
   border: 1px dashed rgba(232, 220, 200, 0.08);
@@ -76,7 +76,7 @@
   font-size: 13px;
   font-style: italic;
   line-height: 1.55;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
 }
 
 /* ── Meta chips ── */
@@ -102,13 +102,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }
 
 .metaValue {
   font-size: 11.5px;
   font-weight: 600;
-  color: rgba(220, 210, 185, 0.92);
+  color: var(--color-text);
 }
 
 /* ── Section label ── */
@@ -118,7 +118,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
 }
 
 /* ── Statements ── */
@@ -150,14 +150,14 @@
 .stmtText {
   font-size: 13px;
   line-height: 1.55;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   margin-bottom: 5px;
 }
 
 .stmtRationale {
   font-size: 10.5px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -170,5 +170,5 @@
   border: 1px solid rgba(232, 220, 200, 0.06);
   font-size: 10.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
 }

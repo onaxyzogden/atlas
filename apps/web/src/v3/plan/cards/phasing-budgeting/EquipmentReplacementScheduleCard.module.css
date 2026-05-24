@@ -4,8 +4,8 @@
   margin-bottom: 16px;
   padding: 18px 20px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-hairline);
+  background: var(--color-hover-overlay);
 }
 
 .cardHead {
@@ -20,13 +20,13 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   letter-spacing: 0.01em;
 }
 
 .cardHint {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -35,25 +35,25 @@
   margin: 0 0 14px 0;
   font-size: 12px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .code {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--color-hover-overlay);
   padding: 1px 6px;
   border-radius: 4px;
   font-size: 11px;
   font-family: 'SF Mono', ui-monospace, monospace;
-  color: rgba(220, 210, 190, 0.85);
+  color: var(--color-text);
 }
 
 .empty {
   padding: 18px;
   text-align: center;
   font-size: 12px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-hover-overlay);
 }
 
 .phaseList {
@@ -69,7 +69,7 @@
   padding: 10px 12px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-hairline);
 }
 
 .phaseHead {
@@ -88,12 +88,12 @@
 
 .phaseName {
   font-size: 13px;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .phaseTime {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-variant-numeric: tabular-nums;
 }
 
@@ -102,12 +102,12 @@
   font-size: 10px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .phaseEmpty {
   font-size: 11px;
-  color: rgba(180, 165, 140, 0.4);
+  color: var(--color-text-subtle);
   padding: 4px 6px;
 }
 
@@ -127,18 +127,18 @@
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-hover-overlay);
 }
 
 .item strong {
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
 }
 
 .kindChip {
   padding: 1px 6px;
   border-radius: 999px;
   background: rgba(106, 106, 106, 0.25);
-  color: rgba(220, 220, 220, 0.85);
+  color: var(--color-text);
   font-size: 10px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -147,7 +147,7 @@
 .itemMeta {
   margin-left: auto;
   font-size: 10.5px;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   font-variant-numeric: tabular-nums;
 }
 
@@ -161,7 +161,7 @@
 
 .unknown strong {
   font-size: 12px;
-  color: rgba(232, 220, 200, 0.85);
+  color: var(--color-text);
 }
 
 .unknownList {
@@ -176,5 +176,5 @@
 .unknownList li {
   font-size: 11.5px;
   line-height: 1.5;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }

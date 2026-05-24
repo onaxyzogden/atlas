@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
@@ -70,7 +70,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(220, 210, 185, 0.85);
+  color: var(--color-text);
 }
 
 .verdict {
@@ -99,7 +99,7 @@
 
 .verdictMuted {
   background: rgba(180, 165, 140, 0.12);
-  color: rgba(180, 165, 140, 0.8);
+  color: var(--color-text-subtle);
 }
 
 .statGrid {
@@ -121,7 +121,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin-bottom: 3px;
 }
 
@@ -129,18 +129,18 @@
   font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .facetNote {
   margin: 4px 0 0;
   font-size: 11px;
   line-height: 1.5;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
 }
 
 .muted {
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   font-size: 10.5px;
 }
 
@@ -150,7 +150,7 @@
   border-top: 1px solid rgba(232, 220, 200, 0.06);
   font-size: 10.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 @media (max-width: 720px) {

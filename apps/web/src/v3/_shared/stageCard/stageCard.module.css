@@ -9,7 +9,7 @@
   padding: 24px 28px;
   border-radius: 12px;
   background: linear-gradient(135deg, var(--stage-hero-a, #2a1f10) 0%, var(--stage-hero-mid, #1a130a) 50%, var(--stage-hero-b, #2a1d12) 100%);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--color-hairline);
 }
 .hero[data-stage='plan'] {
   --stage-hero-a: #2a1f10;
@@ -40,14 +40,14 @@
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 600;
-  color: rgba(232,220,200,0.95);
+  color: var(--color-text);
   margin: 0 0 8px;
   line-height: 1.2;
   font-style: italic;
 }
 .lede {
   font-size: 13px;
-  color: rgba(232,220,200,0.6);
+  color: var(--color-text);
   margin: 0;
   line-height: 1.5;
 }
@@ -55,18 +55,18 @@
 .section {
   padding: 20px 22px;
   border-radius: 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--color-hover-overlay);
+  border: 1px solid var(--color-hairline);
   margin-bottom: 16px;
 }
 .sectionTitle {
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
-  color: rgba(232,220,200,0.92);
+  color: var(--color-text);
   margin: 0 0 14px;
 }
-.sectionBody { font-size: 13px; color: rgba(232,220,200,0.78); line-height: 1.55; }
+.sectionBody { font-size: 13px; color: var(--color-text); line-height: 1.55; }
 
 .grid {
   display: grid;
@@ -81,18 +81,18 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(232,220,200,0.55);
+  color: var(--color-text);
 }
 .field input,
 .field select,
 .field textarea {
   appearance: none;
   background: rgba(0,0,0,0.25);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-hairline);
   border-radius: 6px;
   padding: 8px 10px;
   font-size: 13px;
-  color: rgba(232,220,200,0.92);
+  color: var(--color-text);
   font-family: inherit;
   width: 100%;
 }
@@ -130,20 +130,20 @@
   gap: 12px;
   padding: 10px 12px;
   background: rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid var(--color-hairline);
   border-radius: 6px;
   font-size: 13px;
-  color: rgba(232,220,200,0.85);
+  color: var(--color-text);
   align-items: center;
 }
-.listRow strong { color: rgba(232,220,200,0.95); font-weight: 600; }
-.listMeta { color: rgba(232,220,200,0.55); font-size: 11px; }
+.listRow strong { color: var(--color-text); font-weight: 600; }
+.listMeta { color: var(--color-text); font-size: 11px; }
 
 .removeBtn {
   appearance: none;
   background: transparent;
   border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(232,220,200,0.6);
+  color: var(--color-text);
   font-size: 11px;
   padding: 4px 10px;
   border-radius: 4px;
@@ -153,7 +153,7 @@
 
 .empty {
   font-size: 13px;
-  color: rgba(232,220,200,0.45);
+  color: var(--color-text);
   font-style: italic;
   padding: 12px 0;
 }
@@ -163,7 +163,7 @@
 .hint {
   margin-top: 6px;
   font-size: 12px;
-  color: rgba(232,220,200,0.5);
+  color: var(--color-text);
   font-style: italic;
 }
 
@@ -171,12 +171,12 @@
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--color-hairline);
   font-size: 13px;
 }
 .statRow:last-child { border-bottom: none; }
-.statRow > span:first-child { color: rgba(232,220,200,0.6); }
-.statRow > span:last-child { color: rgba(232,220,200,0.95); font-variant-numeric: tabular-nums; }
+.statRow > span:first-child { color: var(--color-text); }
+.statRow > span:last-child { color: var(--color-text); font-variant-numeric: tabular-nums; }
 
 .pill {
   display: inline-block;
@@ -186,8 +186,8 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(232,220,200,0.85);
-  background: rgba(255,255,255,0.04);
+  color: var(--color-text);
+  background: var(--color-hover-overlay);
 }
 /* Plan semantic pills */
 .pillUnmet   { background: rgba(220,80,80,0.12);                    color: rgba(220,140,140,0.95);                    border: 1px solid rgba(220,80,80,0.3); }
@@ -198,7 +198,7 @@
 .pillRunning { background: rgba(var(--color-gold-rgb), 0.1);        color: rgba(var(--color-gold-rgb), 0.95);         border: 1px solid rgba(var(--color-gold-rgb), 0.3); }
 .pillSuccess { background: rgba(80,180,120,0.12);                   color: rgba(140,220,170,0.95);                    border: 1px solid rgba(80,180,120,0.3); }
 .pillFail    { background: rgba(220,80,80,0.12);                    color: rgba(220,140,140,0.95);                    border: 1px solid rgba(220,80,80,0.3); }
-.pillIncon   { background: rgba(180,180,180,0.08);                  color: rgba(220,220,220,0.85);                    border: 1px solid rgba(180,180,180,0.2); }
+.pillIncon   { background: rgba(180,180,180,0.08);                  color: var(--color-text);                    border: 1px solid rgba(180,180,180,0.2); }
 
 .tag {
   display: inline-block;
@@ -207,9 +207,9 @@
   margin-bottom: 4px;
   border-radius: 4px;
   font-size: 11px;
-  background: rgba(255,255,255,0.05);
-  color: rgba(232,220,200,0.75);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: var(--color-hover-overlay);
+  color: var(--color-text);
+  border: 1px solid var(--color-hairline);
   cursor: pointer;
 }
 .tagActive {
@@ -222,11 +222,11 @@
 .table th, .table td {
   padding: 8px 10px;
   text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  color: rgba(232,220,200,0.85);
+  border-bottom: 1px solid var(--color-hairline);
+  color: var(--color-text);
 }
 .table th {
-  color: rgba(232,220,200,0.6);
+  color: var(--color-text);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;

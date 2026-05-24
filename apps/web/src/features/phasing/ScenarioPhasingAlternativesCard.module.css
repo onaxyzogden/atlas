@@ -20,14 +20,14 @@
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .cardHint {
   margin: 0;
   font-size: 11.5px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.65);
+  color: var(--color-text-subtle);
   max-width: 640px;
 }
 
@@ -66,19 +66,19 @@
   border-radius: 6px;
   cursor: pointer;
   text-align: left;
-  color: rgba(220, 210, 185, 0.78);
+  color: var(--color-text);
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 
 .scenarioTab:hover {
   background: rgba(232, 220, 200, 0.04);
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
 }
 
 .scenarioTabActive {
   background: rgba(196, 162, 101, 0.18);
   border-color: rgba(196, 162, 101, 0.45);
-  color: rgba(232, 220, 200, 0.98);
+  color: var(--color-text);
 }
 
 .scenarioTabLabel {
@@ -90,7 +90,7 @@
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .scenarioTabActive .scenarioTabFirst {
@@ -107,7 +107,7 @@
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
 }
 
 .scenarioTagline strong {
@@ -119,7 +119,7 @@
   margin: 0;
   font-size: 11.5px;
   line-height: 1.55;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -141,14 +141,14 @@
 .statValue {
   font-size: 22px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   line-height: 1;
 }
 
 .statDenom {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
   margin-left: 2px;
 }
 
@@ -158,7 +158,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.55);
+  color: var(--color-text-subtle);
 }
 
 .phaseStrip {
@@ -210,13 +210,13 @@
 .phaseChipName {
   font-size: 11.5px;
   font-weight: 700;
-  color: rgba(232, 220, 200, 0.9);
+  color: var(--color-text);
 }
 
 .phaseChipCount {
   font-size: 10.5px;
   font-weight: 500;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
   margin-top: 1px;
 }
 
@@ -243,13 +243,13 @@
 .nudgeOk {
   background: rgba(160, 195, 130, 0.06);
   border-left: 2px solid rgba(160, 195, 130, 0.5);
-  color: rgba(180, 200, 165, 0.9);
+  color: var(--color-text);
 }
 
 .nudgeLate {
   background: rgba(196, 162, 101, 0.06);
   border-left: 2px solid rgba(196, 162, 101, 0.5);
-  color: rgba(220, 200, 165, 0.9);
+  color: var(--color-text);
 }
 
 .nudgeMissing {
@@ -266,5 +266,5 @@
   border: 1px solid rgba(232, 220, 200, 0.06);
   font-size: 11px;
   line-height: 1.6;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }

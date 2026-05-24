@@ -8,7 +8,7 @@
   margin-bottom: 16px;
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-hairline);
 }
 
 .scoreCol {
@@ -23,7 +23,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.7);
+  color: var(--color-text-subtle);
 }
 
 .body {
@@ -78,7 +78,7 @@
 .interpretation {
   font-size: 14px;
   line-height: 1.45;
-  color: rgba(232, 220, 200, 0.92);
+  color: var(--color-text);
   margin: 0;
 }
 
@@ -87,7 +87,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px 24px;
   padding: 10px 0 4px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--color-hairline);
   margin-top: 4px;
 }
 
@@ -96,18 +96,18 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(180, 165, 140, 0.6);
+  color: var(--color-text-subtle);
   margin-bottom: 2px;
 }
 
 .factValue {
   font-size: 13px;
   line-height: 1.35;
-  color: rgba(232, 220, 200, 0.88);
+  color: var(--color-text);
 }
 
 .factEmpty {
-  color: rgba(180, 165, 140, 0.45);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -126,7 +126,7 @@
   border-radius: 8px;
   border: 1px solid rgba(196, 162, 101, 0.35);
   background: rgba(196, 162, 101, 0.1);
-  color: rgba(232, 220, 200, 0.95);
+  color: var(--color-text);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;

@@ -21,6 +21,11 @@
   --color-chrome-bg-overlay:     rgba(10, 13, 11, 0.72);
   --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
 
+  /* Theme-flipping overlays/hairlines — dark values match the old literals */
+  --color-hairline:        rgba(255, 255, 255, 0.06);
+  --color-hover-overlay:   rgba(255, 255, 255, 0.05);
+  --color-active-overlay:  rgba(255, 255, 255, 0.10);
+
   /* -- Borders (gold-tinted, very low alpha) ------------------------------- */
   --color-border:          rgba(212, 175, 95, 0.18);
   --color-border-subtle:   rgba(212, 175, 95, 0.10);
@@ -117,6 +122,10 @@
     --color-chrome-bg-translucent: rgba(10, 13, 11, 0.95);
     --color-chrome-bg-overlay:     rgba(10, 13, 11, 0.72);
     --color-elevation-highlight:   rgba(255, 255, 255, 0.06);
+
+    --color-hairline:        rgba(255, 255, 255, 0.06);
+    --color-hover-overlay:   rgba(255, 255, 255, 0.05);
+    --color-active-overlay:  rgba(255, 255, 255, 0.10);
 
     --color-border:          rgba(212, 175, 95, 0.18);
     --color-border-subtle:   rgba(212, 175, 95, 0.10);

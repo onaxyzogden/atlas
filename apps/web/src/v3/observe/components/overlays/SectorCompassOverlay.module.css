@@ -24,7 +24,7 @@
   font-size: 10.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(232, 220, 200, 0.72);
+  color: var(--color-text);
 }
 
 .svg {

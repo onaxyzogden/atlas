@@ -61,7 +61,7 @@
 .cw-tooltip-desc {
   font-size: 12px;
   line-height: 1.4;
-  color: rgba(243, 239, 228, 0.85);
+  color: var(--color-text);
 }
 
 .cw-tooltip-cta {
@@ -73,7 +73,7 @@
 }
 
 .cw-tooltip-cta-disabled {
-  color: rgba(243, 239, 228, 0.5);
+  color: var(--color-text-muted);
 }
 
 .cw-svg {
@@ -172,7 +172,7 @@
 }
 
 .cw-band-icon {
-  color: #f3efe4;
+  color: var(--color-text);
   pointer-events: none;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45));
 }
