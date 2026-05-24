@@ -9,7 +9,6 @@
  * calls and renders the banner above this view.
  */
 
-import StageSpine from './StageSpine.js';
 import StageProgressionRail from './StageProgressionRail.js';
 import ObserveCompassWheel, {
   type CommandCentreAffordance,
@@ -39,8 +38,6 @@ interface StageCompassViewProps {
   onSelect: (id: string | null) => void;
   /** Enter the stage's working map for the given module. */
   onOpenMap: (moduleId: string) => void;
-  /** Cross-navigate to another stage's compass/layout. */
-  onNavigateStage: (stage: Stage) => void;
   /** When present, the wheel renders the center-unlock Command Centre affordance. */
   commandCentre?: CommandCentreAffordance;
 }
@@ -54,21 +51,12 @@ export default function StageCompassView({
   selected,
   onSelect,
   onOpenMap,
-  onNavigateStage,
   commandCentre,
 }: StageCompassViewProps) {
   const selectedView = selected ? (data.byId[selected] ?? null) : null;
 
   return (
     <div className={css.page}>
-      <header className={css.top}>
-        <StageSpine
-          activeStage={activeStage}
-          progress={data.stage}
-          onNavigateStage={onNavigateStage}
-        />
-      </header>
-
       <div className={css.body}>
         <StageProgressionRail activeStage={activeStage} progress={data.stage} />
 

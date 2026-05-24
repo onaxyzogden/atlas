@@ -12,7 +12,6 @@ import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { useCompassData } from './useCompassData.js';
 import StageCompassView from './StageCompassView.js';
-import type { Stage } from './compassTypes.js';
 import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
 
 export default function StageCompassPage() {
@@ -48,11 +47,6 @@ export default function StageCompassPage() {
       params: { projectId },
     });
 
-  const navigateStage = (stage: Stage) => {
-    if (stage === 'observe') return;
-    navigate({ to: `/v3/project/$projectId/${stage}`, params: { projectId } });
-  };
-
   return (
     <>
       <TrueNorthAdvisoryBanner projectId={projectId} />
@@ -64,7 +58,6 @@ export default function StageCompassPage() {
         selected={selected}
         onSelect={setSelected}
         onOpenMap={openOnMap}
-        onNavigateStage={navigateStage}
         commandCentre={{ ready, onEnter: goCommandCentre }}
       />
     </>

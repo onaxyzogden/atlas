@@ -12,7 +12,6 @@ import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { usePlanCompassData } from './usePlanCompassData.js';
 import StageCompassView from '../../compass/StageCompassView.js';
-import type { Stage } from '../../compass/compassTypes.js';
 
 export default function PlanStageCompassPage() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -35,15 +34,6 @@ export default function PlanStageCompassPage() {
       search: {},
     });
 
-  const navigateStage = (stage: Stage) => {
-    if (stage === 'plan') return;
-    if (stage === 'observe') {
-      navigate({ to: '/v3/project/$projectId/compass', params: { projectId } });
-      return;
-    }
-    navigate({ to: `/v3/project/$projectId/${stage}`, params: { projectId } });
-  };
-
   return (
     <StageCompassView
       data={data}
@@ -53,7 +43,6 @@ export default function PlanStageCompassPage() {
       selected={selected}
       onSelect={setSelected}
       onOpenMap={openOnMap}
-      onNavigateStage={navigateStage}
     />
   );
 }

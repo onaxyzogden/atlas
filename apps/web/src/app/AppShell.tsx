@@ -13,7 +13,7 @@ import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import { Button } from '../components/ui/Button.js';
 import { FLAGS } from '@ogden/shared';
-import { LevelNavigatorBar } from '../components/LevelNavigator/index.js';
+import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import styles from './AppShell.module.css';
 
@@ -46,7 +46,7 @@ export default function AppShell({ children }: AppShellProps) {
         </Link>
 
         <div className={styles.headerCenter}>
-          <LevelNavigatorBar />
+          <HeaderStageSpine />
         </div>
 
         {/* Search / Command Palette trigger */}
