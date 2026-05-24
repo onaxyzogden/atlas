@@ -17,6 +17,7 @@ import {
   aggregateProgress,
   objectiveProgress,
   resolveNodeStates,
+  type ObjectiveProgress,
 } from '../../compass/compassGating.js';
 import type { ObjectiveView, CompassData } from '../../compass/compassTypes.js';
 
@@ -51,4 +52,25 @@ export function useActCompassData(projectId: string): CompassData {
     const stage = aggregateProgress(views.map((v) => v.progress));
     return { views, byId, stage };
   }, [evidence, checks]);
+}
+
+/** Single-objective progress (used by the in-map return-to-compass prompt). */
+export function useActObjectiveProgress(
+  projectId: string,
+  module: ActModule | null,
+): ObjectiveProgress | null {
+  const evidence = useActCompassStore((s) =>
+    module ? s.byProject[projectId]?.[module] : undefined,
+  );
+  const checks = useActHowChecksStore((s) =>
+    module ? s.byProject[projectId]?.[module] : undefined,
+  );
+  return useMemo(() => {
+    if (!module) return null;
+    const obj = ACT_COMPASS_OBJECTIVES.find((o) => o.id === module);
+    if (!obj) return null;
+    const raw = evidence ?? actSeedFor(module);
+    const checked = checks ?? EMPTY_CHECKS;
+    return objectiveProgress(obj.nodes.length, raw, checked);
+  }, [module, evidence, checks]);
 }

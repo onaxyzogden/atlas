@@ -29,6 +29,7 @@ import ObserveAnnotationLayers from '../observe/components/layers/ObserveAnnotat
 import SectorCompassOverlay from '../observe/components/overlays/SectorCompassOverlay.js';
 import PlanTools from './PlanTools.js';
 import PlanChecklistAside from './PlanChecklistAside.js';
+import PlanObjectiveCompletePrompt from './compass/PlanObjectiveCompletePrompt.js';
 import PlanModuleBar from './PlanModuleBar.js';
 import PlanModuleSlideUp from './PlanModuleSlideUp.js';
 import PlanPhaseTabs from './canvas/PlanPhaseTabs.js';
@@ -454,6 +455,10 @@ export default function PlanLayout() {
               handleSelectModule('principle-verification');
               setSlideUpOpen(true);
             }}
+          />
+          <PlanObjectiveCompletePrompt
+            projectId={params.projectId ?? null}
+            module={validModule}
           />
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
           <PlanStampToast />

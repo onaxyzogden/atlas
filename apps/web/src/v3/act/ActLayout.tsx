@@ -33,6 +33,7 @@ import InlineFeaturePopover from '../plan/draw/InlineFeaturePopover.js';
 import PlanSelectionFloater from '../plan/PlanSelectionFloater.js';
 import ActTools from './ActTools.js';
 import ActChecklistAside from './ActChecklistAside.js';
+import ActObjectiveCompletePrompt from './compass/ActObjectiveCompletePrompt.js';
 import ActModuleBar from './ActModuleBar.js';
 import ActModuleSlideUp from './ActModuleSlideUp.js';
 import ActDrawHost from './draw/ActDrawHost.js';
@@ -195,6 +196,10 @@ export default function ActLayout() {
               <SectorCompassOverlay projectId={id} map={map} />
               <PlanSelectionFloater />
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
+              <ActObjectiveCompletePrompt
+                projectId={params.projectId ?? null}
+                module={validModule}
+              />
             </>
           )}
         </DiagnoseMap>
