@@ -43,6 +43,11 @@
   --color-primary-hover:   #e0b56d;
   --color-on-primary:      #2a2018;
 
+  /* -- Brand/active gold (light darkens these; dark keeps the bright estate
+        gold exactly — matches the pre-hue-pass literals) -------------------- */
+  --color-gold-brand:      #d4af5f;
+  --color-gold-active:     #e0b56d;
+
   /* -- Accent (sage green active) ------------------------------------------ */
   --color-accent:          #8fc89a;
   --color-accent-hover:    #a8d39a;
@@ -75,6 +80,14 @@
   --color-map-panel-rgb:        31, 29, 26;
   --color-map-panel-line-rgb:   242, 237, 227;
 
+  /* Sector-compass SVG chrome — dark = exact pre-hue-pass inline hex. */
+  --color-compass-disc:    #1a2a1a;
+  --color-compass-grid:    #4a6a4a;
+  --color-compass-centre:  #7aaa7a;
+  --color-compass-label:   #8aaa8a;
+  --color-compass-empty:   #5a7a5a;
+  --color-compass-north:   #c4a265;
+
   /* -- Status (semantic) — sage success, gold warn, terracotta error ------- */
   --color-success:         #8fc89a;
   --color-success-muted:   rgba(143, 200, 154, 0.15);
@@ -84,6 +97,11 @@
   --color-error-muted:     rgba(210, 122, 106, 0.15);
   --color-info:            #8ab4c9;
   --color-info-muted:      rgba(138, 180, 201, 0.15);
+
+  /* On-surface status text — dark channels = exact pre-hue-pass pastels. */
+  --color-pos-text-rgb:    140, 220, 170;
+  --color-neg-text-rgb:    220, 140, 140;
+  --color-info-text-rgb:   170, 190, 240;
 
   /* -- Confidence ---------------------------------------------------------- */
   --color-confidence-high:   #8fc89a;
@@ -147,6 +165,9 @@
     --color-primary-hover:   #e0b56d;
     --color-on-primary:      #2a2018;
 
+    --color-gold-brand:      #d4af5f;
+    --color-gold-active:     #e0b56d;
+
     --color-accent:          #8fc89a;
     --color-accent-hover:    #a8d39a;
     --color-on-accent:       #1a2418;
@@ -173,6 +194,13 @@
     --color-map-panel-rgb:        31, 29, 26;
     --color-map-panel-line-rgb:   242, 237, 227;
 
+    --color-compass-disc:    #1a2a1a;
+    --color-compass-grid:    #4a6a4a;
+    --color-compass-centre:  #7aaa7a;
+    --color-compass-label:   #8aaa8a;
+    --color-compass-empty:   #5a7a5a;
+    --color-compass-north:   #c4a265;
+
     --color-success:         #8fc89a;
     --color-success-muted:   rgba(143, 200, 154, 0.15);
     --color-warning:         #d4af5f;
@@ -181,6 +209,10 @@
     --color-error-muted:     rgba(210, 122, 106, 0.15);
     --color-info:            #8ab4c9;
     --color-info-muted:      rgba(138, 180, 201, 0.15);
+
+    --color-pos-text-rgb:    140, 220, 170;
+    --color-neg-text-rgb:    220, 140, 140;
+    --color-info-text-rgb:   170, 190, 240;
 
     --color-confidence-high:   #8fc89a;
     --color-confidence-medium: #d4af5f;

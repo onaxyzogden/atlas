@@ -155,8 +155,11 @@
 
   /* Brand gold (brand moments) vs. active-state gold. Brand uses the rich
    * estate gold; active reserved for UI states needing higher chroma. */
-  --color-gold-brand:      #d4af5f;
-  --color-gold-active:     #e0b56d;
+  /* Light values darkened (2026-05-24 hue pass) so estate gold reads as text/
+   * thin strokes on the now-light surfaces; dark-mode.css restores the bright
+   * estate gold (#d4af5f / #e0b56d) exactly. */
+  --color-gold-brand:      #b08a3a;
+  --color-gold-active:     #9a771f;
   /* --color-brand alias: legacy token used by v3 sidebar / structure modal /
    * a few card patterns that predate --color-primary. Always resolves to
    * the brand gold so the estate identity stays consistent. */
@@ -171,6 +174,13 @@
   --color-error-muted:     rgba(196, 73, 58, 0.15);
   --color-info:            var(--color-info-500);
   --color-info-muted:      rgba(61, 127, 158, 0.15);
+  /* On-surface status TEXT for pastel-on-tint pills/labels (2026-05-24 hue
+   * pass). RGB form so each site keeps its own alpha; dark channels (in
+   * dark-mode.css) match the exact pre-hue-pass pastels, light channels are
+   * AA-dark so the text reads on the translucent tint. */
+  --color-pos-text-rgb:    46, 125, 79;
+  --color-neg-text-rgb:    184, 58, 42;
+  --color-info-text-rgb:   58, 86, 176;
 
   /* --- Chrome neutrals (estate palette 2026-04-28) ---------------------
    * Light-mode chrome (2026-05-23): chrome now adapts to the active theme.
@@ -223,6 +233,16 @@
      dark. Consumed as rgba(var(--color-map-panel-rgb), A). */
   --color-map-panel-rgb:        255, 255, 255;
   --color-map-panel-line-rgb:   0, 0, 0;
+  /* Sector-compass SVG chrome (disc/grid/spokes/centre/labels/empty-state).
+   * Dark values (dark-mode.css) match the pre-hue-pass inline hex exactly;
+   * light values let the diagram read on the now-white compass card. The
+   * wind/solar/manual wedge fills are data identity — left theme-agnostic. */
+  --color-compass-disc:    #cdd8c4;
+  --color-compass-grid:    #7d9275;
+  --color-compass-centre:  #4a7c3f;
+  --color-compass-label:   #4a6b4a;
+  --color-compass-empty:   #7d7864;
+  --color-compass-north:   #9a771f;
 
   /* ========================================================================
      ZONE CATEGORY IDENTITY
@@ -299,7 +319,7 @@
   --color-confidence-high-rgb: 45, 122, 79;
   --color-confidence-med-rgb:  138, 109, 30;
   --color-confidence-low-rgb:  155, 58, 42;
-  --color-gold-rgb:            212, 175, 95;
+  --color-gold-rgb:            176, 138, 58;
   --color-sage-rgb:            143, 200, 154;
   --color-earth-600-rgb:       125, 97, 64;
   --color-text-muted-rgb:      90, 84, 67;
