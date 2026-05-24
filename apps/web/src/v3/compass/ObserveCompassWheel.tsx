@@ -17,6 +17,11 @@
  * receives the whole segment object (the installed v0.1.0 calls it with the
  * segment, not just the id) and short-circuits the internal navigate; we read
  * `.id` off it (and tolerate a bare id string for forward-compat).
+ *
+ * `forceHover={selected}` pins the wheel's highlighted ("hovered") state to the
+ * currently-selected objective, so the selected segment keeps its emphasised
+ * look (and the hub/Next card track it) instead of reverting to the flat
+ * resting state after the pointer leaves.
  */
 
 import { MaqasidComparisonWheel } from '@ogden/ui-components';
@@ -34,7 +39,11 @@ interface WheelProps {
   onSelect: (module: ObserveModule) => void;
 }
 
-export default function ObserveCompassWheel({ views, onSelect }: WheelProps) {
+export default function ObserveCompassWheel({
+  views,
+  selected,
+  onSelect,
+}: WheelProps) {
   const segments = views.map((v) => ({
     id: v.objective.id,
     label: v.objective.label,
@@ -67,6 +76,7 @@ export default function ObserveCompassWheel({ views, onSelect }: WheelProps) {
           levelColor={OBSERVE_ACCENT}
           segments={segments}
           nextActions={nextActions}
+          forceHover={selected}
           showNextCard
           showDiacritics={false}
           onSegmentSelect={(arg: string | { id: string }) =>

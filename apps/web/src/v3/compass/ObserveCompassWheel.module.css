@@ -20,3 +20,11 @@
 .wheelHost :global(.mcw-band) {
   fill-opacity: 0.22;
 }
+
+/* Also soften the inner progress arc so the whole wheel sits in the quiet
+   translucent register rather than a saturated solid fill. Still opaque enough
+   to read as the progress indicator; the selected segment stays emphasised via
+   the `forceHover` highlight. */
+.wheelHost :global(.mcw-seg-current) {
+  fill-opacity: 0.5;
+}
