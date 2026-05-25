@@ -50,6 +50,7 @@ import StageCompassPage from '../v3/compass/StageCompassPage.js';
 import PlanStageCompassPage from '../v3/plan/compass/PlanStageCompassPage.js';
 import ActStageCompassPage from '../v3/act/compass/ActStageCompassPage.js';
 import ObserveCommandCentrePage from '../v3/command/ObserveCommandCentrePage.js';
+import PlanCommandCentrePage from '../v3/plan/command/PlanCommandCentrePage.js';
 import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
 import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
@@ -57,6 +58,7 @@ import PlanReviewsPage from '../v3/plan/impact/PlanReviewsPage.js';
 import PlanDecisionLogPage from '../v3/plan/decisions/PlanDecisionLogPage.js';
 import PlanWorkPackagesPage from '../v3/plan/work-packages/PlanWorkPackagesPage.js';
 import PlanningWorkspacePage from '../v3/plan/workspace/PlanningWorkspacePage.js';
+import PlanConflictsPage from '../v3/plan/conflicts/PlanConflictsPage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
@@ -293,6 +295,13 @@ const v3PlanCompassRoute = createRoute({
   path: 'plan/compass',
   component: PlanStageCompassPage,
 });
+// Plan Command Centre — the aggregate "run the stage" surface the Plan compass
+// center unlocks into. Static path resolves before the `plan/$module` param.
+const v3PlanCommandCentreRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/command-centre',
+  component: PlanCommandCentrePage,
+});
 const v3PlanRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan',
@@ -326,6 +335,13 @@ const v3PlanWorkspaceRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/workspace/$decisionId',
   component: PlanningWorkspacePage,
+});
+// Plan Conflicts — new observations that may contradict an existing decision
+// (Phase 5a). Static path resolves before the `plan/$module` param route.
+const v3PlanConflictsRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/conflicts',
+  component: PlanConflictsPage,
 });
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
@@ -551,11 +567,13 @@ const routeTree = rootRoute.addChildren([
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
       v3PlanCompassRoute,
+      v3PlanCommandCentreRoute,
       v3PlanRoute,
       v3PlanReviewRoute,
       v3PlanDecisionLogRoute,
       v3PlanWorkPackagesRoute,
       v3PlanWorkspaceRoute,
+      v3PlanConflictsRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActRoute,

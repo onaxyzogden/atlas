@@ -11,7 +11,10 @@
  * Navigation rules (steward-locked):
  *  - Observe segment → the Compass while Observe is incomplete; once every
  *    Observe objective is verified (pct === 100) → the Command Centre.
- *  - Plan / Act segment → that stage's compass route; a no-op when already there.
+ *  - Plan segment → the Plan Compass while incomplete; once every Plan objective
+ *    is verified (pct === 100) → the Plan Command Centre. A no-op when already on
+ *    a Plan route.
+ *  - Act segment → that stage's route; a no-op when already there.
  */
 
 import { useRouterState, useNavigate } from '@tanstack/react-router';
@@ -76,6 +79,20 @@ export default function HeaderStageSpine() {
       return;
     }
     if (stage === activeStage) return; // already on this stage — no-op
+    if (stage === 'plan') {
+      if (planData.stage.pct >= 100) {
+        navigate({
+          to: '/v3/project/$projectId/plan/command-centre',
+          params: { projectId },
+        });
+      } else {
+        navigate({
+          to: '/v3/project/$projectId/plan/compass',
+          params: { projectId },
+        });
+      }
+      return;
+    }
     navigate({
       to: `/v3/project/$projectId/${stage}`,
       params: { projectId },

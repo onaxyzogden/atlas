@@ -3,9 +3,9 @@
  *
  * Thin wrapper that binds the Plan data hook + Plan route literals to the
  * stage-agnostic `StageCompassView`. Owns the typed @tanstack/react-router
- * navigation (Plan map entry, cross-stage spine). The Plan center is
- * non-interactive (no Command Centre yet — deferred), so no `commandCentre`
- * affordance is passed. Rendered full-bleed by V3ProjectLayout.
+ * navigation (Plan map entry, Command Centre unlock, cross-stage spine). The
+ * Plan center unlocks into the Plan Command Centre — mirroring Observe.
+ * Rendered full-bleed by V3ProjectLayout.
  */
 
 import { useMemo, useState } from 'react';
@@ -18,6 +18,11 @@ export default function PlanStageCompassPage() {
   const projectId = params.projectId ?? 'mtc';
   const navigate = useNavigate();
   const data = usePlanCompassData(projectId);
+
+  // "The outer ring readies the stage; the center runs it." Mirror Observe's
+  // current "unlock for now" gate — the Command Centre is reachable as soon as
+  // there are modules, without requiring every objective verified.
+  const ready = data.views.length > 0;
 
   // Default selection: first objective that isn't fully verified, else first.
   const defaultModule = useMemo<string | null>(() => {
@@ -34,6 +39,12 @@ export default function PlanStageCompassPage() {
       search: {},
     });
 
+  const goCommandCentre = () =>
+    navigate({
+      to: '/v3/project/$projectId/plan/command-centre',
+      params: { projectId },
+    });
+
   return (
     <StageCompassView
       data={data}
@@ -43,6 +54,7 @@ export default function PlanStageCompassPage() {
       selected={selected}
       onSelect={setSelected}
       onOpenMap={openOnMap}
+      commandCentre={{ ready, onEnter: goCommandCentre }}
     />
   );
 }

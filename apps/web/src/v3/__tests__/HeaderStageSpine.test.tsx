@@ -163,13 +163,27 @@ describe('HeaderStageSpine', () => {
     }
   });
 
-  it('navigates to the stage route when an inactive stage is clicked', () => {
+  it('routes Plan to the Plan Compass while Plan is incomplete', () => {
     h.pathname = '/v3/project/mtc/compass';
+    h.planPct = 12;
     const { container } = render(<HeaderStageSpine />);
     fireEvent.click(container.querySelector('[data-stage="plan"]')!);
     expect(h.navigateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: '/v3/project/$projectId/plan',
+        to: '/v3/project/$projectId/plan/compass',
+        params: { projectId: 'mtc' },
+      }),
+    );
+  });
+
+  it('routes Plan to the Command Centre once Plan is complete (pct === 100)', () => {
+    h.pathname = '/v3/project/mtc/compass';
+    h.planPct = 100;
+    const { container } = render(<HeaderStageSpine />);
+    fireEvent.click(container.querySelector('[data-stage="plan"]')!);
+    expect(h.navigateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '/v3/project/$projectId/plan/command-centre',
         params: { projectId: 'mtc' },
       }),
     );
