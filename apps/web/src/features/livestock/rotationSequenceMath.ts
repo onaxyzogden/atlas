@@ -15,6 +15,10 @@
 import type { Paddock } from '../../store/livestockStore.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
 import { seasonalRestMultiplier } from './forageSeasonMath.js';
+import {
+  computeAllFollowerMoves,
+  type FollowerMove,
+} from './polyfaceFollowerMath.js';
 
 /** Optional seasonal context that lengthens rest during the summer slump. */
 export interface SeasonOpts {
@@ -76,6 +80,13 @@ export interface RotationSequenceProjection {
   calendar: MoveCalendarEntry[];
   restCompliance: RestComplianceRow[];
   restCompliancePct: number; // 0-100
+  /**
+   * Derived polyface follower moves (S3): when a paddock's species span more
+   * than one grazing niche, trailing tiers graze the same paddock a few days
+   * behind the lead. Empty for single-tier paddocks — consumers that ignore
+   * this field are unaffected.
+   */
+  followerMoves: FollowerMove[];
 }
 
 /* ================================================================== */
@@ -283,9 +294,18 @@ export function projectRotationSequence(
   cycles = 1,
   seasonOpts?: SeasonOpts,
 ): RotationSequenceProjection {
+  const calendar = computeMoveCalendar(
+    paddocks,
+    plan,
+    startDateISO,
+    cycles,
+    seasonOpts,
+  );
+  const speciesByPaddockId = new Map(paddocks.map((p) => [p.id, p.species]));
   return {
-    calendar: computeMoveCalendar(paddocks, plan, startDateISO, cycles, seasonOpts),
+    calendar,
     restCompliance: computeRestCompliance(paddocks, plan),
     restCompliancePct: computeRestCompliancePct(paddocks, plan),
+    followerMoves: computeAllFollowerMoves(calendar, speciesByPaddockId),
   };
 }

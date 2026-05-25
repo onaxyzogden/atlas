@@ -64,7 +64,12 @@ describe('rotationSequenceMath — empties', () => {
     expect(computeMoveCalendar([], null, '2026-06-01')).toEqual([]);
     expect(computeRestCompliance([], null)).toEqual([]);
     const proj = projectRotationSequence([], null, '2026-06-01');
-    expect(proj).toEqual({ calendar: [], restCompliance: [], restCompliancePct: 100 });
+    expect(proj).toEqual({
+      calendar: [],
+      restCompliance: [],
+      restCompliancePct: 100,
+      followerMoves: [],
+    });
   });
 
   it('plan with no cells → empty calendar', () => {

@@ -20,6 +20,11 @@ import {
   type MoveCalendarEntry,
 } from './rotationSequenceMath.js';
 import { isSouthernHemisphere } from './forageSeasonMath.js';
+import {
+  computeFollowerTiers,
+  computeFollowerMoves,
+} from './polyfaceFollowerMath.js';
+import { LIVESTOCK_SPECIES } from './speciesData.js';
 import { computeRotationCarryingCapacity } from './rotationCapacityMath.js';
 import {
   computeOvergrazingRisk,
@@ -48,6 +53,11 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
   );
 
   const plan = useRotationPlanStore((s) => s.byProject[projectId] ?? null);
+
+  const speciesByPaddockId = useMemo(
+    () => new Map(paddocks.map((p) => [p.id, p.species])),
+    [paddocks],
+  );
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const startDateISO = plan?.startDateISO ?? today;
@@ -197,30 +207,62 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
               </span>
             </div>
             <div className={css.moveList}>
-              {entries.map((e) => (
-                <div key={`${e.cellGroup}-${e.paddockId}-${e.sequenceOrder}`} className={css.moveRow}>
-                  <div className={css.moveMain}>
-                    <span className={css.paddockName}>{e.paddockName}</span>
-                    <span className={css.moveDates}>
-                      {e.moveInDateISO} {'→'} {e.moveOutDateISO}
-                    </span>
-                  </div>
-                  <div className={css.moveMeta}>
-                    <span>{e.grazeDays}d graze</span>
-                    <span className={css.metaDot}>{'·'}</span>
-                    <span>{e.restDaysUntilNextGraze}d rest until next graze</span>
-                    {e.seasonAdjustedRestDays > e.restDaysUntilNextGraze && (
-                      <>
-                        <span className={css.metaDot}>{'·'}</span>
-                        <span className={css.seasonRest}>
-                          summer rest +
-                          {e.seasonAdjustedRestDays - e.restDaysUntilNextGraze}d
+              {entries.map((e) => {
+                const followers = computeFollowerMoves(
+                  e,
+                  computeFollowerTiers(speciesByPaddockId.get(e.paddockId) ?? []),
+                );
+                return (
+                  <div key={`${e.cellGroup}-${e.paddockId}-${e.sequenceOrder}-${e.moveInDateISO}`}>
+                    <div className={css.moveRow}>
+                      <div className={css.moveMain}>
+                        <span className={css.paddockName}>{e.paddockName}</span>
+                        <span className={css.moveDates}>
+                          {e.moveInDateISO} {'→'} {e.moveOutDateISO}
                         </span>
-                      </>
-                    )}
+                      </div>
+                      <div className={css.moveMeta}>
+                        <span>{e.grazeDays}d graze</span>
+                        <span className={css.metaDot}>{'·'}</span>
+                        <span>{e.restDaysUntilNextGraze}d rest until next graze</span>
+                        {e.seasonAdjustedRestDays > e.restDaysUntilNextGraze && (
+                          <>
+                            <span className={css.metaDot}>{'·'}</span>
+                            <span className={css.seasonRest}>
+                              summer rest +
+                              {e.seasonAdjustedRestDays - e.restDaysUntilNextGraze}d
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {followers.map((f) => (
+                      <div
+                        key={`${f.cellGroup}-${f.leadPaddockId}-${f.sequenceOrder}-${f.tierIndex}-${f.moveInDateISO}`}
+                        className={css.followerRow}
+                      >
+                        <div className={css.moveMain}>
+                          <span className={css.followerName}>
+                            {'↳ '}
+                            {f.species
+                              .map((sp) => LIVESTOCK_SPECIES[sp]?.label ?? sp)
+                              .join(' + ')}{' '}
+                            follower
+                          </span>
+                          <span className={css.moveDates}>
+                            {f.moveInDateISO} {'→'} {f.moveOutDateISO}
+                          </span>
+                        </div>
+                        <div className={css.moveMeta}>
+                          <span>{f.grazeDays}d graze</span>
+                          <span className={css.metaDot}>{'·'}</span>
+                          <span>+{f.lagDays}d behind lead</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
@@ -323,8 +365,11 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
         forage-budget model. {'“'}Summer rest{'”'} notes stretch the calendar
         gap when a graze ends in a low-protein slump month, using the same
         heuristic cool-season forage archetype as the forage-quality card
-        (not a measured forage budget). Carrying-capacity notes are advisory
-        and never block the schedule.
+        (not a measured forage budget). Follower sub-rows ({'↳'}) sequence a
+        polyface stack {'—'} when a paddock{'’'}s species span more than one
+        grazing niche, the trailing tier enters the same paddock a few days
+        behind the lead herd (the Salatin sanitation window). Carrying-capacity
+        notes are advisory and never block the schedule.
       </div>
     </section>
   );

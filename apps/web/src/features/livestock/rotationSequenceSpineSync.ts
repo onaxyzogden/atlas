@@ -36,6 +36,11 @@ import {
 } from './rotationSequenceMath.js';
 import { buildRotationMoveKit } from './rotationMoveMaterials.js';
 import { isSouthernHemisphere } from './forageSeasonMath.js';
+import {
+  computeFollowerTiers,
+  computeFollowerMoves,
+} from './polyfaceFollowerMath.js';
+import { LIVESTOCK_SPECIES } from './speciesData.js';
 
 function resolvePhaseId(
   paddockPhase: string,
@@ -67,6 +72,18 @@ export function rotationMoveProvenanceId(
   cycleIndex: number,
 ): string {
   return `${cellGroup}__${paddockId}__${sequenceOrder}__${cycleIndex}`;
+}
+
+/**
+ * Follower-move provenance: the lead move's provenance with a `__f<tier>`
+ * suffix (S3). Keeps re-push idempotent and lets the dependency seeder strip
+ * the suffix to find the lead WorkItem id.
+ */
+export function rotationFollowerProvenanceId(
+  leadProvenance: string,
+  tierIndex: number,
+): string {
+  return `${leadProvenance}__f${tierIndex}`;
 }
 
 /**
@@ -163,6 +180,43 @@ export function seedRotationSequenceWorkItems(args: {
       linkedFeatureId: paddock.id,
       notes: '',
     });
+
+    // S3 — polyface follower moves: trailing niche tiers graze the same
+    // paddock a few days behind the lead. Additive; emitted only when the
+    // paddock's species span ≥2 grazing tiers.
+    const tiers = computeFollowerTiers(paddock.species);
+    const followers = computeFollowerMoves(e, tiers);
+    for (const fm of followers) {
+      const followerProvenance = rotationFollowerProvenanceId(
+        provenance,
+        fm.tierIndex,
+      );
+      const speciesLabel = fm.species
+        .map((sp) => LIVESTOCK_SPECIES[sp]?.label ?? sp)
+        .join(' + ');
+      out.push({
+        id: `rs__${followerProvenance}`,
+        projectId,
+        source: 'rotation-sequence',
+        overridden: false,
+        generatedFromRotationMove: followerProvenance,
+        createdAt: created,
+        updatedAt: created,
+        title: `Follower move: ${speciesLabel} behind ${e.paddockName} (+${fm.lagDays}d)`,
+        phaseId,
+        status: 'todo',
+        doneAt: null,
+        dependsOn: [],
+        dependsOnAuto: [],
+        precedesAuto: [],
+        scheduledStart: fm.moveInDateISO,
+        scheduledEnd: fm.moveOutDateISO,
+        materialsAuto: [],
+        equipmentRequiredAuto: [],
+        linkedFeatureId: paddock.id,
+        notes: '',
+      });
+    }
   }
   return out;
 }
@@ -178,14 +232,20 @@ export function seedRotationSequenceWorkItems(args: {
 export function seedRotationSequenceDependencies(
   rows: WorkItem[],
 ): Map<string, string[]> {
-  // Group rows by cellGroup using their provenance prefix (preserves
+  // Group LEAD rows by cellGroup using their provenance prefix (preserves
   // emission order — rows[] arrives in cellGroup-then-cycle-then-sequence
-  // order from the seeder).
+  // order from the seeder). Follower rows (`__f<tier>` provenance) are kept
+  // aside; they depend on their lead, not on the lead chain.
   const byGroup = new Map<string, WorkItem[]>();
+  const followers: WorkItem[] = [];
   for (const r of rows) {
     if (r.source !== 'rotation-sequence') continue;
     const provenance = r.generatedFromRotationMove;
     if (!provenance) continue;
+    if (/__f\d+$/.test(provenance)) {
+      followers.push(r);
+      continue;
+    }
     const sep = provenance.indexOf('__');
     if (sep <= 0) continue;
     const cellGroup = provenance.slice(0, sep);
@@ -202,6 +262,19 @@ export function seedRotationSequenceDependencies(
       out.set(cur.id, [next.id]);
     }
   }
+
+  // Each follower's lead precedes it (lead provenance = follower provenance
+  // with the `__f<tier>` suffix stripped). Merge into the lead's existing
+  // precedesAuto list so the lead→next-lead chain is preserved.
+  for (const f of followers) {
+    const provenance = f.generatedFromRotationMove!;
+    const leadProvenance = provenance.replace(/__f\d+$/, '');
+    const leadId = `rs__${leadProvenance}`;
+    const existing = out.get(leadId) ?? [];
+    existing.push(f.id);
+    out.set(leadId, existing);
+  }
+
   return out;
 }
 

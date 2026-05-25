@@ -339,6 +339,62 @@ describe('seedRotationSequenceWorkItems', () => {
     expect(items[0]?.materialsAuto).toEqual([]);
     expect(items[0]?.equipmentRequiredAuto).toHaveLength(1);
   });
+
+  it('S3 — emits follower WorkItems with __f provenance for a multi-tier paddock', () => {
+    const paddocks = [
+      paddock({
+        id: 'pa',
+        name: 'A',
+        species: ['cattle', 'sheep', 'poultry'],
+      }),
+    ];
+    const plan: RotationPlan = {
+      projectId: 'p1',
+      cells: [cell({ paddockId: 'pa', sequenceOrder: 0, targetGrazeDays: 3 })],
+    };
+    const items = seedRotationSequenceWorkItems({
+      projectId: 'p1',
+      paddocks,
+      plan,
+      declaredPhases: DECLARED_PHASES,
+      startDateISO: '2026-06-01',
+      cycles: 1,
+    });
+    // 1 lead + 2 followers (sheep tier1, poultry tier2).
+    expect(items.map((it) => it.id)).toEqual([
+      'rs__g1__pa__0__0',
+      'rs__g1__pa__0__0__f1',
+      'rs__g1__pa__0__0__f2',
+    ]);
+    const sheep = items[1]!;
+    const poultry = items[2]!;
+    expect(sheep.title).toBe('Follower move: Sheep behind A (+3d)');
+    expect(sheep.scheduledStart).toBe('2026-06-04'); // lead +3
+    expect(sheep.scheduledEnd).toBe('2026-06-07');
+    expect(poultry.title).toBe('Follower move: Poultry behind A (+6d)');
+    expect(poultry.scheduledStart).toBe('2026-06-07'); // lead +6
+    // Followers ride the lead's infrastructure — no own kit.
+    expect(sheep.materialsAuto).toEqual([]);
+    expect(sheep.equipmentRequiredAuto).toEqual([]);
+  });
+
+  it('S3 — single-niche paddock emits no followers (legacy unchanged)', () => {
+    const paddocks = [
+      paddock({ id: 'pa', name: 'A', species: ['cattle', 'horses'] }),
+    ];
+    const plan: RotationPlan = {
+      projectId: 'p1',
+      cells: [cell({ paddockId: 'pa', sequenceOrder: 0 })],
+    };
+    const items = seedRotationSequenceWorkItems({
+      projectId: 'p1',
+      paddocks,
+      plan,
+      declaredPhases: DECLARED_PHASES,
+      startDateISO: '2026-06-01',
+    });
+    expect(items.map((it) => it.id)).toEqual(['rs__g1__pa__0__0']);
+  });
 });
 
 describe('seedRotationSequenceDependencies', () => {
@@ -401,6 +457,41 @@ describe('seedRotationSequenceDependencies', () => {
     expect(edges.has('gc1')).toBe(false);
     // Only one rotation-sequence row → no edges.
     expect(edges.size).toBe(0);
+  });
+
+  it('S3 — follower rows depend on their lead (lead precedesAuto), not the lead chain', () => {
+    const rows: WorkItem[] = [
+      manualItem({
+        id: 'rs__g1__pa__0__0',
+        source: 'rotation-sequence',
+        generatedFromRotationMove: 'g1__pa__0__0',
+      }),
+      manualItem({
+        id: 'rs__g1__pa__0__0__f1',
+        source: 'rotation-sequence',
+        generatedFromRotationMove: 'g1__pa__0__0__f1',
+      }),
+      manualItem({
+        id: 'rs__g1__pa__0__0__f2',
+        source: 'rotation-sequence',
+        generatedFromRotationMove: 'g1__pa__0__0__f2',
+      }),
+      manualItem({
+        id: 'rs__g1__pb__1__0',
+        source: 'rotation-sequence',
+        generatedFromRotationMove: 'g1__pb__1__0',
+      }),
+    ];
+    const edges = seedRotationSequenceDependencies(rows);
+    // Lead pa precedes the next LEAD (pb) AND both of its followers.
+    expect(edges.get('rs__g1__pa__0__0')).toEqual([
+      'rs__g1__pb__1__0',
+      'rs__g1__pa__0__0__f1',
+      'rs__g1__pa__0__0__f2',
+    ]);
+    // Followers are not chained as leads.
+    expect(edges.has('rs__g1__pa__0__0__f1')).toBe(false);
+    expect(edges.has('rs__g1__pa__0__0__f2')).toBe(false);
   });
 });
 

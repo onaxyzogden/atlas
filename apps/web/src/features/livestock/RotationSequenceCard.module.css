@@ -192,6 +192,21 @@
   font-weight: 600;
 }
 
+.followerRow {
+  margin-top: 6px;
+  margin-left: 18px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(232, 220, 200, 0.014);
+  border: 1px dashed rgba(232, 220, 200, 0.08);
+}
+
+.followerName {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+}
+
 /* ── Compliance rows ── */
 .complianceRow {
   display: flex;
