@@ -103,4 +103,131 @@ describe('ApiReachabilityBanner', () => {
     expect(useConnectivityStore.getState().apiReachable).toBe(false);
     expect(screen.getByTestId('api-reachability-banner')).toBeTruthy();
   });
+
+  // Background self-heal poll: clears the banner without any user action when the
+  // server recovers. Fake timers are scoped to this block so the real-timer tests
+  // above are unaffected.
+  describe('self-heal poll', () => {
+    const okHealth = () =>
+      vi.spyOn(api, 'health').mockResolvedValue({
+        data: { status: 'ok', timestamp: 't', version: '0.1.0' },
+        error: null,
+      });
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      // Reset DOM env overrides to their defaults. We use Object.defineProperty
+      // (not vi.spyOn) for visibilityState/onLine because restoring a spied
+      // prototype getter corrupts it into a self-recursive one, blowing the stack
+      // in the next test that reads it.
+      Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+      Object.defineProperty(navigator, 'onLine', { configurable: true, value: true });
+    });
+
+    it('pings api.health on the interval while unreachable and clears on success', async () => {
+      useConnectivityStore.setState({ apiReachable: false });
+      useAuthStore.setState({ token: null, user: null, sessionUnverified: false });
+      const healthSpy = okHealth();
+
+      render(<ApiReachabilityBanner />);
+      expect(screen.getByTestId('api-reachability-banner')).toBeTruthy();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
+
+      expect(healthSpy).toHaveBeenCalledTimes(1);
+      expect(useConnectivityStore.getState().apiReachable).toBe(true);
+      expect(screen.queryByTestId('api-reachability-banner')).toBeNull();
+    });
+
+    it('stops polling after recovery (no further pings)', async () => {
+      useConnectivityStore.setState({ apiReachable: false });
+      useAuthStore.setState({ token: null, user: null, sessionUnverified: false });
+      const healthSpy = okHealth();
+
+      render(<ApiReachabilityBanner />);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
+      expect(healthSpy).toHaveBeenCalledTimes(1);
+
+      // Banner cleared → poll effect torn down → a later interval fires nothing.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
+      expect(healthSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not poll while healthy (banner hidden)', async () => {
+      const healthSpy = okHealth();
+
+      render(<ApiReachabilityBanner />);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(60_000);
+      });
+
+      expect(healthSpy).not.toHaveBeenCalled();
+    });
+
+    it('re-checks immediately when the tab regains focus', async () => {
+      useConnectivityStore.setState({ apiReachable: false });
+      useAuthStore.setState({ token: null, user: null, sessionUnverified: false });
+      const healthSpy = okHealth();
+
+      render(<ApiReachabilityBanner />);
+      // Fire visibilitychange well before the 15s tick — happy-dom defaults
+      // visibilityState to 'visible', so the handler pings right away.
+      await act(async () => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+
+      expect(healthSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips the interval ping while the tab is hidden', async () => {
+      useConnectivityStore.setState({ apiReachable: false });
+      useAuthStore.setState({ token: null, user: null, sessionUnverified: false });
+      const healthSpy = okHealth();
+      Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+
+      render(<ApiReachabilityBanner />);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
+
+      expect(healthSpy).not.toHaveBeenCalled();
+    });
+
+    it('skips the interval ping while the device is offline', async () => {
+      useConnectivityStore.setState({ apiReachable: false });
+      useAuthStore.setState({ token: null, user: null, sessionUnverified: false });
+      const healthSpy = okHealth();
+      Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
+
+      render(<ApiReachabilityBanner />);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
+
+      expect(healthSpy).not.toHaveBeenCalled();
+    });
+
+    it('clears the interval on unmount (no ping afterwards)', async () => {
+      useConnectivityStore.setState({ apiReachable: false });
+      useAuthStore.setState({ token: null, user: null, sessionUnverified: false });
+      const healthSpy = okHealth();
+
+      const { unmount } = render(<ApiReachabilityBanner />);
+      unmount();
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(30_000);
+      });
+
+      expect(healthSpy).not.toHaveBeenCalled();
+    });
+  });
 });
