@@ -42,7 +42,6 @@ import CommandCentreShell from '../../command/shell/CommandCentreShell.js';
 import aside from '../ops/ActOpsAside.module.css';
 
 export default function ActCommandCentrePage() {
-  console.count('[OOM] ActCommandCentre render'); // TEMP-OOM-PROBE
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? 'mtc';
   const navigate = useNavigate();

@@ -13,6 +13,8 @@ const DB_VERSION = 1;
 
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1000;
+/** Max ops materialised into memory per flush pass — bounds peak heap. */
+const FLUSH_BATCH = 200;
 
 export type SyncStoreType =
   | 'project'
@@ -36,6 +38,11 @@ export interface QueuedOperation {
   payload: unknown;
   retryCount: number;
   lastError?: string;
+}
+
+/** Coalescing key for a queued op: one slot per (storeType, action, entity). */
+function opKey(storeType: SyncStoreType, action: SyncAction, localId: string): string {
+  return `${storeType}:${action}:${localId}`;
 }
 
 // ─── IndexedDB helpers (same pattern as geodataCache.ts) ─────────────────────
@@ -70,7 +77,12 @@ export const syncQueue = {
   ): Promise<void> {
     const full: QueuedOperation = {
       ...op,
-      id: crypto.randomUUID(),
+      // Deterministic, coalescing key: re-queuing the same entity/action
+      // overwrites the prior op instead of appending a new one. This caps the
+      // queue at the number of distinct pending entities and makes unbounded
+      // growth impossible — the failure mode that previously grew the queue to
+      // hundreds of thousands of ops and OOM'd the renderer on flush().
+      id: opKey(op.storeType, op.action, op.localId),
       timestamp: Date.now(),
       retryCount: 0,
     };
@@ -123,9 +135,103 @@ export const syncQueue = {
   },
 
   /**
-   * Process all queued operations in order. Each op is retried with
-   * exponential backoff. Successfully processed ops are removed.
-   * Failed ops beyond MAX_RETRIES remain in the queue with lastError set.
+   * Read up to `limit` ops in timestamp order via a cursor, without
+   * materialising the whole store. Bounds peak memory regardless of how large
+   * the queue has grown — `getAll()` on a runaway queue is what OOM'd the
+   * renderer.
+   */
+  async getBatch(limit: number): Promise<QueuedOperation[]> {
+    const store = await tx('readonly');
+    return new Promise((resolve, reject) => {
+      const out: QueuedOperation[] = [];
+      const req = store.openCursor();
+      req.onsuccess = () => {
+        const cursor = req.result;
+        if (!cursor || out.length >= limit) {
+          out.sort((a, b) => a.timestamp - b.timestamp);
+          resolve(out);
+          return;
+        }
+        out.push(cursor.value as QueuedOperation);
+        cursor.continue();
+      };
+      req.onerror = () => reject(req.error);
+    });
+  },
+
+  /**
+   * One-time reconciliation: collapse the queue to a single op per
+   * (storeType, action, localId), keeping the most recent, and rewrite kept
+   * ops under the deterministic coalescing key. Cursor-based and bounded in
+   * memory (only id/key/timestamp bookkeeping is held, never payloads), so it
+   * can drain a runaway queue of hundreds of thousands of ops without OOM.
+   * Idempotent: a queue already keyed deterministically is left unchanged.
+   */
+  async reconcile(): Promise<{ before: number; after: number }> {
+    const before = await this.getPendingCount();
+    if (before === 0) return { before: 0, after: 0 };
+
+    // Pass 1 — find the winning (latest) op id per coalescing key.
+    const winners = new Map<string, { id: string; timestamp: number }>();
+    {
+      const store = await tx('readonly');
+      await new Promise<void>((resolve, reject) => {
+        const req = store.openCursor();
+        req.onsuccess = () => {
+          const cursor = req.result;
+          if (!cursor) {
+            resolve();
+            return;
+          }
+          const op = cursor.value as QueuedOperation;
+          const key = opKey(op.storeType, op.action, op.localId);
+          const prev = winners.get(key);
+          if (!prev || op.timestamp >= prev.timestamp) {
+            winners.set(key, { id: op.id, timestamp: op.timestamp });
+          }
+          cursor.continue();
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    // Pass 2 — delete every op that is not its key's winner, leaving exactly
+    // one op per coalescing key. Legacy winners stored under a random id are
+    // left as-is: they drain on the next flush, and meanwhile any new enqueue
+    // for the same entity coalesces under the deterministic key. (We must not
+    // put() a rekeyed record mid-cursor — the cursor could revisit it and
+    // delete it as a "loser".)
+    {
+      const store = await tx('readwrite');
+      await new Promise<void>((resolve, reject) => {
+        const req = store.openCursor();
+        req.onsuccess = () => {
+          const cursor = req.result;
+          if (!cursor) {
+            resolve();
+            return;
+          }
+          const op = cursor.value as QueuedOperation;
+          const key = opKey(op.storeType, op.action, op.localId);
+          const winner = winners.get(key);
+          if (!winner || op.id !== winner.id) {
+            cursor.delete();
+          }
+          cursor.continue();
+        };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    const after = await this.getPendingCount();
+    return { before, after };
+  },
+
+  /**
+   * Process queued operations in bounded batches. Each op is retried with
+   * exponential backoff. Successfully processed ops are removed. Failed ops
+   * beyond MAX_RETRIES are dropped so a permanently-failing op cannot pin the
+   * queue open forever.
    *
    * @param executor - callback that actually performs the API call for an op.
    *   Must throw on failure.
@@ -133,12 +239,14 @@ export const syncQueue = {
   async flush(
     executor: (op: QueuedOperation) => Promise<void>,
   ): Promise<{ processed: number; failed: number }> {
-    const ops = await this.getAll();
+    const ops = await this.getBatch(FLUSH_BATCH);
     let processed = 0;
     let failed = 0;
 
     for (const op of ops) {
       if (op.retryCount >= MAX_RETRIES) {
+        // Exhausted — drop it rather than re-skipping it on every flush.
+        await this.dequeue(op.id);
         failed++;
         continue;
       }

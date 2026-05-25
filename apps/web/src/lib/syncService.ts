@@ -1464,6 +1464,19 @@ export const syncService = {
 
     console.info('[SYNC] Starting sync service...');
 
+    // Collapse any runaway/legacy queue to one op per entity before anything
+    // can flush it. A queue that grew unbounded (random-id append + re-enqueue
+    // on every failure) would otherwise be loaded whole on the first flush and
+    // OOM the renderer. Cursor-based + idempotent — a healthy queue is a no-op.
+    try {
+      const { before, after } = await syncQueue.reconcile();
+      if (before !== after) {
+        console.info(`[SYNC] Reconciled sync queue: ${before} → ${after} ops`);
+      }
+    } catch (err) {
+      console.warn('[SYNC] Queue reconcile failed:', err);
+    }
+
     // Subscribe to store changes for write-through sync
     unsubscribers.push(subscribeToProjects());
     unsubscribers.push(subscribeToZones());
