@@ -19,11 +19,13 @@
 import { useRef } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { usePlanHowChecksStore } from '../../store/planHowChecksStore.js';
+import { useObjectiveSummaryStore } from '../../store/objectiveSummaryStore.js';
 import { useAutoScrollToActiveModule } from '../_shared/hooks/useAutoScrollToActiveModule.js';
 import {
   GuidanceCard,
   type GuidanceCardData,
 } from '../_shared/components/GuidanceCard.js';
+import { progressFromChecks } from '../_shared/objectiveWorkspace/objectiveStatus.js';
 import {
   BE_CATEGORY_GUIDANCE,
   BE_CATEGORY_LABEL,
@@ -207,6 +209,14 @@ function PlanGuidanceCard({
   );
   const toggle = usePlanHowChecksStore((s) => s.toggle);
 
+  const summaryText = useObjectiveSummaryStore((s) =>
+    projectId ? s.getSummary('plan', projectId, module) : '',
+  );
+  const setSummary = useObjectiveSummaryStore((s) => s.setSummary);
+
+  const guidance = PLAN_MODULE_GUIDANCE[module];
+  const progress = progressFromChecks(checkedList, guidance.how.length);
+
   const refSummary = useModuleProjectTypeReferences(module, projectId);
   const showChip = refSummary.openGaps > 0;
   const chipTitle = showChip
@@ -222,13 +232,20 @@ function PlanGuidanceCard({
       dotColor={PLAN_MODULE_DOT[module]}
       active={active}
       slideUpOpen={slideUpOpen}
-      guidance={PLAN_MODULE_GUIDANCE[module]}
+      guidance={guidance}
       checkedList={checkedList}
       onToggle={(i) => projectId && toggle(projectId, module, i)}
       onSelect={() => onSelectSection(module, module)}
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       checksDisabled={!projectId}
+      progress={progress}
+      summary={{
+        value: summaryText,
+        onChange: (text) =>
+          projectId && setSummary('plan', projectId, module, text),
+        disabled: !projectId,
+      }}
       headerExtras={
         showChip ? (
           <span

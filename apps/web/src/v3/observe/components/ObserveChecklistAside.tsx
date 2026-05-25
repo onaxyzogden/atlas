@@ -14,8 +14,10 @@
 import { useRef } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useObserveHowChecksStore } from '../../../store/observeHowChecksStore.js';
+import { useObjectiveSummaryStore } from '../../../store/objectiveSummaryStore.js';
 import { useAutoScrollToActiveModule } from '../../_shared/hooks/useAutoScrollToActiveModule.js';
 import { GuidanceCard } from '../../_shared/components/GuidanceCard.js';
+import { progressFromChecks } from '../../_shared/objectiveWorkspace/objectiveStatus.js';
 import {
   BE_CATEGORY_GUIDANCE,
   BE_CATEGORY_LABEL,
@@ -76,6 +78,14 @@ function ObserveGuidanceCard({
   );
   const toggle = useObserveHowChecksStore((s) => s.toggle);
 
+  const summaryText = useObjectiveSummaryStore((s) =>
+    projectId ? s.getSummary('observe', projectId, module) : '',
+  );
+  const setSummary = useObjectiveSummaryStore((s) => s.setSummary);
+
+  const guidance = MODULE_GUIDANCE[module];
+  const progress = progressFromChecks(checkedList, guidance.how.length);
+
   return (
     <GuidanceCard
       moduleKey={module}
@@ -83,13 +93,20 @@ function ObserveGuidanceCard({
       dotColor={OBSERVE_MODULE_DOT[module]}
       active={active}
       slideUpOpen={slideUpOpen}
-      guidance={MODULE_GUIDANCE[module]}
+      guidance={guidance}
       checkedList={checkedList}
       onToggle={(i) => projectId && toggle(projectId, module, i)}
       onSelect={() => onSelectSection(module, module)}
       onOpenSlideUp={onOpenSlideUp}
       onCloseSlideUp={onCloseSlideUp}
       checksDisabled={!projectId}
+      progress={progress}
+      summary={{
+        value: summaryText,
+        onChange: (text) =>
+          projectId && setSummary('observe', projectId, module, text),
+        disabled: !projectId,
+      }}
     />
   );
 }
