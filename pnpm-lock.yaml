@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ogden/ui-components':
-        specifier: github:onaxyzogden/ogden-ui-components#v0.1.1
-        version: https://codeload.github.com/onaxyzogden/ogden-ui-components/tar.gz/e71fcc3905050926f32bdd0e9e27057c65791dd4(lucide-react@1.14.0(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react-router-dom@7.15.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(zustand@5.0.12(@types/react@18.3.28)(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5)))
+        specifier: github:onaxyzogden/ogden-ui-components#v0.3.1
+        version: https://codeload.github.com/onaxyzogden/ogden-ui-components/tar.gz/90aa7c615b87afdb20a659feda228776edaf67ec(lucide-react@1.14.0(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react-router-dom@7.15.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(zustand@5.0.12(@types/react@18.3.28)(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5)))
     devDependencies:
       sharp:
         specifier: ^0.34.5
@@ -1898,9 +1898,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@ogden/ui-components@https://codeload.github.com/onaxyzogden/ogden-ui-components/tar.gz/e71fcc3905050926f32bdd0e9e27057c65791dd4':
-    resolution: {tarball: https://codeload.github.com/onaxyzogden/ogden-ui-components/tar.gz/e71fcc3905050926f32bdd0e9e27057c65791dd4}
-    version: 0.1.0
+  '@ogden/ui-components@https://codeload.github.com/onaxyzogden/ogden-ui-components/tar.gz/90aa7c615b87afdb20a659feda228776edaf67ec':
+    resolution: {tarball: https://codeload.github.com/onaxyzogden/ogden-ui-components/tar.gz/90aa7c615b87afdb20a659feda228776edaf67ec}
+    version: 0.3.1
     peerDependencies:
       lucide-react: ^1.0.0
       react: ^18.0.0 || ^19.0.0
@@ -8244,7 +8244,7 @@ snapshots:
   '@msgpackr-extract/msgpackr-extract-win32-x64@3.0.3':
     optional: true
 
-  '@ogden/ui-components@https://codeload.github.com/onaxyzogden/ogden-ui-components/tar.gz/e71fcc3905050926f32bdd0e9e27057c65791dd4(lucide-react@1.14.0(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react-router-dom@7.15.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(zustand@5.0.12(@types/react@18.3.28)(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5)))':
+  '@ogden/ui-components@https://codeload.github.com/onaxyzogden/ogden-ui-components/tar.gz/90aa7c615b87afdb20a659feda228776edaf67ec(lucide-react@1.14.0(react@19.2.5))(react-dom@19.2.5(react@19.2.5))(react-router-dom@7.15.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)(zustand@5.0.12(@types/react@18.3.28)(react@19.2.5)(use-sync-external-store@1.6.0(react@19.2.5)))':
     dependencies:
       lucide-react: 1.14.0(react@19.2.5)
       react: 19.2.5

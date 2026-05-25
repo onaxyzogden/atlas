@@ -184,7 +184,7 @@ export default defineConfig({
       ),
       '@ogden/ui-components': resolve(
         __dirname,
-        '../../node_modules/@ogden/ui-components/dist/ogden-ui-components.es.js',
+        '../../node_modules/@ogden/ui-components/dist/index.es.js',
       ),
       '@ogden/shared/scoring': resolve(__dirname, '../../packages/shared/src/scoring/index.ts'),
       '@ogden/shared/manifest': resolve(__dirname, '../../packages/shared/src/featureManifest.ts'),
