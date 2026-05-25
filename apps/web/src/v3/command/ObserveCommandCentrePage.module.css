@@ -1183,6 +1183,24 @@
   color: var(--color-text);
   border-color: var(--color-border);
 }
+/* Top-right "x" that opens the dismiss confirm on auto needs. */
+.cardDismiss {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 0;
+}
+.cardDismiss:hover {
+  color: var(--color-error);
+  border-color: color-mix(in srgb, var(--color-error) 50%, transparent);
+}
 /* Inline "Remove?" confirm shown in place of Edit/Remove. */
 .confirmPrompt {
   font-size: var(--text-xs);

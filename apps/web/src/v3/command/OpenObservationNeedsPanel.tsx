@@ -13,7 +13,7 @@
  */
 
 import { useState } from 'react';
-import { MapPin, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { MapPin, Pencil, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { useObservationNeedStore } from '../../store/observationNeedStore.js';
 import { OBSERVE_MODULE_DOT } from '../observe/moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL, type ObserveModule } from '../observe/types.js';
@@ -84,6 +84,7 @@ export default function OpenObservationNeedsPanel({
   const [raisedTitle, setRaisedTitle] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [confirmDismissId, setConfirmDismissId] = useState<string | null>(null);
 
   const editingNeed: ObservationNeed | null = editingId
     ? (views.find((v) => v.objective.id === editingId)?.objective ?? null)
@@ -93,7 +94,13 @@ export default function OpenObservationNeedsPanel({
     setRaising(false);
     setRaisedTitle(null);
     setConfirmRemoveId(null);
+    setConfirmDismissId(null);
     setEditingId(needId);
+  };
+
+  const dismissNeed = (needId: string) => {
+    setStatus(projectId, needId, 'resolved');
+    setConfirmDismissId(null);
   };
 
   const submitEdit = (input: RaiseNeedInput & { module: ObserveModule }) => {
@@ -207,7 +214,17 @@ export default function OpenObservationNeedsPanel({
             return (
               <div
                 key={objective.id}
+                role="button"
+                tabIndex={0}
+                aria-label={`Open observation need: ${objective.title}`}
                 className={`${css.objCard} ${isSelected ? css.objCardActive : ''}`}
+                onClick={() => onLaunch(objective.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onLaunch(objective.id);
+                  }
+                }}
               >
                 <span className={css.objCardTop}>
                   <span
@@ -222,6 +239,21 @@ export default function OpenObservationNeedsPanel({
                   >
                     {STATUS_LABEL[run.status]}
                   </span>
+                  {objective.origin === 'auto' && (
+                    <button
+                      type="button"
+                      className={css.cardDismiss}
+                      aria-label="Dismiss need"
+                      title="Dismiss need"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmRemoveId(null);
+                        setConfirmDismissId(objective.id);
+                      }}
+                    >
+                      <X size={14} strokeWidth={2} />
+                    </button>
+                  )}
                 </span>
 
                 <span className={css.objCardTitle}>{objective.title}</span>
@@ -260,65 +292,91 @@ export default function OpenObservationNeedsPanel({
                   />
                 </span>
 
-                <span className={css.objCardActions}>
-                  {objective.origin === 'auto' && (
-                    <button
-                      type="button"
-                      className={css.dismissBtn}
-                      onClick={() => setStatus(projectId, objective.id, 'resolved')}
-                    >
-                      Dismiss
-                    </button>
-                  )}
-                  {isEditable(objective.origin) &&
-                    (confirmRemoveId === objective.id ? (
-                      <>
-                        <span className={css.confirmPrompt}>Remove?</span>
-                        <button
-                          type="button"
-                          className={css.removeConfirmBtn}
-                          onClick={() => removeNeed(objective.id)}
-                        >
-                          Remove
-                        </button>
-                        <button
-                          type="button"
-                          className={css.dismissBtn}
-                          onClick={() => setConfirmRemoveId(null)}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          className={css.iconBtn}
-                          aria-label="Edit need"
-                          title="Edit need"
-                          onClick={() => startEdit(objective.id)}
-                        >
-                          <Pencil size={13} strokeWidth={2} />
-                        </button>
-                        <button
-                          type="button"
-                          className={css.iconBtn}
-                          aria-label="Remove need"
-                          title="Remove need"
-                          onClick={() => setConfirmRemoveId(objective.id)}
-                        >
-                          <Trash2 size={13} strokeWidth={2} />
-                        </button>
-                      </>
-                    ))}
-                  <button
-                    type="button"
-                    className={css.openBtn}
-                    onClick={() => onLaunch(objective.id)}
-                  >
-                    Open
-                  </button>
-                </span>
+                {(isEditable(objective.origin) ||
+                  (objective.origin === 'auto' &&
+                    confirmDismissId === objective.id)) && (
+                  <span className={css.objCardActions}>
+                    {objective.origin === 'auto' &&
+                      confirmDismissId === objective.id && (
+                        <>
+                          <span className={css.confirmPrompt}>Dismiss?</span>
+                          <button
+                            type="button"
+                            className={css.removeConfirmBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dismissNeed(objective.id);
+                            }}
+                          >
+                            Dismiss
+                          </button>
+                          <button
+                            type="button"
+                            className={css.dismissBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmDismissId(null);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                    {isEditable(objective.origin) &&
+                      (confirmRemoveId === objective.id ? (
+                        <>
+                          <span className={css.confirmPrompt}>Remove?</span>
+                          <button
+                            type="button"
+                            className={css.removeConfirmBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeNeed(objective.id);
+                            }}
+                          >
+                            Remove
+                          </button>
+                          <button
+                            type="button"
+                            className={css.dismissBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmRemoveId(null);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            className={css.iconBtn}
+                            aria-label="Edit need"
+                            title="Edit need"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEdit(objective.id);
+                            }}
+                          >
+                            <Pencil size={13} strokeWidth={2} />
+                          </button>
+                          <button
+                            type="button"
+                            className={css.iconBtn}
+                            aria-label="Remove need"
+                            title="Remove need"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmRemoveId(objective.id);
+                            }}
+                          >
+                            <Trash2 size={13} strokeWidth={2} />
+                          </button>
+                        </>
+                      ))}
+                  </span>
+                )}
               </div>
             );
           })}
