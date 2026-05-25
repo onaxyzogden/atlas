@@ -71,6 +71,8 @@ export type MapToolId =
   | 'observe.topography.contour-line'
   | 'observe.topography.high-point'
   | 'observe.topography.drainage-line'
+  | 'observe.topography.erosion-flag'
+  | 'observe.topography.runoff-path'
   // Observe Module 4 — Earth/Water/Ecology
   | 'observe.earth-water-ecology.watercourse'
   // Adopt a basemap water feature (OpenMapTiles `water` polygons +

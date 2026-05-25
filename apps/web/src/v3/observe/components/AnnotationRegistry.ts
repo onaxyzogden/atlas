@@ -70,6 +70,8 @@ export const KIND_LABELS: Record<AnnotationKind, string> = {
   contourLine: 'Contour',
   highPoint: 'Elevation point',
   drainageLine: 'Drainage line',
+  erosionFlag: 'Erosion flag',
+  runoffPath: 'Runoff path',
   watercourse: 'Watercourse',
   waterbody: 'Waterbody',
   vegetation: 'Vegetation & cover',
@@ -193,6 +195,30 @@ function rowsForKind(kind: AnnotationKind, projectId: string): AnnotationRow[] {
           id: r.id,
           title: 'Drainage line',
           subtitle: r.notes || undefined,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'erosionFlag': {
+      return useTopographyStore
+        .getState()
+        .erosionFlags.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: 'Erosion flag',
+          subtitle: `${r.severity} · ${r.type}${r.notes ? ` · ${r.notes}` : ''}`,
+          createdAt: r.createdAt,
+        }));
+    }
+    case 'runoffPath': {
+      return useTopographyStore
+        .getState()
+        .runoffPaths.filter((r) => r.projectId === projectId)
+        .map((r) => ({
+          kind,
+          id: r.id,
+          title: 'Runoff path',
+          subtitle: `${r.flowCondition}${r.from || r.to ? ` · ${r.from ?? '?'} → ${r.to ?? '?'}` : ''}`,
           createdAt: r.createdAt,
         }));
     }
@@ -396,6 +422,8 @@ export function useAnnotationsForKinds(
   const contours = useTopographyStore((s) => s.contours);
   const highPoints = useTopographyStore((s) => s.highPoints);
   const drainageLines = useTopographyStore((s) => s.drainageLines);
+  const erosionFlags = useTopographyStore((s) => s.erosionFlags);
+  const runoffPaths = useTopographyStore((s) => s.runoffPaths);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const vegetationPatches = useVegetationStore((s) => s.patches);
   const pastures = usePastureStore((s) => s.pastures);
@@ -434,6 +462,8 @@ export function useAnnotationsForKinds(
     contours,
     highPoints,
     drainageLines,
+    erosionFlags,
+    runoffPaths,
     watercourses,
     vegetationPatches,
     pastures,
@@ -532,6 +562,28 @@ export function getAnnotationRow(
         id,
         title: 'Drainage line',
         subtitle: r.notes,
+        createdAt: r.createdAt,
+      };
+    }
+    case 'erosionFlag': {
+      const r = useTopographyStore.getState().erosionFlags.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: 'Erosion flag',
+        subtitle: `${r.severity} · ${r.type}`,
+        createdAt: r.createdAt,
+      };
+    }
+    case 'runoffPath': {
+      const r = useTopographyStore.getState().runoffPaths.find((x) => x.id === id);
+      if (!r) return null;
+      return {
+        kind,
+        id,
+        title: 'Runoff path',
+        subtitle: r.flowCondition,
         createdAt: r.createdAt,
       };
     }
@@ -692,6 +744,12 @@ export function removeAnnotation(kind: AnnotationKind, id: string): void {
       return;
     case 'drainageLine':
       useTopographyStore.getState().removeDrainageLine(id);
+      return;
+    case 'erosionFlag':
+      useTopographyStore.getState().removeErosionFlag(id);
+      return;
+    case 'runoffPath':
+      useTopographyStore.getState().removeRunoffPath(id);
       return;
     case 'watercourse':
       useWaterSystemsStore.getState().removeWatercourse(id);

@@ -68,6 +68,8 @@ export type AnnotationKind =
   | 'contourLine'
   | 'highPoint'
   | 'drainageLine'
+  | 'erosionFlag'
+  | 'runoffPath'
   | 'watercourse'
   | 'waterbody'
   | 'vegetation'
@@ -522,6 +524,116 @@ const drainageLine: FieldSchema = {
       id: ctx.newId ?? crypto.randomUUID(),
       projectId: ctx.projectId,
       geometry: ctx.geometry,
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const erosionFlag: FieldSchema = {
+  title: 'Erosion flag',
+  fields: [
+    {
+      name: 'severity',
+      label: 'Severity',
+      type: 'select',
+      options: [
+        { value: 'low', label: 'Low' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'high', label: 'High' },
+      ],
+    },
+    {
+      name: 'type',
+      label: 'Type',
+      type: 'select',
+      options: [
+        { value: 'sheet', label: 'Sheet' },
+        { value: 'rill', label: 'Rill' },
+        { value: 'gully', label: 'Gully' },
+        { value: 'bank', label: 'Bank' },
+      ],
+    },
+    { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Cause, extent, after-rain behaviour…' },
+  ],
+  defaults: { severity: 'medium', type: 'sheet', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useTopographyStore.getState().erosionFlags.find((e) => e.id === id);
+    if (!rec) return null;
+    return { severity: rec.severity, type: rec.type, notes: rec.notes ?? '' };
+  },
+  save: (v, ctx) => {
+    const store = useTopographyStore.getState();
+    if (ctx.existingId) {
+      store.updateErosionFlag(ctx.existingId, {
+        severity: v.severity as 'low' | 'medium' | 'high',
+        type: v.type as 'sheet' | 'rill' | 'gully' | 'bank',
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'Point') return;
+    const [lng, lat] = ctx.geometry.coordinates as [number, number];
+    store.addErosionFlag({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      position: [lng, lat],
+      severity: v.severity as 'low' | 'medium' | 'high',
+      type: v.type as 'sheet' | 'rill' | 'gully' | 'bank',
+      notes: s(v.notes),
+      createdAt: nowIso(),
+    });
+  },
+};
+
+const runoffPath: FieldSchema = {
+  title: 'Runoff path',
+  fields: [
+    { name: 'from', label: 'From', type: 'text', placeholder: 'Ridge, roof, road…' },
+    { name: 'to', label: 'To', type: 'text', placeholder: 'Swale, pond, boundary…' },
+    {
+      name: 'flowCondition',
+      label: 'Flow condition',
+      type: 'select',
+      options: [
+        { value: 'dry', label: 'Dry' },
+        { value: 'light', label: 'Light' },
+        { value: 'active', label: 'Active' },
+        { value: 'severe', label: 'Severe' },
+      ],
+    },
+    { name: 'notes', label: 'Notes', type: 'textarea', placeholder: 'Linked rainfall event, observed depth…' },
+  ],
+  defaults: { from: '', to: '', flowCondition: 'active', notes: '' },
+  loadDefaults: (id) => {
+    const rec = useTopographyStore.getState().runoffPaths.find((r) => r.id === id);
+    if (!rec) return null;
+    return {
+      from: rec.from ?? '',
+      to: rec.to ?? '',
+      flowCondition: rec.flowCondition,
+      notes: rec.notes ?? '',
+    };
+  },
+  save: (v, ctx) => {
+    const store = useTopographyStore.getState();
+    if (ctx.existingId) {
+      store.updateRunoffPath(ctx.existingId, {
+        from: s(v.from),
+        to: s(v.to),
+        flowCondition: v.flowCondition as 'dry' | 'light' | 'active' | 'severe',
+        notes: s(v.notes),
+      });
+      return;
+    }
+    if (!ctx.geometry || ctx.geometry.type !== 'LineString') return;
+    store.addRunoffPath({
+      id: ctx.newId ?? crypto.randomUUID(),
+      projectId: ctx.projectId,
+      geometry: ctx.geometry,
+      from: s(v.from),
+      to: s(v.to),
+      flowCondition: v.flowCondition as 'dry' | 'light' | 'active' | 'severe',
       notes: s(v.notes),
       createdAt: nowIso(),
     });
@@ -1453,6 +1565,8 @@ export const FIELD_SCHEMAS: Record<AnnotationKind, FieldSchema> = {
   contourLine,
   highPoint,
   drainageLine,
+  erosionFlag,
+  runoffPath,
   watercourse,
   waterbody,
   vegetation,
@@ -1493,6 +1607,8 @@ export const FIELD_REMOVERS: Readonly<Record<AnnotationKind, (id: string) => voi
   contourLine: (id) => useTopographyStore.getState().removeContour(id),
   highPoint: (id) => useTopographyStore.getState().removeHighPoint(id),
   drainageLine: (id) => useTopographyStore.getState().removeDrainageLine(id),
+  erosionFlag: (id) => useTopographyStore.getState().removeErosionFlag(id),
+  runoffPath: (id) => useTopographyStore.getState().removeRunoffPath(id),
   watercourse: (id) => useWaterSystemsStore.getState().removeWatercourse(id),
   waterbody: (id) => useWaterSystemsStore.getState().removeWaterbody(id),
   vegetation: (id) => useVegetationStore.getState().removePatch(id),

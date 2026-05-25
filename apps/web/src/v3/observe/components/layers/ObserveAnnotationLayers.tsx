@@ -118,6 +118,8 @@ const SPEC_MODULE: Record<string, ObserveModule> = {
   hazards: 'macroclimate-hazards',
   'topography-lines': 'topography',
   'topography-points': 'topography',
+  'topography-runoff': 'topography',
+  'topography-erosion': 'topography',
   'water-lines': 'earth-water-ecology',
   'water-bodies': 'earth-water-ecology',
   'soil-points': 'earth-water-ecology',
@@ -267,6 +269,8 @@ export default function ObserveAnnotationLayers({
   const contours = useTopographyStore((s) => s.contours);
   const highPoints = useTopographyStore((s) => s.highPoints);
   const drainageLines = useTopographyStore((s) => s.drainageLines);
+  const erosionFlags = useTopographyStore((s) => s.erosionFlags);
+  const runoffPaths = useTopographyStore((s) => s.runoffPaths);
   const hazards = useExternalForcesStore((s) => s.hazards);
   const watercourses = useWaterSystemsStore((s) => s.watercourses);
   const waterbodies = useWaterSystemsStore((s) => s.waterbodies);
@@ -631,6 +635,81 @@ export default function ObserveAnnotationLayers({
               'icon-allow-overlap': true,
               'icon-ignore-placement': true,
               'icon-anchor': 'center',
+            },
+          },
+        ],
+      });
+    }
+
+    // ── Topography: runoff paths ───────────────────────────────────────────
+    const runoffFeatures: GeoJSON.Feature[] = inProject(runoffPaths).map((r) => ({
+      type: 'Feature',
+      properties: {
+        flowCondition: r.flowCondition,
+        color:
+          r.flowCondition === 'severe'
+            ? '#c4452f'
+            : r.flowCondition === 'active'
+              ? '#3a8aa8'
+              : '#7aa8b8',
+        annoKind: 'runoffPath',
+        annoId: r.id,
+      },
+      geometry: r.geometry,
+    }));
+    if (runoffFeatures.length) {
+      result.push({
+        id: 'topography-runoff',
+        toggleKey: 'topography',
+        data: { type: 'FeatureCollection', features: runoffFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}topography-runoff`,
+            type: 'line',
+            source: `${SOURCE_PREFIX}topography-runoff`,
+            paint: {
+              'line-color': ['get', 'color'],
+              'line-width': 2,
+              'line-opacity': 0.85,
+              'line-dasharray': [2, 1.5],
+            },
+          },
+        ],
+      });
+    }
+
+    // ── Topography: erosion flags ──────────────────────────────────────────
+    const erosionFeatures: GeoJSON.Feature[] = inProject(erosionFlags).map((e) => ({
+      type: 'Feature',
+      properties: {
+        severity: e.severity,
+        color:
+          e.severity === 'high'
+            ? '#c4452f'
+            : e.severity === 'medium'
+              ? '#c87a3f'
+              : '#c4a265',
+        annoKind: 'erosionFlag',
+        annoId: e.id,
+      },
+      geometry: { type: 'Point', coordinates: e.position },
+    }));
+    if (erosionFeatures.length) {
+      result.push({
+        id: 'topography-erosion',
+        toggleKey: 'topography',
+        data: { type: 'FeatureCollection', features: erosionFeatures },
+        layers: [
+          {
+            id: `${LAYER_PREFIX}topography-erosion`,
+            type: 'circle',
+            source: `${SOURCE_PREFIX}topography-erosion`,
+            paint: {
+              'circle-radius': 6,
+              'circle-color': ['get', 'color'],
+              'circle-stroke-color': '#3a2a1a',
+              'circle-stroke-width': 1.5,
+              'circle-opacity': 0.9,
             },
           },
         ],
@@ -1237,6 +1316,8 @@ export default function ObserveAnnotationLayers({
     contours,
     highPoints,
     drainageLines,
+    erosionFlags,
+    runoffPaths,
     hazards,
     watercourses,
     waterbodies,

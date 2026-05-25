@@ -26,6 +26,8 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
       'observe.topography.drainage-line',
       'observe.topography.contour-line',
       'observe.topography.high-point',
+      'observe.topography.erosion-flag',
+      'observe.topography.runoff-path',
     ],
     requiredLayers: ['topography', 'hydrology'],
     checklist: [
