@@ -79,6 +79,7 @@ import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
 import DesignStatusChip from './header/DesignStatusChip.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import PlanReadyCue from './components/PlanReadyCue.js';
+import css from './PlanLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -469,10 +470,12 @@ export default function PlanLayout() {
         </div>
       }
       rightRail={
-        <>
+        <div className={css.rightStack}>
           {/* Project-level readiness cue only when no objective is focused;
               once an objective is selected the rail belongs to that objective's
-              workspace, so the generic Plan-essentials cue is hidden. */}
+              workspace, so the generic Plan-essentials cue is hidden. The cue
+              stacks above the checklist aside (column layout) instead of
+              squishing beside it. */}
           {validModule === null && (
             <PlanReadyCue projectId={params.projectId ?? null} />
           )}
@@ -485,7 +488,7 @@ export default function PlanLayout() {
             onOpenSlideUp={() => setSlideUpOpen(true)}
             onCloseSlideUp={() => setSlideUpOpen(false)}
           />
-        </>
+        </div>
       }
       bottomTray={moduleBar}
       overlay={

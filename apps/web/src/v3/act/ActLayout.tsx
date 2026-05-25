@@ -45,6 +45,7 @@ import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import ActReadyCue from './components/ActReadyCue.js';
+import css from './ActLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -214,8 +215,15 @@ export default function ActLayout() {
         </div>
       }
       rightRail={
-        <>
-          <ActReadyCue projectId={params.projectId ?? null} />
+        <div className={css.rightStack}>
+          {/* Project-level readiness cue only when no objective is focused;
+              once an objective is selected the rail belongs to that objective's
+              workspace, so the generic Act-essentials cue is hidden. The cue
+              stacks above the checklist/ops aside (column layout) instead of
+              squishing beside it. */}
+          {validModule === null && (
+            <ActReadyCue projectId={params.projectId ?? null} />
+          )}
           <ActChecklistAside
             activeModule={validModule}
             onSelectModule={handleSelectModule}
@@ -223,7 +231,7 @@ export default function ActLayout() {
             onOpenSlideUp={() => setSlideUpOpen(true)}
             onCloseSlideUp={() => setSlideUpOpen(false)}
           />
-        </>
+        </div>
       }
       bottomTray={moduleBar}
       overlay={

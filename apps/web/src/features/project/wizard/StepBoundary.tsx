@@ -422,8 +422,11 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
         <div ref={containerRef} style={{ flex: 1 }} />
       )}
 
-      {/* Boundary-set confirmation */}
-      {data.parcelBoundaryGeojson && (
+      {/* Boundary-set confirmation. `parcelBoundaryGeojson` is typed `unknown |
+          null` on WizardData, and `unknown && <jsx>` widens the whole child
+          expression to `unknown` (not assignable to ReactNode). Coerce the
+          guard to a boolean so the child is `false | Element`. */}
+      {data.parcelBoundaryGeojson != null && (
         <div
           role="status"
           style={{
