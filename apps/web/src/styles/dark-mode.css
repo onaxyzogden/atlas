@@ -93,6 +93,11 @@
   --color-success-muted:   rgba(143, 200, 154, 0.15);
   --color-warning:         #d4af5f;
   --color-warning-muted:   rgba(212, 175, 95, 0.15);
+  /* The numeric ladder's mid shade is a light-mode value (#a16207) that fails
+     contrast as text on the dark warning-muted chip. Lift it to estate gold so
+     warning text/accents stay ≥4.5:1 on dark. (-700 must NOT flip: it is paired
+     with the always-light warning-100 chip elsewhere.) */
+  --color-warning-600:     #d4af5f;
   --color-error:           #d27a6a;
   --color-error-muted:     rgba(210, 122, 106, 0.15);
   --color-info:            #8ab4c9;
@@ -205,6 +210,7 @@
     --color-success-muted:   rgba(143, 200, 154, 0.15);
     --color-warning:         #d4af5f;
     --color-warning-muted:   rgba(212, 175, 95, 0.15);
+    --color-warning-600:     #d4af5f;
     --color-error:           #d27a6a;
     --color-error-muted:     rgba(210, 122, 106, 0.15);
     --color-info:            #8ab4c9;
