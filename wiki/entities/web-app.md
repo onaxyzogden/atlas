@@ -6,6 +6,9 @@
 ## Purpose
 React SPA for property design, map visualization, dashboard analytics, financial modeling, and export. Local-first architecture with Zustand stores persisted to localStorage.
 
+## CI / PR gating
+PRs touching `apps/web/**`, `packages/shared/**`, or `pnpm-lock.yaml` are gated by `.github/workflows/web-ci.yml` (added 2026-05-25, `016c6d0b`) — three parallel jobs: **typecheck** (`pnpm --filter @ogden/web typecheck`, 8 GB-heap `tsc --noEmit`), **test** (`vitest`, node env), **build** (`tsc && vite build` + Playwright `prerender:showcase`, with `VITE_MAPTILER_KEY`). This closed the last monorepo PR-CI gap (api was already gated by `api-ci.yml` + `api-integration.yml`); previously only `deploy.yml` exercised web, and only on `push` to `main`. See [[log/2026-05-25-web-ci-gate]].
+
 ## Key Structure
 ```
 src/
