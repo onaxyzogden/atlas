@@ -53,8 +53,8 @@ describe('HostUnionContextMenu', () => {
     // Order matters: onOpenDetail should fire before onClose so the
     // parent's drilldown-open state-write lands before the menu's
     // dismiss state-write (the menu component sequences them).
-    const openOrder = onOpenDetail.mock.invocationCallOrder[0];
-    const closeOrder = onClose.mock.invocationCallOrder[0];
+    const openOrder = onOpenDetail.mock.invocationCallOrder[0]!;
+    const closeOrder = onClose.mock.invocationCallOrder[0]!;
     expect(openOrder).toBeLessThan(closeOrder);
   });
 

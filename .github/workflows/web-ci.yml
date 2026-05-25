@@ -1,0 +1,99 @@
+name: web-ci
+
+# PR-gating checks for @ogden/web, completing monorepo-wide PR coverage
+# alongside api-ci.yml / api-integration.yml. Three parallel jobs:
+#   - typecheck: tsc --noEmit (8GB heap; covers source + test files)
+#   - test:      the vitest suite (node env, no Docker, no secrets)
+#   - build:     tsc && vite build, incl. the Playwright showcase prerender
+#                (mirrors the proven deploy.yml build step)
+# @ogden/shared resolves to source via tsconfig paths + package exports, so
+# typecheck/test need no prior build step.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/web-ci.yml'
+  push:
+    paths:
+      - 'apps/web/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/web-ci.yml'
+
+permissions:
+  contents: read
+
+# A newer push to the same ref supersedes an in-flight run.
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check @ogden/web (tsc --noEmit)
+        run: pnpm --filter @ogden/web typecheck
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run @ogden/web test suite (vitest)
+        run: pnpm --filter @ogden/web test
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @ogden/web (tsc && vite build + prerender)
+        env:
+          NODE_OPTIONS: --max-old-space-size=7168
+          VITE_MAPTILER_KEY: ${{ secrets.VITE_MAPTILER_KEY }}
+        run: pnpm --filter @ogden/web build

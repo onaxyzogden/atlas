@@ -139,7 +139,7 @@ describe('derivePlanImpactFlags', () => {
   it('omits the source link when the need has no parent observation', () => {
     const [flag] = derivePlanImpactFlags([
       view(need({ id: 'a', planImpact: 'possible' }), recordedRun()),
-    ]);
+    ]) as [PlanImpactFlag];
     expect(flag.sourceObservationId).toBeUndefined();
   });
 

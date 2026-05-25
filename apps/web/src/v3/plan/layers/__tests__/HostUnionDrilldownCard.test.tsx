@@ -22,7 +22,7 @@ import { drilldownStrings } from '../drilldownStrings.js';
 
 const sampleMembers: DrilldownMemberRow[] = [
   { key: 'g1:0', name: 'Black locust', layer: 'canopy' },
-  { key: 'g1:1', name: 'Hazelnut', layer: 'understory' },
+  { key: 'g1:1', name: 'Hazelnut', layer: 'sub_canopy' },
   { key: 'g2:0', name: 'Comfrey', layer: 'herbaceous' },
 ];
 
