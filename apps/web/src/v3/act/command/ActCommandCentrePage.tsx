@@ -38,10 +38,11 @@ import WeatherStrip from '../ops/WeatherStrip.js';
 import TodaysPriorities from '../ops/TodaysPriorities.js';
 import AlertsPanel from '../ops/AlertsPanel.js';
 import UpcomingEvents from '../ops/UpcomingEvents.js';
-import css from '../../command/ObserveCommandCentrePage.module.css';
+import CommandCentreShell from '../../command/shell/CommandCentreShell.js';
 import aside from '../ops/ActOpsAside.module.css';
 
 export default function ActCommandCentrePage() {
+  console.count('[OOM] ActCommandCentre render'); // TEMP-OOM-PROBE
   const params = useParams({ strict: false }) as { projectId?: string };
   const projectId = params.projectId ?? 'mtc';
   const navigate = useNavigate();
@@ -100,18 +101,17 @@ export default function ActCommandCentrePage() {
   };
 
   return (
-    <div className={css.shell}>
-      <ActModuleTabs
-        data={data}
-        active={activeModule}
-        onSelect={setActiveModule}
-        onBackToCompass={backToCompass}
-      />
-
-      <div
-        className={css.body}
-        data-sidebar={sidebarCollapsed ? 'collapsed' : 'expanded'}
-      >
+    <CommandCentreShell
+      sidebarCollapsed={sidebarCollapsed}
+      tabs={
+        <ActModuleTabs
+          data={data}
+          active={activeModule}
+          onSelect={setActiveModule}
+          onBackToCompass={backToCompass}
+        />
+      }
+      sidebar={
         <ActMapSidebar
           active={activeModule}
           onClearModule={() => setActiveModule(null)}
@@ -124,25 +124,24 @@ export default function ActCommandCentrePage() {
           collapsed={sidebarCollapsed}
           onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
         />
-
+      }
+      siteMap={
         <ActSiteMapPanel
           projectId={projectId}
           activeModule={activeModule}
           showData={showData}
           showBoundary={showBoundary}
         />
-
-        <div className={css.rail}>
-          <div className={aside.aside}>
-            <WeatherStrip projectId={projectId} onOpen={openSchedule} />
-            <TodaysPriorities projectId={projectId} activeModule={activeModule} />
-            <AlertsPanel projectId={projectId} activeModule={activeModule} />
-            <UpcomingEvents projectId={projectId} onOpenSchedule={openSchedule} />
-          </div>
+      }
+      rail={
+        <div className={aside.aside}>
+          <WeatherStrip projectId={projectId} onOpen={openSchedule} />
+          <TodaysPriorities projectId={projectId} activeModule={activeModule} />
+          <AlertsPanel projectId={projectId} activeModule={activeModule} />
+          <UpcomingEvents projectId={projectId} onOpenSchedule={openSchedule} />
         </div>
-      </div>
-
-      <div className={css.bottomTray}>
+      }
+      tray={
         <OpenWorkItemsPanel
           items={trayItems}
           selectedId={selectedId}
@@ -151,7 +150,7 @@ export default function ActCommandCentrePage() {
           onLaunch={launchItem}
           onGoTracker={goTracker}
         />
-      </div>
-    </div>
+      }
+    />
   );
 }

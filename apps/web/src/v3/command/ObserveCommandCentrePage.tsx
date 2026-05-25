@@ -30,7 +30,7 @@ import OpenObservationNeedsPanel from './OpenObservationNeedsPanel.js';
 import ObservationTimelinePanel from './ObservationTimelinePanel.js';
 import EvidenceLibraryPanel from './EvidenceLibraryPanel.js';
 import GapsPanel from './GapsPanel.js';
-import css from './ObserveCommandCentrePage.module.css';
+import CommandCentreShell from './shell/CommandCentreShell.js';
 
 export default function ObserveCommandCentrePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -76,18 +76,17 @@ export default function ObserveCommandCentrePage() {
   };
 
   return (
-    <div className={css.shell}>
-      <ObserveModuleTabs
-        data={data}
-        active={activeModule}
-        onSelect={setActiveModule}
-        onBackToCompass={backToCompass}
-      />
-
-      <div
-        className={css.body}
-        data-sidebar={sidebarCollapsed ? 'collapsed' : 'expanded'}
-      >
+    <CommandCentreShell
+      sidebarCollapsed={sidebarCollapsed}
+      tabs={
+        <ObserveModuleTabs
+          data={data}
+          active={activeModule}
+          onSelect={setActiveModule}
+          onBackToCompass={backToCompass}
+        />
+      }
+      sidebar={
         <ObserveMapSidebar
           active={activeModule}
           onClearModule={() => setActiveModule(null)}
@@ -101,7 +100,8 @@ export default function ObserveCommandCentrePage() {
           collapsed={sidebarCollapsed}
           onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
         />
-
+      }
+      siteMap={
         <SiteMapPanel
           projectId={projectId}
           views={filteredViews}
@@ -110,15 +110,15 @@ export default function ObserveCommandCentrePage() {
           showMarkers={showMarkers}
           onSelectObjective={setSelectedId}
         />
-
-        <div className={css.rail}>
+      }
+      rail={
+        <>
           <ObservationTimelinePanel views={filteredViews} />
           <EvidenceLibraryPanel projectId={projectId} />
           <GapsPanel projectId={projectId} />
-        </div>
-      </div>
-
-      <div className={css.bottomTray}>
+        </>
+      }
+      tray={
         <OpenObservationNeedsPanel
           projectId={projectId}
           views={filteredViews}
@@ -127,7 +127,7 @@ export default function ObserveCommandCentrePage() {
           onClearFilter={() => setActiveModule(null)}
           onLaunch={launchNeed}
         />
-      </div>
-    </div>
+      }
+    />
   );
 }

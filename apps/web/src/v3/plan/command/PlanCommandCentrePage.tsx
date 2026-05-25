@@ -28,7 +28,7 @@ import OpenPlanDecisionsPanel from './OpenPlanDecisionsPanel.js';
 import PlanDecisionTimelinePanel from './PlanDecisionTimelinePanel.js';
 import PlanModuleReadinessPanel from './PlanModuleReadinessPanel.js';
 import PlanGapsPanel from './PlanGapsPanel.js';
-import css from '../../command/ObserveCommandCentrePage.module.css';
+import CommandCentreShell from '../../command/shell/CommandCentreShell.js';
 
 export default function PlanCommandCentrePage() {
   const params = useParams({ strict: false }) as { projectId?: string };
@@ -80,18 +80,17 @@ export default function PlanCommandCentrePage() {
   };
 
   return (
-    <div className={css.shell}>
-      <PlanModuleTabs
-        data={data}
-        active={activeModule}
-        onSelect={setActiveModule}
-        onBackToCompass={backToCompass}
-      />
-
-      <div
-        className={css.body}
-        data-sidebar={sidebarCollapsed ? 'collapsed' : 'expanded'}
-      >
+    <CommandCentreShell
+      sidebarCollapsed={sidebarCollapsed}
+      tabs={
+        <PlanModuleTabs
+          data={data}
+          active={activeModule}
+          onSelect={setActiveModule}
+          onBackToCompass={backToCompass}
+        />
+      }
+      sidebar={
         <PlanMapSidebar
           active={activeModule}
           onClearModule={() => setActiveModule(null)}
@@ -106,7 +105,8 @@ export default function PlanCommandCentrePage() {
           collapsed={sidebarCollapsed}
           onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
         />
-
+      }
+      siteMap={
         <PlanSiteMapPanel
           projectId={projectId}
           activeModule={activeModule}
@@ -114,18 +114,18 @@ export default function PlanCommandCentrePage() {
           showDesign={showDesign}
           showBoundary={showBoundary}
         />
-
-        <div className={css.rail}>
+      }
+      rail={
+        <>
           <PlanDecisionTimelinePanel decisions={moduleDecisions} />
           <PlanModuleReadinessPanel
             views={filteredViews}
             stagePct={data.stage.pct}
           />
           <PlanGapsPanel projectId={projectId} views={filteredViews} />
-        </div>
-      </div>
-
-      <div className={css.bottomTray}>
+        </>
+      }
+      tray={
         <OpenPlanDecisionsPanel
           decisions={trayDecisions}
           selectedId={selectedId}
@@ -134,7 +134,7 @@ export default function PlanCommandCentrePage() {
           onLaunch={launchDecision}
           onRecordDecision={recordDecision}
         />
-      </div>
-    </div>
+      }
+    />
   );
 }
