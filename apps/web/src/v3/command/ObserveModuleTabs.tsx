@@ -1,17 +1,13 @@
 /**
- * ObserveModuleTabs — the Command Centre's top module strip. One "All Modules"
- * tab plus one tab per Observe domain, each showing the domain's real verified
- * progress (from useCompassData), its compass icon, and its accent dot. Selecting
- * a tab sets the page's active-module lens; "All Modules" clears it.
- *
- * No fabricated "coverage" — the percentage is the live `progress.pct` the
- * Stage Compass already computes from checklist + evidence state.
+ * ObserveModuleTabs — the Observe Command Centre's top module strip. A thin
+ * wrapper over the shared `CommandCentreModuleTabs`: it keeps the Observe prop
+ * interface and injects the Observe aria label + "verified" status word. Observe
+ * uses the compass objective label directly (no short-label map).
  */
 
-import { Compass, LayoutGrid } from 'lucide-react';
+import CommandCentreModuleTabs from './shell/CommandCentreModuleTabs.js';
 import type { CompassData } from '../compass/useCompassData.js';
 import type { ObserveModule } from '../observe/types.js';
-import css from './ObserveCommandCentrePage.module.css';
 
 interface Props {
   data: CompassData;
@@ -20,63 +16,12 @@ interface Props {
   onBackToCompass: () => void;
 }
 
-export default function ObserveModuleTabs({
-  data,
-  active,
-  onSelect,
-  onBackToCompass,
-}: Props) {
+export default function ObserveModuleTabs(props: Props) {
   return (
-    <nav className={css.tabs} aria-label="Observe modules">
-      <button
-        type="button"
-        className={`${css.tab} ${active === null ? css.tabActive : ''}`}
-        aria-pressed={active === null}
-        onClick={() => onSelect(null)}
-      >
-        <span className={css.tabIcon}>
-          <LayoutGrid size={16} strokeWidth={2} />
-        </span>
-        <span className={css.tabBody}>
-          <span className={css.tabLabel}>All Modules</span>
-          <span className={css.tabPct}>{data.stage.pct}% verified</span>
-        </span>
-      </button>
-
-      {data.views.map((v) => {
-        const module = v.objective.id as ObserveModule;
-        const Icon = v.objective.icon;
-        const isActive = active === module;
-        return (
-          <button
-            key={module}
-            type="button"
-            className={`${css.tab} ${isActive ? css.tabActive : ''}`}
-            aria-pressed={isActive}
-            onClick={() => onSelect(isActive ? null : module)}
-          >
-            <span
-              className={css.tabDot}
-              style={{ background: v.objective.accent }}
-            />
-            <span className={css.tabIcon}>
-              <Icon size={16} strokeWidth={2} />
-            </span>
-            <span className={css.tabBody}>
-              <span className={css.tabLabel}>{v.objective.label}</span>
-              <span className={css.tabPct}>{v.progress.pct}% verified</span>
-            </span>
-          </button>
-        );
-      })}
-
-      <button
-        type="button"
-        className={`${css.ghostBtn} ${css.tabsBackBtn}`}
-        onClick={onBackToCompass}
-      >
-        <Compass size={16} strokeWidth={2} /> Compass
-      </button>
-    </nav>
+    <CommandCentreModuleTabs
+      {...props}
+      ariaLabel="Observe modules"
+      statusWord="verified"
+    />
   );
 }
