@@ -53,6 +53,9 @@ export function deriveActivatedModules(profile: VisionProfile): PlanModule[] {
   const active = new Set<PlanModule>();
 
   for (const question of VISION_QUESTIONS) {
+    // Deferred questions aren't asked in Stage Zero (so they're unanswered
+    // today), but skip them explicitly so this projection stays vision-only.
+    if (question.deferToPlan) continue;
     if (question.visibleWhen && !question.visibleWhen(profile)) continue;
     const selected = selectedIdsForPath(profile, question.profilePath);
     if (selected.size === 0) continue;

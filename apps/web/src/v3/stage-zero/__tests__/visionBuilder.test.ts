@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { VisionProfile } from '@ogden/shared';
 import {
   VISION_QUESTIONS,
+  deriveDeferredTopics,
   hasLivestockInScope,
   toProjectType,
 } from '../data/visionBuilderQuestions.js';
@@ -97,6 +98,56 @@ describe('toProjectType mapping', () => {
   });
 });
 
+describe('Lean Stage Zero question set', () => {
+  // The six questions actually asked in Stage Zero, in catalog order. Everything
+  // else is flagged `deferToPlan` and surfaced via deriveDeferredTopics().
+  const KEPT_IDS = [
+    'project-type',
+    'primary-outcomes',
+    'values',
+    'budget-range',
+    'timeline',
+    'success',
+  ];
+
+  it('asks exactly the lean 6 (deferToPlan filtered), in catalog order', () => {
+    const active = VISION_QUESTIONS.filter((q) => !q.deferToPlan).map(
+      (q) => q.id,
+    );
+    expect(active).toEqual(KEPT_IDS);
+  });
+
+  it('removes selection caps from every kept multi question', () => {
+    const keptMultis = VISION_QUESTIONS.filter(
+      (q) => !q.deferToPlan && q.kind === 'multi',
+    );
+    expect(keptMultis.length).toBeGreaterThan(0);
+    for (const q of keptMultis) {
+      expect(q.maxSelections).toBeUndefined();
+    }
+  });
+
+  it('defers everything except the lean 6, with none of the kept ids leaking', () => {
+    const deferred = deriveDeferredTopics();
+    const deferredIds = deferred.map((t) => t.id);
+
+    // None of the kept ids appear in the deferred list…
+    for (const id of KEPT_IDS) {
+      expect(deferredIds).not.toContain(id);
+    }
+    // …and the deferred list is exactly the non-kept catalog questions.
+    const expectedDeferred = VISION_QUESTIONS.filter(
+      (q) => !KEPT_IDS.includes(q.id),
+    ).map((q) => q.id);
+    expect(deferredIds).toEqual(expectedDeferred);
+    // Each deferred topic carries the surfacing fields.
+    for (const topic of deferred) {
+      expect(topic.eyebrow).toBeTruthy();
+      expect(topic.title).toBeTruthy();
+    }
+  });
+});
+
 describe('deriveActivatedModules', () => {
   it('returns nothing for an empty profile', () => {
     // Baseline is gated on `primaryType`, so a blank profile stays empty
@@ -115,9 +166,11 @@ describe('deriveActivatedModules', () => {
   });
 
   it('does not seed the baseline without a project type', () => {
-    // Answers other than primaryType must not trigger the baseline.
+    // Answers other than primaryType must not trigger the baseline. Use a kept
+    // (non-deferred) question to activate a module: primary-outcomes →
+    // water_resilience activates water-management.
     const mods = deriveActivatedModules({
-      systemsInScope: { water: ['rainwater'] }, // water-management only
+      primaryOutcomes: ['water_resilience'], // water-management only
     });
     expect(mods).toContain('water-management');
     expect(mods).not.toContain('soil-fertility');
@@ -137,8 +190,8 @@ describe('deriveActivatedModules', () => {
 
   it('unions activated modules across answered questions, de-duplicated', () => {
     const mods = deriveActivatedModules({
-      primaryType: 'regenerative_farm', // soil-fertility, plant-systems, water-management
-      systemsInScope: { water: ['rainwater'] }, // water-management (dup)
+      primaryType: 'regenerative_farm', // type: plant-systems… + baseline (water, soil…)
+      primaryOutcomes: ['water_resilience'], // water-management (dup of baseline)
     });
     expect(mods).toContain('soil-fertility');
     expect(mods).toContain('plant-systems');
@@ -149,8 +202,9 @@ describe('deriveActivatedModules', () => {
 
   it('returns modules in canonical PLAN_MODULES order', () => {
     const mods = deriveActivatedModules({
-      systemsInScope: { water: ['rainwater'] }, // water-management
-      primaryOutcomes: ['ecological_restoration'], // habitat-allocation, regeneration-monitor
+      // Both from the kept primary-outcomes question.
+      primaryOutcomes: ['water_resilience', 'ecological_restoration'],
+      // → water-management, habitat-allocation, regeneration-monitor
     });
     // water-management precedes habitat-allocation in PLAN_MODULES.
     expect(mods.indexOf('water-management')).toBeLessThan(
@@ -158,20 +212,23 @@ describe('deriveActivatedModules', () => {
     );
   });
 
-  it('excludes conditional (livestock) modules when animals are out of scope', () => {
-    // livestock.roles would activate 'livestock', but the question is hidden
-    // when no animals are in scope, so it must not leak into the strip.
+  it('ignores answers to deferred questions (vision-only projection)', () => {
+    // systems-animals and livestock.roles are now deferToPlan, so even if their
+    // profile paths carry values they must not contribute modules to the strip
+    // — the projection is driven only by the lean Stage Zero questions.
     const mods = deriveActivatedModules({
-      livestock: { roles: ['meat'] },
+      systemsInScope: { animals: ['goats'] }, // deferred → no 'livestock'
+      livestock: { roles: ['meat'] }, // deferred → no 'livestock'
     });
     expect(mods).not.toContain('livestock');
   });
 
-  it('includes livestock modules once animals are in scope', () => {
+  it('still excludes deferred modules even alongside a chosen project type', () => {
+    // Baseline seeds on primaryType, but deferred answers add nothing extra.
     const mods = deriveActivatedModules({
-      systemsInScope: { animals: ['goats'] }, // activates livestock
-      livestock: { roles: ['meat'] }, // now visible → activates livestock
+      primaryType: 'homestead',
+      systemsInScope: { animals: ['goats'] }, // deferred
     });
-    expect(mods).toContain('livestock');
+    expect(mods).not.toContain('livestock');
   });
 });

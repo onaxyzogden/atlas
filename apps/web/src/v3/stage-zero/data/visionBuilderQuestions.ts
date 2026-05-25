@@ -53,6 +53,15 @@ export interface VisionQuestion {
   kind: VisionAnswerKind;
   /** For multi questions: cap on selections (omit = unlimited). */
   maxSelections?: number;
+  /**
+   * When true, this question is *deferred to the Plan stage* — it is not asked
+   * in the Lean Stage Zero flow, but is preserved here (not deleted) so the
+   * Plan stage can advise on it later from what OBSERVE captures and the guided
+   * vision layout. `deriveDeferredTopics()` surfaces these to the steward as
+   * "explored later", and `useVisionBuilder` filters them out of the active
+   * question set. See the Stage Zero trim decision.
+   */
+  deferToPlan?: boolean;
   /** Dotted path into VisionProfile this question writes to. */
   profilePath: string;
   options: VisionOption[];
@@ -117,9 +126,8 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
     id: 'primary-outcomes',
     eyebrow: 'Primary Outcomes',
     title: 'What is the main outcome you want this land to produce?',
-    subtitle: 'Choose up to three. These become what the Plan optimises for.',
+    subtitle: 'Choose all that apply. These become what the Plan optimises for.',
     kind: 'multi',
-    maxSelections: 3,
     profilePath: 'primaryOutcomes',
     options: [
       { id: 'household_self_sufficiency', label: 'Household self-sufficiency', activates: ['plant-systems', 'zone-circulation'] },
@@ -145,6 +153,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'land-identity',
     eyebrow: 'Land Identity',
+    deferToPlan: true,
     title: 'When this project is mature, what should the land feel like?',
     subtitle: 'Choose one or more. This sets the Plan stage’s design posture.',
     kind: 'multi',
@@ -171,6 +180,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'users',
     eyebrow: 'Who It’s For',
+    deferToPlan: true,
     title: 'Who will regularly use or depend on this land?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -199,6 +209,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'public-access',
     eyebrow: 'Access Posture',
+    deferToPlan: true,
     title: 'How public or private should the project be?',
     subtitle: 'This shapes circulation, parking, signage, privacy buffers, and risk.',
     kind: 'single',
@@ -217,6 +228,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'systems-food',
     eyebrow: 'Food Systems',
+    deferToPlan: true,
     title: 'Which food systems do you want this project to include?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -238,6 +250,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'systems-animals',
     eyebrow: 'Animal Systems',
+    deferToPlan: true,
     title: 'Which animal systems do you want to include?',
     subtitle: 'Choose all that apply. Select “No livestock” to skip animal planning.',
     kind: 'multi',
@@ -261,6 +274,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'systems-water',
     eyebrow: 'Water Systems',
+    deferToPlan: true,
     title: 'Which water systems do you want to include?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -281,6 +295,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'systems-built',
     eyebrow: 'Built Systems',
+    deferToPlan: true,
     title: 'Which built systems do you want to include?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -309,6 +324,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'economic-intent',
     eyebrow: 'Economic Intent',
+    deferToPlan: true,
     title: 'How much income does this land need to generate?',
     kind: 'single',
     profilePath: 'economicIntentLevel',
@@ -325,6 +341,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'income-streams',
     eyebrow: 'Income Streams',
+    deferToPlan: true,
     title: 'Which income streams are you considering?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -353,6 +370,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'economic-style',
     eyebrow: 'Economic Style',
+    deferToPlan: true,
     title: 'What is your preferred economic style?',
     kind: 'single',
     profilePath: 'economicStyle',
@@ -373,9 +391,8 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
     id: 'values',
     eyebrow: 'Stewardship Values',
     title: 'Which principles should guide planning decisions?',
-    subtitle: 'Choose up to five. These help resolve trade-offs in the Plan stage.',
+    subtitle: 'Choose all that apply. These help resolve trade-offs in the Plan stage.',
     kind: 'multi',
-    maxSelections: 5,
     profilePath: 'values',
     options: [
       { id: 'soil_first', label: 'Soil health first', activates: ['soil-fertility'] },
@@ -402,6 +419,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'development-style',
     eyebrow: 'Development Style',
+    deferToPlan: true,
     title: 'How do you want to develop the land?',
     kind: 'single',
     profilePath: 'developmentStyle',
@@ -421,6 +439,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'complexity-tolerance',
     eyebrow: 'Complexity',
+    deferToPlan: true,
     title: 'What is your tolerance for complexity?',
     kind: 'single',
     profilePath: 'complexityTolerance',
@@ -434,6 +453,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'operating-style',
     eyebrow: 'Operating Style',
+    deferToPlan: true,
     title: 'What is your preferred operating style?',
     kind: 'single',
     profilePath: 'operatingStyle',
@@ -453,6 +473,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'will-live-on-land',
     eyebrow: 'Living on the Land',
+    deferToPlan: true,
     title: 'Will people live on the land?',
     kind: 'single',
     profilePath: 'willLiveOnLand',
@@ -468,6 +489,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'residential-forms',
     eyebrow: 'Residential Forms',
+    deferToPlan: true,
     title: 'What residential forms are being considered?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -488,6 +510,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'shared-spaces',
     eyebrow: 'Shared Spaces',
+    deferToPlan: true,
     title: 'What shared spaces may be needed?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -514,6 +537,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'livestock-roles',
     eyebrow: 'Animal Philosophy',
+    deferToPlan: true,
     title: 'What role should animals play in the project?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -537,6 +561,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'livestock-intensity',
     eyebrow: 'Animal Philosophy',
+    deferToPlan: true,
     title: 'How intensive should animal integration be?',
     kind: 'single',
     profilePath: 'livestock.intensity',
@@ -553,6 +578,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'livestock-management',
     eyebrow: 'Animal Philosophy',
+    deferToPlan: true,
     title: 'What animal management style do you prefer?',
     kind: 'single',
     profilePath: 'livestock.managementStyle',
@@ -570,6 +596,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'livestock-priorities',
     eyebrow: 'Animal Philosophy',
+    deferToPlan: true,
     title: 'What animal-related priorities matter most?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -593,6 +620,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'non-negotiables',
     eyebrow: 'Non-Negotiables',
+    deferToPlan: true,
     title: 'What must the plan avoid?',
     subtitle: 'Choose all that apply. These become planning guardrails.',
     kind: 'multi',
@@ -619,6 +647,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'disqualifiers',
     eyebrow: 'Project Gates',
+    deferToPlan: true,
     title: 'What would disqualify or pause the project?',
     subtitle: 'Choose all that apply. These become warning gates.',
     kind: 'multi',
@@ -658,6 +687,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'resources-have',
     eyebrow: 'Resources',
+    deferToPlan: true,
     title: 'What resources do you already have?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -686,6 +716,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'resource-constraints',
     eyebrow: 'Constraints',
+    deferToPlan: true,
     title: 'What are your biggest resource constraints?',
     subtitle: 'Choose all that apply.',
     kind: 'multi',
@@ -727,6 +758,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'first-working',
     eyebrow: 'Sequence',
+    deferToPlan: true,
     title: 'What do you want working first?',
     subtitle: 'Choose one to three. This drives the development sequence.',
     kind: 'multi',
@@ -754,9 +786,8 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
     id: 'success',
     eyebrow: 'Success Markers',
     title: 'How will you know this project is working?',
-    subtitle: 'Choose up to five. These become the Plan’s success metrics.',
+    subtitle: 'Choose all that apply. These become the Plan’s success metrics.',
     kind: 'multi',
-    maxSelections: 5,
     profilePath: 'successDefinition',
     options: [
       { id: 'meaningful_food', label: 'We produce a meaningful portion of our food', activates: ['plant-systems'] },
@@ -780,6 +811,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'guidance-style',
     eyebrow: 'Guidance',
+    deferToPlan: true,
     title: 'How should OLOS guide the Plan stage?',
     kind: 'single',
     profilePath: 'guidanceStyle',
@@ -798,6 +830,7 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
   {
     id: 'guidance-depth',
     eyebrow: 'Guidance',
+    deferToPlan: true,
     title: 'How much guidance do you want?',
     kind: 'single',
     profilePath: 'guidanceDepth',
@@ -838,4 +871,28 @@ export function toProjectType(builderTypeId: string | undefined): string | undef
     default:
       return undefined;
   }
+}
+
+/** A topic deferred from Stage Zero to the Plan stage, for surfacing. */
+export interface DeferredTopic {
+  id: string;
+  eyebrow: string;
+  title: string;
+}
+
+/**
+ * Derive the list of questions flagged `deferToPlan` from the static catalog.
+ *
+ * These are *not* asked in the Lean Stage Zero flow but are preserved so the
+ * Plan stage can advise on them later. The list is identical for every project
+ * (it's a property of the catalog, not the profile), so it's derived on demand
+ * rather than persisted — the sidebar shows it as "explored later in the Plan
+ * stage" so the steward sees nothing was lost.
+ */
+export function deriveDeferredTopics(): DeferredTopic[] {
+  return VISION_QUESTIONS.filter((q) => q.deferToPlan).map((q) => ({
+    id: q.id,
+    eyebrow: q.eyebrow,
+    title: q.title,
+  }));
 }

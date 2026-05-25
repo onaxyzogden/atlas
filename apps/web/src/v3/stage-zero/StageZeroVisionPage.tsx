@@ -14,6 +14,7 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { ArrowLeft, ArrowRight, Compass } from 'lucide-react';
 import { useVisionBuilder } from './useVisionBuilder.js';
 import { deriveActivatedModules } from './lib/deriveActivatedModules.js';
+import { deriveDeferredTopics } from './data/visionBuilderQuestions.js';
 import { VisionStageHeader } from './components/VisionStageHeader.js';
 import { VisionQuestionCard } from './components/VisionQuestionCard.js';
 import { VisionUpcomingQuestions } from './components/VisionUpcomingQuestions.js';
@@ -39,6 +40,8 @@ export default function StageZeroVisionPage() {
     selectedFor,
     setSingle,
     toggleMulti,
+    toggleSelectAll,
+    allSelectedFor,
     goNext,
     goBack,
     goToQuestion,
@@ -52,6 +55,9 @@ export default function StageZeroVisionPage() {
     () => deriveActivatedModules(profile),
     [profile],
   );
+
+  // Static (catalog-derived) list of topics deferred to the Plan stage.
+  const deferredTopics = useMemo(() => deriveDeferredTopics(), []);
 
   const upcoming = useMemo(
     () => visibleQuestions.slice(currentIndex + 1, currentIndex + 1 + UPCOMING_PREVIEW),
@@ -101,6 +107,16 @@ export default function StageZeroVisionPage() {
               question={currentQuestion}
               selected={selectedFor(currentQuestion)}
               onToggle={handleToggle}
+              onSelectAll={
+                currentQuestion.kind === 'multi'
+                  ? () => toggleSelectAll(currentQuestion)
+                  : undefined
+              }
+              allSelected={
+                currentQuestion.kind === 'multi'
+                  ? allSelectedFor(currentQuestion)
+                  : undefined
+              }
             />
           ) : (
             <p className={styles.done}>All questions answered.</p>
@@ -138,6 +154,7 @@ export default function StageZeroVisionPage() {
             visibleQuestions={visibleQuestions}
             selectedFor={selectedFor}
             onJump={goToQuestion}
+            deferredTopics={deferredTopics}
           />
         </div>
       </div>

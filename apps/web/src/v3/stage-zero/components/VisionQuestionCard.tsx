@@ -15,12 +15,23 @@ interface Props {
   question: VisionQuestion;
   selected: string[];
   onToggle: (optionId: string) => void;
+  /** Multi questions only: select-all / clear-all toggle. */
+  onSelectAll?: () => void;
+  /** Multi questions only: whether every option is currently selected. */
+  allSelected?: boolean;
 }
 
-export function VisionQuestionCard({ question, selected, onToggle }: Props) {
+export function VisionQuestionCard({
+  question,
+  selected,
+  onToggle,
+  onSelectAll,
+  allSelected = false,
+}: Props) {
   const isMulti = question.kind === 'multi';
   const selectedSet = new Set(selected);
 
+  // Caps were removed from Stage Zero multi questions, so the hint is uniform.
   const multiHint = question.maxSelections
     ? `Choose up to ${question.maxSelections}`
     : 'Choose all that apply';
@@ -44,6 +55,15 @@ export function VisionQuestionCard({ question, selected, onToggle }: Props) {
             Multiple selections allowed
           </span>
           <span className={styles.multiHint}>· {multiHint}</span>
+          {onSelectAll && (
+            <button
+              type="button"
+              className={styles.selectAll}
+              onClick={onSelectAll}
+            >
+              {allSelected ? 'Clear all' : 'Select all'}
+            </button>
+          )}
         </div>
       )}
 

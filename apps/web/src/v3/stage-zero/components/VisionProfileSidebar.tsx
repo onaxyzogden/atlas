@@ -7,13 +7,18 @@
 
 import { Pencil } from 'lucide-react';
 import type { VisionProfile } from '@ogden/shared';
-import type { VisionQuestion } from '../data/visionBuilderQuestions.js';
+import type {
+  DeferredTopic,
+  VisionQuestion,
+} from '../data/visionBuilderQuestions.js';
 import styles from './VisionProfileSidebar.module.css';
 
 interface Props {
   visibleQuestions: VisionQuestion[];
   selectedFor: (question: VisionQuestion) => string[];
   onJump: (id: string) => void;
+  /** Topics deferred to the Plan stage, surfaced read-only so nothing feels lost. */
+  deferredTopics?: DeferredTopic[];
 }
 
 function labelsFor(question: VisionQuestion, ids: string[]): string[] {
@@ -27,6 +32,7 @@ export function VisionProfileSidebar({
   visibleQuestions,
   selectedFor,
   onJump,
+  deferredTopics = [],
 }: Props) {
   const answered = visibleQuestions
     .map((q) => ({ q, ids: selectedFor(q) }))
@@ -72,6 +78,27 @@ export function VisionProfileSidebar({
             </div>
           ))}
         </dl>
+      )}
+
+      {deferredTopics.length > 0 && (
+        <section className={styles.deferred} aria-label="Explored later in the Plan stage">
+          <h3 className={styles.deferredHeading}>Explored later in the Plan stage</h3>
+          <p className={styles.deferredNote}>
+            These are advised from what Observe captures and your guided layout —
+            no need to decide them now.
+          </p>
+          <div className={styles.deferredChips}>
+            {deferredTopics.map((topic) => (
+              <span
+                key={topic.id}
+                className={styles.deferredChip}
+                title={topic.title}
+              >
+                {topic.eyebrow}
+              </span>
+            ))}
+          </div>
+        </section>
       )}
     </aside>
   );

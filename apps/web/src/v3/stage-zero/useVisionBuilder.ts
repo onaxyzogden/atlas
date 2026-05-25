@@ -73,6 +73,14 @@ export interface UseVisionBuilder {
   setSingle: (question: VisionQuestion, optionId: string) => void;
   /** Toggle a multi-select answer, honouring `maxSelections`. */
   toggleMulti: (question: VisionQuestion, optionId: string) => void;
+  /**
+   * Select-all toggle for a multi question: if not every option is selected,
+   * select them all; if all are already selected, clear to none. Batched into
+   * a single persist.
+   */
+  toggleSelectAll: (question: VisionQuestion) => void;
+  /** True when every option of a multi question is currently selected. */
+  allSelectedFor: (question: VisionQuestion) => boolean;
   goNext: () => void;
   goBack: () => void;
   goToQuestion: (id: string) => void;
@@ -93,7 +101,10 @@ export function useVisionBuilder(projectId: string): UseVisionBuilder {
   );
 
   const visibleQuestions = useMemo(
-    () => VISION_QUESTIONS.filter((q) => !q.visibleWhen || q.visibleWhen(profile)),
+    () =>
+      VISION_QUESTIONS.filter(
+        (q) => !q.deferToPlan && (!q.visibleWhen || q.visibleWhen(profile)),
+      ),
     [profile],
   );
 
@@ -186,6 +197,34 @@ export function useVisionBuilder(projectId: string): UseVisionBuilder {
     [profile, persist],
   );
 
+  const allSelectedFor = useCallback(
+    (question: VisionQuestion): boolean => {
+      if (question.options.length === 0) return false;
+      const current = new Set(
+        asStringArray(
+          getAtPath(profile as Record<string, unknown>, question.profilePath),
+        ),
+      );
+      return question.options.every((o) => current.has(o.id));
+    },
+    [profile],
+  );
+
+  const toggleSelectAll = useCallback(
+    (question: VisionQuestion) => {
+      const nextList = allSelectedFor(question)
+        ? []
+        : question.options.map((o) => o.id);
+      const next = setAtPath(
+        profile as Record<string, unknown>,
+        question.profilePath,
+        nextList,
+      ) as VisionProfile;
+      persist(next);
+    },
+    [profile, persist, allSelectedFor],
+  );
+
   const goNext = useCallback(() => {
     setCurrentIndex((i) => Math.min(i + 1, visibleQuestions.length - 1));
   }, [visibleQuestions.length]);
@@ -225,6 +264,8 @@ export function useVisionBuilder(projectId: string): UseVisionBuilder {
     selectedFor,
     setSingle,
     toggleMulti,
+    toggleSelectAll,
+    allSelectedFor,
     goNext,
     goBack,
     goToQuestion,
