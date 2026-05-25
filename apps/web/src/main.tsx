@@ -6,6 +6,7 @@ import { router } from './routes/index.js';
 import { GlobalErrorBoundary } from './components/ErrorBoundary.js';
 import { ToastContainer } from './components/Toast.js';
 import SessionExpiredBanner from './components/SessionExpiredBanner.js';
+import ApiReachabilityBanner from './components/ApiReachabilityBanner.js';
 import '@ogden/ui-components/style.css';
 import './app/index.css';
 
@@ -56,6 +57,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         {/* SessionExpiredBanner subscribes to sessionExpiredStore, which is
             never triggered on the showcase path; mounting it is free. */}
         <SessionExpiredBanner />
+        {/* ApiReachabilityBanner reads connectivity + auth stores, which stay
+            at their defaults on the showcase path; mounting it is free. */}
+        <ApiReachabilityBanner />
         <RouterProvider router={router} />
         <ToastContainer />
       </QueryClientProvider>

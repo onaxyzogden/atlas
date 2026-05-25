@@ -117,6 +117,29 @@ export function setApiClientErrorReporter(fn: ((r: ApiClientErrorReport) => void
   clientErrorReporter = fn;
 }
 
+// Module-global success hook. Wired once at app boot from `bootAuthed.ts`
+// (mirrors the reporter injection above) to drive the connectivity store's
+// `apiReachable` signal back to true once the server responds. A server that
+// recovers (restart) fires no browser `online` event, so an explicit success
+// signal is required for the API-unreachable banner to auto-clear.
+let apiSuccessHandler: (() => void) | null = null;
+
+export function setApiSuccessHandler(fn: (() => void) | null) {
+  apiSuccessHandler = fn;
+}
+
+function reportApiSuccess(path: string): void {
+  if (!apiSuccessHandler) return;
+  // Skip telemetry POSTs — they are noise for reachability and could mask a
+  // genuinely unreachable API endpoint (same guard as reportApiFailure).
+  if (path.startsWith(TELEMETRY_PATH_PREFIX)) return;
+  try {
+    apiSuccessHandler();
+  } catch {
+    // Reporting must never break the request path.
+  }
+}
+
 const TELEMETRY_PATH_PREFIX = '/api/v1/telemetry/';
 
 function reportApiFailure(r: ApiClientErrorReport): void {
@@ -199,6 +222,8 @@ async function request<T>(
     throw apiError;
   }
 
+  // Reached the server and got a well-formed envelope — the API is reachable.
+  reportApiSuccess(path);
   return json;
 }
 

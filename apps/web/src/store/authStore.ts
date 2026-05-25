@@ -38,6 +38,14 @@ interface AuthState {
   isLoaded: boolean;
   /** Non-null while a login/register request is in flight */
   error: string | null;
+  /**
+   * True when a stored token exists but `/auth/me` could NOT be verified on
+   * boot for a transient reason (server down / still starting / dead origin) —
+   * the token is kept but `user` is null. Drives the ApiReachabilityBanner's
+   * boot-specific message + Retry. Cleared once the session verifies, or on
+   * an explicit login/register/logout.
+   */
+  sessionUnverified: boolean;
 
   /**
    * Call once on app startup.
@@ -57,12 +65,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoaded: false,
   error: null,
+  sessionUnverified: false,
 
   async initFromStorage() {
     try {
       const stored = localStorage.getItem(TOKEN_KEY);
       if (!stored) {
-        set({ isLoaded: true });
+        set({ isLoaded: true, sessionUnverified: false });
         return;
       }
 
@@ -80,6 +89,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             defaultOrgId: data.defaultOrgId,
           },
           isLoaded: true,
+          sessionUnverified: false,
         });
       } catch (err) {
         // Only nullify on a real auth rejection (401 / INVALID_TOKEN).
@@ -93,10 +103,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         if (isAuthFailure) {
           localStorage.removeItem(TOKEN_KEY);
           setAuthToken(null);
-          set({ token: null, user: null, isLoaded: true });
+          set({ token: null, user: null, isLoaded: true, sessionUnverified: false });
         } else {
-          // Transient — preserve token, leave user empty, mark loaded.
-          set({ token: stored, user: null, isLoaded: true });
+          // Transient — preserve token, leave user empty, mark loaded, and
+          // flag the session as unverified so the banner can prompt a Retry.
+          set({ token: stored, user: null, isLoaded: true, sessionUnverified: true });
         }
       }
     } catch {
@@ -110,7 +121,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data } = await api.auth.login(email, password);
       localStorage.setItem(TOKEN_KEY, data.token);
       setAuthToken(data.token);
-      set({ token: data.token, user: data.user, error: null });
+      set({ token: data.token, user: data.user, error: null, sessionUnverified: false });
     } catch (err) {
       const msg = authErrorMessage(err, 'Login failed');
       set({ error: msg });
@@ -124,7 +135,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data } = await api.auth.register(email, password, displayName);
       localStorage.setItem(TOKEN_KEY, data.token);
       setAuthToken(data.token);
-      set({ token: data.token, user: data.user, error: null });
+      set({ token: data.token, user: data.user, error: null, sessionUnverified: false });
     } catch (err) {
       const msg = authErrorMessage(err, 'Registration failed');
       set({ error: msg });
@@ -135,7 +146,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout() {
     localStorage.removeItem(TOKEN_KEY);
     setAuthToken(null);
-    set({ token: null, user: null, error: null });
+    set({ token: null, user: null, error: null, sessionUnverified: false });
   },
 
   clearError() {
