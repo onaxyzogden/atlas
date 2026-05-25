@@ -13,8 +13,8 @@ import { OBSERVE_MODULE_LABEL } from '../observe/types.js';
 import type {
   ObservationNeedPriority,
   ObservationNeedStatus,
-} from '../objectives/fieldObjective.js';
-import type { ObservationNeedView } from '../objectives/useFieldObjectives.js';
+} from '../observation-needs/observationNeed.js';
+import type { ObservationNeedView } from '../observation-needs/useObservationNeeds.js';
 import css from './ObserveCommandCentrePage.module.css';
 
 interface Props {

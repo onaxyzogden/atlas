@@ -6,11 +6,11 @@ import {
   firstUnsatisfiedAnnotationSpec,
   type ObservationNeed,
   type ObservationNeedRun,
-} from '../fieldObjective.js';
+} from '../observationNeed.js';
 import {
   SEED_OBSERVATION_NEEDS,
   seedObservationNeedsForProject,
-} from '../seedObjectives.js';
+} from '../seedObservationNeeds.js';
 import { OBSERVE_MODULES } from '../../observe/types.js';
 
 /** A minimal need with one required check, one required photo (min 2), and a

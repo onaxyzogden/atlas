@@ -15,8 +15,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { OBSERVE_MODULE_LABEL } from '../observe/types.js';
-import type { EvidenceKind } from '../objectives/fieldObjective.js';
-import type { ObservationNeedView } from '../objectives/useFieldObjectives.js';
+import type { EvidenceKind } from '../observation-needs/observationNeed.js';
+import type { ObservationNeedView } from '../observation-needs/useObservationNeeds.js';
 import css from './ObserveCommandCentrePage.module.css';
 
 interface Props {

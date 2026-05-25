@@ -9,7 +9,7 @@
  * work and when is an Act concern.
  */
 
-import type { ObservationNeed } from './fieldObjective.js';
+import type { ObservationNeed } from './observationNeed.js';
 
 export const SEED_OBSERVATION_NEEDS: ObservationNeed[] = [
   {

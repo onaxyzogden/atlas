@@ -6,15 +6,15 @@
  */
 
 import { useMemo } from 'react';
-import { useObservationNeedStore } from '../../store/fieldObjectiveStore.js';
-import { seedObservationNeedsForProject } from './seedObjectives.js';
+import { useObservationNeedStore } from '../../store/observationNeedStore.js';
+import { seedObservationNeedsForProject } from './seedObservationNeeds.js';
 import {
   emptyObservationNeedRun,
   evaluateObservationRecorded,
   type RecordingEvaluation,
   type ObservationNeed,
   type ObservationNeedRun,
-} from './fieldObjective.js';
+} from './observationNeed.js';
 
 export interface ObservationNeedView {
   objective: ObservationNeed;

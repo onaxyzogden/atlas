@@ -14,16 +14,16 @@
  */
 
 import { Check, CheckCircle2 } from 'lucide-react';
-import { useObservationNeedStore } from '../../../store/fieldObjectiveStore.js';
+import { useObservationNeedStore } from '../../../store/observationNeedStore.js';
 import { OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL } from '../types.js';
-import type { ObservationNeedStatus } from '../../objectives/fieldObjective.js';
-import type { ObservationNeedView } from '../../objectives/useFieldObjectives.js';
-import ObjectiveEvidenceCapture, {
+import type { ObservationNeedStatus } from '../../observation-needs/observationNeed.js';
+import type { ObservationNeedView } from '../../observation-needs/useObservationNeeds.js';
+import CaptureEvidenceCapture, {
   type IndexedEvidence,
-} from './ObjectiveEvidenceCapture.js';
+} from './CaptureEvidenceCapture.js';
 import ObservationTimelinePanel from '../../command/ObservationTimelinePanel.js';
-import css from './ObjectiveExecutionAside.module.css';
+import css from './CaptureExecutionAside.module.css';
 
 const STATUS_LABEL: Record<ObservationNeedStatus, string> = {
   open: 'Open',
@@ -164,7 +164,7 @@ export default function CaptureExecutionAside({
                 setSummary(projectId, objective.id, value);
               };
               return (
-                <ObjectiveEvidenceCapture
+                <CaptureEvidenceCapture
                   key={spec.id}
                   spec={spec}
                   items={items}
@@ -177,7 +177,7 @@ export default function CaptureExecutionAside({
             }
 
             return (
-              <ObjectiveEvidenceCapture
+              <CaptureEvidenceCapture
                 key={spec.id}
                 spec={spec}
                 items={items}

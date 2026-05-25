@@ -8,9 +8,9 @@
 import { ArrowLeft } from 'lucide-react';
 import { OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL } from '../types.js';
-import type { ObservationNeedStatus } from '../../objectives/fieldObjective.js';
-import type { ObservationNeedView } from '../../objectives/useFieldObjectives.js';
-import css from './ObjectiveFocus.module.css';
+import type { ObservationNeedStatus } from '../../observation-needs/observationNeed.js';
+import type { ObservationNeedView } from '../../observation-needs/useObservationNeeds.js';
+import css from './CaptureFocus.module.css';
 
 const STATUS_LABEL: Record<ObservationNeedStatus, string> = {
   open: 'Open',

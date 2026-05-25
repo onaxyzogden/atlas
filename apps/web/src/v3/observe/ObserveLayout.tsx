@@ -59,12 +59,12 @@ import SelectionFloater from './components/SelectionFloater.js';
 import SectorCompassOverlay from './components/overlays/SectorCompassOverlay.js';
 import ObserveObjectiveCompletePrompt from '../compass/ObserveObjectiveCompletePrompt.js';
 import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
-import { useObservationNeed } from '../objectives/useFieldObjectives.js';
-import { requiredLayersToModules } from '../objectives/fieldObjective.js';
-import ObjectiveMapFocus from './objective/ObjectiveMapFocus.js';
-import ObjectiveAnnotationAutoCapture from './objective/ObjectiveAnnotationAutoCapture.js';
-import ObjectiveBanner from './objective/ObjectiveBanner.js';
-import ObjectiveExecutionAside from './objective/ObjectiveExecutionAside.js';
+import { useObservationNeed } from '../observation-needs/useObservationNeeds.js';
+import { requiredLayersToModules } from '../observation-needs/observationNeed.js';
+import CaptureMapFocus from './capture/CaptureMapFocus.js';
+import CaptureAnnotationAutoCapture from './capture/CaptureAnnotationAutoCapture.js';
+import CaptureBanner from './capture/CaptureBanner.js';
+import CaptureExecutionAside from './capture/CaptureExecutionAside.js';
 import {
   isObserveModule,
   type ObserveModule,
@@ -348,13 +348,13 @@ export default function ObserveLayout() {
                 projectId={params.projectId ?? null}
               />
               {focusObjective && (
-                <ObjectiveMapFocus map={map} objective={focusObjective} />
+                <CaptureMapFocus map={map} objective={focusObjective} />
               )}
               {focusView && (
-                <ObjectiveAnnotationAutoCapture projectId={id} view={focusView} />
+                <CaptureAnnotationAutoCapture projectId={id} view={focusView} />
               )}
               {focusView && (
-                <ObjectiveBanner view={focusView} onBack={exitFocus} />
+                <CaptureBanner view={focusView} onBack={exitFocus} />
               )}
               <SelectionFloater projectId={id} />
               <PlanSelectionFloater />
@@ -366,7 +366,7 @@ export default function ObserveLayout() {
       }
       rightRail={
         focusView ? (
-          <ObjectiveExecutionAside
+          <CaptureExecutionAside
             projectId={id}
             view={focusView}
             onExit={exitFocus}

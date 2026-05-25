@@ -7,7 +7,7 @@
  * has an unsatisfied `annotation` evidence spec, it records one captured item
  * (linking the new annotation id) against that spec.
  *
- * The manual "Mark captured" button in `ObjectiveEvidenceCapture` remains as a
+ * The manual "Mark captured" button in `CaptureEvidenceCapture` remains as a
  * fallback for tools that don't route through `createWithDefaults`.
  *
  * Renders no DOM.
@@ -15,10 +15,10 @@
 
 import { useEffect, useRef } from 'react';
 import { usePlacementSignalStore } from '../../../store/placementSignalStore.js';
-import { useObservationNeedStore } from '../../../store/fieldObjectiveStore.js';
+import { useObservationNeedStore } from '../../../store/observationNeedStore.js';
 import { useMapToolStore } from '../components/measure/useMapToolStore.js';
-import { firstUnsatisfiedAnnotationSpec } from '../../objectives/fieldObjective.js';
-import type { ObservationNeedView } from '../../objectives/useFieldObjectives.js';
+import { firstUnsatisfiedAnnotationSpec } from '../../observation-needs/observationNeed.js';
+import type { ObservationNeedView } from '../../observation-needs/useObservationNeeds.js';
 
 interface Props {
   projectId: string;

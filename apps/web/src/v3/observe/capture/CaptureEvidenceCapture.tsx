@@ -1,8 +1,8 @@
 /**
- * ObjectiveEvidenceCapture — one evidence requirement's capture control inside
- * the Objective Execution aside. Presentational + local input state only; all
+ * CaptureEvidenceCapture — one evidence requirement's capture control inside
+ * the Capture Execution aside. Presentational + local input state only; all
  * persistence flows through the `onAdd` / `onRemove` handlers the aside wires to
- * `fieldObjectiveStore`. Capture UI varies by `spec.kind`:
+ * `observationNeedStore`. Capture UI varies by `spec.kind`:
  *   - photo        — file picker → data URL per file, thumbnail strip
  *   - confirmation — single toggle (Confirm ↔ Confirmed)
  *   - annotation   — manual "Mark captured" record (v1; auto-detection deferred)
@@ -15,8 +15,8 @@ import { Camera, Check, MapPin, Plus, X } from 'lucide-react';
 import type {
   CapturedEvidence,
   EvidenceSpec,
-} from '../../objectives/fieldObjective.js';
-import css from './ObjectiveExecutionAside.module.css';
+} from '../../observation-needs/observationNeed.js';
+import css from './CaptureExecutionAside.module.css';
 
 /** A captured item paired with its index in the full run.evidence array. */
 export interface IndexedEvidence {
@@ -39,7 +39,7 @@ const readFileAsDataUrl = (file: File): Promise<string> =>
     reader.readAsDataURL(file);
   });
 
-export default function ObjectiveEvidenceCapture({
+export default function CaptureEvidenceCapture({
   spec,
   items,
   onAdd,

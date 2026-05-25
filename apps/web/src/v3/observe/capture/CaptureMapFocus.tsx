@@ -9,8 +9,8 @@
 import { useEffect } from 'react';
 import { maplibregl } from '../../../lib/maplibre.js';
 import { OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
-import type { ObservationNeed } from '../../objectives/fieldObjective.js';
-import css from './ObjectiveFocus.module.css';
+import type { ObservationNeed } from '../../observation-needs/observationNeed.js';
+import css from './CaptureFocus.module.css';
 
 interface Props {
   map: maplibregl.Map;

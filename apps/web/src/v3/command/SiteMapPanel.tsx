@@ -9,8 +9,8 @@
 
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
-import ObjectiveMapMarkers from './ObjectiveMapMarkers.js';
-import type { ObservationNeedView } from '../objectives/useFieldObjectives.js';
+import CaptureMapMarkers from './CaptureMapMarkers.js';
+import type { ObservationNeedView } from '../observation-needs/useObservationNeeds.js';
 import css from './ObserveCommandCentrePage.module.css';
 
 /** Last-resort centre when a project carries neither boundary nor centre. */
@@ -38,7 +38,7 @@ export default function SiteMapPanel({
         <DiagnoseMap centroid={centroid} boundary={boundary}>
           {({ map }) =>
             views && views.length > 0 ? (
-              <ObjectiveMapMarkers
+              <CaptureMapMarkers
                 map={map}
                 views={views}
                 onSelect={onSelectObjective}

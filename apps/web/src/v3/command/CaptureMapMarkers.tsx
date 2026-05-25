@@ -1,5 +1,5 @@
 /**
- * ObjectiveMapMarkers — plots each ObservationNeed at its target centre on the
+ * CaptureMapMarkers — plots each ObservationNeed at its target centre on the
  * Command Centre site map as an HTML marker (one DOM node per need, same
  * lightweight approach as FieldFlagOverlay; need counts are small). The marker
  * is colour-coded by module and badged with its status; clicking it fires
@@ -10,8 +10,8 @@ import { useEffect, useRef } from 'react';
 import { maplibregl } from '../../lib/maplibre.js';
 import { OBSERVE_MODULE_DOT } from '../observe/moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL } from '../observe/types.js';
-import type { ObservationNeedStatus } from '../objectives/fieldObjective.js';
-import type { ObservationNeedView } from '../objectives/useFieldObjectives.js';
+import type { ObservationNeedStatus } from '../observation-needs/observationNeed.js';
+import type { ObservationNeedView } from '../observation-needs/useObservationNeeds.js';
 
 interface Props {
   map: maplibregl.Map;
@@ -89,7 +89,7 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
-export default function ObjectiveMapMarkers({ map, views, onSelect }: Props) {
+export default function CaptureMapMarkers({ map, views, onSelect }: Props) {
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const onSelectRef = useRef(onSelect);

@@ -16,7 +16,7 @@ import {
   type EvidenceKind,
   type ObservationNeedRun,
   type ObservationNeedStatus,
-} from '../v3/objectives/fieldObjective.js';
+} from '../v3/observation-needs/observationNeed.js';
 
 type RunsByNeed = Record<string, ObservationNeedRun>;
 
