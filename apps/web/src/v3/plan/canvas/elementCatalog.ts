@@ -9,6 +9,7 @@
  */
 
 import {
+  Armchair,
   Bird,
   Building2,
   Compass,
@@ -26,11 +27,15 @@ import {
   Recycle,
   RotateCw,
   Route,
+  Signpost,
   Sprout,
   Square,
   Tent,
   TreeDeciduous,
   Trees,
+  Umbrella,
+  Users,
+  Utensils,
   Waves,
   Wheat,
   Warehouse,
@@ -110,6 +115,14 @@ const COLORS = {
   amenity: '#c4a265',
   amenityFire: '#c87a3f',
   amenityCompost: '#6a5a4a',
+  // Social-node amenities (Rec #6 v2) — the "nets in the flow" the Scholar
+  // describes: benches, picnic tables, shaded seats, signage, and gathering
+  // pavilions placed at high-traffic Z1/Z2 path intersections. Warm earth
+  // tones to read as human-comfort points distinct from the fire-circle.
+  amenitySeat: '#caa46a',
+  amenityTable: '#bd9a5f',
+  amenitySign: '#9a7b4a',
+  amenityGather: '#b58a52',
   vegetationOak: '#52784a',
   vegetationPine: '#2f5e38',
   vegetationApple: '#7faa54',
@@ -213,6 +226,14 @@ export const DESIGN_CATEGORIES: DesignCategorySpec[] = [
       { kind: 'prayer-pavilion', category: 'amenity', label: 'Prayer Pavilion', icon: Home,          geometry: 'point',   drawMode: 'draw_point',   phase: 'buildings', color: COLORS.amenity },
       { kind: 'fire-circle',     category: 'amenity', label: 'Fire Circle',     icon: Flame,         geometry: 'point',   drawMode: 'draw_point',   phase: 'buildings', color: COLORS.amenityFire },
       { kind: 'compost',         category: 'amenity', label: 'Compost',         icon: Recycle,       geometry: 'polygon', drawMode: 'draw_polygon', phase: 'soil',      color: COLORS.amenityCompost },
+      // Social-node amenities (Rec #6 v2). Point kinds so SocialNodesCard's
+      // coverage detector (which counts Point social elements within
+      // COVERED_RADIUS_M of a Z1/Z2 path intersection) recognises them.
+      { kind: 'bench',              category: 'amenity', label: 'Bench',              icon: Armchair, geometry: 'point', drawMode: 'draw_point', phase: 'buildings', color: COLORS.amenitySeat },
+      { kind: 'picnic-table',       category: 'amenity', label: 'Picnic Table',       icon: Utensils, geometry: 'point', drawMode: 'draw_point', phase: 'buildings', color: COLORS.amenityTable },
+      { kind: 'shaded-seat',        category: 'amenity', label: 'Shaded Seat',        icon: Umbrella, geometry: 'point', drawMode: 'draw_point', phase: 'buildings', color: COLORS.amenitySeat },
+      { kind: 'signage-post',       category: 'amenity', label: 'Signage Post',       icon: Signpost, geometry: 'point', drawMode: 'draw_point', phase: 'buildings', color: COLORS.amenitySign },
+      { kind: 'gathering-pavilion', category: 'amenity', label: 'Gathering Pavilion', icon: Users,    geometry: 'point', drawMode: 'draw_point', phase: 'buildings', color: COLORS.amenityGather },
     ],
   },
   // 2026-05-21 — Habitat-feature unification (A2 ↔ B5 ↔ D0 wiring slice).

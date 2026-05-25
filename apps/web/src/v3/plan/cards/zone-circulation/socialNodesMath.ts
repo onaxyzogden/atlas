@@ -139,3 +139,110 @@ export function tierForDensity(
   if (d >= 0.33) return 'partial';
   return 'unserved';
 }
+
+// ---------------------------------------------------------------------------
+// computeOpportunities — Rec #6 v2 extraction.
+//
+// v1 carried this loop inline inside SocialNodesCard. v2 lifts it into the math
+// module so it is unit-testable (place/dismiss flows need a deterministic
+// opportunity set) and so a future ghost-overlay can share the same source of
+// truth. Behaviour is byte-for-byte identical to the v1 card loop, plus a new
+// `dismissed` filter: any opportunity whose stable id is in the dismissed set
+// is dropped from the result (the steward has waved it off this session).
+// ---------------------------------------------------------------------------
+
+/** A footpath candidate — a LineString's id + its raw [lng,lat] coordinates. */
+export interface SocialPath {
+  id: string;
+  coords: number[][];
+}
+
+/** A Z1/Z2 zone the rec treats as the high-traffic, inhabited band. */
+export interface SocialZone {
+  geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
+  permacultureZone: 1 | 2;
+}
+
+/** A placed social-element point (bench, prayer pavilion, …) that can cover. */
+export interface SocialElementPt {
+  id: string;
+  kind: string;
+  label: string;
+  pt: Pt;
+}
+
+export interface SocialOpportunity {
+  id: string;
+  pt: Pt;
+  zoneLevel: 1 | 2;
+  /** Nearest covering social element, if any within COVERED_RADIUS_M. */
+  cover: { kind: string; label: string; distanceM: number } | null;
+}
+
+/**
+ * Compute social-node opportunities: pairwise path-segment intersections that
+ * fall inside a Z1/Z2 zone, each tagged with its nearest covering social
+ * element (within COVERED_RADIUS_M) or `null` when uncovered. Opportunities in
+ * `dismissed` are filtered out. Sorted uncovered-first, then Z1 before Z2.
+ */
+export function computeOpportunities(
+  paths: SocialPath[],
+  zones: SocialZone[],
+  socials: SocialElementPt[],
+  dismissed?: ReadonlySet<string>,
+): SocialOpportunity[] {
+  if (paths.length < 2 || zones.length === 0) return [];
+  const seen = new Map<string, SocialOpportunity>();
+
+  for (let i = 0; i < paths.length; i++) {
+    const a = paths[i]!;
+    const csA = a.coords;
+    if (!csA || csA.length < 2) continue;
+    for (let j = i + 1; j < paths.length; j++) {
+      const b = paths[j]!;
+      const csB = b.coords;
+      if (!csB || csB.length < 2) continue;
+      for (let m = 0; m < csA.length - 1; m++) {
+        const p1: Pt = { lng: csA[m]![0]!, lat: csA[m]![1]! };
+        const p2: Pt = { lng: csA[m + 1]![0]!, lat: csA[m + 1]![1]! };
+        for (let n = 0; n < csB.length - 1; n++) {
+          const p3: Pt = { lng: csB[n]![0]!, lat: csB[n]![1]! };
+          const p4: Pt = { lng: csB[n + 1]![0]!, lat: csB[n + 1]![1]! };
+          const hit = segmentIntersect(p1, p2, p3, p4);
+          if (!hit) continue;
+          let zoneLevel: 1 | 2 | null = null;
+          for (const z of zones) {
+            if (pointInPolygon(hit, z.geometry)) {
+              zoneLevel = z.permacultureZone;
+              break;
+            }
+          }
+          if (zoneLevel === null) continue;
+          const id = intersectionId(a.id, b.id, hit);
+          if (seen.has(id)) continue;
+          if (dismissed?.has(id)) continue;
+          let cover: SocialOpportunity['cover'] = null;
+          let bestD = Infinity;
+          for (const s of socials) {
+            const d = distanceM(hit, s.pt);
+            if (d < bestD) {
+              bestD = d;
+              cover =
+                d <= COVERED_RADIUS_M
+                  ? { kind: s.kind, label: s.label, distanceM: d }
+                  : null;
+            }
+          }
+          seen.set(id, { id, pt: hit, zoneLevel, cover });
+        }
+      }
+    }
+  }
+
+  return Array.from(seen.values()).sort((a, b) => {
+    const aCov = a.cover ? 1 : 0;
+    const bCov = b.cover ? 1 : 0;
+    if (aCov !== bCov) return aCov - bCov;
+    return a.zoneLevel - b.zoneLevel;
+  });
+}
