@@ -44,6 +44,7 @@ import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 import StageGateOverlay from './StageGateOverlay.js';
+import ActReadyCue from './components/ActReadyCue.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -213,13 +214,16 @@ export default function ActLayout() {
         </div>
       }
       rightRail={
-        <ActChecklistAside
-          activeModule={validModule}
-          onSelectModule={handleSelectModule}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
+        <>
+          <ActReadyCue projectId={params.projectId ?? null} />
+          <ActChecklistAside
+            activeModule={validModule}
+            onSelectModule={handleSelectModule}
+            slideUpOpen={slideUpOpen && validModule !== null}
+            onOpenSlideUp={() => setSlideUpOpen(true)}
+            onCloseSlideUp={() => setSlideUpOpen(false)}
+          />
+        </>
       }
       bottomTray={moduleBar}
       overlay={

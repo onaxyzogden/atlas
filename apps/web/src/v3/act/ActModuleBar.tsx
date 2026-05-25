@@ -6,7 +6,7 @@
  */
 
 import { useParams } from '@tanstack/react-router';
-import { ModuleBar } from '../_shared/moduleNav/index.js';
+import { ModuleBar, ModuleProgressIndicator } from '../_shared/moduleNav/index.js';
 import type { ActModule } from './types.js';
 import { ACT_MODULES, ACT_MODULE_LABEL } from './types.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
@@ -53,6 +53,7 @@ export default function ActModuleBar({
       onCloseSlideUp={onCloseSlideUp}
       toolbarLabel="Act modules"
       columns={ACT_MODULES.length}
+      renderTileIndicator={(mod) => <ModuleProgressIndicator module={mod} />}
       onTileInteraction={(module, eventType) => record({ module, eventType })}
     />
   );

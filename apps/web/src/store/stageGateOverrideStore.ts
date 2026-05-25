@@ -15,7 +15,7 @@ import { persist } from 'zustand/middleware';
 
 /** Which stage transition the override applies to. The store is generic over
  *  the gate key, so both soft gates share one persisted record. */
-export type StageGate = 'observe-to-plan' | 'plan-to-act';
+export type StageGate = 'observe-to-plan' | 'plan-to-act' | 'act-to-report';
 
 export interface StageGateOverrideState {
   /** byProject[projectId][gate] === true → overlay dismissed for that gate. */

@@ -25,6 +25,7 @@ import { downloadProjectReport } from "../data/generateProjectReport.js";
 import { formatLocationArea } from "../data/parcelIntegrity.js";
 import type { ProjectScores } from "../types.js";
 import StageShell from "../_shell/StageShell.js";
+import ReportStageGateOverlay from "./ReportStageGateOverlay.js";
 import css from "./ReportPage.module.css";
 
 const SCORE_KEYS: Array<{ key: keyof ProjectScores; label: string }> = [
@@ -121,6 +122,7 @@ export default function ReportPage() {
 
   return (
     <StageShell canvasLabel="Report canvas" canvas={
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
     <div className={css.page}>
       <PageHeader
         eyebrow="Report"
@@ -280,6 +282,8 @@ export default function ReportPage() {
           </footer>
         </article>
       )}
+    </div>
+    <ReportStageGateOverlay projectId={params.projectId ?? null} />
     </div>
     } />
   );
