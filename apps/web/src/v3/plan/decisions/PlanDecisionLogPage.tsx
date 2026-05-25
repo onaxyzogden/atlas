@@ -11,7 +11,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Link, useParams } from '@tanstack/react-router';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { OBSERVE_MODULE_LABEL } from '../../observe/types.js';
 import { PLAN_MODULES, PLAN_MODULE_LABEL } from '../types.js';
 import {
@@ -20,6 +20,9 @@ import {
 } from '../impact/planImpactFlag.js';
 import { usePlanDecisions } from './usePlanDecisions.js';
 import { usePlanDecisionStore } from '../../../store/planDecisionStore.js';
+import { usePlanWorkPackageStore } from '../../../store/planWorkPackageStore.js';
+import { useWorkPackageForDecision } from '../work-packages/usePlanWorkPackages.js';
+import { buildWorkPackageFromDecision } from '../work-packages/planWorkPackage.js';
 import {
   emptyPlanDecision,
   PLAN_DECISION_STATUSES,
@@ -199,6 +202,19 @@ interface RecordedCardProps extends DecisionCardProps {
 
 function RecordedCard({ projectId, decision, onSupersede }: RecordedCardProps) {
   const decidedAt = formatStamp(decision.decidedAt ?? decision.updatedAt);
+  const navigate = useNavigate();
+  const createPackage = usePlanWorkPackageStore((s) => s.create);
+  const existingPackage = useWorkPackageForDecision(projectId, decision.id);
+  const canHandoff =
+    decision.status === 'accepted' && decision.verb === 'create-act-task';
+
+  const handleGenerate = () => {
+    createPackage(projectId, buildWorkPackageFromDecision(decision));
+    navigate({
+      to: '/v3/project/$projectId/plan/work-packages',
+      params: { projectId },
+    });
+  };
 
   return (
     <li className={css.card} data-status={decision.status} id={`decision-${decision.id}`}>
@@ -249,15 +265,36 @@ function RecordedCard({ projectId, decision, onSupersede }: RecordedCardProps) {
             {decision.status === 'accepted' ? 'Accepted' : 'Updated'} {decidedAt}
           </span>
         ) : null}
-        {decision.status === 'accepted' ? (
-          <button
-            type="button"
-            className={css.supersedeBtn}
-            onClick={() => onSupersede(decision.id)}
-          >
-            Supersede →
-          </button>
-        ) : null}
+        <div className={css.footActions}>
+          {canHandoff ? (
+            existingPackage ? (
+              <Link
+                to="/v3/project/$projectId/plan/work-packages"
+                params={{ projectId }}
+                className={css.supersedeBtn}
+              >
+                Work package created ✓ → view
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className={css.supersedeBtn}
+                onClick={handleGenerate}
+              >
+                Generate work package →
+              </button>
+            )
+          ) : null}
+          {decision.status === 'accepted' ? (
+            <button
+              type="button"
+              className={css.supersedeBtn}
+              onClick={() => onSupersede(decision.id)}
+            >
+              Supersede →
+            </button>
+          ) : null}
+        </div>
       </div>
     </li>
   );

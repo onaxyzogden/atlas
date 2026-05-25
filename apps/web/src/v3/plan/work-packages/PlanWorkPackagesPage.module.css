@@ -129,49 +129,25 @@
   border-left-color: #d4af5f;
 }
 
-.card[data-status='accepted'] {
+.card[data-status='queued'] {
+  border-left-color: #5b8fc0;
+}
+
+.card[data-status='in-progress'] {
   border-left-color: #4b9e6a;
 }
 
-.card[data-status='superseded'] {
+.card[data-status='done'] {
   border-left-color: var(--color-border);
   opacity: 0.7;
 }
 
-.card[data-status='rejected'] {
+.card[data-status='cancelled'] {
   border-left-color: #c0584b;
   opacity: 0.8;
 }
 
 /* ── Draft (editable) ─────────────────────────────────────────────── */
-
-.verbRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.verbBtn {
-  padding: 5px 10px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface, transparent);
-  color: var(--color-text);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.verbBtn:hover {
-  border-color: var(--color-brand, #d4af5f);
-  color: var(--color-brand, #d4af5f);
-}
-
-.verbBtn[data-selected='true'] {
-  border-color: var(--color-brand, #d4af5f);
-  background: rgba(212, 175, 95, 0.16);
-  color: var(--color-brand, #d4af5f);
-}
 
 .headline {
   width: 100%;
@@ -250,7 +226,6 @@
 }
 
 .acceptBtn,
-.rejectBtn,
 .deleteBtn {
   padding: 6px 12px;
   border-radius: 6px;
@@ -270,11 +245,6 @@
 
 .acceptBtn:hover {
   background: rgba(75, 158, 106, 0.24);
-}
-
-.rejectBtn:hover {
-  border-color: #c0584b;
-  color: #c0584b;
 }
 
 .deleteBtn {
@@ -314,13 +284,19 @@
   color: var(--color-text-muted);
 }
 
-.statusBadge[data-status='accepted'] {
+.statusBadge[data-status='queued'] {
+  background: rgba(91, 143, 192, 0.16);
+  color: #4a7aa8;
+  border-color: transparent;
+}
+
+.statusBadge[data-status='in-progress'] {
   background: rgba(75, 158, 106, 0.16);
   color: #3c8a59;
   border-color: transparent;
 }
 
-.statusBadge[data-status='rejected'] {
+.statusBadge[data-status='cancelled'] {
   background: rgba(192, 88, 75, 0.16);
   color: #c0584b;
   border-color: transparent;
@@ -352,15 +328,10 @@
   color: var(--color-text-muted);
 }
 
-/* ── Source chips ─────────────────────────────────────────────────── */
-
-.sourceChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
+/* ── Source / decision chip ───────────────────────────────────────── */
 
 .sourceChip {
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
@@ -390,28 +361,4 @@
 .stamp {
   font-size: 12px;
   color: var(--color-text-muted);
-}
-
-.footActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
-}
-
-.supersedeBtn {
-  padding: 4px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.supersedeBtn:hover {
-  border-color: var(--color-brand, #d4af5f);
-  color: var(--color-brand, #d4af5f);
 }

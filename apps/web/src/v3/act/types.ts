@@ -79,8 +79,9 @@ export const ACT_MODULE_FULL_LABEL: Record<ActModule, string> = {
 /** Each module maps to one or more act card section IDs. */
 export const MODULE_CARDS: Record<ActModule, Array<{ label: string; sectionId: string }>> = {
   tracker: [
-    { label: 'Plan tracker', sectionId: 'act-plan-tracker' },
-    { label: 'Resourcing',   sectionId: 'act-resourcing' },
+    { label: 'Plan tracker',      sectionId: 'act-plan-tracker' },
+    { label: 'Resourcing',        sectionId: 'act-resourcing' },
+    { label: 'Incoming packages', sectionId: 'act-incoming-packages' },
   ],
   build: [
     { label: 'Build Gantt',       sectionId: 'act-build-gantt' },

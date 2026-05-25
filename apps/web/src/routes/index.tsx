@@ -55,6 +55,7 @@ import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
 import PlanReviewsPage from '../v3/plan/impact/PlanReviewsPage.js';
 import PlanDecisionLogPage from '../v3/plan/decisions/PlanDecisionLogPage.js';
+import PlanWorkPackagesPage from '../v3/plan/work-packages/PlanWorkPackagesPage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
@@ -310,6 +311,13 @@ const v3PlanDecisionLogRoute = createRoute({
   path: 'plan/decisions',
   component: PlanDecisionLogPage,
 });
+// Plan Work Packages — field work handed from accepted decisions to Act
+// (Phase 3). Static path resolves before the `plan/$module` param route.
+const v3PlanWorkPackagesRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/work-packages',
+  component: PlanWorkPackagesPage,
+});
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/$module',
@@ -537,6 +545,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanRoute,
       v3PlanReviewRoute,
       v3PlanDecisionLogRoute,
+      v3PlanWorkPackagesRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActRoute,
