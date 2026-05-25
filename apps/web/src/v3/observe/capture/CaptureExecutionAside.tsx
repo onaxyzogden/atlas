@@ -13,15 +13,21 @@
  * intervention is decided downstream by Plan.
  */
 
-import { Check, CheckCircle2 } from 'lucide-react';
+import { useState } from 'react';
+import { Check, CheckCircle2, Plus } from 'lucide-react';
 import { useObservationNeedStore } from '../../../store/observationNeedStore.js';
 import { OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
-import { OBSERVE_MODULE_LABEL } from '../types.js';
-import type { ObservationNeedStatus } from '../../observation-needs/observationNeed.js';
+import { OBSERVE_MODULE_LABEL, type ObserveModule } from '../types.js';
+import {
+  buildRaisedNeed,
+  type ObservationNeedStatus,
+  type RaiseNeedInput,
+} from '../../observation-needs/observationNeed.js';
 import type { ObservationNeedView } from '../../observation-needs/useObservationNeeds.js';
 import CaptureEvidenceCapture, {
   type IndexedEvidence,
 } from './CaptureEvidenceCapture.js';
+import RaiseNeedForm from './RaiseNeedForm.js';
 import ObservationTimelinePanel from '../../command/ObservationTimelinePanel.js';
 import css from './CaptureExecutionAside.module.css';
 
@@ -57,6 +63,10 @@ export default function CaptureExecutionAside({
   const removeEvidence = useObservationNeedStore((s) => s.removeEvidence);
   const setSummary = useObservationNeedStore((s) => s.setSummary);
   const setStatus = useObservationNeedStore((s) => s.setStatus);
+  const createNeed = useObservationNeedStore((s) => s.createNeed);
+
+  const [raising, setRaising] = useState(false);
+  const [raisedTitle, setRaisedTitle] = useState<string | null>(null);
 
   const checkedSet = new Set(run.checkedChecklist);
 
@@ -65,6 +75,23 @@ export default function CaptureExecutionAside({
   const recordObservation = () => {
     setStatus(projectId, objective.id, 'recorded');
     onExit();
+  };
+
+  // Raise a follow-up need off this observation. The new need inherits this
+  // need's module + target and back-links via `sourceObservationId`; we stay in
+  // place and show a confirmation rather than navigating away.
+  const raiseFollowUp = (input: RaiseNeedInput & { module: ObserveModule }) => {
+    const need = buildRaisedNeed(input, {
+      id: crypto.randomUUID(),
+      projectId,
+      module: objective.module,
+      target: objective.target,
+      origin: 'follow-up',
+      sourceObservationId: objective.id,
+    });
+    createNeed(projectId, need);
+    setRaising(false);
+    setRaisedTitle(need.title);
   };
 
   return (
@@ -205,6 +232,34 @@ export default function CaptureExecutionAside({
           heading="This need's activity"
           emptyNote="No observations recorded for this need yet."
         />
+      </section>
+
+      <section className={css.section} aria-label="Raise follow-up need">
+        {raising ? (
+          <RaiseNeedForm
+            defaultModule={objective.module}
+            onSubmit={raiseFollowUp}
+            onCancel={() => setRaising(false)}
+          />
+        ) : (
+          <>
+            <button
+              type="button"
+              className={css.actionBtn}
+              onClick={() => {
+                setRaisedTitle(null);
+                setRaising(true);
+              }}
+            >
+              <Plus size={14} strokeWidth={2} /> Raise follow-up need
+            </button>
+            {raisedTitle && (
+              <p className={css.savedHint}>
+                Follow-up need raised: “{raisedTitle}”
+              </p>
+            )}
+          </>
+        )}
       </section>
 
       <footer className={css.footer}>
