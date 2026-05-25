@@ -9,7 +9,7 @@
     "postbuild": "pnpm prerender:showcase",
     "prerender:showcase": "tsx ../../scripts/prerender-showcase.ts",
     "preview": "vite preview",
-    "lint": "tsc --noEmit",
+    "lint": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
     "typecheck": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
