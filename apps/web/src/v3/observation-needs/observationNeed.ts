@@ -264,6 +264,70 @@ export function requiredLayersToModules(
   return [...out];
 }
 
+/** The fields a steward fills in the "Raise observation need" form. */
+export interface RaiseNeedInput {
+  title: string;
+  reason: string;
+  priority: ObservationNeedPriority;
+  /** Optional re-observation condition (not a schedule). */
+  trigger?: string;
+  planImpact?: PlanImpact;
+}
+
+/** Host-supplied context for turning `RaiseNeedInput` into a full need. */
+export interface RaiseNeedContext {
+  id: string;
+  projectId: string;
+  module: ObserveModule;
+  target: ObservationNeedTarget;
+  /** Generated needs are never `seed`. */
+  origin: Exclude<ObservationNeedOrigin, 'seed'>;
+  /** The record this need follows from (follow-up origin only). */
+  sourceObservationId?: string;
+}
+
+/**
+ * Build a fresh `ObservationNeed` from steward input. The generated need opens
+ * with a single required "Summary note" (no checklist, tools, or layers): that
+ * note both records the evidence and mirrors into `run.summary`, so one textarea
+ * satisfies both gates while keeping the need from being instantly recordable.
+ *
+ * Pure — the caller owns id generation and persistence — so it is unit-testable.
+ */
+export function buildRaisedNeed(
+  input: RaiseNeedInput,
+  ctx: RaiseNeedContext,
+): ObservationNeed {
+  const trigger = input.trigger?.trim();
+  return {
+    id: ctx.id,
+    projectId: ctx.projectId,
+    stage: 'observe',
+    module: ctx.module,
+    title: input.title.trim(),
+    target: ctx.target,
+    requiredTools: [],
+    requiredLayers: [],
+    checklist: [],
+    evidence: [
+      { id: 'summary', kind: 'note', label: 'Summary note', required: true },
+    ],
+    recordingRule: {
+      requireAllRequiredChecklist: false,
+      requireAllRequiredEvidence: true,
+      requireSummary: true,
+    },
+    priority: input.priority,
+    origin: ctx.origin,
+    reason: input.reason.trim(),
+    ...(ctx.sourceObservationId
+      ? { sourceObservationId: ctx.sourceObservationId }
+      : {}),
+    ...(trigger ? { trigger } : {}),
+    ...(input.planImpact ? { planImpact: input.planImpact } : {}),
+  };
+}
+
 /**
  * Find the first `annotation`-kind evidence spec on a need that is not yet
  * satisfied by its run — i.e. whose captured count is below its `min`

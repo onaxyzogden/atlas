@@ -14,6 +14,7 @@ import {
   emptyObservationNeedRun,
   type CapturedEvidence,
   type EvidenceKind,
+  type ObservationNeed,
   type ObservationNeedRun,
   type ObservationNeedStatus,
 } from '../v3/observation-needs/observationNeed.js';
@@ -67,9 +68,17 @@ portLegacyPersist();
 
 interface ObservationNeedState {
   byProject: Record<string, RunsByNeed>;
+  /**
+   * Generatively-raised needs (follow-up / manual), per project. The seed
+   * catalog is static; needs a steward raises at runtime live here and are
+   * merged into the catalog by `useObservationNeeds`.
+   */
+  createdByProject: Record<string, ObservationNeed[]>;
 
   /** Read a run, falling back to a fresh empty run (never undefined). */
   getRun: (projectId: string, needId: string) => ObservationNeedRun;
+  /** Persist a steward-raised need (follow-up or manual origin). */
+  createNeed: (projectId: string, need: ObservationNeed) => void;
   /** Toggle a checklist item; promotes status to in-progress on first touch. */
   toggleCheck: (projectId: string, needId: string, itemId: string) => void;
   /** Append a captured evidence item. */
@@ -117,9 +126,18 @@ export const useObservationNeedStore = create<ObservationNeedState>()(
 
       return {
         byProject: {},
+        createdByProject: {},
 
         getRun: (projectId, needId) =>
           get().byProject[projectId]?.[needId] ?? emptyObservationNeedRun(),
+
+        createNeed: (projectId, need) =>
+          set((s) => ({
+            createdByProject: {
+              ...s.createdByProject,
+              [projectId]: [...(s.createdByProject[projectId] ?? []), need],
+            },
+          })),
 
         toggleCheck: (projectId, needId, itemId) =>
           patch(projectId, needId, (run) => {
@@ -167,8 +185,19 @@ export const useObservationNeedStore = create<ObservationNeedState>()(
     },
     {
       name: PERSIST_KEY,
-      version: 2,
-      partialize: (state) => ({ byProject: state.byProject }),
+      version: 3,
+      // v2→v3 adds the `createdByProject` slice; older blobs lack it.
+      migrate: (persisted, fromVersion) => {
+        const state = (persisted ?? {}) as Partial<ObservationNeedState>;
+        if (fromVersion < 3 && !state.createdByProject) {
+          state.createdByProject = {};
+        }
+        return state as ObservationNeedState;
+      },
+      partialize: (state) => ({
+        byProject: state.byProject,
+        createdByProject: state.createdByProject,
+      }),
     },
   ),
 );

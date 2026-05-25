@@ -4,8 +4,11 @@ import {
   emptyObservationNeedRun,
   requiredLayersToModules,
   firstUnsatisfiedAnnotationSpec,
+  buildRaisedNeed,
   type ObservationNeed,
   type ObservationNeedRun,
+  type RaiseNeedInput,
+  type RaiseNeedContext,
 } from '../observationNeed.js';
 import {
   SEED_OBSERVATION_NEEDS,
@@ -230,6 +233,83 @@ describe('firstUnsatisfiedAnnotationSpec', () => {
 
   it('returns null for a need with no annotation specs', () => {
     expect(firstUnsatisfiedAnnotationSpec(fixture(), emptyObservationNeedRun())).toBeNull();
+  });
+});
+
+describe('buildRaisedNeed', () => {
+  const input: RaiseNeedInput = {
+    title: '  Recheck eroded bank  ',
+    reason: '  Bank slumped after the storm  ',
+    priority: 'high',
+  };
+  const ctx: RaiseNeedContext = {
+    id: 'need-123',
+    projectId: 'mtc',
+    module: 'topography',
+    target: { center: [-78.2, 44.5] },
+    origin: 'follow-up',
+    sourceObservationId: 'obj-parent',
+  };
+
+  it('carries origin, source link, and trimmed reason for a follow-up', () => {
+    const need = buildRaisedNeed(input, ctx);
+    expect(need.id).toBe('need-123');
+    expect(need.origin).toBe('follow-up');
+    expect(need.sourceObservationId).toBe('obj-parent');
+    expect(need.reason).toBe('Bank slumped after the storm');
+    expect(need.title).toBe('Recheck eroded bank');
+    expect(need.priority).toBe('high');
+    expect(need.stage).toBe('observe');
+    expect(need.module).toBe('topography');
+  });
+
+  it('omits the source link for a manual need', () => {
+    const need = buildRaisedNeed(input, {
+      ...ctx,
+      origin: 'manual',
+      sourceObservationId: undefined,
+    });
+    expect(need.origin).toBe('manual');
+    expect(need.sourceObservationId).toBeUndefined();
+  });
+
+  it('opens with one required summary note and is not instantly recordable', () => {
+    const need = buildRaisedNeed(input, ctx);
+    expect(need.checklist).toHaveLength(0);
+    expect(need.requiredTools).toHaveLength(0);
+    expect(need.requiredLayers).toHaveLength(0);
+    expect(need.evidence).toEqual([
+      { id: 'summary', kind: 'note', label: 'Summary note', required: true },
+    ]);
+    const e = evaluateObservationRecorded(need, emptyObservationNeedRun());
+    expect(e.canRecord).toBe(false);
+  });
+
+  it('becomes recordable once the summary note is captured', () => {
+    const need = buildRaisedNeed(input, ctx);
+    const e = evaluateObservationRecorded(
+      need,
+      run({
+        evidence: [
+          { specId: 'summary', kind: 'note', value: 'Logged.', capturedAt: 't' },
+        ],
+        summary: 'Logged.',
+      }),
+    );
+    expect(e.canRecord).toBe(true);
+  });
+
+  it('passes through optional trigger and plan impact, dropping blanks', () => {
+    const withExtras = buildRaisedNeed(
+      { ...input, trigger: '  after next rainfall  ', planImpact: 'likely' },
+      ctx,
+    );
+    expect(withExtras.trigger).toBe('after next rainfall');
+    expect(withExtras.planImpact).toBe('likely');
+
+    const blankTrigger = buildRaisedNeed({ ...input, trigger: '   ' }, ctx);
+    expect(blankTrigger.trigger).toBeUndefined();
+    expect(blankTrigger.planImpact).toBeUndefined();
   });
 });
 

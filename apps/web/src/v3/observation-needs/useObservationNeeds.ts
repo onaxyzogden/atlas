@@ -25,8 +25,12 @@ export interface ObservationNeedView {
 /** All needs for a project, each with its live run + recording eval. */
 export function useObservationNeeds(projectId: string): ObservationNeedView[] {
   const runs = useObservationNeedStore((s) => s.byProject[projectId]);
+  const created = useObservationNeedStore((s) => s.createdByProject[projectId]);
   return useMemo(() => {
-    const catalog = seedObservationNeedsForProject(projectId);
+    const catalog = [
+      ...seedObservationNeedsForProject(projectId),
+      ...(created ?? []),
+    ];
     return catalog.map((objective) => {
       const run = runs?.[objective.id] ?? emptyObservationNeedRun();
       return {
@@ -35,7 +39,7 @@ export function useObservationNeeds(projectId: string): ObservationNeedView[] {
         evaluation: evaluateObservationRecorded(objective, run),
       };
     });
-  }, [projectId, runs]);
+  }, [projectId, runs, created]);
 }
 
 /** One need view by id, or null when the id is unknown. */
