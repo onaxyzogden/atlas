@@ -1216,3 +1216,13 @@
     min-height: 420px;
   }
 }
+
+/* Short viewports: the tray's auto grid track grows with its content and can
+   squeeze the 1fr body to zero. Cap the tray and let its carousel scroll so the
+   map/body always keeps a usable floor. */
+@media (max-height: 640px) {
+  .bottomTray {
+    max-height: 42vh;
+    overflow-y: auto;
+  }
+}
