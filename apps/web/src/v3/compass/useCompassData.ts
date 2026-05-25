@@ -22,6 +22,7 @@ import {
   resolveNodeStates,
   type ObjectiveProgress,
 } from './compassGating.js';
+import { progressFromChecks } from '../_shared/objectiveWorkspace/objectiveStatus.js';
 import type { ObjectiveView, CompassData } from './compassTypes.js';
 
 // Re-export the shared view-model shapes so existing importers keep working.
@@ -69,9 +70,6 @@ export function useObjectiveProgress(
   projectId: string,
   module: ObserveModule | null,
 ): ObjectiveProgress | null {
-  const evidence = useObserveCompassStore((s) =>
-    module ? s.byProject[projectId]?.[module] : undefined,
-  );
   const checks = useObserveHowChecksStore((s) =>
     module ? s.byProject[projectId]?.[module] : undefined,
   );
@@ -79,8 +77,6 @@ export function useObjectiveProgress(
     if (!module) return null;
     const obj = OBSERVE_COMPASS_OBJECTIVES.find((o) => o.id === module);
     if (!obj) return null;
-    const raw = evidence ?? seedFor(module);
-    const checked = checks ?? EMPTY_CHECKS;
-    return objectiveProgress(obj.nodes.length, raw, checked);
-  }, [module, evidence, checks]);
+    return progressFromChecks(checks ?? EMPTY_CHECKS, obj.nodes.length);
+  }, [module, checks]);
 }

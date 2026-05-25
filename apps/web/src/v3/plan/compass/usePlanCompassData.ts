@@ -19,6 +19,7 @@ import {
   resolveNodeStates,
   type ObjectiveProgress,
 } from '../../compass/compassGating.js';
+import { progressFromChecks } from '../../_shared/objectiveWorkspace/objectiveStatus.js';
 import type { ObjectiveView, CompassData } from '../../compass/compassTypes.js';
 
 const EMPTY_CHECKS: readonly number[] = [];
@@ -59,9 +60,6 @@ export function usePlanObjectiveProgress(
   projectId: string,
   module: PlanModule | null,
 ): ObjectiveProgress | null {
-  const evidence = usePlanCompassStore((s) =>
-    module ? s.byProject[projectId]?.[module] : undefined,
-  );
   const checks = usePlanHowChecksStore((s) =>
     module ? s.byProject[projectId]?.[module] : undefined,
   );
@@ -69,8 +67,6 @@ export function usePlanObjectiveProgress(
     if (!module) return null;
     const obj = PLAN_COMPASS_OBJECTIVES.find((o) => o.id === module);
     if (!obj) return null;
-    const raw = evidence ?? planSeedFor(module);
-    const checked = checks ?? EMPTY_CHECKS;
-    return objectiveProgress(obj.nodes.length, raw, checked);
-  }, [module, evidence, checks]);
+    return progressFromChecks(checks ?? EMPTY_CHECKS, obj.nodes.length);
+  }, [module, checks]);
 }
