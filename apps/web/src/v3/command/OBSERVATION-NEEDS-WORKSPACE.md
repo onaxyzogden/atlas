@@ -7,8 +7,7 @@ This document is the live reference for the Observe Command Centre's
 **observation-needs workspace** — the reframe away from an *objective-driven,
 assignment-flavoured workspace*. The mechanical refactor (rename +
 strip-assignment + lifecycle-collapse + `?need=` deep-link + folder moves) has
-**landed**; the one remaining follow-on is the generative "Raise observation
-need" action (§7).
+**landed**, and so has the generative "Raise observation need" action (§5b/§7).
 
 ---
 
@@ -109,11 +108,13 @@ not only copy.
 | --- | --- | --- |
 | Type + helpers | [v3/observation-needs/observationNeed.ts](../observation-needs/observationNeed.ts) | `ObservationNeed`, `ObservationNeedStatus`, `ObservationNeedRun`, `RecordingRule`, `RecordingEvaluation`, `evaluateObservationRecorded`, `emptyObservationNeedRun` |
 | Seed catalog | [v3/observation-needs/seedObservationNeeds.ts](../observation-needs/seedObservationNeeds.ts) | `SEED_OBSERVATION_NEEDS`, `seedObservationNeedsForProject` |
-| Run store | [store/observationNeedStore.ts](../../store/observationNeedStore.ts) | `useObservationNeedStore` (persist key `ogden-observation-needs` v2) |
-| Join hook | [v3/observation-needs/useObservationNeeds.ts](../observation-needs/useObservationNeeds.ts) | `useObservationNeeds`, `useObservationNeed`, `ObservationNeedView` |
-| Bottom panel | [command/OpenObservationNeedsPanel.tsx](OpenObservationNeedsPanel.tsx) | "Open Observation Needs" — reason line + trigger chip, no assignee/due |
-| Command page | [command/ObserveCommandCentrePage.tsx](ObserveCommandCentrePage.tsx) | launches Capture Workspace via `?need=` |
-| Capture pieces | `v3/observe/capture/Capture*.tsx` + `command/CaptureMapMarkers.tsx` | `CaptureExecutionAside`, `CaptureBanner`, `CaptureMapFocus`, `CaptureEvidenceCapture`, `CaptureAnnotationAutoCapture`, `CaptureMapMarkers` |
+| Run store | [store/observationNeedStore.ts](../../store/observationNeedStore.ts) | `useObservationNeedStore` (persist key `ogden-observation-needs` v3; run state `byProject` + raised needs `createdByProject`; `createNeed` action) |
+| Join hook | [v3/observation-needs/useObservationNeeds.ts](../observation-needs/useObservationNeeds.ts) | `useObservationNeeds`, `useObservationNeed`, `ObservationNeedView` — merges seed catalog + `createdByProject` |
+| Raise-need builder | [v3/observation-needs/observationNeed.ts](../observation-needs/observationNeed.ts) | `buildRaisedNeed`, `RaiseNeedInput`, `RaiseNeedContext` |
+| Raise-need form | [v3/observe/capture/RaiseNeedForm.tsx](../observe/capture/RaiseNeedForm.tsx) | shared form (title/reason/priority/trigger/planImpact + optional module picker) |
+| Bottom panel | [command/OpenObservationNeedsPanel.tsx](OpenObservationNeedsPanel.tsx) | "Open Observation Needs" — reason line + trigger chip + origin badge, no assignee/due; "+ Raise observation need" (manual origin) |
+| Command page | [command/ObserveCommandCentrePage.tsx](ObserveCommandCentrePage.tsx) | launches Capture Workspace via `?need=`; threads `projectId` to the panel |
+| Capture pieces | `v3/observe/capture/Capture*.tsx` + `command/CaptureMapMarkers.tsx` | `CaptureExecutionAside` (hosts "Raise follow-up need"), `CaptureBanner`, `CaptureMapFocus`, `CaptureEvidenceCapture`, `CaptureAnnotationAutoCapture`, `CaptureMapMarkers` |
 | Deep link | `?need=<id>` | read loosely in `ObserveLayout` (route has no `validateSearch`) |
 
 ---
@@ -194,8 +195,8 @@ evidence specs. Each seed now carries `origin: 'seed'` + a `reason`; the
 slope-12A seed carries a `trigger` ("Recheck after next rainfall") in place of
 the old `dueAt`.
 
-### b. Generative — a recorded observation can raise a follow-up need
-Extend the `ObservationNeed` entity:
+### b. Generative — raise a need at runtime (LIVE)
+The `ObservationNeed` entity carries the generative fields:
 
 ```ts
 origin: 'seed' | 'follow-up' | 'manual';
@@ -204,10 +205,24 @@ reason: string;                 // why this need exists (shown on the card)
 trigger?: string;               // optional re-observation condition (replaces dueAt)
 ```
 
-From the Capture Workspace (or a recorded observation), the steward — or the system —
-can **raise a follow-up observation need**. Example: a record showing low water level +
-algae + trampling raises *"Water point condition needs follow-up"* with `reason` set and
-`sourceObservationId` linking back.
+`buildRaisedNeed(input, ctx)` (pure, in `observationNeed.ts`) turns the shared
+`RaiseNeedForm` input into a full need: empty checklist/tools/layers and a single
+required **"Summary note"** (a note doubles as `run.summary`, so one textarea satisfies
+both gates while keeping the fresh need un-recordable until written). The need is
+persisted via the store's `createNeed(projectId, need)` into `createdByProject`, and
+`useObservationNeeds` merges it into the catalog. Two entry points:
+
+- **Follow-up** — `CaptureExecutionAside` shows "Raise follow-up need". The new need
+  inherits the parent's module + target, sets `origin: 'follow-up'`, and back-links via
+  `sourceObservationId`. Example: a record showing low water level + algae + trampling
+  raises *"Water point condition needs follow-up"*. The workspace stays put and shows a
+  confirmation.
+- **Manual** — `OpenObservationNeedsPanel` shows "+ Raise observation need" with a module
+  picker; the target defaults to the mean of the existing needs' centres; `origin:
+  'manual'`, no `sourceObservationId`.
+
+Cards carry an **origin badge** (Seed / Follow-up / Manual) so raised needs are
+distinguishable from the seed catalog.
 
 ### c. Candidate auto-source (note, NOT built in the first refactor)
 Stale-data / coverage gaps from
@@ -236,7 +251,7 @@ not a trigger for work inside Observe.
 
 ---
 
-## 7. What landed, and the one remaining follow-on
+## 7. What landed
 
 The mechanical refactor shipped in three green commits on
 `feat/atlas-permaculture`:
@@ -251,22 +266,22 @@ The mechanical refactor shipped in three green commits on
 - **Deep link** is `?need=<id>` end to end (producer
   `ObserveCommandCentrePage`, consumer `ObserveLayout`).
 - **Persist-key migration.** `observationNeedStore` persists under
-  `ogden-observation-needs` at `version: 2`. Because the key itself changed, a
-  module-load `portLegacyPersist()` reads the old `ogden-field-objectives` blob,
-  remaps legacy statuses (`not-started`→`open`, `evidence-submitted`→`in-progress`,
+  `ogden-observation-needs`. Because the key itself changed, a module-load
+  `portLegacyPersist()` reads the old `ogden-field-objectives` blob, remaps legacy
+  statuses (`not-started`→`open`, `evidence-submitted`→`in-progress`,
   `complete`→`recorded`, `needs-review`→`in-progress`) and writes the new key, so
   in-progress field state survives the rename.
-
-### Remaining follow-on (deferred)
-**Generative path (was §7 step 5)** — a "Raise observation need" action from the
-Capture Workspace / a recorded observation that writes a `follow-up` or `manual`
-need with `reason` set and `sourceObservationId` linking back. The entity already
-carries the fields (§5b); only the action UI is unbuilt.
+- **Generative path (§5b).** The store gained a `createdByProject` slice + a
+  `createNeed` action (persist bumped to `version: 3`; `migrate` defaults the slice
+  to `{}` for older blobs). `buildRaisedNeed` + the shared `RaiseNeedForm` back the
+  two entry points: a follow-up CTA in the Capture Workspace and a manual
+  "+ Raise observation need" button in the Command Centre. Cards carry an origin
+  badge.
 
 ---
 
 ## Out of scope
-- The generative "Raise observation need" action above (deferred follow-on).
 - Auto-generated needs from stale-data / coverage gaps (§5c).
+- Editing / deleting raised needs (create-only for now).
 - Backend persistence of evidence (still client-only data URLs).
 - Layer actuation from a need's `requiredLayers` (still data-only).

@@ -91,10 +91,14 @@ order it should land in v3.1.
   `open → in-progress → recorded` (+`resolved`), and moved the deep-link to
   `?need=`. Live reference:
   [OBSERVATION-NEEDS-WORKSPACE.md](apps/web/src/v3/command/OBSERVATION-NEEDS-WORKSPACE.md).
-- **Deferred follow-on** — generative "Raise observation need" action (from the
-  Capture Workspace / a recorded observation) that writes a `follow-up`/`manual`
-  need with `reason` + `sourceObservationId`. Entity fields already exist; only
-  the action UI is unbuilt. See §7 of the reference.
+- **DONE** — generative "Raise observation need" action. A follow-up CTA in the
+  Capture Workspace (inherits the parent's module + target, back-links via
+  `sourceObservationId`) and a manual "+ Raise observation need" button in the
+  Command Centre both write through `buildRaisedNeed` + the shared `RaiseNeedForm`
+  into the store's new `createdByProject` slice (persist v3). Cards show an origin
+  badge. See §5b/§7 of the reference.
+- **Remaining follow-on** — auto-generated needs from stale-data / coverage gaps
+  (§5c), and editing/deleting raised needs (create-only today).
 
 ### Backend
 - **Replace `useV3Project`** in
