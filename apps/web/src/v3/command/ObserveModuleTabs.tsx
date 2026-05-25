@@ -8,7 +8,7 @@
  * Stage Compass already computes from checklist + evidence state.
  */
 
-import { LayoutGrid } from 'lucide-react';
+import { Compass, LayoutGrid } from 'lucide-react';
 import type { CompassData } from '../compass/useCompassData.js';
 import type { ObserveModule } from '../observe/types.js';
 import css from './ObserveCommandCentrePage.module.css';
@@ -17,9 +17,15 @@ interface Props {
   data: CompassData;
   active: ObserveModule | null;
   onSelect: (module: ObserveModule | null) => void;
+  onBackToCompass: () => void;
 }
 
-export default function ObserveModuleTabs({ data, active, onSelect }: Props) {
+export default function ObserveModuleTabs({
+  data,
+  active,
+  onSelect,
+  onBackToCompass,
+}: Props) {
   return (
     <nav className={css.tabs} aria-label="Observe modules">
       <button
@@ -63,6 +69,14 @@ export default function ObserveModuleTabs({ data, active, onSelect }: Props) {
           </button>
         );
       })}
+
+      <button
+        type="button"
+        className={`${css.ghostBtn} ${css.tabsBackBtn}`}
+        onClick={onBackToCompass}
+      >
+        <Compass size={16} strokeWidth={2} /> Compass
+      </button>
     </nav>
   );
 }

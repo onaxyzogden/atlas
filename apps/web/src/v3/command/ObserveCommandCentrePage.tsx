@@ -19,7 +19,6 @@
 
 import { useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
-import { Compass } from 'lucide-react';
 import { useCompassData } from '../compass/useCompassData.js';
 import { useObservationNeeds } from '../observation-needs/useObservationNeeds.js';
 import { isDismissedAutoNeed } from '../observation-needs/autoObservationNeeds.js';
@@ -78,25 +77,11 @@ export default function ObserveCommandCentrePage() {
 
   return (
     <div className={css.shell}>
-      <header className={css.topbar}>
-        <div className={css.topbarMain}>
-          <p className="eyebrow">Observe · Command Centre</p>
-          <h1 className={css.topbarTitle}>Observe Command Centre</h1>
-          <p className={css.topbarSub}>
-            {ready
-              ? `Foundation verified across all ${data.views.length} domains — run the Observe stage from one place.`
-              : `${data.stage.pct}% verified across ${data.views.length} domains — launch an observation need to keep going.`}
-          </p>
-        </div>
-        <button type="button" className={css.ghostBtn} onClick={backToCompass}>
-          <Compass size={16} strokeWidth={2} /> Compass
-        </button>
-      </header>
-
       <ObserveModuleTabs
         data={data}
         active={activeModule}
         onSelect={setActiveModule}
+        onBackToCompass={backToCompass}
       />
 
       <div
