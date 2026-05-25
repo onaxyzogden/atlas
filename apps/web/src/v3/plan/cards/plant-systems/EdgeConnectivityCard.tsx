@@ -27,10 +27,12 @@
  * ("2-hectare uniform rectangular orchard yields Diversity below 0.5"):
  * a 2-ha rectangle has PP ≈ 0.79–0.99, comfortably above the 0.7 cut.
  *
- * **v1 scope.** Textual prompt only. The shape-variant generators
- * (peninsula / scalloped / keyhole) are deferred to a follow-up — flagged
- * as the "biggest unknown" in the backlog rationale and isolated here so
- * v1 lands inside the 0.5-sprint estimate.
+ * **v1 scope.** Textual prompt only. **v2 (Rec #4 deferred queue, 2026-05-25)**
+ * adds the shape-variant generators (peninsula / scalloped / keyhole) via
+ * `../../edge/edgeVariantMath.ts`: each homogenized row can expand "Suggest edge
+ * variants" and apply one directly through `landDesignStore.update`. The live
+ * ghost preview overlay is deferred to a later pass — apply is direct, and the
+ * steward can re-edit the polygon on the map afterward.
  *
  * **Why landDesignStore.** Planting-class kinds (orchard, silvopasture,
  * pasture-mix, paddock) live in `landDesignStore` as `DesignElement`
@@ -38,10 +40,17 @@
  * points — out of scope for an edge-to-area metric. Closes Rec #4 v1.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useLandDesignStore } from '../../../../store/landDesignStore.js';
 import type { DesignElement } from '../../../../store/designElementsStore.js';
+import {
+  generateVariants,
+  polsbyPopper,
+  polygonAreaM2,
+  polygonPerimeterM,
+  type EdgeVariant,
+} from '../../edge/edgeVariantMath.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -81,58 +90,15 @@ interface ZoneRow {
   perimeterM: number;
   pp: number;
   tier: Tier;
+  /** Source polygon, retained so v2 can generate edge variants on demand. */
+  geometry: GeoJSON.Polygon;
 }
 
 /**
- * Local copies of useDesignMetrics.ts's polygonAreaM2 / polygonPerimeterM
- * (file-private there; mirrors the codebase's per-card pattern of holding
- * its own geometry math — see also QuietCirculationRouteCard's sampleAlong
- * and FertilityColocationCard's centroid math). Extracting to a shared
- * util is a separate refactor; for v1 of this readout, duplicate.
+ * Compactness helpers (polygonAreaM2 / polygonPerimeterM / polsbyPopper) now
+ * live in `../../edge/edgeVariantMath.ts` so the v1 audit and the v2 variant
+ * generators share one source of truth — they are imported above.
  */
-function polygonAreaM2(geom: GeoJSON.Polygon): number {
-  const ring = geom.coordinates[0];
-  if (!ring || ring.length < 3) return 0;
-  const lat0 = ring[0]?.[1] ?? 0;
-  const mPerDegLat = 111320;
-  const mPerDegLng = 111320 * Math.cos((lat0 * Math.PI) / 180);
-  let area = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const a = ring[i];
-    const b = ring[i + 1];
-    if (!a || !b) continue;
-    const ax = a[0]! * mPerDegLng;
-    const ay = a[1]! * mPerDegLat;
-    const bx = b[0]! * mPerDegLng;
-    const by = b[1]! * mPerDegLat;
-    area += ax * by - bx * ay;
-  }
-  return Math.abs(area) / 2;
-}
-
-function polygonPerimeterM(geom: GeoJSON.Polygon): number {
-  const ring = geom.coordinates[0];
-  if (!ring || ring.length < 2) return 0;
-  const lat0 = ring[0]?.[1] ?? 0;
-  const mPerDegLat = 111320;
-  const mPerDegLng = 111320 * Math.cos((lat0 * Math.PI) / 180);
-  let perim = 0;
-  for (let i = 0; i < ring.length - 1; i++) {
-    const a = ring[i];
-    const b = ring[i + 1];
-    if (!a || !b) continue;
-    const dx = (b[0]! - a[0]!) * mPerDegLng;
-    const dy = (b[1]! - a[1]!) * mPerDegLat;
-    perim += Math.sqrt(dx * dx + dy * dy);
-  }
-  return perim;
-}
-
-/** Polsby-Popper compactness. 1.0 = circle, 0 = infinitely indented. */
-function polsbyPopper(areaM2: number, perimeterM: number): number {
-  if (perimeterM <= 0) return 0;
-  return (4 * Math.PI * areaM2) / (perimeterM * perimeterM);
-}
 
 function tierFor(pp: number): Tier {
   if (pp >= PP_HOMOGENIZED_CUT) return 'homogenized';
@@ -173,11 +139,20 @@ function describeZone(el: DesignElement): ZoneRow | null {
     perimeterM,
     pp,
     tier,
+    geometry: el.geometry,
   };
+}
+
+function formatPct(frac: number): string {
+  return `${frac >= 0 ? '+' : ''}${Math.round(frac * 100)}%`;
 }
 
 export default function EdgeConnectivityCard({ project }: Props) {
   const byProject = useLandDesignStore((s) => s.byProject);
+  const updateElement = useLandDesignStore((s) => s.update);
+
+  // Which zone row currently has its edge-variant suggestions expanded.
+  const [openVariantsFor, setOpenVariantsFor] = useState<string | null>(null);
 
   const rows = useMemo<ZoneRow[]>(() => {
     const list = byProject[project.id] ?? [];
@@ -209,6 +184,23 @@ export default function EdgeConnectivityCard({ project }: Props) {
   const flaggedCount = tierCounts.homogenized;
   const diversityPenalty =
     scoredCount === 0 ? 0 : flaggedCount / scoredCount;
+
+  // Edge variants for the currently-expanded row, computed on demand.
+  const openVariants = useMemo<EdgeVariant[]>(() => {
+    if (!openVariantsFor) return [];
+    const row = rows.find((r) => r.id === openVariantsFor);
+    if (!row) return [];
+    return generateVariants(row.geometry);
+  }, [openVariantsFor, rows]);
+
+  function toggleVariants(rowId: string) {
+    setOpenVariantsFor((cur) => (cur === rowId ? null : rowId));
+  }
+
+  function applyVariant(rowId: string, variant: EdgeVariant) {
+    updateElement(project.id, rowId, { geometry: variant.geometry });
+    setOpenVariantsFor(null);
+  }
 
   return (
     <div className={styles.page}>
@@ -297,13 +289,80 @@ export default function EdgeConnectivityCard({ project }: Props) {
                     {r.pp.toFixed(2)}
                   </div>
                   {r.tier === 'homogenized' && (
-                    <div className={styles.hint}>
-                      Carve out edges, peninsulas, or marginal borders for
-                      companion plants. A scalloped border or keyhole
-                      carve-out increases edge length without reducing
-                      total area — try a 5–10% perimeter perturbation
-                      along the longest straight run.
-                    </div>
+                    <>
+                      <div className={styles.hint}>
+                        Carve out edges, peninsulas, or marginal borders for
+                        companion plants. A scalloped border or keyhole
+                        carve-out increases edge length without reducing
+                        total area — try a 5–10% perimeter perturbation
+                        along the longest straight run.
+                      </div>
+                      <div style={{ marginTop: 6 }}>
+                        <button
+                          type="button"
+                          className={styles.btn}
+                          onClick={() => toggleVariants(r.id)}
+                        >
+                          {openVariantsFor === r.id
+                            ? 'Hide edge variants'
+                            : 'Suggest edge variants'}
+                        </button>
+                      </div>
+                      {openVariantsFor === r.id && (
+                        <ul
+                          className={styles.list}
+                          style={{ marginTop: 6, gap: 6 }}
+                        >
+                          {openVariants.length === 0 && (
+                            <li className={styles.listMeta}>
+                              No variant could be generated for this shape.
+                            </li>
+                          )}
+                          {openVariants.map((v) => (
+                            <li
+                              key={v.id}
+                              className={styles.listRow}
+                              style={{
+                                display: 'flex',
+                                gap: 8,
+                                alignItems: 'flex-start',
+                                flexWrap: 'wrap',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 2,
+                                  minWidth: 0,
+                                  flex: 1,
+                                }}
+                              >
+                                <strong>{v.label}</strong>
+                                <span className={styles.listMeta}>
+                                  {v.note}
+                                </span>
+                                <span className={styles.listMeta}>
+                                  edge {formatPct(v.edgeDeltaPct)} · PP{' '}
+                                  {r.pp.toFixed(2)} → {v.pp.toFixed(2)} (
+                                  {formatPct(
+                                    r.pp > 0 ? v.ppDelta / r.pp : 0,
+                                  )}
+                                  )
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                className={styles.btn}
+                                onClick={() => applyVariant(r.id, v)}
+                              >
+                                Apply
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
                   )}
                 </div>
               </li>
