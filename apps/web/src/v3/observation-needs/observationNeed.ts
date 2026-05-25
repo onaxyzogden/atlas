@@ -41,8 +41,12 @@ export type ObservationNeedPriority = 'low' | 'medium' | 'high';
 /** Where the recorded reality may force the Plan to change. Signal to Plan only. */
 export type PlanImpact = 'none' | 'possible' | 'likely';
 
-/** How an observation need came to exist. */
-export type ObservationNeedOrigin = 'seed' | 'follow-up' | 'manual';
+/**
+ * How an observation need came to exist. `auto` needs are not authored by a
+ * steward — the system raises them from live signals (coverage gaps, stale
+ * data) and recomputes them each render; only their run-state persists.
+ */
+export type ObservationNeedOrigin = 'seed' | 'follow-up' | 'manual' | 'auto';
 
 /** Kinds of proof an observation need can require. */
 export type EvidenceKind =
@@ -280,10 +284,40 @@ export interface RaiseNeedContext {
   projectId: string;
   module: ObserveModule;
   target: ObservationNeedTarget;
-  /** Generated needs are never `seed`. */
-  origin: Exclude<ObservationNeedOrigin, 'seed'>;
+  /**
+   * Steward-raised needs are only ever `follow-up` or `manual`. `auto` needs go
+   * through `buildAutoNeed` instead, so they cannot leak through this path.
+   */
+  origin: 'follow-up' | 'manual';
   /** The record this need follows from (follow-up origin only). */
   sourceObservationId?: string;
+}
+
+/**
+ * The minimal capture package shared by every generatively-raised need
+ * (`buildRaisedNeed`) and every system-raised need (`buildAutoNeed`): no
+ * checklist, tools, or layers — just one required "Summary note". That note both
+ * records the evidence and mirrors into `run.summary`, so a single textarea
+ * satisfies both active gates while keeping the need from being instantly
+ * recordable. Returns fresh arrays per call so callers never share mutable state.
+ */
+export function minimalCapturePackage(): Pick<
+  ObservationNeed,
+  'requiredTools' | 'requiredLayers' | 'checklist' | 'evidence' | 'recordingRule'
+> {
+  return {
+    requiredTools: [],
+    requiredLayers: [],
+    checklist: [],
+    evidence: [
+      { id: 'summary', kind: 'note', label: 'Summary note', required: true },
+    ],
+    recordingRule: {
+      requireAllRequiredChecklist: false,
+      requireAllRequiredEvidence: true,
+      requireSummary: true,
+    },
+  };
 }
 
 /**
@@ -306,17 +340,7 @@ export function buildRaisedNeed(
     module: ctx.module,
     title: input.title.trim(),
     target: ctx.target,
-    requiredTools: [],
-    requiredLayers: [],
-    checklist: [],
-    evidence: [
-      { id: 'summary', kind: 'note', label: 'Summary note', required: true },
-    ],
-    recordingRule: {
-      requireAllRequiredChecklist: false,
-      requireAllRequiredEvidence: true,
-      requireSummary: true,
-    },
+    ...minimalCapturePackage(),
     priority: input.priority,
     origin: ctx.origin,
     reason: input.reason.trim(),
