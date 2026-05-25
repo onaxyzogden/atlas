@@ -46,6 +46,28 @@ Geometry is a pure function of `pct`, so the bundle-formula proof is conclusive 
 
 Atlas change staged by **explicit path** (`package.json` + `pnpm-lock.yaml` only) per [[feedback-commit-immediately-on-rebased-branches]]; all foreign WIP (`EconomicsPanel*`, `CapitalPartnerSummary*`/`capitalPartner*`, `MapCanvas`, the `*Map.tsx` trio, `ZoneSomSidebar*`, `MapCoordinateReadout*`, `launch.json`, `.superpowers/`, etc.) left untouched per [[feedback-no-deletion]]. `git fetch` + divergence check (0 behind) before push (`aa64ee89..d181f223`).
 
-## Follow-up (recommended, not blocking)
+## Addendum (2026-05-25) — "wheel looks unchanged" root cause + forward-port to main
 
-Forward-port the same 3-line flip onto `ogden-ui-components` `main`/HEAD so the fix isn't lost when atlas later bumps past v0.1.x. (The JSX is byte-identical between `v0.1.0` and HEAD for the wheel, so the patch applies cleanly; versions since v0.1.0 only **add** BBOS + educational components.)
+After the v0.1.1 pin bump, the steward reported the True North wheel **looked exactly the same**. Read-only investigation showed the **code was correct but the running app served a stale copy** — and surfaced a real release defect.
+
+### Root cause — stale serve (two compounding causes)
+
+1. **The v0.1.1 release never bumped `package.json` `version`** — it still read `"0.1.0"` (the installed package reported `0.1.0`). The lockfile pins by commit so the *file content* was correct, but the package **identity** was unchanged, so npm/vite/browser caches had no signal to invalidate. **This is the real defect.**
+2. **atlas excludes the dep from vite's optimizer** — `apps/web/vite.config.ts` `optimizeDeps.exclude: ['@ogden/ui-components']`, so it is served **raw from `node_modules`**. Vite does **not** watch `node_modules` for an excluded dep, so a dev server started *before* the `pnpm install` keeps serving the **old in-memory transform** until restarted. (For a built/preview view, `vite-plugin-pwa` `generateSW`/`autoUpdate` — prod-build only — would precache the old JS until the SW updates.)
+
+### Proof (DOM probe — `preview_screenshot` times out on the WebGL canvas, stated not claimed)
+
+Probed `path.mcw-seg-current` `d` attrs on the live `:5200/v3/project/mtc/compass`:
+- **Before restart:** all 4 segments had **inner radius pinned at 56** (hub), moving outer radius = the **old** centre→rim geometry (confirming the stale serve).
+- **Fix:** stopped the web dev server, removed `apps/web/node_modules/.vite`, restarted (`corepack pnpm`), reloaded.
+- **After restart:** segments show **outer arc fixed at 142**, **inner arc tracking pct** (e.g. inner 84.38/99/113.62/120.5 → ≈67/50/33/25%) = the **new** rim→centre geometry. ✓
+
+### Lesson
+
+> **A release must bump `package.json` `version`, not just move a tag** — otherwise consumer/build/browser caches never bust. And for an `optimizeDeps.exclude`d dep, **restart the dev server** (clear `node_modules/.vite`) after refetching; vite does not watch `node_modules`.
+
+### Forward-port to `main` (`v0.3.1`)
+
+Applied the **same 3-line flip** to `MaqasidComparisonWheel.jsx` on `ogden-ui-components` `main` (wheel JSX was byte-identical to the `v0.1.0` base), **bumped `version` 0.3.0 → 0.3.1** (defect not repeated), `npm run build` (multi-entry dist — `index.es/cjs.js` carry the geometry; bbos bundles are data-only and unchanged), committed source + `package.json` + the `index` bundles/maps by **explicit path** (restored EOL-only churn on CSS/bbos so the diff is limited to the geometry), tagged `v0.3.1`, fetch + divergence check (1 ahead/0 behind), pushed branch + tag (`46a1815..90aa7c6`). The minified `index.es.js` diff confirms `a = V + (H-V)*(i/100)` / `ue(V,a,…)` → `a = H - (H-V)*(i/100)` / `ue(a,H,…)`.
+
+**v0.1.1 left intact** (its file is correct; rewriting a published tag is riskier than the cosmetic version gain). Recommended (non-blocking): atlas eventually bump its pin to `v0.3.1`, which carries the fix **and** the correct version field.
