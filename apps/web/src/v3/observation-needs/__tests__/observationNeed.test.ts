@@ -5,10 +5,12 @@ import {
   requiredLayersToModules,
   firstUnsatisfiedAnnotationSpec,
   buildRaisedNeed,
+  editRaisedNeed,
   type ObservationNeed,
   type ObservationNeedRun,
   type RaiseNeedInput,
   type RaiseNeedContext,
+  type EditNeedInput,
 } from '../observationNeed.js';
 import {
   SEED_OBSERVATION_NEEDS,
@@ -310,6 +312,70 @@ describe('buildRaisedNeed', () => {
     const blankTrigger = buildRaisedNeed({ ...input, trigger: '   ' }, ctx);
     expect(blankTrigger.trigger).toBeUndefined();
     expect(blankTrigger.planImpact).toBeUndefined();
+  });
+});
+
+describe('editRaisedNeed', () => {
+  /** A raised follow-up need to edit. */
+  const raised = buildRaisedNeed(
+    { title: 'Recheck eroded bank', reason: 'Bank slumped', priority: 'high' },
+    {
+      id: 'need-123',
+      projectId: 'mtc',
+      module: 'topography',
+      target: { center: [-78.2, 44.5] },
+      origin: 'follow-up',
+      sourceObservationId: 'obj-parent',
+    },
+  );
+
+  const edits: EditNeedInput = {
+    module: 'earth-water-ecology',
+    title: '  New title  ',
+    reason: '  New reason  ',
+    priority: 'low',
+    trigger: '  after thaw  ',
+    planImpact: 'possible',
+  };
+
+  it('applies the form fields and trims them', () => {
+    const next = editRaisedNeed(raised, edits);
+    expect(next.module).toBe('earth-water-ecology');
+    expect(next.title).toBe('New title');
+    expect(next.reason).toBe('New reason');
+    expect(next.priority).toBe('low');
+    expect(next.trigger).toBe('after thaw');
+    expect(next.planImpact).toBe('possible');
+  });
+
+  it('preserves identity, origin, target, and the source back-link', () => {
+    const next = editRaisedNeed(raised, edits);
+    expect(next.id).toBe('need-123');
+    expect(next.projectId).toBe('mtc');
+    expect(next.stage).toBe('observe');
+    expect(next.origin).toBe('follow-up');
+    expect(next.sourceObservationId).toBe('obj-parent');
+    expect(next.target).toEqual(raised.target);
+    expect(next.evidence).toEqual(raised.evidence);
+    expect(next.recordingRule).toEqual(raised.recordingRule);
+  });
+
+  it('clears trigger and plan impact when blanked', () => {
+    const next = editRaisedNeed(raised, {
+      module: raised.module,
+      title: raised.title,
+      reason: raised.reason,
+      priority: raised.priority,
+      trigger: '   ',
+    });
+    expect(next.trigger).toBeUndefined();
+    expect(next.planImpact).toBeUndefined();
+  });
+
+  it('does not mutate the original need', () => {
+    const before = JSON.stringify(raised);
+    editRaisedNeed(raised, edits);
+    expect(JSON.stringify(raised)).toBe(before);
   });
 });
 

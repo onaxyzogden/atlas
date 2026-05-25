@@ -79,6 +79,10 @@ interface ObservationNeedState {
   getRun: (projectId: string, needId: string) => ObservationNeedRun;
   /** Persist a steward-raised need (follow-up or manual origin). */
   createNeed: (projectId: string, need: ObservationNeed) => void;
+  /** Replace a steward-raised need in place (edit). No-op if not found. */
+  updateNeed: (projectId: string, need: ObservationNeed) => void;
+  /** Delete a steward-raised need and discard its run state. */
+  deleteNeed: (projectId: string, needId: string) => void;
   /** Toggle a checklist item; promotes status to in-progress on first touch. */
   toggleCheck: (projectId: string, needId: string, itemId: string) => void;
   /** Append a captured evidence item. */
@@ -138,6 +142,30 @@ export const useObservationNeedStore = create<ObservationNeedState>()(
               [projectId]: [...(s.createdByProject[projectId] ?? []), need],
             },
           })),
+
+        updateNeed: (projectId, need) =>
+          set((s) => ({
+            createdByProject: {
+              ...s.createdByProject,
+              [projectId]: (s.createdByProject[projectId] ?? []).map((n) =>
+                n.id === need.id ? need : n,
+              ),
+            },
+          })),
+
+        deleteNeed: (projectId, needId) =>
+          set((s) => {
+            const project = s.createdByProject[projectId] ?? [];
+            const { [needId]: _dropped, ...remainingRuns } =
+              s.byProject[projectId] ?? {};
+            return {
+              createdByProject: {
+                ...s.createdByProject,
+                [projectId]: project.filter((n) => n.id !== needId),
+              },
+              byProject: { ...s.byProject, [projectId]: remainingRuns },
+            };
+          }),
 
         toggleCheck: (projectId, needId, itemId) =>
           patch(projectId, needId, (run) => {

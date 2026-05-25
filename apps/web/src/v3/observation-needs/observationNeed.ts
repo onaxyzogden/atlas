@@ -352,6 +352,38 @@ export function buildRaisedNeed(
   };
 }
 
+/** The fields a steward may change when editing an already-raised need. */
+export interface EditNeedInput extends RaiseNeedInput {
+  module: ObserveModule;
+}
+
+/**
+ * Apply a steward's edits to an already-raised need, preserving everything the
+ * form does not own: id, projectId, stage, target, origin, capture package
+ * (checklist / tools / layers / evidence / recordingRule), and the follow-up
+ * `sourceObservationId` back-link. Only the form fields change — title, reason,
+ * priority, module, and the optional trigger / planImpact (blanks cleared, same
+ * trimming as `buildRaisedNeed`). Returns a fresh object; never mutates `need`.
+ *
+ * Pure — no store, no side effects — so it is trivially unit-testable.
+ */
+export function editRaisedNeed(
+  need: ObservationNeed,
+  input: EditNeedInput,
+): ObservationNeed {
+  const trigger = input.trigger?.trim();
+  const { trigger: _t, planImpact: _p, ...rest } = need;
+  return {
+    ...rest,
+    module: input.module,
+    title: input.title.trim(),
+    reason: input.reason.trim(),
+    priority: input.priority,
+    ...(trigger ? { trigger } : {}),
+    ...(input.planImpact ? { planImpact: input.planImpact } : {}),
+  };
+}
+
 /**
  * Find the first `annotation`-kind evidence spec on a need that is not yet
  * satisfied by its run — i.e. whose captured count is below its `min`

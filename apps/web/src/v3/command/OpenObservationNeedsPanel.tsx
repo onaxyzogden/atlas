@@ -13,12 +13,14 @@
  */
 
 import { useState } from 'react';
-import { MapPin, Plus, RefreshCw } from 'lucide-react';
+import { MapPin, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { useObservationNeedStore } from '../../store/observationNeedStore.js';
 import { OBSERVE_MODULE_DOT } from '../observe/moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL, type ObserveModule } from '../observe/types.js';
 import {
   buildRaisedNeed,
+  editRaisedNeed,
+  type ObservationNeed,
   type ObservationNeedOrigin,
   type ObservationNeedPriority,
   type ObservationNeedStatus,
@@ -62,6 +64,10 @@ const ORIGIN_LABEL: Record<ObservationNeedOrigin, string> = {
 /** Fallback site centre when there are no needs to average (MTC). */
 const FALLBACK_CENTER: [number, number] = [-78.2, 44.5];
 
+/** Only steward-raised needs can be edited or removed; seed/auto cannot. */
+const isEditable = (origin: ObservationNeedOrigin): boolean =>
+  origin === 'manual' || origin === 'follow-up';
+
 export default function OpenObservationNeedsPanel({
   projectId,
   views,
@@ -71,9 +77,36 @@ export default function OpenObservationNeedsPanel({
   onLaunch,
 }: Props) {
   const createNeed = useObservationNeedStore((s) => s.createNeed);
+  const updateNeed = useObservationNeedStore((s) => s.updateNeed);
+  const deleteNeed = useObservationNeedStore((s) => s.deleteNeed);
   const setStatus = useObservationNeedStore((s) => s.setStatus);
   const [raising, setRaising] = useState(false);
   const [raisedTitle, setRaisedTitle] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+
+  const editingNeed: ObservationNeed | null = editingId
+    ? (views.find((v) => v.objective.id === editingId)?.objective ?? null)
+    : null;
+
+  const startEdit = (needId: string) => {
+    setRaising(false);
+    setRaisedTitle(null);
+    setConfirmRemoveId(null);
+    setEditingId(needId);
+  };
+
+  const submitEdit = (input: RaiseNeedInput & { module: ObserveModule }) => {
+    if (!editingNeed) return;
+    updateNeed(projectId, editRaisedNeed(editingNeed, input));
+    setEditingId(null);
+  };
+
+  const removeNeed = (needId: string) => {
+    deleteNeed(projectId, needId);
+    setConfirmRemoveId(null);
+    if (editingId === needId) setEditingId(null);
+  };
 
   // Default a manual need's location to the mean of the existing centres so it
   // lands inside the site rather than at an arbitrary point.
@@ -126,6 +159,7 @@ export default function OpenObservationNeedsPanel({
           className={css.raiseBtn}
           onClick={() => {
             setRaisedTitle(null);
+            setEditingId(null);
             setRaising((v) => !v);
           }}
         >
@@ -133,7 +167,7 @@ export default function OpenObservationNeedsPanel({
         </button>
       </div>
 
-      {raising && (
+      {raising && !editingNeed && (
         <div className={css.raiseFormWrap}>
           <RaiseNeedForm
             showModulePicker
@@ -142,7 +176,25 @@ export default function OpenObservationNeedsPanel({
           />
         </div>
       )}
-      {raisedTitle && !raising && (
+      {editingNeed && (
+        <div className={css.raiseFormWrap}>
+          <RaiseNeedForm
+            showModulePicker
+            submitLabel="Save changes"
+            initial={{
+              module: editingNeed.module,
+              title: editingNeed.title,
+              reason: editingNeed.reason,
+              priority: editingNeed.priority,
+              trigger: editingNeed.trigger,
+              planImpact: editingNeed.planImpact,
+            }}
+            onSubmit={submitEdit}
+            onCancel={() => setEditingId(null)}
+          />
+        </div>
+      )}
+      {raisedTitle && !raising && !editingNeed && (
         <p className={css.raiseHint}>Observation need raised: “{raisedTitle}”</p>
       )}
 
@@ -218,6 +270,47 @@ export default function OpenObservationNeedsPanel({
                       Dismiss
                     </button>
                   )}
+                  {isEditable(objective.origin) &&
+                    (confirmRemoveId === objective.id ? (
+                      <>
+                        <span className={css.confirmPrompt}>Remove?</span>
+                        <button
+                          type="button"
+                          className={css.removeConfirmBtn}
+                          onClick={() => removeNeed(objective.id)}
+                        >
+                          Remove
+                        </button>
+                        <button
+                          type="button"
+                          className={css.dismissBtn}
+                          onClick={() => setConfirmRemoveId(null)}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className={css.iconBtn}
+                          aria-label="Edit need"
+                          title="Edit need"
+                          onClick={() => startEdit(objective.id)}
+                        >
+                          <Pencil size={13} strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          className={css.iconBtn}
+                          aria-label="Remove need"
+                          title="Remove need"
+                          onClick={() => setConfirmRemoveId(objective.id)}
+                        >
+                          <Trash2 size={13} strokeWidth={2} />
+                        </button>
+                      </>
+                    ))}
                   <button
                     type="button"
                     className={css.openBtn}

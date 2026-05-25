@@ -24,11 +24,25 @@ import type {
 } from '../../observation-needs/observationNeed.js';
 import css from './RaiseNeedForm.module.css';
 
+/** Pre-fill for edit mode — the current values of an already-raised need. */
+export interface RaiseNeedFormInitial {
+  module: ObserveModule;
+  title: string;
+  reason: string;
+  priority: ObservationNeedPriority;
+  trigger?: string;
+  planImpact?: PlanImpact;
+}
+
 interface Props {
   /** Show the module selector (manual needs); hide it for follow-ups. */
   showModulePicker?: boolean;
   /** Module pre-selected / inherited from the parent need. */
   defaultModule?: ObserveModule;
+  /** When editing an existing need, the values to pre-fill (overrides defaults). */
+  initial?: RaiseNeedFormInitial;
+  /** Submit button label — defaults to "Raise need". */
+  submitLabel?: string;
   onSubmit: (input: RaiseNeedInput & { module: ObserveModule }) => void;
   onCancel: () => void;
 }
@@ -50,17 +64,23 @@ const PLAN_IMPACT_LABEL: Record<PlanImpact, string> = {
 export default function RaiseNeedForm({
   showModulePicker = false,
   defaultModule,
+  initial,
+  submitLabel = 'Raise need',
   onSubmit,
   onCancel,
 }: Props) {
   const [module, setModule] = useState<ObserveModule>(
-    defaultModule ?? DEFAULT_MODULE,
+    initial?.module ?? defaultModule ?? DEFAULT_MODULE,
   );
-  const [title, setTitle] = useState('');
-  const [reason, setReason] = useState('');
-  const [priority, setPriority] = useState<ObservationNeedPriority>('medium');
-  const [trigger, setTrigger] = useState('');
-  const [planImpact, setPlanImpact] = useState<PlanImpact>('none');
+  const [title, setTitle] = useState(initial?.title ?? '');
+  const [reason, setReason] = useState(initial?.reason ?? '');
+  const [priority, setPriority] = useState<ObservationNeedPriority>(
+    initial?.priority ?? 'medium',
+  );
+  const [trigger, setTrigger] = useState(initial?.trigger ?? '');
+  const [planImpact, setPlanImpact] = useState<PlanImpact>(
+    initial?.planImpact ?? 'none',
+  );
 
   const canSubmit = title.trim().length > 0 && reason.trim().length > 0;
 
@@ -173,7 +193,7 @@ export default function RaiseNeedForm({
           Cancel
         </button>
         <button type="submit" className={css.primaryBtn} disabled={!canSubmit}>
-          Raise need
+          {submitLabel}
         </button>
       </div>
     </form>
