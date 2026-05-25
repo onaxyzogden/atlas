@@ -71,3 +71,28 @@ Probed `path.mcw-seg-current` `d` attrs on the live `:5200/v3/project/mtc/compas
 Applied the **same 3-line flip** to `MaqasidComparisonWheel.jsx` on `ogden-ui-components` `main` (wheel JSX was byte-identical to the `v0.1.0` base), **bumped `version` 0.3.0 → 0.3.1** (defect not repeated), `npm run build` (multi-entry dist — `index.es/cjs.js` carry the geometry; bbos bundles are data-only and unchanged), committed source + `package.json` + the `index` bundles/maps by **explicit path** (restored EOL-only churn on CSS/bbos so the diff is limited to the geometry), tagged `v0.3.1`, fetch + divergence check (1 ahead/0 behind), pushed branch + tag (`46a1815..90aa7c6`). The minified `index.es.js` diff confirms `a = V + (H-V)*(i/100)` / `ue(V,a,…)` → `a = H - (H-V)*(i/100)` / `ue(a,H,…)`.
 
 **v0.1.1 left intact** (its file is correct; rewriting a published tag is riskier than the cosmetic version gain). Recommended (non-blocking): atlas eventually bump its pin to `v0.3.1`, which carries the fix **and** the correct version field.
+
+## Addendum (2026-05-25) — atlas pin bumped v0.1.1 → v0.3.1 (the recommended follow-up, now done)
+
+Closed the non-blocking recommendation above: atlas's `@ogden/ui-components` pin moved `#v0.1.1` → `#v0.3.1`. The wheel geometry is identical in both; the win is that **v0.3.1 carries the correct `package.json` `version` field** (0.3.1) so consumer/build/browser caches invalidate properly on future bumps — closing the cache-busting defect from the root-cause section above. v0.3.1 also brings the additive BBOS + educational components (v0.2.0/v0.3.0); atlas only imports `MaqasidComparisonWheel`/`useWheelHoverStore`/`LevelNavigator` (API-unchanged), so the additive components are zero bundle impact (BBOS is a separate dist entry never imported).
+
+### The one real gotcha — dist layout changed between the two tags
+
+v0.1.x shipped a **single-file** dist (`dist/ogden-ui-components.es.js` + `.css`); v0.3.x ships a **multi-entry** dist (`dist/index.es.js`/`index.cjs.js` main + `dist/bbos.es.js`/`.cjs.js` + `ogden-ui-components.css` + `ogden-ui-components-bbos.css`). atlas does **not** resolve the package through its `exports` map — `apps/web/vite.config.ts` hardcodes a vite **alias** straight at the dist file (the dep is installed at the monorepo root; the web dev-server can't traverse up). That alias pointed at `dist/ogden-ui-components.es.js`, **which no longer exists in v0.3.x** → the bump would break `apps/web` unless the alias is repointed. **Fix:** repoint the bare-package alias to `dist/index.es.js`. The CSS alias (`dist/ogden-ui-components.css`) filename is **unchanged** across both tags, so it was left as-is.
+
+### The change (2 file edits + reinstall)
+
+1. Root `package.json` line 16: `…ogden-ui-components#v0.1.1` → `#v0.3.1` (atlas's only pin; `apps/web` doesn't declare the dep, `apps/atlas-ui` is archived/out-of-workspace — left untouched).
+2. `apps/web/vite.config.ts`: bare-package alias target `dist/ogden-ui-components.es.js` → `dist/index.es.js` (CSS alias untouched).
+3. `corepack pnpm install` — refetched the tarball, lockfile now resolves the v0.3.1 commit `90aa7c6`.
+
+### Verification
+
+Per project rules, `preview_screenshot` times out on the WebGL canvas — **stated, not claimed**; verified by probe.
+- **Static install probes:** `node_modules/@ogden/ui-components/package.json` `version` = **`0.3.1`** (the cache-busting fix landed); `dist/index.es.js` carries `a = H - (H - V) * (i / 100)` drawn `ue(a, H, …)`; `dist/ogden-ui-components.css` has 220 `mcw-` styles; lockfile root importer specifier = `#v0.3.1`.
+- **Live wheel (after the mandatory dev-server restart + `.vite` clear):** DOM-probed `path.mcw-seg-current` on `:5200/v3/project/mtc/compass` — all 4 segments have **outer arc fixed at 142**, **inner arc tracking pct** (inner 84.38/113.62/99/120.5 → ≈67/33/50/25%) = rim→centre. ✓
+- **Build sanity (the alias is the risk):** the combined `tsc && vite build` script fails at `tsc` on the **known 3-error pre-existing baseline** (foreign WIP: `StepBoundary.tsx`, two `HostUnion*` plan/layers tests — unrelated to this JS-only dep change). Ran `vite build` directly: **succeeded in 39.54s**, repointed alias resolved, PWA SW generated. ✓
+
+### Commit
+
+atlas: `package.json` + `apps/web/vite.config.ts` + `pnpm-lock.yaml` by **explicit path** (commit `77fe24af`), excluding all foreign WIP (`EconomicsPanel*`, `CapitalPartnerSummary*`/`capitalPartner*`, `MapCanvas`, `*Map.tsx` trio, `ZoneSomSidebar*`, `MapCoordinateReadout*`, `launch.json`, `.superpowers/`, etc.).
