@@ -19,7 +19,7 @@ import {
   PLAN_DECISION_STATUS_LABEL,
 } from '../decisions/planDecision.js';
 import { PLAN_REVIEW_DECISION_LABEL } from '../impact/planImpactFlag.js';
-import css from '../../command/ObserveCommandCentrePage.module.css';
+import css from '../../command/shell/CommandCentreShell.module.css';
 
 interface Props {
   decisions: PlanDecision[];

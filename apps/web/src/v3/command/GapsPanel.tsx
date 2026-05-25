@@ -10,7 +10,7 @@
 
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useEvidenceCounts } from './useEvidenceCounts.js';
-import css from './ObserveCommandCentrePage.module.css';
+import css from './shell/CommandCentreShell.module.css';
 
 interface Props {
   projectId: string;

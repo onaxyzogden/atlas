@@ -17,7 +17,7 @@ import {
 import { OBSERVE_MODULE_LABEL } from '../observe/types.js';
 import type { EvidenceKind } from '../observation-needs/observationNeed.js';
 import type { ObservationNeedView } from '../observation-needs/useObservationNeeds.js';
-import css from './ObserveCommandCentrePage.module.css';
+import css from './shell/CommandCentreShell.module.css';
 
 interface Props {
   views: ObservationNeedView[];

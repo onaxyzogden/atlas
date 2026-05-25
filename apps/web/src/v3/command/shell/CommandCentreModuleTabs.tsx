@@ -15,7 +15,7 @@
 
 import { Compass, LayoutGrid } from 'lucide-react';
 import type { CompassData } from '../../compass/compassTypes.js';
-import css from '../ObserveCommandCentrePage.module.css';
+import css from './CommandCentreShell.module.css';
 
 export interface CommandCentreModuleTabsProps<M extends string> {
   data: CompassData;

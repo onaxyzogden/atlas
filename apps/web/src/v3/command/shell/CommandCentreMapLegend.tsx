@@ -9,7 +9,7 @@
  * module-id union `M`.
  */
 
-import css from '../ObserveCommandCentrePage.module.css';
+import css from './CommandCentreShell.module.css';
 
 export interface CommandCentreMapLegendProps<M extends string> {
   /** Section title, e.g. "Act modules". */

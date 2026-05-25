@@ -17,7 +17,7 @@ import DiagnoseMap from '../../components/DiagnoseMap.js';
 import ActDataLayers from '../layers/ActDataLayers.js';
 import ActMapLegend from './ActMapLegend.js';
 import { ACT_MODULE_LABEL, type ActModule } from '../types.js';
-import css from '../../command/ObserveCommandCentrePage.module.css';
+import css from '../../command/shell/CommandCentreShell.module.css';
 
 /** Last-resort centre when a project carries neither boundary nor centre. */
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];

@@ -24,7 +24,7 @@ import {
   BASEMAP_OPTIONS,
   useBasemapStore,
 } from '../../observe/components/measure/useMapToolStore.js';
-import css from '../ObserveCommandCentrePage.module.css';
+import css from './CommandCentreShell.module.css';
 
 /** One map-layer toggle row. `count` shows a trailing badge when defined. */
 export interface CommandCentreSidebarLayer {

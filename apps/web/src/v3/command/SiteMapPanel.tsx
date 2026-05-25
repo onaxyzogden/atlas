@@ -16,7 +16,7 @@ import CaptureMapMarkers from './CaptureMapMarkers.js';
 import ObserveMapLegend from './ObserveMapLegend.js';
 import { OBSERVE_MODULE_LABEL, type ObserveModule } from '../observe/types.js';
 import type { ObservationNeedView } from '../observation-needs/useObservationNeeds.js';
-import css from './ObserveCommandCentrePage.module.css';
+import css from './shell/CommandCentreShell.module.css';
 
 /** Last-resort centre when a project carries neither boundary nor centre. */
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];

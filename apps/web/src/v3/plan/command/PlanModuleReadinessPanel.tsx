@@ -9,7 +9,7 @@
 import { Gauge } from 'lucide-react';
 import type { ObjectiveView } from '../../compass/compassTypes.js';
 import { PLAN_MODULE_LABEL, type PlanModule } from '../types.js';
-import css from '../../command/ObserveCommandCentrePage.module.css';
+import css from '../../command/shell/CommandCentreShell.module.css';
 
 interface Props {
   /** Compass views (already filtered to the active module by the page). */

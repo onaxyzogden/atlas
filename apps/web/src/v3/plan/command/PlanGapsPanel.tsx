@@ -11,7 +11,7 @@ import { AlertTriangle, CheckCircle2, Flag } from 'lucide-react';
 import type { ObjectiveView } from '../../compass/compassTypes.js';
 import { PLAN_MODULE_LABEL, type PlanModule } from '../types.js';
 import { usePlanImpactFlags } from '../impact/usePlanImpactFlags.js';
-import css from '../../command/ObserveCommandCentrePage.module.css';
+import css from '../../command/shell/CommandCentreShell.module.css';
 
 interface Props {
   projectId: string;

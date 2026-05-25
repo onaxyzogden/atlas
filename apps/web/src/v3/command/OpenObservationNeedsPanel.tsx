@@ -29,6 +29,7 @@ import {
 import type { ObservationNeedView } from '../observation-needs/useObservationNeeds.js';
 import RaiseNeedForm from '../observe/capture/RaiseNeedForm.js';
 import css from './ObserveCommandCentrePage.module.css';
+import shell from './shell/CommandCentreShell.module.css';
 
 interface Props {
   projectId: string;
@@ -141,29 +142,29 @@ export default function OpenObservationNeedsPanel({
 
   return (
     <>
-      <div className={css.trayHead}>
+      <div className={shell.trayHead}>
         <p className="eyebrow">Open Observation Needs</p>
         {activeModule && (
-          <span className={css.trayChip}>
+          <span className={shell.trayChip}>
             <span
-              className={css.filterChipDot}
+              className={shell.filterChipDot}
               style={{ background: OBSERVE_MODULE_DOT[activeModule] }}
             />
             {OBSERVE_MODULE_LABEL[activeModule]}
           </span>
         )}
-        <span className={css.trayCount}>
+        <span className={shell.trayCount}>
           {views.length} {views.length === 1 ? 'need' : 'needs'}
         </span>
-        <span className={css.traySpacer} />
+        <span className={shell.traySpacer} />
         {activeModule && (
-          <button type="button" className={css.clearFilterBtn} onClick={onClearFilter}>
+          <button type="button" className={shell.clearFilterBtn} onClick={onClearFilter}>
             View all needs
           </button>
         )}
         <button
           type="button"
-          className={css.raiseBtn}
+          className={shell.raiseBtn}
           onClick={() => {
             setRaisedTitle(null);
             setEditingId(null);
@@ -206,9 +207,9 @@ export default function OpenObservationNeedsPanel({
       )}
 
       {views.length === 0 ? (
-        <p className={css.emptyNote}>No open observation needs for this site yet.</p>
+        <p className={shell.emptyNote}>No open observation needs for this site yet.</p>
       ) : (
-        <div className={css.carousel} aria-label="Open observation needs">
+        <div className={shell.carousel} aria-label="Open observation needs">
           {views.map(({ objective, run, evaluation }) => {
             const isSelected = selectedId === objective.id;
             return (
@@ -217,7 +218,7 @@ export default function OpenObservationNeedsPanel({
                 role="button"
                 tabIndex={0}
                 aria-label={`Open observation need: ${objective.title}`}
-                className={`${css.objCard} ${isSelected ? css.objCardActive : ''}`}
+                className={`${shell.objCard} ${isSelected ? shell.objCardActive : ''}`}
                 onClick={() => onLaunch(objective.id)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -226,16 +227,16 @@ export default function OpenObservationNeedsPanel({
                   }
                 }}
               >
-                <span className={css.objCardTop}>
+                <span className={shell.objCardTop}>
                   <span
-                    className={css.objCardDot}
+                    className={shell.objCardDot}
                     style={{ background: OBSERVE_MODULE_DOT[objective.module] }}
                   />
-                  <span className={css.objCardModule}>
+                  <span className={shell.objCardModule}>
                     {OBSERVE_MODULE_LABEL[objective.module]}
                   </span>
                   <span
-                    className={`${css.objStatus} ${css[`status_${run.status.replace(/-/g, '_')}`] ?? ''}`}
+                    className={`${shell.objStatus} ${css[`status_${run.status.replace(/-/g, '_')}`] ?? ''}`}
                   >
                     {STATUS_LABEL[run.status]}
                   </span>
@@ -256,25 +257,25 @@ export default function OpenObservationNeedsPanel({
                   )}
                 </span>
 
-                <span className={css.objCardTitle}>{objective.title}</span>
+                <span className={shell.objCardTitle}>{objective.title}</span>
 
                 {objective.reason && (
-                  <span className={css.objCardDesc}>{objective.reason}</span>
+                  <span className={shell.objCardDesc}>{objective.reason}</span>
                 )}
 
-                <span className={css.objCardMeta}>
+                <span className={shell.objCardMeta}>
                   <span
-                    className={`${css.objOrigin} ${css[`origin_${objective.origin.replace(/-/g, '_')}`] ?? ''}`}
+                    className={`${shell.objOrigin} ${css[`origin_${objective.origin.replace(/-/g, '_')}`] ?? ''}`}
                   >
                     {ORIGIN_LABEL[objective.origin]}
                   </span>
-                  <span className={css.objMetaItem}>
+                  <span className={shell.objMetaItem}>
                     <MapPin size={13} strokeWidth={2} />
                     {objective.target.center[1].toFixed(4)},{' '}
                     {objective.target.center[0].toFixed(4)}
                   </span>
                   {objective.trigger && (
-                    <span className={css.objMetaItem}>
+                    <span className={shell.objMetaItem}>
                       <RefreshCw size={13} strokeWidth={2} /> {objective.trigger}
                     </span>
                   )}

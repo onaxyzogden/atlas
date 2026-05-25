@@ -17,7 +17,7 @@ import type { WorkItem } from '@ogden/shared';
 import { ACT_MODULE_LABEL, type ActModule } from '../types.js';
 import { ACT_MODULE_DOT } from '../data/actModulePalette.js';
 import { actWorkItemModule } from './actWorkItemModule.js';
-import css from '../../command/ObserveCommandCentrePage.module.css';
+import css from '../../command/shell/CommandCentreShell.module.css';
 
 const STATUS_LABEL: Partial<Record<WorkItem['status'], string>> = {
   todo: 'To do',

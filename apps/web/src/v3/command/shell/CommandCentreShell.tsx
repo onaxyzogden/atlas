@@ -23,7 +23,7 @@
  */
 
 import type { ReactNode } from 'react';
-import css from '../ObserveCommandCentrePage.module.css';
+import css from './CommandCentreShell.module.css';
 
 export interface CommandCentreShellProps {
   /** Module-tab strip row (top). */
