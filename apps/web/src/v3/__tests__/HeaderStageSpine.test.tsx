@@ -3,7 +3,7 @@
  *
  * HeaderStageSpine route/navigation suite.
  *
- * Three mocks:
+ * Four mocks:
  *  1. `lucide-react` — childless `forwardRef` icons inject `[undefined]`
  *     children (rejected by React 18 + happy-dom); replaced with <svg> stubs.
  *  2. `@tanstack/react-router` — `useRouterState` reads a hoisted mutable
@@ -11,6 +11,9 @@
  *     `useNavigate` returns a spy.
  *  3. `../compass/useCompassData.js` — returns a hoisted Observe aggregate so we
  *     can exercise the < 100 (→ Compass) vs === 100 (→ Command Centre) branch.
+ *  4. `../plan/compass/usePlanCompassData.js` + `../act/compass/useActCompassData.js`
+ *     — return hoisted Plan/Act aggregates so every header segment shows its
+ *     own real %.
  */
 
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
@@ -20,6 +23,8 @@ import { render, cleanup, fireEvent } from '@testing-library/react';
 const h = vi.hoisted(() => ({
   pathname: '/v3/project/mtc/compass',
   pct: 50,
+  planPct: 12,
+  actPct: 0,
   navigateSpy: vi.fn(),
 }));
 
@@ -68,12 +73,30 @@ vi.mock('../compass/useCompassData.js', () => ({
   }),
 }));
 
+vi.mock('../plan/compass/usePlanCompassData.js', () => ({
+  usePlanCompassData: () => ({
+    views: [],
+    byId: {},
+    stage: { verified: h.planPct, total: 100, pct: h.planPct },
+  }),
+}));
+
+vi.mock('../act/compass/useActCompassData.js', () => ({
+  useActCompassData: () => ({
+    views: [],
+    byId: {},
+    stage: { verified: h.actPct, total: 100, pct: h.actPct },
+  }),
+}));
+
 // Import AFTER mocks so the SUT captures them.
 import HeaderStageSpine from '../HeaderStageSpine';
 
 beforeEach(() => {
   h.pathname = '/v3/project/mtc/compass';
   h.pct = 50;
+  h.planPct = 12;
+  h.actPct = 0;
 });
 afterEach(() => {
   cleanup();
@@ -94,6 +117,28 @@ describe('HeaderStageSpine', () => {
     expect(
       container.querySelector('[data-stage="observe"]')?.getAttribute('data-active'),
     ).toBe('true');
+  });
+
+  it('shows each stage’s own real % from its compass hook (no em dash)', () => {
+    h.pathname = '/v3/project/mtc/compass';
+    h.pct = 50;
+    h.planPct = 12;
+    h.actPct = 0;
+    const { container } = render(<HeaderStageSpine />);
+    expect(
+      container.querySelector('[data-stage="observe"]')?.textContent,
+    ).toContain('50%');
+    expect(
+      container.querySelector('[data-stage="plan"]')?.textContent,
+    ).toContain('12%');
+    expect(
+      container.querySelector('[data-stage="act"]')?.textContent,
+    ).toContain('0%');
+    for (const id of ['observe', 'plan', 'act']) {
+      expect(
+        container.querySelector(`[data-stage="${id}"]`)?.textContent,
+      ).not.toContain('—');
+    }
   });
 
   it('marks Plan active on the plan route', () => {

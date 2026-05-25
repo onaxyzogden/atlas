@@ -4,7 +4,7 @@
  * StageSpine render + interaction suite.
  *
  * `StageSpine` is purely presentational (no router import) — it takes an
- * `activeStage`, Observe's aggregate progress, and an `onNavigateStage`
+ * `activeStage`, a per-stage `progressByStage` map, and an `onNavigateStage`
  * callback. So the only mock required is `lucide-react`: its `forwardRef` icons
  * spread `[undefined]` into <svg> children when childless, which React 18 +
  * happy-dom reject. We harvest every export via `importOriginal` and replace
@@ -53,33 +53,46 @@ const progress = (pct: number): ObjectiveProgress => ({
   pct,
 });
 
+/** Build a per-stage progress map terse enough for inline render calls. */
+const byStage = (
+  observe: number,
+  plan: number,
+  act: number,
+): Record<'observe' | 'plan' | 'act', ObjectiveProgress> => ({
+  observe: progress(observe),
+  plan: progress(plan),
+  act: progress(act),
+});
+
 afterEach(() => cleanup());
 
 describe('StageSpine', () => {
-  it('shows Observe’s real % and an em dash for Plan/Act', () => {
+  it('shows each stage’s own real % (no em dash)', () => {
     const { container } = render(
       <StageSpine
         activeStage="observe"
-        observeProgress={progress(37)}
+        progressByStage={byStage(37, 12, 0)}
         onNavigateStage={vi.fn()}
       />,
     );
     const observe = container.querySelector('[data-stage="observe"]');
     const plan = container.querySelector('[data-stage="plan"]');
     const act = container.querySelector('[data-stage="act"]');
+    // Every segment renders its own aggregate.
     expect(observe?.textContent).toContain('37%');
-    expect(plan?.textContent).toContain('—');
-    expect(act?.textContent).toContain('—');
-    // Plan/Act never show a percent.
-    expect(plan?.textContent).not.toContain('%');
-    expect(act?.textContent).not.toContain('%');
+    expect(plan?.textContent).toContain('12%');
+    expect(act?.textContent).toContain('0%');
+    // The em-dash placeholder is gone everywhere.
+    expect(observe?.textContent).not.toContain('—');
+    expect(plan?.textContent).not.toContain('—');
+    expect(act?.textContent).not.toContain('—');
   });
 
   it('marks only the active stage (observe)', () => {
     const { container } = render(
       <StageSpine
         activeStage="observe"
-        observeProgress={progress(37)}
+        progressByStage={byStage(37, 12, 0)}
         onNavigateStage={vi.fn()}
       />,
     );
@@ -95,7 +108,7 @@ describe('StageSpine', () => {
     const { container } = render(
       <StageSpine
         activeStage="plan"
-        observeProgress={progress(37)}
+        progressByStage={byStage(37, 12, 0)}
         onNavigateStage={vi.fn()}
       />,
     );
@@ -115,7 +128,7 @@ describe('StageSpine', () => {
     const { container } = render(
       <StageSpine
         activeStage={null}
-        observeProgress={progress(37)}
+        progressByStage={byStage(37, 12, 0)}
         onNavigateStage={vi.fn()}
       />,
     );
@@ -131,7 +144,7 @@ describe('StageSpine', () => {
     const { container } = render(
       <StageSpine
         activeStage="observe"
-        observeProgress={progress(37)}
+        progressByStage={byStage(37, 12, 0)}
         onNavigateStage={onNavigateStage}
       />,
     );
@@ -145,7 +158,7 @@ describe('StageSpine', () => {
     render(
       <StageSpine
         activeStage="observe"
-        observeProgress={progress(0)}
+        progressByStage={byStage(0, 0, 0)}
         onNavigateStage={vi.fn()}
       />,
     );
