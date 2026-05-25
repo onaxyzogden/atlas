@@ -628,11 +628,11 @@
 
 /* ============================================================
    Dashboard shell (2026-05-25 restructure)
-   Fixed full-viewport grid: topbar / module tabs / body / tray.
+   Fixed full-viewport grid: module tabs / body / tray.
    ============================================================ */
 .shell {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: var(--space-3);
   padding: var(--space-3);
   height: 100%;
