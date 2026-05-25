@@ -1213,13 +1213,29 @@ export async function hydrateTypedTables(
  * project-create path has bootstrapped the serverId). The op itself resolves
  * serverId again at flush time, so a race here only delays, never drops.
  */
+const warnedNoServerId = new Set<string>();
+
 export async function enqueueVersionedBlob(
   desc: SyncedStoreDescriptor,
 ): Promise<void> {
   if (!desc.store || !desc.selectForProject) return;
   const activeId = useProjectStore.getState().activeProjectId;
   if (!activeId) return;
-  if (!getProjectServerId(activeId)) return;
+  // No serverId means this project has never been pushed (builtin/demo fixtures
+  // like `mtc` are also viewer-only by RBAC and won't accept blob writes). Skip
+  // silently in prod; in dev, surface it once per project so a tester editing a
+  // serverId-less project isn't left wondering why nothing syncs — exercise sync
+  // with a created/owned project instead.
+  if (!getProjectServerId(activeId)) {
+    if (import.meta.env.DEV && !warnedNoServerId.has(activeId)) {
+      warnedNoServerId.add(activeId);
+      console.info(
+        `[SYNC] Skipping versioned-blob push for project "${activeId}": no serverId yet ` +
+          `(builtin/demo projects are viewer-only). Create/own a project to exercise blob sync.`,
+      );
+    }
+    return;
+  }
   const payload: StateBlobOpPayload = {
     projectLocalId: activeId,
     storeKey: desc.storeKey,
