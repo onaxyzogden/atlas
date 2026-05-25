@@ -59,6 +59,7 @@ import PlanDecisionLogPage from '../v3/plan/decisions/PlanDecisionLogPage.js';
 import PlanWorkPackagesPage from '../v3/plan/work-packages/PlanWorkPackagesPage.js';
 import PlanningWorkspacePage from '../v3/plan/workspace/PlanningWorkspacePage.js';
 import PlanConflictsPage from '../v3/plan/conflicts/PlanConflictsPage.js';
+import PlanVersionsPage from '../v3/plan/versions/PlanVersionsPage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
@@ -343,6 +344,13 @@ const v3PlanConflictsRoute = createRoute({
   path: 'plan/conflicts',
   component: PlanConflictsPage,
 });
+// Plan Versions — point-in-time snapshots of the whole plan (Phase 5b). Static
+// path resolves before the `plan/$module` param route.
+const v3PlanVersionsRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/versions',
+  component: PlanVersionsPage,
+});
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/$module',
@@ -574,6 +582,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanWorkPackagesRoute,
       v3PlanWorkspaceRoute,
       v3PlanConflictsRoute,
+      v3PlanVersionsRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActRoute,

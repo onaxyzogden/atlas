@@ -97,6 +97,7 @@ import { usePlanImpactReviewStore } from '../store/planImpactReviewStore.js';
 import { usePlanDecisionStore } from '../store/planDecisionStore.js';
 import { usePlanWorkPackageStore } from '../store/planWorkPackageStore.js';
 import { usePlanConflictReviewStore } from '../store/planConflictReviewStore.js';
+import { usePlanVersionStore } from '../store/planVersionStore.js';
 import { useObservationNeedStore } from '../store/observationNeedStore.js';
 import { useTrueNorthStore } from '../store/trueNorthStore.js';
 import { useActCompassStore } from '../store/actCompassStore.js';
@@ -410,6 +411,11 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // accepted decisions to Act. byProject Record<projectId, Record<pkgId, PlanWorkPackage>>.
   blob('ogden-plan-work-packages', usePlanWorkPackageStore, 'byProject', 1, byKey('byProject', null, {})),
   blob('ogden-plan-conflict-reviews', usePlanConflictReviewStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Plan Versions (Phase 5b): authored point-in-time snapshots of the whole
+  // plan. byProject Record<projectId, Record<versionId, PlanVersion>>. The
+  // snapshot engine (planSnapshot.ts) SKIPS this storeKey during capture so a
+  // version never contains the version history (no recursion/bloat).
+  blob('ogden-plan-versions', usePlanVersionStore, 'byProject', 1, byKey('byProject', null, {})),
   // Observation needs: per-project run state + steward-raised needs (two
   // byProject maps), custom shape extracts/restores both for one project.
   blob('ogden-observation-needs', useObservationNeedStore, 'byProject', 3, observationNeedsShape),
