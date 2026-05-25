@@ -39,7 +39,10 @@ import { usePlanImpactFlagCounts } from '../plan/impact/usePlanImpactFlags.js';
 import { usePlanDecisionCounts } from '../plan/decisions/usePlanDecisions.js';
 import { usePlanWorkPackageCounts } from '../plan/work-packages/usePlanWorkPackages.js';
 import { usePlanConflictCounts } from '../plan/conflicts/usePlanConflicts.js';
-import { usePlanVersionCounts } from '../plan/versions/usePlanVersions.js';
+import {
+  usePlanVersionCounts,
+  useActivePlanVersion,
+} from '../plan/versions/usePlanVersions.js';
 import css from './V3LifecycleSidebar.module.css';
 
 interface DisabledLink {
@@ -129,6 +132,7 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
   const workPackageCounts = usePlanWorkPackageCounts(projectId);
   const conflictCounts = usePlanConflictCounts(projectId);
   const versionCounts = usePlanVersionCounts(projectId);
+  const activeVersion = useActivePlanVersion(projectId);
 
   const stageIsActive = (id: StageId): boolean =>
     (activeStage as string) === id;
@@ -360,6 +364,33 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
                           {versionCounts.draft > 0 ? (
                             <span className={css.utilityCount}>
                               {versionCounts.draft}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/synthesis"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/synthesis')
+                            ? 'true'
+                            : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Plan Synthesis
+                          {activeVersion?.status === 'approved' ? (
+                            <span
+                              className={css.utilityCount}
+                              title="Plan approved"
+                            >
+                              ✓
                             </span>
                           ) : null}
                         </span>

@@ -60,6 +60,7 @@ import PlanWorkPackagesPage from '../v3/plan/work-packages/PlanWorkPackagesPage.
 import PlanningWorkspacePage from '../v3/plan/workspace/PlanningWorkspacePage.js';
 import PlanConflictsPage from '../v3/plan/conflicts/PlanConflictsPage.js';
 import PlanVersionsPage from '../v3/plan/versions/PlanVersionsPage.js';
+import PlanSynthesisPage from '../v3/plan/synthesis/PlanSynthesisPage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
@@ -351,6 +352,13 @@ const v3PlanVersionsRoute = createRoute({
   path: 'plan/versions',
   component: PlanVersionsPage,
 });
+// Plan Synthesis — Plan-Operation roll-up + advisory approval (Phase 5c).
+// Static path resolves before the `plan/$module` param route.
+const v3PlanSynthesisRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/synthesis',
+  component: PlanSynthesisPage,
+});
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/$module',
@@ -583,6 +591,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanWorkspaceRoute,
       v3PlanConflictsRoute,
       v3PlanVersionsRoute,
+      v3PlanSynthesisRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActRoute,
