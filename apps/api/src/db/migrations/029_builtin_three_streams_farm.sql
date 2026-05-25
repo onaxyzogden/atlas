@@ -83,7 +83,7 @@ SELECT
   'Three Streams Farm — Apricot-Lane Showcase',
   'A fictional ~180-acre rural Milton (Halton Region) farm on the Sixteen Mile Creek headwaters — three small tributaries thread the lot. Purchased 2024 as eroded continuous-corn ground; in Year 2 (2026) of an 8-year rehabilitation arc inspired by farms like Apricot Lane Farms and the rehabilitation narrative shown in The Biggest Little Farm. The data substrate underneath is real (Conservation Halton + OMAFRA + OHN + AAFC + NRCan + ECCC adapters); the farm itself is a showcase canon, not an operating business.',
   'active',
-  'farm',
+  'regenerative_farm',
   ST_Multi(ST_GeomFromGeoJSON(
     '{"type":"Polygon","coordinates":[[[-79.9145,43.5560],[-79.9055,43.5560],[-79.9055,43.5640],[-79.9145,43.5640],[-79.9145,43.5560]]]}'
   )),

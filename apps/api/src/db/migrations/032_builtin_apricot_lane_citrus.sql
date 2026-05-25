@@ -84,7 +84,7 @@ SELECT
   'Apricot Lane Showcase — Degraded Citrus → Polyculture',
   'A fictional ~200-acre rural Moorpark (Ventura County) showcase project on the Calleguas Creek headwaters — two seasonal arroyos thread the lot. Inherited 2024 as 14-year continuous-citrus ground after the citrus block went uneconomic following a HLB (citrus greening) advance + chronic groundwater drawdown. Y0 baseline: cleared but unrooted citrus blocks, plow pan + irrigation-line scars, low SOM (~1.2 %), summer-drought hydrology, south-southwest exposure dominant. Inspired by farms like Apricot Lane Farms and the rehabilitation arc shown in The Biggest Little Farm; Apricot Lane Showcase is a fictional Ventura County operation. The data substrate underneath is real (USGS 3DEP + SSURGO + USGS WBD + FEMA NFHL + NLCD + NOAA Normals adapters).',
   'active',
-  'farm',
+  'regenerative_farm',
   ST_Multi(ST_GeomFromGeoJSON(
     '{"type":"Polygon","coordinates":[[[-118.952,34.290],[-118.942,34.290],[-118.942,34.298],[-118.952,34.298],[-118.952,34.290]]]}'
   )),
