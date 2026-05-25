@@ -215,6 +215,32 @@ describe('HeaderStageSpine', () => {
     );
   });
 
+  it('routes Act to the Act Compass while Act is incomplete', () => {
+    h.pathname = '/v3/project/mtc/compass';
+    h.actPct = 0;
+    const { container } = render(<HeaderStageSpine />);
+    fireEvent.click(container.querySelector('[data-stage="act"]')!);
+    expect(h.navigateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '/v3/project/$projectId/act/compass',
+        params: { projectId: 'mtc' },
+      }),
+    );
+  });
+
+  it('routes Act to the Command Centre once Act is complete (pct === 100)', () => {
+    h.pathname = '/v3/project/mtc/compass';
+    h.actPct = 100;
+    const { container } = render(<HeaderStageSpine />);
+    fireEvent.click(container.querySelector('[data-stage="act"]')!);
+    expect(h.navigateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: '/v3/project/$projectId/act/command-centre',
+        params: { projectId: 'mtc' },
+      }),
+    );
+  });
+
   it('does not navigate when the already-active stage is clicked', () => {
     h.pathname = '/v3/project/mtc/plan';
     const { container } = render(<HeaderStageSpine />);

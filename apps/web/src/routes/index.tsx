@@ -52,6 +52,7 @@ import PlanStageCompassPage from '../v3/plan/compass/PlanStageCompassPage.js';
 import ActStageCompassPage from '../v3/act/compass/ActStageCompassPage.js';
 import ObserveCommandCentrePage from '../v3/command/ObserveCommandCentrePage.js';
 import PlanCommandCentrePage from '../v3/plan/command/PlanCommandCentrePage.js';
+import ActCommandCentrePage from '../v3/act/command/ActCommandCentrePage.js';
 import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
 import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
@@ -379,6 +380,13 @@ const v3ActCompassRoute = createRoute({
   path: 'act/compass',
   component: ActStageCompassPage,
 });
+// Act Command Centre — the aggregate "run the stage" surface the Act compass
+// center unlocks into. Static path resolves before the `act/$module` param.
+const v3ActCommandCentreRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/command-centre',
+  component: ActCommandCentrePage,
+});
 const v3ActRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'act',
@@ -603,6 +611,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanSynthesisRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
+      v3ActCommandCentreRoute,
       v3ActRoute,
       v3ActModuleRoute,
       v3DesignRoute,

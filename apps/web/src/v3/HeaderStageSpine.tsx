@@ -14,7 +14,9 @@
  *  - Plan segment → the Plan Compass while incomplete; once every Plan objective
  *    is verified (pct === 100) → the Plan Command Centre. A no-op when already on
  *    a Plan route.
- *  - Act segment → that stage's route; a no-op when already there.
+ *  - Act segment → the Act Compass while incomplete; once every Act objective
+ *    is verified (pct === 100) → the Act Command Centre. A no-op when already on
+ *    an Act route.
  */
 
 import { useRouterState, useNavigate } from '@tanstack/react-router';
@@ -88,6 +90,20 @@ export default function HeaderStageSpine() {
       } else {
         navigate({
           to: '/v3/project/$projectId/plan/compass',
+          params: { projectId },
+        });
+      }
+      return;
+    }
+    if (stage === 'act') {
+      if (actData.stage.pct >= 100) {
+        navigate({
+          to: '/v3/project/$projectId/act/command-centre',
+          params: { projectId },
+        });
+      } else {
+        navigate({
+          to: '/v3/project/$projectId/act/compass',
           params: { projectId },
         });
       }
