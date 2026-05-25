@@ -35,6 +35,7 @@ import {
   isActModule,
   type ActModule,
 } from '../act/types.js';
+import { usePlanImpactFlagCounts } from '../plan/impact/usePlanImpactFlags.js';
 import css from './V3LifecycleSidebar.module.css';
 
 interface DisabledLink {
@@ -119,6 +120,7 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
   const projectId = params.projectId ?? 'mtc';
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const reviewCounts = usePlanImpactFlagCounts(projectId);
 
   const stageIsActive = (id: StageId): boolean =>
     (activeStage as string) === id;
@@ -244,6 +246,28 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
                       </li>
                     );
                   })}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/review"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/review') ? 'true' : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Plan Reviews
+                          {reviewCounts.open > 0 ? (
+                            <span className={css.utilityCount}>
+                              {reviewCounts.open}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
                 </ul>
               ) : null}
             </section>

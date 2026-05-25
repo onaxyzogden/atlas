@@ -93,6 +93,7 @@ import { useRotationPlanStore } from '../store/rotationPlanStore.js';
 import { useCompostCycleStore } from '../store/compostCycleStore.js';
 import { useSuccessionPathStore } from '../store/successionPathStore.js';
 import { useLandDesignStore } from '../store/landDesignStore.js';
+import { usePlanImpactReviewStore } from '../store/planImpactReviewStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -341,6 +342,9 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-atlas-plan-how-checks', usePlanHowChecksStore, 'byProject', 1, byKey('byProject', null, {})),
   blob('ogden-relationships', useRelationshipsStore, 'byProject', 2, byKey('edgesByProject', null, [])),
   blob('ogden-atlas-observe-how-checks', useObserveHowChecksStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Plan Impact Reviews (Phase 1): persisted triage state for derived
+  // Observe→Plan impact flags. byProject Record<projectId, Record<flagId, run>>.
+  blob('ogden-plan-impact-reviews', usePlanImpactReviewStore, 'byProject', 1, byKey('byProject', null, {})),
 
   // --- versioned-blob: projectId-tagged (flat arrays carrying projectId) ---
   blob('ogden-regen-plans', useRegenerationPlanStore, 'projectId-tagged', 2, tagged('plans'), true),

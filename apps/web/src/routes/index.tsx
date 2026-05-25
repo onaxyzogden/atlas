@@ -53,6 +53,7 @@ import ObserveCommandCentrePage from '../v3/command/ObserveCommandCentrePage.js'
 import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
 import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
+import PlanReviewsPage from '../v3/plan/impact/PlanReviewsPage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
@@ -294,6 +295,13 @@ const v3PlanRoute = createRoute({
   path: 'plan',
   component: PlanLayout,
 });
+// Plan Reviews — Observe→Plan impact-flag triage. Static path resolves before
+// the `plan/$module` param route. Nucleus of the future Plan Operation Centre.
+const v3PlanReviewRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/review',
+  component: PlanReviewsPage,
+});
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/$module',
@@ -519,6 +527,7 @@ const routeTree = rootRoute.addChildren([
       v3ObserveModuleRoute,
       v3PlanCompassRoute,
       v3PlanRoute,
+      v3PlanReviewRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActRoute,
