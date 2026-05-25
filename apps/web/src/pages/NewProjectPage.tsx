@@ -1,242 +1,213 @@
 /**
- * NewProjectPage — multi-step property intake wizard.
+ * NewProjectPage — minimal project intake.
  *
- * Steps:
- *   0. (Optional) Template — choose a public template or start blank
- *   1. Name & Type — project name, type, country, units
- *   2. Location — address, parcel ID, GPS coordinates
- *   3. Boundary — draw on map or import file (KML/GeoJSON/Shapefile)
- *   4. Notes & Attachments — owner notes, zoning, photos, documents
+ * The old multi-step property wizard (template → name → location → boundary →
+ * notes) has been replaced by the Stage Zero Vision Builder: project creation
+ * now captures only a name, and the parcel boundary + site context are gathered
+ * later (boundary in OBSERVE, vision in the Stage Zero questionnaire).
  *
- * Step 0 is auto-skipped when the URL carries a `prefillTemplate`
- * search-param (the showcase ContactCTA + the /register tier paths
- * thread it through). When skipped, the wizard starts on StepBasicInfo.
+ * On submit this creates the project locally (always, so the flow works offline
+ * / unauthenticated) and — when signed in — mirrors it to the server, honouring
+ * the `?prefillTemplate` slug (public template instantiation) and `?orgId`
+ * workspace context. It then routes to the Stage Zero Vision Builder.
+ *
+ * The legacy `features/project/wizard/Step*` components are intentionally
+ * preserved on disk; they are no longer mounted here but remain available for
+ * reuse in later stages.
  */
 
 import { useMemo, useState, useEffect } from 'react';
-import { useSearch } from '@tanstack/react-router';
-import type { Country } from '@ogden/shared';
-import { StepIndicator } from '../components/ui/index.js';
-import StepTemplate from '../features/project/wizard/StepTemplate.js';
-import StepBasicInfo from '../features/project/wizard/StepBasicInfo.js';
-import StepLocation from '../features/project/wizard/StepLocation.js';
-import StepBoundary from '../features/project/wizard/StepBoundary.js';
-import StepNotes from '../features/project/wizard/StepNotes.js';
-import { OrganizationSwitcherModal } from '../features/organizations/OrganizationSwitcherModal.js';
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { ArrowRight } from 'lucide-react';
+import { useProjectStore } from '../store/projectStore.js';
 import { useAuthStore } from '../store/authStore.js';
+import { api } from '../lib/apiClient.js';
+import { recordShowcaseEvent } from '../showcase/lib/showcaseEventLog.js';
+import { OrganizationSwitcherModal } from '../features/organizations/OrganizationSwitcherModal.js';
 import styles from './NewProjectPage.module.css';
-
-export interface WizardData {
-  // Step 0 — template selection (optional)
-  templateSlug?: string;
-  drawFirst?: boolean;
-  fullSetup?: boolean;
-  // Phase 4.5 — workspace (organization) context.
-  // Populated from ?orgId search param, user's defaultOrgId, or the
-  // OrganizationSwitcherModal pick. Threaded into the create-project
-  // payload by StepNotes.handleCreate so projects land on the right org.
-  orgId?: string;
-  // Step 1
-  name: string;
-  projectType: string;
-  country: Country;
-  units: 'metric' | 'imperial';
-  description: string;
-  // Step 2
-  address: string;
-  parcelId: string;
-  provinceState: string;
-  centerLat: string;
-  centerLng: string;
-  // Step 3
-  parcelBoundaryGeojson: unknown | null;
-  // Step 4
-  ownerNotes: string;
-  zoningNotes: string;
-  accessNotes: string;
-  waterRightsNotes: string;
-  // Step 4 — long-tail metadata (persisted to projects.metadata jsonb)
-  climateRegion: string;
-  bioregion: string;
-  county: string;
-  legalDescription: string;
-  fieldObservations: string;
-  restrictionsCovenants: string;
-  mapProjection: string;
-  // Step 4 — soil notes (persisted to projects.metadata.soilNotes jsonb)
-  soilPh: string;
-  soilOrganicMatter: string;
-  soilCompaction: string;
-  soilBiologicalActivity: string;
-}
-
-const INITIAL_DATA: WizardData = {
-  templateSlug: undefined,
-  drawFirst: false,
-  fullSetup: false,
-  orgId: undefined,
-  name: '',
-  projectType: '',
-  country: 'US',
-  units: 'metric',
-  description: '',
-  address: '',
-  parcelId: '',
-  provinceState: '',
-  centerLat: '',
-  centerLng: '',
-  parcelBoundaryGeojson: null,
-  ownerNotes: '',
-  zoningNotes: '',
-  accessNotes: '',
-  waterRightsNotes: '',
-  climateRegion: '',
-  bioregion: '',
-  county: '',
-  legalDescription: '',
-  fieldObservations: '',
-  restrictionsCovenants: '',
-  mapProjection: '',
-  soilPh: '',
-  soilOrganicMatter: '',
-  soilCompaction: '',
-  soilBiologicalActivity: '',
-};
 
 interface NewProjectSearch {
   prefillTemplate?: string;
-  drawFirst?: boolean | string;
   fullSetup?: boolean | string;
   orgId?: string;
 }
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '12px 14px',
+  fontSize: 15,
+  border: '1px solid var(--color-border)',
+  borderRadius: 'var(--radius-md)',
+  background: 'var(--color-surface)',
+  color: 'var(--color-text)',
+  fontFamily: 'inherit',
+  outline: 'none',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: 12,
+  fontWeight: 500,
+  color: 'var(--color-text-muted)',
+  marginBottom: 6,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+};
+
 export default function NewProjectPage() {
   const search = useSearch({ strict: false }) as NewProjectSearch;
+  const navigate = useNavigate();
+  const createProject = useProjectStore((s) => s.createProject);
+  const updateProject = useProjectStore((s) => s.updateProject);
   const defaultOrgId = useAuthStore((s) => s.user?.defaultOrgId ?? null);
+  const token = useAuthStore((s) => s.token);
 
-  // Tier-aware initialisation: if the /register handoff (or a deep link)
-  // pre-fills a template, skip the template-picker step entirely.
   const prefillTemplate =
     typeof search.prefillTemplate === 'string' && search.prefillTemplate
       ? search.prefillTemplate
       : undefined;
-  const drawFirst =
-    search.drawFirst === true || search.drawFirst === 'true';
-  const fullSetup =
-    search.fullSetup === true || search.fullSetup === 'true';
+  const fullSetup = search.fullSetup === true || search.fullSetup === 'true';
   const prefillOrgId =
     typeof search.orgId === 'string' && search.orgId ? search.orgId : undefined;
 
-  // Phase 4.5: resolve effective workspace id. Priority: explicit URL param →
-  // user's default org (set at register-time by Prong 1) → undefined (modal
-  // will be shown to force a pick before submit).
+  // Workspace id resolution: explicit URL param → user's default org →
+  // undefined (the picker modal forces a choice on the Stewarding path).
   const effectiveOrgId = prefillOrgId ?? defaultOrgId ?? undefined;
 
-  const initialData: WizardData = useMemo(
-    () => ({
-      ...INITIAL_DATA,
-      templateSlug: prefillTemplate,
-      drawFirst,
-      fullSetup,
-      orgId: effectiveOrgId,
-      // Friendly default name when arriving from the showcase ContactCTA.
-      name:
-        prefillTemplate === 'ecosystem-farm'
-          ? INITIAL_DATA.name || 'My Ecosystem Farm'
-          : INITIAL_DATA.name,
-    }),
-    [prefillTemplate, drawFirst, fullSetup, effectiveOrgId],
+  const [name, setName] = useState(
+    prefillTemplate === 'ecosystem-farm' ? 'My Ecosystem Farm' : '',
   );
+  const [orgId, setOrgId] = useState<string | undefined>(effectiveOrgId);
+  const [creating, setCreating] = useState(false);
 
-  const STEPS = useMemo(() => {
-    const baseSteps = [
-      { label: 'Name & Type', component: StepBasicInfo },
-      { label: 'Location', component: StepLocation },
-      { label: 'Boundary', component: StepBoundary },
-      { label: 'Notes', component: StepNotes },
-    ] as const;
-    // Skip the template picker when the URL already pinned a template.
-    if (prefillTemplate) return baseSteps;
-    return [
-      { label: 'Template', component: StepTemplate },
-      ...baseSteps,
-    ] as const;
-  }, [prefillTemplate]);
-
-  const [step, setStep] = useState(0);
-  const [data, setData] = useState<WizardData>(initialData);
-
-  // Phase 4.5: open OrganizationSwitcherModal when the visitor arrived via the
-  // Stewarding-tier handoff (?fullSetup=true) without an explicit ?orgId.
-  // Returning users with multiple orgs can also surface this modal in future
-  // slices; v1 trigger is the locked decision-#2 hybrid path.
+  // Stewarding-tier handoff (?fullSetup=true) with no explicit ?orgId must
+  // pick a workspace before submit.
   const [showOrgModal, setShowOrgModal] = useState<boolean>(
     fullSetup && !prefillOrgId,
   );
   useEffect(() => {
-    if (fullSetup && !prefillOrgId && !data.orgId) {
-      setShowOrgModal(true);
+    if (fullSetup && !prefillOrgId && !orgId) setShowOrgModal(true);
+  }, [fullSetup, prefillOrgId, orgId]);
+
+  const canSubmit = useMemo(() => name.trim().length > 0 && !creating, [name, creating]);
+
+  const handleCreate = async () => {
+    if (!canSubmit) return;
+    setCreating(true);
+    const trimmed = name.trim();
+    const metadata = prefillTemplate
+      ? { instantiatedFromTemplate: prefillTemplate }
+      : undefined;
+
+    // Local copy first — always created so the flow works offline / unauth.
+    const project = createProject({ name: trimmed, metadata });
+
+    // Authenticated: mirror to the server and adopt the server id.
+    if (token) {
+      try {
+        if (prefillTemplate) {
+          const { data: serverProject } = await api.templates.instantiatePublic(
+            prefillTemplate,
+            { name: trimmed, parcelBoundaryGeojson: null, orgId },
+          );
+          updateProject(project.id, { serverId: serverProject.id });
+          recordShowcaseEvent({
+            eventType: 'template_instantiated',
+            projectId: serverProject.id,
+            payload: { template: prefillTemplate },
+          });
+        } else {
+          const { data: serverProject } = await api.projects.create({
+            name: trimmed,
+            orgId,
+          });
+          updateProject(project.id, { serverId: serverProject.id });
+        }
+      } catch {
+        // Backend unavailable — local copy is intact, sync retries later.
+      }
     }
-  }, [fullSetup, prefillOrgId, data.orgId]);
 
-  const StepComponent = STEPS[step]!.component;
-  const isFirst = step === 0;
-  const isLast = step === STEPS.length - 1;
-  // The boundary step occupies the third-from-last slot regardless of
-  // whether the template picker is mounted.
-  const isBoundaryStep =
-    STEPS[step]!.component === StepBoundary;
-
-  const STEP_IDS = STEPS.map((s, i) => ({ id: String(i), label: s.label }));
-  const completedSteps = STEP_IDS.filter((_, i) => i < step).map((s) => s.id);
-
-  const updateData = (updates: Partial<WizardData>) => {
-    setData((prev) => ({ ...prev, ...updates }));
-  };
-
-  const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
-  const goBack = () => setStep((s) => Math.max(s - 1, 0));
-
-  const handleStepClick = (stepId: string) => {
-    const idx = Number(stepId);
-    if (idx <= step) setStep(idx);
+    navigate({
+      to: '/v3/project/$projectId/stage-zero',
+      params: { projectId: project.id },
+    });
   };
 
   return (
     <div className={styles.page}>
-      {/* Header: title + step indicator */}
       <div className={styles.header}>
         <h1 className={styles.title}>Create New Project</h1>
-        <StepIndicator
-          steps={STEP_IDS}
-          currentStep={String(step)}
-          completedSteps={completedSteps}
-          onStepClick={handleStepClick}
-          className={styles.stepIndicator}
-        />
       </div>
 
-      {/* Step content */}
-      <div className={isBoundaryStep ? styles.contentExpanded : styles.content}>
-        <div className={isBoundaryStep ? styles.cardExpanded : styles.card}>
-          <StepComponent
-            data={data}
-            updateData={updateData}
-            onNext={goNext}
-            onBack={goBack}
-            isFirst={isFirst}
-            isLast={isLast}
-          />
+      <div className={styles.content}>
+        <div className={styles.card}>
+          <p
+            style={{
+              fontSize: 14,
+              color: 'var(--color-text-muted)',
+              marginTop: 0,
+              marginBottom: 24,
+              lineHeight: 1.6,
+            }}
+          >
+            Give your project a name to begin. Next, the Stage Zero Vision
+            Builder will help you shape its vision — you’ll draw or import the
+            land boundary in the Observe stage.
+          </p>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void handleCreate();
+            }}
+          >
+            <label style={labelStyle} htmlFor="new-project-name">
+              Project Name
+            </label>
+            <input
+              id="new-project-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Maple Creek Homestead"
+              style={inputStyle}
+              autoFocus
+            />
+
+            <div style={{ marginTop: 28, display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="submit"
+                disabled={!canSubmit}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '11px 22px',
+                  borderRadius: 'var(--radius-md)',
+                  border: 'none',
+                  background: canSubmit
+                    ? 'var(--color-earth-600)'
+                    : 'var(--color-border)',
+                  color: canSubmit ? '#fff' : 'var(--color-text-muted)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: canSubmit ? 'pointer' : 'not-allowed',
+                  transition: 'background 120ms ease',
+                }}
+              >
+                {creating ? 'Creating…' : 'Continue to Vision Builder'}
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-      {/* Navigation is handled by each step's WizardNav component */}
-
-      {/* Phase 4.5 — workspace picker for Stewarding-tier returning users. */}
       {showOrgModal && (
         <OrganizationSwitcherModal
-          onPick={(orgId) => {
-            updateData({ orgId });
+          onPick={(picked) => {
+            setOrgId(picked);
             setShowOrgModal(false);
           }}
           onClose={() => setShowOrgModal(false)}

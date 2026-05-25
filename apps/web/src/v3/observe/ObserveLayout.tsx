@@ -268,6 +268,14 @@ export default function ObserveLayout() {
                     acreage: parcelAcreage(polygon, units),
                   });
                 }}
+                onBoundaryImported={(geojson) => {
+                  if (!params.projectId) return;
+                  updateProject(params.projectId, {
+                    parcelBoundaryGeojson: geojson,
+                    hasParcelBoundary: true,
+                    acreage: parcelAcreage(geojson, units),
+                  });
+                }}
               />
               <MapCursorHost
                 map={map}
