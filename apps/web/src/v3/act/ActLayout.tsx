@@ -43,6 +43,7 @@ import ActStructurePopover from './ActStructurePopover.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
+import StageGateOverlay from './StageGateOverlay.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -160,6 +161,7 @@ export default function ActLayout() {
         />
       }
       canvas={
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
         <DiagnoseMap
           centroid={fallbackCenter}
           boundary={boundary}
@@ -207,6 +209,8 @@ export default function ActLayout() {
             </>
           )}
         </DiagnoseMap>
+        <StageGateOverlay projectId={params.projectId ?? null} />
+        </div>
       }
       rightRail={
         <ActChecklistAside

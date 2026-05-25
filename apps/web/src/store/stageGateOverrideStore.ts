@@ -13,9 +13,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-/** Which stage transition the override applies to. Observe→Plan only for now;
- *  Plan→Act is a planned follow-up that will reuse the same shape. */
-export type StageGate = 'observe-to-plan';
+/** Which stage transition the override applies to. The store is generic over
+ *  the gate key, so both soft gates share one persisted record. */
+export type StageGate = 'observe-to-plan' | 'plan-to-act';
 
 export interface StageGateOverrideState {
   /** byProject[projectId][gate] === true → overlay dismissed for that gate. */

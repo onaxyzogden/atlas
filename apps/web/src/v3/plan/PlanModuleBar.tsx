@@ -4,7 +4,7 @@
  * Click semantics + tile chrome live in `_shared/moduleNav/ModuleBar.tsx`.
  */
 
-import { ModuleBar } from '../_shared/moduleNav/index.js';
+import { ModuleBar, ModuleProgressIndicator } from '../_shared/moduleNav/index.js';
 import type { PlanModule } from './types.js';
 import { PLAN_MODULES, PLAN_MODULE_LABEL } from './types.js';
 
@@ -43,6 +43,7 @@ export default function PlanModuleBar({
       onCloseSlideUp={onCloseSlideUp}
       toolbarLabel="Plan modules"
       columns={PLAN_MODULES.length}
+      renderTileIndicator={(mod) => <ModuleProgressIndicator module={mod} />}
     />
   );
 }

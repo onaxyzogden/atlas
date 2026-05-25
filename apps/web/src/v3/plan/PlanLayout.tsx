@@ -78,6 +78,7 @@ import StampModePicker from './canvas/StampModePicker.js';
 import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
 import DesignStatusChip from './header/DesignStatusChip.js';
 import StageGateOverlay from './StageGateOverlay.js';
+import PlanReadyCue from './components/PlanReadyCue.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -468,15 +469,18 @@ export default function PlanLayout() {
         </div>
       }
       rightRail={
-        <PlanChecklistAside
-          activeModule={validModule}
-          effectiveSectionId={effectiveSectionId}
-          onSelectModule={handleSelectModule}
-          onSelectSection={handleSelectSection}
-          slideUpOpen={slideUpOpen && validModule !== null}
-          onOpenSlideUp={() => setSlideUpOpen(true)}
-          onCloseSlideUp={() => setSlideUpOpen(false)}
-        />
+        <>
+          <PlanReadyCue projectId={params.projectId ?? null} />
+          <PlanChecklistAside
+            activeModule={validModule}
+            effectiveSectionId={effectiveSectionId}
+            onSelectModule={handleSelectModule}
+            onSelectSection={handleSelectSection}
+            slideUpOpen={slideUpOpen && validModule !== null}
+            onOpenSlideUp={() => setSlideUpOpen(true)}
+            onCloseSlideUp={() => setSlideUpOpen(false)}
+          />
+        </>
       }
       bottomTray={moduleBar}
       overlay={

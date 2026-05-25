@@ -23,6 +23,12 @@ import {
   isObserveModule,
 } from "./observe/types.js";
 import { useObserveProgress } from "./observe/progress/useObserveProgress.js";
+import {
+  PLAN_MODULES,
+  PLAN_MODULE_LABEL,
+  isPlanModule,
+} from "./plan/types.js";
+import { usePlanProgress } from "./plan/progress/usePlanProgress.js";
 
 const LEVELS: Level[] = [
   {
@@ -59,6 +65,14 @@ const OBSERVE_PILLARS: Pillar[] = OBSERVE_MODULES.map((mod) => ({
 /** The Observe→Plan gate hangs off the last module segment. */
 const OBSERVE_GATE_AFTER_SEGMENT = "swot-synthesis";
 
+const PLAN_PILLARS: Pillar[] = PLAN_MODULES.map((mod) => ({
+  id: mod,
+  label: PLAN_MODULE_LABEL[mod],
+}));
+
+/** The Plan→Act gate hangs off the last Plan module segment. */
+const PLAN_GATE_AFTER_SEGMENT = "biodiversity-monitor";
+
 interface V3RouteInfo {
   enabled: boolean;
   projectId: string | null;
@@ -87,8 +101,9 @@ export default function V3LevelNavBridge({ children }: V3LevelNavBridgeProps) {
   const navigate = useNavigate();
   const { enabled, projectId, stage, module } = parseV3Route(pathname);
 
-  // Hook must run unconditionally; it self-handles a null projectId.
+  // Hooks must run unconditionally; each self-handles a null projectId.
   const progress = useObserveProgress(projectId);
+  const planProgress = usePlanProgress(projectId);
 
   if (!enabled || !projectId || !stage) {
     return <>{children}</>;
@@ -108,7 +123,26 @@ export default function V3LevelNavBridge({ children }: V3LevelNavBridgeProps) {
         : "pending",
   };
 
-  const moduleSlug = module && isObserveModule(module) ? module : undefined;
+  const planPillarTasks: Record<string, PillarTask[]> = Object.fromEntries(
+    PLAN_MODULES.map((mod) => [mod, planProgress.byModule[mod].tasks]),
+  );
+
+  const planGate: GateIndicator = {
+    afterSegmentId: PLAN_GATE_AFTER_SEGMENT,
+    label: "Act",
+    status: planProgress.overall.requiredComplete
+      ? "complete"
+      : planProgress.overall.doneCount > 0
+        ? "in-progress"
+        : "pending",
+  };
+
+  const moduleSlug =
+    module && stage === "plan" && isPlanModule(module)
+      ? module
+      : module && isObserveModule(module)
+        ? module
+        : undefined;
 
   const handleLevelChange = (key: string) => {
     if (key === "observe") {
@@ -142,19 +176,35 @@ export default function V3LevelNavBridge({ children }: V3LevelNavBridgeProps) {
   };
 
   const handleSegmentClick = (pillarId: string, levelKey: string) => {
-    if (levelKey !== "observe") return;
-    if (!isObserveModule(pillarId)) return;
-    if (pillarId === moduleSlug) {
+    if (levelKey === "observe") {
+      if (!isObserveModule(pillarId)) return;
+      if (pillarId === moduleSlug) {
+        navigate({
+          to: "/v3/project/$projectId/observe",
+          params: { projectId },
+        });
+        return;
+      }
       navigate({
-        to: "/v3/project/$projectId/observe",
-        params: { projectId },
+        to: "/v3/project/$projectId/observe/$module",
+        params: { projectId, module: pillarId },
       });
       return;
     }
-    navigate({
-      to: "/v3/project/$projectId/observe/$module",
-      params: { projectId, module: pillarId },
-    });
+    if (levelKey === "plan") {
+      if (!isPlanModule(pillarId)) return;
+      if (pillarId === moduleSlug) {
+        navigate({
+          to: "/v3/project/$projectId/plan",
+          params: { projectId },
+        });
+        return;
+      }
+      navigate({
+        to: "/v3/project/$projectId/plan/$module",
+        params: { projectId, module: pillarId },
+      });
+    }
   };
 
   return (
@@ -162,9 +212,27 @@ export default function V3LevelNavBridge({ children }: V3LevelNavBridgeProps) {
       levels={LEVELS}
       controlledLevel={stage}
       onLevelChange={handleLevelChange}
-      pillars={stage === "observe" ? OBSERVE_PILLARS : []}
-      pillarTasks={stage === "observe" ? observePillarTasks : {}}
-      gateIndicators={stage === "observe" ? [observeGate] : undefined}
+      pillars={
+        stage === "observe"
+          ? OBSERVE_PILLARS
+          : stage === "plan"
+            ? PLAN_PILLARS
+            : []
+      }
+      pillarTasks={
+        stage === "observe"
+          ? observePillarTasks
+          : stage === "plan"
+            ? planPillarTasks
+            : {}
+      }
+      gateIndicators={
+        stage === "observe"
+          ? [observeGate]
+          : stage === "plan"
+            ? [planGate]
+            : undefined
+      }
       currentPillarId={moduleSlug}
       onSegmentClick={handleSegmentClick}
     >
