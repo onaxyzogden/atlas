@@ -16,9 +16,14 @@ import { useWaterSystemsStore } from '../../store/waterSystemsStore.js';
 import { usePolycultureStore } from '../../store/polycultureStore.js';
 import { useClosedLoopStore } from '../../store/closedLoopStore.js';
 import { useSwotStore } from '../../store/swotStore.js';
+import type { ObserveModule } from '../observe/types.js';
 
 export interface EvidenceRow {
+  /** Stable slug, used to build deterministic auto-need ids (`auto-gap-<key>`). */
+  key: string;
   label: string;
+  /** Owning Observe module — drives the auto-need's dot, tool rail, deep-link. */
+  module: ObserveModule;
   n: number;
 }
 
@@ -55,22 +60,48 @@ export function useEvidenceCounts(projectId: string): EvidenceRow[] {
         0,
       );
     return [
-      { label: 'Hazards & external forces', n: count(hazards, sectors) },
       {
+        key: 'hazards',
+        label: 'Hazards & external forces',
+        module: 'macroclimate-hazards',
+        n: count(hazards, sectors),
+      },
+      {
+        key: 'topography',
         label: 'Topography (transects, contours, points)',
+        module: 'topography',
         n: count(transects, contours, highPoints, drainageLines),
       },
-      { label: 'Ecology observations', n: count(ecology) },
       {
+        key: 'ecology',
+        label: 'Ecology observations',
+        module: 'earth-water-ecology',
+        n: count(ecology),
+      },
+      {
+        key: 'water',
         label: 'Water systems',
+        module: 'earth-water-ecology',
         n: count(earthworks, storageInfra, watercourses, waterbodies, waterNodes),
       },
-      { label: 'Polyculture guilds & species', n: count(guilds, species) },
       {
+        key: 'polyculture',
+        label: 'Polyculture guilds & species',
+        module: 'earth-water-ecology',
+        n: count(guilds, species),
+      },
+      {
+        key: 'material-flows',
         label: 'Material flows & fertility',
+        module: 'earth-water-ecology',
         n: count(materialFlows, wasteVectorRuns, fertilityInfra),
       },
-      { label: 'SWOT entries', n: count(swot) },
+      {
+        key: 'swot',
+        label: 'SWOT entries',
+        module: 'swot-synthesis',
+        n: count(swot),
+      },
     ];
   }, [
     projectId,
