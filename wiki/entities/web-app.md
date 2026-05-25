@@ -272,6 +272,20 @@ All use `persist` middleware with localStorage. Key stores:
   Full suite **1162/1162, 99 files**, zero regressions. Main-tree
   `vitest.config.ts` still has the old path — upstream port recommended.
   See [B-series backfill ADR](../decisions/2026-05-18-atlas-syncmanifest-bseries-store-backfill.md).
+
+  **syncManifest Stage-0/compass backfill (2026-05-25):** the coverage
+  guard was *failing on the branch* again — seven more project-scoped
+  stores accreted by True-North / Stage-Compass / objective-card work
+  were unregistered and would silently never sync. Classified all seven
+  `versioned-blob`/`byProject` from their actual shape:
+  `ogden-observation-needs` (two byProject maps → custom `select`/`apply`),
+  `ogden-true-north` (`profilesByProject`), `ogden-atlas-act-compass` /
+  `-observe-compass` / `-plan-compass` (byProject; SEED is a read-time
+  fallback, not persisted — syncing the overrides is correct),
+  `ogden-atlas-objective-summaries` (nested `byStage→byProject` → custom
+  shape spanning all stages), and `ogden-atlas-stage-gate-override`
+  (byProject). Guard back to **10/10**, `tsc --noEmit` exit 0. Commit
+  `23490e0b`. See [[log/2026-05-25-syncmanifest-stage0-compass-backfill]].
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
