@@ -83,6 +83,15 @@ order it should land in v3.1.
 
 ## Cross-cutting
 
+### Observe stage — "Observation Needs" reframe
+- **Reframe the Observe Command Centre** from an objective/assignment-flavoured
+  workspace into an observation-needs workspace. Strips assignment/review
+  language out of Observe (it belongs to Plan/Act), renames `FieldObjective`→
+  `ObservationNeed` at the code level, and adds generative follow-up needs.
+  Spec: [OBSERVATION-NEEDS-WORKSPACE.md](apps/web/src/v3/command/OBSERVATION-NEEDS-WORKSPACE.md)
+  (supersedes [OBJECTIVE-WORKSPACE.md](apps/web/src/v3/command/OBJECTIVE-WORKSPACE.md)).
+  See §7 of the spec for the staged refactor checklist.
+
 ### Backend
 - **Replace `useV3Project`** in
   [apps/web/src/v3/data/useV3Project.ts](apps/web/src/v3/data/useV3Project.ts)

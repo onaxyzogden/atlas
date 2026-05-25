@@ -1,5 +1,9 @@
 # Objective-Driven Workspace — Observe Command Centre
 
+> **Superseded by `OBSERVATION-NEEDS-WORKSPACE.md`** (Observe reframe, 2026-05-25).
+> Retained for history until the rename lands.
+
+
 The Observe stage is run as an **objective-driven workspace**. A steward never
 hunts for the right screen, layer, or tool: the *assignment itself* is the entry
 point. Launching an assigned objective loads a purpose-built task environment —
