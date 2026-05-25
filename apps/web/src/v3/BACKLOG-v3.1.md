@@ -84,13 +84,17 @@ order it should land in v3.1.
 ## Cross-cutting
 
 ### Observe stage — "Observation Needs" reframe
-- **Reframe the Observe Command Centre** from an objective/assignment-flavoured
-  workspace into an observation-needs workspace. Strips assignment/review
-  language out of Observe (it belongs to Plan/Act), renames `FieldObjective`→
-  `ObservationNeed` at the code level, and adds generative follow-up needs.
-  Spec: [OBSERVATION-NEEDS-WORKSPACE.md](apps/web/src/v3/command/OBSERVATION-NEEDS-WORKSPACE.md)
-  (supersedes [OBJECTIVE-WORKSPACE.md](apps/web/src/v3/command/OBJECTIVE-WORKSPACE.md)).
-  See §7 of the spec for the staged refactor checklist.
+- **DONE** — Reframed the Observe Command Centre from an objective/assignment-
+  flavoured workspace into an observation-needs workspace: stripped
+  assignment/review language out of Observe (it belongs to Plan/Act), renamed
+  `FieldObjective`→`ObservationNeed` at the code level, collapsed the lifecycle to
+  `open → in-progress → recorded` (+`resolved`), and moved the deep-link to
+  `?need=`. Live reference:
+  [OBSERVATION-NEEDS-WORKSPACE.md](apps/web/src/v3/command/OBSERVATION-NEEDS-WORKSPACE.md).
+- **Deferred follow-on** — generative "Raise observation need" action (from the
+  Capture Workspace / a recorded observation) that writes a `follow-up`/`manual`
+  need with `reason` + `sourceObservationId`. Entity fields already exist; only
+  the action UI is unbuilt. See §7 of the reference.
 
 ### Backend
 - **Replace `useV3Project`** in

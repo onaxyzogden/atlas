@@ -154,9 +154,9 @@ export function createWithDefaults(
   if (!ctx.geometry) return null;
   const newId = crypto.randomUUID();
   schema.save(schema.defaults, { ...ctx, existingId: undefined, newId });
-  // Pulse the placement signal so the objective workspace can auto-capture
+  // Pulse the placement signal so the capture workspace can auto-capture
   // annotation evidence when a feature is drawn with a required tool. Tools
-  // stay oblivious to focus; the listener lives in ObjectiveAnnotationAutoCapture.
+  // stay oblivious to focus; the listener lives in CaptureAnnotationAutoCapture.
   usePlacementSignalStore.getState().signal(newId);
   return newId;
 }

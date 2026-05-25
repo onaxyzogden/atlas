@@ -1,22 +1,25 @@
-# Observation Needs Workspace — Observe Stage Spec
+# Observation Needs Workspace — Observe Stage Reference
 
-**Status:** spec / not yet implemented · **Date:** 2026-05-25
-**Supersedes:** `OBJECTIVE-WORKSPACE.md` (same directory)
+**Status:** live reference / implemented · **Date:** 2026-05-25
+**Replaces:** `OBJECTIVE-WORKSPACE.md` (deleted when this rename landed)
 
-This document specifies the reframe of the Observe Command Centre from an
-*objective-driven, assignment-flavoured workspace* into an **observation-needs
-workspace**. It is the authoritative design for a future, separately-approved code
-session. No code changes accompany this document.
+This document is the live reference for the Observe Command Centre's
+**observation-needs workspace** — the reframe away from an *objective-driven,
+assignment-flavoured workspace*. The mechanical refactor (rename +
+strip-assignment + lifecycle-collapse + `?need=` deep-link + folder moves) has
+**landed**; the one remaining follow-on is the generative "Raise observation
+need" action (§7).
 
 ---
 
 ## Why this exists
 
-The Observe stage drifted into Act territory. Today's `FieldObjective` system is, in
-substance, an **observation-capture** mechanism — a need completes by capturing
-photos / notes / annotations + ticking a checklist + writing a summary. But it is
+The Observe stage had drifted into Act territory. The original `FieldObjective` system
+was, in substance, an **observation-capture** mechanism — a need completes by capturing
+photos / notes / annotations + ticking a checklist + writing a summary. But it was
 dressed in work-assignment language: "**Assigned Objectives**," `assignee`, `dueAt`,
-"**Submit for review**," "**Mark complete**," reviewer "**Send back**".
+"**Submit for review**," "**Mark complete**," reviewer "**Send back**". This reference
+describes the corrected `ObservationNeed` system that replaced it.
 
 That language pulls Observe into work-management. The real work-assignment machinery
 already lives in **Act** (the `WorkItem` spine, `crewMember`, dependency edges in
@@ -100,19 +103,18 @@ not only copy.
 | Complete Task / Submit for review / Mark complete | **Record Observation** | `evaluateObjectiveCompletion` | `evaluateObservationRecorded` |
 | Task Assignment | **Act Work Assignment** (lives in Act, not Observe) | — | Act `WorkItem` |
 
-### Code targets (confirmed present today)
+### Code targets (current paths — rename landed)
 
-| Concern | Current path | Rename / change |
+| Concern | Current path | Key exports |
 | --- | --- | --- |
-| Type + helpers | [v3/objectives/fieldObjective.ts](../objectives/fieldObjective.ts) | `FieldObjective`→`ObservationNeed`, `ObjectiveStatus`→`ObservationNeedStatus`, `ObjectiveRun`→`ObservationNeedRun`, `CompletionRule`→`RecordingRule`, `evaluateObjectiveCompletion`→`evaluateObservationRecorded` |
-| Seed catalog | [v3/objectives/seedObjectives.ts](../objectives/seedObjectives.ts) | `SEED_FIELD_OBJECTIVES`→`SEED_OBSERVATION_NEEDS`, file→`seedObservationNeeds.ts` |
-| Run store | [store/fieldObjectiveStore.ts](../../store/fieldObjectiveStore.ts) | →`observationNeedStore.ts`, migrate persisted key |
-| Join hook | [v3/objectives/useFieldObjectives.ts](../objectives/useFieldObjectives.ts) | →`useObservationNeeds.ts`, `FieldObjectiveView`→`ObservationNeedView` |
-| Bottom panel | [command/AssignedObjectivesPanel.tsx](AssignedObjectivesPanel.tsx) | →`OpenObservationNeedsPanel.tsx`, copy "Assigned objectives"→"Open Observation Needs" |
-| Command page | [command/ObserveCommandCentrePage.tsx](ObserveCommandCentrePage.tsx) | copy + wiring |
-| Focus pieces (all `Objective*`, in `v3/observe/objective/` + `v3/command/`) | `ObjectiveExecutionAside`, `ObjectiveBanner`, `ObjectiveMapFocus`, `ObjectiveEvidenceCapture`, `ObjectiveAnnotationAutoCapture`, `ObjectiveMapMarkers` | →`Capture*` naming |
-| Folders | `v3/objectives/`, `v3/observe/objective/` | →`v3/observation-needs/`, `v3/observe/capture/` |
-| Deep link | `?objective=<id>` | →`?need=<id>` — **URL-contract change**; update every producer/consumer of the param |
+| Type + helpers | [v3/observation-needs/observationNeed.ts](../observation-needs/observationNeed.ts) | `ObservationNeed`, `ObservationNeedStatus`, `ObservationNeedRun`, `RecordingRule`, `RecordingEvaluation`, `evaluateObservationRecorded`, `emptyObservationNeedRun` |
+| Seed catalog | [v3/observation-needs/seedObservationNeeds.ts](../observation-needs/seedObservationNeeds.ts) | `SEED_OBSERVATION_NEEDS`, `seedObservationNeedsForProject` |
+| Run store | [store/observationNeedStore.ts](../../store/observationNeedStore.ts) | `useObservationNeedStore` (persist key `ogden-observation-needs` v2) |
+| Join hook | [v3/observation-needs/useObservationNeeds.ts](../observation-needs/useObservationNeeds.ts) | `useObservationNeeds`, `useObservationNeed`, `ObservationNeedView` |
+| Bottom panel | [command/OpenObservationNeedsPanel.tsx](OpenObservationNeedsPanel.tsx) | "Open Observation Needs" — reason line + trigger chip, no assignee/due |
+| Command page | [command/ObserveCommandCentrePage.tsx](ObserveCommandCentrePage.tsx) | launches Capture Workspace via `?need=` |
+| Capture pieces | `v3/observe/capture/Capture*.tsx` + `command/CaptureMapMarkers.tsx` | `CaptureExecutionAside`, `CaptureBanner`, `CaptureMapFocus`, `CaptureEvidenceCapture`, `CaptureAnnotationAutoCapture`, `CaptureMapMarkers` |
+| Deep link | `?need=<id>` | read loosely in `ObserveLayout` (route has no `validateSearch`) |
 
 ---
 
@@ -186,8 +188,11 @@ Same three-panel awareness layout, corrected language and semantics.
 The user chose to support both a seeded catalog and generative needs.
 
 ### a. Seeded catalog
-`SEED_OBSERVATION_NEEDS` (renamed `seedObjectives.ts`). Mechanism unchanged: static,
-location-bound capture packages keyed to a module, with checklist + evidence specs.
+`SEED_OBSERVATION_NEEDS` in [seedObservationNeeds.ts](../observation-needs/seedObservationNeeds.ts):
+static, location-bound capture packages keyed to a module, with checklist +
+evidence specs. Each seed now carries `origin: 'seed'` + a `reason`; the
+slope-12A seed carries a `trigger` ("Recheck after next rainfall") in place of
+the old `dueAt`.
 
 ### b. Generative — a recorded observation can raise a follow-up need
 Extend the `ObservationNeed` entity:
@@ -231,33 +236,37 @@ not a trigger for work inside Observe.
 
 ---
 
-## 7. Staged refactor checklist (future code session)
+## 7. What landed, and the one remaining follow-on
 
-Ordered so the later session is mechanical. Watch the rebased branch
-(`feat/atlas-permaculture`) — commit each slice the moment it builds.
+The mechanical refactor shipped in three green commits on
+`feat/atlas-permaculture`:
 
-1. **Types** — in `fieldObjective.ts`: rename type + helpers; strip
-   `assignee`/`ObjectiveAssignee`/`dueAt` and the review states; add
-   `origin`/`sourceObservationId`/`reason`/`trigger`/`planImpact`; collapse lifecycle to
-   `open → in-progress → recorded` (+`resolved`).
-2. **Store / hook / seed** — rename `fieldObjectiveStore`→`observationNeedStore` (migrate
-   persisted key), `useFieldObjectives`→`useObservationNeeds`,
-   `seedObjectives`→`seedObservationNeeds`.
-3. **Bottom panel + page** — rename `AssignedObjectivesPanel`→`OpenObservationNeedsPanel`;
-   update `ObserveCommandCentrePage` copy; remove assignee + due-date chips.
-4. **Capture workspace** — rename focus pieces to `Capture*`; change deep-link
-   `?objective=`→`?need=` across every producer/consumer.
-5. **Generative path** — add a "Raise observation need" action (from the capture
-   workspace / a recorded observation) that writes a `follow-up`/`manual` need.
-6. **Folder + imports** — `v3/objectives/`→`v3/observation-needs/`; fix all imports; run
-   `npm run build` + tests.
-7. **Docs** — fold this spec's content into a rewritten `OBSERVATION-NEEDS-WORKSPACE.md`
-   as the live reference; delete `OBJECTIVE-WORKSPACE.md` (or its superseded banner) once
-   the rename lands.
+- **Types / store / seed / hook / panels / capture workspace renamed.** All
+  identifiers moved to the `ObservationNeed` / `Capture*` names in the §2 table;
+  assignment (`assignee`, `ObjectiveAssignee`, `dueAt`, review states) is stripped;
+  the lifecycle is collapsed to `open → in-progress → recorded` (+`resolved`); the
+  terminal action is a single **"Record observation"** button.
+- **New fields** `origin` / `sourceObservationId?` / `reason` / `trigger?` /
+  `planImpact?` are on the `ObservationNeed` entity and populated on every seed.
+- **Deep link** is `?need=<id>` end to end (producer
+  `ObserveCommandCentrePage`, consumer `ObserveLayout`).
+- **Persist-key migration.** `observationNeedStore` persists under
+  `ogden-observation-needs` at `version: 2`. Because the key itself changed, a
+  module-load `portLegacyPersist()` reads the old `ogden-field-objectives` blob,
+  remaps legacy statuses (`not-started`→`open`, `evidence-submitted`→`in-progress`,
+  `complete`→`recorded`, `needs-review`→`in-progress`) and writes the new key, so
+  in-progress field state survives the rename.
+
+### Remaining follow-on (deferred)
+**Generative path (was §7 step 5)** — a "Raise observation need" action from the
+Capture Workspace / a recorded observation that writes a `follow-up` or `manual`
+need with `reason` set and `sourceObservationId` linking back. The entity already
+carries the fields (§5b); only the action UI is unbuilt.
 
 ---
 
-## Out of scope for the first refactor
+## Out of scope
+- The generative "Raise observation need" action above (deferred follow-on).
 - Auto-generated needs from stale-data / coverage gaps (§5c).
 - Backend persistence of evidence (still client-only data URLs).
 - Layer actuation from a need's `requiredLayers` (still data-only).
