@@ -469,6 +469,27 @@ All use `persist` middleware with localStorage. Key stores:
   **both** or tsc fails at the telemetry call sites. See
   [[2026-05-16-atlas-act-plan-execution-tracker]].
 
+  **Command Centre shell bounding (2026-05-25):** the shared stage-agnostic
+  `CommandCentreShell` (`v3/command/shell/`, used by Observe/Plan/Act) clipped
+  its bottom "Open Work Items" tray — but only on Act's **All Modules /
+  Tracker** tabs. Root `.shell` grid (`auto minmax(0,1fr) auto`) is the sole
+  direct child of AppShell's `.main` (`flex:1; position:relative;
+  overflow:hidden`). Two `.shell` facts combined: (1) `height:100%` didn't
+  reliably bound the grid → auto-height → the `1fr` body row stretched to the
+  **tallest column** (Act's tall right ops rail) and pushed the `auto` tray
+  below the viewport where `.main{overflow:hidden}` clipped it (worst on the
+  tallest-rail tabs; the carousel is horizontal so item count widens, not
+  heightens); (2) no explicit grid **column** → implicit `auto` column grew to
+  the widest row's max-content, blowing the body out (~9710px) and shoving the
+  rail off-screen. **CSS-only fix in `.shell`:** `height:100%` →
+  `position:absolute; inset:0` (definite height; grid clamps, sidebar/rail
+  scroll internally, tray always visible) + add
+  `grid-template-columns: minmax(0,1fr)`. One sheet fixes all three stages;
+  covenant-clean (no JSX/store/schema). Commit `2368e687`; ADR
+  [[2026-05-25-atlas-command-centre-shell-bounding]]; log
+  [[log/2026-05-25-command-centre-shell-bounding]]. Continues the prior
+  Observe-shell grid-track fix [[log/2026-05-25-command-centre-tray-and-waterrouter-fixes]].
+
   **D0 — the operating-loop WorkItem spine (2026-05-18):** a new
   canonical store `store/workItemStore.ts` (`ogden-work-items`,
   projectId-tagged, `versioned-blob` sync class — no DB migration)
