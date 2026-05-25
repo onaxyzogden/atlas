@@ -1,0 +1,67 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--vb-border);
+  background: var(--vb-header-bg);
+  flex: none;
+}
+
+.spine {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.spineItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stage {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--vb-text-subtle);
+  white-space: nowrap;
+}
+
+.stageActive {
+  color: var(--vb-gold);
+}
+
+.sep {
+  color: var(--vb-text-subtle);
+  opacity: 0.5;
+}
+
+.save {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--vb-gold-dim);
+  background: transparent;
+  color: var(--vb-gold);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.save:hover {
+  background: var(--vb-gold-wash);
+  border-color: var(--vb-gold);
+}
+
+.save:focus-visible {
+  outline: 2px solid var(--vb-gold);
+  outline-offset: 2px;
+}

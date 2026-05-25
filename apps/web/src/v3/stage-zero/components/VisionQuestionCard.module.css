@@ -1,0 +1,151 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vb-gold);
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--vb-text);
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--vb-text-muted);
+}
+
+/* "Multiple selections allowed" indicator row */
+.multiRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 34px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--vb-gold);
+  flex: none;
+}
+
+.switchThumb {
+  position: absolute;
+  top: 2px;
+  left: 18px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #1a1812;
+}
+
+.multiLabel {
+  color: var(--vb-text);
+  font-weight: 500;
+}
+
+.multiHint {
+  color: var(--vb-text-subtle);
+}
+
+/* Option grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--vb-border);
+  background: var(--vb-surface);
+  color: var(--vb-text);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, transform 80ms ease;
+}
+
+.option:hover {
+  border-color: var(--vb-gold-dim);
+  background: var(--vb-surface-hover);
+}
+
+.option:active {
+  transform: translateY(1px);
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--vb-gold);
+  outline-offset: 2px;
+}
+
+.optionSelected {
+  border-color: var(--vb-gold);
+  background: var(--vb-gold-wash);
+}
+
+.optionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.optionLabel {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.optionDesc {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--vb-text-muted);
+}
+
+.check {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--vb-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1a1812;
+}
+
+.optionSelected .check {
+  background: var(--vb-gold);
+  border-color: var(--vb-gold);
+}

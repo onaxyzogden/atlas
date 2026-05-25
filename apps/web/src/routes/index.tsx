@@ -46,6 +46,7 @@ import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
+import StageZeroVisionPage from '../v3/stage-zero/StageZeroVisionPage.js';
 import StageCompassPage from '../v3/compass/StageCompassPage.js';
 import PlanStageCompassPage from '../v3/plan/compass/PlanStageCompassPage.js';
 import ActStageCompassPage from '../v3/act/compass/ActStageCompassPage.js';
@@ -275,6 +276,13 @@ const v3CompassRoute = createRoute({
 });
 // Observe Command Centre — the aggregate "run the stage" surface the compass
 // center unlocks into. Static path resolves before the `observe/$module` param.
+// Stage Zero Vision Builder — full-screen questionnaire that captures the
+// land vision before OBSERVE. Sibling of `observe` under the v3 project layout.
+const v3StageZeroRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'stage-zero',
+  component: StageZeroVisionPage,
+});
 const v3ObserveCommandCentreRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe/command-centre',
@@ -579,6 +587,7 @@ const routeTree = rootRoute.addChildren([
       v3TrueNorthRoute,
       v3FitGateRoute,
       v3CompassRoute,
+      v3StageZeroRoute,
       v3ObserveCommandCentreRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
