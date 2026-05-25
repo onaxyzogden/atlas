@@ -94,6 +94,13 @@ import { useCompostCycleStore } from '../store/compostCycleStore.js';
 import { useSuccessionPathStore } from '../store/successionPathStore.js';
 import { useLandDesignStore } from '../store/landDesignStore.js';
 import { usePlanImpactReviewStore } from '../store/planImpactReviewStore.js';
+import { useObservationNeedStore } from '../store/observationNeedStore.js';
+import { useTrueNorthStore } from '../store/trueNorthStore.js';
+import { useActCompassStore } from '../store/actCompassStore.js';
+import { useObserveCompassStore } from '../store/observeCompassStore.js';
+import { usePlanCompassStore } from '../store/planCompassStore.js';
+import { useObjectiveSummaryStore } from '../store/objectiveSummaryStore.js';
+import { useStageGateOverrideStore } from '../store/stageGateOverrideStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -268,6 +275,54 @@ const agribusinessSelect: BlobShape = {
     }),
 };
 
+/**
+ * observation-needs carries TWO byProject record maps (run state +
+ * steward-raised needs); both slices are owned by the same projectId.
+ */
+const observationNeedsShape: BlobShape = {
+  select: (s, pid) => ({
+    byProject: (s as any)?.byProject?.[pid] ?? {},
+    createdByProject: (s as any)?.createdByProject?.[pid] ?? [],
+  }),
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const inc = (incoming as any) ?? {};
+      return {
+        byProject: { ...((st?.byProject as any) ?? {}), [pid]: inc.byProject ?? {} },
+        createdByProject: {
+          ...((st?.createdByProject as any) ?? {}),
+          [pid]: inc.createdByProject ?? [],
+        },
+      };
+    }),
+};
+
+/**
+ * objective-summaries nests project UNDER stage (`byStage[stage][projectId]`),
+ * so a project's slice spans every stage. Extract/restore that project's row
+ * across all stages, leaving other projects' rows untouched.
+ */
+const objectiveSummaryShape: BlobShape = {
+  select: (s, pid) => {
+    const byStage = (s as any)?.byStage ?? {};
+    const out: Record<string, unknown> = {};
+    for (const stage of Object.keys(byStage)) {
+      const proj = byStage[stage]?.[pid];
+      if (proj !== undefined) out[stage] = proj;
+    }
+    return out;
+  },
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const byStage = { ...((st?.byStage as any) ?? {}) };
+      const inc = (incoming as any) ?? {};
+      for (const stage of Object.keys(inc)) {
+        byStage[stage] = { ...((byStage[stage] as any) ?? {}), [pid]: inc[stage] };
+      }
+      return { byStage };
+    }),
+};
+
 function blob(
   storeKey: string,
   store: { getState: () => unknown; subscribe: (...a: any[]) => any },
@@ -345,6 +400,21 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // Plan Impact Reviews (Phase 1): persisted triage state for derived
   // Observe→Plan impact flags. byProject Record<projectId, Record<flagId, run>>.
   blob('ogden-plan-impact-reviews', usePlanImpactReviewStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Observation needs: per-project run state + steward-raised needs (two
+  // byProject maps), custom shape extracts/restores both for one project.
+  blob('ogden-observation-needs', useObservationNeedStore, 'byProject', 3, observationNeedsShape),
+  // True North fit-gate profile, one TrueNorthProfile per project.
+  blob('ogden-true-north', useTrueNorthStore, 'byProject', 1, byKey('profilesByProject', null, {})),
+  // Stage Compass evidence-gating maps (byProject Record<projectId,
+  // Partial<Record<module, RawEvidenceMap>>>). SEED is a read-time fallback,
+  // not persisted, so syncing the byProject overrides is correct.
+  blob('ogden-atlas-act-compass', useActCompassStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-atlas-observe-compass', useObserveCompassStore, 'byProject', 1, byKey('byProject', null, {})),
+  blob('ogden-atlas-plan-compass', usePlanCompassStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Objective summary notes nested byStage→byProject→byModule, custom shape.
+  blob('ogden-atlas-objective-summaries', useObjectiveSummaryStore, 'byProject', 1, objectiveSummaryShape),
+  // Soft stage-gate "continue anyway" overrides, byProject.
+  blob('ogden-atlas-stage-gate-override', useStageGateOverrideStore, 'byProject', 1, byKey('byProject', null, {})),
 
   // --- versioned-blob: projectId-tagged (flat arrays carrying projectId) ---
   blob('ogden-regen-plans', useRegenerationPlanStore, 'projectId-tagged', 2, tagged('plans'), true),
