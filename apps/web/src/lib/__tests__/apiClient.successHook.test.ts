@@ -70,4 +70,19 @@ describe('apiClient success hook → apiReachable', () => {
 
     await expect(api.projects.list()).resolves.toBeDefined();
   });
+
+  it('api.health() pings the proxied /api/v1/health route and fires the hook', async () => {
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValue(
+        fakeResponse(200, { data: { status: 'ok', timestamp: 't', version: '0.1.0' }, error: null }),
+      );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const env = await api.health();
+
+    expect(fetchSpy).toHaveBeenCalledWith('/api/v1/health', expect.objectContaining({ method: 'GET' }));
+    expect(env.data.status).toBe('ok');
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
 });

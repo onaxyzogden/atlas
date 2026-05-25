@@ -13,12 +13,16 @@
  * when the browser fires the `online` event. Retry re-runs `initFromStorage()`:
  * a successful `/auth/me` sets the user (clearing sessionUnverified) and the
  * apiClient success hook flips `apiReachable` back to true. With no stored
- * token, Retry falls back to a full reload (re-runs boot).
+ * token, Retry sends a lightweight unauthenticated `/api/v1/health` ping and, on
+ * success, flips `apiReachable` directly — no full page reload. (It sets the flag
+ * directly rather than leaning on the apiClient success hook, which is wired only
+ * on the authed boot, never on the showcase/no-token path.)
  */
 
 import { useEffect, useState } from 'react';
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import { useAuthStore } from '../store/authStore.js';
+import { api } from '../lib/apiClient.js';
 import styles from './ApiReachabilityBanner.module.css';
 
 export default function ApiReachabilityBanner() {
@@ -38,9 +42,17 @@ export default function ApiReachabilityBanner() {
         // sessionUnverified) and the apiClient success hook flips apiReachable.
         await useAuthStore.getState().initFromStorage();
       } else {
-        // No stored token — there is no cheap authed probe to flip the signal;
-        // a full reload re-runs boot and the next successful request recovers.
-        if (typeof window !== 'undefined') window.location.reload();
+        // No stored token — send a lightweight unauthenticated reachability
+        // ping. On success the server is back: flip the signal directly (the
+        // apiClient success hook is wired authed-only, so don't rely on it
+        // here) and the banner auto-hides. On failure leave it false so the
+        // banner persists. No full page reload.
+        try {
+          await api.health();
+          useConnectivityStore.getState().setApiReachable(true);
+        } catch {
+          // Still unreachable — keep the banner up.
+        }
       }
     } finally {
       setRetrying(false);

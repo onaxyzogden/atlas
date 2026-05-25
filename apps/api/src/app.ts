@@ -413,10 +413,27 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
 
   // ─── Health check ────────────────────────────────────────────────────────────
 
+  // Root liveness probe for infra / load-balancers. Bare object (no envelope),
+  // and NOT under /api/v1 — so it is not reachable through the web app's
+  // /api-only dev proxy (and would not share the SPA's API origin in prod).
   app.get('/health', async () => ({
     status: 'ok',
     timestamp: new Date().toISOString(),
     version: '0.1.0',
+  }));
+
+  // Lightweight, unauthenticated reachability ping for the browser. Lives under
+  // the proxied /api/v1 prefix and returns the standard { data, error } envelope
+  // so apiClient.request() treats a 2xx as "API reachable" (firing the success
+  // hook). Used by ApiReachabilityBanner's no-token Retry to flip apiReachable
+  // back to true without a full page reload. Static — no DB/Redis access.
+  app.get('/api/v1/health', async () => ({
+    data: {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      version: '0.1.0',
+    },
+    error: null,
   }));
 
   // ─── Cleanup hooks ──────────────────────────────────────────────────────────

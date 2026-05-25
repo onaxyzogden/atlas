@@ -14,6 +14,7 @@ import { render, cleanup, screen, fireEvent, act } from '@testing-library/react'
 import ApiReachabilityBanner from '../ApiReachabilityBanner';
 import { useConnectivityStore } from '../../store/connectivityStore';
 import { useAuthStore } from '../../store/authStore';
+import { api } from '../../lib/apiClient';
 
 beforeEach(() => {
   useConnectivityStore.setState({ apiReachable: true });
@@ -68,5 +69,38 @@ describe('ApiReachabilityBanner', () => {
     });
 
     expect(initSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('no-token Retry pings api.health and flips apiReachable on success', async () => {
+    useConnectivityStore.setState({ apiReachable: false });
+    useAuthStore.setState({ token: null, user: null, sessionUnverified: false });
+    const healthSpy = vi.spyOn(api, 'health').mockResolvedValue({
+      data: { status: 'ok', timestamp: 't', version: '0.1.0' },
+      error: null,
+    });
+
+    render(<ApiReachabilityBanner />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    });
+
+    expect(healthSpy).toHaveBeenCalledTimes(1);
+    expect(useConnectivityStore.getState().apiReachable).toBe(true);
+    // Banner clears once reachability flips back.
+    expect(screen.queryByTestId('api-reachability-banner')).toBeNull();
+  });
+
+  it('no-token Retry keeps the banner up when the health ping fails', async () => {
+    useConnectivityStore.setState({ apiReachable: false });
+    useAuthStore.setState({ token: null, user: null, sessionUnverified: false });
+    vi.spyOn(api, 'health').mockRejectedValue(new TypeError('Failed to fetch'));
+
+    render(<ApiReachabilityBanner />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
+    });
+
+    expect(useConnectivityStore.getState().apiReachable).toBe(false);
+    expect(screen.getByTestId('api-reachability-banner')).toBeTruthy();
   });
 });

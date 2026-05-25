@@ -240,6 +240,16 @@ export interface ApiAuthUser {
 // ─── Projects ────────────────────────────────────────────────────────────────
 
 export const api = {
+  // Lightweight, unauthenticated reachability ping. Hits the proxied
+  // /api/v1/health route (the root /health is not under the web app's /api dev
+  // proxy). A 2xx fires the apiClient success hook (→ apiReachable = true) on
+  // the authed path; ApiReachabilityBanner's no-token Retry also flips the flag
+  // directly off a resolved call, since the success hook is wired authed-only.
+  health: () =>
+    request<{ status: string; timestamp: string; version: string }>(
+      'GET', '/api/v1/health',
+    ),
+
   auth: {
     register: (email: string, password: string, displayName?: string) =>
       request<{ token: string; user: ApiAuthUser }>(

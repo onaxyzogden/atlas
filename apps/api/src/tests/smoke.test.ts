@@ -122,6 +122,21 @@ afterAll(async () => {
 // Each test owns its queue — prevents count drift cascading across tests.
 beforeEach(() => { clear(); });
 
+// ─── Health ──────────────────────────────────────────────────────────────────
+
+describe('GET /api/v1/health', () => {
+  it('returns 200 with an envelope, no auth and no DB', async () => {
+    // No enqueue() — the route must not touch the DB.
+    const res = await app.inject({ method: 'GET', url: '/api/v1/health' });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.error).toBeNull();
+    expect(body.data.status).toBe('ok');
+    expect(typeof body.data.timestamp).toBe('string');
+  });
+});
+
 // ─── Auth routes ─────────────────────────────────────────────────────────────
 
 describe('POST /api/v1/auth/register', () => {
