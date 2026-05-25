@@ -83,12 +83,37 @@ function buildEvents(views: ObservationNeedView[]): TimelineEvent[] {
 function formatWhen(at: string): string {
   const d = new Date(at);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
+  return d.toLocaleTimeString(undefined, {
     hour: 'numeric',
     minute: '2-digit',
   });
+}
+
+/** Calendar-day bucket label: Today / Yesterday / "May 23". */
+function dayLabel(at: string): string {
+  const d = new Date(at);
+  if (Number.isNaN(d.getTime())) return 'Earlier';
+  const startOf = (x: Date) =>
+    new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const now = new Date();
+  const days = Math.round((startOf(now) - startOf(d)) / 86_400_000);
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
+/** Group already-sorted (desc) events into contiguous calendar-day buckets. */
+function groupByDay(
+  events: TimelineEvent[],
+): { label: string; events: TimelineEvent[] }[] {
+  const groups: { label: string; events: TimelineEvent[] }[] = [];
+  for (const e of events) {
+    const label = dayLabel(e.at);
+    const last = groups[groups.length - 1];
+    if (last && last.label === label) last.events.push(e);
+    else groups.push({ label, events: [e] });
+  }
+  return groups;
 }
 
 export default function ObservationTimelinePanel({
@@ -97,6 +122,7 @@ export default function ObservationTimelinePanel({
   emptyNote = 'No observations recorded yet. Launch a need to begin field work.',
 }: Props) {
   const events = buildEvents(views);
+  const groups = groupByDay(events);
 
   return (
     <section className={css.panel} aria-label={heading}>
@@ -104,22 +130,29 @@ export default function ObservationTimelinePanel({
       {events.length === 0 ? (
         <p className={css.emptyNote}>{emptyNote}</p>
       ) : (
-        <ul className={css.timelineList}>
-          {events.map((e) => (
-            <li key={e.id} className={css.timelineRow}>
-              <span className={css.timelineIcon}>
-                <e.Icon size={15} strokeWidth={2} />
-              </span>
-              <span className={css.timelineBody}>
-                <span className={css.timelineText}>{e.text}</span>
-                <span className={css.timelineSub}>
-                  {e.objectiveTitle}
-                  {formatWhen(e.at) ? ` · ${formatWhen(e.at)}` : ''}
-                </span>
-              </span>
-            </li>
+        <div className={css.timelineList}>
+          {groups.map((group) => (
+            <div key={group.label} className={css.timelineGroup}>
+              <p className={css.timelineGroupLabel}>{group.label}</p>
+              <ul className={css.timelineList} style={{ maxHeight: 'none' }}>
+                {group.events.map((e) => (
+                  <li key={e.id} className={css.timelineRow}>
+                    <span className={css.timelineIcon}>
+                      <e.Icon size={15} strokeWidth={2} />
+                    </span>
+                    <span className={css.timelineBody}>
+                      <span className={css.timelineText}>{e.text}</span>
+                      <span className={css.timelineSub}>
+                        {e.objectiveTitle}
+                        {formatWhen(e.at) ? ` · ${formatWhen(e.at)}` : ''}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </section>
   );

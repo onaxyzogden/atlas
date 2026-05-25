@@ -1,32 +1,36 @@
 /**
- * ObserveCommandCentrePage — the aggregate "run the stage" surface for Observe.
+ * ObserveCommandCentrePage — the aggregate "run the stage" surface for Observe,
+ * laid out as a fixed dashboard shell (per the Stage Command Center mockup):
  *
- * Two modes, per the OLOS Stage Command Center doc:
- *   1. Command Centre (awareness) — THIS page: site map with observation-need
- *      markers, open-observation-need launch cards, an observation timeline,
- *      plus the aggregate Observe summary / evidence / gaps / module dashboards.
- *   2. Observation Capture Workspace (execution) — ObserveLayout driven by
- *      `?need`, launched by clicking a card or marker here.
+ *   ┌ topbar ─ title + Compass back ───────────────────────────────────┐
+ *   ├ module tabs ─ All Modules + the 7 domains, each with % verified ──┤
+ *   ├ sidebar ─┬ site map (markers + legend + filter chip) ─┬ rail ─────┤
+ *   │ filter   │                                            │ timeline  │
+ *   │ layers   │                                            │ evidence  │
+ *   │ base map │                                            │ gaps      │
+ *   ├──────────┴ bottom tray ─ open observation needs carousel ─────────┤
  *
- * The center of the Stage Compass still opens this route. It is no longer
- * gated on 100% completion: a steward records observations from here at any time
- * (the doc's "Command Centre for awareness, Capture Workspace for execution").
- * Readiness now only changes emphasis — the Plan-readiness banner activates once
- * every domain is verified. Rendered full-bleed by V3ProjectLayout (the
- * `command-centre` path skips LandOsShell).
+ * A single `activeModule` lens drives the tabs, sidebar filter chip, map
+ * markers + "Filtered to" chip + legend, timeline, and needs carousel. The
+ * per-module capture dashboards are reachable from the capture workspace, not
+ * embedded here. Rendered full-bleed by V3ProjectLayout (the `command-centre`
+ * path skips LandOsShell).
  */
 
 import { useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
-import { Compass, ArrowRight, Check } from 'lucide-react';
+import { Compass } from 'lucide-react';
 import { useCompassData } from '../compass/useCompassData.js';
 import { useObservationNeeds } from '../observation-needs/useObservationNeeds.js';
+import { isDismissedAutoNeed } from '../observation-needs/autoObservationNeeds.js';
+import type { ObserveModule } from '../observe/types.js';
+import ObserveModuleTabs from './ObserveModuleTabs.js';
+import ObserveMapSidebar from './ObserveMapSidebar.js';
 import SiteMapPanel from './SiteMapPanel.js';
 import OpenObservationNeedsPanel from './OpenObservationNeedsPanel.js';
 import ObservationTimelinePanel from './ObservationTimelinePanel.js';
 import EvidenceLibraryPanel from './EvidenceLibraryPanel.js';
 import GapsPanel from './GapsPanel.js';
-import ModuleDashboardsPanel from './ModuleDashboardsPanel.js';
 import css from './ObserveCommandCentrePage.module.css';
 
 export default function ObserveCommandCentrePage() {
@@ -35,13 +39,30 @@ export default function ObserveCommandCentrePage() {
   const navigate = useNavigate();
   const data = useCompassData(projectId);
   const needViews = useObservationNeeds(projectId);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activeModule, setActiveModule] = useState<ObserveModule | null>(null);
+  const [showBoundary, setShowBoundary] = useState(true);
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Drop cleared auto-needs (recorded or dismissed) from every display surface —
+  // map markers, timeline, and the needs carousel — while leaving the underlying
+  // catalog (and `useObservationNeed`) able to resolve their ids mid-record.
+  const displayViews = needViews.filter((v) => !isDismissedAutoNeed(v));
+
+  const filteredViews = activeModule
+    ? displayViews.filter((v) => v.objective.module === activeModule)
+    : displayViews;
 
   const ready =
     data.views.length > 0 && data.views.every((v) => v.progress.pct === 100);
 
   const backToCompass = () =>
     navigate({ to: '/v3/project/$projectId/compass', params: { projectId } });
+
+  const goPlan = () =>
+    navigate({ to: '/v3/project/$projectId/plan', params: { projectId } });
 
   // Launch action: open the Observation Capture Workspace for the chosen need by
   // deep-linking into ObserveLayout with its module + the `?need` driver.
@@ -56,15 +77,15 @@ export default function ObserveCommandCentrePage() {
   };
 
   return (
-    <div className={css.page}>
-      <header className={css.header}>
-        <div className={css.headerMain}>
+    <div className={css.shell}>
+      <header className={css.topbar}>
+        <div className={css.topbarMain}>
           <p className="eyebrow">Observe · Command Centre</p>
-          <h1 className={css.title}>Observe Command Centre</h1>
-          <p className={css.subtitle}>
+          <h1 className={css.topbarTitle}>Observe Command Centre</h1>
+          <p className={css.topbarSub}>
             {ready
               ? `Foundation verified across all ${data.views.length} domains — run the Observe stage from one place.`
-              : `Run the Observe stage from one place. ${data.stage.pct}% verified across ${data.views.length} domains — launch an observation need to keep going.`}
+              : `${data.stage.pct}% verified across ${data.views.length} domains — launch an observation need to keep going.`}
           </p>
         </div>
         <button type="button" className={css.ghostBtn} onClick={backToCompass}>
@@ -72,80 +93,55 @@ export default function ObserveCommandCentrePage() {
         </button>
       </header>
 
-      <div className={css.sections}>
+      <ObserveModuleTabs
+        data={data}
+        active={activeModule}
+        onSelect={setActiveModule}
+      />
+
+      <div
+        className={css.body}
+        data-sidebar={sidebarCollapsed ? 'collapsed' : 'expanded'}
+      >
+        <ObserveMapSidebar
+          active={activeModule}
+          onClearModule={() => setActiveModule(null)}
+          showBoundary={showBoundary}
+          onToggleBoundary={setShowBoundary}
+          showMarkers={showMarkers}
+          onToggleMarkers={setShowMarkers}
+          markerCount={filteredViews.length}
+          ready={ready}
+          onGoPlan={goPlan}
+          collapsed={sidebarCollapsed}
+          onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
+        />
+
         <SiteMapPanel
           projectId={projectId}
-          views={needViews}
+          views={filteredViews}
+          activeModule={activeModule}
+          showBoundary={showBoundary}
+          showMarkers={showMarkers}
           onSelectObjective={setSelectedId}
         />
 
-        <OpenObservationNeedsPanel
-          projectId={projectId}
-          views={needViews}
-          selectedId={selectedId}
-          onLaunch={launchNeed}
-        />
-
-        <div className={css.grid}>
-          <section
-            className={`${css.panel} ${css.summaryPanel}`}
-            aria-label="Observe summary"
-          >
-            <p className="eyebrow">Observe summary</p>
-            <ul className={css.objectiveList}>
-              {data.views.map((v) => (
-                <li key={v.objective.id} className={css.objectiveRow}>
-                  <span
-                    className={css.objectiveDot}
-                    style={{ background: v.objective.accent }}
-                  />
-                  <span className={css.objectiveLabel}>{v.objective.label}</span>
-                  <span className={css.objectiveMeta}>
-                    {v.progress.verified}/{v.progress.total} verified
-                  </span>
-                  {v.progress.pct === 100 && (
-                    <span className={css.objectiveCheck}>
-                      <Check size={15} strokeWidth={2.5} />
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <ObservationTimelinePanel views={needViews} />
+        <div className={css.rail}>
+          <ObservationTimelinePanel views={filteredViews} />
           <EvidenceLibraryPanel projectId={projectId} />
           <GapsPanel projectId={projectId} />
         </div>
+      </div>
 
-        <section className={css.modSection} aria-label="Module dashboards">
-          <p className="eyebrow">Module dashboards</p>
-          <ModuleDashboardsPanel projectId={projectId} />
-        </section>
-
-        <section
-          className={`${css.panel} ${css.planPanel}`}
-          aria-label="Plan readiness"
-        >
-          <p className="eyebrow">Plan readiness</p>
-          <p className={css.planBody}>
-            {ready
-              ? 'Observation is complete — the Plan stage is unlocked. Carry this verified intelligence into design.'
-              : 'Complete and verify every Observe objective to unlock the Plan stage. You can still preview Plan at any time.'}
-          </p>
-          <button
-            type="button"
-            className={css.primaryBtn}
-            onClick={() =>
-              navigate({
-                to: '/v3/project/$projectId/plan',
-                params: { projectId },
-              })
-            }
-          >
-            Go to Plan <ArrowRight size={16} strokeWidth={2} />
-          </button>
-        </section>
+      <div className={css.bottomTray}>
+        <OpenObservationNeedsPanel
+          projectId={projectId}
+          views={filteredViews}
+          selectedId={selectedId}
+          activeModule={activeModule}
+          onClearFilter={() => setActiveModule(null)}
+          onLaunch={launchNeed}
+        />
       </div>
     </div>
   );

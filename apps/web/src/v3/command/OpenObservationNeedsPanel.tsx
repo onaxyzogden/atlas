@@ -1,15 +1,15 @@
 /**
  * OpenObservationNeedsPanel — the Observe stage's "Open Observation Needs"
- * launch surface. Each card is a guided observation package: clicking it (the
- * launch action) opens the Observation Capture Workspace for that need. Cards
- * carry the metadata a steward needs to triage: domain, origin, title, why the
- * need exists, location, priority, and live status. No assignee, no due date —
- * who does the work and when is an Act concern.
+ * launch surface, rendered as the dashboard shell's bottom tray: a horizontal
+ * carousel of guided observation packages. Each card carries the metadata a
+ * steward needs to triage (domain, origin, title, why the need exists, location,
+ * priority, live status) and an Open action that deep-links into the Observation
+ * Capture Workspace. No assignee, no due date — who does the work and when is an
+ * Act concern.
  *
- * The header also hosts the "Raise observation need" action: a steward can add
- * a `manual`-origin need by hand (follow-ups are raised from the Capture
- * Workspace instead). The new need's location defaults to the mean of the
- * existing needs' centres.
+ * The header hosts the live count, the active module chip, a "View all needs"
+ * escape (clears the module lens), and the "Raise observation need" action for
+ * adding a `manual`-origin need by hand.
  */
 
 import { useState } from 'react';
@@ -33,6 +33,9 @@ interface Props {
   views: ObservationNeedView[];
   /** Currently highlighted need (e.g. via a map-marker click). */
   selectedId?: string | null;
+  /** Active module lens — drives the header chip + "View all" escape. */
+  activeModule: ObserveModule | null;
+  onClearFilter: () => void;
   onLaunch: (needId: string) => void;
 }
 
@@ -53,6 +56,7 @@ const ORIGIN_LABEL: Record<ObservationNeedOrigin, string> = {
   seed: 'Seed',
   'follow-up': 'Follow-up',
   manual: 'Manual',
+  auto: 'Auto',
 };
 
 /** Fallback site centre when there are no needs to average (MTC). */
@@ -62,9 +66,12 @@ export default function OpenObservationNeedsPanel({
   projectId,
   views,
   selectedId,
+  activeModule,
+  onClearFilter,
   onLaunch,
 }: Props) {
   const createNeed = useObservationNeedStore((s) => s.createNeed);
+  const setStatus = useObservationNeedStore((s) => s.setStatus);
   const [raising, setRaising] = useState(false);
   const [raisedTitle, setRaisedTitle] = useState<string | null>(null);
 
@@ -93,9 +100,27 @@ export default function OpenObservationNeedsPanel({
   };
 
   return (
-    <section className={css.panel} aria-label="Open observation needs">
-      <div className={css.panelHead}>
+    <>
+      <div className={css.trayHead}>
         <p className="eyebrow">Open Observation Needs</p>
+        {activeModule && (
+          <span className={css.trayChip}>
+            <span
+              className={css.filterChipDot}
+              style={{ background: OBSERVE_MODULE_DOT[activeModule] }}
+            />
+            {OBSERVE_MODULE_LABEL[activeModule]}
+          </span>
+        )}
+        <span className={css.trayCount}>
+          {views.length} {views.length === 1 ? 'need' : 'needs'}
+        </span>
+        <span className={css.traySpacer} />
+        {activeModule && (
+          <button type="button" className={css.clearFilterBtn} onClick={onClearFilter}>
+            View all needs
+          </button>
+        )}
         <button
           type="button"
           className={css.raiseBtn}
@@ -122,19 +147,15 @@ export default function OpenObservationNeedsPanel({
       )}
 
       {views.length === 0 ? (
-        <p className={css.emptyNote}>
-          No open observation needs for this site yet.
-        </p>
+        <p className={css.emptyNote}>No open observation needs for this site yet.</p>
       ) : (
-        <div className={css.objCardGrid}>
+        <div className={css.carousel} aria-label="Open observation needs">
           {views.map(({ objective, run, evaluation }) => {
             const isSelected = selectedId === objective.id;
             return (
-              <button
+              <div
                 key={objective.id}
-                type="button"
                 className={`${css.objCard} ${isSelected ? css.objCardActive : ''}`}
-                onClick={() => onLaunch(objective.id)}
               >
                 <span className={css.objCardTop}>
                   <span
@@ -186,11 +207,30 @@ export default function OpenObservationNeedsPanel({
                     style={{ width: `${evaluation.pct}%` }}
                   />
                 </span>
-              </button>
+
+                <span className={css.objCardActions}>
+                  {objective.origin === 'auto' && (
+                    <button
+                      type="button"
+                      className={css.dismissBtn}
+                      onClick={() => setStatus(projectId, objective.id, 'resolved')}
+                    >
+                      Dismiss
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={css.openBtn}
+                    onClick={() => onLaunch(objective.id)}
+                  >
+                    Open
+                  </button>
+                </span>
+              </div>
             );
           })}
         </div>
       )}
-    </section>
+    </>
   );
 }
