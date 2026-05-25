@@ -23,8 +23,8 @@
 }
 
 .cat-water       { background: var(--color-water-500); }
-.cat-access      { background: var(--color-earth-500); }
-.cat-soil        { background: var(--color-earth-600); }
+.cat-access      { background: var(--color-neutral-500); }
+.cat-soil        { background: var(--color-neutral-600); }
 .cat-feasibility { background: var(--color-gold-brand); }
 .cat-regulation  { background: var(--color-info-500); }
 .cat-design      { background: var(--color-sage-600); }

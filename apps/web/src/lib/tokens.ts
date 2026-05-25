@@ -13,17 +13,17 @@
 
 // ── Color Palettes ──────────────────────────────────────────────────────────
 
-export const earth = {
-  50:  '#faf8f4',
-  100: '#f2ede3',
-  200: '#e4d9c6',
-  300: '#cebda0',
-  400: '#b49a74',
-  500: '#9a7a53',
-  600: '#7d6140',
-  700: '#634c31',
-  800: '#4a3823',
-  900: '#312617',
+export const neutral = {
+  50:  '#f7f8f9',
+  100: '#eef0f2',
+  200: '#dde1e5',
+  300: '#c3c9cf',
+  400: '#99a1a9',
+  500: '#6f777f',
+  600: '#545c64',
+  700: '#3f464d',
+  800: '#2b3035',
+  900: '#181b1e',
 } as const;
 
 export const sage = {
@@ -239,8 +239,8 @@ export const avatar = {
 
 export const chart = {
   accent:  '#d4a843',                    // gold stroke/fill for sun path, wind rose
-  grid:    'rgba(82, 72, 52, 0.18)',     // axis lines, concentric rings
-  muted:   '#7d7864',                    // secondary labels (direction letters)
+  grid:    'rgba(84, 92, 100, 0.18)',    // axis lines, concentric rings
+  muted:   '#7a808a',                    // secondary labels (direction letters)
 } as const;
 
 // ── Map Rendering Defaults ──────────────────────────────────────────────────
@@ -268,10 +268,10 @@ export const semantic = {
   bg:            '#f6f4ee',
   surface:       '#ffffff',
   text:          '#1f231e',
-  textMuted:     '#5a5443',
-  textSubtle:    '#7d7864',
-  border:        'rgba(82, 72, 52, 0.14)',
-  borderSubtle:  'rgba(82, 72, 52, 0.08)',
+  textMuted:     '#565c63',
+  textSubtle:    '#7a808a',
+  border:        'rgba(84, 92, 100, 0.14)',
+  borderSubtle:  'rgba(84, 92, 100, 0.08)',
   panelBg:       '#faf7ef',
   sidebarIcon:   '#7d7864',
   sidebarActive: '#d4af5f',
@@ -281,7 +281,7 @@ export const semantic = {
 // ── Unified export ──────────────────────────────────────────────────────────
 
 export const colors = {
-  earth,
+  neutral,
   sage,
   water,
   sand,

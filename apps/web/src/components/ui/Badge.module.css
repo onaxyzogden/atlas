@@ -38,8 +38,8 @@
 /* --- Variants ------------------------------------------------------------- */
 
 .variant-default {
-  background-color: var(--color-earth-100, #f2ede3);
-  color: var(--color-earth-700, #634c31);
+  background-color: var(--color-neutral-100, #eef0f2);
+  color: var(--color-neutral-700, #3f464d);
 }
 
 .variant-success {

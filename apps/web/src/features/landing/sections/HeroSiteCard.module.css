@@ -63,6 +63,6 @@
   text-transform: uppercase;
 }
 
-.score.soil .scoreValue { color: var(--color-earth-600, #a06a3c); }
+.score.soil .scoreValue { color: var(--color-neutral-600, #545c64); }
 .score.water .scoreValue { color: var(--color-water-600, #3a7fae); }
 .score.climate .scoreValue { color: var(--color-sage-600, #5a8a5a); }

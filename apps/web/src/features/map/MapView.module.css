@@ -242,7 +242,7 @@
 }
 .settingsBtn:hover {
   background: var(--color-panel-subtle);
-  border-color: var(--color-earth-300);
+  border-color: var(--color-neutral-300);
 }
 .settingsBtnDanger {
   composes: settingsBtn;

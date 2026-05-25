@@ -45,8 +45,8 @@ const cardBase: React.CSSProperties = {
 
 const cardSelected: React.CSSProperties = {
   ...cardBase,
-  borderColor: 'var(--color-earth-600)',
-  boxShadow: '0 0 0 1px var(--color-earth-600) inset',
+  borderColor: 'var(--color-neutral-600)',
+  boxShadow: '0 0 0 1px var(--color-neutral-600) inset',
 };
 
 export default function StepTemplate({

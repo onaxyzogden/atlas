@@ -124,7 +124,7 @@
 }
 
 .input:focus {
-  border-color: var(--color-earth-400, #a07850);
+  border-color: var(--color-neutral-400, #99a1a9);
   box-shadow: 0 0 0 3px rgba(160, 120, 80, 0.12);
 }
 
@@ -151,7 +151,7 @@
   font-size: 14px;
   font-weight: 500;
   font-family: inherit;
-  background: var(--color-earth-600, #7d6140);
+  background: var(--color-neutral-600, #545c64);
   color: #fff;
   border: none;
   border-radius: var(--radius-md, 8px);
@@ -161,7 +161,7 @@
 }
 
 .submitButton:hover:not(:disabled) {
-  background: var(--color-earth-700, #5c4830);
+  background: var(--color-neutral-700, #3f464d);
 }
 
 .submitButton:disabled {
@@ -180,7 +180,7 @@
 .hintLink {
   background: none;
   border: none;
-  color: var(--color-earth-600, #7d6140);
+  color: var(--color-neutral-600, #545c64);
   font-size: 13px;
   font-family: inherit;
   cursor: pointer;

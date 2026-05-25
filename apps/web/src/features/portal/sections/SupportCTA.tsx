@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { earth, confidence, semantic } from '../../../lib/tokens.js';
+import { neutral, confidence, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -36,7 +36,7 @@ export default function SupportCTA({ config, project }: Props) {
     width: '100%', padding: '12px 14px', fontSize: 13,
     background: 'rgba(255,255,255,0.05)',
     border: '1px solid rgba(212, 175, 95, 0.15)', borderRadius: 8,
-    color: earth[100], fontFamily: 'inherit', outline: 'none',
+    color: neutral[100], fontFamily: 'inherit', outline: 'none',
     boxSizing: 'border-box',
   };
 

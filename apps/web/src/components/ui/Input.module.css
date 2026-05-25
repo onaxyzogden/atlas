@@ -90,7 +90,7 @@
 .input:disabled {
   cursor: not-allowed;
   opacity: 0.55;
-  background-color: var(--color-earth-50, #faf8f4);
+  background-color: var(--color-neutral-50, #f7f8f9);
 }
 
 /* -------------------------------------------------------------------------- */

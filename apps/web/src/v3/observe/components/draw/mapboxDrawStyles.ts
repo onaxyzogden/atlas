@@ -27,7 +27,7 @@
  * for the full root-cause analysis.
  */
 
-import { map as mapTokens, group, earth } from '../../../../lib/tokens.js';
+import { map as mapTokens, group, neutral } from '../../../../lib/tokens.js';
 import { GROUND_COVER_COLORS } from '../../../../store/zoneStore.js';
 
 /**
@@ -50,7 +50,7 @@ export const MAPLIBRE_DRAW_STYLES = [
     filter: ['all', ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
     paint: {
       'fill-color': mapTokens.boundary,
-      'fill-outline-color': earth[800],
+      'fill-outline-color': neutral[800],
       'fill-opacity': 0.25,
     },
   },
@@ -59,7 +59,7 @@ export const MAPLIBRE_DRAW_STYLES = [
     type: 'line',
     filter: ['all', ['==', '$type', 'Polygon']],
     paint: {
-      'line-color': earth[800],
+      'line-color': neutral[800],
       'line-width': 2,
     },
   },
@@ -119,7 +119,7 @@ export const MAPLIBRE_DRAW_STYLES = [
       'circle-radius': 4,
       'circle-color': '#fff',
       'circle-stroke-width': 2,
-      'circle-stroke-color': earth[800],
+      'circle-stroke-color': neutral[800],
     },
   },
   {
@@ -152,7 +152,7 @@ export const MAPLIBRE_DRAW_STYLES = [
       'circle-radius': 3,
       'circle-color': 'rgba(255,255,255,0.85)',
       'circle-stroke-width': 1,
-      'circle-stroke-color': earth[800],
+      'circle-stroke-color': neutral[800],
     },
   },
 ];

@@ -192,7 +192,7 @@ export default function NewProjectPage() {
                   borderRadius: 'var(--radius-md)',
                   border: 'none',
                   background: canSubmit
-                    ? 'var(--color-earth-600)'
+                    ? 'var(--color-neutral-600)'
                     : 'var(--color-border)',
                   color: canSubmit ? '#fff' : 'var(--color-text-muted)',
                   fontSize: 14,

@@ -4,7 +4,7 @@
  */
 
 import { useRef, useEffect } from 'react';
-import { earth, semantic, zIndex } from '../../lib/tokens.js';
+import { neutral, semantic, zIndex } from '../../lib/tokens.js';
 
 interface Props {
   url: string;
@@ -35,7 +35,7 @@ export default function QRCodeGenerator({ url, size = 200, onClose }: Props) {
       hash = ((hash << 5) - hash + url.charCodeAt(i)) | 0;
     }
 
-    ctx.fillStyle = earth[100];
+    ctx.fillStyle = neutral[100];
 
     // Finder patterns (3 corners)
     const drawFinder = (x: number, y: number) => {

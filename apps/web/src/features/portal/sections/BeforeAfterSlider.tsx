@@ -4,7 +4,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import type { BeforeAfterPair } from '../../../store/portalStore.js';
-import { earth, zone, semantic } from '../../../lib/tokens.js';
+import { neutral, zone, semantic } from '../../../lib/tokens.js';
 
 interface Props { pair: BeforeAfterPair }
 
@@ -32,7 +32,7 @@ export default function BeforeAfterSlider({ pair }: Props) {
   return (
     <section style={{ padding: '60px 24px', maxWidth: 900, margin: '0 auto' }}>
       {pair.caption && (
-        <h3 style={{ fontSize: 16, fontWeight: 400, color: earth[400], textAlign: 'center', marginBottom: 20, fontStyle: 'italic' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 400, color: neutral[400], textAlign: 'center', marginBottom: 20, fontStyle: 'italic' }}>
           {pair.caption}
         </h3>
       )}
@@ -75,7 +75,7 @@ export default function BeforeAfterSlider({ pair }: Props) {
             position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
             width: 36, height: 36, borderRadius: '50%',
-            background: semantic.sidebarActive, border: `3px solid ${earth[100]}`,
+            background: semantic.sidebarActive, border: `3px solid ${neutral[100]}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 14, color: '#1a1611', fontWeight: 700,
             boxShadow: '0 2px 8px rgba(0,0,0,0.3)',

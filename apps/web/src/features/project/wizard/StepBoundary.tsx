@@ -12,7 +12,7 @@ import { parseGeoFile } from '../../../lib/geoParsers.js';
 import type { WizardStepProps } from './types.js';
 import WizardNav from './WizardNav.js';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
-import { earth, semantic } from '../../../lib/tokens.js';
+import { neutral, semantic } from '../../../lib/tokens.js';
 
 type BoundaryMode = 'none' | 'draw' | 'import';
 
@@ -139,13 +139,13 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
           id: 'gl-draw-polygon-fill',
           type: 'fill',
           filter: ['all', ['==', '$type', 'Polygon'], ['!=', 'mode', 'static']],
-          paint: { 'fill-color': semantic.primary, 'fill-outline-color': earth[800], 'fill-opacity': 0.3 },
+          paint: { 'fill-color': semantic.primary, 'fill-outline-color': neutral[800], 'fill-opacity': 0.3 },
         },
         {
           id: 'gl-draw-polygon-stroke',
           type: 'line',
           filter: ['all', ['==', '$type', 'Polygon']],
-          paint: { 'line-color': earth[800], 'line-width': 2 },
+          paint: { 'line-color': neutral[800], 'line-width': 2 },
         },
         {
           id: 'gl-draw-point',
@@ -268,9 +268,9 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
           style={{
             padding: '7px 16px',
             fontSize: 12,
-            border: mode === 'draw' ? '2px solid var(--color-earth-600)' : '1px solid var(--color-border)',
+            border: mode === 'draw' ? '2px solid var(--color-neutral-600)' : '1px solid var(--color-border)',
             borderRadius: 'var(--radius-md)',
-            background: mode === 'draw' ? 'var(--color-earth-600)' : 'var(--color-bg)',
+            background: mode === 'draw' ? 'var(--color-neutral-600)' : 'var(--color-bg)',
             color: mode === 'draw' ? '#fff' : 'var(--color-text)',
             cursor: 'pointer',
             fontWeight: mode === 'draw' ? 600 : 400,
@@ -283,9 +283,9 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
           style={{
             padding: '7px 16px',
             fontSize: 12,
-            border: mode === 'import' ? '2px solid var(--color-earth-600)' : '1px solid var(--color-border)',
+            border: mode === 'import' ? '2px solid var(--color-neutral-600)' : '1px solid var(--color-border)',
             borderRadius: 'var(--radius-md)',
-            background: mode === 'import' ? 'var(--color-earth-600)' : 'var(--color-bg)',
+            background: mode === 'import' ? 'var(--color-neutral-600)' : 'var(--color-bg)',
             color: mode === 'import' ? '#fff' : 'var(--color-text)',
             cursor: 'pointer',
             fontWeight: mode === 'import' ? 600 : 400,
@@ -367,10 +367,10 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
           role="status"
           style={{
             padding: '10px 20px',
-            background: 'var(--color-earth-100)',
+            background: 'var(--color-neutral-100)',
             borderBottom: '1px solid var(--color-border)',
             fontSize: 12,
-            color: 'var(--color-earth-800)',
+            color: 'var(--color-neutral-800)',
             display: 'flex',
             alignItems: 'center',
             gap: 12,
@@ -383,10 +383,10 @@ export default function StepBoundary({ data, updateData, onNext, onBack, isFirst
             style={{
               padding: '5px 12px',
               fontSize: 12,
-              border: '1px solid var(--color-earth-600)',
+              border: '1px solid var(--color-neutral-600)',
               borderRadius: 'var(--radius-md)',
               background: 'var(--color-surface)',
-              color: 'var(--color-earth-800)',
+              color: 'var(--color-neutral-800)',
               cursor: 'pointer',
               fontWeight: 500,
             }}
@@ -493,7 +493,7 @@ function MapKeyFallback({ messageOverride, onFileImport, importInfo, importError
         justifyContent: 'center',
         gap: 14,
         padding: 40,
-        background: 'var(--color-earth-100)',
+        background: 'var(--color-neutral-100)',
       }}
     >
       {messageOverride ? (
@@ -502,16 +502,16 @@ function MapKeyFallback({ messageOverride, onFileImport, importInfo, importError
         </div>
       ) : (
         <>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-earth-800)', textAlign: 'center' }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-neutral-800)', textAlign: 'center' }}>
             Map needs a MapTiler API key
           </div>
-          <div style={{ fontSize: 13, color: 'var(--color-earth-700)', textAlign: 'center', maxWidth: 520, lineHeight: 1.6 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-neutral-700)', textAlign: 'center', maxWidth: 520, lineHeight: 1.6 }}>
             Get a free key in about a minute at{' '}
             <a
               href="https://cloud.maptiler.com/account/keys/"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: 'var(--color-earth-800)', textDecoration: 'underline' }}
+              style={{ color: 'var(--color-neutral-800)', textDecoration: 'underline' }}
             >
               cloud.maptiler.com
             </a>
@@ -542,9 +542,9 @@ function MapKeyFallback({ messageOverride, onFileImport, importInfo, importError
               style={{
                 padding: '8px 18px',
                 fontSize: 13,
-                border: '1px solid var(--color-earth-600)',
+                border: '1px solid var(--color-neutral-600)',
                 borderRadius: 'var(--radius-md)',
-                background: 'var(--color-earth-600)',
+                background: 'var(--color-neutral-600)',
                 color: '#fff',
                 cursor: 'pointer',
                 fontWeight: 600,
@@ -579,10 +579,10 @@ function MapKeyFallback({ messageOverride, onFileImport, importInfo, importError
         style={{
           padding: '10px 20px',
           fontSize: 13,
-          border: '1px solid var(--color-earth-600)',
+          border: '1px solid var(--color-neutral-600)',
           borderRadius: 'var(--radius-md)',
           background: 'var(--color-surface)',
-          color: 'var(--color-earth-700)',
+          color: 'var(--color-neutral-700)',
           cursor: 'pointer',
           fontWeight: 500,
         }}
@@ -632,7 +632,7 @@ function showBoundaryOnMap(map: maplibregl.Map, geojson: GeoJSON.FeatureCollecti
     type: 'line',
     source: 'imported-boundary',
     paint: {
-      'line-color': earth[800],
+      'line-color': neutral[800],
       'line-width': 2.5,
     },
   });

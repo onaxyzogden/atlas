@@ -145,11 +145,11 @@
   transition: color var(--duration-base) var(--ease-default),
               background var(--duration-base) var(--ease-default);
 }
-.anchorBtn:hover { color: var(--color-text); background: rgba(var(--color-earth-600-rgb), 0.06); }
+.anchorBtn:hover { color: var(--color-text); background: rgba(var(--color-neutral-600-rgb), 0.06); }
 .anchorBtn:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 1px;
 }
 .listItemActive .anchorBtn { color: var(--color-text); font-weight: 600; }
 .anchorBtn .dot { margin-top: 0; }
-.dotActive { background: var(--color-earth-600); transform: scale(1.15); }
+.dotActive { background: var(--color-neutral-600); transform: scale(1.15); }

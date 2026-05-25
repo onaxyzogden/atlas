@@ -4,7 +4,7 @@
 
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { earth, zone, semantic } from '../../../lib/tokens.js';
+import { neutral, zone, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -35,7 +35,7 @@ export default function NarrativeSections({ config, project }: Props) {
               <div style={{ fontSize: 10, color: zone.spiritual, fontWeight: 600, letterSpacing: '0.08em', marginBottom: 6 }}>
                 {phase.label}
               </div>
-              <h3 style={{ fontSize: 16, fontWeight: 500, color: earth[100], marginBottom: 8, marginTop: 0 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 500, color: neutral[100], marginBottom: 8, marginTop: 0 }}>
                 {phase.title}
               </h3>
               <p style={{ fontSize: 13, color: semantic.sidebarIcon, lineHeight: 1.6, margin: 0 }}>
@@ -73,7 +73,7 @@ export default function NarrativeSections({ config, project }: Props) {
               textAlign: 'center',
             }}>
               <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: earth[100], marginBottom: 4 }}>{item.label}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: neutral[100], marginBottom: 4 }}>{item.label}</div>
               <div style={{ fontSize: 11, color: semantic.sidebarIcon, lineHeight: 1.5 }}>{item.desc}</div>
             </div>
           ))}

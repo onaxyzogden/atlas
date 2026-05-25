@@ -198,7 +198,7 @@
 }
 
 .fitBarFillModerate {
-  background: var(--color-earth-400, #b09a7a);
+  background: var(--color-neutral-400, #99a1a9);
 }
 
 .fitBarFillChallenge {
@@ -231,7 +231,7 @@
 }
 
 .fitStatusModerate {
-  color: var(--color-earth-500, #8a7a5e);
+  color: var(--color-neutral-500, #6f777f);
 }
 
 .fitStatusChallenge {

@@ -141,7 +141,7 @@ export default function ProjectEditor({ project, onClose }: ProjectEditorProps) 
             fontWeight: 500,
             border: 'none',
             borderRadius: 'var(--radius-md)',
-            background: 'var(--color-earth-600)',
+            background: 'var(--color-neutral-600)',
             color: '#fff',
             cursor: 'pointer',
           }}

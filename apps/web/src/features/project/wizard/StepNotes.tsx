@@ -419,7 +419,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
             onClick={() => fileInputRef.current?.click()}
           >
             <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>
-              Drop files here or <span style={{ color: 'var(--color-earth-600)', fontWeight: 500 }}>browse</span>
+              Drop files here or <span style={{ color: 'var(--color-neutral-600)', fontWeight: 500 }}>browse</span>
             </p>
             <p style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
               Photos, site plans, title maps, survey documents
@@ -451,7 +451,7 @@ export default function StepNotes({ data, updateData, onBack, isFirst, isLast }:
                     fontSize: 12,
                   }}
                 >
-                  <span style={{ color: 'var(--color-earth-600)' }}>
+                  <span style={{ color: 'var(--color-neutral-600)' }}>
                     {att.type === 'photo' ? '🖼' : '📄'}
                   </span>
                   <span style={{ flex: 1, color: 'var(--color-text)' }}>{att.file.name}</span>

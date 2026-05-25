@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { setMaptilerKey, MAPTILER_KEY_STORAGE } from '../lib/maplibre.js';
-import { earth, semantic } from '../lib/tokens.js';
+import { neutral, semantic } from '../lib/tokens.js';
 
 export default function MapTokenMissing() {
   const hasStoredKey = (() => {
@@ -102,7 +102,7 @@ export default function MapTokenMissing() {
               border: '1px solid rgba(196,162,101,0.2)',
               borderRadius: 6,
               background: 'transparent',
-              color: earth[800],
+              color: neutral[800],
               cursor: 'pointer',
             }}
           >

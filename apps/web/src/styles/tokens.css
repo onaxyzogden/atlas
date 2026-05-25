@@ -40,17 +40,21 @@
      COLOR PALETTE
      ======================================================================== */
 
-  /* --- Earth (warm browns) --- */
-  --color-earth-50:  #faf8f4;
-  --color-earth-100: #f2ede3;
-  --color-earth-200: #e4d9c6;
-  --color-earth-300: #cebda0;
-  --color-earth-400: #b49a74;
-  --color-earth-500: #9a7a53;
-  --color-earth-600: #7d6140;
-  --color-earth-700: #634c31;
-  --color-earth-800: #4a3823;
-  --color-earth-900: #312617;
+  /* --- Neutral (cool greys) ---
+     Chrome ramp (2026-05-25): replaces the legacy warm-brown "earth" ramp for
+     all UI surfaces (panels, cards, inputs, borders, footers, muted text).
+     Estate gold + sage stay the brand identity; the biophilic map-data palette
+     (zones/structures/paths/parcel boundary) keeps its earth hues separately. */
+  --color-neutral-50:  #f7f8f9;
+  --color-neutral-100: #eef0f2;
+  --color-neutral-200: #dde1e5;
+  --color-neutral-300: #c3c9cf;
+  --color-neutral-400: #99a1a9;
+  --color-neutral-500: #6f777f;
+  --color-neutral-600: #545c64;
+  --color-neutral-700: #3f464d;
+  --color-neutral-800: #2b3035;
+  --color-neutral-900: #181b1e;
 
   /* --- Sage (organic greens) --- */
   --color-sage-50:  #f2f5f0;
@@ -138,13 +142,13 @@
   --color-bg:              #f6f4ee;
   --color-surface:         #ffffff;
   --color-surface-raised:  #faf7ef;
-  --color-border:          rgba(82, 72, 52, 0.14);
-  --color-border-subtle:   rgba(82, 72, 52, 0.08);
-  --color-text:            #1f231e;
+  --color-border:          rgba(84, 92, 100, 0.16);
+  --color-border-subtle:   rgba(84, 92, 100, 0.10);
+  --color-text:            #1b1e22;
   /* a11y: --color-text-muted ≈4.8:1 on light bg — passes WCAG AA for body
      text (≥14px or bold ≥11px). For small labels/timestamps use --color-text. */
-  --color-text-muted:      #5a5443;
-  --color-text-subtle:     #7d7864;
+  --color-text-muted:      #565c63;
+  --color-text-subtle:     #7a808a;
   --color-primary:         #b08a3a;
   --color-primary-hover:   #9a771f;
   --color-on-primary:      #2a2018;
@@ -220,7 +224,7 @@
   --color-panel-text:      #1f231e;
   --color-panel-muted:     #5a5443;
   --color-panel-card:      rgba(0, 0, 0, 0.025);
-  --color-panel-card-border: rgba(82, 72, 52, 0.10);
+  --color-panel-card-border: rgba(84, 92, 100, 0.12);
   --color-panel-title:     #1f231e;
   --color-panel-section:   #5a5443;
   --color-panel-subtle:    rgba(0, 0, 0, 0.03);
@@ -321,8 +325,8 @@
   --color-confidence-low-rgb:  155, 58, 42;
   --color-gold-rgb:            176, 138, 58;
   --color-sage-rgb:            143, 200, 154;
-  --color-earth-600-rgb:       125, 97, 64;
-  --color-text-muted-rgb:      90, 84, 67;
+  --color-neutral-600-rgb:     84, 92, 100;
+  --color-text-muted-rgb:      86, 92, 99;
   --color-water-rgb:           91, 157, 184;
   --color-water-400-rgb:       91, 157, 184;
   --color-group-reporting-rgb: 21, 128, 61;
@@ -413,16 +417,16 @@
      SHADOWS  (earth-tinted for organic warmth)
      ======================================================================== */
 
-  --shadow-xs:    0 1px 2px rgba(49, 38, 23, 0.05);
-  --shadow-sm:    0 1px 3px rgba(49, 38, 23, 0.08),
-                  0 1px 2px rgba(49, 38, 23, 0.04);
-  --shadow-md:    0 4px 6px rgba(49, 38, 23, 0.07),
-                  0 2px 4px rgba(49, 38, 23, 0.04);
-  --shadow-lg:    0 10px 15px rgba(49, 38, 23, 0.08),
-                  0 4px 6px rgba(49, 38, 23, 0.03);
-  --shadow-xl:    0 20px 25px rgba(49, 38, 23, 0.08),
-                  0 8px 10px rgba(49, 38, 23, 0.03);
-  --shadow-inner: inset 0 2px 4px rgba(49, 38, 23, 0.05);
+  --shadow-xs:    0 1px 2px rgba(24, 27, 30, 0.05);
+  --shadow-sm:    0 1px 3px rgba(24, 27, 30, 0.08),
+                  0 1px 2px rgba(24, 27, 30, 0.04);
+  --shadow-md:    0 4px 6px rgba(24, 27, 30, 0.07),
+                  0 2px 4px rgba(24, 27, 30, 0.04);
+  --shadow-lg:    0 10px 15px rgba(24, 27, 30, 0.08),
+                  0 4px 6px rgba(24, 27, 30, 0.03);
+  --shadow-xl:    0 20px 25px rgba(24, 27, 30, 0.08),
+                  0 8px 10px rgba(24, 27, 30, 0.03);
+  --shadow-inner: inset 0 2px 4px rgba(24, 27, 30, 0.05);
 
   /* ========================================================================
      Z-INDEX SCALE

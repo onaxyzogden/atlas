@@ -96,8 +96,8 @@ export default function StepLocation({ data, updateData, onNext, onBack, isFirst
       <div style={{
         marginBottom: 32,
         padding: '10px 14px',
-        borderLeft: '3px solid var(--color-earth-400)',
-        background: 'var(--color-earth-50, rgba(0,0,0,0.03))',
+        borderLeft: '3px solid var(--color-neutral-400)',
+        background: 'var(--color-neutral-50, rgba(0,0,0,0.03))',
         borderRadius: 4,
         fontSize: 12,
         color: 'var(--color-text-muted)',
@@ -221,11 +221,11 @@ export default function StepLocation({ data, updateData, onNext, onBack, isFirst
         {/* Helpful hint */}
         <div
           style={{
-            background: 'var(--color-earth-100)',
+            background: 'var(--color-neutral-100)',
             borderRadius: 'var(--radius-md)',
             padding: 16,
             fontSize: 12,
-            color: 'var(--color-earth-700)',
+            color: 'var(--color-neutral-700)',
             lineHeight: 1.6,
           }}
         >

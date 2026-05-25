@@ -6,7 +6,7 @@
  */
 
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { earth, semantic, error as errorToken } from '../lib/tokens.js';
+import { neutral, semantic, error as errorToken } from '../lib/tokens.js';
 
 /**
  * Fire-and-forget client-error telemetry for a caught render error.
@@ -142,7 +142,7 @@ export class GlobalErrorBoundary extends Component<{ children: ReactNode }, Stat
       return (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          height: '100vh', background: earth[900], color: earth[100],
+          height: '100vh', background: neutral[900], color: neutral[100],
           fontFamily: 'system-ui, -apple-system, sans-serif', gap: 16, padding: 40, textAlign: 'center',
         }}>
           <div style={{ fontSize: 11, letterSpacing: '0.12em', color: semantic.sidebarIcon, textTransform: 'uppercase' }}>

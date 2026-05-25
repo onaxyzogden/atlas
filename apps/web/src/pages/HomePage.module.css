@@ -75,7 +75,7 @@
 }
 
 .filterChipActive {
-  background: var(--color-earth-100, rgba(0, 0, 0, 0.06));
+  background: var(--color-neutral-100, rgba(0, 0, 0, 0.06));
   color: var(--color-text);
 }
 
@@ -154,7 +154,7 @@
 
 .cardActionBtn:hover {
   color: var(--color-text);
-  border-color: var(--color-earth-300);
+  border-color: var(--color-neutral-300);
 }
 
 .cardActionBtn:focus-visible {
@@ -203,7 +203,7 @@
    committed". Reads at a glance without competing with projectType Badge. */
 .cardCandidate {
   border-style: dashed;
-  border-color: var(--color-earth-300, var(--color-border));
+  border-color: var(--color-neutral-300, var(--color-border));
   background: var(--color-surface);
 }
 
@@ -266,7 +266,7 @@
 
 .card:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--color-earth-300);
+  border-color: var(--color-neutral-300);
   transform: translateY(-2px);
 }
 
@@ -319,7 +319,7 @@
 }
 
 .boundaryDotNone {
-  background: var(--color-text-subtle, var(--color-earth-400));
+  background: var(--color-text-subtle, var(--color-neutral-400));
 }
 
 /* ─── Empty state ──────────────────────────────────────────────────────── */
@@ -341,7 +341,7 @@
   width: 72px;
   height: 72px;
   margin: 0 auto var(--space-6);
-  color: var(--color-text-subtle, var(--color-earth-400));
+  color: var(--color-text-subtle, var(--color-neutral-400));
   opacity: 0.6;
 }
 

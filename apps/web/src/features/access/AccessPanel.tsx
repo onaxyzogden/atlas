@@ -28,7 +28,7 @@ import ServiceAccessContinuityCard from './ServiceAccessContinuityCard.js';
 import QuietCirculationRouteCard from './QuietCirculationRouteCard.js';
 import p from '../../styles/panel.module.css';
 import s from './AccessPanel.module.css';
-import { earth, map as mapTokens } from '../../lib/tokens.js';
+import { neutral, map as mapTokens } from '../../lib/tokens.js';
 
 interface AccessPanelProps {
   projectId: string;
@@ -306,6 +306,6 @@ function renderPathOnMap(map: maplibregl.Map, path: DesignPath) {
   map.addLayer({
     id: `path-label-${path.id}`, type: 'symbol', source: sourceId,
     layout: { 'text-field': path.name, 'text-size': 10, 'symbol-placement': 'line', 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'] },
-    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
+    paint: { 'text-color': neutral[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

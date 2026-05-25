@@ -4,7 +4,7 @@
 
 import type { PortalConfig } from '../../../store/portalStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
-import { earth, zone, semantic } from '../../../lib/tokens.js';
+import { neutral, zone, semantic } from '../../../lib/tokens.js';
 
 interface Props { config: PortalConfig; project: LocalProject }
 
@@ -45,7 +45,7 @@ export default function MissionOverlay({ config }: Props) {
         fontWeight: 300,
         fontStyle: 'italic',
         lineHeight: 1.8,
-        color: earth[200],
+        color: neutral[200],
         margin: 0,
         padding: '0 16px',
         borderLeft: 'none',

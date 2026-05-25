@@ -39,7 +39,7 @@ import ZoneAutoSuggest from './ZoneAutoSuggest.js';
 import ZoneSuggestionAuditCard from './ZoneSuggestionAuditCard.js';
 import ZoneNamingCoverageCard from './ZoneNamingCoverageCard.js';
 import ZoneCategoryUseAuditCard from './ZoneCategoryUseAuditCard.js';
-import { earth, map as mapTokens } from '../../lib/tokens.js';
+import { neutral, map as mapTokens } from '../../lib/tokens.js';
 import p from '../../styles/panel.module.css';
 import s from './ZonePanel.module.css';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
@@ -571,6 +571,6 @@ function renderZoneOnMap(map: maplibregl.Map, zone: LandZone) {
     type: 'symbol',
     source: sourceId,
     layout: { 'text-field': zone.name, 'text-size': 11, 'text-font': ['DIN Pro Medium', 'Arial Unicode MS Regular'], 'text-anchor': 'center' },
-    paint: { 'text-color': earth[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
+    paint: { 'text-color': neutral[100], 'text-halo-color': mapTokens.labelHalo, 'text-halo-width': 1.5 },
   });
 }

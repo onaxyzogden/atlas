@@ -7,7 +7,7 @@
 
 import type maplibregl from 'maplibre-gl';
 import { useState, useCallback, useEffect } from 'react';
-import { earth, map as mapTokens, mapZIndex, semantic } from '../../lib/tokens.js';
+import { neutral, map as mapTokens, mapZIndex, semantic } from '../../lib/tokens.js';
 import { TERRAIN_DEM_URL, CONTOUR_TILES_URL } from '../../lib/maplibre.js';
 import { MapControlPopover } from '../../components/ui/MapControlPopover.js';
 

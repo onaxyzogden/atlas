@@ -40,7 +40,7 @@
 /* ── Offline state ── */
 .offline {
   background: var(--color-warning, #ca8a04);
-  color: var(--color-earth-900, #312617);
+  color: var(--color-neutral-900, #181b1e);
 }
 
 /* ── Syncing state ── */
@@ -63,7 +63,7 @@
   padding: 4px 10px 4px 8px;
   border-radius: 999px;
   background: rgba(229, 221, 208, 0.92);
-  color: var(--color-earth-800, #453321);
+  color: var(--color-neutral-800, #2b3035);
   border: 1px solid rgba(69, 51, 33, 0.15);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
   font-size: 11px;

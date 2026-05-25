@@ -101,8 +101,8 @@
 .connectorUpcoming {
   background-image: repeating-linear-gradient(
     90deg,
-    var(--color-earth-200, #d6cfc4) 0,
-    var(--color-earth-200, #d6cfc4) 6px,
+    var(--color-neutral-200, #dde1e5) 0,
+    var(--color-neutral-200, #dde1e5) 6px,
     transparent 6px,
     transparent 12px
   );
@@ -113,8 +113,8 @@
 .vertical .connectorUpcoming {
   background-image: repeating-linear-gradient(
     180deg,
-    var(--color-earth-200, #d6cfc4) 0,
-    var(--color-earth-200, #d6cfc4) 6px,
+    var(--color-neutral-200, #dde1e5) 0,
+    var(--color-neutral-200, #dde1e5) 6px,
     transparent 6px,
     transparent 12px
   );
@@ -171,8 +171,8 @@
 
 /* Upcoming */
 .upcoming .circle {
-  background-color: var(--color-earth-200, #d6cfc4);
-  border-color: var(--color-earth-200, #d6cfc4);
+  background-color: var(--color-neutral-200, #dde1e5);
+  border-color: var(--color-neutral-200, #dde1e5);
   color: var(--color-text-muted, #6b6b6b);
 }
 
