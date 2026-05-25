@@ -38,6 +38,7 @@ import {
 import { usePlanImpactFlagCounts } from '../plan/impact/usePlanImpactFlags.js';
 import { usePlanDecisionCounts } from '../plan/decisions/usePlanDecisions.js';
 import { usePlanWorkPackageCounts } from '../plan/work-packages/usePlanWorkPackages.js';
+import { usePlanConflictCounts } from '../plan/conflicts/usePlanConflicts.js';
 import css from './V3LifecycleSidebar.module.css';
 
 interface DisabledLink {
@@ -125,6 +126,7 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
   const reviewCounts = usePlanImpactFlagCounts(projectId);
   const decisionCounts = usePlanDecisionCounts(projectId);
   const workPackageCounts = usePlanWorkPackageCounts(projectId);
+  const conflictCounts = usePlanConflictCounts(projectId);
 
   const stageIsActive = (id: StageId): boolean =>
     (activeStage as string) === id;
@@ -312,6 +314,28 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
                           {workPackageCounts.draft > 0 ? (
                             <span className={css.utilityCount}>
                               {workPackageCounts.draft}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/conflicts"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/conflicts') ? 'true' : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Plan Conflicts
+                          {conflictCounts.open > 0 ? (
+                            <span className={css.utilityCount}>
+                              {conflictCounts.open}
                             </span>
                           ) : null}
                         </span>
