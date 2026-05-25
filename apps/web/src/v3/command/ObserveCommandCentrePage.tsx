@@ -2,27 +2,27 @@
  * ObserveCommandCentrePage — the aggregate "run the stage" surface for Observe.
  *
  * Two modes, per the OLOS Stage Command Center doc:
- *   1. Command Centre (awareness) — THIS page: site map with objective markers,
- *      assigned-objective launch cards, an observation timeline, plus the
- *      aggregate Observe summary / evidence / gaps / module dashboards.
- *   2. Objective Focus Mode (execution) — ObserveLayout driven by `?objective`,
- *      launched by clicking a card or marker here.
+ *   1. Command Centre (awareness) — THIS page: site map with observation-need
+ *      markers, open-observation-need launch cards, an observation timeline,
+ *      plus the aggregate Observe summary / evidence / gaps / module dashboards.
+ *   2. Observation Capture Workspace (execution) — ObserveLayout driven by
+ *      `?need`, launched by clicking a card or marker here.
  *
  * The center of the Stage Compass still opens this route. It is no longer
- * gated on 100% completion: a steward runs objectives from here at any time
- * (the doc's "Command Centre for awareness, Objective Workspace for
- * execution"). Readiness now only changes emphasis — the Plan-readiness banner
- * activates once every objective is verified. Rendered full-bleed by
- * V3ProjectLayout (the `command-centre` path skips LandOsShell).
+ * gated on 100% completion: a steward records observations from here at any time
+ * (the doc's "Command Centre for awareness, Capture Workspace for execution").
+ * Readiness now only changes emphasis — the Plan-readiness banner activates once
+ * every domain is verified. Rendered full-bleed by V3ProjectLayout (the
+ * `command-centre` path skips LandOsShell).
  */
 
 import { useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { Compass, ArrowRight, Check } from 'lucide-react';
 import { useCompassData } from '../compass/useCompassData.js';
-import { useFieldObjectives } from '../objectives/useFieldObjectives.js';
+import { useObservationNeeds } from '../objectives/useFieldObjectives.js';
 import SiteMapPanel from './SiteMapPanel.js';
-import AssignedObjectivesPanel from './AssignedObjectivesPanel.js';
+import OpenObservationNeedsPanel from './AssignedObjectivesPanel.js';
 import ObservationTimelinePanel from './ObservationTimelinePanel.js';
 import EvidenceLibraryPanel from './EvidenceLibraryPanel.js';
 import GapsPanel from './GapsPanel.js';
@@ -34,7 +34,7 @@ export default function ObserveCommandCentrePage() {
   const projectId = params.projectId ?? 'mtc';
   const navigate = useNavigate();
   const data = useCompassData(projectId);
-  const objectiveViews = useFieldObjectives(projectId);
+  const needViews = useObservationNeeds(projectId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const ready =
@@ -43,15 +43,15 @@ export default function ObserveCommandCentrePage() {
   const backToCompass = () =>
     navigate({ to: '/v3/project/$projectId/compass', params: { projectId } });
 
-  // Launch action: open Objective Focus Mode for the chosen objective by
-  // deep-linking into ObserveLayout with its module + the `?objective` driver.
-  const launchObjective = (objectiveId: string) => {
-    const view = objectiveViews.find((v) => v.objective.id === objectiveId);
+  // Launch action: open the Observation Capture Workspace for the chosen need by
+  // deep-linking into ObserveLayout with its module + the `?need` driver.
+  const launchNeed = (needId: string) => {
+    const view = needViews.find((v) => v.objective.id === needId);
     if (!view) return;
     navigate({
       to: '/v3/project/$projectId/observe/$module',
       params: { projectId, module: view.objective.module },
-      search: { objective: objectiveId },
+      search: { need: needId },
     });
   };
 
@@ -63,8 +63,8 @@ export default function ObserveCommandCentrePage() {
           <h1 className={css.title}>Observe Command Centre</h1>
           <p className={css.subtitle}>
             {ready
-              ? `Foundation verified across all ${data.views.length} objectives — run the Observe stage from one place.`
-              : `Run the Observe stage from one place. ${data.stage.pct}% verified across ${data.views.length} objectives — launch an assigned objective to keep going.`}
+              ? `Foundation verified across all ${data.views.length} domains — run the Observe stage from one place.`
+              : `Run the Observe stage from one place. ${data.stage.pct}% verified across ${data.views.length} domains — launch an observation need to keep going.`}
           </p>
         </div>
         <button type="button" className={css.ghostBtn} onClick={backToCompass}>
@@ -75,14 +75,14 @@ export default function ObserveCommandCentrePage() {
       <div className={css.sections}>
         <SiteMapPanel
           projectId={projectId}
-          views={objectiveViews}
+          views={needViews}
           onSelectObjective={setSelectedId}
         />
 
-        <AssignedObjectivesPanel
-          views={objectiveViews}
+        <OpenObservationNeedsPanel
+          views={needViews}
           selectedId={selectedId}
-          onLaunch={launchObjective}
+          onLaunch={launchNeed}
         />
 
         <div className={css.grid}>
@@ -112,7 +112,7 @@ export default function ObserveCommandCentrePage() {
             </ul>
           </section>
 
-          <ObservationTimelinePanel views={objectiveViews} />
+          <ObservationTimelinePanel views={needViews} />
           <EvidenceLibraryPanel projectId={projectId} />
           <GapsPanel projectId={projectId} />
         </div>

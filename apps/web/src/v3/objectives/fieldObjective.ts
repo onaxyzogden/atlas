@@ -1,34 +1,50 @@
 /**
- * FieldObjective — the doc's "guided field-work package": a discrete,
- * location-bound, assignable unit of stage work. Distinct from the two
- * existing module-keyed "objective" notions:
+ * ObservationNeed — the Observe stage's "guided observation package": a
+ * discrete, location-bound unit of *something that still needs observing*.
+ * Distinct from the two module-keyed "objective" notions:
  *   - `ObserveObjective` (pure predicates over store counts, module-level)
  *   - `CompassObjective` (compass-wheel nodes)
- * A FieldObjective carries everything needed to *launch a focused workspace*:
- * where on the map, which tools, which checklist, what evidence, and the rule
- * that marks it complete. User-facing label is simply "Objective".
+ * An ObservationNeed carries everything needed to *launch a focused capture
+ * workspace*: where on the map, which tools, which checklist, what evidence,
+ * and the rule that marks it recorded. User-facing label is "Observation Need".
+ *
+ * Observe does two things only: it manages recorded observations, and it
+ * expresses observation needs. It does NOT assign work — no assignee, no
+ * labour deadline. Who does the work and when is an Act concern (after Plan
+ * decides the response). The terminal action here is "Record observation",
+ * not "Submit for review": there is no review gate inside Observe.
  *
  * The static catalog (title, target, tools, checklist spec) is seed data; the
  * mutable run state (checked items, captured evidence, status) lives in
- * `fieldObjectiveStore`. This split mirrors the compass evidence/checks model
- * and keeps completion evaluation a pure function of catalog + run.
+ * `observationNeedStore`. This split mirrors the compass evidence/checks model
+ * and keeps recording evaluation a pure function of catalog + run.
  */
 
 import type { ObserveModule } from '../observe/types.js';
 import { OBSERVE_MODULES } from '../observe/types.js';
 import type { MapToolId } from '../observe/components/measure/useMapToolStore.js';
 
-/** Lifecycle of a single objective, per the doc's status states. */
-export type ObjectiveStatus =
-  | 'not-started'
+/**
+ * Lifecycle of a single observation need. Collapsed from the old
+ * assignment/review states: a need is `open` until work begins, `in-progress`
+ * while evidence is captured, `recorded` once the observation is logged, and
+ * optionally `resolved` when the underlying concern is closed out.
+ */
+export type ObservationNeedStatus =
+  | 'open'
   | 'in-progress'
-  | 'evidence-submitted'
-  | 'complete'
-  | 'needs-review';
+  | 'recorded'
+  | 'resolved';
 
-export type ObjectivePriority = 'low' | 'medium' | 'high';
+export type ObservationNeedPriority = 'low' | 'medium' | 'high';
 
-/** Kinds of proof an objective can require. */
+/** Where the recorded reality may force the Plan to change. Signal to Plan only. */
+export type PlanImpact = 'none' | 'possible' | 'likely';
+
+/** How an observation need came to exist. */
+export type ObservationNeedOrigin = 'seed' | 'follow-up' | 'manual';
+
+/** Kinds of proof an observation need can require. */
 export type EvidenceKind =
   | 'photo'
   | 'note'
@@ -36,7 +52,7 @@ export type EvidenceKind =
   | 'confirmation'
   | 'audio';
 
-/** One checklist item the steward ticks while working the objective. */
+/** One checklist item the steward ticks while working the need. */
 export interface ChecklistItemSpec {
   id: string;
   label: string;
@@ -54,27 +70,22 @@ export interface EvidenceSpec {
 }
 
 /** Where the workspace should take the steward and what to highlight. */
-export interface ObjectiveTarget {
+export interface ObservationNeedTarget {
   center: [number, number];
   zoom?: number;
   bbox?: [number, number, number, number];
   highlightGeometry?: GeoJSON.Geometry;
 }
 
-/** What makes an objective eligible for "Submit for review". */
-export interface CompletionRule {
+/** What makes an observation need eligible to be recorded. */
+export interface RecordingRule {
   requireAllRequiredChecklist: boolean;
   requireAllRequiredEvidence: boolean;
   requireSummary: boolean;
 }
 
-export interface ObjectiveAssignee {
-  id: string;
-  name: string;
-}
-
-/** The static, seeded description of a field-work package. */
-export interface FieldObjective {
+/** The static, seeded description of an observation package. */
+export interface ObservationNeed {
   id: string;
   projectId: string;
   stage: 'observe' | 'plan' | 'act';
@@ -82,18 +93,28 @@ export interface FieldObjective {
   module: ObserveModule;
   title: string;
   description?: string;
-  target: ObjectiveTarget;
-  /** Tools surfaced in the left rail while this objective is focused. */
+  target: ObservationNeedTarget;
+  /** Tools surfaced in the left rail while this need is focused. */
   requiredTools: MapToolId[];
   /** Layer ids the workspace should foreground (data-only for v1). */
   requiredLayers: string[];
   checklist: ChecklistItemSpec[];
   evidence: EvidenceSpec[];
-  completionRule: CompletionRule;
-  priority: ObjectivePriority;
-  /** ISO date string. */
-  dueAt?: string;
-  assignee?: ObjectiveAssignee;
+  recordingRule: RecordingRule;
+  priority: ObservationNeedPriority;
+  /** How this need arose — seeded catalog, follow-up from a record, or manual. */
+  origin: ObservationNeedOrigin;
+  /** Why this need exists — shown on the card. */
+  reason: string;
+  /** Back-link to the record that raised this need (follow-up origin). */
+  sourceObservationId?: string;
+  /**
+   * Optional re-observation *condition* (e.g. "recheck after next rainfall").
+   * A condition, not a schedule — scheduling labour is an Act concern.
+   */
+  trigger?: string;
+  /** Whether the recorded reality may require the Plan to change. Signal to Plan. */
+  planImpact?: PlanImpact;
 }
 
 /** A single captured piece of evidence in the run state. */
@@ -106,9 +127,9 @@ export interface CapturedEvidence {
   capturedAt: string;
 }
 
-/** The mutable progress of one objective for one steward. */
-export interface ObjectiveRun {
-  status: ObjectiveStatus;
+/** The mutable progress of one observation need for one steward. */
+export interface ObservationNeedRun {
+  status: ObservationNeedStatus;
   checkedChecklist: string[];
   evidence: CapturedEvidence[];
   summary: string;
@@ -116,16 +137,16 @@ export interface ObjectiveRun {
   updatedAt?: string;
 }
 
-/** An empty run — the implicit state before a steward touches an objective. */
-export const emptyObjectiveRun = (): ObjectiveRun => ({
-  status: 'not-started',
+/** An empty run — the implicit state before a steward touches a need. */
+export const emptyObservationNeedRun = (): ObservationNeedRun => ({
+  status: 'open',
   checkedChecklist: [],
   evidence: [],
   summary: '',
 });
 
-/** Result of evaluating an objective's run against its completion rule. */
-export interface CompletionEvaluation {
+/** Result of evaluating a need's run against its recording rule. */
+export interface RecordingEvaluation {
   /** Required checklist items that are ticked. */
   checklistDone: number;
   /** Total required checklist items. */
@@ -136,29 +157,29 @@ export interface CompletionEvaluation {
   evidenceTotal: number;
   /** Whether a summary is present when one is required. */
   summarySatisfied: boolean;
-  /** All gates in the completion rule pass → eligible to submit. */
-  canSubmit: boolean;
+  /** All gates in the recording rule pass → eligible to record. */
+  canRecord: boolean;
   /** 0–100 across every required gate, for progress display. */
   pct: number;
 }
 
 /**
- * Pure evaluation of an objective's run against its completion rule. No store,
- * no side effects — mirrors the predicate style of `objectives.ts` so it is
+ * Pure evaluation of a need's run against its recording rule. No store, no
+ * side effects — mirrors the predicate style of `objectives.ts` so it is
  * trivially unit-testable.
  */
-export function evaluateObjectiveCompletion(
-  objective: FieldObjective,
-  run: ObjectiveRun,
-): CompletionEvaluation {
-  const requiredChecklist = objective.checklist.filter((c) => c.required);
+export function evaluateObservationRecorded(
+  need: ObservationNeed,
+  run: ObservationNeedRun,
+): RecordingEvaluation {
+  const requiredChecklist = need.checklist.filter((c) => c.required);
   const checkedSet = new Set(run.checkedChecklist);
   const checklistDone = requiredChecklist.filter((c) =>
     checkedSet.has(c.id),
   ).length;
   const checklistTotal = requiredChecklist.length;
 
-  const requiredEvidence = objective.evidence.filter((e) => e.required);
+  const requiredEvidence = need.evidence.filter((e) => e.required);
   const evidenceDone = requiredEvidence.filter((spec) => {
     const min = spec.min ?? 1;
     const count = run.evidence.filter((e) => e.specId === spec.id).length;
@@ -167,26 +188,26 @@ export function evaluateObjectiveCompletion(
   const evidenceTotal = requiredEvidence.length;
 
   const summarySatisfied =
-    !objective.completionRule.requireSummary || run.summary.trim().length > 0;
+    !need.recordingRule.requireSummary || run.summary.trim().length > 0;
 
   const checklistGate =
-    !objective.completionRule.requireAllRequiredChecklist ||
+    !need.recordingRule.requireAllRequiredChecklist ||
     checklistDone === checklistTotal;
   const evidenceGate =
-    !objective.completionRule.requireAllRequiredEvidence ||
+    !need.recordingRule.requireAllRequiredEvidence ||
     evidenceDone === evidenceTotal;
 
-  const canSubmit = checklistGate && evidenceGate && summarySatisfied;
+  const canRecord = checklistGate && evidenceGate && summarySatisfied;
 
   // Progress weights each active gate's components equally.
   const parts: number[] = [];
-  if (objective.completionRule.requireAllRequiredChecklist) {
+  if (need.recordingRule.requireAllRequiredChecklist) {
     parts.push(checklistTotal === 0 ? 1 : checklistDone / checklistTotal);
   }
-  if (objective.completionRule.requireAllRequiredEvidence) {
+  if (need.recordingRule.requireAllRequiredEvidence) {
     parts.push(evidenceTotal === 0 ? 1 : evidenceDone / evidenceTotal);
   }
-  if (objective.completionRule.requireSummary) {
+  if (need.recordingRule.requireSummary) {
     parts.push(summarySatisfied ? 1 : 0);
   }
   const pct =
@@ -200,7 +221,7 @@ export function evaluateObjectiveCompletion(
     evidenceDone,
     evidenceTotal,
     summarySatisfied,
-    canSubmit,
+    canRecord,
     pct,
   };
 }
@@ -219,10 +240,10 @@ const REQUIRED_LAYER_ALIAS: Record<string, ObserveModule> = {
 const OBSERVE_MODULE_SET = new Set<string>(OBSERVE_MODULES);
 
 /**
- * Normalize an objective's `requiredLayers` (a mix of module names and finer
- * alias tokens) into the set of `ObserveModule`s the focus workspace should
- * foreground on the map. The objective's own `module` is always included (so
- * its layers are never hidden even if `requiredLayers` omits it); aliases are
+ * Normalize a need's `requiredLayers` (a mix of module names and finer alias
+ * tokens) into the set of `ObserveModule`s the focus workspace should
+ * foreground on the map. The need's own `module` is always included (so its
+ * layers are never hidden even if `requiredLayers` omits it); aliases are
  * resolved; unknown tokens are dropped; the result is de-duplicated.
  *
  * Pure — no store, no side effects — so it is trivially unit-testable.
@@ -244,19 +265,19 @@ export function requiredLayersToModules(
 }
 
 /**
- * Find the first `annotation`-kind evidence spec on an objective that is not
- * yet satisfied by its run — i.e. whose captured count is below its `min`
+ * Find the first `annotation`-kind evidence spec on a need that is not yet
+ * satisfied by its run — i.e. whose captured count is below its `min`
  * (default 1). Returns `null` when every annotation requirement is met (or the
- * objective declares none). Used by the auto-capture listener to decide which
- * spec a freshly-placed feature should advance.
+ * need declares none). Used by the auto-capture listener to decide which spec a
+ * freshly-placed feature should advance.
  *
  * Pure — no store, no side effects — so it is trivially unit-testable.
  */
 export function firstUnsatisfiedAnnotationSpec(
-  objective: FieldObjective,
-  run: ObjectiveRun,
+  need: ObservationNeed,
+  run: ObservationNeedRun,
 ): EvidenceSpec | null {
-  for (const spec of objective.evidence) {
+  for (const spec of need.evidence) {
     if (spec.kind !== 'annotation') continue;
     const min = spec.min ?? 1;
     const count = run.evidence.filter((e) => e.specId === spec.id).length;

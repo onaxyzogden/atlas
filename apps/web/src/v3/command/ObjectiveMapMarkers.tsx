@@ -1,43 +1,42 @@
 /**
- * ObjectiveMapMarkers — plots each FieldObjective at its target centre on the
- * Command Centre site map as an HTML marker (one DOM node per objective, same
- * lightweight approach as FieldFlagOverlay; objective counts are small). The
- * marker is colour-coded by module and badged with its status; clicking it
- * fires `onSelect` so the matching card / launch flow can respond.
+ * ObjectiveMapMarkers — plots each ObservationNeed at its target centre on the
+ * Command Centre site map as an HTML marker (one DOM node per need, same
+ * lightweight approach as FieldFlagOverlay; need counts are small). The marker
+ * is colour-coded by module and badged with its status; clicking it fires
+ * `onSelect` so the matching card / launch flow can respond.
  */
 
 import { useEffect, useRef } from 'react';
 import { maplibregl } from '../../lib/maplibre.js';
 import { OBSERVE_MODULE_DOT } from '../observe/moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL } from '../observe/types.js';
-import type { ObjectiveStatus } from '../objectives/fieldObjective.js';
-import type { FieldObjectiveView } from '../objectives/useFieldObjectives.js';
+import type { ObservationNeedStatus } from '../objectives/fieldObjective.js';
+import type { ObservationNeedView } from '../objectives/useFieldObjectives.js';
 
 interface Props {
   map: maplibregl.Map;
-  views: FieldObjectiveView[];
-  onSelect?: (objectiveId: string) => void;
+  views: ObservationNeedView[];
+  onSelect?: (needId: string) => void;
 }
 
-const STATUS_LABEL: Record<ObjectiveStatus, string> = {
-  'not-started': 'Not started',
+const STATUS_LABEL: Record<ObservationNeedStatus, string> = {
+  open: 'Open',
   'in-progress': 'In progress',
-  'evidence-submitted': 'Evidence submitted',
-  complete: 'Complete',
-  'needs-review': 'Needs review',
+  recorded: 'Recorded',
+  resolved: 'Resolved',
 };
 
-function buildPin(view: FieldObjectiveView): HTMLDivElement {
+function buildPin(view: ObservationNeedView): HTMLDivElement {
   const { objective, run } = view;
   const color = OBSERVE_MODULE_DOT[objective.module];
-  const done = run.status === 'complete';
+  const done = run.status === 'recorded' || run.status === 'resolved';
   // Outer element: MapLibre owns its inline `transform` for positioning, so we
   // must never write `transform` here — doing so wipes the translate and snaps
   // the marker to the map origin. The hover scale lives on the inner pin.
   const el = document.createElement('div');
   el.setAttribute(
     'aria-label',
-    `${OBSERVE_MODULE_LABEL[objective.module]} objective: ${objective.title} (${STATUS_LABEL[run.status]})`,
+    `${OBSERVE_MODULE_LABEL[objective.module]} observation need: ${objective.title} (${STATUS_LABEL[run.status]})`,
   );
   el.style.cssText = ['cursor:pointer', 'user-select:none', 'line-height:0'].join(';');
 
@@ -70,7 +69,7 @@ function buildPin(view: FieldObjectiveView): HTMLDivElement {
   return el;
 }
 
-function popupHtml(view: FieldObjectiveView): string {
+function popupHtml(view: ObservationNeedView): string {
   const { objective, run } = view;
   return `
     <div style="font-family:inherit;color:#1f1d1a;min-width:170px">

@@ -59,7 +59,7 @@ import SelectionFloater from './components/SelectionFloater.js';
 import SectorCompassOverlay from './components/overlays/SectorCompassOverlay.js';
 import ObserveObjectiveCompletePrompt from '../compass/ObserveObjectiveCompletePrompt.js';
 import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
-import { useFieldObjective } from '../objectives/useFieldObjectives.js';
+import { useObservationNeed } from '../objectives/useFieldObjectives.js';
 import { requiredLayersToModules } from '../objectives/fieldObjective.js';
 import ObjectiveMapFocus from './objective/ObjectiveMapFocus.js';
 import ObjectiveAnnotationAutoCapture from './objective/ObjectiveAnnotationAutoCapture.js';
@@ -125,16 +125,16 @@ export default function ObserveLayout() {
   // whole-family view.
   const search = useSearch({ strict: false }) as {
     section?: string;
-    objective?: string;
+    need?: string;
   };
   const activeSectionId = search.section ?? null;
-  // Objective Focus Mode: a launched objective rides in via `?objective=<id>`
+  // Observation Capture Workspace: a launched need rides in via `?need=<id>`
   // (set when a Command Centre card / marker is clicked). When present it
   // narrows the tool rail, flies + highlights the map, and shows a banner.
-  const focusView = useFieldObjective(id, search.objective);
+  const focusView = useObservationNeed(id, search.need);
   const focusObjective = focusView?.objective ?? null;
-  // Objective focus actuates the map: foreground the union of the objective's
-  // `requiredLayers` (normalized to modules). Memoized on the objective id +
+  // Need focus actuates the map: foreground the union of the need's
+  // `requiredLayers` (normalized to modules). Memoized on the need id +
   // its requiredLayers so the layer effect doesn't re-run every render.
   const focusModules = useMemo(
     () =>

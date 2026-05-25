@@ -4,13 +4,13 @@
  * Embeds the standalone DiagnoseMap read-only (no draw host / tool overlays),
  * fit to the project boundary when present, falling back to the project centre.
  * Gives the steward the whole parcel in one frame alongside the summary panels.
- * When objective views are supplied, plots them as launchable markers.
+ * When need views are supplied, plots them as launchable markers.
  */
 
 import { useV3Project } from '../data/useV3Project.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import ObjectiveMapMarkers from './ObjectiveMapMarkers.js';
-import type { FieldObjectiveView } from '../objectives/useFieldObjectives.js';
+import type { ObservationNeedView } from '../objectives/useFieldObjectives.js';
 import css from './ObserveCommandCentrePage.module.css';
 
 /** Last-resort centre when a project carries neither boundary nor centre. */
@@ -18,8 +18,8 @@ const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
 interface Props {
   projectId: string;
-  views?: FieldObjectiveView[];
-  onSelectObjective?: (objectiveId: string) => void;
+  views?: ObservationNeedView[];
+  onSelectObjective?: (needId: string) => void;
 }
 
 export default function SiteMapPanel({

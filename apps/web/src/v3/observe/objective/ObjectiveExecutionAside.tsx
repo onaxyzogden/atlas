@@ -1,83 +1,74 @@
 /**
- * ObjectiveExecutionAside — right-rail workspace for an objective in focus.
+ * CaptureExecutionAside — right-rail workspace for an observation need in focus.
  * Stands in for the module guidance rail (`ObserveChecklistAside`) whenever
- * `?objective` is active. Renders the active objective's checklist and evidence
- * requirements and writes the steward's progress to `fieldObjectiveStore`.
+ * `?need` is active. Renders the active need's checklist and evidence
+ * requirements and writes the steward's progress to `observationNeedStore`.
  *
  * Note-kind evidence doubles as the run summary: saving a note both records the
  * evidence and mirrors the text into `run.summary`, so a single textarea
  * satisfies both the evidence gate and the `requireSummary` gate.
  *
- * Completion/review controls (Submit for review, reviewer actions, timeline
- * write-back) arrive in Phase 5; this rail is the capture surface.
+ * The terminal action is "Record observation": there is no review gate inside
+ * Observe. Recording closes the need; whether the recorded reality warrants
+ * intervention is decided downstream by Plan.
  */
 
-import { Check, CheckCircle2, Send } from 'lucide-react';
-import { useFieldObjectiveStore } from '../../../store/fieldObjectiveStore.js';
+import { Check, CheckCircle2 } from 'lucide-react';
+import { useObservationNeedStore } from '../../../store/fieldObjectiveStore.js';
 import { OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL } from '../types.js';
-import type { ObjectiveStatus } from '../../objectives/fieldObjective.js';
-import type { FieldObjectiveView } from '../../objectives/useFieldObjectives.js';
+import type { ObservationNeedStatus } from '../../objectives/fieldObjective.js';
+import type { ObservationNeedView } from '../../objectives/useFieldObjectives.js';
 import ObjectiveEvidenceCapture, {
   type IndexedEvidence,
 } from './ObjectiveEvidenceCapture.js';
 import ObservationTimelinePanel from '../../command/ObservationTimelinePanel.js';
 import css from './ObjectiveExecutionAside.module.css';
 
-const STATUS_LABEL: Record<ObjectiveStatus, string> = {
-  'not-started': 'Not started',
+const STATUS_LABEL: Record<ObservationNeedStatus, string> = {
+  open: 'Open',
   'in-progress': 'In progress',
-  'evidence-submitted': 'Evidence submitted',
-  complete: 'Complete',
-  'needs-review': 'Needs review',
+  recorded: 'Recorded',
+  resolved: 'Resolved',
 };
 
-const STATUS_CLASS: Record<ObjectiveStatus, string> = {
-  'not-started': '',
+const STATUS_CLASS: Record<ObservationNeedStatus, string> = {
+  open: '',
   'in-progress': css.status_in_progress ?? '',
-  'evidence-submitted': css.status_evidence_submitted ?? '',
-  complete: css.status_complete ?? '',
-  'needs-review': css.status_needs_review ?? '',
+  recorded: css.status_complete ?? '',
+  resolved: css.status_complete ?? '',
 };
 
 interface Props {
   projectId: string;
-  view: FieldObjectiveView;
-  /** Return to the Command Centre overview (used after submit / completion). */
+  view: ObservationNeedView;
+  /** Return to the Command Centre overview (used after recording). */
   onExit: () => void;
 }
 
-export default function ObjectiveExecutionAside({
+export default function CaptureExecutionAside({
   projectId,
   view,
   onExit,
 }: Props) {
   const { objective, run, evaluation } = view;
-  const toggleCheck = useFieldObjectiveStore((s) => s.toggleCheck);
-  const addEvidence = useFieldObjectiveStore((s) => s.addEvidence);
-  const removeEvidence = useFieldObjectiveStore((s) => s.removeEvidence);
-  const setSummary = useFieldObjectiveStore((s) => s.setSummary);
-  const setStatus = useFieldObjectiveStore((s) => s.setStatus);
+  const toggleCheck = useObservationNeedStore((s) => s.toggleCheck);
+  const addEvidence = useObservationNeedStore((s) => s.addEvidence);
+  const removeEvidence = useObservationNeedStore((s) => s.removeEvidence);
+  const setSummary = useObservationNeedStore((s) => s.setSummary);
+  const setStatus = useObservationNeedStore((s) => s.setStatus);
 
   const checkedSet = new Set(run.checkedChecklist);
 
-  // Submit advances to "evidence submitted" and returns to the overview, where
-  // a reviewer sees the card in its new state. Completing/sending back are the
-  // reviewer's two actions on a submitted objective.
-  const submitForReview = () => {
-    setStatus(projectId, objective.id, 'evidence-submitted');
+  // Recording is the single terminal action: it closes the need and returns to
+  // the Command Centre, where the timeline shows the recorded observation.
+  const recordObservation = () => {
+    setStatus(projectId, objective.id, 'recorded');
     onExit();
-  };
-  const markComplete = () => {
-    setStatus(projectId, objective.id, 'complete');
-    onExit();
-  };
-  const sendBack = () => {
-    setStatus(projectId, objective.id, 'needs-review');
   };
 
   return (
-    <aside className={css.box} aria-label="Objective workspace">
+    <aside className={css.box} aria-label="Observation capture">
       <header className={css.header}>
         <div className={css.titleRow}>
           <span
@@ -207,42 +198,20 @@ export default function ObjectiveExecutionAside({
       </section>
 
       {/* Focus-mode timeline filter: the observation timeline scoped to just
-          this objective (a single-view array yields only its events). */}
-      <section className={css.section} aria-label="Objective timeline">
+          this need (a single-view array yields only its events). */}
+      <section className={css.section} aria-label="Observation timeline">
         <ObservationTimelinePanel
           views={[view]}
-          heading="This objective's activity"
-          emptyNote="No observations recorded for this objective yet."
+          heading="This need's activity"
+          emptyNote="No observations recorded for this need yet."
         />
       </section>
 
       <footer className={css.footer}>
-        {run.status === 'evidence-submitted' ? (
-          <>
-            <p className={css.reviewNote}>
-              Evidence submitted — awaiting review.
-            </p>
-            <div className={css.reviewActions}>
-              <button
-                type="button"
-                className={css.ghostBtn}
-                onClick={sendBack}
-              >
-                Send back
-              </button>
-              <button
-                type="button"
-                className={`${css.ghostBtn} ${css.successBtn}`}
-                onClick={markComplete}
-              >
-                <CheckCircle2 size={15} strokeWidth={2} /> Mark complete
-              </button>
-            </div>
-          </>
-        ) : run.status === 'complete' ? (
+        {run.status === 'recorded' || run.status === 'resolved' ? (
           <>
             <p className={css.completeNote}>
-              <CheckCircle2 size={16} strokeWidth={2} /> Objective complete
+              <CheckCircle2 size={16} strokeWidth={2} /> Observation recorded
             </p>
             <button type="button" className={css.ghostBtn} onClick={onExit}>
               Back to Command Centre
@@ -250,23 +219,19 @@ export default function ObjectiveExecutionAside({
           </>
         ) : (
           <>
-            {run.status === 'needs-review' && (
-              <p className={`${css.reviewNote} ${css.reviewNoteFlag}`}>
-                Sent back for review — address the gaps and resubmit.
-              </p>
-            )}
-            {!evaluation.canSubmit && (
+            {!evaluation.canRecord && (
               <p className={css.gateHint}>
-                Complete the required checklist and evidence to submit.
+                Complete the required checklist and evidence to record this
+                observation.
               </p>
             )}
             <button
               type="button"
               className={css.primaryBtn}
-              disabled={!evaluation.canSubmit}
-              onClick={submitForReview}
+              disabled={!evaluation.canRecord}
+              onClick={recordObservation}
             >
-              <Send size={15} strokeWidth={2} /> Submit for review
+              <CheckCircle2 size={15} strokeWidth={2} /> Record observation
             </button>
           </>
         )}

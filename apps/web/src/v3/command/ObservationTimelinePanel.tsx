@@ -1,8 +1,8 @@
 /**
  * ObservationTimelinePanel — the doc's "observation timeline": a reverse-chron
- * feed of activity across the stage's objectives. Built from the run store —
- * each captured evidence item and each status change surfaces as an event —
- * so the steward sees what has happened lately without opening each objective.
+ * feed of activity across the stage's observation needs. Built from the run
+ * store — each captured evidence item and each recording surfaces as an event —
+ * so the steward sees what has happened lately without opening each need.
  */
 
 import {
@@ -16,13 +16,13 @@ import {
 } from 'lucide-react';
 import { OBSERVE_MODULE_LABEL } from '../observe/types.js';
 import type { EvidenceKind } from '../objectives/fieldObjective.js';
-import type { FieldObjectiveView } from '../objectives/useFieldObjectives.js';
+import type { ObservationNeedView } from '../objectives/useFieldObjectives.js';
 import css from './ObserveCommandCentrePage.module.css';
 
 interface Props {
-  views: FieldObjectiveView[];
+  views: ObservationNeedView[];
   /** Eyebrow heading. Defaults to the global "Observation timeline". In focus
-   *  mode the aside passes a single-objective view + contextual copy. */
+   *  mode the aside passes a single-need view + contextual copy. */
   heading?: string;
   /** Empty-state text when there are no events for the given views. */
   emptyNote?: string;
@@ -52,7 +52,7 @@ const EVIDENCE_VERB: Record<EvidenceKind, string> = {
   audio: 'Audio recorded',
 };
 
-function buildEvents(views: FieldObjectiveView[]): TimelineEvent[] {
+function buildEvents(views: ObservationNeedView[]): TimelineEvent[] {
   const events: TimelineEvent[] = [];
   for (const { objective, run } of views) {
     for (const [i, ev] of run.evidence.entries()) {
@@ -64,12 +64,15 @@ function buildEvents(views: FieldObjectiveView[]): TimelineEvent[] {
         objectiveTitle: objective.title,
       });
     }
-    if (run.status === 'complete' && run.updatedAt) {
+    if (
+      (run.status === 'recorded' || run.status === 'resolved') &&
+      run.updatedAt
+    ) {
       events.push({
-        id: `${objective.id}-complete`,
+        id: `${objective.id}-recorded`,
         at: run.updatedAt,
         Icon: CheckCircle2,
-        text: `Objective completed · ${OBSERVE_MODULE_LABEL[objective.module]}`,
+        text: `Observation recorded · ${OBSERVE_MODULE_LABEL[objective.module]}`,
         objectiveTitle: objective.title,
       });
     }
@@ -91,7 +94,7 @@ function formatWhen(at: string): string {
 export default function ObservationTimelinePanel({
   views,
   heading = 'Observation timeline',
-  emptyNote = 'No observations recorded yet. Launch an objective to begin field work.',
+  emptyNote = 'No observations recorded yet. Launch a need to begin field work.',
 }: Props) {
   const events = buildEvents(views);
 

@@ -1,69 +1,63 @@
 /**
- * AssignedObjectivesPanel — the doc's "Ongoing Observe Tasks" launch surface.
- * Each card is a guided field-work package: clicking it (the launch action)
- * opens Objective Focus Mode for that objective. Cards carry the metadata a
- * steward needs to triage: domain, title, location, priority, due date,
- * assignee, and live status.
+ * OpenObservationNeedsPanel — the Observe stage's "Open Observation Needs"
+ * launch surface. Each card is a guided observation package: clicking it (the
+ * launch action) opens the Observation Capture Workspace for that need. Cards
+ * carry the metadata a steward needs to triage: domain, title, why the need
+ * exists, location, priority, and live status. No assignee, no due date — who
+ * does the work and when is an Act concern.
  */
 
-import { Clock, MapPin, User } from 'lucide-react';
+import { MapPin, RefreshCw } from 'lucide-react';
 import { OBSERVE_MODULE_DOT } from '../observe/moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL } from '../observe/types.js';
 import type {
-  ObjectivePriority,
-  ObjectiveStatus,
+  ObservationNeedPriority,
+  ObservationNeedStatus,
 } from '../objectives/fieldObjective.js';
-import type { FieldObjectiveView } from '../objectives/useFieldObjectives.js';
+import type { ObservationNeedView } from '../objectives/useFieldObjectives.js';
 import css from './ObserveCommandCentrePage.module.css';
 
 interface Props {
-  views: FieldObjectiveView[];
-  /** Currently highlighted objective (e.g. via a map-marker click). */
+  views: ObservationNeedView[];
+  /** Currently highlighted need (e.g. via a map-marker click). */
   selectedId?: string | null;
-  onLaunch: (objectiveId: string) => void;
+  onLaunch: (needId: string) => void;
 }
 
-const STATUS_LABEL: Record<ObjectiveStatus, string> = {
-  'not-started': 'Not started',
+const STATUS_LABEL: Record<ObservationNeedStatus, string> = {
+  open: 'Open',
   'in-progress': 'In progress',
-  'evidence-submitted': 'Evidence submitted',
-  complete: 'Complete',
-  'needs-review': 'Needs review',
+  recorded: 'Recorded',
+  resolved: 'Resolved',
 };
 
-const PRIORITY_LABEL: Record<ObjectivePriority, string> = {
+const PRIORITY_LABEL: Record<ObservationNeedPriority, string> = {
   low: 'Low',
   medium: 'Medium',
   high: 'High',
 };
 
-function formatDue(dueAt?: string): string | null {
-  if (!dueAt) return null;
-  const d = new Date(dueAt);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-export default function AssignedObjectivesPanel({
+export default function OpenObservationNeedsPanel({
   views,
   selectedId,
   onLaunch,
 }: Props) {
   if (views.length === 0) {
     return (
-      <section className={css.panel} aria-label="Assigned objectives">
-        <p className="eyebrow">Assigned objectives</p>
-        <p className={css.emptyNote}>No objectives assigned for this site yet.</p>
+      <section className={css.panel} aria-label="Open observation needs">
+        <p className="eyebrow">Open Observation Needs</p>
+        <p className={css.emptyNote}>
+          No open observation needs for this site yet.
+        </p>
       </section>
     );
   }
 
   return (
-    <section className={css.panel} aria-label="Assigned objectives">
-      <p className="eyebrow">Assigned objectives</p>
+    <section className={css.panel} aria-label="Open observation needs">
+      <p className="eyebrow">Open Observation Needs</p>
       <div className={css.objCardGrid}>
         {views.map(({ objective, run, evaluation }) => {
-          const due = formatDue(objective.dueAt);
           const isSelected = selectedId === objective.id;
           return (
             <button
@@ -89,8 +83,8 @@ export default function AssignedObjectivesPanel({
 
               <span className={css.objCardTitle}>{objective.title}</span>
 
-              {objective.description && (
-                <span className={css.objCardDesc}>{objective.description}</span>
+              {objective.reason && (
+                <span className={css.objCardDesc}>{objective.reason}</span>
               )}
 
               <span className={css.objCardMeta}>
@@ -99,14 +93,9 @@ export default function AssignedObjectivesPanel({
                   {objective.target.center[1].toFixed(4)},{' '}
                   {objective.target.center[0].toFixed(4)}
                 </span>
-                {due && (
+                {objective.trigger && (
                   <span className={css.objMetaItem}>
-                    <Clock size={13} strokeWidth={2} /> Due {due}
-                  </span>
-                )}
-                {objective.assignee && (
-                  <span className={css.objMetaItem}>
-                    <User size={13} strokeWidth={2} /> {objective.assignee.name}
+                    <RefreshCw size={13} strokeWidth={2} /> {objective.trigger}
                   </span>
                 )}
                 <span

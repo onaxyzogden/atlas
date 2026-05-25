@@ -1,18 +1,17 @@
 /**
- * SEED_FIELD_OBJECTIVES — the client-side catalog of assignable field-work
- * packages for the sample project (`mtc`). Coordinates sit inside the MTC
- * parcel boundary (see `mockProject.ts`); titles mirror the design comps
- * ("Revisit slope 12A after rainfall", "Verify trail condition at River
- * Bend", …). No backend — this is the static half of the model; run state
- * lives in `fieldObjectiveStore`.
+ * SEED_OBSERVATION_NEEDS — the client-side catalog of observation packages for
+ * the sample project (`mtc`). Coordinates sit inside the MTC parcel boundary
+ * (see `mockProject.ts`); titles mirror the design comps ("Revisit slope 12A
+ * after rainfall", "Verify trail condition at River Bend", …). No backend —
+ * this is the static half of the model; run state lives in
+ * `observationNeedStore`. Every seed carries `origin: 'seed'` and a `reason`
+ * explaining why it needs observing. No assignee, no due-date: who does the
+ * work and when is an Act concern.
  */
 
-import type { FieldObjective } from './fieldObjective.js';
+import type { ObservationNeed } from './fieldObjective.js';
 
-const STEWARD_A = { id: 'steward-amina', name: 'Amina' };
-const STEWARD_Y = { id: 'steward-yusuf', name: 'Yusuf' };
-
-export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
+export const SEED_OBSERVATION_NEEDS: ObservationNeed[] = [
   {
     id: 'obj-slope-12a-rainfall',
     projectId: 'mtc',
@@ -42,14 +41,17 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
       { id: 'annotation', kind: 'annotation', label: 'Runoff annotation', min: 1, required: true },
       { id: 'summary', kind: 'note', label: 'Summary note', required: true },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: true,
     },
     priority: 'high',
-    dueAt: '2026-05-27',
-    assignee: STEWARD_A,
+    origin: 'seed',
+    reason:
+      'Runoff and erosion on slope 12A may have shifted after the recent rainfall — recheck before the next storm.',
+    trigger: 'Recheck after next rainfall',
+    planImpact: 'possible',
   },
   {
     id: 'obj-trail-river-bend',
@@ -74,14 +76,15 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
       { id: 'route-confirm', kind: 'confirmation', label: 'Route passable confirmation', required: true },
       { id: 'summary', kind: 'note', label: 'Summary note', required: true },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: true,
     },
     priority: 'medium',
-    dueAt: '2026-05-29',
-    assignee: STEWARD_Y,
+    origin: 'seed',
+    reason:
+      'River Bend access has not been verified this season — confirm it is still passable for field work.',
   },
   {
     id: 'obj-interview-west-ridge',
@@ -109,14 +112,15 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
       { id: 'neighbour-pin', kind: 'annotation', label: 'Neighbour marker placed', min: 1, required: true },
       { id: 'summary', kind: 'note', label: 'Interview summary', required: true },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: true,
     },
     priority: 'medium',
-    dueAt: '2026-06-02',
-    assignee: STEWARD_A,
+    origin: 'seed',
+    reason:
+      'The West Ridge neighbour holds undocumented land-use and access knowledge that affects boundary planning.',
   },
   {
     id: 'obj-photograph-east-gate',
@@ -136,14 +140,15 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
     evidence: [
       { id: 'photos', kind: 'photo', label: 'Gate photos', min: 2, required: true },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: false,
     },
     priority: 'low',
-    dueAt: '2026-06-05',
-    assignee: STEWARD_Y,
+    origin: 'seed',
+    reason:
+      'The east boundary gate condition is undocumented — a photo record is needed for the infrastructure baseline.',
   },
   {
     id: 'obj-soil-sample-north-field',
@@ -169,14 +174,16 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
       { id: 'photos', kind: 'photo', label: 'Field photos', min: 1, required: false },
       { id: 'summary', kind: 'note', label: 'Sampling notes', required: true },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: true,
     },
     priority: 'high',
-    dueAt: '2026-05-28',
-    assignee: STEWARD_A,
+    origin: 'seed',
+    reason:
+      'No soil baseline exists for the north field — samples are needed before any planting decisions.',
+    planImpact: 'possible',
   },
   {
     id: 'obj-watercourse-south-boundary',
@@ -200,13 +207,15 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
       { id: 'watercourse-line', kind: 'annotation', label: 'Watercourse line drawn', min: 1, required: true },
       { id: 'summary', kind: 'note', label: 'Hydrology notes', required: false },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: false,
     },
     priority: 'medium',
-    dueAt: '2026-06-04',
+    origin: 'seed',
+    reason:
+      'The south-boundary watercourse is unmapped — its flow path affects drainage and siting downstream.',
   },
   {
     id: 'obj-frost-pocket-low-corner',
@@ -228,13 +237,15 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
     evidence: [
       { id: 'frost-marker', kind: 'annotation', label: 'Frost pocket marker', min: 1, required: true },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: false,
     },
     priority: 'low',
-    dueAt: '2026-06-08',
+    origin: 'seed',
+    reason:
+      'A frost pocket spotted during the last cold snap needs marking so siting avoids the cold-air sink.',
   },
   {
     id: 'obj-sun-sector-orchard',
@@ -257,17 +268,19 @@ export const SEED_FIELD_OBJECTIVES: FieldObjective[] = [
       { id: 'sun-sector', kind: 'annotation', label: 'Sun sector drawn', min: 1, required: true },
       { id: 'photos', kind: 'photo', label: 'Site photo', min: 1, required: false },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: false,
     },
     priority: 'low',
-    dueAt: '2026-06-10',
+    origin: 'seed',
+    reason:
+      'The summer sun arc over the proposed orchard is unrecorded — needed to site rows for light exposure.',
   },
 ];
 
-/** Objectives scoped to one project. */
-export function seedObjectivesForProject(projectId: string): FieldObjective[] {
-  return SEED_FIELD_OBJECTIVES.filter((o) => o.projectId === projectId);
+/** Observation needs scoped to one project. */
+export function seedObservationNeedsForProject(projectId: string): ObservationNeed[] {
+  return SEED_OBSERVATION_NEEDS.filter((n) => n.projectId === projectId);
 }

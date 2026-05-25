@@ -90,12 +90,12 @@ interface Props {
    */
   activeModule?: ObserveModule | null;
   /**
-   * Objective focus: the union of modules a focused `FieldObjective` declares
-   * via its `requiredLayers` (normalized through `requiredLayersToModules`).
-   * When set to a non-empty array it SUPERSEDES `activeModule` — only specs
-   * whose module is in this set stay visible, so an objective can foreground
-   * layers from several modules at once (e.g. topography + hydrology).
-   * `null`/empty = fall back to the single-`activeModule` gate above.
+   * Need focus: the union of modules a focused `ObservationNeed` declares via
+   * its `requiredLayers` (normalized through `requiredLayersToModules`). When
+   * set to a non-empty array it SUPERSEDES `activeModule` — only specs whose
+   * module is in this set stay visible, so a need can foreground layers from
+   * several modules at once (e.g. topography + hydrology). `null`/empty = fall
+   * back to the single-`activeModule` gate above.
    */
   focusModules?: ObserveModule[] | null;
 }

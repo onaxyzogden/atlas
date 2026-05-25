@@ -1,42 +1,40 @@
 /**
- * ObjectiveBanner — slim overlay along the top of the canvas while an objective
- * is in focus. Names the active objective, shows its status, and offers the way
- * back to the Command Centre. The execution controls (checklist + evidence)
- * live in the right rail (Phase 4); this is only the "you are here" affordance.
+ * CaptureBanner — slim overlay along the top of the canvas while an observation
+ * need is in focus. Names the active need, shows its status, and offers the way
+ * back to the Command Centre. The capture controls (checklist + evidence) live
+ * in the right rail; this is only the "you are here" affordance.
  */
 
 import { ArrowLeft } from 'lucide-react';
 import { OBSERVE_MODULE_DOT } from '../moduleGuidance.js';
 import { OBSERVE_MODULE_LABEL } from '../types.js';
-import type { ObjectiveStatus } from '../../objectives/fieldObjective.js';
-import type { FieldObjectiveView } from '../../objectives/useFieldObjectives.js';
+import type { ObservationNeedStatus } from '../../objectives/fieldObjective.js';
+import type { ObservationNeedView } from '../../objectives/useFieldObjectives.js';
 import css from './ObjectiveFocus.module.css';
 
-const STATUS_LABEL: Record<ObjectiveStatus, string> = {
-  'not-started': 'Not started',
+const STATUS_LABEL: Record<ObservationNeedStatus, string> = {
+  open: 'Open',
   'in-progress': 'In progress',
-  'evidence-submitted': 'Evidence submitted',
-  complete: 'Complete',
-  'needs-review': 'Needs review',
+  recorded: 'Recorded',
+  resolved: 'Resolved',
 };
 
-const STATUS_CLASS: Record<ObjectiveStatus, string> = {
-  'not-started': '',
+const STATUS_CLASS: Record<ObservationNeedStatus, string> = {
+  open: '',
   'in-progress': css.status_in_progress ?? '',
-  'evidence-submitted': css.status_evidence_submitted ?? '',
-  complete: css.status_complete ?? '',
-  'needs-review': css.status_needs_review ?? '',
+  recorded: css.status_complete ?? '',
+  resolved: css.status_complete ?? '',
 };
 
 interface Props {
-  view: FieldObjectiveView;
+  view: ObservationNeedView;
   onBack: () => void;
 }
 
-export default function ObjectiveBanner({ view, onBack }: Props) {
+export default function CaptureBanner({ view, onBack }: Props) {
   const { objective, run } = view;
   return (
-    <div className={css.banner} role="status" aria-label="Active objective">
+    <div className={css.banner} role="status" aria-label="Active observation need">
       <button type="button" className={css.backBtn} onClick={onBack}>
         <ArrowLeft size={15} strokeWidth={2} /> Command Centre
       </button>

@@ -1,27 +1,27 @@
 import { describe, it, expect } from 'vitest';
 import {
-  evaluateObjectiveCompletion,
-  emptyObjectiveRun,
+  evaluateObservationRecorded,
+  emptyObservationNeedRun,
   requiredLayersToModules,
   firstUnsatisfiedAnnotationSpec,
-  type FieldObjective,
-  type ObjectiveRun,
+  type ObservationNeed,
+  type ObservationNeedRun,
 } from '../fieldObjective.js';
 import {
-  SEED_FIELD_OBJECTIVES,
-  seedObjectivesForProject,
+  SEED_OBSERVATION_NEEDS,
+  seedObservationNeedsForProject,
 } from '../seedObjectives.js';
 import { OBSERVE_MODULES } from '../../observe/types.js';
 
-/** A minimal objective with one required check, one required photo (min 2),
- *  and a required summary — exercises all three completion gates. */
-function fixture(overrides: Partial<FieldObjective> = {}): FieldObjective {
+/** A minimal need with one required check, one required photo (min 2), and a
+ *  required summary — exercises all three recording gates. */
+function fixture(overrides: Partial<ObservationNeed> = {}): ObservationNeed {
   return {
     id: 'obj-test',
     projectId: 'mtc',
     stage: 'observe',
     module: 'topography',
-    title: 'Test objective',
+    title: 'Test need',
     target: { center: [-78.2, 44.5] },
     requiredTools: [],
     requiredLayers: [],
@@ -32,34 +32,36 @@ function fixture(overrides: Partial<FieldObjective> = {}): FieldObjective {
     evidence: [
       { id: 'photos', kind: 'photo', label: 'Photos', min: 2, required: true },
     ],
-    completionRule: {
+    recordingRule: {
       requireAllRequiredChecklist: true,
       requireAllRequiredEvidence: true,
       requireSummary: true,
     },
     priority: 'medium',
+    origin: 'seed',
+    reason: 'Test reason',
     ...overrides,
   };
 }
 
-function run(overrides: Partial<ObjectiveRun> = {}): ObjectiveRun {
-  return { ...emptyObjectiveRun(), ...overrides };
+function run(overrides: Partial<ObservationNeedRun> = {}): ObservationNeedRun {
+  return { ...emptyObservationNeedRun(), ...overrides };
 }
 
-describe('evaluateObjectiveCompletion', () => {
+describe('evaluateObservationRecorded', () => {
   it('reports nothing done for an empty run', () => {
-    const e = evaluateObjectiveCompletion(fixture(), emptyObjectiveRun());
+    const e = evaluateObservationRecorded(fixture(), emptyObservationNeedRun());
     expect(e.checklistDone).toBe(0);
     expect(e.checklistTotal).toBe(1);
     expect(e.evidenceDone).toBe(0);
     expect(e.evidenceTotal).toBe(1);
     expect(e.summarySatisfied).toBe(false);
-    expect(e.canSubmit).toBe(false);
+    expect(e.canRecord).toBe(false);
     expect(e.pct).toBe(0);
   });
 
   it('ignores optional checklist items in the required count', () => {
-    const e = evaluateObjectiveCompletion(
+    const e = evaluateObservationRecorded(
       fixture(),
       run({ checkedChecklist: ['c2'] }),
     );
@@ -68,7 +70,7 @@ describe('evaluateObjectiveCompletion', () => {
   });
 
   it('requires the evidence min count to be met', () => {
-    const oneShort = evaluateObjectiveCompletion(
+    const oneShort = evaluateObservationRecorded(
       fixture(),
       run({
         evidence: [
@@ -78,7 +80,7 @@ describe('evaluateObjectiveCompletion', () => {
     );
     expect(oneShort.evidenceDone).toBe(0);
 
-    const met = evaluateObjectiveCompletion(
+    const met = evaluateObservationRecorded(
       fixture(),
       run({
         evidence: [
@@ -90,7 +92,7 @@ describe('evaluateObjectiveCompletion', () => {
     expect(met.evidenceDone).toBe(1);
   });
 
-  it('only allows submit when every active gate passes', () => {
+  it('only allows recording when every active gate passes', () => {
     const complete = run({
       checkedChecklist: ['c1'],
       evidence: [
@@ -99,13 +101,13 @@ describe('evaluateObjectiveCompletion', () => {
       ],
       summary: 'Done.',
     });
-    const e = evaluateObjectiveCompletion(fixture(), complete);
-    expect(e.canSubmit).toBe(true);
+    const e = evaluateObservationRecorded(fixture(), complete);
+    expect(e.canRecord).toBe(true);
     expect(e.pct).toBe(100);
   });
 
   it('treats a blank summary as unsatisfied when required', () => {
-    const e = evaluateObjectiveCompletion(
+    const e = evaluateObservationRecorded(
       fixture(),
       run({
         checkedChecklist: ['c1'],
@@ -117,25 +119,25 @@ describe('evaluateObjectiveCompletion', () => {
       }),
     );
     expect(e.summarySatisfied).toBe(false);
-    expect(e.canSubmit).toBe(false);
+    expect(e.canRecord).toBe(false);
   });
 
   it('drops a gate from the rule and from progress when disabled', () => {
-    const obj = fixture({
-      completionRule: {
+    const need = fixture({
+      recordingRule: {
         requireAllRequiredChecklist: true,
         requireAllRequiredEvidence: false,
         requireSummary: false,
       },
     });
-    const e = evaluateObjectiveCompletion(obj, run({ checkedChecklist: ['c1'] }));
-    expect(e.canSubmit).toBe(true);
+    const e = evaluateObservationRecorded(need, run({ checkedChecklist: ['c1'] }));
+    expect(e.canRecord).toBe(true);
     expect(e.pct).toBe(100);
   });
 });
 
 describe('requiredLayersToModules', () => {
-  it('always includes the objective own module', () => {
+  it('always includes the need own module', () => {
     expect(requiredLayersToModules([], 'topography')).toEqual(['topography']);
   });
 
@@ -163,8 +165,8 @@ describe('requiredLayersToModules', () => {
     expect(mods).toHaveLength(2);
   });
 
-  it('returns only known Observe modules for every seeded objective', () => {
-    for (const o of SEED_FIELD_OBJECTIVES) {
+  it('returns only known Observe modules for every seeded need', () => {
+    for (const o of SEED_OBSERVATION_NEEDS) {
       const mods = requiredLayersToModules(o.requiredLayers, o.module);
       for (const m of mods) expect(OBSERVE_MODULES).toContain(m);
       expect(mods).toContain(o.module);
@@ -173,8 +175,8 @@ describe('requiredLayersToModules', () => {
 });
 
 describe('firstUnsatisfiedAnnotationSpec', () => {
-  /** Objective with two annotation specs (one min 2) plus a non-annotation. */
-  const annObjective = fixture({
+  /** Need with two annotation specs (one min 2) plus a non-annotation. */
+  const annNeed = fixture({
     evidence: [
       { id: 'note', kind: 'note', label: 'Note', required: true },
       { id: 'a1', kind: 'annotation', label: 'Mark one', required: true },
@@ -183,13 +185,13 @@ describe('firstUnsatisfiedAnnotationSpec', () => {
   });
 
   it('returns the first annotation spec when nothing is captured', () => {
-    const spec = firstUnsatisfiedAnnotationSpec(annObjective, emptyObjectiveRun());
+    const spec = firstUnsatisfiedAnnotationSpec(annNeed, emptyObservationNeedRun());
     expect(spec?.id).toBe('a1');
   });
 
   it('skips a satisfied spec and returns the next short one', () => {
     const spec = firstUnsatisfiedAnnotationSpec(
-      annObjective,
+      annNeed,
       run({
         evidence: [
           { specId: 'a1', kind: 'annotation', value: 'x', capturedAt: 't' },
@@ -201,7 +203,7 @@ describe('firstUnsatisfiedAnnotationSpec', () => {
 
   it('respects a spec min greater than 1', () => {
     const oneShort = firstUnsatisfiedAnnotationSpec(
-      annObjective,
+      annNeed,
       run({
         evidence: [
           { specId: 'a1', kind: 'annotation', value: 'x', capturedAt: 't' },
@@ -214,7 +216,7 @@ describe('firstUnsatisfiedAnnotationSpec', () => {
 
   it('returns null when every annotation spec is satisfied', () => {
     const spec = firstUnsatisfiedAnnotationSpec(
-      annObjective,
+      annNeed,
       run({
         evidence: [
           { specId: 'a1', kind: 'annotation', value: 'x', capturedAt: 't' },
@@ -226,42 +228,49 @@ describe('firstUnsatisfiedAnnotationSpec', () => {
     expect(spec).toBeNull();
   });
 
-  it('returns null for an objective with no annotation specs', () => {
-    expect(firstUnsatisfiedAnnotationSpec(fixture(), emptyObjectiveRun())).toBeNull();
+  it('returns null for a need with no annotation specs', () => {
+    expect(firstUnsatisfiedAnnotationSpec(fixture(), emptyObservationNeedRun())).toBeNull();
   });
 });
 
-describe('SEED_FIELD_OBJECTIVES shape', () => {
+describe('SEED_OBSERVATION_NEEDS shape', () => {
   it('has unique ids', () => {
-    const ids = SEED_FIELD_OBJECTIVES.map((o) => o.id);
+    const ids = SEED_OBSERVATION_NEEDS.map((o) => o.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it('uses only known Observe modules', () => {
-    for (const o of SEED_FIELD_OBJECTIVES) {
+    for (const o of SEED_OBSERVATION_NEEDS) {
       expect(OBSERVE_MODULES).toContain(o.module);
     }
   });
 
-  it('gives every objective a target centre and at least one required tool', () => {
-    for (const o of SEED_FIELD_OBJECTIVES) {
+  it('gives every need a target centre and at least one required tool', () => {
+    for (const o of SEED_OBSERVATION_NEEDS) {
       expect(o.target.center).toHaveLength(2);
       expect(o.requiredTools.length).toBeGreaterThan(0);
     }
   });
 
-  it('gives every objective at least one required checklist item or evidence spec', () => {
-    for (const o of SEED_FIELD_OBJECTIVES) {
+  it('gives every need at least one required checklist item or evidence spec', () => {
+    for (const o of SEED_OBSERVATION_NEEDS) {
       const hasRequired =
         o.checklist.some((c) => c.required) || o.evidence.some((e) => e.required);
       expect(hasRequired).toBe(true);
     }
   });
 
+  it('gives every need an origin and a reason', () => {
+    for (const o of SEED_OBSERVATION_NEEDS) {
+      expect(o.origin).toBe('seed');
+      expect(o.reason.length).toBeGreaterThan(0);
+    }
+  });
+
   it('scopes seed lookups by project', () => {
-    expect(seedObjectivesForProject('mtc').length).toBe(
-      SEED_FIELD_OBJECTIVES.length,
+    expect(seedObservationNeedsForProject('mtc').length).toBe(
+      SEED_OBSERVATION_NEEDS.length,
     );
-    expect(seedObjectivesForProject('nonexistent')).toHaveLength(0);
+    expect(seedObservationNeedsForProject('nonexistent')).toHaveLength(0);
   });
 });
