@@ -286,6 +286,20 @@ All use `persist` middleware with localStorage. Key stores:
   shape spanning all stages), and `ogden-atlas-stage-gate-override`
   (byProject). Guard back to **10/10**, `tsc --noEmit` exit 0. Commit
   `23490e0b`. See [[log/2026-05-25-syncmanifest-stage0-compass-backfill]].
+  **Dev-observability follow-up (2026-05-25, `05096b06`):** the prior
+  "known issue" — `initialSync` 401s for non-UUID demo projects like
+  `mtc` — was inaccurate. The client never sends a non-UUID id:
+  `enqueueVersionedBlob` (`syncService.ts:1216`) **silently returns**
+  when the active project has no `serverId`, so `mtc` is skipped before
+  any request; `mtc` is also a **builtin** (RBAC viewer-only → blob PUT
+  rejected even with a UUID); and the whole loop is **default-off**
+  behind `FLAGS.SYNC_STATE_BLOBS`. No server/DB/RBAC/validation change —
+  the no-`serverId` skip now emits a **dev-only, de-duped** `console.info`
+  so a tester sees *why* nothing syncs and reaches for a created/owned
+  project. Enable the loop in dev with
+  `$env:FEATURE_SYNC_STATE_BLOBS='true'; npm run dev`. Round-trip proof:
+  `syncManifestRoundTrip.test.ts` 76/76 (auto-covers the 7 stores). See
+  [[log/2026-05-25-versioned-blob-skip-dev-observability]].
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
