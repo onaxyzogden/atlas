@@ -80,6 +80,7 @@ export default function ObserveCommandCentrePage() {
         />
 
         <OpenObservationNeedsPanel
+          projectId={projectId}
           views={needViews}
           selectedId={selectedId}
           onLaunch={launchNeed}
