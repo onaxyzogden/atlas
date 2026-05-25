@@ -300,6 +300,18 @@ All use `persist` middleware with localStorage. Key stores:
   `$env:FEATURE_SYNC_STATE_BLOBS='true'; npm run dev`. Round-trip proof:
   `syncManifestRoundTrip.test.ts` 76/76 (auto-covers the 7 stores). See
   [[log/2026-05-25-versioned-blob-skip-dev-observability]].
+  **Ramp Stage 1 — real-Postgres validation (2026-05-25, `e6b48857`):** the
+  first run of `blobSync.integration` (A/B/C) against a live DB caught **two
+  latent `/project-state` route bugs invisible to the FIFO mock**, both of
+  which would hit every user on flag-flip. (1) `rev` (`BIGINT`) returns from
+  postgres.js as a **string** → `ProjectStateBlob.parse` (`z.number`) threw
+  → **422 on every successful PUT**; coerced in `parseRow`. (2) the PUT
+  pre-stringified then cast `::jsonb`, **double-encoding** the payload into a
+  jsonb string scalar; the client does no `JSON.parse`, so hydration would
+  load stores with a string — fixed with `${db.json(...)}::jsonb`. The flag
+  was thus **not flip-ready** before `e6b48857`; the Stage 2 operator matrix
+  must run on a build that includes it. See
+  [[log/2026-05-25-blobsync-stage1-validation-two-latent-bugs]].
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's
