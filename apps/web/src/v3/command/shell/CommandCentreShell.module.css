@@ -9,11 +9,27 @@
    Dashboard shell — fixed full-viewport grid: tabs / body / tray.
    ============================================================ */
 .shell {
+  /* Anchor to the positioned AppShell `.main` (position: relative) with a
+     DEFINITE height. `height: 100%` did not reliably bound the grid here — the
+     shell rendered auto-height, so the body row stretched to the tallest column
+     (the Act right rail) and pushed the bottom tray past the viewport, where
+     `.main { overflow: hidden }` clipped the open-work-items cards. Worst on Act's
+     All Modules / Tracker tabs (tallest rail). `inset: 0` gives a definite height
+     so the grid clamps: the `minmax(0, 1fr)` map absorbs slack, sidebar/rail
+     scroll internally, and the `auto` tray is always fully visible. */
+  position: absolute;
+  inset: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
+  /* Clamp the single implicit column to the shell width. Without this the
+     implicit `auto` column grows to the widest row's max-content (the long
+     work-items carousel / module-tab strip), blowing the body out to thousands
+     of px and pushing the right ops rail off-screen past `.main`'s overflow
+     clip. `minmax(0, 1fr)` pins every row to the viewport width so the inner
+     overflow:auto regions (tabs strip, carousel) scroll within their box. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
   padding: var(--space-3);
-  height: 100%;
   min-height: 0;
   background: var(--color-bg);
 }
