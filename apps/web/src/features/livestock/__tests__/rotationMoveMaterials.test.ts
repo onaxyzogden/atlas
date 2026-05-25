@@ -42,7 +42,7 @@ function paddock(
 }
 
 describe('paddockAnimalUnits', () => {
-  it('uses stockingDensity x areaHa x AU_FACTORS[primary species]', () => {
+  it('uses stockingDensity x areaHa x mean AU factor (single species)', () => {
     // 2 head/ha x 1 ha x 1.250 (cattle) = 2.5 AU
     expect(paddockAnimalUnits(paddock({ id: 'pa', name: 'A' }))).toBeCloseTo(
       2.5,
@@ -58,15 +58,15 @@ describe('paddockAnimalUnits', () => {
     ).toBe(0);
   });
 
-  it('returns 0 when there is no primary species', () => {
+  it('returns 0 when there are no species', () => {
     expect(
       paddockAnimalUnits(paddock({ id: 'pa', name: 'A', species: [] })),
     ).toBe(0);
   });
 
-  it('uses only the primary (first) species for the AU factor', () => {
-    // primary = sheep (0.200); cattle in slot 2 is ignored.
-    // 10 head/ha x 1 ha x 0.200 = 2.0 AU
+  it('rolls AU across ALL species using the mean factor (not species[0])', () => {
+    // sheep (0.200) + cattle (1.250) ⇒ mean 0.725.
+    // 10 head/ha x 1 ha x 0.725 = 7.25 AU
     expect(
       paddockAnimalUnits(
         paddock({
@@ -76,7 +76,8 @@ describe('paddockAnimalUnits', () => {
           stockingDensity: 10,
         }),
       ),
-    ).toBeCloseTo(2.0, 6);
+    ).toBeCloseTo(7.25, 6);
+    // species[0]-only (sheep) would have been 10 x 0.200 = 2.0
   });
 });
 

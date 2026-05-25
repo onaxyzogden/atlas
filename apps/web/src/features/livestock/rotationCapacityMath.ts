@@ -20,7 +20,7 @@
 import type { Paddock } from '../../store/livestockStore.js';
 import type { RotationCell, RotationPlan } from './rotationSequenceMath.js';
 import { computePaddockRecommendedStocking } from './livestockAnalysis.js';
-import { AU_FACTORS } from './speciesData.js';
+import { paddockMeanAuFactor } from './speciesData.js';
 
 export interface GroupCapacityRow {
   cellGroup: string;
@@ -36,12 +36,17 @@ export interface GroupCapacityRow {
   status: 'ok' | 'tight' | 'over';
 }
 
-/** AU-load for `headPerHa` of a paddock's primary species over its area. */
+/**
+ * AU-load for `headPerHa` over a paddock's area, using the mean AU factor
+ * across ALL assigned species (the even-split convention shared with
+ * `MultiSpeciesPlannerCard` via `paddockMeanAuFactor`). Demand and supply both
+ * convert `headPerHa → AU` through this same factor, so the utilization ratio
+ * stays internally consistent.
+ */
 function auLoad(paddock: Paddock, headPerHa: number): number {
-  const species = paddock.species[0];
-  if (!species || headPerHa <= 0) return 0;
+  if (paddock.species.length === 0 || headPerHa <= 0) return 0;
   const areaHa = paddock.areaM2 / 10_000;
-  return headPerHa * areaHa * (AU_FACTORS[species] ?? 0);
+  return headPerHa * areaHa * paddockMeanAuFactor(paddock.species);
 }
 
 function statusFor(utilizationPct: number): GroupCapacityRow['status'] {

@@ -7,9 +7,10 @@
  * (`equipmentRequiredAuto`). Consumable quantities scale with the paddock's
  * animal-unit (AU) grazing load times graze-days.
  *
- * AU is computed with the SAME primary-species heuristic the shipped
+ * AU is computed with the SAME multi-species heuristic the shipped
  * `rotationCapacityMath.auLoad` uses — `stockingDensity (head/ha) x
- * (areaM2 / 10_000) x AU_FACTORS[species[0]]` — so the kit and the
+ * (areaM2 / 10_000) x paddockMeanAuFactor(species)` (mean AU factor across all
+ * assigned species, the even-split convention) — so the kit and the
  * carrying-capacity surface agree on grazing load. This is a COARSE planning
  * heuristic, not a nutrition assay or forage-budget model (same honesty
  * posture as `rotationCapacityMath`'s docstring and B2.1's compost-yield line).
@@ -26,7 +27,7 @@
 
 import type { MaterialLine } from '@ogden/shared';
 import type { Paddock } from '../../store/livestockStore.js';
-import { AU_FACTORS } from './speciesData.js';
+import { paddockMeanAuFactor } from './speciesData.js';
 
 /** Per-animal-unit, per-grazing-day consumption rate for one supply line. */
 export interface MaterialRate {
@@ -79,19 +80,17 @@ export const ROTATION_FENCING_EQUIPMENT =
   'Portable electric fence (reel + step-in posts + energizer)';
 
 /**
- * Animal-unit grazing load on a paddock, using the same primary-species
+ * Animal-unit grazing load on a paddock, using the same multi-species
  * heuristic as the private `auLoad` in `rotationCapacityMath`:
- * `stockingDensity (head/ha) x (areaM2 / 10_000) x AU_FACTORS[species[0]]`.
- * Returns 0 when there is no stocking density, no species, or an unknown
- * primary species (no consumables are emitted in that case).
+ * `stockingDensity (head/ha) x (areaM2 / 10_000) x paddockMeanAuFactor(species)`
+ * (mean AU factor across all assigned species). Returns 0 when there is no
+ * stocking density or no species (no consumables are emitted in that case).
  */
 export function paddockAnimalUnits(paddock: Paddock): number {
-  const species = paddock.species[0];
   const headPerHa = paddock.stockingDensity ?? 0;
-  if (!species || headPerHa <= 0) return 0;
+  if (paddock.species.length === 0 || headPerHa <= 0) return 0;
   const areaHa = paddock.areaM2 / 10_000;
-  const factor = AU_FACTORS[species] ?? 0;
-  return headPerHa * areaHa * factor;
+  return headPerHa * areaHa * paddockMeanAuFactor(paddock.species);
 }
 
 /** Round to two decimals for stable, human-readable BOM totals. */

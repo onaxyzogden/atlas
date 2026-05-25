@@ -153,6 +153,33 @@ describe('cycleDays', () => {
   });
 });
 
+/* ---------- 5b. multi-species AU rollup (mean AU factor) ---------- */
+
+describe('multi-species AU rollup uses the mean AU factor (not species[0])', () => {
+  it('cattle+sheep demand reflects mean(1.25, 0.2)=0.725, not cattle-only 1.25', () => {
+    // 1 ha, density 10 head/ha, 3 graze-days.
+    const pads = [
+      paddock('a', { species: ['cattle', 'sheep'], stockingDensity: 10 }),
+    ];
+    const rows = computeRotationCarryingCapacity(pads, plan([cell('a', { targetGrazeDays: 3 })]));
+    expect(rows).toHaveLength(1);
+    // mean AU factor = (1.250 + 0.200) / 2 = 0.725
+    // auDemandDays = 10 head/ha × 1 ha × 0.725 × 3 graze-days = 21.75
+    expect(rows[0]!.auDemandDays).toBe(21.75);
+    // species[0]-only would have been 10 × 1.250 × 3 = 37.5
+    expect(rows[0]!.auDemandDays).not.toBe(37.5);
+  });
+
+  it('single-species paddock is unchanged (mean == that factor)', () => {
+    const pads = [
+      paddock('a', { species: ['cattle'], stockingDensity: 10 }),
+    ];
+    const rows = computeRotationCarryingCapacity(pads, plan([cell('a', { targetGrazeDays: 3 })]));
+    // 10 × 1.250 × 3 = 37.5
+    expect(rows[0]!.auDemandDays).toBe(37.5);
+  });
+});
+
 /* ---------- 6. covenant lock (B2.1 mirror — B non-covenant) ---------- */
 
 describe('covenant — no financing lexicon in the module', () => {
