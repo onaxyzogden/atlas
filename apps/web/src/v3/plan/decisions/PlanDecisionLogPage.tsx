@@ -184,6 +184,13 @@ function DraftCard({ projectId, decision }: DecisionCardProps) {
         >
           Reject
         </button>
+        <Link
+          to="/v3/project/$projectId/plan/workspace/$decisionId"
+          params={{ projectId, decisionId: decision.id }}
+          className={css.supersedeBtn}
+        >
+          Open workspace →
+        </Link>
         <button
           type="button"
           className={css.deleteBtn}
@@ -266,6 +273,13 @@ function RecordedCard({ projectId, decision, onSupersede }: RecordedCardProps) {
           </span>
         ) : null}
         <div className={css.footActions}>
+          <Link
+            to="/v3/project/$projectId/plan/workspace/$decisionId"
+            params={{ projectId, decisionId: decision.id }}
+            className={css.supersedeBtn}
+          >
+            Open workspace →
+          </Link>
           {canHandoff ? (
             existingPackage ? (
               <Link

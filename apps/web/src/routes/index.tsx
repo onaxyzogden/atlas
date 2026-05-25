@@ -56,6 +56,7 @@ import PlanLayout from '../v3/plan/PlanLayout.js';
 import PlanReviewsPage from '../v3/plan/impact/PlanReviewsPage.js';
 import PlanDecisionLogPage from '../v3/plan/decisions/PlanDecisionLogPage.js';
 import PlanWorkPackagesPage from '../v3/plan/work-packages/PlanWorkPackagesPage.js';
+import PlanningWorkspacePage from '../v3/plan/workspace/PlanningWorkspacePage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
@@ -318,6 +319,14 @@ const v3PlanWorkPackagesRoute = createRoute({
   path: 'plan/work-packages',
   component: PlanWorkPackagesPage,
 });
+// Planning Workspace — the focused, per-decision surface with side-by-side
+// response options (Phase 4). Static prefix resolves before the `plan/$module`
+// param route. Reached from the Decision Log only ("Open workspace →").
+const v3PlanWorkspaceRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/workspace/$decisionId',
+  component: PlanningWorkspacePage,
+});
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/$module',
@@ -546,6 +555,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanReviewRoute,
       v3PlanDecisionLogRoute,
       v3PlanWorkPackagesRoute,
+      v3PlanWorkspaceRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActRoute,

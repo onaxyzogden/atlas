@@ -22,6 +22,17 @@ export function usePlanDecisions(projectId: string): PlanDecision[] {
   );
 }
 
+/**
+ * One decision by id — a reactive selector so the Planning Workspace re-renders
+ * on every `update()` (e.g. when a scenario option is added or adopted).
+ */
+export function usePlanDecision(
+  projectId: string,
+  id: string,
+): PlanDecision | undefined {
+  return usePlanDecisionStore((s) => s.byProject[projectId]?.[id]);
+}
+
 export type PlanDecisionCounts = Record<PlanDecisionStatus, number> & {
   total: number;
 };
