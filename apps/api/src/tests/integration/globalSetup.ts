@@ -1,11 +1,16 @@
 /**
  * Vitest globalSetup for the opt-in real-PostGIS suite.
  *
- * HARD RULE: this file must NEVER throw. Docker absent, wrong Docker mode
+ * DEFAULT RULE: this file must NEVER throw. Docker absent, wrong Docker mode
  * (Windows non-Linux-containers), or any container-start failure writes a
  * `{skipped:true}` sentinel and returns — the suite green-skips (exit 0),
  * never red. A red integration suite on a machine without Docker would make
- * the opt-in suite worse than useless.
+ * the opt-in suite worse than useless for local dev.
+ *
+ * STRICT MODE: when `PGTEST_REQUIRE_DB` is set (CI sets it), green-skip is a
+ * lie we cannot afford — the whole point of running this in CI is to exercise
+ * the real DB. So Docker-unavailable / container-start-failure THROWS instead,
+ * turning a would-be silent green-skip into a red build.
  *
  * `runMigrations` is imported statically; that is only safe because
  * `migrate.ts` was made import-safe (no top-level `config` import, CLI tail
@@ -33,6 +38,12 @@ function dockerAvailable(): boolean {
   }
 }
 
+// CI opts into strict mode: a green-skip here means the suite tested nothing,
+// which in CI must fail the build rather than pass silently.
+const REQUIRE_DB =
+  process.env.PGTEST_REQUIRE_DB === '1' ||
+  process.env.PGTEST_REQUIRE_DB === 'true';
+
 // Module-level so teardown() can stop it. Typed loosely to avoid a static
 // type dependency that would couple this file to the testcontainers types
 // before the dynamic import.
@@ -40,6 +51,13 @@ let started: { stop: () => Promise<unknown> } | null = null;
 
 export async function setup(): Promise<void> {
   if (!dockerAvailable()) {
+    if (REQUIRE_DB) {
+      throw new Error(
+        '[pgtest] PGTEST_REQUIRE_DB is set but Docker is unavailable — ' +
+          'refusing to green-skip. The integration suite must run a real ' +
+          'PostGIS container in this environment (CI).',
+      );
+    }
     writeSentinel({ skipped: true, reason: 'docker-unavailable' });
     console.warn(
       '\n[pgtest] Docker not available — integration suite GREEN-SKIPPED ' +
@@ -65,6 +83,12 @@ export async function setup(): Promise<void> {
     writeSentinel({ skipped: false, databaseUrl });
     console.log('\n[pgtest] postgis/postgis:16-3.4 container ready; migrations applied.\n');
   } catch (err) {
+    if (REQUIRE_DB) {
+      // Strict mode: surface the real failure instead of masking it green.
+      throw err instanceof Error
+        ? err
+        : new Error(`[pgtest] container start/migrate failed: ${String(err)}`);
+    }
     writeSentinel({ skipped: true, reason: 'container-start-failed' });
     console.warn(
       '\n[pgtest] Container start/migrate failed — integration suite ' +

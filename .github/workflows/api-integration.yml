@@ -1,0 +1,58 @@
+name: api-integration
+
+# Gating real-PostGIS integration suite for @ogden/api. Runs the opt-in
+# `*.pgtest.ts` suite against a throwaway postgis/postgis:16-3.4 testcontainer
+# on the GitHub-hosted runner (Docker is preinstalled on ubuntu-latest).
+#
+# PGTEST_REQUIRE_DB=1 puts globalSetup in STRICT MODE: if Docker is somehow
+# unavailable or the container fails to start, the suite THROWS (red) instead
+# of green-skipping. Locally the suite still green-skips without Docker — the
+# strict guard is CI-only. See globalSetup.ts.
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/api-integration.yml'
+  push:
+    paths:
+      - 'apps/api/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/api-integration.yml'
+
+permissions:
+  contents: read
+
+# A newer push to the same ref supersedes an in-flight run.
+concurrency:
+  group: api-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run @ogden/api integration suite (real PostGIS)
+        env:
+          # Strict mode: a green-skip is a CI failure (see globalSetup.ts).
+          PGTEST_REQUIRE_DB: '1'
+        run: pnpm --filter @ogden/api test:integration
