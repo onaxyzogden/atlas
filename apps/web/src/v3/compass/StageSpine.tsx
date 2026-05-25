@@ -3,10 +3,9 @@
  *
  * Presentational + stage-agnostic. The header wrapper (HeaderStageSpine) passes
  * the current `activeStage` (null on the Report route — spine shown, none
- * highlighted), Observe's aggregate `observeProgress`, and an `onNavigateStage`
- * callback so route literals stay in the typed wrapper. Observe shows its real
- * verified %; Plan and Act read an em dash until their own header progress
- * source is wired in.
+ * highlighted), a per-stage `progressByStage` map, and an `onNavigateStage`
+ * callback so route literals stay in the typed wrapper. Every segment shows its
+ * stage's real verified % from its own compass aggregate.
  */
 
 import { Telescope, PencilRuler, Hammer, type LucideIcon } from 'lucide-react';
@@ -23,14 +22,14 @@ const STAGES: { id: Stage; label: string; icon: LucideIcon }[] = [
 interface SpineProps {
   /** The active lifecycle stage, or null (e.g. Report route) for none. */
   activeStage: Stage | null;
-  /** Observe's aggregate progress — only the Observe segment shows a %. */
-  observeProgress: ObjectiveProgress;
+  /** Each stage's aggregate progress — every segment shows its own %. */
+  progressByStage: Record<Stage, ObjectiveProgress>;
   onNavigateStage: (stage: Stage) => void;
 }
 
 export default function StageSpine({
   activeStage,
-  observeProgress,
+  progressByStage,
   onNavigateStage,
 }: SpineProps) {
   return (
@@ -38,10 +37,8 @@ export default function StageSpine({
       {STAGES.map((stage, i) => {
         const active = stage.id === activeStage;
         const Icon = stage.icon;
-        // Observe shows its real verified %; Plan/Act have no header progress
-        // source yet, so they read an em dash.
-        const readout =
-          stage.id === 'observe' ? `${observeProgress.pct}%` : '—';
+        // Every segment shows its stage's real verified %.
+        const readout = `${progressByStage[stage.id].pct}%`;
         return (
           <div key={stage.id} className={css.segment}>
             <button

@@ -3,8 +3,9 @@
  * global AppShell header (replacing the old LevelNavigatorBar carousel).
  *
  * Parses the current pathname for the v3 project id + lifecycle section, feeds
- * the spine the active stage + Observe's aggregate progress, and owns the typed
- * router navigation (so route literals stay out of the presentational spine).
+ * the spine the active stage + each stage's real aggregate progress (Observe /
+ * Plan / Act from their own compass data hooks), and owns the typed router
+ * navigation (so route literals stay out of the presentational spine).
  * Renders nothing off the recognised v3 project stage routes.
  *
  * Navigation rules (steward-locked):
@@ -16,6 +17,8 @@
 import { useRouterState, useNavigate } from '@tanstack/react-router';
 import StageSpine from './compass/StageSpine.js';
 import { useCompassData } from './compass/useCompassData.js';
+import { usePlanCompassData } from './plan/compass/usePlanCompassData.js';
+import { useActCompassData } from './act/compass/useActCompassData.js';
 import type { Stage } from './compass/compassTypes.js';
 
 const ROUTE_RE =
@@ -42,16 +45,24 @@ export default function HeaderStageSpine() {
 
   const match = ROUTE_RE.exec(pathname);
   const projectId = match?.[1] ?? 'mtc';
-  // Rules of hooks: call unconditionally, before the off-route early return.
-  const data = useCompassData(projectId);
+  // Rules of hooks: call all three unconditionally, before the off-route return.
+  const observeData = useCompassData(projectId);
+  const planData = usePlanCompassData(projectId);
+  const actData = useActCompassData(projectId);
 
   if (!match) return null;
 
   const activeStage = sectionToStage(match[2]!);
 
+  const progressByStage = {
+    observe: observeData.stage,
+    plan: planData.stage,
+    act: actData.stage,
+  };
+
   const onNavigateStage = (stage: Stage) => {
     if (stage === 'observe') {
-      if (data.stage.pct >= 100) {
+      if (observeData.stage.pct >= 100) {
         navigate({
           to: '/v3/project/$projectId/observe/command-centre',
           params: { projectId },
@@ -74,7 +85,7 @@ export default function HeaderStageSpine() {
   return (
     <StageSpine
       activeStage={activeStage}
-      observeProgress={data.stage}
+      progressByStage={progressByStage}
       onNavigateStage={onNavigateStage}
     />
   );
