@@ -10,6 +10,25 @@ import { api, setAuthToken, ApiError, type ApiAuthUser } from '../lib/apiClient.
 
 const TOKEN_KEY = 'ogden-auth-token';
 
+/**
+ * Maps a thrown auth error to the message shown on the login/register form.
+ * A network-level fetch rejection (no response at all) surfaces as a raw
+ * browser `TypeError` ("Failed to fetch" / "Load failed") — opaque to users.
+ * Replace it with an actionable message; keep real server messages verbatim.
+ */
+function authErrorMessage(err: unknown, fallback: string): string {
+  // Real server response (401/429/etc.) — show the API's own message.
+  if (err instanceof ApiError) return err.message;
+  // Network-level rejection: fetch threw before any response arrived
+  // (server down, still starting, dead origin / stale offline shell, CORS, DNS).
+  if (err instanceof TypeError) {
+    return typeof navigator !== 'undefined' && !navigator.onLine
+      ? 'You appear to be offline. Reconnect to the internet and try again.'
+      : "Can't reach the server. It may be offline or still starting up — try reloading the page, or check back shortly.";
+  }
+  return err instanceof Error ? err.message : fallback;
+}
+
 interface AuthState {
   /** JWT bearer token, null when logged out */
   token: string | null;
@@ -93,7 +112,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       setAuthToken(data.token);
       set({ token: data.token, user: data.user, error: null });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Login failed';
+      const msg = authErrorMessage(err, 'Login failed');
       set({ error: msg });
       throw err;
     }
@@ -107,7 +126,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       setAuthToken(data.token);
       set({ token: data.token, user: data.user, error: null });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Registration failed';
+      const msg = authErrorMessage(err, 'Registration failed');
       set({ error: msg });
       throw err;
     }
