@@ -109,10 +109,10 @@ describe.skipIf(!INTEGRATION_ENABLED)(
       expect(body.data).toHaveLength(1);
       expect(body.data[0]!.projectType).toBe('regenerative_farm');
 
-      const [{ count }] = await sql<{ count: string }[]>`
+      const [row] = await sql<{ count: string }[]>`
         SELECT count(*)::text AS count FROM projects WHERE project_type = 'farm'
       `;
-      expect(count).toBe('0');
+      expect(row!.count).toBe('0');
     });
   },
 );
