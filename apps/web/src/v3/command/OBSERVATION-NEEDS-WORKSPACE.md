@@ -221,15 +221,35 @@ persisted via the store's `createNeed(projectId, need)` into `createdByProject`,
   picker; the target defaults to the mean of the existing needs' centres; `origin:
   'manual'`, no `sourceObservationId`.
 
-Cards carry an **origin badge** (Seed / Follow-up / Manual) so raised needs are
+Cards carry an **origin badge** (Seed / Follow-up / Manual / Auto) so raised needs are
 distinguishable from the seed catalog.
 
-### c. Candidate auto-source (note, NOT built in the first refactor)
-Stale-data / coverage gaps from
-[computeFieldVerification.ts](../../../../../packages/shared/src/fieldVerification/computeFieldVerification.ts)
-time-decay weighting, plus the existing GapsPanel, could surface **system-generated**
-needs (`origin: 'follow-up'` with no `sourceObservationId`, or a new `'auto'` origin).
-Flagged as a follow-on; out of scope for the first refactor.
+### c. System-generated needs (live)
+Observe raises needs *itself* from two live signals — no authoring required:
+
+- **Coverage gaps** — [useEvidenceCounts.ts](useEvidenceCounts.ts) tallies field records per
+  domain; a row with `n === 0` becomes one auto-need ("Start observing: …").
+- **Stale data** — [computeFieldVerification.ts](../../../../../packages/shared/src/fieldVerification/computeFieldVerification.ts)
+  time-decays each layer's evidence; a layer that has fallen back to `unverified` (via
+  [useFieldVerification.ts](../../lib/fieldVerification/useFieldVerification.ts)) becomes
+  one auto-need ("Re-verify …").
+
+These are **derived, not persisted**: [autoObservationNeeds.ts](../observation-needs/autoObservationNeeds.ts)
+recomputes them each render and `useObservationNeeds` merges them into the catalog with
+`origin: 'auto'`. Only their **run-state** persists (the existing `byProject` slice),
+keyed by a **deterministic id** (`auto-gap-<key>-<projectId>`, `auto-stale-<layer>-<projectId>`)
+so a cleared auto-need stays cleared across reloads.
+
+**Clearing rule — observe or dismiss.** An auto-need disappears once its run is `recorded`
+(the steward logged the observation) **or** `resolved` (the steward clicked **Dismiss**).
+Suppression is a pure predicate `isDismissedAutoNeed(view)` applied at the **display layer**
+(carousel + map + timeline, via `ObserveCommandCentrePage`), never inside the hook — so the
+singular `useObservationNeed` resolver keeps resolving an auto-need's id while its Capture
+Workspace records it.
+
+*v1 limitation:* once a deterministic id is recorded/dismissed it stays suppressed even if
+the same signal recurs later (e.g. the data decays again). Re-raising on re-decay is a
+follow-on.
 
 ---
 
@@ -277,11 +297,18 @@ The mechanical refactor shipped in three green commits on
   two entry points: a follow-up CTA in the Capture Workspace and a manual
   "+ Raise observation need" button in the Command Centre. Cards carry an origin
   badge.
+- **System-generated path (§5c).** `autoObservationNeeds.ts` derives `origin: 'auto'`
+  needs from coverage gaps (`useEvidenceCounts`) and stale data (`useFieldVerification`),
+  merged into the catalog by `useObservationNeeds` and recomputed each render (only
+  run-state persists, under deterministic ids). Cards show an **Auto** badge + a
+  **Dismiss** action; cleared auto-needs are filtered at the display layer via
+  `isDismissedAutoNeed`.
 
 ---
 
 ## Out of scope
-- Auto-generated needs from stale-data / coverage gaps (§5c).
+- Re-raising an auto-need after its signal re-decays (deterministic id stays suppressed
+  once recorded/dismissed — a §5c v1 limitation).
 - Editing / deleting raised needs (create-only for now).
 - Backend persistence of evidence (still client-only data URLs).
 - Layer actuation from a need's `requiredLayers` (still data-only).

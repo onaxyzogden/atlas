@@ -97,8 +97,16 @@ order it should land in v3.1.
   Command Centre both write through `buildRaisedNeed` + the shared `RaiseNeedForm`
   into the store's new `createdByProject` slice (persist v3). Cards show an origin
   badge. See §5b/§7 of the reference.
-- **Remaining follow-on** — auto-generated needs from stale-data / coverage gaps
-  (§5c), and editing/deleting raised needs (create-only today).
+- **DONE** — system-generated needs (§5c). `autoObservationNeeds.ts` derives
+  `origin: 'auto'` needs from coverage gaps (`useEvidenceCounts` row `n === 0`) and
+  stale data (`useFieldVerification` layer back to `unverified`), merged into the
+  catalog by `useObservationNeeds` and recomputed each render (only run-state
+  persists, under deterministic ids). Cards show an **Auto** badge + a **Dismiss**
+  action; cleared auto-needs are suppressed at the display layer via
+  `isDismissedAutoNeed`. See §5c/§7 of the reference.
+- **Remaining follow-on** — editing/deleting raised needs (create-only today), and
+  re-raising an auto-need after its signal re-decays (§5c v1 leaves it suppressed
+  once recorded/dismissed).
 
 ### Backend
 - **Replace `useV3Project`** in
