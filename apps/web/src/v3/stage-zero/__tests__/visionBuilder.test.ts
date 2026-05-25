@@ -5,7 +5,10 @@ import {
   hasLivestockInScope,
   toProjectType,
 } from '../data/visionBuilderQuestions.js';
-import { deriveActivatedModules } from '../lib/deriveActivatedModules.js';
+import {
+  deriveActivatedModules,
+  BASELINE_MODULES,
+} from '../lib/deriveActivatedModules.js';
 
 describe('VisionProfile schema round-trip', () => {
   it('accepts an empty profile (mid-flow state)', () => {
@@ -96,7 +99,40 @@ describe('toProjectType mapping', () => {
 
 describe('deriveActivatedModules', () => {
   it('returns nothing for an empty profile', () => {
+    // Baseline is gated on `primaryType`, so a blank profile stays empty
+    // (preserves the strip's "Answer a few questions…" empty state).
     expect(deriveActivatedModules({})).toEqual([]);
+  });
+
+  it('seeds the baseline modules once a project type is chosen', () => {
+    const mods = deriveActivatedModules({ primaryType: 'homestead' });
+    for (const baseline of BASELINE_MODULES) {
+      expect(mods).toContain(baseline);
+    }
+    // …plus homestead's type-distinctive modules.
+    expect(mods).toContain('structures-subsystems');
+    expect(mods).toContain('cross-section-solar');
+  });
+
+  it('does not seed the baseline without a project type', () => {
+    // Answers other than primaryType must not trigger the baseline.
+    const mods = deriveActivatedModules({
+      systemsInScope: { water: ['rainwater'] }, // water-management only
+    });
+    expect(mods).toContain('water-management');
+    expect(mods).not.toContain('soil-fertility');
+    expect(mods).not.toContain('zone-circulation');
+    expect(mods).not.toContain('phasing-budgeting');
+  });
+
+  it('unions baseline with conservation-specific modules', () => {
+    const mods = deriveActivatedModules({ primaryType: 'conservation' });
+    for (const baseline of BASELINE_MODULES) {
+      expect(mods).toContain(baseline);
+    }
+    expect(mods).toContain('habitat-allocation');
+    expect(mods).toContain('biodiversity-monitor');
+    expect(mods).toContain('regeneration-monitor');
   });
 
   it('unions activated modules across answered questions, de-duplicated', () => {

@@ -13,6 +13,20 @@ import type { VisionProfile } from '@ogden/shared';
 import { PLAN_MODULES, type PlanModule } from '../../plan/types.js';
 import { VISION_QUESTIONS } from '../data/visionBuilderQuestions.js';
 
+/**
+ * Foundations every land-based project needs, regardless of which options are
+ * picked. These are unioned into the activation set as soon as a project type
+ * is chosen — water, soil, zone/circulation and phasing apply to virtually
+ * every land-based project, so the per-option `activates` map only needs to
+ * carry the *type-distinctive* modules on top of these.
+ */
+export const BASELINE_MODULES: PlanModule[] = [
+  'water-management',
+  'soil-fertility',
+  'zone-circulation',
+  'phasing-budgeting',
+];
+
 /** Collect the selected option ids for a question from the profile. */
 function selectedIdsForPath(profile: VisionProfile, path: string): Set<string> {
   const value = path
@@ -46,6 +60,13 @@ export function deriveActivatedModules(profile: VisionProfile): PlanModule[] {
       if (!option.activates || !selected.has(option.id)) continue;
       for (const mod of option.activates) active.add(mod);
     }
+  }
+
+  // Seed the baseline once a project type is chosen — every land-based project
+  // gets these fundamentals. Gating on `primaryType` (Step 1) keeps the strip's
+  // empty state ("Answer a few questions…") intact for a blank profile.
+  if (profile.primaryType) {
+    for (const mod of BASELINE_MODULES) active.add(mod);
   }
 
   return PLAN_MODULES.filter((m) => active.has(m));
