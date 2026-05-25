@@ -121,6 +121,42 @@ Card inventory after iteration, keyed by `MODULE_CARDS` `sectionId` in `apps/web
 
 Cross-cutting follow-up: ported OGDEN cards (Modules 1, 2) still operate on mock inputs per the iteration's "visual-first port" cadence — wiring to real Zustand stores deferred.
 
+## Stage Zero Vision Builder (2026-05-25)
+
+Project intake is now a name-only form that routes to a structured
+**Stage Zero questionnaire** producing a machine-readable Vision Profile
+(per the `OLOS Stage Zero Vision Builder.md` spec). Lives under
+`apps/web/src/v3/stage-zero/`:
+
+- `data/visionBuilderQuestions.ts` — the question catalog. Each entry:
+  `eyebrow`, `title`, `kind` (`single`|`multi`), `profilePath` (dotted
+  path the answer writes into the Vision Profile), optional `visibleWhen`
+  for conditionals (livestock questions gated by `hasLivestockInScope`,
+  residential by `willLiveOnLand`).
+- `useVisionBuilder.ts` — cursor + answers; derives the visible-question
+  list (conditionals expand/collapse the total live) + progress.
+- `lib/deriveActivatedModules.ts` — pure Vision Profile → activated-module
+  preview (drives the bottom strip).
+- `StageZeroVisionPage.tsx` + components (`VisionStageHeader`,
+  `VisionQuestionCard`, `VisionUpcomingQuestions`, `VisionProfileSidebar`,
+  `VisionActivationStrip`) — self-contained `--vb-*` dark/gold palette,
+  full-screen takeover (`.page` fixed inset-0 z-600, above AppShell z-501).
+
+The Vision Profile persists on `project.metadata.visionProfile`
+(`ProjectMetadata` is `.passthrough()`, so no schema migration; lives in
+`projectStore` under localStorage `ogden-projects`). **Module activation
+is preview-only for the MVP** — the activation strip shows what the
+profile *would* turn on but does not yet gate which Plan/Act modules
+render (real gating deferred). `NewProjectPage` rewritten to name-only
+create → `/v3/project/$projectId/stage-zero` (preserves
+`?prefillTemplate`/`?orgId`/`?fullSetup`); the parcel **boundary moved to
+OBSERVE** — `MapToolbar` gained a KML/KMZ/GeoJSON import button
+(`parseGeoFile` → `onBoundaryImported` → `updateProject` persists FC +
+`parcelAcreage`). The legacy `features/project/wizard/Step*` components
+are preserved on disk; their `WizardData` interface was relocated from
+`NewProjectPage` into `features/project/wizard/types.ts`. ADR:
+[[2026-05-25-atlas-stage-zero-vision-builder]].
+
 ## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
 - `projectStore` — project CRUD, active project selection. `applyBuiltinsToStore`
