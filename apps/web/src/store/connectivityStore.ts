@@ -33,6 +33,13 @@ export interface ConnectivityState {
    * clobbered (P4.4).
    */
   conflictedStores: string[];
+  /**
+   * Coalescing keys (`storeType:action:localId`) of ops the sync queue gave up
+   * on after exhausting MAX_RETRIES. A dropped op is a change that could not be
+   * saved to the server — surfaced so it is visible to the steward instead of
+   * vanishing silently (the sync circuit-breaker).
+   */
+  droppedStores: string[];
 
   // ── Actions ──
   setOnline: (online: boolean) => void;
@@ -42,6 +49,8 @@ export interface ConnectivityState {
   setSyncStatus: (status: ConnectivityState['syncStatus']) => void;
   addConflictedStore: (storeKey: string) => void;
   clearConflictedStore: (storeKey: string) => void;
+  addDroppedStore: (opKey: string) => void;
+  clearDroppedStore: (opKey: string) => void;
 }
 
 export const useConnectivityStore = create<ConnectivityState>()(
@@ -53,6 +62,7 @@ export const useConnectivityStore = create<ConnectivityState>()(
       pendingChanges: 0,
       syncStatus: 'idle',
       conflictedStores: [],
+      droppedStores: [],
 
       setOnline: (online) => set({ isOnline: online }),
       // No-op when unchanged: the apiClient success hook fires this on every
@@ -71,6 +81,16 @@ export const useConnectivityStore = create<ConnectivityState>()(
       clearConflictedStore: (storeKey) =>
         set((s) => ({
           conflictedStores: s.conflictedStores.filter((k) => k !== storeKey),
+        })),
+      addDroppedStore: (opKey) =>
+        set((s) =>
+          s.droppedStores.includes(opKey)
+            ? s
+            : { droppedStores: [...s.droppedStores, opKey] },
+        ),
+      clearDroppedStore: (opKey) =>
+        set((s) => ({
+          droppedStores: s.droppedStores.filter((k) => k !== opKey),
         })),
     }),
     {

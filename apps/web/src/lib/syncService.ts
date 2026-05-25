@@ -243,7 +243,7 @@ export function applyServerAcreage(
   isSyncing = wasSyncing;
 }
 
-async function syncProjectCreate(project: LocalProject) {
+async function syncProjectCreate(project: LocalProject, rethrow = false) {
   try {
     const { data } = await api.projects.create({
       name: project.name,
@@ -289,6 +289,7 @@ async function syncProjectCreate(project: LocalProject) {
     }
   } catch (err) {
     console.warn('[SYNC] Project create failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: 'project',
       action: 'create',
@@ -298,7 +299,7 @@ async function syncProjectCreate(project: LocalProject) {
   }
 }
 
-async function syncProjectUpdate(project: LocalProject) {
+async function syncProjectUpdate(project: LocalProject, rethrow = false) {
   if (!project.serverId) return; // Not yet synced — create will handle it
 
   try {
@@ -314,6 +315,7 @@ async function syncProjectUpdate(project: LocalProject) {
     });
   } catch (err) {
     console.warn('[SYNC] Project update failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: 'project',
       action: 'update',
@@ -323,7 +325,7 @@ async function syncProjectUpdate(project: LocalProject) {
   }
 }
 
-async function syncProjectBoundary(project: LocalProject) {
+async function syncProjectBoundary(project: LocalProject, rethrow = false) {
   if (!project.serverId) return; // Not yet synced — create will handle it
   if (!project.parcelBoundaryGeojson) return; // Nothing to push (cleared locally only)
 
@@ -335,6 +337,7 @@ async function syncProjectBoundary(project: LocalProject) {
     applyServerAcreage(project.id, bdy);
   } catch (err) {
     console.warn('[SYNC] Project boundary update failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: 'project',
       action: 'update',
@@ -367,7 +370,7 @@ async function syncProjectDelete(project: LocalProject) {
 
 // ─── Sync handlers (zone) ────────────────────────────────────────────────────
 
-async function syncZoneCreate(zone: LandZone) {
+async function syncZoneCreate(zone: LandZone, rethrow = false) {
   const projectServerId = getProjectServerId(zone.projectId);
   if (!projectServerId) return; // Project not yet synced
 
@@ -380,6 +383,7 @@ async function syncZoneCreate(zone: LandZone) {
     isSyncing = false;
   } catch (err) {
     console.warn('[SYNC] Zone create failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: 'zone',
       action: 'create',
@@ -389,7 +393,7 @@ async function syncZoneCreate(zone: LandZone) {
   }
 }
 
-async function syncZoneUpdate(zone: LandZone) {
+async function syncZoneUpdate(zone: LandZone, rethrow = false) {
   if (!zone.serverId) return;
 
   try {
@@ -405,6 +409,7 @@ async function syncZoneUpdate(zone: LandZone) {
     });
   } catch (err) {
     console.warn('[SYNC] Zone update failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: 'zone',
       action: 'update',
@@ -436,7 +441,7 @@ async function syncZoneDelete(zone: LandZone) {
 
 // ─── Sync handlers (structure) ───────────────────────────────────────────────
 
-async function syncStructureCreate(structure: Structure) {
+async function syncStructureCreate(structure: Structure, rethrow = false) {
   const projectServerId = getProjectServerId(structure.projectId);
   if (!projectServerId) return;
 
@@ -449,6 +454,7 @@ async function syncStructureCreate(structure: Structure) {
     isSyncing = false;
   } catch (err) {
     console.warn('[SYNC] Structure create failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: 'structure',
       action: 'create',
@@ -458,7 +464,7 @@ async function syncStructureCreate(structure: Structure) {
   }
 }
 
-async function syncStructureUpdate(structure: Structure) {
+async function syncStructureUpdate(structure: Structure, rethrow = false) {
   if (!structure.serverId) return;
 
   try {
@@ -474,6 +480,7 @@ async function syncStructureUpdate(structure: Structure) {
     });
   } catch (err) {
     console.warn('[SYNC] Structure update failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: 'structure',
       action: 'update',
@@ -505,7 +512,7 @@ async function syncStructureDelete(structure: Structure) {
 
 // ─── Sync handlers (path) ────────────────────────────────────────────────────
 
-async function syncPathCreate(p: DesignPath) {
+async function syncPathCreate(p: DesignPath, rethrow = false) {
   const projectServerId = getProjectServerId(p.projectId);
   if (!projectServerId) return;
 
@@ -518,11 +525,12 @@ async function syncPathCreate(p: DesignPath) {
     isSyncing = false;
   } catch (err) {
     console.warn('[SYNC] Path create failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({ storeType: 'path', action: 'create', localId: p.id, payload: p });
   }
 }
 
-async function syncPathUpdate(p: DesignPath) {
+async function syncPathUpdate(p: DesignPath, rethrow = false) {
   if (!p.serverId) return;
 
   try {
@@ -539,6 +547,7 @@ async function syncPathUpdate(p: DesignPath) {
     });
   } catch (err) {
     console.warn('[SYNC] Path update failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({ storeType: 'path', action: 'update', localId: p.id, payload: p });
   }
 }
@@ -560,7 +569,7 @@ async function syncPathDelete(p: DesignPath) {
 
 // ─── Sync handlers (utility / point) ─────────────────────────────────────────
 
-async function syncUtilityCreate(u: Utility) {
+async function syncUtilityCreate(u: Utility, rethrow = false) {
   const projectServerId = getProjectServerId(u.projectId);
   if (!projectServerId) return;
 
@@ -573,11 +582,12 @@ async function syncUtilityCreate(u: Utility) {
     isSyncing = false;
   } catch (err) {
     console.warn('[SYNC] Utility create failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({ storeType: 'point', action: 'create', localId: u.id, payload: u });
   }
 }
 
-async function syncUtilityUpdate(u: Utility) {
+async function syncUtilityUpdate(u: Utility, rethrow = false) {
   if (!u.serverId) return;
 
   try {
@@ -594,6 +604,7 @@ async function syncUtilityUpdate(u: Utility) {
     });
   } catch (err) {
     console.warn('[SYNC] Utility update failed, queuing:', err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({ storeType: 'point', action: 'update', localId: u.id, payload: u });
   }
 }
@@ -651,13 +662,18 @@ interface TypedTableSpec<T extends TypedRecord> {
   remove: (id: string) => Promise<unknown>;
 }
 
-async function typedCreate<T extends TypedRecord>(spec: TypedTableSpec<T>, rec: T) {
+async function typedCreate<T extends TypedRecord>(
+  spec: TypedTableSpec<T>,
+  rec: T,
+  rethrow = false,
+) {
   const projectServerId = getProjectServerId(rec.projectId);
   if (!projectServerId) return; // project not synced yet — initialSync pushes it
   try {
     await spec.create(projectServerId, rec);
   } catch (err) {
     console.warn(`[SYNC] ${spec.storeType} create failed, queuing:`, err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: spec.storeType,
       action: 'create',
@@ -667,12 +683,17 @@ async function typedCreate<T extends TypedRecord>(spec: TypedTableSpec<T>, rec: 
   }
 }
 
-async function typedUpdate<T extends TypedRecord>(spec: TypedTableSpec<T>, rec: T) {
+async function typedUpdate<T extends TypedRecord>(
+  spec: TypedTableSpec<T>,
+  rec: T,
+  rethrow = false,
+) {
   if (!getProjectServerId(rec.projectId)) return;
   try {
     await spec.update(rec.id, rec);
   } catch (err) {
     console.warn(`[SYNC] ${spec.storeType} update failed, queuing:`, err);
+    if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: spec.storeType,
       action: 'update',
@@ -1298,17 +1319,40 @@ function subscribeVersionedBlobs(): () => void {
   };
 }
 
-async function executeQueuedOp(op: QueuedOperation): Promise<void> {
+/**
+ * Called when the queue gives up on an op after MAX_RETRIES. The op is already
+ * dropped from the queue by this point; this surfaces the give-up so a
+ * permanently-failing write is visible to the steward (Connectivity badge +
+ * one toast per distinct op) rather than vanishing silently. This is the
+ * circuit-breaker's payoff: failures now count, back off, and surface.
+ */
+export function handleExhaustedOp(op: QueuedOperation): void {
+  console.error(
+    `[SYNC] Giving up on op after repeated failures: ${op.id}`,
+    op.lastError,
+  );
+  const conn = useConnectivityStore.getState();
+  if (!conn.droppedStores.includes(op.id)) {
+    conn.addDroppedStore(op.id);
+    toast.error(
+      `A change (${op.storeType} ${op.action}) could not be saved to the ` +
+        `server after several retries. It is kept on this device — see ` +
+        `Connectivity.`,
+    );
+  }
+}
+
+export async function executeQueuedOp(op: QueuedOperation): Promise<void> {
   const payload = op.payload as Record<string, unknown>;
 
   switch (op.storeType) {
     case 'project': {
       if (op.action === 'create') {
         const project = payload as unknown as LocalProject;
-        await syncProjectCreate(project);
+        await syncProjectCreate(project, true);
       } else if (op.action === 'update') {
         const project = payload as unknown as LocalProject;
-        await syncProjectUpdate(project);
+        await syncProjectUpdate(project, true);
       } else if (op.action === 'delete') {
         const serverId = payload.serverId as string;
         if (serverId) await api.projects.delete(serverId);
@@ -1318,10 +1362,10 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
     case 'zone': {
       if (op.action === 'create') {
         const zone = payload as unknown as LandZone;
-        await syncZoneCreate(zone);
+        await syncZoneCreate(zone, true);
       } else if (op.action === 'update') {
         const zone = payload as unknown as LandZone;
-        await syncZoneUpdate(zone);
+        await syncZoneUpdate(zone, true);
       } else if (op.action === 'delete') {
         const serverId = payload.serverId as string;
         if (serverId) await api.designFeatures.delete(serverId);
@@ -1331,10 +1375,10 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
     case 'structure': {
       if (op.action === 'create') {
         const structure = payload as unknown as Structure;
-        await syncStructureCreate(structure);
+        await syncStructureCreate(structure, true);
       } else if (op.action === 'update') {
         const structure = payload as unknown as Structure;
-        await syncStructureUpdate(structure);
+        await syncStructureUpdate(structure, true);
       } else if (op.action === 'delete') {
         const serverId = payload.serverId as string;
         if (serverId) await api.designFeatures.delete(serverId);
@@ -1343,9 +1387,9 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
     }
     case 'path': {
       if (op.action === 'create') {
-        await syncPathCreate(payload as unknown as DesignPath);
+        await syncPathCreate(payload as unknown as DesignPath, true);
       } else if (op.action === 'update') {
-        await syncPathUpdate(payload as unknown as DesignPath);
+        await syncPathUpdate(payload as unknown as DesignPath, true);
       } else if (op.action === 'delete') {
         const serverId = payload.serverId as string;
         if (serverId) await api.designFeatures.delete(serverId);
@@ -1354,9 +1398,9 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
     }
     case 'point': {
       if (op.action === 'create') {
-        await syncUtilityCreate(payload as unknown as Utility);
+        await syncUtilityCreate(payload as unknown as Utility, true);
       } else if (op.action === 'update') {
-        await syncUtilityUpdate(payload as unknown as Utility);
+        await syncUtilityUpdate(payload as unknown as Utility, true);
       } else if (op.action === 'delete') {
         const serverId = payload.serverId as string;
         if (serverId) await api.designFeatures.delete(serverId);
@@ -1365,9 +1409,9 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
     }
     case 'vegetation': {
       if (op.action === 'create') {
-        await syncVegetationCreate(payload as unknown as VegetationPatch);
+        await typedCreate(vegetationSpec, payload as unknown as VegetationPatch, true);
       } else if (op.action === 'update') {
-        await syncVegetationUpdate(payload as unknown as VegetationPatch);
+        await typedUpdate(vegetationSpec, payload as unknown as VegetationPatch, true);
       } else if (op.action === 'delete') {
         const id = (payload as { id: string }).id;
         if (id) await api.vegetation.delete(id);
@@ -1376,9 +1420,9 @@ async function executeQueuedOp(op: QueuedOperation): Promise<void> {
     }
     case 'succession': {
       if (op.action === 'create') {
-        await syncSuccessionCreate(payload as unknown as SuccessionMilestone);
+        await typedCreate(successionSpec, payload as unknown as SuccessionMilestone, true);
       } else if (op.action === 'update') {
-        await syncSuccessionUpdate(payload as unknown as SuccessionMilestone);
+        await typedUpdate(successionSpec, payload as unknown as SuccessionMilestone, true);
       } else if (op.action === 'delete') {
         const id = (payload as { id: string }).id;
         if (id) await api.succession.delete(id);
@@ -1418,7 +1462,7 @@ async function onOnline() {
   conn.setSyncStatus('syncing');
   conn.setPendingChanges(count);
   try {
-    await syncQueue.flush(executeQueuedOp);
+    await syncQueue.flush(executeQueuedOp, handleExhaustedOp);
     const remaining = await syncQueue.getPendingCount();
     conn.setPendingChanges(remaining);
     conn.setLastSyncedAt(new Date().toISOString());
@@ -1437,7 +1481,7 @@ function startHeartbeat() {
     const conn = useConnectivityStore.getState();
     conn.setPendingChanges(count);
     if (count > 0 && navigator.onLine) {
-      syncQueue.flush(executeQueuedOp).catch((err) => {
+      syncQueue.flush(executeQueuedOp, handleExhaustedOp).catch((err) => {
         console.warn('[SYNC] Heartbeat flush failed:', err);
       });
     }
@@ -1531,7 +1575,7 @@ export const syncService = {
     conn.setPendingChanges(count);
     if (count > 0 && navigator.onLine) {
       conn.setSyncStatus('syncing');
-      syncQueue.flush(executeQueuedOp)
+      syncQueue.flush(executeQueuedOp, handleExhaustedOp)
         .then(async () => {
           const remaining = await syncQueue.getPendingCount();
           conn.setPendingChanges(remaining);

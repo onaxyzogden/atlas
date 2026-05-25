@@ -2,12 +2,13 @@
  * OfflineBanner — persistent notification bar showing offline/sync state.
  *
  * Visible states (highest severity first):
- *   0. Conflict: a server-side newer version was rejected; local copy kept
- *   1. Offline:  warning-colored bar with last-synced timestamp
- *   2. Syncing:  info-colored bar with pending change count
- *   3. Pending:  subtle bar when online but queue has items
+ *   0. Dropped:  a change could not be saved after repeated retries (data risk)
+ *   1. Conflict: a server-side newer version was rejected; local copy kept
+ *   2. Offline:  warning-colored bar with last-synced timestamp
+ *   3. Syncing:  info-colored bar with pending change count
+ *   4. Pending:  subtle bar when online but queue has items
  *
- * Hidden when online with no pending changes and no conflicts.
+ * Hidden when online with no pending changes, conflicts, or dropped ops.
  * Mounted at the top of AppShell (before header).
  */
 
@@ -22,8 +23,43 @@ export default function OfflineBanner() {
   const lastSyncedAt = useConnectivityStore((s) => s.lastSyncedAt);
   const conflictedStores = useConnectivityStore((s) => s.conflictedStores);
   const clearConflictedStore = useConnectivityStore((s) => s.clearConflictedStore);
+  const droppedStores = useConnectivityStore((s) => s.droppedStores);
+  const clearDroppedStore = useConnectivityStore((s) => s.clearDroppedStore);
 
-  // ── Conflict (highest severity — persists across online/offline) ──
+  // ── Dropped (highest severity — a change could not be saved at all) ──
+  if (droppedStores.length > 0) {
+    const n = droppedStores.length;
+    return (
+      <div className={`${styles.banner} ${styles.conflict}`} role="alert" aria-live="assertive">
+        <span className={styles.icon}>
+          {/* AlertTriangle icon (inline SVG — no Lucide dependency) */}
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1={12} y1={9} x2={12} y2={13} />
+            <line x1={12} y1={17} x2={12.01} y2={17} />
+          </svg>
+        </span>
+        <span>
+          {n} change{n !== 1 ? 's' : ''} could not be saved to the server — kept on this device
+        </span>
+        <span className={styles.chips}>
+          {droppedStores.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className={styles.chip}
+              aria-label={`Dismiss ${key}`}
+              onClick={() => clearDroppedStore(key)}
+            >
+              {key} ✕
+            </button>
+          ))}
+        </span>
+      </div>
+    );
+  }
+
+  // ── Conflict (persists across online/offline) ──
   if (conflictedStores.length > 0) {
     const n = conflictedStores.length;
     return (

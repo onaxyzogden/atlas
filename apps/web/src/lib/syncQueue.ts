@@ -235,9 +235,14 @@ export const syncQueue = {
    *
    * @param executor - callback that actually performs the API call for an op.
    *   Must throw on failure.
+   * @param onDrop - optional callback invoked when an op is dropped after
+   *   exhausting MAX_RETRIES. Lets the caller surface the give-up to the user
+   *   (a permanently-failing write is data the steward needs to know about)
+   *   without this module importing UI/store code.
    */
   async flush(
     executor: (op: QueuedOperation) => Promise<void>,
+    onDrop?: (op: QueuedOperation) => void,
   ): Promise<{ processed: number; failed: number }> {
     const ops = await this.getBatch(FLUSH_BATCH);
     let processed = 0;
@@ -247,6 +252,7 @@ export const syncQueue = {
       if (op.retryCount >= MAX_RETRIES) {
         // Exhausted — drop it rather than re-skipping it on every flush.
         await this.dequeue(op.id);
+        onDrop?.(op);
         failed++;
         continue;
       }
