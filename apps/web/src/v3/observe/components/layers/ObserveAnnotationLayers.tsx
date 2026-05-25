@@ -154,11 +154,11 @@ interface LayerSpec {
    *  as an independent overlay row in BaseMapCard and must not also be
    *  ANDed with the `observeAnnotations` master). When omitted, the
    *  group falls under the `observeAnnotations` master toggle. PLAN-
-   *  stage-only keys (`sunPath`, `zoneRings`) are excluded — Observe
-   *  annotation specs never gate on them. */
+   *  stage-only keys (`sunPath`, `zoneRings`, `waterRouter`) are excluded —
+   *  Observe annotation specs never gate on them. */
   toggleKey?: Exclude<
     MatrixToggleKey,
-    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
+    'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones' | 'waterRouter'
   >;
 }
 
@@ -245,13 +245,12 @@ export default function ObserveAnnotationLayers({
   const waterVisible = useMatrixTogglesStore((s) => s.water);
   const builtEnvironmentVisible = useMatrixTogglesStore((s) => s.builtEnvironment);
   const scheduledMovesVisible = useMatrixTogglesStore((s) => s.scheduledMoves);
-  const subToggles: Record<
-    Exclude<
-      MatrixToggleKey,
-      'observeAnnotations' | 'sunPath' | 'zoneRings' | 'seededZones'
-    >,
-    boolean
-  > = {
+  // Keyed by exactly the same type as `LayerSpec['toggleKey']` (single source
+  // of truth) so the index at the visibility sites below can never diverge from
+  // the set of keys this object provides. waterRouter is a Plan-stage overlay
+  // (downslope flow / catchment pins), not an Observe annotation group, so it
+  // is excluded from that type and never appears here.
+  const subToggles: Record<NonNullable<LayerSpec['toggleKey']>, boolean> = {
     sectors: sectorsVisible,
     topography: topographyVisible,
     zones: zonesVisible,
