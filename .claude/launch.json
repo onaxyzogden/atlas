@@ -36,6 +36,24 @@
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "cd apps\\web && node ../../node_modules/vite/bin/vite.js preview --host 127.0.0.1 --port 4173 --strictPort"],
       "port": 4173
+    },
+    {
+      "name": "web-5201",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd apps\\web && node ../../node_modules/vite/bin/vite.js --port 5201 --strictPort"],
+      "port": 5201
+    },
+    {
+      "name": "web-5202",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd apps\\web && node ../../node_modules/vite/bin/vite.js --port 5202 --strictPort"],
+      "port": 5202
+    },
+    {
+      "name": "web-sync",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set FEATURE_SYNC_STATE_BLOBS=true&& cd apps\\web&& node ../../node_modules/vite/bin/vite.js --port 5205 --strictPort"],
+      "port": 5205
     }
   ]
 }
