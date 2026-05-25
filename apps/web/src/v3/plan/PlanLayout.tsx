@@ -470,7 +470,12 @@ export default function PlanLayout() {
       }
       rightRail={
         <>
-          <PlanReadyCue projectId={params.projectId ?? null} />
+          {/* Project-level readiness cue only when no objective is focused;
+              once an objective is selected the rail belongs to that objective's
+              workspace, so the generic Plan-essentials cue is hidden. */}
+          {validModule === null && (
+            <PlanReadyCue projectId={params.projectId ?? null} />
+          )}
           <PlanChecklistAside
             activeModule={validModule}
             effectiveSectionId={effectiveSectionId}
