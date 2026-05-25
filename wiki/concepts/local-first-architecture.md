@@ -58,6 +58,20 @@ Surfaced via `ProjectBundleBar` on the v3 shell, which also serves as the
 data-safety banner. See
 [ADR 2026-05-16 — multi-device bundle escape hatch](../decisions/2026-05-16-atlas-multi-device-bundle-escape-hatch.md).
 
+### Sync queue is bounded (2026-05-25)
+The failed-write retry queue (`apps/web/src/lib/syncQueue.ts`, IndexedDB
+`ogden-sync-queue`/`ops`) was an unbounded append log that grew to ~250k ops
+and OOM-crashed the renderer on command-centre routes (`flush()` loaded the
+whole queue via `getAll()`). It is now bounded by a **coalescing deterministic
+key** `storeType:action:localId` — re-queuing an entity overwrites its prior op,
+capping the queue at the count of distinct pending entities. `flush()` reads a
+bounded `getBatch(FLUSH_BATCH=200)` cursor slice, `reconcile()` collapses any
+pre-existing runaway queue at `syncService.start()`, and exhausted ops are now
+dropped. See [ADR 2026-05-25](../decisions/2026-05-25-sync-queue-oom-coalescing-fix.md).
+> Still open: the executor handlers swallow API errors and re-enqueue, so
+> `MAX_RETRIES` never counts up (harmless now the queue is capped) — a
+> circuit-breaker is deferred.
+
 ## Sync Strategy (Planned — full coverage deferred to backlog)
 Extending `syncService` from the 4 covered slices to the full ~70-store v3
 surface is the real long-term fix, deferred as a backlog item (too large to
