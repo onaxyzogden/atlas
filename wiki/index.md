@@ -25,7 +25,7 @@ Read this first at the start of every session.
 - [Organization](entities/organization.md) — Multi-tenant workspace primitive: register-time auto-org for all tiers, `projects.org_id NOT NULL` invariant, Stewarding-tier `/organizations/new` prelude with progressive disclosure (Phase 4.5, shipped 2026-05-21)
 
 ## Concepts
-- [Design System](concepts/design-system.md) — Earth Green + Harvest Gold, Fira Code/Sans, component tokens
+- [Design System](concepts/design-system.md) — cool-grey chrome + estate gold/sage (earth ramp → `--color-neutral-*`, warm hues reserved for map data, 2026-05-25), Fira Code/Sans, component tokens
 - [Scoring Engine](concepts/scoring-engine.md) — 8 weighted dimensions + 2-3 classifications, ~140+ components, WithConfidence, Tier 3 integration
 - [Financial Model](concepts/financial-model.md) — Cost/revenue/cashflow engine, CostRange, mission scoring
 - [Local-First Architecture](concepts/local-first-architecture.md) — Zustand + localStorage (~70 `ogden-` stores); `syncService` is wired but **partial** — only 4 slices (projects/zones/structures/comments) sync, the rest is localStorage-only; project-bundle is the multi-device escape hatch (corrected 2026-05-16)

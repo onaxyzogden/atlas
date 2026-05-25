@@ -1,7 +1,7 @@
 # Atlas Design System
 
 ## Summary
-The OGDEN Atlas design system is defined in `design-system/ogden-atlas/MASTER.md`. It uses an organic, biophilic aesthetic rooted in earth tones — designed for land stewardship rather than generic SaaS.
+The OGDEN Atlas design system is defined in `design-system/ogden-atlas/MASTER.md`. It uses an organic, biophilic aesthetic — designed for land stewardship rather than generic SaaS. As of 2026-05-25 the UI **chrome** reads **cool neutral grey + estate gold** (the warm-brown "earth" ramp that previously dressed chrome was renamed to `--color-neutral-*`); the warm earth/biophilic palette is now **reserved for map data** (zones, structures, paths, parcel boundary). See [[decisions/2026-05-25-atlas-earth-to-neutral-chrome]].
 
 ## Token Sources
 
@@ -17,11 +17,11 @@ The full CSS token system lives in two files:
 
 **CSS:** `--color-{palette}-{shade}`, `--color-zone-{category}`, `--color-group-{domain}`, `--color-status-{level}`, `--color-map-{element}`
 
-**TypeScript:** `earth[500]`, `zone.habitation`, `group.livestock`, `status.good`, `chart.accent`
+**TypeScript:** `neutral[500]`, `zone.habitation`, `group.livestock`, `status.good`, `chart.accent`
 
 ## Token Families
 Palette families defined in `tokens.css`:
-- **Earth** (warm browns): `--color-earth-50` → `--color-earth-900`
+- **Neutral** (cool grey, UI chrome): `--color-neutral-50` → `--color-neutral-900` — renamed from the warm `--color-earth-*` ramp on 2026-05-25 ([[decisions/2026-05-25-atlas-earth-to-neutral-chrome]]); dresses panels/cards/borders/inputs/footers/muted text. The old warm-brown ramp no longer exists; warm earth hues survive only in the reserved **map-data** tokens below.
 - **Sage** (organic greens): `--color-sage-50` → `--color-sage-900`
 - **Water** (slate blues): `--color-water-50` → `--color-water-900`
 - **Sand** (warm neutrals): `--color-sand-50` → `--color-sand-200`
