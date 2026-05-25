@@ -14,6 +14,12 @@
 
 import type { Paddock } from '../../store/livestockStore.js';
 import { LIVESTOCK_SPECIES } from './speciesData.js';
+import { seasonalRestMultiplier } from './forageSeasonMath.js';
+
+/** Optional seasonal context that lengthens rest during the summer slump. */
+export interface SeasonOpts {
+  isSouthern?: boolean;
+}
 
 /* ================================================================== */
 /*  Owned plan types                                                   */
@@ -50,6 +56,12 @@ export interface MoveCalendarEntry {
   moveOutDateISO: string; // moveIn + targetGrazeDays
   grazeDays: number;
   restDaysUntilNextGraze: number;
+  /**
+   * Rest until next graze after applying the seasonal multiplier for the
+   * month this graze ends (regrowth slows in the summer slump). Equals
+   * `restDaysUntilNextGraze` when no `seasonOpts` is passed.
+   */
+  seasonAdjustedRestDays: number;
 }
 
 export interface RestComplianceRow {
@@ -83,6 +95,11 @@ function daysBetweenISO(a: string, b: string): number {
     (Date.parse(`${b}T00:00:00.000Z`) - Date.parse(`${a}T00:00:00.000Z`)) /
       86_400_000,
   );
+}
+
+/** 0-based UTC calendar month (Jan=0 … Dec=11) of a yyyy-mm-dd string. */
+function monthOfISO(iso: string): number {
+  return new Date(Date.parse(`${iso}T00:00:00.000Z`)).getUTCMonth();
 }
 
 /* ================================================================== */
@@ -144,6 +161,7 @@ export function computeMoveCalendar(
   plan: RotationPlan | null,
   startDateISO: string,
   cycles = 1,
+  seasonOpts?: SeasonOpts,
 ): MoveCalendarEntry[] {
   if (!plan || plan.cells.length === 0) return [];
 
@@ -165,17 +183,27 @@ export function computeMoveCalendar(
     // Per-paddock last moveOut so we can honor an explicit rest floor by
     // inserting an idle gap when sibling-graze alone is too short.
     const lastMoveOut = new Map<string, string>();
+    // Per-paddock season-adjusted rest owed since its last graze. Defaults to
+    // the unadjusted floor, so with no seasonOpts the gap logic is unchanged.
+    const restOwed = new Map<string, number>();
     for (let cycle = 0; cycle < Math.max(1, cycles); cycle++) {
       for (const c of live) {
         const pad = byId.get(c.paddockId)!;
         const honored = honoredRestDays(c, totalGraze - c.targetGrazeDays);
         const prevOut = lastMoveOut.get(c.paddockId);
         if (prevOut) {
+          const requiredGap = restOwed.get(c.paddockId) ?? honored;
           const gap = daysBetweenISO(prevOut, cursor);
-          if (gap < honored) cursor = addDaysISO(cursor, honored - gap);
+          if (gap < requiredGap) cursor = addDaysISO(cursor, requiredGap - gap);
         }
         const moveInDateISO = cursor;
         const moveOutDateISO = addDaysISO(cursor, c.targetGrazeDays);
+        // Rest begins when this graze ends — key the seasonal multiplier on
+        // the move-out month (regrowth slows in the summer slump).
+        const multiplier = seasonOpts
+          ? seasonalRestMultiplier(monthOfISO(moveOutDateISO), seasonOpts)
+          : 1;
+        const seasonAdjustedRestDays = Math.round(honored * multiplier);
         out.push({
           cellGroup,
           paddockId: c.paddockId,
@@ -185,8 +213,10 @@ export function computeMoveCalendar(
           moveOutDateISO,
           grazeDays: c.targetGrazeDays,
           restDaysUntilNextGraze: honored,
+          seasonAdjustedRestDays,
         });
         lastMoveOut.set(c.paddockId, moveOutDateISO);
+        restOwed.set(c.paddockId, seasonAdjustedRestDays);
         cursor = moveOutDateISO;
       }
     }
@@ -251,9 +281,10 @@ export function projectRotationSequence(
   plan: RotationPlan | null,
   startDateISO: string,
   cycles = 1,
+  seasonOpts?: SeasonOpts,
 ): RotationSequenceProjection {
   return {
-    calendar: computeMoveCalendar(paddocks, plan, startDateISO, cycles),
+    calendar: computeMoveCalendar(paddocks, plan, startDateISO, cycles, seasonOpts),
     restCompliance: computeRestCompliance(paddocks, plan),
     restCompliancePct: computeRestCompliancePct(paddocks, plan),
   };

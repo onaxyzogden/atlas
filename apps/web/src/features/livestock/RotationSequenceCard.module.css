@@ -187,6 +187,11 @@
   color: var(--color-text-subtle);
 }
 
+.seasonRest {
+  color: var(--color-warning, #b45309);
+  font-weight: 600;
+}
+
 /* ── Compliance rows ── */
 .complianceRow {
   display: flex;

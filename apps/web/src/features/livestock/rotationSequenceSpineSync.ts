@@ -25,14 +25,17 @@ import type { Paddock } from '../../store/livestockStore.js';
 import type { BuildPhase } from '../../store/phaseStore.js';
 import { useLivestockStore } from '../../store/livestockStore.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
 import { useRotationPlanStore } from '../../store/rotationPlanStore.js';
 import { useWorkItemStore } from '../../store/workItemStore.js';
 import {
   computeMoveCalendar,
   type MoveCalendarEntry,
   type RotationPlan,
+  type SeasonOpts,
 } from './rotationSequenceMath.js';
 import { buildRotationMoveKit } from './rotationMoveMaterials.js';
+import { isSouthernHemisphere } from './forageSeasonMath.js';
 
 function resolvePhaseId(
   paddockPhase: string,
@@ -97,6 +100,7 @@ export function seedRotationSequenceWorkItems(args: {
   declaredPhases: BuildPhase[];
   startDateISO?: string;
   cycles?: number;
+  seasonOpts?: SeasonOpts;
   now?: () => string;
 }): WorkItem[] {
   const { projectId, plan, declaredPhases } = args;
@@ -121,6 +125,7 @@ export function seedRotationSequenceWorkItems(args: {
     plan,
     startDateISO,
     cycles,
+    args.seasonOpts,
   );
   const annotated = withCycleIndex(calendar);
 
@@ -213,11 +218,21 @@ export function pushRotationSequenceToSpine(projectId: string): void {
     .getState()
     .getProjectPhases(projectId);
 
+  // Hemisphere from the project boundary centroid — same derivation as
+  // `ForageQualitySeasonalCard`, so spine dates match the card's curve.
+  const project = useProjectStore
+    .getState()
+    .projects.find((p) => p.id === projectId);
+  const seasonOpts: SeasonOpts = {
+    isSouthern: isSouthernHemisphere(project?.parcelBoundaryGeojson),
+  };
+
   const items = seedRotationSequenceWorkItems({
     projectId,
     paddocks,
     plan,
     declaredPhases,
+    seasonOpts,
   });
   const store = useWorkItemStore.getState();
   store.replaceRotationSequenceRows(projectId, items);

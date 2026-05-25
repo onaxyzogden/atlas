@@ -13,11 +13,13 @@
 
 import { useMemo } from 'react';
 import { useLivestockStore, type Paddock } from '../../store/livestockStore.js';
+import { useProjectStore } from '../../store/projectStore.js';
 import { useRotationPlanStore } from '../../store/rotationPlanStore.js';
 import {
   projectRotationSequence,
   type MoveCalendarEntry,
 } from './rotationSequenceMath.js';
+import { isSouthernHemisphere } from './forageSeasonMath.js';
 import { computeRotationCarryingCapacity } from './rotationCapacityMath.js';
 import {
   computeOvergrazingRisk,
@@ -51,9 +53,23 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
   const startDateISO = plan?.startDateISO ?? today;
   const horizonCycles = plan?.horizonCycles ?? 1;
 
+  // Hemisphere from the project boundary centroid — same derivation as
+  // `ForageQualitySeasonalCard`, so the calendar's season-stretched rest
+  // matches the forage-quality curve the steward already sees.
+  const boundary = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId)?.parcelBoundaryGeojson ?? null,
+  );
+  const isSouthern = useMemo(
+    () => isSouthernHemisphere(boundary),
+    [boundary],
+  );
+
   const projection = useMemo(
-    () => projectRotationSequence(paddocks, plan, startDateISO, horizonCycles),
-    [paddocks, plan, startDateISO, horizonCycles],
+    () =>
+      projectRotationSequence(paddocks, plan, startDateISO, horizonCycles, {
+        isSouthern,
+      }),
+    [paddocks, plan, startDateISO, horizonCycles, isSouthern],
   );
 
   // Calendar grouped by cellGroup: 'ungrouped' sorts last, otherwise
@@ -193,6 +209,15 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
                     <span>{e.grazeDays}d graze</span>
                     <span className={css.metaDot}>{'·'}</span>
                     <span>{e.restDaysUntilNextGraze}d rest until next graze</span>
+                    {e.seasonAdjustedRestDays > e.restDaysUntilNextGraze && (
+                      <>
+                        <span className={css.metaDot}>{'·'}</span>
+                        <span className={css.seasonRest}>
+                          summer rest +
+                          {e.seasonAdjustedRestDays - e.restDaysUntilNextGraze}d
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -295,8 +320,11 @@ export default function RotationSequenceCard({ projectId }: RotationSequenceCard
         rest (sum of other cells{'’'} graze in the group) against species
         recovery requirements. AU-utilization is a coarse animal-unit load
         heuristic (planned vs recommended stocking over the cycle), not a
-        forage-budget model. Carrying-capacity notes are advisory and never
-        block the schedule.
+        forage-budget model. {'“'}Summer rest{'”'} notes stretch the calendar
+        gap when a graze ends in a low-protein slump month, using the same
+        heuristic cool-season forage archetype as the forage-quality card
+        (not a measured forage budget). Carrying-capacity notes are advisory
+        and never block the schedule.
       </div>
     </section>
   );
