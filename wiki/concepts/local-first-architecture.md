@@ -68,9 +68,21 @@ capping the queue at the count of distinct pending entities. `flush()` reads a
 bounded `getBatch(FLUSH_BATCH=200)` cursor slice, `reconcile()` collapses any
 pre-existing runaway queue at `syncService.start()`, and exhausted ops are now
 dropped. See [ADR 2026-05-25](../decisions/2026-05-25-sync-queue-oom-coalescing-fix.md).
-> Still open: the executor handlers swallow API errors and re-enqueue, so
-> `MAX_RETRIES` never counts up (harmless now the queue is capped) — a
-> circuit-breaker is deferred.
+### Sync queue circuit-breaker (2026-05-25)
+The executor circuit-breaker deferred above is now closed. `executeQueuedOp`
+routed create/update through the *swallowing* live-path handlers, so `flush()`
+never saw a throw — `retryCount` never incremented and (after the coalescing-key
+fix) a failing op re-enqueued under the same key `flush()` had just dequeued,
+silently dropping it after one pass. Each swallowing create/update handler gained
+a `rethrow = false` param that re-throws before the re-enqueue; the queue path
+opts in while the live path keeps fail-soft enqueue. Exhausted ops
+(`MAX_RETRIES`) are surfaced via `handleExhaustedOp` (`flush()`'s `onDrop`) into a
+new `droppedStores` channel on `connectivityStore`, a `toast.error`, and a
+highest-severity `OfflineBanner`. See
+[ADR 2026-05-25](../decisions/2026-05-25-atlas-sync-circuit-breaker.md). This is
+the safety property that makes turning on the full-coverage path
+(`FLAGS.SYNC_STATE_BLOBS`) safe — a persistently-failing blob push now surfaces
+instead of vanishing.
 
 ## Sync Strategy (Planned — full coverage deferred to backlog)
 Extending `syncService` from the 4 covered slices to the full ~70-store v3
