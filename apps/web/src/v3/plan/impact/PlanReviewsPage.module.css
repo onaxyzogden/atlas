@@ -284,9 +284,29 @@
   white-space: pre-wrap;
 }
 
-.reopenBtn {
-  align-self: flex-start;
+.reviewedActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 2px;
+}
+
+.logDecisionBtn {
+  padding: 4px 12px;
+  border: 1px solid var(--color-brand, #d4af5f);
+  border-radius: 6px;
+  background: rgba(212, 175, 95, 0.16);
+  color: var(--color-brand, #d4af5f);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logDecisionBtn:hover {
+  background: rgba(212, 175, 95, 0.28);
+}
+
+.reopenBtn {
   padding: 4px 10px;
   border: 1px solid var(--color-border);
   border-radius: 6px;

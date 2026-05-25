@@ -10,13 +10,15 @@
  * nucleus of the future Plan Operation Command Centre.
  */
 
-import { Link, useParams } from '@tanstack/react-router';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { OBSERVE_MODULE_LABEL } from '../../observe/types.js';
 import {
   usePlanImpactFlags,
   type PlanImpactFlagView,
 } from './usePlanImpactFlags.js';
 import { usePlanImpactReviewStore } from '../../../store/planImpactReviewStore.js';
+import { usePlanDecisionStore } from '../../../store/planDecisionStore.js';
+import { buildDecisionFromFlag } from '../decisions/planDecision.js';
 import {
   PLAN_REVIEW_DECISIONS,
   PLAN_REVIEW_DECISION_LABEL,
@@ -44,9 +46,19 @@ function FlagCard({ projectId, view }: FlagCardProps) {
   const setDecision = usePlanImpactReviewStore((s) => s.setDecision);
   const setNote = usePlanImpactReviewStore((s) => s.setNote);
   const reopen = usePlanImpactReviewStore((s) => s.reopen);
+  const createDecision = usePlanDecisionStore((s) => s.create);
+  const navigate = useNavigate();
 
   const recordedAt = formatRecordedAt(flag.recordedAt);
   const isReviewed = review.status === 'reviewed';
+
+  const logDecision = () => {
+    createDecision(projectId, buildDecisionFromFlag(flag, review));
+    navigate({
+      to: '/v3/project/$projectId/plan/decisions',
+      params: { projectId },
+    });
+  };
 
   return (
     <li
@@ -91,13 +103,22 @@ function FlagCard({ projectId, view }: FlagCardProps) {
           {review.note.trim() ? (
             <p className={css.noteRecorded}>{review.note}</p>
           ) : null}
-          <button
-            type="button"
-            className={css.reopenBtn}
-            onClick={() => reopen(projectId, flag.id)}
-          >
-            Reopen
-          </button>
+          <div className={css.reviewedActions}>
+            <button
+              type="button"
+              className={css.logDecisionBtn}
+              onClick={logDecision}
+            >
+              Log decision →
+            </button>
+            <button
+              type="button"
+              className={css.reopenBtn}
+              onClick={() => reopen(projectId, flag.id)}
+            >
+              Reopen
+            </button>
+          </div>
         </div>
       ) : (
         <div className={css.decideBlock}>

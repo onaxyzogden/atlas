@@ -36,6 +36,7 @@ import {
   type ActModule,
 } from '../act/types.js';
 import { usePlanImpactFlagCounts } from '../plan/impact/usePlanImpactFlags.js';
+import { usePlanDecisionCounts } from '../plan/decisions/usePlanDecisions.js';
 import css from './V3LifecycleSidebar.module.css';
 
 interface DisabledLink {
@@ -121,6 +122,7 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const reviewCounts = usePlanImpactFlagCounts(projectId);
+  const decisionCounts = usePlanDecisionCounts(projectId);
 
   const stageIsActive = (id: StageId): boolean =>
     (activeStage as string) === id;
@@ -262,6 +264,28 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
                           {reviewCounts.open > 0 ? (
                             <span className={css.utilityCount}>
                               {reviewCounts.open}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : null}
+                  {entry.id === 'plan' ? (
+                    <li className={css.moduleItem}>
+                      <Link
+                        to="/v3/project/$projectId/plan/decisions"
+                        params={{ projectId }}
+                        className={css.moduleLink}
+                        data-active={
+                          pathname.includes('/plan/decisions') ? 'true' : 'false'
+                        }
+                      >
+                        <span className={css.moduleDot} aria-hidden="true" />
+                        <span className={css.moduleLabel}>
+                          Decision Log
+                          {decisionCounts.draft > 0 ? (
+                            <span className={css.utilityCount}>
+                              {decisionCounts.draft}
                             </span>
                           ) : null}
                         </span>

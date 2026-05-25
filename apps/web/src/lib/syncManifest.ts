@@ -94,6 +94,7 @@ import { useCompostCycleStore } from '../store/compostCycleStore.js';
 import { useSuccessionPathStore } from '../store/successionPathStore.js';
 import { useLandDesignStore } from '../store/landDesignStore.js';
 import { usePlanImpactReviewStore } from '../store/planImpactReviewStore.js';
+import { usePlanDecisionStore } from '../store/planDecisionStore.js';
 import { useObservationNeedStore } from '../store/observationNeedStore.js';
 import { useTrueNorthStore } from '../store/trueNorthStore.js';
 import { useActCompassStore } from '../store/actCompassStore.js';
@@ -400,6 +401,9 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // Plan Impact Reviews (Phase 1): persisted triage state for derived
   // Observe→Plan impact flags. byProject Record<projectId, Record<flagId, run>>.
   blob('ogden-plan-impact-reviews', usePlanImpactReviewStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Plan Decision Log (Phase 2): authored decision records behind review verbs.
+  // byProject Record<projectId, Record<decisionId, PlanDecision>>.
+  blob('ogden-plan-decisions', usePlanDecisionStore, 'byProject', 1, byKey('byProject', null, {})),
   // Observation needs: per-project run state + steward-raised needs (two
   // byProject maps), custom shape extracts/restores both for one project.
   blob('ogden-observation-needs', useObservationNeedStore, 'byProject', 3, observationNeedsShape),

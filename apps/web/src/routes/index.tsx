@@ -54,6 +54,7 @@ import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
 import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
 import PlanReviewsPage from '../v3/plan/impact/PlanReviewsPage.js';
+import PlanDecisionLogPage from '../v3/plan/decisions/PlanDecisionLogPage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
@@ -302,6 +303,13 @@ const v3PlanReviewRoute = createRoute({
   path: 'plan/review',
   component: PlanReviewsPage,
 });
+// Plan Decision Log — the durable authored record behind Plan Review verbs
+// (Phase 2). Static path resolves before the `plan/$module` param route.
+const v3PlanDecisionLogRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/decisions',
+  component: PlanDecisionLogPage,
+});
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/$module',
@@ -528,6 +536,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanCompassRoute,
       v3PlanRoute,
       v3PlanReviewRoute,
+      v3PlanDecisionLogRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActRoute,
