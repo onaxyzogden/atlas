@@ -50,6 +50,7 @@ import UtilityConflictDialog from '../draw/UtilityConflictDialog.js';
 import ObserveLinkPopover from '../draw/ObserveLinkPopover.js';
 import PlanDataLayers from '../layers/PlanDataLayers.js';
 import PlanScheduledMovesOverlay from '../layers/PlanScheduledMovesOverlay.js';
+import PlanWaterRouterOverlay from '../layers/PlanWaterRouterOverlay.js';
 import PlanDrawHost from '../draw/PlanDrawHost.js';
 import PlanVertexEditHandler from '../layers/PlanVertexEditHandler.js';
 import Plan3DSelectionHandler from '../draw/Plan3DSelectionHandler.js';
@@ -205,6 +206,7 @@ export default function VisionLayoutCanvas({
               action working under 3D. */}
           <PlanDataLayers map={map} projectId={projectId} editable={false} />
           <PlanScheduledMovesOverlay map={map} projectId={projectId} />
+          <PlanWaterRouterOverlay map={map} projectId={projectId} />
           <Plan3DSelectionHandler map={map} />
           <PlanVertexEditHandler map={map} />
           <PlanSelectionFloater />

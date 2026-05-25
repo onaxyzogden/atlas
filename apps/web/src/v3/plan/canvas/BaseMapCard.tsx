@@ -41,6 +41,7 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
   { key: 'zoneRings', label: 'Design audit rings (Z1–Z5 around tagged Zone-0 elements)', swatch: '#c8a85a' },
   { key: 'seededZones', label: 'Home centre / Daily touch / Weekly touch / Main crops / Forage / Wilderness', swatch: '#7a9a4a' },
   { key: 'scheduledMoves', label: 'Scheduled moves (Act-stage plans on paddocks · structures)', swatch: '#5a8a6a' },
+  { key: 'waterRouter', label: 'Water router (downslope flow · suggested catchment pins)', swatch: '#a3401d' },
 ];
 
 // Per-stage overlay scoping: hide rows whose underlying layer isn't mounted on
@@ -63,9 +64,9 @@ const DEFAULT_OVERLAYS: MapOverlayDef[] = [
 type Stage = 'observe' | 'plan' | 'act';
 
 const STAGE_HIDDEN: Record<Stage, ReadonlyArray<MatrixToggleKey>> = {
-  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves'],
+  observe: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter'],
   plan: [],
-  act: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves'],
+  act: ['sunPath', 'zoneRings', 'seededZones', 'scheduledMoves', 'waterRouter'],
 };
 
 export interface BaseMapCardProps {

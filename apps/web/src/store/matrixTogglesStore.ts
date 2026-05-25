@@ -29,7 +29,8 @@ export type MatrixToggleKey =
   | 'sunPath'
   | 'zoneRings'
   | 'seededZones'
-  | 'scheduledMoves';
+  | 'scheduledMoves'
+  | 'waterRouter';
 
 export interface MatrixTogglesState {
   topography: boolean;
@@ -71,6 +72,14 @@ export interface MatrixTogglesState {
    * still happens on the Act-stage Rotation Schedule card. Defaults off.
    */
   scheduledMoves: boolean;
+  /**
+   * PLAN — Rec #3 v2 water-router overlay. Renders flow arrows + suggested
+   * upper-third catchment pins for drawn water-harvest elements (tanks,
+   * ponds, swales) flagged low in the watershed. Read-only surfacing of the
+   * WaterRouterCard audit; the one-click "move" still lives on the card.
+   * Defaults off so existing stewards don't inherit an unfamiliar layer.
+   */
+  waterRouter: boolean;
   toggle: (key: MatrixToggleKey) => void;
   setAll: (value: boolean) => void;
 }
@@ -88,6 +97,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       zoneRings: false,
       seededZones: true,
       scheduledMoves: false,
+      waterRouter: false,
       toggle: (key) => set((s) => ({ ...s, [key]: !s[key] })),
       setAll: (value) =>
         set(() => ({
@@ -101,6 +111,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           zoneRings: value,
           seededZones: value,
           scheduledMoves: value,
+          waterRouter: value,
         })),
     }),
     {
@@ -133,7 +144,11 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
       // v6 (2026-04-28): added water (streams + surface water) toggle.
       // v5 added wind-prevailing rose. Migrate seeds default for any
       // missing key so existing users don't inherit unfamiliar overlays.
-      version: 13,
+      // v14 (2026-05-25): added waterRouter — Rec #3 v2 Plan-stage overlay
+      //  (flow arrows + suggested catchment pins for low-in-watershed water
+      //  elements). Defaults off so existing stewards don't inherit an
+      //  unfamiliar layer.
+      version: 14,
       migrate: (persisted) => {
         const prev = (persisted ?? {}) as Partial<MatrixTogglesState> & {
           // v13 drop list: retained here so the migrate signature is
@@ -153,6 +168,7 @@ export const useMatrixTogglesStore = create<MatrixTogglesState>()(
           zoneRings: prev.zoneRings ?? false,
           seededZones: prev.seededZones ?? true,
           scheduledMoves: prev.scheduledMoves ?? false,
+          waterRouter: prev.waterRouter ?? false,
         } as MatrixTogglesState;
       },
     },
