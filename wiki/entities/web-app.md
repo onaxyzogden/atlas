@@ -312,6 +312,20 @@ All use `persist` middleware with localStorage. Key stores:
   was thus **not flip-ready** before `e6b48857`; the Stage 2 operator matrix
   must run on a build that includes it. See
   [[log/2026-05-25-blobsync-stage1-validation-two-latent-bugs]].
+  **Ramp Stage 2 — operator A–E matrix, best-effort auto-drive (2026-05-25):**
+  drove §5.7 **A/B/C/E** through a live, genuinely flag-on browser build on an
+  `e6b48857`-inclusive build (migrated `postgis:16-3.4` on 5433 + API + preview
+  5205) — **all four PASS**. A: store edit → debounced subscribe → PUT 200 →
+  physical `jsonb_typeof=object` rows. B: clean local + reload hydrates all
+  slices. C: genuine cross-device 409 via out-of-band write → Connectivity chip
+  + toast, local not clobbered, recovery bumps rev. E: relabel + Export/Import
+  intact (~332KB bundle). **D-skew + the genuine two-physical-device sign-off
+  remain the operator's.** Central fix: the `.claude/launch.json` `web-sync`
+  entry's `set "VAR=true" &&` form dropped the env var under the preview
+  launcher's `cmd /c` spawn (inner quotes) → build came up flag-off; corrected
+  to quote-free `set VAR=true&& …`. **Stages 3 (soak) + 4 (flip) remain gated;**
+  `flags.ts`/`vite.config.ts` untouched. See
+  [[log/2026-05-25-blobsync-stage2-operator-matrix-autodrive]].
 - **Backend acreage integrity / Full hardening (2026-05-17)** — closes the
   *online* hole the P0 guard deferred. New pure shared
   `lib/geojsonGeometry.ts` `extractPolygonalGeometry` normalizes the client's

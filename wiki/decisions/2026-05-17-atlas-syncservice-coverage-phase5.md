@@ -153,6 +153,42 @@ the only thing in the suite that proves real persistence.
 A real two-device A–E run by a human operator is still required before
 the flag is enabled for testers (steps D and E are operator-only).
 
+### 5.7 Stage 2 addendum — best-effort auto-drive run (2026-05-25)
+
+Executes **Stage 2** of the phased-ramp plan
+(`~/.claude/plans/resolve-the-non-uuid-demo-project-tidy-leaf.md`) on an
+**`e6b48857`-inclusive build** (the two Stage-1 marshalling fixes), driving the
+A/B/C/E steps through the live preview browser against a real flag-on build and a
+migrated throwaway Postgres (`postgis/postgis:16-3.4`, port 5433). A genuine
+second device was simulated for the C-conflict step by an out-of-band write. The
+**final two-physical-device sign-off and D-skew remain the operator's** — see the
+deferral note below.
+
+| Step | Result | Evidence |
+|---|---|---|
+| A — shadow | **PASS** (auto-drive) | Edited three blob stores spanning the `byProject` (`ogden-site-profiles`) and `projectId-tagged` (`ogden-vision`, `ogden-swot`) serializer scopes. Verified the full browser path: store edit → 800 ms debounced `subscribeVersionedBlobs` → `api.projectState.put` → **200**, and a direct `SELECT` confirms physical rows under the correct `(project_id, store_key)` with `jsonb_typeof = object` (the Stage-1 double-encode fix holding). Final state for project `66b2ea9c`: site-profiles rev 2 / swot rev 4 / vision rev 2, all `object` payloads. |
+| B — restore | **PASS** (auto-drive, single-project hydration) | Cleared local state + reloaded on the same account → `hydrateProjectStateBlobs` applied all persisted slices and seeded `blobBaseRev` from server revs. Cross-project **read isolation** is the one facet not surfaceable in-browser here (only one live project), and is already proven against real Postgres by Stage 1 case B (`GET /project/P1` returns exactly P1's blobs, P2 absent). |
+| C — conflict | **PASS** (auto-drive, genuine 409) | Induced a real cross-device conflict: an out-of-band `curl` PUT (the "second device") bumped `ogden-vision`'s server rev, then a stale browser edit → **409 `{serverRev, serverPayload}`**. Client surface fired: `addConflictedStore` → Connectivity-panel conflict chip + `toast.warning`; the local copy was **not** clobbered and the server copy was unchanged on a follow-up GET; a recovery edit at the correct baseRev bumped rev. **Note on surface:** the visible conflict UI is the Connectivity-panel chip + toast (the same `OfflineBanner` `conflictedStores.length > 0` danger branch), not a standalone red bar at rest. |
+| D — skew | **NOT RUN** (operator-only) | Needs a second build with a higher store `schemaVersion`; cannot be exercised from one build. Unchanged from the original matrix. |
+| E — bundle relabel | **PASS** (auto-drive) | Flag-on → ProjectBundleBar shows "syncs to your account"; "Not saved to an account" absent. `Export bundle` / `Import bundle` controls present and **enabled**; invoking `buildBundle` + `serializeBundle` produced a valid ~332 KB bundle (top keys `schema/version/exportedAt/appVersion/entries`); `parseBundle` present for the import side. Export "still works" under flag-on confirmed. |
+
+**Finding — launch.json flag propagation (fixed this session).** The preview
+launcher spawns `cmd /c "<runtimeArgs string>"`. The original `web-sync` entry used
+`set "FEATURE_SYNC_STATE_BLOBS=true" && …`; the **inner double-quotes break under
+the spawn's Windows command-line quoting**, so the env var was silently dropped and
+the build came up **flag-off** (`FLAGS.SYNC_STATE_BLOBS: false`) despite the
+"flag-on" label — the bundle bar read "Not saved to an account". Fixed to the
+quote-free `set FEATURE_SYNC_STATE_BLOBS=true&& cd apps\web&& …` form (no inner
+quotes, no space before `&&`). **Any future flag-on browser session via the
+launcher must use the quote-free form**; the dot-vs-bracket `process.env` access
+and the vite `define` were both correct — this was purely env delivery.
+
+**Operator residual.** Stage 2's auto-drivable core (A/B/C/E) is **green** on an
+`e6b48857`-inclusive build. What still gates the flip: the genuine
+**two-physical-device** confirmation (the visual B-restore-across-real-devices and
+the at-rest conflict bar on a second profile) and **D-skew** (second higher-schema
+build). Stages 3 (tester soak) and 4 (the code flip) remain gated and unexecuted.
+
 ### Follow-up (gated)
 
 Enabling `FEATURE_SYNC_STATE_BLOBS` for testers is **deferred**. No edit
