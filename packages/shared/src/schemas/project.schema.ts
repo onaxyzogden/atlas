@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { VisionProfile } from './visionProfile.schema.js';
 
 // 'INTL' is the catch-all bucket for projects outside US/CA coverage.
 // Adapter registry routes INTL → NasaPowerAdapter for climate; other Tier-1
@@ -72,6 +73,10 @@ export const ProjectMetadata = z.object({
   // 'approved' enum value is reserved for a later review-workflow slice.
   designStatus: z.enum(['draft', 'ready-for-review', 'approved']).optional(),
   allowOrphanOutputs: z.boolean().optional(),
+  // Stage Zero Vision Builder output — structured land-vision profile that
+  // frames the downstream OBSERVE / PLAN / ACT stages. See
+  // visionProfile.schema.ts. Authored incrementally (autosave + resume).
+  visionProfile: VisionProfile.optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
