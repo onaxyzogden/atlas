@@ -29,12 +29,16 @@ export async function seedOrganization(sql: postgres.Sql): Promise<string> {
 export async function seedProject(
   sql: postgres.Sql,
   ownerId: string,
-  opts: { name?: string; country?: string; acreage?: number } = {},
+  opts: { name?: string; country?: string; acreage?: number; orgId?: string } = {},
 ): Promise<string> {
+  // projects.org_id is NOT NULL (migration 036). Create an org when a caller
+  // doesn't supply one so the insert always satisfies the constraint.
+  const orgId = opts.orgId ?? (await seedOrganization(sql));
   const [row] = await sql<{ id: string }[]>`
-    INSERT INTO projects (owner_id, name, country, acreage)
+    INSERT INTO projects (owner_id, org_id, name, country, acreage)
     VALUES (
       ${ownerId},
+      ${orgId},
       ${opts.name ?? `Project ${seq++}`},
       ${opts.country ?? 'US'},
       ${opts.acreage ?? null}
