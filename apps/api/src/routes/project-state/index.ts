@@ -31,9 +31,14 @@ const ParamsProjectIdStoreKey = z.object({
 
 function parseRow(row: Record<string, unknown>) {
   const updatedAt = row['updated_at'];
+  // `rev` is BIGINT; postgres.js returns it as a string to avoid precision
+  // loss. The wire contract (ProjectStateBlob) is a JS number, so coerce here
+  // at the single server-row → wire-shape boundary.
+  const rev = row['rev'];
   return ProjectStateBlob.parse(
     toCamelCase({
       ...row,
+      rev: typeof rev === 'string' ? Number(rev) : rev,
       updated_at: updatedAt instanceof Date ? updatedAt.toISOString() : updatedAt,
     }),
   );
@@ -90,16 +95,19 @@ export default async function projectStateRoutes(fastify: FastifyInstance) {
     async (req, reply) => {
       const { projectId, storeKey } = ParamsProjectIdStoreKey.parse(req.params);
       const body = UpsertProjectStateInput.parse(req.body);
-      const payloadStr = JSON.stringify(body.payload ?? null);
 
       // Fresh insert gets rev = DEFAULT 1. On an existing row we only bump
       // when the client's baseRev is not behind the stored rev; a stale
       // write matches no row (0 rows returned) and is surfaced as 409.
+      // `db.json` serializes the payload once — pre-stringifying then casting
+      // `::jsonb` double-encodes it into a jsonb string scalar.
       const [row] = await db`
         INSERT INTO project_state_blobs (
           project_id, store_key, payload, schema_version, updated_by
         ) VALUES (
-          ${projectId}, ${storeKey}, ${payloadStr}::jsonb,
+          ${projectId}, ${storeKey}, ${db.json(
+            (body.payload ?? null) as Parameters<typeof db.json>[0],
+          )}::jsonb,
           ${body.schemaVersion}, ${req.userId}
         )
         ON CONFLICT (project_id, store_key) DO UPDATE SET

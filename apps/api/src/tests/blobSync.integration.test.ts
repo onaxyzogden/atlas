@@ -139,12 +139,20 @@ describe.skipIf(!dbReachable)('blobSync.integration (real Postgres)', () => {
     token = regBody.data.token as string;
     userId = regBody.data.user.id as string;
 
+    // Phase 4.5 invariant (migration 036): projects.org_id is NOT NULL. Register
+    // auto-creates a personal org + owner-membership, so resolve it and attach
+    // both projects to it — mirroring the create-project route's org resolution.
+    const [org] = await probeSql<{ org_id: string }[]>`
+      SELECT org_id FROM organization_members WHERE user_id = ${userId} LIMIT 1
+    `;
+    const orgId = org!.org_id;
+
     const [r1] = await probeSql<{ id: string }[]>`
-      INSERT INTO projects (owner_id, name) VALUES (${userId}, ${'Blob IT P1'})
+      INSERT INTO projects (owner_id, org_id, name) VALUES (${userId}, ${orgId}, ${'Blob IT P1'})
       RETURNING id
     `;
     const [r2] = await probeSql<{ id: string }[]>`
-      INSERT INTO projects (owner_id, name) VALUES (${userId}, ${'Blob IT P2'})
+      INSERT INTO projects (owner_id, org_id, name) VALUES (${userId}, ${orgId}, ${'Blob IT P2'})
       RETURNING id
     `;
     p1 = r1!.id;
