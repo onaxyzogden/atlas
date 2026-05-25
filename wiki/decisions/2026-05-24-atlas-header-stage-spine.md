@@ -91,3 +91,28 @@ vitest sweep green; `tsc --noEmit` at the 3-error pre-existing baseline
 (`StepBoundary.tsx` `ReactNode`; two `HostUnion*` test types). Live preview
 follows the screenshot-honesty rule. Commits on `feat/atlas-permaculture`,
 explicit-path staging, divergence-checked before push.
+
+---
+
+## Addendum — 2026-05-24: locked decision #1 (dash for Plan/Act) superseded
+
+The steward subsequently directed that the deferred follow-up flagged above be
+taken: **all three header segments now show their own real verified %**, not just
+Observe. Locked decision #1 (em dash for Plan/Act) is therefore **superseded**.
+
+- `StageSpine`'s `observeProgress: ObjectiveProgress` prop became
+  `progressByStage: Record<Stage, ObjectiveProgress>`; the per-segment readout
+  is now the uniform `` `${progressByStage[stage.id].pct}%` `` — the Observe-only
+  special-case and the em-dash branch are removed.
+- `HeaderStageSpine` now calls all three data hooks unconditionally
+  (`useCompassData` / `usePlanCompassData` / `useActCompassData` — each is
+  rules-of-hooks safe) and builds the `progressByStage` map. The
+  Observe-by-progress routing branch is unchanged (still reads
+  `observeData.stage.pct >= 100`). Navigation behaviour is otherwise untouched —
+  only the readout changed.
+- Pure presentation change: no schema, store action, data model, or migration;
+  covenant grep over the edited files clean. `StageSpine` is consumed only by
+  `HeaderStageSpine`, so the prop-shape change is fully contained.
+- Verification: `StageSpine.test.tsx` (6) + `HeaderStageSpine.test.tsx` (9, one
+  added asserting each segment's real %) green; the em-dash assertions are gone.
+  See [[log/2026-05-24-header-stage-spine-plan-act-pct]].
