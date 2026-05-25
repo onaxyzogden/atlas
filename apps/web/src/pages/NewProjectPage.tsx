@@ -99,8 +99,12 @@ export default function NewProjectPage() {
       ? { instantiatedFromTemplate: prefillTemplate }
       : undefined;
 
+    // Country/units are captured later (location is gathered in OBSERVE), so
+    // seed the schema defaults here — they can be changed in project settings.
+    const defaults = { country: 'US', units: 'metric' } as const;
+
     // Local copy first — always created so the flow works offline / unauth.
-    const project = createProject({ name: trimmed, metadata });
+    const project = createProject({ name: trimmed, metadata, ...defaults });
 
     // Authenticated: mirror to the server and adopt the server id.
     if (token) {
@@ -120,6 +124,7 @@ export default function NewProjectPage() {
           const { data: serverProject } = await api.projects.create({
             name: trimmed,
             orgId,
+            ...defaults,
           });
           updateProject(project.id, { serverId: serverProject.id });
         }
