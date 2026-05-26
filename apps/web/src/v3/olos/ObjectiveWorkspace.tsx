@@ -2,19 +2,18 @@
  * ObjectiveWorkspace — the focused workspace for one Stage × Domain ×
  * Objective cell. Implements the dev-spec map-view + side-panel pattern.
  *
- * Left: map view + overlay bundle (Phase 1.4 wires the real map; for now
- * this is a placeholder).
+ * Left: map view + overlay bundle (stage map mounts when the project has a
+ * boundary or center; falls back to a structural placeholder otherwise).
  * Right: side panel — header, focused question, required inputs, checklist,
- * evidence / proof capture, status output, handoff emitter.
+ * evidence / proof capture (Phase 1.6), status output, handoff emitter
+ * (Phase 1.6).
  *
- * Phase 1.3 ships the layout shell with read-only data driven by the
- * universal Objective catalogue. Phase 1.4 mounts the map; Phase 1.5 wires
- * Zustand record stores so checklist completion + status persist; Phase 1.6
- * adds the handoff emitter; Phase 1.7 ships the StatusPicker. The shell is
- * the harness that holds those pieces.
+ * Phase 1.5 wires Zustand record stores: checklist completion + Observe
+ * /Plan status persist across reloads. Act status is per-task and lands
+ * with the handoff emitter in Phase 1.6.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   STAGE_LABELS,
   UNIVERSAL_DOMAIN_LABELS,
@@ -22,8 +21,15 @@ import {
   STATUS_LABELS,
   type Objective,
   type ChecklistItem,
+  type ObserveStatus,
+  type PlanApprovalStatus,
 } from '@ogden/shared';
 import { OBSERVE_MODULE_DOT } from '../observe/moduleGuidance.js';
+import {
+  useChecklistProgressStore,
+  useObservationRecordStore,
+  usePlanDecisionRecordStore,
+} from '../../store/olos/index.js';
 import type { Project } from '../types.js';
 import OverlayBundleStrip from './map/OverlayBundleStrip.js';
 import ObjectiveMap from './map/ObjectiveMap.js';
@@ -37,27 +43,67 @@ export interface ObjectiveWorkspaceProps {
 }
 
 export default function ObjectiveWorkspace({
-  projectId: _projectId,
+  projectId,
   project,
   objective,
   checklist,
 }: ObjectiveWorkspaceProps) {
   const accent = OBSERVE_MODULE_DOT[objective.domain] ?? '#9CA3AF';
-  const [completedItemIds, setCompletedItemIds] = useState<Set<string>>(
-    new Set(),
+
+  const completedItemIds = useChecklistProgressStore((s) =>
+    s.getCompletedItemIds(projectId, objective.id),
   );
-  const [status, setStatus] = useState<string>('');
+  const toggleChecklistItem = useChecklistProgressStore((s) => s.toggleItem);
+
+  const observationRecord = useObservationRecordStore((s) =>
+    s.getRecord(projectId, objective.id),
+  );
+  const setObservationStatus = useObservationRecordStore((s) => s.setStatus);
+
+  const planRecord = usePlanDecisionRecordStore((s) =>
+    s.getRecord(projectId, objective.id),
+  );
+  const setPlanApprovalStatus = usePlanDecisionRecordStore(
+    (s) => s.setApprovalStatus,
+  );
+
+  const persistedStatus =
+    objective.stage === 'observe'
+      ? (observationRecord?.status as string | undefined) ?? ''
+      : objective.stage === 'plan'
+        ? (planRecord?.approvalStatus as string | undefined) ?? ''
+        : '';
+
+  const [actLocalStatus, setActLocalStatus] = useState<string>('');
   const [activeOverlayIds, setActiveOverlayIds] = useState<string[]>([
     ...objective.defaultOverlayBundle,
   ]);
 
-  const toggleItem = (id: string) => {
-    setCompletedItemIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const completedSet = useMemo(
+    () => new Set(completedItemIds),
+    [completedItemIds],
+  );
+
+  const onToggleItem = (itemId: string) => {
+    if (!projectId) return;
+    toggleChecklistItem(projectId, objective.id, itemId);
+  };
+
+  const onChangeStatus = (next: string) => {
+    if (!projectId) return;
+    if (objective.stage === 'observe' && next) {
+      setObservationStatus(projectId, objective.id, next as ObserveStatus);
+      return;
+    }
+    if (objective.stage === 'plan' && next) {
+      setPlanApprovalStatus(
+        projectId,
+        objective.id,
+        next as PlanApprovalStatus,
+      );
+      return;
+    }
+    setActLocalStatus(next);
   };
 
   const toggleOverlay = (overlayId: string) => {
@@ -68,10 +114,12 @@ export default function ObjectiveWorkspace({
     );
   };
 
-  const completedCount = checklist.filter((i) =>
-    completedItemIds.has(i.id),
-  ).length;
+  const completedCount = checklist.filter((i) => completedSet.has(i.id))
+    .length;
   const totalRequired = checklist.filter((i) => i.required).length;
+
+  const statusValue =
+    objective.stage === 'act' ? actLocalStatus : persistedStatus;
 
   return (
     <div className={css.shell}>
@@ -126,8 +174,6 @@ export default function ObjectiveWorkspace({
                   <span className={css.inputLabel}>
                     {req.description ?? req.objectiveId ?? '—'}
                   </span>
-                  {/* Phase 1.5 will check upstream store state and flag
-                      whether the input is satisfied. */}
                   <span className={css.inputBadgePending}>pending</span>
                 </li>
               ))}
@@ -144,14 +190,14 @@ export default function ObjectiveWorkspace({
           </div>
           <ol className={css.checklist}>
             {checklist.map((item) => {
-              const done = completedItemIds.has(item.id);
+              const done = completedSet.has(item.id);
               return (
                 <li key={item.id} className={css.checklistItem}>
                   <label className={css.checkboxLabel}>
                     <input
                       type="checkbox"
                       checked={done}
-                      onChange={() => toggleItem(item.id)}
+                      onChange={() => onToggleItem(item.id)}
                     />
                     <span className={done ? css.itemTextDone : css.itemText}>
                       {item.instruction}
@@ -177,7 +223,7 @@ export default function ObjectiveWorkspace({
         <section className={css.section}>
           <h2 className={css.sectionTitle}>Evidence / Proof</h2>
           <p className={css.muted}>
-            Per-item capture lands in Phase 1.5 (photos, notes,
+            Per-item capture lands in Phase 1.6 (photos, notes,
             measurements, receipts, tests, inspections).
           </p>
         </section>
@@ -186,8 +232,8 @@ export default function ObjectiveWorkspace({
           <h2 className={css.sectionTitle}>Status</h2>
           <select
             className={css.statusPicker}
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
+            value={statusValue}
+            onChange={(e) => onChangeStatus(e.target.value)}
           >
             <option value="">Set status…</option>
             {objective.allowedStatuses.map((s) => (
@@ -196,6 +242,11 @@ export default function ObjectiveWorkspace({
               </option>
             ))}
           </select>
+          {objective.stage === 'act' ? (
+            <p className={css.muted}>
+              Act status persists per-task; task creation lands in Phase 1.6.
+            </p>
+          ) : null}
         </section>
 
         <section className={css.section}>

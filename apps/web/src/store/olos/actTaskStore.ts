@@ -1,0 +1,204 @@
+/**
+ * actTaskStore — persisted ActTask state per project.
+ *
+ * Tasks are derived from an ActHandoffPackage; one package can spawn many
+ * tasks. Tasks transition through the ActTaskStatus state machine and
+ * accumulate ProofRecords (proofRecordStore.ts) + VerificationRecords
+ * (verificationRecordStore.ts). Keyed by task id.
+ *
+ * Phase 1.5 ships local persistence; Phase 2.4 layers API sync.
+ */
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type {
+  ActTask,
+  ActTaskStatus,
+  ActTaskPriority,
+} from '@ogden/shared';
+import { rehydrateWithLogging } from '../persistRehydrate.js';
+
+type TasksById = Record<string, ActTask>;
+
+const PERSIST_KEY = 'ogden-olos-act-tasks';
+
+function now(): string {
+  return new Date().toISOString();
+}
+
+function newId(): string {
+  return `task-${crypto.randomUUID()}`;
+}
+
+interface ActTaskState {
+  byProject: Record<string, TasksById>;
+
+  /** Read one task. */
+  getTask: (projectId: string, taskId: string) => ActTask | undefined;
+  /** List all tasks in a project. */
+  listForProject: (projectId: string) => ActTask[];
+  /** Tasks spawned from a single handoff package. */
+  listForPackage: (
+    projectId: string,
+    handoffPackageId: string,
+  ) => ActTask[];
+  /** Tasks tied to a given objective. */
+  listForObjective: (projectId: string, objectiveId: string) => ActTask[];
+  /** Create a new task. */
+  createTask: (
+    projectId: string,
+    seed: Omit<ActTask, 'id' | 'createdAt' | 'projectId'> &
+      Partial<Pick<ActTask, 'id' | 'createdAt' | 'updatedAt'>>,
+  ) => ActTask;
+  /** Update a task. */
+  updateTask: (
+    projectId: string,
+    taskId: string,
+    patch: Partial<ActTask>,
+  ) => void;
+  /** Set just the task status (and timestamp). */
+  setStatus: (
+    projectId: string,
+    taskId: string,
+    status: ActTaskStatus,
+    blockerReason?: string,
+  ) => void;
+  /** Set priority. */
+  setPriority: (
+    projectId: string,
+    taskId: string,
+    priority: ActTaskPriority,
+  ) => void;
+  /** Assign a task to an assignee + role. */
+  assign: (
+    projectId: string,
+    taskId: string,
+    assigneeId?: string,
+    roleId?: string,
+  ) => void;
+  /** Delete a task. */
+  deleteTask: (projectId: string, taskId: string) => void;
+}
+
+export const useActTaskStore = create<ActTaskState>()(
+  persist(
+    (set, get) => {
+      const mutate = (
+        projectId: string,
+        taskId: string,
+        fn: (existing: ActTask) => ActTask,
+      ) => {
+        set((s) => {
+          const project = s.byProject[projectId];
+          const existing = project?.[taskId];
+          if (!existing) return s;
+          return {
+            byProject: {
+              ...s.byProject,
+              [projectId]: {
+                ...project,
+                [taskId]: fn(existing),
+              },
+            },
+          };
+        });
+      };
+
+      return {
+        byProject: {},
+
+        getTask: (projectId, taskId) => get().byProject[projectId]?.[taskId],
+
+        listForProject: (projectId) =>
+          Object.values(get().byProject[projectId] ?? {}),
+
+        listForPackage: (projectId, handoffPackageId) =>
+          Object.values(get().byProject[projectId] ?? {}).filter(
+            (t) => t.handoffPackageId === handoffPackageId,
+          ),
+
+        listForObjective: (projectId, objectiveId) =>
+          Object.values(get().byProject[projectId] ?? {}).filter(
+            (t) => t.objectiveId === objectiveId,
+          ),
+
+        createTask: (projectId, seed) => {
+          const task: ActTask = {
+            ...seed,
+            id: seed.id ?? newId(),
+            projectId,
+            createdAt: seed.createdAt ?? now(),
+            updatedAt: seed.updatedAt ?? now(),
+          };
+          set((s) => ({
+            byProject: {
+              ...s.byProject,
+              [projectId]: {
+                ...(s.byProject[projectId] ?? {}),
+                [task.id]: task,
+              },
+            },
+          }));
+          return task;
+        },
+
+        updateTask: (projectId, taskId, partial) =>
+          mutate(projectId, taskId, (existing) => ({
+            ...existing,
+            ...partial,
+            id: existing.id,
+            projectId,
+            createdAt: existing.createdAt,
+            updatedAt: now(),
+          })),
+
+        setStatus: (projectId, taskId, status, blockerReason) =>
+          mutate(projectId, taskId, (existing) => ({
+            ...existing,
+            status,
+            blockerReason:
+              status === 'blocked' || status === 'paused-for-conditions'
+                ? blockerReason ?? existing.blockerReason
+                : undefined,
+            updatedAt: now(),
+          })),
+
+        setPriority: (projectId, taskId, priority) =>
+          mutate(projectId, taskId, (existing) => ({
+            ...existing,
+            priority,
+            updatedAt: now(),
+          })),
+
+        assign: (projectId, taskId, assigneeId, roleId) =>
+          mutate(projectId, taskId, (existing) => ({
+            ...existing,
+            assigneeId,
+            roleId,
+            status:
+              existing.status === 'ready' && (assigneeId || roleId)
+                ? 'assigned'
+                : existing.status,
+            updatedAt: now(),
+          })),
+
+        deleteTask: (projectId, taskId) =>
+          set((s) => {
+            const project = s.byProject[projectId];
+            if (!project) return s;
+            const { [taskId]: _dropped, ...rest } = project;
+            return {
+              byProject: { ...s.byProject, [projectId]: rest },
+            };
+          }),
+      };
+    },
+    {
+      name: PERSIST_KEY,
+      version: 1,
+      partialize: (state) => ({ byProject: state.byProject }),
+    },
+  ),
+);
+
+rehydrateWithLogging(useActTaskStore);
