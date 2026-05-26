@@ -264,6 +264,87 @@ describe('migrateByProjectModuleKeys', () => {
     expect(warnSpy.mock.calls.every(([msg]) => String(msg).includes('collision'))).toBe(true);
   });
 
+  // ── mergeFn collision-merge path (step 3 cutover) ─────────────────────
+
+  it('mergeFn: receives parts in canonical insertion order regardless of blob order', () => {
+    // Persisted blob deliberately stores the colliding Plan/ecology modules
+    // in non-canonical order — biodiversity-monitor first, regeneration-monitor
+    // last. The mergeFn must still see them in the canonical map order
+    // (regeneration → habitat → biodiversity), which is the order locked by
+    // the Plan-collisions test above.
+    const persisted = {
+      byProject: {
+        'p1': {
+          'biodiversity-monitor': { src: 'bm' },
+          'habitat-allocation': { src: 'ha' },
+          'regeneration-monitor': { src: 'rm' },
+        },
+      },
+    };
+    const seenOrders: string[][] = [];
+    const mergeFn = (_domain: string, parts: ReadonlyArray<{ moduleId: string; value: { src: string } }>) => {
+      seenOrders.push(parts.map((p) => p.moduleId));
+      return { src: parts.map((p) => p.value.src).join('+') };
+    };
+    const result = migrateByProjectModuleKeys<{ src: string }>(persisted, 'plan', mergeFn);
+    expect(seenOrders).toEqual([
+      ['regeneration-monitor', 'habitat-allocation', 'biodiversity-monitor'],
+    ]);
+    expect(result!.byProject['p1']!['ecology']).toEqual({ src: 'rm+ha+bm' });
+  });
+
+  it('mergeFn: return value is stored verbatim under the target domain', () => {
+    const persisted = {
+      byProject: {
+        'p1': {
+          'build': [1, 2],
+          'maintain': [10, 20],
+        },
+      },
+    };
+    const mergeFn = (_d: string, parts: ReadonlyArray<{ moduleId: string; value: number[] }>) =>
+      parts.flatMap((p) => p.value);
+    const result = migrateByProjectModuleKeys<number[]>(persisted, 'act', mergeFn);
+    expect(result!.byProject['p1']!['built-infrastructure']).toEqual([1, 2, 10, 20]);
+  });
+
+  it('mergeFn: single-part (no collision) bypasses mergeFn — value passes through', () => {
+    let called = 0;
+    const mergeFn = (_d: string, _parts: ReadonlyArray<{ moduleId: string; value: number }>) => {
+      called += 1;
+      return -1;
+    };
+    const persisted = {
+      byProject: {
+        'p1': {
+          'water-management': 7,        // hydrology  — only Plan module mapping there
+          'plant-systems': 8,           // plants-food — only Plan module mapping there
+        },
+      },
+    };
+    const result = migrateByProjectModuleKeys<number>(persisted, 'plan', mergeFn);
+    expect(called).toBe(0);
+    expect(result!.byProject['p1']).toEqual({ hydrology: 7, 'plants-food': 8 });
+  });
+
+  it('mergeFn: absent — preserves slice-1 last-wins + warn collision behaviour', () => {
+    // Same colliding Plan/ecology fixture as the documented collision test
+    // above; without mergeFn, only the last-iterated value survives and two
+    // collision warnings fire.
+    const persisted = {
+      byProject: {
+        'p1': {
+          'regeneration-monitor': { src: 'rm' },
+          'habitat-allocation': { src: 'ha' },
+          'biodiversity-monitor': { src: 'bm' },
+        },
+      },
+    };
+    const result = migrateByProjectModuleKeys<{ src: string }>(persisted, 'plan');
+    expect(Object.keys(result!.byProject['p1']!)).toEqual(['ecology']);
+    expect(warnSpy.mock.calls.filter(([msg]) => String(msg).includes('collision'))).toHaveLength(2);
+  });
+
   it('skips non-object module maps defensively', () => {
     const persisted = {
       byProject: {
