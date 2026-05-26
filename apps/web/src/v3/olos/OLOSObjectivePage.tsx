@@ -16,6 +16,7 @@ import {
   getObjective,
   getChecklistItemsForObjective,
 } from '@ogden/shared';
+import { useV3Project } from '../data/useV3Project.js';
 import ObjectiveWorkspace from './ObjectiveWorkspace.js';
 import css from './OLOSObjectivePage.module.css';
 
@@ -28,6 +29,7 @@ export default function OLOSObjectivePage() {
 
   const stageResult = Stage.safeParse(params.stage);
   const domainResult = UniversalDomain.safeParse(params.domain);
+  const project = useV3Project(params.projectId);
 
   const objective = useMemo(() => {
     if (!stageResult.success || !domainResult.success) return undefined;
@@ -69,6 +71,7 @@ export default function OLOSObjectivePage() {
   return (
     <ObjectiveWorkspace
       projectId={params.projectId ?? ''}
+      project={project}
       objective={objective}
       checklist={checklist}
     />

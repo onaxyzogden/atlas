@@ -24,18 +24,21 @@ import {
   type ChecklistItem,
 } from '@ogden/shared';
 import { OBSERVE_MODULE_DOT } from '../observe/moduleGuidance.js';
+import type { Project } from '../types.js';
 import OverlayBundleStrip from './map/OverlayBundleStrip.js';
-import MapPlaceholder from './map/MapPlaceholder.js';
+import ObjectiveMap from './map/ObjectiveMap.js';
 import css from './ObjectiveWorkspace.module.css';
 
 export interface ObjectiveWorkspaceProps {
   projectId: string;
+  project: Project | null;
   objective: Objective;
   checklist: readonly ChecklistItem[];
 }
 
 export default function ObjectiveWorkspace({
   projectId: _projectId,
+  project,
   objective,
   checklist,
 }: ObjectiveWorkspaceProps) {
@@ -74,14 +77,16 @@ export default function ObjectiveWorkspace({
     <div className={css.shell}>
       <section className={css.map} aria-label="Map view">
         <OverlayBundleStrip
+          stage={objective.stage}
           bundle={objective.defaultOverlayBundle}
           activeOverlayIds={activeOverlayIds}
           onToggle={toggleOverlay}
         />
         <div className={css.mapBody}>
-          <MapPlaceholder
+          <ObjectiveMap
             stage={objective.stage}
             domain={objective.domain}
+            project={project}
             activeOverlayIds={activeOverlayIds}
           />
         </div>
