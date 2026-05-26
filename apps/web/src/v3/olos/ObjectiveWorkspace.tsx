@@ -18,7 +18,6 @@ import {
   STAGE_LABELS,
   UNIVERSAL_DOMAIN_LABELS,
   UNIVERSAL_OVERLAY_LABELS,
-  STATUS_LABELS,
   type Objective,
   type ChecklistItem,
   type ObserveStatus,
@@ -34,6 +33,7 @@ import type { Project } from '../types.js';
 import OverlayBundleStrip from './map/OverlayBundleStrip.js';
 import ObjectiveMap from './map/ObjectiveMap.js';
 import HandoffSection from './handoff/HandoffSection.js';
+import { StatusChip, StatusPicker } from './status/index.js';
 import css from './ObjectiveWorkspace.module.css';
 
 export interface ObjectiveWorkspaceProps {
@@ -156,6 +156,7 @@ export default function ObjectiveWorkspace({
           </div>
           <h1 className={css.title}>{objective.title}</h1>
           <p className={css.focused}>{objective.focusedQuestion}</p>
+          <StatusChip status={statusValue || null} size="md" />
         </header>
 
         <section className={css.section}>
@@ -231,21 +232,16 @@ export default function ObjectiveWorkspace({
 
         <section className={css.section}>
           <h2 className={css.sectionTitle}>Status</h2>
-          <select
-            className={css.statusPicker}
+          <StatusPicker
+            stage={objective.stage}
             value={statusValue}
-            onChange={(e) => onChangeStatus(e.target.value)}
-          >
-            <option value="">Set status…</option>
-            {objective.allowedStatuses.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_LABELS[s] ?? s}
-              </option>
-            ))}
-          </select>
+            onChange={onChangeStatus}
+            allowed={objective.allowedStatuses}
+          />
           {objective.stage === 'act' ? (
             <p className={css.muted}>
-              Act status persists per-task; task creation lands in Phase 1.6.
+              Act status persists per-task; task creation flows through the
+              Plan → Act handoff below.
             </p>
           ) : null}
         </section>
