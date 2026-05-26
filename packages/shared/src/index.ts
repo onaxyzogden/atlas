@@ -4,6 +4,7 @@ export * from './schemas/layer.schema.js';
 export * from './schemas/assessment.schema.js';
 export * from './schemas/visionProfile.schema.js';
 export * from './schemas/project.schema.js';
+export * from './schemas/universalDomain.schema.js';
 export * from './schemas/template.schema.js';
 export * from './schemas/spiritual.schema.js';
 export * from './schemas/api.schema.js';
@@ -71,6 +72,8 @@ export * from './lib/resourcingConflicts.js';
 export * from './lib/budgetVariance.js';
 export * from './lib/fieldProof.js';
 export * from './lib/operatingHealth.js';
+export * from './lib/moduleDomainMap.js';
+export * from './lib/moduleDomainMigration.js';
 export * from './astronomy/sunPath.js';
 export * from './astronomy/solarExposure.js';
 export * from './climate/comfortCalendar.js';
@@ -87,6 +90,7 @@ export * from './fieldVerification/index.js';
 export * from './constants/dataSources.js';
 export * from './constants/flags.js';
 export * from './constants/system.js';
+export * from './constants/universalDomain.js';
 
 // Store mirrors / payload helpers
 export * from './store-mirrors/pickHelpers.js';
