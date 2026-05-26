@@ -33,6 +33,7 @@ import {
 import type { Project } from '../types.js';
 import OverlayBundleStrip from './map/OverlayBundleStrip.js';
 import ObjectiveMap from './map/ObjectiveMap.js';
+import HandoffSection from './handoff/HandoffSection.js';
 import css from './ObjectiveWorkspace.module.css';
 
 export interface ObjectiveWorkspaceProps {
@@ -251,9 +252,7 @@ export default function ObjectiveWorkspace({
 
         <section className={css.section}>
           <h2 className={css.sectionTitle}>Handoff</h2>
-          <button type="button" className={css.handoffBtn} disabled>
-            Emit handoff (Phase 1.6)
-          </button>
+          <HandoffSection projectId={projectId} objective={objective} />
         </section>
       </aside>
     </div>

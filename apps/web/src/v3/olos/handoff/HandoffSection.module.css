@@ -1,0 +1,190 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.packet {
+  border: 1px solid var(--border-subtle, #1e293b);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--bg-elevated, rgba(15, 23, 42, 0.55));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.packetTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #94a3b8);
+}
+
+.packetRow {
+  font-size: 12px;
+  color: var(--text-primary, #e2e8f0);
+  line-height: 1.4;
+  display: flex;
+  gap: 6px;
+}
+
+.packetLabel {
+  color: var(--text-muted, #94a3b8);
+  min-width: 88px;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+
+.packetEmpty {
+  color: var(--text-muted, #64748b);
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btnPrimary {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-strong, #38bdf8);
+  background: var(--accent-strong, #0284c7);
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnGhost {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle, #334155);
+  background: transparent;
+  color: var(--text-primary, #cbd5e1);
+  cursor: pointer;
+}
+
+.btnGhost:hover:not(:disabled) {
+  background: var(--bg-hover, rgba(148, 163, 184, 0.08));
+}
+
+.btnGhost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-strong, #38bdf8);
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent-strong, #38bdf8);
+}
+
+.chipOk {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+}
+
+.note {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.45;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.formRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.formRow label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #94a3b8);
+  min-width: 88px;
+}
+
+.formInput,
+.formSelect {
+  flex: 1;
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle, #334155);
+  background: var(--bg-input, rgba(15, 23, 42, 0.5));
+  color: var(--text-primary, #e2e8f0);
+}
+
+.formInput:focus,
+.formSelect:focus {
+  outline: 2px solid var(--accent-strong, #38bdf8);
+  outline-offset: 1px;
+}
+
+.linkBtn {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-strong, #38bdf8);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.tasksList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.tasksList li {
+  font-size: 12px;
+  color: var(--text-primary, #e2e8f0);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--bg-elevated, rgba(15, 23, 42, 0.35));
+  display: flex;
+  justify-content: space-between;
+}
+
+.tasksList .taskStatus {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #94a3b8);
+}
