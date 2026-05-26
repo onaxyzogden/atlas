@@ -17,6 +17,14 @@ import type {
   VerificationCriterionResult,
 } from '@ogden/shared';
 import { rehydrateWithLogging } from '../persistRehydrate.js';
+import { api } from '../../lib/apiClient.js';
+import {
+  initialSync,
+  startSync,
+  readySync,
+  errorSync,
+  type SyncState,
+} from './syncState.js';
 
 type VerificationsById = Record<string, VerificationRecord>;
 
@@ -30,8 +38,14 @@ function newId(): string {
   return `verify-${crypto.randomUUID()}`;
 }
 
+/** Local-only ids are prefixed `verify-…`; server-assigned ids are UUIDs. */
+function isLocalId(id: string): boolean {
+  return id.startsWith('verify-');
+}
+
 interface VerificationRecordState {
   byProject: Record<string, VerificationsById>;
+  syncByProject: Record<string, SyncState>;
 
   /** Read a verification by id. */
   getVerification: (
@@ -68,6 +82,24 @@ interface VerificationRecordState {
   ) => void;
   /** Delete a verification. */
   deleteVerification: (projectId: string, verificationId: string) => void;
+
+  // ── Phase 2.4 API sync ─────────────────────────────────────────────
+  /** GET the verifications for a single task and merge into local state.
+   *  Verifications are scoped under their task on the server, so there is
+   *  no project-wide pull. */
+  pullForTask: (projectId: string, taskId: string) => Promise<void>;
+  /** POST (local id) or PATCH (UUID) the verification upstream. */
+  pushOne: (
+    verification: VerificationRecord,
+  ) => Promise<VerificationRecord | null>;
+  /** DELETE the verification on the server. */
+  pushDelete: (
+    projectId: string,
+    taskId: string,
+    verificationId: string,
+  ) => Promise<void>;
+  /** Read the sync state for a project. */
+  getSyncState: (projectId: string) => SyncState;
 }
 
 export const useVerificationRecordStore = create<VerificationRecordState>()(
@@ -96,6 +128,7 @@ export const useVerificationRecordStore = create<VerificationRecordState>()(
 
       return {
         byProject: {},
+        syncByProject: {},
 
         getVerification: (projectId, verificationId) =>
           get().byProject[projectId]?.[verificationId],
@@ -157,6 +190,119 @@ export const useVerificationRecordStore = create<VerificationRecordState>()(
               byProject: { ...s.byProject, [projectId]: rest },
             };
           }),
+
+        getSyncState: (projectId) =>
+          get().syncByProject[projectId] ?? initialSync(),
+
+        pullForTask: async (projectId, taskId) => {
+          set((s) => ({
+            syncByProject: { ...s.syncByProject, [projectId]: startSync() },
+          }));
+          try {
+            const env = await api.olos.verifications.list(projectId, taskId);
+            if (env.error) throw new Error(env.error.message);
+            const records = env.data ?? [];
+            set((s) => {
+              const merged: VerificationsById = {
+                ...(s.byProject[projectId] ?? {}),
+              };
+              for (const existing of Object.values(merged)) {
+                if (existing.taskId === taskId) delete merged[existing.id];
+              }
+              for (const r of records) merged[r.id] = r;
+              return {
+                byProject: { ...s.byProject, [projectId]: merged },
+                syncByProject: {
+                  ...s.syncByProject,
+                  [projectId]: readySync(),
+                },
+              };
+            });
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushOne: async (verification) => {
+          try {
+            if (isLocalId(verification.id)) {
+              const {
+                id: _id,
+                projectId: _p,
+                taskId: _t,
+                verifiedAt: _v,
+                ...input
+              } = verification;
+              const env = await api.olos.verifications.create(
+                verification.projectId,
+                verification.taskId,
+                input,
+              );
+              if (env.error) throw new Error(env.error.message);
+              const saved = env.data;
+              if (!saved) return null;
+              set((s) => ({
+                byProject: {
+                  ...s.byProject,
+                  [saved.projectId]: {
+                    ...(s.byProject[saved.projectId] ?? {}),
+                    [saved.id]: saved,
+                  },
+                },
+              }));
+              return saved;
+            }
+            const {
+              id: _id,
+              projectId: _p,
+              taskId: _t,
+              ...patch
+            } = verification;
+            const env = await api.olos.verifications.update(
+              verification.projectId,
+              verification.taskId,
+              verification.id,
+              patch,
+            );
+            if (env.error) throw new Error(env.error.message);
+            const saved = env.data;
+            if (!saved) return null;
+            set((s) => ({
+              byProject: {
+                ...s.byProject,
+                [saved.projectId]: {
+                  ...(s.byProject[saved.projectId] ?? {}),
+                  [saved.id]: saved,
+                },
+              },
+            }));
+            return saved;
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [verification.projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushDelete: async (projectId, taskId, verificationId) => {
+          if (isLocalId(verificationId)) return;
+          const env = await api.olos.verifications.delete(
+            projectId,
+            taskId,
+            verificationId,
+          );
+          if (env.error) throw new Error(env.error.message);
+        },
       };
     },
     {

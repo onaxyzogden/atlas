@@ -18,6 +18,14 @@ import type {
   PlanApprovalStatus,
 } from '@ogden/shared';
 import { rehydrateWithLogging } from '../persistRehydrate.js';
+import { api } from '../../lib/apiClient.js';
+import {
+  initialSync,
+  startSync,
+  readySync,
+  errorSync,
+  type SyncState,
+} from './syncState.js';
 
 type RecordsByObjective = Record<string, PlanDecisionRecord>;
 
@@ -43,6 +51,7 @@ function placeholderOption(): PlanDecisionOption {
 
 interface PlanDecisionRecordState {
   byProject: Record<string, RecordsByObjective>;
+  syncByProject: Record<string, SyncState>;
 
   /** Read one record by (projectId, objectiveId), or undefined. */
   getRecord: (
@@ -106,6 +115,23 @@ interface PlanDecisionRecordState {
   ) => void;
   /** Delete the record. */
   deleteRecord: (projectId: string, objectiveId: string) => void;
+
+  // ── Phase 2.4 API sync ─────────────────────────────────────────────
+  /** GET the project's decisions from the API and replace local state. */
+  pullAll: (projectId: string) => Promise<void>;
+  /** POST (if id is local-prefixed) or PATCH (UUID) the record upstream. */
+  pushOne: (
+    record: PlanDecisionRecord,
+  ) => Promise<PlanDecisionRecord | null>;
+  /** DELETE the record on the server. */
+  pushDelete: (projectId: string, recordId: string) => Promise<void>;
+  /** Read the sync state for a project. */
+  getSyncState: (projectId: string) => SyncState;
+}
+
+/** Local-only ids are prefixed `pdr-…`; server-assigned ids are UUIDs. */
+function isLocalId(id: string): boolean {
+  return id.startsWith('pdr-');
 }
 
 function createBase(
@@ -157,6 +183,7 @@ export const usePlanDecisionRecordStore = create<PlanDecisionRecordState>()(
 
       return {
         byProject: {},
+        syncByProject: {},
 
         getRecord: (projectId, objectiveId) =>
           get().byProject[projectId]?.[objectiveId],
@@ -240,6 +267,92 @@ export const usePlanDecisionRecordStore = create<PlanDecisionRecordState>()(
               byProject: { ...s.byProject, [projectId]: rest },
             };
           }),
+
+        getSyncState: (projectId) =>
+          get().syncByProject[projectId] ?? initialSync(),
+
+        pullAll: async (projectId) => {
+          set((s) => ({
+            syncByProject: { ...s.syncByProject, [projectId]: startSync() },
+          }));
+          try {
+            const env = await api.olos.planDecisions.list(projectId);
+            if (env.error) throw new Error(env.error.message);
+            const records = env.data ?? [];
+            const byObjective: RecordsByObjective = {};
+            for (const r of records) byObjective[r.objectiveId] = r;
+            set((s) => ({
+              byProject: { ...s.byProject, [projectId]: byObjective },
+              syncByProject: { ...s.syncByProject, [projectId]: readySync() },
+            }));
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushOne: async (record) => {
+          try {
+            if (isLocalId(record.id)) {
+              const { id: _id, projectId: _p, decidedAt: _d, ...input } = record;
+              const env = await api.olos.planDecisions.create(
+                record.projectId,
+                input,
+              );
+              if (env.error) throw new Error(env.error.message);
+              const saved = env.data;
+              if (!saved) return null;
+              set((s) => ({
+                byProject: {
+                  ...s.byProject,
+                  [saved.projectId]: {
+                    ...(s.byProject[saved.projectId] ?? {}),
+                    [saved.objectiveId]: saved,
+                  },
+                },
+              }));
+              return saved;
+            }
+            const { id: _id, projectId: _p, decidedAt: _d, ...patch } = record;
+            const env = await api.olos.planDecisions.update(
+              record.projectId,
+              record.id,
+              patch,
+            );
+            if (env.error) throw new Error(env.error.message);
+            const saved = env.data;
+            if (!saved) return null;
+            set((s) => ({
+              byProject: {
+                ...s.byProject,
+                [saved.projectId]: {
+                  ...(s.byProject[saved.projectId] ?? {}),
+                  [saved.objectiveId]: saved,
+                },
+              },
+            }));
+            return saved;
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [record.projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushDelete: async (projectId, recordId) => {
+          if (isLocalId(recordId)) return;
+          const env = await api.olos.planDecisions.delete(projectId, recordId);
+          if (env.error) throw new Error(env.error.message);
+        },
       };
     },
     {

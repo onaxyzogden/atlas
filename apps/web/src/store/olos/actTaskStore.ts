@@ -17,6 +17,14 @@ import type {
   ActTaskPriority,
 } from '@ogden/shared';
 import { rehydrateWithLogging } from '../persistRehydrate.js';
+import { api } from '../../lib/apiClient.js';
+import {
+  initialSync,
+  startSync,
+  readySync,
+  errorSync,
+  type SyncState,
+} from './syncState.js';
 
 type TasksById = Record<string, ActTask>;
 
@@ -30,8 +38,14 @@ function newId(): string {
   return `task-${crypto.randomUUID()}`;
 }
 
+/** Local-only ids are prefixed `task-…`; server-assigned ids are UUIDs. */
+function isLocalId(id: string): boolean {
+  return id.startsWith('task-');
+}
+
 interface ActTaskState {
   byProject: Record<string, TasksById>;
+  syncByProject: Record<string, SyncState>;
 
   /** Read one task. */
   getTask: (projectId: string, taskId: string) => ActTask | undefined;
@@ -78,6 +92,16 @@ interface ActTaskState {
   ) => void;
   /** Delete a task. */
   deleteTask: (projectId: string, taskId: string) => void;
+
+  // ── Phase 2.4 API sync ─────────────────────────────────────────────
+  /** GET the project's tasks from the API and replace local state. */
+  pullAll: (projectId: string) => Promise<void>;
+  /** POST (local id) or PATCH (UUID) the task upstream. */
+  pushOne: (task: ActTask) => Promise<ActTask | null>;
+  /** DELETE the task on the server. */
+  pushDelete: (projectId: string, taskId: string) => Promise<void>;
+  /** Read the sync state for a project. */
+  getSyncState: (projectId: string) => SyncState;
 }
 
 export const useActTaskStore = create<ActTaskState>()(
@@ -106,6 +130,7 @@ export const useActTaskStore = create<ActTaskState>()(
 
       return {
         byProject: {},
+        syncByProject: {},
 
         getTask: (projectId, taskId) => get().byProject[projectId]?.[taskId],
 
@@ -191,6 +216,95 @@ export const useActTaskStore = create<ActTaskState>()(
               byProject: { ...s.byProject, [projectId]: rest },
             };
           }),
+
+        getSyncState: (projectId) =>
+          get().syncByProject[projectId] ?? initialSync(),
+
+        pullAll: async (projectId) => {
+          set((s) => ({
+            syncByProject: { ...s.syncByProject, [projectId]: startSync() },
+          }));
+          try {
+            const env = await api.olos.tasks.list(projectId);
+            if (env.error) throw new Error(env.error.message);
+            const records = env.data ?? [];
+            const byId: TasksById = {};
+            for (const r of records) byId[r.id] = r;
+            set((s) => ({
+              byProject: { ...s.byProject, [projectId]: byId },
+              syncByProject: { ...s.syncByProject, [projectId]: readySync() },
+            }));
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushOne: async (task) => {
+          try {
+            if (isLocalId(task.id)) {
+              const { id: _id, projectId: _p, createdAt: _c, ...input } = task;
+              const env = await api.olos.tasks.create(task.projectId, input);
+              if (env.error) throw new Error(env.error.message);
+              const saved = env.data;
+              if (!saved) return null;
+              set((s) => ({
+                byProject: {
+                  ...s.byProject,
+                  [saved.projectId]: {
+                    ...(s.byProject[saved.projectId] ?? {}),
+                    [saved.id]: saved,
+                  },
+                },
+              }));
+              return saved;
+            }
+            const {
+              id: _id,
+              projectId: _p,
+              handoffPackageId: _h,
+              createdAt: _c,
+              ...patch
+            } = task;
+            const env = await api.olos.tasks.update(
+              task.projectId,
+              task.id,
+              patch,
+            );
+            if (env.error) throw new Error(env.error.message);
+            const saved = env.data;
+            if (!saved) return null;
+            set((s) => ({
+              byProject: {
+                ...s.byProject,
+                [saved.projectId]: {
+                  ...(s.byProject[saved.projectId] ?? {}),
+                  [saved.id]: saved,
+                },
+              },
+            }));
+            return saved;
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [task.projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushDelete: async (projectId, taskId) => {
+          if (isLocalId(taskId)) return;
+          const env = await api.olos.tasks.delete(projectId, taskId);
+          if (env.error) throw new Error(env.error.message);
+        },
       };
     },
     {

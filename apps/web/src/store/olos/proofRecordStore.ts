@@ -18,6 +18,14 @@ import type {
   ProofVerificationStatus,
 } from '@ogden/shared';
 import { rehydrateWithLogging } from '../persistRehydrate.js';
+import { api } from '../../lib/apiClient.js';
+import {
+  initialSync,
+  startSync,
+  readySync,
+  errorSync,
+  type SyncState,
+} from './syncState.js';
 
 type ProofsById = Record<string, ProofRecord>;
 
@@ -31,8 +39,14 @@ function newId(): string {
   return `proof-${crypto.randomUUID()}`;
 }
 
+/** Local-only ids are prefixed `proof-…`; server-assigned ids are UUIDs. */
+function isLocalId(id: string): boolean {
+  return id.startsWith('proof-');
+}
+
 interface ProofRecordState {
   byProject: Record<string, ProofsById>;
+  syncByProject: Record<string, SyncState>;
 
   /** Read a proof by id. */
   getProof: (projectId: string, proofId: string) => ProofRecord | undefined;
@@ -60,6 +74,22 @@ interface ProofRecordState {
   ) => void;
   /** Delete a proof. */
   deleteProof: (projectId: string, proofId: string) => void;
+
+  // ── Phase 2.4 API sync ─────────────────────────────────────────────
+  /** GET the proofs for a single task and merge into local state. Proofs
+   *  are scoped under their task on the server, so there is no project-wide
+   *  pull; the caller pulls each task's proofs as needed. */
+  pullForTask: (projectId: string, taskId: string) => Promise<void>;
+  /** POST (local id) or PATCH (UUID) the proof upstream. */
+  pushOne: (proof: ProofRecord) => Promise<ProofRecord | null>;
+  /** DELETE the proof on the server. */
+  pushDelete: (
+    projectId: string,
+    taskId: string,
+    proofId: string,
+  ) => Promise<void>;
+  /** Read the sync state for a project. */
+  getSyncState: (projectId: string) => SyncState;
 }
 
 export const useProofRecordStore = create<ProofRecordState>()(
@@ -88,6 +118,7 @@ export const useProofRecordStore = create<ProofRecordState>()(
 
       return {
         byProject: {},
+        syncByProject: {},
 
         getProof: (projectId, proofId) =>
           get().byProject[projectId]?.[proofId],
@@ -143,6 +174,113 @@ export const useProofRecordStore = create<ProofRecordState>()(
               byProject: { ...s.byProject, [projectId]: rest },
             };
           }),
+
+        getSyncState: (projectId) =>
+          get().syncByProject[projectId] ?? initialSync(),
+
+        pullForTask: async (projectId, taskId) => {
+          set((s) => ({
+            syncByProject: { ...s.syncByProject, [projectId]: startSync() },
+          }));
+          try {
+            const env = await api.olos.proofs.list(projectId, taskId);
+            if (env.error) throw new Error(env.error.message);
+            const records = env.data ?? [];
+            set((s) => {
+              const merged: ProofsById = { ...(s.byProject[projectId] ?? {}) };
+              for (const existing of Object.values(merged)) {
+                if (existing.taskId === taskId) delete merged[existing.id];
+              }
+              for (const r of records) merged[r.id] = r;
+              return {
+                byProject: { ...s.byProject, [projectId]: merged },
+                syncByProject: {
+                  ...s.syncByProject,
+                  [projectId]: readySync(),
+                },
+              };
+            });
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushOne: async (proof) => {
+          try {
+            if (isLocalId(proof.id)) {
+              const {
+                id: _id,
+                projectId: _p,
+                taskId: _t,
+                capturedAt: _c,
+                ...input
+              } = proof;
+              const env = await api.olos.proofs.create(
+                proof.projectId,
+                proof.taskId,
+                input,
+              );
+              if (env.error) throw new Error(env.error.message);
+              const saved = env.data;
+              if (!saved) return null;
+              set((s) => ({
+                byProject: {
+                  ...s.byProject,
+                  [saved.projectId]: {
+                    ...(s.byProject[saved.projectId] ?? {}),
+                    [saved.id]: saved,
+                  },
+                },
+              }));
+              return saved;
+            }
+            const {
+              id: _id,
+              projectId: _p,
+              taskId: _t,
+              ...patch
+            } = proof;
+            const env = await api.olos.proofs.update(
+              proof.projectId,
+              proof.taskId,
+              proof.id,
+              patch,
+            );
+            if (env.error) throw new Error(env.error.message);
+            const saved = env.data;
+            if (!saved) return null;
+            set((s) => ({
+              byProject: {
+                ...s.byProject,
+                [saved.projectId]: {
+                  ...(s.byProject[saved.projectId] ?? {}),
+                  [saved.id]: saved,
+                },
+              },
+            }));
+            return saved;
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [proof.projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushDelete: async (projectId, taskId, proofId) => {
+          if (isLocalId(proofId)) return;
+          const env = await api.olos.proofs.delete(projectId, taskId, proofId);
+          if (env.error) throw new Error(env.error.message);
+        },
       };
     },
     {

@@ -16,6 +16,14 @@ import type {
   UniversalDomain,
 } from '@ogden/shared';
 import { rehydrateWithLogging } from '../persistRehydrate.js';
+import { api } from '../../lib/apiClient.js';
+import {
+  initialSync,
+  startSync,
+  readySync,
+  errorSync,
+  type SyncState,
+} from './syncState.js';
 
 type RoutinesById = Record<string, StewardshipRoutine>;
 
@@ -29,8 +37,14 @@ function newId(): string {
   return `routine-${crypto.randomUUID()}`;
 }
 
+/** Local-only ids are prefixed `routine-…`; server-assigned ids are UUIDs. */
+function isLocalId(id: string): boolean {
+  return id.startsWith('routine-');
+}
+
 interface StewardshipRoutineState {
   byProject: Record<string, RoutinesById>;
+  syncByProject: Record<string, SyncState>;
 
   /** Read a routine by id. */
   getRoutine: (
@@ -64,6 +78,18 @@ interface StewardshipRoutineState {
   ) => void;
   /** Delete a routine. */
   deleteRoutine: (projectId: string, routineId: string) => void;
+
+  // ── Phase 2.4 API sync ─────────────────────────────────────────────
+  /** GET the project's stewardship routines from the API and replace local state. */
+  pullAll: (projectId: string) => Promise<void>;
+  /** POST (local id) or PATCH (UUID) the routine upstream. */
+  pushOne: (
+    routine: StewardshipRoutine,
+  ) => Promise<StewardshipRoutine | null>;
+  /** DELETE the routine on the server. */
+  pushDelete: (projectId: string, routineId: string) => Promise<void>;
+  /** Read the sync state for a project. */
+  getSyncState: (projectId: string) => SyncState;
 }
 
 export const useStewardshipRoutineStore = create<StewardshipRoutineState>()(
@@ -92,6 +118,7 @@ export const useStewardshipRoutineStore = create<StewardshipRoutineState>()(
 
       return {
         byProject: {},
+        syncByProject: {},
 
         getRoutine: (projectId, routineId) =>
           get().byProject[projectId]?.[routineId],
@@ -150,6 +177,105 @@ export const useStewardshipRoutineStore = create<StewardshipRoutineState>()(
               byProject: { ...s.byProject, [projectId]: rest },
             };
           }),
+
+        getSyncState: (projectId) =>
+          get().syncByProject[projectId] ?? initialSync(),
+
+        pullAll: async (projectId) => {
+          set((s) => ({
+            syncByProject: { ...s.syncByProject, [projectId]: startSync() },
+          }));
+          try {
+            const env = await api.olos.stewardshipRoutines.list(projectId);
+            if (env.error) throw new Error(env.error.message);
+            const records = env.data ?? [];
+            const byId: RoutinesById = {};
+            for (const r of records) byId[r.id] = r;
+            set((s) => ({
+              byProject: { ...s.byProject, [projectId]: byId },
+              syncByProject: { ...s.syncByProject, [projectId]: readySync() },
+            }));
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushOne: async (routine) => {
+          try {
+            if (isLocalId(routine.id)) {
+              const {
+                id: _id,
+                projectId: _p,
+                createdAt: _c,
+                ...input
+              } = routine;
+              const env = await api.olos.stewardshipRoutines.create(
+                routine.projectId,
+                input,
+              );
+              if (env.error) throw new Error(env.error.message);
+              const saved = env.data;
+              if (!saved) return null;
+              set((s) => ({
+                byProject: {
+                  ...s.byProject,
+                  [saved.projectId]: {
+                    ...(s.byProject[saved.projectId] ?? {}),
+                    [saved.id]: saved,
+                  },
+                },
+              }));
+              return saved;
+            }
+            const {
+              id: _id,
+              projectId: _p,
+              createdAt: _c,
+              ...patch
+            } = routine;
+            const env = await api.olos.stewardshipRoutines.update(
+              routine.projectId,
+              routine.id,
+              patch,
+            );
+            if (env.error) throw new Error(env.error.message);
+            const saved = env.data;
+            if (!saved) return null;
+            set((s) => ({
+              byProject: {
+                ...s.byProject,
+                [saved.projectId]: {
+                  ...(s.byProject[saved.projectId] ?? {}),
+                  [saved.id]: saved,
+                },
+              },
+            }));
+            return saved;
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [routine.projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushDelete: async (projectId, routineId) => {
+          if (isLocalId(routineId)) return;
+          const env = await api.olos.stewardshipRoutines.delete(
+            projectId,
+            routineId,
+          );
+          if (env.error) throw new Error(env.error.message);
+        },
       };
     },
     {

@@ -53,6 +53,25 @@ import type {
   SuccessionMilestoneSummary,
   CreateSuccessionMilestoneInput,
   UpdateSuccessionMilestoneInput,
+  Overlay,
+  Objective,
+  ChecklistItem,
+  ObservationRecord,
+  PlanDecisionRecord,
+  ActHandoffPackage,
+  ActTask,
+  ProofRecord,
+  VerificationRecord,
+  EscalationRecord,
+  StewardshipRoutine,
+  ObserveStatus,
+  PlanApprovalStatus,
+  ActTaskStatus,
+  EscalationStatus,
+  EscalationSeverity,
+  Stage,
+  UniversalDomain,
+  StewardshipFrequency,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -988,6 +1007,376 @@ export const api = {
         '/api/v1/telemetry/client-errors',
         { events },
       ),
+  },
+
+  // OLOS — universal Stage × Domain × Objective × Record system.
+  // Catalogue endpoints are public; project endpoints require auth + role.
+  olos: {
+    // ── Catalogue (15 overlays + 48 objectives + ~237 checklist items) ──
+    catalogue: () =>
+      request<{
+        overlays: Overlay[];
+        objectives: Objective[];
+        checklistItems: ChecklistItem[];
+        objectiveOverlays: Array<{ objectiveId: string; overlayId: string }>;
+      }>('GET', '/api/v1/olos/catalogue'),
+
+    overlays: () => request<Overlay[]>('GET', '/api/v1/olos/overlays'),
+    objectives: () => request<Objective[]>('GET', '/api/v1/olos/objectives'),
+    checklistItems: () =>
+      request<ChecklistItem[]>('GET', '/api/v1/olos/checklist-items'),
+
+    // ── ObservationRecord ──────────────────────────────────────────────
+    observations: {
+      list: (projectId: string, q?: { objectiveId?: string; status?: ObserveStatus }) => {
+        const qs = new URLSearchParams();
+        if (q?.objectiveId) qs.set('objectiveId', q.objectiveId);
+        if (q?.status) qs.set('status', q.status);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<ObservationRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/observations${suffix}`,
+        );
+      },
+      create: (projectId: string, input: Omit<ObservationRecord, 'id' | 'projectId' | 'recordedAt'>) =>
+        request<ObservationRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/observations`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<ObservationRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/observations/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<ObservationRecord, 'id' | 'projectId' | 'recordedAt'>>,
+      ) =>
+        request<ObservationRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/observations/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/observations/${recordId}`,
+        ),
+    },
+
+    // ── PlanDecisionRecord ─────────────────────────────────────────────
+    planDecisions: {
+      list: (projectId: string, q?: { objectiveId?: string; approvalStatus?: PlanApprovalStatus }) => {
+        const qs = new URLSearchParams();
+        if (q?.objectiveId) qs.set('objectiveId', q.objectiveId);
+        if (q?.approvalStatus) qs.set('approvalStatus', q.approvalStatus);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<PlanDecisionRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/plan-decisions${suffix}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<PlanDecisionRecord, 'id' | 'projectId' | 'decidedAt'>,
+      ) =>
+        request<PlanDecisionRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/plan-decisions`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<PlanDecisionRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/plan-decisions/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<PlanDecisionRecord, 'id' | 'projectId' | 'decidedAt'>>,
+      ) =>
+        request<PlanDecisionRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/plan-decisions/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/plan-decisions/${recordId}`,
+        ),
+    },
+
+    // ── ActHandoffPackage (POST 409s if upstream PlanDecision is not approved) ──
+    handoffs: {
+      list: (projectId: string, q?: { planDecisionRecordId?: string }) => {
+        const qs = q?.planDecisionRecordId
+          ? `?planDecisionRecordId=${q.planDecisionRecordId}`
+          : '';
+        return request<ActHandoffPackage[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/handoffs${qs}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<ActHandoffPackage, 'id' | 'projectId' | 'createdAt'>,
+      ) =>
+        request<ActHandoffPackage>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/handoffs`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<ActHandoffPackage>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/handoffs/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<ActHandoffPackage, 'id' | 'projectId' | 'planDecisionRecordId' | 'createdAt'>>,
+      ) =>
+        request<ActHandoffPackage>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/handoffs/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/handoffs/${recordId}`,
+        ),
+    },
+
+    // ── ActTask ───────────────────────────────────────────────────────
+    tasks: {
+      list: (
+        projectId: string,
+        q?: {
+          objectiveId?: string;
+          handoffPackageId?: string;
+          status?: ActTaskStatus;
+          assigneeId?: string;
+        },
+      ) => {
+        const qs = new URLSearchParams();
+        if (q?.objectiveId) qs.set('objectiveId', q.objectiveId);
+        if (q?.handoffPackageId) qs.set('handoffPackageId', q.handoffPackageId);
+        if (q?.status) qs.set('status', q.status);
+        if (q?.assigneeId) qs.set('assigneeId', q.assigneeId);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<ActTask[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks${suffix}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<ActTask, 'id' | 'projectId' | 'createdAt'>,
+      ) =>
+        request<ActTask>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/tasks`,
+          input,
+        ),
+      get: (projectId: string, taskId: string) =>
+        request<ActTask>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}`,
+        ),
+      update: (
+        projectId: string,
+        taskId: string,
+        patch: Partial<Omit<ActTask, 'id' | 'projectId' | 'handoffPackageId' | 'createdAt'>>,
+      ) =>
+        request<ActTask>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}`,
+          patch,
+        ),
+      delete: (projectId: string, taskId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}`,
+        ),
+    },
+
+    // ── ProofRecord (scoped to a task) ────────────────────────────────
+    proofs: {
+      list: (projectId: string, taskId: string) =>
+        request<ProofRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs`,
+        ),
+      create: (
+        projectId: string,
+        taskId: string,
+        input: Omit<ProofRecord, 'id' | 'projectId' | 'taskId' | 'capturedAt' | 'verificationStatus'> & {
+          capturedAt?: string;
+          verificationStatus?: ProofRecord['verificationStatus'];
+        },
+      ) =>
+        request<ProofRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs`,
+          input,
+        ),
+      get: (projectId: string, taskId: string, proofId: string) =>
+        request<ProofRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs/${proofId}`,
+        ),
+      update: (
+        projectId: string,
+        taskId: string,
+        proofId: string,
+        patch: Partial<Omit<ProofRecord, 'id' | 'projectId' | 'taskId'>>,
+      ) =>
+        request<ProofRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs/${proofId}`,
+          patch,
+        ),
+      delete: (projectId: string, taskId: string, proofId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs/${proofId}`,
+        ),
+    },
+
+    // ── VerificationRecord (scoped to a task) ─────────────────────────
+    verifications: {
+      list: (projectId: string, taskId: string) =>
+        request<VerificationRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications`,
+        ),
+      create: (
+        projectId: string,
+        taskId: string,
+        input: Omit<VerificationRecord, 'id' | 'projectId' | 'taskId' | 'verifiedAt'> & { verifiedAt?: string },
+      ) =>
+        request<VerificationRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications`,
+          input,
+        ),
+      get: (projectId: string, taskId: string, verificationId: string) =>
+        request<VerificationRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications/${verificationId}`,
+        ),
+      update: (
+        projectId: string,
+        taskId: string,
+        verificationId: string,
+        patch: Partial<Omit<VerificationRecord, 'id' | 'projectId' | 'taskId'>>,
+      ) =>
+        request<VerificationRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications/${verificationId}`,
+          patch,
+        ),
+      delete: (projectId: string, taskId: string, verificationId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications/${verificationId}`,
+        ),
+    },
+
+    // ── EscalationRecord ──────────────────────────────────────────────
+    escalations: {
+      list: (
+        projectId: string,
+        q?: { taskId?: string; status?: EscalationStatus; severity?: EscalationSeverity; routedToStage?: Stage },
+      ) => {
+        const qs = new URLSearchParams();
+        if (q?.taskId) qs.set('taskId', q.taskId);
+        if (q?.status) qs.set('status', q.status);
+        if (q?.severity) qs.set('severity', q.severity);
+        if (q?.routedToStage) qs.set('routedToStage', q.routedToStage);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<EscalationRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/escalations${suffix}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<EscalationRecord, 'id' | 'projectId' | 'raisedAt'>,
+      ) =>
+        request<EscalationRecord>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/escalations`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<EscalationRecord>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/escalations/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<EscalationRecord, 'id' | 'projectId' | 'raisedAt'>>,
+      ) =>
+        request<EscalationRecord>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/escalations/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/escalations/${recordId}`,
+        ),
+    },
+
+    // ── StewardshipRoutine ────────────────────────────────────────────
+    stewardshipRoutines: {
+      list: (projectId: string, q?: { domainId?: UniversalDomain; frequency?: StewardshipFrequency }) => {
+        const qs = new URLSearchParams();
+        if (q?.domainId) qs.set('domainId', q.domainId);
+        if (q?.frequency) qs.set('frequency', q.frequency);
+        const suffix = qs.toString() ? `?${qs.toString()}` : '';
+        return request<StewardshipRoutine[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines${suffix}`,
+        );
+      },
+      create: (
+        projectId: string,
+        input: Omit<StewardshipRoutine, 'id' | 'projectId' | 'createdAt'>,
+      ) =>
+        request<StewardshipRoutine>(
+          'POST',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines`,
+          input,
+        ),
+      get: (projectId: string, recordId: string) =>
+        request<StewardshipRoutine>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
+        ),
+      update: (
+        projectId: string,
+        recordId: string,
+        patch: Partial<Omit<StewardshipRoutine, 'id' | 'projectId' | 'createdAt'>>,
+      ) =>
+        request<StewardshipRoutine>(
+          'PATCH',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
+          patch,
+        ),
+      delete: (projectId: string, recordId: string) =>
+        request<void>(
+          'DELETE',
+          `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
+        ),
+    },
   },
 };
 

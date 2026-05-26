@@ -18,6 +18,14 @@ import type {
   UniversalDomain,
 } from '@ogden/shared';
 import { rehydrateWithLogging } from '../persistRehydrate.js';
+import { api } from '../../lib/apiClient.js';
+import {
+  initialSync,
+  startSync,
+  readySync,
+  errorSync,
+  type SyncState,
+} from './syncState.js';
 
 type EscalationsById = Record<string, EscalationRecord>;
 
@@ -31,8 +39,14 @@ function newId(): string {
   return `esc-${crypto.randomUUID()}`;
 }
 
+/** Local-only ids are prefixed `esc-…`; server-assigned ids are UUIDs. */
+function isLocalId(id: string): boolean {
+  return id.startsWith('esc-');
+}
+
 interface EscalationRecordState {
   byProject: Record<string, EscalationsById>;
+  syncByProject: Record<string, SyncState>;
 
   /** Read an escalation by id. */
   getEscalation: (
@@ -71,6 +85,21 @@ interface EscalationRecordState {
   ) => void;
   /** Delete an escalation. */
   deleteEscalation: (projectId: string, escalationId: string) => void;
+
+  // ── Phase 2.4 API sync ─────────────────────────────────────────────
+  /** GET the project's escalations from the API and replace local state. */
+  pullAll: (projectId: string) => Promise<void>;
+  /** POST (local id) or PATCH (UUID) the escalation upstream. */
+  pushOne: (
+    escalation: EscalationRecord,
+  ) => Promise<EscalationRecord | null>;
+  /** DELETE the escalation on the server. */
+  pushDelete: (
+    projectId: string,
+    escalationId: string,
+  ) => Promise<void>;
+  /** Read the sync state for a project. */
+  getSyncState: (projectId: string) => SyncState;
 }
 
 export const useEscalationRecordStore = create<EscalationRecordState>()(
@@ -99,6 +128,7 @@ export const useEscalationRecordStore = create<EscalationRecordState>()(
 
       return {
         byProject: {},
+        syncByProject: {},
 
         getEscalation: (projectId, escalationId) =>
           get().byProject[projectId]?.[escalationId],
@@ -166,6 +196,105 @@ export const useEscalationRecordStore = create<EscalationRecordState>()(
               byProject: { ...s.byProject, [projectId]: rest },
             };
           }),
+
+        getSyncState: (projectId) =>
+          get().syncByProject[projectId] ?? initialSync(),
+
+        pullAll: async (projectId) => {
+          set((s) => ({
+            syncByProject: { ...s.syncByProject, [projectId]: startSync() },
+          }));
+          try {
+            const env = await api.olos.escalations.list(projectId);
+            if (env.error) throw new Error(env.error.message);
+            const records = env.data ?? [];
+            const byId: EscalationsById = {};
+            for (const r of records) byId[r.id] = r;
+            set((s) => ({
+              byProject: { ...s.byProject, [projectId]: byId },
+              syncByProject: { ...s.syncByProject, [projectId]: readySync() },
+            }));
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushOne: async (escalation) => {
+          try {
+            if (isLocalId(escalation.id)) {
+              const {
+                id: _id,
+                projectId: _p,
+                raisedAt: _r,
+                ...input
+              } = escalation;
+              const env = await api.olos.escalations.create(
+                escalation.projectId,
+                input,
+              );
+              if (env.error) throw new Error(env.error.message);
+              const saved = env.data;
+              if (!saved) return null;
+              set((s) => ({
+                byProject: {
+                  ...s.byProject,
+                  [saved.projectId]: {
+                    ...(s.byProject[saved.projectId] ?? {}),
+                    [saved.id]: saved,
+                  },
+                },
+              }));
+              return saved;
+            }
+            const {
+              id: _id,
+              projectId: _p,
+              raisedAt: _r,
+              ...patch
+            } = escalation;
+            const env = await api.olos.escalations.update(
+              escalation.projectId,
+              escalation.id,
+              patch,
+            );
+            if (env.error) throw new Error(env.error.message);
+            const saved = env.data;
+            if (!saved) return null;
+            set((s) => ({
+              byProject: {
+                ...s.byProject,
+                [saved.projectId]: {
+                  ...(s.byProject[saved.projectId] ?? {}),
+                  [saved.id]: saved,
+                },
+              },
+            }));
+            return saved;
+          } catch (err) {
+            set((s) => ({
+              syncByProject: {
+                ...s.syncByProject,
+                [escalation.projectId]: errorSync(err),
+              },
+            }));
+            throw err;
+          }
+        },
+
+        pushDelete: async (projectId, escalationId) => {
+          if (isLocalId(escalationId)) return;
+          const env = await api.olos.escalations.delete(
+            projectId,
+            escalationId,
+          );
+          if (env.error) throw new Error(env.error.message);
+        },
       };
     },
     {
