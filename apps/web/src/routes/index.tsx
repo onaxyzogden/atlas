@@ -65,6 +65,8 @@ import PlanVersionsPage from '../v3/plan/versions/PlanVersionsPage.js';
 import PlanSynthesisPage from '../v3/plan/synthesis/PlanSynthesisPage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
+import OLOSWorkspacePage from '../v3/olos/OLOSWorkspacePage.js';
+import OLOSObjectivePage from '../v3/olos/OLOSObjectivePage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
 import { ShowcaseTierPage } from '../showcase/routes/showcase.$tier.js';
 import { ShowcaseCapturePage } from '../showcase/routes/showcase._capture.js';
@@ -442,6 +444,30 @@ const v3ReportRoute = createRoute({
   component: V3ReportPage,
 });
 
+// ─── OLOS workspace (Stage × Domain × Objective navigation) ──────────────
+// Parallel to /observe|/plan|/act compass surfaces — those legacy routes
+// stay intact per feedback_no_deletion. OLOS is the forward IA.
+const v3OlosIndexRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'olos',
+  component: OLOSWorkspacePage,
+  validateSearch: (search: Record<string, unknown>): { stage?: string } => {
+    const out: { stage?: string } = {};
+    if (typeof search.stage === 'string') out.stage = search.stage;
+    return out;
+  },
+});
+const v3OlosStageRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'olos/$stage',
+  component: OLOSWorkspacePage,
+});
+const v3OlosObjectiveRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'olos/$stage/$domain',
+  component: OLOSObjectivePage,
+});
+
 // ─── Landing page (outside AppShell — public marketing) ─────────────────
 const landingRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -619,6 +645,9 @@ const routeTree = rootRoute.addChildren([
       v3BuildRoute,
       v3OperateRoute,
       v3ReportRoute,
+      v3OlosIndexRoute,
+      v3OlosStageRoute,
+      v3OlosObjectiveRoute,
       v3EthicsReferenceRoute,
       v3AffinityTelemetryRoute,
     ]),

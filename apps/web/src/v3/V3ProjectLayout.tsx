@@ -83,7 +83,8 @@ export default function V3ProjectLayout() {
           seg === "compass" ||
           seg === "command-centre" ||
           seg === "true-north" ||
-          seg === "fit-gate",
+          seg === "fit-gate" ||
+          seg === "olos",
       )
   ) {
     return <Outlet />;
