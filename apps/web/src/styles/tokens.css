@@ -140,7 +140,8 @@
      of warm-brown. Gold primary darkened to #b08a3a for AA contrast on white;
      sage accent at #5a8a5a. */
   --color-bg:              #f6f4ee;
-  --color-surface:         #ffffff;
+  --color-surface:          #ffffff;
+  --color-surface-alt:     #f3efe6;
   --color-surface-raised:  #faf7ef;
   --color-border:          rgba(84, 92, 100, 0.16);
   --color-border-subtle:   rgba(84, 92, 100, 0.10);

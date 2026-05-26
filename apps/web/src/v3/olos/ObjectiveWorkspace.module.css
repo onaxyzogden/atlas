@@ -1,7 +1,11 @@
 .shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
-  min-height: 100vh;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  /* height + min-height: 0 lets the right column own its scroll instead of
+     letting children expand past the viewport (the standard CSS-grid
+     scroll-trap fix). */
+  height: 100vh;
+  min-height: 0;
   background: var(--color-bg, #faf7f0);
 }
 
@@ -11,6 +15,7 @@
   background: var(--color-surface-alt, #f3efe6);
   border-right: 1px solid var(--color-border, #d6cebe);
   min-width: 0;
+  min-height: 0;
 }
 
 .mapBody {
@@ -22,18 +27,19 @@
 .panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px 22px;
+  gap: var(--space-3, 12px);
+  padding: var(--space-3, 12px) var(--space-3, 12px);
+  /* Cards provide the surface; the column itself is just a scrollable
+     bento gutter. Background falls back to the page bg. */
+  background: transparent;
   overflow-y: auto;
-  background: var(--color-surface, #fff);
+  min-height: 0;
 }
 
 .panelHeader {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--color-border, #d6cebe);
 }
 
 .crumb {
@@ -126,10 +132,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  background: var(--color-surface-alt, #f3efe6);
-  border-radius: 6px;
+  padding: 8px 4px;
+  border-top: 1px solid var(--color-border, #d6cebe);
   font-size: 12px;
+}
+.inputs > .inputRow:first-child {
+  border-top: 0;
+  padding-top: 4px;
 }
 
 .inputKind {
@@ -171,9 +180,12 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 8px 10px;
-  background: var(--color-surface-alt, #f3efe6);
-  border-radius: 6px;
+  padding: 10px 4px;
+  border-top: 1px solid var(--color-border, #d6cebe);
+}
+.checklist > .checklistItem:first-child {
+  border-top: 0;
+  padding-top: 4px;
 }
 
 .checkboxLabel {

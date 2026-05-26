@@ -13,6 +13,7 @@
    * a faint forest-green cast; surfaces are translucent-ready cards. */
   --color-bg:              #0b0e0c;
   --color-surface:         #14181a;
+  --color-surface-alt:     #1a1f22;
   --color-surface-raised:  #1c2120;
 
   /* Chrome neutrals override (slightly darker than bg for sidebar contrast) */
@@ -145,6 +146,7 @@
 
     --color-bg:              #0b0e0c;
     --color-surface:         #14181a;
+    --color-surface-alt:     #1a1f22;
     --color-surface-raised:  #1c2120;
 
     --color-chrome-bg:             #0a0d0b;

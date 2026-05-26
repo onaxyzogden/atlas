@@ -34,6 +34,7 @@ import OverlayBundleStrip from './map/OverlayBundleStrip.js';
 import ObjectiveMap from './map/ObjectiveMap.js';
 import HandoffSection from './handoff/HandoffSection.js';
 import { StatusChip, StatusPicker } from './status/index.js';
+import PanelCard from './PanelCard.js';
 import css from './ObjectiveWorkspace.module.css';
 
 export interface ObjectiveWorkspaceProps {
@@ -141,7 +142,7 @@ export default function ObjectiveWorkspace({
         </div>
       </section>
       <aside className={css.panel} aria-label="Objective side panel">
-        <header className={css.panelHeader}>
+        <PanelCard ariaLabel="Objective overview">
           <div className={css.crumb}>
             <span
               className={css.dot}
@@ -157,10 +158,9 @@ export default function ObjectiveWorkspace({
           <h1 className={css.title}>{objective.title}</h1>
           <p className={css.focused}>{objective.focusedQuestion}</p>
           <StatusChip status={statusValue || null} size="md" />
-        </header>
+        </PanelCard>
 
-        <section className={css.section}>
-          <h2 className={css.sectionTitle}>Required inputs</h2>
+        <PanelCard title="Required inputs">
           {objective.requiredInputs.length === 0 ? (
             <p className={css.muted}>
               None — this is an entry-point objective.
@@ -181,15 +181,12 @@ export default function ObjectiveWorkspace({
               ))}
             </ul>
           )}
-        </section>
+        </PanelCard>
 
-        <section className={css.section}>
-          <div className={css.sectionRow}>
-            <h2 className={css.sectionTitle}>Checklist</h2>
-            <span className={css.progress}>
-              {completedCount} / {totalRequired}
-            </span>
-          </div>
+        <PanelCard
+          title="Checklist"
+          meta={`${completedCount} / ${totalRequired}`}
+        >
           <ol className={css.checklist}>
             {checklist.map((item) => {
               const done = completedSet.has(item.id);
@@ -220,18 +217,16 @@ export default function ObjectiveWorkspace({
               );
             })}
           </ol>
-        </section>
+        </PanelCard>
 
-        <section className={css.section}>
-          <h2 className={css.sectionTitle}>Evidence / Proof</h2>
+        <PanelCard title="Evidence / Proof">
           <p className={css.muted}>
             Per-item capture lands in Phase 1.6 (photos, notes,
             measurements, receipts, tests, inspections).
           </p>
-        </section>
+        </PanelCard>
 
-        <section className={css.section}>
-          <h2 className={css.sectionTitle}>Status</h2>
+        <PanelCard title="Status">
           <StatusPicker
             stage={objective.stage}
             value={statusValue}
@@ -244,12 +239,11 @@ export default function ObjectiveWorkspace({
               Plan → Act handoff below.
             </p>
           ) : null}
-        </section>
+        </PanelCard>
 
-        <section className={css.section}>
-          <h2 className={css.sectionTitle}>Handoff</h2>
+        <PanelCard title="Handoff">
           <HandoffSection projectId={projectId} objective={objective} />
-        </section>
+        </PanelCard>
       </aside>
     </div>
   );
