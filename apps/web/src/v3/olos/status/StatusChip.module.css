@@ -12,6 +12,8 @@
   background: transparent;
   white-space: nowrap;
   line-height: 1.4;
+  align-self: flex-start;
+  width: fit-content;
 }
 
 .chip.sm {
