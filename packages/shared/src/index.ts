@@ -94,3 +94,24 @@ export * from './constants/universalDomain.js';
 
 // Store mirrors / payload helpers
 export * from './store-mirrors/pickHelpers.js';
+
+// OLOS (Observe / Plan / Act) — universal Stage × Domain × Objective foundation
+export * from './schemas/olos/stage.schema.js';
+export * from './schemas/olos/overlay.schema.js';
+export * from './schemas/olos/status.schema.js';
+export * from './schemas/olos/geometry.schema.js';
+export * from './schemas/olos/checklistItem.schema.js';
+export * from './schemas/olos/objective.schema.js';
+export * from './schemas/olos/observationRecord.schema.js';
+export * from './schemas/olos/planDecisionRecord.schema.js';
+export * from './schemas/olos/actHandoffPackage.schema.js';
+export * from './schemas/olos/actTask.schema.js';
+export * from './schemas/olos/proofRecord.schema.js';
+export * from './schemas/olos/verificationRecord.schema.js';
+export * from './schemas/olos/escalationRecord.schema.js';
+export * from './schemas/olos/stewardshipRoutine.schema.js';
+export * from './constants/olos/overlays.js';
+export * from './constants/olos/stageBoundaries.js';
+export * from './constants/olos/objectives.js';
+// checklistItems.ts is a re-export shim for direct imports — its named
+// exports already come through ./constants/olos/objectives.js
