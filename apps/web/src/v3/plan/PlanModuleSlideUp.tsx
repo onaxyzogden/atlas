@@ -249,7 +249,7 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
     [project, onSwitchModule, handleClose],
   );
 
-  const shouldProbe = open && module === 'principle-verification' && !allowOrphans;
+  const shouldProbe = open && module === 'risk-compliance' && !allowOrphans;
   return (
     <>
       {shouldProbe ? (

@@ -1,93 +1,58 @@
 /**
- * Plan stage module types — mirrors observe/types.ts pattern.
+ * Plan stage module types — rebased onto UniversalDomain (slice 3b+3c).
  *
- * 11 plan modules map 1:1 to PlanHub's module cards and to the
- * PlanModuleBar tiles. Each module maps to one or more plan card
- * sectionIds (used by PlanModuleSlideUp to load the right card).
+ * `PlanModule` is now an alias of `UniversalDomain` (16 ids). Plan-stage
+ * surfaces expose all 16 domains; legacy collision groups
+ * (access-circulation ← dynamic-layering + zone-circulation;
+ * built-infrastructure ← structures-subsystems + machinery;
+ * ecology ← regeneration-monitor + habitat-allocation + biodiversity-monitor)
+ * are concatenated in canonical insertion order of PLAN_MODULE_TO_DOMAIN
+ * for CARDS; FULL_LABEL is first-wins per group. Domains without authored
+ * Plan content ship with empty CARDS and the uniform domain label as
+ * full-label fallback. See ADR 2026-05-26-atlas-universal-domain-step3-cutover.
  */
 
-export type PlanModule =
-  | 'goal-compass'
-  | 'dynamic-layering'
-  | 'water-management'
-  | 'zone-circulation'
-  | 'structures-subsystems'
-  | 'machinery'
-  | 'livestock'
-  | 'plant-systems'
-  | 'soil-fertility'
-  | 'cross-section-solar'
-  | 'phasing-budgeting'
-  | 'principle-verification'
-  | 'regeneration-monitor'
-  | 'habitat-allocation'
-  | 'biodiversity-monitor';
+import type { UniversalDomain } from '@ogden/shared';
+import { UNIVERSAL_DOMAINS, UNIVERSAL_DOMAIN_LABELS } from '@ogden/shared';
 
-export const PLAN_MODULES: PlanModule[] = [
-  'goal-compass',
-  'dynamic-layering',
-  'water-management',
-  'zone-circulation',
-  'structures-subsystems',
-  'machinery',
-  'livestock',
-  'plant-systems',
-  'soil-fertility',
-  'cross-section-solar',
-  'phasing-budgeting',
-  'principle-verification',
-  'regeneration-monitor',
-  'habitat-allocation',
-  'biodiversity-monitor',
-];
+export type PlanModule = UniversalDomain;
 
-export function isPlanModule(s: string): s is PlanModule {
-  return (PLAN_MODULES as string[]).includes(s);
+export const PLAN_MODULES: readonly UniversalDomain[] = UNIVERSAL_DOMAINS;
+
+export function isPlanModule(s: string): s is UniversalDomain {
+  return (UNIVERSAL_DOMAINS as readonly string[]).includes(s);
 }
 
-export const PLAN_MODULE_LABEL: Record<PlanModule, string> = {
-  'goal-compass':           'Compass',
-  'dynamic-layering':       'Layering',
-  'water-management':       'Water',
-  'zone-circulation':       'Zones',
-  'structures-subsystems':  'Structures',
-  machinery:                'Machinery',
-  livestock:                'Livestock',
-  'plant-systems':          'Plants',
-  'soil-fertility':         'Soil',
-  'cross-section-solar':    'Cross-section',
-  'phasing-budgeting':      'Phasing',
-  'principle-verification': 'Principles',
-  'regeneration-monitor':   'Regeneration',
-  'habitat-allocation':     'Habitat',
-  'biodiversity-monitor':   'Biodiversity',
-};
+export const PLAN_MODULE_LABEL: Record<UniversalDomain, string> = UNIVERSAL_DOMAIN_LABELS;
 
-export const PLAN_MODULE_FULL_LABEL: Record<PlanModule, string> = {
-  'goal-compass':           'Goal Compass',
-  'dynamic-layering':       'Dynamic Layering & Permanence',
-  'water-management':       'Water Management',
-  'zone-circulation':       'Zone & Circulation',
-  'structures-subsystems':  'Built Environment',
-  machinery:                'Machinery & Equipment',
-  livestock:                'Livestock & Subdivision',
-  'plant-systems':          'Plant Systems & Polyculture',
-  'soil-fertility':         'Soil Fertility & Closed-Loop',
-  'cross-section-solar':    'Cross-section & Solar Geometry',
-  'phasing-budgeting':      'Phasing & Budgeting',
-  'principle-verification': 'Holmgren Principle Verification',
-  'regeneration-monitor':   'Regeneration Monitoring',
-  'habitat-allocation':     'Habitat Allocation',
-  'biodiversity-monitor':   'Biodiversity Outcome Monitoring',
+/**
+ * Full labels — Plan-stage authored labels where present (first-wins on
+ * collision in canonical PLAN_MODULE_TO_DOMAIN insertion order); falls back
+ * to uniform UNIVERSAL_DOMAIN_LABELS for unauthored cells.
+ */
+export const PLAN_MODULE_FULL_LABEL: Record<UniversalDomain, string> = {
+  'vision-intent':        'Goal Compass',                       // ← goal-compass
+  'land-base':            UNIVERSAL_DOMAIN_LABELS['land-base'],
+  'climate':              'Cross-section & Solar Geometry',     // ← cross-section-solar
+  'topography':           UNIVERSAL_DOMAIN_LABELS['topography'],
+  'hydrology':            'Water Management',                   // ← water-management
+  'soil':                 'Soil Fertility & Closed-Loop',       // ← soil-fertility
+  'ecology':              'Regeneration Monitoring',            // ← regeneration-monitor (first-wins)
+  'plants-food':          'Plant Systems & Polyculture',        // ← plant-systems
+  'animals-livestock':    'Livestock & Subdivision',            // ← livestock
+  'built-infrastructure': 'Built Environment',                  // ← structures-subsystems (first-wins)
+  'access-circulation':   'Dynamic Layering & Permanence',      // ← dynamic-layering (first-wins)
+  'energy-resources':     UNIVERSAL_DOMAIN_LABELS['energy-resources'],
+  'people-governance':    UNIVERSAL_DOMAIN_LABELS['people-governance'],
+  'economics-capacity':   'Phasing & Budgeting',                // ← phasing-budgeting
+  'risk-compliance':      'Holmgren Principle Verification',    // ← principle-verification
+  'monitoring-records':   UNIVERSAL_DOMAIN_LABELS['monitoring-records'],
 };
 
 // ── Vision-Layout canvas (added 2026-05-07; phase tabs retired 2026-05-14) ───
 // Top-tab views for the Plan stage. `current` keeps the legacy module-driven
 // experience; `vision` opens the design-element canvas; `terrain3d` is a v1
-// camera-preset placeholder. The former `phase-1` / `phase-2` Yeomans-cap
-// tabs were retired in favour of the bottom-canvas year scrubber — the cap
-// is now derived from `useTemporalScrubStore.currentYear` via
-// `yeomansCapForYear` below.
+// camera-preset placeholder.
 export type PlanView = 'current' | 'vision' | 'terrain3d';
 
 export const PLAN_VIEWS: PlanView[] = ['vision', 'current', 'terrain3d'];
@@ -134,10 +99,6 @@ export function phaseIndex(p: PhaseKey): number {
 /**
  * Yeomans cap derived from the year scrubber's `currentYear` (1..50).
  *
- * Replaces the retired `PHASE_VIEW_CAP` lookup tied to the `phase-1` /
- * `phase-2` tabs (2026-05-14). Thresholds chosen so behaviour at the two
- * prior tab landings is identical:
- *
  * - Year 1..2  → `'water'`     (matches the old Year 1 tab)
  * - Year 3..5  → `'buildings'` (matches the old Year 5 tab)
  * - Year 6+    → `null`        (uncapped — same as `current` / `vision`)
@@ -148,55 +109,80 @@ export function yeomansCapForYear(year: number): PhaseKey | null {
   return null;
 }
 
-/** Each module maps to one or more plan card section IDs. */
+/**
+ * Each domain maps to one or more plan card section IDs. Collision groups
+ * concatenated in canonical PLAN_MODULE_TO_DOMAIN insertion order.
+ * Empty cells = [].
+ */
 export const MODULE_CARDS: Record<
-  PlanModule,
+  UniversalDomain,
   Array<{ label: string; sectionId: string; group?: string }>
 > = {
-  'goal-compass': [
-    // Goal-tree + site-profile capture relocated to Stage 0 (True North).
-    // The Plan Goal Compass now only generates from that captured data.
+  'vision-intent': [
+    // ← goal-compass
     { label: 'Proposal',          sectionId: 'plan-proposal' },
     { label: 'Build sequence',    sectionId: 'plan-goal-compass-sequence' },
     { label: 'Develop plan',      sectionId: 'plan-develop-plan' },
     { label: 'Criteria forecast', sectionId: 'plan-criteria-forecast' },
   ],
-  'dynamic-layering': [
-    { label: 'Permanence scales', sectionId: 'plan-permanence-scales' },
-    { label: 'Permanence ladder', sectionId: 'plan-permanence-ladder' },
-    { label: 'Enterprises',       sectionId: 'plan-enterprises' },
+  'land-base': [],
+  'climate': [
+    // ← cross-section-solar
+    { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },
+    { label: 'Solar overlay',       sectionId: 'plan-solar-overlay' },
+    { label: 'Section annotations', sectionId: 'plan-section-annotations' },
   ],
-  'water-management': [
-    { label: 'Catchments',     sectionId: 'plan-water-catchments' },
-    { label: 'Storage & overflow', sectionId: 'plan-water-storage' },
-    { label: 'Network & balance',  sectionId: 'plan-water-network' },
-    // Highest-potential water router (Rec #3 v1 from the permaculture-
-    // alignment backlog, 2026-04-28). Aspect-projected heuristic flags
-    // water-harvest elements placed below the parcel's median elevation
-    // with a numeric "head lost" estimate and a suggested upper-third coord.
+  'topography': [],
+  'hydrology': [
+    // ← water-management
+    { label: 'Catchments',               sectionId: 'plan-water-catchments' },
+    { label: 'Storage & overflow',       sectionId: 'plan-water-storage' },
+    { label: 'Network & balance',        sectionId: 'plan-water-network' },
     { label: 'Highest-potential router', sectionId: 'plan-water-router' },
   ],
-  'zone-circulation': [
-    { label: 'Zone level layer', sectionId: 'plan-zone-level' },
-    { label: 'Path frequency',   sectionId: 'plan-path-frequency' },
-    { label: 'Overview & validation', sectionId: 'plan-zone-overview' },
-    { label: 'Sectors',          sectionId: 'plan-sector-overlay' },
-    // Social-node generator (Rec #6 v1 from the permaculture-alignment
-    // backlog, 2026-04-28). Path×path intersections inside Z1/Z2 zones
-    // surface as "social node opportunities"; existing amenity points
-    // within COVERED_RADIUS_M flip the row to "served."
-    { label: 'Social nodes',     sectionId: 'plan-social-nodes' },
+  'soil': [
+    // ← soil-fertility
+    { label: 'Fertility colocation',      sectionId: 'plan-fertility-colocation' },
+    { label: 'Soil fertility designer',   sectionId: 'plan-soil-fertility' },
+    { label: 'Waste-to-resource vectors', sectionId: 'plan-waste-vectors' },
+    { label: 'Closed-loop graph',         sectionId: 'plan-closed-loop-graph' },
+    { label: 'Soil baseline',             sectionId: 'plan-soil-baseline' },
+    { label: 'Greens & browns',           sectionId: 'plan-soil-resources' },
+    { label: 'Soil-building plan',        sectionId: 'plan-soil-building-plan' },
+    { label: 'Soil food-web',             sectionId: 'plan-soil-foodweb' },
+    { label: 'Compost cycle',             sectionId: 'plan-compost-cycle' },
+    // B5.1 — cross-registered with plant-systems; same sectionId, one render.
+    { label: 'Living-roots audit',        sectionId: 'plan-living-roots' },
   ],
-  'structures-subsystems': [
-    { label: 'Structures overview', sectionId: 'plan-structures-overview' },
-    { label: 'Subsystems overview', sectionId: 'plan-subsystems-overview' },
+  'ecology': [
+    // ← regeneration-monitor + habitat-allocation + biodiversity-monitor
+    // (canonical-order concat)
+    { label: 'Trajectory dashboard',       sectionId: 'plan-regeneration-monitor' },
+    { label: 'Allocation & inventory',     sectionId: 'plan-habitat-allocation' },
+    { label: 'Beneficial-organism audit',  sectionId: 'plan-beneficial-habitat' },
+    { label: 'Outcome dashboard',          sectionId: 'plan-biodiversity-monitor' },
   ],
-  machinery: [
-    { label: 'Inventory',       sectionId: 'plan-machinery-inventory' },
-    { label: 'Access fit',      sectionId: 'plan-machinery-access-fit' },
-    { label: 'Housing & fuel',  sectionId: 'plan-machinery-housing-fuel' },
+  'plants-food': [
+    // ← plant-systems
+    { label: 'Plant database',         sectionId: 'plan-plant-database' },
+    { label: 'Guild builder',          sectionId: 'plan-guild-builder' },
+    { label: 'Canopy simulator',       sectionId: 'plan-canopy-simulator' },
+    { label: 'Establishment sequence', sectionId: 'plan-plant-establishment-sequence' },
+    { label: 'Edge & connectivity',    sectionId: 'plan-edge-connectivity' },
+    { label: 'Canopy maturity',        sectionId: 'plan-temporal-coherence' },
+    { label: 'Annual planting schedule', sectionId: 'plan-planting-schedule' },
+    { label: 'Guild integrity',        sectionId: 'plan-guild-integrity' },
+    { label: 'Succession path',        sectionId: 'plan-succession-path' },
+    // B4 — cross-registered with livestock; same sectionId, one render.
+    { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },
+    // B5 — cross-registered with habitat-allocation; same sectionId, one render.
+    { label: 'Beneficial-organism audit', sectionId: 'plan-beneficial-habitat' },
+    { label: 'Cover-crop planner',     sectionId: 'plan-cover-crop-planner' },
+    { label: 'Living-roots audit',     sectionId: 'plan-living-roots' },
+    { label: 'Nursery ledger',         sectionId: 'nursery-ledger' },
   ],
-  livestock: [
+  'animals-livestock': [
+    // ← livestock
     { label: 'Land-fit matrix',         sectionId: 'plan-livestock-land-fit' },
     { label: 'Specialization',          sectionId: 'plan-livestock-species-mix' },
     { label: 'Paddock cell design',     sectionId: 'plan-livestock-paddock-cells' },
@@ -209,110 +195,50 @@ export const MODULE_CARDS: Record<
     { label: 'Rotation plan',           sectionId: 'plan-livestock-rotation-plan' },
     { label: 'Rotation adherence',      sectionId: 'plan-livestock-rotation-adherence' },
     { label: 'Rotation adherence — actions', sectionId: 'plan-livestock-rotation-adherence-actions' },
-    // B4 — cross-registered with plant-systems. One sectionId, two
-    // surfacing tabs; render is centralised in PlanModuleSlideUp.
     { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },
     { label: 'Slaughter throughput', sectionId: 'plan-product-slaughter-throughput', group: 'Product Chain' },
     { label: 'Cold-chain coverage',  sectionId: 'plan-product-coldchain-coverage',   group: 'Product Chain' },
     { label: 'Market distribution',  sectionId: 'plan-product-market-distribution',  group: 'Product Chain' },
   ],
-  'plant-systems': [
-    { label: 'Plant database',         sectionId: 'plan-plant-database' },
-    { label: 'Guild builder',          sectionId: 'plan-guild-builder' },
-    { label: 'Canopy simulator',       sectionId: 'plan-canopy-simulator' },
-    { label: 'Establishment sequence', sectionId: 'plan-plant-establishment-sequence' },
-    // Edge & connectivity evaluator (Rec #4 from permaculture-alignment
-    // backlog, 2026-04-28). Polsby-Popper compactness audit on planting
-    // polygons; flags homogenized shapes with a textual prompt.
-    { label: 'Edge & connectivity',    sectionId: 'plan-edge-connectivity' },
-    // Temporal coherence (Rec #2 from permaculture-alignment backlog,
-    // 2026-04-28). Canopy-overlap evaluator behind the bottom-canvas
-    // year scrubber; surfaces crowding pairs within next 5 y of cursor.
-    { label: 'Canopy maturity',        sectionId: 'plan-temporal-coherence' },
-    { label: 'Annual planting schedule', sectionId: 'plan-planting-schedule' },
-    // Sub-project B1 (plant-system design integrity). Guild integrity is a
-    // design-time companion/spacing/maturity audit (no save gate, no
-    // goal-tree criterion); Succession path is the editable Year0→Year30
-    // designer over the additive successionPathStore slice.
-    { label: 'Guild integrity',        sectionId: 'plan-guild-integrity' },
-    { label: 'Succession path',        sectionId: 'plan-succession-path' },
-    // B4 — cross-registered with livestock; same sectionId, one render.
-    { label: 'Silvopasture integration', sectionId: 'plan-silvopasture-integration' },
-    // B5 — cross-registered with habitat-allocation; same sectionId, one render.
-    { label: 'Beneficial-organism audit', sectionId: 'plan-beneficial-habitat' },
-    // B5.2.x — per-CropArea cover-crop plan editor (writes coverCropPlan;
-    // LivingRootsCard reads the same store and lights up live).
-    { label: 'Cover-crop planner', sectionId: 'plan-cover-crop-planner' },
-    // B5.1 — cross-registered with soil-fertility; same sectionId, one render.
-    { label: 'Living-roots audit', sectionId: 'plan-living-roots' },
-    // Nursery ledger — propagation inventory + germination calendar +
-    // readiness tracking. Cross-rendered from the Dashboard surface so
-    // operators can plan the propagation pipeline alongside the
-    // planting catalogue without leaving the Plan slide-up.
-    { label: 'Nursery ledger',     sectionId: 'nursery-ledger' },
+  'built-infrastructure': [
+    // ← structures-subsystems + machinery (canonical-order concat)
+    { label: 'Structures overview', sectionId: 'plan-structures-overview' },
+    { label: 'Subsystems overview', sectionId: 'plan-subsystems-overview' },
+    { label: 'Inventory',           sectionId: 'plan-machinery-inventory' },
+    { label: 'Access fit',          sectionId: 'plan-machinery-access-fit' },
+    { label: 'Housing & fuel',      sectionId: 'plan-machinery-housing-fuel' },
   ],
-  'soil-fertility': [
-    // Fertility colocation hoisted to index 0 (2026-05-12) so the Soil
-    // tile cold-opens onto the readout that hosts the "Tune zones
-    // (advanced)" disclosure — the controller for the whole
-    // zoneThresholds family (6 cards). Every consumer points stewards
-    // back here, so making it the default closes the discoverability
-    // loop. Designer remains one tab away.
-    { label: 'Fertility colocation', sectionId: 'plan-fertility-colocation' },
-    { label: 'Soil fertility designer', sectionId: 'plan-soil-fertility' },
-    { label: 'Waste-to-resource vectors', sectionId: 'plan-waste-vectors' },
-    { label: 'Closed-loop graph', sectionId: 'plan-closed-loop-graph' },
-    { label: 'Soil baseline', sectionId: 'plan-soil-baseline' },
-    { label: 'Greens & browns', sectionId: 'plan-soil-resources' },
-    { label: 'Soil-building plan', sectionId: 'plan-soil-building-plan' },
-    { label: 'Soil food-web', sectionId: 'plan-soil-foodweb' },
-    { label: 'Compost cycle', sectionId: 'plan-compost-cycle' },
-    // B5.1 — cross-registered with plant-systems; same sectionId, one render.
-    { label: 'Living-roots audit', sectionId: 'plan-living-roots' },
+  'access-circulation': [
+    // ← dynamic-layering + zone-circulation (canonical-order concat)
+    { label: 'Permanence scales',     sectionId: 'plan-permanence-scales' },
+    { label: 'Permanence ladder',     sectionId: 'plan-permanence-ladder' },
+    { label: 'Enterprises',           sectionId: 'plan-enterprises' },
+    { label: 'Zone level layer',      sectionId: 'plan-zone-level' },
+    { label: 'Path frequency',        sectionId: 'plan-path-frequency' },
+    { label: 'Overview & validation', sectionId: 'plan-zone-overview' },
+    { label: 'Sectors',               sectionId: 'plan-sector-overlay' },
+    { label: 'Social nodes',          sectionId: 'plan-social-nodes' },
   ],
-  'cross-section-solar': [
-    { label: 'Vertical editor',     sectionId: 'plan-transect-vertical' },
-    { label: 'Solar overlay',       sectionId: 'plan-solar-overlay' },
-    { label: 'Section annotations', sectionId: 'plan-section-annotations' },
-  ],
-  'phasing-budgeting': [
+  'energy-resources': [],
+  'people-governance': [],
+  'economics-capacity': [
+    // ← phasing-budgeting
     { label: 'Phasing matrix',         sectionId: 'plan-phasing-matrix' },
     { label: 'Seasonal tasks',         sectionId: 'plan-seasonal-tasks' },
-    // B5.2.x.b — per-phase rollup of cover-crop seed cost + seeding
-    // labor hours (project cost only, no yield-as-return framing).
     { label: 'Cover-crop economics',   sectionId: 'plan-cover-crop-economics' },
     { label: 'Labor & budget',         sectionId: 'plan-labor-budget' },
     { label: 'Scale-of-permanence',    sectionId: 'plan-phasing-scale-matrix' },
     { label: 'Cumulative investment',  sectionId: 'plan-cumulative-investment' },
     { label: 'Maintenance schedule',   sectionId: 'plan-maintenance-schedule' },
     { label: 'Equipment replacement',  sectionId: 'plan-equipment-replacement' },
-    // Material-substitution calculator (Rec #5 v1 from the permaculture-
-    // alignment backlog, 2026-04-28). Surfaces biological alternatives
-    // for conventional infrastructure cost line items; toggle writes
-    // through to `financialStore.costOverrides` so total investment
-    // recomputes. v1 ships 8 cited substitution pairs.
     { label: 'Material substitutions', sectionId: 'plan-material-substitutions' },
   ],
-  'principle-verification': [
+  'risk-compliance': [
+    // ← principle-verification
     { label: 'Holmgren checklist', sectionId: 'plan-holmgren-checklist' },
     { label: 'Three Ethics',       sectionId: 'plan-three-ethics-rollup' },
     { label: 'Coverage matrix',    sectionId: 'plan-principle-coverage-matrix' },
-    // Needs & Yields audit (Rec #1 ADR 2026-04-28; v3 Plan-stage surface
-    // added 2026-05-13). Promotes the orphan-output / unmet-input /
-    // closed-loop / integration-score readout from the legacy MapView
-    // RelationshipsRail into the Plan slide-up idiom alongside the
-    // other Holmgren P6 + P8 verifications.
     { label: 'Needs & Yields',     sectionId: 'plan-needs-yields' },
   ],
-  'regeneration-monitor': [
-    { label: 'Trajectory dashboard', sectionId: 'plan-regeneration-monitor' },
-  ],
-  'habitat-allocation': [
-    { label: 'Allocation & inventory', sectionId: 'plan-habitat-allocation' },
-    // B5 — cross-registered with plant-systems; same sectionId, one render.
-    { label: 'Beneficial-organism audit', sectionId: 'plan-beneficial-habitat' },
-  ],
-  'biodiversity-monitor': [
-    { label: 'Outcome dashboard', sectionId: 'plan-biodiversity-monitor' },
-  ],
+  'monitoring-records': [],
 };

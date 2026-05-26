@@ -90,8 +90,8 @@ export default function ActCommandCentrePage() {
       search: {},
     });
 
-  const openSchedule = () => openModule('schedule');
-  const goTracker = () => openModule('tracker');
+  const openSchedule = () => openModule('economics-capacity');
+  const goTracker = () => openModule('monitoring-records');
 
   // Launch action: open the Act module the work item belongs to.
   const launchItem = (item: WorkItem) => {

@@ -150,7 +150,7 @@ export default function ObserveLayout() {
   // topography / water layers forces those overlays on without touching the
   // persisted toggles, so exiting focus (focusModules → null) auto-reverts.
   const forceTopo = !!focusModules?.includes('topography');
-  const forceWater = !!focusModules?.includes('earth-water-ecology');
+  const forceWater = !!focusModules?.includes('hydrology');
   const exitFocus = () => {
     if (!params.projectId) return;
     navigate({

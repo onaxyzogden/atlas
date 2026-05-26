@@ -23,14 +23,14 @@ export const BE_CATEGORY_TO_PLAN_MODULE: Record<
   BuiltEnvironmentCategory,
   PlanModule
 > = {
-  building: 'structures-subsystems',
-  agricultural: 'structures-subsystems',
-  utility: 'structures-subsystems',
-  infrastructure: 'structures-subsystems',
-  machinery: 'machinery',
-  amenity: 'structures-subsystems',
-  vegetation: 'plant-systems',
-  earthworks: 'water-management',
+  building: 'built-infrastructure',
+  agricultural: 'built-infrastructure',
+  utility: 'built-infrastructure',
+  infrastructure: 'built-infrastructure',
+  machinery: 'built-infrastructure',
+  amenity: 'built-infrastructure',
+  vegetation: 'plants-food',
+  earthworks: 'hydrology',
 };
 
 /**

@@ -29,8 +29,8 @@ const ctx = {
   projectType: 'homestead' as const,
 };
 
-const tile = (overrides: Partial<{ module: 'maintain'; eventType: 'tile_select' }> = {}) => ({
-  module: 'maintain' as const,
+const tile = (overrides: Partial<{ module: 'built-infrastructure'; eventType: 'tile_select' }> = {}) => ({
+  module: 'built-infrastructure' as const,
   eventType: 'tile_select' as const,
   ...overrides,
 });

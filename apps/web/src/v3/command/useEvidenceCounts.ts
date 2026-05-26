@@ -63,7 +63,7 @@ export function useEvidenceCounts(projectId: string): EvidenceRow[] {
       {
         key: 'hazards',
         label: 'Hazards & external forces',
-        module: 'macroclimate-hazards',
+        module: 'climate',
         n: count(hazards, sectors),
       },
       {
@@ -75,31 +75,31 @@ export function useEvidenceCounts(projectId: string): EvidenceRow[] {
       {
         key: 'ecology',
         label: 'Ecology observations',
-        module: 'earth-water-ecology',
+        module: 'hydrology',
         n: count(ecology),
       },
       {
         key: 'water',
         label: 'Water systems',
-        module: 'earth-water-ecology',
+        module: 'hydrology',
         n: count(earthworks, storageInfra, watercourses, waterbodies, waterNodes),
       },
       {
         key: 'polyculture',
         label: 'Polyculture guilds & species',
-        module: 'earth-water-ecology',
+        module: 'hydrology',
         n: count(guilds, species),
       },
       {
         key: 'material-flows',
         label: 'Material flows & fertility',
-        module: 'earth-water-ecology',
+        module: 'hydrology',
         n: count(materialFlows, wasteVectorRuns, fertilityInfra),
       },
       {
         key: 'swot',
         label: 'SWOT entries',
-        module: 'swot-synthesis',
+        module: 'monitoring-records',
         n: count(swot),
       },
     ];

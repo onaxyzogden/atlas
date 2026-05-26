@@ -118,13 +118,13 @@ const BE_TOOLS: ToolItem[] = BE_TOOL_ITEMS.map((it) => ({
 }));
 
 const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
-  'human-context': [
+  'people-governance': [
     { id: 'neighbour-pin',   label: 'Neighbour pin',       Icon: MapPin,   toolId: 'observe.human-context.neighbour-pin' },
     { id: 'steward',         label: 'Steward / household', Icon: Users,    toolId: 'observe.human-context.steward' },
     { id: 'access-road',     label: 'Access road',         Icon: Pencil,   toolId: 'observe.human-context.access-road' },
   ],
-  'built-environment': BE_TOOLS,
-  'macroclimate-hazards': [
+  'built-infrastructure': BE_TOOLS,
+  'climate': [
     { id: 'frost-pocket',    label: 'Frost pocket',        Icon: Snowflake, toolId: 'observe.macroclimate-hazards.frost-pocket' },
     { id: 'hazard-zone',     label: 'Hazard zone',         Icon: AlertTriangle, toolId: 'observe.macroclimate-hazards.hazard-zone' },
   ],
@@ -135,12 +135,12 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'erosion-flag',    label: 'Erosion flag',        Icon: Flag,     toolId: 'observe.topography.erosion-flag' },
     { id: 'runoff-path',     label: 'Runoff path',         Icon: Spline,   toolId: 'observe.topography.runoff-path' },
   ],
-  'earth-water-ecology': [
+  'hydrology': [
     { id: 'watercourse',     label: 'Watercourse',         Icon: Waves,    toolId: 'observe.earth-water-ecology.watercourse' },
     { id: 'soil-sample',     label: 'Soil sample',         Icon: TestTube, toolId: 'observe.earth-water-ecology.soil-sample' },
     { id: 'vegetation',      label: 'Vegetation & cover',  Icon: Sprout,   toolId: 'observe.earth-water-ecology.vegetation' },
   ],
-  'sectors-zones': [
+  'access-circulation': [
     { id: 'sun-summer',      label: 'Sun (summer)',        Icon: Sun,      toolId: 'observe.sectors-zones.sun-summer' },
     { id: 'sun-winter',      label: 'Sun (winter)',        Icon: Sunrise,  toolId: 'observe.sectors-zones.sun-winter' },
     { id: 'wind-prevailing', label: 'Wind (prevailing)',   Icon: Wind,     toolId: 'observe.sectors-zones.wind-prevailing' },
@@ -151,12 +151,22 @@ const TOOL_GROUPS: Record<ObserveModule, ToolItem[]> = {
     { id: 'view',            label: 'View',                Icon: Eye,      toolId: 'observe.sectors-zones.view' },
     { id: 'permaculture',    label: 'Permaculture zone',   Icon: Target,   toolId: 'observe.sectors-zones.permaculture' },
   ],
-  'swot-synthesis': [
+  'monitoring-records': [
     { id: 'strength',        label: 'Strength (S)',        Icon: Shield,      toolId: 'observe.swot-synthesis.strength' },
     { id: 'weakness',        label: 'Weakness (W)',        Icon: ShieldAlert, toolId: 'observe.swot-synthesis.weakness' },
     { id: 'opportunity',     label: 'Opportunity (O)',     Icon: Star,        toolId: 'observe.swot-synthesis.opportunity' },
     { id: 'threat',          label: 'Threat (T)',          Icon: Skull,       toolId: 'observe.swot-synthesis.threat' },
   ],
+  // Unauthored Observe domains — empty tool lists.
+  'vision-intent': [],
+  'land-base': [],
+  soil: [],
+  ecology: [],
+  'plants-food': [],
+  'animals-livestock': [],
+  'energy-resources': [],
+  'economics-capacity': [],
+  'risk-compliance': [],
 };
 
 export default function ObserveTools({
@@ -198,6 +208,8 @@ export default function ObserveTools({
     const next = { placed: homesteadPlaced, source: effectiveSource };
     if (!prev || prev.placed !== next.placed || prev.source !== next.source) {
       recordObserve({
+        // Telemetry vocab in observeInteractionLog is pinned to legacy
+        // analytics dimension; intentionally not on UniversalDomain.
         module: 'sectors-zones',
         eventType: 'homestead_gate_flip',
         payload: { placed: next.placed, source: next.source },
@@ -280,7 +292,7 @@ export default function ObserveTools({
   // Focus mode: render ONLY the section(s) belonging to the chosen objective.
   // Built Environment is one objective surfaced as its "From map" meta-section
   // plus its per-category sections; every other module is a single section.
-  const showBuiltEnvironment = activeModule === 'built-environment';
+  const showBuiltEnvironment = activeModule === 'built-infrastructure';
 
   return (
     <aside
@@ -294,7 +306,7 @@ export default function ObserveTools({
         // is no longer rendered as a rail section; its kinds surface as
         // 9 per-category sections appended after this loop. Slide-up is
         // still reachable via the bottom-rail tile.
-        if (mod === 'built-environment') return null;
+        if (mod === 'built-infrastructure') return null;
         // Focus mode: only the chosen objective's section renders. `activeModule`
         // is non-null here (empty state returned above), so this yields exactly
         // one non-BE section.
@@ -368,7 +380,7 @@ export default function ObserveTools({
        *  now that BE is flattened — kept routed to `built-environment` so
        *  click-to-activate still opens the parent BE slide-up. */}
       {showBuiltEnvironment && (() => {
-        const routed: ObserveModule = 'built-environment';
+        const routed: ObserveModule = 'built-infrastructure';
         const sectionId = 'be-from-map';
         const adoptCandidates: ToolItem[] = [
           {

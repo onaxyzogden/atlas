@@ -113,23 +113,23 @@ export function detectCoverageGapNeeds(
  */
 const LAYER_TO_MODULE: Partial<Record<LayerType, ObserveModule>> = {
   elevation: 'topography',
-  soils: 'earth-water-ecology',
-  watershed: 'earth-water-ecology',
-  wetlands_flood: 'earth-water-ecology',
-  land_cover: 'earth-water-ecology',
-  watershed_derived: 'earth-water-ecology',
-  groundwater: 'earth-water-ecology',
-  water_quality: 'earth-water-ecology',
-  soil_regeneration: 'earth-water-ecology',
-  biodiversity: 'earth-water-ecology',
-  critical_habitat: 'earth-water-ecology',
-  climate: 'macroclimate-hazards',
-  microclimate: 'macroclimate-hazards',
-  storm_events: 'macroclimate-hazards',
-  zoning: 'sectors-zones',
+  soils: 'hydrology',
+  watershed: 'hydrology',
+  wetlands_flood: 'hydrology',
+  land_cover: 'hydrology',
+  watershed_derived: 'hydrology',
+  groundwater: 'hydrology',
+  water_quality: 'hydrology',
+  soil_regeneration: 'hydrology',
+  biodiversity: 'hydrology',
+  critical_habitat: 'hydrology',
+  climate: 'climate',
+  microclimate: 'climate',
+  storm_events: 'climate',
+  zoning: 'access-circulation',
 };
 
-const DEFAULT_STALE_MODULE: ObserveModule = 'earth-water-ecology';
+const DEFAULT_STALE_MODULE: ObserveModule = 'hydrology';
 
 /** Human-readable layer names for the auto-need title/reason. */
 const LAYER_LABEL: Partial<Record<LayerType, string>> = {

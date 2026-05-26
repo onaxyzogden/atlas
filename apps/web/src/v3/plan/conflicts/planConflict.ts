@@ -98,30 +98,23 @@ export const PLAN_CONFLICT_RESOLUTIONS: readonly PlanConflictResolution[] = [
  * module's affinity set. Authored here (no auto-mapping from store data).
  */
 export const OBSERVE_TO_PLAN_AFFINITY: Record<ObserveModule, PlanModule[]> = {
-  'human-context': ['goal-compass', 'zone-circulation', 'phasing-budgeting'],
-  'built-environment': ['structures-subsystems', 'machinery', 'zone-circulation'],
-  'macroclimate-hazards': [
-    'water-management',
-    'cross-section-solar',
-    'plant-systems',
-  ],
-  topography: [
-    'water-management',
-    'zone-circulation',
-    'cross-section-solar',
-    'soil-fertility',
-  ],
-  'earth-water-ecology': [
-    'water-management',
-    'soil-fertility',
-    'plant-systems',
-    'habitat-allocation',
-    'biodiversity-monitor',
-    'regeneration-monitor',
-    'livestock',
-  ],
-  'sectors-zones': ['zone-circulation', 'goal-compass', 'livestock'],
-  'swot-synthesis': ['goal-compass', 'principle-verification', 'phasing-budgeting'],
+  // Empty observe-stage domains carry no affinity rows.
+  'vision-intent':        [],
+  'land-base':            [],
+  'climate':              ['hydrology', 'climate', 'plants-food'],
+  'topography':           ['hydrology', 'access-circulation', 'climate', 'soil'],
+  'hydrology':            ['hydrology', 'soil', 'plants-food', 'ecology', 'animals-livestock'],
+  'soil':                 [],
+  'ecology':              [],
+  'plants-food':          [],
+  'animals-livestock':    [],
+  'built-infrastructure': ['built-infrastructure', 'access-circulation'],
+  'access-circulation':   ['access-circulation', 'vision-intent', 'animals-livestock'],
+  'energy-resources':     [],
+  'people-governance':    ['vision-intent', 'access-circulation', 'economics-capacity'],
+  'economics-capacity':   [],
+  'risk-compliance':      [],
+  'monitoring-records':   ['vision-intent', 'risk-compliance', 'economics-capacity'],
 };
 
 const SEVERITY_RANK: Record<PlanConflictSeverity, number> = {

@@ -5,14 +5,14 @@
  * `affectedModule`, so this derives the module from its provenance `source`,
  * mirroring `ActDataLayers`' `SOURCEKIND_MODULE` idea.
  *
- * Mapping (steward-confirmed in the Act Command Centre plan):
- *   - maintenance                                   → maintain
- *   - scheduled-livestock-move | rotation-sequence  → livestock
+ * Mapping (steward-confirmed in the Act Command Centre plan; rekeyed to
+ * UniversalDomain in slice 3b+3c):
+ *   - maintenance                                   → built-infrastructure (← maintain)
+ *   - scheduled-livestock-move | rotation-sequence  → animals-livestock (← livestock)
  *   - nursery-batch | cover-crop | tree-planting
- *     | agroforestry | habitat-feature              → build
+ *     | agroforestry | habitat-feature              → built-infrastructure (← build)
  *   - everything else (goal-compass | field-task
- *     | manual)                                     → tracker (the cross-module
- *                                                     execution spine)
+ *     | manual)                                     → monitoring-records (← tracker)
  *
  * Pure + unit-testable; no store reads, no side effects.
  */
@@ -23,20 +23,20 @@ import type { ActModule } from '../types.js';
 export function actWorkItemModule(item: WorkItem): ActModule {
   switch (item.source) {
     case 'maintenance':
-      return 'maintain';
+      return 'built-infrastructure';
     case 'scheduled-livestock-move':
     case 'rotation-sequence':
-      return 'livestock';
+      return 'animals-livestock';
     case 'nursery-batch':
     case 'cover-crop':
     case 'tree-planting':
     case 'agroforestry':
     case 'habitat-feature':
-      return 'build';
+      return 'built-infrastructure';
     case 'goal-compass':
     case 'field-task':
     case 'manual':
     default:
-      return 'tracker';
+      return 'monitoring-records';
   }
 }

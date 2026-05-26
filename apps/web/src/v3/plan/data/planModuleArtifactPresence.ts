@@ -99,30 +99,30 @@ export function usePlanModuleArtifactPresence(
   );
 
   switch (module) {
-    case 'water-management':
+    case 'hydrology': // ← water-management
       return hasWaterArtifacts;
-    case 'zone-circulation':
+    case 'access-circulation': // ← dynamic-layering (no artifacts) + zone-circulation
       return hasZones || hasPaths;
-    case 'structures-subsystems':
+    case 'built-infrastructure': // ← structures-subsystems + machinery (both → structures)
       return hasStructures;
-    case 'machinery':
-      return hasStructures;
-    case 'livestock':
+    case 'animals-livestock': // ← livestock
       return hasPaddocks;
-    case 'plant-systems':
+    case 'plants-food': // ← plant-systems
       return hasCropAreas || hasGuilds;
-    case 'soil-fertility':
+    case 'soil': // ← soil-fertility
       return hasFertilityInfra;
-    case 'phasing-budgeting':
+    case 'economics-capacity': // ← phasing-budgeting
       return hasPhases;
-    case 'principle-verification':
+    case 'risk-compliance': // ← principle-verification
       return hasNotes || hasTransects;
-    case 'dynamic-layering':
-    case 'cross-section-solar':
-    case 'goal-compass':
-    case 'regeneration-monitor':
-    case 'habitat-allocation':
-    case 'biodiversity-monitor':
+    case 'climate': // ← cross-section-solar (no spatial artifacts)
+    case 'vision-intent': // ← goal-compass (no spatial artifacts)
+    case 'ecology': // ← regeneration-monitor + habitat-allocation + biodiversity-monitor (no spatial artifacts)
+    case 'land-base':
+    case 'topography':
+    case 'energy-resources':
+    case 'people-governance':
+    case 'monitoring-records':
       return false;
     default: {
       const _exhaustive: never = module;

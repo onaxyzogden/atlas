@@ -1,17 +1,50 @@
 /**
- * planHowChecksStore — per-project per-module checklist state for the
- * Plan right-rail GuidanceCard "How" steps.
+ * planHowChecksStore — per-project per-domain checklist state for the
+ * Plan right-rail GuidanceCard "How" steps (slice 3b+3c: rebased onto
+ * UniversalDomain).
  *
- * Mirrors observeHowChecksStore. Each Plan module has a fixed-length list
- * of How steps (defined in PlanChecklistAside.tsx → PLAN_MODULE_GUIDANCE);
- * this store persists which step indices the user has marked complete.
+ * Persist v1→v2: collapses legacy 15-id PlanModule keys to the 16
+ * UniversalDomain ids. Three collision groups apply concat-with-offset.
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { migrateByProjectModuleKeys, type MergeFn } from '@ogden/shared';
 import type { PlanModule } from '../v3/plan/types.js';
 
 type ModuleChecks = Partial<Record<PlanModule, number[]>>;
+
+/**
+ * HOW-step counts at the moment of the v1→v2 cutover. Plan: every legacy
+ * module = 3. Immutable migration constants.
+ */
+const HOW_STEP_COUNTS: Record<string, number> = {
+  'goal-compass': 3,
+  'dynamic-layering': 3,
+  'water-management': 3,
+  'zone-circulation': 3,
+  'structures-subsystems': 3,
+  'machinery': 3,
+  'livestock': 3,
+  'plant-systems': 3,
+  'soil-fertility': 3,
+  'cross-section-solar': 3,
+  'phasing-budgeting': 3,
+  'principle-verification': 3,
+  'regeneration-monitor': 3,
+  'habitat-allocation': 3,
+  'biodiversity-monitor': 3,
+};
+
+const howChecksMergeFn: MergeFn<number[]> = (_domain, parts) => {
+  const out: number[] = [];
+  let offset = 0;
+  for (const { moduleId, value } of parts) {
+    for (const idx of value) out.push(idx + offset);
+    offset += HOW_STEP_COUNTS[moduleId] ?? 0;
+  }
+  return out.sort((a, b) => a - b);
+};
 
 export interface PlanHowChecksState {
   byProject: Record<string, ModuleChecks>;
@@ -68,8 +101,24 @@ export const usePlanHowChecksStore = create<PlanHowChecksState>()(
     }),
     {
       name: 'ogden-atlas-plan-how-checks',
-      version: 1,
-      migrate: (persisted) => persisted as PlanHowChecksState,
+      version: 2,
+      migrate: (persisted, version) => {
+        if (version < 2) {
+          const migrated = migrateByProjectModuleKeys<number[]>(
+            persisted,
+            'plan',
+            howChecksMergeFn,
+          );
+          if (migrated) {
+            return {
+              ...(persisted as object),
+              byProject: migrated.byProject,
+            } as PlanHowChecksState;
+          }
+          return { byProject: {} } as PlanHowChecksState;
+        }
+        return persisted as PlanHowChecksState;
+      },
     },
   ),
 );

@@ -238,7 +238,7 @@ export function evaluateObservationRecorded(
  * are part of the Earth, Water & Ecology module.
  */
 const REQUIRED_LAYER_ALIAS: Record<string, ObserveModule> = {
-  hydrology: 'earth-water-ecology',
+  hydrology: 'hydrology',
 };
 
 const OBSERVE_MODULE_SET = new Set<string>(OBSERVE_MODULES);

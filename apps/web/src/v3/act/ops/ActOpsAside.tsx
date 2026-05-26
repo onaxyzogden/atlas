@@ -42,7 +42,7 @@ export default function ActOpsAside({
   const navigate = useNavigate();
 
   const openSchedule = () => {
-    onSelectModule('schedule');
+    onSelectModule('economics-capacity');
     onOpenSlideUp();
   };
 

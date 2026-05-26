@@ -414,7 +414,7 @@ export default function PlanLayout() {
           <ObserveLinkPopover map={map} />
           <PlanSelectionFloater
             onOpenGuildBuilder={() => {
-              handleSelectModule('plant-systems');
+              handleSelectModule('plants-food');
               setSlideUpOpen(true);
             }}
           />
@@ -455,7 +455,7 @@ export default function PlanLayout() {
           <DesignStatusChip
             project={project}
             onOpenAudit={() => {
-              handleSelectModule('principle-verification');
+              handleSelectModule('risk-compliance');
               setSlideUpOpen(true);
             }}
           />

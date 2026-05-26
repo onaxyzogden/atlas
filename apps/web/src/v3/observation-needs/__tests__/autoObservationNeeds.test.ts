@@ -14,8 +14,8 @@ import { evaluateObservationRecorded, emptyObservationNeedRun } from '../observa
 const CENTER: [number, number] = [-78.2, 44.5];
 
 const rows = (overrides: Partial<CoverageRow>[] = []): CoverageRow[] => [
-  { key: 'water', label: 'Water systems', module: 'earth-water-ecology', n: 0 },
-  { key: 'swot', label: 'SWOT entries', module: 'swot-synthesis', n: 3 },
+  { key: 'water', label: 'Water systems', module: 'hydrology', n: 0 },
+  { key: 'swot', label: 'SWOT entries', module: 'monitoring-records', n: 3 },
   ...(overrides as CoverageRow[]),
 ];
 
@@ -35,14 +35,14 @@ describe('buildAutoNeed', () => {
     const need = buildAutoNeed({
       id: 'auto-gap-water-mtc',
       projectId: 'mtc',
-      module: 'earth-water-ecology',
+      module: 'hydrology',
       target: { center: CENTER },
       title: 'Start observing: Water systems',
       reason: 'No water systems recorded yet.',
     });
     expect(need.id).toBe('auto-gap-water-mtc');
     expect(need.origin).toBe('auto');
-    expect(need.module).toBe('earth-water-ecology');
+    expect(need.module).toBe('hydrology');
     expect(need.priority).toBe('medium');
     expect(need.target.center).toEqual(CENTER);
   });
@@ -51,7 +51,7 @@ describe('buildAutoNeed', () => {
     const need = buildAutoNeed({
       id: 'auto-gap-water-mtc',
       projectId: 'mtc',
-      module: 'earth-water-ecology',
+      module: 'hydrology',
       target: { center: CENTER },
       title: 'x',
       reason: 'y',
@@ -71,7 +71,7 @@ describe('detectCoverageGapNeeds', () => {
     const needs = detectCoverageGapNeeds('mtc', rows(), CENTER);
     expect(needs).toHaveLength(1);
     expect(needs[0]?.id).toBe('auto-gap-water-mtc');
-    expect(needs[0]?.module).toBe('earth-water-ecology');
+    expect(needs[0]?.module).toBe('hydrology');
     expect(needs[0]?.origin).toBe('auto');
   });
 
@@ -91,7 +91,7 @@ describe('detectStaleNeeds', () => {
     const needs = detectStaleNeeds('mtc', perLayer, CENTER);
     expect(needs).toHaveLength(1);
     expect(needs[0]?.id).toBe('auto-stale-soils-mtc');
-    expect(needs[0]?.module).toBe('earth-water-ecology');
+    expect(needs[0]?.module).toBe('hydrology');
   });
 
   it('raises nothing when no layer is unverified', () => {

@@ -127,7 +127,7 @@ describe('aggregateProgress', () => {
 
 describe('Plan compass seed', () => {
   it('resolves the goal-compass seed (2 verified, 1 evidence-in)', () => {
-    const seed = planSeedFor('goal-compass'); // { 0: verified, 1: verified, 2: evidence-in }
+    const seed = planSeedFor('vision-intent'); // { 0: verified, 1: verified, 2: evidence-in }
     expect(seed).toEqual({ 0: 'verified', 1: 'verified', 2: 'evidence-in' });
     // Against a 3+ node objective the first three nodes resolve in order.
     const states = resolveNodeStates(3, seed, NONE);
@@ -136,7 +136,7 @@ describe('Plan compass seed', () => {
   });
 
   it('returns an empty seed for an unstarted Plan module (machinery)', () => {
-    const seed = planSeedFor('machinery'); // {}
+    const seed = planSeedFor('built-infrastructure'); // {}
     expect(seed).toEqual({});
     expect(resolveNodeStates(2, seed, NONE)).toEqual(['open', 'locked']);
   });
@@ -157,8 +157,8 @@ describe('Act compass config + seed', () => {
   });
 
   it('resolves the tracker seed against its node count', () => {
-    const obj = actObjectiveById('tracker');
-    const seed = actSeedFor('tracker'); // { 0: verified, 1: verified, 2: evidence-in }
+    const obj = actObjectiveById('monitoring-records');
+    const seed = actSeedFor('monitoring-records'); // { 0: verified, 1: verified, 2: evidence-in }
     const progress = objectiveProgress(obj.nodes.length, seed, NONE);
     expect(progress.verified).toBe(2);
     expect(progress.total).toBe(obj.nodes.length);
@@ -169,8 +169,8 @@ describe('Act compass config + seed', () => {
   });
 
   it('locks every node for an unstarted Act module (review)', () => {
-    const obj = actObjectiveById('review');
-    const seed = actSeedFor('review'); // {}
+    const obj = actObjectiveById('monitoring-records');
+    const seed = actSeedFor('monitoring-records'); // {}
     const states = resolveNodeStates(obj.nodes.length, seed, NONE);
     expect(states[0]).toBe('open');
     states.slice(1).forEach((s) => expect(s).toBe('locked'));

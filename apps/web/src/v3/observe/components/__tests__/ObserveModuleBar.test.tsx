@@ -38,10 +38,10 @@ function renderBar() {
       levels={[{ key: 'observe', label: 'Observe', title: 'Observe' }]}
       controlledLevel="observe"
       onLevelChange={() => {}}
-      pillarTasks={{ 'human-context': [TASK] }}
+      pillarTasks={{ 'people-governance': [TASK] }}
     >
       <ObserveModuleBar
-        activeModule="human-context"
+        activeModule="people-governance"
         onSelectModule={() => {}}
         slideUpOpen={false}
         onOpenSlideUp={() => {}}
@@ -60,7 +60,7 @@ describe('ObserveModuleBar — no nested buttons', () => {
   it('exposes each tile hit target as an aria-pressed labelled button', () => {
     renderBar();
     const hit = screen.getByRole('button', {
-      name: OBSERVE_MODULE_LABEL['human-context'],
+      name: OBSERVE_MODULE_LABEL['people-governance'],
     });
     expect(hit.getAttribute('aria-pressed')).toBe('true');
   });

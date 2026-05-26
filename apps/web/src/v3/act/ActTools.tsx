@@ -48,11 +48,11 @@ interface QuickLog {
 
 const QUICK_LOGS: QuickLog[] = [
   {
-    id: 'harvest',
+    id: 'plants-food',
     label: 'Log harvest',
     hint: 'Drop a yield entry on a crop area or paddock',
     Icon: Sprout,
-    module: 'harvest',
+    module: 'plants-food',
     toolId: 'act.harvest.log-entry',
   },
   {
@@ -60,15 +60,15 @@ const QUICK_LOGS: QuickLog[] = [
     label: 'Log water check',
     hint: 'Click a swale, cistern, or pond to log a maintenance event',
     Icon: Droplet,
-    module: 'maintain',
+    module: 'built-infrastructure',
     toolId: 'act.maintain.log-event',
   },
   {
-    id: 'livestock',
+    id: 'animals-livestock',
     label: 'Log livestock move',
     hint: 'Click a paddock to log a move-in / out / rotate-through',
     Icon: Shuffle,
-    module: 'livestock',
+    module: 'animals-livestock',
     toolId: 'act.livestock.log-move',
   },
 ];

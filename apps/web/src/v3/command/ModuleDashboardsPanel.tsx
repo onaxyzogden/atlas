@@ -25,14 +25,14 @@ import SectorsDashboard from '../observe/modules/sectors-zones/SectorsDashboard.
 import SwotDashboard from '../observe/modules/swot-synthesis/SwotDashboard.js';
 import css from './ObserveCommandCentrePage.module.css';
 
-const DASHBOARD: Record<ObserveModule, FC> = {
-  'human-context': HumanContextDashboard,
-  'built-environment': BuiltEnvironmentDashboard,
-  'macroclimate-hazards': MacroclimateDashboard,
+const DASHBOARD: Partial<Record<ObserveModule, FC>> = {
+  'people-governance': HumanContextDashboard,
+  'built-infrastructure': BuiltEnvironmentDashboard,
+  'climate': MacroclimateDashboard,
   topography: TopographyDashboard,
-  'earth-water-ecology': EarthWaterEcologyDashboard,
-  'sectors-zones': SectorsDashboard,
-  'swot-synthesis': SwotDashboard,
+  'hydrology': EarthWaterEcologyDashboard,
+  'access-circulation': SectorsDashboard,
+  'monitoring-records': SwotDashboard,
 };
 
 interface Props {
@@ -48,6 +48,7 @@ export default function ModuleDashboardsPanel({ projectId }: Props) {
     <div className={css.modGrid}>
       {modules.map((module) => {
         const Dashboard = DASHBOARD[module];
+        if (!Dashboard) return null;
         return (
           <section key={module} className={css.modCard} aria-label={OBSERVE_MODULE_LABEL[module]}>
             <header className={css.modHeader}>

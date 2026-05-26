@@ -26,7 +26,7 @@ const ALL_REQUIRED_MET: ObserveProgressInput = input({
 describe('evaluateModule', () => {
   it('marks tasks observe_to_do when nothing is done', () => {
     const m = evaluateModule(
-      OBSERVE_OBJECTIVES['human-context'],
+      OBSERVE_OBJECTIVES['people-governance'],
       EMPTY_OBSERVE_INPUT,
     );
     expect(m.doneCount).toBe(0);
@@ -36,7 +36,7 @@ describe('evaluateModule', () => {
 
   it('completes when the required objective is met, regardless of optional', () => {
     const m = evaluateModule(
-      OBSERVE_OBJECTIVES['human-context'],
+      OBSERVE_OBJECTIVES['people-governance'],
       input({ hasBoundary: true }),
     );
     expect(m.complete).toBe(true);
@@ -49,7 +49,7 @@ describe('evaluateModule', () => {
 
   it('an optional objective alone does not complete the module', () => {
     const m = evaluateModule(
-      OBSERVE_OBJECTIVES['human-context'],
+      OBSERVE_OBJECTIVES['people-governance'],
       input({ homesteadPinned: true }),
     );
     expect(m.doneCount).toBe(1);
@@ -58,7 +58,7 @@ describe('evaluateModule', () => {
 
   it('treats hazard OR sector as satisfying the macroclimate required objective', () => {
     const viaSector = evaluateModule(
-      OBSERVE_OBJECTIVES['macroclimate-hazards'],
+      OBSERVE_OBJECTIVES['climate'],
       input({ sectorCount: 1 }),
     );
     expect(viaSector.complete).toBe(true);

@@ -20,7 +20,7 @@ const ALL_REQUIRED_MET: ActProgressInput = input({ workItemDoneCount: 1 });
 
 describe('evaluateModule', () => {
   it('marks tasks act_to_do when nothing is done', () => {
-    const m = evaluateModule(ACT_OBJECTIVES.tracker, EMPTY_ACT_INPUT, 'tracker');
+    const m = evaluateModule(ACT_OBJECTIVES['monitoring-records'], EMPTY_ACT_INPUT, 'monitoring-records');
     expect(m.doneCount).toBe(0);
     expect(m.complete).toBe(false);
     expect(m.tasks.every((t) => t.columnId === 'act_to_do')).toBe(true);
@@ -28,9 +28,9 @@ describe('evaluateModule', () => {
 
   it('completes when the required objective is met, regardless of optional', () => {
     const m = evaluateModule(
-      ACT_OBJECTIVES.tracker,
+      ACT_OBJECTIVES['monitoring-records'],
       input({ workItemDoneCount: 1 }),
-      'tracker',
+      'monitoring-records',
     );
     expect(m.complete).toBe(true);
     expect(m.requiredDone).toBe(m.requiredTotal);
@@ -42,9 +42,9 @@ describe('evaluateModule', () => {
 
   it('treats SWOT OR hazard as satisfying the review objective', () => {
     const viaHazard = evaluateModule(
-      ACT_OBJECTIVES.review,
+      ACT_OBJECTIVES['monitoring-records'],
       input({ hazardCount: 1 }),
-      'review',
+      'monitoring-records',
     );
     expect(viaHazard.doneCount).toBe(1);
     const task = viaHazard.tasks.find((t) => t.id === 'review.assess');
@@ -53,16 +53,16 @@ describe('evaluateModule', () => {
 
   it('treats contact OR community event as satisfying the network objective', () => {
     const viaEvent = evaluateModule(
-      ACT_OBJECTIVES.network,
+      ACT_OBJECTIVES['people-governance'],
       input({ communityEventCount: 1 }),
-      'network',
+      'people-governance',
     );
     expect(viaEvent.doneCount).toBe(1);
   });
 
   it('an optional-only module with nothing done still evaluates complete', () => {
     // maintain carries no required objective → never gates.
-    const m = evaluateModule(ACT_OBJECTIVES.maintain, EMPTY_ACT_INPUT, 'maintain');
+    const m = evaluateModule(ACT_OBJECTIVES['built-infrastructure'], EMPTY_ACT_INPUT, 'built-infrastructure');
     expect(m.requiredTotal).toBe(0);
     expect(m.complete).toBe(true);
   });

@@ -56,13 +56,13 @@ function formatTime(iso: string): string {
 function fieldTaskModule(category: FieldTaskCategory): ActModule | null {
   switch (category) {
     case 'ops':
-      return 'maintain';
+      return 'built-infrastructure';
     case 'weather':
     case 'regulation':
-      return 'review';
+      return 'monitoring-records';
     case 'team':
     case 'education':
-      return 'network';
+      return 'people-governance';
     default:
       return null;
   }
@@ -86,17 +86,17 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
     };
 
     const wantBuild =
-      activeModule === null || activeModule === 'build';
+      activeModule === null || activeModule === 'built-infrastructure';
     const wantMaintain =
-      activeModule === null || activeModule === 'maintain';
+      activeModule === null || activeModule === 'built-infrastructure';
     const wantLivestock =
-      activeModule === null || activeModule === 'livestock';
+      activeModule === null || activeModule === 'animals-livestock';
     const wantHarvest =
-      activeModule === null || activeModule === 'harvest';
+      activeModule === null || activeModule === 'plants-food';
     const wantReview =
-      activeModule === null || activeModule === 'review';
+      activeModule === null || activeModule === 'monitoring-records';
     const wantNetwork =
-      activeModule === null || activeModule === 'network';
+      activeModule === null || activeModule === 'people-governance';
 
     if (wantBuild || wantMaintain || wantLivestock || wantReview) {
       for (const w of workItems) {
@@ -128,7 +128,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
           id: `mt-${w.id}`,
           title: w.title,
           meta: `Maintenance · daily`,
-          module: 'maintain',
+          module: 'built-infrastructure',
         });
       }
     }
@@ -142,7 +142,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
           id: `hv-${e.id}`,
           title: `Harvest logged · ${e.quantity} ${e.unit}`,
           meta: e.sourceKind === 'crop' ? 'Crop area' : 'Paddock',
-          module: 'harvest',
+          module: 'plants-food',
         });
       }
       const dueMilestones = milestones.filter(
@@ -153,7 +153,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
           id: `sx-${m.id}`,
           title: m.observation || `Succession check · ${m.phase}`,
           meta: `Succession ${m.year}`,
-          module: 'harvest',
+          module: 'plants-food',
         });
       }
     }
@@ -170,7 +170,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
           id: `ev-${e.id}`,
           title: e.title,
           meta: `Event · ${new Date(e.date).toLocaleDateString()}`,
-          module: 'network',
+          module: 'people-governance',
         });
       }
     }
@@ -212,7 +212,7 @@ export default function TodaysPriorities({ projectId, activeModule }: Props) {
     // aggregate stays one row per (panel, hash). Per-row module data is
     // preserved in the payload for later breakdowns.
     record({
-      module: activeModule ?? 'review',
+      module: activeModule ?? 'monitoring-records',
       eventType: 'panel_row_visible',
       payload: {
         panel: 'priorities',

@@ -115,7 +115,7 @@ export default function DevelopPlanTab({ project, onSwitchModule }: Props) {
               <button
                 type="button"
                 className={styles.btn}
-                onClick={() => onSwitchModule('phasing-budgeting')}
+                onClick={() => onSwitchModule('economics-capacity')}
               >
                 Open Phasing &amp; Budgeting
               </button>

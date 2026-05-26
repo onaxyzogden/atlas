@@ -83,85 +83,98 @@ export interface ActObjective {
  * authoring store this round get an empty list and evaluate complete.
  */
 export const ACT_OBJECTIVES: Record<ActModule, ActObjective[]> = {
-  tracker: [
+  'monitoring-records': [
+    // ← tracker (required objective lives here)
     {
       id: 'tracker.done',
-      module: 'tracker',
+      module: 'monitoring-records',
       label: 'Complete a planned work item',
       required: true,
-      isComplete: (i) => i.workItemDoneCount > 0,
+      isComplete: (i: ActProgressInput) => i.workItemDoneCount > 0,
     },
     {
       id: 'tracker.momentum',
-      module: 'tracker',
+      module: 'monitoring-records',
       label: 'Complete three work items',
       required: false,
-      isComplete: (i) => i.workItemDoneCount >= 3,
+      isComplete: (i: ActProgressInput) => i.workItemDoneCount >= 3,
     },
-  ],
-  build: [
-    {
-      id: 'build.progress',
-      module: 'build',
-      label: 'Mark a build phase complete or log a pilot plot',
-      required: false,
-      isComplete: (i) => i.phaseCompletedCount > 0 || i.pilotCount > 0,
-    },
-  ],
-  maintain: [
-    {
-      id: 'maintain.event',
-      module: 'maintain',
-      label: 'Log a maintenance or operations event',
-      required: false,
-      isComplete: (i) => i.maintenanceEventCount > 0,
-    },
-  ],
-  livestock: [
-    {
-      id: 'livestock.move',
-      module: 'livestock',
-      label: 'Log a livestock move',
-      required: false,
-      isComplete: (i) => i.livestockMoveCount > 0,
-    },
-  ],
-  harvest: [
-    {
-      id: 'harvest.entry',
-      module: 'harvest',
-      label: 'Record a harvest',
-      required: false,
-      isComplete: (i) => i.harvestEntryCount > 0,
-    },
-  ],
-  review: [
+    // ← review
     {
       id: 'review.assess',
-      module: 'review',
+      module: 'monitoring-records',
       label: 'Capture an ongoing SWOT or hazard plan',
       required: false,
-      isComplete: (i) => i.swotCount > 0 || i.hazardCount > 0,
+      isComplete: (i: ActProgressInput) => i.swotCount > 0 || i.hazardCount > 0,
     },
   ],
-  network: [
+  'built-infrastructure': [
+    // ← build
+    {
+      id: 'build.progress',
+      module: 'built-infrastructure',
+      label: 'Mark a build phase complete or log a pilot plot',
+      required: false,
+      isComplete: (i: ActProgressInput) =>
+        i.phaseCompletedCount > 0 || i.pilotCount > 0,
+    },
+    // ← maintain
+    {
+      id: 'maintain.event',
+      module: 'built-infrastructure',
+      label: 'Log a maintenance or operations event',
+      required: false,
+      isComplete: (i: ActProgressInput) => i.maintenanceEventCount > 0,
+    },
+  ],
+  'animals-livestock': [
+    {
+      id: 'livestock.move',
+      module: 'animals-livestock',
+      label: 'Log a livestock move',
+      required: false,
+      isComplete: (i: ActProgressInput) => i.livestockMoveCount > 0,
+    },
+  ],
+  'plants-food': [
+    {
+      id: 'harvest.entry',
+      module: 'plants-food',
+      label: 'Record a harvest',
+      required: false,
+      isComplete: (i: ActProgressInput) => i.harvestEntryCount > 0,
+    },
+  ],
+  'people-governance': [
     {
       id: 'network.connect',
-      module: 'network',
+      module: 'people-governance',
       label: 'Add a contact or log a community event',
       required: false,
-      isComplete: (i) => i.contactCount > 0 || i.communityEventCount > 0,
+      isComplete: (i: ActProgressInput) =>
+        i.contactCount > 0 || i.communityEventCount > 0,
     },
   ],
-  schedule: [
+  'economics-capacity': [
     {
       id: 'schedule.tech',
-      module: 'schedule',
+      module: 'economics-capacity',
       label: 'Register an appropriate-technology item',
       required: false,
-      isComplete: (i) => i.appropriateTechCount > 0,
+      isComplete: (i: ActProgressInput) => i.appropriateTechCount > 0,
     },
   ],
+  // Unauthored domains — empty, evaluate complete.
+  climate: [],
+  'vision-intent': [],
+  'land-base': [],
+  topography: [],
+  hydrology: [],
+  soil: [],
+  ecology: [],
+  'access-circulation': [],
+  'energy-resources': [],
+  'risk-compliance': [],
 };
 
 export interface ModuleProgress {

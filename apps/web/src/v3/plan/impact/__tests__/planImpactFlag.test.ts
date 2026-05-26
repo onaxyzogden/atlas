@@ -119,7 +119,7 @@ describe('derivePlanImpactFlags', () => {
         need({
           id: 'a',
           planImpact: 'likely',
-          module: 'earth-water-ecology',
+          module: 'hydrology',
           reason: 'Spring reappeared',
           sourceObservationId: 'obs-parent',
           target: { center: [-79, 45] },
@@ -128,7 +128,7 @@ describe('derivePlanImpactFlags', () => {
       ),
     ]) as [PlanImpactFlag];
     expect(flag.needId).toBe('a');
-    expect(flag.module).toBe('earth-water-ecology');
+    expect(flag.module).toBe('hydrology');
     expect(flag.reason).toBe('Spring reappeared');
     expect(flag.sourceObservationId).toBe('obs-parent');
     expect(flag.recordedAt).toBe('2026-05-20T10:00:00.000Z');

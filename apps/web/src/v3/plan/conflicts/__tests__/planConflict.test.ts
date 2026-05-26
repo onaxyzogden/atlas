@@ -76,7 +76,7 @@ function decision(overrides: Partial<PlanDecision> = {}): PlanDecision {
     id: 'dec-1',
     status: 'accepted',
     headline: 'Stabilise the eroded bank',
-    affectedModule: 'water-management',
+    affectedModule: 'hydrology',
     updatedAt: '2026-05-01T00:00:00.000Z',
     ...overrides,
   };
@@ -87,17 +87,17 @@ describe('derivePlanConflicts', () => {
     // topography → water-management is in the affinity set.
     const conflicts = derivePlanConflicts(
       [view(need({ id: 'obs', module: 'topography' }), recordedRun())],
-      [decision({ id: 'dec', affectedModule: 'water-management' })],
+      [decision({ id: 'dec', affectedModule: 'hydrology' })],
     );
     expect(conflicts).toHaveLength(1);
     expect(conflicts[0]?.id).toBe('obs:dec');
     expect(conflicts[0]?.observationId).toBe('obs');
     expect(conflicts[0]?.decisionId).toBe('dec');
-    expect(conflicts[0]?.affectedModule).toBe('water-management');
+    expect(conflicts[0]?.affectedModule).toBe('hydrology');
   });
 
   it('excludes open / in-progress / anticipated needs', () => {
-    const decisions = [decision({ affectedModule: 'water-management' })];
+    const decisions = [decision({ affectedModule: 'hydrology' })];
     expect(
       derivePlanConflicts(
         [view(need({ module: 'topography' }), { status: 'open' })],
@@ -115,7 +115,7 @@ describe('derivePlanConflicts', () => {
   it('includes resolved needs as well as recorded', () => {
     const conflicts = derivePlanConflicts(
       [view(need({ module: 'topography' }), recordedRun('resolved'))],
-      [decision({ affectedModule: 'water-management' })],
+      [decision({ affectedModule: 'hydrology' })],
     );
     expect(conflicts).toHaveLength(1);
   });
@@ -123,7 +123,7 @@ describe('derivePlanConflicts', () => {
   it('excludes rejected decisions', () => {
     const conflicts = derivePlanConflicts(
       [view(need({ module: 'topography' }), recordedRun())],
-      [decision({ status: 'rejected', affectedModule: 'water-management' })],
+      [decision({ status: 'rejected', affectedModule: 'hydrology' })],
     );
     expect(conflicts).toHaveLength(0);
   });
@@ -132,7 +132,7 @@ describe('derivePlanConflicts', () => {
     // topography has no affinity to `machinery`.
     const conflicts = derivePlanConflicts(
       [view(need({ module: 'topography' }), recordedRun())],
-      [decision({ affectedModule: 'machinery' })],
+      [decision({ affectedModule: 'built-infrastructure' })],
     );
     expect(conflicts).toHaveLength(0);
   });
@@ -155,7 +155,7 @@ describe('derivePlanConflicts', () => {
       ],
       [
         decision({
-          affectedModule: 'water-management',
+          affectedModule: 'hydrology',
           updatedAt: '2026-05-01T00:00:00.000Z',
         }),
       ],
@@ -173,7 +173,7 @@ describe('derivePlanConflicts', () => {
       ],
       [
         decision({
-          affectedModule: 'water-management',
+          affectedModule: 'hydrology',
           updatedAt: '2026-05-01T00:00:00.000Z',
         }),
       ],
@@ -191,7 +191,7 @@ describe('derivePlanConflicts', () => {
       ],
       [
         decision({
-          affectedModule: 'water-management',
+          affectedModule: 'hydrology',
           updatedAt: '2026-05-01T00:00:00.000Z',
         }),
       ],
@@ -222,7 +222,7 @@ describe('derivePlanConflicts', () => {
       [
         decision({
           id: 'dec',
-          affectedModule: 'water-management',
+          affectedModule: 'hydrology',
           updatedAt: '2026-06-01T00:00:00.000Z',
         }),
       ],
@@ -236,7 +236,7 @@ describe('derivePlanConflicts', () => {
 
   it('does not mutate its inputs', () => {
     const views = [view(need({ module: 'topography' }), recordedRun())];
-    const decisions = [decision({ affectedModule: 'water-management' })];
+    const decisions = [decision({ affectedModule: 'hydrology' })];
     const snapshot = JSON.stringify({ views, decisions });
     derivePlanConflicts(views, decisions);
     expect(JSON.stringify({ views, decisions })).toBe(snapshot);

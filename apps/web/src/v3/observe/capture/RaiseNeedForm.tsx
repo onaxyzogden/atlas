@@ -16,7 +16,7 @@ import {
 } from '../types.js';
 
 /** Default domain when a host doesn't supply one (manual needs). */
-const DEFAULT_MODULE: ObserveModule = 'human-context';
+const DEFAULT_MODULE: ObserveModule = 'people-governance';
 import type {
   ObservationNeedPriority,
   PlanImpact,

@@ -41,15 +41,15 @@ import type { DesignElement } from '../../../../store/designElementsStore.js';
  * home objective, so it is hidden under focus.
  */
 const CATEGORY_MODULE: Record<DesignCategory, PlanModule | null> = {
-  water: 'water-management',
-  access: 'zone-circulation',
-  grazing: 'livestock',
-  structure: 'structures-subsystems',
-  machinery: 'machinery',
-  amenity: 'structures-subsystems',
-  vegetation: 'plant-systems',
-  earthworks: 'water-management',
-  habitat: 'habitat-allocation',
+  water: 'hydrology',
+  access: 'access-circulation',
+  grazing: 'animals-livestock',
+  structure: 'built-infrastructure',
+  machinery: 'built-infrastructure',
+  amenity: 'built-infrastructure',
+  vegetation: 'plants-food',
+  earthworks: 'hydrology',
+  habitat: 'ecology',
   custom: null,
 };
 

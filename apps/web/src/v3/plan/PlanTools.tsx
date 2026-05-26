@@ -126,7 +126,7 @@ function beCategoryToolItems(category: BuiltEnvironmentCategory): ToolItem[] {
 
 /** Modules with map-first draw tools. Others fall back to "Open module". */
 const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
-  'water-management': [
+  'hydrology': [
     { id: 'catchment', label: 'Catchment', Icon: Droplet,   toolId: 'plan.water-management.catchment' },
     { id: 'storage',   label: 'Storage',   Icon: Container, toolId: 'plan.water-management.storage' },
     { id: 'swale',     label: 'Swale',     Icon: Waves,     toolId: 'plan.water-management.swale' },
@@ -138,7 +138,7 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     // Uses the BE toolId so the existing BE draw pipeline still handles it.
     { id: 'be-berm',   label: 'Berm',      Icon: Mountain,  toolId: 'plan.structures-subsystems.be.berm' as MapToolId },
   ],
-  'zone-circulation': [
+  'access-circulation': [
     { id: 'zone',        label: 'Zone',        Icon: Square,        toolId: 'plan.zone-circulation.zone' },
     { id: 'path',        label: 'Path',        Icon: Route,         toolId: 'plan.zone-circulation.path' },
     { id: 'buffer-ring', label: 'Buffer ring', Icon: CircleDashed,  toolId: 'plan.zone-circulation.buffer-ring' },
@@ -152,12 +152,14 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   // machinery kinds (machinery-shed / fuel-station / equipment-yard) are folded
   // in here so the rail shows one Machinery card. The BE machinery category
   // card is suppressed in the BE_TOOL_GROUPS render loop below.
-  machinery: [
+  // built-infrastructure collapses structures-subsystems (PLAN_BE_TOOLS) +
+  // machinery (turnaround). PLAN_BE_TOOLS already includes the BE machinery
+  // category, so prepend only the Plan-only turnaround draw kind here.
+  'built-infrastructure': [
     { id: 'turnaround', label: 'Turnaround', Icon: RotateCw, toolId: 'plan.machinery.turnaround' },
-    ...beCategoryToolItems('machinery'),
+    ...PLAN_BE_TOOLS,
   ],
-  'structures-subsystems': PLAN_BE_TOOLS,
-  livestock: [
+  'animals-livestock': [
     { id: 'paddock',    label: 'Paddock',    Icon: Square, toolId: 'plan.livestock.paddock' },
     // 2026-05-10 Farm-Scholar (Newman) ADR — fence-line linear tool for
     // strip / mob grazing wire that the polygon Paddock tool cannot model.
@@ -172,7 +174,7 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'cold-chain-unit', label: 'Cold chain', Icon: Snowflake, toolId: 'plan.livestock.cold-chain-unit' },
     { id: 'market-node',     label: 'Market',     Icon: Store,     toolId: 'plan.livestock.market-node' },
   ],
-  'plant-systems': [
+  'plants-food': [
     { id: 'crop-area',    label: 'Crop area',    Icon: Sprout,        toolId: 'plan.plant-systems.crop-area' },
     { id: 'guild',        label: 'Guild',        Icon: TreeDeciduous, toolId: 'plan.plant-systems.guild' },
     // 2026-05-11 — Yeomans grazing kinds ported from the Vision-canvas
@@ -194,7 +196,7 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     // handles it.
     { id: 'be-raised-bed', label: 'Raised bed',  Icon: Square,        toolId: 'plan.structures-subsystems.be.raised-bed' as MapToolId },
   ],
-  'soil-fertility': [
+  'soil': [
     { id: 'fertility-unit',  label: 'Fertility unit',  Icon: Recycle,    toolId: 'plan.soil-fertility.fertility-unit' },
     { id: 'flow-connector',  label: 'Flow connector',  Icon: ArrowRight, toolId: 'plan.soil-fertility.flow-connector' },
   ],
@@ -202,7 +204,7 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
   // unify with the design-element pipeline so B5 audit math can read them
   // directly. hedgerow / shrub / pond / wildlife pond reuse their
   // plant-systems / water-management entries above (shared catalog kind).
-  'habitat-allocation': [
+  'ecology': [
     { id: 'owl-box',         label: 'Owl box',         Icon: Bird,           toolId: 'plan.habitat-allocation.owl-box' },
     { id: 'raptor-perch',    label: 'Raptor perch',    Icon: Eye,            toolId: 'plan.habitat-allocation.raptor-perch' },
     { id: 'nest-box',        label: 'Nest box',        Icon: Bird,           toolId: 'plan.habitat-allocation.nest-box' },
@@ -211,7 +213,7 @@ const TOOL_GROUPS: Partial<Record<PlanModule, ToolItem[]>> = {
     { id: 'insectary-strip', label: 'Insectary strip', Icon: Flower2,        toolId: 'plan.habitat-allocation.insectary-strip' },
     { id: 'wetland-edge',    label: 'Wetland edge',    Icon: Waves,          toolId: 'plan.habitat-allocation.wetland-edge' },
   ],
-  'principle-verification': [
+  'risk-compliance': [
     { id: 'note',     label: 'Note',     Icon: MapPin,   toolId: 'plan.principle-verification.note' },
     { id: 'transect', label: 'Transect', Icon: Activity, toolId: 'plan.principle-verification.transect' },
   ],
@@ -448,7 +450,7 @@ export default function PlanTools({
         // module no longer renders as a rail section; its kinds surface
         // as 9 per-category sections appended after this loop. The
         // module slide-up is still reachable via the bottom-rail tile.
-        if (mod === 'structures-subsystems') return null;
+        if (mod === 'built-infrastructure') return null;
         // 2026-05-24 — Stage Compass focus: only the chosen objective's section
         // renders. `activeModule` is non-null here (empty state returned
         // above), so this yields exactly one non-BE section.
@@ -506,7 +508,7 @@ export default function PlanTools({
                   }),
                 )}
               </div>
-            ) : mod === 'dynamic-layering' ? (
+            ) : mod === 'access-circulation' ? (
               <div className={css.lensRow}>
                 {(['yeomans', 'enterprise'] as const).map((m) => {
                   const isOn = lensEnabled && lensMode === m;
@@ -565,7 +567,7 @@ export default function PlanTools({
                 </button>
               </DelayedTooltip>
             )}
-            {mod === 'zone-circulation' ? (
+            {mod === 'access-circulation' ? (
               <div className={css.itemGrid}>
                 {ZONE_GENERATOR_ACTIONS.map((a) => (
                   <DelayedTooltip

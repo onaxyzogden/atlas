@@ -149,23 +149,23 @@ describe('requiredLayersToModules', () => {
   it('resolves the hydrology alias to earth-water-ecology', () => {
     const mods = requiredLayersToModules(['topography', 'hydrology'], 'topography');
     expect(mods).toContain('topography');
-    expect(mods).toContain('earth-water-ecology');
+    expect(mods).toContain('hydrology');
     expect(mods).toHaveLength(2);
   });
 
   it('passes through valid module tokens and de-duplicates', () => {
     const mods = requiredLayersToModules(
-      ['earth-water-ecology', 'hydrology'],
-      'earth-water-ecology',
+      ['hydrology', 'hydrology'],
+      'hydrology',
     );
     // own module + the valid token + the alias all collapse to one
-    expect(mods).toEqual(['earth-water-ecology']);
+    expect(mods).toEqual(['hydrology']);
   });
 
   it('drops unknown tokens', () => {
-    const mods = requiredLayersToModules(['not-a-module', 'built-environment'], 'topography');
+    const mods = requiredLayersToModules(['not-a-module', 'built-infrastructure'], 'topography');
     expect(mods).toContain('topography');
-    expect(mods).toContain('built-environment');
+    expect(mods).toContain('built-infrastructure');
     expect(mods).not.toContain('not-a-module' as never);
     expect(mods).toHaveLength(2);
   });
@@ -330,7 +330,7 @@ describe('editRaisedNeed', () => {
   );
 
   const edits: EditNeedInput = {
-    module: 'earth-water-ecology',
+    module: 'hydrology',
     title: '  New title  ',
     reason: '  New reason  ',
     priority: 'low',
@@ -340,7 +340,7 @@ describe('editRaisedNeed', () => {
 
   it('applies the form fields and trims them', () => {
     const next = editRaisedNeed(raised, edits);
-    expect(next.module).toBe('earth-water-ecology');
+    expect(next.module).toBe('hydrology');
     expect(next.title).toBe('New title');
     expect(next.reason).toBe('New reason');
     expect(next.priority).toBe('low');

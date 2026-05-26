@@ -102,7 +102,7 @@ export function emptyPlanWorkPackage(projectId: string): PlanWorkPackage {
     projectId,
     objective: '',
     detail: '',
-    teamType: 'build',
+    teamType: 'built-infrastructure',
     location: '',
     tools: '',
     evidenceRequired: '',

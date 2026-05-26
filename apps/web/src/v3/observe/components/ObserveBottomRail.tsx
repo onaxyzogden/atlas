@@ -15,6 +15,7 @@ import {
   Droplets,
   Compass,
   Layers,
+  Circle,
   ChevronUp,
   ChevronDown,
   type LucideIcon,
@@ -29,13 +30,23 @@ import css from './ObserveBottomRail.module.css';
 const STORAGE_KEY = 'atlas.observe.bottomRail.collapsed';
 
 const MODULE_ICON: Record<ObserveModule, LucideIcon> = {
-  'human-context': Users,
-  'built-environment': Building2,
-  'macroclimate-hazards': CloudLightning,
+  'people-governance': Users,
+  'built-infrastructure': Building2,
+  'climate': CloudLightning,
   topography: Mountain,
-  'earth-water-ecology': Droplets,
-  'sectors-zones': Compass,
-  'swot-synthesis': Layers,
+  'hydrology': Droplets,
+  'access-circulation': Compass,
+  'monitoring-records': Layers,
+  // Unauthored Observe domains — fallback Circle icon.
+  'vision-intent': Circle,
+  'land-base': Circle,
+  soil: Circle,
+  ecology: Circle,
+  'plants-food': Circle,
+  'animals-livestock': Circle,
+  'energy-resources': Circle,
+  'economics-capacity': Circle,
+  'risk-compliance': Circle,
 };
 
 interface Props {

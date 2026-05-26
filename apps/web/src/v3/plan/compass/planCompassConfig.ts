@@ -1,22 +1,22 @@
 /**
  * planCompassConfig — derives the Stage Compass objectives for the Plan stage
- * from existing Plan constants, mirroring observeCompassConfig. Segment
- * ids/labels come from PLAN_MODULES / PLAN_MODULE_FULL_LABEL, each node is a
- * PLAN_MODULE_GUIDANCE `how` step, the accent is PLAN_MODULE_DOT, and the
- * pitfall (when present) is the module's pitfall.
+ * from existing Plan constants (slice 3b+3c: rebased onto UniversalDomain).
+ * Segment ids/labels come from PLAN_MODULES (= the 16 universal domains),
+ * each node is a PLAN_MODULE_GUIDANCE `how` step, the accent is
+ * PLAN_MODULE_DOT, and the pitfall (when present) is the domain's pitfall.
  *
- * Net-new copy here is a short `summary` (right-panel body) and a lucide `icon`
- * per objective. Everything else re-exports from the canonical Plan sources so
- * the wheel stays in sync with the rest of Plan.
+ * Net-new copy: a short `summary` and lucide `icon` per domain —
+ * first-wins from the legacy stage-local maps via PLAN_MODULE_TO_DOMAIN;
+ * unauthored domains fall back to `Circle` + empty summary. Collision
+ * domains (access-circulation, built-infrastructure, ecology) pick the
+ * canonical-first legacy module's icon + summary.
  */
 
 import {
   Compass,
   Layers,
   Droplets,
-  Route,
   Building2,
-  Tractor,
   PawPrint,
   Sprout,
   Shovel,
@@ -24,71 +24,69 @@ import {
   CalendarClock,
   ListChecks,
   Activity,
-  Trees,
-  Bird,
+  Circle,
   type LucideIcon,
 } from 'lucide-react';
+import type { UniversalDomain } from '@ogden/shared';
 import {
   PLAN_MODULES,
   PLAN_MODULE_FULL_LABEL,
   type PlanModule,
 } from '../types.js';
 import { PLAN_MODULE_DOT } from '../data/planModulePalette.js';
-import { PLAN_MODULE_GUIDANCE } from '../PlanChecklistAside.js';
+import { PLAN_MODULE_GUIDANCE } from '../planModuleGuidance.js';
 import type { CompassObjective } from '../../compass/compassTypes.js';
 
 // Re-export the shared shapes so existing importers of this module keep working.
 export type { CompassNode, CompassObjective } from '../../compass/compassTypes.js';
 
-const ICON: Record<PlanModule, LucideIcon> = {
-  'goal-compass': Compass,
-  'dynamic-layering': Layers,
-  'water-management': Droplets,
-  'zone-circulation': Route,
-  'structures-subsystems': Building2,
-  machinery: Tractor,
-  livestock: PawPrint,
-  'plant-systems': Sprout,
-  'soil-fertility': Shovel,
-  'cross-section-solar': Sun,
-  'phasing-budgeting': CalendarClock,
-  'principle-verification': ListChecks,
-  'regeneration-monitor': Activity,
-  'habitat-allocation': Trees,
-  'biodiversity-monitor': Bird,
+const ICON: Record<UniversalDomain, LucideIcon> = {
+  'vision-intent':        Compass,         // ← goal-compass
+  'land-base':            Circle,
+  'climate':              Sun,             // ← cross-section-solar
+  'topography':           Circle,
+  'hydrology':            Droplets,        // ← water-management
+  'soil':                 Shovel,          // ← soil-fertility
+  'ecology':              Activity,        // ← regeneration-monitor (first)
+  'plants-food':          Sprout,          // ← plant-systems
+  'animals-livestock':    PawPrint,        // ← livestock
+  'built-infrastructure': Building2,       // ← structures-subsystems (first)
+  'access-circulation':   Layers,          // ← dynamic-layering (first)
+  'energy-resources':     Circle,
+  'people-governance':    Circle,
+  'economics-capacity':   CalendarClock,   // ← phasing-budgeting
+  'risk-compliance':      ListChecks,      // ← principle-verification
+  'monitoring-records':   Circle,
 };
 
-const SUMMARY: Record<PlanModule, string> = {
-  'goal-compass':
+const SUMMARY: Record<UniversalDomain, string> = {
+  'vision-intent':
     'Declare measurable success criteria and let the sequencing engine propose a phased, costed, labour-budgeted plan against the permaculture intervention catalog.',
-  'dynamic-layering':
-    "Order the design by Yeomans' Scale of Permanence — climate, landform, water, access, structures — so slow-to-change layers are settled before fast ones.",
-  'water-management':
-    'Design water as a directed graph: catchments shed, storage retains, swales spread, sinks absorb — every node declaring an overflow target down-slope.',
-  'zone-circulation':
-    'Place elements on a frequency-of-visit ladder (Z0 home → Z5 wilderness) and confirm daily and weekly paths actually reach the high-maintenance zones.',
-  'structures-subsystems':
-    'Place dwellings and their utility subsystems only after climate, landform, water, and access are settled — avoiding expensive retrofits later.',
-  machinery:
-    'Lay out access tracks and gates against real machinery turning radii and widths, so every paddock, field, and structure has a reachable path.',
-  livestock:
-    'Design paddock cells and the product chain after water and access exist, sizing the herd to its rest period and the off-take it must feed.',
-  'plant-systems':
-    'Match species to site context, place guilds where water and access already lead, and step through the 30-year succession arc by layer.',
-  'soil-fertility':
-    'Diagnose soil before amending it — jar-test, percolation, pH — then wire every fertility unit to a feedstock source and a destination.',
-  'cross-section-solar':
+  'land-base':            '',
+  'climate':
     'Draw the vertical transect to reveal light competition between layers and verify solar access for heating, panels, and photosynthesis.',
-  'phasing-budgeting':
-    'Match implementation scale to available labour, capital, and ecological readiness — sequencing earthworks and water before planting.',
-  'principle-verification':
-    'Check the whole design against all twelve Holmgren principles to catch blind spots before implementation begins.',
-  'regeneration-monitor':
+  'topography':           '',
+  'hydrology':
+    'Design water as a directed graph: catchments shed, storage retains, swales spread, sinks absorb — every node declaring an overflow target down-slope.',
+  'soil':
+    'Diagnose soil before amending it — jar-test, percolation, pH — then wire every fertility unit to a feedstock source and a destination.',
+  'ecology':
     'Log dated, per-zone soil and cover samples and read each metric against its goal-tree trajectory — regeneration is only real if measured.',
-  'habitat-allocation':
-    'Allocate enough land to undisturbed habitat and corridors at year zero, reading the gauge against the goal-tree set-aside target.',
-  'biodiversity-monitor':
-    'Track native cover, invasive pressure, and the bird and pollinator community over time to confirm the habitat set-aside is actually recovering.',
+  'plants-food':
+    'Match species to site context, place guilds where water and access already lead, and step through the 30-year succession arc by layer.',
+  'animals-livestock':
+    'Design paddock cells and the product chain after water and access exist, sizing the herd to its rest period and the off-take it must feed.',
+  'built-infrastructure':
+    'Place dwellings and their utility subsystems only after climate, landform, water, and access are settled — avoiding expensive retrofits later.',
+  'access-circulation':
+    "Order the design by Yeomans' Scale of Permanence — climate, landform, water, access, structures — so slow-to-change layers are settled before fast ones.",
+  'energy-resources':     '',
+  'people-governance':    '',
+  'economics-capacity':
+    'Match implementation scale to available labour, capital, and ecological readiness — sequencing earthworks and water before planting.',
+  'risk-compliance':
+    'Check the whole design against all twelve Holmgren principles to catch blind spots before implementation begins.',
+  'monitoring-records':   '',
 };
 
 function buildObjective(id: PlanModule, ordinal: number): CompassObjective {
@@ -107,13 +105,13 @@ function buildObjective(id: PlanModule, ordinal: number): CompassObjective {
   };
 }
 
-/** Canonical full objective set (all Plan modules, default order). */
+/** Canonical full objective set (all 16 domains, canonical order). */
 export const PLAN_COMPASS_OBJECTIVES: readonly CompassObjective[] =
   PLAN_MODULES.map((id, i) => buildObjective(id, i + 1));
 
 export function planObjectiveById(id: PlanModule): CompassObjective {
   const found = PLAN_COMPASS_OBJECTIVES.find((o) => o.id === id);
   // PLAN_COMPASS_OBJECTIVES is built from PLAN_MODULES, so every valid
-  // PlanModule is present (and the array is never empty).
+  // domain is present (and the array is never empty).
   return found ?? PLAN_COMPASS_OBJECTIVES[0]!;
 }

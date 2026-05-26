@@ -20,13 +20,13 @@ export const BE_CATEGORY_TO_OBSERVE_MODULE: Record<
   BuiltEnvironmentCategory,
   ObserveModule
 > = {
-  building: 'built-environment',
-  agricultural: 'built-environment',
-  utility: 'built-environment',
-  infrastructure: 'built-environment',
-  machinery: 'built-environment',
-  amenity: 'built-environment',
-  vegetation: 'earth-water-ecology',
+  building: 'built-infrastructure',
+  agricultural: 'built-infrastructure',
+  utility: 'built-infrastructure',
+  infrastructure: 'built-infrastructure',
+  machinery: 'built-infrastructure',
+  amenity: 'built-infrastructure',
+  vegetation: 'hydrology',
   earthworks: 'topography',
 };
 
@@ -42,7 +42,7 @@ export function observeSectionIdModule(id: string): ObserveModule {
   // `be-from-map` is the adopt-from-map meta-section, routed to
   // `built-environment`. Checked before the `be-<category>` slice because
   // `from-map` is not a BuiltEnvironmentCategory.
-  if (id === 'be-from-map') return 'built-environment';
+  if (id === 'be-from-map') return 'built-infrastructure';
   if (id.startsWith('be-')) {
     const category = id.slice(3) as BuiltEnvironmentCategory;
     if (category in BE_CATEGORY_TO_OBSERVE_MODULE) {

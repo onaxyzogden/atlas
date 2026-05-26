@@ -1,15 +1,18 @@
 /**
  * actCompassConfig — derives the Stage Compass objectives for the Act stage
- * from existing Act constants, mirroring planCompassConfig / observeCompassConfig.
- * Segment ids/labels come from ACT_MODULES / ACT_MODULE_FULL_LABEL, each node is
- * an ACT_MODULE_GUIDANCE `how` step, the accent is ACT_MODULE_DOT, the icon is
- * the existing ACT_MODULE_ICON, and the pitfall is the module's pitfall.
+ * from existing Act constants (slice 3b+3c: rebased onto UniversalDomain).
+ * Segment ids/labels come from ACT_MODULES (= the 16 universal domains),
+ * each node is an ACT_MODULE_GUIDANCE `how` step, the accent is
+ * ACT_MODULE_DOT, the icon is ACT_MODULE_ICON, and the pitfall is the
+ * domain's pitfall.
  *
- * Net-new copy here is a short `summary` (right-panel body) per objective.
- * Everything else re-exports from the canonical Act sources so the wheel stays
- * in sync with the rest of Act.
+ * Net-new copy: a short `summary` per domain — first-wins from the legacy
+ * stage-local map via ACT_MODULE_TO_DOMAIN; unauthored domains fall back
+ * to empty summary. Collision domains (built-infrastructure,
+ * monitoring-records) pick the canonical-first legacy module's summary.
  */
 
+import type { UniversalDomain } from '@ogden/shared';
 import {
   ACT_MODULES,
   ACT_MODULE_FULL_LABEL,
@@ -23,23 +26,29 @@ import type { CompassObjective } from '../../compass/compassTypes.js';
 // Re-export the shared shapes so existing importers of this module keep working.
 export type { CompassNode, CompassObjective } from '../../compass/compassTypes.js';
 
-const SUMMARY: Record<ActModule, string> = {
-  tracker:
-    'Turn the costed, phased plan into live work — reconcile each phase task against the labour, capital, and materials actually available this window.',
-  build:
-    'Sequence construction water → access → structures and log spend against budget so no phase overruns the corpus that funds the next.',
-  maintain:
-    'Log breakages and run upkeep on a schedule so infrastructure failures arrive as feedback, not as cascading crises.',
-  livestock:
-    'Move the herd on observed forage recovery, not the calendar — tracking days-on, rest periods, and welfare so grazing builds soil rather than mining it.',
-  harvest:
+const SUMMARY: Record<UniversalDomain, string> = {
+  'vision-intent':        '',
+  'land-base':            '',
+  'climate':              '',
+  'topography':           '',
+  'hydrology':            '',
+  'soil':                 '',
+  'ecology':              '',
+  'plants-food':
     'Record every pick against the long succession arc so replanting and gap-filling stay ahead of decline instead of chasing it.',
-  review:
-    'Keep an ongoing SWOT and live hazard plans so the steward steers by current reality, not the year-zero diagnosis.',
-  network:
+  'animals-livestock':
+    'Move the herd on observed forage recovery, not the calendar — tracking days-on, rest periods, and welfare so grazing builds soil rather than mining it.',
+  'built-infrastructure':
+    'Sequence construction water → access → structures and log spend against budget so no phase overruns the corpus that funds the next.',
+  'access-circulation':   '',
+  'energy-resources':     '',
+  'people-governance':
     'Keep the people-and-tech web legible — suppliers, buyers, advisers, helpers, and shared tools — so the project draws on its community.',
-  schedule:
+  'economics-capacity':
     'Align field tasks to weather and season so labour lands in the right window — the right job at the wrong time is wasted work.',
+  'risk-compliance':      '',
+  'monitoring-records':
+    'Turn the costed, phased plan into live work — reconcile each phase task against the labour, capital, and materials actually available this window.',
 };
 
 function buildObjective(id: ActModule, ordinal: number): CompassObjective {
@@ -58,13 +67,13 @@ function buildObjective(id: ActModule, ordinal: number): CompassObjective {
   };
 }
 
-/** Canonical full objective set (all Act modules, default order). */
+/** Canonical full objective set (all 16 domains, canonical order). */
 export const ACT_COMPASS_OBJECTIVES: readonly CompassObjective[] =
   ACT_MODULES.map((id, i) => buildObjective(id, i + 1));
 
 export function actObjectiveById(id: ActModule): CompassObjective {
   const found = ACT_COMPASS_OBJECTIVES.find((o) => o.id === id);
-  // ACT_COMPASS_OBJECTIVES is built from ACT_MODULES, so every valid ActModule
+  // ACT_COMPASS_OBJECTIVES is built from ACT_MODULES, so every valid domain
   // is present (and the array is never empty).
   return found ?? ACT_COMPASS_OBJECTIVES[0]!;
 }

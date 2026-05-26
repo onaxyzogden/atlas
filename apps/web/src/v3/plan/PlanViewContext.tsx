@@ -25,21 +25,29 @@ import type { PlanModule, PlanView } from './types.js';
 export type PlanModuleScope = 'phased' | 'time-invariant';
 
 export const PLAN_MODULE_SCOPE: Record<PlanModule, PlanModuleScope> = {
-  'goal-compass':           'time-invariant',
-  'dynamic-layering':       'phased',
-  'water-management':       'phased',
-  'zone-circulation':       'time-invariant',
-  'structures-subsystems':  'time-invariant',
-  machinery:                'time-invariant',
-  livestock:                'phased',
-  'plant-systems':          'phased',
-  'soil-fertility':         'phased',
-  'cross-section-solar':    'time-invariant',
-  'phasing-budgeting':      'phased',
-  'principle-verification': 'phased',
-  'regeneration-monitor':   'time-invariant',
-  'habitat-allocation':     'time-invariant',
-  'biodiversity-monitor':   'time-invariant',
+  'vision-intent': 'time-invariant',
+  // access-circulation collapses dynamic-layering (time-invariant) +
+  // zone-circulation (phased); zones drive year-scoping, so 'phased' wins.
+  'access-circulation': 'phased',
+  hydrology: 'phased',
+  // built-infrastructure collapses structures-subsystems + machinery — both
+  // time-invariant.
+  'built-infrastructure': 'time-invariant',
+  'animals-livestock': 'phased',
+  'plants-food': 'phased',
+  soil: 'phased',
+  climate: 'time-invariant',
+  'economics-capacity': 'phased',
+  'risk-compliance': 'phased',
+  // ecology collapses regeneration-monitor + habitat-allocation +
+  // biodiversity-monitor — all time-invariant.
+  ecology: 'time-invariant',
+  // Unauthored Plan domains — default to time-invariant.
+  'land-base': 'time-invariant',
+  topography: 'time-invariant',
+  'energy-resources': 'time-invariant',
+  'people-governance': 'time-invariant',
+  'monitoring-records': 'time-invariant',
 };
 
 interface PlanViewContextValue {

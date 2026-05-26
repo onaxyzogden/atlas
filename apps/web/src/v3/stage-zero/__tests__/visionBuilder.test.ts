@@ -161,8 +161,8 @@ describe('deriveActivatedModules', () => {
       expect(mods).toContain(baseline);
     }
     // …plus homestead's type-distinctive modules.
-    expect(mods).toContain('structures-subsystems');
-    expect(mods).toContain('cross-section-solar');
+    expect(mods).toContain('built-infrastructure');
+    expect(mods).toContain('climate');
   });
 
   it('does not seed the baseline without a project type', () => {
@@ -172,10 +172,10 @@ describe('deriveActivatedModules', () => {
     const mods = deriveActivatedModules({
       primaryOutcomes: ['water_resilience'], // water-management only
     });
-    expect(mods).toContain('water-management');
-    expect(mods).not.toContain('soil-fertility');
-    expect(mods).not.toContain('zone-circulation');
-    expect(mods).not.toContain('phasing-budgeting');
+    expect(mods).toContain('hydrology');
+    expect(mods).not.toContain('soil');
+    expect(mods).not.toContain('access-circulation');
+    expect(mods).not.toContain('economics-capacity');
   });
 
   it('unions baseline with conservation-specific modules', () => {
@@ -183,9 +183,9 @@ describe('deriveActivatedModules', () => {
     for (const baseline of BASELINE_MODULES) {
       expect(mods).toContain(baseline);
     }
-    expect(mods).toContain('habitat-allocation');
-    expect(mods).toContain('biodiversity-monitor');
-    expect(mods).toContain('regeneration-monitor');
+    expect(mods).toContain('ecology');
+    expect(mods).toContain('ecology');
+    expect(mods).toContain('ecology');
   });
 
   it('unions activated modules across answered questions, de-duplicated', () => {
@@ -193,11 +193,11 @@ describe('deriveActivatedModules', () => {
       primaryType: 'regenerative_farm', // type: plant-systems… + baseline (water, soil…)
       primaryOutcomes: ['water_resilience'], // water-management (dup of baseline)
     });
-    expect(mods).toContain('soil-fertility');
-    expect(mods).toContain('plant-systems');
-    expect(mods).toContain('water-management');
+    expect(mods).toContain('soil');
+    expect(mods).toContain('plants-food');
+    expect(mods).toContain('hydrology');
     // De-duplicated.
-    expect(mods.filter((m) => m === 'water-management')).toHaveLength(1);
+    expect(mods.filter((m) => m === 'hydrology')).toHaveLength(1);
   });
 
   it('returns modules in canonical PLAN_MODULES order', () => {
@@ -207,8 +207,8 @@ describe('deriveActivatedModules', () => {
       // → water-management, habitat-allocation, regeneration-monitor
     });
     // water-management precedes habitat-allocation in PLAN_MODULES.
-    expect(mods.indexOf('water-management')).toBeLessThan(
-      mods.indexOf('habitat-allocation'),
+    expect(mods.indexOf('hydrology')).toBeLessThan(
+      mods.indexOf('ecology'),
     );
   });
 
@@ -217,10 +217,10 @@ describe('deriveActivatedModules', () => {
     // profile paths carry values they must not contribute modules to the strip
     // — the projection is driven only by the lean Stage Zero questions.
     const mods = deriveActivatedModules({
-      systemsInScope: { animals: ['goats'] }, // deferred → no 'livestock'
-      livestock: { roles: ['meat'] }, // deferred → no 'livestock'
+      systemsInScope: { animals: ['goats'] }, // deferred → no 'animals-livestock'
+      livestock: { roles: ['meat'] }, // deferred → no 'animals-livestock'
     });
-    expect(mods).not.toContain('livestock');
+    expect(mods).not.toContain('animals-livestock');
   });
 
   it('still excludes deferred modules even alongside a chosen project type', () => {
@@ -229,6 +229,6 @@ describe('deriveActivatedModules', () => {
       primaryType: 'homestead',
       systemsInScope: { animals: ['goats'] }, // deferred
     });
-    expect(mods).not.toContain('livestock');
+    expect(mods).not.toContain('animals-livestock');
   });
 });

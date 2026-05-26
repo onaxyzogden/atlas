@@ -26,9 +26,9 @@ const ALL_REQUIRED_MET: PlanProgressInput = input({
 describe('evaluateModule', () => {
   it('marks tasks plan_to_do when nothing is done', () => {
     const m = evaluateModule(
-      PLAN_OBJECTIVES['water-management'],
+      PLAN_OBJECTIVES['hydrology'],
       EMPTY_PLAN_INPUT,
-      'water-management',
+      'hydrology',
     );
     expect(m.doneCount).toBe(0);
     expect(m.complete).toBe(false);
@@ -37,9 +37,9 @@ describe('evaluateModule', () => {
 
   it('completes when the required objective is met, regardless of optional', () => {
     const m = evaluateModule(
-      PLAN_OBJECTIVES['water-management'],
+      PLAN_OBJECTIVES['hydrology'],
       input({ waterNodeCount: 1 }),
-      'water-management',
+      'hydrology',
     );
     expect(m.complete).toBe(true);
     expect(m.requiredDone).toBe(m.requiredTotal);
@@ -53,9 +53,9 @@ describe('evaluateModule', () => {
     // plant-systems: succession is optional and independent of the required
     // (guild or crop area) predicate.
     const m = evaluateModule(
-      PLAN_OBJECTIVES['plant-systems'],
+      PLAN_OBJECTIVES['plants-food'],
       input({ successionPlanned: true }),
-      'plant-systems',
+      'plants-food',
     );
     expect(m.doneCount).toBe(1);
     expect(m.complete).toBe(false);
@@ -63,9 +63,9 @@ describe('evaluateModule', () => {
 
   it('treats zone OR path as satisfying the zone-circulation required objective', () => {
     const viaPath = evaluateModule(
-      PLAN_OBJECTIVES['zone-circulation'],
+      PLAN_OBJECTIVES['access-circulation'],
       input({ pathCount: 1 }),
-      'zone-circulation',
+      'access-circulation',
     );
     expect(viaPath.complete).toBe(true);
   });
@@ -73,9 +73,9 @@ describe('evaluateModule', () => {
   it('an optional-only module with nothing done still evaluates complete', () => {
     // structures-subsystems carries no required objective → never gates.
     const m = evaluateModule(
-      PLAN_OBJECTIVES['structures-subsystems'],
+      PLAN_OBJECTIVES['built-infrastructure'],
       EMPTY_PLAN_INPUT,
-      'structures-subsystems',
+      'built-infrastructure',
     );
     expect(m.requiredTotal).toBe(0);
     expect(m.complete).toBe(true);

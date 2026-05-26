@@ -84,113 +84,119 @@ export interface PlanObjective {
  * with no authoring store this round get an empty list and evaluate complete.
  */
 export const PLAN_OBJECTIVES: Record<PlanModule, PlanObjective[]> = {
-  'goal-compass': [],
-  'dynamic-layering': [],
-  'water-management': [
-    {
-      id: 'water-management.node',
-      module: 'water-management',
-      label: 'Place a water node (catchment, storage, or sink)',
-      required: true,
-      isComplete: (i) => i.waterNodeCount > 0,
-    },
-    {
-      id: 'water-management.network',
-      module: 'water-management',
-      label: 'Build a three-node water network',
-      required: false,
-      isComplete: (i) => i.waterNodeCount >= 3,
-    },
-  ],
-  'zone-circulation': [
+  'vision-intent': [],
+  'access-circulation': [
+    // ← zone-circulation (dynamic-layering contributes nothing)
     {
       id: 'zone-circulation.layout',
-      module: 'zone-circulation',
+      module: 'access-circulation',
       label: 'Define a zone or a circulation path',
       required: true,
-      isComplete: (i) => i.zoneCount > 0 || i.pathCount > 0,
+      isComplete: (i: PlanProgressInput) => i.zoneCount > 0 || i.pathCount > 0,
     },
     {
       id: 'zone-circulation.path',
-      module: 'zone-circulation',
+      module: 'access-circulation',
       label: 'Draw a circulation path',
       required: false,
-      isComplete: (i) => i.pathCount > 0,
+      isComplete: (i: PlanProgressInput) => i.pathCount > 0,
     },
   ],
-  'structures-subsystems': [
+  hydrology: [
+    {
+      id: 'water-management.node',
+      module: 'hydrology',
+      label: 'Place a water node (catchment, storage, or sink)',
+      required: true,
+      isComplete: (i: PlanProgressInput) => i.waterNodeCount > 0,
+    },
+    {
+      id: 'water-management.network',
+      module: 'hydrology',
+      label: 'Build a three-node water network',
+      required: false,
+      isComplete: (i: PlanProgressInput) => i.waterNodeCount >= 3,
+    },
+  ],
+  'built-infrastructure': [
+    // ← structures-subsystems (machinery contributes nothing)
     {
       id: 'structures-subsystems.proposed',
-      module: 'structures-subsystems',
+      module: 'built-infrastructure',
       label: 'Place a proposed structure',
       required: false,
-      isComplete: (i) => i.builtProposedCount > 0,
+      isComplete: (i: PlanProgressInput) => i.builtProposedCount > 0,
     },
   ],
-  machinery: [],
-  livestock: [
+  'animals-livestock': [
     {
       id: 'livestock.paddock',
-      module: 'livestock',
+      module: 'animals-livestock',
       label: 'Design a grazing paddock',
       required: false,
-      isComplete: (i) => i.paddockCount > 0,
+      isComplete: (i: PlanProgressInput) => i.paddockCount > 0,
     },
   ],
-  'plant-systems': [
+  'plants-food': [
     {
       id: 'plant-systems.planting',
-      module: 'plant-systems',
+      module: 'plants-food',
       label: 'Design a guild or crop area',
       required: true,
-      isComplete: (i) => i.guildCount > 0 || i.cropAreaCount > 0,
+      isComplete: (i: PlanProgressInput) =>
+        i.guildCount > 0 || i.cropAreaCount > 0,
     },
     {
       id: 'plant-systems.succession',
-      module: 'plant-systems',
+      module: 'plants-food',
       label: 'Map an establishment succession',
       required: false,
-      isComplete: (i) => i.successionPlanned,
+      isComplete: (i: PlanProgressInput) => i.successionPlanned,
     },
   ],
-  'soil-fertility': [
+  soil: [
     {
       id: 'soil-fertility.loop',
-      module: 'soil-fertility',
+      module: 'soil',
       label: 'Map a material flow or fertility node',
       required: false,
-      isComplete: (i) => i.soilFlowCount > 0,
+      isComplete: (i: PlanProgressInput) => i.soilFlowCount > 0,
     },
   ],
-  'cross-section-solar': [],
-  'phasing-budgeting': [
+  climate: [],
+  'economics-capacity': [
     {
       id: 'phasing-budgeting.phase',
-      module: 'phasing-budgeting',
+      module: 'economics-capacity',
       label: 'Create a build phase or work item',
       required: true,
-      isComplete: (i) => i.phaseCount > 0 || i.workItemCount > 0,
+      isComplete: (i: PlanProgressInput) =>
+        i.phaseCount > 0 || i.workItemCount > 0,
     },
     {
       id: 'phasing-budgeting.workitem',
-      module: 'phasing-budgeting',
+      module: 'economics-capacity',
       label: 'Schedule a work item',
       required: false,
-      isComplete: (i) => i.workItemCount > 0,
+      isComplete: (i: PlanProgressInput) => i.workItemCount > 0,
     },
   ],
-  'principle-verification': [
+  'risk-compliance': [
     {
       id: 'principle-verification.met',
-      module: 'principle-verification',
+      module: 'risk-compliance',
       label: 'Verify a Holmgren principle',
       required: false,
-      isComplete: (i) => i.principleMetCount > 0,
+      isComplete: (i: PlanProgressInput) => i.principleMetCount > 0,
     },
   ],
-  'regeneration-monitor': [],
-  'habitat-allocation': [],
-  'biodiversity-monitor': [],
+  ecology: [],
+  // Unauthored domains — empty, evaluate complete.
+  'land-base': [],
+  topography: [],
+  'energy-resources': [],
+  'people-governance': [],
+  'monitoring-records': [],
 };
 
 export interface ModuleProgress {

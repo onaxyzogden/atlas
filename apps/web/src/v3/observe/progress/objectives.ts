@@ -88,56 +88,56 @@ export interface ObserveObjective {
  * the completion percentage without gating.
  */
 export const OBSERVE_OBJECTIVES: Record<ObserveModule, ObserveObjective[]> = {
-  'human-context': [
+  'people-governance': [
     {
       id: 'human-context.boundary',
-      module: 'human-context',
+      module: 'people-governance',
       label: 'Draw the property boundary',
       required: true,
       isComplete: (i) => i.hasBoundary,
     },
     {
       id: 'human-context.homestead',
-      module: 'human-context',
+      module: 'people-governance',
       label: 'Pin the homestead / activity hub',
       required: false,
       isComplete: (i) => i.homesteadPinned,
     },
   ],
-  'built-environment': [
+  'built-infrastructure': [
     {
       id: 'built-environment.feature',
-      module: 'built-environment',
+      module: 'built-infrastructure',
       label: 'Place at least one built feature',
       required: true,
       isComplete: (i) => i.builtFeatureCount > 0,
     },
     {
       id: 'built-environment.three',
-      module: 'built-environment',
+      module: 'built-infrastructure',
       label: 'Map three or more built features',
       required: false,
       isComplete: (i) => i.builtFeatureCount >= 3,
     },
   ],
-  'macroclimate-hazards': [
+  'climate': [
     {
       id: 'macroclimate-hazards.force',
-      module: 'macroclimate-hazards',
+      module: 'climate',
       label: 'Record a hazard or sector force',
       required: true,
       isComplete: (i) => i.hazardCount > 0 || i.sectorCount > 0,
     },
     {
       id: 'macroclimate-hazards.hazard',
-      module: 'macroclimate-hazards',
+      module: 'climate',
       label: 'Log a hazard event',
       required: false,
       isComplete: (i) => i.hazardCount > 0,
     },
     {
       id: 'macroclimate-hazards.sector',
-      module: 'macroclimate-hazards',
+      module: 'climate',
       label: 'Draw a sector arrow',
       required: false,
       isComplete: (i) => i.sectorCount > 0,
@@ -159,10 +159,10 @@ export const OBSERVE_OBJECTIVES: Record<ObserveModule, ObserveObjective[]> = {
       isComplete: (i) => i.transectCount > 0,
     },
   ],
-  'earth-water-ecology': [
+  'hydrology': [
     {
       id: 'earth-water-ecology.observation',
-      module: 'earth-water-ecology',
+      module: 'hydrology',
       label: 'Record an earthwork, water line, soil sample, or ecology obs',
       required: true,
       isComplete: (i) =>
@@ -173,51 +173,61 @@ export const OBSERVE_OBJECTIVES: Record<ObserveModule, ObserveObjective[]> = {
     },
     {
       id: 'earth-water-ecology.water',
-      module: 'earth-water-ecology',
+      module: 'hydrology',
       label: 'Map existing water (earthwork or watercourse)',
       required: false,
       isComplete: (i) => i.earthworkCount > 0 || i.waterLineCount > 0,
     },
     {
       id: 'earth-water-ecology.soil',
-      module: 'earth-water-ecology',
+      module: 'hydrology',
       label: 'Capture a soil sample',
       required: false,
       isComplete: (i) => i.soilSampleCount > 0,
     },
   ],
-  'sectors-zones': [
+  'access-circulation': [
     {
       id: 'sectors-zones.zone',
-      module: 'sectors-zones',
+      module: 'access-circulation',
       label: 'Outline a zone or vegetation patch',
       required: true,
       isComplete: (i) => i.zoneCount > 0 || i.patchCount > 0,
     },
     {
       id: 'sectors-zones.sector',
-      module: 'sectors-zones',
+      module: 'access-circulation',
       label: 'Add a sector arrow',
       required: false,
       isComplete: (i) => i.sectorCount > 0,
     },
   ],
-  'swot-synthesis': [
+  'monitoring-records': [
     {
       id: 'swot-synthesis.entry',
-      module: 'swot-synthesis',
+      module: 'monitoring-records',
       label: 'Capture a SWOT entry',
       required: true,
       isComplete: (i) => i.swotCount > 0,
     },
     {
       id: 'swot-synthesis.buckets',
-      module: 'swot-synthesis',
+      module: 'monitoring-records',
       label: 'Cover all four SWOT buckets',
       required: false,
       isComplete: (i) => i.swotBucketsCovered >= 4,
     },
   ],
+  // Unauthored Observe domains — empty objective lists.
+  'vision-intent': [],
+  'land-base': [],
+  soil: [],
+  ecology: [],
+  'plants-food': [],
+  'animals-livestock': [],
+  'energy-resources': [],
+  'economics-capacity': [],
+  'risk-compliance': [],
 };
 
 export interface ModuleProgress {
@@ -272,7 +282,7 @@ export function evaluateModule(
   }
 
   return {
-    module: objectives[0]?.module ?? 'human-context',
+    module: objectives[0]?.module ?? 'people-governance',
     tasks,
     doneCount,
     total: objectives.length,

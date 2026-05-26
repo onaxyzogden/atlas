@@ -28,7 +28,7 @@ function flag(overrides: Partial<PlanImpactFlag> = {}): PlanImpactFlag {
     id: 'need-1',
     projectId: 'mtc',
     needId: 'need-1',
-    module: 'earth-water-ecology',
+    module: 'hydrology',
     title: 'Recheck eroded bank',
     reason: 'Bank slumped after the storm',
     planImpact: 'likely',
@@ -108,7 +108,7 @@ describe('buildSupersedingDraft', () => {
       rationale: 'Slow the runoff',
       assumptions: 'Bank stays stable through winter',
       tradeoffs: 'Costs a day of earthworks',
-      affectedModule: 'water-management',
+      affectedModule: 'hydrology',
       sources: [{ observationId: 'need-1', title: 'Bank', module: 'topography' }],
     });
     const next = buildSupersedingDraft(prev);
@@ -120,7 +120,7 @@ describe('buildSupersedingDraft', () => {
     expect(next.rationale).toBe('Slow the runoff');
     expect(next.assumptions).toBe('Bank stays stable through winter');
     expect(next.tradeoffs).toBe('Costs a day of earthworks');
-    expect(next.affectedModule).toBe('water-management');
+    expect(next.affectedModule).toBe('hydrology');
     expect(next.sources).toEqual(prev.sources);
     expect(next.sources).not.toBe(prev.sources);
   });

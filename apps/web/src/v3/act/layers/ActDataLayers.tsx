@@ -56,11 +56,11 @@ const STALE_COLOR = '#8a6a4a';
  * (not currently emitted by ActDataLayers).
  */
 const SOURCEKIND_MODULE: Record<string, ActModule> = {
-  crop: 'harvest',
-  livestock: 'livestock',
-  earthwork: 'maintain',
-  storage: 'maintain',
-  structure: 'build',
+  crop: 'plants-food',
+  livestock: 'animals-livestock',
+  earthwork: 'built-infrastructure',
+  storage: 'built-infrastructure',
+  structure: 'built-infrastructure',
 };
 
 export default function ActDataLayers({ map, projectId, activeModule = null }: Props) {

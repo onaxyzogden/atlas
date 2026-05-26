@@ -166,7 +166,7 @@ export default function ObserveChecklistAside({
   // is one objective surfaced as its per-category cards; every other module is
   // a single guidance card. Context cards (ReadyCue, PlacedFeatures) are
   // intentionally omitted so the rail mirrors the compass's single focus.
-  const showBuiltEnvironment = activeModule === 'built-environment';
+  const showBuiltEnvironment = activeModule === 'built-infrastructure';
 
   return (
     <aside

@@ -21,10 +21,10 @@ import { VISION_QUESTIONS } from '../data/visionBuilderQuestions.js';
  * carry the *type-distinctive* modules on top of these.
  */
 export const BASELINE_MODULES: PlanModule[] = [
-  'water-management',
-  'soil-fertility',
-  'zone-circulation',
-  'phasing-budgeting',
+  'hydrology',           // ← water-management
+  'soil',                // ← soil-fertility
+  'access-circulation',  // ← zone-circulation
+  'economics-capacity',  // ← phasing-budgeting
 ];
 
 /** Collect the selected option ids for a question from the profile. */

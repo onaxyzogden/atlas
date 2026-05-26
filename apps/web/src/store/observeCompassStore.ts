@@ -1,17 +1,26 @@
 /**
- * observeCompassStore — per-project per-module per-node evidence state for the
- * Stage Compass. The existing observeHowChecksStore is a binary checklist
- * toggle; this store adds the evidence-verified gating layer the compass needs
+ * observeCompassStore — per-project per-domain per-node evidence state for
+ * the Stage Compass (slice 3b+3c: rebased onto UniversalDomain).
+ *
+ * The existing observeHowChecksStore is a binary checklist toggle; this
+ * store adds the evidence-verified gating layer the compass needs
  * (locked → evidence-in → verified) without changing live map behavior.
  *
- * Prototype: seeded with mock evidence states (SEED) so the wheel reads as a
- * project mid-flight. Unmodified modules fall back to SEED per-module; the
- * first action on a module persists that module's map under the project.
- * Pattern mirrors observeHowChecksStore.ts.
+ * Prototype: seeded with mock evidence states (SEED) so the wheel reads as
+ * a project mid-flight. Unmodified domains fall back to SEED per-domain;
+ * the first action on a domain persists that domain's map under the
+ * project.
+ *
+ * Persist v1→v2: collapses legacy 7-id ObserveModule keys to the 16
+ * UniversalDomain ids. Observe is collision-free, so the mergeFn is a
+ * pass-through (always called with parts.length === 1; the migration util
+ * bypasses mergeFn for single-part inputs).
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { UniversalDomain } from '@ogden/shared';
+import { migrateByProjectModuleKeys, type MergeFn } from '@ogden/shared';
 import type { ObserveModule } from '../v3/observe/types.js';
 import type {
   NodeEvidence,
@@ -20,20 +29,55 @@ import type {
 
 type ModuleEvidence = Partial<Record<ObserveModule, RawEvidenceMap>>;
 
+/**
+ * HOW-step counts at the moment of the v1→v2 cutover. Immutable migration
+ * constants — must NOT drift if MODULE_GUIDANCE.how is edited later.
+ */
+const HOW_STEP_COUNTS: Record<string, number> = {
+  'human-context': 3,
+  'built-environment': 4,
+  'macroclimate-hazards': 2,
+  'topography': 3,
+  'earth-water-ecology': 3,
+  'sectors-zones': 2,
+  'swot-synthesis': 2,
+};
+
 /** Mock starting state — varied so the prototype shows every node state. */
-const SEED: Readonly<Record<ObserveModule, RawEvidenceMap>> = {
-  'human-context': { 0: 'verified', 1: 'verified', 2: 'evidence-in' },
-  'built-environment': { 0: 'verified', 1: 'evidence-in' },
-  'macroclimate-hazards': { 0: 'verified' },
-  topography: { 0: 'verified', 1: 'evidence-in' },
-  'earth-water-ecology': { 0: 'verified', 1: 'verified' },
-  'sectors-zones': { 0: 'evidence-in' },
-  'swot-synthesis': {},
+const SEED: Readonly<Record<UniversalDomain, RawEvidenceMap>> = {
+  'vision-intent':        {},
+  'land-base':            {},
+  'climate':              { 0: 'verified' },                              // ← macroclimate-hazards
+  'topography':           { 0: 'verified', 1: 'evidence-in' },
+  'hydrology':            { 0: 'verified', 1: 'verified' },               // ← earth-water-ecology
+  'soil':                 {},
+  'ecology':              {},
+  'plants-food':          {},
+  'animals-livestock':    {},
+  'built-infrastructure': { 0: 'verified', 1: 'evidence-in' },            // ← built-environment
+  'access-circulation':   { 0: 'evidence-in' },                           // ← sectors-zones
+  'energy-resources':     {},
+  'people-governance':    { 0: 'verified', 1: 'verified', 2: 'evidence-in' }, // ← human-context
+  'economics-capacity':   {},
+  'risk-compliance':      {},
+  'monitoring-records':   {},                                             // ← swot-synthesis
 };
 
 const EMPTY: RawEvidenceMap = {};
 
-/** Seed fallback for a module, for callers computing many objectives at once
+const compassMergeFn: MergeFn<RawEvidenceMap> = (_domain, parts) => {
+  const out: RawEvidenceMap = {};
+  let offset = 0;
+  for (const { moduleId, value } of parts) {
+    for (const [idxStr, status] of Object.entries(value)) {
+      out[Number(idxStr) + offset] = status as NodeEvidence;
+    }
+    offset += HOW_STEP_COUNTS[moduleId] ?? 0;
+  }
+  return out;
+};
+
+/** Seed fallback for a domain, for callers computing many objectives at once
  *  (the wheel) without going through the store's per-call `rawFor`. */
 export function seedFor(module: ObserveModule): RawEvidenceMap {
   return SEED[module] ?? EMPTY;
@@ -41,7 +85,7 @@ export function seedFor(module: ObserveModule): RawEvidenceMap {
 
 export interface ObserveCompassState {
   byProject: Record<string, ModuleEvidence>;
-  /** Resolved evidence map for a module — stored override or the SEED fallback. */
+  /** Resolved evidence map for a domain — stored override or the SEED fallback. */
   rawFor: (projectId: string, module: ObserveModule) => RawEvidenceMap;
   /** Mark a node as evidence-in (only meaningful once it is unlocked). */
   logEvidence: (
@@ -117,8 +161,24 @@ export const useObserveCompassStore = create<ObserveCompassState>()(
     }),
     {
       name: 'ogden-atlas-observe-compass',
-      version: 1,
-      migrate: (persisted) => persisted as ObserveCompassState,
+      version: 2,
+      migrate: (persisted, version) => {
+        if (version < 2) {
+          const migrated = migrateByProjectModuleKeys<RawEvidenceMap>(
+            persisted,
+            'observe',
+            compassMergeFn,
+          );
+          if (migrated) {
+            return {
+              ...(persisted as object),
+              byProject: migrated.byProject,
+            } as ObserveCompassState;
+          }
+          return { byProject: {} } as ObserveCompassState;
+        }
+        return persisted as ObserveCompassState;
+      },
     },
   ),
 );

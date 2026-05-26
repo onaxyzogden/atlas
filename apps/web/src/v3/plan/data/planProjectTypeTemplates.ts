@@ -64,28 +64,27 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: "Confirm primary cash-crop rotation fits the parcel's landform and water budget (Yeomans rank 2-3).",
         relatedWork: [
-          { module: 'dynamic-layering', indexes: [0, 1] },
-          { module: 'water-management', indexes: [0], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [0, 1] },
+          { module: 'hydrology', indexes: [0], requiresArtifacts: true },
         ],
       },
       {
         text: 'Map livestock-to-pasture ratio against target rest periods before drawing paddock cells.',
         relatedWork: [
-          { module: 'livestock', indexes: [1], requiresArtifacts: true },
+          { module: 'animals-livestock', indexes: [1], requiresArtifacts: true },
         ],
       },
       {
         text: 'Site keyline-aligned access tracks before fencing or planting permanent rows.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [1], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [4], requiresArtifacts: true },
         ],
       },
       {
         text: 'Stage swales, ponds, and overflow paths so the wet-season excess has somewhere to go.',
         relatedWork: [
           {
-            module: 'water-management',
-            indexes: [1, 2],
+            module: 'hydrology', indexes: [1, 2],
             requiresArtifacts: true,
           },
         ],
@@ -93,16 +92,15 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Place orchard guilds downslope of water storage along the contour, not against it.',
         relatedWork: [
-          { module: 'plant-systems', indexes: [1], requiresArtifacts: true },
-          { module: 'water-management', indexes: [], requiresArtifacts: true },
+          { module: 'plants-food', indexes: [1], requiresArtifacts: true },
+          { module: 'hydrology', indexes: [], requiresArtifacts: true },
         ],
       },
       {
         text: 'Wire compost / manure / crop-residue flows into a closed loop before sizing inputs.',
         relatedWork: [
           {
-            module: 'soil-fertility',
-            indexes: [1, 2, 3],
+            module: 'soil', indexes: [1, 2, 3],
             requiresArtifacts: true,
           },
         ],
@@ -110,8 +108,8 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Right-size primary tractor and implements against parcel acreage and slope; widen access before locking field shapes.',
         relatedWork: [
-          { module: 'machinery', indexes: [0, 2] },
-          { module: 'zone-circulation', indexes: [1], requiresArtifacts: true },
+          { module: 'built-infrastructure', indexes: [3, 5] },
+          { module: 'access-circulation', indexes: [4], requiresArtifacts: true },
         ],
       },
     ],
@@ -124,37 +122,34 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
         text: 'Route guest paths so they never cross daily livestock or service routes (Mollison Z2/Z3 separation).',
         relatedWork: [
           {
-            module: 'zone-circulation',
-            indexes: [1, 2],
+            module: 'access-circulation', indexes: [4, 5],
             requiresArtifacts: true,
           },
-          { module: 'livestock', indexes: [], requiresArtifacts: true },
+          { module: 'animals-livestock', indexes: [], requiresArtifacts: true },
         ],
       },
       {
         text: 'Site cabins and dwellings with view-shed and sun access protected; shield them from operations noise.',
         relatedWork: [
           {
-            module: 'structures-subsystems',
-            indexes: [1],
+            module: 'built-infrastructure', indexes: [1],
             requiresArtifacts: true,
           },
-          { module: 'cross-section-solar', indexes: [0, 1] },
+          { module: 'climate', indexes: [0, 1] },
         ],
       },
       {
         text: 'Designate quiet zones (prayer / meditation / silence) at Z3-Z4 distance from kitchens, parking, and machinery.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [0], requiresArtifacts: true },
-          { module: 'machinery', indexes: [1] },
+          { module: 'access-circulation', indexes: [3], requiresArtifacts: true },
+          { module: 'built-infrastructure', indexes: [4] },
         ],
       },
       {
         text: 'Cluster accommodations on shared utilities (water, septic, power) before scattering across the parcel.',
         relatedWork: [
           {
-            module: 'structures-subsystems',
-            indexes: [2],
+            module: 'built-infrastructure', indexes: [2],
             requiresArtifacts: true,
           },
         ],
@@ -162,15 +157,14 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: "Stage the arrival sequence — parking, threshold, orientation — so first impression matches the retreat's intent.",
         relatedWork: [
-          { module: 'zone-circulation', indexes: [1], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [4], requiresArtifacts: true },
         ],
       },
       {
         text: 'Plan emergency egress and accessible paths alongside the contemplative routes, not as an afterthought.',
         relatedWork: [
           {
-            module: 'zone-circulation',
-            indexes: [1, 2],
+            module: 'access-circulation', indexes: [4, 5],
             requiresArtifacts: true,
           },
         ],
@@ -184,27 +178,25 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Anchor Z0/Z1 (house + kitchen garden) on a sun-facing aspect with year-round solar access.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [0], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [3], requiresArtifacts: true },
           {
-            module: 'structures-subsystems',
-            indexes: [],
+            module: 'built-infrastructure', indexes: [],
             requiresArtifacts: true,
           },
-          { module: 'cross-section-solar', indexes: [0, 1] },
+          { module: 'climate', indexes: [0, 1] },
         ],
       },
       {
         text: 'Place the poultry / small-livestock yard adjacent to the kitchen garden so one visit serves both.',
         relatedWork: [
-          { module: 'livestock', indexes: [2], requiresArtifacts: true },
+          { module: 'animals-livestock', indexes: [2], requiresArtifacts: true },
         ],
       },
       {
         text: 'Size water storage to a full off-grid week for the household, with a roof-catchment plan budgeted first.',
         relatedWork: [
           {
-            module: 'water-management',
-            indexes: [0, 1],
+            module: 'hydrology', indexes: [0, 1],
             requiresArtifacts: true,
           },
         ],
@@ -212,16 +204,15 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Stage the orchard within wheelbarrow distance of the house — Z2 for the species harvested weekly.',
         relatedWork: [
-          { module: 'plant-systems', indexes: [1], requiresArtifacts: true },
-          { module: 'zone-circulation', indexes: [0], requiresArtifacts: true },
+          { module: 'plants-food', indexes: [1], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [3], requiresArtifacts: true },
         ],
       },
       {
         text: 'Wire kitchen / garden / animal / wood-stove waste into a single fertility loop (compost, ash, manure, greywater).',
         relatedWork: [
           {
-            module: 'soil-fertility',
-            indexes: [1, 2, 3],
+            module: 'soil', indexes: [1, 2, 3],
             requiresArtifacts: true,
           },
         ],
@@ -230,8 +221,7 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
         text: 'Co-locate the root cellar, pantry, and preserve station with the kitchen for harvest-day flow.',
         relatedWork: [
           {
-            module: 'structures-subsystems',
-            indexes: [1, 2],
+            module: 'built-infrastructure', indexes: [1, 2],
             requiresArtifacts: true,
           },
         ],
@@ -246,8 +236,7 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
         text: 'Design a single visitor arrival sequence that funnels through orientation before reaching working land.',
         relatedWork: [
           {
-            module: 'zone-circulation',
-            indexes: [1, 2],
+            module: 'access-circulation', indexes: [4, 5],
             requiresArtifacts: true,
           },
         ],
@@ -255,10 +244,9 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Site demonstration plots and teaching stations along a loop that returns to start without backtracking.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [1], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [4], requiresArtifacts: true },
           {
-            module: 'structures-subsystems',
-            indexes: [1],
+            module: 'built-infrastructure', indexes: [1],
             requiresArtifacts: true,
           },
         ],
@@ -266,10 +254,9 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Place animal-interaction areas with double fencing and a hand-wash station between paddock and path.',
         relatedWork: [
-          { module: 'livestock', indexes: [2], requiresArtifacts: true },
+          { module: 'animals-livestock', indexes: [2], requiresArtifacts: true },
           {
-            module: 'structures-subsystems',
-            indexes: [],
+            module: 'built-infrastructure', indexes: [],
             requiresArtifacts: true,
           },
         ],
@@ -277,15 +264,14 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Build accessibility into primary paths — wheelchair-graded, shaded, with rest points at teaching stations.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [1], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [4], requiresArtifacts: true },
         ],
       },
       {
         text: 'Co-locate classroom, barn, and restroom utilities so one trench serves all of them.',
         relatedWork: [
           {
-            module: 'structures-subsystems',
-            indexes: [2],
+            module: 'built-infrastructure', indexes: [2],
             requiresArtifacts: true,
           },
         ],
@@ -293,7 +279,7 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Reserve a Z4-Z5 reference zone, untouched, as an ecological "before vs. after" teaching site.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [0], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [3], requiresArtifacts: true },
         ],
       },
     ],
@@ -304,26 +290,25 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
     items: [
       {
         text: 'Identify and rank existing ecological assets (riparian, forest interior, wetland) before drawing any new structure.',
-        relatedWork: [{ module: 'dynamic-layering', indexes: [0, 1] }],
+        relatedWork: [{ module: 'access-circulation', indexes: [0, 1] }],
       },
       {
         text: "Define wildlife corridors that connect the parcel's habitat patches to off-parcel refugia.",
         relatedWork: [
-          { module: 'zone-circulation', indexes: [1], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [4], requiresArtifacts: true },
         ],
       },
       {
         text: 'Map a Z4/Z5 minimal-intervention zone large enough to hold the keystone-species home range.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [0], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [3], requiresArtifacts: true },
         ],
       },
       {
         text: 'Site any structures on already-disturbed ground — never on intact habitat.',
         relatedWork: [
           {
-            module: 'structures-subsystems',
-            indexes: [1],
+            module: 'built-infrastructure', indexes: [1],
             requiresArtifacts: true,
           },
         ],
@@ -332,15 +317,14 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
         text: 'Plan an invasives-monitoring transect walked at least seasonally; pair it with removal capacity.',
         relatedWork: [
           {
-            module: 'phasing-budgeting',
-            indexes: [1],
+            module: 'economics-capacity', indexes: [1],
             requiresArtifacts: true,
           },
         ],
       },
       {
         text: 'Pick indicator species and a baseline-monitoring protocol so "succeeding" can be measured, not asserted.',
-        relatedWork: [{ module: 'principle-verification', indexes: [0, 2] }],
+        relatedWork: [{ module: 'risk-compliance', indexes: [0, 2] }],
       },
     ],
   },
@@ -350,16 +334,15 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
     items: [
       {
         text: 'Map each enterprise to the Yeomans rank it depends on most (water-heavy, structure-heavy, livestock-heavy) before sizing the parcel split.',
-        relatedWork: [{ module: 'dynamic-layering', indexes: [0, 1, 2] }],
+        relatedWork: [{ module: 'access-circulation', indexes: [0, 1, 2] }],
       },
       {
         text: 'Identify shared infrastructure (access roads, water, power, processing) and design it once for all enterprises.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [], requiresArtifacts: true },
-          { module: 'water-management', indexes: [], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [], requiresArtifacts: true },
+          { module: 'hydrology', indexes: [], requiresArtifacts: true },
           {
-            module: 'structures-subsystems',
-            indexes: [2],
+            module: 'built-infrastructure', indexes: [2],
             requiresArtifacts: true,
           },
         ],
@@ -367,17 +350,16 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Buffer noise / odour / visitor enterprises (retreat, market) from operational ones (livestock, machinery) with planted screens or topography.',
         relatedWork: [
-          { module: 'zone-circulation', indexes: [0], requiresArtifacts: true },
-          { module: 'plant-systems', indexes: [], requiresArtifacts: true },
-          { module: 'machinery', indexes: [0, 1] },
+          { module: 'access-circulation', indexes: [3], requiresArtifacts: true },
+          { module: 'plants-food', indexes: [], requiresArtifacts: true },
+          { module: 'built-infrastructure', indexes: [3, 4] },
         ],
       },
       {
         text: "Sequence capital deployment: decide which enterprise funds the next phase's shared infrastructure.",
         relatedWork: [
           {
-            module: 'phasing-budgeting',
-            indexes: [0, 2],
+            module: 'economics-capacity', indexes: [0, 2],
             requiresArtifacts: true,
           },
         ],
@@ -385,14 +367,14 @@ export const PLAN_PROJECT_TYPE_TEMPLATES: Record<
       {
         text: 'Look for cross-enterprise yields — pasture poultry under orchard, education revenue funding conservation, retreat guests buying farm produce.',
         relatedWork: [
-          { module: 'soil-fertility', indexes: [2], requiresArtifacts: true },
+          { module: 'soil', indexes: [2], requiresArtifacts: true },
         ],
       },
       {
         text: 'Stress-test single-point-of-failure dependencies (one well, one access road); multi-enterprise amplifies fragility there.',
         relatedWork: [
-          { module: 'water-management', indexes: [2], requiresArtifacts: true },
-          { module: 'zone-circulation', indexes: [], requiresArtifacts: true },
+          { module: 'hydrology', indexes: [2], requiresArtifacts: true },
+          { module: 'access-circulation', indexes: [], requiresArtifacts: true },
         ],
       },
     ],

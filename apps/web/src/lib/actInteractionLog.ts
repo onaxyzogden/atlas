@@ -23,8 +23,26 @@ import type {
   ActInteractionEventType,
   ActModuleId,
   PlanProjectTypeId,
+  UniversalDomain,
 } from '@ogden/shared';
 import { api } from './apiClient';
+import type { ActModule } from '../v3/act/types.js';
+
+// Slice 3b+3c: telemetry vocab (ActModuleId, 8 legacy ids) is pinned to the
+// analytics dimension and not migrated. Callers pass the new ActModule
+// (UniversalDomain); we translate to the legacy id at the seam. Coarse: ids
+// that collapsed at slice cutover are routed to their primary legacy bucket.
+const ACT_DOMAIN_TO_LEGACY: Partial<Record<UniversalDomain, ActModuleId>> = {
+  'monitoring-records': 'tracker',
+  'built-infrastructure': 'build',
+  'animals-livestock': 'livestock',
+  'plants-food': 'harvest',
+  'people-governance': 'network',
+  'economics-capacity': 'schedule',
+};
+function toActModuleId(m: ActModule): ActModuleId {
+  return ACT_DOMAIN_TO_LEGACY[m] ?? 'tracker';
+}
 
 // ─── Flag gate ───────────────────────────────────────────────────────────────
 
@@ -149,7 +167,7 @@ export interface ActTelemetryContext {
 }
 
 export interface RecordInteractionInput {
-  module: ActModuleId;
+  module: ActModule;
   eventType: ActInteractionEventType;
   payload?: Record<string, unknown>;
 }
@@ -168,7 +186,7 @@ export function recordInteraction(
     sessionId: getSessionId(),
     occurredAt: new Date().toISOString(),
     projectType: ctx.projectType ?? null,
-    module: input.module,
+    module: toActModuleId(input.module),
     eventType: input.eventType,
     payload: input.payload ?? {},
   };
