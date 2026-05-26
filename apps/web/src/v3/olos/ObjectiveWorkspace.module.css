@@ -14,13 +14,13 @@
 }
 
 .map {
+  /* Two-card column: OverlayBundleStrip (own bento) above, .mapBody (own
+     bento) below. The .map wrapper itself carries no surface — gap on the
+     outer .shell + this inner gap separates the strip and the map body
+     into distinct boxes per StageShell's nested-bento contract. */
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  position: relative;
+  gap: 8px;
   min-width: 0;
   min-height: 0;
 }
@@ -29,6 +29,10 @@
   flex: 1;
   min-height: 0;
   position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
 .panel {

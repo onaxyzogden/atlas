@@ -4,8 +4,9 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px 14px;
-  border-bottom: 1px solid var(--color-border);
-  background: transparent;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
   position: relative;
   z-index: 2;
 }
@@ -32,9 +33,9 @@
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid var(--color-border, #d6cebe);
-  background: var(--color-surface-alt, #f3efe6);
-  color: var(--color-text-muted, #6b6450);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease,
     border-color 0.15s ease;
@@ -42,23 +43,29 @@
 
 .chip:hover,
 .chipSecondary:hover {
-  background: #ece5d2;
+  background: color-mix(in srgb, var(--color-surface-alt) 85%, var(--color-text) 15%);
+  color: var(--color-text);
 }
 
 .chipSecondary {
-  background: var(--color-surface, #fff);
+  background: var(--color-surface);
   border-style: dashed;
 }
 
+/* Active chip uses the platform's primary accent so it reads as the
+ * selected pill against the card surface in both light and dark modes.
+ * Avoid `--color-text` as a background — in dark mode `--color-text` is
+ * cream, which produced cream-on-cream when paired with hardcoded
+ * `#faf7f0` text. */
 .chipActive {
-  background: var(--color-text, #2a2722);
-  color: #faf7f0;
-  border-color: var(--color-text, #2a2722);
+  background: var(--color-primary);
+  color: var(--color-on-primary, #2a2018);
+  border-color: var(--color-primary);
 }
 
 .chipActive:hover {
-  background: #1c1a16;
-  border-color: #1c1a16;
+  background: var(--color-primary-hover, var(--color-primary));
+  border-color: var(--color-primary-hover, var(--color-primary));
 }
 
 .disclosure {
