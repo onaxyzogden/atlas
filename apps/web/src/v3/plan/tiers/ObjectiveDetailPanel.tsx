@@ -22,6 +22,7 @@ import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
 import DecisionChecklist from './DecisionChecklist.js';
 import DetailsExpander from './DetailsExpander.js';
+import LaunchActButton from './LaunchActButton.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 interface Props {
@@ -117,6 +118,12 @@ export default function ObjectiveDetailPanel({
           </div>
         </div>
       )}
+
+      <LaunchActButton
+        projectId={projectId}
+        objective={objective}
+        status={status}
+      />
     </section>
   );
 }

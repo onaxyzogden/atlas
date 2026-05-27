@@ -1,0 +1,55 @@
+/*
+ * LaunchActButton — bottom-anchored CTA inside ObjectiveDetailPanel
+ * (Plan Navigation Spec v1, Slice 1.9). Renders inside the panel's
+ * normal flow but adopts a top hairline + slight surface lift so the
+ * button reads as a footer affordance rather than a sibling card.
+ */
+
+.dock {
+  display: flex;
+  justify-content: flex-end;
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 94%, #ffffff);
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-gold-brand, #c4a265) 50%, transparent);
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 18%, transparent);
+  color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 96%, var(--color-text, #f2ede3));
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.button:hover {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 28%, transparent);
+  border-color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 70%, transparent);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+/* When the objective is `complete`, slightly brighter chip — signals the
+ * decision is ready to hand off, not just in motion. */
+.button[data-status='complete'] {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 32%, transparent);
+  border-color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 75%, transparent);
+}

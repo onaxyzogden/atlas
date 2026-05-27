@@ -1,0 +1,67 @@
+// LaunchActButton — bottom-anchored CTA on ObjectiveDetailPanel
+// (Plan Navigation Spec v1, Slice 1.9). Surfaces only when the
+// objective has an actionable handoff: `outputKind === 'plan-decision-record'`
+// AND status is `active` or `complete`. Hidden while `locked` or
+// `available` (no decision has been made yet, so there's nothing to
+// hand off to Act).
+//
+// Today the click navigates to the existing ActCommandCentrePage —
+// Phase 3 rewires the destination to the new Act state machine once
+// per-objective handoff packages exist.
+
+import { useNavigate } from '@tanstack/react-router';
+import { ArrowRight } from 'lucide-react';
+import type {
+  PlanTierObjective,
+  PlanTierObjectiveStatus,
+} from '@ogden/shared';
+import css from './LaunchActButton.module.css';
+
+interface Props {
+  projectId: string;
+  objective: PlanTierObjective;
+  status: PlanTierObjectiveStatus;
+}
+
+export default function LaunchActButton({
+  projectId,
+  objective,
+  status,
+}: Props) {
+  const navigate = useNavigate();
+
+  // Gate per spec: only plan-decision-record objectives produce a
+  // handoff package, and the steward needs to have made meaningful
+  // progress (`active`) or signed off (`complete`) before the button is
+  // useful. Reference-doc / observation-record objectives never offer
+  // this CTA.
+  const eligible =
+    objective.outputKind === 'plan-decision-record' &&
+    (status === 'active' || status === 'complete');
+
+  if (!eligible || !projectId) return null;
+
+  const handleLaunch = () => {
+    navigate({
+      to: '/v3/project/$projectId/act/command-centre',
+      params: { projectId },
+    });
+  };
+
+  const label = status === 'complete' ? 'Launch Act' : 'Continue in Act';
+
+  return (
+    <div className={css.dock}>
+      <button
+        type="button"
+        className={css.button}
+        onClick={handleLaunch}
+        data-testid="plan-launch-act-button"
+        data-status={status}
+      >
+        <span>{label}</span>
+        <ArrowRight size={14} aria-hidden />
+      </button>
+    </div>
+  );
+}
