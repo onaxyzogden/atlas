@@ -115,3 +115,22 @@ export * from './constants/olos/stageBoundaries.js';
 export * from './constants/olos/objectives.js';
 // checklistItems.ts is a re-export shim for direct imports — its named
 // exports already come through ./constants/olos/objectives.js
+
+// Plan tier shell (OLOS Plan Navigation Spec v1)
+export * from './schemas/plan/planTierObjective.schema.js';
+export * from './constants/plan/tierObjectives.js';
+export {
+  computeObjectiveStatus,
+  computeAllObjectiveStatuses,
+  type PlanTierObjectiveStatusMap,
+} from './relationships/tierObjectiveStatus.js';
+export {
+  computeTierState,
+  computeAllTierStates,
+  type PlanTierStateMap,
+} from './relationships/tierState.js';
+export {
+  isCyclicalReviewDue,
+  CYCLICAL_REVIEW_DEFAULT_DAYS,
+  type CyclicalReviewInputs,
+} from './relationships/cyclicalReviewTrigger.js';

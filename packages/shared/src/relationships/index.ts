@@ -3,3 +3,6 @@ export * from './catalog.js';
 export * from './flow.js';
 export * from './cycle.js';
 export * from './statusGate.js';
+export * from './tierObjectiveStatus.js';
+export * from './tierState.js';
+export * from './cyclicalReviewTrigger.js';
