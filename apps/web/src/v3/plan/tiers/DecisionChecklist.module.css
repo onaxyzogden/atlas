@@ -140,3 +140,46 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
   border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
 }
+
+/* Slice 1.12 — Stage Zero Vision bridge. Items satisfied by the
+ * VisionProfile render with a subtle "From Stage Zero Vision" chip and
+ * an evidence block beneath. Checkbox is disabled because the source of
+ * truth is the wizard, not the steward's manual toggle here. */
+
+.row[data-derived='true'] {
+  cursor: default;
+}
+
+.row[data-derived='true']:hover {
+  background: transparent;
+}
+
+.row[data-derived='true'] .checkbox {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.derivedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, #5dd39e 14%, transparent);
+  color: color-mix(in srgb, #5dd39e 92%, var(--color-text, #f2ede3));
+  border: 1px solid color-mix(in srgb, #5dd39e 28%, transparent);
+}
+
+.evidence {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.1));
+  border-left: 2px solid color-mix(in srgb, #5dd39e 55%, transparent);
+  border-radius: var(--radius-sm, 6px);
+}

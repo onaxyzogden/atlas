@@ -4,6 +4,12 @@
 // objective surfaces those targets as small chips so the steward sees the
 // causal chain at a glance.
 //
+// Slice 1.12 — items pre-satisfied by the Stage Zero Vision Builder
+// bridge (visionProfileToChecklist.ts) render as checked + locked, with
+// a "From Stage Zero Vision" badge and the captured evidence beneath.
+// The source of truth is `project.metadata.visionProfile`; toggling here
+// would be a no-op vs the store, so the checkbox is disabled.
+//
 // Pure presentational — store wiring lives one level up so the same list
 // can drive cyclical-review revisions in Slice 1.11 without a refactor.
 
@@ -13,6 +19,7 @@ import type {
   PlanTierObjectiveStatus,
 } from '@ogden/shared';
 import { findPlanTierObjective } from '@ogden/shared';
+import type { VisionDerivedItem, VisionDerivedMap } from './visionProfileToChecklist.js';
 import css from './DecisionChecklist.module.css';
 
 interface Props {
@@ -20,6 +27,8 @@ interface Props {
   status: PlanTierObjectiveStatus;
   completedItemIds: readonly string[];
   onToggleItem: (itemId: string) => void;
+  /** Slice 1.12 — items pre-satisfied by the Stage Zero Vision bridge. */
+  derivedEvidence?: VisionDerivedMap;
 }
 
 export default function DecisionChecklist({
@@ -27,12 +36,16 @@ export default function DecisionChecklist({
   status,
   completedItemIds,
   onToggleItem,
+  derivedEvidence,
 }: Props) {
   const completed = new Set(completedItemIds);
   const items = objective.checklist;
+  const isDerived = (id: string) =>
+    derivedEvidence?.[id]?.isComplete === true;
+  const isItemComplete = (id: string) => completed.has(id) || isDerived(id);
   const requiredCount = items.filter((i) => !i.optional).length;
   const requiredDoneCount = items.filter(
-    (i) => !i.optional && completed.has(i.id),
+    (i) => !i.optional && isItemComplete(i.id),
   ).length;
 
   return (
@@ -48,15 +61,20 @@ export default function DecisionChecklist({
         <p className={css.empty}>No checklist items for this objective yet.</p>
       ) : (
         <ol className={css.list}>
-          {items.map((item) => (
-            <li key={item.id} className={css.item}>
-              <ChecklistRow
-                item={item}
-                isComplete={completed.has(item.id)}
-                onToggle={() => onToggleItem(item.id)}
-              />
-            </li>
-          ))}
+          {items.map((item) => {
+            const derived = derivedEvidence?.[item.id];
+            const fromBridge = derived?.isComplete === true;
+            return (
+              <li key={item.id} className={css.item}>
+                <ChecklistRow
+                  item={item}
+                  isComplete={completed.has(item.id) || fromBridge}
+                  derived={fromBridge ? derived : undefined}
+                  onToggle={() => onToggleItem(item.id)}
+                />
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>
@@ -66,23 +84,36 @@ export default function DecisionChecklist({
 interface RowProps {
   item: PlanDecisionChecklistItem;
   isComplete: boolean;
+  derived?: VisionDerivedItem;
   onToggle: () => void;
 }
 
-function ChecklistRow({ item, isComplete, onToggle }: RowProps) {
+function ChecklistRow({ item, isComplete, derived, onToggle }: RowProps) {
+  const isFromBridge = Boolean(derived);
   return (
-    <label className={css.row} data-complete={isComplete}>
+    <label
+      className={css.row}
+      data-complete={isComplete}
+      data-derived={isFromBridge}
+    >
       <input
         type="checkbox"
         className={css.checkbox}
         checked={isComplete}
         onChange={onToggle}
+        disabled={isFromBridge}
+        aria-describedby={
+          isFromBridge ? `${item.id}-evidence` : undefined
+        }
       />
       <div className={css.body}>
         <span className={css.label}>{item.label}</span>
         <div className={css.tags}>
           {item.optional ? (
             <span className={css.optional}>optional</span>
+          ) : null}
+          {isFromBridge ? (
+            <span className={css.derivedBadge}>From Stage Zero Vision</span>
           ) : null}
           {item.feedsInto.map((targetId) => {
             const target = findPlanTierObjective(targetId);
@@ -93,6 +124,15 @@ function ChecklistRow({ item, isComplete, onToggle }: RowProps) {
             );
           })}
         </div>
+        {isFromBridge && derived?.evidence ? (
+          <p
+            id={`${item.id}-evidence`}
+            className={css.evidence}
+            data-testid={`plan-decision-evidence-${item.id}`}
+          >
+            {derived.evidence}
+          </p>
+        ) : null}
       </div>
     </label>
   );

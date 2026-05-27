@@ -23,6 +23,7 @@ import {
   toProgressMap,
   usePlanTierProgressStore,
 } from '../../../store/planTierStore.js';
+import { useProjectStore } from '../../../store/projectStore.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import PlanNavToggle from '../PlanNavToggle.js';
 import TierSpine from './TierSpine.js';
@@ -30,6 +31,10 @@ import TierLockedPopover from './TierLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import TierUnlockCelebration from './TierUnlockCelebration.js';
+import {
+  deriveTier0EvidenceMap,
+  mergeDerivedIntoProgress,
+} from './visionProfileToChecklist.js';
 import css from './PlanTierShell.module.css';
 
 interface Props {
@@ -74,13 +79,31 @@ export default function PlanTierShell({
   const projectProgress = usePlanTierProgressStore((s) =>
     selectProjectProgress(s, projectId),
   );
+
+  // Slice 1.12 — Stage Zero Vision Builder bridge. The steward's
+  // VisionProfile answers pre-satisfy a subset of the T0 checklist
+  // (see visionProfileToChecklist.ts for coverage). Merge the derived
+  // completions into the progress map BEFORE the status engine runs
+  // so the tier spine and TierUnlockCelebration reflect Stage Zero
+  // progress without any write to planTierStore.
+  const visionProfile = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId)?.metadata?.visionProfile,
+  );
+  const visionDerivedMap = useMemo(
+    () => deriveTier0EvidenceMap(visionProfile),
+    [visionProfile],
+  );
+
   const objectiveStatuses = useMemo(
     () =>
       computeAllObjectiveStatuses(
         PLAN_TIER_OBJECTIVES,
-        toProgressMap(projectProgress),
+        mergeDerivedIntoProgress(
+          toProgressMap(projectProgress),
+          visionDerivedMap,
+        ),
       ),
-    [projectProgress],
+    [projectProgress, visionDerivedMap],
   );
   const tierStates = useMemo(
     () =>
@@ -222,6 +245,7 @@ export default function PlanTierShell({
             status={objectiveStatuses[activeObjective.id] ?? 'locked'}
             project={project}
             onBackToTier={navigateToTier}
+            visionDerivedMap={visionDerivedMap}
           />
         )}
       </div>

@@ -27,6 +27,7 @@ import DetailsExpander from './DetailsExpander.js';
 import LaunchActButton from './LaunchActButton.js';
 import CyclicalReviewBanner from './CyclicalReviewBanner.js';
 import CyclicalReviewModal from './CyclicalReviewModal.js';
+import type { VisionDerivedMap } from './visionProfileToChecklist.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 interface Props {
@@ -36,6 +37,8 @@ interface Props {
   status: PlanTierObjectiveStatus;
   project: Project | null;
   onBackToTier: (tier: PlanTier) => void;
+  /** Slice 1.12 — items the Vision Builder bridge has pre-satisfied. */
+  visionDerivedMap?: VisionDerivedMap;
 }
 
 export default function ObjectiveDetailPanel({
@@ -45,6 +48,7 @@ export default function ObjectiveDetailPanel({
   status,
   project,
   onBackToTier,
+  visionDerivedMap,
 }: Props) {
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
     ...objective.defaultOverlayBundle,
@@ -157,6 +161,7 @@ export default function ObjectiveDetailPanel({
         status={status}
         completedItemIds={completedItemIds}
         onToggleItem={onToggleChecklistItem}
+        derivedEvidence={visionDerivedMap}
       />
 
       {objective.legacyCardSectionId ? (
