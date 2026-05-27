@@ -17,6 +17,11 @@ import {
 } from '@ogden/shared';
 import type { PlanTier, PlanTierObjective } from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
+import {
+  selectProjectProgress,
+  toProgressMap,
+  usePlanTierProgressStore,
+} from '../../../store/planTierStore.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import PlanNavToggle from '../PlanNavToggle.js';
 import TierSpine from './TierSpine.js';
@@ -59,11 +64,21 @@ export default function PlanTierShell({
       ? (findPlanTier(activeObjective.tierId) ?? null)
       : null;
 
-  // Empty-progress preview: T0 objectives `available`, T1-T6 `locked`.
-  // Slice 1.7 wires real checklist progress in via planTierStore.
+  // Slice 1.7: pull persisted checklist progress for the current project
+  // and feed it into the status engine. The store keys are global within
+  // PLAN_TIER_OBJECTIVES, so the flat `Record<itemId, boolean>` collapse
+  // is lossless. Selector returns a stable empty record when the project
+  // has no progress, so re-renders stay tight.
+  const projectProgress = usePlanTierProgressStore((s) =>
+    selectProjectProgress(s, projectId),
+  );
   const objectiveStatuses = useMemo(
-    () => computeAllObjectiveStatuses(PLAN_TIER_OBJECTIVES, {}),
-    [],
+    () =>
+      computeAllObjectiveStatuses(
+        PLAN_TIER_OBJECTIVES,
+        toProgressMap(projectProgress),
+      ),
+    [projectProgress],
   );
   const tierStates = useMemo(
     () =>
@@ -161,6 +176,7 @@ export default function PlanTierShell({
         {hasDetailPanel && activeObjective && activeTier && (
           <ObjectiveDetailPanel
             key={activeObjective.id}
+            projectId={projectId}
             tier={activeTier}
             objective={activeObjective}
             status={objectiveStatuses[activeObjective.id] ?? 'locked'}

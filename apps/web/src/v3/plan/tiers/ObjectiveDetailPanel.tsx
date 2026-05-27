@@ -8,7 +8,7 @@
 // Reset is keyed to objective.id at the parent via `<ObjectiveDetailPanel
 // key={objective.id} ... />` — clean reset, no useEffect.
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import type {
   OverlayId,
   PlanTier,
@@ -16,12 +16,15 @@ import type {
   PlanTierObjectiveStatus,
 } from '@ogden/shared';
 import type { Project } from '../../types.js';
+import { usePlanTierProgressStore } from '../../../store/planTierStore.js';
 import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
 import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
+import DecisionChecklist from './DecisionChecklist.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 interface Props {
+  projectId: string;
   tier: PlanTier;
   objective: PlanTierObjective;
   status: PlanTierObjectiveStatus;
@@ -30,6 +33,7 @@ interface Props {
 }
 
 export default function ObjectiveDetailPanel({
+  projectId,
   tier,
   objective,
   status,
@@ -39,6 +43,20 @@ export default function ObjectiveDetailPanel({
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
     ...objective.defaultOverlayBundle,
   ]);
+
+  // Subscribe to just this objective's slice so toggles elsewhere don't
+  // re-render the panel.
+  const completedItemIds = usePlanTierProgressStore((s) =>
+    s.getCompletedItemIds(projectId, objective.id),
+  );
+  const toggleItem = usePlanTierProgressStore((s) => s.toggleItem);
+  const onToggleChecklistItem = useCallback(
+    (itemId: string) => {
+      if (!projectId) return;
+      toggleItem(projectId, objective.id, itemId);
+    },
+    [toggleItem, projectId, objective.id],
+  );
 
   const toggleOverlay = (overlayId: OverlayId) => {
     setActiveOverlayIds((prev) =>
@@ -76,13 +94,14 @@ export default function ObjectiveDetailPanel({
         />
       </div>
 
+      <DecisionChecklist
+        objective={objective}
+        status={status}
+        completedItemIds={completedItemIds}
+        onToggleItem={onToggleChecklistItem}
+      />
+
       <div className={css.placeholderStack}>
-        <div className={css.placeholderSection}>
-          <p className={css.placeholderEyebrow}>Your decisions</p>
-          <p className={css.placeholderBody}>
-            Checklist with feed-forward chips lands in Slice 1.7.
-          </p>
-        </div>
         <div className={css.placeholderSection}>
           <p className={css.placeholderEyebrow}>Reference</p>
           <p className={css.placeholderBody}>
