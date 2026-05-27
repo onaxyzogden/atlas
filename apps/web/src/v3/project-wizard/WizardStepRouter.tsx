@@ -1,16 +1,21 @@
 /**
- * WizardStepRouter — Phase 2 / Slices 2.1.g + 2.2.
+ * WizardStepRouter — Phase 2 / Slices 2.1.g + 2.2 + 2.3.
  *
  * Resume entry for `/v3/project/$projectId/wizard/$step`. Project record
  * exists by this point (created on Step 1 "Next"). Switches on `$step`:
  *
- *   vision   → WizardStep2Vision  (Slice 2.2)
- *   team     → WizardStep3Team    (placeholder until Slice 2.3)
- *   complete → WizardCompletionScreen (placeholder until Slice 2.3)
+ *   vision   → WizardStep2Vision         (Slice 2.2)
+ *   team     → WizardStep3Team           (Slice 2.3)
+ *   complete → WizardCompletionScreen    (Slice 2.3 — celebration)
  *
- * If the wizard is already `complete`, redirect to the project's Plan
- * route — there's nothing to resume. If `$step` is unrecognised, fall
- * back to vision (the first step after Step 1's pre-project Site).
+ * If the wizard is already `complete` and the URL is NOT the completion
+ * step itself, redirect to the project's Plan route — the wizard has
+ * graduated to Plan and there's nothing to resume. Visiting
+ * `/wizard/complete` after completion is the canonical landing right
+ * after Finish, so we don't redirect away from it.
+ *
+ * If `$step` is unrecognised, fall back to vision (the first step after
+ * Step 1's pre-project Site).
  */
 
 import { useEffect } from 'react';
@@ -20,6 +25,8 @@ import ProjectWizardShell, {
   type WizardStepId,
 } from './ProjectWizardShell.js';
 import WizardStep2Vision from './WizardStep2Vision.js';
+import WizardStep3Team from './WizardStep3Team.js';
+import WizardCompletionScreen from './WizardCompletionScreen.js';
 
 const RECOGNISED_STEPS: ReadonlyArray<WizardStepId | 'complete'> = [
   'vision',
@@ -47,16 +54,21 @@ export default function WizardStepRouter() {
   );
   const wizardStatus = project?.metadata?.wizardStatus;
 
-  // If wizard already finished, the project has graduated to Plan. Bounce
-  // there rather than rendering an empty resume surface.
+  const step: WizardStepId | 'complete' = isRecognisedStep(stepParam)
+    ? stepParam
+    : 'vision';
+
+  // Wizard already finished AND the URL is a resume step (vision/team).
+  // The completion screen is allowed even when status === 'complete' —
+  // that's the canonical landing right after Finish.
   useEffect(() => {
-    if (project && wizardStatus === 'complete') {
+    if (project && wizardStatus === 'complete' && step !== 'complete') {
       navigate({
         to: '/v3/project/$projectId/plan',
         params: { projectId },
       });
     }
-  }, [project, wizardStatus, projectId, navigate]);
+  }, [project, wizardStatus, step, projectId, navigate]);
 
   if (!project) {
     return (
@@ -70,54 +82,19 @@ export default function WizardStepRouter() {
     );
   }
 
-  if (wizardStatus === 'complete') {
+  if (wizardStatus === 'complete' && step !== 'complete') {
     // Effect above redirects; render nothing so we don't flash content.
     return null;
   }
 
-  const step: WizardStepId | 'complete' = isRecognisedStep(stepParam)
-    ? stepParam
-    : 'vision';
-
-  // Step 2 ships live in Slice 2.2; Step 3 + completion remain
-  // placeholders until Slice 2.3. The shell stays mounted around the
-  // placeholders so step indicator + footer are testable today.
   if (step === 'vision') {
     return <WizardStep2Vision projectId={projectId} />;
   }
 
   if (step === 'team') {
-    return (
-      <ProjectWizardShell
-        step="team"
-        onBack={() =>
-          navigate({
-            to: '/v3/project/$projectId/wizard/$step',
-            params: { projectId, step: 'vision' },
-          })
-        }
-        onNext={() =>
-          navigate({
-            to: '/v3/project/$projectId/wizard/$step',
-            params: { projectId, step: 'complete' },
-          })
-        }
-        nextLabel="Finish"
-        hint="Team step lands in Slice 2.3"
-      >
-        <div style={{ padding: 24, color: 'var(--text-muted, #8a8275)' }}>
-          <p>Step 3 (Team) lands in Slice 2.3.</p>
-        </div>
-      </ProjectWizardShell>
-    );
+    return <WizardStep3Team projectId={projectId} />;
   }
 
   // step === 'complete'
-  return (
-    <ProjectWizardShell step="team">
-      <div style={{ padding: 24, color: 'var(--text-muted, #8a8275)' }}>
-        <p>Completion screen lands in Slice 2.3.</p>
-      </div>
-    </ProjectWizardShell>
-  );
+  return <WizardCompletionScreen projectId={projectId} />;
 }

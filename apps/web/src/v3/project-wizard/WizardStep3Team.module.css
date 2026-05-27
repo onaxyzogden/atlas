@@ -1,0 +1,139 @@
+/* WizardStep3Team — split layout, mirrors Step 2 visually. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) 2fr;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.form {
+  padding: 28px 28px 24px;
+  border-right: 1px solid var(--border-subtle, #2a2d2e);
+  background: var(--surface-elevated, #161b1a);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary, #e8e1d0);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted, #8a8275);
+  line-height: 1.5;
+  margin: 0 0 4px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8a8275);
+  margin: 0;
+}
+
+.primaryStewardRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted, #8a8275);
+}
+
+.input {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle, #2a2d2e);
+  background: var(--surface-canvas, #0e1413);
+  color: var(--text-primary, #e8e1d0);
+  font-family: inherit;
+  font-size: 13px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent-gold, #c4a265);
+  box-shadow: 0 0 0 3px rgba(196, 162, 101, 0.18);
+}
+
+.invitesGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-subtle, #2a2d2e);
+}
+
+.invitesEmpty {
+  font-size: 12px;
+  color: var(--text-muted, #8a8275);
+  padding: 4px 0;
+}
+
+.addBtn {
+  align-self: flex-start;
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px dashed var(--border-strong, #3d4243);
+  background: transparent;
+  color: var(--text-muted, #8a8275);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+.addBtn:hover {
+  color: var(--accent-gold, #c4a265);
+  border-color: var(--accent-gold, #c4a265);
+}
+
+.thumbHost {
+  position: relative;
+  background: var(--surface-canvas, #0e1413);
+  padding: 24px;
+  display: flex;
+  align-items: stretch;
+}
+
+.empty {
+  padding: 32px;
+  color: var(--text-muted, #8a8275);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .form {
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle, #2a2d2e);
+  }
+  .primaryStewardRow {
+    grid-template-columns: 1fr;
+  }
+}

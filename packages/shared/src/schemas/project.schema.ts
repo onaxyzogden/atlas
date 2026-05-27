@@ -83,6 +83,41 @@ export const ProjectMetadata = z.object({
   // resume cursor for `/v3/project/$id/wizard/$step` deep-link recovery.
   wizardStatus: z.enum(['in_progress', 'complete']).optional(),
   wizardLastStep: z.enum(['site', 'vision', 'team']).optional(),
+  // Project Creation Wizard Step 3 (Phase 2 / Slice 2.3). Captures the
+  // primary steward identity plus a queue of pending invites. Sends are
+  // deferred to Phase 6's notification architecture — for now the queue
+  // is durable but inert so the wizard can hand off cleanly. The Tier 0
+  // bridge extension (Slice 2.4) reads this shape to satisfy
+  // `t0-stewardship-c1` / `c2`.
+  team: z
+    .object({
+      primarySteward: z
+        .object({
+          name: z.string().max(200).optional(),
+          email: z.string().email().max(200).optional(),
+        })
+        .optional(),
+      coStewards: z
+        .array(
+          z.object({
+            name: z.string().max(200).optional(),
+            email: z.string().email().max(200).optional(),
+          }),
+        )
+        .max(50)
+        .optional(),
+      queuedInvites: z
+        .array(
+          z.object({
+            email: z.string().email().max(200),
+            role: z.enum(['team_member', 'contractor', 'landowner', 'reviewer']),
+            queuedAt: z.string().datetime(),
+          }),
+        )
+        .max(50)
+        .optional(),
+    })
+    .optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
