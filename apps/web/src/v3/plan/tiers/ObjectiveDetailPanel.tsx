@@ -1,0 +1,95 @@
+// ObjectiveDetailPanel — right column of the Plan tier shell, mounted when a
+// tier objective is selected (Plan Navigation Spec v1, Slice 1.6). Hosts the
+// four spec sections: OBJECTIVE (ObjectiveHeader), MAP ACTIVATION
+// (MapActivationStrip + ObjectiveMap), YOUR DECISIONS (Slice 1.7), and
+// REFERENCE (Slice 1.8). LaunchActButton (Slice 1.9) anchors the bottom.
+//
+// activeOverlayIds is owned here so the strip and the map stay in lockstep.
+// Reset is keyed to objective.id at the parent via `<ObjectiveDetailPanel
+// key={objective.id} ... />` — clean reset, no useEffect.
+
+import { useState } from 'react';
+import type {
+  OverlayId,
+  PlanTier,
+  PlanTierObjective,
+  PlanTierObjectiveStatus,
+} from '@ogden/shared';
+import type { Project } from '../../types.js';
+import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
+import ObjectiveHeader from './ObjectiveHeader.js';
+import MapActivationStrip from './MapActivationStrip.js';
+import css from './ObjectiveDetailPanel.module.css';
+
+interface Props {
+  tier: PlanTier;
+  objective: PlanTierObjective;
+  status: PlanTierObjectiveStatus;
+  project: Project | null;
+  onBackToTier: (tier: PlanTier) => void;
+}
+
+export default function ObjectiveDetailPanel({
+  tier,
+  objective,
+  status,
+  project,
+  onBackToTier,
+}: Props) {
+  const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
+    ...objective.defaultOverlayBundle,
+  ]);
+
+  const toggleOverlay = (overlayId: OverlayId) => {
+    setActiveOverlayIds((prev) =>
+      prev.includes(overlayId)
+        ? prev.filter((id) => id !== overlayId)
+        : [...prev, overlayId],
+    );
+  };
+
+  return (
+    <section
+      className={css.panel}
+      aria-label={`Objective: ${objective.title}`}
+      data-testid="plan-objective-detail-panel"
+    >
+      <ObjectiveHeader
+        tier={tier}
+        objective={objective}
+        status={status}
+        onBackToTier={onBackToTier}
+      />
+
+      <MapActivationStrip
+        objective={objective}
+        activeOverlayIds={activeOverlayIds}
+        onToggleOverlay={toggleOverlay}
+      />
+
+      <div className={css.mapBody}>
+        <ObjectiveMap
+          stage="plan"
+          domain="land-base"
+          project={project}
+          activeOverlayIds={activeOverlayIds}
+        />
+      </div>
+
+      <div className={css.placeholderStack}>
+        <div className={css.placeholderSection}>
+          <p className={css.placeholderEyebrow}>Your decisions</p>
+          <p className={css.placeholderBody}>
+            Checklist with feed-forward chips lands in Slice 1.7.
+          </p>
+        </div>
+        <div className={css.placeholderSection}>
+          <p className={css.placeholderEyebrow}>Reference</p>
+          <p className={css.placeholderBody}>
+            Legacy module card embed lands in Slice 1.8.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}

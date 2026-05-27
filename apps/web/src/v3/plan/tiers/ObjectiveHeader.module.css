@@ -1,0 +1,88 @@
+/*
+ * ObjectiveHeader — tier breadcrumb, title, focused question, status pill.
+ * Status colors mirror TierRow.module.css / ObjectiveCard.module.css so the
+ * full spine reads the same state palette.
+ */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 16px;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+}
+
+.header[data-status='complete'] {
+  --status-color: #5dd39e;
+}
+
+.header[data-status='active'] {
+  --status-color: var(--color-gold-brand, #c4a265);
+}
+
+.header[data-status='available'] {
+  --status-color: color-mix(in srgb, var(--color-gold-brand, #c4a265) 70%, var(--color-text-muted, rgba(242, 237, 227, 0.7)) 30%);
+}
+
+.header[data-status='locked'] {
+  --status-color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin: 0 0 4px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.crumb:hover {
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 6%, transparent);
+  border-color: var(--color-border-subtle, rgba(242, 237, 227, 0.12));
+  color: var(--color-text, #f2ede3);
+}
+
+.crumb:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--color-text, #f2ede3);
+}
+
+.question {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+}
+
+.pill {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--status-color) 16%, var(--color-bg, #1f1d1a));
+  color: var(--status-color);
+  border: 1px solid color-mix(in srgb, var(--status-color) 32%, transparent);
+}

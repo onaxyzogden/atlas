@@ -57,8 +57,24 @@
   grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
 }
 
+/*
+ * Detail-panel mode (Slice 1.6) — narrow the spine and column to make
+ * room for the embedded map. Three columns of breathable widths so the
+ * map gets at least ~480px on a 1280px viewport while keeping the spine
+ * and objective column reachable. Reduce the gap a touch so the densest
+ * layout still breathes.
+ */
+.layout[data-has-detail-panel='true'] {
+  grid-template-columns:
+    minmax(0, 260px)
+    minmax(0, 300px)
+    minmax(0, 1fr);
+  gap: 20px;
+}
+
 @media (max-width: 960px) {
-  .layout[data-has-objective-column='true'] {
+  .layout[data-has-objective-column='true'],
+  .layout[data-has-detail-panel='true'] {
     grid-template-columns: minmax(0, 1fr);
   }
 }

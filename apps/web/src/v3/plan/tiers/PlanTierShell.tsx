@@ -1,9 +1,9 @@
 // PlanTierShell — entry point for the OLOS Plan tier spine (Plan
 // Navigation Spec v1). Slice 1.5 adds the right-hand ObjectiveColumn
 // that surfaces the active tier's objectives (NextUpCard, parallel
-// callout, ObjectiveCards). Slice 1.6 wires the detail panel into the
-// objective click path; today the click navigates to the objective
-// route and the route-echo confirms the param landed.
+// callout, ObjectiveCards). Slice 1.6 mounts the ObjectiveDetailPanel
+// as a 3rd column when an objective is selected — OBJECTIVE header
+// + MAP ACTIVATION strip + embedded ObjectiveMap (Plan stage = DesignMap).
 
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -17,10 +17,12 @@ import {
 } from '@ogden/shared';
 import type { PlanTier, PlanTierObjective } from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
+import { useV3Project } from '../../data/useV3Project.js';
 import PlanNavToggle from '../PlanNavToggle.js';
 import TierSpine from './TierSpine.js';
 import TierLockedPopover from './TierLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
+import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import css from './PlanTierShell.module.css';
 
 interface Props {
@@ -42,12 +44,20 @@ export default function PlanTierShell({
     objectiveId?: string;
   };
   const projectId = params.projectId ?? '';
+  const project = useV3Project(projectId);
   const activeTierId = params.tierId ?? null;
   const activeObjective = params.objectiveId
     ? (findPlanTierObjective(params.objectiveId) ?? null)
     : null;
   const activeObjectiveId = activeObjective?.id ?? null;
-  const activeTier = activeTierId ? (findPlanTier(activeTierId) ?? null) : null;
+  // Prefer the URL tier when present; otherwise fall back to the
+  // objective's owning tier so the panel still mounts if a deep link
+  // omits the tier segment.
+  const activeTier = activeTierId
+    ? (findPlanTier(activeTierId) ?? null)
+    : activeObjective
+      ? (findPlanTier(activeObjective.tierId) ?? null)
+      : null;
 
   // Empty-progress preview: T0 objectives `available`, T1-T6 `locked`.
   // Slice 1.7 wires real checklist progress in via planTierStore.
@@ -101,6 +111,7 @@ export default function PlanTierShell({
   };
 
   const hasObjectiveColumn = activeTier !== null;
+  const hasDetailPanel = activeObjective !== null && activeTier !== null;
 
   return (
     <div className={css.shell}>
@@ -126,6 +137,7 @@ export default function PlanTierShell({
       <div
         className={css.layout}
         data-has-objective-column={hasObjectiveColumn}
+        data-has-detail-panel={hasDetailPanel}
       >
         <TierSpine
           tiers={PLAN_TIERS}
@@ -143,6 +155,17 @@ export default function PlanTierShell({
             objectiveStatuses={objectiveStatuses}
             activeObjectiveId={activeObjectiveId}
             onSelectObjective={handleSelectObjective}
+          />
+        )}
+
+        {hasDetailPanel && activeObjective && activeTier && (
+          <ObjectiveDetailPanel
+            key={activeObjective.id}
+            tier={activeTier}
+            objective={activeObjective}
+            status={objectiveStatuses[activeObjective.id] ?? 'locked'}
+            project={project}
+            onBackToTier={navigateToTier}
           />
         )}
       </div>
