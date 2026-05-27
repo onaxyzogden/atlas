@@ -1,0 +1,5 @@
+{
+  "count": 1889,
+  "updated": "2026-05-27",
+  "note": "Ratchet baseline for raw surface-contract class declarations under apps/web/src/**/*.module.css. New surfaces should consume <BentoBox>. See ADR 2026-05-27-atlas-bento-box-canonical-surface.md and scripts/lint-bento-surfaces.mjs."
+}
