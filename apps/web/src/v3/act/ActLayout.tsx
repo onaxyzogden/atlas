@@ -19,7 +19,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
+import {
+  useProjectStore,
+  MTC_SEED,
+  getActShellMode,
+  type ActShellMode,
+} from '../../store/projectStore.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
 import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
@@ -45,6 +50,8 @@ import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import ActReadyCue from './components/ActReadyCue.js';
+import ActShellToggle from './field-action/ActShellToggle.js';
+import ActFieldActionLayout from './field-action/ActFieldActionLayout.js';
 import css from './ActLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -69,6 +76,11 @@ export default function ActLayout() {
     () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
     [projects, id],
   );
+
+  const actShellMode = getActShellMode(project);
+  const handleActShellModeChange = (mode: ActShellMode) => {
+    updateProject(project.id, { actShellMode: mode });
+  };
 
   const boundary = project.parcelBoundaryGeojson?.features[0]?.geometry as
     | GeoJSON.Polygon
@@ -150,6 +162,25 @@ export default function ActLayout() {
     />
   );
 
+  if (actShellMode === 'field-action') {
+    return (
+      <StageShell
+        canvasLabel="Act canvas"
+        leftRailLabel="Act tools"
+        rightRailLabel="Act checklist"
+        leftRail={null}
+        canvas={
+          <ActFieldActionLayout
+            shellMode={actShellMode}
+            onShellModeChange={handleActShellModeChange}
+          />
+        }
+        rightRail={null}
+        bottomTray={null}
+      />
+    );
+  }
+
   return (
     <StageShell
       canvasLabel="Act canvas"
@@ -164,6 +195,10 @@ export default function ActLayout() {
       }
       canvas={
         <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <ActShellToggle
+          mode={actShellMode}
+          onChange={handleActShellModeChange}
+        />
         <DiagnoseMap
           centroid={fallbackCenter}
           boundary={boundary}

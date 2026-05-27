@@ -79,6 +79,15 @@ export interface LocalProject {
    * `getPlanShellMode(project)` which applies the defaulting rules.
    */
   planShellMode?: PlanShellMode;
+  /**
+   * Which Act-stage shell the steward sees: the new field-action
+   * dashboard (OLOS Act Command Center Spec v1, Phase 3) or the legacy
+   * command-centre module shell. Per-project so existing module-bar
+   * projects keep their carousel UX while new projects land on View B.
+   * Read via `getActShellMode(project)` which applies the defaulting
+   * rules.
+   */
+  actShellMode?: ActShellMode;
 }
 
 /**
@@ -103,6 +112,30 @@ export function getPlanShellMode(
   if (project.planShellMode) return project.planShellMode;
   if (project.isBuiltin) return 'module-bar';
   return 'tier-spine';
+}
+
+/**
+ * Which Act-stage navigation shell a project renders. `field-action` is
+ * the OLOS Act Command Center Spec v1 default for new projects;
+ * `command-centre` is the legacy module-driven shell preserved behind a
+ * toggle so existing module-bar carousels remain reachable during the
+ * Phase 3 migration. Removed in Phase 7 once every legacy module card
+ * has been retired.
+ */
+export type ActShellMode = 'field-action' | 'command-centre';
+
+/**
+ * Canonical accessor for a project's Act shell mode. Explicit per-
+ * project values win; otherwise builtin samples (MTC, "351 House")
+ * default to `command-centre` so their hand-seeded module content
+ * keeps rendering, and every other project defaults to `field-action`.
+ */
+export function getActShellMode(
+  project: Pick<LocalProject, 'actShellMode' | 'isBuiltin'>,
+): ActShellMode {
+  if (project.actShellMode) return project.actShellMode;
+  if (project.isBuiltin) return 'command-centre';
+  return 'field-action';
 }
 
 /**
@@ -281,6 +314,9 @@ export const useProjectStore = create<ProjectState>()(
             // on builtin samples too so the steward can flip between
             // tier-spine and module-bar on the demo project.
             'planShellMode',
+            // Same rationale as planShellMode — Act shell mode is a
+            // per-steward UI choice, not narrative content.
+            'actShellMode',
           ];
           const filtered = Object.fromEntries(
             Object.entries(updates).filter(([k]) =>

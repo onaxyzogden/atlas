@@ -481,6 +481,24 @@ const v3ActCompassRoute = createRoute({
   path: 'act/compass',
   component: ActStageCompassPage,
 });
+// OLOS Act Command Center spec — field-action routes. Both mount ActLayout,
+// which reads `actShellMode` and branches into ActFieldActionLayout when
+// field-action is the active shell. Static `act/field-action/...` prefixes
+// resolve BEFORE `act/$module` so the legacy module routes remain reachable
+// for projects that have flipped the toggle to command-centre.
+const v3ActFieldActionRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/field-action',
+  component: ActLayout,
+});
+const v3ActFieldActionObjectiveRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/field-action/$objectiveId',
+  component: ActLayout,
+  validateSearch: (search: Record<string, unknown>): { taskId?: string } => ({
+    taskId: typeof search.taskId === 'string' ? search.taskId : undefined,
+  }),
+});
 // Act Command Centre — the aggregate "run the stage" surface the Act compass
 // center unlocks into. Static path resolves before the `act/$module` param.
 const v3ActCommandCentreRoute = createRoute({
@@ -741,6 +759,8 @@ const routeTree = rootRoute.addChildren([
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActCommandCentreRoute,
+      v3ActFieldActionRoute,
+      v3ActFieldActionObjectiveRoute,
       v3ActRoute,
       v3ActModuleRoute,
       v3DesignRoute,
