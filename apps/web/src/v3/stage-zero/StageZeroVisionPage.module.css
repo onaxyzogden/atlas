@@ -1,5 +1,14 @@
 /* Self-contained dark canvas for the Vision Builder — its own palette so the
-   page matches the mockup regardless of the app's light/dark theme. */
+   page matches the mockup regardless of the app's light/dark theme.
+
+   Per ADR 2026-05-27-atlas-bento-box-canonical-surface: this page is a
+   themed-canvas exception. Forcing the canonical bento surface tokens
+   (`--color-surface` / `--color-border` color-mixes) here would break
+   the dark/gold aesthetic the steward explicitly requested. The
+   per-question card (VisionQuestionCard) and activation strip
+   (VisionActivationStrip) carry inner-box treatments in the `--vb-*`
+   palette — they are recognized as the themed-canvas bento variant.
+   Future surface tweaks must keep this in sync. */
 .page {
   --vb-bg: #131210;
   --vb-header-bg: #181611;
