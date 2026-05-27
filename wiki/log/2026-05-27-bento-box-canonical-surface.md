@@ -60,11 +60,30 @@ legacy-palette `features/**` `.card` surfaces from the 4e audit. Exit
 codes: 0 ok, 1 regression (new raw surface — consume `<BentoBox>`),
 2 improvement without `--update`. Flags `--list` and `--update`.
 
+## Phase 2 follow-up — `b5a5c308`
+
+Rewired the three documentation-only Phase 2 clones to consume the
+canonical primitive via `composes:`:
+- `apps/web/src/v3/plan/PlanTools.module.css` — `.toolbox` composes
+  `bento outer-default padding-md`; `.group` composes `group`.
+- `apps/web/src/v3/observe/tools/ObserveTools.module.css` — same.
+- `apps/web/src/v3/command/shell/CommandCentreShell.module.css` —
+  `.tabs` / `.sidebar` / `.rail` / `.bottomTray` compose
+  `bento-shell outer-default` only (token-based layout stays local).
+
+The previously documented blocker ("Vite's PWA postcss step rejects
+`composes: ... from` with relative paths") was a misdiagnosis. Verified
+by six existing CSS Modules in the same package already using
+`composes: ... from '<relative-path>'` successfully
+(`TrueNorthCompassWheel.module.css`, `ObserveCompassWheel.module.css`,
+`OPAComparisonWheel.module.css`). `vite build --mode development` green
+after rewire; no TSX changes (`composes:` is CSS-side).
+
+Phase 6 ratchet baseline updated 1889 → 1906 (−8 from this rewire; +25
+from parallel work on the same branch in the interval).
+
 ## Carry-over
 
-- **postcss `composes:`.** Resolve the vite-plugin-pwa block so the three
-  Phase-2 clones can actually consume the primitive instead of just
-  documenting it.
 - **194 legacy-palette feature cards.** Token-migrate or accept as a
   documented "legacy-feature-card" variant; either way the ratchet
   re-tightens via `--update` once they're resolved.

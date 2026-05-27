@@ -4,7 +4,8 @@
 commits (`BentoBox primitive` → `5a12b627` Phase 2 docs → `000db313` Card
 deprecation → `9b42b904` Slice 4a → `185f3a81` 4b → `e1b2163a` 4c →
 `1f640c8f` 4d → `eaec4a27` 4e audit → `3ad41980` wiki → `893a56fb`
-Phase 6 ratchet linter).
+Phase 6 ratchet linter → `b5a5c308` Phase 2 follow-up: postcss
+`composes:` rewire deleting the 3 clones' duplication).
 
 ## Context
 
@@ -144,13 +145,38 @@ three Phase-2 in-place clones pending the postcss fix, and the 194
 legacy-palette `features/**` `.card` surfaces from the Slice 4e audit.
 New code under `apps/web/src/**` must consume `<BentoBox>` instead.
 
-### Deferred
+### Phase 2 follow-up — postcss `composes:` resolved (implemented `b5a5c308`)
 
-- **postcss `composes:` resolution.** Once vite-plugin-pwa's PWA pipeline
-  is patched (or replaced) the three Phase-2 documentation-only files can
-  be re-rewired to `composes: bento-shell from
-  '../../components/ui/BentoBox.module.css'`, deleting the canonical CSS
-  duplication.
+The Phase 2 documentation-only header comment ("Vite's PWA postcss step
+rejects `composes: ... from` with relative paths") **was a misdiagnosis**.
+Verified empirically: six other CSS Modules in `apps/web/src` already use
+`composes: <classes> from '<relative-path>'` against sibling primitives —
+[`TrueNorthCompassWheel.module.css:8`](../../apps/web/src/v3/true-north/TrueNorthCompassWheel.module.css),
+`ObserveCompassWheel.module.css`, `OPAComparisonWheel.module.css`. There
+is no custom `css.modules` / `css.postcss` block in `vite.config.ts` and
+no `postcss.config.*`; vite-plugin-pwa@1.2.0 with `strategies:
+'generateSW'` does not intercept the dev CSS Modules pipeline.
+
+A canary rewire of `PlanTools.module.css` built green in 48s. The other
+two clones (`ObserveTools.module.css`, `CommandCentreShell.module.css`)
+followed; full `vite build --mode development` green in 1m08s.
+
+Composition per surface:
+- `PlanTools.toolbox` / `ObserveTools.toolbox`: composes
+  `bento outer-default padding-md` (full vertical bento with shadow).
+- `PlanTools.group` / `ObserveTools.group`: composes `group` (the inner
+  rules were byte-identical to the primitive's `.group` — pure delete).
+- `CommandCentreShell.tabs` / `.sidebar` / `.rail` / `.bottomTray`:
+  composes `bento-shell outer-default` only — token-based layout
+  (`var(--space-*)` gap/padding) stays local because the primitive's
+  `.bento` flow is hardcoded at 10px gap.
+
+Net effect: 80 lines deleted from the three CSS modules, 35 lines added
+(`composes:` lines + revised header comments). The byte-identical
+duplication is gone — the canonical primitive is the single source for
+the surface contract. The Phase 6 ratchet baseline moved from 1889 →
+1906 in the same commit (−8 from the rewire, +25 from parallel work on
+the same branch in the interval).
 
 ## Verification
 
