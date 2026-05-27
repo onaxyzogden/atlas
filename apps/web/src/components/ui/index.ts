@@ -14,6 +14,8 @@ export { DelayedTooltip } from './DelayedTooltip';
 export { Sparkline } from './Sparkline';
 
 // Composites
+export { BentoBox } from './BentoBox';
+export type { BentoBoxProps, BentoGroupProps, BentoSectionProps } from './BentoBox';
 export { Card } from './Card';
 export { Modal } from './Modal';
 export { Tabs } from './Tabs';
