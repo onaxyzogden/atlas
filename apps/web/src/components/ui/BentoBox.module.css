@@ -13,6 +13,20 @@
  * of the bento canonicalisation plan).
  *
  * Cross-link: atlas/wiki/decisions/2026-05-27-atlas-bento-box-canonical-surface.md
+ *
+ * ── Slice 4e audit (2026-05-27) ─────────────────────────────────────────────
+ * 194 surfaces under apps/web/src/features/** carry a `.card` class. They
+ * follow the bento *contract* (border + radius + bg) but use a separate
+ * legacy palette — literal `rgba(232, 220, 200, …)` rather than the
+ * `--color-surface`/`--color-border` tokens this primitive resolves to —
+ * because they predate the canonical bento and target a darker cream
+ * register. A mass token migration would be a visual change (different
+ * palette) and is therefore out of scope for the pure-presentation
+ * canonicalisation. Per the ADR, the catalog is recorded here and the
+ * mechanical sweep is deferred to Phase 6 (a future lint rule that can
+ * either token-migrate them or accept the literal-palette as a documented
+ * "legacy-feature-card" variant). New surfaces under features/** should
+ * import this primitive instead of declaring a new local `.card`.
  */
 
 /*
