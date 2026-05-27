@@ -1,0 +1,61 @@
+/* WizardStep2Vision — split layout: left-third form, right two-thirds thumbnail. */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) 2fr;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+.form {
+  padding: 28px 28px 24px;
+  border-right: 1px solid var(--border-subtle, #2a2d2e);
+  background: var(--surface-elevated, #161b1a);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary, #e8e1d0);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted, #8a8275);
+  line-height: 1.5;
+  margin: 0 0 4px;
+}
+
+.thumbHost {
+  position: relative;
+  background: var(--surface-canvas, #0e1413);
+  padding: 24px;
+  display: flex;
+  align-items: stretch;
+}
+
+.empty {
+  padding: 32px;
+  color: var(--text-muted, #8a8275);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .form {
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle, #2a2d2e);
+  }
+  .thumbHost {
+    padding: 16px;
+    min-height: 280px;
+  }
+}

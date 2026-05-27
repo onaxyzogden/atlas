@@ -1,10 +1,10 @@
 /**
- * WizardStepRouter — Phase 2 / Slice 2.1.g.
+ * WizardStepRouter — Phase 2 / Slices 2.1.g + 2.2.
  *
  * Resume entry for `/v3/project/$projectId/wizard/$step`. Project record
  * exists by this point (created on Step 1 "Next"). Switches on `$step`:
  *
- *   vision   → WizardStep2Vision  (placeholder until Slice 2.2)
+ *   vision   → WizardStep2Vision  (Slice 2.2)
  *   team     → WizardStep3Team    (placeholder until Slice 2.3)
  *   complete → WizardCompletionScreen (placeholder until Slice 2.3)
  *
@@ -19,6 +19,7 @@ import { useProjectStore } from '../../store/projectStore.js';
 import ProjectWizardShell, {
   type WizardStepId,
 } from './ProjectWizardShell.js';
+import WizardStep2Vision from './WizardStep2Vision.js';
 
 const RECOGNISED_STEPS: ReadonlyArray<WizardStepId | 'complete'> = [
   'vision',
@@ -78,33 +79,11 @@ export default function WizardStepRouter() {
     ? stepParam
     : 'vision';
 
-  // Slices 2.2 / 2.3 swap these placeholders for real bodies. Each
-  // placeholder keeps the shell visible so the step indicator + footer
-  // structure are testable today.
+  // Step 2 ships live in Slice 2.2; Step 3 + completion remain
+  // placeholders until Slice 2.3. The shell stays mounted around the
+  // placeholders so step indicator + footer are testable today.
   if (step === 'vision') {
-    return (
-      <ProjectWizardShell
-        step="vision"
-        onBack={() => navigate({ to: '/v3/project/wizard' })}
-        onNext={() =>
-          navigate({
-            to: '/v3/project/$projectId/wizard/$step',
-            params: { projectId, step: 'team' },
-          })
-        }
-        onSkip={() =>
-          navigate({
-            to: '/v3/project/$projectId/wizard/$step',
-            params: { projectId, step: 'team' },
-          })
-        }
-        hint="Vision & Capacity form lands in Slice 2.2"
-      >
-        <div style={{ padding: 24, color: 'var(--text-muted, #8a8275)' }}>
-          <p>Step 2 (Vision &amp; Capacity) lands in Slice 2.2.</p>
-        </div>
-      </ProjectWizardShell>
-    );
+    return <WizardStep2Vision projectId={projectId} />;
   }
 
   if (step === 'team') {

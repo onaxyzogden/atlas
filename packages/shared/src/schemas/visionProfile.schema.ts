@@ -20,6 +20,12 @@ import { z } from 'zod';
 
 const Id = z.string().max(120);
 const IdList = z.array(Id).max(60);
+// landIdentity has dual citizenship: the legacy Stage Zero builder writes
+// short chip ids (productive_farmstead, etc.) while the Phase-2 Project
+// Creation Wizard writes a single free-text vision statement (up to 280
+// chars) into the same field as a singleton array. Loosen the element
+// length to accept either, keeping the other ID-based lists strict.
+const LandIdentityList = z.array(z.string().max(300)).max(60);
 
 /** Systems-in-scope, grouped exactly as the questionnaire presents them. */
 export const VisionSystemsInScope = z
@@ -53,7 +59,7 @@ export const VisionProfile = z
     secondaryTypes: IdList.optional(),
     // Step 2–4
     primaryOutcomes: IdList.optional(),
-    landIdentity: IdList.optional(),
+    landIdentity: LandIdentityList.optional(),
     users: IdList.optional(),
     publicAccessLevel: Id.optional(),
     // Step 5
