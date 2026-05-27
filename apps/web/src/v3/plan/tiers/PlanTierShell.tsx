@@ -5,7 +5,7 @@
 // as a 3rd column when an objective is selected — OBJECTIVE header
 // + MAP ACTIVATION strip + embedded ObjectiveMap (Plan stage = DesignMap).
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   PLAN_TIERS,
@@ -18,6 +18,7 @@ import {
 import type { PlanTier, PlanTierObjective } from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
 import {
+  selectCelebratedTiers,
   selectProjectProgress,
   toProgressMap,
   usePlanTierProgressStore,
@@ -28,6 +29,7 @@ import TierSpine from './TierSpine.js';
 import TierLockedPopover from './TierLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
+import TierUnlockCelebration from './TierUnlockCelebration.js';
 import css from './PlanTierShell.module.css';
 
 interface Props {
@@ -95,6 +97,44 @@ export default function PlanTierShell({
   const [lockedPopoverTier, setLockedPopoverTier] = useState<PlanTier | null>(
     null,
   );
+
+  // Slice 1.10 — TierUnlockCelebration. Watch tier states and surface a
+  // celebration the first time any tier (other than T0, which has no
+  // prereqs to "unlock" from) reaches a non-locked state without having
+  // been celebrated yet. Once dismissed or opened, the tier id is logged
+  // to the planTierStore so it never fires again.
+  const celebratedTierIds = usePlanTierProgressStore((s) =>
+    selectCelebratedTiers(s, projectId),
+  );
+  const markTierCelebrated = usePlanTierProgressStore(
+    (s) => s.markTierCelebrated,
+  );
+  const [celebratingTierId, setCelebratingTierId] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (!projectId || celebratingTierId) return;
+    for (const tier of PLAN_TIERS) {
+      if (tier.ordinal === 0) continue;
+      const state = tierStates[tier.id] ?? 'locked';
+      if (state === 'locked') continue;
+      if (celebratedTierIds.includes(tier.id)) continue;
+      setCelebratingTierId(tier.id);
+      return;
+    }
+  }, [tierStates, projectId, celebratingTierId, celebratedTierIds]);
+
+  const celebratingTier = celebratingTierId
+    ? (findPlanTier(celebratingTierId) ?? null)
+    : null;
+  const celebratingFirstObjective = celebratingTier
+    ? (PLAN_TIER_OBJECTIVES.find(
+        (o) =>
+          o.tierId === celebratingTier.id &&
+          (objectiveStatuses[o.id] ?? 'locked') !== 'locked',
+      ) ?? null)
+    : null;
 
   const navigateToTier = (tier: PlanTier) => {
     if (!projectId) return;
@@ -196,6 +236,22 @@ export default function PlanTierShell({
             navigateToObjective(obj.id, obj.tierId);
           }}
           onDismiss={() => setLockedPopoverTier(null)}
+        />
+      )}
+
+      {celebratingTier && (
+        <TierUnlockCelebration
+          tier={celebratingTier}
+          firstObjective={celebratingFirstObjective}
+          onOpenTier={() => {
+            markTierCelebrated(projectId, celebratingTier.id);
+            setCelebratingTierId(null);
+            navigateToTier(celebratingTier);
+          }}
+          onDismiss={() => {
+            markTierCelebrated(projectId, celebratingTier.id);
+            setCelebratingTierId(null);
+          }}
         />
       )}
     </div>

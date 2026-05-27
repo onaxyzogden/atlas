@@ -1,10 +1,11 @@
 /**
- * planTierStore — Plan-tier checklist progress (Slice 1.7).
+ * planTierStore — Plan-tier checklist progress (Slice 1.7) +
+ * tier-unlock celebration log (Slice 1.10).
  *
  * Tracks which checklist items the steward has ticked for each
- * (projectId, objectiveId) pair. Status / decision records still live on
- * other stores; this is purely the completion ledger for the YOUR
- * DECISIONS section of the ObjectiveDetailPanel.
+ * (projectId, objectiveId) pair, plus the set of tier ids that have
+ * already triggered a `TierUnlockCelebration` for each project so the
+ * modal never fires twice for the same unlock.
  *
  * Kept separate from the existing OLOS `checklistProgressStore` because
  * the Plan-tier and OLOS-universal objective catalogues are distinct
@@ -27,12 +28,16 @@ const PERSIST_KEY = 'ogden-plan-tier-progress';
 
 type ItemIds = readonly string[];
 type ByObjective = Readonly<Record<string, ItemIds>>;
+type TierIds = readonly string[];
 
 const EMPTY_ITEM_IDS: ItemIds = Object.freeze([]);
 const EMPTY_BY_OBJECTIVE: ByObjective = Object.freeze({});
+const EMPTY_TIER_IDS: TierIds = Object.freeze([]);
 
 interface PlanTierProgressState {
   byProject: Record<string, ByObjective>;
+  /** Tier ids that have already shown the unlock celebration, keyed by project. */
+  celebratedByProject: Record<string, TierIds>;
 
   /** Read all completed item ids for one objective in a project. */
   getCompletedItemIds: (projectId: string, objectiveId: string) => ItemIds;
@@ -54,12 +59,18 @@ interface PlanTierProgressState {
   ) => void;
   /** Clear progress for one objective (used by cyclical-review revisions). */
   clearForObjective: (projectId: string, objectiveId: string) => void;
+
+  /** True if this project has already celebrated the tier unlock. */
+  hasCelebratedTier: (projectId: string, tierId: string) => boolean;
+  /** Mark a tier as celebrated for this project (idempotent). */
+  markTierCelebrated: (projectId: string, tierId: string) => void;
 }
 
 export const usePlanTierProgressStore = create<PlanTierProgressState>()(
   persist(
     (set, get) => ({
       byProject: {},
+      celebratedByProject: {},
 
       getCompletedItemIds: (projectId, objectiveId) =>
         get().byProject[projectId]?.[objectiveId] ?? EMPTY_ITEM_IDS,
@@ -94,11 +105,44 @@ export const usePlanTierProgressStore = create<PlanTierProgressState>()(
             byProject: { ...s.byProject, [projectId]: rest },
           };
         }),
+
+      hasCelebratedTier: (projectId, tierId) =>
+        (get().celebratedByProject[projectId] ?? EMPTY_TIER_IDS).includes(
+          tierId,
+        ),
+
+      markTierCelebrated: (projectId, tierId) =>
+        set((s) => {
+          const existing = s.celebratedByProject[projectId] ?? [];
+          if (existing.includes(tierId)) return s;
+          return {
+            celebratedByProject: {
+              ...s.celebratedByProject,
+              [projectId]: [...existing, tierId],
+            },
+          };
+        }),
     }),
     {
       name: PERSIST_KEY,
-      version: 1,
-      partialize: (state) => ({ byProject: state.byProject }),
+      version: 2,
+      partialize: (state) => ({
+        byProject: state.byProject,
+        celebratedByProject: state.celebratedByProject,
+      }),
+      // Pre-Slice-1.10 persisted state has no celebratedByProject field;
+      // backfill an empty record so the new selectors stay stable.
+      migrate: (persistedState, version) => {
+        const safe =
+          (persistedState as Partial<PlanTierProgressState> | null) ?? {};
+        if (version < 2) {
+          return {
+            ...safe,
+            celebratedByProject: safe.celebratedByProject ?? {},
+          } as PlanTierProgressState;
+        }
+        return safe as PlanTierProgressState;
+      },
     },
   ),
 );
@@ -115,6 +159,18 @@ export function selectProjectProgress(
   projectId: string,
 ): ByObjective {
   return state.byProject[projectId] ?? EMPTY_BY_OBJECTIVE;
+}
+
+/**
+ * Stable accessor for the tier ids this project has already celebrated.
+ * Returns a frozen empty array when nothing has been celebrated yet so
+ * the selector identity stays stable.
+ */
+export function selectCelebratedTiers(
+  state: PlanTierProgressState,
+  projectId: string,
+): TierIds {
+  return state.celebratedByProject[projectId] ?? EMPTY_TIER_IDS;
 }
 
 /**
