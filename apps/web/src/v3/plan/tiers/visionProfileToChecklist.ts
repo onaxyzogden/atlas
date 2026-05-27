@@ -21,7 +21,7 @@
  * Pure / deterministic. No I/O. Safe in render.
  */
 
-import type { VisionProfile } from '@ogden/shared';
+import type { ProjectMetadata, VisionProfile } from '@ogden/shared';
 
 export interface VisionDerivedItem {
   /** Whether this checklist item is satisfied by the VisionProfile. */
@@ -124,6 +124,102 @@ export function deriveTier0EvidenceMap(
     map['t0-vision-c3'] = {
       // Both axes are required to call the capacity band "set".
       isComplete: !!budgetRange && !!timelineProgress,
+      evidence: fragments.join('. '),
+    };
+  }
+
+  return Object.keys(map).length === 0 ? EMPTY_MAP : map;
+}
+
+type ProjectTeam = NonNullable<ProjectMetadata['team']>;
+type QueuedInvite = NonNullable<ProjectTeam['queuedInvites']>[number];
+
+function describeSteward(
+  steward: NonNullable<ProjectTeam['primarySteward']> | undefined,
+): string | null {
+  if (!steward) return null;
+  const name = steward.name?.trim() ?? '';
+  const email = steward.email?.trim() ?? '';
+  if (name && email) return `${name} <${email}>`;
+  if (name) return name;
+  if (email) return email;
+  return null;
+}
+
+function inviteRoleLabel(role: QueuedInvite['role']): string {
+  switch (role) {
+    case 'team_member':
+      return 'Team member';
+    case 'contractor':
+      return 'Contractor';
+    case 'landowner':
+      return 'Landowner';
+    case 'reviewer':
+      return 'Reviewer';
+    default:
+      return role;
+  }
+}
+
+/**
+ * Derive Tier 0 stewardship checklist completion + evidence from the
+ * wizard's Step 3 Team payload. Mirrors `deriveTier0EvidenceMap` in
+ * shape so both maps can be unioned by `PlanTierShell` before the
+ * status engine runs.
+ *
+ * Coverage map:
+ *  - `t0-stewardship-c1` (List primary steward and any co-stewards)
+ *      satisfied when `primarySteward` has a name OR email, OR any
+ *      `coStewards` entry exists, OR any invite has been queued (the
+ *      steward has clearly named who else works on the land).
+ *  - `t0-stewardship-c2` (Note contractor and reviewer roles if known)
+ *      satisfied when any queued invite has role `contractor`,
+ *      `landowner`, or `reviewer`. `team_member` alone does not count
+ *      because the checklist label explicitly singles out the
+ *      non-default roles.
+ */
+export function deriveTier0StewardshipMap(
+  team: ProjectTeam | null | undefined,
+): VisionDerivedMap {
+  if (!team) return EMPTY_MAP;
+
+  const map: Record<string, VisionDerivedItem> = {};
+
+  const stewardLabel = describeSteward(team.primarySteward);
+  const coStewards = (team.coStewards ?? [])
+    .map((c) => describeSteward(c))
+    .filter((s): s is string => !!s);
+  const invites = team.queuedInvites ?? [];
+
+  // --- t0-stewardship-c1 -------------------------------------------------
+  if (stewardLabel || coStewards.length > 0 || invites.length > 0) {
+    const fragments: string[] = [];
+    if (stewardLabel) fragments.push(`Primary steward: ${stewardLabel}`);
+    if (coStewards.length > 0) {
+      fragments.push(`Co-stewards: ${coStewards.join(', ')}`);
+    }
+    if (!stewardLabel && coStewards.length === 0 && invites.length > 0) {
+      fragments.push(`${invites.length} invite(s) queued`);
+    }
+    map['t0-stewardship-c1'] = {
+      isComplete: true,
+      evidence: fragments.join('. '),
+    };
+  }
+
+  // --- t0-stewardship-c2 -------------------------------------------------
+  const flaggedInvites = invites.filter(
+    (i) =>
+      i.role === 'contractor' ||
+      i.role === 'landowner' ||
+      i.role === 'reviewer',
+  );
+  if (flaggedInvites.length > 0) {
+    const fragments = flaggedInvites.map(
+      (i) => `${inviteRoleLabel(i.role)} invited: ${i.email}`,
+    );
+    map['t0-stewardship-c2'] = {
+      isComplete: true,
       evidence: fragments.join('. '),
     };
   }

@@ -7,11 +7,17 @@
  * upcoming questions, a live Vision Profile rail, and a bottom "what this
  * activates" strip. Answers autosave to project.metadata.visionProfile via
  * useVisionBuilder; finishing routes to OBSERVE to draw/import the boundary.
+ *
+ * Slice 2.4 (Phase 2) — superseded by the spec Project Creation Wizard
+ * at `/v3/project/wizard`. The page is retained per
+ * feedback_no_deletion.md so deep links keep working, and a deprecation
+ * banner now points stewards at the new flow. Full retirement folds
+ * into Phase 7.
  */
 
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeft, ArrowRight, Compass } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Compass } from 'lucide-react';
 import { useVisionBuilder } from './useVisionBuilder.js';
 import { deriveActivatedModules } from './lib/deriveActivatedModules.js';
 import { deriveDeferredTopics } from './data/visionBuilderQuestions.js';
@@ -84,9 +90,29 @@ export default function StageZeroVisionPage() {
     }
   };
 
+  const handleSwitchToWizard = () => {
+    navigate({ to: '/v3/project/wizard' });
+  };
+
   return (
     <div className={styles.page}>
       <VisionStageHeader onSave={handleSave} saved={saved} />
+
+      <div className={styles.deprecationBanner} role="status">
+        <span className={styles.deprecationLabel}>Setup moved</span>
+        <span className={styles.deprecationText}>
+          This setup has moved. The Project Creation Wizard now captures
+          site boundary, vision, and team in one flow.
+        </span>
+        <button
+          type="button"
+          className={styles.deprecationLink}
+          onClick={handleSwitchToWizard}
+        >
+          Open the new wizard
+          <ArrowUpRight size={14} />
+        </button>
+      </div>
 
       <div className={styles.body}>
         <main className={styles.main}>

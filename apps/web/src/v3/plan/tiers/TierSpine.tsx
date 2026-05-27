@@ -20,6 +20,13 @@ interface Props {
   objectiveStatuses: Readonly<Record<string, PlanTierObjectiveStatus>>;
   tierStates: Readonly<Record<string, PlanTierState>>;
   activeTierId: string | null;
+  /**
+   * Slice 2.4 — when set, the matching TierRow renders a transient
+   * flash ring to pull attention (wired by PlanTierShell from the
+   * `?highlightIncomplete=t0` deep link). Skipped silently when the
+   * matching tier is already complete.
+   */
+  highlightTierId?: string | null;
   onSelectTier: (tier: PlanTier) => void;
 }
 
@@ -29,6 +36,7 @@ export default function TierSpine({
   objectiveStatuses,
   tierStates,
   activeTierId,
+  highlightTierId,
   onSelectTier,
 }: Props) {
   return (
@@ -42,6 +50,8 @@ export default function TierSpine({
           (o) => objectiveStatuses[o.id] === 'complete',
         ).length;
         const state = tierStates[tier.id] ?? 'locked';
+        const isHighlighting =
+          highlightTierId === tier.id && state !== 'complete';
         return (
           <li key={tier.id} className={css.spineItem}>
             <TierRow
@@ -50,6 +60,7 @@ export default function TierSpine({
               objectiveCount={tierObjectives.length}
               completeCount={completeCount}
               isActive={tier.id === activeTierId}
+              isHighlighting={isHighlighting}
               onSelect={onSelectTier}
             />
           </li>

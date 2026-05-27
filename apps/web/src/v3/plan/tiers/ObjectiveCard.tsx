@@ -15,6 +15,11 @@ interface Props {
   objective: PlanTierObjective;
   status: PlanTierObjectiveStatus;
   isActive: boolean;
+  /**
+   * Slice 2.4 — true while this card is being flashed (3s animation
+   * driven by `?highlightIncomplete=t0`).
+   */
+  isHighlighting?: boolean;
   onSelect: (objective: PlanTierObjective) => void;
 }
 
@@ -29,6 +34,7 @@ export default function ObjectiveCard({
   objective,
   status,
   isActive,
+  isHighlighting,
   onSelect,
 }: Props) {
   return (
@@ -37,6 +43,7 @@ export default function ObjectiveCard({
       className={css.card}
       data-status={status}
       data-active={isActive}
+      data-highlighting={isHighlighting ? 'true' : undefined}
       onClick={() => onSelect(objective)}
       aria-label={`${objective.title}: ${STATUS_LABEL[status]}`}
     >

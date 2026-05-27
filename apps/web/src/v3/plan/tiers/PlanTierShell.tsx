@@ -5,8 +5,8 @@
 // as a 3rd column when an objective is selected — OBJECTIVE header
 // + MAP ACTIVATION strip + embedded ObjectiveMap (Plan stage = DesignMap).
 
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import {
   PLAN_TIERS,
   PLAN_TIER_OBJECTIVES,
@@ -33,9 +33,14 @@ import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import TierUnlockCelebration from './TierUnlockCelebration.js';
 import {
   deriveTier0EvidenceMap,
+  deriveTier0StewardshipMap,
   mergeDerivedIntoProgress,
+  type VisionDerivedMap,
 } from './visionProfileToChecklist.js';
 import css from './PlanTierShell.module.css';
+
+const HIGHLIGHT_DURATION_MS = 3000;
+const T0_TIER_ID = 't0-project-foundation';
 
 interface Props {
   shellMode: PlanShellMode;
@@ -54,6 +59,14 @@ export default function PlanTierShell({
     projectId?: string;
     tierId?: string;
     objectiveId?: string;
+  };
+  // Slice 2.4 — wizard completion can deep-link with
+  // `?highlightIncomplete=t0` to flash attention onto T0's incomplete
+  // objectives. Read non-strict so the same shell handles every plan
+  // route (the param is only forwarded by /plan but every plan route
+  // mounts this shell).
+  const search = useSearch({ strict: false }) as {
+    highlightIncomplete?: string;
   };
   const projectId = params.projectId ?? '';
   const project = useV3Project(projectId);
@@ -94,16 +107,36 @@ export default function PlanTierShell({
     [visionProfile],
   );
 
+  // Slice 2.4 — wizard Step 3 Team payload pre-satisfies the
+  // `t0-stewardship-*` checklist items. Merged into the same derived
+  // map shape as the vision bridge so a single union feeds the status
+  // engine and the in-panel evidence chips.
+  const team = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId)?.metadata?.team,
+  );
+  const stewardshipDerivedMap = useMemo(
+    () => deriveTier0StewardshipMap(team),
+    [team],
+  );
+
+  const derivedMap = useMemo<VisionDerivedMap>(
+    () =>
+      Object.keys(stewardshipDerivedMap).length === 0
+        ? visionDerivedMap
+        : { ...visionDerivedMap, ...stewardshipDerivedMap },
+    [visionDerivedMap, stewardshipDerivedMap],
+  );
+
   const objectiveStatuses = useMemo(
     () =>
       computeAllObjectiveStatuses(
         PLAN_TIER_OBJECTIVES,
         mergeDerivedIntoProgress(
           toProgressMap(projectProgress),
-          visionDerivedMap,
+          derivedMap,
         ),
       ),
-    [projectProgress, visionDerivedMap],
+    [projectProgress, derivedMap],
   );
   const tierStates = useMemo(
     () =>
@@ -120,6 +153,44 @@ export default function PlanTierShell({
   const [lockedPopoverTier, setLockedPopoverTier] = useState<PlanTier | null>(
     null,
   );
+
+  // Slice 2.4 — transient flash on T0's incomplete objectives, driven by
+  // `?highlightIncomplete=t0`. The wizard "Continue setup in Plan" CTA is
+  // the canonical source; deep links also work. Strip the URL once
+  // consumed so a refresh doesn't re-fire.
+  const [highlightTierId, setHighlightTierId] = useState<string | null>(null);
+  const highlightConsumedRef = useRef(false);
+
+  useEffect(() => {
+    if (highlightConsumedRef.current) return;
+    if (search?.highlightIncomplete !== 't0') return;
+    highlightConsumedRef.current = true;
+    setHighlightTierId(T0_TIER_ID);
+    if (typeof window !== 'undefined') {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('highlightIncomplete');
+        window.history.replaceState(null, '', url.toString());
+      } catch {
+        // URL API failure is non-fatal; param will linger but not re-fire
+        // because highlightConsumedRef guards re-entry.
+      }
+    }
+    const timer = window.setTimeout(
+      () => setHighlightTierId(null),
+      HIGHLIGHT_DURATION_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [search?.highlightIncomplete]);
+
+  const highlightObjectiveIds = useMemo<readonly string[]>(() => {
+    if (!highlightTierId) return [];
+    return PLAN_TIER_OBJECTIVES.filter(
+      (o) =>
+        o.tierId === highlightTierId &&
+        (objectiveStatuses[o.id] ?? 'locked') !== 'complete',
+    ).map((o) => o.id);
+  }, [highlightTierId, objectiveStatuses]);
 
   // Slice 1.10 — TierUnlockCelebration. Watch tier states and surface a
   // celebration the first time any tier (other than T0, which has no
@@ -223,6 +294,7 @@ export default function PlanTierShell({
           objectiveStatuses={objectiveStatuses}
           tierStates={tierStates}
           activeTierId={activeTierId}
+          highlightTierId={highlightTierId}
           onSelectTier={handleSelectTier}
         />
 
@@ -232,6 +304,7 @@ export default function PlanTierShell({
             objectives={PLAN_TIER_OBJECTIVES}
             objectiveStatuses={objectiveStatuses}
             activeObjectiveId={activeObjectiveId}
+            highlightObjectiveIds={highlightObjectiveIds}
             onSelectObjective={handleSelectObjective}
           />
         )}
@@ -245,7 +318,7 @@ export default function PlanTierShell({
             status={objectiveStatuses[activeObjective.id] ?? 'locked'}
             project={project}
             onBackToTier={navigateToTier}
-            visionDerivedMap={visionDerivedMap}
+            visionDerivedMap={derivedMap}
           />
         )}
       </div>

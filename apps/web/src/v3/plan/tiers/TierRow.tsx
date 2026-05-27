@@ -14,6 +14,12 @@ interface Props {
   objectiveCount: number;
   completeCount: number;
   isActive: boolean;
+  /**
+   * Slice 2.4 — true while this row is being flashed (3s animation
+   * driven by `?highlightIncomplete=t0`). Pure visual; click behaviour
+   * is unchanged.
+   */
+  isHighlighting?: boolean;
   onSelect: (tier: PlanTier) => void;
 }
 
@@ -30,6 +36,7 @@ export default function TierRow({
   objectiveCount,
   completeCount,
   isActive,
+  isHighlighting,
   onSelect,
 }: Props) {
   return (
@@ -38,6 +45,7 @@ export default function TierRow({
       className={css.row}
       data-state={state}
       data-active={isActive}
+      data-highlighting={isHighlighting ? 'true' : undefined}
       onClick={() => onSelect(tier)}
       aria-expanded={isActive}
       aria-label={`${tier.title}: ${STATE_LABEL[state]}, ${completeCount} of ${objectiveCount} objectives complete`}

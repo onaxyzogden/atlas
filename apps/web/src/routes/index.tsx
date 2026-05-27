@@ -87,6 +87,13 @@ void V3OperatePage;
 void LifecycleProjectPage;
 void CyclePage;
 
+// NewProjectPage superseded by the spec wizard at /v3/project/wizard
+// (Phase 2, Slice 2.4). Component retained per feedback_no_deletion.md —
+// the /new route now redirects to the wizard while preserving the
+// `?prefillTemplate` / `?orgId` / `?fullSetup` query so showcase /
+// stewarding entry paths keep working. Deletion deferred to Phase 7.
+void NewProjectPage;
+
 // Auth gate used by the public landing route. Reads the persisted token
 // directly so the redirect fires before AppShell mounts (avoiding a flash
 // of LandingPage for already-signed-in users).
@@ -140,10 +147,44 @@ const archiveRoute = createRoute({
   component: ArchivePage,
 });
 
+// Slice 2.4 — /new is now a redirect shim to the spec wizard. Search
+// params thread through so showcase template instantiation
+// (`?prefillTemplate=...`), workspace context (`?orgId=...`), and the
+// Stewarding handoff (`?fullSetup=true`) still drive the new flow. The
+// wizard reads the same params (Slice 2.1 parity work).
 const newProjectRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/new',
-  component: NewProjectPage,
+  component: () => null,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): {
+    prefillTemplate?: string;
+    orgId?: string;
+    fullSetup?: boolean;
+  } => {
+    const out: {
+      prefillTemplate?: string;
+      orgId?: string;
+      fullSetup?: boolean;
+    } = {};
+    if (typeof search.prefillTemplate === 'string' && search.prefillTemplate) {
+      out.prefillTemplate = search.prefillTemplate;
+    }
+    if (typeof search.orgId === 'string' && search.orgId) {
+      out.orgId = search.orgId;
+    }
+    if (search.fullSetup === true || search.fullSetup === 'true') {
+      out.fullSetup = true;
+    }
+    return out;
+  },
+  beforeLoad: ({ search }) => {
+    throw redirect({
+      to: '/v3/project/wizard',
+      search,
+    });
+  },
 });
 
 // Legacy v2 routes redirect onto the v3 forward path. Components stay
@@ -337,10 +378,29 @@ const v3PlanCommandCentreRoute = createRoute({
   path: 'plan/command-centre',
   component: PlanCommandCentrePage,
 });
+// Plan search-param shape. Slice 2.4 introduces `?highlightIncomplete=t0`
+// (wizard "Continue setup in Plan" deep link). Only 't0' is honoured
+// today; future tier hops can extend the union without a route-shape
+// migration. Kept on all three plan-shell routes so a deep link reaches
+// the spine regardless of whether the steward lands on /plan,
+// /plan/tier/$tierId, or /plan/tier/$tierId/objective/$objectiveId.
+type PlanSearch = { highlightIncomplete?: 't0' };
+
+const validatePlanSearch = (
+  search: Record<string, unknown>,
+): PlanSearch => {
+  const out: PlanSearch = {};
+  if (search.highlightIncomplete === 't0') {
+    out.highlightIncomplete = 't0';
+  }
+  return out;
+};
+
 const v3PlanRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan',
   component: PlanLayout,
+  validateSearch: validatePlanSearch,
 });
 // Plan Reviews — Observe→Plan impact-flag triage. Static path resolves before
 // the `plan/$module` param route. Nucleus of the future Plan Operation Centre.
@@ -401,11 +461,13 @@ const v3PlanTierRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/tier/$tierId',
   component: PlanLayout,
+  validateSearch: validatePlanSearch,
 });
 const v3PlanTierObjectiveRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/tier/$tierId/objective/$objectiveId',
   component: PlanLayout,
+  validateSearch: validatePlanSearch,
 });
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,

@@ -132,3 +132,31 @@
   color: var(--status-color);
   white-space: nowrap;
 }
+
+/* --- Slice 2.4 highlight flash ------------------------------------------ */
+/* See TierRow.module.css for the rationale + the matching animation on the
+   spine row; the card-level flash points the steward at the specific
+   incomplete objectives once T0 is opened. */
+@keyframes objective-card-highlight-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 40%, transparent);
+  }
+}
+
+.card[data-highlighting='true'] {
+  animation: objective-card-highlight-pulse 1s ease-out 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card[data-highlighting='true'] {
+    animation: none;
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 50%, transparent);
+  }
+}

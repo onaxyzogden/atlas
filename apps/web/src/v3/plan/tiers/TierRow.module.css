@@ -178,3 +178,33 @@
   );
   color: #f4e6cb;
 }
+
+/* --- Slice 2.4 highlight flash ------------------------------------------ */
+/*
+ * Three 1s pulses of a gold ring around the row, then fade. Triggered by
+ * the wizard "Continue setup in Plan" CTA (?highlightIncomplete=t0) and
+ * cleared by PlanTierShell after 3s. Honours reduced-motion preferences.
+ */
+@keyframes tier-row-highlight-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 45%, transparent);
+  }
+}
+
+.row[data-highlighting='true'] {
+  animation: tier-row-highlight-pulse 1s ease-out 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row[data-highlighting='true'] {
+    animation: none;
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--color-gold-brand, #c4a265) 55%, transparent);
+  }
+}

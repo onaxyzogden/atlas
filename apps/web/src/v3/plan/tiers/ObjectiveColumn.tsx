@@ -20,6 +20,12 @@ interface Props {
   objectives: readonly PlanTierObjective[];
   objectiveStatuses: Readonly<Record<string, PlanTierObjectiveStatus>>;
   activeObjectiveId: string | null;
+  /**
+   * Slice 2.4 — objective ids that should flash a transient ring while
+   * the deep-link `?highlightIncomplete=t0` is being consumed by the
+   * shell. Empty list = no flash. Always pure presentational.
+   */
+  highlightObjectiveIds?: readonly string[];
   onSelectObjective: (objective: PlanTierObjective) => void;
 }
 
@@ -35,8 +41,13 @@ export default function ObjectiveColumn({
   objectives,
   objectiveStatuses,
   activeObjectiveId,
+  highlightObjectiveIds,
   onSelectObjective,
 }: Props) {
+  const highlightSet = useMemo(
+    () => new Set(highlightObjectiveIds ?? []),
+    [highlightObjectiveIds],
+  );
   const tierObjectives = useMemo(
     () => objectives.filter((o) => o.tierId === tier.id),
     [tier.id, objectives],
@@ -106,6 +117,7 @@ export default function ObjectiveColumn({
                 objective={obj}
                 status={objectiveStatuses[obj.id] ?? 'locked'}
                 isActive={obj.id === activeObjectiveId}
+                isHighlighting={highlightSet.has(obj.id)}
                 onSelect={onSelectObjective}
               />
             </li>
