@@ -71,6 +71,38 @@ export interface LocalProject {
    * current month at generation time. ISO YYYY-MM-DD.
    */
   startDate?: string | null;
+  /**
+   * Which Plan-stage shell the steward sees: the new 7-tier spine
+   * (OLOS Plan Navigation Spec v1) or the legacy module bar. Per-project
+   * so legacy projects with `MTC_SEED` keep their module shape, while
+   * new projects open straight into the tier spine. Read via
+   * `getPlanShellMode(project)` which applies the defaulting rules.
+   */
+  planShellMode?: PlanShellMode;
+}
+
+/**
+ * Which Plan-stage navigation shell a project renders. `tier-spine` is
+ * the OLOS Plan Navigation Spec v1 default for new projects; `module-bar`
+ * is the legacy module-driven shell preserved behind a toggle so the
+ * 52 existing module cards remain reachable during the Phase 1–7
+ * migration. Removed in Phase 7 once every card has been folded into
+ * a tier objective via `legacyCardSectionId`.
+ */
+export type PlanShellMode = 'tier-spine' | 'module-bar';
+
+/**
+ * Canonical accessor for a project's Plan shell mode. Explicit per-
+ * project values win; otherwise builtin samples (MTC, "351 House")
+ * default to `module-bar` so their hand-seeded module content keeps
+ * rendering, and every other project defaults to `tier-spine`.
+ */
+export function getPlanShellMode(
+  project: Pick<LocalProject, 'planShellMode' | 'isBuiltin'>,
+): PlanShellMode {
+  if (project.planShellMode) return project.planShellMode;
+  if (project.isBuiltin) return 'module-bar';
+  return 'tier-spine';
 }
 
 /**
@@ -245,6 +277,10 @@ export const useProjectStore = create<ProjectState>()(
             'parcelBoundaryGeojson',
             'hasParcelBoundary',
             'metadata',
+            // UI preference, not narrative content — must be settable
+            // on builtin samples too so the steward can flip between
+            // tier-spine and module-bar on the demo project.
+            'planShellMode',
           ];
           const filtered = Object.fromEntries(
             Object.entries(updates).filter(([k]) =>

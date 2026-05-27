@@ -17,7 +17,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
-import { useProjectStore, MTC_SEED } from '../../store/projectStore.js';
+import {
+  useProjectStore,
+  MTC_SEED,
+  getPlanShellMode,
+  type PlanShellMode,
+} from '../../store/projectStore.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
 import { useServerMachineryInventory } from '../../hooks/useServerMachineryInventory.js';
@@ -79,6 +84,8 @@ import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
 import DesignStatusChip from './header/DesignStatusChip.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import PlanReadyCue from './components/PlanReadyCue.js';
+import PlanNavToggle from './PlanNavToggle.js';
+import PlanTierShell from './tiers/PlanTierShell.js';
 import css from './PlanLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -104,6 +111,11 @@ export default function PlanLayout() {
     () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
     [projects, id],
   );
+
+  const planShellMode = getPlanShellMode(project);
+  const handleShellModeChange = (mode: PlanShellMode) => {
+    updateProject(project.id, { planShellMode: mode });
+  };
 
   const boundary = v3Project?.location.boundary;
   // Coords-only fallback (no boundary): prefer the parcel's intake center
@@ -433,6 +445,27 @@ export default function PlanLayout() {
     />
   );
 
+  if (planShellMode === 'tier-spine') {
+    return (
+      <PlanViewProvider view={activeView}>
+        <StageShell
+          canvasLabel="Plan canvas"
+          leftRailLabel="Plan tools"
+          rightRailLabel="Plan checklist"
+          leftRail={null}
+          canvas={
+            <PlanTierShell
+              shellMode={planShellMode}
+              onShellModeChange={handleShellModeChange}
+            />
+          }
+          rightRail={null}
+          bottomTray={null}
+        />
+      </PlanViewProvider>
+    );
+  }
+
   return (
     <PlanViewProvider view={activeView}>
     <StageShell
@@ -464,6 +497,10 @@ export default function PlanLayout() {
             module={validModule}
           />
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
+          <PlanNavToggle
+            mode={planShellMode}
+            onChange={handleShellModeChange}
+          />
           <PlanStampToast />
           <TemporalScrubSlider />
           <StampModePicker />
