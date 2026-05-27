@@ -1,3 +1,16 @@
+/*
+ * StageCompassView is full-bleed by design (V3ProjectLayout renders it edge
+ * to edge with no LandOsShell chrome). This page intentionally does NOT
+ * carry the canonical bento surface (BentoBox.module.css .bento-shell) at
+ * the outer .page level — it is the documented full-bleed exception in
+ * ADR 2026-05-27-atlas-bento-box-canonical-surface, alongside the working
+ * map pages (PlanLayout / ActLayout / StageZeroVisionPage map step).
+ *
+ * Inner bento lives one level deeper: the right-rail GuidanceCard `.group`
+ * (apps/web/src/v3/_shared/components/GuidanceCard.module.css) is byte-
+ * identical to BentoBox.module.css `.group`. Future surface tweaks must
+ * mirror across all three sites.
+ */
 .page {
   display: grid;
   grid-template-rows: 1fr;

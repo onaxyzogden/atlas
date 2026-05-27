@@ -1,7 +1,16 @@
 /* GuidanceCard — shared right-rail guidance card structure for Observe / Plan / Act.
    Per-module dot colour comes via the `--group-dot` CSS variable set inline by
    the consuming stage (each stage owns its module palette). The parent
-   container's `[data-has-active='true']` attribute drives the inactive-fade. */
+   container's `[data-has-active='true']` attribute drives the inactive-fade.
+
+   .group below is byte-identical to BentoBox.module.css `.group` (the canonical
+   inner-card / "inner bento" surface for OLOS/Atlas): var(--color-bg) +
+   1px solid var(--color-border) + var(--radius-md) + 10px padding + 8px gap.
+   Per ADR 2026-05-27-atlas-bento-box-canonical-surface this stays in sync —
+   any future surface tweak to the canonical inner-bento must mirror here.
+   The transition / interaction layers (saturation drain, group-dot accents,
+   keyboard focus rings) are GuidanceCard-specific and intentionally live
+   only here. */
 
 .group {
   display: flex;
