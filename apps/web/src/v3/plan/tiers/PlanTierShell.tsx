@@ -1,20 +1,24 @@
-// PlanTierShell — Phase 1 entry point for the OLOS Plan tier spine
-// (Plan Navigation Spec v1). Slice 1.2 ships a placeholder that lists
-// the 7 canonical tiers + their current roll-up state, so the steward
-// can verify the toggle flips between this surface and the legacy
-// module bar. Real TierSpine/TierRow/ObjectiveColumn UI lands in
-// Slice 1.4-1.5; this file is then replaced rather than extended.
+// PlanTierShell — entry point for the OLOS Plan tier spine (Plan
+// Navigation Spec v1). Slice 1.4 wires the real TierSpine + TierRow +
+// TierLockedPopover into the placeholder shipped in Slice 1.2 so
+// stewards can navigate between tiers + see what unlocks each one.
+// ObjectiveColumn / detail panel land in Slices 1.5-1.6.
 
-import { useParams } from '@tanstack/react-router';
+import { useMemo, useState } from 'react';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   PLAN_TIERS,
   PLAN_TIER_OBJECTIVES,
   computeAllObjectiveStatuses,
   computeAllTierStates,
+  findPlanTier,
   findPlanTierObjective,
 } from '@ogden/shared';
+import type { PlanTier } from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
 import PlanNavToggle from '../PlanNavToggle.js';
+import TierSpine from './TierSpine.js';
+import TierLockedPopover from './TierLockedPopover.js';
 import css from './PlanTierShell.module.css';
 
 interface Props {
@@ -26,28 +30,67 @@ export default function PlanTierShell({
   shellMode,
   onShellModeChange,
 }: Props) {
+  const navigate = useNavigate();
   // Slice 1.3 routes — `plan/tier/$tierId` and
   // `plan/tier/$tierId/objective/$objectiveId`. Read loosely so the same
   // shell mounts at the bare `plan` route too.
   const params = useParams({ strict: false }) as {
+    projectId?: string;
     tierId?: string;
     objectiveId?: string;
   };
+  const projectId = params.projectId ?? '';
   const activeTierId = params.tierId ?? null;
   const activeObjective = params.objectiveId
     ? (findPlanTierObjective(params.objectiveId) ?? null)
     : null;
+
   // Empty-progress preview: T0 objectives `available`, T1-T6 `locked`.
   // Slice 1.7 wires real checklist progress in via planTierStore.
-  const objectiveStatuses = computeAllObjectiveStatuses(
-    PLAN_TIER_OBJECTIVES,
-    {},
+  const objectiveStatuses = useMemo(
+    () => computeAllObjectiveStatuses(PLAN_TIER_OBJECTIVES, {}),
+    [],
   );
-  const tierStates = computeAllTierStates(
-    PLAN_TIERS.map((t) => t.id),
-    PLAN_TIER_OBJECTIVES,
-    objectiveStatuses,
+  const tierStates = useMemo(
+    () =>
+      computeAllTierStates(
+        PLAN_TIERS.map((t) => t.id),
+        PLAN_TIER_OBJECTIVES,
+        objectiveStatuses,
+      ),
+    [objectiveStatuses],
   );
+
+  // The locked-tier popover is hoisted into the shell so the spine stays
+  // presentational. `null` means no popover is open.
+  const [lockedPopoverTier, setLockedPopoverTier] = useState<PlanTier | null>(
+    null,
+  );
+
+  const navigateToTier = (tier: PlanTier) => {
+    if (!projectId) return;
+    navigate({
+      to: '/v3/project/$projectId/plan/tier/$tierId',
+      params: { projectId, tierId: tier.id },
+    });
+  };
+
+  const navigateToObjective = (objectiveId: string, tierId: string) => {
+    if (!projectId) return;
+    navigate({
+      to: '/v3/project/$projectId/plan/tier/$tierId/objective/$objectiveId',
+      params: { projectId, tierId, objectiveId },
+    });
+  };
+
+  const handleSelectTier = (tier: PlanTier) => {
+    const state = tierStates[tier.id] ?? 'locked';
+    if (state === 'locked') {
+      setLockedPopoverTier(tier);
+      return;
+    }
+    navigateToTier(tier);
+  };
 
   return (
     <div className={css.shell}>
@@ -65,28 +108,32 @@ export default function PlanTierShell({
           >
             {activeObjective
               ? `Objective: ${activeObjective.title} (tier ${activeTierId ?? activeObjective.tierId})`
-              : `Tier: ${activeTierId}`}
+              : `Tier: ${findPlanTier(activeTierId ?? '')?.title ?? activeTierId}`}
           </p>
         )}
       </div>
-      <ol className={css.tierList}>
-        {PLAN_TIERS.map((tier) => {
-          const state = tierStates[tier.id] ?? 'locked';
-          const count = PLAN_TIER_OBJECTIVES.filter(
-            (o) => o.tierId === tier.id,
-          ).length;
-          return (
-            <li key={tier.id} className={css.tier} data-state={state}>
-              <span className={css.tierOrdinal}>T{tier.ordinal}</span>
-              <span className={css.tierTitle}>{tier.title}</span>
-              <span className={css.tierCount}>
-                {count} objective{count === 1 ? '' : 's'}
-              </span>
-              <span className={css.tierState}>{state}</span>
-            </li>
-          );
-        })}
-      </ol>
+
+      <TierSpine
+        tiers={PLAN_TIERS}
+        objectives={PLAN_TIER_OBJECTIVES}
+        objectiveStatuses={objectiveStatuses}
+        tierStates={tierStates}
+        activeTierId={activeTierId}
+        onSelectTier={handleSelectTier}
+      />
+
+      {lockedPopoverTier && (
+        <TierLockedPopover
+          tier={lockedPopoverTier}
+          objectives={PLAN_TIER_OBJECTIVES}
+          objectiveStatuses={objectiveStatuses}
+          onAcknowledge={(obj) => {
+            setLockedPopoverTier(null);
+            navigateToObjective(obj.id, obj.tierId);
+          }}
+          onDismiss={() => setLockedPopoverTier(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,0 +1,180 @@
+/*
+ * TierRow — single row in the Plan tier spine (Plan Navigation Spec v1).
+ * The row aligns its spine dot with the parent TierSpine's connecting
+ * line so the 7 tiers visually thread together. Surface treatment leans
+ * on the BentoBox primitive (color-mix surface 96%/white + hairline
+ * border + --radius-lg) for visual cohesion with the rest of OLOS.
+ */
+
+.row {
+  --tier-state-color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  --tier-state-bg: color-mix(in srgb, var(--color-surface, #1f1d1a) 92%, #fff);
+  --tier-state-border: color-mix(
+    in srgb,
+    var(--color-border, rgba(242, 237, 227, 0.12)) 88%,
+    #fff
+  );
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 44px 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px 14px 14px;
+  width: 100%;
+  background: var(--tier-state-bg);
+  border: 1px solid var(--tier-state-border);
+  border-radius: var(--radius-lg, 12px);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--color-text, #f2ede3);
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease, transform 120ms ease;
+}
+
+.row:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--tier-state-color) 45%,
+    var(--tier-state-border)
+  );
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+/* --- state colors -------------------------------------------------------- */
+
+.row[data-state='complete'] {
+  --tier-state-color: #5dd39e;
+}
+
+.row[data-state='active'] {
+  --tier-state-color: var(--color-gold-brand, #c4a265);
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 45%,
+    var(--tier-state-border)
+  );
+  box-shadow: 0 0 0 1px
+    color-mix(in srgb, var(--color-gold-brand, #c4a265) 25%, transparent);
+}
+
+.row[data-state='available'] {
+  --tier-state-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 70%,
+    var(--color-text, #f2ede3)
+  );
+}
+
+.row[data-state='locked'] {
+  opacity: 0.55;
+  cursor: pointer; /* still clickable — opens the locked popover */
+}
+
+/* --- active selection ---------------------------------------------------- */
+
+.row[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 10%,
+    var(--tier-state-bg)
+  );
+}
+
+/* --- spine dot ----------------------------------------------------------- */
+
+.spineDot {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-bg, #1f1d1a);
+  border: 2px solid var(--tier-state-color);
+  color: var(--tier-state-color);
+}
+
+.spineDotInner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tier-state-color);
+  opacity: 0.85;
+}
+
+.row[data-state='complete'] .spineDot {
+  background: var(--tier-state-color);
+  color: #18221b;
+}
+
+.row[data-state='locked'] .spineDot {
+  background: var(--color-bg, #1f1d1a);
+}
+
+/* --- ordinal + body ------------------------------------------------------ */
+
+.ordinal {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--tier-state-color);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text, #f2ede3);
+  letter-spacing: -0.005em;
+}
+
+.summary {
+  font-size: 12px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  line-height: 1.45;
+}
+
+/* --- pill ---------------------------------------------------------------- */
+
+.pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: color-mix(in srgb, var(--tier-state-color) 18%, transparent);
+  color: var(--tier-state-color);
+  white-space: nowrap;
+}
+
+.row[data-state='complete'] .pill {
+  background: color-mix(in srgb, #5dd39e 22%, transparent);
+  color: #d6f0df;
+}
+
+.row[data-state='active'] .pill {
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 30%,
+    transparent
+  );
+  color: #f4e6cb;
+}

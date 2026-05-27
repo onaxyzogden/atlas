@@ -1,0 +1,255 @@
+/*
+ * TierLockedPopover — modal popover used when the steward taps a locked
+ * tier (Plan Navigation Spec v1, screenshot 2). The overlay fades the
+ * canvas; the popover anchors centred to keep the keyboard and
+ * touch-target ergonomics consistent across viewports.
+ */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(
+    in srgb,
+    var(--color-bg, #1f1d1a) 75%,
+    transparent
+  );
+  backdrop-filter: blur(2px);
+  z-index: 40;
+  animation: overlay-in 120ms ease-out;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.popover {
+  position: relative;
+  width: min(440px, 100%);
+  background: color-mix(
+    in srgb,
+    var(--color-surface, #1f1d1a) 96%,
+    #fff
+  );
+  border: 1px solid color-mix(
+    in srgb,
+    var(--color-border, rgba(242, 237, 227, 0.18)) 88%,
+    #fff
+  );
+  border-radius: var(--radius-lg, 14px);
+  padding: 18px 18px 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45),
+    0 0 0 1px color-mix(in srgb, var(--color-gold-brand, #c4a265) 18%, transparent);
+  color: var(--color-text, #f2ede3);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  outline: none;
+  animation: popover-in 140ms ease-out;
+}
+
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 18%,
+    transparent
+  );
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.headerText {
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.title {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--color-text, #f2ede3);
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--color-border, rgba(242, 237, 227, 0.18)) 92%,
+    #fff
+  );
+  border-radius: 6px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.close:hover {
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 6%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+}
+
+.empty {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  background: var(--color-bg, #1f1d1a);
+  border: 1px dashed var(--color-border, rgba(242, 237, 227, 0.18));
+  border-radius: var(--radius-md, 8px);
+}
+
+.prereqList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prereqItem {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-bg, #1f1d1a);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.14));
+  border-radius: var(--radius-md, 8px);
+}
+
+.prereqDot {
+  margin-top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-gold-brand, #c4a265);
+  opacity: 0.85;
+}
+
+.prereqText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.prereqTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text, #f2ede3);
+  line-height: 1.4;
+}
+
+.prereqMeta {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+}
+
+.secondaryBtn,
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.secondaryBtn {
+  background: transparent;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--color-border, rgba(242, 237, 227, 0.18)) 92%,
+    #fff
+  );
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.85));
+}
+
+.secondaryBtn:hover {
+  border-color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+  color: var(--color-text, #f2ede3);
+}
+
+.primaryBtn {
+  background: var(--color-gold-brand, #c4a265);
+  border: 1px solid var(--color-gold-brand, #c4a265);
+  color: #1a1410;
+}
+
+.primaryBtn:hover {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 90%, #fff);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
