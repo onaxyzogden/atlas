@@ -1,5 +1,13 @@
 /* FitGatePage — full-bleed Stage 0 verdict surface. Mirrors the Command Centre
-   page chrome (tokens only, biophilic register). */
+   page chrome (tokens only, biophilic register).
+
+   Per ADR 2026-05-27-atlas-bento-box-canonical-surface: this page is a
+   full-bleed exception (no outer .page bento wrap). The inner blocks
+   (.proceed, .lockedCard) and the FitGateSeverity blocks (.banner,
+   .finding, .unknowns) are chrome-surface bento — same border + radius
+   contract as the canonical bento, but on `--color-panel-bg` /
+   `--color-panel-card` because they sit on the page chrome rather than
+   a document surface. Future surface tweaks must keep this in sync. */
 
 .page {
   display: flex;

@@ -1,3 +1,20 @@
+/*
+ * TrueNorthCompassPage is full-bleed by design — V3ProjectLayout renders
+ * the 8-segment intake wheel edge to edge with the top chrome row, the
+ * compass center, and the right SegmentIntakePanel sidebar each owning
+ * its own background. This is the documented full-bleed exception in
+ * ADR 2026-05-27-atlas-bento-box-canonical-surface, alongside the
+ * working map pages and the Stage Compass.
+ *
+ * Inner bento for the per-segment intake card lives in
+ * SegmentIntakePanel.module.css (.panel + inner sections). The
+ * fit-gate verdict banner + per-finding rows + lockedCard in
+ * fit-gate/FitGatePage.module.css and FitGateSeverity.module.css use
+ * `--color-panel-bg` rather than the canonical `--color-bg` because
+ * they live on the chrome surface; per ADR they're recognized as
+ * sibling-bento variants (chrome-surface bento) and not migrated to
+ * the document-surface canonical here.
+ */
 .page {
   display: grid;
   grid-template-rows: auto 1fr;
