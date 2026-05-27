@@ -370,6 +370,21 @@ const v3PlanSynthesisRoute = createRoute({
   path: 'plan/synthesis',
   component: PlanSynthesisPage,
 });
+// OLOS Plan Navigation Spec v1 — tier-spine routes. Both render PlanLayout,
+// which reads `planShellMode` and branches into PlanTierShell when tier-spine
+// is the active shell. The static `plan/tier/...` prefix resolves BEFORE
+// `plan/$module` so the legacy module routes remain reachable for projects
+// that have flipped the toggle to module-bar.
+const v3PlanTierRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/tier/$tierId',
+  component: PlanLayout,
+});
+const v3PlanTierObjectiveRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'plan/tier/$tierId/objective/$objectiveId',
+  component: PlanLayout,
+});
 const v3PlanModuleRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'plan/$module',
@@ -635,6 +650,8 @@ const routeTree = rootRoute.addChildren([
       v3PlanConflictsRoute,
       v3PlanVersionsRoute,
       v3PlanSynthesisRoute,
+      v3PlanTierRoute,
+      v3PlanTierObjectiveRoute,
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActCommandCentreRoute,

@@ -5,11 +5,13 @@
 // module bar. Real TierSpine/TierRow/ObjectiveColumn UI lands in
 // Slice 1.4-1.5; this file is then replaced rather than extended.
 
+import { useParams } from '@tanstack/react-router';
 import {
   PLAN_TIERS,
   PLAN_TIER_OBJECTIVES,
   computeAllObjectiveStatuses,
   computeAllTierStates,
+  findPlanTierObjective,
 } from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
 import PlanNavToggle from '../PlanNavToggle.js';
@@ -24,6 +26,17 @@ export default function PlanTierShell({
   shellMode,
   onShellModeChange,
 }: Props) {
+  // Slice 1.3 routes — `plan/tier/$tierId` and
+  // `plan/tier/$tierId/objective/$objectiveId`. Read loosely so the same
+  // shell mounts at the bare `plan` route too.
+  const params = useParams({ strict: false }) as {
+    tierId?: string;
+    objectiveId?: string;
+  };
+  const activeTierId = params.tierId ?? null;
+  const activeObjective = params.objectiveId
+    ? (findPlanTierObjective(params.objectiveId) ?? null)
+    : null;
   // Empty-progress preview: T0 objectives `available`, T1-T6 `locked`.
   // Slice 1.7 wires real checklist progress in via planTierStore.
   const objectiveStatuses = computeAllObjectiveStatuses(
@@ -45,6 +58,16 @@ export default function PlanTierShell({
           7 tiers from foundation to phasing. Each tier unlocks once its
           prerequisites complete.
         </p>
+        {(activeTierId || activeObjective) && (
+          <p
+            className={css.routeEcho}
+            data-testid="plan-tier-route-echo"
+          >
+            {activeObjective
+              ? `Objective: ${activeObjective.title} (tier ${activeTierId ?? activeObjective.tierId})`
+              : `Tier: ${activeTierId}`}
+          </p>
+        )}
       </div>
       <ol className={css.tierList}>
         {PLAN_TIERS.map((tier) => {

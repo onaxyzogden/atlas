@@ -27,6 +27,18 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
 }
 
+.routeEcho {
+  margin: 10px 0 0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(196, 162, 101, 0.12);
+  border: 1px solid rgba(196, 162, 101, 0.3);
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  color: var(--color-text, #f2ede3);
+  display: inline-block;
+}
+
 .tierList {
   list-style: none;
   margin: 0;
