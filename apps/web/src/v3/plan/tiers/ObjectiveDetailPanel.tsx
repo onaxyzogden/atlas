@@ -21,6 +21,7 @@ import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
 import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
 import DecisionChecklist from './DecisionChecklist.js';
+import DetailsExpander from './DetailsExpander.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 interface Props {
@@ -101,14 +102,21 @@ export default function ObjectiveDetailPanel({
         onToggleItem={onToggleChecklistItem}
       />
 
-      <div className={css.placeholderStack}>
-        <div className={css.placeholderSection}>
-          <p className={css.placeholderEyebrow}>Reference</p>
-          <p className={css.placeholderBody}>
-            Legacy module card embed lands in Slice 1.8.
-          </p>
+      {objective.legacyCardSectionId ? (
+        <DetailsExpander
+          projectId={projectId}
+          legacyCardSectionId={objective.legacyCardSectionId}
+        />
+      ) : (
+        <div className={css.placeholderStack}>
+          <div className={css.placeholderSection}>
+            <p className={css.placeholderEyebrow}>Reference</p>
+            <p className={css.placeholderBody}>
+              No legacy module card linked to this objective.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

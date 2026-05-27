@@ -118,6 +118,10 @@ export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
     ],
     outputKind: 'plan-decision-record',
     parallelGroupId: 't0-foundation',
+    // Steward's "what is this land for" is the goal-compass develop-plan
+    // surface in the legacy module bar — closest existing card for the
+    // vision capture work.
+    legacyCardSectionId: 'plan-develop-plan',
   },
   {
     id: 't0-stewardship',
@@ -142,6 +146,9 @@ export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
     ],
     outputKind: 'plan-decision-record',
     parallelGroupId: 't0-foundation',
+    // Social-nodes card already captures people-on-land authoring; reused
+    // here for the steward roster work.
+    legacyCardSectionId: 'plan-social-nodes',
   },
 
   // ---------- T1 ----------
@@ -174,6 +181,9 @@ export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
       },
     ],
     outputKind: 'plan-decision-record',
+    // Soil baseline card is the most concrete observable-baseline surface
+    // among the existing soil-fertility cards.
+    legacyCardSectionId: 'plan-soil-baseline',
   },
 
   // ---------- T2 ----------

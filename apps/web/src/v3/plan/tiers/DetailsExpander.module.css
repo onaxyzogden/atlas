@@ -1,0 +1,76 @@
+/*
+ * DetailsExpander — collapsible REFERENCE section inside
+ * ObjectiveDetailPanel (Plan Navigation Spec v1, Slice 1.8).
+ *
+ * Visual sibling to DecisionChecklist — top hairline, gold eyebrow, body
+ * gets a dashed surface so the embedded legacy card visually separates
+ * from the tier-shell chrome that owns it.
+ */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.08));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 6px 8px;
+  margin: 0 -8px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-md, 8px);
+  transition: background 120ms ease;
+}
+
+.header:hover {
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 4%, transparent);
+}
+
+.headerLead {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.headerHint {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+  text-transform: lowercase;
+}
+
+.body {
+  padding: 12px;
+  border: 1px dashed var(--color-border, rgba(242, 237, 227, 0.18));
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+  /* Embedded legacy cards expect roughly full-width room. Scroll if a card
+   * is too tall — keeps the tier shell layout predictable. */
+  max-height: 520px;
+  overflow: auto;
+}
+
+.placeholder {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+}
