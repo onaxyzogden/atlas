@@ -8,21 +8,25 @@
 // Reset is keyed to objective.id at the parent via `<ObjectiveDetailPanel
 // key={objective.id} ... />` — clean reset, no useEffect.
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type {
   OverlayId,
   PlanTier,
   PlanTierObjective,
   PlanTierObjectiveStatus,
 } from '@ogden/shared';
+import { isCyclicalReviewDue } from '@ogden/shared';
 import type { Project } from '../../types.js';
 import { usePlanTierProgressStore } from '../../../store/planTierStore.js';
+import { useCyclicalReviewStore } from '../../../store/cyclicalReviewStore.js';
 import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
 import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
 import DecisionChecklist from './DecisionChecklist.js';
 import DetailsExpander from './DetailsExpander.js';
 import LaunchActButton from './LaunchActButton.js';
+import CyclicalReviewBanner from './CyclicalReviewBanner.js';
+import CyclicalReviewModal from './CyclicalReviewModal.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 interface Props {
@@ -60,6 +64,51 @@ export default function ObjectiveDetailPanel({
     [toggleItem, projectId, objective.id],
   );
 
+  // Slice 1.11 — cyclical review wiring. Subscribe to this objective's
+  // review record so the banner mounts/unmounts the moment the steward
+  // hits Confirm/Revise. The forced-trigger flag plugs into the predicate
+  // via observeRevisionFlag — Phase 4 will swap this for real Observe
+  // data; until then it is set by `cyclicalReviewStore.forceTrigger`
+  // (dev-tools entry exposed at window.cyclicalReviewStore).
+  const reviewRecord = useCyclicalReviewStore((s) =>
+    s.getRecord(projectId, objective.id),
+  );
+  const isForced = useCyclicalReviewStore((s) =>
+    s.isForced(projectId, objective.id),
+  );
+  const noteCompletion = useCyclicalReviewStore((s) => s.noteCompletion);
+  const confirmDecision = useCyclicalReviewStore((s) => s.confirmDecision);
+  const acknowledgeRevise = useCyclicalReviewStore((s) => s.acknowledgeRevise);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Start the 90-day clock the first time the objective reaches `complete`.
+  // The store guards re-writes so re-renders from other state are no-ops.
+  useEffect(() => {
+    if (!projectId) return;
+    if (status === 'complete') {
+      noteCompletion(projectId, objective.id);
+    }
+  }, [projectId, objective.id, status, noteCompletion]);
+
+  const reviewDue = isCyclicalReviewDue({
+    objective,
+    currentStatus: status,
+    lastReviewedAt: reviewRecord.lastReviewedAt,
+    now: Date.now(),
+    observeRevisionFlag: isForced ? () => true : undefined,
+  });
+
+  const handleConfirmDecision = () => {
+    if (!projectId) return;
+    confirmDecision(projectId, objective.id);
+    setShowConfirmModal(true);
+  };
+
+  const handleReviseDecision = () => {
+    if (!projectId) return;
+    acknowledgeRevise(projectId, objective.id);
+  };
+
   const toggleOverlay = (overlayId: OverlayId) => {
     setActiveOverlayIds((prev) =>
       prev.includes(overlayId)
@@ -80,6 +129,13 @@ export default function ObjectiveDetailPanel({
         status={status}
         onBackToTier={onBackToTier}
       />
+
+      {reviewDue && (
+        <CyclicalReviewBanner
+          onConfirm={handleConfirmDecision}
+          onRevise={handleReviseDecision}
+        />
+      )}
 
       <MapActivationStrip
         objective={objective}
@@ -124,6 +180,13 @@ export default function ObjectiveDetailPanel({
         objective={objective}
         status={status}
       />
+
+      {showConfirmModal && (
+        <CyclicalReviewModal
+          objective={objective}
+          onDismiss={() => setShowConfirmModal(false)}
+        />
+      )}
     </section>
   );
 }
