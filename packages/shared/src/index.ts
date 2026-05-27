@@ -134,3 +134,19 @@ export {
   CYCLICAL_REVIEW_DEFAULT_DAYS,
   type CyclicalReviewInputs,
 } from './relationships/cyclicalReviewTrigger.js';
+
+// Field action (OLOS Act Command Center Spec v1 — Phase 3)
+export * from './schemas/fieldAction/proofItem.schema.js';
+export * from './schemas/fieldAction/proofSchema.schema.js';
+export * from './schemas/fieldAction/divergenceFlag.schema.js';
+export * from './schemas/fieldAction/fieldAction.schema.js';
+export * from './constants/fieldAction/proofSchemas.js';
+export {
+  canTransition,
+  computeNextStatus,
+  isTerminal,
+  isVerified,
+  isObserveFeedable,
+  hasAllRequiredProof,
+  type FieldActionEvent,
+} from './relationships/fieldActionStatus.js';

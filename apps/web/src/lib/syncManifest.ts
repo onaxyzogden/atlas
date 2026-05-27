@@ -105,6 +105,9 @@ import { useObserveCompassStore } from '../store/observeCompassStore.js';
 import { usePlanCompassStore } from '../store/planCompassStore.js';
 import { useObjectiveSummaryStore } from '../store/objectiveSummaryStore.js';
 import { useStageGateOverrideStore } from '../store/stageGateOverrideStore.js';
+import { useCyclicalReviewStore } from '../store/cyclicalReviewStore.js';
+import { usePlanTierProgressStore } from '../store/planTierStore.js';
+import { useFieldActionStore } from '../store/fieldActionStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -302,6 +305,29 @@ const observationNeedsShape: BlobShape = {
 };
 
 /**
+ * plan-tier-progress carries TWO byProject record maps (per-objective
+ * checklist completion + tier-unlock celebration log); both slices are
+ * owned by the same projectId. Same pattern as observationNeedsShape.
+ */
+const planTierShape: BlobShape = {
+  select: (s, pid) => ({
+    byProject: (s as any)?.byProject?.[pid] ?? {},
+    celebratedByProject: (s as any)?.celebratedByProject?.[pid] ?? [],
+  }),
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const inc = (incoming as any) ?? {};
+      return {
+        byProject: { ...((st?.byProject as any) ?? {}), [pid]: inc.byProject ?? {} },
+        celebratedByProject: {
+          ...((st?.celebratedByProject as any) ?? {}),
+          [pid]: inc.celebratedByProject ?? [],
+        },
+      };
+    }),
+};
+
+/**
  * objective-summaries nests project UNDER stage (`byStage[stage][projectId]`),
  * so a project's slice spans every stage. Extract/restore that project's row
  * across all stages, leaving other projects' rows untouched.
@@ -482,6 +508,24 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-rotation-plan', useRotationPlanStore, 'byProject', 1, byKey('byProject', null, {})),
   blob('ogden-compost-cycle', useCompostCycleStore, 'byProject', 1, byKey('byProject', null, [])),
   blob('ogden-succession-path', useSuccessionPathStore, 'byProject', 1, byKey('byProject', null, {})),
+
+  // --- OLOS Plan-tier substrate (Phase 1) ---
+  // Per-objective checklist completion + per-tier celebration log, both
+  // keyed by projectId. Custom shape (planTierShape) carries both maps
+  // for one project together. v2 matches the store's persist version
+  // (the v1→v2 migration backfilled celebratedByProject).
+  blob('ogden-plan-tier-progress', usePlanTierProgressStore, 'byProject', 2, planTierShape),
+  // Cyclical-review records keyed by (projectId, objectiveId). Tracks
+  // lastReviewedAt / reviewMode / lastDecisionConfirmedAt per objective.
+  blob('ogden-cyclical-review', useCyclicalReviewStore, 'byProject', 1, byKey('byProject', null, {})),
+
+  // --- OLOS Act field actions (Phase 3 Slice 3.1) ---
+  // FieldAction is a new entity (locked decision: not a WorkItem extension).
+  // Classified as `versioned-blob byProject` until the server-side typed
+  // table backing lands; the generic blob loop carries the per-project
+  // FieldAction[] payload across devices in the meantime. Same pattern as
+  // the other client-only OLOS stores (planTier, observationNeed, etc.).
+  blob('ogden-field-actions', useFieldActionStore, 'byProject', 1, byKey('byProject', null, [])),
 ];
 
 /**
@@ -496,4 +540,9 @@ export const DEVICE_GLOBAL: ReadonlySet<string> = new Set<string>([
   'ogden-connectivity',
   'ogden-atlas-matrix-toggles',
   'ogden-atlas-basemap',
+  // Phase 2 wizard pre-create state — there is no projectId until Step 1
+  // "Next" promotes the draft via projectStore.createProject, at which
+  // point the wizard store is cleared. Per-device transient by design;
+  // syncing it across devices would race with project creation.
+  'ogden-project-wizard',
 ]);
