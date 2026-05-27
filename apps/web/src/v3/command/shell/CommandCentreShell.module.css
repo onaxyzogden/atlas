@@ -34,17 +34,16 @@
   background: var(--color-bg);
 }
 
-/* Module tabs — outer box (canonical bento surface; mirrors
-   apps/web/src/components/ui/BentoBox.module.css .bento-shell + .outer-default) */
+/* Module tabs — horizontal strip; composes canonical bento surface from
+   apps/web/src/components/ui/BentoBox.module.css (.bento-shell +
+   .outer-default). Layout (flex row, token-based gap/padding) stays local
+   because the BentoBox `.bento` flow is vertical. */
 .tabs {
+  composes: bento-shell outer-default from '../../../components/ui/BentoBox.module.css';
   display: flex;
   align-items: stretch;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -121,16 +120,15 @@
   grid-template-columns: 48px minmax(0, 1fr) 340px;
 }
 
-/* Sidebar — outer box (canonical bento surface; see .tabs comment above) */
+/* Sidebar — outer box; composes canonical bento surface
+   (.bento-shell + .outer-default). Vertical token-based layout stays
+   local — see .tabs comment above. */
 .sidebar {
+  composes: bento-shell outer-default from '../../../components/ui/BentoBox.module.css';
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   min-height: 0;
 }
@@ -413,16 +411,14 @@
   flex-shrink: 0;
 }
 
-/* Right rail — outer box (canonical bento surface; see .tabs comment above) */
+/* Right rail — outer box; composes canonical bento surface
+   (.bento-shell + .outer-default). See .tabs comment above. */
 .rail {
+  composes: bento-shell outer-default from '../../../components/ui/BentoBox.module.css';
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
   min-height: 0;
 }
@@ -442,17 +438,14 @@
   color: var(--color-text-subtle);
 }
 
-/* Bottom tray — outer box (open needs / work-items carousel; canonical
-   bento surface; see .tabs comment above) */
+/* Bottom tray — open needs / work-items carousel; composes canonical bento
+   surface (.bento-shell + .outer-default). See .tabs comment above. */
 .bottomTray {
+  composes: bento-shell outer-default from '../../../components/ui/BentoBox.module.css';
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
-  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 .trayHead {
   display: flex;

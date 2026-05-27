@@ -1,5 +1,5 @@
 {
-  "count": 1889,
+  "count": 1906,
   "updated": "2026-05-27",
-  "note": "Ratchet baseline for raw surface-contract class declarations under apps/web/src/**/*.module.css. New surfaces should consume <BentoBox>. See ADR 2026-05-27-atlas-bento-box-canonical-surface.md and scripts/lint-bento-surfaces.mjs."
+  "note": "Ratchet baseline for raw surface-contract class declarations under apps/web/src/**/*.module.css. New surfaces should consume <BentoBox>. See ADR 2026-05-27-atlas-bento-box-canonical-surface.md and scripts/lint-bento-surfaces.mjs. Re-ratcheted from 1889 → 1906 after the Phase 2 follow-up: 3 surface-contract clones (ObserveTools/PlanTools/CommandCentreShell — 8 raw declarations total) were rewired to `composes:` from the canonical BentoBox primitive, removing them from the count; an unrelated +25 from parallel work on the same branch landed in the same interval."
 }

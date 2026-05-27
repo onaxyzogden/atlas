@@ -1,27 +1,16 @@
 /*
- * Bento layout: the outer .toolbox is the panel shell (surface bg, hairline
- * border, soft shadow, --radius-lg) and each inner .group is a quieter inset
- * card on --color-bg with --radius-md. Mirrors the right-rail checklist
- * (apps/web/src/v3/observe/components/ObserveChecklistAside.module.css:1-26)
- * so the two rails read as a matching bento pair.
+ * ObserveTools bento — consumes the canonical surface primitive at
+ * apps/web/src/components/ui/BentoBox.module.css via `composes:` (no more
+ * byte-identical clone). Outer .toolbox composes `bento + outer-default +
+ * padding-md`; inner .group composes `group`. Mirrors the right-rail
+ * checklist (apps/web/src/v3/observe/components/ObserveChecklistAside.module.css:1-26)
+ * so the two rails read as a matching bento pair. Consumer-specific layout
+ * (overflow, scrollbar, sizing, data-attribute selectors) stays local.
  *
- * **Canonical source: apps/web/src/components/ui/BentoBox.module.css**
- * The shell rules below are kept byte-identical to BentoBox `.bento +
- * outer-default + padding-md` and `.group`. Vite's PWA postcss step
- * rejects `composes: ... from` with relative paths (only absolute paths
- * accepted), so the duplication is intentional. NEW consumers should
- * import the BentoBox primitive directly; existing duplications stay
- * for stability until a postcss config change unlocks composes-from.
+ * ADR: atlas/wiki/decisions/2026-05-27-atlas-bento-box-canonical-surface.md
  */
 .toolbox {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  background: color-mix(in srgb, var(--color-surface) 96%, #fff);
-  border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  composes: bento outer-default padding-md from '../../../components/ui/BentoBox.module.css';
   overflow-y: auto;
   overflow-x: hidden;
   min-width: 200px;
@@ -54,16 +43,7 @@
 }
 
 .group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  --group-dot: var(--color-text-muted);
-  transition: border-color 120ms ease, box-shadow 120ms ease,
-    filter 150ms ease, opacity 150ms ease;
+  composes: group from '../../../components/ui/BentoBox.module.css';
 }
 
 /*
