@@ -4,6 +4,14 @@
  * card on --color-bg with --radius-md. Mirrors the right-rail checklist
  * (apps/web/src/v3/observe/components/ObserveChecklistAside.module.css:1-26)
  * so the two rails read as a matching bento pair.
+ *
+ * **Canonical source: apps/web/src/components/ui/BentoBox.module.css**
+ * The shell rules below are kept byte-identical to BentoBox `.bento +
+ * outer-default + padding-md` and `.group`. Vite's PWA postcss step
+ * rejects `composes: ... from` with relative paths (only absolute paths
+ * accepted), so the duplication is intentional. NEW consumers should
+ * import the BentoBox primitive directly; existing duplications stay
+ * for stability until a postcss config change unlocks composes-from.
  */
 .toolbox {
   display: flex;

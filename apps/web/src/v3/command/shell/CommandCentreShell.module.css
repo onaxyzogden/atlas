@@ -34,7 +34,8 @@
   background: var(--color-bg);
 }
 
-/* Module tabs — outer box */
+/* Module tabs — outer box (canonical bento surface; mirrors
+   apps/web/src/components/ui/BentoBox.module.css .bento-shell + .outer-default) */
 .tabs {
   display: flex;
   align-items: stretch;
@@ -120,7 +121,7 @@
   grid-template-columns: 48px minmax(0, 1fr) 340px;
 }
 
-/* Sidebar — outer box */
+/* Sidebar — outer box (canonical bento surface; see .tabs comment above) */
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -412,7 +413,7 @@
   flex-shrink: 0;
 }
 
-/* Right rail — outer box */
+/* Right rail — outer box (canonical bento surface; see .tabs comment above) */
 .rail {
   display: flex;
   flex-direction: column;
@@ -441,7 +442,8 @@
   color: var(--color-text-subtle);
 }
 
-/* Bottom tray — outer box (open needs / work-items carousel) */
+/* Bottom tray — outer box (open needs / work-items carousel; canonical
+   bento surface; see .tabs comment above) */
 .bottomTray {
   display: flex;
   flex-direction: column;

@@ -15,12 +15,28 @@
  * Cross-link: atlas/wiki/decisions/2026-05-27-atlas-bento-box-canonical-surface.md
  */
 
-.bento {
-  display: flex;
-  flex-direction: column;
+/*
+ * .bento-shell — the surface treatment ONLY (bg + hairline border + radius).
+ * Composable by consumers that need to keep their own flex direction / gap /
+ * padding (e.g. CommandCentreShell's horizontal .tabs strip). Outer-variant
+ * box-shadows (.outer-default | .outer-flat | .outer-elevated) compose on
+ * top.
+ */
+.bento-shell {
   background: color-mix(in srgb, var(--color-surface) 96%, #fff);
   border: 1px solid color-mix(in srgb, var(--color-border) 88%, #fff);
   border-radius: var(--radius-lg);
+}
+
+/*
+ * .bento — the full default outer: shell + vertical flex column with the
+ * canonical 10px gap. Most consumers compose this; the few that need a
+ * different layout compose .bento-shell instead.
+ */
+.bento {
+  composes: bento-shell;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 

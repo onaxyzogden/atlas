@@ -3,6 +3,11 @@
  * panel shell (surface bg + hairline border + soft shadow + --radius-lg);
  * inner .group cards are quieter insets on --color-bg with --radius-md so
  * the rail reads as a single bento containing N module cards.
+ *
+ * **Canonical source: apps/web/src/components/ui/BentoBox.module.css**
+ * Kept byte-identical to BentoBox `.bento + outer-default + padding-md`
+ * and `.group`. See ObserveTools.module.css header for why composes-from
+ * is not used today.
  */
 .toolbox {
   display: flex;
