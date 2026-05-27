@@ -77,6 +77,12 @@ export const ProjectMetadata = z.object({
   // frames the downstream OBSERVE / PLAN / ACT stages. See
   // visionProfile.schema.ts. Authored incrementally (autosave + resume).
   visionProfile: VisionProfile.optional(),
+  // Project Creation Wizard state (Phase 2 / Slice 2.1). `in_progress` marks
+  // a draft created by Step 1 "Next" but not yet through the completion
+  // screen; `complete` flips on Step 3 finish. `wizardLastStep` is the
+  // resume cursor for `/v3/project/$id/wizard/$step` deep-link recovery.
+  wizardStatus: z.enum(['in_progress', 'complete']).optional(),
+  wizardLastStep: z.enum(['site', 'vision', 'team']).optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
@@ -89,6 +95,7 @@ export const ProjectType = z.enum([
   'multi_enterprise',
   'moontrance',       // OGDEN identity template
 ]);
+export type ProjectType = z.infer<typeof ProjectType>;
 
 // Shape-only GeoJSON validation for parcel boundaries. Rejects malformed /
 // non-GeoJSON bodies at the API boundary so the backend never feeds junk to

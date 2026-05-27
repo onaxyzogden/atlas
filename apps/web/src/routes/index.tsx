@@ -70,6 +70,8 @@ import OLOSObjectivePage from '../v3/olos/OLOSObjectivePage.js';
 import { ShowcasePage } from '../showcase/routes/showcase.js';
 import { ShowcaseTierPage } from '../showcase/routes/showcase.$tier.js';
 import { ShowcaseCapturePage } from '../showcase/routes/showcase._capture.js';
+import WizardStep1Site from '../v3/project-wizard/WizardStep1Site.js';
+import WizardStepRouter from '../v3/project-wizard/WizardStepRouter.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
 // ActLayout but left importable for any future fallback need.
@@ -200,6 +202,26 @@ const v3ProjectsLandingRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/project',
   component: ProjectsLandingPage,
+});
+
+// Phase 2 / Slice 2.1.g — Project Creation Wizard entry. `/v3/project/wizard`
+// renders Step 1 (Site) WITHOUT a projectId; the project record is created
+// on Step 1 "Next" and the wizard redirects to the per-project resume route
+// below. Static `wizard` segment takes precedence over the `$projectId`
+// sibling per TanStack Router static-over-dynamic resolution.
+const v3WizardCreateRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/project/wizard',
+  component: WizardStep1Site,
+});
+
+// Per-project resume entry: deep links into Step 2/3/complete after Step 1
+// has created the project. `$step` ∈ vision | team | complete; the router
+// component switches and redirects if the wizard has already finished.
+const v3WizardResumeRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'wizard/$step',
+  component: WizardStepRouter,
 });
 
 // ─── Atlas 3.0 — reference surfaces (sidebar footer P0 utilities) ───────
@@ -628,7 +650,9 @@ const routeTree = rootRoute.addChildren([
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
     v3ProjectsLandingRoute,
+    v3WizardCreateRoute,
     v3ProjectLayoutRoute.addChildren([
+      v3WizardResumeRoute,
       v3IndexRoute,
       v3HomeRoute,
       v3DiscoverRoute,

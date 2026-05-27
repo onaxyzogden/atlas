@@ -1,0 +1,74 @@
+/* BoundaryConfirmationStrip — bottom-anchored area/perimeter strip. */
+
+.strip {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 11;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(14, 20, 19, 0.94);
+  border: 1px solid var(--border-strong, #3d4243);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+  color: var(--text-primary, #e8e1d0);
+  font-family: inherit;
+  max-width: calc(100% - 32px);
+}
+
+.readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.metric {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+  min-width: 78px;
+}
+
+.label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #8a8275);
+}
+
+.value {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #e8e1d0);
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-soft, rgba(232, 225, 208, 0.15));
+}
+
+.redoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong, #3d4243);
+  background: transparent;
+  color: var(--text-primary, #e8e1d0);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.redoBtn:hover {
+  background: rgba(232, 225, 208, 0.06);
+  border-color: var(--accent-gold, #c4a265);
+}
