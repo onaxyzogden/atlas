@@ -1,0 +1,59 @@
+/*
+ * ParallelCallout — informational banner shown above the objective list
+ * when two or more objectives in a tier are simultaneously available
+ * with no prerequisite ordering.
+ */
+
+.callout {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 8%,
+    var(--color-bg, #1f1d1a)
+  );
+  border: 1px dashed
+    color-mix(in srgb, var(--color-gold-brand, #c4a265) 45%, transparent);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+}
+
+.iconBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 22%,
+    transparent
+  );
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.detail {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.75));
+}

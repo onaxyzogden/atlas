@@ -1,8 +1,9 @@
 // PlanTierShell — entry point for the OLOS Plan tier spine (Plan
-// Navigation Spec v1). Slice 1.4 wires the real TierSpine + TierRow +
-// TierLockedPopover into the placeholder shipped in Slice 1.2 so
-// stewards can navigate between tiers + see what unlocks each one.
-// ObjectiveColumn / detail panel land in Slices 1.5-1.6.
+// Navigation Spec v1). Slice 1.5 adds the right-hand ObjectiveColumn
+// that surfaces the active tier's objectives (NextUpCard, parallel
+// callout, ObjectiveCards). Slice 1.6 wires the detail panel into the
+// objective click path; today the click navigates to the objective
+// route and the route-echo confirms the param landed.
 
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -14,11 +15,12 @@ import {
   findPlanTier,
   findPlanTierObjective,
 } from '@ogden/shared';
-import type { PlanTier } from '@ogden/shared';
+import type { PlanTier, PlanTierObjective } from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
 import PlanNavToggle from '../PlanNavToggle.js';
 import TierSpine from './TierSpine.js';
 import TierLockedPopover from './TierLockedPopover.js';
+import ObjectiveColumn from './ObjectiveColumn.js';
 import css from './PlanTierShell.module.css';
 
 interface Props {
@@ -44,6 +46,8 @@ export default function PlanTierShell({
   const activeObjective = params.objectiveId
     ? (findPlanTierObjective(params.objectiveId) ?? null)
     : null;
+  const activeObjectiveId = activeObjective?.id ?? null;
+  const activeTier = activeTierId ? (findPlanTier(activeTierId) ?? null) : null;
 
   // Empty-progress preview: T0 objectives `available`, T1-T6 `locked`.
   // Slice 1.7 wires real checklist progress in via planTierStore.
@@ -92,6 +96,12 @@ export default function PlanTierShell({
     navigateToTier(tier);
   };
 
+  const handleSelectObjective = (obj: PlanTierObjective) => {
+    navigateToObjective(obj.id, obj.tierId);
+  };
+
+  const hasObjectiveColumn = activeTier !== null;
+
   return (
     <div className={css.shell}>
       <PlanNavToggle mode={shellMode} onChange={onShellModeChange} />
@@ -113,14 +123,29 @@ export default function PlanTierShell({
         )}
       </div>
 
-      <TierSpine
-        tiers={PLAN_TIERS}
-        objectives={PLAN_TIER_OBJECTIVES}
-        objectiveStatuses={objectiveStatuses}
-        tierStates={tierStates}
-        activeTierId={activeTierId}
-        onSelectTier={handleSelectTier}
-      />
+      <div
+        className={css.layout}
+        data-has-objective-column={hasObjectiveColumn}
+      >
+        <TierSpine
+          tiers={PLAN_TIERS}
+          objectives={PLAN_TIER_OBJECTIVES}
+          objectiveStatuses={objectiveStatuses}
+          tierStates={tierStates}
+          activeTierId={activeTierId}
+          onSelectTier={handleSelectTier}
+        />
+
+        {activeTier && (
+          <ObjectiveColumn
+            tier={activeTier}
+            objectives={PLAN_TIER_OBJECTIVES}
+            objectiveStatuses={objectiveStatuses}
+            activeObjectiveId={activeObjectiveId}
+            onSelectObjective={handleSelectObjective}
+          />
+        )}
+      </div>
 
       {lockedPopoverTier && (
         <TierLockedPopover

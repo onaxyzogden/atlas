@@ -38,3 +38,27 @@
   color: var(--color-text, #f2ede3);
   display: inline-block;
 }
+
+/*
+ * .layout — switches between a single-column spine view (no tier
+ * selected) and a two-column spine + ObjectiveColumn view (tier
+ * selected). The single-column mode keeps the centered, low-density
+ * look from Slice 1.4; the two-column mode opens the spine to the
+ * left and lets the ObjectiveColumn breathe on the right.
+ */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 720px);
+  gap: 24px;
+  align-items: start;
+}
+
+.layout[data-has-objective-column='true'] {
+  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+}
+
+@media (max-width: 960px) {
+  .layout[data-has-objective-column='true'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

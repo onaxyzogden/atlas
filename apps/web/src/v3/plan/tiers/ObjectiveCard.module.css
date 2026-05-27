@@ -1,0 +1,134 @@
+/*
+ * ObjectiveCard — compact tier-objective row used inside ObjectiveColumn.
+ * Surface treatment mirrors TierRow but at a smaller scale to keep the
+ * objective list visually subordinate to the spine.
+ */
+
+.card {
+  --status-color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  --status-bg: var(--color-bg, #1f1d1a);
+  --status-border: var(--color-border, rgba(242, 237, 227, 0.12));
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--status-bg);
+  border: 1px solid var(--status-border);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--status-color) 45%, var(--status-border));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.card[data-status='complete'] {
+  --status-color: #5dd39e;
+}
+
+.card[data-status='active'] {
+  --status-color: var(--color-gold-brand, #c4a265);
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 45%,
+    var(--status-border)
+  );
+}
+
+.card[data-status='available'] {
+  --status-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 70%,
+    var(--color-text, #f2ede3)
+  );
+}
+
+.card[data-status='locked'] {
+  opacity: 0.6;
+}
+
+.card[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 8%,
+    var(--status-bg)
+  );
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--status-color);
+  color: var(--status-color);
+  background: var(--color-bg, #1f1d1a);
+}
+
+.card[data-status='complete'] .icon {
+  background: var(--status-color);
+  color: #18221b;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-color);
+  opacity: 0.85;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--color-text, #f2ede3);
+}
+
+.question {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--status-color) 18%, transparent);
+  color: var(--status-color);
+  white-space: nowrap;
+}
