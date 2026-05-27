@@ -1,9 +1,10 @@
 # 2026-05-27 — BentoBox as the canonical OLOS/Atlas surface primitive
 
-**Status.** Implemented on `feat/atlas-permaculture` across six explicit-path
+**Status.** Implemented on `feat/atlas-permaculture` across explicit-path
 commits (`BentoBox primitive` → `5a12b627` Phase 2 docs → `000db313` Card
 deprecation → `9b42b904` Slice 4a → `185f3a81` 4b → `e1b2163a` 4c →
-`1f640c8f` 4d → `eaec4a27` 4e audit).
+`1f640c8f` 4d → `eaec4a27` 4e audit → `3ad41980` wiki → `893a56fb`
+Phase 6 ratchet linter).
 
 ## Context
 
@@ -125,12 +126,26 @@ primitive instead of two.
 - 194 `features/**` `.card` surfaces remain on the legacy palette pending
   a Phase 6 lint pass.
 
+### Phase 6 — lint rule (implemented `893a56fb`)
+
+Shipped as [`scripts/lint-bento-surfaces.mjs`](../../scripts/lint-bento-surfaces.mjs)
+— a Node ESM ratchet linter (no extra deps) that scans
+`apps/web/src/**/*.module.css`, strips comments, walks rule blocks
+(recursing into at-rules), and counts class-led rules whose body declares
+all three of `background:`, `border:`, and `border-radius:` (the
+surface contract). A non-zero baseline pinned at **1889** in
+[`scripts/lint-bento-surfaces.baseline.json`](../../scripts/lint-bento-surfaces.baseline.json)
+holds the line — new raw surfaces fail with exit 1; migrations or
+removals fail with exit 2 until re-ratcheted via `--update`. The 1889
+includes the four documented exception categories (full-bleed,
+chrome-surface bento, themed-canvas bento, GuidanceCard inner-bento),
+the canonical primitive itself, the deprecated forwarding shell, the
+three Phase-2 in-place clones pending the postcss fix, and the 194
+legacy-palette `features/**` `.card` surfaces from the Slice 4e audit.
+New code under `apps/web/src/**` must consume `<BentoBox>` instead.
+
 ### Deferred
 
-- **Phase 6 — lint rule.** A future
-  `scripts/lint-surface-usage.mjs` (or ESLint custom rule) could forbid
-  hardcoded surface colors and raw `.card`/`.panel` declarations outside
-  the `BentoBox` primitive — making bento the *enforced* standard.
 - **postcss `composes:` resolution.** Once vite-plugin-pwa's PWA pipeline
   is patched (or replaced) the three Phase-2 documentation-only files can
   be re-rewired to `composes: bento-shell from

@@ -46,11 +46,25 @@ Plan workspace pages, pinned the full-bleed and themed-canvas exceptions
 feat/atlas-permaculture` + ahead/behind probe before each push; no
 `--force`, no `--no-verify`; every commit staged by explicit path.
 
+## Phase 6 — `893a56fb`
+
+Ratchet linter at `scripts/lint-bento-surfaces.mjs` (Node ESM, no deps).
+Scans `apps/web/src/**/*.module.css`, strips comments, walks rule blocks
+(recursing into at-rules), counts class-led rules whose body declares
+all three of `background:`, `border:`, `border-radius:`. Baseline pinned
+at **1889** in `scripts/lint-bento-surfaces.baseline.json` — covers the
+canonical primitive, the deprecated forwarding shell, three Phase-2
+clones, the four documented exception categories (full-bleed /
+chrome-surface / themed-canvas / GuidanceCard inner-bento), and the 194
+legacy-palette `features/**` `.card` surfaces from the 4e audit. Exit
+codes: 0 ok, 1 regression (new raw surface — consume `<BentoBox>`),
+2 improvement without `--update`. Flags `--list` and `--update`.
+
 ## Carry-over
 
-- **Phase 6 (deferred).** Lint rule forbidding raw `.card` / `.panel`
-  surface declarations outside `BentoBox`.
 - **postcss `composes:`.** Resolve the vite-plugin-pwa block so the three
   Phase-2 clones can actually consume the primitive instead of just
   documenting it.
-- **194 legacy-palette feature cards.** Bound to the Phase 6 sweep.
+- **194 legacy-palette feature cards.** Token-migrate or accept as a
+  documented "legacy-feature-card" variant; either way the ratchet
+  re-tightens via `--update` once they're resolved.
