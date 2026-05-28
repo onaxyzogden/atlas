@@ -1477,7 +1477,23 @@ export async function executeQueuedOp(op: QueuedOperation): Promise<void> {
         );
         return;
       }
-      const { data } = await api.proofPhoto.upload(projectId, {
+      // The route's auth chain (`resolveProjectRole` → `requireRole`) looks
+      // up the project by its server id, so we must POST against `serverId`
+      // — not the local UUID enqueued with the op. If the prior
+      // `project_create` op hasn't drained yet, `serverId` is missing;
+      // throw so the queue retries with backoff once the upstream op
+      // populates it (FIFO ordering means create normally drains first,
+      // but a transient failure of create can invert the order — the
+      // retry contract handles either path).
+      const project = useProjectStore
+        .getState()
+        .projects.find((p) => p.id === projectId);
+      if (!project?.serverId) {
+        throw new Error(
+          `proof_photo_upload: project ${projectId} has no serverId yet; deferring.`,
+        );
+      }
+      const { data } = await api.proofPhoto.upload(project.serverId, {
         actionId,
         slotId,
         blob,
