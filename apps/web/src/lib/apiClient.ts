@@ -664,6 +664,72 @@ export const api = {
       request<null>('DELETE', `/api/v1/projects/${projectId}/files/${fileId}`),
   },
 
+  proofPhoto: {
+    /**
+     * Upload a field-action proof photo blob captured offline-first.
+     * Drives the `proof_photo_upload` sync queue case. Returns the
+     * canonical `assetUri` (`storage://...`) the server stamped on disk;
+     * the caller swaps the local `idb://` URI for it and flips
+     * `fileSyncStatus` to `'uploaded'`.
+     */
+    upload: (
+      projectId: string,
+      args: { actionId: string; slotId: string; blob: Blob; fileName: string; fileMime: string },
+    ): Promise<ApiEnvelope<{ assetUri: string; sizeBytes: number; mimetype: string }>> =>
+      new Promise((resolve, reject) => {
+        const path = `/api/v1/projects/${projectId}/proof-photo`;
+        const fail = (apiError: ApiError) => {
+          reportApiFailure({
+            name: 'ApiError',
+            message: apiError.message,
+            status: apiError.status,
+            code: apiError.code,
+            method: 'POST',
+            path,
+          });
+          reject(apiError);
+        };
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', path);
+        if (authToken) {
+          xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
+        }
+
+        xhr.onload = () => {
+          try {
+            const json = JSON.parse(xhr.responseText) as ApiEnvelope<{
+              assetUri: string;
+              sizeBytes: number;
+              mimetype: string;
+            }>;
+            if (xhr.status >= 200 && xhr.status < 300 && !json.error) {
+              resolve(json);
+            } else {
+              fail(new ApiError(
+                json.error?.code ?? 'UNKNOWN',
+                json.error?.message ?? `Proof upload failed (${xhr.status})`,
+                xhr.status,
+                json.error?.details,
+              ));
+            }
+          } catch {
+            fail(new ApiError('PARSE_ERROR', `Response not JSON (${xhr.status})`, xhr.status));
+          }
+        };
+
+        xhr.onerror = () => {
+          fail(new ApiError('NETWORK_ERROR', 'Network error during proof upload', 0));
+        };
+
+        const form = new FormData();
+        form.append('actionId', args.actionId);
+        form.append('slotId', args.slotId);
+        form.append('file', new File([args.blob], args.fileName, { type: args.fileMime }));
+        xhr.send(form);
+      }),
+  },
+
   exports: {
     generate: (projectId: string, body: { exportType: string; payload?: unknown }) =>
       request<ExportRecord>('POST', `/api/v1/projects/${projectId}/exports`, body),

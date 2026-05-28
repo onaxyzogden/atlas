@@ -11,3 +11,18 @@
   inset: 0;
   overflow: hidden;
 }
+
+.topBar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 5;
+  padding: 10px 14px;
+  pointer-events: none;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.topBar > * {
+  pointer-events: auto;
+}

@@ -25,7 +25,8 @@ export type SyncStoreType =
   | 'comment'
   | 'state-blob'
   | 'vegetation'
-  | 'succession';
+  | 'succession'
+  | 'proof_photo_upload';
 export type SyncAction = 'create' | 'update' | 'delete';
 
 export interface QueuedOperation {

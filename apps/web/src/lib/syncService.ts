@@ -1450,6 +1450,53 @@ export async function executeQueuedOp(op: QueuedOperation): Promise<void> {
       }
       break;
     }
+    case 'proof_photo_upload': {
+      // Drain a queued field-action proof photo. Read the blob back from
+      // IndexedDB, POST it to the stub upload endpoint, then swap the
+      // proof item's local `idb://` URI for the canonical `storage://`
+      // URI returned by the server and flip its `fileSyncStatus` to
+      // `'uploaded'`. The blob stays in IDB until the field action itself
+      // is removed (so a future replay can re-upload without re-capture).
+      const { projectId, actionId, slotId, proofItemId, fileName, fileMime } = payload as {
+        projectId: string;
+        actionId: string;
+        slotId: string;
+        proofItemId: string;
+        fileName: string;
+        fileMime: string;
+      };
+      const { proofPhotoStore } = await import('./proofPhotoStore.js');
+      const blob = await proofPhotoStore.getBlob(actionId, slotId);
+      if (!blob) {
+        // Local blob gone (cache eviction, manual clear, etc.) — drop the
+        // op rather than retry forever. The proof item keeps its
+        // `idb://` URI so the slot still shows captured; the steward can
+        // re-attach to recover.
+        console.warn(
+          `[SYNC] proof_photo_upload: no local blob for ${actionId}:${slotId}; dropping op.`,
+        );
+        return;
+      }
+      const { data } = await api.proofPhoto.upload(projectId, {
+        actionId,
+        slotId,
+        blob,
+        fileName,
+        fileMime,
+      });
+      if (!data?.assetUri) return;
+      const { useFieldActionStore } = await import('../store/fieldActionStore.js');
+      const store = useFieldActionStore.getState();
+      const action = store.getById(projectId, actionId);
+      if (!action) return;
+      const nextProofItems = action.proofItems.map((p) =>
+        p.id === proofItemId
+          ? { ...p, fileUri: data.assetUri, fileSyncStatus: 'uploaded' as const }
+          : p,
+      );
+      store.updateFieldAction(projectId, actionId, { proofItems: nextProofItems });
+      break;
+    }
   }
 }
 

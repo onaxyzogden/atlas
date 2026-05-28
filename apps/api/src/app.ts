@@ -44,6 +44,7 @@ import projectStateRoutes from './routes/project-state/index.js';
 import vegetationRoutes from './routes/vegetation/index.js';
 import successionRoutes from './routes/succession/index.js';
 import fileRoutes from './routes/files/index.js';
+import proofPhotoRoutes from './routes/proof-photo/index.js';
 import exportRoutes from './routes/exports/index.js';
 import portalRoutes from './routes/portal/index.js';
 import publicPortalRoutes from './routes/portal/public.js';
@@ -215,6 +216,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(vegetationRoutes,    { prefix: '/api/v1/vegetation' });
   await app.register(successionRoutes,    { prefix: '/api/v1/succession' });
   await app.register(fileRoutes,          { prefix: '/api/v1/projects' });
+  await app.register(proofPhotoRoutes,    { prefix: '/api/v1/projects' });
   await app.register(exportRoutes,        { prefix: '/api/v1/projects' });
   await app.register(portalRoutes,        { prefix: '/api/v1/projects' });
   await app.register(publicPortalRoutes,  { prefix: '/api/v1/portal' });

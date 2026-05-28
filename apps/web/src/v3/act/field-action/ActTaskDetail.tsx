@@ -1,42 +1,31 @@
 /**
  * ActTaskDetail — expanded task body per spec §5.3.
  *
- * Layout:
- *   1. Header (title, status badge, verification mode, assignee count)
- *   2. Proof requirements (primary, highest visual weight) — each
- *      required slot shows label + instruction; "Capture" wiring lands
- *      in Slice 3.4 (PhotoCapture / GpsTraceCapture / etc).
- *   3. Methodology / checklist note placeholder — Slice 3.4 will surface
- *      the parent objective's checklist with feeds_into / is_methodology
- *      tags. For Slice 3.3 we render a placeholder so the layout is
- *      verifiable.
- *   4. Action buttons (Start / Submit / Reality Diverges / Mark Blocked /
- *      Unblock). Submit + Reality Diverges are disabled with explicit
- *      Slice 3.4 / 3.5 hints; Mark Blocked + Start + Unblock are wired
- *      live via fieldActionStore mutators.
+ * Layout (Slice 3.4 — live):
+ *   1. Header (title, status badge, verification mode, assignee count).
+ *   2. ProofSlotList — every schema slot in order with type-specific
+ *      capture (Photo / GPS point / GPS trace / Measurement / Logged
+ *      result / Note / Document) plus the "Add more evidence" drawer.
+ *   3. Methodology / checklist note placeholder — surfacing the parent
+ *      objective's checklist with feeds_into / is_methodology tags is
+ *      still a Phase-4 cross-stage concern.
+ *   4. Action buttons. SubmitTaskButton goes live once all required
+ *      proof slots are filled; Reality Diverges + Mark Blocked /
+ *      Unblock + Start are wired here. Reality Diverges UI lands in
+ *      Slice 3.5.
  */
 
 import {
-  Camera,
-  MapPin,
-  Route,
-  Ruler,
-  FileText,
-  ClipboardList,
-  StickyNote,
   Lock,
   AlertTriangle,
   CheckCircle2,
   Play,
-  Send,
 } from 'lucide-react';
-import type {
-  FieldAction,
-  FieldActionStatus,
-  FieldActionProofType,
-} from '@ogden/shared';
+import type { FieldAction, FieldActionStatus } from '@ogden/shared';
 import { getProofSchema } from '@ogden/shared';
 import { useFieldActionStore } from '../../../store/fieldActionStore.js';
+import ProofSlotList from './proof/ProofSlotList.js';
+import SubmitTaskButton from './proof/SubmitTaskButton.js';
 import css from './ActTaskDetail.module.css';
 
 interface Props {
@@ -53,16 +42,6 @@ const STATUS_LABEL: Record<FieldActionStatus, string> = {
   blocked: 'Blocked',
 };
 
-const PROOF_ICON: Record<FieldActionProofType, typeof Camera> = {
-  photo: Camera,
-  gps_point: MapPin,
-  gps_trace: Route,
-  measurement: Ruler,
-  logged_result: ClipboardList,
-  note: StickyNote,
-  document: FileText,
-};
-
 export default function ActTaskDetail({ projectId, action }: Props) {
   const markStarted = useFieldActionStore((s) => s.markStarted);
   const markBlocked = useFieldActionStore((s) => s.markBlocked);
@@ -74,7 +53,6 @@ export default function ActTaskDetail({ projectId, action }: Props) {
     action.proofItems.map((p) => p.slotId).filter((id): id is string => Boolean(id)),
   );
   const filledCount = requiredSlots.filter((s) => filledSlotIds.has(s.id)).length;
-  const allProofFilled = requiredSlots.length > 0 && filledCount === requiredSlots.length;
 
   const assigneeCount = action.assignedTo?.length ?? 0;
   const verificationLabel =
@@ -128,41 +106,14 @@ export default function ActTaskDetail({ projectId, action }: Props) {
 
       <div className={css.section}>
         <span className={css.sectionTitle}>Proof requirements</span>
-        {requiredSlots.length === 0 ? (
-          <div className={css.methodologyNote}>
-            No proof required for this task category.
-          </div>
-        ) : (
-          requiredSlots.map((slot) => {
-            const filled = filledSlotIds.has(slot.id);
-            const Icon = PROOF_ICON[slot.proofType] ?? Camera;
-            return (
-              <div
-                key={slot.id}
-                className={css.proofSlot}
-                data-filled={filled ? 'true' : 'false'}
-              >
-                <span className={css.proofIcon}>
-                  <Icon size={14} strokeWidth={1.75} aria-hidden="true" />
-                </span>
-                <div className={css.proofMeta}>
-                  <span className={css.proofLabel}>{slot.label}</span>
-                  <span className={css.proofInstruction}>{slot.instruction}</span>
-                </div>
-                <span className={css.proofState} data-filled={filled ? 'true' : 'false'}>
-                  {filled ? 'Captured' : 'Pending'}
-                </span>
-              </div>
-            );
-          })
-        )}
+        <ProofSlotList projectId={projectId} action={action} />
       </div>
 
       <div className={css.section}>
         <span className={css.sectionTitle}>Methodology &amp; checklist</span>
         <div className={css.methodologyNote}>
-          Methodology steps with feeds_into tags arrive in Slice 3.4 alongside
-          live proof capture.
+          Methodology steps with feeds_into tags surface alongside the
+          Phase 4 Observe rewire.
         </div>
       </div>
 
@@ -178,17 +129,11 @@ export default function ActTaskDetail({ projectId, action }: Props) {
             Start task
           </button>
         )}
-        {action.status === 'in_progress' && (
-          <button
-            type="button"
-            className={`${css.btn} ${css.btnPrimary}`}
-            disabled
-            title="Live submission lands in Slice 3.4"
-            data-testid="act-task-submit"
-          >
-            <Send size={12} strokeWidth={2} aria-hidden="true" />
-            Submit task
-          </button>
+        {(action.status === 'in_progress' ||
+          action.status === 'not_started' ||
+          action.status === 'submitted' ||
+          action.status === 'verified') && (
+          <SubmitTaskButton projectId={projectId} action={action} />
         )}
         {action.status === 'in_progress' && (
           <button
@@ -231,11 +176,6 @@ export default function ActTaskDetail({ projectId, action }: Props) {
           </span>
         )}
       </div>
-      {action.status === 'in_progress' && !allProofFilled && (
-        <span className={css.btnHint}>
-          Submit unlocks once proof slots are captured (Slice 3.4).
-        </span>
-      )}
     </div>
   );
 }

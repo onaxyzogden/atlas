@@ -75,6 +75,7 @@ type PatchableFieldActionFields = Pick<
   | 'verifierUserId'
   | 'verificationNote'
   | 'observeFeedIds'
+  | 'proofItems'
 >;
 
 interface FieldActionState {
