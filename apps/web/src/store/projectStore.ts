@@ -518,10 +518,17 @@ export const useProjectStore = create<ProjectState>()(
       // prevent quota issues. Parcel boundary FCs are small (~1-10 KB) so they
       // ride directly in localStorage like designElementsStore does in PLAN
       // — single source of truth, no IDB-restore race window. See ADDENDUM 6.
+      // Defensive against partial / drift-shaped state (e.g. a project
+      // seeded via raw setState that skipped `attachments: []`, or a sync
+      // path that replaced state with `{}`). The persist middleware reruns
+      // partialize on EVERY setState — including ones from useEffects like
+      // V3ProjectLayout's `setActiveProject` — so an undefined here crashes
+      // the whole render tree, not just persistence. Same guard pattern as
+      // `tagged.apply` in syncManifest.ts.
       partialize: (state) => ({
-        projects: state.projects.map((p) => ({
+        projects: (state.projects ?? []).map((p) => ({
           ...p,
-          attachments: p.attachments.map((a) => ({
+          attachments: (p.attachments ?? []).map((a) => ({
             ...a,
             // Parsed geospatial data stored in IndexedDB under key "attachment:<id>"
             data: null,
