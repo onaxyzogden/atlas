@@ -2,8 +2,57 @@ import { z } from 'zod';
 
 // ─── Roles ──────────────────────────────────────────────────────────────────
 
-export const ProjectRole = z.enum(['owner', 'designer', 'reviewer', 'viewer']);
+/**
+ * ProjectRole — per-project role assignment.
+ *
+ * The four legacy roles (`owner | designer | reviewer | viewer`) describe a
+ * permission spectrum from full admin down to read-only. The four spec roles
+ * (`primary_steward | team_member | contractor | landowner`) describe the
+ * OLOS-shaped identity / relationship to the land project (per the Project
+ * Creation Wizard Spec v1 + Per-Project Home Spec v1). Both sets coexist:
+ * legacy roles remain valid for projects that have always used them; new
+ * spec-shaped role rows promoted from `metadata.team.queuedInvites[]` (Phase 2
+ * Wizard Step 3) land under the spec names.
+ *
+ * Authorization at the route layer uses capability sets rather than literal
+ * role name comparison — see `relationships/projectRoleCapabilities.ts` for
+ * the mapping that lets `requireRole('owner', 'designer')` accept a granted
+ * `'primary_steward'` or `'team_member'` transparently.
+ */
+export const ProjectRole = z.enum([
+  // Legacy permission spectrum
+  'owner',
+  'designer',
+  'reviewer',
+  'viewer',
+  // OLOS spec-shaped identities (Phase 5 Slice 5.1)
+  'primary_steward',
+  'team_member',
+  'contractor',
+  'landowner',
+]);
 export type ProjectRole = z.infer<typeof ProjectRole>;
+
+/** Legacy permission-spectrum roles (pre-Phase 5). Retained for callers that
+ *  need to narrow to the original four. */
+export const ProjectRoleLegacy = z.enum([
+  'owner',
+  'designer',
+  'reviewer',
+  'viewer',
+]);
+export type ProjectRoleLegacy = z.infer<typeof ProjectRoleLegacy>;
+
+/** OLOS spec-shaped role identities (Phase 5). Use this when the route /
+ *  surface specifically cares about the spec identity rather than the
+ *  underlying capability set (e.g. a UI that says "Contractor view"). */
+export const ProjectRoleSpec = z.enum([
+  'primary_steward',
+  'team_member',
+  'contractor',
+  'landowner',
+]);
+export type ProjectRoleSpec = z.infer<typeof ProjectRoleSpec>;
 
 export const OrgRole = z.enum(['owner', 'admin', 'editor', 'viewer']);
 export type OrgRole = z.infer<typeof OrgRole>;
@@ -47,12 +96,16 @@ export type CommentRecord = z.infer<typeof CommentRecord>;
 
 export const InviteMemberInput = z.object({
   email: z.string().email(),
-  role: ProjectRole.exclude(['owner']),  // can't invite as owner
+  // Can't invite as owner; can't invite as primary_steward either — the
+  // primary steward is bound to the project creator (Wizard Step 3) and
+  // role transfers happen through a dedicated transfer flow (Phase 5
+  // post-Slice-5.1), not the generic invite path.
+  role: ProjectRole.exclude(['owner', 'primary_steward']),
 });
 export type InviteMemberInput = z.infer<typeof InviteMemberInput>;
 
 export const UpdateMemberRoleInput = z.object({
-  role: ProjectRole.exclude(['owner']),
+  role: ProjectRole.exclude(['owner', 'primary_steward']),
 });
 export type UpdateMemberRoleInput = z.infer<typeof UpdateMemberRoleInput>;
 

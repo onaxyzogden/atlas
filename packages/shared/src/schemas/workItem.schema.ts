@@ -28,6 +28,7 @@
 
 import { z } from 'zod';
 import { CostRangeSchema } from './costRange.schema.js';
+import { ProjectRole } from './collaboration.schema.js';
 
 /** Which legacy planned-work surface a WorkItem originated from. */
 export const WorkItemSource = z.enum([
@@ -101,8 +102,6 @@ export const WorkItemDesignLayer = z.enum([
   'structures',
 ]);
 export type WorkItemDesignLayer = z.infer<typeof WorkItemDesignLayer>;
-
-const ProjectRoleEnum = z.enum(['owner', 'designer', 'reviewer', 'viewer']);
 
 /**
  * Lossless carry of one procurement material line (Goal Compass). Mirrors
@@ -237,7 +236,7 @@ export const WorkItemSchema = z
     // --- net-new assignment ---
     assigneeId: z.string().optional(),
     who: z.string().optional(),
-    roleAccess: z.array(ProjectRoleEnum).optional(),
+    roleAccess: z.array(ProjectRole).optional(),
 
     // --- scheduling: net-new actual vs scheduled ---
     scheduledStart: z.string().nullable().optional(),

@@ -189,3 +189,9 @@ export {
   OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE,
   TIER_OBSERVE_DOMAINS_DEFAULT,
 } from './relationships/objectiveObserveDomains.js';
+export {
+  hasCapability,
+  roleSatisfies,
+  PROJECT_ROLE_CAPABILITIES,
+  type ProjectRoleCapability,
+} from './relationships/projectRoleCapabilities.js';

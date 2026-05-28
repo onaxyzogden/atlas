@@ -11,11 +11,15 @@ interface RoleBadgeProps {
   size?: 'sm' | 'md';
 }
 
-const ROLE_STYLES: Record<string, { icon: string; color: string; bg: string; label: string }> = {
-  owner:    { icon: '\u{1F451}', color: role.owner, bg: 'rgba(202,138,4,0.12)',  label: 'Owner' },
-  designer: { icon: '\u270F\uFE0F',  color: role.designer, bg: 'rgba(21,128,61,0.12)', label: 'Designer' },
-  reviewer: { icon: '\u{1F4AC}', color: role.reviewer, bg: 'rgba(122,138,154,0.12)', label: 'Reviewer' },
-  viewer:   { icon: '\u{1F441}\uFE0F',  color: role.viewer, bg: 'rgba(154,138,122,0.12)', label: 'Viewer' },
+const ROLE_STYLES: Record<ProjectRole, { icon: string; color: string; bg: string; label: string }> = {
+  owner:           { icon: '\u{1F451}',       color: role.owner,           bg: 'rgba(202,138,4,0.12)',   label: 'Owner' },
+  designer:        { icon: '\u270F\uFE0F',    color: role.designer,        bg: 'rgba(21,128,61,0.12)',   label: 'Designer' },
+  reviewer:        { icon: '\u{1F4AC}',       color: role.reviewer,        bg: 'rgba(122,138,154,0.12)', label: 'Reviewer' },
+  viewer:          { icon: '\u{1F441}\uFE0F', color: role.viewer,          bg: 'rgba(154,138,122,0.12)', label: 'Viewer' },
+  primary_steward: { icon: '\u{1F4BC}',       color: role.primary_steward, bg: 'rgba(161,98,7,0.12)',    label: 'Primary steward' },
+  team_member:     { icon: '\u{1F6E0}\uFE0F', color: role.team_member,     bg: 'rgba(90,138,90,0.12)',   label: 'Team member' },
+  contractor:      { icon: '\u{1F477}',       color: role.contractor,      bg: 'rgba(82,120,82,0.12)',   label: 'Contractor' },
+  landowner:       { icon: '\u26F0\uFE0F',    color: role.landowner,       bg: 'rgba(125,97,64,0.12)',   label: 'Landowner' },
 };
 
 export default function RoleBadge({ role, size = 'sm' }: RoleBadgeProps) {

@@ -75,11 +75,20 @@ const GOVERNANCE_ACTIONS: ReadonlyArray<ActivityAction> = [
 
 const GOVERNANCE_SET = new Set<ActivityAction>(GOVERNANCE_ACTIONS);
 
+// Ranks track effective authority for role_changed downgrade detection.
+// Spec roles share their legacy alias's rank per
+// `packages/shared/src/relationships/projectRoleCapabilities.ts`:
+// primary_steward = owner, team_member + contractor = designer,
+// landowner = viewer (capability-equivalent for downgrade purposes).
 const ROLE_RANK: Record<ProjectRole, number> = {
   owner: 4,
   designer: 3,
   reviewer: 2,
   viewer: 1,
+  primary_steward: 4,
+  team_member: 3,
+  contractor: 3,
+  landowner: 1,
 };
 
 function activitySeverity(a: ActivityRecord): Severity {

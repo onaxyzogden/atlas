@@ -25,7 +25,14 @@ const ROLE_CONFIG: Record<string, { icon: string; color: string; desc: string }>
   viewer:   { icon: '\u{1F441}\uFE0F',  color: roleToken.viewer, desc: 'View only \u2014 no comments or changes' },
 };
 
-const ASSIGNABLE_ROLES: Array<Exclude<ProjectRole, 'owner'>> = ['designer', 'reviewer', 'viewer'];
+// Admin-tier roles (owner, primary_steward) are excluded from invite + role-change flows
+// per `InviteMemberInput` / `UpdateMemberRoleInput` schema constraints; they require the
+// explicit ownership-transfer flow rather than a direct role assignment.
+const ASSIGNABLE_ROLES: Array<Exclude<ProjectRole, 'owner' | 'primary_steward'>> = [
+  'designer',
+  'reviewer',
+  'viewer',
+];
 
 export default function MembersTab({ project }: MembersTabProps) {
   const members = useMemberStore((s) => s.members);
@@ -51,7 +58,7 @@ export default function MembersTab({ project }: MembersTabProps) {
   );
 
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<Exclude<ProjectRole, 'owner'>>('reviewer');
+  const [inviteRole, setInviteRole] = useState<Exclude<ProjectRole, 'owner' | 'primary_steward'>>('reviewer');
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [isInviting, setIsInviting] = useState(false);
 
@@ -82,7 +89,7 @@ export default function MembersTab({ project }: MembersTabProps) {
     }
   }, [inviteEmail, inviteRole, projectId, inviteMember]);
 
-  const handleRoleChange = useCallback((userId: string, newRole: Exclude<ProjectRole, 'owner'>) => {
+  const handleRoleChange = useCallback((userId: string, newRole: Exclude<ProjectRole, 'owner' | 'primary_steward'>) => {
     updateRole(projectId, userId, newRole);
   }, [projectId, updateRole]);
 
@@ -122,7 +129,7 @@ export default function MembersTab({ project }: MembersTabProps) {
             />
             <select
               value={inviteRole}
-              onChange={(e) => setInviteRole(e.target.value as Exclude<ProjectRole, 'owner'>)}
+              onChange={(e) => setInviteRole(e.target.value as Exclude<ProjectRole, 'owner' | 'primary_steward'>)}
               style={{
                 background: 'var(--color-panel-subtle)', color: 'var(--color-panel-text)',
                 border: '1px solid var(--color-panel-card-border)', borderRadius: 6,
@@ -213,7 +220,7 @@ export default function MembersTab({ project }: MembersTabProps) {
               {isOwner && !isMemberOwner && !isCurrentUser ? (
                 <select
                   value={m.role}
-                  onChange={(e) => handleRoleChange(m.userId, e.target.value as Exclude<ProjectRole, 'owner'>)}
+                  onChange={(e) => handleRoleChange(m.userId, e.target.value as Exclude<ProjectRole, 'owner' | 'primary_steward'>)}
                   style={{
                     background: 'transparent', color: cfg.color,
                     border: `1px solid ${cfg.color}44`, borderRadius: 4,

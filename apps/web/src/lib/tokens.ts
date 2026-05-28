@@ -214,12 +214,24 @@ export const status = {
 } as const;
 
 // ── Role Badge Colors ───────────────────────────────────────────────────────
+// Phase 5 Slice 5.1 added 4 OLOS spec-shaped roles (primary_steward |
+// team_member | contractor | landowner) alongside the 4 legacy roles. Spec
+// roles take on a visual relationship to the legacy role they alias to per
+// `packages/shared/src/relationships/projectRoleCapabilities.ts`:
+//   primary_steward → owner   (admin tier, deeper gold)
+//   team_member     → designer (contributor tier, brighter sage)
+//   contractor      → designer (contributor tier, deeper sage)
+//   landowner       → viewer   (read+comment tier, earth-toned)
 
 export const role = {
-  owner:    '#CA8A04',
-  designer: '#15803D',
-  reviewer: '#7a8a9a',
-  viewer:   '#9a8a7a',
+  owner:           '#CA8A04',
+  designer:        '#15803D',
+  reviewer:        '#7a8a9a',
+  viewer:          '#9a8a7a',
+  primary_steward: '#A16207',
+  team_member:     '#5A8A5A',
+  contractor:      '#527852',
+  landowner:       '#7D6140',
 } as const;
 
 // ── Avatar Colors (presence) ────────────────────────────────────────────────

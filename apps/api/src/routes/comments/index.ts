@@ -76,10 +76,15 @@ export default async function commentRoutes(fastify: FastifyInstance) {
     },
   );
 
-  // POST /:id/comments — create comment (owner, designer, reviewer)
+  // POST /:id/comments — create comment (owner, designer, reviewer, landowner).
+  // `landowner` is listed explicitly because the spec grants landowners
+  // commenting rights but the rbac alias map points landowner → viewer
+  // (read-only) rather than landowner → reviewer (which would also unlock
+  // suggested-edit creation). Phase 5 sub-slices may migrate this gate
+  // to `requireCapability('comment')` once that helper ships.
   fastify.post<{ Params: { id: string } }>(
     '/:id/comments',
-    { preHandler: [authenticate, resolveProjectRole, requireRole('owner', 'designer', 'reviewer')] },
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner', 'designer', 'reviewer', 'landowner')] },
     async (req, reply) => {
       const body = CreateCommentInput.parse(req.body);
 
@@ -137,10 +142,10 @@ export default async function commentRoutes(fastify: FastifyInstance) {
     },
   );
 
-  // PATCH /:id/comments/:commentId — edit text or resolve
+  // PATCH /:id/comments/:commentId — edit text or resolve (same gate as POST).
   fastify.patch<{ Params: { id: string; commentId: string } }>(
     '/:id/comments/:commentId',
-    { preHandler: [authenticate, resolveProjectRole, requireRole('owner', 'designer', 'reviewer')] },
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner', 'designer', 'reviewer', 'landowner')] },
     async (req) => {
       const { commentId } = ParamsCommentId.parse(req.params);
       const body = UpdateCommentInput.parse(req.body);
