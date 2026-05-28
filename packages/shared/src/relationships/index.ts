@@ -7,3 +7,4 @@ export * from './tierObjectiveStatus.js';
 export * from './tierState.js';
 export * from './cyclicalReviewTrigger.js';
 export * from './fieldActionStatus.js';
+export * from './urgencyScore.js';

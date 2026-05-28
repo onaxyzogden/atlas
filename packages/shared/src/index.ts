@@ -195,3 +195,12 @@ export {
   PROJECT_ROLE_CAPABILITIES,
   type ProjectRoleCapability,
 } from './relationships/projectRoleCapabilities.js';
+export {
+  computeProjectUrgency,
+  sortByUrgency,
+  URGENCY_WEIGHTS,
+  INACTIVITY_DAYS_CAP,
+  type ProjectUrgencyInputs,
+  type ProjectUrgencyBreakdown,
+  type ProjectUrgencyResult,
+} from './relationships/urgencyScore.js';
