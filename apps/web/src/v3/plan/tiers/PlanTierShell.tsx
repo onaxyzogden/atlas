@@ -14,6 +14,7 @@ import {
   computeAllTierStates,
   findPlanTier,
   findPlanTierObjective,
+  getPrimaryDomainForObjective,
 } from '@ogden/shared';
 import type { PlanTier, PlanTierObjective } from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
@@ -246,6 +247,23 @@ export default function PlanTierShell({
     });
   };
 
+  // Slice 4.4 — deep-link from a Plan tier objective divergence pill
+  // into the matching Observe Domain Detail surface so the steward can
+  // see the diverged evidence in context (spec §6.4).
+  const navigateToDomainDetail = (domainId: string) => {
+    if (!projectId) return;
+    navigate({
+      to: '/v3/project/$projectId/observe/dashboard/domain/$domainId',
+      params: { projectId, domainId },
+    });
+  };
+
+  const handleObjectiveDivergenceClick = (obj: PlanTierObjective) => {
+    const domainId = getPrimaryDomainForObjective(obj);
+    if (!domainId) return;
+    navigateToDomainDetail(domainId);
+  };
+
   const handleSelectTier = (tier: PlanTier) => {
     const state = tierStates[tier.id] ?? 'locked';
     if (state === 'locked') {
@@ -307,6 +325,7 @@ export default function PlanTierShell({
             highlightObjectiveIds={highlightObjectiveIds}
             projectId={projectId}
             onSelectObjective={handleSelectObjective}
+            onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
           />
         )}
 

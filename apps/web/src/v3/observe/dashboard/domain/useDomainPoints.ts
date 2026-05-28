@@ -5,10 +5,11 @@
  * first. Consumers (DomainObservationList, DomainEvidenceLibrary,
  * SupersessionControl) treat the two pathways uniformly.
  *
- * Slice 4.3 ships the union interface but the feed-entry projection is
- * gated on the resolver, which today is a no-op. Slice 4.4 plugs in the
- * planTier-aware resolver so verified/diverged field actions surface in
- * the right Domain Detail page automatically.
+ * Slice 4.3 shipped the union interface with a no-op resolver default;
+ * Slice 4.4 wires the real planTier-aware resolver so verified/diverged
+ * field actions surface in the right Domain Detail page automatically.
+ * Callers can still inject a custom resolver (e.g. tests) by passing the
+ * `resolveDomain` argument.
  */
 
 import { useMemo } from 'react';
@@ -19,10 +20,10 @@ import type {
 import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
 import { useObserveFeedStore } from '../../../../store/observeFeedStore.js';
 import {
-  noopResolveDomain,
   routeToDataPoint,
   type ResolveDomainForObjective,
 } from './routeToDataPoint.js';
+import { resolveDomainByObjectiveId } from '../revision/resolveDomainForObjective.js';
 
 export interface DomainPointsView {
   /** All points active OR superseded, newest first. */
@@ -54,7 +55,7 @@ function byCapturedAtDesc(
 export function useDomainPoints(
   projectId: string,
   domainId: UniversalDomain,
-  resolveDomain: ResolveDomainForObjective = noopResolveDomain,
+  resolveDomain: ResolveDomainForObjective = resolveDomainByObjectiveId,
 ): DomainPointsView {
   const dataByProject = useObserveDataPointStore((s) => s.byProject);
   const feedByProject = useObserveFeedStore((s) => s.byProject);

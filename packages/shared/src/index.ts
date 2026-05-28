@@ -182,3 +182,10 @@ export {
   type RevisionEventKind,
   type RevisionPriority,
 } from './relationships/revisionPriority.js';
+export {
+  getObjectiveObserveDomains,
+  getObjectivesForDomain,
+  getPrimaryDomainForObjective,
+  OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE,
+  TIER_OBSERVE_DOMAINS_DEFAULT,
+} from './relationships/objectiveObserveDomains.js';

@@ -5,9 +5,17 @@
 // EITHER more than 90 days have passed since the last review OR an
 // Observe-driven Plan revision flag has fired for it.
 //
-// The Observe-flag plumbing lands in Phase 4. For Phase 1 the predicate
-// accepts the flag as a function so the UI can stub it behind a feature
-// gate (see cyclicalReviewStore.forceTrigger).
+// Phase 4 caller wiring (Slice 4.4 — landed):
+//   `apps/web/src/v3/observe/dashboard/revision/usePlanRevisionFlagSync.ts`
+//   computes `computeObserveRevisionFlag` for every PLAN_TIER_OBJECTIVE
+//   against active diverged ObserveDataPoints + diverged ObserveFeedEntries
+//   and flips `cyclicalReviewStore.forceTrigger` / `clearForcedTrigger`
+//   on delta. The `observeRevisionFlag` injection point of this predicate
+//   is then satisfied by `cyclicalReviewStore.isForced(projectId, id)`.
+//
+// Before Phase 4, the flag was stubbed behind a feature gate via
+// `cyclicalReviewStore.forceTrigger` (dev-tools only). The predicate
+// itself is unchanged across Phases.
 
 import type {
   PlanTierObjective,

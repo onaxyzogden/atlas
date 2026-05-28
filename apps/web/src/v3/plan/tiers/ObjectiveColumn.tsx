@@ -5,16 +5,25 @@
 // parent so the shell can hoist navigation centrally.
 
 import { useMemo } from 'react';
-import type {
-  PlanTier,
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+import {
+  getObjectiveObserveDomains,
+  type PlanTier,
+  type PlanTierObjective,
+  type PlanTierObjectiveStatus,
+  type UniversalDomain,
 } from '@ogden/shared';
 import { useObserveFeedStore } from '../../../store/observeFeedStore.js';
+import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
 import NextUpCard from './NextUpCard.js';
 import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
 import css from './ObjectiveColumn.module.css';
+
+const DIVERGENT_STATUSES = new Set([
+  'needs_investigation',
+  'major_constraint',
+  'potential_disqualifier',
+]);
 
 interface Props {
   tier: PlanTier;
@@ -34,6 +43,14 @@ interface Props {
    */
   projectId?: string;
   onSelectObjective: (objective: PlanTierObjective) => void;
+  /**
+   * Slice 4.4 — invoked when the divergence pill on an objective card is
+   * clicked. Parents wire this to navigate to the matching Observe
+   * Domain Detail surface. When omitted, the pill renders as
+   * non-interactive (visual-only). The handler receives the objective so
+   * the parent can resolve its primary domain.
+   */
+  onObjectiveDivergenceClick?: (objective: PlanTierObjective) => void;
 }
 
 const STATUS_PRIORITY: PlanTierObjectiveStatus[] = [
@@ -51,6 +68,7 @@ export default function ObjectiveColumn({
   highlightObjectiveIds,
   projectId,
   onSelectObjective,
+  onObjectiveDivergenceClick,
 }: Props) {
   const highlightSet = useMemo(
     () => new Set(highlightObjectiveIds ?? []),
@@ -64,18 +82,48 @@ export default function ObjectiveColumn({
   // Slice 3.5 — divergence flag counts per objective from Act (§6.4).
   // Subscribing to byProject keeps the column reactive across new flag
   // captures without forcing the consumer to pass counts in.
+  //
+  // Slice 4.4 — counts also pick up ACTIVE diverged ObserveDataPoints
+  // whose domainId is in the objective's mapped domain set
+  // (`getObjectiveObserveDomains`). This is the substrate path for
+  // Phase 4 divergences that arrive without a parent objective id
+  // (data points are domain-keyed, not objective-keyed).
   const observeByProject = useObserveFeedStore((s) => s.byProject);
+  const dataPointsByProject = useObserveDataPointStore((s) => s.byProject);
+  const divergedDataPointDomainCounts = useMemo(() => {
+    const counts = new Map<UniversalDomain, number>();
+    if (!projectId) return counts;
+    const list = dataPointsByProject[projectId];
+    if (!list?.length) return counts;
+    for (const point of list) {
+      if (point.isSuperseded) continue;
+      if (!DIVERGENT_STATUSES.has(point.statusOutput)) continue;
+      counts.set(point.domainId, (counts.get(point.domainId) ?? 0) + 1);
+    }
+    return counts;
+  }, [projectId, dataPointsByProject]);
   const divergenceByObjective = useMemo(() => {
     const counts: Record<string, number> = {};
     if (!projectId) return counts;
     const list = observeByProject[projectId];
-    if (!list?.length) return counts;
-    for (const entry of list) {
-      if (entry.sourceType !== 'diverged') continue;
-      counts[entry.feedKey] = (counts[entry.feedKey] ?? 0) + 1;
+    if (list?.length) {
+      for (const entry of list) {
+        if (entry.sourceType !== 'diverged') continue;
+        counts[entry.feedKey] = (counts[entry.feedKey] ?? 0) + 1;
+      }
+    }
+    if (divergedDataPointDomainCounts.size > 0) {
+      for (const obj of objectives) {
+        const domains = getObjectiveObserveDomains(obj);
+        let add = 0;
+        for (const domainId of domains) {
+          add += divergedDataPointDomainCounts.get(domainId) ?? 0;
+        }
+        if (add > 0) counts[obj.id] = (counts[obj.id] ?? 0) + add;
+      }
     }
     return counts;
-  }, [projectId, observeByProject]);
+  }, [projectId, observeByProject, divergedDataPointDomainCounts, objectives]);
 
   // Next-up = first active, else first available. Falls back to the
   // first objective so the column still has a focal point.
@@ -145,6 +193,7 @@ export default function ObjectiveColumn({
                 isHighlighting={highlightSet.has(obj.id)}
                 divergenceCount={divergenceByObjective[obj.id] ?? 0}
                 onSelect={onSelectObjective}
+                onDivergenceClick={onObjectiveDivergenceClick}
               />
             </li>
           ))}

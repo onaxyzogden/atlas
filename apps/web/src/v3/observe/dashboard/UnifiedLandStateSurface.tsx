@@ -14,6 +14,7 @@ import type { ObserveFreshness } from '@ogden/shared';
 import { useDomainSnapshots } from './useDomainSnapshot.js';
 import LandStateSummary from './LandStateSummary.js';
 import DomainStatusCard from './DomainStatusCard.js';
+import PlanRevisionBanner from './revision/PlanRevisionBanner.js';
 import css from './UnifiedLandStateSurface.module.css';
 
 interface Props {
@@ -32,6 +33,7 @@ export default function UnifiedLandStateSurface({ projectId }: Props) {
   return (
     <div className={css.surface}>
       <div className={css.header}>
+        <PlanRevisionBanner projectId={projectId} />
         <LandStateSummary
           snapshots={snapshots}
           activeFilter={filter}

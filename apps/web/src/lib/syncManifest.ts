@@ -112,6 +112,7 @@ import { useObserveFeedStore } from '../store/observeFeedStore.js';
 import { useObserveDataPointStore } from '../store/observeDataPointStore.js';
 import { useObserveCycleStore } from '../store/observeCycleStore.js';
 import { usePresentationShareStore } from '../store/presentationShareStore.js';
+import { usePlanRevisionDismissalStore } from '../store/planRevisionDismissalStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -568,6 +569,13 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // decision; the per-project metadata field carries a sync-mirrorable
   // copy so shares survive device migration.
   blob('ogden-observe-shares', usePresentationShareStore, 'byProject', 1, byKey('byProject', null, [])),
+
+  // --- OLOS Plan Revision Banner dismissal cursor (Phase 4 Slice 4.4) ---
+  // Per-project ISO timestamp marking the moment the steward last
+  // dismissed the banner. The banner re-surfaces when a newer Observe
+  // event (capture, divergence, freshness change) arrives. A single
+  // string per project fits byKey('byProject', null, '').
+  blob('ogden-plan-revision-dismissals', usePlanRevisionDismissalStore, 'byProject', 1, byKey('byProject', null, '')),
 ];
 
 /**

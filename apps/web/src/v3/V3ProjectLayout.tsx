@@ -17,6 +17,7 @@ import ProjectBundleBar from "./components/ProjectBundleBar.js";
 import DecisionRail, { type RailStage } from "./components/DecisionRail.js";
 import { useV3Project } from "./data/useV3Project.js";
 import { useProjectStore } from "../store/projectStore.js";
+import { usePlanRevisionFlagSync } from "./observe/dashboard/revision/usePlanRevisionFlagSync.js";
 import type { LifecycleStage } from "./types.js";
 import { isObserveModule, type ObserveModule } from "./observe/types.js";
 import css from "./V3ProjectLayout.module.css";
@@ -70,6 +71,10 @@ export default function V3ProjectLayout() {
   useEffect(() => {
     if (params.projectId) setActiveProject(params.projectId);
   }, [params.projectId, setActiveProject]);
+
+  // Phase 4 Slice 4.4 — wire Observe divergence signals into the Phase 1
+  // cyclical-review trigger. No-ops when projectId is undefined.
+  usePlanRevisionFlagSync(params.projectId);
 
   // The Stage Compass, Observe Command Centre, and the Stage 0 True North /
   // Fit Gate are full-screen surfaces that own their own chrome — skip

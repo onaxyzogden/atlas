@@ -40,6 +40,7 @@ import DomainObservationList from './DomainObservationList.js';
 import DomainEvidenceLibrary from './DomainEvidenceLibrary.js';
 import DomainObservationNeeds from './DomainObservationNeeds.js';
 import LegacyModuleEmbed from './LegacyModuleEmbed.js';
+import PlanRevisionBanner from '../revision/PlanRevisionBanner.js';
 import css from './DomainDetailLayout.module.css';
 
 interface Props {
@@ -98,6 +99,8 @@ export default function DomainDetailLayout({ projectId, domainId }: Props) {
         observationCount={snapshot?.observationCount ?? 0}
         divergenceCount={snapshot?.divergenceCount ?? 0}
       />
+
+      <PlanRevisionBanner projectId={projectId} />
 
       <div className={css.body}>
         <aside className={css.leftCol} aria-label="Domain overlays and needs">
