@@ -85,6 +85,7 @@ export default function ObserveLayout() {
   const params = useParams({ strict: false }) as {
     projectId?: string;
     module?: string;
+    domainId?: string;
   };
   const navigate = useNavigate();
 
@@ -248,6 +249,7 @@ export default function ObserveLayout() {
             projectId={id}
             shellMode={observeShellMode}
             onShellModeChange={handleObserveShellModeChange}
+            domainId={params.domainId ?? null}
           />
         }
         rightRail={null}

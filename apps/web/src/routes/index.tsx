@@ -365,6 +365,16 @@ const v3ObserveDashboardRoute = createRoute({
   path: 'observe/dashboard',
   component: ObserveLayout,
 });
+// Domain Detail surface (Slice 4.3). Static `observe/dashboard/domain/$domainId`
+// resolves BEFORE `observe/$module` so domain detail does not collide with the
+// legacy module routes. ObserveLayout reads `params.domainId` and feeds it to
+// ObserveDashboardLayout, which branches between UnifiedLandStateSurface and
+// DomainDetailLayout.
+const v3ObserveDashboardDomainRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'observe/dashboard/domain/$domainId',
+  component: ObserveLayout,
+});
 const v3ObserveIndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe',
@@ -753,6 +763,7 @@ const routeTree = rootRoute.addChildren([
       v3CompassRoute,
       v3StageZeroRoute,
       v3ObserveCommandCentreRoute,
+      v3ObserveDashboardDomainRoute,
       v3ObserveDashboardRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,

@@ -67,13 +67,10 @@ export default function DomainStatusCard({ snapshot, projectId }: Props) {
   } = snapshot;
 
   const handleOpen = () => {
-    // Slice 4.3 ships `/observe/dashboard/domain/$domainId`. Until that
-    // route exists the card click stays a no-op so we don't 404 the
-    // steward; the navigate import is kept ready so the wiring is a
-    // one-line change in 4.3.
-    void navigate;
-    void domainId;
-    void projectId;
+    navigate({
+      to: '/v3/project/$projectId/observe/dashboard/domain/$domainId',
+      params: { projectId, domainId },
+    });
   };
 
   return (
