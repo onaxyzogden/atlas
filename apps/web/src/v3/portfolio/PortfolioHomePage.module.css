@@ -1,0 +1,184 @@
+.scrollHost {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-6);
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--color-accent, #c9a05a);
+  color: #0f172a;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addBtn:hover {
+  filter: brightness(1.05);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.helpLink {
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.helpLink:hover {
+  border-color: var(--color-accent, #c9a05a);
+  color: var(--color-accent, #c9a05a);
+}
+
+/* --- card ---------------------------------------------------------------- */
+
+.card {
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg, 0 8px 20px rgba(0, 0, 0, 0.12));
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-accent, #c9a05a);
+  outline-offset: 2px;
+}
+
+.cardHeader {
+  align-items: flex-start;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cardSubtitle {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.finishSetupBadge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, #c9a05a 18%, transparent);
+  color: #c9a05a;
+  border: 1px solid color-mix(in srgb, #c9a05a 35%, transparent);
+  border-radius: var(--radius-full, 999px);
+}
+
+.cardBody {
+  gap: 6px;
+}
+
+.allClear {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.chipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.chip-critical {
+  border-color: color-mix(in srgb, #e88aa4 45%, var(--color-border));
+  background: color-mix(in srgb, #e88aa4 15%, var(--color-bg));
+  color: color-mix(in srgb, #e88aa4 75%, var(--color-text));
+}
+
+.chip-high {
+  border-color: color-mix(in srgb, #e6c34a 45%, var(--color-border));
+  background: color-mix(in srgb, #e6c34a 15%, var(--color-bg));
+  color: color-mix(in srgb, #e6c34a 75%, var(--color-text));
+}
+
+.chip-foundation {
+  border-color: color-mix(in srgb, #5dd39e 45%, var(--color-border));
+  background: color-mix(in srgb, #5dd39e 15%, var(--color-bg));
+  color: color-mix(in srgb, #5dd39e 75%, var(--color-text));
+}
+
+.chip-cadence {
+  border-color: color-mix(in srgb, #c9a05a 45%, var(--color-border));
+  background: color-mix(in srgb, #c9a05a 15%, var(--color-bg));
+  color: color-mix(in srgb, #c9a05a 75%, var(--color-text));
+}
+
+.chip-info {
+  /* default neutral tones inherited from .chip */
+}

@@ -37,6 +37,7 @@ import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
 import V3HomePage from '../v3/pages/HomePage.js';
 import ProjectsLandingPage from '../v3/pages/ProjectsLandingPage.js';
+import PortfolioHomePage from '../v3/portfolio/PortfolioHomePage.js';
 import V3DesignPage from '../v3/pages/DesignPage.js';
 import V3ProvePage from '../v3/pages/ProvePage.js';
 import V3BuildPage from '../v3/pages/BuildPage.js';
@@ -244,6 +245,17 @@ const v3ProjectsLandingRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/project',
   component: ProjectsLandingPage,
+});
+
+// Phase 5 / Slice 5.3 — Portfolio Home. Urgency-ordered project cards at
+// /v3/portfolio. Sibling of v3ProjectsLandingRoute (the "Property Candidates"
+// landing) so both surfaces stay accessible per the no-deletion rule.
+// Portfolio Home consumes useProjectUrgency to assemble the inputs and
+// sortByUrgency to order the result; the score itself is never displayed.
+const v3PortfolioHomeRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/portfolio',
+  component: PortfolioHomePage,
 });
 
 // Phase 2 / Slice 2.1.g — Project Creation Wizard entry. `/v3/project/wizard`
@@ -773,6 +785,7 @@ const routeTree = rootRoute.addChildren([
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
     v3ProjectsLandingRoute,
+    v3PortfolioHomeRoute,
     v3WizardCreateRoute,
     v3ProjectLayoutRoute.addChildren([
       v3WizardResumeRoute,
