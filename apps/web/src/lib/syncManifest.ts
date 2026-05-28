@@ -108,6 +108,7 @@ import { useStageGateOverrideStore } from '../store/stageGateOverrideStore.js';
 import { useCyclicalReviewStore } from '../store/cyclicalReviewStore.js';
 import { usePlanTierProgressStore } from '../store/planTierStore.js';
 import { useFieldActionStore } from '../store/fieldActionStore.js';
+import { useObserveFeedStore } from '../store/observeFeedStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -526,6 +527,13 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // FieldAction[] payload across devices in the meantime. Same pattern as
   // the other client-only OLOS stores (planTier, observationNeed, etc.).
   blob('ogden-field-actions', useFieldActionStore, 'byProject', 1, byKey('byProject', null, [])),
+
+  // --- OLOS Observe feed (Phase 3 Slice 3.5) ---
+  // Lightweight per-project append-only feed of verified/diverged events
+  // from the Act state machine. Plan Revision Banner + tier divergence
+  // indicator consume this. Phase 4 will normalise into the canonical
+  // ObservationRecord substrate; today this is the working surface.
+  blob('ogden-observe-feed', useObserveFeedStore, 'byProject', 1, byKey('byProject', null, [])),
 ];
 
 /**

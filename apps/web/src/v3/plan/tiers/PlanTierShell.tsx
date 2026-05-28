@@ -305,6 +305,7 @@ export default function PlanTierShell({
             objectiveStatuses={objectiveStatuses}
             activeObjectiveId={activeObjectiveId}
             highlightObjectiveIds={highlightObjectiveIds}
+            projectId={projectId}
             onSelectObjective={handleSelectObjective}
           />
         )}

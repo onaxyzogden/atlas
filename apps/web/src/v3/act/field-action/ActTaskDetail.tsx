@@ -17,7 +17,6 @@
 
 import {
   Lock,
-  AlertTriangle,
   CheckCircle2,
   Play,
 } from 'lucide-react';
@@ -26,6 +25,10 @@ import { getProofSchema } from '@ogden/shared';
 import { useFieldActionStore } from '../../../store/fieldActionStore.js';
 import ProofSlotList from './proof/ProofSlotList.js';
 import SubmitTaskButton from './proof/SubmitTaskButton.js';
+import RealityDivergesButton from './divergence/RealityDivergesButton.js';
+import VerificationModeBadge from './verification/VerificationModeBadge.js';
+import PendingVerificationBadge from './verification/PendingVerificationBadge.js';
+import VerifierActionPanel from './verification/VerifierActionPanel.js';
 import css from './ActTaskDetail.module.css';
 
 interface Props {
@@ -55,8 +58,9 @@ export default function ActTaskDetail({ projectId, action }: Props) {
   const filledCount = requiredSlots.filter((s) => filledSlotIds.has(s.id)).length;
 
   const assigneeCount = action.assignedTo?.length ?? 0;
-  const verificationLabel =
-    action.verificationMode === 'self' ? 'Self verify' : 'Needs review';
+  const showPendingVerification =
+    action.status === 'submitted' && action.verificationMode === 'review';
+  const showVerifierPanel = showPendingVerification;
 
   const handleStart = () => {
     markStarted(projectId, action.id);
@@ -84,7 +88,8 @@ export default function ActTaskDetail({ projectId, action }: Props) {
           </span>
         </div>
         <div className={css.metaRow}>
-          <span className={css.metaChip}>{verificationLabel}</span>
+          <VerificationModeBadge mode={action.verificationMode} />
+          {showPendingVerification && <PendingVerificationBadge />}
           {assigneeCount > 0 && (
             <span className={css.metaChip}>
               {assigneeCount} assignee{assigneeCount === 1 ? '' : 's'}
@@ -135,17 +140,10 @@ export default function ActTaskDetail({ projectId, action }: Props) {
           action.status === 'verified') && (
           <SubmitTaskButton projectId={projectId} action={action} />
         )}
-        {action.status === 'in_progress' && (
-          <button
-            type="button"
-            className={`${css.btn} ${css.btnDiverge}`}
-            disabled
-            title="Reality Diverges capture lands in Slice 3.5"
-            data-testid="act-task-diverge"
-          >
-            <AlertTriangle size={12} strokeWidth={2} aria-hidden="true" />
-            Reality diverges
-          </button>
+        {(action.status === 'in_progress' ||
+          action.status === 'submitted' ||
+          action.status === 'blocked') && (
+          <RealityDivergesButton projectId={projectId} action={action} />
         )}
         {(action.status === 'in_progress' || action.status === 'not_started') && (
           <button
@@ -176,6 +174,10 @@ export default function ActTaskDetail({ projectId, action }: Props) {
           </span>
         )}
       </div>
+
+      {showVerifierPanel && (
+        <VerifierActionPanel projectId={projectId} action={action} />
+      )}
     </div>
   );
 }

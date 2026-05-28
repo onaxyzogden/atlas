@@ -6,6 +6,7 @@ import {
   isVerified,
   isObserveFeedable,
   hasAllRequiredProof,
+  routeToObserveFeed,
 } from '../relationships/fieldActionStatus.js';
 import type { FieldActionEvent } from '../relationships/fieldActionStatus.js';
 import type {
@@ -314,5 +315,52 @@ describe('FIELD_ACTION_PROOF_SCHEMAS catalog', () => {
       const ids = schema.slots.map((s) => s.id);
       expect(new Set(ids).size).toBe(ids.length);
     }
+  });
+});
+
+// Slice 3.5 — Observe-feed routing. Verified actions route via the first
+// `observeFeedIds[]` tag when set (so a verified soil sample lands in the
+// soil feed regardless of which objective owns the action); diverged
+// actions ALWAYS route via the parent objective (spec §6.4 — divergence
+// belongs to the objective that planned the action, not the proof tag).
+describe('routeToObserveFeed (Slice 3.5)', () => {
+  it('verified actions route through observeFeedIds[0] when set', () => {
+    expect(
+      routeToObserveFeed({
+        status: 'verified',
+        observeFeedIds: ['observe-water', 'observe-soil'],
+        planObjectiveId: 'obj-1',
+      }),
+    ).toBe('observe-water');
+  });
+
+  it('verified actions fall back to planObjectiveId when no feed tags', () => {
+    expect(
+      routeToObserveFeed({
+        status: 'verified',
+        observeFeedIds: [],
+        planObjectiveId: 'obj-soil-baseline',
+      }),
+    ).toBe('obj-soil-baseline');
+  });
+
+  it('diverged actions always route via planObjectiveId regardless of tags', () => {
+    expect(
+      routeToObserveFeed({
+        status: 'diverged',
+        observeFeedIds: ['observe-water'],
+        planObjectiveId: 'obj-diverged-parent',
+      }),
+    ).toBe('obj-diverged-parent');
+  });
+
+  it('handles missing observeFeedIds defensively', () => {
+    expect(
+      routeToObserveFeed({
+        status: 'verified',
+        observeFeedIds: undefined as unknown as string[],
+        planObjectiveId: 'obj-fallback',
+      }),
+    ).toBe('obj-fallback');
   });
 });

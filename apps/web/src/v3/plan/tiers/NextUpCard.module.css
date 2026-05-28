@@ -73,8 +73,6 @@
 }
 
 .statusPill {
-  align-self: flex-start;
-  margin-top: 8px;
   padding: 3px 10px;
   border-radius: 999px;
   font-size: 10px;
@@ -83,6 +81,34 @@
   text-transform: uppercase;
   background: color-mix(in srgb, var(--next-color) 22%, transparent);
   color: #f4e6cb;
+}
+
+/* Slice 3.5 — divergence flag from Act (spec §6.4). Amber, not red. */
+.pillRow {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.divergencePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(232, 169, 88, 0.18);
+  color: #e8a958;
+  border: 1px solid rgba(232, 169, 88, 0.5);
+}
+
+.card[data-has-divergence='true'] {
+  border-color: rgba(232, 169, 88, 0.55);
 }
 
 .cta {

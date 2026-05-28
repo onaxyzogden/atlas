@@ -4,7 +4,7 @@
 // current status pill. Click is owned by the parent so the same
 // component can be used for navigation or selection.
 
-import { Check, Lock } from 'lucide-react';
+import { Check, Lock, RefreshCcw } from 'lucide-react';
 import type {
   PlanTierObjective,
   PlanTierObjectiveStatus,
@@ -20,6 +20,12 @@ interface Props {
    * driven by `?highlightIncomplete=t0`).
    */
   isHighlighting?: boolean;
+  /**
+   * Slice 3.5 — count of divergence flags filed against this objective
+   * by Act (spec §6.4 "the parent objective surfaces a divergence
+   * indicator"). Rendered as an amber pill when > 0.
+   */
+  divergenceCount?: number;
   onSelect: (objective: PlanTierObjective) => void;
 }
 
@@ -35,8 +41,14 @@ export default function ObjectiveCard({
   status,
   isActive,
   isHighlighting,
+  divergenceCount = 0,
   onSelect,
 }: Props) {
+  const hasDivergence = divergenceCount > 0;
+  const baseLabel = `${objective.title}: ${STATUS_LABEL[status]}`;
+  const ariaLabel = hasDivergence
+    ? `${baseLabel} — ${divergenceCount} divergence flag${divergenceCount === 1 ? '' : 's'}`
+    : baseLabel;
   return (
     <button
       type="button"
@@ -44,8 +56,9 @@ export default function ObjectiveCard({
       data-status={status}
       data-active={isActive}
       data-highlighting={isHighlighting ? 'true' : undefined}
+      data-has-divergence={hasDivergence ? 'true' : undefined}
       onClick={() => onSelect(objective)}
-      aria-label={`${objective.title}: ${STATUS_LABEL[status]}`}
+      aria-label={ariaLabel}
     >
       <span className={css.icon} aria-hidden="true">
         {status === 'complete' ? (
@@ -60,7 +73,19 @@ export default function ObjectiveCard({
         <span className={css.title}>{objective.title}</span>
         <span className={css.question}>{objective.focusedQuestion}</span>
       </span>
-      <span className={css.pill}>{STATUS_LABEL[status]}</span>
+      <span className={css.trail}>
+        {hasDivergence && (
+          <span
+            className={css.divergencePill}
+            data-testid={`objective-divergence-flag-${objective.id}`}
+            title={`${divergenceCount} divergence flag${divergenceCount === 1 ? '' : 's'} from Act`}
+          >
+            <RefreshCcw size={10} strokeWidth={2.5} aria-hidden="true" />
+            {divergenceCount} divergence{divergenceCount === 1 ? '' : 's'}
+          </span>
+        )}
+        <span className={css.pill}>{STATUS_LABEL[status]}</span>
+      </span>
     </button>
   );
 }

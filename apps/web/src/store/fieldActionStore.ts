@@ -30,6 +30,7 @@ import { rehydrateWithLogging } from './persistRehydrate.js';
 import {
   computeNextStatus,
   isTerminal,
+  routeToObserveFeed,
 } from '@ogden/shared/relationships';
 import type {
   FieldAction,
@@ -39,6 +40,11 @@ import type {
 } from '@ogden/shared';
 import type { FieldActionProofItem } from '@ogden/shared';
 import type { DivergenceFlag } from '@ogden/shared';
+import {
+  useObserveFeedStore,
+  type ObserveFeedEntry,
+} from './observeFeedStore.js';
+import { useCyclicalReviewStore } from './cyclicalReviewStore.js';
 
 const PERSIST_KEY = 'ogden-field-actions';
 
@@ -164,6 +170,46 @@ function setOne(
   const next = list.slice();
   next[idx] = updater(current);
   return { ...byProject, [projectId]: next };
+}
+
+function makeFeedId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `feed-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Side-effect: append an Observe-feed observation for a status transition
+ * that crossed into `verified` or `diverged`. Pulls the routing key from the
+ * pure helper in `@ogden/shared/relationships` so the routing rule stays the
+ * single source of truth.
+ */
+function appendObserveFeedFor(
+  before: FieldAction,
+  after: FieldAction,
+  sourceType: ObserveFeedEntry['sourceType'],
+): void {
+  if (before.status === after.status) return;
+  const entry: ObserveFeedEntry = {
+    id: makeFeedId(),
+    projectId: after.projectId,
+    feedKey: routeToObserveFeed(after),
+    sourceType,
+    sourceActionId: after.id,
+    sourceActionTitle: after.title,
+    divergenceType:
+      sourceType === 'diverged' ? after.divergenceFlag?.type : undefined,
+    divergenceNote:
+      sourceType === 'diverged' ? after.divergenceFlag?.noteText : undefined,
+    proofItems:
+      sourceType === 'diverged' && after.divergenceFlag?.proofItems?.length
+        ? after.divergenceFlag.proofItems
+        : after.proofItems,
+    capturedAt: new Date().toISOString(),
+    capturedBy: after.verifierUserId,
+  };
+  useObserveFeedStore.getState().appendObservation(entry);
 }
 
 function applyTransition(
@@ -304,23 +350,44 @@ export const useFieldActionStore = create<FieldActionState>()(
           ),
         })),
 
-      markSubmitted: (projectId, id) =>
+      markSubmitted: (projectId, id) => {
+        let before: FieldAction | undefined;
+        let after: FieldAction | undefined;
         set((s) => ({
-          byProject: setOne(s.byProject, projectId, id, (a) =>
-            applyTransition(a, 'submit'),
-          ),
-        })),
+          byProject: setOne(s.byProject, projectId, id, (a) => {
+            before = a;
+            const next = applyTransition(a, 'submit');
+            after = next;
+            return next;
+          }),
+        }));
+        // Self-mode submit collapses straight to `verified` per spec §9.4 —
+        // emit the verified observation here. Review-mode lands on
+        // `submitted` and the Observe feed waits for the verifier to act.
+        if (before && after && after.status === 'verified') {
+          appendObserveFeedFor(before, after, 'verified');
+        }
+      },
 
-      markVerified: (projectId, id, verifierUserId) =>
+      markVerified: (projectId, id, verifierUserId) => {
+        let before: FieldAction | undefined;
+        let after: FieldAction | undefined;
         set((s) => ({
-          byProject: setOne(s.byProject, projectId, id, (a) =>
-            applyTransition(
+          byProject: setOne(s.byProject, projectId, id, (a) => {
+            before = a;
+            const next = applyTransition(
               a,
               'verify',
               verifierUserId ? { verifierUserId } : {},
-            ),
-          ),
-        })),
+            );
+            after = next;
+            return next;
+          }),
+        }));
+        if (before && after && after.status === 'verified') {
+          appendObserveFeedFor(before, after, 'verified');
+        }
+      },
 
       returnForRevision: (projectId, id, verificationNote) =>
         set((s) => ({
@@ -333,12 +400,29 @@ export const useFieldActionStore = create<FieldActionState>()(
           ),
         })),
 
-      markDiverged: (projectId, id, flag) =>
+      markDiverged: (projectId, id, flag) => {
+        let before: FieldAction | undefined;
+        let after: FieldAction | undefined;
         set((s) => ({
-          byProject: setOne(s.byProject, projectId, id, (a) =>
-            applyTransition(a, 'diverge', { divergenceFlag: flag }),
-          ),
-        })),
+          byProject: setOne(s.byProject, projectId, id, (a) => {
+            before = a;
+            const next = applyTransition(a, 'diverge', { divergenceFlag: flag });
+            after = next;
+            return next;
+          }),
+        }));
+        if (before && after && after.status === 'diverged') {
+          appendObserveFeedFor(before, after, 'diverged');
+          // Raise the Plan revision flag on the parent objective so the
+          // cyclical-review predicate (`isCyclicalReviewDue`) returns true
+          // the next time it runs. This is the Phase 4 hook described in
+          // Slice 1.11; until the formal Observe rewire lands, we route
+          // through the existing `forceTrigger` mechanism.
+          useCyclicalReviewStore
+            .getState()
+            .forceTrigger(after.projectId, after.planObjectiveId);
+        }
+      },
 
       markBlocked: (projectId, id, reason) =>
         set((s) => ({

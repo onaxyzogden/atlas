@@ -10,6 +10,7 @@ import type {
   PlanTierObjective,
   PlanTierObjectiveStatus,
 } from '@ogden/shared';
+import { useObserveFeedStore } from '../../../store/observeFeedStore.js';
 import NextUpCard from './NextUpCard.js';
 import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
@@ -26,6 +27,12 @@ interface Props {
    * shell. Empty list = no flash. Always pure presentational.
    */
   highlightObjectiveIds?: readonly string[];
+  /**
+   * Slice 3.5 — projectId used to read the Observe feed and surface
+   * divergence flags on objective cards (spec §6.4). When omitted (or
+   * empty), divergence counts default to 0.
+   */
+  projectId?: string;
   onSelectObjective: (objective: PlanTierObjective) => void;
 }
 
@@ -42,6 +49,7 @@ export default function ObjectiveColumn({
   objectiveStatuses,
   activeObjectiveId,
   highlightObjectiveIds,
+  projectId,
   onSelectObjective,
 }: Props) {
   const highlightSet = useMemo(
@@ -52,6 +60,22 @@ export default function ObjectiveColumn({
     () => objectives.filter((o) => o.tierId === tier.id),
     [tier.id, objectives],
   );
+
+  // Slice 3.5 — divergence flag counts per objective from Act (§6.4).
+  // Subscribing to byProject keeps the column reactive across new flag
+  // captures without forcing the consumer to pass counts in.
+  const observeByProject = useObserveFeedStore((s) => s.byProject);
+  const divergenceByObjective = useMemo(() => {
+    const counts: Record<string, number> = {};
+    if (!projectId) return counts;
+    const list = observeByProject[projectId];
+    if (!list?.length) return counts;
+    for (const entry of list) {
+      if (entry.sourceType !== 'diverged') continue;
+      counts[entry.feedKey] = (counts[entry.feedKey] ?? 0) + 1;
+    }
+    return counts;
+  }, [projectId, observeByProject]);
 
   // Next-up = first active, else first available. Falls back to the
   // first objective so the column still has a focal point.
@@ -105,6 +129,7 @@ export default function ObjectiveColumn({
         <NextUpCard
           objective={nextUp}
           status={objectiveStatuses[nextUp.id] ?? 'locked'}
+          divergenceCount={divergenceByObjective[nextUp.id] ?? 0}
           onSelect={onSelectObjective}
         />
       )}
@@ -118,6 +143,7 @@ export default function ObjectiveColumn({
                 status={objectiveStatuses[obj.id] ?? 'locked'}
                 isActive={obj.id === activeObjectiveId}
                 isHighlighting={highlightSet.has(obj.id)}
+                divergenceCount={divergenceByObjective[obj.id] ?? 0}
                 onSelect={onSelectObjective}
               />
             </li>

@@ -162,3 +162,28 @@ export function hasAllRequiredProof(
   );
   return requiredSlotIds.every((id) => filled.has(id));
 }
+
+/**
+ * Compute the Observe-feed routing key for an evidence-bearing transition
+ * (spec §8.2). Verified actions route via the first id in `observeFeedIds[]`
+ * if the proof schema declared one — that's the canonical "domain" for the
+ * verification (e.g. soil-test → soil-health). Diverged actions always route
+ * via the parent objective id: divergence is by definition a Plan-level
+ * concern, so the parent objective is the right bucket for the Plan
+ * Revision Banner consumer in Phase 4.
+ *
+ * Pure — never throws and never reads I/O so the same routing is reachable
+ * from the web store, future server jobs, and Vitest specs.
+ */
+export function routeToObserveFeed(
+  action: Pick<
+    FieldAction,
+    'status' | 'observeFeedIds' | 'planObjectiveId'
+  >,
+): string {
+  if (action.status === 'verified') {
+    const tagged = action.observeFeedIds?.[0];
+    if (typeof tagged === 'string' && tagged.length > 0) return tagged;
+  }
+  return action.planObjectiveId;
+}
