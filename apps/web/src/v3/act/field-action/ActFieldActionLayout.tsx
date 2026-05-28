@@ -1,9 +1,9 @@
 /**
  * ActFieldActionLayout — host for the OLOS Act Command Center field-action
  * surfaces. Renders ViewBDashboard (All Tasks) when no objective is in the
- * route, or a placeholder for View A (Objective Execution) when an
- * objectiveId is present. Slice 3.3 swaps the placeholder for the real
- * ViewAObjectiveExecution + Act Map View.
+ * route, or ViewAObjectiveExecution (objective-scoped task list + inline
+ * Act Map View, per spec §5.4.1 "View A and the Act map view ship as a
+ * single unit") when an objectiveId is present.
  *
  * Mirrors PlanTierShell's role for the Plan stage: an early-return shell
  * mounted by `ActLayout` when `actShellMode === 'field-action'`. The
@@ -16,7 +16,7 @@ import { useProjectStore, MTC_SEED, type ActShellMode } from '../../../store/pro
 import { useMemo } from 'react';
 import ActShellToggle from './ActShellToggle.js';
 import ViewBDashboard from './ViewBDashboard.js';
-import ViewAObjectivePlaceholder from './ViewAObjectivePlaceholder.js';
+import ViewAObjectiveExecution from './ViewAObjectiveExecution.js';
 import css from './ActFieldActionLayout.module.css';
 
 interface Props {
@@ -45,7 +45,7 @@ export default function ActFieldActionLayout({ shellMode, onShellModeChange }: P
     <div className={css.wrap}>
       <div className={css.body}>
         {objectiveId ? (
-          <ViewAObjectivePlaceholder projectId={projectId} objectiveId={objectiveId} />
+          <ViewAObjectiveExecution projectId={projectId} objectiveId={objectiveId} />
         ) : (
           <ViewBDashboard projectId={projectId} />
         )}

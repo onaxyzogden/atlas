@@ -1,0 +1,99 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+.empty {
+  padding: 24px 20px;
+  background: rgba(31, 29, 26, 0.5);
+  border: 1px dashed rgba(242, 237, 227, 0.2);
+  border-radius: 12px;
+  color: rgba(242, 237, 227, 0.65);
+  font-size: 13px;
+  text-align: center;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.taskBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  background: rgba(31, 29, 26, 0.55);
+  border: 1px solid rgba(242, 237, 227, 0.12);
+  border-radius: 10px;
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.taskBtn:hover {
+  background: rgba(242, 237, 227, 0.06);
+  border-color: rgba(242, 237, 227, 0.22);
+}
+
+.taskBtn[data-active='true'] {
+  background: rgba(196, 162, 101, 0.12);
+  border-color: rgba(196, 162, 101, 0.45);
+}
+
+.taskTitle {
+  flex: 1;
+  min-width: 0;
+}
+
+.taskStatus {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(242, 237, 227, 0.08);
+  color: rgba(242, 237, 227, 0.7);
+  border: 1px solid rgba(242, 237, 227, 0.18);
+}
+
+.taskStatus[data-status='in_progress'] {
+  background: rgba(196, 162, 101, 0.18);
+  color: var(--color-gold-brand, #c4a265);
+  border-color: rgba(196, 162, 101, 0.45);
+}
+
+.taskStatus[data-status='submitted'] {
+  background: rgba(124, 156, 192, 0.18);
+  color: #9bb6d6;
+  border-color: rgba(124, 156, 192, 0.45);
+}
+
+.taskStatus[data-status='verified'] {
+  background: rgba(106, 168, 79, 0.18);
+  color: #8fc97a;
+  border-color: rgba(106, 168, 79, 0.45);
+}
+
+.taskStatus[data-status='diverged'] {
+  background: rgba(232, 169, 88, 0.18);
+  color: #e8a958;
+  border-color: rgba(232, 169, 88, 0.45);
+}
+
+.taskStatus[data-status='blocked'] {
+  background: rgba(217, 119, 87, 0.18);
+  color: #d97757;
+  border-color: rgba(217, 119, 87, 0.45);
+}

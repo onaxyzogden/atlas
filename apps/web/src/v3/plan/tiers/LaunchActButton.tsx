@@ -5,9 +5,9 @@
 // `available` (no decision has been made yet, so there's nothing to
 // hand off to Act).
 //
-// Today the click navigates to the existing ActCommandCentrePage —
-// Phase 3 rewires the destination to the new Act state machine once
-// per-objective handoff packages exist.
+// Phase 3 Slice 3.3 retargets the click to the new field-action
+// View A scoped to this objective. Legacy command centre stays
+// reachable via the in-Act shell toggle.
 
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
@@ -43,8 +43,8 @@ export default function LaunchActButton({
 
   const handleLaunch = () => {
     navigate({
-      to: '/v3/project/$projectId/act/command-centre',
-      params: { projectId },
+      to: '/v3/project/$projectId/act/field-action/$objectiveId',
+      params: { projectId, objectiveId: objective.id },
     });
   };
 
