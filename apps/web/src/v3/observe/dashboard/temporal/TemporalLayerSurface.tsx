@@ -19,6 +19,7 @@ import {
   UNIVERSAL_DOMAINS,
   UNIVERSAL_DOMAIN_LABELS,
   UNIVERSAL_DOMAIN_PURPOSE,
+  type ObserveCycleEntry,
   type UniversalDomain,
 } from '@ogden/shared';
 import { useDomainPoints } from '../domain/useDomainPoints.js';
@@ -37,11 +38,16 @@ interface Props {
   domainId: UniversalDomain;
 }
 
+// Stable empty reference so the inline Zustand selector below returns the
+// same array identity on every snapshot — otherwise React's
+// useSyncExternalStore re-renders forever when no cycle history exists.
+const EMPTY_CYCLES: readonly ObserveCycleEntry[] = Object.freeze([]);
+
 export default function TemporalLayerSurface({ projectId, domainId }: Props) {
   const navigate = useNavigate();
   const { active } = useDomainPoints(projectId, domainId);
-  const cycles = useObserveCycleStore((s) =>
-    s.byProject[projectId]?.[domainId]?.history ?? [],
+  const cycles = useObserveCycleStore(
+    (s) => s.byProject[projectId]?.[domainId]?.history ?? EMPTY_CYCLES,
   );
 
   const clusters = useMemo(
