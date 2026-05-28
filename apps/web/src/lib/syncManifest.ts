@@ -204,8 +204,14 @@ const byKey = (
   apply: (store, pid, incoming) =>
     store.setState((st: any) => {
       const rec = { ...((st?.[record] as any) ?? {}) };
-      if (leaf) rec[pid] = { ...(rec[pid] ?? {}), [leaf]: incoming };
-      else rec[pid] = incoming;
+      // Guard: a 404/empty server bucket can hand back `undefined`. Persisting
+      // that into the project bucket leaves downstream renderers calling
+      // `.map`/`.filter` on undefined and crashing the Vite overlay. Fall back
+      // to the registered `empty` so the store always holds a usable shape.
+      // Mirrors the `Array.isArray(inc) ? inc : []` guard in `tagged.apply`.
+      const safe = incoming ?? empty;
+      if (leaf) rec[pid] = { ...(rec[pid] ?? {}), [leaf]: safe };
+      else rec[pid] = safe;
       return { [record]: rec };
     }),
 });
