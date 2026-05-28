@@ -23,7 +23,12 @@ import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import ObserveDeepLinkFocus from './components/ObserveDeepLinkFocus.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
-import { useProjectStore } from '../../store/projectStore.js';
+import {
+  useProjectStore,
+  MTC_SEED,
+  getObserveShellMode,
+  type ObserveShellMode,
+} from '../../store/projectStore.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { useHomesteadStore } from '../../store/homesteadStore.js';
 import { useMapToolStore } from './components/measure/useMapToolStore.js';
@@ -71,6 +76,8 @@ import {
 } from './types.js';
 import { observeSectionIdModule } from './observeSectionMap.js';
 import StageShell from '../_shell/StageShell.js';
+import ObserveShellToggle from './dashboard/ObserveShellToggle.js';
+import ObserveDashboardLayout from './dashboard/ObserveDashboardLayout.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -94,12 +101,26 @@ export default function ObserveLayout() {
     : null;
 
   const project = useV3Project(params.projectId);
+  const projects = useProjectStore((s) => s.projects);
   const updateProject = useProjectStore((s) => s.updateProject);
   const units = useProjectStore(
     (s) =>
       s.projects.find((p) => p.id === id || p.serverId === id)?.units ??
       'metric',
   );
+
+  // Shell-mode branch parallel to PlanLayout / ActLayout. `projectRecord`
+  // resolves to MTC_SEED when the route is the legacy sample project so
+  // existing MTC stewards retain the `module-bar` default while new
+  // wizard-created projects land on the new `dashboard` shell.
+  const projectRecord = useMemo(
+    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
+    [projects, id],
+  );
+  const observeShellMode = getObserveShellMode(projectRecord);
+  const handleObserveShellModeChange = (mode: ObserveShellMode) => {
+    updateProject(projectRecord.id, { observeShellMode: mode });
+  };
   // Prefer the parcel's intake coordinates over the hard-coded stage
   // fallback. DiagnoseMap still wins with fit-to-bounds when a boundary
   // polygon exists, so this only takes effect for coords-only projects.
@@ -215,6 +236,26 @@ export default function ObserveLayout() {
     />
   );
 
+  if (observeShellMode === 'dashboard') {
+    return (
+      <StageShell
+        canvasLabel="Observe canvas"
+        leftRailLabel="Observe tools"
+        rightRailLabel="Observe checklist"
+        leftRail={null}
+        canvas={
+          <ObserveDashboardLayout
+            projectId={id}
+            shellMode={observeShellMode}
+            onShellModeChange={handleObserveShellModeChange}
+          />
+        }
+        rightRail={null}
+        bottomTray={null}
+      />
+    );
+  }
+
   return (
     <StageShell
       canvasLabel="Observe canvas"
@@ -229,6 +270,11 @@ export default function ObserveLayout() {
         />
       }
       canvas={
+        <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <ObserveShellToggle
+          mode={observeShellMode}
+          onChange={handleObserveShellModeChange}
+        />
         <DiagnoseMap
           centroid={fallbackCenter}
           boundary={project?.location.boundary}
@@ -371,6 +417,7 @@ export default function ObserveLayout() {
             </>
           )}
         </DiagnoseMap>
+        </div>
       }
       rightRail={
         focusView ? (

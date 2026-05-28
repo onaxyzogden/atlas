@@ -354,6 +354,17 @@ const v3ObserveCommandCentreRoute = createRoute({
   path: 'observe/command-centre',
   component: ObserveCommandCentrePage,
 });
+// OLOS Observe Dashboard Spec v1 — Unified Land State shell route.
+// Renders ObserveLayout, which reads `observeShellMode` and branches into
+// ObserveDashboardLayout when dashboard is the active shell. Static
+// `observe/dashboard` resolves BEFORE `observe/$module` so the legacy
+// module routes remain reachable for projects that have flipped the
+// toggle to module-bar.
+const v3ObserveDashboardRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'observe/dashboard',
+  component: ObserveLayout,
+});
 const v3ObserveIndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe',
@@ -742,6 +753,7 @@ const routeTree = rootRoute.addChildren([
       v3CompassRoute,
       v3StageZeroRoute,
       v3ObserveCommandCentreRoute,
+      v3ObserveDashboardRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
       v3PlanCompassRoute,
