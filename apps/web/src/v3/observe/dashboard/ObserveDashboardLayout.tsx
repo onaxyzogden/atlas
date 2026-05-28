@@ -4,12 +4,16 @@
  * ObserveShellToggle overlay (mirroring PlanNavToggle / ActShellToggle
  * placement) and branches between the three dashboard surfaces:
  *
- *   - Surface 1 (UnifiedLandStateSurface)  → no `domainId` in route.
- *   - Surface 2 (DomainDetailLayout)       → `domainId` present and valid.
- *   - Surface 3 (Temporal)                 → Slice 4.5 (TBD).
+ *   - Surface 1 (UnifiedLandStateSurface)  → surface='unified' (default).
+ *   - Surface 2 (DomainDetailLayout)       → surface='domain' + valid domainId.
+ *   - Surface 3 (TemporalLayerSurface)     → surface='temporal' + valid
+ *                                            domainId (Slice 4.5).
  *
- * An unknown `domainId` (stale link or typo) falls back to Surface 1 so
- * the steward never lands on a blank surface.
+ * The `surface` discriminator is set by ObserveLayout from the matched route
+ * (the temporal route shares the `$domainId` slot with the domain-detail
+ * route, so a path-based discriminator is the cleanest split). An unknown
+ * `domainId` (stale link or typo) falls back to Surface 1 so the steward
+ * never lands on a blank surface.
  */
 
 import { useMemo } from 'react';
@@ -19,13 +23,17 @@ import type { ObserveShellMode } from '../../../store/projectStore.js';
 import ObserveShellToggle from './ObserveShellToggle.js';
 import UnifiedLandStateSurface from './UnifiedLandStateSurface.js';
 import DomainDetailLayout from './domain/DomainDetailLayout.js';
+import TemporalLayerSurface from './temporal/TemporalLayerSurface.js';
 import css from './ObserveDashboardLayout.module.css';
+
+export type ObserveDashboardSurface = 'unified' | 'domain' | 'temporal';
 
 interface Props {
   projectId: string;
   shellMode: ObserveShellMode;
   onShellModeChange: (mode: ObserveShellMode) => void;
   domainId?: string | null;
+  surface?: ObserveDashboardSurface;
 }
 
 function isUniversalDomain(value: string): value is UniversalDomain {
@@ -37,16 +45,31 @@ export default function ObserveDashboardLayout({
   shellMode,
   onShellModeChange,
   domainId,
+  surface,
 }: Props) {
   const validDomainId = useMemo<UniversalDomain | null>(() => {
     if (!domainId) return null;
     return isUniversalDomain(domainId) ? domainId : null;
   }, [domainId]);
 
+  // Effective surface — only mount the temporal/domain branches when the
+  // domainId actually resolves. A stale `?domainId=junk` falls back to
+  // Surface 1 so the steward never lands on a blank surface.
+  const effectiveSurface: ObserveDashboardSurface =
+    surface === 'temporal' && validDomainId
+      ? 'temporal'
+      : surface === 'domain' && validDomainId
+        ? 'domain'
+        : validDomainId && !surface
+          ? 'domain'
+          : 'unified';
+
   return (
     <div className={css.canvas}>
       <ObserveShellToggle mode={shellMode} onChange={onShellModeChange} />
-      {validDomainId ? (
+      {effectiveSurface === 'temporal' && validDomainId ? (
+        <TemporalLayerSurface projectId={projectId} domainId={validDomainId} />
+      ) : effectiveSurface === 'domain' && validDomainId ? (
         <DomainDetailLayout projectId={projectId} domainId={validDomainId} />
       ) : (
         <UnifiedLandStateSurface projectId={projectId} />

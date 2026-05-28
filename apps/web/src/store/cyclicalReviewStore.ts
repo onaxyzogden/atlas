@@ -28,6 +28,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { cycleAdvance } from './cycleAdvance.js';
 
 const PERSIST_KEY = 'ogden-cyclical-review';
 
@@ -119,23 +120,32 @@ export const useCyclicalReviewStore = create<CyclicalReviewState>()(
           });
         }),
 
-      confirmDecision: (projectId, objectiveId) =>
-        set((s) => {
-          const nowIso = new Date().toISOString();
-          return patchObjective(s, projectId, objectiveId, {
+      confirmDecision: (projectId, objectiveId) => {
+        const nowIso = new Date().toISOString();
+        set((s) =>
+          patchObjective(s, projectId, objectiveId, {
             lastReviewedAt: nowIso,
             lastDecisionConfirmedAt: nowIso,
             forcedTrigger: false,
-          });
-        }),
+          }),
+        );
+        cycleAdvance(projectId, objectiveId, 'plan_revision_confirmed', {
+          advancedAt: nowIso,
+        });
+      },
 
-      acknowledgeRevise: (projectId, objectiveId) =>
+      acknowledgeRevise: (projectId, objectiveId) => {
+        const nowIso = new Date().toISOString();
         set((s) =>
           patchObjective(s, projectId, objectiveId, {
-            lastReviewedAt: new Date().toISOString(),
+            lastReviewedAt: nowIso,
             forcedTrigger: false,
           }),
-        ),
+        );
+        cycleAdvance(projectId, objectiveId, 'plan_revision_revised', {
+          advancedAt: nowIso,
+        });
+      },
 
       forceTrigger: (projectId, objectiveId) =>
         set((s) =>

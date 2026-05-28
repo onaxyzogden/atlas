@@ -29,6 +29,7 @@ import LifecycleProjectPage from '../pages/LifecycleProjectPage.js';
 import CompareCandidatesPage from '../features/project/compare/CompareCandidatesPage.js';
 import PortalPage from '../pages/PortalPage.js';
 import ReportSharePage from '../pages/ReportSharePage.js';
+import ObserveShareViewerPage from '../pages/ObserveShareViewerPage.js';
 import LoginPage from '../pages/LoginPage.js';
 import RegisterPage from '../pages/RegisterPage.js';
 import OrganizationCreatePage from '../pages/OrganizationCreatePage.js';
@@ -375,6 +376,16 @@ const v3ObserveDashboardDomainRoute = createRoute({
   path: 'observe/dashboard/domain/$domainId',
   component: ObserveLayout,
 });
+// Temporal Layer surface (Slice 4.5). Static
+// `observe/dashboard/temporal/$domainId` sits alongside the domain route so
+// the dashboard surface resolution stays static-prefix-first. ObserveLayout
+// inspects the path and passes `surface='temporal'` to ObserveDashboardLayout,
+// which mounts TemporalLayerSurface.
+const v3ObserveDashboardTemporalRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'observe/dashboard/temporal/$domainId',
+  component: ObserveLayout,
+});
 const v3ObserveIndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe',
@@ -700,6 +711,17 @@ const reportShareRoute = createRoute({
   component: ReportSharePage,
 });
 
+// ─── Public Observe presentation share (outside AppShell, no auth) ───────
+// Phase 4 Slice 4.5 — token-based read-only viewer for the four
+// Presentation Mode sections. Token resolves client-side against the
+// local-first `presentationShareStore`; expired / unknown tokens land
+// on a friendly empty state.
+const observeShareRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/v3/observe/share/$token',
+  component: ObserveShareViewerPage,
+});
+
 // ─── Showcase (public scrollytelling — outside AppShell, no auth) ────────
 const showcaseRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -763,6 +785,7 @@ const routeTree = rootRoute.addChildren([
       v3CompassRoute,
       v3StageZeroRoute,
       v3ObserveCommandCentreRoute,
+      v3ObserveDashboardTemporalRoute,
       v3ObserveDashboardDomainRoute,
       v3ObserveDashboardRoute,
       v3ObserveIndexRoute,
@@ -805,6 +828,7 @@ const routeTree = rootRoute.addChildren([
   organizationCreateRoute,
   portalRoute,
   reportShareRoute,
+  observeShareRoute,
   showcaseRoute,
   showcaseCaptureRoute,
   showcaseTierRoute,

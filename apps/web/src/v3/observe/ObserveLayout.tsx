@@ -19,7 +19,12 @@
  */
 
 import { useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearch,
+} from '@tanstack/react-router';
 import ObserveDeepLinkFocus from './components/ObserveDeepLinkFocus.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { useV3Project } from '../data/useV3Project.js';
@@ -122,6 +127,19 @@ export default function ObserveLayout() {
   const handleObserveShellModeChange = (mode: ObserveShellMode) => {
     updateProject(projectRecord.id, { observeShellMode: mode });
   };
+  // Surface discriminator for the dashboard shell. The temporal route shares
+  // the `$domainId` slot with the domain-detail route, so we cannot rely on
+  // params alone — instead the route component inspects the pathname (set
+  // by the static `observe/dashboard/temporal/$domainId` route in
+  // routes/index.tsx). Domain detail is the default when a domainId is
+  // present and the URL is not temporal; otherwise Surface 1.
+  const location = useLocation();
+  const dashboardSurface: 'unified' | 'domain' | 'temporal' =
+    /\/observe\/dashboard\/temporal\//.test(location.pathname)
+      ? 'temporal'
+      : params.domainId
+        ? 'domain'
+        : 'unified';
   // Prefer the parcel's intake coordinates over the hard-coded stage
   // fallback. DiagnoseMap still wins with fit-to-bounds when a boundary
   // polygon exists, so this only takes effect for coords-only projects.
@@ -250,6 +268,7 @@ export default function ObserveLayout() {
             shellMode={observeShellMode}
             onShellModeChange={handleObserveShellModeChange}
             domainId={params.domainId ?? null}
+            surface={dashboardSurface}
           />
         }
         rightRail={null}

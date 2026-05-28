@@ -16,6 +16,28 @@
   gap: 12px;
 }
 
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.presentButton {
+  background: rgba(196, 162, 101, 0.18);
+  color: var(--color-text, #f2ede3);
+  border: 1px solid rgba(196, 162, 101, 0.55);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.presentButton:hover {
+  background: rgba(196, 162, 101, 0.28);
+  border-color: rgba(196, 162, 101, 0.85);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
