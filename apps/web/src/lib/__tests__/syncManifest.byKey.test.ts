@@ -40,8 +40,8 @@ describe('byKey.apply: undefined-incoming guard', () => {
     const handle = makeHandle({ byProject: {} });
     hz!.applyForProject!(handle as never, 'A', undefined as never);
     const after = handle.peek() as { byProject: Record<string, { hazards: unknown }> };
-    expect(after.byProject.A.hazards).toEqual([]);
-    expect(after.byProject.A.hazards).not.toBeUndefined();
+    expect(after.byProject.A!.hazards).toEqual([]);
+    expect(after.byProject.A!.hazards).not.toBeUndefined();
   });
 
   it('leaf-shaped descriptor accepts null the same way', () => {
@@ -49,7 +49,7 @@ describe('byKey.apply: undefined-incoming guard', () => {
     const handle = makeHandle({ byProject: {} });
     hz.applyForProject!(handle as never, 'A', null as never);
     const after = handle.peek() as { byProject: Record<string, { hazards: unknown }> };
-    expect(after.byProject.A.hazards).toEqual([]);
+    expect(after.byProject.A!.hazards).toEqual([]);
   });
 
   it('does not disturb sibling projects when guarding undefined', () => {
@@ -61,8 +61,8 @@ describe('byKey.apply: undefined-incoming guard', () => {
     const after = handle.peek() as {
       byProject: Record<string, { hazards: unknown }>;
     };
-    expect(after.byProject.A.hazards).toEqual([]);
-    expect(after.byProject.B.hazards).toEqual([{ id: 'b1' }]);
+    expect(after.byProject.A!.hazards).toEqual([]);
+    expect(after.byProject.B!.hazards).toEqual([{ id: 'b1' }]);
   });
 
   it('leaf-less descriptor with {} empty: undefined → {}, not undefined', () => {
