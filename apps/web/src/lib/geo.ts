@@ -104,3 +104,43 @@ export function parcelAreaM2(
     return null;
   }
 }
+
+/**
+ * Extract a polygon/multipolygon geometry from a stored boundary, regardless
+ * of which of the three shapes the persistence layer captured.
+ *
+ * `ParcelBoundaryGeojson` is a Zod union of `FeatureCollection | Feature |
+ * Polygon` (see `packages/shared/src/schemas/project.schema.ts`). Wizard +
+ * Observe write paths normalize to `FeatureCollection` via `parseGeoFile` /
+ * `toFeatureCollection`, but stored values from older sessions or alternate
+ * draft paths can be bare `Feature` or raw `Polygon`. Readers that assume
+ * `.features[0].geometry` crash on the latter two shapes — this helper
+ * normalizes on the read side so callers don't have to.
+ */
+export function extractBoundaryGeometry(
+  boundary:
+    | GeoJSON.Polygon
+    | GeoJSON.MultiPolygon
+    | GeoJSON.Feature
+    | GeoJSON.FeatureCollection
+    | undefined
+    | null,
+): GeoJSON.Polygon | GeoJSON.MultiPolygon | undefined {
+  if (!boundary) return undefined;
+  if (boundary.type === 'FeatureCollection') {
+    return boundary.features[0]?.geometry as
+      | GeoJSON.Polygon
+      | GeoJSON.MultiPolygon
+      | undefined;
+  }
+  if (boundary.type === 'Feature') {
+    return boundary.geometry as
+      | GeoJSON.Polygon
+      | GeoJSON.MultiPolygon
+      | undefined;
+  }
+  if (boundary.type === 'Polygon' || boundary.type === 'MultiPolygon') {
+    return boundary;
+  }
+  return undefined;
+}

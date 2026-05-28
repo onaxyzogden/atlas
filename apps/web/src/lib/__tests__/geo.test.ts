@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { haversineM, polygonCentroid } from '../geo.js';
+import {
+  haversineM,
+  polygonCentroid,
+  extractBoundaryGeometry,
+} from '../geo.js';
 
 describe('polygonCentroid', () => {
   it('returns the mean vertex of a square ring centred on origin', () => {
@@ -51,6 +55,63 @@ describe('polygonCentroid', () => {
     // the result. Documented: callers should only feed clean GeoJSON.
     // This test pins current behaviour rather than the ideal.
     expect(c).not.toBeNull();
+  });
+});
+
+describe('extractBoundaryGeometry', () => {
+  const square: GeoJSON.Polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [-0.001, -0.001],
+        [0.001, -0.001],
+        [0.001, 0.001],
+        [-0.001, 0.001],
+        [-0.001, -0.001],
+      ],
+    ],
+  };
+
+  it('unwraps a FeatureCollection to its first geometry', () => {
+    const fc: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', properties: {}, geometry: square }],
+    };
+    expect(extractBoundaryGeometry(fc)).toEqual(square);
+  });
+
+  it('unwraps a single Feature to its geometry', () => {
+    const feature: GeoJSON.Feature = {
+      type: 'Feature',
+      properties: {},
+      geometry: square,
+    };
+    expect(extractBoundaryGeometry(feature)).toEqual(square);
+  });
+
+  it('returns a bare Polygon unchanged', () => {
+    expect(extractBoundaryGeometry(square)).toBe(square);
+  });
+
+  it('returns a bare MultiPolygon unchanged', () => {
+    const mp: GeoJSON.MultiPolygon = {
+      type: 'MultiPolygon',
+      coordinates: [square.coordinates],
+    };
+    expect(extractBoundaryGeometry(mp)).toBe(mp);
+  });
+
+  it('returns undefined for undefined / null input', () => {
+    expect(extractBoundaryGeometry(undefined)).toBeUndefined();
+    expect(extractBoundaryGeometry(null)).toBeUndefined();
+  });
+
+  it('returns undefined for an empty FeatureCollection', () => {
+    const empty: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [],
+    };
+    expect(extractBoundaryGeometry(empty)).toBeUndefined();
   });
 });
 

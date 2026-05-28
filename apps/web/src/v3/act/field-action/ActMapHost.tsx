@@ -13,6 +13,7 @@ import { useMemo } from 'react';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import { useProjectStore, MTC_SEED } from '../../../store/projectStore.js';
+import { extractBoundaryGeometry } from '../../../lib/geo.js';
 import css from './ActMapHost.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -27,7 +28,7 @@ export default function ActMapHost({ projectId }: Props) {
     () => projects.find((p) => p.id === projectId || p.serverId === projectId) ?? MTC_SEED,
     [projects, projectId],
   );
-  const boundary = project.parcelBoundaryGeojson?.features[0]?.geometry as
+  const boundary = extractBoundaryGeometry(project.parcelBoundaryGeojson) as
     | GeoJSON.Polygon
     | undefined;
   const v3Project = useV3Project(projectId);

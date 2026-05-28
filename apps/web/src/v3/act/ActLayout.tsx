@@ -25,7 +25,7 @@ import {
   getActShellMode,
   type ActShellMode,
 } from '../../store/projectStore.js';
-import { parcelAcreage } from '../../lib/geo.js';
+import { parcelAcreage, extractBoundaryGeometry } from '../../lib/geo.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
 import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
 import { useV3Project } from '../data/useV3Project.js';
@@ -82,7 +82,7 @@ export default function ActLayout() {
     updateProject(project.id, { actShellMode: mode });
   };
 
-  const boundary = project.parcelBoundaryGeojson?.features[0]?.geometry as
+  const boundary = extractBoundaryGeometry(project.parcelBoundaryGeojson) as
     | GeoJSON.Polygon
     | undefined;
 
