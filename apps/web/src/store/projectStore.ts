@@ -88,6 +88,15 @@ export interface LocalProject {
    * rules.
    */
   actShellMode?: ActShellMode;
+  /**
+   * Which Observe-stage shell the steward sees: the new dashboard
+   * (OLOS Observe Dashboard Spec v1, Phase 4) — Unified Land State /
+   * Domain Detail / Temporal Layer — or the legacy 7-module bar.
+   * Per-project so existing module-bar projects keep their carousel
+   * UX while new projects land on the dashboard. Read via
+   * `getObserveShellMode(project)` which applies the defaulting rules.
+   */
+  observeShellMode?: ObserveShellMode;
 }
 
 /**
@@ -136,6 +145,30 @@ export function getActShellMode(
   if (project.actShellMode) return project.actShellMode;
   if (project.isBuiltin) return 'command-centre';
   return 'field-action';
+}
+
+/**
+ * Which Observe-stage navigation shell a project renders.
+ * `dashboard` is the OLOS Observe Dashboard Spec v1 default for new
+ * projects; `module-bar` is the legacy 7-module shell preserved behind
+ * a toggle so existing builtin samples (MTC, "351 House") keep their
+ * hand-seeded module content visible. Removed in Phase 7 alongside
+ * the Plan + Act shells.
+ */
+export type ObserveShellMode = 'dashboard' | 'module-bar';
+
+/**
+ * Canonical accessor for a project's Observe shell mode. Explicit
+ * per-project values win; otherwise builtin samples default to
+ * `module-bar` so their hand-seeded module content keeps rendering,
+ * and every other project defaults to `dashboard`.
+ */
+export function getObserveShellMode(
+  project: Pick<LocalProject, 'observeShellMode' | 'isBuiltin'>,
+): ObserveShellMode {
+  if (project.observeShellMode) return project.observeShellMode;
+  if (project.isBuiltin) return 'module-bar';
+  return 'dashboard';
 }
 
 /**
@@ -317,6 +350,9 @@ export const useProjectStore = create<ProjectState>()(
             // Same rationale as planShellMode — Act shell mode is a
             // per-steward UI choice, not narrative content.
             'actShellMode',
+            // Same rationale — Observe shell mode is a per-steward
+            // UI choice, not narrative content.
+            'observeShellMode',
           ];
           const filtered = Object.fromEntries(
             Object.entries(updates).filter(([k]) =>

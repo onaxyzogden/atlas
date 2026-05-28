@@ -118,6 +118,32 @@ export const ProjectMetadata = z.object({
         .optional(),
     })
     .optional(),
+  // OLOS Observe Dashboard share-link index (Phase 4 / Slice 4.1). Tokens
+  // also live in the per-project `presentationShareStore`; the metadata
+  // copy is the sync-mirrorable record so a share generated on one
+  // device resolves on another without standing up a server endpoint.
+  // Additive + passthrough — no migration.
+  presentationShares: z
+    .array(
+      z.object({
+        token: z.string().min(8).max(64),
+        createdAt: z.string().datetime(),
+        expiresAt: z.string().datetime().nullable(),
+        expiry: z.enum(['7d', '30d', '90d', 'permanent']),
+        sections: z
+          .array(
+            z.enum([
+              'site_overview',
+              'current_conditions',
+              'ecological_trajectory',
+              'evidence_library',
+            ]),
+          )
+          .default([]),
+      }),
+    )
+    .max(200)
+    .optional(),
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 

@@ -109,6 +109,9 @@ import { useCyclicalReviewStore } from '../store/cyclicalReviewStore.js';
 import { usePlanTierProgressStore } from '../store/planTierStore.js';
 import { useFieldActionStore } from '../store/fieldActionStore.js';
 import { useObserveFeedStore } from '../store/observeFeedStore.js';
+import { useObserveDataPointStore } from '../store/observeDataPointStore.js';
+import { useObserveCycleStore } from '../store/observeCycleStore.js';
+import { usePresentationShareStore } from '../store/presentationShareStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -540,6 +543,31 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // indicator consume this. Phase 4 will normalise into the canonical
   // ObservationRecord substrate; today this is the working surface.
   blob('ogden-observe-feed', useObserveFeedStore, 'byProject', 1, byKey('byProject', null, [])),
+
+  // --- OLOS Observe Dashboard substrate (Phase 4 Slice 4.1) ---
+  // Per-project ObserveDataPoint rows. New captures auto-supersede same-
+  // domain neighbours within the per-domain proximity radius. The "Not a
+  // replacement" CTA restores both. Classified as `versioned-blob
+  // byProject`; the formal server-backed entity arrives in a later
+  // engineering follow-up (Phase 4 locked decision: local-first).
+  blob('ogden-observe-data-points', useObserveDataPointStore, 'byProject', 1, byKey('byProject', null, [])),
+
+  // --- OLOS Observe cycle counters (Phase 4 Slice 4.1) ---
+  // Per (project, domain) monotonic cycleId + append-only history of
+  // advance events. Cycles advance only via `confirmDecision` /
+  // `acknowledgeRevise` (wired in Slice 4.5). New captures stamp with
+  // the current cycleId so the Temporal Layer can annotate the x-axis.
+  // Payload is `Record<domainId, ObserveDomainCycleState>` per project,
+  // which fits the byKey('byProject', null, {}) shape.
+  blob('ogden-observe-cycles', useObserveCycleStore, 'byProject', 1, byKey('byProject', null, {})),
+
+  // --- OLOS Observe presentation shares (Phase 4 Slice 4.1) ---
+  // Per-project list of token-based share links for Presentation Mode.
+  // 32-char tokens persisted client-side; viewer route resolves by
+  // iterating projects. Server endpoint deferred per Phase 4 locked
+  // decision; the per-project metadata field carries a sync-mirrorable
+  // copy so shares survive device migration.
+  blob('ogden-observe-shares', usePresentationShareStore, 'byProject', 1, byKey('byProject', null, [])),
 ];
 
 /**

@@ -150,3 +150,35 @@ export {
   hasAllRequiredProof,
   type FieldActionEvent,
 } from './relationships/fieldActionStatus.js';
+
+// OLOS Observe Dashboard (Phase 4)
+export * from './schemas/observe/dataPoint.schema.js';
+export * from './schemas/observe/supersession.schema.js';
+export * from './schemas/observe/cycle.schema.js';
+export * from './schemas/observe/presentationShare.schema.js';
+export * from './constants/observe/domains.js';
+export {
+  computeSupersession,
+  restoreFromSupersession,
+  haversineMeters,
+  DEFAULT_SUPERSESSION_PROXIMITY_METERS,
+  type ComputeSupersessionOptions,
+  type RestorePatch,
+} from './relationships/supersession.js';
+export {
+  computeFreshness,
+  computeDomainFreshness,
+  type ObserveFreshness,
+  type FreshnessThresholds,
+} from './relationships/observeFreshness.js';
+export {
+  computeObserveRevisionFlag,
+  type ObserveRevisionTriggerInput,
+} from './relationships/observeRevisionTrigger.js';
+export {
+  computeRevisionPriority,
+  FOUNDATION_DOMAINS_FOR_REVISION,
+  type RevisionEvent,
+  type RevisionEventKind,
+  type RevisionPriority,
+} from './relationships/revisionPriority.js';
