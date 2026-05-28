@@ -41,9 +41,7 @@ function makeAction(id: string, mode: 'self' | 'review') {
   });
 }
 
-function feedFor(): readonly ReturnType<
-  typeof useObserveFeedStore.getState
->['byProject'][string] {
+function feedFor() {
   return useObserveFeedStore.getState().getByProject(PROJECT);
 }
 
