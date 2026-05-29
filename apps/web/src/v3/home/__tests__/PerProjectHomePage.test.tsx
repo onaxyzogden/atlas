@@ -153,8 +153,13 @@ vi.mock('../../../hooks/useMyProjectRoles.js', () => ({
   useMyProjectRoles: () => h.roleMap,
 }));
 
+vi.mock('../../../hooks/useActTaskSync.js', () => ({
+  useActTaskSync: vi.fn(),
+}));
+
 // Import AFTER mocks so the SUT captures them.
 import PerProjectHomePage from '../PerProjectHomePage';
+import { useActTaskSync } from '../../../hooks/useActTaskSync.js';
 
 beforeEach(() => {
   h.params = { projectId: 'p-1' };
@@ -296,5 +301,19 @@ describe('PerProjectHomePage - Slice 5.5a access gate', () => {
     render(<PerProjectHomePage />);
     expect(screen.getByText('Plan tier shell')).toBeTruthy();
     expect(screen.queryByText(DENY_TEXT)).toBeNull();
+  });
+});
+
+describe('PerProjectHomePage - ActTask pull on open', () => {
+  it('pulls ActTasks with the local id + serverId for a synced project', () => {
+    h.project = { ...h.project!, serverId: 'srv-1' };
+    render(<PerProjectHomePage />);
+    expect(vi.mocked(useActTaskSync)).toHaveBeenCalledWith('p-1', 'srv-1');
+  });
+
+  it('passes no serverId for a local-only project (hook no-ops)', () => {
+    h.project = { ...h.project!, serverId: undefined };
+    render(<PerProjectHomePage />);
+    expect(vi.mocked(useActTaskSync)).toHaveBeenCalledWith('p-1', undefined);
   });
 });

@@ -19,6 +19,7 @@ import PageHeader from '../components/PageHeader.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useProjectUrgency } from './useProjectUrgency.js';
 import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
+import { useActTaskSync } from '../../hooks/useActTaskSync.js';
 import AttentionRail from './AttentionRail.js';
 import NextUpCard from './NextUpCard.js';
 import StageStatusRow from './StageStatusRow.js';
@@ -39,6 +40,11 @@ export default function PerProjectHomePage() {
   // useMemo would only delay the hook by one render.
   const urgencyMap = useProjectUrgency(project ? [project] : []);
   const roleMap = useMyProjectRoles();
+
+  // Pull this project's ActTasks on open so the assignee's "assigned to me"
+  // surface (Slice 5.5b) reflects assignments made elsewhere. No-op offline.
+  // Called before the early return; the hook guards on its own arguments.
+  useActTaskSync(project?.id, project?.serverId);
 
   if (!project) {
     return <p className={css.empty}>No project loaded.</p>;
