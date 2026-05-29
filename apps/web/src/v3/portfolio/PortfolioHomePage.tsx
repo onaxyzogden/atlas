@@ -21,6 +21,7 @@ import { sortByUrgency } from '@ogden/shared';
 import PageHeader from '../components/PageHeader.js';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useProjectUrgency } from '../home/useProjectUrgency.js';
+import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
 import ProjectUrgencyCard from './ProjectUrgencyCard.js';
 import css from './PortfolioHomePage.module.css';
 
@@ -34,6 +35,7 @@ export default function PortfolioHomePage() {
   );
 
   const urgencyMap = useProjectUrgency(activeProjects);
+  const roleMap = useMyProjectRoles();
 
   const ordered = useMemo(
     () =>
@@ -76,6 +78,7 @@ export default function PortfolioHomePage() {
               key={project.id}
               project={project}
               urgency={urgencyMap.get(project.id)}
+              role={project.serverId ? roleMap.get(project.serverId) : undefined}
             />
           ))}
         </div>

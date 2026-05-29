@@ -14,22 +14,36 @@
 
 import { useNavigate } from '@tanstack/react-router';
 import { AlertTriangle, Clock, RefreshCw, Sprout } from 'lucide-react';
-import type { ProjectUrgencyResult } from '@ogden/shared';
+import type { ProjectUrgencyResult, ProjectRole } from '@ogden/shared';
 import { BentoBox } from '../../components/ui/BentoBox.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { buildUrgencyChips } from '../home/urgencyChips.js';
 import css from './PortfolioHomePage.module.css';
 
+// Non-steward roles get a badge; owner / primary_steward are omitted (the
+// portfolio belongs to the steward, so their own projects carry no badge).
+const ROLE_BADGE_LABEL: Partial<Record<ProjectRole, string>> = {
+  designer: 'Designer',
+  reviewer: 'Reviewer',
+  viewer: 'Viewer',
+  team_member: 'Team',
+  contractor: 'Contractor',
+  landowner: 'Landowner',
+};
+
 export interface ProjectUrgencyCardProps {
   project: LocalProject;
   urgency: ProjectUrgencyResult | undefined;
+  role?: ProjectRole;
 }
 
 export default function ProjectUrgencyCard({
   project,
   urgency,
+  role,
 }: ProjectUrgencyCardProps) {
   const navigate = useNavigate();
+  const roleLabel = role ? ROLE_BADGE_LABEL[role] : undefined;
   const draftWizard = urgency?.breakdown.draftWizard ?? false;
   const chips = buildUrgencyChips(urgency);
   const allClear = !draftWizard && chips.length === 0;
@@ -78,6 +92,7 @@ export default function ProjectUrgencyCard({
             <Sprout size={12} aria-hidden /> Finish setup
           </span>
         ) : null}
+        {roleLabel ? <span className={css.roleBadge}>{roleLabel}</span> : null}
       </BentoBox.Header>
 
       <BentoBox.Body className={css.cardBody}>
