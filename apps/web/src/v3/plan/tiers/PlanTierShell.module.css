@@ -78,8 +78,26 @@
 }
 
 @media (max-width: 960px) {
+  /*
+   * Narrow viewports collapse the spine + column + panel into one
+   * stacked column. Three independent scroll regions on a small screen
+   * is a scroll-trap anti-pattern, so restore single document-flow
+   * scroll on the shell and let each section size to its own content.
+   * This re-enables the shell-level scroll that desktop turns off, and
+   * by content-sizing the grid rows it leaves the per-column
+   * overflow-y rules (in TierSpine/ObjectiveColumn/ObjectiveDetailPanel)
+   * inert here — each section gets its full content height.
+   */
+  .shell {
+    overflow-y: auto;
+  }
+
+  .layout,
   .layout[data-has-objective-column='true'],
   .layout[data-has-detail-panel='true'] {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    flex: 0 0 auto;
+    min-height: auto;
   }
 }
