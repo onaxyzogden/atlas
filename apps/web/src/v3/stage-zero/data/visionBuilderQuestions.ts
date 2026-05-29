@@ -848,7 +848,10 @@ export const VISION_QUESTIONS: VisionQuestion[] = [
  * Map a Vision Builder primary-type id to the closest strict `ProjectType`
  * enum value (which Plan reads via `useEffectivePlanProjectType`). Returns
  * undefined for ids with no clean enum home (kept only in
- * `visionProfile.primaryType`).
+ * `visionProfile.primaryType`). Targets are OLOS v1.2 enum values: agritourism
+ * and regenerative_farm replace the dropped retreat_center / multi_enterprise
+ * (the same homes migration 046 backfills). This path writes projectType via
+ * updateProject, which does not normalize, so it must emit valid enum values.
  */
 export function toProjectType(builderTypeId: string | undefined): string | undefined {
   switch (builderTypeId) {
@@ -861,13 +864,13 @@ export function toProjectType(builderTypeId: string | undefined): string | undef
       return 'homestead';
     case 'retreat_education':
     case 'agritourism':
-      return 'retreat_center';
+      return 'agritourism';
     case 'conservation':
       return 'conservation';
     case 'intentional_community':
     case 'eco_village':
     case 'mixed_use':
-      return 'multi_enterprise';
+      return 'regenerative_farm';
     default:
       return undefined;
   }

@@ -297,20 +297,46 @@ function generateId(): string {
  *
  *   null / undefined / ""        -> null   (projectType is optional server-side)
  *   valid snake_case ProjectType -> unchanged
- *   known kebab archetype        -> mapped to its snake_case ProjectType
+ *   dropped pre-v1.2 legacy enum -> forwarded to its migration-046 home
+ *   known kebab archetype        -> snake_case ProjectType (forwarded if legacy)
  *   anything else                -> null   (unsyncable; drop rather than 422)
+ *
+ * The legacy-forward step is the CLIENT mirror of migration 046
+ * (apps/api/src/db/migrations/046_project_type_taxonomy.sql). The OLOS v1.2
+ * rename dropped educational_farm / multi_enterprise / retreat_center from the
+ * ProjectType enum, so a project still holding one — persisted before the
+ * rename, or produced by the legacy archetype / vision-builder vocabulary — is
+ * mapped to its nearest surviving type instead of 422-ing or dropping to null.
  */
 const ARCHETYPE_PROJECT_TYPE_LOOKUP = ARCHETYPE_TO_PROJECT_TYPE as Record<
   string,
   string | undefined
 >;
 
+/**
+ * Pre-v1.2 ProjectType values dropped by the rename -> nearest surviving home.
+ * Targets match migration 046 exactly so the client and server backfills agree.
+ */
+const LEGACY_PROJECT_TYPE_BACKFILL: Record<string, string> = {
+  educational_farm: 'education',
+  multi_enterprise: 'regenerative_farm',
+  retreat_center: 'agritourism',
+};
+
 export function normalizeProjectType(
   value: string | null | undefined,
 ): string | null {
   if (value == null || value === '') return null;
   if (ProjectType.safeParse(value).success) return value;
-  return ARCHETYPE_PROJECT_TYPE_LOOKUP[value] ?? null;
+  // A dropped pre-v1.2 enum value supplied directly (a project persisted before
+  // the rename, or the legacy vision-builder vocabulary) -> migration-046 home.
+  const forwarded = LEGACY_PROJECT_TYPE_BACKFILL[value];
+  if (forwarded) return forwarded;
+  // A kebab archetype -> its enum value, forwarded again in case that value was
+  // itself a dropped legacy (e.g. "retreat" -> "retreat_center" -> "agritourism").
+  const mapped = ARCHETYPE_PROJECT_TYPE_LOOKUP[value];
+  if (mapped) return LEGACY_PROJECT_TYPE_BACKFILL[mapped] ?? mapped;
+  return null;
 }
 
 export const useProjectStore = create<ProjectState>()(
@@ -559,7 +585,7 @@ export const useProjectStore = create<ProjectState>()(
     }),
     {
       name: 'ogden-projects',
-      version: 5,
+      version: 6,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 3) {
@@ -582,6 +608,20 @@ export const useProjectStore = create<ProjectState>()(
           // server snake_case ProjectType enum, so project:create stops
           // failing server validation with a 422 on sync. See
           // normalizeProjectType.
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => ({
+            ...p,
+            projectType: normalizeProjectType(
+              (p as { projectType?: string | null }).projectType,
+            ),
+          }));
+        }
+        if (version < 6) {
+          // OLOS v1.2 taxonomy rename: re-run normalizeProjectType so a project
+          // persisted at v5 that still holds a dropped legacy value
+          // (educational_farm / multi_enterprise / retreat_center) is forwarded
+          // to its migration-046 home, instead of failing the server enum parse
+          // with a 422 on the next sync. See normalizeProjectType.
           const projects = (state.projects ?? []) as Record<string, unknown>[];
           state.projects = projects.map((p) => ({
             ...p,

@@ -88,8 +88,10 @@ describe('toProjectType mapping', () => {
     expect(toProjectType('regenerative_farm')).toBe('regenerative_farm');
     expect(toProjectType('agroforestry')).toBe('regenerative_farm');
     expect(toProjectType('homestead')).toBe('homestead');
-    expect(toProjectType('retreat_education')).toBe('retreat_center');
-    expect(toProjectType('eco_village')).toBe('multi_enterprise');
+    // v1.2 rename: dropped retreat_center / multi_enterprise now resolve to
+    // their migration-046 homes (agritourism / regenerative_farm).
+    expect(toProjectType('retreat_education')).toBe('agritourism');
+    expect(toProjectType('eco_village')).toBe('regenerative_farm');
   });
 
   it('returns undefined for ids with no clean enum home', () => {
