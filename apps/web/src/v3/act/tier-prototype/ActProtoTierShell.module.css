@@ -23,6 +23,16 @@
 .shellWrap {
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
+}
+
+/* Prototype-scoped fix: StageShell's bottom grid slot has min-width: auto
+   (default for grid items), so a content-sized bottomTray like our
+   .toolsPanel grows past the layout column. Scoping min-width: 0 to
+   .protoShell keeps the fix isolated from other StageShell consumers
+   and lets .toolsRow's overflow-x: auto engage. */
+.protoShell :global([data-stage-bottom]) {
+  min-width: 0;
 }
 
 /* ---- Tier spine (top) --------------------------------------------------- */
@@ -725,8 +735,7 @@
 }
 
 .toolCat {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
   background: var(--color-bg, #1f1d1a);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
@@ -769,9 +778,6 @@
   grid-auto-columns: 62px;
   gap: 6px;
   margin-top: 8px;
-  min-width: 0;
-  overflow-x: auto;
-  justify-content: safe center;
 }
 
 .toolBtn {
