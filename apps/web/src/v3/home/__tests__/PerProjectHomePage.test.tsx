@@ -64,10 +64,12 @@ const h = vi.hoisted(() => ({
     id: string;
     name: string;
     description: string | null;
+    serverId?: string;
     metadata: { wizardStatus?: 'in_progress' | 'complete'; wizardLastStep?: string };
   },
   urgency: null as ProjectUrgencyResult | null,
   navigateSpy: vi.fn(),
+  roleMap: new Map<string, string>(),
 }));
 
 vi.mock('lucide-react', async (importOriginal) => {
@@ -147,6 +149,10 @@ vi.mock('../../../store/observeDataPointStore.js', () => ({
   ) => selector({ byProject: {} }),
 }));
 
+vi.mock('../../../hooks/useMyProjectRoles.js', () => ({
+  useMyProjectRoles: () => h.roleMap,
+}));
+
 // Import AFTER mocks so the SUT captures them.
 import PerProjectHomePage from '../PerProjectHomePage';
 
@@ -159,6 +165,7 @@ beforeEach(() => {
     metadata: {},
   };
   h.urgency = null;
+  h.roleMap = new Map<string, string>();
 });
 afterEach(() => {
   cleanup();
@@ -254,5 +261,40 @@ describe('PerProjectHomePage', () => {
     expect(screen.getByText('Plan tier shell')).toBeTruthy();
     expect(screen.getByText('Field actions')).toBeTruthy();
     expect(screen.getByText('Land state')).toBeTruthy();
+  });
+});
+
+describe('PerProjectHomePage - Slice 5.5a access gate', () => {
+  const DENY_TEXT =
+    'Your role on this project does not include the home view. Contact the project steward if you need access.';
+
+  it('denies a contractor on a synced project', () => {
+    h.project = { ...h.project!, serverId: 'srv-1' };
+    h.roleMap = new Map([['srv-1', 'contractor']]);
+    render(<PerProjectHomePage />);
+    expect(screen.getByText(DENY_TEXT)).toBeTruthy();
+  });
+
+  it('denies a landowner on a synced project', () => {
+    h.project = { ...h.project!, serverId: 'srv-1' };
+    h.roleMap = new Map([['srv-1', 'landowner']]);
+    render(<PerProjectHomePage />);
+    expect(screen.getByText(DENY_TEXT)).toBeTruthy();
+  });
+
+  it('renders the full steward home for an owner on a synced project', () => {
+    h.project = { ...h.project!, serverId: 'srv-1' };
+    h.roleMap = new Map([['srv-1', 'owner']]);
+    render(<PerProjectHomePage />);
+    expect(screen.getByText('Plan tier shell')).toBeTruthy();
+    expect(screen.queryByText(DENY_TEXT)).toBeNull();
+  });
+
+  it('never gates an unsynced (local-only) project, even with a stale role in the map', () => {
+    h.project = { ...h.project!, serverId: undefined };
+    h.roleMap = new Map([['srv-1', 'contractor']]);
+    render(<PerProjectHomePage />);
+    expect(screen.getByText('Plan tier shell')).toBeTruthy();
+    expect(screen.queryByText(DENY_TEXT)).toBeNull();
   });
 });
