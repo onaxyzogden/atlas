@@ -1,7 +1,7 @@
 // ObjectiveCard — compact row for a single tier objective inside
 // ObjectiveColumn (Plan Navigation Spec v1, Slice 1.5). Surfaces the
-// objective title, the focused question (one-line excerpt), and the
-// current status pill. Click is owned by the parent so the same
+// objective's focused question (one-line excerpt) and the current
+// status pill. Click is owned by the parent so the same
 // component can be used for navigation or selection.
 //
 // Slice 4.4 — outer is a div role="button" (instead of a real <button>)
@@ -99,8 +99,7 @@ export default function ObjectiveCard({
         )}
       </span>
       <span className={css.body}>
-        <span className={css.title}>{objective.title}</span>
-        <span className={css.question}>{objective.focusedQuestion}</span>
+        <span className={css.title}>{objective.focusedQuestion}</span>
       </span>
       <span className={css.trail}>
         {hasDivergence && (

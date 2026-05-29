@@ -50,8 +50,7 @@ export default function NextUpCard({
     >
       <div className={css.body}>
         <p className={css.eyebrow}>Next up</p>
-        <h3 className={css.title}>{objective.title}</h3>
-        <p className={css.question}>{objective.focusedQuestion}</p>
+        <h3 className={css.title}>{objective.focusedQuestion}</h3>
         <div className={css.pillRow}>
           <span className={css.statusPill}>{STATUS_LABEL[status]}</span>
           {hasDivergence && (

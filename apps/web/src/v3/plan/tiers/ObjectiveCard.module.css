@@ -108,12 +108,6 @@
   font-weight: 500;
   letter-spacing: -0.005em;
   color: var(--color-text, #f2ede3);
-}
-
-.question {
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
