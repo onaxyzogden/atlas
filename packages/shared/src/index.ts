@@ -122,6 +122,18 @@ export * from './constants/plan/tierObjectives.js';
 // Per-type objective model (OLOS Project-Type + Secondary-Layer Spec v1.2)
 export * from './schemas/plan/projectTypeTaxonomy.schema.js';
 export * from './constants/plan/projectTypes.js';
+export * from './constants/plan/relationshipMatrix.js';
+export * from './constants/plan/catalogues/index.js';
+export {
+  resolveProjectObjectives,
+  findPlanTierObjectiveIn,
+  type ResolveProjectObjectivesInput,
+  type ResolveProjectObjectivesDeps,
+  type ResolvedProjectObjectives,
+  type ResolveProvenance,
+  type SkippedPatch,
+  type SecondaryResolutionFlag,
+} from './relationships/resolveProjectObjectives.js';
 export {
   computeObjectiveStatus,
   computeAllObjectiveStatuses,
