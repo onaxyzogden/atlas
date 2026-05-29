@@ -897,6 +897,12 @@ export const api = {
 
     myRole: (projectId: string) =>
       request<{ role: ProjectRole }>('GET', `/api/v1/projects/${projectId}/my-role`),
+
+    myRoles: () =>
+      request<Array<{ projectId: string; role: ProjectRole }>>(
+        'GET',
+        '/api/v1/projects/my-roles',
+      ),
   },
 
   organizations: {

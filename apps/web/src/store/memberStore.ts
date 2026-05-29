@@ -11,10 +11,12 @@ import type { ProjectMemberRecord, ProjectRole } from '@ogden/shared';
 interface MemberState {
   members: ProjectMemberRecord[];
   myRole: ProjectRole | null;
+  myRoles: Record<string, ProjectRole>;
   isLoading: boolean;
 
   fetchMembers: (projectId: string) => Promise<void>;
   fetchMyRole: (projectId: string) => Promise<void>;
+  fetchMyRoles: () => Promise<void>;
   /**
    * Seed a local roster for the offline/demo flow (no auth, no backend).
    * No-op when members are already present so a real fetched roster is never
@@ -30,6 +32,7 @@ interface MemberState {
 export const useMemberStore = create<MemberState>()((set, get) => ({
   members: [],
   myRole: null,
+  myRoles: {},
   isLoading: false,
 
   fetchMembers: async (projectId: string) => {
@@ -59,6 +62,21 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
       }
     } catch (err) {
       console.warn('[OGDEN] Failed to fetch my role:', err);
+    }
+  },
+
+  fetchMyRoles: async () => {
+    try {
+      const { data } = await api.members.myRoles();
+      if (data) {
+        const next: Record<string, ProjectRole> = {};
+        for (const entry of data) {
+          next[entry.projectId] = entry.role;
+        }
+        set({ myRoles: next });
+      }
+    } catch (err) {
+      console.warn('[OGDEN] Failed to fetch my roles:', err);
     }
   },
 
@@ -105,5 +123,5 @@ export const useMemberStore = create<MemberState>()((set, get) => ({
     }
   },
 
-  reset: () => set({ members: [], myRole: null, isLoading: false }),
+  reset: () => set({ members: [], myRole: null, myRoles: {}, isLoading: false }),
 }));
