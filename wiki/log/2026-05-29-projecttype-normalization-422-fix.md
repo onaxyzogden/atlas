@@ -77,11 +77,19 @@ Three-tier fix (repair + prevent + diagnose):
 
 ## Carry-over
 
-- The [[2026-05-25-sync-queue-oom-coalescing-fix]] **Deferred** item still
-  stands: the ~14 executor handlers in `syncService.ts` swallow API errors and
-  re-enqueue, so `MAX_RETRIES` never counts up. `describeSyncError` now makes a
-  swallowed failure *legible* in the log, but the handlers still do not propagate
-  it for retry-counting / circuit-breaking -- left as the same separate refactor.
+- **Correction (2026-05-29, same session):** an earlier draft of this entry
+  claimed the [[2026-05-25-sync-queue-oom-coalescing-fix]] **Deferred** item
+  "still stands" -- that the ~14 `syncService.ts` executor handlers swallow API
+  errors so `MAX_RETRIES` never counts up. That was wrong, and it contradicted
+  the Synthesis above. The deferral was already closed the *same day* by
+  [[2026-05-25-atlas-sync-circuit-breaker]] (commit `84bb8e91`): `executeQueuedOp`
+  now calls every create/update handler with `rethrow = true`, so a failed API
+  call throws back to `flush()`, `retryCount` increments with exponential
+  backoff, and at `MAX_RETRIES` the op is dropped via `handleExhaustedOp` and
+  surfaced to the steward (Connectivity badge + toast). `describeSyncError` (this
+  slice) is what makes such a drop name the offending field. The genuinely-open
+  deferral is the human-gated two-device E2E + `FEATURE_SYNC_STATE_BLOBS` rollout
+  (see [[2026-05-25-atlas-sync-circuit-breaker]]), not the handler refactor.
 - Not pushed this session (out-of-band rebase rule -- commit locally, push under
   divergence check).
 

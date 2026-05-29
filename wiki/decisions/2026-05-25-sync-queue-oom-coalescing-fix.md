@@ -63,7 +63,13 @@ Root cause was the IndexedDB sync queue in `apps/web/src/lib/syncQueue.ts`
   errors and re-enqueue, so `MAX_RETRIES` never counts up. The coalescing key
   makes this harmless (it can no longer grow the queue), but propagating
   failures so retries count and a circuit-breaker can drop genuinely-bad ops is
-  a cleaner long-term posture — left as a separate refactor.
+  a cleaner long-term posture — left as a separate refactor. **(Closed the same
+  day by [[2026-05-25-atlas-sync-circuit-breaker]], commit `84bb8e91`: the queue
+  executor `executeQueuedOp` now calls each create/update handler with
+  `rethrow = true`, so a failed API call throws back to `flush()`, `retryCount`
+  increments with backoff, and at `MAX_RETRIES` the op is dropped via
+  `handleExhaustedOp` and surfaced to the steward. This Deferred note is retained
+  for the historical record.)**
 - Relates to [[2026-05-16-atlas-multi-device-bundle-escape-hatch]] and the
   [full-syncservice-coverage-backlog](../concepts/full-syncservice-coverage-backlog.md);
   this fix hardens the *existing* 4-slice sync path, it does not extend coverage.
