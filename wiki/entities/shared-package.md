@@ -82,6 +82,34 @@ dimension is reserved at weight 0 in Phase 1 so existing project overall
 scores don't shift; weight is moved up when Phase 2 (canvas edge editor)
 ships and the dimension is computed for every project.
 
+## Per-type objective model (main barrel; OLOS Project-Type + Secondary-Layer Spec v1.2)
+**Added 2026-05-29.** Phase 2 of the OLOS UX plan -- replaces the fixed
+~16-objective `constants/plan/tierObjectives.ts` skeleton (rendered identically
+for every project) with a resolved **19 Universal + Primary-type +
+Secondary-type** set, where secondaries are *additive* (whole new objectives)
+or *modifying* (inject checklist items into existing objectives via patch
+records). Unlike the Needs & Yields `relationships` subpath above, every symbol
+here is re-exported from the **main barrel** (`@ogden/shared`), not a subpath.
+Decision: [decisions/2026-05-29-atlas-per-type-objective-model.md](../decisions/2026-05-29-atlas-per-type-objective-model.md).
+
+| File | Purpose |
+|------|---------|
+| `schemas/plan/projectTypeTaxonomy.schema.ts` | `ProjectTypeId` (13 ids), `SecondaryClass`, `TensionAck`, `ProjectTypeRecord`, `ProjectTypeVersion` -- the record a wizard writes to `metadata.projectTypeRecord` (primary + secondaries + tension acks). |
+| `schemas/plan/planTierObjective.schema.ts` | **Extended additively 2026-05-29** -- new optional/defaulted objective fields (`source`, `sourceTypeId`, `secondaryClass`, `ref`, `completionGate`, `actHandoff`, `scopeNotes`) + checklist-item fields (`isMethodology`, `expandedBySecondaryId`) + `PatchRecordSchema` (`secondaryTypeId`, `targetObjectiveId`, `injectedItems`, `completionGateAmendment`, `scopeNote`). All defaulted, so the static seed still validates. |
+| `constants/plan/projectTypes.ts` | 13-entry `PROJECT_TYPES` table `{id,label,ordinal,canBePrimary,canBeSecondary,description}`; `PRIMARY_TYPES` (12) / `SECONDARY_TYPES` (8) views; `findProjectType(id)`. The wizard reads this table; the Zod `ProjectType` enum keeps a `moontrance` sentinel (validates but never offered). |
+| `constants/plan/relationshipMatrix.ts` | `getPairRelation`, `isCompatibleSecondary`, `getActiveTensions`; `RelationCell` ('M'\|'A'\|'X'\|'NA'); `DesignTension`; the 10 named design tensions. `residential.regenerative_farm = 'M'` is the encoded modifying pair; `residential.homestead = 'NA'` (incompatible -- "Homestead+Residential" was a stale plan-doc label). |
+| `constants/plan/catalogues/{universal,regenFarm,residential}.ts` | The encoded catalogues: Universal-19, Regenerative-Farm primary (13), Residential secondary (6 additive + **5** patch records). The other 11 primaries are unencoded (resolve universal-only) until fanned out as pure data. |
+| `constants/plan/catalogues/authoring.ts` | Catalogue Authoring Standards v1.4 rubric constants (id-namespacing, item-count bounds, Ref format) consumed by `__tests__/catalogues.test.ts`. |
+| `constants/plan/catalogues/index.ts` | Barrel: catalogue union + lookup helpers. |
+| `relationships/resolveProjectObjectives.ts` | Pure `resolveProjectObjectives({primaryTypeId, secondaryTypeIds})` -> 19 Universal (deep-copied) + primary + secondary-additive (dedup by id) + modifying patches applied **last**, each injected item stamped `expandedBySecondaryId`; a missing patch target is skipped + recorded (`SkippedPatch`), never thrown; gate amendments concatenate onto `completionGate`. Also `findPlanTierObjectiveIn(resolved, id)`; types `ResolveProjectObjectivesInput`/`Deps`, `ResolvedProjectObjectives`, `ResolveProvenance`, `SecondaryResolutionFlag`. **Physically in `relationships/` but main-barrel exported** (not the `@ogden/shared/relationships` subpath). |
+
+Resolution is **on the fly** per project (web `useProjectObjectives(projectId)`,
+4-tier fallback to the static skeleton) -- no persisted resolved-set store.
+Verified pair regen_farm + residential = **38 objectives** across 7 tiers
+(5/6/5/6/6/4/6). The `planTierStore.toProgressMap` global-id-uniqueness
+invariant holds: injected patch item ids are namespaced and `catalogues.test.ts`
+asserts global uniqueness incl. patch items.
+
 ## Act telemetry schema (`schemas/actTelemetry.schema.ts`)
 Main-barrel schema backing the Act-stage affinity pipeline (migration
 024 + the `apps/api` telemetry route + `apps/web/src/lib/actInteractionLog.ts`).

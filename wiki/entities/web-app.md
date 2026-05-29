@@ -157,6 +157,39 @@ are preserved on disk; their `WizardData` interface was relocated from
 `NewProjectPage` into `features/project/wizard/types.ts`. ADR:
 [[2026-05-25-atlas-stage-zero-vision-builder]].
 
+## Per-type objective model -- wizard Step 2 + on-the-fly resolution (2026-05-29)
+
+Phase 2 of the OLOS UX plan. The fixed ~16-objective Plan spine skeleton is
+replaced by a **per-project resolved** Universal + Primary + Secondary set
+(shared engine documented in [[shared-package]] "Per-type objective model").
+ADR: [[2026-05-29-atlas-per-type-objective-model]].
+
+- **Wizard Step 2 Section A** (`v3/project-wizard/`): `WizardProjectTypeGrid`
+  (required 12-card radiogroup), `WizardSecondaryPicker` (compatible-only,
+  N/A hidden, A/M/X relation hints), `WizardTensionPanel` (amber, advisory --
+  "I understand, continue" records a timestamped `TensionAck`, **never blocks
+  Next**), mounted above the vision form in `WizardStep2Vision`. Selections
+  write directly to `metadata.projectTypeRecord` (not `visionProfile`), so the
+  resolver has one source of truth. `WizardStep3Team.finish` stamps an
+  idempotent "wizard completion" `versionHistory` entry -- no resolved-set
+  write (resolution is on the fly).
+- **`v3/plan/tiers/useProjectObjectives.ts`** -- resolves at render via a
+  4-tier fallback (`metadata.projectTypeRecord` -> bare `project.projectType`
+  -> static `PLAN_TIER_OBJECTIVES`). **No new Zustand store** (deviation from
+  the plan's recommended `projectObjectiveStore`); reload re-derives the
+  identical set deterministically, so provenance survives without persistence.
+- **14-consumer switch**: every reader of the static skeleton now routes
+  through the resolved set (render/derive: `PlanTierShell`,
+  `WizardCompletionScreen`, `home/StageStatusRow`, `home/useProjectUrgency`,
+  `observe/.../usePlanRevisionFlagSync`, `act/field-action/ViewAObjectiveExecution`,
+  `store/cycleAdvance`) or a project-scoped / global-union lookup
+  (`tiers/DecisionChecklist`, `observe/.../useRevisionEvents`, Act
+  `getObjectiveTitle`). MTC / untyped projects keep the static skeleton.
+- **`tiers/DecisionChecklist`** renders an "Expanded by: <Type>" provenance
+  chip for any checklist item the engine stamped `expandedBySecondaryId`
+  (neutral filled pill, distinct from the gold feeds chips + green Stage Zero
+  badge).
+
 ## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
 - `projectStore` — project CRUD, active project selection. `applyBuiltinsToStore`
