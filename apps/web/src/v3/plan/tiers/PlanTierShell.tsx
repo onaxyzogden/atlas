@@ -289,16 +289,6 @@ export default function PlanTierShell({
           7 tiers from foundation to phasing. Each tier unlocks once its
           prerequisites complete.
         </p>
-        {(activeTierId || activeObjective) && (
-          <p
-            className={css.routeEcho}
-            data-testid="plan-tier-route-echo"
-          >
-            {activeObjective
-              ? `Objective: ${activeObjective.title} (tier ${activeTierId ?? activeObjective.tierId})`
-              : `Tier: ${findPlanTier(activeTierId ?? '')?.title ?? activeTierId}`}
-          </p>
-        )}
       </div>
 
       <div

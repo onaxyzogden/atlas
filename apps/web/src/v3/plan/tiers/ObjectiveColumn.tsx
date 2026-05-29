@@ -1,8 +1,8 @@
 // ObjectiveColumn — right-hand column of the Plan tier shell shown when
-// a tier is selected (Plan Navigation Spec v1, Slice 1.5). Composes the
-// tier header, an optional ParallelCallout, a featured NextUpCard, and
-// the remaining objectives as ObjectiveCards. Click is delegated to the
-// parent so the shell can hoist navigation centrally.
+// a tier is selected (Plan Navigation Spec v1, Slice 1.5). Composes an
+// optional ParallelCallout, a featured NextUpCard, and the remaining
+// objectives as ObjectiveCards. Click is delegated to the parent so the
+// shell can hoist navigation centrally.
 
 import { useMemo } from 'react';
 import {
@@ -163,12 +163,6 @@ export default function ObjectiveColumn({
 
   return (
     <section className={css.column} aria-label={`Objectives in ${tier.title}`}>
-      <header className={css.header}>
-        <p className={css.eyebrow}>Tier {tier.ordinal}</p>
-        <h2 className={css.title}>{tier.title}</h2>
-        <p className={css.summary}>{tier.summary}</p>
-      </header>
-
       {parallelSiblings.length >= 2 && (
         <ParallelCallout objectives={parallelSiblings} />
       )}
