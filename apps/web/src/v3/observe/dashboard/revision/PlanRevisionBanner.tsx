@@ -22,10 +22,10 @@
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import {
-  findPlanTierObjective,
   UNIVERSAL_DOMAIN_LABELS,
   type UniversalDomain,
 } from '@ogden/shared';
+import { findObjectiveGlobally } from '../../../plan/objectiveCatalog.js';
 import { useRevisionEvents } from './useRevisionEvents.js';
 import { usePlanRevisionDismissalStore } from '../../../../store/planRevisionDismissalStore.js';
 import css from './PlanRevisionBanner.module.css';
@@ -75,7 +75,7 @@ export default function PlanRevisionBanner({ projectId }: Props) {
   const target = useMemo(() => {
     const objectiveId = summary.impactedObjectiveIds[0];
     if (objectiveId) {
-      const obj = findPlanTierObjective(objectiveId);
+      const obj = findObjectiveGlobally(objectiveId);
       if (obj) {
         return {
           kind: 'objective' as const,

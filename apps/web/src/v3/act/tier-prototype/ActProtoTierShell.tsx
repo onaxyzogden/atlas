@@ -11,7 +11,11 @@
  *
  * StageShell has no top slot, so the spine wraps ABOVE it. All interaction
  * state is local (no stores written); tier/objective status, priority, and
- * SEED coordinates are mock (see actProtoMock.ts). This whole folder is one
+ * SEED coordinates are mock (see actProtoMock.ts). Objectives come from the
+ * static `PLAN_TIER_OBJECTIVES` skeleton, NOT a project's per-type resolved
+ * set (Sub-slice D) - this prototype demonstrates the four-rail layout, not
+ * objective resolution, so it intentionally stays on the skeleton. This whole
+ * folder is one
  * `rm` away from deletion and coexists with the live ActLayout — it does not
  * replace it. Mounted at the dev route /v3/project/mtc/act/tier-prototype.
  */

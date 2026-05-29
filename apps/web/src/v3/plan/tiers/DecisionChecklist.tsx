@@ -18,7 +18,7 @@ import type {
   PlanTierObjective,
   PlanTierObjectiveStatus,
 } from '@ogden/shared';
-import { findPlanTierObjective } from '@ogden/shared';
+import { findObjectiveGlobally } from '../objectiveCatalog.js';
 import type { VisionDerivedItem, VisionDerivedMap } from './visionProfileToChecklist.js';
 import css from './DecisionChecklist.module.css';
 
@@ -116,7 +116,11 @@ function ChecklistRow({ item, isComplete, derived, onToggle }: RowProps) {
             <span className={css.derivedBadge}>From Stage Zero Vision</span>
           ) : null}
           {item.feedsInto.map((targetId) => {
-            const target = findPlanTierObjective(targetId);
+            // Project-independent title lookup: a feedsInto target may be a
+            // universal, primary, or secondary-additive objective, so resolve
+            // across the catalogue union (Sub-slice D Group 2). The old static
+            // findPlanTierObjective could only title the 16-objective skeleton.
+            const target = findObjectiveGlobally(targetId);
             return (
               <span key={targetId} className={css.feedsInto}>
                 feeds {target?.title ?? targetId}

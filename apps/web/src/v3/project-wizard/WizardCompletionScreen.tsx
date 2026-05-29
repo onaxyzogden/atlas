@@ -22,11 +22,9 @@
 
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import {
-  PLAN_TIER_OBJECTIVES,
-  type PlanTierObjective,
-} from '@ogden/shared';
+import type { PlanTierObjective } from '@ogden/shared';
 import { useProjectStore } from '../../store/projectStore.js';
+import { useProjectObjectives } from '../plan/tiers/useProjectObjectives.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
 import { deriveTier0EvidenceMap } from '../plan/tiers/visionProfileToChecklist.js';
 import styles from './WizardCompletionScreen.module.css';
@@ -52,21 +50,27 @@ function firstPolygon(
   return undefined;
 }
 
-const T0_OBJECTIVES: readonly PlanTierObjective[] = PLAN_TIER_OBJECTIVES.filter(
-  (o) => o.tierId === 't0-project-foundation',
-);
-
-const T0_CHECKLIST_TOTAL = T0_OBJECTIVES.reduce(
-  (acc, obj) => acc + obj.checklist.length,
-  0,
-);
-
 export default function WizardCompletionScreen({
   projectId,
 }: WizardCompletionScreenProps) {
   const navigate = useNavigate();
   const project = useProjectStore((s) =>
     s.projects.find((p) => p.id === projectId),
+  );
+  // Sub-slice D - the Tier-0 hand-off count reflects THIS project's resolved
+  // set (universal T0 plus any primary/secondary T0 objectives), so "N of M"
+  // matches what Tier 0 actually renders. Falls back to the static skeleton
+  // for null-type / pre-slice projects.
+  const { objectives } = useProjectObjectives(projectId);
+
+  const t0Objectives = useMemo<readonly PlanTierObjective[]>(
+    () => objectives.filter((o) => o.tierId === 't0-project-foundation'),
+    [objectives],
+  );
+
+  const t0ChecklistTotal = useMemo(
+    () => t0Objectives.reduce((acc, obj) => acc + obj.checklist.length, 0),
+    [t0Objectives],
   );
 
   const derivedMap = useMemo(
@@ -85,10 +89,10 @@ export default function WizardCompletionScreen({
   // (Slice 2.4 adds stewardship); that's fine — this hand-off only needs
   // a sane default, not full status fidelity.
   const nextUp = useMemo<PlanTierObjective | undefined>(() => {
-    return T0_OBJECTIVES.find((obj) =>
+    return t0Objectives.find((obj) =>
       obj.checklist.some((item) => !derivedMap[item.id]?.isComplete),
     );
-  }, [derivedMap]);
+  }, [t0Objectives, derivedMap]);
 
   const polygon = useMemo(
     () => firstPolygon(project?.parcelBoundaryGeojson ?? null),
@@ -136,7 +140,7 @@ export default function WizardCompletionScreen({
       <div className={styles.panel}>
         <h1 className={styles.headline}>You&rsquo;re set up.</h1>
         <p className={styles.summary}>
-          {derivedCount} of {T0_CHECKLIST_TOTAL} Tier&nbsp;0 checklist
+          {derivedCount} of {t0ChecklistTotal} Tier&nbsp;0 checklist
           items are already filled in from what you just entered. Pick up
           from here whenever you&rsquo;re ready.
         </p>

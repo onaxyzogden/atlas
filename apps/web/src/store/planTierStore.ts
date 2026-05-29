@@ -14,7 +14,9 @@
  * explicitly avoids (see plan §"New file: planTierStore.ts" — separate
  * concern from `planVersionStore`).
  *
- * Item ids are globally unique within `PLAN_TIER_OBJECTIVES`, so
+ * Item ids are globally unique across every objective catalogue (the
+ * universal set, each per-type catalogue, and injected patch items - the
+ * Sub-slice C id-namespacing rubric guarantees this), so
  * `getProgressMap(projectId)` collapses the nested record into the flat
  * `Record<itemId, boolean>` shape that the status engine
  * (`computeAllObjectiveStatuses`) consumes.
@@ -176,8 +178,9 @@ export function selectCelebratedTiers(
 /**
  * Flatten the nested `byProject -> objectiveId -> ItemIds` shape into the
  * `Record<itemId, boolean>` shape expected by
- * `computeAllObjectiveStatuses`. Item ids are globally unique in
- * `PLAN_TIER_OBJECTIVES`, so cross-objective collapse is lossless.
+ * `computeAllObjectiveStatuses`. Item ids are globally unique across all
+ * objective catalogues + injected patch items, so cross-objective collapse
+ * is lossless.
  */
 export function toProgressMap(
   byObjective: ByObjective,

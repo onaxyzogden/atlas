@@ -19,8 +19,8 @@
  */
 
 import type { ObserveCycleAdvanceReason, UniversalDomain } from '@ogden/shared';
-import { findPlanTierObjective } from '@ogden/shared';
 import { useObserveCycleStore } from './observeCycleStore.js';
+import { findObjectiveGlobally } from '../v3/plan/objectiveCatalog.js';
 import { resolveAllDomainsForObjective } from '../v3/observe/dashboard/revision/resolveDomainForObjective.js';
 
 export interface CycleAdvanceResult {
@@ -39,7 +39,7 @@ export function cycleAdvance(
   reason: ObserveCycleAdvanceReason,
   options?: { advancedAt?: string },
 ): CycleAdvanceResult[] {
-  const objective = findPlanTierObjective(objectiveId);
+  const objective = findObjectiveGlobally(objectiveId);
   if (!objective) return [];
   const domains = resolveAllDomainsForObjective(objective);
   if (domains.length === 0) return [];

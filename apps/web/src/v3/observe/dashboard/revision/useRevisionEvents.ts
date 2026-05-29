@@ -22,10 +22,10 @@
 import { useMemo } from 'react';
 import {
   computeRevisionPriority,
-  findPlanTierObjective,
   type RevisionPriority,
   type UniversalDomain,
 } from '@ogden/shared';
+import { findObjectiveGlobally } from '../../../plan/objectiveCatalog.js';
 import {
   useObserveDataPointStore,
   selectObserveDataPointsForProject,
@@ -73,7 +73,7 @@ export function useRevisionEvents(projectId: string): RevisionEventsSummary {
       feedEntries,
       lastDismissedAt,
       (objectiveId) => {
-        const obj = findPlanTierObjective(objectiveId);
+        const obj = findObjectiveGlobally(objectiveId);
         return obj ? resolveDomainForObjective(obj) : null;
       },
     );

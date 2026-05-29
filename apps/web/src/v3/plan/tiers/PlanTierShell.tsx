@@ -9,11 +9,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import {
   PLAN_TIERS,
-  PLAN_TIER_OBJECTIVES,
   computeAllObjectiveStatuses,
   computeAllTierStates,
   findPlanTier,
-  findPlanTierObjective,
+  findPlanTierObjectiveIn,
   getPrimaryDomainForObjective,
 } from '@ogden/shared';
 import type { PlanTier, PlanTierObjective } from '@ogden/shared';
@@ -31,6 +30,7 @@ import TierSpine from './TierSpine.js';
 import TierLockedPopover from './TierLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
+import { useProjectObjectives } from './useProjectObjectives.js';
 import TierUnlockCelebration from './TierUnlockCelebration.js';
 import {
   deriveTier0EvidenceMap,
@@ -71,9 +71,14 @@ export default function PlanTierShell({
   };
   const projectId = params.projectId ?? '';
   const project = useV3Project(projectId);
+  // Sub-slice D - the Plan spine renders THIS project's resolved objective set
+  // (universal + its primary/secondary types with patches applied), not the
+  // static skeleton. Falls back to the skeleton for null-type (MTC) and
+  // pre-slice projects (see useProjectObjectives).
+  const { objectives } = useProjectObjectives(projectId);
   const activeTierId = params.tierId ?? null;
   const activeObjective = params.objectiveId
-    ? (findPlanTierObjective(params.objectiveId) ?? null)
+    ? (findPlanTierObjectiveIn(objectives, params.objectiveId) ?? null)
     : null;
   const activeObjectiveId = activeObjective?.id ?? null;
   // Prefer the URL tier when present; otherwise fall back to the
@@ -86,10 +91,10 @@ export default function PlanTierShell({
       : null;
 
   // Slice 1.7: pull persisted checklist progress for the current project
-  // and feed it into the status engine. The store keys are global within
-  // PLAN_TIER_OBJECTIVES, so the flat `Record<itemId, boolean>` collapse
-  // is lossless. Selector returns a stable empty record when the project
-  // has no progress, so re-renders stay tight.
+  // and feed it into the status engine. Item ids are globally unique across
+  // all objective catalogues + injected patch items, so the flat
+  // `Record<itemId, boolean>` collapse is lossless. Selector returns a stable
+  // empty record when the project has no progress, so re-renders stay tight.
   const projectProgress = usePlanTierProgressStore((s) =>
     selectProjectProgress(s, projectId),
   );
@@ -131,22 +136,22 @@ export default function PlanTierShell({
   const objectiveStatuses = useMemo(
     () =>
       computeAllObjectiveStatuses(
-        PLAN_TIER_OBJECTIVES,
+        objectives,
         mergeDerivedIntoProgress(
           toProgressMap(projectProgress),
           derivedMap,
         ),
       ),
-    [projectProgress, derivedMap],
+    [objectives, projectProgress, derivedMap],
   );
   const tierStates = useMemo(
     () =>
       computeAllTierStates(
         PLAN_TIERS.map((t) => t.id),
-        PLAN_TIER_OBJECTIVES,
+        objectives,
         objectiveStatuses,
       ),
-    [objectiveStatuses],
+    [objectives, objectiveStatuses],
   );
 
   // The locked-tier popover is hoisted into the shell so the spine stays
@@ -186,12 +191,12 @@ export default function PlanTierShell({
 
   const highlightObjectiveIds = useMemo<readonly string[]>(() => {
     if (!highlightTierId) return [];
-    return PLAN_TIER_OBJECTIVES.filter(
+    return objectives.filter(
       (o) =>
         o.tierId === highlightTierId &&
         (objectiveStatuses[o.id] ?? 'locked') !== 'complete',
     ).map((o) => o.id);
-  }, [highlightTierId, objectiveStatuses]);
+  }, [highlightTierId, objectives, objectiveStatuses]);
 
   // Slice 1.10 — TierUnlockCelebration. Watch tier states and surface a
   // celebration the first time any tier (other than T0, which has no
@@ -224,7 +229,7 @@ export default function PlanTierShell({
     ? (findPlanTier(celebratingTierId) ?? null)
     : null;
   const celebratingFirstObjective = celebratingTier
-    ? (PLAN_TIER_OBJECTIVES.find(
+    ? (objectives.find(
         (o) =>
           o.tierId === celebratingTier.id &&
           (objectiveStatuses[o.id] ?? 'locked') !== 'locked',
@@ -298,7 +303,7 @@ export default function PlanTierShell({
       >
         <TierSpine
           tiers={PLAN_TIERS}
-          objectives={PLAN_TIER_OBJECTIVES}
+          objectives={objectives}
           objectiveStatuses={objectiveStatuses}
           tierStates={tierStates}
           activeTierId={activeTierId}
@@ -309,7 +314,7 @@ export default function PlanTierShell({
         {activeTier && (
           <ObjectiveColumn
             tier={activeTier}
-            objectives={PLAN_TIER_OBJECTIVES}
+            objectives={objectives}
             objectiveStatuses={objectiveStatuses}
             activeObjectiveId={activeObjectiveId}
             highlightObjectiveIds={highlightObjectiveIds}
@@ -336,7 +341,7 @@ export default function PlanTierShell({
       {lockedPopoverTier && (
         <TierLockedPopover
           tier={lockedPopoverTier}
-          objectives={PLAN_TIER_OBJECTIVES}
+          objectives={objectives}
           objectiveStatuses={objectiveStatuses}
           onAcknowledge={(obj) => {
             setLockedPopoverTier(null);

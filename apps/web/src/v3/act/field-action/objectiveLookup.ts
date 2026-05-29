@@ -8,14 +8,14 @@
  * underlying seed is a pure data export in `@ogden/shared`.
  */
 
-import {
-  findPlanTier,
-  findPlanTierObjective,
-} from '@ogden/shared';
+import { findPlanTier } from '@ogden/shared';
+import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
 
 export function getObjectiveTitle(objectiveId: string | null | undefined): string | null {
   if (!objectiveId) return null;
-  return findPlanTierObjective(objectiveId)?.title ?? null;
+  // Resolve across the catalogue union so View B labels a primary/secondary
+  // objective, not just the legacy skeleton (Sub-slice D Group 2).
+  return findObjectiveGlobally(objectiveId)?.title ?? null;
 }
 
 export function getTierTitle(tierId: string | null | undefined): string | null {

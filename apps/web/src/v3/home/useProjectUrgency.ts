@@ -27,7 +27,6 @@ import {
   computeProjectUrgency,
   isCyclicalReviewDue,
   OBSERVE_DOMAIN_CATALOG,
-  PLAN_TIER_OBJECTIVES,
   UNIVERSAL_DOMAINS,
   type ObserveDataPoint,
   type ObserveFreshness,
@@ -44,6 +43,7 @@ import {
 } from '../../store/planTierStore.js';
 import { useCyclicalReviewStore } from '../../store/cyclicalReviewStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
+import { resolveObjectivesForProject } from '../plan/tiers/useProjectObjectives.js';
 
 /** Stable empty map identity so the consumer's React equality check
  *  short-circuits when there are no projects to score. */
@@ -93,6 +93,9 @@ export function useProjectUrgency(
     const result = new Map<string, ProjectUrgencyResult>();
     for (const project of projects) {
       const projectId = project.id;
+      // Sub-slice D - score against THIS project's resolved objective set.
+      // Imperative resolver (not the hook) because this loops over projects.
+      const { objectives } = resolveObjectivesForProject(project);
 
       const fieldActions = fieldActionsByProject[projectId] ?? [];
       const dataPoints = dataPointsByProject[projectId] ?? [];
@@ -101,7 +104,7 @@ export function useProjectUrgency(
       const reviewMap = cyclicalReviewByProject[projectId] ?? {};
 
       const objectiveStatuses = computeAllObjectiveStatuses(
-        PLAN_TIER_OBJECTIVES,
+        objectives,
         toProgressMap(progress),
       );
 
@@ -109,7 +112,7 @@ export function useProjectUrgency(
         reviewMap[objectiveId]?.forcedTrigger === true;
 
       const cyclicalReviewDueObjectiveIds: string[] = [];
-      for (const objective of PLAN_TIER_OBJECTIVES) {
+      for (const objective of objectives) {
         const currentStatus = objectiveStatuses[objective.id];
         if (currentStatus !== 'complete') continue;
         const due = isCyclicalReviewDue({

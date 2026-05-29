@@ -19,9 +19,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
-  PLAN_TIER_OBJECTIVES,
   computeAllObjectiveStatuses,
-  findPlanTierObjective,
+  findPlanTierObjectiveIn,
   type FieldAction,
   type PlanTierObjective,
   type PlanTierObjectiveStatus,
@@ -40,6 +39,7 @@ import ActMapStrip from './ActMapStrip.js';
 import ActTaskList from './ActTaskList.js';
 import ActObjectiveCompletionGate from './ActObjectiveCompletionGate.js';
 import ActMapView from './ActMapView.js';
+import { useProjectObjectives } from '../../plan/tiers/useProjectObjectives.js';
 import css from './ViewAObjectiveExecution.module.css';
 
 interface Props {
@@ -65,12 +65,13 @@ function pickInitialTaskId(
 
 function useObjectiveStatus(
   objective: PlanTierObjective | undefined,
+  objectives: readonly PlanTierObjective[],
   projectId: string,
 ): PlanTierObjectiveStatus {
   // Mirror Plan tier's status computation so the View A header shows the
   // same status pill the Plan tier surface shows. The full status map is
-  // derived from PLAN_TIER_OBJECTIVES + the steward's flat checklist
-  // progress so prereq satisfaction is honoured topologically — no
+  // derived from the project's resolved objective set + the steward's flat
+  // checklist progress so prereq satisfaction is honoured topologically — no
   // optimistic approximation that would falsely flip a locked objective
   // to available.
   const byObjective = usePlanTierProgressStore((s) =>
@@ -79,18 +80,22 @@ function useObjectiveStatus(
   return useMemo<PlanTierObjectiveStatus>(() => {
     if (!objective) return 'locked';
     const progress = toProgressMap(byObjective);
-    const statuses = computeAllObjectiveStatuses(PLAN_TIER_OBJECTIVES, progress);
+    const statuses = computeAllObjectiveStatuses(objectives, progress);
     return statuses[objective.id] ?? 'locked';
-  }, [objective, byObjective]);
+  }, [objective, objectives, byObjective]);
 }
 
 export default function ViewAObjectiveExecution({ projectId, objectiveId }: Props) {
   const navigate = useNavigate();
   const search = useSearch({ strict: false }) as { taskId?: string };
 
+  // Sub-slice D - resolve the objective against THIS project's set, not the
+  // global static skeleton, so per-type primary/secondary objectives execute.
+  const { objectives } = useProjectObjectives(projectId);
+
   const objective = useMemo<PlanTierObjective | undefined>(
-    () => findPlanTierObjective(objectiveId),
-    [objectiveId],
+    () => findPlanTierObjectiveIn(objectives, objectiveId),
+    [objectives, objectiveId],
   );
 
   const allTasks = useFieldActionStore((s) =>
@@ -111,7 +116,7 @@ export default function ViewAObjectiveExecution({ projectId, objectiveId }: Prop
   );
   const [mapOpen, setMapOpen] = useState(false);
 
-  const status = useObjectiveStatus(objective, projectId);
+  const status = useObjectiveStatus(objective, objectives, projectId);
 
   const handleBack = useCallback(() => {
     navigate({
@@ -125,9 +130,9 @@ export default function ViewAObjectiveExecution({ projectId, objectiveId }: Prop
       <div className={css.scroll}>
         <div className={css.missing}>
           <strong>Objective not found</strong>
-          The objective <code>{objectiveId}</code> is not in the Plan tier
-          catalogue. Return to the dashboard and pick a task from a valid
-          objective.
+          The objective <code>{objectiveId}</code> is not in this project's
+          Plan tier objectives. Return to the dashboard and pick a task from a
+          valid objective.
           <div style={{ marginTop: 10 }}>
             <button type="button" onClick={handleBack}>
               Back to all tasks

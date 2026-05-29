@@ -19,7 +19,6 @@ import {
   computeDomainFreshness,
   FOUNDATION_DOMAINS_FOR_REVISION,
   OBSERVE_DOMAIN_CATALOG,
-  PLAN_TIER_OBJECTIVES,
   type ObserveFreshness,
 } from '@ogden/shared';
 import { BentoBox } from '../../components/ui/BentoBox.js';
@@ -30,6 +29,7 @@ import {
   usePlanTierProgressStore,
 } from '../../store/planTierStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
+import { useProjectObjectives } from '../plan/tiers/useProjectObjectives.js';
 import css from './PerProjectHomePage.module.css';
 
 export interface StageStatusRowProps {
@@ -86,6 +86,9 @@ function StageCard({
 
 export default function StageStatusRow({ project }: StageStatusRowProps) {
   const navigate = useNavigate();
+  // Sub-slice D - Plan metrics count THIS project's resolved objective set, not
+  // the static skeleton (falls back to it for null-type / pre-slice projects).
+  const { objectives } = useProjectObjectives(project.id);
   const planProgress = usePlanTierProgressStore(
     (s) => s.byProject[project.id],
   );
@@ -96,14 +99,14 @@ export default function StageStatusRow({ project }: StageStatusRowProps) {
 
   const planMetrics = useMemo<StageMetric[]>(() => {
     const statuses = computeAllObjectiveStatuses(
-      PLAN_TIER_OBJECTIVES,
+      objectives,
       toProgressMap(planProgress ?? {}),
     );
     let complete = 0;
     let active = 0;
     let available = 0;
     let locked = 0;
-    for (const objective of PLAN_TIER_OBJECTIVES) {
+    for (const objective of objectives) {
       const s = statuses[objective.id];
       if (s === 'complete') complete += 1;
       else if (s === 'active') active += 1;
@@ -113,13 +116,13 @@ export default function StageStatusRow({ project }: StageStatusRowProps) {
     return [
       {
         label: 'Objectives complete',
-        value: `${complete} / ${PLAN_TIER_OBJECTIVES.length}`,
+        value: `${complete} / ${objectives.length}`,
       },
       { label: 'Active', value: String(active) },
       { label: 'Available', value: String(available) },
       { label: 'Locked', value: String(locked) },
     ];
-  }, [planProgress]);
+  }, [objectives, planProgress]);
 
   const actMetrics = useMemo<StageMetric[]>(() => {
     const list = fieldActions ?? [];

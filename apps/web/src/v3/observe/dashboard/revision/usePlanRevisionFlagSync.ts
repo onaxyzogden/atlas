@@ -33,7 +33,6 @@
 import { useEffect, useMemo } from 'react';
 import {
   computeObserveRevisionFlag,
-  PLAN_TIER_OBJECTIVES,
   type UniversalDomain,
 } from '@ogden/shared';
 import {
@@ -49,6 +48,7 @@ import {
   resolveAllDomainsForObjective,
   resolveDomainByObjectiveId,
 } from './resolveDomainForObjective.js';
+import { useProjectObjectives } from '../../../plan/tiers/useProjectObjectives.js';
 
 const DIVERGENT_STATUSES = new Set([
   'needs_investigation',
@@ -63,6 +63,9 @@ export function usePlanRevisionFlagSync(projectId: string | undefined): void {
   const feedEntries = useObserveFeedStore((s) =>
     projectId ? selectObserveFeedForProject(s, projectId) : [],
   );
+  // Sub-slice D - flag-sync iterates THIS project's resolved objective set so a
+  // divergence on a primary/secondary objective's domain can force its review.
+  const { objectives } = useProjectObjectives(projectId ?? '');
 
   const divergedDataPointDomains = useMemo<readonly UniversalDomain[]>(() => {
     const set = new Set<UniversalDomain>();
@@ -88,7 +91,7 @@ export function usePlanRevisionFlagSync(projectId: string | undefined): void {
   useEffect(() => {
     if (!projectId) return;
     const store = useCyclicalReviewStore.getState();
-    for (const objective of PLAN_TIER_OBJECTIVES) {
+    for (const objective of objectives) {
       const objectiveDomainIds = resolveAllDomainsForObjective(objective);
       const flag = computeObserveRevisionFlag({
         objectiveDomainIds,
@@ -102,5 +105,5 @@ export function usePlanRevisionFlagSync(projectId: string | undefined): void {
         store.clearForcedTrigger(projectId, objective.id);
       }
     }
-  }, [projectId, divergedDataPointDomains, divergedFeedDomains]);
+  }, [projectId, objectives, divergedDataPointDomains, divergedFeedDomains]);
 }

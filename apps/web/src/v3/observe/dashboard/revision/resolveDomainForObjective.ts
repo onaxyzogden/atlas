@@ -10,7 +10,7 @@
  * The mapping itself lives in `@ogden/shared`
  * (`getPrimaryDomainForObjective` — per-objective override table with
  * tier-default fallback). This module is the thin adapter that
- * (a) plugs `findPlanTierObjective(objectiveId)` in front of it so
+ * (a) plugs `findObjectiveGlobally(objectiveId)` in front of it so
  * call sites only need to pass the feed key, and (b) gives the
  * dashboard a single import path for both the per-entry projection
  * (used by `routeToDataPoint`) and the bulk lookup (used by
@@ -18,12 +18,12 @@
  */
 
 import {
-  findPlanTierObjective,
   getObjectiveObserveDomains,
   getPrimaryDomainForObjective,
   type PlanTierObjective,
   type UniversalDomain,
 } from '@ogden/shared';
+import { findObjectiveGlobally } from '../../../plan/objectiveCatalog.js';
 import type { ResolveDomainForObjective } from '../domain/routeToDataPoint.js';
 
 /**
@@ -39,13 +39,15 @@ export function resolveDomainForObjective(
 
 /**
  * `ResolveDomainForObjective` adapter for `routeToDataPoint`. Closes
- * over the canonical PLAN_TIER_OBJECTIVES catalog so call sites stay
- * pure-function-shaped.
+ * over the catalogue-union lookup so call sites stay pure-function-shaped.
  */
 export const resolveDomainByObjectiveId: ResolveDomainForObjective = (
   objectiveId,
 ) => {
-  const obj = findPlanTierObjective(objectiveId);
+  // The objective->domain mapping is project-independent, so resolve the id
+  // across the catalogue union rather than the legacy skeleton (Sub-slice D
+  // Group 2). This now maps primary/secondary feed keys, not just universals.
+  const obj = findObjectiveGlobally(objectiveId);
   return obj ? getPrimaryDomainForObjective(obj) : null;
 };
 
