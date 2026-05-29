@@ -537,12 +537,111 @@
   cursor: not-allowed;
 }
 
+/* ---- Evidence cards (one card per required proof) ----------------------- */
+
+.evCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--color-bg, #1f1d1a);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+}
+
+.evCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.evCardTitle {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text, #f2ede3);
+}
+
+.evCardCount {
+  flex: 0 0 auto;
+  padding-top: 1px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.evBtnFull {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 12px;
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 6%, transparent);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.evBtnFull:hover:not(:disabled) {
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.evBtnFull[data-confirmed='true'] {
+  background: rgba(93, 211, 158, 0.12);
+  border-color: #5dd39e;
+  color: #5dd39e;
+  cursor: default;
+}
+
+.evBtnRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.evBtnSmall {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 6%, transparent);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.evBtnSmall:hover:not(:disabled) {
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.evBtnSmall:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.evBtnSmall[data-saved='true'] {
+  background: rgba(93, 211, 158, 0.12);
+  border-color: #5dd39e;
+  color: #5dd39e;
+}
+
 .noteArea {
   width: 100%;
   box-sizing: border-box;
   resize: vertical;
   padding: 8px 10px;
-  background: var(--color-bg, #1f1d1a);
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 4%, transparent);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
   color: var(--color-text, #f2ede3);

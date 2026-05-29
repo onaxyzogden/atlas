@@ -24,6 +24,8 @@ export default function ActProtoExecutionPanel({
   status,
 }: Props) {
   const [checked, setChecked] = useState<Set<string>>(() => new Set());
+  const [photoCount, setPhotoCount] = useState(0);
+  const [confirmed, setConfirmed] = useState(false);
   const [note, setNote] = useState('');
   const [noteSaved, setNoteSaved] = useState(false);
 
@@ -91,44 +93,74 @@ export default function ActProtoExecutionPanel({
 
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>Evidence</h4>
-        <div className={styles.evidenceRow}>
-          <span className={styles.evidenceLabel}>Checkpoint photos</span>
-          <span className={styles.evidenceCount}>0/{PHOTO_TARGET}</span>
-        </div>
-        <div className={styles.evidenceBtns}>
-          <button type="button" className={styles.ghostBtn}>
+
+        <div className={styles.evCard}>
+          <div className={styles.evCardTop}>
+            <span className={styles.evCardTitle}>
+              Checkpoint photos<span className={styles.req}> *</span>
+            </span>
+            <span className={styles.evCardCount}>
+              {photoCount}/{PHOTO_TARGET}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={styles.evBtnFull}
+            onClick={() =>
+              setPhotoCount((count) => Math.min(PHOTO_TARGET, count + 1))
+            }
+          >
             <Camera size={14} aria-hidden="true" />
             Add photo
           </button>
-          <button type="button" className={styles.ghostBtn}>
-            <Check size={14} aria-hidden="true" />
-            Confirm
-          </button>
         </div>
-        <div className={styles.evidenceRow}>
-          <span className={styles.evidenceLabel}>Summary note</span>
-          <span className={styles.evidenceCount}>{note.length} chars</span>
-        </div>
-        <textarea
-          className={styles.noteArea}
-          rows={3}
-          placeholder="Describe what was measured or observed in the field..."
-          value={note}
-          onChange={(event) => {
-            setNote(event.target.value);
-            setNoteSaved(false);
-          }}
-        />
-        <div className={styles.evidenceBtns}>
+
+        <div className={styles.evCard}>
+          <div className={styles.evCardTop}>
+            <span className={styles.evCardTitle}>
+              Route passable confirmation<span className={styles.req}> *</span>
+            </span>
+            <span className={styles.evCardCount}>{confirmed ? 1 : 0}/1</span>
+          </div>
           <button
             type="button"
-            className={styles.ghostBtn}
-            disabled={note.trim().length === 0}
-            onClick={() => setNoteSaved(true)}
+            className={styles.evBtnFull}
+            data-confirmed={confirmed}
+            onClick={() => setConfirmed(true)}
           >
             <Check size={14} aria-hidden="true" />
-            {noteSaved ? 'Saved' : 'Save note'}
+            {confirmed ? 'Confirmed' : 'Confirm'}
           </button>
+        </div>
+
+        <div className={styles.evCard}>
+          <div className={styles.evCardTop}>
+            <span className={styles.evCardTitle}>
+              Summary note<span className={styles.req}> *</span>
+            </span>
+            <span className={styles.evCardCount}>{noteSaved ? 1 : 0}/1</span>
+          </div>
+          <textarea
+            className={styles.noteArea}
+            rows={3}
+            placeholder="Summary note"
+            value={note}
+            onChange={(event) => {
+              setNote(event.target.value);
+              setNoteSaved(false);
+            }}
+          />
+          <div className={styles.evBtnRow}>
+            <button
+              type="button"
+              className={styles.evBtnSmall}
+              data-saved={noteSaved}
+              disabled={note.trim().length === 0}
+              onClick={() => setNoteSaved(true)}
+            >
+              {noteSaved ? 'Saved' : 'Save note'}
+            </button>
+          </div>
         </div>
       </section>
 
