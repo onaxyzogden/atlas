@@ -43,8 +43,9 @@ so a contractor satisfied every Plan/Observe/Act gate.
    5.5c a contractor has no functional surface, which is correct: the
    contractor surface ships in 5.5c.
 
-5. **Portfolio badges, never hides.** Local-first: the user always sees their
-   own project cards. Owner / primary_steward carry no badge.
+5. **Portfolio badges are additive, never filtering.** Local-first: the user
+   always sees their own project cards. Owner / primary_steward carry no
+   badge.
 
 ## What shipped
 
@@ -73,3 +74,30 @@ so a contractor satisfied every Plan/Observe/Act gate.
   scoped Act access + read-confidentiality on the no-requireRole Observe batch
   routes.
 - 5.5d: landowner portal view + contractor access expiry.
+
+### Code-quality carry-overs
+
+Surfaced in per-task code-quality reviews; revisit during 5.5b
+implementation.
+
+- `useMyProjectRoles` effect dep is `[!!user]` (mirrors `useProjectRole`);
+  `[user?.id ?? null, fetchMyRoles]` would refetch correctly on user-switch.
+  Same precedent in `useProjectRole`; consider fixing both together.
+- `memberStore.reset()` exists but `authStore.logout()` does not call it.
+  Wire the hookup so a signed-out -> signed-in -> signed-out cycle does not
+  leak a prior account's role map.
+- Per-Project Home gate is implemented as a denial-list
+  (`contractor | landowner`); the ADR's Decision 3 framing implies an
+  allowlist (`owner | primary_steward`). Same behavior today; diverges when
+  5.5b adds `team_member`. Pick a side as the first 5.5b move.
+- `ROLE_BADGE_LABEL` lives in `ProjectUrgencyCard`; hoist to `@ogden/shared`
+  once a second consumer (likely a 5.5b Per-Project Home header badge)
+  arrives.
+- Per-Project Home denial copy uses the jargon "the home view"; reconsider
+  user-facing wording when 5.5d's landowner portal copy is written.
+- Add `team_member` / `primary_steward` / undefined-on-synced-project test
+  cases to the Per-Project Home gate test file in 5.5b.
+- Add `primary_steward` parity test case to the Portfolio role badge test
+  file.
+- Tighten `useMyProjectRoles` test mock typing from
+  `Record<string, string>` to `Record<string, ProjectRole>`.
