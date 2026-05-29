@@ -96,8 +96,11 @@ interface ActTaskState {
   deleteTask: (projectId: string, taskId: string) => void;
 
   // ── Phase 2.4 API sync ─────────────────────────────────────────────
-  /** GET the project's tasks from the API and replace local state. */
-  pullAll: (projectId: string) => Promise<void>;
+  /**
+   * GET the project's tasks from the API (addressed by serverId) and replace
+   * local state. Each server record's projectId is normalised to the LOCAL id.
+   */
+  pullAll: (projectId: string, serverId: string) => Promise<void>;
   /** POST (local id) or PATCH (UUID) the task upstream. */
   pushOne: (task: ActTask) => Promise<ActTask | null>;
   /** DELETE the task on the server. */
@@ -227,16 +230,20 @@ export const useActTaskStore = create<ActTaskState>()(
         getSyncState: (projectId) =>
           get().syncByProject[projectId] ?? initialSync(),
 
-        pullAll: async (projectId) => {
+        pullAll: async (projectId, serverId) => {
           set((s) => ({
             syncByProject: { ...s.syncByProject, [projectId]: startSync() },
           }));
           try {
-            const env = await api.olos.tasks.list(projectId);
+            const env = await api.olos.tasks.list(serverId);
             if (env.error) throw new Error(env.error.message);
             const records = env.data ?? [];
             const byId: TasksById = {};
-            for (const r of records) byId[r.id] = r;
+            // Normalise the server record's projectId to the LOCAL id: the OLOS
+            // UI flow keys every store by local projectId; only the API speaks
+            // serverId. Without this the store would hold server-keyed records
+            // that no UI surface can find.
+            for (const r of records) byId[r.id] = { ...r, projectId };
             set((s) => ({
               byProject: { ...s.byProject, [projectId]: byId },
               syncByProject: { ...s.syncByProject, [projectId]: readySync() },

@@ -95,3 +95,16 @@ describe('actTaskStore.listForAssignee', () => {
     ).toEqual([]);
   });
 });
+
+describe('actTaskStore.pullAll', () => {
+  it('fetches by serverId and stores under the LOCAL projectId, normalising each record', async () => {
+    h.listResp = [task({ id: 'uuid-a', projectId: 'srv-1', assigneeId: 'u-me' })];
+
+    await useActTaskStore.getState().pullAll('local-1', 'srv-1');
+
+    expect(h.listCalls).toEqual(['srv-1']); // addressed by serverId, not local id
+    const stored = useActTaskStore.getState().byProject['local-1'] ?? {};
+    expect(stored['uuid-a']?.projectId).toBe('local-1'); // normalised to local
+    expect(stored['uuid-a']?.assigneeId).toBe('u-me');
+  });
+});
