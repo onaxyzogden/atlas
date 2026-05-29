@@ -206,6 +206,27 @@ export default async function projectRoutes(fastify: FastifyInstance) {
     },
   );
 
+  // GET /projects/my-roles - bulk role map for the signed-in user across all
+  // their non-builtin projects (owned + shared). Powers the Portfolio role
+  // badge and the Per-Project Home access gate (Slice 5.5a). Declared as a
+  // static route; Fastify matches it ahead of the `/:id/...` param routes, so
+  // "my-roles" is never treated as a project id.
+  fastify.get('/my-roles', { preHandler: [authenticate] }, async (req) => {
+    const rows = await db`
+      SELECT p.id AS project_id,
+             CASE WHEN p.owner_id = ${req.userId} THEN 'owner' ELSE pm.role END AS role
+      FROM projects p
+      LEFT JOIN project_members pm ON pm.project_id = p.id AND pm.user_id = ${req.userId}
+      WHERE (p.owner_id = ${req.userId} OR pm.user_id IS NOT NULL)
+        AND p.is_builtin = false
+    `;
+    return {
+      data: rows.map((r) => ({ projectId: r.project_id, role: r.role })),
+      meta: { total: rows.length },
+      error: null,
+    };
+  });
+
   // POST /projects — create a new project and enqueue Tier 1 data pipeline
   fastify.post('/', { preHandler: [authenticate] }, async (req, reply) => {
     const body = CreateProjectInput.parse(req.body);
