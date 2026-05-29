@@ -29,6 +29,7 @@ import {
   useObservationRecordStore,
   usePlanDecisionRecordStore,
 } from '../../store/olos/index.js';
+import { useProjectStore } from '../../store/projectStore.js';
 import type { Project } from '../types.js';
 import OverlayBundleStrip from './map/OverlayBundleStrip.js';
 import ObjectiveMap from './map/ObjectiveMap.js';
@@ -67,6 +68,12 @@ export default function ObjectiveWorkspace({
   );
   const setPlanApprovalStatus = usePlanDecisionRecordStore(
     (s) => s.setApprovalStatus,
+  );
+
+  // The v3 Project carries no serverId; resolve it from the project store
+  // (keyed by the same local id) so the Act handoff can sync assignment.
+  const serverId = useProjectStore((s) =>
+    s.projects.find((p) => p.id === projectId)?.serverId,
   );
 
   const persistedStatus =
@@ -242,7 +249,11 @@ export default function ObjectiveWorkspace({
         </PanelCard>
 
         <PanelCard title="Handoff">
-          <HandoffSection projectId={projectId} objective={objective} />
+          <HandoffSection
+            projectId={projectId}
+            objective={objective}
+            serverId={serverId}
+          />
         </PanelCard>
       </aside>
     </div>

@@ -1,40 +1,69 @@
 /**
- * ActFeedbackLoop — the Act→upstream return path. Lists the tasks attached
- * to the current Act objective and lets the steward raise an
- * EscalationRecord routed back to Observe / Plan / Risk / Monitoring.
+ * ActFeedbackLoop - the Act->upstream return path. Lists the tasks attached to
+ * the current Act objective, lets an owner/designer assign each task to a
+ * project member, and lets the steward raise an EscalationRecord routed back to
+ * Observe / Plan / Risk / Monitoring.
  *
- * The full task-lifecycle + proof-capture UI lands in a later phase; here
- * we provide the escalation primitive so the feedback loop is closed and
- * the schema is exercised end-to-end.
+ * Assignment is the cross-user substrate (2026-05-29): the assignee picker
+ * writes ActTask.assigneeId and pushes it to the olos_act_tasks API addressed
+ * by the project's serverId, so the assignee sees the task on any device. The
+ * picker only renders for synced projects (serverId present) and editors (roles
+ * that satisfy owner/designer, mirroring the API PATCH gate); local-only /
+ * offline projects render the plain task list.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   EscalationSeverity,
   EscalationTriggerKind,
   STATUS_LABELS,
   Stage,
+  roleSatisfies,
   type Objective,
 } from '@ogden/shared';
 import {
   useActTaskStore,
   useEscalationRecordStore,
 } from '../../../store/olos/index.js';
+import { useMemberStore } from '../../../store/memberStore.js';
+import { useAuthStore } from '../../../store/authStore.js';
+import { useActTaskSync } from '../../../hooks/useActTaskSync.js';
 import css from './HandoffSection.module.css';
 
 interface Props {
   projectId: string;
   objective: Objective;
+  serverId?: string;
 }
 
 const STAGE_OPTIONS = Stage.options;
 const TRIGGER_OPTIONS = EscalationTriggerKind.options;
 const SEVERITY_OPTIONS = EscalationSeverity.options;
 
-export default function ActFeedbackLoop({ projectId, objective }: Props) {
+export default function ActFeedbackLoop({
+  projectId,
+  objective,
+  serverId,
+}: Props) {
   const taskByProject = useActTaskStore((s) => s.byProject);
+  const assign = useActTaskStore((s) => s.assign);
+  const pushOne = useActTaskStore((s) => s.pushOne);
+  const getTask = useActTaskStore((s) => s.getTask);
   const escalationByProject = useEscalationRecordStore((s) => s.byProject);
   const createEscalation = useEscalationRecordStore((s) => s.createEscalation);
+
+  const members = useMemberStore((s) => s.members);
+  const fetchMembers = useMemberStore((s) => s.fetchMembers);
+  const currentUserId = useAuthStore((s) => s.user?.id);
+
+  // Pull this project's tasks on mount so assignments made elsewhere are
+  // visible. No-op for local-only projects.
+  useActTaskSync(projectId, serverId);
+
+  // Load the member roster for the assignee picker on synced projects.
+  useEffect(() => {
+    if (serverId && members.length === 0) void fetchMembers(serverId);
+  }, [serverId, members.length, fetchMembers]);
 
   const tasks = useMemo(
     () =>
@@ -50,6 +79,27 @@ export default function ActFeedbackLoop({ projectId, objective }: Props) {
       ),
     [escalationByProject, projectId, objective.id],
   );
+
+  const myRole = useMemo(
+    () => members.find((m) => m.userId === currentUserId)?.role,
+    [members, currentUserId],
+  );
+  // Mirrors the API PATCH gate requireRole('owner','designer'): show the picker
+  // only to roles that satisfy either, and only on synced projects.
+  const canAssign =
+    !!serverId &&
+    !!myRole &&
+    (roleSatisfies(myRole, 'owner') || roleSatisfies(myRole, 'designer'));
+
+  const onAssign = (taskId: string, userId: string) => {
+    if (!serverId) return;
+    const existing = getTask(projectId, taskId);
+    if (!existing) return;
+    // Preserve the existing roleId: assign() wipes roleId when passed undefined.
+    assign(projectId, taskId, userId || undefined, existing.roleId);
+    const updated = getTask(projectId, taskId);
+    if (updated) void pushOne(updated, serverId);
+  };
 
   const [showForm, setShowForm] = useState(false);
   const [trigger, setTrigger] = useState<typeof TRIGGER_OPTIONS[number]>(
@@ -90,14 +140,36 @@ export default function ActFeedbackLoop({ projectId, objective }: Props) {
           </p>
         ) : (
           <ul className={css.tasksList}>
-            {tasks.map((t) => (
-              <li key={t.id}>
-                <span>{t.title}</span>
-                <span className={css.taskStatus}>
-                  {STATUS_LABELS[t.status] ?? t.status}
-                </span>
-              </li>
-            ))}
+            {tasks.map((t) => {
+              const assignee = members.find((m) => m.userId === t.assigneeId);
+              return (
+                <li key={t.id}>
+                  <span>{t.title}</span>
+                  <span className={css.taskStatus}>
+                    {STATUS_LABELS[t.status] ?? t.status}
+                  </span>
+                  {canAssign ? (
+                    <select
+                      className={css.formSelect}
+                      aria-label={`Assign ${t.title}`}
+                      value={t.assigneeId ?? ''}
+                      onChange={(e) => onAssign(t.id, e.target.value)}
+                    >
+                      <option value="">Unassigned</option>
+                      {members.map((m) => (
+                        <option key={m.userId} value={m.userId}>
+                          {m.displayName ?? m.email}
+                        </option>
+                      ))}
+                    </select>
+                  ) : t.assigneeId ? (
+                    <span className={css.taskStatus}>
+                      {assignee?.displayName ?? assignee?.email ?? 'Assigned'}
+                    </span>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -182,11 +254,7 @@ export default function ActFeedbackLoop({ projectId, objective }: Props) {
             />
           </div>
           <div className={css.actions}>
-            <button
-              type="button"
-              className={css.btnPrimary}
-              onClick={onRaise}
-            >
+            <button type="button" className={css.btnPrimary} onClick={onRaise}>
               Raise escalation
             </button>
           </div>
@@ -194,8 +262,8 @@ export default function ActFeedbackLoop({ projectId, objective }: Props) {
       ) : null}
 
       <p className={css.note}>
-        Escalations feed back to Observe / Plan / Risk / Monitoring so the
-        owning Stage can re-observe, redesign, or close the signal.
+        Escalations feed back to Observe / Plan / Risk / Monitoring so the owning
+        Stage can re-observe, redesign, or close the signal.
       </p>
     </div>
   );
