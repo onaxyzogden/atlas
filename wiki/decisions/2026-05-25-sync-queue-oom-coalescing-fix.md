@@ -27,6 +27,19 @@ Root cause was the IndexedDB sync queue in `apps/web/src/lib/syncQueue.ts`
    triggered, because the executor handlers swallow API errors and re-enqueue —
    `retryCount` never incremented. See Consequences.)
 
+> [!warning] Correction (2026-05-29)
+> Live diagnosis on `feat/atlas-permaculture` later identified the actual
+> validation-failing project as **"Phase 4 Smoke"**, whose `projectType` held
+> the kebab-case archetype `regenerative-farm` -- the server `ProjectType` enum
+> accepts only snake_case (`regenerative_farm`), so `project:create` 422'd.
+> "Test Vision Project" was a transient Stage Zero vision-builder fixture (see
+> [[2026-05-25-atlas-stage-zero-vision-builder]]), and "Moontrance Creek"
+> currently carries `projectType: null` (valid). The two-project attribution
+> above was a best guess made *before* the failing field was observable -- the
+> client discarded the server's `details[]` (the diagnosability gap this fix's
+> follow-up closes). Root cause + the kebab->snake normalization fix:
+> [[2026-05-29-atlas-projecttype-normalization-422-fix]].
+
 **Decision:**
 - **Coalescing deterministic key** `storeType:action:localId` replaces the
   random UUID as the IndexedDB `id`. Re-queuing an entity/action overwrites its
