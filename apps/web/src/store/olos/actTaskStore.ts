@@ -58,6 +58,8 @@ interface ActTaskState {
   ) => ActTask[];
   /** Tasks tied to a given objective. */
   listForObjective: (projectId: string, objectiveId: string) => ActTask[];
+  /** Tasks assigned to a given user - the "assigned to me" read primitive. */
+  listForAssignee: (projectId: string, assigneeId: string) => ActTask[];
   /** Create a new task. */
   createTask: (
     projectId: string,
@@ -145,6 +147,11 @@ export const useActTaskStore = create<ActTaskState>()(
         listForObjective: (projectId, objectiveId) =>
           Object.values(get().byProject[projectId] ?? {}).filter(
             (t) => t.objectiveId === objectiveId,
+          ),
+
+        listForAssignee: (projectId, assigneeId) =>
+          Object.values(get().byProject[projectId] ?? {}).filter(
+            (t) => t.assigneeId === assigneeId,
           ),
 
         createTask: (projectId, seed) => {
