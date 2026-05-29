@@ -160,8 +160,11 @@ describe('roleSatisfies — spec role aliasing', () => {
     expect(roleSatisfies('team_member', 'owner')).toBe(false);
   });
 
-  it('contractor satisfies designer gates', () => {
-    expect(roleSatisfies('contractor', 'designer')).toBe(true);
+  it('contractor no longer satisfies designer gates (Slice 5.5a broke the alias)', () => {
+    // Slice 5.5a sets ROLE_ALIAS.contractor = null, so a contractor session
+    // satisfies NO legacy requireRole gate. Scoped Act access is re-granted
+    // explicitly (per-route allow-list) alongside assignment-scoping in 5.5c.
+    expect(roleSatisfies('contractor', 'designer')).toBe(false);
   });
 
   it('contractor does NOT satisfy owner gates', () => {
@@ -180,6 +183,15 @@ describe('roleSatisfies — spec role aliasing', () => {
     expect(roleSatisfies('landowner', 'designer')).toBe(false);
     expect(roleSatisfies('landowner', 'reviewer')).toBe(false);
   });
+
+  it('contractor satisfies no legacy gate after Slice 5.5a (alias broken)', () => {
+    expect(roleSatisfies('contractor', 'owner')).toBe(false);
+    expect(roleSatisfies('contractor', 'designer')).toBe(false);
+    expect(roleSatisfies('contractor', 'reviewer')).toBe(false);
+    expect(roleSatisfies('contractor', 'viewer')).toBe(false);
+    expect(roleSatisfies('contractor', 'landowner')).toBe(false);
+    expect(roleSatisfies('contractor', 'contractor')).toBe(true); // literal self only
+  });
 });
 
 describe('roleSatisfies — practical requireRole scenarios', () => {
@@ -194,7 +206,7 @@ describe('roleSatisfies — practical requireRole scenarios', () => {
     expect(satisfiesAny('designer', allowed)).toBe(true);
     expect(satisfiesAny('primary_steward', allowed)).toBe(true);
     expect(satisfiesAny('team_member', allowed)).toBe(true);
-    expect(satisfiesAny('contractor', allowed)).toBe(true);
+    expect(satisfiesAny('contractor', allowed)).toBe(false); // 5.5a: alias broken
     expect(satisfiesAny('reviewer', allowed)).toBe(false);
     expect(satisfiesAny('viewer', allowed)).toBe(false);
     expect(satisfiesAny('landowner', allowed)).toBe(false);
@@ -212,7 +224,7 @@ describe('roleSatisfies — practical requireRole scenarios', () => {
     expect(satisfiesAny('viewer', allowed)).toBe(false);
   });
 
-  it('read gates (owner | designer | reviewer | viewer) accept every role', () => {
+  it('read gates (owner | designer | reviewer | viewer) accept every role except contractor', () => {
     const allowed: ProjectRole[] = [
       'owner',
       'designer',
@@ -225,7 +237,7 @@ describe('roleSatisfies — practical requireRole scenarios', () => {
     expect(satisfiesAny('viewer', allowed)).toBe(true);
     expect(satisfiesAny('primary_steward', allowed)).toBe(true);
     expect(satisfiesAny('team_member', allowed)).toBe(true);
-    expect(satisfiesAny('contractor', allowed)).toBe(true);
+    expect(satisfiesAny('contractor', allowed)).toBe(false); // 5.5a: alias broken
     expect(satisfiesAny('landowner', allowed)).toBe(true);
   });
 
@@ -241,7 +253,7 @@ describe('roleSatisfies — practical requireRole scenarios', () => {
     expect(satisfiesAny('landowner', allowed)).toBe(false);
   });
 
-  it('comment gates extended with landowner accept every comment-capable role', () => {
+  it('comment gates extended with landowner accept every comment-capable role except contractor', () => {
     // The Slice 5.1 edit to comments/index.ts will use:
     //   requireRole('owner', 'designer', 'reviewer', 'landowner')
     const allowed: ProjectRole[] = [
@@ -256,7 +268,7 @@ describe('roleSatisfies — practical requireRole scenarios', () => {
     expect(satisfiesAny('landowner', allowed)).toBe(true);
     expect(satisfiesAny('primary_steward', allowed)).toBe(true);
     expect(satisfiesAny('team_member', allowed)).toBe(true);
-    expect(satisfiesAny('contractor', allowed)).toBe(true);
+    expect(satisfiesAny('contractor', allowed)).toBe(false); // 5.5a: alias broken
     expect(satisfiesAny('viewer', allowed)).toBe(false);
   });
 });

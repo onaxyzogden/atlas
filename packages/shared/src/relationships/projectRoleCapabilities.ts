@@ -41,10 +41,12 @@
  *   - `team_member` → `designer` (contributor equivalent — full edit
  *     access, cannot manage members or delete project).
  *
- *   - `contractor` → `designer` (write-capable at the gate layer; future
- *     Phase 5 slices add per-route scoping so a contractor can only
- *     mutate the field actions assigned to them, but the gate-level
- *     check is the same as designer).
+ *   - `contractor` → `null` (Slice 5.5a). The Slice 5.1 placeholder aliased
+ *     contractor to `designer`, granting blanket Plan/Observe/Act write at
+ *     every `requireRole('owner', 'designer')` gate. 5.5a breaks that: a
+ *     contractor now satisfies no legacy gate (literal match only). Slice
+ *     5.5c re-grants Act access by adding `'contractor'` to specific route
+ *     allow-lists, scoped to the field actions assigned to them.
  *
  *   - `landowner` → `viewer` (read-only at the gate; comment access is
  *     granted by extending the 2 comment-route gates to include
@@ -144,7 +146,8 @@ export const PROJECT_ROLE_CAPABILITIES: Record<
  * The alias preserves intent at the gate layer:
  *
  *   - primary_steward acts as owner (admin)
- *   - team_member / contractor act as designer (contributors)
+ *   - team_member acts as designer (contributor)
+ *   - contractor aliases to null (Slice 5.5a) - matches literally only
  *   - landowner acts as viewer (read-only at gate; comment route adds
  *     `'landowner'` explicitly so landowners can also POST comments)
  */
@@ -155,7 +158,7 @@ const ROLE_ALIAS: Record<ProjectRole, ProjectRole | null> = {
   viewer: null,
   primary_steward: 'owner',
   team_member: 'designer',
-  contractor: 'designer',
+  contractor: null,
   landowner: 'viewer',
 };
 
