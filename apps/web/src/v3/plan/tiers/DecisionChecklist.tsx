@@ -18,6 +18,7 @@ import type {
   PlanTierObjective,
   PlanTierObjectiveStatus,
 } from '@ogden/shared';
+import { findProjectType } from '@ogden/shared';
 import { findObjectiveGlobally } from '../objectiveCatalog.js';
 import type { VisionDerivedItem, VisionDerivedMap } from './visionProfileToChecklist.js';
 import css from './DecisionChecklist.module.css';
@@ -111,6 +112,13 @@ function ChecklistRow({ item, isComplete, derived, onToggle }: RowProps) {
         <div className={css.tags}>
           {item.optional ? (
             <span className={css.optional}>optional</span>
+          ) : null}
+          {item.expandedBySecondaryId ? (
+            <span className={css.expandedBy}>
+              Expanded by:{' '}
+              {findProjectType(item.expandedBySecondaryId)?.label ??
+                item.expandedBySecondaryId}
+            </span>
           ) : null}
           {isFromBridge ? (
             <span className={css.derivedBadge}>From Stage Zero Vision</span>

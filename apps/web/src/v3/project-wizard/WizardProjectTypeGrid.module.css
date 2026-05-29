@@ -1,0 +1,47 @@
+/* WizardProjectTypeGrid — required single-select primary-type cards (Step 2). */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  padding: 12px 13px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle, #2a2d2e);
+  background: var(--surface-canvas, #0e1413);
+  color: var(--text-primary, #e8e1d0);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+.card:hover {
+  border-color: var(--border-strong, #3d4243);
+  background: rgba(232, 225, 208, 0.04);
+}
+.card[data-selected='true'] {
+  border-color: var(--accent-gold, #c4a265);
+  background: rgba(196, 162, 101, 0.12);
+  box-shadow: 0 0 0 1px var(--accent-gold, #c4a265) inset;
+}
+
+.cardLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #e8e1d0);
+}
+.card[data-selected='true'] .cardLabel {
+  color: var(--accent-gold, #c4a265);
+}
+
+.cardDesc {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-muted, #8a8275);
+}

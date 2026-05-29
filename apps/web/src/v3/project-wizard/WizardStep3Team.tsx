@@ -20,6 +20,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import type { ProjectTypeVersion } from '@ogden/shared';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useProjectWizardStore } from '../../store/projectWizardStore.js';
 import ProjectWizardShell from './ProjectWizardShell.js';
@@ -38,6 +39,10 @@ interface PrimaryStewardState {
 }
 
 const EMPTY_INVITE: TeamInviteRowValue = { email: '', role: 'team_member' };
+
+// Marks the versionHistory entry stamped when the wizard completes, so a
+// repeated finish() (double-click / resume) never appends a duplicate.
+const COMPLETION_NOTE = 'wizard completion';
 
 function normaliseEmail(raw: string): string {
   return raw.trim().toLowerCase();
@@ -124,6 +129,31 @@ export default function WizardStep3Team({ projectId }: WizardStep3TeamProps) {
       ...primaryPayload,
       queuedInvites,
     };
+
+    // Stamp the Step-2 type selection into versionHistory on completion so
+    // the resolved objective set has durable provenance (read later by the
+    // mid-project reopen modal). On-the-fly resolution (Sub-slice D) renders
+    // straight from the record, so there is no separate resolved-set to
+    // persist here. Idempotent: a repeated finish() won't append a second
+    // completion entry.
+    const existingRecord = project.metadata?.projectTypeRecord;
+    let nextRecord = existingRecord;
+    if (
+      existingRecord &&
+      !existingRecord.versionHistory.some((v) => v.note === COMPLETION_NOTE)
+    ) {
+      const completionVersion: ProjectTypeVersion = {
+        primaryTypeId: existingRecord.primaryTypeId,
+        secondaryTypeIds: existingRecord.secondaryTypeIds,
+        changedAt: now,
+        note: COMPLETION_NOTE,
+      };
+      nextRecord = {
+        ...existingRecord,
+        versionHistory: [...existingRecord.versionHistory, completionVersion],
+      };
+    }
+
     updateProject(project.id, {
       metadata: {
         ...(project.metadata ?? {}),
@@ -134,6 +164,7 @@ export default function WizardStep3Team({ projectId }: WizardStep3TeamProps) {
         // metadata isn't sensitive to stale enums) keeps the diff small.
         wizardLastStep: 'team',
         team: teamPayload,
+        ...(nextRecord ? { projectTypeRecord: nextRecord } : {}),
       },
     });
     clearWizardDraft();

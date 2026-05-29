@@ -141,6 +141,26 @@
   border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
 }
 
+/*
+ * Provenance chip for a checklist item injected by a secondary layer's
+ * modifying patch (resolveProjectObjectives stamps expandedBySecondaryId).
+ * A neutral filled pill — distinct from the gold `feeds` chips (downstream
+ * links) and the green Stage Zero badge (bridge-derived) — so the steward
+ * can see at a glance which decisions a secondary layer added.
+ */
+.expandedBy {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 10%, transparent);
+  color: var(--color-text, #f2ede3);
+  border: 1px solid color-mix(in srgb, var(--color-text, #f2ede3) 22%, transparent);
+}
+
 /* Slice 1.12 — Stage Zero Vision bridge. Items satisfied by the
  * VisionProfile render with a subtle "From Stage Zero Vision" chip and
  * an evidence block beneath. Checkbox is disabled because the source of

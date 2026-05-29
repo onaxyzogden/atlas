@@ -1,0 +1,51 @@
+/* WizardSecondaryPicker — compatible secondary-layer multi-select (Step 2). */
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle, #2a2d2e);
+  background: transparent;
+  color: var(--text-primary, #e8e1d0);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.chip:hover {
+  border-color: var(--border-strong, #3d4243);
+  background: rgba(232, 225, 208, 0.04);
+}
+.chip[data-selected='true'] {
+  border-color: var(--accent-gold, #c4a265);
+  background: rgba(196, 162, 101, 0.12);
+}
+
+.chipLabel {
+  font-size: 12px;
+  font-weight: 600;
+}
+.chip[data-selected='true'] .chipLabel {
+  color: var(--accent-gold, #c4a265);
+}
+
+.chipHint {
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  color: var(--text-muted, #8a8275);
+}
+
+.none {
+  font-size: 12px;
+  color: var(--text-muted, #8a8275);
+  margin: 0;
+}

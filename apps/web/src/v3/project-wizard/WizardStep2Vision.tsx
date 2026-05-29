@@ -1,26 +1,43 @@
 /**
- * WizardStep2Vision — Phase 2 / Slice 2.2.
+ * WizardStep2Vision — Phase 2 / Slice 2.2 + Sub-slice E.2.
  *
- * Step 2 ("Vision & Capacity") of the Project Creation Wizard. Form-
- * dominant split: left-third inputs (land-use goals, budget, labour,
- * timeline, optional vision statement), right two-thirds map thumbnail
- * fitted to the boundary captured on Step 1.
+ * Step 2 ("Project Type & Vision") of the Project Creation Wizard. Two
+ * sections stacked in the left-third form column, with the Step-1 boundary
+ * thumbnail filling the right two-thirds:
  *
- * State source of truth: `project.metadata.visionProfile`. Every chip /
- * textarea change writes through to it via `updateProject` (debounced
- * 300 ms in the textarea, immediate for chips). The wizard's "Next"
- * handler flushes any pending writes, stamps wizardLastStep='vision',
- * and routes to Step 3. "Skip for now" performs the same advance
- * without modifying the profile (per spec §7.2).
+ *   Section A (required) — primary project type, optional compatible
+ *     secondary layers, and an advisory design-tension acknowledgement.
+ *     Selections write straight to `project.metadata.projectTypeRecord`
+ *     (durable draft; the resolution engine reads it on the fly).
+ *   Section B (optional) — vision & capacity (land-use goals, budget,
+ *     labour, timeline, vision statement), writing to
+ *     `project.metadata.visionProfile`.
+ *
+ * State source of truth: the project metadata. Section A writes are
+ * immediate (selections are infrequent); Section B chips/textarea write
+ * through `WizardVisionFormFields` (debounced 300 ms in the textarea). The
+ * "Next" handler flushes pending vision writes, stamps wizardLastStep='vision',
+ * and routes to Step 3. Next is disabled until a primary type is chosen
+ * (project type is required, per Wizard Spec v1.1); the optional vision is
+ * skipped simply by advancing without filling it.
  */
 
 import { useCallback, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import type { VisionProfile } from '@ogden/shared';
+import type {
+  ProjectTypeId,
+  ProjectTypeRecord,
+  TensionAck,
+  VisionProfile,
+} from '@ogden/shared';
+import { getActiveTensions, isCompatibleSecondary } from '@ogden/shared';
 import { useProjectStore } from '../../store/projectStore.js';
 import ProjectWizardShell from './ProjectWizardShell.js';
 import WizardMapThumbnail from './WizardMapThumbnail.js';
 import WizardVisionFormFields from './WizardVisionFormFields.js';
+import WizardProjectTypeGrid from './WizardProjectTypeGrid.js';
+import WizardSecondaryPicker from './WizardSecondaryPicker.js';
+import WizardTensionPanel from './WizardTensionPanel.js';
 import styles from './WizardStep2Vision.module.css';
 
 interface WizardStep2VisionProps {
@@ -47,6 +64,96 @@ export default function WizardStep2Vision({ projectId }: WizardStep2VisionProps)
     [project?.metadata?.visionProfile],
   );
 
+  // --- Section A: project type record (durable draft) -------------------
+  const typeRecord = project?.metadata?.projectTypeRecord;
+  const primaryTypeId = typeRecord?.primaryTypeId ?? null;
+  const secondaryTypeIds = useMemo<readonly ProjectTypeId[]>(
+    () => typeRecord?.secondaryTypeIds ?? [],
+    [typeRecord?.secondaryTypeIds],
+  );
+  const acknowledgedTensionIds = useMemo<readonly string[]>(
+    () => (typeRecord?.tensionAcknowledgements ?? []).map((a) => a.tensionId),
+    [typeRecord?.tensionAcknowledgements],
+  );
+  const activeTensions = useMemo(
+    () => (primaryTypeId ? getActiveTensions(primaryTypeId, secondaryTypeIds) : []),
+    [primaryTypeId, secondaryTypeIds],
+  );
+
+  // Single write path so every record mutation spreads existing metadata
+  // (updateProject replaces metadata wholesale) and re-stamps the step.
+  const writeRecord = useCallback(
+    (next: ProjectTypeRecord) => {
+      if (!project) return;
+      updateProject(project.id, {
+        metadata: {
+          ...(project.metadata ?? {}),
+          projectTypeRecord: next,
+          wizardLastStep: 'vision',
+        },
+      });
+    },
+    [project, updateProject],
+  );
+
+  const handleSelectPrimary = useCallback(
+    (id: ProjectTypeId) => {
+      const existing = project?.metadata?.projectTypeRecord;
+      // Dropping a primary for one that doesn't support a chosen secondary
+      // must prune that secondary, or the record carries an invalid pairing.
+      const keptSecondaries = (existing?.secondaryTypeIds ?? []).filter((s) =>
+        isCompatibleSecondary(s, id),
+      );
+      writeRecord({
+        primaryTypeId: id,
+        secondaryTypeIds: keptSecondaries,
+        tensionAcknowledgements: existing?.tensionAcknowledgements ?? [],
+        versionHistory: existing?.versionHistory ?? [],
+      });
+    },
+    [project?.metadata?.projectTypeRecord, writeRecord],
+  );
+
+  const handleToggleSecondary = useCallback(
+    (id: ProjectTypeId) => {
+      const existing = project?.metadata?.projectTypeRecord;
+      if (!existing) return; // no primary selected yet
+      const has = existing.secondaryTypeIds.includes(id);
+      const nextSecondaries = has
+        ? existing.secondaryTypeIds.filter((s) => s !== id)
+        : existing.secondaryTypeIds.length >= 8
+          ? existing.secondaryTypeIds
+          : [...existing.secondaryTypeIds, id];
+      writeRecord({ ...existing, secondaryTypeIds: nextSecondaries });
+    },
+    [project?.metadata?.projectTypeRecord, writeRecord],
+  );
+
+  const handleAcknowledgeTensions = useCallback(() => {
+    const existing = project?.metadata?.projectTypeRecord;
+    if (!existing) return;
+    const active = getActiveTensions(
+      existing.primaryTypeId,
+      existing.secondaryTypeIds,
+    );
+    const ackedIds = new Set(
+      existing.tensionAcknowledgements.map((a) => a.tensionId),
+    );
+    const now = new Date().toISOString();
+    const newAcks: TensionAck[] = active
+      .filter((t) => !ackedIds.has(t.id))
+      .map((t) => ({ tensionId: t.id, acknowledgedAt: now }));
+    if (newAcks.length === 0) return;
+    writeRecord({
+      ...existing,
+      tensionAcknowledgements: [
+        ...existing.tensionAcknowledgements,
+        ...newAcks,
+      ],
+    });
+  }, [project?.metadata?.projectTypeRecord, writeRecord]);
+
+  // --- Section B: vision profile ----------------------------------------
   const handleProfileChange = useCallback(
     (next: VisionProfile) => {
       if (!project) return;
@@ -69,7 +176,7 @@ export default function WizardStep2Vision({ projectId }: WizardStep2VisionProps)
     if (!project) return;
     flushRef.current?.();
     // Make sure wizardLastStep is recorded even if the steward made no edits
-    // (Next-without-changes path or Skip).
+    // (Next-without-changes path).
     if (project.metadata?.wizardLastStep !== 'vision') {
       updateProject(project.id, {
         metadata: {
@@ -115,15 +222,50 @@ export default function WizardStep2Vision({ projectId }: WizardStep2VisionProps)
       step="vision"
       onBack={goBack}
       onNext={advance}
-      onSkip={advance}
-      hint="Optional - skip if you'd rather come back to this"
+      nextDisabled={!primaryTypeId}
+      hint={
+        primaryTypeId
+          ? 'Vision details are optional - you can refine them later'
+          : 'Select a project type to continue'
+      }
     >
       <div className={styles.layout}>
-        <aside className={styles.form} aria-label="Vision and capacity form">
-          <h1 className={styles.title}>What do you want this land to become?</h1>
+        <aside className={styles.form} aria-label="Project type and vision form">
+          <h1 className={styles.title}>What kind of land project is this?</h1>
           <p className={styles.subtitle}>
-            A rough sketch is enough. You can refine all of this later in
-            the Plan stage.
+            Pick the primary purpose - this sets the objectives you will plan
+            against. You can layer compatible secondary uses on top.
+          </p>
+          <WizardProjectTypeGrid
+            selectedId={primaryTypeId}
+            onSelect={handleSelectPrimary}
+          />
+
+          {primaryTypeId && (
+            <div className={styles.subsection}>
+              <h2 className={styles.subheading}>Secondary layers (optional)</h2>
+              <WizardSecondaryPicker
+                primaryId={primaryTypeId}
+                selectedIds={secondaryTypeIds}
+                onToggle={handleToggleSecondary}
+              />
+            </div>
+          )}
+
+          {activeTensions.length > 0 && (
+            <WizardTensionPanel
+              tensions={activeTensions}
+              acknowledgedTensionIds={acknowledgedTensionIds}
+              onAcknowledge={handleAcknowledgeTensions}
+            />
+          )}
+
+          <hr className={styles.divider} />
+
+          <h2 className={styles.subheading}>Your vision (optional)</h2>
+          <p className={styles.subtitle}>
+            A rough sketch is enough. You can refine all of this later in the
+            Plan stage.
           </p>
           <WizardVisionFormFields
             profile={profile}

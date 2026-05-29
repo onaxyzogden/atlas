@@ -33,6 +33,27 @@
   margin: 0 0 4px;
 }
 
+/* Section A sub-block (secondary-layer picker) + the divider before vision. */
+.subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.subheading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #e8e1d0);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid var(--border-subtle, #2a2d2e);
+  margin: 4px 0 0;
+}
+
 .thumbHost {
   position: relative;
   background: var(--surface-canvas, #0e1413);
