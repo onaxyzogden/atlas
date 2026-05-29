@@ -59,14 +59,14 @@ export default function ActProtoExecutionPanel({
       </div>
 
       <div className={styles.execProgress}>
+        <div className={styles.execBar}>
+          <div className={styles.execBarFill} style={{ width: `${pct}%` }} />
+        </div>
         <div className={styles.execProgressTop}>
           <span>{pct}% ready</span>
           <span>
             {done}/{total} steps
           </span>
-        </div>
-        <div className={styles.execBar}>
-          <div className={styles.execBarFill} style={{ width: `${pct}%` }} />
         </div>
       </div>
 
