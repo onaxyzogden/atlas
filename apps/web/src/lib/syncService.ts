@@ -16,14 +16,19 @@
 import { api } from './apiClient.js';
 import { syncQueue, describeSyncError, type QueuedOperation } from './syncQueue.js';
 import { pushProjectStateBlob, buildBlobEnvelope, blobLocalId } from './blobSync.js';
-import { SYNCED_STORES, type SyncedStoreDescriptor } from './syncManifest.js';
+import { recordLocalId, buildRecordEnvelope, pushSyncedRecord } from './recordSync.js';
+import {
+  SYNCED_STORES,
+  type SyncedStoreDescriptor,
+  type SyncedRecordMeta,
+} from './syncManifest.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
 import { usePathStore, type DesignPath } from '../store/pathStore.js';
 import { useUtilityStore, type Utility } from '../store/utilityStore.js';
 import { useVegetationStore, type VegetationPatch } from '../store/vegetationStore.js';
 import { useSuccessionStore, type SuccessionMilestone } from '../store/successionStore.js';
-import type { ProjectedStructure as Structure } from '@ogden/shared';
+import type { ProjectedStructure as Structure, SyncedRecord } from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from '../store/builtEnvironmentStoreV2.js';
 import {
   addStructure,
@@ -879,6 +884,7 @@ async function initialSync(): Promise<void> {
       if (FLAGS.SYNC_STATE_BLOBS) {
         await hydrateProjectStateBlobs(project);
         await hydrateTypedTables(project);
+        await hydrateActRecords(project);
       }
     }
   } catch (err) {
@@ -1077,6 +1083,74 @@ export async function executeStateBlobOp(op: QueuedOperation): Promise<void> {
 }
 
 /**
+ * Queued payload for ONE `typed-record` (one Act record). The tier hints are
+ * flattened (not a nested `meta`) so the queued op stays plain JSON; the
+ * envelope is rebuilt from them at flush time.
+ */
+export interface TypedRecordOpPayload {
+  projectLocalId: string;
+  storeKey: string;
+  recordId: string;
+  schemaVersion: number;
+  baseRev: number;
+  payload: unknown;
+  observedAt: string | null;
+  sourceType: string | null;
+  cycleId: string | null;
+  taskType: string | null;
+}
+
+/**
+ * Push one queued `typed-record` op through the per-record Act transport — the
+ * per-record analogue of executeStateBlobOp. Same serverId-resolved-at-flush
+ * rule and the SAME never-clobber 409 contract, but keyed by (storeKey,
+ * project, recordId) so each record tracks its own baseRev and a stale write
+ * conflicts independently. Conflict surfacing stays at storeKey granularity
+ * (the Connectivity badge is per-store today); Phase 4 refines to per-record.
+ */
+export async function executeTypedRecordOp(op: QueuedOperation): Promise<void> {
+  const p = op.payload as TypedRecordOpPayload;
+  const serverId = getProjectServerId(p.projectLocalId);
+  if (!serverId) {
+    // Throw so the op stays queued and retries once the project gets a
+    // serverId — never silently drop a record.
+    throw new Error(
+      `[SYNC] typed-record "${p.storeKey}/${p.recordId}": project ` +
+        `${p.projectLocalId} has no serverId yet`,
+    );
+  }
+  const envelope = buildRecordEnvelope(p.schemaVersion, p.baseRev, p.payload, {
+    observedAt: p.observedAt,
+    sourceType: p.sourceType,
+    cycleId: p.cycleId,
+    taskType: p.taskType,
+  });
+  const result = await pushSyncedRecord(serverId, p.storeKey, p.recordId, envelope);
+  const key = recordLocalId(p.storeKey, p.projectLocalId, p.recordId);
+  if (result.status === 'ok') {
+    // Persist the bumped rev so repeated edits to this record don't all
+    // collide on rev 0 → permanent 409.
+    recordBaseRev.set(key, result.rev);
+    return;
+  }
+  // 409: adopt the authoritative rev so we stop infinitely re-pushing a stale
+  // base. The local record is NOT clobbered back — we surface and stop.
+  if (typeof result.serverRev === 'number') recordBaseRev.set(key, result.serverRev);
+  const conn = useConnectivityStore.getState();
+  if (!conn.conflictedStores.includes(p.storeKey)) {
+    conn.addConflictedStore(p.storeKey);
+    toast.warning(
+      `A change to "${p.storeKey}" conflicts with a newer version on ` +
+        `the server. Your local copy is kept — review it in Connectivity.`,
+    );
+  }
+  console.warn(
+    `[SYNC] typed-record "${p.storeKey}/${p.recordId}" rejected as stale ` +
+      `(server rev ${result.serverRev}); surfaced as conflict (no clobber)`,
+  );
+}
+
+/**
  * Last server `rev` we know for a (storeKey, project) blob, used as the next
  * push's `baseRev`. In-memory only for the Phase 2 push-only shadow;
  * Phase 4's conflict surface owns durable rev/conflict bookkeeping.
@@ -1093,6 +1167,31 @@ export function getBlobBaseRevForTest(
   projectLocalId: string,
 ): number {
   return getBlobBaseRev(storeKey, projectLocalId);
+}
+
+/**
+ * Last server `rev` we know for a (storeKey, project, recordId) typed record,
+ * used as the next push's `baseRev`. Per-record analogue of `blobBaseRev`;
+ * in-memory only for Phase 1 (Phase 3's durable sync_log owns persistent
+ * rev/conflict bookkeeping).
+ */
+const recordBaseRev = new Map<string, number>();
+
+function getRecordBaseRev(
+  storeKey: string,
+  projectLocalId: string,
+  recordId: string,
+): number {
+  return recordBaseRev.get(recordLocalId(storeKey, projectLocalId, recordId)) ?? 0;
+}
+
+/** Test seam: read the in-memory adopted per-record base rev. */
+export function getRecordBaseRevForTest(
+  storeKey: string,
+  projectLocalId: string,
+  recordId: string,
+): number {
+  return getRecordBaseRev(storeKey, projectLocalId, recordId);
 }
 
 /** Shown at most once per session, not once per skewed store. */
@@ -1228,6 +1327,78 @@ export async function hydrateTypedTables(
 }
 
 /**
+ * Device-B restore for the `typed-record` class (the 4 Act stores). Pulls
+ * every server record for each typed-record store and upserts it into the live
+ * store via `applyRecordForProject`, recording each record's server `rev` as
+ * the next push's baseRev. Per-record analogue of `hydrateProjectStateBlobs`,
+ * with the same version-skew guard (a record saved by a newer client is
+ * skipped, never downcast). Runs INSIDE `initialSync`'s `isSyncing` window so
+ * the writes do not bounce back out through `subscribeTypedRecords`.
+ *
+ * Upsert-only: Phase 1 has no per-record delete on the wire, so a record
+ * deleted on another device is reconciled in a later phase, never silently
+ * dropped here. `descriptors` is injectable for tests; production passes
+ * `SYNCED_STORES`.
+ */
+export async function hydrateActRecords(
+  project: LocalProject,
+  descriptors: SyncedStoreDescriptor[] = SYNCED_STORES,
+): Promise<void> {
+  if (!project.serverId) return;
+  const serverId = project.serverId;
+  const recordStores = descriptors.filter(
+    (d) => d.classification === 'typed-record',
+  );
+  for (const d of recordStores) {
+    if (!d.store || !d.applyRecordForProject) continue;
+    const localVersion = d.schemaVersion ?? 1;
+    let rows: SyncedRecord[];
+    try {
+      const res = await api.actRecords.list(serverId, d.storeKey);
+      rows = (res.data ?? []) as SyncedRecord[];
+    } catch (err) {
+      console.warn(
+        `[SYNC] typed-record hydrate list failed for "${d.storeKey}" / "${project.name}":`,
+        err,
+      );
+      continue;
+    }
+    const handle = d.store as unknown as {
+      getState: () => unknown;
+      setState: (p: unknown) => void;
+    };
+    for (const row of rows) {
+      if (row.schemaVersion > localVersion) {
+        if (!blobVersionSkewWarned) {
+          blobVersionSkewWarned = true;
+          toast.warning(
+            'Some synced data was saved by a newer version of Atlas. ' +
+              'Update Atlas to restore it.',
+          );
+        }
+        console.warn(
+          `[SYNC] typed-record "${d.storeKey}/${row.recordId}" schemaVersion ` +
+            `${row.schemaVersion} > local ${localVersion}; skipped (version-skew guard)`,
+        );
+        continue;
+      }
+      try {
+        d.applyRecordForProject(handle, project.id, row.recordId, row.payload);
+        recordBaseRev.set(
+          recordLocalId(d.storeKey, project.id, row.recordId),
+          row.rev,
+        );
+      } catch (err) {
+        console.warn(
+          `[SYNC] typed-record "${d.storeKey}/${row.recordId}" hydrate apply failed:`,
+          err,
+        );
+      }
+    }
+  }
+}
+
+/**
  * Enqueue one `versioned-blob` store's active-project slice. Resolves the
  * active project at enqueue time; skips silently when there is no active
  * project or it has no serverId yet (a later store edit re-enqueues once the
@@ -1305,6 +1476,173 @@ function subscribeVersionedBlobs(): () => void {
             void enqueueVersionedBlob(d).catch((err) =>
               console.warn(
                 `[SYNC] state-blob "${d.storeKey}" enqueue failed:`,
+                err,
+              ),
+            );
+          }, BLOB_DEBOUNCE_MS),
+        );
+      }),
+    );
+  }
+  return () => {
+    for (const t of timers.values()) clearTimeout(t);
+    for (const u of unsubs) u();
+  };
+}
+
+/**
+ * Per-(storeKey) snapshot of the ACTIVE project's records, as recordId → JSON,
+ * so a store change can be diffed down to exactly the records that changed.
+ * Tagged with the projectId it was taken for: when the active project switches,
+ * the snapshot is reseeded (NOT diffed) so switching projects never re-pushes
+ * the whole newly-active project as "changes".
+ */
+interface TypedRecordSnapshot {
+  projectId: string;
+  recs: Map<string, string>;
+}
+const typedRecordSnapshots = new Map<string, TypedRecordSnapshot>();
+
+/**
+ * Enqueue ONE typed record's active-project op. Per-record analogue of
+ * enqueueVersionedBlob: resolves the active project + serverId at enqueue time
+ * (skips silently — once, in dev — when the project has no serverId, exactly
+ * like the blob path), reads the per-record baseRev, and coalesces in the queue
+ * under the 3-part recordLocalId so each record pushes independently.
+ */
+export async function enqueueTypedRecord(
+  desc: SyncedStoreDescriptor,
+  recordId: string,
+  record: unknown,
+  meta?: SyncedRecordMeta,
+): Promise<void> {
+  const activeId = useProjectStore.getState().activeProjectId;
+  if (!activeId) return;
+  if (!getProjectServerId(activeId)) {
+    if (import.meta.env.DEV && !warnedNoServerId.has(activeId)) {
+      warnedNoServerId.add(activeId);
+      console.info(
+        `[SYNC] Skipping typed-record push for project "${activeId}": no serverId yet ` +
+          `(builtin/demo projects are viewer-only). Create/own a project to exercise sync.`,
+      );
+    }
+    return;
+  }
+  const payload: TypedRecordOpPayload = {
+    projectLocalId: activeId,
+    storeKey: desc.storeKey,
+    recordId,
+    schemaVersion: desc.schemaVersion ?? 1,
+    baseRev: getRecordBaseRev(desc.storeKey, activeId, recordId),
+    payload: record,
+    observedAt: meta?.observedAt ?? null,
+    sourceType: meta?.sourceType ?? null,
+    cycleId: meta?.cycleId ?? null,
+    taskType: meta?.taskType ?? null,
+  };
+  await syncQueue.enqueue({
+    storeType: 'typed-record',
+    action: 'update',
+    localId: recordLocalId(desc.storeKey, activeId, recordId),
+    payload,
+  });
+}
+
+/**
+ * Diff one typed-record store's active-project records against the last
+ * snapshot and enqueue an update op per added/changed record. Upsert-only:
+ * removed records are not pushed in Phase 1 (no per-record delete on the wire).
+ * On first run for a store, or when the active project changed, the snapshot is
+ * reseeded WITHOUT enqueuing so a project switch never floods the queue.
+ */
+async function flushTypedRecordStore(desc: SyncedStoreDescriptor): Promise<void> {
+  if (!desc.store || !desc.selectRecordsForProject) return;
+  const activeId = useProjectStore.getState().activeProjectId;
+  if (!activeId) return;
+  const entries = desc.selectRecordsForProject(desc.store.getState(), activeId);
+  const currJson = new Map<string, string>();
+  const currMeta = new Map<string, { record: unknown; meta?: SyncedRecordMeta }>();
+  for (const e of entries) {
+    currJson.set(e.recordId, JSON.stringify(e.record));
+    currMeta.set(e.recordId, { record: e.record, meta: e.meta });
+  }
+  const prev = typedRecordSnapshots.get(desc.storeKey);
+  if (!prev || prev.projectId !== activeId) {
+    // First run for this store, or active project changed → (re)seed the diff
+    // baseline; do not treat the existing records as fresh changes.
+    typedRecordSnapshots.set(desc.storeKey, { projectId: activeId, recs: currJson });
+    return;
+  }
+  for (const [recordId, json] of currJson) {
+    if (prev.recs.get(recordId) === json) continue;
+    const entry = currMeta.get(recordId);
+    if (entry) await enqueueTypedRecord(desc, recordId, entry.record, entry.meta);
+  }
+  typedRecordSnapshots.set(desc.storeKey, { projectId: activeId, recs: currJson });
+}
+
+/**
+ * Reseed every typed-record snapshot to the current store contents WITHOUT
+ * enqueuing — called once after initialSync's hydrate so freshly-restored
+ * records are the diff baseline, not re-pushed as changes on the first later
+ * edit. (Such a push would be correct — it carries the hydrated baseRev — but
+ * needless; this keeps the first post-hydrate edit a single-record push.)
+ */
+function reseedTypedRecordSnapshots(): void {
+  const activeId = useProjectStore.getState().activeProjectId;
+  if (!activeId) return;
+  for (const desc of SYNCED_STORES) {
+    if (
+      desc.classification !== 'typed-record' ||
+      !desc.store ||
+      !desc.selectRecordsForProject
+    ) {
+      continue;
+    }
+    const entries = desc.selectRecordsForProject(desc.store.getState(), activeId);
+    const recs = new Map<string, string>();
+    for (const e of entries) recs.set(e.recordId, JSON.stringify(e.record));
+    typedRecordSnapshots.set(desc.storeKey, { projectId: activeId, recs });
+  }
+}
+
+/**
+ * Generic write-through for every `typed-record` manifest store (the 4 Act
+ * stores): on any change, debounce ~800ms then diff the active project's
+ * records and enqueue one op per changed record. Per-record analogue of
+ * subscribeVersionedBlobs. Seeds the snapshot eagerly at subscribe time so
+ * records already present (persisted from a prior session) are the diff
+ * baseline, not re-pushed on the first edit. Returns an unsubscribe that clears
+ * pending timers.
+ */
+function subscribeTypedRecords(): () => void {
+  const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  const unsubs: (() => void)[] = [];
+  for (const desc of SYNCED_STORES) {
+    if (
+      desc.classification !== 'typed-record' ||
+      !desc.store ||
+      !desc.selectRecordsForProject
+    ) {
+      continue;
+    }
+    const d = desc;
+    const store = desc.store;
+    // Seed the baseline now so records present at subscribe time are not diffed
+    // as fresh changes on the first post-subscribe edit.
+    void flushTypedRecordStore(d).catch(() => {});
+    unsubs.push(
+      store.subscribe(() => {
+        if (isSyncing) return;
+        const existing = timers.get(d.storeKey);
+        if (existing) clearTimeout(existing);
+        timers.set(
+          d.storeKey,
+          setTimeout(() => {
+            timers.delete(d.storeKey);
+            void flushTypedRecordStore(d).catch((err) =>
+              console.warn(
+                `[SYNC] typed-record "${d.storeKey}" enqueue failed:`,
                 err,
               ),
             );
@@ -1431,6 +1769,10 @@ export async function executeQueuedOp(op: QueuedOperation): Promise<void> {
     }
     case 'state-blob': {
       await executeStateBlobOp(op);
+      break;
+    }
+    case 'typed-record': {
+      await executeTypedRecordOp(op);
       break;
     }
     case 'comment': {
@@ -1596,6 +1938,7 @@ export const syncService = {
     // shadow; hydration + conflict surface land in Phase 4.
     if (FLAGS.SYNC_STATE_BLOBS) {
       unsubscribers.push(subscribeVersionedBlobs());
+      unsubscribers.push(subscribeTypedRecords());
       unsubscribers.push(subscribeToVegetation());
       unsubscribers.push(subscribeToSuccession());
     }
@@ -1608,6 +1951,11 @@ export const syncService = {
 
     // Run initial sync
     await initialSync();
+
+    // After hydrate, reseed typed-record snapshots so the first later edit
+    // diffs against the restored set (a single-record push) instead of
+    // re-pushing every hydrated record. No-op when record sync is disabled.
+    if (FLAGS.SYNC_STATE_BLOBS) reseedTypedRecordSnapshots();
 
     // Report sync completion to connectivity store
     const conn = useConnectivityStore.getState();

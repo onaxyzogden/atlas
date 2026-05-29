@@ -47,6 +47,8 @@ import type {
   ClientErrorEventInput,
   ProjectStateBlob,
   UpsertProjectStateInput,
+  SyncedRecord,
+  UpsertSyncedRecordInput,
   VegetationPatchSummary,
   CreateVegetationPatchInput,
   UpdateVegetationPatchInput,
@@ -549,6 +551,30 @@ export const api = {
       request<ProjectStateBlob>(
         'PUT',
         `/api/v1/project-state/project/${projectId}/${encodeURIComponent(storeKey)}`,
+        input,
+      ),
+  },
+
+  // Typed per-record sync for the Act stores (ADR 7 Phase 1). Mirrors
+  // `projectState`, but keyed per (project, storeKey, recordId) so each Act
+  // record carries its own rev. `list` pulls every record for one store;
+  // `upsert` writes one record under the baseRev-gated 409 conflict contract.
+  actRecords: {
+    list: (projectId: string, storeKey: string) =>
+      request<SyncedRecord[]>(
+        'GET',
+        `/api/v1/act-records/project/${projectId}/${encodeURIComponent(storeKey)}`,
+      ),
+
+    upsert: (
+      projectId: string,
+      storeKey: string,
+      recordId: string,
+      input: UpsertSyncedRecordInput,
+    ) =>
+      request<SyncedRecord>(
+        'PUT',
+        `/api/v1/act-records/project/${projectId}/${encodeURIComponent(storeKey)}/${encodeURIComponent(recordId)}`,
         input,
       ),
   },

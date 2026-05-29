@@ -13,6 +13,7 @@ export * from './schemas/machineryItem.schema.js';
 export * from './schemas/vegetationPatch.schema.js';
 export * from './schemas/successionMilestone.schema.js';
 export * from './schemas/projectState.schema.js';
+export * from './schemas/syncedRecord.schema.js';
 export * from './schemas/file.schema.js';
 export * from './schemas/export.schema.js';
 export * from './schemas/portal.schema.js';

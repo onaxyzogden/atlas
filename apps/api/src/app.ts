@@ -41,6 +41,7 @@ import designFeatureRoutes from './routes/design-features/index.js';
 import designMapRoutes from './routes/design-map/index.js';
 import machineryItemRoutes from './routes/machinery-items/index.js';
 import projectStateRoutes from './routes/project-state/index.js';
+import actRecordRoutes from './routes/act-records/index.js';
 import vegetationRoutes from './routes/vegetation/index.js';
 import successionRoutes from './routes/succession/index.js';
 import fileRoutes from './routes/files/index.js';
@@ -213,6 +214,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(designMapRoutes,     { prefix: '/api/v1/design-map' });
   await app.register(machineryItemRoutes, { prefix: '/api/v1/machinery-items' });
   await app.register(projectStateRoutes,  { prefix: '/api/v1/project-state' });
+  await app.register(actRecordRoutes,      { prefix: '/api/v1/act-records' });
   await app.register(vegetationRoutes,    { prefix: '/api/v1/vegetation' });
   await app.register(successionRoutes,    { prefix: '/api/v1/succession' });
   await app.register(fileRoutes,          { prefix: '/api/v1/projects' });

@@ -239,10 +239,146 @@ describe('syncManifest coverage guard', () => {
     ]);
   });
 
+  it('keeps the 4 Act stores on the typed-record path (ADR 7 P1, no blob double-write)', () => {
+    // The Act stores moved from versioned-blob to typed-record so each record
+    // syncs with its own rev/tier. If any drifts back to versioned-blob it
+    // would ALSO be carried by the generic blob loop → double-write + the
+    // opaque-payload tier-erasure this rework exists to fix. Pin typed-record.
+    const actKeys = [
+      'ogden-field-actions',
+      'ogden-observe-feed',
+      'ogden-observe-data-points',
+      'ogden-observe-cycles',
+    ];
+    for (const key of actKeys) {
+      const entry = SYNCED_STORES.find((d) => d.storeKey === key);
+      expect(entry, `${key} must be in SYNCED_STORES`).toBeDefined();
+      expect(
+        entry?.classification,
+        `${key} must be 'typed-record' so the versioned-blob loop cannot ` +
+          `double-write it`,
+      ).toBe<SyncClassification>('typed-record');
+    }
+    const blobKeys = SYNCED_STORES.filter(
+      (d) => d.classification === 'versioned-blob',
+    ).map((d) => d.storeKey);
+    for (const key of actKeys) {
+      expect(blobKeys, `${key} must not be in the versioned-blob set`).not.toContain(key);
+    }
+  });
+
+  it('gives every typed-record store live transport metadata (ADR 7 P1)', () => {
+    // Per-record analogue of the versioned-blob transport-metadata guard: the
+    // typed-record subscribe/enqueue/hydrate loop needs a live store handle, a
+    // per-record selector + applier, a scope, and the schemaVersion for the
+    // version-skew guard. Missing any = that Act store silently never syncs.
+    const records = SYNCED_STORES.filter((d) => d.classification === 'typed-record');
+    expect(records.length).toBe(4);
+    const incomplete = records
+      .filter(
+        (d) =>
+          !d.store ||
+          typeof d.store.getState !== 'function' ||
+          typeof d.store.subscribe !== 'function' ||
+          typeof d.selectRecordsForProject !== 'function' ||
+          typeof d.applyRecordForProject !== 'function' ||
+          !d.scope ||
+          typeof d.schemaVersion !== 'number',
+      )
+      .map((d) => d.storeKey);
+    expect(
+      incomplete,
+      `typed-record stores missing transport metadata ` +
+        `(store/selectRecordsForProject/applyRecordForProject/scope/schemaVersion):\n` +
+        incomplete.map((k) => `  - ${k}`).join('\n'),
+    ).toEqual([]);
+  });
+
+  it('typed-record selectRecordsForProject is total on empty state (no throw, returns [])', () => {
+    for (const d of SYNCED_STORES.filter((x) => x.classification === 'typed-record')) {
+      const state = d.store!.getState();
+      const recs = d.selectRecordsForProject!(state, '__no-such-project__');
+      expect(Array.isArray(recs), `${d.storeKey} selector did not return an array`).toBe(true);
+      expect(recs, `${d.storeKey} selector returned records for an unknown project`).toEqual([]);
+    }
+  });
+
+  it('typed-record array shape: select enumerates records + apply upserts one, isolating others', () => {
+    // field-actions is the byProject ARRAY shape (recordId = record.id).
+    const fa = SYNCED_STORES.find((d) => d.storeKey === 'ogden-field-actions')!;
+    const faState: any = {
+      byProject: {
+        A: [
+          { id: 'a1', cycleId: 'baseline', sourceType: 'plan', taskType: 'field_survey' },
+          { id: 'a2', cycleId: 3 },
+        ],
+        B: [{ id: 'b1' }],
+      },
+    };
+    const recsA = fa.selectRecordsForProject!(faState, 'A');
+    expect(recsA.map((r) => r.recordId)).toEqual(['a1', 'a2']);
+    // meta denormalises the tier hints; cycleId is coerced to string.
+    expect(recsA[0]!.meta).toMatchObject({
+      cycleId: 'baseline',
+      sourceType: 'plan',
+      taskType: 'field_survey',
+    });
+    expect(recsA[1]!.meta).toMatchObject({ cycleId: '3' });
+
+    let faStore: any = {
+      byProject: { A: [...faState.byProject.A], B: [...faState.byProject.B] },
+    };
+    const faHandle = {
+      getState: () => faStore,
+      setState: (p: any) => {
+        faStore = { ...faStore, ...(typeof p === 'function' ? p(faStore) : p) };
+      },
+    };
+    // update existing a1 (no duplicate)
+    fa.applyRecordForProject!(faHandle as never, 'A', 'a1', { id: 'a1', cycleId: 5 });
+    expect(faStore.byProject.A.find((r: any) => r.id === 'a1')).toEqual({ id: 'a1', cycleId: 5 });
+    expect(faStore.byProject.A).toHaveLength(2);
+    // insert new a3
+    fa.applyRecordForProject!(faHandle as never, 'A', 'a3', { id: 'a3' });
+    expect(faStore.byProject.A.map((r: any) => r.id)).toEqual(['a1', 'a2', 'a3']);
+    // project B untouched throughout
+    expect(faStore.byProject.B).toEqual([{ id: 'b1' }]);
+  });
+
+  it('typed-record keyed-map shape: select keys by domainId + apply upserts one domain, isolating others', () => {
+    // observe-cycles is the byProject KEYED-MAP shape (recordId = domainId).
+    const oc = SYNCED_STORES.find((d) => d.storeKey === 'ogden-observe-cycles')!;
+    const ocState: any = {
+      byProject: {
+        A: { water: { currentCycleId: 2 }, soil: { currentCycleId: 0 } },
+        B: { water: { currentCycleId: 9 } },
+      },
+    };
+    const recsA = oc.selectRecordsForProject!(ocState, 'A');
+    expect(recsA.map((r) => r.recordId).sort()).toEqual(['soil', 'water']);
+    const water = recsA.find((r) => r.recordId === 'water')!;
+    expect(water.meta).toMatchObject({ cycleId: '2' }); // currentCycleId → cycle_id, stringified
+
+    let ocStore: any = {
+      byProject: { A: { ...ocState.byProject.A }, B: { ...ocState.byProject.B } },
+    };
+    const ocHandle = {
+      getState: () => ocStore,
+      setState: (p: any) => {
+        ocStore = { ...ocStore, ...(typeof p === 'function' ? p(ocStore) : p) };
+      },
+    };
+    oc.applyRecordForProject!(ocHandle as never, 'A', 'water', { currentCycleId: 3 });
+    expect(ocStore.byProject.A.water).toEqual({ currentCycleId: 3 });
+    expect(ocStore.byProject.A.soil).toEqual({ currentCycleId: 0 }); // sibling domain untouched
+    expect(ocStore.byProject.B).toEqual({ water: { currentCycleId: 9 } }); // project B untouched
+  });
+
   it('only uses known classification values', () => {
     const allowed: SyncClassification[] = [
       'typed-design-feature',
       'typed-table',
+      'typed-record',
       'versioned-blob',
     ];
     for (const d of SYNCED_STORES) {

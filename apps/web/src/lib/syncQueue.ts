@@ -24,6 +24,7 @@ export type SyncStoreType =
   | 'point'
   | 'comment'
   | 'state-blob'
+  | 'typed-record'
   | 'vegetation'
   | 'succession'
   | 'proof_photo_upload';

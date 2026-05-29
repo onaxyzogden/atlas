@@ -117,6 +117,7 @@ import { usePlanRevisionDismissalStore } from '../store/planRevisionDismissalSto
 export type SyncClassification =
   | 'typed-design-feature'
   | 'typed-table'
+  | 'typed-record'
   | 'versioned-blob';
 
 /** Shape of a project-scoped store's persisted state across projects. */
@@ -133,6 +134,19 @@ export type StoreScope =
 export interface VersionedBlobStoreHandle {
   getState: () => unknown;
   subscribe: (listener: (state: unknown, prev: unknown) => void) => () => void;
+}
+
+/**
+ * Denormalised per-record tier/sort hints for the `typed-record` transport
+ * (ADR 7 Phase 1). Mirrored onto `synced_records` columns so the queue and
+ * server can tier/index without parsing the opaque payload. Every field is
+ * best-effort — a record lacking it sends null.
+ */
+export interface SyncedRecordMeta {
+  observedAt?: string | null;
+  sourceType?: string | null;
+  cycleId?: string | null;
+  taskType?: string | null;
 }
 
 export interface SyncedStoreDescriptor {
@@ -167,6 +181,29 @@ export interface SyncedStoreDescriptor {
   applyForProject?: (
     store: { getState: () => unknown; setState: (p: unknown) => void },
     projectId: string,
+    incoming: unknown,
+  ) => void;
+  /**
+   * `typed-record` only: enumerate this project's records as
+   * `{ recordId, record, meta }` triples. `recordId` is the stable per-record
+   * sync key (an array element's `id`, or the inner map key for keyed-map
+   * stores like observe-cycles). `meta` carries the denormalised tier hints.
+   * Total — never throws; an empty/unknown project yields `[]`.
+   */
+  selectRecordsForProject?: (
+    state: unknown,
+    projectId: string,
+  ) => Array<{ recordId: string; record: unknown; meta?: SyncedRecordMeta }>;
+  /**
+   * Inverse of `selectRecordsForProject`: upsert ONE hydrated server record
+   * (by `recordId`) into the live store for `projectId`, leaving every other
+   * record and every other project untouched. Goes through `setState` so the
+   * `isSyncing` guard suppresses a write-through bounce.
+   */
+  applyRecordForProject?: (
+    store: { getState: () => unknown; setState: (p: unknown) => void },
+    projectId: string,
+    recordId: string,
     incoming: unknown,
   ) => void;
 }
@@ -383,6 +420,148 @@ function blob(
     applyForProject: shape.apply as SyncedStoreDescriptor['applyForProject'],
   };
 }
+
+/**
+ * A typed-record shape: how to enumerate this project's records as
+ * `{ recordId, record, meta }` triples (`selectRecords`) and how to upsert ONE
+ * hydrated server record back by `recordId` without disturbing other records
+ * or other projects (`applyRecord`). `applyRecord` always goes through
+ * `setState((st) => patch)` so the `isSyncing` guard suppresses a write-through
+ * bounce — exactly like `BlobShape.apply`.
+ */
+interface RecordShape {
+  selectRecords: (
+    state: any,
+    projectId: string,
+  ) => Array<{ recordId: string; record: unknown; meta?: SyncedRecordMeta }>;
+  applyRecord: (
+    store: StoreApi,
+    projectId: string,
+    recordId: string,
+    incoming: unknown,
+  ) => void;
+}
+
+/**
+ * Best-effort denormalised tier hints pulled from a record without knowing its
+ * concrete type. The authoritative copy lives inside the record (the payload);
+ * these are mirrored onto `synced_records` columns so the queue (Phase 2) can
+ * tier and the server can index without parsing the blob. Lenient by design —
+ * a field the record lacks resolves to null. `capturedAt` (Observe) and
+ * `sourceObjectiveType` (Observe data points) are accepted as aliases for the
+ * canonical `observedAt` / `sourceType`.
+ */
+function extractRecordMeta(rec: any): SyncedRecordMeta {
+  const observedAt =
+    typeof rec?.observedAt === 'string'
+      ? rec.observedAt
+      : typeof rec?.capturedAt === 'string'
+        ? rec.capturedAt
+        : null;
+  const sourceType =
+    typeof rec?.sourceType === 'string'
+      ? rec.sourceType
+      : typeof rec?.sourceObjectiveType === 'string'
+        ? rec.sourceObjectiveType
+        : null;
+  return {
+    observedAt,
+    sourceType,
+    cycleId: rec?.cycleId != null ? String(rec.cycleId) : null,
+    taskType: typeof rec?.taskType === 'string' ? rec.taskType : null,
+  };
+}
+
+/**
+ * typed-record shape for a `byProject` ARRAY store (`Record<projectId, T[]>`,
+ * each `T` carrying a stable `id`). recordId = `String(record.id)`. Mirrors
+ * `byKey('byProject', null, [])` on the read side, but emits one entry per
+ * element instead of the whole array. Records without an `id` are skipped on
+ * select (they have no stable sync key) and never block the rest.
+ */
+function recordArray(): RecordShape {
+  return {
+    selectRecords: (state, pid) => {
+      const list = (state?.byProject?.[pid] as any[]) ?? [];
+      return list
+        .filter((rec) => rec != null && rec.id != null)
+        .map((rec) => ({
+          recordId: String(rec.id),
+          record: rec,
+          meta: extractRecordMeta(rec),
+        }));
+    },
+    applyRecord: (store, pid, recordId, incoming) =>
+      store.setState((st: any) => {
+        const byProject = { ...((st?.byProject as any) ?? {}) };
+        const list = [...((byProject[pid] as any[]) ?? [])];
+        const idx = list.findIndex((r) => String(r?.id) === recordId);
+        if (idx >= 0) list[idx] = incoming;
+        else list.push(incoming);
+        byProject[pid] = list;
+        return { byProject };
+      }),
+  };
+}
+
+/**
+ * typed-record shape for a `byProject` KEYED-MAP store
+ * (`Record<projectId, Record<recordKey, V>>`). recordId = the inner map key —
+ * observe-cycles keys per-domain cycle state by domainId, so recordId is the
+ * domainId. `cycleIdField` names the field on `V` to denormalise as the
+ * `cycle_id` hint (observe-cycles -> `currentCycleId`).
+ */
+function recordKeyedMap(cycleIdField?: string): RecordShape {
+  return {
+    selectRecords: (state, pid) => {
+      const map = (state?.byProject?.[pid] as Record<string, any>) ?? {};
+      return Object.entries(map)
+        .filter(([, value]) => value != null)
+        .map(([recordId, value]) => ({
+          recordId,
+          record: value,
+          meta: {
+            cycleId:
+              cycleIdField != null && value?.[cycleIdField] != null
+                ? String(value[cycleIdField])
+                : null,
+          },
+        }));
+    },
+    applyRecord: (store, pid, recordId, incoming) =>
+      store.setState((st: any) => {
+        const byProject = { ...((st?.byProject as any) ?? {}) };
+        byProject[pid] = { ...((byProject[pid] as any) ?? {}), [recordId]: incoming };
+        return { byProject };
+      }),
+  };
+}
+
+/**
+ * typed-record registration helper — the per-record analogue of `blob()`.
+ * `schemaVersion` MUST match the store's persist `version` so the hydrate-side
+ * version-skew guard stays correct (field-actions is persist v2 post-Phase-0).
+ */
+function record(
+  storeKey: string,
+  store: { getState: () => unknown; subscribe: (...a: any[]) => any },
+  scope: StoreScope,
+  schemaVersion: number,
+  shape: RecordShape,
+  usesTemporal = false,
+): SyncedStoreDescriptor {
+  return {
+    storeKey,
+    classification: 'typed-record',
+    scope,
+    schemaVersion,
+    usesTemporal,
+    store: store as unknown as VersionedBlobStoreHandle,
+    selectRecordsForProject: shape.selectRecords,
+    applyRecordForProject:
+      shape.applyRecord as SyncedStoreDescriptor['applyRecordForProject'],
+  };
+}
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
@@ -530,37 +709,40 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // lastReviewedAt / reviewMode / lastDecisionConfirmedAt per objective.
   blob('ogden-cyclical-review', useCyclicalReviewStore, 'byProject', 1, byKey('byProject', null, {})),
 
-  // --- OLOS Act field actions (Phase 3 Slice 3.1) ---
+  // --- OLOS Act field actions (Phase 3 Slice 3.1; typed-record ADR 7 P1) ---
   // FieldAction is a new entity (locked decision: not a WorkItem extension).
-  // Classified as `versioned-blob byProject` until the server-side typed
-  // table backing lands; the generic blob loop carries the per-project
-  // FieldAction[] payload across devices in the meantime. Same pattern as
-  // the other client-only OLOS stores (planTier, observationNeed, etc.).
-  blob('ogden-field-actions', useFieldActionStore, 'byProject', 1, byKey('byProject', null, [])),
+  // `typed-record` (ADR 7 Phase 1): each FieldAction syncs as its own typed op
+  // (recordId = action.id) on the `synced_records` table, carrying its own rev
+  // + denormalised cycleId/sourceType/taskType — replacing the opaque
+  // per-project blob so the 5-tier queue (Phase 2) can tier by semantics.
+  // schemaVersion 2 mirrors the store's persist version (Phase 0 v1->v2 bump).
+  record('ogden-field-actions', useFieldActionStore, 'byProject', 2, recordArray()),
 
   // --- OLOS Observe feed (Phase 3 Slice 3.5) ---
   // Lightweight per-project append-only feed of verified/diverged events
   // from the Act state machine. Plan Revision Banner + tier divergence
   // indicator consume this. Phase 4 will normalise into the canonical
   // ObservationRecord substrate; today this is the working surface.
-  blob('ogden-observe-feed', useObserveFeedStore, 'byProject', 1, byKey('byProject', null, [])),
+  // `typed-record` (ADR 7 P1): each feed event syncs per-record (recordId = event.id).
+  record('ogden-observe-feed', useObserveFeedStore, 'byProject', 1, recordArray()),
 
   // --- OLOS Observe Dashboard substrate (Phase 4 Slice 4.1) ---
   // Per-project ObserveDataPoint rows. New captures auto-supersede same-
   // domain neighbours within the per-domain proximity radius. The "Not a
-  // replacement" CTA restores both. Classified as `versioned-blob
-  // byProject`; the formal server-backed entity arrives in a later
-  // engineering follow-up (Phase 4 locked decision: local-first).
-  blob('ogden-observe-data-points', useObserveDataPointStore, 'byProject', 1, byKey('byProject', null, [])),
+  // replacement" CTA restores both. `typed-record` (ADR 7 P1): each data
+  // point syncs per-record (recordId = point.id) on `synced_records`,
+  // denormalising capturedAt -> observed_at + sourceType for Phase 2 tiering.
+  record('ogden-observe-data-points', useObserveDataPointStore, 'byProject', 1, recordArray()),
 
   // --- OLOS Observe cycle counters (Phase 4 Slice 4.1) ---
   // Per (project, domain) monotonic cycleId + append-only history of
   // advance events. Cycles advance only via `confirmDecision` /
   // `acknowledgeRevise` (wired in Slice 4.5). New captures stamp with
   // the current cycleId so the Temporal Layer can annotate the x-axis.
-  // Payload is `Record<domainId, ObserveDomainCycleState>` per project,
-  // which fits the byKey('byProject', null, {}) shape.
-  blob('ogden-observe-cycles', useObserveCycleStore, 'byProject', 1, byKey('byProject', null, {})),
+  // Payload is `Record<domainId, ObserveDomainCycleState>` per project — a
+  // KEYED MAP, so `typed-record` (ADR 7 P1) keys each record by domainId
+  // (recordId = domainId) and denormalises currentCycleId -> cycle_id.
+  record('ogden-observe-cycles', useObserveCycleStore, 'byProject', 1, recordKeyedMap('currentCycleId')),
 
   // --- OLOS Observe presentation shares (Phase 4 Slice 4.1) ---
   // Per-project list of token-based share links for Presentation Mode.
