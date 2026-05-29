@@ -14,7 +14,7 @@
  */
 
 import { api } from './apiClient.js';
-import { syncQueue, type QueuedOperation } from './syncQueue.js';
+import { syncQueue, describeSyncError, type QueuedOperation } from './syncQueue.js';
 import { pushProjectStateBlob, buildBlobEnvelope, blobLocalId } from './blobSync.js';
 import { SYNCED_STORES, type SyncedStoreDescriptor } from './syncManifest.js';
 import { useProjectStore, type LocalProject } from '../store/projectStore.js';
@@ -288,7 +288,7 @@ async function syncProjectCreate(project: LocalProject, rethrow = false) {
       }
     }
   } catch (err) {
-    console.warn('[SYNC] Project create failed, queuing:', err);
+    console.warn('[SYNC] Project create failed, queuing: ' + describeSyncError(err), err);
     if (rethrow) throw err;
     await syncQueue.enqueue({
       storeType: 'project',

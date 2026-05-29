@@ -6,11 +6,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
-import type { CreateProjectInput, ProjectMetadata } from '@ogden/shared';
+import { ProjectType, type CreateProjectInput, type ProjectMetadata } from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
 import { cascadeCloneProject } from './cascadeClone.js';
 import { geodataCache } from '../lib/geodataCache.js';
 import { api } from '../lib/apiClient.js';
+import { ARCHETYPE_TO_PROJECT_TYPE } from '../v3/true-north/trueNorthConfig.js';
 import {
   seedBuiltinObserveData,
   BUILTIN_PROJECT_NARRATIVE,
@@ -285,6 +286,33 @@ function generateId(): string {
   return crypto.randomUUID();
 }
 
+/**
+ * Normalize a project's `projectType` to the server's canonical snake_case
+ * `ProjectType` enum. The Plan goal-tree / intake vocabulary uses kebab-case
+ * archetypes (e.g. "regenerative-farm"); if one leaks into `projectType` (a
+ * legacy fixture, or a creation path that skipped `ARCHETYPE_TO_PROJECT_TYPE`),
+ * `project:create` fails server validation with a 422 "Invalid enum value" on
+ * sync. Normalizing on write (createProject) and on rehydrate (persist migrate)
+ * keeps the local store free of unsyncable values.
+ *
+ *   null / undefined / ""        -> null   (projectType is optional server-side)
+ *   valid snake_case ProjectType -> unchanged
+ *   known kebab archetype        -> mapped to its snake_case ProjectType
+ *   anything else                -> null   (unsyncable; drop rather than 422)
+ */
+const ARCHETYPE_PROJECT_TYPE_LOOKUP = ARCHETYPE_TO_PROJECT_TYPE as Record<
+  string,
+  string | undefined
+>;
+
+export function normalizeProjectType(
+  value: string | null | undefined,
+): string | null {
+  if (value == null || value === '') return null;
+  if (ProjectType.safeParse(value).success) return value;
+  return ARCHETYPE_PROJECT_TYPE_LOOKUP[value] ?? null;
+}
+
 export const useProjectStore = create<ProjectState>()(
   persist(
     (set, get) => ({
@@ -303,7 +331,7 @@ export const useProjectStore = create<ProjectState>()(
           name: input.name,
           description: input.description ?? null,
           status: 'active',
-          projectType: input.projectType ?? null,
+          projectType: normalizeProjectType(input.projectType),
           country: input.country ?? 'US',
           provinceState: input.provinceState ?? null,
           conservationAuthId: null,
@@ -531,7 +559,7 @@ export const useProjectStore = create<ProjectState>()(
     }),
     {
       name: 'ogden-projects',
-      version: 4,
+      version: 5,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 3) {
@@ -547,6 +575,20 @@ export const useProjectStore = create<ProjectState>()(
           // `getZoneThresholds(project)`. Leaving the field absent
           // means future default changes (e.g. 25→30) propagate to
           // unmigrated projects automatically.
+        }
+        if (version < 5) {
+          // Normalize kebab-case archetype values that leaked into
+          // projectType (e.g. a legacy "regenerative-farm" fixture) to the
+          // server snake_case ProjectType enum, so project:create stops
+          // failing server validation with a 422 on sync. See
+          // normalizeProjectType.
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => ({
+            ...p,
+            projectType: normalizeProjectType(
+              (p as { projectType?: string | null }).projectType,
+            ),
+          }));
         }
         return state;
       },

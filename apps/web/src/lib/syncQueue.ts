@@ -72,6 +72,32 @@ async function tx(mode: IDBTransactionMode): Promise<IDBObjectStore> {
 
 // ─── Queue API ───────────────────────────────────────────────────────────────
 
+/**
+ * Build a diagnostic message for a failed queued op. A server validation
+ * failure throws an ApiError carrying a `details` array of `{ path, message }`
+ * (one entry per offending field); fold those into the message so the give-up
+ * log names the field instead of the opaque "Request validation failed".
+ * Duck-typed on `details` so this module stays free of apiClient/UI imports.
+ */
+export function describeSyncError(err: unknown): string {
+  const base = err instanceof Error ? err.message : String(err);
+  const details = (err as { details?: unknown } | null | undefined)?.details;
+  if (Array.isArray(details) && details.length > 0) {
+    const fields = details
+      .map((d) => {
+        const path = (d as { path?: unknown })?.path;
+        const message = (d as { message?: unknown })?.message;
+        const p = path == null ? '' : String(path);
+        const m = message == null ? '' : String(message);
+        return p ? `${p}: ${m}`.trim() : m;
+      })
+      .filter(Boolean)
+      .join('; ');
+    if (fields) return `${base} [${fields}]`;
+  }
+  return base;
+}
+
 export const syncQueue = {
   async enqueue(
     op: Omit<QueuedOperation, 'id' | 'timestamp' | 'retryCount'>,
@@ -266,7 +292,7 @@ export const syncQueue = {
         const updated: QueuedOperation = {
           ...op,
           retryCount: op.retryCount + 1,
-          lastError: err instanceof Error ? err.message : String(err),
+          lastError: describeSyncError(err),
         };
 
         // Write back with incremented retry count
