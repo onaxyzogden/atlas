@@ -12,7 +12,7 @@
  *     focused question. Falls back to "Open Tier 0" if all T0 items
  *     happen to be derived-complete.
  *   - Two CTAs:
- *       Go to my project          → /v3/project/$id/plan
+ *       Go to my project          → /v3/project/$id/home   (Slice 5.4 repoint)
  *       Continue setup in Plan    → /v3/project/$id/plan?highlightIncomplete=t0
  *
  * Per spec sec 5.3: NO checklists rendered here, NO generic congrats,
@@ -105,7 +105,7 @@ export default function WizardCompletionScreen({
 
   const goToProject = () => {
     navigate({
-      to: '/v3/project/$projectId/plan',
+      to: '/v3/project/$projectId/home',
       params: { projectId: project.id },
     });
   };

@@ -36,6 +36,7 @@ import OrganizationCreatePage from '../pages/OrganizationCreatePage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
 import V3HomePage from '../v3/pages/HomePage.js';
+import PerProjectHomePage from '../v3/home/PerProjectHomePage.js';
 import ProjectsLandingPage from '../v3/pages/ProjectsLandingPage.js';
 import PortfolioHomePage from '../v3/portfolio/PortfolioHomePage.js';
 import V3DesignPage from '../v3/pages/DesignPage.js';
@@ -296,15 +297,20 @@ const v3AffinityTelemetryRoute = createRoute({
   component: AffinityTelemetryDashboard,
 });
 
+// Per-Project Home (Phase 5, Slice 5.4) is the canonical landing for
+// `/v3/project/$projectId` and `/v3/project/$projectId/home`. The legacy
+// V3HomePage is kept on disk + still imported above per
+// `feedback_no_deletion.md`; future surfaces may reuse its primitives
+// (HomeHero, ActivityList, ActionList, ObservedStamp).
 const v3IndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: '/',
-  component: V3HomePage,
+  component: PerProjectHomePage,
 });
 const v3HomeRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'home',
-  component: V3HomePage,
+  component: PerProjectHomePage,
 });
 // Legacy 7-stage redirect → Observe (page components retired 2026-05-21;
 // the redirects survive to preserve deep-link compatibility for any
