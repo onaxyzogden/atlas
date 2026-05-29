@@ -108,3 +108,51 @@ describe('actTaskStore.pullAll', () => {
     expect(stored['uuid-a']?.assigneeId).toBe('u-me');
   });
 });
+
+describe('actTaskStore.pushOne', () => {
+  it('create path: POSTs by serverId, replaces the local-id draft, normalises projectId', async () => {
+    const draft = task({
+      id: 'task-local',
+      projectId: 'local-1',
+      assigneeId: 'u-me',
+    });
+    useActTaskStore.setState({
+      byProject: { 'local-1': { 'task-local': draft } },
+    });
+    h.createResp = task({
+      id: 'uuid-new',
+      projectId: 'srv-1',
+      assigneeId: 'u-me',
+    });
+
+    await useActTaskStore.getState().pushOne(draft, 'srv-1');
+
+    expect(h.createCalls[0]?.projectId).toBe('srv-1'); // addressed by serverId
+    const stored = useActTaskStore.getState().byProject['local-1'] ?? {};
+    expect(stored['task-local']).toBeUndefined(); // draft removed (dedup)
+    expect(stored['uuid-new']?.projectId).toBe('local-1'); // normalised + correct bucket
+  });
+
+  it('update path: PATCHes by serverId + taskId, normalises projectId', async () => {
+    const existing = task({
+      id: 'uuid-x',
+      projectId: 'local-1',
+      assigneeId: 'u-me',
+    });
+    useActTaskStore.setState({
+      byProject: { 'local-1': { 'uuid-x': existing } },
+    });
+    h.updateResp = task({
+      id: 'uuid-x',
+      projectId: 'srv-1',
+      assigneeId: 'u-me',
+    });
+
+    await useActTaskStore.getState().pushOne(existing, 'srv-1');
+
+    expect(h.updateCalls[0]?.projectId).toBe('srv-1');
+    expect(h.updateCalls[0]?.taskId).toBe('uuid-x');
+    const stored = useActTaskStore.getState().byProject['local-1'] ?? {};
+    expect(stored['uuid-x']?.projectId).toBe('local-1');
+  });
+});

@@ -101,8 +101,8 @@ interface ActTaskState {
    * local state. Each server record's projectId is normalised to the LOCAL id.
    */
   pullAll: (projectId: string, serverId: string) => Promise<void>;
-  /** POST (local id) or PATCH (UUID) the task upstream. */
-  pushOne: (task: ActTask) => Promise<ActTask | null>;
+  /** POST (local id) or PATCH (UUID) the task upstream, addressed by serverId. */
+  pushOne: (task: ActTask, serverId: string) => Promise<ActTask | null>;
   /** DELETE the task on the server. */
   pushDelete: (projectId: string, taskId: string) => Promise<void>;
   /** Read the sync state for a project. */
@@ -259,24 +259,30 @@ export const useActTaskStore = create<ActTaskState>()(
           }
         },
 
-        pushOne: async (task) => {
+        pushOne: async (task, serverId) => {
+          // task.projectId is the LOCAL id (the store is local-keyed); the API
+          // is addressed by serverId. Saved records are normalised back to the
+          // local id before being written to the store.
+          const localProjectId = task.projectId;
           try {
             if (isLocalId(task.id)) {
               const { id: _id, projectId: _p, createdAt: _c, ...input } = task;
-              const env = await api.olos.tasks.create(task.projectId, input);
+              const env = await api.olos.tasks.create(serverId, input);
               if (env.error) throw new Error(env.error.message);
               const saved = env.data;
               if (!saved) return null;
-              set((s) => ({
-                byProject: {
-                  ...s.byProject,
-                  [saved.projectId]: {
-                    ...(s.byProject[saved.projectId] ?? {}),
-                    [saved.id]: saved,
-                  },
-                },
-              }));
-              return saved;
+              const normalised = { ...saved, projectId: localProjectId };
+              set((s) => {
+                const project = { ...(s.byProject[localProjectId] ?? {}) };
+                // Drop the local-id draft so the created task is not duplicated
+                // alongside its server copy.
+                delete project[task.id];
+                project[saved.id] = normalised;
+                return {
+                  byProject: { ...s.byProject, [localProjectId]: project },
+                };
+              });
+              return normalised;
             }
             const {
               id: _id,
@@ -285,29 +291,26 @@ export const useActTaskStore = create<ActTaskState>()(
               createdAt: _c,
               ...patch
             } = task;
-            const env = await api.olos.tasks.update(
-              task.projectId,
-              task.id,
-              patch,
-            );
+            const env = await api.olos.tasks.update(serverId, task.id, patch);
             if (env.error) throw new Error(env.error.message);
             const saved = env.data;
             if (!saved) return null;
+            const normalised = { ...saved, projectId: localProjectId };
             set((s) => ({
               byProject: {
                 ...s.byProject,
-                [saved.projectId]: {
-                  ...(s.byProject[saved.projectId] ?? {}),
-                  [saved.id]: saved,
+                [localProjectId]: {
+                  ...(s.byProject[localProjectId] ?? {}),
+                  [saved.id]: normalised,
                 },
               },
             }));
-            return saved;
+            return normalised;
           } catch (err) {
             set((s) => ({
               syncByProject: {
                 ...s.syncByProject,
-                [task.projectId]: errorSync(err),
+                [localProjectId]: errorSync(err),
               },
             }));
             throw err;
