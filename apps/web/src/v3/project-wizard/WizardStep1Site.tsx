@@ -43,13 +43,18 @@ const UNIT_OPTIONS: ReadonlyArray<{ id: WizardUnits; label: string }> = [
   { id: 'metric', label: 'Metric (hectares)' },
 ];
 
+// Legacy Step-1 project-type chip. Repointed to valid taxonomy ids after the
+// v1.2 rename (educational_farm -> education, retreat_center -> agritourism,
+// multi_enterprise -> ecovillage; regenerative_farm already present). This
+// optional quick-pick is superseded by the required Step-2 12-card grid
+// (Sub-slice E); kept here, not deleted, until that lands.
 const PROJECT_TYPE_OPTIONS: ReadonlyArray<{ id: ProjectType; label: string }> = [
   { id: 'regenerative_farm', label: 'Regenerative farm' },
   { id: 'homestead', label: 'Homestead' },
-  { id: 'educational_farm', label: 'Educational farm' },
-  { id: 'retreat_center', label: 'Retreat center' },
+  { id: 'education', label: 'Education' },
+  { id: 'agritourism', label: 'Agritourism' },
   { id: 'conservation', label: 'Conservation' },
-  { id: 'multi_enterprise', label: 'Multi-enterprise' },
+  { id: 'ecovillage', label: 'Ecovillage' },
 ];
 
 /**

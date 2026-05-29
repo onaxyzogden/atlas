@@ -4,10 +4,13 @@
  *
  * The projects.project_type column is plain text (no DB constraint), but the
  * API parses every row through the ProjectSummary Zod schema, whose ProjectType
- * enum only allows regenerative_farm | retreat_center | homestead |
- * educational_farm | conservation | multi_enterprise | moontrance. A row with
- * 'farm' therefore made the PUBLIC GET /api/v1/projects/builtins endpoint throw
- * a ZodError → 422 for any list containing such a row.
+ * enum allows the 13 v1.2 taxonomy ids (homestead, regenerative_farm,
+ * market_garden, orchard_food_forest, silvopasture, ecovillage, agritourism,
+ * education, conservation, off_grid, wellness, nursery, residential) plus the
+ * `moontrance` sentinel. A row with 'farm' therefore made the PUBLIC GET
+ * /api/v1/projects/builtins endpoint throw a ZodError → 422 for any list
+ * containing such a row. (Legacy retreat_center / educational_farm /
+ * multi_enterprise are backfilled by migration 046.)
  *
  * Seeds 029/032 are now corrected to 'regenerative_farm' for fresh DBs, and
  * forward migration 042 repairs already-migrated DBs. This test proves all

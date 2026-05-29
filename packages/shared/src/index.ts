@@ -119,6 +119,9 @@ export * from './constants/olos/objectives.js';
 // Plan tier shell (OLOS Plan Navigation Spec v1)
 export * from './schemas/plan/planTierObjective.schema.js';
 export * from './constants/plan/tierObjectives.js';
+// Per-type objective model (OLOS Project-Type + Secondary-Layer Spec v1.2)
+export * from './schemas/plan/projectTypeTaxonomy.schema.js';
+export * from './constants/plan/projectTypes.js';
 export {
   computeObjectiveStatus,
   computeAllObjectiveStatuses,

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { VisionProfile } from './visionProfile.schema.js';
+import { ProjectTypeRecord } from './plan/projectTypeTaxonomy.schema.js';
 
 // 'INTL' is the catch-all bucket for projects outside US/CA coverage.
 // Adapter registry routes INTL → NasaPowerAdapter for climate; other Tier-1
@@ -83,6 +84,12 @@ export const ProjectMetadata = z.object({
   // resume cursor for `/v3/project/$id/wizard/$step` deep-link recovery.
   wizardStatus: z.enum(['in_progress', 'complete']).optional(),
   wizardLastStep: z.enum(['site', 'vision', 'team']).optional(),
+  // Per-type objective-model selection (OLOS Project-Type + Secondary-Layer
+  // Spec v1.2). Written incrementally by Wizard Step 2 (primary + optional
+  // compatible secondaries + tension acknowledgements) and read by the
+  // resolution engine at completion to seed the per-project objective set.
+  // Additive + passthrough — lives in the metadata jsonb, no migration.
+  projectTypeRecord: ProjectTypeRecord.optional(),
   // Project Creation Wizard Step 3 (Phase 2 / Slice 2.3). Captures the
   // primary steward identity plus a queue of pending invites. Sends are
   // deferred to Phase 6's notification architecture — for now the queue
@@ -147,14 +154,28 @@ export const ProjectMetadata = z.object({
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
+// 13-type OLOS taxonomy (Project-Type + Secondary-Layer Spec v1.2) plus the
+// `moontrance` identity sentinel — kept so historical OGDEN-template projects
+// still validate, but never offered in the wizard (which reads PROJECT_TYPES).
+// The 13 catalogue ids live in ProjectTypeId (projectTypeTaxonomy.schema.ts);
+// a sync test asserts ProjectType is the superset. Legacy values
+// (retreat_center / educational_farm / multi_enterprise) are backfilled by
+// migration 046 to agritourism / education / regenerative_farm respectively.
 export const ProjectType = z.enum([
-  'regenerative_farm',
-  'retreat_center',
   'homestead',
-  'educational_farm',
+  'regenerative_farm',
+  'market_garden',
+  'orchard_food_forest',
+  'silvopasture',
+  'ecovillage',
+  'agritourism',
+  'education',
   'conservation',
-  'multi_enterprise',
-  'moontrance',       // OGDEN identity template
+  'off_grid',
+  'wellness',
+  'nursery',
+  'residential',
+  'moontrance',       // OGDEN identity template (sentinel; not in ProjectTypeId)
 ]);
 export type ProjectType = z.infer<typeof ProjectType>;
 
