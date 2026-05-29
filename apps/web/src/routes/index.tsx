@@ -56,6 +56,9 @@ import ActStageCompassPage from '../v3/act/compass/ActStageCompassPage.js';
 import ObserveCommandCentrePage from '../v3/command/ObserveCommandCentrePage.js';
 import PlanCommandCentrePage from '../v3/plan/command/PlanCommandCentrePage.js';
 import ActCommandCentrePage from '../v3/act/command/ActCommandCentrePage.js';
+// PROTOTYPE-ONLY: map-centric Act tier shell concept (dev route only). See
+// apps/web/src/v3/act/tier-prototype/ — coexists with ActLayout, deletable.
+import ActProtoTierShell from '../v3/act/tier-prototype/ActProtoTierShell.js';
 import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
 import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
@@ -536,6 +539,14 @@ const v3ActCompassRoute = createRoute({
 // field-action is the active shell. Static `act/field-action/...` prefixes
 // resolve BEFORE `act/$module` so the legacy module routes remain reachable
 // for projects that have flipped the toggle to command-centre.
+// PROTOTYPE-ONLY: map-centric Act tier shell concept. Static path resolves
+// before `act/$module`. Standalone dev route (no toggle into the live flow);
+// the whole tier-prototype/ folder is deletable once look/feel is validated.
+const v3ActTierPrototypeRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/tier-prototype',
+  component: ActProtoTierShell,
+});
 const v3ActFieldActionRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'act/field-action',
@@ -824,6 +835,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanModuleRoute,
       v3ActCompassRoute,
       v3ActCommandCentreRoute,
+      v3ActTierPrototypeRoute,
       v3ActFieldActionRoute,
       v3ActFieldActionObjectiveRoute,
       v3ActRoute,
