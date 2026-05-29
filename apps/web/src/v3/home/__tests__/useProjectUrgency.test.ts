@@ -134,7 +134,7 @@ describe('useProjectUrgency', () => {
             tierId: 't0',
             title: 'Blocked task',
             description: null,
-            taskType: 'survey',
+            taskType: 'field_survey',
             status: 'blocked',
             proofSchemaId: 'note-only',
             proofItems: [],

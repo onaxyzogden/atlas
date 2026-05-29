@@ -66,6 +66,12 @@ export interface CreateFieldActionInput {
   assignedTo?: string[];
   mapOverlayIds?: string[];
   locationGeometry?: FieldAction['locationGeometry'];
+  /**
+   * Cycle to stamp on the new action (ADR 2). Defaults to 0 (current cycle
+   * of an un-advanced project). Pass 'baseline' for a pre-cycle-0 baseline
+   * survey. Immutable after creation.
+   */
+  cycleId?: FieldAction['cycleId'];
 }
 
 /** Pick of FieldAction fields that may be patched directly (no status). */
@@ -232,6 +238,168 @@ function applyTransition(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Persistence migration (v1 -> v2): ADR 2 cycleId + ADR 7 Phase 0 fields
+// (4-value taskType, observedAt, sourceObjectiveType anchor). The exported
+// pieces are pure and unit-tested in __tests__/fieldActionStore.migrate.test.ts;
+// the cross-store cycle backfill wiring is covered by the lifecycle test there.
+// Pattern mirrors closedLoopStore's same-key migrate() + onRehydrateStorage
+// foreign-key fold.
+// ---------------------------------------------------------------------------
+
+const OBSERVE_CYCLE_PERSIST_KEY = 'ogden-observe-cycles';
+
+/**
+ * Legacy 2-value taskType -> the 4-value taxonomy (ADR 2). Unknown/empty
+ * values fall back to the non-field bucket so a stray value never crashes a
+ * parse; already-migrated values pass through unchanged (idempotent).
+ */
+export function remapTaskType(legacy: unknown): FieldActionTaskType {
+  switch (legacy) {
+    case 'survey':
+      return 'field_survey';
+    case 'implementation':
+      return 'implementation_task';
+    case 'field_survey':
+    case 'monitoring_task':
+    case 'implementation_task':
+    case 'administrative_task':
+      return legacy;
+    default:
+      return 'administrative_task';
+  }
+}
+
+/**
+ * persist `migrate` (v1 -> v2). Same-store field transforms ONLY: remap
+ * taskType, backfill observedAt (= updatedAt, the best available proxy for
+ * when the work happened) and sourceObjectiveType (= null, the ADR 9 anchor).
+ * cycleId is deliberately left undefined here — the cross-store backfill needs
+ * observeCycleStore, which migrate cannot read; onRehydrateStorage resolves it.
+ * Idempotent: v2+ input is returned unchanged.
+ */
+export function migratePersisted(
+  persisted: unknown,
+  fromVersion: number,
+): FieldActionState {
+  if (!persisted || typeof persisted !== 'object') {
+    return { byProject: {} } as unknown as FieldActionState;
+  }
+  const state = persisted as { byProject?: Record<string, unknown[]> };
+  const byProject = state.byProject ?? {};
+  if (fromVersion >= 2) {
+    return { byProject } as unknown as FieldActionState;
+  }
+  const migrated: ByProject = {};
+  for (const [projectId, list] of Object.entries(byProject)) {
+    if (!Array.isArray(list)) continue;
+    migrated[projectId] = list.map((raw) => {
+      const a = (raw ?? {}) as Record<string, unknown>;
+      const createdAt =
+        typeof a.createdAt === 'string' ? a.createdAt : nowIso();
+      const updatedAt =
+        typeof a.updatedAt === 'string' ? a.updatedAt : createdAt;
+      const observedAt =
+        typeof a.observedAt === 'string' ? a.observedAt : updatedAt;
+      return {
+        ...a,
+        taskType: remapTaskType(a.taskType),
+        observedAt,
+        sourceObjectiveType: a.sourceObjectiveType ?? null,
+        // cycleId intentionally omitted -> onRehydrateStorage backfills it.
+      } as unknown as FieldAction;
+    });
+  }
+  return { byProject: migrated } as unknown as FieldActionState;
+}
+
+/**
+ * Resolve every undefined cycleId to the project's current cycle (ADR 2).
+ * Pure; returns a new byProject + whether anything changed. Records that
+ * already carry a cycleId are left untouched (idempotent). Pre-cycle records
+ * adopt the project-wide MAX currentCycleId — FieldAction has no domainId, so
+ * the project-wide max is the coarse-but-safe target. DEFERRED REFINEMENT:
+ * backfill per-domain once FieldActions carry a domain (ADR 5/6).
+ */
+export function backfillCycleIds(
+  byProject: ByProject,
+  currentCycleByProject: Record<string, number>,
+): { byProject: ByProject; changed: boolean } {
+  let changed = false;
+  const next: ByProject = {};
+  for (const [projectId, list] of Object.entries(byProject)) {
+    const fallback = currentCycleByProject[projectId] ?? 0;
+    let listChanged = false;
+    const nextList = list.map((a) => {
+      const cid = (a as { cycleId?: unknown }).cycleId;
+      if (cid === undefined) {
+        listChanged = true;
+        return { ...a, cycleId: fallback } as FieldAction;
+      }
+      return a;
+    });
+    next[projectId] = listChanged ? nextList : list;
+    if (listChanged) changed = true;
+  }
+  return { byProject: next, changed };
+}
+
+/**
+ * Read another persisted Zustand store's slice straight from localStorage,
+ * without importing the store (avoids a module load-order cycle). Mirrors
+ * closedLoopStore's foreign-key-fold helper. Returns the persisted `.state`
+ * object, or null when absent/unparseable.
+ */
+function readPersistedSlice<T>(key: string): T | null {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { state?: T } | null;
+    return parsed?.state ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Per-project current cycle = MAX currentCycleId across the project's domains,
+ * read from observeCycleStore's persisted slice (cycles are per-(project,
+ * domain); FieldAction has no domainId — see backfillCycleIds).
+ */
+function readProjectCurrentCycle(): Record<string, number> {
+  const slice = readPersistedSlice<{
+    byProject?: Record<
+      string,
+      Record<string, { currentCycleId?: number } | undefined> | undefined
+    >;
+  }>(OBSERVE_CYCLE_PERSIST_KEY);
+  const out: Record<string, number> = {};
+  for (const [projectId, perDomain] of Object.entries(slice?.byProject ?? {})) {
+    let max = 0;
+    for (const domainState of Object.values(perDomain ?? {})) {
+      const c = domainState?.currentCycleId;
+      if (typeof c === 'number' && c > max) max = c;
+    }
+    out[projectId] = max;
+  }
+  return out;
+}
+
+/**
+ * onRehydrateStorage callback: cross-store cycleId backfill (ADR 2). Runs
+ * after migrate has remapped fields; resolves each undefined cycleId to the
+ * project's current cycle. Idempotent.
+ */
+function onRehydrateBackfillCycle(state?: FieldActionState): void {
+  if (!state) return;
+  const { byProject, changed } = backfillCycleIds(
+    state.byProject,
+    readProjectCurrentCycle(),
+  );
+  if (changed) useFieldActionStore.setState({ byProject });
+}
+
 export const useFieldActionStore = create<FieldActionState>()(
   persist(
     (set, get) => ({
@@ -273,6 +441,7 @@ export const useFieldActionStore = create<FieldActionState>()(
 
       // --- mutators ---
       createFieldAction: (input) => {
+        const now = nowIso();
         const created: FieldAction = {
           id: input.id,
           projectId: input.projectId,
@@ -281,6 +450,10 @@ export const useFieldActionStore = create<FieldActionState>()(
           title: input.title,
           description: input.description,
           taskType: input.taskType,
+          // Cycle is stamped once at creation and never mutated (ADR 2).
+          cycleId: input.cycleId ?? 0,
+          // ADR 9 owns population of the source-objective tag; null until then.
+          sourceObjectiveType: null,
           status: 'not_started',
           proofSchemaId: input.proofSchemaId,
           proofItems: [],
@@ -291,8 +464,11 @@ export const useFieldActionStore = create<FieldActionState>()(
           locationGeometry: input.locationGeometry ?? null,
           mapOverlayIds: input.mapOverlayIds ?? [],
           blockedReason: null,
-          createdAt: nowIso(),
-          updatedAt: nowIso(),
+          createdAt: now,
+          updatedAt: now,
+          // observed_at seeds to creation time; later phases advance it on
+          // submit/verify. The §6 conflict model (ADR 7 Phase 3) keys on it.
+          observedAt: now,
           doneAt: null,
         };
         set((s) => {
@@ -460,8 +636,10 @@ export const useFieldActionStore = create<FieldActionState>()(
     }),
     {
       name: PERSIST_KEY,
-      version: 1,
+      version: 2,
       partialize: (state) => ({ byProject: state.byProject }),
+      migrate: migratePersisted,
+      onRehydrateStorage: () => onRehydrateBackfillCycle,
     },
   ),
 );

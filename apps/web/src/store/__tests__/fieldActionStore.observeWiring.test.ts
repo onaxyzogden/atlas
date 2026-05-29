@@ -35,7 +35,7 @@ function makeAction(id: string, mode: 'self' | 'review') {
     planObjectiveId: OBJECTIVE,
     tierId: 't0',
     title: `Action ${id}`,
-    taskType: 'survey',
+    taskType: 'field_survey',
     proofSchemaId: 'baseline-photo-only',
     verificationMode: mode,
   });
