@@ -725,7 +725,8 @@
 }
 
 .toolCat {
-  flex: 0 0 auto;
+  flex: 1 1 0;
+  min-width: 0;
   background: var(--color-bg, #1f1d1a);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
@@ -768,6 +769,9 @@
   grid-auto-columns: 62px;
   gap: 6px;
   margin-top: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  justify-content: safe center;
 }
 
 .toolBtn {
@@ -776,6 +780,7 @@
   align-items: center;
   gap: 5px;
   width: 62px;
+  height: 64px;
   padding: 8px 4px;
   background: var(--color-surface);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
