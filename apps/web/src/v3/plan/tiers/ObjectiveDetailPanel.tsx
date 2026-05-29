@@ -121,6 +121,13 @@ export default function ObjectiveDetailPanel({
     );
   };
 
+  // Only mount the MAP ACTIVATION region (strip + embedded map) when the
+  // objective actually has overlays bound. Exact inverse of the
+  // OverlayBundleStrip empty-state (`bundle.length === 0`), so we never show
+  // a map with a "No overlays bound to this objective." strip above it. The
+  // region reappears automatically once an objective gets a non-empty bundle.
+  const hasOverlays = objective.defaultOverlayBundle.length > 0;
+
   return (
     <section
       className={css.panel}
@@ -141,20 +148,24 @@ export default function ObjectiveDetailPanel({
         />
       )}
 
-      <MapActivationStrip
-        objective={objective}
-        activeOverlayIds={activeOverlayIds}
-        onToggleOverlay={toggleOverlay}
-      />
+      {hasOverlays && (
+        <>
+          <MapActivationStrip
+            objective={objective}
+            activeOverlayIds={activeOverlayIds}
+            onToggleOverlay={toggleOverlay}
+          />
 
-      <div className={css.mapBody}>
-        <ObjectiveMap
-          stage="plan"
-          domain="land-base"
-          project={project}
-          activeOverlayIds={activeOverlayIds}
-        />
-      </div>
+          <div className={css.mapBody}>
+            <ObjectiveMap
+              stage="plan"
+              domain="land-base"
+              project={project}
+              activeOverlayIds={activeOverlayIds}
+            />
+          </div>
+        </>
+      )}
 
       <DecisionChecklist
         objective={objective}
