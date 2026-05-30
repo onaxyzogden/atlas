@@ -49,6 +49,9 @@ export interface ConnectivityState {
   setSyncStatus: (status: ConnectivityState['syncStatus']) => void;
   addConflictedStore: (storeKey: string) => void;
   clearConflictedStore: (storeKey: string) => void;
+  /** Replace the whole conflicted-store set — reconcile from the server's
+   *  escalated-conflict list (the Phase 4 surface's source of truth). */
+  setConflictedStores: (storeKeys: string[]) => void;
   addDroppedStore: (opKey: string) => void;
   clearDroppedStore: (opKey: string) => void;
 }
@@ -82,6 +85,8 @@ export const useConnectivityStore = create<ConnectivityState>()(
         set((s) => ({
           conflictedStores: s.conflictedStores.filter((k) => k !== storeKey),
         })),
+      setConflictedStores: (storeKeys) =>
+        set(() => ({ conflictedStores: [...new Set(storeKeys)] })),
       addDroppedStore: (opKey) =>
         set((s) =>
           s.droppedStores.includes(opKey)
@@ -95,8 +100,13 @@ export const useConnectivityStore = create<ConnectivityState>()(
     }),
     {
       name: 'ogden-connectivity',
-      // Only persist the last-synced timestamp — runtime state resets on reload
-      partialize: (state) => ({ lastSyncedAt: state.lastSyncedAt }),
+      // Persist the last-synced timestamp AND the conflict set, so a reload keeps
+      // the conflict badge visible until the Phase 4 surface reconciles it from
+      // the server. Other runtime state (online / reachable / status) resets.
+      partialize: (state) => ({
+        lastSyncedAt: state.lastSyncedAt,
+        conflictedStores: state.conflictedStores,
+      }),
     },
   ),
 );
