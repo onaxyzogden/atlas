@@ -18,6 +18,7 @@ import {
 } from '../data/builtinSampleObserveData.js';
 import { useSiteDataStore } from './siteDataStore.js';
 import { seedCuratedMtcActionsIfEmpty } from '../v3/act/field-action/seedCuratedMtcActions.js';
+import { seedMtcObserveDataPoints } from '../data/builtinObserveDataPoints.js';
 import type { MockLayerResult } from '@ogden/shared/scoring';
 
 // ─── Local project type (extends CreateProjectInput with runtime fields) ───
@@ -736,6 +737,10 @@ function seedMtcDemo(): void {
   // MTC project row can persist from a prior session while its actions are
   // empty (e.g. after a field-action store reset).
   seedCuratedMtcActionsIfEmpty('mtc');
+  // Light up MTC's Observe Dashboard with its OWN site facts (distinct from
+  // the 351-House fixture) now that builtins default to the dashboard shell.
+  // Idempotent merge-by-id replay into the data-point store.
+  seedMtcObserveDataPoints('mtc');
 }
 
 // Local fallback used when the API is unreachable (e.g. dev server not

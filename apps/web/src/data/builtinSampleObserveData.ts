@@ -40,6 +40,7 @@ import {
   useSwotStore,
   type SwotEntry,
 } from '../store/swotStore.js';
+import { seedBuiltinObserveDataPoints } from './builtinObserveDataPoints.js';
 
 // ─── Project narrative ──────────────────────────────────────────────────
 // Spread onto the LocalProject from `applyBuiltinsToStore` for any builtin
@@ -94,6 +95,10 @@ export function seedBuiltinObserveData(localProjectId: string): void {
   seedSoilSamples(localProjectId);
   seedEcology(localProjectId);
   seedSwot(localProjectId);
+  // Project the seeded source facts into the Phase-4 observeDataPointStore so
+  // the Observe Dashboard's 16 domain cards light up (they read only the
+  // data-point store, never these source stores). Idempotent merge-by-id.
+  seedBuiltinObserveDataPoints(localProjectId);
   // siteDataStore (Tier-1 climate/elevation summaries) is now populated
   // by `applyBuiltinsToStore` directly from the public /projects/builtins
   // payload (or LOCAL_BUILTIN_FALLBACK_LAYERS when offline) — no fixture
