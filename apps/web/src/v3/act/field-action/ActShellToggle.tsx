@@ -1,12 +1,13 @@
 /**
- * ActShellToggle — segmented two-state control that flips the Act stage
- * between the new field-action dashboard (View B / View A) and the
- * legacy command-centre module shell. Mirrors PlanNavToggle precisely
- * so the two stages feel like the same control pattern. Persisted
- * per-project on `LocalProject.actShellMode` via `updateProject`.
+ * ActShellToggle — segmented control that flips the Act stage between the
+ * map-centric tier shell (4-rail spine + objectives + map + tools +
+ * execution), the field-action dashboard (View B / View A), and the legacy
+ * command-centre module shell. Mirrors PlanNavToggle precisely so the
+ * stages feel like the same control pattern. Persisted per-project on
+ * `LocalProject.actShellMode` via `updateProject`.
  */
 
-import { ClipboardCheck, LayoutGrid } from 'lucide-react';
+import { ClipboardCheck, LayoutGrid, LayoutPanelTop } from 'lucide-react';
 import type { ActShellMode } from '../../../store/projectStore.js';
 import css from './ActShellToggle.module.css';
 
@@ -20,6 +21,7 @@ const OPTIONS: ReadonlyArray<{
   label: string;
   Icon: typeof ClipboardCheck;
 }> = [
+  { mode: 'tier-shell', label: 'Tier shell', Icon: LayoutPanelTop },
   { mode: 'field-action', label: 'Field actions', Icon: ClipboardCheck },
   { mode: 'command-centre', label: 'Command centre', Icon: LayoutGrid },
 ];

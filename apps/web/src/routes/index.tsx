@@ -563,6 +563,24 @@ const v3ActFieldActionObjectiveRoute = createRoute({
     taskId: typeof search.taskId === 'string' ? search.taskId : undefined,
   }),
 });
+// Promoted map-centric tier shell (default Act mode). Static `act/tier-shell`
+// + `act/tier-shell/$objectiveId` prefixes resolve BEFORE `act/$module`; a
+// second bare `$param` sibling under `act/` would collide with `act/$module`,
+// so deep-linked objective selection rides the static prefix. Both mount
+// ActLayout, which branches on `actShellMode` into ActTierShell.
+const v3ActTierShellRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/tier-shell',
+  component: ActLayout,
+});
+const v3ActTierShellObjectiveRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/tier-shell/$objectiveId',
+  component: ActLayout,
+  validateSearch: (search: Record<string, unknown>): { taskId?: string } => ({
+    taskId: typeof search.taskId === 'string' ? search.taskId : undefined,
+  }),
+});
 // Act Command Centre — the aggregate "run the stage" surface the Act compass
 // center unlocks into. Static path resolves before the `act/$module` param.
 const v3ActCommandCentreRoute = createRoute({
@@ -849,6 +867,8 @@ const routeTree = rootRoute.addChildren([
       v3ActCompassRoute,
       v3ActCommandCentreRoute,
       v3ActTierPrototypeRoute,
+      v3ActTierShellRoute,
+      v3ActTierShellObjectiveRoute,
       v3ActFieldActionRoute,
       v3ActFieldActionObjectiveRoute,
       v3ActRoute,

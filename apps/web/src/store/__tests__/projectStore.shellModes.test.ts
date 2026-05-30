@@ -20,9 +20,9 @@ describe('shell-mode defaults — new shells are main for all projects', () => {
     expect(getPlanShellMode({ isBuiltin: false })).toBe('stratum-spine');
   });
 
-  it('Act: builtin and non-builtin both default to field-action', () => {
-    expect(getActShellMode({ isBuiltin: true })).toBe('field-action');
-    expect(getActShellMode({ isBuiltin: false })).toBe('field-action');
+  it('Act: builtin and non-builtin both default to tier-shell', () => {
+    expect(getActShellMode({ isBuiltin: true })).toBe('tier-shell');
+    expect(getActShellMode({ isBuiltin: false })).toBe('tier-shell');
   });
 
   it('Observe: builtin and non-builtin both default to dashboard', () => {
@@ -49,6 +49,9 @@ describe('shell-mode defaults — new shells are main for all projects', () => {
     expect(
       getActShellMode({ isBuiltin: false, actShellMode: 'field-action' }),
     ).toBe('field-action');
+    expect(
+      getActShellMode({ isBuiltin: true, actShellMode: 'tier-shell' }),
+    ).toBe('tier-shell');
     expect(
       getObserveShellMode({ isBuiltin: false, observeShellMode: 'dashboard' }),
     ).toBe('dashboard');

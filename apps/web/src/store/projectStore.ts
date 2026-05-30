@@ -128,28 +128,28 @@ export function getPlanShellMode(
 }
 
 /**
- * Which Act-stage navigation shell a project renders. `field-action` is
- * the OLOS Act Command Center Spec v1 default for new projects;
- * `command-centre` is the legacy module-driven shell preserved behind a
- * toggle so existing module-bar carousels remain reachable during the
- * Phase 3 migration. Removed in Phase 7 once every legacy module card
- * has been retired.
+ * Which Act-stage navigation shell a project renders. `tier-shell` is the
+ * map-centric 4-rail default (stratum spine + left objectives + center map
+ * + bottom tools + right execution panel); `field-action` is the 2-column
+ * map-first layout; `command-centre` is the legacy module-driven shell.
+ * All three are preserved behind `ActShellToggle` (no deletion). The legacy
+ * shells are removed in Phase 7 once every legacy module card has retired.
  */
-export type ActShellMode = 'field-action' | 'command-centre';
+export type ActShellMode = 'tier-shell' | 'field-action' | 'command-centre';
 
 /**
  * Canonical accessor for a project's Act shell mode. Explicit per-
  * project values win; everything else — including builtin samples (MTC,
- * "351 House") — now defaults to `field-action`. Builtins were formerly
- * pinned to `command-centre`; MTC now carries a curated field-action
- * seed. The `command-centre` shell stays reachable per project via
- * `ActShellToggle`.
+ * "351 House") — now defaults to `tier-shell`, the promoted 4-rail tier
+ * shell. Projects that previously persisted `field-action` or
+ * `command-centre` keep that choice (no persist migration). Every mode
+ * stays reachable per project via `ActShellToggle`.
  */
 export function getActShellMode(
   project: Pick<LocalProject, 'actShellMode' | 'isBuiltin'>,
 ): ActShellMode {
   if (project.actShellMode) return project.actShellMode;
-  return 'field-action';
+  return 'tier-shell';
 }
 
 /**

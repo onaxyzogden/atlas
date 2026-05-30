@@ -52,6 +52,8 @@ import StageGateOverlay from './StageGateOverlay.js';
 import ActReadyCue from './components/ActReadyCue.js';
 import ActShellToggle from './field-action/ActShellToggle.js';
 import ActFieldActionLayout from './field-action/ActFieldActionLayout.js';
+// tier-shell: the promoted map-centric 4-rail Act shell (default mode).
+import ActTierShell from './tier-shell/ActTierShell.js';
 import css from './ActLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -161,6 +163,15 @@ export default function ActLayout() {
       onCloseSlideUp={() => setSlideUpOpen(false)}
     />
   );
+
+  if (actShellMode === 'tier-shell') {
+    return (
+      <ActTierShell
+        shellMode={actShellMode}
+        onShellModeChange={handleActShellModeChange}
+      />
+    );
+  }
 
   if (actShellMode === 'field-action') {
     return (

@@ -19,14 +19,12 @@
  */
 
 import { useState } from 'react';
-import { Sprout, Droplet, Shuffle, FolderOpen } from 'lucide-react';
+import { FolderOpen } from 'lucide-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { DelayedTooltip } from '../../components/ui/DelayedTooltip.js';
-import {
-  useMapToolStore,
-  type MapToolId,
-} from '../observe/components/measure/useMapToolStore.js';
+import { useMapToolStore } from '../observe/components/measure/useMapToolStore.js';
 import { ACT_MODULE_FULL_LABEL, type ActModule } from './types.js';
+import { QUICK_LOGS, type QuickLog } from './quickLogs.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
 import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
 import { useV3Project } from '../data/useV3Project.js';
@@ -36,42 +34,6 @@ import QuickActions from './ops/QuickActions.js';
 import css from './ActTools.module.css';
 
 const FALLBACK_CENTER: [number, number] = [-78.20, 44.50];
-
-interface QuickLog {
-  id: string;
-  label: string;
-  hint: string;
-  Icon: typeof Sprout;
-  module: ActModule;
-  toolId?: MapToolId;
-}
-
-const QUICK_LOGS: QuickLog[] = [
-  {
-    id: 'plants-food',
-    label: 'Log harvest',
-    hint: 'Drop a yield entry on a crop area or paddock',
-    Icon: Sprout,
-    module: 'plants-food',
-    toolId: 'act.harvest.log-entry',
-  },
-  {
-    id: 'water',
-    label: 'Log water check',
-    hint: 'Click a swale, cistern, or pond to log a maintenance event',
-    Icon: Droplet,
-    module: 'built-infrastructure',
-    toolId: 'act.maintain.log-event',
-  },
-  {
-    id: 'animals-livestock',
-    label: 'Log livestock move',
-    hint: 'Click a paddock to log a move-in / out / rotate-through',
-    Icon: Shuffle,
-    module: 'animals-livestock',
-    toolId: 'act.livestock.log-move',
-  },
-];
 
 interface Props {
   activeModule: ActModule | null;

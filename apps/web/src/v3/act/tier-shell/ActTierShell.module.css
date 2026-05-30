@@ -1,0 +1,473 @@
+/*
+ * ActTierShell.module.css
+ *
+ * Stylesheet for the promoted map-centric Act tier shell. Copied from the
+ * tier-prototype stylesheet (locally-scoped class names, so no collision)
+ * and kept on the BentoBox surface tokens (var(--color-surface), 1px
+ * var(--color-border), --radius-lg outer / --radius-md inner) so it reads in
+ * dark mode without hard-coded chrome. The few literal hexes are data-viz
+ * status colours shared with the rest of the v3 tier UI (complete green
+ * #5dd39e, gold #c4a265).
+ *
+ * Divergences from the prototype sheet are additive: a real per-objective
+ * progress chip (.objProgress) and a wider quick-log tool button row — the
+ * prototype had neither because it ran on mock data and a separate tools
+ * catalogue.
+ */
+
+/* ---- Shell scaffold ----------------------------------------------------- */
+
+.tierShell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--color-bg, #1f1d1a);
+}
+
+.shellWrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* StageShell's bottom grid slot has min-width: auto (default for grid
+   items), so a content-sized bottomTray like our .toolsPanel grows past the
+   layout column. Scoping min-width: 0 to .tierShell keeps the fix isolated
+   from other StageShell consumers and lets .toolsRow's overflow-x engage. */
+.tierShell :global([data-stage-bottom]) {
+  min-width: 0;
+}
+
+/* Floating shell toggle, top-right of the canvas. */
+.toggleFloat {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+}
+
+/* ---- Tier spine (top) --------------------------------------------------- */
+
+.spine {
+  display: flex;
+  gap: 8px;
+  padding: 8px 8px 0;
+  overflow-x: auto;
+}
+
+.tier {
+  flex: 1 1 0;
+  min-width: 124px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.tier:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 45%,
+    var(--color-border, rgba(242, 237, 227, 0.12))
+  );
+}
+
+.tier:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.tier[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 8%,
+    var(--color-surface)
+  );
+}
+
+.tierTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.stratumOrdinal {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.tierStateChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.tierStateChip[data-status='complete'] {
+  background: #5dd39e;
+  color: #18221b;
+}
+
+.tierStateChip[data-status='active'] {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 30%, transparent);
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.tierTitle {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.tierMeta {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+/* ---- Left rail: objective list ------------------------------------------ */
+
+.railPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+}
+
+.railHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+}
+
+.railEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.railTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.railSummary {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.railList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.railEmpty {
+  margin: 0;
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+/* ---- Objective card ----------------------------------------------------- */
+
+.objCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background: var(--color-bg, #1f1d1a);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.objCard:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 45%,
+    var(--color-border, rgba(242, 237, 227, 0.12))
+  );
+}
+
+.objCard:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.objCard[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 8%,
+    var(--color-bg, #1f1d1a)
+  );
+}
+
+.objCard[data-status='complete'] {
+  border-left: 3px solid #5dd39e;
+}
+
+.objCard[data-status='active'] {
+  border-left: 3px solid var(--color-gold-brand, #c4a265);
+}
+
+.objEyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.objTitle {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text, #f2ede3);
+}
+
+.objDesc {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.objFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.objSeed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-variant-numeric: tabular-nums;
+}
+
+/* Real per-objective execution progress chip (e.g. "3/5 verified"). */
+.objProgress {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  background: rgba(242, 237, 227, 0.08);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.objProgress[data-state='complete'] {
+  background: rgba(93, 211, 158, 0.18);
+  color: #5dd39e;
+}
+
+.objProgress[data-state='active'] {
+  background: rgba(196, 162, 101, 0.18);
+  color: #c4a265;
+}
+
+/* ---- Right rail: toggle + body ------------------------------------------ */
+
+.rightRail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  gap: 8px;
+}
+
+.rightToggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+}
+
+.rightToggleBtn {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.rightToggleBtn[data-active='true'] {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 16%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.rightToggleBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rightBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* ---- Bottom rail: quick-log tools --------------------------------------- */
+
+.toolsPanel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-lg, 12px);
+  padding: 8px 10px;
+  overflow: hidden;
+}
+
+.toolsHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 2px 2px 8px;
+}
+
+.toolsLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.toolsHint {
+  font-size: 11px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.5));
+}
+
+.toolsRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.toolBtn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+  padding: 10px 14px;
+  background: var(--color-bg, #1f1d1a);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.toolBtn:hover:not(:disabled) {
+  border-color: var(--color-gold-brand, #c4a265);
+}
+
+.toolBtn:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.toolBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.toolBtn[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 12%,
+    var(--color-bg, #1f1d1a)
+  );
+}
+
+.toolIcon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.toolText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.toolLabel {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.toolHint {
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
