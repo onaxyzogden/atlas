@@ -5,10 +5,10 @@
 // The resolver and Act label lookups go through this file; fanning out a new
 // catalogue means adding it here and nowhere else.
 //
-// Currently encoded (the vertical slice): regenerative_farm (primary, anchor
-// v1.3) and residential (secondary, v1.0). Every other primary resolves to the
-// universal-only baseline; every other secondary returns undefined (nothing to
-// layer).
+// Currently encoded: regenerative_farm (primary, anchor v1.3) and ecovillage
+// (primary, v1.2) on the primary side; residential (secondary, v1.0) on the
+// secondary side. Every other primary resolves to the universal-only baseline;
+// every other secondary returns undefined (nothing to layer).
 
 import type {
   PatchRecord,
@@ -17,6 +17,7 @@ import type {
 import type { ProjectTypeId } from '../../../schemas/plan/projectTypeTaxonomy.schema.js';
 import { UNIVERSAL_PLAN_OBJECTIVES, findUniversalObjective } from './universal.js';
 import { REGEN_FARM_PRIMARY_OBJECTIVES } from './regenFarm.js';
+import { ECOVILLAGE_PRIMARY_OBJECTIVES } from './ecovillage.js';
 import {
   RESIDENTIAL_ADDITIVE_OBJECTIVES,
   RESIDENTIAL_PATCHES,
@@ -26,6 +27,7 @@ export {
   UNIVERSAL_PLAN_OBJECTIVES,
   findUniversalObjective,
   REGEN_FARM_PRIMARY_OBJECTIVES,
+  ECOVILLAGE_PRIMARY_OBJECTIVES,
   RESIDENTIAL_ADDITIVE_OBJECTIVES,
   RESIDENTIAL_PATCHES,
 };
@@ -53,7 +55,11 @@ export function getPrimaryCatalogue(
   primaryTypeId: ProjectTypeId,
 ): PrimaryCatalogue {
   const primary: readonly PlanTierObjective[] =
-    primaryTypeId === 'regenerative_farm' ? REGEN_FARM_PRIMARY_OBJECTIVES : [];
+    primaryTypeId === 'regenerative_farm'
+      ? REGEN_FARM_PRIMARY_OBJECTIVES
+      : primaryTypeId === 'ecovillage'
+        ? ECOVILLAGE_PRIMARY_OBJECTIVES
+        : [];
   return { universal: UNIVERSAL_PLAN_OBJECTIVES, primary };
 }
 
@@ -85,6 +91,7 @@ const ALL_CATALOGUE_OBJECTIVES: readonly PlanTierObjective[] = (() => {
   for (const o of [
     ...UNIVERSAL_PLAN_OBJECTIVES,
     ...REGEN_FARM_PRIMARY_OBJECTIVES,
+    ...ECOVILLAGE_PRIMARY_OBJECTIVES,
     ...RESIDENTIAL_ADDITIVE_OBJECTIVES,
   ]) {
     if (!byId.has(o.id)) byId.set(o.id, o);

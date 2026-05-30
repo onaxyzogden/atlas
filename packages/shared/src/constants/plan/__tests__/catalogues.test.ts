@@ -7,6 +7,7 @@ import {
 import {
   UNIVERSAL_PLAN_OBJECTIVES,
   REGEN_FARM_PRIMARY_OBJECTIVES,
+  ECOVILLAGE_PRIMARY_OBJECTIVES,
   RESIDENTIAL_ADDITIVE_OBJECTIVES,
   RESIDENTIAL_PATCHES,
 } from '../catalogues/index.js';
@@ -18,10 +19,11 @@ import {
 const ALL_AUTHORED: readonly PlanTierObjective[] = [
   ...UNIVERSAL_PLAN_OBJECTIVES,
   ...REGEN_FARM_PRIMARY_OBJECTIVES,
+  ...ECOVILLAGE_PRIMARY_OBJECTIVES,
   ...RESIDENTIAL_ADDITIVE_OBJECTIVES,
 ];
 
-const OBJECTIVE_REF = /^(U|RF|RES)-T[0-6]\.\d+$/;
+const OBJECTIVE_REF = /^(U|RF|RES|EV)-T[0-6]\.\d+$/;
 const PATCH_REF = /^RES>(U|RF)-T[0-6]\.\d+$/;
 
 describe('catalogue conformance - schema validity', () => {
@@ -92,6 +94,13 @@ describe('catalogue conformance - source/layer discipline', () => {
     }
   });
 
+  it('ecovillage primary objectives are source=primary, sourceTypeId=ecovillage', () => {
+    for (const o of ECOVILLAGE_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('ecovillage');
+    }
+  });
+
   it('residential additive objectives are source=secondary/additive, sourceTypeId=residential', () => {
     for (const o of RESIDENTIAL_ADDITIVE_OBJECTIVES) {
       expect(o.source, o.id).toBe('secondary');
@@ -148,5 +157,33 @@ describe('catalogue conformance - patch targets + bridge ids', () => {
     expect(itemIds.has('t0-vision-c1')).toBe(true);
     expect(itemIds.has('t0-vision-c2')).toBe(true);
     expect(itemIds.has('t0-vision-c3')).toBe(true);
+  });
+});
+
+describe('catalogue conformance - ecovillage primary resolution', () => {
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'ecovillage',
+    secondaryTypeIds: [],
+  });
+
+  it('resolves to 50 objectives (19 universal + 31 primary)', () => {
+    // The source header table reads "Primary: 29", but the per-tier sub-headers
+    // and the 50-total both confirm 31. This locks the corrected count.
+    expect(ECOVILLAGE_PRIMARY_OBJECTIVES.length).toBe(31);
+    expect(objectives.length).toBe(50);
+  });
+
+  it('has globally unique checklist item ids (toProgressMap invariant)', () => {
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+
+  it('every ecovillage ref is unique within the primary set', () => {
+    // Guards the source's duplicate "6.6" (adaptive management), reassigned to
+    // EV-T6.9 in ecovillage.ts.
+    const refs = ECOVILLAGE_PRIMARY_OBJECTIVES.map((o) => o.ref);
+    expect(new Set(refs).size).toBe(refs.length);
   });
 });
