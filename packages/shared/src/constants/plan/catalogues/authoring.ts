@@ -17,7 +17,7 @@ import type {
   PlanStratumId,
   PlanStratumObjective,
   PatchRecord,
-} from '../../../schemas/plan/planTierObjective.schema.js';
+} from '../../../schemas/plan/planStratumObjective.schema.js';
 import type {
   ProjectTypeId,
   SecondaryClass,

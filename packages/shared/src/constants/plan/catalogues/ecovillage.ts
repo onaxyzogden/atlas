@@ -39,7 +39,7 @@
 // Refs follow Authoring Standards v1.4 (EV-T<tier>.<n>). ASCII-only copy:
 // em/en dashes -> " - "; curly quotes -> straight.
 
-import type { PlanStratumObjective } from '../../../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
 import { ck, obj } from './authoring.js';
 
 const PRIMARY = 'ecovillage' as const;

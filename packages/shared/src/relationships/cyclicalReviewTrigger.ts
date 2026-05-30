@@ -20,7 +20,7 @@
 import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
-} from '../schemas/plan/planTierObjective.schema.js';
+} from '../schemas/plan/planStratumObjective.schema.js';
 
 export const CYCLICAL_REVIEW_DEFAULT_DAYS = 90;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;

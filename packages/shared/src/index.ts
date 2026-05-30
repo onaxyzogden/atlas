@@ -118,9 +118,9 @@ export * from './constants/olos/objectives.js';
 // checklistItems.ts is a re-export shim for direct imports — its named
 // exports already come through ./constants/olos/objectives.js
 
-// Plan tier shell (OLOS Plan Navigation Spec v1)
-export * from './schemas/plan/planTierObjective.schema.js';
-export * from './constants/plan/tierObjectives.js';
+// Plan stratum shell (OLOS Plan Navigation Spec v1)
+export * from './schemas/plan/planStratumObjective.schema.js';
+export * from './constants/plan/stratumObjectives.js';
 export * from './constants/plan/remapSlug.js';
 // Per-type objective model (OLOS Project-Type + Secondary-Layer Spec v1.2)
 export * from './schemas/plan/projectTypeTaxonomy.schema.js';
@@ -141,12 +141,12 @@ export {
   computeObjectiveStatus,
   computeAllObjectiveStatuses,
   type PlanStratumObjectiveStatusMap,
-} from './relationships/tierObjectiveStatus.js';
+} from './relationships/stratumObjectiveStatus.js';
 export {
   computeStratumState,
   computeAllStratumStates,
   type PlanStratumStateMap,
-} from './relationships/tierState.js';
+} from './relationships/stratumState.js';
 export {
   isCyclicalReviewDue,
   CYCLICAL_REVIEW_DEFAULT_DAYS,

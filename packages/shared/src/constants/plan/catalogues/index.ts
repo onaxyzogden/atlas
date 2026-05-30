@@ -15,7 +15,7 @@
 import type {
   PatchRecord,
   PlanStratumObjective,
-} from '../../../schemas/plan/planTierObjective.schema.js';
+} from '../../../schemas/plan/planStratumObjective.schema.js';
 import type { ProjectTypeId } from '../../../schemas/plan/projectTypeTaxonomy.schema.js';
 import { UNIVERSAL_PLAN_OBJECTIVES, findUniversalObjective } from './universal.js';
 import { REGEN_FARM_PRIMARY_OBJECTIVES } from './regenFarm.js';

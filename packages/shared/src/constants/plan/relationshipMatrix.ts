@@ -18,7 +18,7 @@
 // compatible at all (cell !== 'NA') and (b) the display hint.
 
 import type { ProjectTypeId } from '../../schemas/plan/projectTypeTaxonomy.schema.js';
-import type { PlanStratumId } from '../../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumId } from '../../schemas/plan/planStratumObjective.schema.js';
 
 /** A single matrix cell. */
 export type RelationCell = 'M' | 'A' | 'X' | 'NA';

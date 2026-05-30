@@ -1,4 +1,4 @@
-// tierObjectiveStatus.ts
+// stratumObjectiveStatus.ts
 //
 // Pure status engine for Plan Stratum Objectives. Status flows through a
 // 4-state machine driven by (a) prerequisite satisfaction and
@@ -18,7 +18,7 @@ import type {
   PlanChecklistProgress,
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
-} from '../schemas/plan/planTierObjective.schema.js';
+} from '../schemas/plan/planStratumObjective.schema.js';
 
 /** Snapshot of computed objective statuses keyed by objective id. */
 export type PlanStratumObjectiveStatusMap = Readonly<
@@ -26,7 +26,7 @@ export type PlanStratumObjectiveStatusMap = Readonly<
 >;
 
 /**
- * Compute the status for a single tier objective given the steward's
+ * Compute the status for a single stratum objective given the steward's
  * checklist progress and the already-known statuses of its prerequisite
  * objectives.
  *

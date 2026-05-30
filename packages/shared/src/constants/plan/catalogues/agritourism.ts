@@ -45,7 +45,7 @@
 // Refs follow Authoring Standards (AG-T<tier>.<n>). ASCII-only copy:
 // em/en dashes -> " - "; curly quotes -> straight.
 
-import type { PlanStratumObjective } from '../../../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
 import { ck, obj } from './authoring.js';
 
 const PRIMARY = 'agritourism' as const;

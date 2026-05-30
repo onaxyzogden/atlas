@@ -13,7 +13,7 @@
 // source: 'primary', sourceTypeId: 'regenerative_farm' on every objective.
 // Refs follow Authoring Standards v1.4 (RF-T<tier>.<n>). ASCII-only copy.
 
-import type { PlanStratumObjective } from '../../../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
 import { ck, obj } from './authoring.js';
 
 export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [

@@ -40,7 +40,7 @@ import type {
   FieldActionStatus,
 } from '../schemas/fieldAction/fieldAction.schema.js';
 import type { ObserveDataPoint } from '../schemas/observe/dataPoint.schema.js';
-import type { PlanStratumObjectiveStatus } from '../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjectiveStatus } from '../schemas/plan/planStratumObjective.schema.js';
 import type { UniversalDomain } from '../schemas/universalDomain.schema.js';
 import { FOUNDATION_DOMAINS_FOR_REVISION } from './revisionPriority.js';
 import type { ObserveFreshness } from './observeFreshness.js';

@@ -33,7 +33,7 @@
 import type {
   PatchRecord,
   PlanStratumObjective,
-} from '../../../schemas/plan/planTierObjective.schema.js';
+} from '../../../schemas/plan/planStratumObjective.schema.js';
 import { ck, obj, patch } from './authoring.js';
 
 const SECONDARY = 'residential' as const;

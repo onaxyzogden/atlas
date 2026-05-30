@@ -22,7 +22,7 @@
 // ASCII-only copy: em/en dashes from the source -> " - "/"-"; curly quotes
 // -> straight.
 
-import type { PlanStratumObjective } from '../../../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
 import { ck, obj } from './authoring.js';
 
 export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [

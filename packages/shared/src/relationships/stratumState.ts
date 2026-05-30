@@ -1,21 +1,21 @@
-// tierState.ts
+// stratumState.ts
 //
-// Pure aggregator that rolls per-objective statuses up to a tier-level
+// Pure aggregator that rolls per-objective statuses up to a stratum-level
 // state pill, per OLOS Plan Navigation Spec v1 §3.2:
 //
-//   complete   — every objective in the tier is `complete`.
+//   complete   — every objective in the stratum is `complete`.
 //   active     — at least one objective is `active`.
 //   available  — at least one objective is `available` (none active).
 //   locked     — every objective is `locked`.
 //
-// Empty tiers (no seeded objectives) default to `available` — the tier
+// Empty strata (no seeded objectives) default to `available` — the stratum
 // shell still renders so the steward can see the placeholder.
 
 import type {
   PlanStratumObjective,
   PlanStratumState,
-} from '../schemas/plan/planTierObjective.schema.js';
-import type { PlanStratumObjectiveStatusMap } from './tierObjectiveStatus.js';
+} from '../schemas/plan/planStratumObjective.schema.js';
+import type { PlanStratumObjectiveStatusMap } from './stratumObjectiveStatus.js';
 
 export function computeStratumState(
   stratumId: string,
@@ -46,11 +46,11 @@ export function computeStratumState(
   return 'locked';
 }
 
-/** Tier-state snapshot keyed by tier id. */
+/** Stratum-state snapshot keyed by stratum id. */
 export type PlanStratumStateMap = Readonly<Record<string, PlanStratumState>>;
 
 /**
- * Roll up all tier statuses in one pass given the per-objective status
+ * Roll up all stratum statuses in one pass given the per-objective status
  * map produced by `computeAllObjectiveStatuses`.
  */
 export function computeAllStratumStates(

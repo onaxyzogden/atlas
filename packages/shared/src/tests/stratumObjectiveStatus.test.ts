@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import {
   computeObjectiveStatus,
   computeAllObjectiveStatuses,
-} from '../relationships/tierObjectiveStatus.js';
+} from '../relationships/stratumObjectiveStatus.js';
 import {
   computeStratumState,
   computeAllStratumStates,
-} from '../relationships/tierState.js';
+} from '../relationships/stratumState.js';
 import {
   isCyclicalReviewDue,
   CYCLICAL_REVIEW_DEFAULT_DAYS,
@@ -16,8 +16,8 @@ import {
   PLAN_STRATUM_OBJECTIVES,
   getObjectivesForStratum,
   findPlanStratumObjective,
-} from '../constants/plan/tierObjectives.js';
-import type { PlanStratumObjective } from '../schemas/plan/planTierObjective.schema.js';
+} from '../constants/plan/stratumObjectives.js';
+import type { PlanStratumObjective } from '../schemas/plan/planStratumObjective.schema.js';
 
 const mkObjective = (
   overrides: Partial<PlanStratumObjective> & Pick<PlanStratumObjective, 'id' | 'stratumId'>,
@@ -34,19 +34,19 @@ const mkObjective = (
 describe('PLAN_STRATA seed', () => {
   it('has exactly 7 strata in ordinal order 1..7', () => {
     expect(PLAN_STRATA).toHaveLength(7);
-    PLAN_STRATA.forEach((tier, idx) => {
-      expect(tier.ordinal).toBe(idx + 1);
+    PLAN_STRATA.forEach((stratum, idx) => {
+      expect(stratum.ordinal).toBe(idx + 1);
     });
   });
 
-  it('exposes every tier id distinctly', () => {
+  it('exposes every stratum id distinctly', () => {
     const ids = new Set(PLAN_STRATA.map((t) => t.id));
     expect(ids.size).toBe(PLAN_STRATA.length);
   });
 });
 
 describe('PLAN_STRATUM_OBJECTIVES seed', () => {
-  it('binds every objective to a known tier id', () => {
+  it('binds every objective to a known stratum id', () => {
     const stratumIds = new Set(PLAN_STRATA.map((t) => t.id));
     for (const obj of PLAN_STRATUM_OBJECTIVES) {
       expect(stratumIds.has(obj.stratumId)).toBe(true);
@@ -218,7 +218,7 @@ describe('computeAllObjectiveStatuses', () => {
 });
 
 describe('computeStratumState', () => {
-  it('marks tier complete when every objective is complete', () => {
+  it('marks stratum complete when every objective is complete', () => {
     expect(
       computeStratumState(
         's1-project-foundation',
@@ -228,7 +228,7 @@ describe('computeStratumState', () => {
     ).toBe('complete');
   });
 
-  it('marks tier active when any objective is active', () => {
+  it('marks stratum active when any objective is active', () => {
     expect(
       computeStratumState(
         's1-project-foundation',
@@ -238,7 +238,7 @@ describe('computeStratumState', () => {
     ).toBe('active');
   });
 
-  it('marks tier available when no objectives are active but at least one is available', () => {
+  it('marks stratum available when no objectives are active but at least one is available', () => {
     expect(
       computeStratumState(
         's1-project-foundation',
@@ -248,7 +248,7 @@ describe('computeStratumState', () => {
     ).toBe('available');
   });
 
-  it('marks tier locked when every objective is locked', () => {
+  it('marks stratum locked when every objective is locked', () => {
     expect(
       computeStratumState(
         's2-land-reading',
@@ -258,16 +258,16 @@ describe('computeStratumState', () => {
     ).toBe('locked');
   });
 
-  it('rolls up all 7 tiers in one pass against the empty-progress seed', () => {
+  it('rolls up all 7 strata in one pass against the empty-progress seed', () => {
     const statuses = computeAllObjectiveStatuses(PLAN_STRATUM_OBJECTIVES, {});
-    const tierStates = computeAllStratumStates(
+    const stratumStates = computeAllStratumStates(
       PLAN_STRATA.map((t) => t.id),
       PLAN_STRATUM_OBJECTIVES,
       statuses,
     );
-    expect(tierStates['s1-project-foundation']).toBe('available');
-    expect(tierStates['s2-land-reading']).toBe('locked');
-    expect(tierStates['s7-phasing-resourcing']).toBe('locked');
+    expect(stratumStates['s1-project-foundation']).toBe('available');
+    expect(stratumStates['s2-land-reading']).toBe('locked');
+    expect(stratumStates['s7-phasing-resourcing']).toBe('locked');
   });
 });
 

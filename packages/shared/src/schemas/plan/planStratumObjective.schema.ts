@@ -1,4 +1,4 @@
-// planTierObjective.schema.ts
+// planStratumObjective.schema.ts
 //
 // Schemas for the 7-stratum Plan stage spec (OLOS Plan Navigation Spec v1).
 // A PlanStratum is one of seven ordered groupings (S1 Project Foundation -
@@ -68,7 +68,7 @@ export const PlanDecisionChecklistItemSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
   /**
-   * Downstream tier-objective ids that this checklist item is intended to
+   * Downstream stratum-objective ids that this checklist item is intended to
    * feed into. Surfaced as chips in the YOUR DECISIONS section per spec.
    */
   feedsInto: z.array(z.string()).default([]),
@@ -106,8 +106,8 @@ export const PlanStratumObjectiveSchema = z.object({
   title: z.string().min(1),
   focusedQuestion: z.string().min(1),
   /**
-   * Other tier-objective ids that must be `complete` before this objective
-   * advances out of `locked`. Cross-tier and intra-tier prereqs both
+   * Other stratum-objective ids that must be `complete` before this objective
+   * advances out of `locked`. Cross-stratum and intra-stratum prereqs both
    * supported.
    */
   prerequisiteObjectiveIds: z.array(z.string()).default([]),
@@ -173,7 +173,7 @@ export type PlanStratumObjective = z.infer<typeof PlanStratumObjectiveSchema>;
  * stamps `expandedBySecondaryId` from the parent PatchRecord when applying, so
  * authors need not repeat it per item. Item ids MUST be globally unique across
  * the whole resolved set (rubric: `<targetObjId>-p<secId>-<n>`) or the
- * planTierStore progress flatten collapses two items — enforced by a catalogue
+ * planStratumStore progress flatten collapses two items — enforced by a catalogue
  * test in Sub-slice C.
  */
 export const PatchItemSchema = PlanDecisionChecklistItemSchema;
@@ -215,7 +215,7 @@ export const PatchRecordSchema = z.object({
 export type PatchRecord = z.infer<typeof PatchRecordSchema>;
 
 /**
- * Snapshot of checklist completion for a single tier objective, keyed by
+ * Snapshot of checklist completion for a single stratum objective, keyed by
  * checklist item id. `true` means the steward has checked the item.
  */
 export type PlanChecklistProgress = Readonly<Record<string, boolean>>;

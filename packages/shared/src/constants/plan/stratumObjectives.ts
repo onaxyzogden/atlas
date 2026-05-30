@@ -1,4 +1,4 @@
-// tierObjectives.ts
+// stratumObjectives.ts
 //
 // Seed catalogue of the 7 Plan Strata and their objectives, derived from
 // OLOS Plan Navigation Spec v1. The seed below is the SKELETON shipped
@@ -15,7 +15,7 @@
 import type {
   PlanStratum,
   PlanStratumObjective,
-} from '../../schemas/plan/planTierObjective.schema.js';
+} from '../../schemas/plan/planStratumObjective.schema.js';
 
 export const PLAN_STRATA: readonly PlanStratum[] = [
   {
@@ -79,7 +79,7 @@ export function findPlanStratum(
 }
 
 // ---------------------------------------------------------------------------
-// Tier objectives — skeleton seed (Slice 1.1).
+// Stratum objectives — skeleton seed (Slice 1.1).
 //
 // Each objective gets a basic checklist (3 items) so the status engine has
 // something to bind to. Overlay bundles are intentionally empty here; they
@@ -347,7 +347,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
 ] as const;
 
 /**
- * Returns all tier-objectives for a given tier id, in seed order.
+ * Returns all stratum-objectives for a given stratum id, in seed order.
  */
 export function getObjectivesForStratum(
   stratumId: string,
@@ -356,7 +356,7 @@ export function getObjectivesForStratum(
 }
 
 /**
- * Returns the canonical tier-objective for a given id, or `undefined`.
+ * Returns the canonical stratum-objective for a given id, or `undefined`.
  */
 export function findPlanStratumObjective(
   id: string,

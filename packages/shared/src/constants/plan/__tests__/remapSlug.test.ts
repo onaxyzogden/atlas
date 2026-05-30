@@ -15,7 +15,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { remapTierId, remapId, remapRef } from '../remapSlug.js';
-import { PLAN_STRATA, PLAN_STRATUM_OBJECTIVES } from '../tierObjectives.js';
+import { PLAN_STRATA, PLAN_STRATUM_OBJECTIVES } from '../stratumObjectives.js';
 import {
   UNIVERSAL_PLAN_OBJECTIVES,
   REGEN_FARM_PRIMARY_OBJECTIVES,

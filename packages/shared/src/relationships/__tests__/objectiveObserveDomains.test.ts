@@ -14,8 +14,8 @@ import {
   getObjectivesForDomain,
   getPrimaryDomainForObjective,
 } from '../objectiveObserveDomains.js';
-import type { PlanStratumObjective } from '../../schemas/plan/planTierObjective.schema.js';
-import { PLAN_STRATUM_OBJECTIVES } from '../../constants/plan/tierObjectives.js';
+import type { PlanStratumObjective } from '../../schemas/plan/planStratumObjective.schema.js';
+import { PLAN_STRATUM_OBJECTIVES } from '../../constants/plan/stratumObjectives.js';
 
 function objective(
   patch: Partial<PlanStratumObjective> & Pick<PlanStratumObjective, 'id' | 'stratumId'>,

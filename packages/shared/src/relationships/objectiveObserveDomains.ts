@@ -26,7 +26,7 @@
 // readable when future objectives ship without churning a derivation
 // algorithm.
 
-import type { PlanStratumObjective, PlanStratumId } from '../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjective, PlanStratumId } from '../schemas/plan/planStratumObjective.schema.js';
 import type { UniversalDomain } from '../schemas/universalDomain.schema.js';
 
 /**

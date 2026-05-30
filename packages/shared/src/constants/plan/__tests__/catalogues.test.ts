@@ -3,7 +3,7 @@ import {
   PlanStratumObjectiveSchema,
   PatchRecordSchema,
   type PlanStratumObjective,
-} from '../../../schemas/plan/planTierObjective.schema.js';
+} from '../../../schemas/plan/planStratumObjective.schema.js';
 import {
   UNIVERSAL_PLAN_OBJECTIVES,
   REGEN_FARM_PRIMARY_OBJECTIVES,

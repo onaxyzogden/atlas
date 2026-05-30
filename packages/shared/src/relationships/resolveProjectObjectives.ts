@@ -39,7 +39,7 @@ import type {
   PlanObjectiveSource,
   PlanStratumId,
   PlanStratumObjective,
-} from '../schemas/plan/planTierObjective.schema.js';
+} from '../schemas/plan/planStratumObjective.schema.js';
 import type { ProjectTypeId } from '../schemas/plan/projectTypeTaxonomy.schema.js';
 import {
   getPrimaryCatalogue as defaultGetPrimaryCatalogue,
