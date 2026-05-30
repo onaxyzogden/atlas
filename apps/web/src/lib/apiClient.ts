@@ -49,6 +49,9 @@ import type {
   UpsertProjectStateInput,
   SyncedRecord,
   UpsertSyncedRecordInput,
+  ConflictListItem,
+  ResolveConflictInput,
+  ResolveConflictResult,
   VegetationPatchSummary,
   CreateVegetationPatchInput,
   UpdateVegetationPatchInput,
@@ -575,6 +578,30 @@ export const api = {
       request<SyncedRecord>(
         'PUT',
         `/api/v1/act-records/project/${projectId}/${encodeURIComponent(storeKey)}/${encodeURIComponent(recordId)}`,
+        input,
+      ),
+
+    // ADR 7 Phase 4 — conflict resolution surface.
+    // `listConflicts` returns every open (escalated) conflict for the project;
+    // `resolveConflict` closes one by the steward's Keep-mine/Keep-server choice.
+    // Both return the standard ApiEnvelope (request<T> wraps it), so callers
+    // destructure `{ data }` exactly like list/upsert above.
+    listConflicts: (projectServerId: string) =>
+      request<ConflictListItem[]>(
+        'GET',
+        `/api/v1/act-records/project/${projectServerId}/conflicts`,
+      ),
+
+    resolveConflict: (
+      projectServerId: string,
+      syncLogId: string,
+      input: ResolveConflictInput,
+    ) =>
+      request<ResolveConflictResult>(
+        'POST',
+        `/api/v1/act-records/project/${projectServerId}/conflicts/${encodeURIComponent(
+          syncLogId,
+        )}/resolve`,
         input,
       ),
   },

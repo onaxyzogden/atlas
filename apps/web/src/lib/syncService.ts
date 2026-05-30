@@ -35,7 +35,13 @@ import { usePathStore, type DesignPath } from '../store/pathStore.js';
 import { useUtilityStore, type Utility } from '../store/utilityStore.js';
 import { useVegetationStore, type VegetationPatch } from '../store/vegetationStore.js';
 import { useSuccessionStore, type SuccessionMilestone } from '../store/successionStore.js';
-import type { ProjectedStructure as Structure, SyncedRecord } from '@ogden/shared';
+import type {
+  ProjectedStructure as Structure,
+  SyncedRecord,
+  ConflictListItem,
+  ResolveConflictResult,
+  ConflictResolutionChoice,
+} from '@ogden/shared';
 import { useBuiltEnvironmentStoreV2 } from '../store/builtEnvironmentStoreV2.js';
 import {
   addStructure,
@@ -127,6 +133,53 @@ function diffArrayById<T extends { id: string }>(
 function getProjectServerId(projectLocalId: string): string | undefined {
   const project = useProjectStore.getState().projects.find((p) => p.id === projectLocalId);
   return project?.serverId;
+}
+
+/** The currently-active project (the one whose Act surface is open). */
+function getActiveProject(): LocalProject | undefined {
+  const st = useProjectStore.getState();
+  return st.projects.find((p) => p.id === st.activeProjectId);
+}
+
+/**
+ * ADR 7 Phase 4 — list every open (escalated) per-record conflict for the
+ * active project, for the dedicated Conflicts panel. Side-effect: reconciles
+ * the Connectivity badge (`conflictedStores`) to exactly the stores that still
+ * have an open conflict, so resolving the last one clears the badge.
+ */
+export async function listRecordConflicts(): Promise<ConflictListItem[]> {
+  const active = getActiveProject();
+  const serverId = active?.serverId;
+  if (!serverId) return [];
+  const { data } = await api.actRecords.listConflicts(serverId);
+  useConnectivityStore.getState().setConflictedStores(data.map((c) => c.storeKey));
+  return data;
+}
+
+/**
+ * ADR 7 Phase 4 — resolve one escalated conflict by the steward's
+ * Keep-mine/Keep-server choice, then converge local state. We re-hydrate the
+ * affected store from the server (the authoritative post-resolution state) via
+ * the existing tested apply path — keep_mine adopts the reinstated local copy at
+ * its new rev, keep_server adopts the server copy — then refresh the badge.
+ */
+export async function resolveRecordConflict(
+  item: ConflictListItem,
+  choice: ConflictResolutionChoice,
+): Promise<ResolveConflictResult> {
+  const active = getActiveProject();
+  const serverId = active?.serverId;
+  if (!active || !serverId) {
+    throw new Error('[SYNC] resolveRecordConflict: no active project with a serverId');
+  }
+  const { data } = await api.actRecords.resolveConflict(serverId, item.syncLogId, { choice });
+  const desc = SYNCED_STORES.find((d) => d.storeKey === data.storeKey);
+  // Converge via the existing tested apply path. `active` is a full LocalProject
+  // (narrowed non-undefined above), exactly what hydrateActRecords consumes at
+  // its other call site — no synthesized partial.
+  if (desc) await hydrateActRecords(active, [desc]);
+  await listRecordConflicts();
+  return data;
 }
 
 function subscribeToProjects() {
