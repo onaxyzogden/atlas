@@ -130,4 +130,45 @@ describe('executeTypedRecordOp — 409 conflict surface (ADR 7 P1, per record)',
     // Two distinct records conflicted, but the store-granular surface warns once.
     expect(warnMock).toHaveBeenCalledTimes(1);
   });
+
+  // ── Phase 3 (§6): resolution-aware surface ───────────────────────────────
+  // The server now decides, keyed on observed_at under ratified LWW, whether a
+  // 409 was settled non-destructively (`auto_resolved`) or must be escalated.
+  // The client adopts the authoritative rev EITHER way (never re-pushes a stale
+  // base) and NEVER clobbers local — it only differs on whether to surface.
+
+  it('auto_resolved adopts the rev but suppresses the surface (LWW settled it)', async () => {
+    push.mockResolvedValue({
+      status: 'conflict',
+      serverRev: 15,
+      serverPayload: { id: 'rec-ar' },
+      resolution: 'auto_resolved',
+      syncLogId: '00000000-0000-0000-0000-0000000000aa',
+    });
+
+    await executeTypedRecordOp(recordOp('rec-ar'));
+
+    // Rev adopted so the queue stops re-pushing a stale base…
+    expect(getRecordBaseRevForTest(STORE_KEY, 'local-1', 'rec-ar')).toBe(15);
+    // …but the conflict is NOT surfaced: the server proved its copy newer and
+    // preserved the loser in sync_log, so the user is not bothered.
+    expect(useConnectivityStore.getState().conflictedStores).toEqual([]);
+    expect(warnMock).not.toHaveBeenCalled();
+  });
+
+  it('escalated adopts the rev AND surfaces (badge + one toast), never clobbers', async () => {
+    push.mockResolvedValue({
+      status: 'conflict',
+      serverRev: 16,
+      serverPayload: {},
+      resolution: 'escalated',
+      syncLogId: '00000000-0000-0000-0000-0000000000bb',
+    });
+
+    await executeTypedRecordOp(recordOp('rec-esc'));
+
+    expect(getRecordBaseRevForTest(STORE_KEY, 'local-1', 'rec-esc')).toBe(16);
+    expect(useConnectivityStore.getState().conflictedStores).toContain(STORE_KEY);
+    expect(warnMock).toHaveBeenCalledTimes(1);
+  });
 });

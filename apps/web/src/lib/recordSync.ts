@@ -19,7 +19,7 @@
  */
 
 import { api } from './apiClient.js';
-import type { UpsertSyncedRecordInput } from '@ogden/shared';
+import type { UpsertSyncedRecordInput, ConflictResolution } from '@ogden/shared';
 import type { SyncedRecordMeta } from './syncManifest.js';
 
 /**
@@ -61,7 +61,20 @@ export function buildRecordEnvelope(
 
 export type RecordPushResult =
   | { status: 'ok'; rev: number }
-  | { status: 'conflict'; serverRev: number | null; serverPayload: unknown };
+  | {
+      status: 'conflict';
+      serverRev: number | null;
+      serverPayload: unknown;
+      // Phase 3 (§6): the server-decided resolution. `auto_resolved` means LWW
+      // settled it non-destructively (server observed_at >= local) and the
+      // loser is preserved in sync_log — the caller adopts the rev silently.
+      // `escalated` (the default for any 409 lacking the field — old server /
+      // test mock) means safety could not be proven: retain local + surface.
+      resolution: ConflictResolution;
+      // The durable sync_log row id, for traceability into the Phase 4 surface
+      // (null when the 409 predates the durable log).
+      syncLogId: string | null;
+    };
 
 /**
  * Push one record. Resolves to `ok` (with the new rev) or `conflict` (with
@@ -94,11 +107,18 @@ export async function pushSyncedRecord(
       const d = ((err as { details?: unknown }).details ?? {}) as {
         serverRev?: number | null;
         serverPayload?: unknown;
+        resolution?: ConflictResolution;
+        syncLogId?: string | null;
       };
       return {
         status: 'conflict',
         serverRev: d.serverRev ?? null,
         serverPayload: d.serverPayload ?? null,
+        // Default to `escalated` (the safe, surface-it branch) when the server
+        // omits resolution — preserves the Phase 1 never-clobber behaviour for
+        // any 409 that predates the §6 model or comes from a bare test mock.
+        resolution: d.resolution ?? 'escalated',
+        syncLogId: d.syncLogId ?? null,
       };
     }
     throw err;

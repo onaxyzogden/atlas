@@ -20,6 +20,7 @@ import {
   derivePriority,
   type QueuedOperation,
   type RecordTierFields,
+  type SyncStoreType,
 } from './syncQueue.js';
 import { pushProjectStateBlob, buildBlobEnvelope, blobLocalId } from './blobSync.js';
 import { recordLocalId, buildRecordEnvelope, pushSyncedRecord } from './recordSync.js';
@@ -1040,6 +1041,25 @@ export interface StateBlobOpPayload {
 }
 
 /**
+ * Surface a store-level sync conflict: badge it in the Connectivity panel and
+ * warn the user at most once per newly-conflicted store. The local copy is
+ * NEVER clobbered back — the reconcile is the user's (Phase 4 owns the
+ * Keep-mine/Keep-server resolution UI). Shared by the blob and typed-record
+ * flush paths so both surface identically; extracted in Phase 3 when the typed
+ * path grew a quiet `auto_resolved` branch that must NOT call this.
+ */
+function surfaceStoreConflict(storeKey: string): void {
+  const conn = useConnectivityStore.getState();
+  if (!conn.conflictedStores.includes(storeKey)) {
+    conn.addConflictedStore(storeKey);
+    toast.warning(
+      `A change to "${storeKey}" conflicts with a newer version on ` +
+        `the server. Your local copy is kept — review it in Connectivity.`,
+    );
+  }
+}
+
+/**
  * Push one queued `state-blob` slice through the generic versioned-blob
  * transport. The project's serverId is resolved at flush time (not enqueue
  * time) so an op queued before the project synced still lands once it has.
@@ -1073,15 +1093,10 @@ export async function executeStateBlobOp(op: QueuedOperation): Promise<void> {
   if (typeof result.serverRev === 'number') blobBaseRev.set(key, result.serverRev);
   // P4.4 — surface the conflict instead of swallowing it: badge it in the
   // Connectivity panel and warn the user once per newly-conflicted store.
-  // The local slice is NOT clobbered back; the reconcile is the user's.
-  const conn = useConnectivityStore.getState();
-  if (!conn.conflictedStores.includes(p.storeKey)) {
-    conn.addConflictedStore(p.storeKey);
-    toast.warning(
-      `A change to "${p.storeKey}" conflicts with a newer version on ` +
-        `the server. Your local copy is kept — review it in Connectivity.`,
-    );
-  }
+  // The local slice is NOT clobbered back; the reconcile is the user's. The
+  // blob transport carries no §6 resolution (it is whole-store, not per
+  // record), so it always surfaces.
+  surfaceStoreConflict(p.storeKey);
   console.warn(
     `[SYNC] state-blob "${p.storeKey}" rejected as stale (server rev ` +
       `${result.serverRev}); surfaced as conflict (no clobber)`,
@@ -1140,19 +1155,34 @@ export async function executeTypedRecordOp(op: QueuedOperation): Promise<void> {
     return;
   }
   // 409: adopt the authoritative rev so we stop infinitely re-pushing a stale
-  // base. The local record is NOT clobbered back — we surface and stop.
+  // base. The local record is NEVER clobbered back here regardless of how the
+  // server resolved the conflict.
   if (typeof result.serverRev === 'number') recordBaseRev.set(key, result.serverRev);
-  const conn = useConnectivityStore.getState();
-  if (!conn.conflictedStores.includes(p.storeKey)) {
-    conn.addConflictedStore(p.storeKey);
-    toast.warning(
-      `A change to "${p.storeKey}" conflicts with a newer version on ` +
-        `the server. Your local copy is kept — review it in Connectivity.`,
+  // §6 resolution (Phase 3). The server decided — keyed on observed_at under
+  // ratified LWW — whether this conflict was settled non-destructively:
+  //  - `auto_resolved`: the server copy is provably newer (server observed_at
+  //    >= local) and the loser is preserved in sync_log. Adopt the rev and
+  //    stay QUIET — no badge, no toast. We deliberately do NOT apply the server
+  //    payload here: doing so in the flush path would re-enter the store
+  //    subscriber and risk a push loop. Convergence to the server copy happens
+  //    on the next hydration (hydrateActRecords); Phase 4 owns immediate adopt.
+  //  - `escalated` (or any unknown/legacy value): safety could not be proven
+  //    (local strictly newer, or a timestamp missing). Surface it for a steward
+  //    Keep-mine/Keep-server decision. This is the default, so a 409 from an
+  //    older server or a bare test mock keeps the Phase 1 never-clobber surface.
+  if (result.resolution === 'auto_resolved') {
+    console.debug(
+      `[SYNC] typed-record "${p.storeKey}/${p.recordId}" auto-resolved by ` +
+        `the server (server rev ${result.serverRev} newer by observed_at; ` +
+        `sync_log ${result.syncLogId ?? 'n/a'}); local kept, surface suppressed`,
     );
+    return;
   }
+  surfaceStoreConflict(p.storeKey);
   console.warn(
-    `[SYNC] typed-record "${p.storeKey}/${p.recordId}" rejected as stale ` +
-      `(server rev ${result.serverRev}); surfaced as conflict (no clobber)`,
+    `[SYNC] typed-record "${p.storeKey}/${p.recordId}" escalated as stale ` +
+      `(server rev ${result.serverRev}; sync_log ${result.syncLogId ?? 'n/a'}); ` +
+      `surfaced as conflict (no clobber)`,
   );
 }
 
@@ -1204,6 +1234,35 @@ export function getRecordBaseRevForTest(
 let blobVersionSkewWarned = false;
 
 /**
+ * Local ids of records/stores that have a pending un-synced queue op of the
+ * given transport type. The hydrate paths use this as the §6 init-clobber
+ * guard (the residual gap ADR 12 handed to Phase 3): a local edit the server
+ * has not yet seen must NOT be overwritten by the server copy on hydrate.
+ *
+ * For `typed-record` the localId is `recordLocalId(storeKey, project, record)`;
+ * for `state-blob` it is `blobLocalId(storeKey, project)`. Degrades to an empty
+ * set if the queue is unreadable (e.g. no IndexedDB in a unit-test env) — the
+ * caller then hydrates exactly as it did before this guard existed.
+ */
+async function pendingLocalIds(
+  storeType: SyncStoreType,
+): Promise<Set<string>> {
+  try {
+    const ops = await syncQueue.getAll();
+    return new Set(
+      ops.filter((op) => op.storeType === storeType).map((op) => op.localId),
+    );
+  } catch (err) {
+    console.warn(
+      `[SYNC] could not read the sync queue for the init-clobber guard ` +
+        `(hydrating "${storeType}" without it):`,
+      err,
+    );
+    return new Set<string>();
+  }
+}
+
+/**
  * P4 — read side of the generic versioned-blob transport: pull every
  * server blob for `project` and write it back into its store (the half
  * that makes device B actually restore; P0-1's other half).
@@ -1246,9 +1305,20 @@ export async function hydrateProjectStateBlobs(
       .filter((d) => d.classification === 'versioned-blob')
       .map((d) => [d.storeKey, d] as const),
   );
+  // §6 init-clobber guard: a blob store with a pending un-synced push holds a
+  // local edit the server has not seen — do not overwrite it on hydrate.
+  const pendingBlobIds = await pendingLocalIds('state-blob');
   for (const row of rows) {
     const d = descByKey.get(row.storeKey);
     if (!d || !d.store || !d.applyForProject) continue;
+    if (pendingBlobIds.has(blobLocalId(row.storeKey, project.id))) {
+      console.warn(
+        `[SYNC] blob "${row.storeKey}" has a pending un-synced local edit; ` +
+          `skipped server hydrate to avoid clobbering it (its queued push will ` +
+          `reconcile, or surface a conflict if the server is ahead)`,
+      );
+      continue;
+    }
     const localVersion = d.schemaVersion ?? 1;
     if (row.schemaVersion > localVersion) {
       if (!blobVersionSkewWarned) {
@@ -1355,6 +1425,10 @@ export async function hydrateActRecords(
   const recordStores = descriptors.filter(
     (d) => d.classification === 'typed-record',
   );
+  // §6 init-clobber guard: records with a pending un-synced push are local
+  // edits the server has not seen — skip-apply them so hydrate never silently
+  // overwrites un-synced work (the residual gap ADR 12 handed to Phase 3).
+  const pendingRecordIds = await pendingLocalIds('typed-record');
   for (const d of recordStores) {
     if (!d.store || !d.applyRecordForProject) continue;
     const localVersion = d.schemaVersion ?? 1;
@@ -1374,6 +1448,15 @@ export async function hydrateActRecords(
       setState: (p: unknown) => void;
     };
     for (const row of rows) {
+      if (pendingRecordIds.has(recordLocalId(d.storeKey, project.id, row.recordId))) {
+        console.warn(
+          `[SYNC] typed-record "${d.storeKey}/${row.recordId}" has a pending ` +
+            `un-synced local edit; skipped server hydrate to avoid clobbering ` +
+            `it (its queued push will reconcile, or surface a conflict if the ` +
+            `server is ahead)`,
+        );
+        continue;
+      }
       if (row.schemaVersion > localVersion) {
         if (!blobVersionSkewWarned) {
           blobVersionSkewWarned = true;

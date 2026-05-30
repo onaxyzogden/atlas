@@ -283,6 +283,11 @@ describe.skipIf(!dbReachable)('actRecords.integration (real Postgres)', () => {
     expect(conflict.error.code).toBe('CONFLICT');
     expect(conflict.error.details.serverRev).toBe(1);
     expect(conflict.error.details.serverPayload).toEqual(A1);
+    // Phase 3 (section 6): local observed_at is null here (indeterminate), so
+    // safety cannot be proven -> the server escalates (never auto-applies) and
+    // stamps the envelope with the durable sync_log id.
+    expect(conflict.error.details.resolution).toBe('escalated');
+    expect(typeof conflict.error.details.syncLogId).toBe('string');
 
     // No clobber: the stored record is byte-for-byte unchanged.
     const after = await getStore(p1, STORE);
@@ -291,6 +296,43 @@ describe.skipIf(!dbReachable)('actRecords.integration (real Postgres)', () => {
     );
     expect(fa1After.rev).toBe(1);
     expect(fa1After.payload).toEqual(A1);
+
+    // Phase 3 (section 6): the 409 left a durable audit trail. Because local
+    // observed_at was null (indeterminate), the server escalated -- exactly one
+    // sync_log row stamped 'escalated' plus a failed_records escalation row
+    // pointing at it; both payloads (stale local + authoritative server) logged.
+    const logRows = await probeSql<
+      {
+        resolution_status: string;
+        local_rev: string;
+        server_rev: string;
+        observed_at_local: Date | null;
+        observed_at_server: Date | null;
+        local_payload: unknown;
+        server_payload: unknown;
+      }[]
+    >`
+      SELECT resolution_status, local_rev, server_rev,
+             observed_at_local, observed_at_server, local_payload, server_payload
+      FROM sync_log
+      WHERE project_id = ${p1} AND store_key = ${STORE} AND record_id = ${'fa-1'}
+      ORDER BY detected_at DESC
+    `;
+    expect(logRows).toHaveLength(1);
+    expect(logRows[0]!.resolution_status).toBe('escalated');
+    expect(Number(logRows[0]!.local_rev)).toBe(0);
+    expect(Number(logRows[0]!.server_rev)).toBe(1);
+    expect(logRows[0]!.observed_at_local).toBeNull();
+    expect(logRows[0]!.observed_at_server?.toISOString()).toBe(OBSERVED_AT);
+    expect(logRows[0]!.local_payload).toEqual({ id: 'fa-1', clobbered: true });
+    expect(logRows[0]!.server_payload).toEqual(A1);
+
+    const failed = await probeSql<{ sync_log_id: string }[]>`
+      SELECT sync_log_id FROM failed_records
+      WHERE project_id = ${p1} AND store_key = ${STORE} AND record_id = ${'fa-1'}
+    `;
+    expect(failed).toHaveLength(1);
+    expect(failed[0]!.sync_log_id).toBe(conflict.error.details.syncLogId);
 
     // Recovery: a write at the correct baseRev succeeds and bumps rev.
     const recovered = await put(p1, STORE, 'fa-1', 1, { id: 'fa-1', note: 'updated' });
@@ -304,5 +346,74 @@ describe.skipIf(!dbReachable)('actRecords.integration (real Postgres)', () => {
     );
     expect(finalById['fa-1'].rev).toBe(2);
     expect(finalById['fa-2'].rev).toBe(1);
+  });
+
+  it('D - conflict, server observed_at newer -> auto_resolved (sync_log, NO failed_records, still no clobber)', async () => {
+    // The other half of the section 6 branch. Seed a fresh record whose server
+    // copy carries a NEWER observed_at than the stale write that follows. Under
+    // ratified LWW (ADR 12 section 6.1) the server copy provably wins on
+    // observed_at, so the 409 is AUTO-resolved: logged for audit, but NOT
+    // escalated -- the client adopts the rev silently. The server still never
+    // clobbers (the stale payload is rejected exactly as in case C).
+    const SERVER_OBSERVED = '2026-05-25T10:00:00.000Z';
+    const LOCAL_OBSERVED = '2026-05-20T10:00:00.000Z';
+
+    const seeded = await put(p1, STORE, 'fa-ar', 0, { id: 'fa-ar', v: 'server' }, {
+      observedAt: SERVER_OBSERVED,
+      sourceType: 'field_survey',
+      cycleId: 'baseline',
+      taskType: 'field_survey',
+    });
+    expect(seeded.statusCode).toBe(200);
+    expect(JSON.parse(seeded.body).data.rev).toBe(1);
+
+    // Stale write whose observed_at is OLDER than the server's -> auto_resolved.
+    const stale = await put(p1, STORE, 'fa-ar', 0, { id: 'fa-ar', v: 'local-stale' }, {
+      observedAt: LOCAL_OBSERVED,
+    });
+    expect(stale.statusCode).toBe(409);
+    const conflict = JSON.parse(stale.body);
+    expect(conflict.error.code).toBe('CONFLICT');
+    expect(conflict.error.details.serverRev).toBe(1);
+    expect(conflict.error.details.resolution).toBe('auto_resolved');
+    expect(typeof conflict.error.details.syncLogId).toBe('string');
+
+    // Durable log row, stamped auto_resolved, carrying both observed_at stamps.
+    const logRows = await probeSql<
+      {
+        resolution_status: string;
+        local_rev: string;
+        server_rev: string;
+        observed_at_local: Date | null;
+        observed_at_server: Date | null;
+      }[]
+    >`
+      SELECT resolution_status, local_rev, server_rev,
+             observed_at_local, observed_at_server
+      FROM sync_log
+      WHERE project_id = ${p1} AND store_key = ${STORE} AND record_id = ${'fa-ar'}
+      ORDER BY detected_at DESC
+    `;
+    expect(logRows).toHaveLength(1);
+    expect(logRows[0]!.resolution_status).toBe('auto_resolved');
+    expect(Number(logRows[0]!.local_rev)).toBe(0);
+    expect(Number(logRows[0]!.server_rev)).toBe(1);
+    expect(logRows[0]!.observed_at_local?.toISOString()).toBe(LOCAL_OBSERVED);
+    expect(logRows[0]!.observed_at_server?.toISOString()).toBe(SERVER_OBSERVED);
+
+    // Auto-resolved -> NOT escalated: there is NO failed_records row for it.
+    const failed = await probeSql<{ sync_log_id: string }[]>`
+      SELECT sync_log_id FROM failed_records
+      WHERE project_id = ${p1} AND store_key = ${STORE} AND record_id = ${'fa-ar'}
+    `;
+    expect(failed).toHaveLength(0);
+
+    // Still no clobber: the server copy is byte-for-byte unchanged at rev 1.
+    const after = await getStore(p1, STORE);
+    const arAfter = JSON.parse(after.body).data.find(
+      (r: { recordId: string }) => r.recordId === 'fa-ar',
+    );
+    expect(arAfter.rev).toBe(1);
+    expect(arAfter.payload).toEqual({ id: 'fa-ar', v: 'server' });
   });
 });

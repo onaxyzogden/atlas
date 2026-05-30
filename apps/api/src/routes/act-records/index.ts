@@ -1,6 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { UpsertSyncedRecordInput, SyncedRecord, toCamelCase } from '@ogden/shared';
+import {
+  UpsertSyncedRecordInput,
+  SyncedRecord,
+  toCamelCase,
+  type ConflictResolution,
+} from '@ogden/shared';
 
 /**
  * Typed per-record sync transport for the Act stores (ADR 7 Phase 1 —
@@ -132,6 +137,55 @@ export default async function actRecordRoutes(fastify: FastifyInstance) {
             AND record_id = ${recordId}
         `;
         const serverState = current ? parseRow(current) : null;
+
+        // Resolution under ratified LWW (ADR 12 §6.1), keyed on observed_at:
+        // the server wins a tie. We can only AUTO-resolve when BOTH timestamps
+        // are present and parseable AND the local edit is the loser
+        // (server >= local). Otherwise safety cannot be proven, so we escalate
+        // — never auto-applied; the client retains local and surfaces it.
+        const localObservedMs = body.observedAt ? Date.parse(body.observedAt) : NaN;
+        const serverObservedMs = serverState?.observedAt
+          ? Date.parse(serverState.observedAt)
+          : NaN;
+        const resolution: ConflictResolution =
+          !Number.isNaN(localObservedMs) &&
+          !Number.isNaN(serverObservedMs) &&
+          localObservedMs <= serverObservedMs
+            ? 'auto_resolved'
+            : 'escalated';
+
+        // Durable conflict log — every 409 writes one row (audit trail + the
+        // data source for the Phase 4 Keep-mine/Keep-server surface).
+        const [logRow] = await db`
+          INSERT INTO sync_log (
+            project_id, store_key, record_id,
+            local_payload, server_payload, local_rev, server_rev,
+            observed_at_local, observed_at_server, resolution_status, detected_by
+          ) VALUES (
+            ${projectId}, ${storeKey}, ${recordId},
+            ${db.json((body.payload ?? null) as Parameters<typeof db.json>[0])}::jsonb,
+            ${db.json((serverState?.payload ?? null) as Parameters<typeof db.json>[0])}::jsonb,
+            ${body.baseRev}, ${serverState?.rev ?? null},
+            ${body.observedAt ?? null}, ${serverState?.observedAt ?? null},
+            ${resolution}, ${req.userId}
+          )
+          RETURNING id
+        `;
+        const syncLogId = (logRow?.['id'] as string | undefined) ?? null;
+
+        // Escalation queue — only when we could NOT auto-resolve. UPSERT so a
+        // re-escalation of a still-open record updates the pointer rather than
+        // stacking duplicates (resolved rows are deleted by Phase 4).
+        if (resolution === 'escalated') {
+          await db`
+            INSERT INTO failed_records (sync_log_id, project_id, store_key, record_id)
+            VALUES (${syncLogId}, ${projectId}, ${storeKey}, ${recordId})
+            ON CONFLICT (project_id, store_key, record_id) DO UPDATE SET
+              sync_log_id = EXCLUDED.sync_log_id,
+              created_at  = now()
+          `;
+        }
+
         reply.code(409);
         return {
           data: null,
@@ -142,6 +196,8 @@ export default async function actRecordRoutes(fastify: FastifyInstance) {
             details: {
               serverRev: serverState?.rev ?? null,
               serverPayload: serverState?.payload ?? null,
+              resolution,
+              syncLogId,
             },
           },
         };
