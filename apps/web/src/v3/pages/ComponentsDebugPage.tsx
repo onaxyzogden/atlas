@@ -10,10 +10,26 @@ import StageHero from "../components/StageHero.js";
 import PageHeader from "../components/PageHeader.js";
 import BlockerCard from "../components/BlockerCard.js";
 import DecisionRail from "../components/DecisionRail.js";
+import StratumSpine from "../plan/strata/StratumSpine.js";
 import { MTC_PROJECT } from "../data/mockProject.js";
+import { PLAN_STRATA, type PlanStratumState } from "@ogden/shared";
 import css from "./ComponentsDebugPage.module.css";
 
 const STAGES = ["home", "discover", "diagnose", "design", "prove", "build", "operate", "report"] as const;
+
+// A realistic progression that surfaces all four StratumRow states (and the
+// active+selected combination) at once, so the dark-mode elevation ladder is
+// visible without advancing real project data. Keyed by canonical stratum id.
+const STRATUM_DEMO_STATES: Record<string, PlanStratumState> = {
+  "s1-project-foundation": "complete",
+  "s2-land-reading": "complete",
+  "s3-systems-reading": "active",
+  "s4-foundation-decisions": "available",
+  "s5-system-design": "available",
+  "s6-integration-design": "locked",
+  "s7-phasing-resourcing": "locked",
+};
+const STRATUM_DEMO_ACTIVE = "s3-systems-reading";
 
 export default function ComponentsDebugPage() {
   return (
@@ -65,6 +81,17 @@ export default function ComponentsDebugPage() {
             </div>
           ))}
         </div>
+      </Section>
+
+      <Section title="StratumSpine — state elevation ladder">
+        <StratumSpine
+          strata={PLAN_STRATA}
+          objectives={[]}
+          objectiveStatuses={{}}
+          stratumStates={STRATUM_DEMO_STATES}
+          activeStratumId={STRATUM_DEMO_ACTIVE}
+          onSelectStratum={() => {}}
+        />
       </Section>
     </div>
   );
