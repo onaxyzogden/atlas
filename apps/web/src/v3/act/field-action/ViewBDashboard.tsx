@@ -18,7 +18,8 @@ import {
   selectFieldActionsForProject,
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
-import { seedDemoActionsIfEmpty } from './seedDemoActions.js';
+import { useProjectStore } from '../../../store/projectStore.js';
+import { seedActionsIfEmpty } from './seedDemoActions.js';
 import { useFieldActions } from './useFieldActions.js';
 import NextUpCard from './NextUpCard.js';
 import FieldActionFilter from './FieldActionFilter.js';
@@ -33,12 +34,30 @@ interface Props {
 }
 
 export default function ViewBDashboard({ projectId }: Props) {
+  // Discriminate the flagship builtin (Moontrance Creek) so it lands on its
+  // curated Act seed rather than the generic demo stubs. MTC is reliably the
+  // 'mtc' slug; the name check is a defensive fallback. Resolved here (not
+  // threaded as a prop) so the seed decision survives whichever code path
+  // mounts the dashboard.
+  const isMtc = useProjectStore((s) => {
+    const p = s.projects.find(
+      (proj) => proj.id === projectId || proj.serverId === projectId,
+    );
+    return (
+      projectId === 'mtc' ||
+      p?.id === 'mtc' ||
+      /moontrance/i.test(p?.name ?? '')
+    );
+  });
+
   // Idempotent first-load seed so the dashboard is non-empty for
-  // verification. Real authoring lands in Slice 3.3.
+  // verification. The dispatcher routes MTC -> curated, all else -> generic;
+  // both share one idempotency gate so a hydrate-time seed already in place
+  // makes this a no-op.
   useEffect(() => {
     if (!projectId) return;
-    seedDemoActionsIfEmpty(projectId);
-  }, [projectId]);
+    seedActionsIfEmpty(projectId, isMtc);
+  }, [projectId, isMtc]);
 
   const allTasks = useFieldActionStore((s) =>
     selectFieldActionsForProject(s, projectId),

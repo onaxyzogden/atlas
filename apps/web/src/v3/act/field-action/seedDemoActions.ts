@@ -13,6 +13,7 @@
 
 import type { FieldAction } from '@ogden/shared';
 import { useFieldActionStore } from '../../../store/fieldActionStore.js';
+import { seedCuratedMtcActionsIfEmpty } from './seedCuratedMtcActions.js';
 
 const NOW = () => new Date().toISOString();
 
@@ -80,6 +81,22 @@ const DEMOS: ReadonlyArray<{
     verificationMode: 'self',
   },
 ];
+
+/**
+ * Dispatcher: route the flagship builtin (Moontrance Creek) to its curated
+ * Act seed and every other project to the generic demo seed. Both paths share
+ * the same `getByProject().length > 0` idempotency gate, so this is safe to
+ * call from View B's mount effect regardless of which seed already ran at
+ * hydrate time. `isMtc` is resolved by the caller from the local project
+ * (name/id discrimination), since both builtins carry `isBuiltin`.
+ */
+export function seedActionsIfEmpty(projectId: string, isMtc: boolean): void {
+  if (isMtc) {
+    seedCuratedMtcActionsIfEmpty(projectId);
+    return;
+  }
+  seedDemoActionsIfEmpty(projectId);
+}
 
 export function seedDemoActionsIfEmpty(projectId: string): void {
   if (!projectId) return;

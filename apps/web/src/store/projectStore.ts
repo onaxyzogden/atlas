@@ -17,6 +17,7 @@ import {
   BUILTIN_PROJECT_NARRATIVE,
 } from '../data/builtinSampleObserveData.js';
 import { useSiteDataStore } from './siteDataStore.js';
+import { seedCuratedMtcActionsIfEmpty } from '../v3/act/field-action/seedCuratedMtcActions.js';
 import type { MockLayerResult } from '@ogden/shared/scoring';
 
 // ─── Local project type (extends CreateProjectInput with runtime fields) ───
@@ -722,10 +723,19 @@ export const MTC_SEED: LocalProject = {
 
 function seedMtcDemo(): void {
   const existing = useProjectStore.getState().projects.find((p) => p.id === 'mtc');
-  if (existing) return;
-  useProjectStore.setState((state) => ({
-    projects: [...state.projects, MTC_SEED],
-  }));
+  if (!existing) {
+    useProjectStore.setState((state) => ({
+      projects: [...state.projects, MTC_SEED],
+    }));
+  }
+  // Seed MTC's curated Act content at hydrate time so View B is populated the
+  // moment the map-first shell mounts (the default now that builtins are no
+  // longer pinned to the legacy command-centre). Idempotent by the field-action
+  // store's per-project gate, so a row that already exists won't duplicate and
+  // View B's own mount-effect seed becomes a no-op. Run unconditionally — the
+  // MTC project row can persist from a prior session while its actions are
+  // empty (e.g. after a field-action store reset).
+  seedCuratedMtcActionsIfEmpty('mtc');
 }
 
 // Local fallback used when the API is unreachable (e.g. dev server not
