@@ -111,6 +111,24 @@ Verified pair regen_farm + residential = **38 objectives** across 7 strata
 invariant holds: injected patch item ids are namespaced and `catalogues.test.ts`
 asserts global uniqueness incl. patch items.
 
+**Spec intake 2026-05-30 (planned, NOT encoded).** Three OLOS specs were
+ingested into the wiki as authoritative forward design with no code change:
+`decision_groups[]` (an editorial Plan-layer grouping of an objective's
+Act-layer checklist items -- see [[concepts/decision-groups]]) and the
+project-type **graduation** model (grow-into-types via append-only
+`type_history[]` -- see [[concepts/project-type-graduation]]). Neither is in
+the `planStratumObjective` schema or the catalogues yet. Four doc-vs-code
+deltas are recorded, code remaining canonical: (1) the Secondary Layer Spec
+v1.2 says "Sixteen objectives are universal" but the encoded model carries
+**19** (`universal.ts`); (2) the Decision Groups Reference uses type-prefix
+refs (`RF.S1.1`, `RS.S2.1`) vs the encoded `SILV-/ORCH-/U-` scheme; (3) docs
+reference 13 design tensions vs the **10** encoded in `relationshipMatrix.ts`;
+(4) `decision_groups[]` is a new unencoded schema field. ADR:
+[[decisions/2026-05-30-olos-spec-intake-decision-groups-graduation]]. The
+Silvopasture/Orchard **secondary** catalogues remain blocked on operator
+source files -- these three specs do not supply them (both types appear only
+as primaries in the Decision Groups Reference).
+
 ## Act telemetry schema (`schemas/actTelemetry.schema.ts`)
 Main-barrel schema backing the Act-stage affinity pipeline (migration
 024 + the `apps/api` telemetry route + `apps/web/src/lib/actInteractionLog.ts`).
