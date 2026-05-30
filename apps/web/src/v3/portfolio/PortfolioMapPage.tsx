@@ -42,30 +42,17 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
           <PortfolioMap projects={projects} selectedId={selectedId} onSelect={setSelectedId} />
         </div>
 
-        {/* Right at-a-glance rail — P2 replaces this placeholder with
-            PortfolioAtAGlanceRail (§2.4). */}
+        {/* Right at-a-glance rail (§2.4) — read-only briefing for the
+            selected project; renders its own empty state when none. */}
         <aside className={css.railZone}>
-          {selected ? (
-            <div className={css.railStub}>
-              <p className={css.railStubName}>{selected.name}</p>
-              <p className={css.railStubHint}>At-a-glance briefing — coming in the next pass.</p>
-            </div>
-          ) : (
-            <p className={css.railStubHint}>Select a project to see its briefing.</p>
-          )}
+          <PortfolioAtAGlanceRail briefing={briefing} />
         </aside>
       </div>
 
-      {/* Bottom stage rail — P2 replaces this placeholder with
-          PortfolioStageRail (§2.5). */}
+      {/* Bottom stage rail (§2.5) — Plan/Act/Observe navigation for the
+          selected project. */}
       <div className={css.stageZone}>
-        {selected ? (
-          <span className={css.stageStub}>
-            <strong>{selected.name}</strong> · Plan · Act · Observe
-          </span>
-        ) : (
-          <span className={css.stageStubMuted}>Select a project to navigate its stages.</span>
-        )}
+        <PortfolioStageRail briefing={briefing} />
       </div>
     </div>
   );
