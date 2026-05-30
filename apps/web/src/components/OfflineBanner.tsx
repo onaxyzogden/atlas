@@ -14,6 +14,7 @@
 
 import { useConnectivityStore } from '../store/connectivityStore.js';
 import { formatDistanceToNow } from 'date-fns';
+import { Link } from '@tanstack/react-router';
 import styles from './OfflineBanner.module.css';
 
 export default function OfflineBanner() {
@@ -76,6 +77,9 @@ export default function OfflineBanner() {
           {n} store{n !== 1 ? 's' : ''} ha{n !== 1 ? 've' : 's'} a newer version on the server — your local copy is kept
         </span>
         <span className={styles.chips}>
+          <Link to="/conflicts" className={styles.reviewLink}>
+            Review &amp; resolve →
+          </Link>
           {conflictedStores.map((key) => (
             <button
               key={key}

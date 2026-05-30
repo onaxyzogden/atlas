@@ -103,6 +103,25 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* ── Review & resolve link (into the dedicated Sync Conflicts page) ──
+   A solid-white CTA pill so it reads as the primary action on the red bar,
+   distinct from the translucent dismiss chips beside it. */
+.reviewLink {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-danger, #b91c1c);
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 2px 10px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.reviewLink:hover {
+  background: rgba(255, 255, 255, 0.88);
+}
+
 /* ── Icon ── */
 .icon {
   display: flex;

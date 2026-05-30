@@ -69,6 +69,8 @@ import PlanningWorkspacePage from '../v3/plan/workspace/PlanningWorkspacePage.js
 import PlanConflictsPage from '../v3/plan/conflicts/PlanConflictsPage.js';
 import PlanVersionsPage from '../v3/plan/versions/PlanVersionsPage.js';
 import PlanSynthesisPage from '../v3/plan/synthesis/PlanSynthesisPage.js';
+// ADR 7 Phase 4 — app-wide sync-conflict resolution surface (Keep-mine/Keep-server).
+import SyncConflictsPage from '../conflicts/SyncConflictsPage.js';
 import ActLayout from '../v3/act/ActLayout.js';
 import ActPlaceholderPage from '../v3/pages/ActPlaceholderPage.js';
 import OLOSWorkspacePage from '../v3/olos/OLOSWorkspacePage.js';
@@ -792,10 +794,20 @@ const notFoundRoute = createRoute({
   ),
 });
 
+// ADR 7 Phase 4 — app-wide Sync Conflicts surface. Top-level under the authed
+// app shell (not project-scoped); the page resolves the active project
+// internally. The OfflineBanner conflict badge links here (/conflicts).
+const conflictsRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/conflicts',
+  component: SyncConflictsPage,
+});
+
 // ─── Router ────────────────────────────────────────────────────────────────
 const routeTree = rootRoute.addChildren([
   appShellRoute.addChildren([
     homeRoute,
+    conflictsRoute,
     archiveRoute,
     newProjectRoute,
     cycleRoute,
