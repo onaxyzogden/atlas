@@ -291,7 +291,10 @@ export default async function actRecordRoutes(fastify: FastifyInstance) {
       const { choice } = ResolveConflictInput.parse(req.body);
       const userId = req.userId;
 
-      const outcome = await db.begin(async (sql) => {
+      // db.begin's TransactionSql lacks a tagged-template call signature under
+      // tsc (TS2349) — annotate (sql: any), the repo-wide convention for
+      // db.begin callbacks. Runtime is the real, fully-typed tx client.
+      const outcome = await db.begin(async (sql: any) => {
         const [log] = await sql`
           SELECT id, store_key, record_id, local_payload, observed_at_local,
                  resolution_status

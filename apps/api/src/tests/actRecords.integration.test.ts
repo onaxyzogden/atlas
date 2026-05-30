@@ -416,4 +416,157 @@ describe.skipIf(!dbReachable)('actRecords.integration (real Postgres)', () => {
     expect(arAfter.rev).toBe(1);
     expect(arAfter.payload).toEqual({ id: 'fa-ar', v: 'server' });
   });
+
+  // ── ADR 7 Phase 4 — the steward-facing end of the section 6 conflict model:
+  //    list every open (escalated) conflict, then close it Keep-mine /
+  //    Keep-server. Runs on p2 (which carries no escalations from cases A-D) with
+  //    its own record ids, so each case is self-contained. Asserts the full round
+  //    trip a FIFO mock cannot: the failed_records -> sync_log JOIN the LIST
+  //    reads, and the transactional resolve (record write + sync_log close +
+  //    failed_records delete) keep_mine / keep_server perform.
+  describe('Phase 4 - conflict resolution surface (escalated -> resolved)', () => {
+    function listConflicts(project: string) {
+      return app.inject({
+        method: 'GET',
+        url: `/api/v1/act-records/project/${project}/conflicts`,
+        headers: { authorization: `Bearer ${token}` },
+      });
+    }
+
+    function resolveConflict(
+      project: string,
+      syncLogId: string,
+      choice: 'keep_mine' | 'keep_server',
+    ) {
+      return app.inject({
+        method: 'POST',
+        url: `/api/v1/act-records/project/${project}/conflicts/${syncLogId}/resolve`,
+        headers: { authorization: `Bearer ${token}` },
+        payload: { choice },
+      });
+    }
+
+    // Drive one record to a clean ESCALATED conflict: a first write (rev 1 with a
+    // server observed_at), then a stale baseRev-0 re-PUT whose local observed_at
+    // is null (indeterminate). Safety cannot be proven, so the server escalates
+    // and never clobbers (case C's branch). Returns the stamped syncLogId.
+    async function forceEscalation(
+      recordId: string,
+      serverPayload: unknown,
+      localPayload: unknown,
+    ): Promise<string> {
+      const v1 = await put(p2, STORE, recordId, 0, serverPayload, {
+        observedAt: OBSERVED_AT,
+      });
+      expect(v1.statusCode).toBe(200);
+      const stale = await put(p2, STORE, recordId, 0, localPayload); // observedAt null
+      expect(stale.statusCode).toBe(409);
+      const body = JSON.parse(stale.body);
+      expect(body.error.details.resolution).toBe('escalated');
+      return body.error.details.syncLogId as string;
+    }
+
+    it('E - LIST: GET /conflicts returns the escalated record with both payloads + revs', async () => {
+      const server = { id: 'fa-le', note: 'server-v1' };
+      const local = { id: 'fa-le', note: 'local-newer' };
+      const syncLogId = await forceEscalation('fa-le', server, local);
+
+      const res = await listConflicts(p2);
+      expect(res.statusCode).toBe(200);
+      const list = JSON.parse(res.body);
+      expect(list.error).toBeNull();
+      const item = list.data.find((c: { recordId: string }) => c.recordId === 'fa-le');
+      expect(item).toBeDefined();
+      expect(item.syncLogId).toBe(syncLogId);
+      expect(item.storeKey).toBe(STORE);
+      expect(item.serverRev).toBe(1);
+      expect(item.localRev).toBe(0);
+      expect(item.serverPayload).toEqual(server);
+      expect(item.localPayload).toEqual(local);
+      expect(item.observedAtServer).toBe(OBSERVED_AT);
+      expect(item.observedAtLocal).toBeNull();
+    });
+
+    it('F - keep_server: resolves + clears the queue, server copy never clobbered (rev stays 1)', async () => {
+      const server = { id: 'fa-ks', note: 'server-v1' };
+      const local = { id: 'fa-ks', note: 'local-newer' };
+      const syncLogId = await forceEscalation('fa-ks', server, local);
+
+      const res = await resolveConflict(p2, syncLogId, 'keep_server');
+      expect(res.statusCode).toBe(200);
+      const out = JSON.parse(res.body);
+      expect(out.error).toBeNull();
+      expect(out.data.recordId).toBe('fa-ks');
+      expect(out.data.storeKey).toBe(STORE);
+      expect(out.data.rev).toBe(1);
+      expect(out.data.payload).toEqual(server);
+      expect(out.data.resolutionStatus).toBe('resolved');
+
+      // Gone from the open-conflict list.
+      const after = JSON.parse((await listConflicts(p2)).body);
+      expect(after.data.some((c: { recordId: string }) => c.recordId === 'fa-ks')).toBe(false);
+
+      // sync_log stamped resolved (+ resolved_by); failed_records cleared; the
+      // synced_records row is the untouched server copy at rev 1.
+      const [log] = await probeSql<
+        { resolution_status: string; resolved_by: string | null }[]
+      >`
+        SELECT resolution_status, resolved_by FROM sync_log WHERE id = ${syncLogId}
+      `;
+      expect(log!.resolution_status).toBe('resolved');
+      expect(log!.resolved_by).toBe(userId);
+
+      const stillFailed = await probeSql<{ id: string }[]>`
+        SELECT id FROM failed_records WHERE sync_log_id = ${syncLogId}
+      `;
+      expect(stillFailed).toHaveLength(0);
+
+      const [rec] = await probeSql<{ rev: string; payload: unknown }[]>`
+        SELECT rev, payload FROM synced_records
+        WHERE project_id = ${p2} AND store_key = ${STORE} AND record_id = ${'fa-ks'}
+      `;
+      expect(Number(rec!.rev)).toBe(1);
+      expect(rec!.payload).toEqual(server);
+    });
+
+    it('G - keep_mine: server adopts the local payload at rev + 1 (sanctioned override)', async () => {
+      const server = { id: 'fa-km', note: 'server-v1' };
+      const local = { id: 'fa-km', note: 'local-newer' };
+      const syncLogId = await forceEscalation('fa-km', server, local);
+
+      const res = await resolveConflict(p2, syncLogId, 'keep_mine');
+      expect(res.statusCode).toBe(200);
+      const out = JSON.parse(res.body);
+      expect(out.error).toBeNull();
+      expect(out.data.recordId).toBe('fa-km');
+      expect(out.data.rev).toBe(2);
+      expect(out.data.payload).toEqual(local);
+      expect(out.data.resolutionStatus).toBe('resolved');
+
+      const after = JSON.parse((await listConflicts(p2)).body);
+      expect(after.data.some((c: { recordId: string }) => c.recordId === 'fa-km')).toBe(false);
+
+      const [log] = await probeSql<{ resolution_status: string }[]>`
+        SELECT resolution_status FROM sync_log WHERE id = ${syncLogId}
+      `;
+      expect(log!.resolution_status).toBe('resolved');
+
+      const stillFailed = await probeSql<{ id: string }[]>`
+        SELECT id FROM failed_records WHERE sync_log_id = ${syncLogId}
+      `;
+      expect(stillFailed).toHaveLength(0);
+
+      // The local payload is now the authoritative copy, force-written at rev + 1
+      // and attributed to the resolving steward.
+      const [rec] = await probeSql<
+        { rev: string; payload: unknown; updated_by: string | null }[]
+      >`
+        SELECT rev, payload, updated_by FROM synced_records
+        WHERE project_id = ${p2} AND store_key = ${STORE} AND record_id = ${'fa-km'}
+      `;
+      expect(Number(rec!.rev)).toBe(2);
+      expect(rec!.payload).toEqual(local);
+      expect(rec!.updated_by).toBe(userId);
+    });
+  });
 });
