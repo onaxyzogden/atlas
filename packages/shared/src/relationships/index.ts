@@ -5,6 +5,7 @@ export * from './cycle.js';
 export * from './statusGate.js';
 export * from './stratumObjectiveStatus.js';
 export * from './stratumState.js';
+export * from './actStratumExecution.js';
 export * from './cyclicalReviewTrigger.js';
 export * from './fieldActionStatus.js';
 export * from './urgencyScore.js';

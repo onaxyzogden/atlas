@@ -148,6 +148,14 @@ export {
   type PlanStratumStateMap,
 } from './relationships/stratumState.js';
 export {
+  computeActStratumExecution,
+  actStratumStateFromCounts,
+  computeAllActStratumStates,
+  type ActStratumCounts,
+  type ActStratumCountsMap,
+  type ActStratumStateMap,
+} from './relationships/actStratumExecution.js';
+export {
   isCyclicalReviewDue,
   CYCLICAL_REVIEW_DEFAULT_DAYS,
   type CyclicalReviewInputs,
