@@ -30,6 +30,15 @@ export type SyncStoreType =
   | 'proof_photo_upload';
 export type SyncAction = 'create' | 'update' | 'delete';
 
+/**
+ * Offline-sync drain priority — the canonical 5-tier order from ADR 12
+ * (wiki/decisions/2026-05-29-atlas-spec-offline-sync-priority-queues.md). Lower
+ * number drains first; 1 is divergence (unconditional, ahead of all others).
+ * Derived from the typed record's fields at enqueue (see derivePriority); legacy
+ * in-flight ops with no priority sort as the lowest tier.
+ */
+export type SyncPriority = 1 | 2 | 3 | 4 | 5;
+
 export interface QueuedOperation {
   id: string;
   timestamp: number;
@@ -40,11 +49,75 @@ export interface QueuedOperation {
   payload: unknown;
   retryCount: number;
   lastError?: string;
+  /**
+   * 5-tier drain priority (ADR 12). Set at enqueue for typed Act records (and
+   * the divergence proof photo). Optional so legacy/other-store ops omit it and
+   * sort as the lowest tier — no IndexedDB migration needed (the queue sorts in
+   * memory; see compareQueuedOps).
+   */
+  priority?: SyncPriority;
 }
 
 /** Coalescing key for a queued op: one slot per (storeType, action, entity). */
 function opKey(storeType: SyncStoreType, action: SyncAction, localId: string): string {
   return `${storeType}:${action}:${localId}`;
+}
+
+/** Lowest tier — the floor for ops that carry no derived priority. */
+const LOWEST_PRIORITY: SyncPriority = 5;
+
+/**
+ * The subset of a typed Act record's fields the 5-tier mapping reads. Kept
+ * structural (not a schema import) so this module stays dependency-free and the
+ * comparator is unit-testable in isolation. `divergenceFlag` is the FieldAction
+ * field that is non-null ONLY when status is 'diverged' (schema default null).
+ */
+export interface RecordTierFields {
+  divergenceFlag?: unknown;
+  taskType?: unknown;
+  cycleId?: unknown;
+}
+
+/**
+ * Map a typed Act record to its 5-tier offline-sync priority (ADR 12 §Decision):
+ *   1 divergence            — divergenceFlag present (UNCONDITIONAL: checked
+ *                             first, so a diverged survey still beats a baseline)
+ *   2 baseline survey       — field_survey + cycleId 'baseline'
+ *   3 non-baseline survey   — field_survey + any numbered cycle
+ *   4 monitoring proof      — monitoring_task
+ *   5 implementation proof  — implementation_task, administrative_task, untyped,
+ *                             and observe records (the default floor)
+ * taskType tokens are the ADR 2 4-value taxonomy landed in Phase 0.
+ */
+export function derivePriority(rec: RecordTierFields | null | undefined): SyncPriority {
+  if (rec?.divergenceFlag != null) return 1;
+  if (rec?.taskType === 'field_survey') {
+    return rec?.cycleId === 'baseline' ? 2 : 3;
+  }
+  if (rec?.taskType === 'monitoring_task') return 4;
+  return LOWEST_PRIORITY;
+}
+
+/** Dual-track: structured typed-record ops drain before proof-photo blobs. */
+function isBlobTrack(op: QueuedOperation): boolean {
+  return op.storeType === 'proof_photo_upload';
+}
+
+/**
+ * Total order the queue drains in (ADR 12): priority tier ascending, then
+ * structured-before-blob within a tier, then FIFO by timestamp. A missing
+ * priority sorts as the lowest tier so legacy in-flight ops never preempt a
+ * derived one. This is the single sort key getAll()/getBatch() share — proving
+ * it proves the drain order without touching IndexedDB.
+ */
+export function compareQueuedOps(a: QueuedOperation, b: QueuedOperation): number {
+  const pa = a.priority ?? LOWEST_PRIORITY;
+  const pb = b.priority ?? LOWEST_PRIORITY;
+  if (pa !== pb) return pa - pb;
+  const ta = isBlobTrack(a) ? 1 : 0;
+  const tb = isBlobTrack(b) ? 1 : 0;
+  if (ta !== tb) return ta - tb;
+  return a.timestamp - b.timestamp;
 }
 
 // ─── IndexedDB helpers (same pattern as geodataCache.ts) ─────────────────────
@@ -144,9 +217,7 @@ export const syncQueue = {
     return new Promise((resolve, reject) => {
       const req = store.getAll();
       req.onsuccess = () => {
-        const ops = (req.result as QueuedOperation[]).sort(
-          (a, b) => a.timestamp - b.timestamp,
-        );
+        const ops = (req.result as QueuedOperation[]).sort(compareQueuedOps);
         resolve(ops);
       };
       req.onerror = () => reject(req.error);
@@ -176,7 +247,10 @@ export const syncQueue = {
       req.onsuccess = () => {
         const cursor = req.result;
         if (!cursor || out.length >= limit) {
-          out.sort((a, b) => a.timestamp - b.timestamp);
+          // Batch-level priority order (ADR 12). The cursor materialises in key
+          // order then this sorts the batch; for any queue under FLUSH_BATCH the
+          // whole queue is in-batch, so divergence (tier 1) preempts the backlog.
+          out.sort(compareQueuedOps);
           resolve(out);
           return;
         }

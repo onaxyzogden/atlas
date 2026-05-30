@@ -14,7 +14,13 @@
  */
 
 import { api } from './apiClient.js';
-import { syncQueue, describeSyncError, type QueuedOperation } from './syncQueue.js';
+import {
+  syncQueue,
+  describeSyncError,
+  derivePriority,
+  type QueuedOperation,
+  type RecordTierFields,
+} from './syncQueue.js';
 import { pushProjectStateBlob, buildBlobEnvelope, blobLocalId } from './blobSync.js';
 import { recordLocalId, buildRecordEnvelope, pushSyncedRecord } from './recordSync.js';
 import {
@@ -1545,6 +1551,10 @@ export async function enqueueTypedRecord(
     action: 'update',
     localId: recordLocalId(desc.storeKey, activeId, recordId),
     payload,
+    // 5-tier drain priority (ADR 12), derived from the record's own fields —
+    // divergenceFlag/taskType/cycleId are native on the FieldAction, so the tier
+    // is read directly here (SyncedRecordMeta does not carry divergenceFlag).
+    priority: derivePriority(record as RecordTierFields),
   });
 }
 

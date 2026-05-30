@@ -99,6 +99,10 @@ export default function DivergenceCaptureForm({
           fileMime: file.type || 'image/jpeg',
           fileSizeBytes: file.size,
         },
+        // ADR 12 tier 1: divergence evidence drains ahead of all routine proofs.
+        // (The diverged FieldAction record itself also derives priority 1 via
+        // markDiverged -> the typed-record subscriber.)
+        priority: 1,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save photo.');
