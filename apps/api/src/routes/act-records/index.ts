@@ -3,6 +3,9 @@ import { z } from 'zod';
 import {
   UpsertSyncedRecordInput,
   SyncedRecord,
+  ConflictListItem,
+  ResolveConflictInput,
+  ResolveConflictResult,
   toCamelCase,
   type ConflictResolution,
 } from '@ogden/shared';
@@ -39,6 +42,13 @@ const ParamsProjectIdStoreKeyRecordId = z.object({
   storeKey: z.string().min(1).max(128),
   recordId: z.string().min(1).max(256),
 });
+const ParamsProjectIdConflicts = z.object({
+  projectId: z.string().uuid(),
+});
+const ParamsResolveConflict = z.object({
+  projectId: z.string().uuid(),
+  syncLogId: z.string().uuid(),
+});
 
 function parseRow(row: Record<string, unknown>) {
   // `rev` is BIGINT; postgres.js returns it as a string to avoid precision
@@ -57,6 +67,32 @@ function parseRow(row: Record<string, unknown>) {
       updated_at: updatedAt instanceof Date ? updatedAt.toISOString() : updatedAt,
     }),
   );
+}
+
+/**
+ * One escalated conflict row for the Phase 4 surface — a `failed_records`
+ * escalation joined to the `sync_log` row that captured both payloads.
+ * postgres.js returns jsonb columns already parsed, BIGINT revs as strings, and
+ * timestamps as Date — normalise to the ConflictListItem wire contract here.
+ */
+function parseConflictRow(row: Record<string, unknown>): ConflictListItem {
+  const num = (v: unknown): number | null =>
+    v == null ? null : typeof v === 'string' ? Number(v) : (v as number);
+  const iso = (v: unknown): string | null =>
+    v instanceof Date ? v.toISOString() : (v as string | null);
+  return ConflictListItem.parse({
+    syncLogId: row['sync_log_id'],
+    failedRecordId: row['failed_record_id'],
+    storeKey: row['store_key'],
+    recordId: row['record_id'],
+    localPayload: row['local_payload'],
+    serverPayload: row['server_payload'],
+    localRev: num(row['local_rev']),
+    serverRev: num(row['server_rev']),
+    observedAtLocal: iso(row['observed_at_local']),
+    observedAtServer: iso(row['observed_at_server']),
+    detectedAt: iso(row['detected_at']) as string,
+  });
 }
 
 export default async function actRecordRoutes(fastify: FastifyInstance) {
@@ -204,6 +240,162 @@ export default async function actRecordRoutes(fastify: FastifyInstance) {
       }
 
       return { data: parseRow(row), meta: undefined, error: null };
+    },
+  );
+
+  // GET /project/:projectId/conflicts — every open (escalated) conflict for the
+  // project, for the Phase 4 Keep-mine/Keep-server surface. Static `conflicts`
+  // out-prioritises the `:storeKey` param route in find-my-way, and no Act
+  // store is named "conflicts", so there is no collision. Any role may read.
+  fastify.get<{ Params: { projectId: string } }>(
+    '/project/:projectId/conflicts',
+    { preHandler: [authenticate, resolveProjectRole] },
+    async (req) => {
+      const { projectId } = ParamsProjectIdConflicts.parse(req.params);
+      const rows = await db`
+        SELECT
+          sl.id                 AS sync_log_id,
+          fr.id                 AS failed_record_id,
+          sl.store_key          AS store_key,
+          sl.record_id          AS record_id,
+          sl.local_payload      AS local_payload,
+          sl.server_payload     AS server_payload,
+          sl.local_rev          AS local_rev,
+          sl.server_rev         AS server_rev,
+          sl.observed_at_local  AS observed_at_local,
+          sl.observed_at_server AS observed_at_server,
+          sl.detected_at        AS detected_at
+        FROM failed_records fr
+        JOIN sync_log sl ON sl.id = fr.sync_log_id
+        WHERE fr.project_id = ${projectId}
+          AND sl.resolution_status = 'escalated'
+        ORDER BY sl.detected_at DESC
+      `;
+      return { data: rows.map(parseConflictRow), meta: { total: rows.length }, error: null };
+    },
+  );
+
+  // POST /project/:projectId/conflicts/:syncLogId/resolve — close an escalated
+  // conflict by the steward's choice (owner + designer only). keep_server is a
+  // no-op write (the server row already won the 409); keep_mine is the one
+  // sanctioned clobber of a newer server rev — the local payload is force-
+  // written as a NEW rev, durably attributed via resolved_by. Idempotent: an
+  // already-resolved conflict returns the current authoritative state without
+  // re-applying keep_mine (never double-bumps). Wrapped in a transaction so the
+  // record write, the sync_log close, and the failed_records delete are atomic.
+  fastify.post<{ Params: { projectId: string; syncLogId: string } }>(
+    '/project/:projectId/conflicts/:syncLogId/resolve',
+    { preHandler: [authenticate, resolveProjectRole, requireRole('owner', 'designer')] },
+    async (req, reply) => {
+      const { projectId, syncLogId } = ParamsResolveConflict.parse(req.params);
+      const { choice } = ResolveConflictInput.parse(req.body);
+      const userId = req.userId;
+
+      const outcome = await db.begin(async (sql) => {
+        const [log] = await sql`
+          SELECT id, store_key, record_id, local_payload, observed_at_local,
+                 resolution_status
+          FROM sync_log
+          WHERE id = ${syncLogId} AND project_id = ${projectId}
+          FOR UPDATE
+        `;
+        if (!log) return { status: 'not_found' as const };
+
+        const storeKey = log['store_key'] as string;
+        const recordId = log['record_id'] as string;
+
+        const readAuthoritative = async (): Promise<Record<string, unknown> | null> => {
+          const [current] = await sql`
+            SELECT project_id, store_key, record_id, payload, schema_version,
+                   rev, observed_at, source_type, cycle_id, task_type,
+                   updated_by, updated_at
+            FROM synced_records
+            WHERE project_id = ${projectId} AND store_key = ${storeKey}
+              AND record_id = ${recordId}
+          `;
+          return current ?? null;
+        };
+
+        // Idempotent: a re-resolve returns current state, never re-applies.
+        if (log['resolution_status'] === 'resolved') {
+          return {
+            status: 'ok' as const,
+            storeKey,
+            recordId,
+            authoritative: await readAuthoritative(),
+          };
+        }
+
+        let authoritative: Record<string, unknown> | null;
+        if (choice === 'keep_mine') {
+          // Sanctioned override: force-write the local payload at rev + 1.
+          const [updated] = await sql`
+            UPDATE synced_records SET
+              payload     = ${sql.json(
+                (log['local_payload'] ?? null) as Parameters<typeof sql.json>[0],
+              )}::jsonb,
+              rev         = rev + 1,
+              observed_at = ${(log['observed_at_local'] as Date | null) ?? null},
+              updated_by  = ${userId},
+              updated_at  = now()
+            WHERE project_id = ${projectId} AND store_key = ${storeKey}
+              AND record_id = ${recordId}
+            RETURNING project_id, store_key, record_id, payload, schema_version,
+                      rev, observed_at, source_type, cycle_id, task_type,
+                      updated_by, updated_at
+          `;
+          authoritative = updated ?? null;
+        } else {
+          // keep_server: the server row already won the 409; just re-read it.
+          authoritative = await readAuthoritative();
+        }
+
+        await sql`
+          UPDATE sync_log SET
+            resolution_status = 'resolved',
+            resolved_at = now(),
+            resolved_by = ${userId}
+          WHERE id = ${syncLogId}
+        `;
+        await sql`DELETE FROM failed_records WHERE sync_log_id = ${syncLogId}`;
+
+        return { status: 'ok' as const, storeKey, recordId, authoritative };
+      });
+
+      if (outcome.status === 'not_found') {
+        reply.code(404);
+        return {
+          data: null,
+          meta: undefined,
+          error: {
+            code: 'NOT_FOUND',
+            message: `No conflict ${syncLogId} for project ${projectId}`,
+          },
+        };
+      }
+      if (!outcome.authoritative) {
+        reply.code(409);
+        return {
+          data: null,
+          meta: undefined,
+          error: {
+            code: 'AUTHORITATIVE_RECORD_MISSING',
+            message: `Resolved conflict ${syncLogId} but no authoritative record for ${outcome.storeKey}/${outcome.recordId}`,
+          },
+        };
+      }
+      const parsed = parseRow(outcome.authoritative);
+      return {
+        data: ResolveConflictResult.parse({
+          storeKey: outcome.storeKey,
+          recordId: outcome.recordId,
+          rev: parsed.rev,
+          payload: parsed.payload,
+          resolutionStatus: 'resolved',
+        }),
+        meta: undefined,
+        error: null,
+      };
     },
   );
 }

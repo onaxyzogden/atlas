@@ -104,3 +104,62 @@ export const ConflictDetails = z.object({
   syncLogId: z.string().uuid().nullable(),
 });
 export type ConflictDetails = z.infer<typeof ConflictDetails>;
+
+// ─── Phase 4 — Keep-mine / Keep-server resolution surface ────────────────────
+
+/**
+ * The steward's choice when closing an escalated conflict through the Phase 4
+ * surface (ADR 7 Phase 4 — the dedicated Conflicts panel):
+ *  - `keep_server` — accept the authoritative server copy; the local edit is
+ *    discarded (the loser is already preserved on the `sync_log` row). No write
+ *    to `synced_records` — the server row already won the 409.
+ *  - `keep_mine` — the steward overrides LWW and reinstates the local copy: the
+ *    server force-writes `sync_log.local_payload` as a NEW rev. This is the one
+ *    sanctioned clobber of a newer server rev — an explicit human decision,
+ *    durably attributed (`resolved_by`), never a silent overwrite.
+ */
+export const ConflictResolutionChoice = z.enum(['keep_mine', 'keep_server']);
+export type ConflictResolutionChoice = z.infer<typeof ConflictResolutionChoice>;
+
+/**
+ * One open conflict as the Phase 4 surface lists it: a `failed_records`
+ * escalation joined to the `sync_log` row that captured both payloads. Keyed by
+ * `syncLogId` (what the resolve endpoint takes). Only escalated/open conflicts
+ * appear here — `auto_resolved` never escalates, and `resolved` rows have been
+ * deleted from `failed_records` (their history stays on the `sync_log` row).
+ */
+export const ConflictListItem = z.object({
+  syncLogId: z.string().uuid(),
+  failedRecordId: z.string().uuid(),
+  storeKey: z.string().min(1),
+  recordId: z.string().min(1),
+  localPayload: z.unknown(),
+  serverPayload: z.unknown(),
+  localRev: z.number().int().min(0).nullable(),
+  serverRev: z.number().int().min(1).nullable(),
+  observedAtLocal: z.string().datetime({ offset: true }).nullable(),
+  observedAtServer: z.string().datetime({ offset: true }).nullable(),
+  detectedAt: z.string().datetime({ offset: true }),
+});
+export type ConflictListItem = z.infer<typeof ConflictListItem>;
+
+/** Request body for `POST …/conflicts/:syncLogId/resolve`. */
+export const ResolveConflictInput = z.object({
+  choice: ConflictResolutionChoice,
+});
+export type ResolveConflictInput = z.infer<typeof ResolveConflictInput>;
+
+/**
+ * What the resolve endpoint returns: the authoritative record state AFTER
+ * resolution, so the client converges its local store and per-record `baseRev`.
+ * `rev`/`payload` reflect the winning copy (the server's for `keep_server`, the
+ * reinstated local for `keep_mine`); `resolutionStatus` is always `resolved`.
+ */
+export const ResolveConflictResult = z.object({
+  storeKey: z.string().min(1),
+  recordId: z.string().min(1),
+  rev: z.number().int().min(1),
+  payload: z.unknown(),
+  resolutionStatus: SyncResolutionStatus,
+});
+export type ResolveConflictResult = z.infer<typeof ResolveConflictResult>;
