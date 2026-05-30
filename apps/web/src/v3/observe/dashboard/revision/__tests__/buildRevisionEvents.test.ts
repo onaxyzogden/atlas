@@ -16,8 +16,8 @@ const HYDRO: UniversalDomain = 'hydrology';
 const CLIMATE: UniversalDomain = 'climate';
 
 const RESOLVE_FIXED = (objectiveId: string): UniversalDomain | null => {
-  if (objectiveId === 't4-water-strategy') return HYDRO;
-  if (objectiveId === 't1-land-baseline') return SOIL;
+  if (objectiveId === 's5-water-strategy') return HYDRO;
+  if (objectiveId === 's2-land-baseline') return SOIL;
   return null;
 };
 
@@ -104,7 +104,7 @@ describe('buildRevisionEvents', () => {
         [],
         [
           {
-            feedKey: 't4-water-strategy',
+            feedKey: 's5-water-strategy',
             sourceType: 'diverged',
             capturedAt: '2026-05-28T10:00:00.000Z',
           },
@@ -115,7 +115,7 @@ describe('buildRevisionEvents', () => {
     expect(events).toHaveLength(1);
     expect(events[0]?.kind).toBe('divergence');
     expect(events[0]?.domainId).toBe(HYDRO);
-    expect(impactedObjectiveIds).toEqual(['t4-water-strategy']);
+    expect(impactedObjectiveIds).toEqual(['s5-water-strategy']);
     expect(impactedDomains).toEqual([HYDRO]);
   });
 
@@ -143,7 +143,7 @@ describe('buildRevisionEvents', () => {
       [],
       [
         {
-          feedKey: 't4-water-strategy',
+          feedKey: 's5-water-strategy',
           sourceType: 'verified',
           capturedAt: '2026-05-28T10:00:00.000Z',
         },
@@ -165,7 +165,7 @@ describe('buildRevisionEvents', () => {
       ],
       [
         {
-          feedKey: 't4-water-strategy',
+          feedKey: 's5-water-strategy',
           sourceType: 'diverged',
           capturedAt: '2026-05-28T11:00:00.000Z',
         },

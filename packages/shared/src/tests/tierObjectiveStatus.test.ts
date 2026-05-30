@@ -32,10 +32,10 @@ const mkObjective = (
 });
 
 describe('PLAN_STRATA seed', () => {
-  it('has exactly 7 tiers in ordinal order 0..6', () => {
+  it('has exactly 7 strata in ordinal order 1..7', () => {
     expect(PLAN_STRATA).toHaveLength(7);
     PLAN_STRATA.forEach((tier, idx) => {
-      expect(tier.ordinal).toBe(idx);
+      expect(tier.ordinal).toBe(idx + 1);
     });
   });
 
@@ -208,7 +208,7 @@ describe('computeAllObjectiveStatuses', () => {
     });
   });
 
-  it('the shipped seed produces only T0 objectives as available when empty', () => {
+  it('the shipped seed produces only S1 objectives as available when empty', () => {
     const statuses = computeAllObjectiveStatuses(PLAN_STRATUM_OBJECTIVES, {});
     expect(statuses['s1-vision']).toBe('available');
     expect(statuses['s1-stewardship']).toBe('available');

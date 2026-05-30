@@ -25,14 +25,14 @@ const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...RESIDENTIAL_ADDITIVE_OBJECTIVES,
 ];
 
-const OBJECTIVE_REF = /^(U|RF|RES|EV|AG)-T[0-6]\.\d+$/;
+const OBJECTIVE_REF = /^(U|RF|RES|EV|AG)-S[1-7]\.\d+$/;
 
 // Objectives transcribed verbatim from a pre-v1.4 source (Authoring Standards
 // v1.3 or earlier) may carry fewer than the v1.4 5-item floor. Each is listed
 // here with its source so the floor stays tight for every v1.4 catalogue.
 //   ag-s6-food-integration: Agritourism v1.0 / Standards v1.3, 4 items in source
 const SHORT_OBJECTIVE_ALLOWLIST = new Set<string>(['ag-s6-food-integration']);
-const PATCH_REF = /^RES>(U|RF)-T[0-6]\.\d+$/;
+const PATCH_REF = /^RES>(U|RF)-S[1-7]\.\d+$/;
 
 describe('catalogue conformance - schema validity', () => {
   it('every authored objective parses via PlanStratumObjectiveSchema', () => {

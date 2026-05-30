@@ -130,8 +130,8 @@ describe('useProjectUrgency', () => {
           {
             id: 'fa1',
             projectId: 'blocked-1',
-            planObjectiveId: 't0-vision',
-            tierId: 't0',
+            planObjectiveId: 's1-vision',
+            stratumId: 's1',
             title: 'Blocked task',
             description: null,
             taskType: 'field_survey',

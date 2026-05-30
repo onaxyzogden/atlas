@@ -28,7 +28,7 @@ describe('resolveProjectObjectives - regenerative_farm (primary only)', () => {
     expect(r.provenance.dedupedObjectiveIds).toEqual([]);
   });
 
-  it('sorts by tier ordinal: first objective in T0, last in T6', () => {
+  it('sorts by stratum ordinal: first objective in S1, last in S7', () => {
     expect(r.objectives[0]?.stratumId).toBe('s1-project-foundation');
     expect(r.objectives.at(-1)?.stratumId).toBe('s7-phasing-resourcing');
   });
@@ -225,7 +225,7 @@ describe('resolveProjectObjectives - missing patch target (synthetic)', () => {
   const orphanPatch = patch({
     secondaryTypeId: 'residential',
     targetObjectiveId: 'does-not-exist-xyz',
-    ref: 'RES>U-T9.9',
+    ref: 'RES>U-S10.9',
     injectedItems: [ck('orphan-1', 'item for a missing target')],
   });
 

@@ -24,8 +24,8 @@ function reset(): void {
 describe('cycleAdvance', () => {
   beforeEach(reset);
 
-  it('advances exactly one domain for a single-domain objective (t0-vision)', () => {
-    const result = cycleAdvance('p1', 't0-vision', 'plan_revision_confirmed', {
+  it('advances exactly one domain for a single-domain objective (s1-vision)', () => {
+    const result = cycleAdvance('p1', 's1-vision', 'plan_revision_confirmed', {
       advancedAt: '2026-05-28T10:00:00.000Z',
     });
     expect(result).toEqual([{ domainId: 'vision-intent', cycleId: 1 }]);
@@ -36,10 +36,10 @@ describe('cycleAdvance', () => {
     ).toBe(1);
   });
 
-  it('advances every domain for a multi-domain objective (t1-land-baseline)', () => {
+  it('advances every domain for a multi-domain objective (s2-land-baseline)', () => {
     const result = cycleAdvance(
       'p1',
-      't1-land-baseline',
+      's2-land-baseline',
       'plan_revision_revised',
       { advancedAt: '2026-05-28T10:00:00.000Z' },
     );
@@ -67,7 +67,7 @@ describe('cycleAdvance', () => {
 
   it('threads advancedAt into each per-domain history entry', () => {
     const advancedAt = '2026-05-28T10:00:00.000Z';
-    cycleAdvance('p1', 't1-land-baseline', 'plan_revision_confirmed', {
+    cycleAdvance('p1', 's2-land-baseline', 'plan_revision_confirmed', {
       advancedAt,
     });
     const soilHist = useObserveCycleStore.getState().getHistory('p1', 'soil');
@@ -79,12 +79,12 @@ describe('cycleAdvance', () => {
   });
 
   it('records planObjectiveId on every advance for cycle annotations', () => {
-    cycleAdvance('p1', 't1-land-baseline', 'plan_revision_confirmed', {
+    cycleAdvance('p1', 's2-land-baseline', 'plan_revision_confirmed', {
       advancedAt: '2026-05-28T10:00:00.000Z',
     });
     const soilHist = useObserveCycleStore.getState().getHistory('p1', 'soil');
     expect(soilHist[0]).toMatchObject({
-      planObjectiveId: 't1-land-baseline',
+      planObjectiveId: 's2-land-baseline',
       reason: 'plan_revision_confirmed',
     });
   });
@@ -92,13 +92,13 @@ describe('cycleAdvance', () => {
   it('repeated calls produce monotonically increasing cycleIds per domain', () => {
     const first = cycleAdvance(
       'p1',
-      't0-vision',
+      's1-vision',
       'plan_revision_confirmed',
       { advancedAt: '2026-05-28T10:00:00.000Z' },
     );
     const second = cycleAdvance(
       'p1',
-      't0-vision',
+      's1-vision',
       'plan_revision_revised',
       { advancedAt: '2026-05-28T11:00:00.000Z' },
     );

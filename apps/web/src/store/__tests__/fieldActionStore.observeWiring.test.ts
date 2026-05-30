@@ -33,7 +33,7 @@ function makeAction(id: string, mode: 'self' | 'review') {
     id,
     projectId: PROJECT,
     planObjectiveId: OBJECTIVE,
-    tierId: 't0',
+    stratumId: 's1',
     title: `Action ${id}`,
     taskType: 'field_survey',
     proofSchemaId: 'baseline-photo-only',

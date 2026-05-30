@@ -263,7 +263,7 @@ describe('PerProjectHomePage', () => {
 
   it('renders the Stage Status Row with three stage cards', () => {
     render(<PerProjectHomePage />);
-    expect(screen.getByText('Plan tier shell')).toBeTruthy();
+    expect(screen.getByText('Plan stratum shell')).toBeTruthy();
     expect(screen.getByText('Field actions')).toBeTruthy();
     expect(screen.getByText('Land state')).toBeTruthy();
   });
@@ -291,7 +291,7 @@ describe('PerProjectHomePage - Slice 5.5a access gate', () => {
     h.project = { ...h.project!, serverId: 'srv-1' };
     h.roleMap = new Map([['srv-1', 'owner']]);
     render(<PerProjectHomePage />);
-    expect(screen.getByText('Plan tier shell')).toBeTruthy();
+    expect(screen.getByText('Plan stratum shell')).toBeTruthy();
     expect(screen.queryByText(DENY_TEXT)).toBeNull();
   });
 
@@ -299,7 +299,7 @@ describe('PerProjectHomePage - Slice 5.5a access gate', () => {
     h.project = { ...h.project!, serverId: undefined };
     h.roleMap = new Map([['srv-1', 'contractor']]);
     render(<PerProjectHomePage />);
-    expect(screen.getByText('Plan tier shell')).toBeTruthy();
+    expect(screen.getByText('Plan stratum shell')).toBeTruthy();
     expect(screen.queryByText(DENY_TEXT)).toBeNull();
   });
 });

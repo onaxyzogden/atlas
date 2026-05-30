@@ -56,7 +56,7 @@ describe('getObjectiveObserveDomains', () => {
     const obj = objective({
       id: 'unknown-id',
       // @ts-expect-error — exercising the defensive fallback path
-      stratumId: 'tX-nonexistent',
+      stratumId: 'sX-nonexistent',
     });
     expect(getObjectiveObserveDomains(obj)).toEqual([]);
   });
@@ -82,7 +82,7 @@ describe('getPrimaryDomainForObjective', () => {
     const obj = objective({
       id: 'unknown-id',
       // @ts-expect-error — exercising the defensive null path
-      stratumId: 'tX-nonexistent',
+      stratumId: 'sX-nonexistent',
     });
     expect(getPrimaryDomainForObjective(obj)).toBeNull();
   });
@@ -100,7 +100,7 @@ describe('getObjectivesForDomain', () => {
   });
 
   it('returns an empty list for a domain with no mapped objectives', () => {
-    // No tier/objective lists 'land-base' as a primary except T1.
+    // No stratum/objective lists 'land-base' as a primary except S2.
     // Use a clearly orthogonal domain set instead — exercise via empty
     // input list to keep the test deterministic.
     expect(getObjectivesForDomain([], 'soil')).toEqual([]);
