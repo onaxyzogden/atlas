@@ -106,16 +106,20 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
 });
 
 describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
-  // agritourism has no encoded primary catalogue, so it resolves universal-only.
-  // residential is compatible (X) on agritourism, so its catalogue layers in,
-  // but P0 (target rf-t1-landscape-context) is absent => skipped, P1-P4 land.
+  // agritourism now has an encoded primary catalogue (29 objectives), so it
+  // resolves universal + agritourism-primary. residential is compatible (X) on
+  // agritourism, so its catalogue layers in too, but residential's P0 patch
+  // targets rf-t1-landscape-context - a regenfarm objective absent under an
+  // agritourism primary (agritourism has its OWN ag-t1-landscape-context, a
+  // different id) => P0 is still skipped, P1-P4 land. The skip-not-throw
+  // behaviour holds even with the primary encoded.
   const r = resolveProjectObjectives({
     primaryTypeId: 'agritourism',
     secondaryTypeIds: ['residential'],
   });
 
-  it('resolves 19 universal + 6 additive = 25 objectives (agritourism not encoded)', () => {
-    expect(r.objectives).toHaveLength(25);
+  it('resolves 19 universal + 29 agritourism primary + 6 residential additive = 54 objectives', () => {
+    expect(r.objectives).toHaveLength(54);
   });
 
   it('applies 4 patches and skips P0 without throwing', () => {
