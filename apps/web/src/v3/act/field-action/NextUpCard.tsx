@@ -30,7 +30,7 @@ export default function NextUpCard({ projectId, action }: Props) {
       </div>
     );
   }
-  const tierTitle = getTierTitle(action.tierId);
+  const tierTitle = getTierTitle(action.stratumId);
   const objTitle = getObjectiveTitle(action.planObjectiveId);
   const reasonLabel =
     action.status === 'in_progress'

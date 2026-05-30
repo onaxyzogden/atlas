@@ -32,7 +32,7 @@ export default function ReadyToStartSection({ projectId, groups }: Props) {
                 {getObjectiveTitle(g.planObjectiveId) ?? g.planObjectiveId}
               </span>
               <span className={css.tierTitle}>
-                {getTierTitle(g.tierId) ?? g.tierId}
+                {getTierTitle(g.stratumId) ?? g.stratumId}
               </span>
             </div>
             <div className={css.cardList}>

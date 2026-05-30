@@ -13,7 +13,7 @@
  *     happen to be derived-complete.
  *   - Two CTAs:
  *       Go to my project          → /v3/project/$id/home   (Slice 5.4 repoint)
- *       Continue setup in Plan    → /v3/project/$id/plan?highlightIncomplete=t0
+ *       Continue setup in Plan    → /v3/project/$id/plan?highlightIncomplete=s1
  *
  * Per spec sec 5.3: NO checklists rendered here, NO generic congrats,
  * NO upsells, NO progress bars. The completion screen is a hand-off
@@ -22,7 +22,7 @@
 
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import type { PlanTierObjective } from '@ogden/shared';
+import type { PlanStratumObjective } from '@ogden/shared';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useProjectObjectives } from '../plan/tiers/useProjectObjectives.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
@@ -63,8 +63,8 @@ export default function WizardCompletionScreen({
   // for null-type / pre-slice projects.
   const { objectives } = useProjectObjectives(projectId);
 
-  const t0Objectives = useMemo<readonly PlanTierObjective[]>(
-    () => objectives.filter((o) => o.tierId === 't0-project-foundation'),
+  const t0Objectives = useMemo<readonly PlanStratumObjective[]>(
+    () => objectives.filter((o) => o.stratumId === 's1-project-foundation'),
     [objectives],
   );
 
@@ -85,10 +85,10 @@ export default function WizardCompletionScreen({
   );
 
   // Next Up: first T0 objective whose checklist still has items that are
-  // NOT derived-complete. Slice 2.3 only sees `t0-vision-*` derivations
+  // NOT derived-complete. Slice 2.3 only sees `s1-vision-*` derivations
   // (Slice 2.4 adds stewardship); that's fine — this hand-off only needs
   // a sane default, not full status fidelity.
-  const nextUp = useMemo<PlanTierObjective | undefined>(() => {
+  const nextUp = useMemo<PlanStratumObjective | undefined>(() => {
     return t0Objectives.find((obj) =>
       obj.checklist.some((item) => !derivedMap[item.id]?.isComplete),
     );
@@ -118,7 +118,7 @@ export default function WizardCompletionScreen({
     navigate({
       to: '/v3/project/$projectId/plan',
       params: { projectId: project.id },
-      search: { highlightIncomplete: 't0' },
+      search: { highlightIncomplete: 's1' },
     });
   };
 
@@ -140,7 +140,7 @@ export default function WizardCompletionScreen({
       <div className={styles.panel}>
         <h1 className={styles.headline}>You&rsquo;re set up.</h1>
         <p className={styles.summary}>
-          {derivedCount} of {t0ChecklistTotal} Tier&nbsp;0 checklist
+          {derivedCount} of {t0ChecklistTotal} Stratum&nbsp;1 checklist
           items are already filled in from what you just entered. Pick up
           from here whenever you&rsquo;re ready.
         </p>

@@ -7,13 +7,13 @@
 
 import { useMemo, useState } from 'react';
 import { Camera, Check, ClipboardCheck, Plus } from 'lucide-react';
-import type { PlanTier, PlanTierObjective, PlanTierObjectiveStatus } from '@ogden/shared';
+import type { PlanStratum, PlanStratumObjective, PlanStratumObjectiveStatus } from '@ogden/shared';
 import styles from './ActProtoTierShell.module.css';
 
 interface Props {
-  tier: PlanTier | undefined;
-  objective: PlanTierObjective;
-  status: PlanTierObjectiveStatus;
+  tier: PlanStratum | undefined;
+  objective: PlanStratumObjective;
+  status: PlanStratumObjectiveStatus;
 }
 
 const PHOTO_TARGET = 3;

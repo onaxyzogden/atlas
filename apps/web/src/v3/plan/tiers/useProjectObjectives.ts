@@ -2,7 +2,7 @@
 //
 // Per-project objective resolution for the Plan tier spine (OLOS Project-Type +
 // Secondary-Layer Spec v1.2, Sub-slice D). Replaces the single static
-// PLAN_TIER_OBJECTIVES skeleton that every Plan consumer used to read with a set
+// PLAN_STRATUM_OBJECTIVES skeleton that every Plan consumer used to read with a set
 // resolved from the project's own type selection.
 //
 // Two entry points share one 4-tier fallback ladder:
@@ -18,7 +18,7 @@
 //   2. bare project.projectType naming a valid      -> resolveProjectObjectives({primaryTypeId})
 //      PRIMARY type (residential is secondary-only
 //      and unknown strings fall through)
-//   3. static PLAN_TIER_OBJECTIVES                  -> the legacy 16-objective skeleton
+//   3. static PLAN_STRATUM_OBJECTIVES                  -> the legacy 16-objective skeleton
 //      (MTC null-type projects + every project created before this slice)
 //
 // Tiers 1-2 reuse the universal skeleton ids the visionProfileToChecklist bridge
@@ -30,11 +30,11 @@
 
 import { useMemo } from 'react';
 import {
-  PLAN_TIER_OBJECTIVES,
+  PLAN_STRATUM_OBJECTIVES,
   findProjectType,
   resolveProjectObjectives,
   type DesignTension,
-  type PlanTierObjective,
+  type PlanStratumObjective,
   type ProjectTypeRecord,
   type ResolveProvenance,
 } from '@ogden/shared';
@@ -45,7 +45,7 @@ export type ObjectiveResolutionSource = 'record' | 'projectType' | 'static';
 
 export interface ProjectObjectiveResolution {
   /** The resolved, tier-sorted objective set this project's Plan spine renders. */
-  objectives: readonly PlanTierObjective[];
+  objectives: readonly PlanStratumObjective[];
   /** Active design tensions for the type pairing (always empty for static). */
   activeTensions: readonly DesignTension[];
   /** Resolver provenance (applied/skipped patches, dedup); null when static. */
@@ -66,7 +66,7 @@ export interface ProjectTypeInputs {
 
 /** Shared static fallback - a stable reference so memo identity holds. */
 const STATIC_RESOLUTION: ProjectObjectiveResolution = {
-  objectives: PLAN_TIER_OBJECTIVES,
+  objectives: PLAN_STRATUM_OBJECTIVES,
   activeTensions: [],
   provenance: null,
   source: 'static',

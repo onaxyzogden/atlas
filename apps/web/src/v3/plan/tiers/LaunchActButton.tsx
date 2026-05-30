@@ -12,15 +12,15 @@
 import { useNavigate } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 import type {
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 import css from './LaunchActButton.module.css';
 
 interface Props {
   projectId: string;
-  objective: PlanTierObjective;
-  status: PlanTierObjectiveStatus;
+  objective: PlanStratumObjective;
+  status: PlanStratumObjectiveStatus;
 }
 
 export default function LaunchActButton({

@@ -6,20 +6,20 @@
 
 import { ArrowLeft } from 'lucide-react';
 import type {
-  PlanTier,
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratum,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 import css from './ObjectiveHeader.module.css';
 
 interface Props {
-  tier: PlanTier;
-  objective: PlanTierObjective;
-  status: PlanTierObjectiveStatus;
-  onBackToTier: (tier: PlanTier) => void;
+  tier: PlanStratum;
+  objective: PlanStratumObjective;
+  status: PlanStratumObjectiveStatus;
+  onBackToTier: (tier: PlanStratum) => void;
 }
 
-const STATUS_LABEL: Record<PlanTierObjectiveStatus, string> = {
+const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
   locked: 'Locked',
   available: 'Ready',
   active: 'In progress',
@@ -42,7 +42,7 @@ export default function ObjectiveHeader({
       >
         <ArrowLeft size={12} aria-hidden="true" />
         <span>
-          Tier {tier.ordinal} &middot; {tier.title}
+          Stratum {tier.ordinal} &middot; {tier.title}
         </span>
       </button>
       <h1 className={css.title}>{objective.title}</h1>

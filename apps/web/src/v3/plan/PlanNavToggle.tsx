@@ -20,7 +20,7 @@ const OPTIONS: ReadonlyArray<{
   label: string;
   Icon: typeof ListTree;
 }> = [
-  { mode: 'tier-spine', label: 'Tier spine', Icon: ListTree },
+  { mode: 'tier-spine', label: 'Stratum spine', Icon: ListTree },
   { mode: 'module-bar', label: 'Module bar', Icon: Columns3 },
 ];
 

@@ -8,24 +8,24 @@
 //
 // Delete this file with the rest of the tier-prototype/ folder.
 
-import type { PlanTierObjectiveStatus } from '@ogden/shared';
+import type { PlanStratumObjectiveStatus } from '@ogden/shared';
 
 export type ProtoPriority = 'High' | 'Medium' | 'Low';
 
 // Mock tier states matching the concept screenshot: T0 done, T1 open, the
-// rest locked. Keyed by PlanTier.id (see PLAN_TIERS in @ogden/shared).
-export const PROTO_TIER_STATES: Record<string, PlanTierObjectiveStatus> = {
-  't0-project-foundation': 'complete',
-  't1-land-reading': 'available',
-  't2-systems-reading': 'locked',
-  't3-foundation-decisions': 'locked',
-  't4-system-design': 'locked',
-  't5-integration-design': 'locked',
-  't6-phasing-resourcing': 'locked',
+// rest locked. Keyed by PlanStratum.id (see PLAN_STRATA in @ogden/shared).
+export const PROTO_TIER_STATES: Record<string, PlanStratumObjectiveStatus> = {
+  's1-project-foundation': 'complete',
+  's2-land-reading': 'available',
+  's3-systems-reading': 'locked',
+  's4-foundation-decisions': 'locked',
+  's5-system-design': 'locked',
+  's6-integration-design': 'locked',
+  's7-phasing-resourcing': 'locked',
 };
 
-export function protoTierState(tierId: string): PlanTierObjectiveStatus {
-  return PROTO_TIER_STATES[tierId] ?? 'locked';
+export function protoTierState(stratumId: string): PlanStratumObjectiveStatus {
+  return PROTO_TIER_STATES[stratumId] ?? 'locked';
 }
 
 // Objective status derived from its tier's mock state:
@@ -33,10 +33,10 @@ export function protoTierState(tierId: string): PlanTierObjectiveStatus {
 //   tier locked    -> objective locked
 //   tier available -> first objective active, the rest available
 export function protoObjectiveStatus(
-  tierId: string,
+  stratumId: string,
   indexInTier: number,
-): PlanTierObjectiveStatus {
-  const tier = protoTierState(tierId);
+): PlanStratumObjectiveStatus {
+  const tier = protoTierState(stratumId);
   if (tier === 'complete') return 'complete';
   if (tier === 'locked') return 'locked';
   return indexInTier === 0 ? 'active' : 'available';

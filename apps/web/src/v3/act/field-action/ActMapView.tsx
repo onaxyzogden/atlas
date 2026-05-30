@@ -17,7 +17,7 @@
 
 import { useState } from 'react';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
-import type { FieldAction, PlanTierObjective } from '@ogden/shared';
+import type { FieldAction, PlanStratumObjective } from '@ogden/shared';
 import { getProofSchema } from '@ogden/shared';
 import ActMapHost from './ActMapHost.js';
 import ActTaskDetail from './ActTaskDetail.js';
@@ -25,7 +25,7 @@ import css from './ActMapView.module.css';
 
 interface Props {
   projectId: string;
-  objective: PlanTierObjective;
+  objective: PlanStratumObjective;
   action: FieldAction | null;
   onClose: () => void;
 }

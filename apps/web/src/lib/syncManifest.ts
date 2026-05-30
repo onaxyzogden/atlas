@@ -540,7 +540,8 @@ function recordKeyedMap(cycleIdField?: string): RecordShape {
 /**
  * typed-record registration helper — the per-record analogue of `blob()`.
  * `schemaVersion` MUST match the store's persist `version` so the hydrate-side
- * version-skew guard stays correct (field-actions is persist v2 post-Phase-0).
+ * version-skew guard stays correct (e.g. field-actions is persist v3 after the
+ * Phase-0 + Stratum-rename bumps).
  */
 function record(
   storeKey: string,
@@ -702,12 +703,13 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // --- OLOS Plan-tier substrate (Phase 1) ---
   // Per-objective checklist completion + per-tier celebration log, both
   // keyed by projectId. Custom shape (planTierShape) carries both maps
-  // for one project together. v2 matches the store's persist version
-  // (the v1→v2 migration backfilled celebratedByProject).
-  blob('ogden-plan-tier-progress', usePlanTierProgressStore, 'byProject', 2, planTierShape),
+  // for one project together. v3 matches the store's persist version
+  // (v1->v2 backfilled celebratedByProject; v2->v3 renumbered to Stratum 1-7).
+  blob('ogden-plan-tier-progress', usePlanTierProgressStore, 'byProject', 3, planTierShape),
   // Cyclical-review records keyed by (projectId, objectiveId). Tracks
   // lastReviewedAt / reviewMode / lastDecisionConfirmedAt per objective.
-  blob('ogden-cyclical-review', useCyclicalReviewStore, 'byProject', 1, byKey('byProject', null, {})),
+  // v2 matches the persist version (v1->v2 renumbered objective keys to Stratum).
+  blob('ogden-cyclical-review', useCyclicalReviewStore, 'byProject', 2, byKey('byProject', null, {})),
 
   // --- OLOS Act field actions (Phase 3 Slice 3.1; typed-record ADR 7 P1) ---
   // FieldAction is a new entity (locked decision: not a WorkItem extension).
@@ -715,8 +717,9 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // (recordId = action.id) on the `synced_records` table, carrying its own rev
   // + denormalised cycleId/sourceType/taskType — replacing the opaque
   // per-project blob so the 5-tier queue (Phase 2) can tier by semantics.
-  // schemaVersion 2 mirrors the store's persist version (Phase 0 v1->v2 bump).
-  record('ogden-field-actions', useFieldActionStore, 'byProject', 2, recordArray()),
+  // schemaVersion 3 mirrors the store's persist version (v1->v2 Phase 0 fields;
+  // v2->v3 Stratum rename: tierId -> stratumId + slug renumber).
+  record('ogden-field-actions', useFieldActionStore, 'byProject', 3, recordArray()),
 
   // --- OLOS Observe feed (Phase 3 Slice 3.5) ---
   // Lightweight per-project append-only feed of verified/diverged events
@@ -724,7 +727,8 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // indicator consume this. Phase 4 will normalise into the canonical
   // ObservationRecord substrate; today this is the working surface.
   // `typed-record` (ADR 7 P1): each feed event syncs per-record (recordId = event.id).
-  record('ogden-observe-feed', useObserveFeedStore, 'byProject', 1, recordArray()),
+  // schemaVersion 2 mirrors the persist version (v1->v2 renumbered feedKey to Stratum).
+  record('ogden-observe-feed', useObserveFeedStore, 'byProject', 2, recordArray()),
 
   // --- OLOS Observe Dashboard substrate (Phase 4 Slice 4.1) ---
   // Per-project ObserveDataPoint rows. New captures auto-supersede same-

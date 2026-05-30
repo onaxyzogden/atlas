@@ -45,6 +45,7 @@ import {
   type ObserveFeedEntry,
 } from './observeFeedStore.js';
 import { useCyclicalReviewStore } from './cyclicalReviewStore.js';
+import { remapId, remapTierId } from '@ogden/shared';
 
 const PERSIST_KEY = 'ogden-field-actions';
 
@@ -57,7 +58,7 @@ export interface CreateFieldActionInput {
   id: string;
   projectId: string;
   planObjectiveId: string;
-  tierId: string;
+  stratumId: string;
   title: string;
   description?: string;
   taskType: FieldActionTaskType;
@@ -239,8 +240,9 @@ function applyTransition(
 }
 
 // ---------------------------------------------------------------------------
-// Persistence migration (v1 -> v2): ADR 2 cycleId + ADR 7 Phase 0 fields
-// (4-value taskType, observedAt, sourceObjectiveType anchor). The exported
+// Persistence migration (v1 -> v3): ADR 2 cycleId + ADR 7 Phase 0 fields
+// (4-value taskType, observedAt, sourceObjectiveType anchor), then the Stratum
+// rename (tierId -> stratumId KEY + slug renumber). The exported
 // pieces are pure and unit-tested in __tests__/fieldActionStore.migrate.test.ts;
 // the cross-store cycle backfill wiring is covered by the lifecycle test there.
 // Pattern mirrors closedLoopStore's same-key migrate() + onRehydrateStorage
@@ -271,12 +273,20 @@ export function remapTaskType(legacy: unknown): FieldActionTaskType {
 }
 
 /**
- * persist `migrate` (v1 -> v2). Same-store field transforms ONLY: remap
- * taskType, backfill observedAt (= updatedAt, the best available proxy for
- * when the work happened) and sourceObjectiveType (= null, the ADR 9 anchor).
- * cycleId is deliberately left undefined here — the cross-store backfill needs
- * observeCycleStore, which migrate cannot read; onRehydrateStorage resolves it.
- * Idempotent: v2+ input is returned unchanged.
+ * persist `migrate` (v1 -> v3). Composes upgrade steps so any older persisted
+ * blob lands on the current shape; each step is idempotent on already-current
+ * data.
+ *  - v1 -> v2: same-store field transforms - remap taskType, backfill
+ *    observedAt (= updatedAt, the best available proxy for when the work
+ *    happened) and sourceObjectiveType (= null, the ADR 9 anchor). cycleId is
+ *    deliberately left undefined here - the cross-store backfill needs
+ *    observeCycleStore, which migrate cannot read; onRehydrateStorage resolves
+ *    it.
+ *  - v2 -> v3: Plan tier spine renamed to Stratum 1-7. Rename each action's
+ *    `tierId` KEY to `stratumId` and renumber its slug (t{n} -> s{n+1}, via
+ *    remapTierId, which handles bare `t0` and full `t1-land-reading`), and
+ *    renumber `planObjectiveId` (via remapId). The UUID `id` is untouched. A
+ *    pre-present `stratumId` wins, so re-running is a no-op.
  */
 export function migratePersisted(
   persisted: unknown,
@@ -286,31 +296,56 @@ export function migratePersisted(
     return { byProject: {} } as unknown as FieldActionState;
   }
   const state = persisted as { byProject?: Record<string, unknown[]> };
-  const byProject = state.byProject ?? {};
-  if (fromVersion >= 2) {
-    return { byProject } as unknown as FieldActionState;
+  let byProject: Record<string, unknown[]> = state.byProject ?? {};
+  // v1 -> v2: same-store field transforms.
+  if (fromVersion < 2) {
+    const migrated: Record<string, unknown[]> = {};
+    for (const [projectId, list] of Object.entries(byProject)) {
+      if (!Array.isArray(list)) continue;
+      migrated[projectId] = list.map((raw) => {
+        const a = (raw ?? {}) as Record<string, unknown>;
+        const createdAt =
+          typeof a.createdAt === 'string' ? a.createdAt : nowIso();
+        const updatedAt =
+          typeof a.updatedAt === 'string' ? a.updatedAt : createdAt;
+        const observedAt =
+          typeof a.observedAt === 'string' ? a.observedAt : updatedAt;
+        return {
+          ...a,
+          taskType: remapTaskType(a.taskType),
+          observedAt,
+          sourceObjectiveType: a.sourceObjectiveType ?? null,
+          // cycleId intentionally omitted -> onRehydrateStorage backfills it.
+        };
+      });
+    }
+    byProject = migrated;
   }
-  const migrated: ByProject = {};
-  for (const [projectId, list] of Object.entries(byProject)) {
-    if (!Array.isArray(list)) continue;
-    migrated[projectId] = list.map((raw) => {
-      const a = (raw ?? {}) as Record<string, unknown>;
-      const createdAt =
-        typeof a.createdAt === 'string' ? a.createdAt : nowIso();
-      const updatedAt =
-        typeof a.updatedAt === 'string' ? a.updatedAt : createdAt;
-      const observedAt =
-        typeof a.observedAt === 'string' ? a.observedAt : updatedAt;
-      return {
-        ...a,
-        taskType: remapTaskType(a.taskType),
-        observedAt,
-        sourceObjectiveType: a.sourceObjectiveType ?? null,
-        // cycleId intentionally omitted -> onRehydrateStorage backfills it.
-      } as unknown as FieldAction;
-    });
+  // v2 -> v3: Stratum rename. tierId KEY -> stratumId (renumbered slug),
+  // planObjectiveId renumbered. UUID `id` untouched.
+  if (fromVersion < 3) {
+    const migrated: Record<string, unknown[]> = {};
+    for (const [projectId, list] of Object.entries(byProject)) {
+      if (!Array.isArray(list)) continue;
+      migrated[projectId] = list.map((raw) => {
+        const a = (raw ?? {}) as Record<string, unknown>;
+        const { tierId: legacyTierId, ...rest } = a;
+        const stratumId =
+          typeof rest.stratumId === 'string'
+            ? rest.stratumId
+            : typeof legacyTierId === 'string'
+              ? remapTierId(legacyTierId)
+              : legacyTierId;
+        const planObjectiveId =
+          typeof rest.planObjectiveId === 'string'
+            ? remapId(rest.planObjectiveId)
+            : rest.planObjectiveId;
+        return { ...rest, stratumId, planObjectiveId };
+      });
+    }
+    byProject = migrated;
   }
-  return { byProject: migrated } as unknown as FieldActionState;
+  return { byProject } as unknown as FieldActionState;
 }
 
 /**
@@ -430,11 +465,11 @@ export const useFieldActionStore = create<FieldActionState>()(
         if (pendingReview.length > 0) return pendingReview[0];
         const ready = byStatus('not_started');
         if (ready.length === 0) return undefined;
-        // Lowest active tier wins. Tier ids are sortable lexicographically
-        // (t0-... < t1-... < ...), which matches the seed convention in
-        // packages/shared/src/constants/plan/tierObjectives.ts.
+        // Lowest active stratum wins. Stratum ids are sortable
+        // lexicographically (s1-... < s2-... < ...), which matches the seed
+        // convention in packages/shared/src/constants/plan/tierObjectives.ts.
         const sorted = ready.slice().sort((a, b) =>
-          a.tierId.localeCompare(b.tierId),
+          a.stratumId.localeCompare(b.stratumId),
         );
         return sorted[0];
       },
@@ -446,7 +481,7 @@ export const useFieldActionStore = create<FieldActionState>()(
           id: input.id,
           projectId: input.projectId,
           planObjectiveId: input.planObjectiveId,
-          tierId: input.tierId,
+          stratumId: input.stratumId,
           title: input.title,
           description: input.description,
           taskType: input.taskType,
@@ -636,7 +671,7 @@ export const useFieldActionStore = create<FieldActionState>()(
     }),
     {
       name: PERSIST_KEY,
-      version: 2,
+      version: 3,
       partialize: (state) => ({ byProject: state.byProject }),
       migrate: migratePersisted,
       onRehydrateStorage: () => onRehydrateBackfillCycle,

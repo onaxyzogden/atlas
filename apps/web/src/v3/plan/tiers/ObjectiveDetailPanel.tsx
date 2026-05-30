@@ -11,9 +11,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import type {
   OverlayId,
-  PlanTier,
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratum,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 import { isCyclicalReviewDue } from '@ogden/shared';
 import type { Project } from '../../types.js';
@@ -32,11 +32,11 @@ import css from './ObjectiveDetailPanel.module.css';
 
 interface Props {
   projectId: string;
-  tier: PlanTier;
-  objective: PlanTierObjective;
-  status: PlanTierObjectiveStatus;
+  tier: PlanStratum;
+  objective: PlanStratumObjective;
+  status: PlanStratumObjectiveStatus;
   project: Project | null;
-  onBackToTier: (tier: PlanTier) => void;
+  onBackToTier: (tier: PlanStratum) => void;
   /** Slice 1.12 — items the Vision Builder bridge has pre-satisfied. */
   visionDerivedMap?: VisionDerivedMap;
 }

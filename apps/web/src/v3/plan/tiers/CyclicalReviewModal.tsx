@@ -9,11 +9,11 @@
 
 import { useEffect, useRef } from 'react';
 import { CheckCircle2, X } from 'lucide-react';
-import type { PlanTierObjective } from '@ogden/shared';
+import type { PlanStratumObjective } from '@ogden/shared';
 import css from './CyclicalReviewModal.module.css';
 
 interface Props {
-  objective: PlanTierObjective;
+  objective: PlanStratumObjective;
   onDismiss: () => void;
 }
 

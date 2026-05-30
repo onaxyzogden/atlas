@@ -28,6 +28,7 @@ import type {
   DivergenceType,
   FieldActionProofItem,
 } from '@ogden/shared';
+import { remapId } from '@ogden/shared';
 
 const PERSIST_KEY = 'ogden-observe-feed';
 
@@ -86,6 +87,33 @@ interface ObserveFeedState {
   /** Remove any entry sourced from the given action — used when the action
    *  is removed; keeps the feed from carrying orphan rows. */
   removeForAction: (projectId: string, actionId: string) => void;
+}
+
+/**
+ * persist `migrate` (v1 -> v2). The Plan tier spine was renamed to Stratum
+ * 1-7; renumber each entry's `feedKey`, which today carries the parent Plan
+ * objective slug (t{n}- -> s{n+1}-, via remapId). Off-pattern feedKeys (a
+ * future domain id that does not start with a t{n} token) pass through
+ * untouched. Every other field is slug-free and preserved verbatim; projectId
+ * keys are opaque. Idempotent on v2+ input. Exported for the round-trip test.
+ */
+export function migrateObserveFeed(
+  persistedState: unknown,
+  version: number,
+): ObserveFeedState {
+  const safe = (persistedState as Partial<ObserveFeedState> | null) ?? {};
+  let byProject: ByProject = safe.byProject ?? {};
+  if (version < 2) {
+    const remapped: ByProject = {};
+    for (const [projectId, entries] of Object.entries(byProject)) {
+      remapped[projectId] = (entries ?? []).map((e) => ({
+        ...e,
+        feedKey: remapId(e.feedKey),
+      }));
+    }
+    byProject = remapped;
+  }
+  return { ...safe, byProject } as ObserveFeedState;
 }
 
 export const useObserveFeedStore = create<ObserveFeedState>()(
@@ -148,8 +176,9 @@ export const useObserveFeedStore = create<ObserveFeedState>()(
     }),
     {
       name: PERSIST_KEY,
-      version: 1,
+      version: 2,
       partialize: (state) => ({ byProject: state.byProject }),
+      migrate: migrateObserveFeed,
     },
   ),
 );

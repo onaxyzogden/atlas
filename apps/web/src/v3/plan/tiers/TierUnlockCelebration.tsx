@@ -11,12 +11,12 @@
 
 import { useEffect, useRef } from 'react';
 import { ArrowRight, Sparkles, X } from 'lucide-react';
-import type { PlanTier, PlanTierObjective } from '@ogden/shared';
+import type { PlanStratum, PlanStratumObjective } from '@ogden/shared';
 import css from './TierUnlockCelebration.module.css';
 
 interface Props {
-  tier: PlanTier;
-  firstObjective: PlanTierObjective | null;
+  tier: PlanStratum;
+  firstObjective: PlanStratumObjective | null;
   onOpenTier: () => void;
   onDismiss: () => void;
 }
@@ -68,7 +68,7 @@ export default function TierUnlockCelebration({
           <Sparkles size={22} />
         </div>
 
-        <p className={css.eyebrow}>Tier {tier.ordinal} unlocked</p>
+        <p className={css.eyebrow}>Stratum {tier.ordinal} unlocked</p>
         <h2 className={css.title} id="tier-unlock-title">
           {tier.title}
         </h2>
@@ -84,9 +84,9 @@ export default function TierUnlockCelebration({
           </div>
         ) : (
           <div className={css.objectiveBlock}>
-            <p className={css.objectiveEyebrow}>This tier has no objectives seeded yet</p>
+            <p className={css.objectiveEyebrow}>This stratum has no objectives seeded yet</p>
             <p className={css.objectiveQuestion}>
-              Open the tier to review what is planned.
+              Open the stratum to review what is planned.
             </p>
           </div>
         )}
@@ -107,7 +107,7 @@ export default function TierUnlockCelebration({
             onClick={onOpenTier}
             data-testid="plan-tier-unlock-open"
           >
-            <span>Open tier</span>
+            <span>Open stratum</span>
             <ArrowRight size={14} aria-hidden />
           </button>
         </div>

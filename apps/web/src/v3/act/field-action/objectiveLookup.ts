@@ -1,6 +1,6 @@
 /**
  * objectiveLookup — thin wrapper around the shared tier-objective seed
- * so View B components can resolve `planObjectiveId` and `tierId` to
+ * so View B components can resolve `planObjectiveId` and `stratumId` to
  * human-readable labels without each one importing the full constant
  * catalogue directly.
  *
@@ -8,7 +8,7 @@
  * underlying seed is a pure data export in `@ogden/shared`.
  */
 
-import { findPlanTier } from '@ogden/shared';
+import { findPlanStratum } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../plan/objectiveCatalog.js';
 
 export function getObjectiveTitle(objectiveId: string | null | undefined): string | null {
@@ -18,7 +18,7 @@ export function getObjectiveTitle(objectiveId: string | null | undefined): strin
   return findObjectiveGlobally(objectiveId)?.title ?? null;
 }
 
-export function getTierTitle(tierId: string | null | undefined): string | null {
-  if (!tierId) return null;
-  return findPlanTier(tierId)?.title ?? null;
+export function getTierTitle(stratumId: string | null | undefined): string | null {
+  if (!stratumId) return null;
+  return findPlanStratum(stratumId)?.title ?? null;
 }

@@ -60,10 +60,10 @@ export default function FieldActionFilter({
   const tierOptions = useMemo(() => {
     const map = new Map<string, { id: string; label: string }>();
     for (const t of allTasks) {
-      if (!map.has(t.tierId)) {
-        map.set(t.tierId, {
-          id: t.tierId,
-          label: getTierTitle(t.tierId) ?? t.tierId,
+      if (!map.has(t.stratumId)) {
+        map.set(t.stratumId, {
+          id: t.stratumId,
+          label: getTierTitle(t.stratumId) ?? t.stratumId,
         });
       }
     }
@@ -95,10 +95,10 @@ export default function FieldActionFilter({
       </div>
       {tierOptions.length > 1 && (
         <div className={css.row}>
-          <span className={css.axisLabel}>Tier</span>
+          <span className={css.axisLabel}>Stratum</span>
           <div className={css.chipRow}>
             {tierOptions.map((opt) => {
-              const isActive = filter.tierIds.includes(opt.id);
+              const isActive = filter.stratumIds.includes(opt.id);
               return (
                 <button
                   key={opt.id}
@@ -106,7 +106,7 @@ export default function FieldActionFilter({
                   className={css.chip}
                   data-active={isActive}
                   onClick={() =>
-                    onChange({ ...filter, tierIds: toggle(filter.tierIds, opt.id) })
+                    onChange({ ...filter, stratumIds: toggle(filter.stratumIds, opt.id) })
                   }
                 >
                   {opt.label}

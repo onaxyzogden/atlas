@@ -8,17 +8,17 @@
  */
 
 import { ArrowLeft } from 'lucide-react';
-import type { PlanTierObjective, PlanTierObjectiveStatus } from '@ogden/shared';
+import type { PlanStratumObjective, PlanStratumObjectiveStatus } from '@ogden/shared';
 import { getTierTitle } from './objectiveLookup.js';
 import css from './ActObjectiveHeader.module.css';
 
 interface Props {
-  objective: PlanTierObjective;
-  status: PlanTierObjectiveStatus;
+  objective: PlanStratumObjective;
+  status: PlanStratumObjectiveStatus;
   onBack: () => void;
 }
 
-const STATUS_LABEL: Record<PlanTierObjectiveStatus, string> = {
+const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
   locked: 'Locked',
   available: 'Available',
   active: 'Active',
@@ -26,7 +26,7 @@ const STATUS_LABEL: Record<PlanTierObjectiveStatus, string> = {
 };
 
 export default function ActObjectiveHeader({ objective, status, onBack }: Props) {
-  const tierTitle = getTierTitle(objective.tierId);
+  const tierTitle = getTierTitle(objective.stratumId);
   return (
     <header className={css.header}>
       <div className={css.backRow}>

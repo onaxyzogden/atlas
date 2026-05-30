@@ -181,7 +181,7 @@ export default function StageStatusRow({ project }: StageStatusRowProps) {
     <div className={css.stageRow}>
       <StageCard
         eyebrow="Plan"
-        title="Plan tier shell"
+        title="Plan stratum shell"
         metrics={planMetrics}
         onOpen={() =>
           navigate({

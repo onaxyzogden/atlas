@@ -22,19 +22,19 @@ export interface FieldActionFilter {
   objectiveIds: ReadonlyArray<string>;
   statuses: ReadonlyArray<FieldActionStatus>;
   assignees: ReadonlyArray<string>;
-  tierIds: ReadonlyArray<string>;
+  stratumIds: ReadonlyArray<string>;
 }
 
 const EMPTY_FILTER: FieldActionFilter = {
   objectiveIds: [],
   statuses: [],
   assignees: [],
-  tierIds: [],
+  stratumIds: [],
 };
 
 export interface FieldActionsByObjective {
   planObjectiveId: string;
-  tierId: string;
+  stratumId: string;
   tasks: FieldAction[];
 }
 
@@ -69,14 +69,14 @@ function groupByObjective(tasks: FieldAction[]): FieldActionsByObjective[] {
     } else {
       byKey.set(key, {
         planObjectiveId: t.planObjectiveId,
-        tierId: t.tierId,
+        stratumId: t.stratumId,
         tasks: [t],
       });
     }
   }
   // Order by tier id then objective id so the dashboard reads tier-foundation-first.
   return Array.from(byKey.values()).sort((a, b) => {
-    const tierCmp = a.tierId.localeCompare(b.tierId);
+    const tierCmp = a.stratumId.localeCompare(b.stratumId);
     if (tierCmp !== 0) return tierCmp;
     return a.planObjectiveId.localeCompare(b.planObjectiveId);
   });
@@ -96,7 +96,7 @@ function pickNextUp(tasks: FieldAction[]): FieldAction | undefined {
   const ready = tasks
     .filter((t) => t.status === 'not_started')
     .slice()
-    .sort((a, b) => a.tierId.localeCompare(b.tierId));
+    .sort((a, b) => a.stratumId.localeCompare(b.stratumId));
   return ready[0];
 }
 
@@ -111,7 +111,7 @@ function applyFilter(
     if (f.statuses.length > 0 && !f.statuses.includes(t.status)) {
       return false;
     }
-    if (f.tierIds.length > 0 && !f.tierIds.includes(t.tierId)) {
+    if (f.stratumIds.length > 0 && !f.stratumIds.includes(t.stratumId)) {
       return false;
     }
     if (f.assignees.length > 0) {
@@ -156,7 +156,7 @@ export function useFieldActions(projectId: string | null): UseFieldActionsResult
       filter.objectiveIds.length +
         filter.statuses.length +
         filter.assignees.length +
-        filter.tierIds.length >
+        filter.stratumIds.length >
       0;
     return {
       tasks,

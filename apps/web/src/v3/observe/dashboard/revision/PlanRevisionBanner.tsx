@@ -80,7 +80,7 @@ export default function PlanRevisionBanner({ projectId }: Props) {
         return {
           kind: 'objective' as const,
           objectiveId: obj.id,
-          tierId: obj.tierId,
+          stratumId: obj.stratumId,
         };
       }
     }
@@ -97,10 +97,10 @@ export default function PlanRevisionBanner({ projectId }: Props) {
     if (!target) return;
     if (target.kind === 'objective') {
       navigate({
-        to: '/v3/project/$projectId/plan/tier/$tierId/objective/$objectiveId',
+        to: '/v3/project/$projectId/plan/stratum/$stratumId/objective/$objectiveId',
         params: {
           projectId,
-          tierId: target.tierId,
+          stratumId: target.stratumId,
           objectiveId: target.objectiveId,
         },
       });

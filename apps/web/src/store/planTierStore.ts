@@ -25,6 +25,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { remapId, remapTierId } from '@ogden/shared';
 
 const PERSIST_KEY = 'ogden-plan-tier-progress';
 
@@ -66,6 +67,53 @@ interface PlanTierProgressState {
   hasCelebratedTier: (projectId: string, tierId: string) => boolean;
   /** Mark a tier as celebrated for this project (idempotent). */
   markTierCelebrated: (projectId: string, tierId: string) => void;
+}
+
+/**
+ * persist `migrate`. Two historical steps compose so any older persisted
+ * version lands on the current shape:
+ *  - v1 -> v2: `celebratedByProject` was added (Slice 1.10); backfill `{}`.
+ *  - v2 -> v3: the Plan tier spine was renamed to Stratum 1-7. Renumber the
+ *    objective-id KEYS and the completed item-id VALUES under `byProject`
+ *    (t{n}- -> s{n+1}-, via `remapId`) and the full tier slugs in
+ *    `celebratedByProject` (via `remapTierId`). projectId keys are opaque and
+ *    left untouched. Idempotent on v3+ input — the slug remaps are no-ops on
+ *    already-renumbered s{n} ids.
+ * Exported for the round-trip migration test.
+ */
+export function migratePlanTierProgress(
+  persistedState: unknown,
+  version: number,
+): PlanTierProgressState {
+  const safe =
+    (persistedState as Partial<PlanTierProgressState> | null) ?? {};
+  let byProject: Record<string, ByObjective> = safe.byProject ?? {};
+  let celebratedByProject: Record<string, TierIds> =
+    safe.celebratedByProject ?? {};
+
+  if (version < 3) {
+    const remappedByProject: Record<string, ByObjective> = {};
+    for (const [projectId, byObjective] of Object.entries(byProject)) {
+      const remappedObjectives: Record<string, ItemIds> = {};
+      for (const [objectiveId, itemIds] of Object.entries(byObjective ?? {})) {
+        remappedObjectives[remapId(objectiveId)] = (itemIds ?? []).map((id) =>
+          remapId(id),
+        );
+      }
+      remappedByProject[projectId] = remappedObjectives;
+    }
+    byProject = remappedByProject;
+
+    const remappedCelebrated: Record<string, TierIds> = {};
+    for (const [projectId, tierIds] of Object.entries(celebratedByProject)) {
+      remappedCelebrated[projectId] = (tierIds ?? []).map((id) =>
+        remapTierId(id),
+      );
+    }
+    celebratedByProject = remappedCelebrated;
+  }
+
+  return { ...safe, byProject, celebratedByProject } as PlanTierProgressState;
 }
 
 export const usePlanTierProgressStore = create<PlanTierProgressState>()(
@@ -127,24 +175,12 @@ export const usePlanTierProgressStore = create<PlanTierProgressState>()(
     }),
     {
       name: PERSIST_KEY,
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         byProject: state.byProject,
         celebratedByProject: state.celebratedByProject,
       }),
-      // Pre-Slice-1.10 persisted state has no celebratedByProject field;
-      // backfill an empty record so the new selectors stay stable.
-      migrate: (persistedState, version) => {
-        const safe =
-          (persistedState as Partial<PlanTierProgressState> | null) ?? {};
-        if (version < 2) {
-          return {
-            ...safe,
-            celebratedByProject: safe.celebratedByProject ?? {},
-          } as PlanTierProgressState;
-        }
-        return safe as PlanTierProgressState;
-      },
+      migrate: migratePlanTierProgress,
     },
   ),
 );

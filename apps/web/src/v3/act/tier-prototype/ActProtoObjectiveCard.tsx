@@ -7,14 +7,14 @@
 
 import { MapPin } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
-import type { PlanTierObjective, PlanTierObjectiveStatus } from '@ogden/shared';
+import type { PlanStratumObjective, PlanStratumObjectiveStatus } from '@ogden/shared';
 import type { ProtoPriority } from './actProtoMock.js';
 import styles from './ActProtoTierShell.module.css';
 
 interface Props {
-  objective: PlanTierObjective;
+  objective: PlanStratumObjective;
   eyebrow: string;
-  status: PlanTierObjectiveStatus;
+  status: PlanStratumObjectiveStatus;
   priority: ProtoPriority;
   seedLabel: string;
   isActive: boolean;

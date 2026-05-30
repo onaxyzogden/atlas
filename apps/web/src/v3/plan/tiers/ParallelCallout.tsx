@@ -5,11 +5,11 @@
 // start.
 
 import { Layers } from 'lucide-react';
-import type { PlanTierObjective } from '@ogden/shared';
+import type { PlanStratumObjective } from '@ogden/shared';
 import css from './ParallelCallout.module.css';
 
 interface Props {
-  objectives: readonly PlanTierObjective[];
+  objectives: readonly PlanStratumObjective[];
 }
 
 export default function ParallelCallout({ objectives }: Props) {

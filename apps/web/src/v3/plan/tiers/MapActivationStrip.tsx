@@ -7,13 +7,13 @@
 
 import type {
   OverlayId,
-  PlanTierObjective,
+  PlanStratumObjective,
 } from '@ogden/shared';
 import OverlayBundleStrip from '../../olos/map/OverlayBundleStrip.js';
 import css from './MapActivationStrip.module.css';
 
 interface Props {
-  objective: PlanTierObjective;
+  objective: PlanStratumObjective;
   activeOverlayIds: readonly string[];
   onToggleOverlay: (overlayId: OverlayId) => void;
 }

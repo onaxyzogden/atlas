@@ -20,7 +20,7 @@
 import {
   getObjectiveObserveDomains,
   getPrimaryDomainForObjective,
-  type PlanTierObjective,
+  type PlanStratumObjective,
   type UniversalDomain,
 } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../../plan/objectiveCatalog.js';
@@ -32,7 +32,7 @@ import type { ResolveDomainForObjective } from '../domain/routeToDataPoint.js';
  * feed entries reference deleted objective ids).
  */
 export function resolveDomainForObjective(
-  objective: PlanTierObjective,
+  objective: PlanStratumObjective,
 ): UniversalDomain | null {
   return getPrimaryDomainForObjective(objective);
 }
@@ -58,7 +58,7 @@ export const resolveDomainByObjectiveId: ResolveDomainForObjective = (
  * domain footprint.
  */
 export function resolveAllDomainsForObjective(
-  objective: PlanTierObjective,
+  objective: PlanStratumObjective,
 ): readonly UniversalDomain[] {
   return getObjectiveObserveDomains(objective);
 }

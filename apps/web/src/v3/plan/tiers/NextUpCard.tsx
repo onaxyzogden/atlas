@@ -5,23 +5,23 @@
 
 import { ArrowRight, RefreshCcw } from 'lucide-react';
 import type {
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 import css from './NextUpCard.module.css';
 
 interface Props {
-  objective: PlanTierObjective;
-  status: PlanTierObjectiveStatus;
+  objective: PlanStratumObjective;
+  status: PlanStratumObjectiveStatus;
   /**
    * Slice 3.5 — count of divergence flags filed against this objective
    * by Act (spec §6.4). Surfaced as an amber pill alongside the status.
    */
   divergenceCount?: number;
-  onSelect: (objective: PlanTierObjective) => void;
+  onSelect: (objective: PlanStratumObjective) => void;
 }
 
-const STATUS_LABEL: Record<PlanTierObjectiveStatus, string> = {
+const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
   locked: 'Locked',
   available: 'Ready to start',
   active: 'In progress',

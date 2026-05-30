@@ -1,29 +1,29 @@
 // TierRow — single row in the Plan tier spine (Plan Navigation Spec v1).
 // Visualises one of the 7 tiers with its ordinal badge, title, objective
-// count summary, and a state pill driven by `computeTierState`. Click
+// count summary, and a state pill driven by `computeStratumState`. Click
 // behaviour is owned by the parent (TierSpine) so the spine can hoist a
 // shared locked-tier popover instead of every row carrying its own.
 
 import { Check, Lock } from 'lucide-react';
-import type { PlanTier, PlanTierState } from '@ogden/shared';
+import type { PlanStratum, PlanStratumState } from '@ogden/shared';
 import css from './TierRow.module.css';
 
 interface Props {
-  tier: PlanTier;
-  state: PlanTierState;
+  tier: PlanStratum;
+  state: PlanStratumState;
   objectiveCount: number;
   completeCount: number;
   isActive: boolean;
   /**
    * Slice 2.4 — true while this row is being flashed (3s animation
-   * driven by `?highlightIncomplete=t0`). Pure visual; click behaviour
+   * driven by `?highlightIncomplete=s1`). Pure visual; click behaviour
    * is unchanged.
    */
   isHighlighting?: boolean;
-  onSelect: (tier: PlanTier) => void;
+  onSelect: (tier: PlanStratum) => void;
 }
 
-const STATE_LABEL: Record<PlanTierState, string> = {
+const STATE_LABEL: Record<PlanStratumState, string> = {
   locked: 'Locked',
   available: 'Available',
   active: 'In progress',
@@ -59,7 +59,7 @@ export default function TierRow({
           <span className={css.spineDotInner} />
         )}
       </span>
-      <span className={css.ordinal}>T{tier.ordinal}</span>
+      <span className={css.ordinal}>S{tier.ordinal}</span>
       <span className={css.body}>
         <span className={css.title}>{tier.title}</span>
         <span className={css.summary}>

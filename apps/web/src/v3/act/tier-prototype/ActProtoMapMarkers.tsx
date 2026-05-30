@@ -6,7 +6,7 @@
 // detail). Mirrors the marker lifecycle of CaptureMapMarkers. Delete w/ folder.
 
 import { useEffect, useRef } from 'react';
-import type { PlanTierObjective } from '@ogden/shared';
+import type { PlanStratumObjective } from '@ogden/shared';
 import { maplibregl } from '../../../lib/maplibre.js';
 import {
   protoPriority,
@@ -17,7 +17,7 @@ import {
 interface Props {
   map: maplibregl.Map;
   centroid: [number, number];
-  objectives: PlanTierObjective[];
+  objectives: PlanStratumObjective[];
   activeObjectiveId: string | null;
   onSelectObjective: (objectiveId: string) => void;
 }

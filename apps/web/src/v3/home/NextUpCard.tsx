@@ -194,7 +194,7 @@ export default function NextUpCard({ project, urgency }: NextUpCardProps) {
         </span>
         {resolution.kind === 'field-action' && nextAction ? (
           <span className={css.nextUpKind}>
-            Tier {nextAction.tierId.toUpperCase()}
+            Stratum {nextAction.stratumId.slice(1).split('-')[0]}
           </span>
         ) : null}
       </BentoBox.Header>

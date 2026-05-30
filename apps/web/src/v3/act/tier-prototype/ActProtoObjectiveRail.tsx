@@ -4,7 +4,7 @@
 // objectives as ActProtoObjectiveCards with mock status / priority / SEED
 // coordinates. Header shows the tier as the active "category". Delete w/ folder.
 
-import type { PlanTier, PlanTierObjective } from '@ogden/shared';
+import type { PlanStratum, PlanStratumObjective } from '@ogden/shared';
 import ActProtoObjectiveCard from './ActProtoObjectiveCard.js';
 import {
   protoObjectiveStatus,
@@ -14,8 +14,8 @@ import {
 import styles from './ActProtoTierShell.module.css';
 
 interface Props {
-  tier: PlanTier | undefined;
-  objectives: PlanTierObjective[];
+  tier: PlanStratum | undefined;
+  objectives: PlanStratumObjective[];
   centroid: [number, number];
   activeObjectiveId: string | null;
   onSelectObjective: (objectiveId: string) => void;
@@ -28,7 +28,7 @@ export default function ActProtoObjectiveRail({
   activeObjectiveId,
   onSelectObjective,
 }: Props) {
-  const eyebrow = tier ? `Tier T${tier.ordinal}` : 'Tier';
+  const eyebrow = tier ? `Stratum S${tier.ordinal}` : 'Stratum';
   return (
     <div className={styles.railPanel}>
       <div className={styles.railHeader}>
@@ -39,7 +39,7 @@ export default function ActProtoObjectiveRail({
         )}
       </div>
       {objectives.length === 0 ? (
-        <p className={styles.railEmpty}>No objectives in this tier.</p>
+        <p className={styles.railEmpty}>No objectives in this stratum.</p>
       ) : (
         <div className={styles.railList}>
           {objectives.map((objective, index) => (
@@ -47,7 +47,7 @@ export default function ActProtoObjectiveRail({
               key={objective.id}
               objective={objective}
               eyebrow={tier?.title ?? 'Objective'}
-              status={protoObjectiveStatus(objective.tierId, index)}
+              status={protoObjectiveStatus(objective.stratumId, index)}
               priority={protoPriority(index)}
               seedLabel={protoSeed(centroid, index).label}
               isActive={objective.id === activeObjectiveId}

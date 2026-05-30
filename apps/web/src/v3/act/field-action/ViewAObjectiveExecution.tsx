@@ -20,10 +20,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
   computeAllObjectiveStatuses,
-  findPlanTierObjectiveIn,
+  findPlanStratumObjectiveIn,
   type FieldAction,
-  type PlanTierObjective,
-  type PlanTierObjectiveStatus,
+  type PlanStratumObjective,
+  type PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 import {
   selectFieldActionsForProject,
@@ -64,10 +64,10 @@ function pickInitialTaskId(
 }
 
 function useObjectiveStatus(
-  objective: PlanTierObjective | undefined,
-  objectives: readonly PlanTierObjective[],
+  objective: PlanStratumObjective | undefined,
+  objectives: readonly PlanStratumObjective[],
   projectId: string,
-): PlanTierObjectiveStatus {
+): PlanStratumObjectiveStatus {
   // Mirror Plan tier's status computation so the View A header shows the
   // same status pill the Plan tier surface shows. The full status map is
   // derived from the project's resolved objective set + the steward's flat
@@ -77,7 +77,7 @@ function useObjectiveStatus(
   const byObjective = usePlanTierProgressStore((s) =>
     selectProjectProgress(s, projectId),
   );
-  return useMemo<PlanTierObjectiveStatus>(() => {
+  return useMemo<PlanStratumObjectiveStatus>(() => {
     if (!objective) return 'locked';
     const progress = toProgressMap(byObjective);
     const statuses = computeAllObjectiveStatuses(objectives, progress);
@@ -93,8 +93,8 @@ export default function ViewAObjectiveExecution({ projectId, objectiveId }: Prop
   // global static skeleton, so per-type primary/secondary objectives execute.
   const { objectives } = useProjectObjectives(projectId);
 
-  const objective = useMemo<PlanTierObjective | undefined>(
-    () => findPlanTierObjectiveIn(objectives, objectiveId),
+  const objective = useMemo<PlanStratumObjective | undefined>(
+    () => findPlanStratumObjectiveIn(objectives, objectiveId),
     [objectives, objectiveId],
   );
 
@@ -131,7 +131,7 @@ export default function ViewAObjectiveExecution({ projectId, objectiveId }: Prop
         <div className={css.missing}>
           <strong>Objective not found</strong>
           The objective <code>{objectiveId}</code> is not in this project's
-          Plan tier objectives. Return to the dashboard and pick a task from a
+          Plan stratum objectives. Return to the dashboard and pick a task from a
           valid objective.
           <div style={{ marginTop: 10 }}>
             <button type="button" onClick={handleBack}>

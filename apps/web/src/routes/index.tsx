@@ -431,20 +431,21 @@ const v3PlanCommandCentreRoute = createRoute({
   path: 'plan/command-centre',
   component: PlanCommandCentrePage,
 });
-// Plan search-param shape. Slice 2.4 introduces `?highlightIncomplete=t0`
-// (wizard "Continue setup in Plan" deep link). Only 't0' is honoured
-// today; future tier hops can extend the union without a route-shape
+// Plan search-param shape. Slice 2.4 introduces `?highlightIncomplete=s1`
+// (wizard "Continue setup in Plan" deep link). Only 's1' is honoured
+// today; future stratum hops can extend the union without a route-shape
 // migration. Kept on all three plan-shell routes so a deep link reaches
 // the spine regardless of whether the steward lands on /plan,
-// /plan/tier/$tierId, or /plan/tier/$tierId/objective/$objectiveId.
-type PlanSearch = { highlightIncomplete?: 't0' };
+// /plan/stratum/$stratumId, or
+// /plan/stratum/$stratumId/objective/$objectiveId.
+type PlanSearch = { highlightIncomplete?: 's1' };
 
 const validatePlanSearch = (
   search: Record<string, unknown>,
 ): PlanSearch => {
   const out: PlanSearch = {};
-  if (search.highlightIncomplete === 't0') {
-    out.highlightIncomplete = 't0';
+  if (search.highlightIncomplete === 's1') {
+    out.highlightIncomplete = 's1';
   }
   return out;
 };
@@ -505,20 +506,20 @@ const v3PlanSynthesisRoute = createRoute({
   path: 'plan/synthesis',
   component: PlanSynthesisPage,
 });
-// OLOS Plan Navigation Spec v1 — tier-spine routes. Both render PlanLayout,
-// which reads `planShellMode` and branches into PlanTierShell when tier-spine
-// is the active shell. The static `plan/tier/...` prefix resolves BEFORE
-// `plan/$module` so the legacy module routes remain reachable for projects
-// that have flipped the toggle to module-bar.
+// OLOS Plan Navigation Spec v1 - stratum-spine routes. Both render PlanLayout,
+// which reads `planShellMode` and branches into PlanTierShell when the stratum
+// spine is the active shell. The static `plan/stratum/...` prefix resolves
+// BEFORE `plan/$module` so the legacy module routes remain reachable for
+// projects that have flipped the toggle to module-bar.
 const v3PlanTierRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
-  path: 'plan/tier/$tierId',
+  path: 'plan/stratum/$stratumId',
   component: PlanLayout,
   validateSearch: validatePlanSearch,
 });
 const v3PlanTierObjectiveRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
-  path: 'plan/tier/$tierId/objective/$objectiveId',
+  path: 'plan/stratum/$stratumId/objective/$objectiveId',
   component: PlanLayout,
   validateSearch: validatePlanSearch,
 });

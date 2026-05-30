@@ -46,7 +46,7 @@ export default function WizardTensionPanel({
         {tensions.map((t) => (
           <li key={t.id} className={styles.item}>
             <p className={styles.itemDesc}>{t.description}</p>
-            <p className={styles.itemTier}>Resolved at: {t.resolutionTierLabel}</p>
+            <p className={styles.itemTier}>Resolved at: {t.resolutionStratumLabel}</p>
           </li>
         ))}
       </ul>

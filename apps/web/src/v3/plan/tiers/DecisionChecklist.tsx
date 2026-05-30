@@ -15,8 +15,8 @@
 
 import type {
   PlanDecisionChecklistItem,
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 import { findProjectType } from '@ogden/shared';
 import { findObjectiveGlobally } from '../objectiveCatalog.js';
@@ -24,8 +24,8 @@ import type { VisionDerivedItem, VisionDerivedMap } from './visionProfileToCheck
 import css from './DecisionChecklist.module.css';
 
 interface Props {
-  objective: PlanTierObjective;
-  status: PlanTierObjectiveStatus;
+  objective: PlanStratumObjective;
+  status: PlanStratumObjectiveStatus;
   completedItemIds: readonly string[];
   onToggleItem: (itemId: string) => void;
   /** Slice 1.12 — items pre-satisfied by the Stage Zero Vision bridge. */
@@ -127,7 +127,7 @@ function ChecklistRow({ item, isComplete, derived, onToggle }: RowProps) {
             // Project-independent title lookup: a feedsInto target may be a
             // universal, primary, or secondary-additive objective, so resolve
             // across the catalogue union (Sub-slice D Group 2). The old static
-            // findPlanTierObjective could only title the 16-objective skeleton.
+            // findPlanStratumObjective could only title the 16-objective skeleton.
             const target = findObjectiveGlobally(targetId);
             return (
               <span key={targetId} className={css.feedsInto}>

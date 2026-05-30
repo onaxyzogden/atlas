@@ -7,17 +7,17 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { Lock, X } from 'lucide-react';
 import type {
-  PlanTier,
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratum,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 import css from './TierLockedPopover.module.css';
 
 interface Props {
-  tier: PlanTier;
-  objectives: readonly PlanTierObjective[];
-  objectiveStatuses: Readonly<Record<string, PlanTierObjectiveStatus>>;
-  onAcknowledge: (objective: PlanTierObjective) => void;
+  tier: PlanStratum;
+  objectives: readonly PlanStratumObjective[];
+  objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
+  onAcknowledge: (objective: PlanStratumObjective) => void;
   onDismiss: () => void;
 }
 
@@ -34,9 +34,9 @@ export default function TierLockedPopover({
   // objective in this tier. We preserve seed order so the first
   // unfinished prereq is the natural "next step" target.
   const unmetPrereqs = useMemo(() => {
-    const tierObjectives = objectives.filter((o) => o.tierId === tier.id);
+    const stratumObjectives = objectives.filter((o) => o.stratumId === tier.id);
     const referenced = new Set<string>();
-    for (const obj of tierObjectives) {
+    for (const obj of stratumObjectives) {
       for (const prereqId of obj.prerequisiteObjectiveIds) {
         referenced.add(prereqId);
       }
@@ -80,7 +80,7 @@ export default function TierLockedPopover({
             <Lock size={14} strokeWidth={2} />
           </span>
           <div className={css.headerText}>
-            <p className={css.eyebrow}>Tier {tier.ordinal} locked</p>
+            <p className={css.eyebrow}>Stratum {tier.ordinal} locked</p>
             <h3 className={css.title} id="tier-locked-title">
               {tier.title}
             </h3>
@@ -96,12 +96,12 @@ export default function TierLockedPopover({
         </header>
 
         <p className={css.body}>
-          Finish the upstream decisions below before opening this tier.
+          Finish the upstream decisions below before opening this stratum.
         </p>
 
         {unmetPrereqs.length === 0 ? (
           <p className={css.empty}>
-            No specific prerequisites recorded. Complete the earlier tiers
+            No specific prerequisites recorded. Complete the earlier strata
             in order.
           </p>
         ) : (

@@ -13,18 +13,18 @@
 import type { KeyboardEvent, MouseEvent } from 'react';
 import { Check, Lock, RefreshCcw } from 'lucide-react';
 import type {
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '@ogden/shared';
 import css from './ObjectiveCard.module.css';
 
 interface Props {
-  objective: PlanTierObjective;
-  status: PlanTierObjectiveStatus;
+  objective: PlanStratumObjective;
+  status: PlanStratumObjectiveStatus;
   isActive: boolean;
   /**
    * Slice 2.4 — true while this card is being flashed (3s animation
-   * driven by `?highlightIncomplete=t0`).
+   * driven by `?highlightIncomplete=s1`).
    */
   isHighlighting?: boolean;
   /**
@@ -35,16 +35,16 @@ interface Props {
    * domains. Rendered as an amber pill when > 0.
    */
   divergenceCount?: number;
-  onSelect: (objective: PlanTierObjective) => void;
+  onSelect: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — optional callback fired when the divergence pill is
    * clicked. Parents wire this to navigate to the matching Observe
    * Domain Detail surface. When omitted, the pill is purely visual.
    */
-  onDivergenceClick?: (objective: PlanTierObjective) => void;
+  onDivergenceClick?: (objective: PlanStratumObjective) => void;
 }
 
-const STATUS_LABEL: Record<PlanTierObjectiveStatus, string> = {
+const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
   locked: 'Locked',
   available: 'Ready',
   active: 'In progress',

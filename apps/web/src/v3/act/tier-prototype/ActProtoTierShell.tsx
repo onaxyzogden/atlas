@@ -3,7 +3,7 @@
  * tier shell concept. Fuses four rails that today live in different corners of
  * OLOS into one screen:
  *
- *   TOP    — tier spine (Plan tiers T0-T6)            ActProtoSpine
+ *   TOP    — stratum spine (Plan strata S1-S7)            ActProtoSpine
  *   LEFT   — chosen tier's objectives as cards        ActProtoObjectiveRail
  *   CENTER — shared MapLibre canvas + objective pins  DiagnoseMap + ActProtoMapMarkers
  *   BOTTOM — grouped digital-tools rail               ActProtoToolsRail
@@ -12,7 +12,7 @@
  * StageShell has no top slot, so the spine wraps ABOVE it. All interaction
  * state is local (no stores written); tier/objective status, priority, and
  * SEED coordinates are mock (see actProtoMock.ts). Objectives come from the
- * static `PLAN_TIER_OBJECTIVES` skeleton, NOT a project's per-type resolved
+ * static `PLAN_STRATUM_OBJECTIVES` skeleton, NOT a project's per-type resolved
  * set (Sub-slice D) - this prototype demonstrates the four-rail layout, not
  * objective resolution, so it intentionally stays on the skeleton. This whole
  * folder is one
@@ -23,7 +23,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { LayoutDashboard, Target } from 'lucide-react';
-import { PLAN_TIERS, PLAN_TIER_OBJECTIVES } from '@ogden/shared';
+import { PLAN_STRATA, PLAN_STRATUM_OBJECTIVES } from '@ogden/shared';
 import { useProjectStore, MTC_SEED } from '../../../store/projectStore.js';
 import { extractBoundaryGeometry } from '../../../lib/geo.js';
 import DiagnoseMap, { polygonBounds } from '../../components/DiagnoseMap.js';
@@ -39,7 +39,7 @@ import { protoObjectiveStatus, protoTierState } from './actProtoMock.js';
 import styles from './ActProtoTierShell.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
-const DEFAULT_TIER_ID = 't1-land-reading';
+const DEFAULT_TIER_ID = 's2-land-reading';
 
 type RightMode = 'dashboard' | 'detail';
 
@@ -77,37 +77,37 @@ export default function ActProtoTierShell() {
   const [activeToolId, setActiveToolId] = useState<string | null>(null);
 
   const selectedTier = useMemo(
-    () => PLAN_TIERS.find((t) => t.id === selectedTierId),
+    () => PLAN_STRATA.find((t) => t.id === selectedTierId),
     [selectedTierId],
   );
-  const tierObjectives = useMemo(
-    () => PLAN_TIER_OBJECTIVES.filter((o) => o.tierId === selectedTierId),
+  const stratumObjectives = useMemo(
+    () => PLAN_STRATUM_OBJECTIVES.filter((o) => o.stratumId === selectedTierId),
     [selectedTierId],
   );
   const selectedObjective = useMemo(
     () =>
       selectedObjectiveId
-        ? PLAN_TIER_OBJECTIVES.find((o) => o.id === selectedObjectiveId) ?? null
+        ? PLAN_STRATUM_OBJECTIVES.find((o) => o.id === selectedObjectiveId) ?? null
         : null,
     [selectedObjectiveId],
   );
   const selectedObjectiveTier = useMemo(
     () =>
       selectedObjective
-        ? PLAN_TIERS.find((t) => t.id === selectedObjective.tierId)
+        ? PLAN_STRATA.find((t) => t.id === selectedObjective.stratumId)
         : undefined,
     [selectedObjective],
   );
   const selectedObjectiveStatus = useMemo(() => {
     if (!selectedObjective) return 'available' as const;
-    const index = PLAN_TIER_OBJECTIVES.filter(
-      (o) => o.tierId === selectedObjective.tierId,
+    const index = PLAN_STRATUM_OBJECTIVES.filter(
+      (o) => o.stratumId === selectedObjective.stratumId,
     ).findIndex((o) => o.id === selectedObjective.id);
-    return protoObjectiveStatus(selectedObjective.tierId, index);
+    return protoObjectiveStatus(selectedObjective.stratumId, index);
   }, [selectedObjective]);
 
-  const handleSelectTier = useCallback((tierId: string) => {
-    setSelectedTierId(tierId);
+  const handleSelectTier = useCallback((stratumId: string) => {
+    setSelectedTierId(stratumId);
     setSelectedObjectiveId(null);
     setRightMode('dashboard');
   }, []);
@@ -120,8 +120,8 @@ export default function ActProtoTierShell() {
   return (
     <div className={styles.protoShell}>
       <ActProtoSpine
-        tiers={PLAN_TIERS}
-        objectives={PLAN_TIER_OBJECTIVES}
+        tiers={PLAN_STRATA}
+        objectives={PLAN_STRATUM_OBJECTIVES}
         tierState={protoTierState}
         activeTierId={selectedTierId}
         onSelectTier={handleSelectTier}
@@ -129,12 +129,12 @@ export default function ActProtoTierShell() {
       <div className={styles.shellWrap}>
         <StageShell
           canvasLabel="Act tier canvas"
-          leftRailLabel="Tier objectives"
+          leftRailLabel="Stratum objectives"
           rightRailLabel="Dashboard and objective detail"
           leftRail={
             <ActProtoObjectiveRail
               tier={selectedTier}
-              objectives={tierObjectives}
+              objectives={stratumObjectives}
               centroid={baseCentroid}
               activeObjectiveId={selectedObjectiveId}
               onSelectObjective={handleSelectObjective}
@@ -148,7 +148,7 @@ export default function ActProtoTierShell() {
                   <ActProtoMapMarkers
                     map={map}
                     centroid={baseCentroid}
-                    objectives={tierObjectives}
+                    objectives={stratumObjectives}
                     activeObjectiveId={selectedObjectiveId}
                     onSelectObjective={handleSelectObjective}
                   />

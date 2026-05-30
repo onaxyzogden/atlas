@@ -7,9 +7,9 @@
 import { useMemo } from 'react';
 import {
   getObjectiveObserveDomains,
-  type PlanTier,
-  type PlanTierObjective,
-  type PlanTierObjectiveStatus,
+  type PlanStratum,
+  type PlanStratumObjective,
+  type PlanStratumObjectiveStatus,
   type UniversalDomain,
 } from '@ogden/shared';
 import { useObserveFeedStore } from '../../../store/observeFeedStore.js';
@@ -26,13 +26,13 @@ const DIVERGENT_STATUSES = new Set([
 ]);
 
 interface Props {
-  tier: PlanTier;
-  objectives: readonly PlanTierObjective[];
-  objectiveStatuses: Readonly<Record<string, PlanTierObjectiveStatus>>;
+  tier: PlanStratum;
+  objectives: readonly PlanStratumObjective[];
+  objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
   activeObjectiveId: string | null;
   /**
    * Slice 2.4 — objective ids that should flash a transient ring while
-   * the deep-link `?highlightIncomplete=t0` is being consumed by the
+   * the deep-link `?highlightIncomplete=s1` is being consumed by the
    * shell. Empty list = no flash. Always pure presentational.
    */
   highlightObjectiveIds?: readonly string[];
@@ -42,7 +42,7 @@ interface Props {
    * empty), divergence counts default to 0.
    */
   projectId?: string;
-  onSelectObjective: (objective: PlanTierObjective) => void;
+  onSelectObjective: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — invoked when the divergence pill on an objective card is
    * clicked. Parents wire this to navigate to the matching Observe
@@ -50,10 +50,10 @@ interface Props {
    * non-interactive (visual-only). The handler receives the objective so
    * the parent can resolve its primary domain.
    */
-  onObjectiveDivergenceClick?: (objective: PlanTierObjective) => void;
+  onObjectiveDivergenceClick?: (objective: PlanStratumObjective) => void;
 }
 
-const STATUS_PRIORITY: PlanTierObjectiveStatus[] = [
+const STATUS_PRIORITY: PlanStratumObjectiveStatus[] = [
   'active',
   'available',
   'locked',
@@ -74,8 +74,8 @@ export default function ObjectiveColumn({
     () => new Set(highlightObjectiveIds ?? []),
     [highlightObjectiveIds],
   );
-  const tierObjectives = useMemo(
-    () => objectives.filter((o) => o.tierId === tier.id),
+  const stratumObjectives = useMemo(
+    () => objectives.filter((o) => o.stratumId === tier.id),
     [tier.id, objectives],
   );
 
@@ -129,37 +129,37 @@ export default function ObjectiveColumn({
   // first objective so the column still has a focal point.
   const nextUp = useMemo(() => {
     for (const target of ['active', 'available'] as const) {
-      const found = tierObjectives.find(
+      const found = stratumObjectives.find(
         (o) => objectiveStatuses[o.id] === target,
       );
       if (found) return found;
     }
     return null;
-  }, [tierObjectives, objectiveStatuses]);
+  }, [stratumObjectives, objectiveStatuses]);
 
   // Parallel cluster = the next-up objective's parallel group, sized 2+.
   const parallelSiblings = useMemo(() => {
-    if (!nextUp?.parallelGroupId) return [] as PlanTierObjective[];
-    const group = tierObjectives.filter(
+    if (!nextUp?.parallelGroupId) return [] as PlanStratumObjective[];
+    const group = stratumObjectives.filter(
       (o) =>
         o.parallelGroupId === nextUp.parallelGroupId &&
         (objectiveStatuses[o.id] === 'available' ||
           objectiveStatuses[o.id] === 'active'),
     );
     return group.length >= 2 ? group : [];
-  }, [nextUp, tierObjectives, objectiveStatuses]);
+  }, [nextUp, stratumObjectives, objectiveStatuses]);
 
   // Sorted objectives for the list below NextUpCard, with nextUp removed.
   const sortedObjectives = useMemo(() => {
     const list = nextUp
-      ? tierObjectives.filter((o) => o.id !== nextUp.id)
-      : tierObjectives;
+      ? stratumObjectives.filter((o) => o.id !== nextUp.id)
+      : stratumObjectives;
     return [...list].sort((a, b) => {
       const sa = STATUS_PRIORITY.indexOf(objectiveStatuses[a.id] ?? 'locked');
       const sb = STATUS_PRIORITY.indexOf(objectiveStatuses[b.id] ?? 'locked');
       return sa - sb;
     });
-  }, [tierObjectives, nextUp, objectiveStatuses]);
+  }, [stratumObjectives, nextUp, objectiveStatuses]);
 
   return (
     <section className={css.column} aria-label={`Objectives in ${tier.title}`}>
@@ -194,8 +194,8 @@ export default function ObjectiveColumn({
         </ul>
       )}
 
-      {tierObjectives.length === 0 && (
-        <p className={css.empty}>No objectives recorded for this tier yet.</p>
+      {stratumObjectives.length === 0 && (
+        <p className={css.empty}>No objectives recorded for this stratum yet.</p>
       )}
     </section>
   );

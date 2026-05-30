@@ -29,6 +29,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import { cycleAdvance } from './cycleAdvance.js';
+import { remapId } from '@ogden/shared';
 
 const PERSIST_KEY = 'ogden-cyclical-review';
 
@@ -100,6 +101,34 @@ function patchObjective(
   };
 }
 
+/**
+ * persist `migrate` (v1 -> v2). The Plan tier spine was renamed to Stratum
+ * 1-7; renumber the objective-id KEYS that index each project's review map
+ * (t{n}- -> s{n+1}-, via `remapId`). The record VALUES are slug-free
+ * (timestamps + a boolean) and are preserved verbatim; projectId keys are
+ * opaque and left untouched. Idempotent on v2+ input (remapId is a no-op on
+ * already-renumbered s{n} ids). Exported for the round-trip migration test.
+ */
+export function migrateCyclicalReview(
+  persistedState: unknown,
+  version: number,
+): CyclicalReviewState {
+  const safe = (persistedState as Partial<CyclicalReviewState> | null) ?? {};
+  let byProject: Record<string, ByObjective> = safe.byProject ?? {};
+  if (version < 2) {
+    const remapped: Record<string, ByObjective> = {};
+    for (const [projectId, byObjective] of Object.entries(byProject)) {
+      const remappedObjectives: Record<string, CyclicalReviewRecord> = {};
+      for (const [objectiveId, rec] of Object.entries(byObjective ?? {})) {
+        remappedObjectives[remapId(objectiveId)] = rec;
+      }
+      remapped[projectId] = remappedObjectives;
+    }
+    byProject = remapped;
+  }
+  return { ...safe, byProject } as CyclicalReviewState;
+}
+
 export const useCyclicalReviewStore = create<CyclicalReviewState>()(
   persist(
     (set, get) => ({
@@ -159,8 +188,9 @@ export const useCyclicalReviewStore = create<CyclicalReviewState>()(
     }),
     {
       name: PERSIST_KEY,
-      version: 1,
+      version: 2,
       partialize: (state) => ({ byProject: state.byProject }),
+      migrate: migrateCyclicalReview,
     },
   ),
 );

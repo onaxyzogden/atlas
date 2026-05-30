@@ -20,7 +20,7 @@ const NOW = () => new Date().toISOString();
 const DEMOS: ReadonlyArray<{
   suffix: string;
   planObjectiveId: string;
-  tierId: string;
+  stratumId: string;
   title: string;
   taskType: FieldAction['taskType'];
   status: FieldAction['status'];
@@ -30,8 +30,8 @@ const DEMOS: ReadonlyArray<{
 }> = [
   {
     suffix: 'land-baseline-walk',
-    planObjectiveId: 't1-land-baseline',
-    tierId: 't1-land-reading',
+    planObjectiveId: 's2-land-baseline',
+    stratumId: 's2-land-reading',
     title: 'Walk and photograph the parcel perimeter',
     taskType: 'field_survey',
     status: 'in_progress',
@@ -40,8 +40,8 @@ const DEMOS: ReadonlyArray<{
   },
   {
     suffix: 'water-mapping',
-    planObjectiveId: 't1-land-baseline',
-    tierId: 't1-land-reading',
+    planObjectiveId: 's2-land-baseline',
+    stratumId: 's2-land-reading',
     title: 'Map seasonal water flow lines after first rainfall',
     taskType: 'field_survey',
     status: 'not_started',
@@ -50,8 +50,8 @@ const DEMOS: ReadonlyArray<{
   },
   {
     suffix: 'soil-jar-test',
-    planObjectiveId: 't2-systems-baseline',
-    tierId: 't2-systems-reading',
+    planObjectiveId: 's3-systems-baseline',
+    stratumId: 's3-systems-reading',
     title: 'Run soil jar test in two representative locations',
     taskType: 'field_survey',
     status: 'submitted',
@@ -60,8 +60,8 @@ const DEMOS: ReadonlyArray<{
   },
   {
     suffix: 'access-survey',
-    planObjectiveId: 't1-land-baseline',
-    tierId: 't1-land-reading',
+    planObjectiveId: 's2-land-baseline',
+    stratumId: 's2-land-reading',
     title: 'Record vehicle access points and turning radius',
     taskType: 'field_survey',
     status: 'verified',
@@ -71,8 +71,8 @@ const DEMOS: ReadonlyArray<{
   },
   {
     suffix: 'frost-pocket',
-    planObjectiveId: 't2-systems-baseline',
-    tierId: 't2-systems-reading',
+    planObjectiveId: 's3-systems-baseline',
+    stratumId: 's3-systems-reading',
     title: 'Flag suspected frost pocket near north fence',
     taskType: 'field_survey',
     status: 'blocked',
@@ -93,7 +93,7 @@ export function seedDemoActionsIfEmpty(projectId: string): void {
       id,
       projectId,
       planObjectiveId: d.planObjectiveId,
-      tierId: d.tierId,
+      stratumId: d.stratumId,
       title: d.title,
       taskType: d.taskType,
       proofSchemaId: d.proofSchemaId,
