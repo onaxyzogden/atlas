@@ -112,15 +112,16 @@ export type PlanShellMode = 'stratum-spine' | 'module-bar';
 
 /**
  * Canonical accessor for a project's Plan shell mode. Explicit per-
- * project values win; otherwise builtin samples (MTC, "351 House")
- * default to `module-bar` so their hand-seeded module content keeps
- * rendering, and every other project defaults to `stratum-spine`.
+ * project values win; everything else — including builtin samples (MTC,
+ * "351 House") — now defaults to the `stratum-spine`. Builtins were
+ * formerly pinned to `module-bar`; their curated content is surfaced in
+ * the spine via `legacyCardSectionId` reference cards. The `module-bar`
+ * shell stays reachable per project via `PlanNavToggle`.
  */
 export function getPlanShellMode(
   project: Pick<LocalProject, 'planShellMode' | 'isBuiltin'>,
 ): PlanShellMode {
   if (project.planShellMode) return project.planShellMode;
-  if (project.isBuiltin) return 'module-bar';
   return 'stratum-spine';
 }
 
@@ -136,15 +137,16 @@ export type ActShellMode = 'field-action' | 'command-centre';
 
 /**
  * Canonical accessor for a project's Act shell mode. Explicit per-
- * project values win; otherwise builtin samples (MTC, "351 House")
- * default to `command-centre` so their hand-seeded module content
- * keeps rendering, and every other project defaults to `field-action`.
+ * project values win; everything else — including builtin samples (MTC,
+ * "351 House") — now defaults to `field-action`. Builtins were formerly
+ * pinned to `command-centre`; MTC now carries a curated field-action
+ * seed. The `command-centre` shell stays reachable per project via
+ * `ActShellToggle`.
  */
 export function getActShellMode(
   project: Pick<LocalProject, 'actShellMode' | 'isBuiltin'>,
 ): ActShellMode {
   if (project.actShellMode) return project.actShellMode;
-  if (project.isBuiltin) return 'command-centre';
   return 'field-action';
 }
 
@@ -160,15 +162,16 @@ export type ObserveShellMode = 'dashboard' | 'module-bar';
 
 /**
  * Canonical accessor for a project's Observe shell mode. Explicit
- * per-project values win; otherwise builtin samples default to
- * `module-bar` so their hand-seeded module content keeps rendering,
- * and every other project defaults to `dashboard`.
+ * per-project values win; everything else — including builtin samples
+ * (MTC, "351 House") — now defaults to `dashboard`. Builtins were
+ * formerly pinned to `module-bar`; their seeded source-store data is
+ * surfaced in the dashboard via `builtinObserveDataPoints`. The
+ * `module-bar` shell stays reachable per project via `ObserveShellToggle`.
  */
 export function getObserveShellMode(
   project: Pick<LocalProject, 'observeShellMode' | 'isBuiltin'>,
 ): ObserveShellMode {
   if (project.observeShellMode) return project.observeShellMode;
-  if (project.isBuiltin) return 'module-bar';
   return 'dashboard';
 }
 
