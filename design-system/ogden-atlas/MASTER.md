@@ -120,6 +120,10 @@ Earth-gold (`#c4a265`) fails WCAG AA at small sizes on dark brown chrome. So:
 
 Active states on dark chrome **must** use `--color-gold-active`, not `--color-gold-brand`.
 
+#### No pure `#000` in component CSS
+
+To darken a surface or status color (typically inside `color-mix(...)`), mix toward `--color-chrome-bg` or `--color-neutral-900` — **never** `#000` / `#000000`. Pure black mixed into the warm chrome introduces a cool dead zone, "halates" against bright text, and undermines the OKLCH elevation ladder (where higher = lighter, not shadowed). Dark-mode `--shadow-*` tokens follow the same rule: warm-tinted (`rgba(15, 12, 8, …)`) at lower alpha so depth reads as a lift, not a hole. Regex for review: `color-mix\([^)]*#0{3,6}` should return zero hits across `apps/web/src`.
+
 #### Identity scales (categorical)
 
 These are **categorical** (not semantic) — each value identifies a kind of thing. Don't substitute one scale for another (e.g. don't use a zone color for a structure category).

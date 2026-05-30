@@ -87,7 +87,7 @@
   height: 40px;
   padding: 0 var(--space-5);
   margin: calc(-1 * var(--space-5)) calc(-1 * var(--space-5)) 0;
-  background: color-mix(in oklch, var(--color-panel-card) 78%, #000 22%);
+  background: color-mix(in oklch, var(--color-panel-card) 78%, var(--color-neutral-900, #181b1e) 22%);
   border-bottom: 1px solid rgba(var(--color-gold-rgb), 0.18);
   backdrop-filter: blur(6px);
   opacity: 0;

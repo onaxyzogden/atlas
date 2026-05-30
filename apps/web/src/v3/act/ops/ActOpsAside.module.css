@@ -278,11 +278,11 @@
 .primaryBtn {
   background: var(--color-accent, #c4a265);
   color: #1a1a1a;
-  border: 1px solid color-mix(in srgb, var(--color-accent, #c4a265) 70%, #000);
+  border: 1px solid color-mix(in srgb, var(--color-accent, #c4a265) 70%, var(--color-neutral-900, #181b1e));
 }
 
 .primaryBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-accent, #c4a265) 90%, #000);
+  background: color-mix(in srgb, var(--color-accent, #c4a265) 90%, var(--color-neutral-900, #181b1e));
 }
 
 .secondaryBtn {

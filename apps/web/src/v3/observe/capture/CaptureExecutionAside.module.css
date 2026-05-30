@@ -417,7 +417,7 @@
   color: #fff;
 }
 .successBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-success, #4caf7d) 85%, #000);
+  background: color-mix(in srgb, var(--color-success, #4caf7d) 85%, var(--color-neutral-900, #181b1e));
 }
 .ghostBtn {
   flex: 1;
