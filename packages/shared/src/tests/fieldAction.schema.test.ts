@@ -14,7 +14,7 @@ const base = {
   id: 'fa-1',
   projectId: 'p-1',
   planObjectiveId: 'obj-1',
-  tierId: 't0',
+  stratumId: 's1',
   title: 'Walk and photograph the parcel perimeter',
   taskType: 'field_survey',
   status: 'not_started',

@@ -121,6 +121,7 @@ export * from './constants/olos/objectives.js';
 // Plan tier shell (OLOS Plan Navigation Spec v1)
 export * from './schemas/plan/planTierObjective.schema.js';
 export * from './constants/plan/tierObjectives.js';
+export * from './constants/plan/remapSlug.js';
 // Per-type objective model (OLOS Project-Type + Secondary-Layer Spec v1.2)
 export * from './schemas/plan/projectTypeTaxonomy.schema.js';
 export * from './constants/plan/projectTypes.js';
@@ -128,7 +129,7 @@ export * from './constants/plan/relationshipMatrix.js';
 export * from './constants/plan/catalogues/index.js';
 export {
   resolveProjectObjectives,
-  findPlanTierObjectiveIn,
+  findPlanStratumObjectiveIn,
   type ResolveProjectObjectivesInput,
   type ResolveProjectObjectivesDeps,
   type ResolvedProjectObjectives,
@@ -139,12 +140,12 @@ export {
 export {
   computeObjectiveStatus,
   computeAllObjectiveStatuses,
-  type PlanTierObjectiveStatusMap,
+  type PlanStratumObjectiveStatusMap,
 } from './relationships/tierObjectiveStatus.js';
 export {
-  computeTierState,
-  computeAllTierStates,
-  type PlanTierStateMap,
+  computeStratumState,
+  computeAllStratumStates,
+  type PlanStratumStateMap,
 } from './relationships/tierState.js';
 export {
   isCyclicalReviewDue,
@@ -204,7 +205,7 @@ export {
   getObjectivesForDomain,
   getPrimaryDomainForObjective,
   OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE,
-  TIER_OBSERVE_DOMAINS_DEFAULT,
+  STRATUM_OBSERVE_DOMAINS_DEFAULT,
 } from './relationships/objectiveObserveDomains.js';
 export {
   hasCapability,

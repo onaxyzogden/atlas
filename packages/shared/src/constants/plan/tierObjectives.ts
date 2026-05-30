@@ -1,9 +1,9 @@
 // tierObjectives.ts
 //
-// Seed catalogue of the 7 Plan Tiers and their objectives, derived from
+// Seed catalogue of the 7 Plan Strata and their objectives, derived from
 // OLOS Plan Navigation Spec v1. The seed below is the SKELETON shipped
-// with Slice 1.1 — every tier has at least one objective so the status
-// engine and tier-state engine can be exercised against a realistic
+// with Slice 1.1 — every stratum has at least one objective so the status
+// engine and stratum-state engine can be exercised against a realistic
 // prereq chain. Real per-objective content (overlay bundles, checklist
 // authoring, legacyCardSectionId mappings) is layered in alongside the
 // UI work in Slices 1.5-1.9.
@@ -13,56 +13,56 @@
 // package export.
 
 import type {
-  PlanTier,
-  PlanTierObjective,
+  PlanStratum,
+  PlanStratumObjective,
 } from '../../schemas/plan/planTierObjective.schema.js';
 
-export const PLAN_TIERS: readonly PlanTier[] = [
+export const PLAN_STRATA: readonly PlanStratum[] = [
   {
-    id: 't0-project-foundation',
-    ordinal: 0,
+    id: 's1-project-foundation',
+    ordinal: 1,
     title: 'Project Foundation',
     summary:
       'Vision, stewardship capacity, and the working agreement that anchors every later decision.',
   },
   {
-    id: 't1-land-reading',
-    ordinal: 1,
+    id: 's2-land-reading',
+    ordinal: 2,
     title: 'Land Reading',
     summary:
       'Base-layer reading of the site: climate, landform, water, soil, ecology.',
   },
   {
-    id: 't2-systems-reading',
-    ordinal: 2,
+    id: 's3-systems-reading',
+    ordinal: 3,
     title: 'Systems Reading',
     summary:
       'How the land currently functions as a system — flows, cycles, current use.',
   },
   {
-    id: 't3-foundation-decisions',
-    ordinal: 3,
+    id: 's4-foundation-decisions',
+    ordinal: 4,
     title: 'Foundation Decisions',
     summary:
       'Zones, sectors, and the spatial logic that frames every design choice downstream.',
   },
   {
-    id: 't4-system-design',
-    ordinal: 4,
+    id: 's5-system-design',
+    ordinal: 5,
     title: 'System Design',
     summary:
       'Water strategy, access, infrastructure, vegetation — the working systems of the land.',
   },
   {
-    id: 't5-integration-design',
-    ordinal: 5,
+    id: 's6-integration-design',
+    ordinal: 6,
     title: 'Integration Design',
     summary:
       'How the systems integrate — yield flows, ecology, stewardship intensity.',
   },
   {
-    id: 't6-phasing-resourcing',
-    ordinal: 6,
+    id: 's7-phasing-resourcing',
+    ordinal: 7,
     title: 'Phasing & Resourcing',
     summary:
       'Phasing plan, capital schedule, labour and material sequencing.',
@@ -70,12 +70,12 @@ export const PLAN_TIERS: readonly PlanTier[] = [
 ] as const;
 
 /**
- * Lookup helper. Returns the PlanTier or `undefined`.
+ * Lookup helper. Returns the PlanStratum or `undefined`.
  */
-export function findPlanTier(
+export function findPlanStratum(
   id: string,
-): PlanTier | undefined {
-  return PLAN_TIERS.find((t) => t.id === id);
+): PlanStratum | undefined {
+  return PLAN_STRATA.find((t) => t.id === id);
 }
 
 // ---------------------------------------------------------------------------
@@ -86,11 +86,11 @@ export function findPlanTier(
 // are populated in Slice 1.6 when the MapActivationStrip lands.
 // ---------------------------------------------------------------------------
 
-export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
-  // ---------- T0 ----------
+export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
+  // ---------- S1 ----------
   {
-    id: 't0-vision',
-    tierId: 't0-project-foundation',
+    id: 's1-vision',
+    stratumId: 's1-project-foundation',
     title: 'Define vision, goals & stewardship capacity',
     focusedQuestion:
       'What is this land for, who is it for, and how much capacity do you have to steward it?',
@@ -98,85 +98,85 @@ export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
     defaultOverlayBundle: [],
     checklist: [
       {
-        id: 't0-vision-c1',
+        id: 's1-vision-c1',
         label: 'Articulate the land vision in one paragraph.',
-        feedsInto: ['t1-land-baseline'],
+        feedsInto: ['s2-land-baseline'],
         optional: false,
       },
       {
-        id: 't0-vision-c2',
+        id: 's1-vision-c2',
         label: 'List the primary land-use goals (max 3).',
-        feedsInto: ['t3-zones-sectors'],
+        feedsInto: ['s4-zones-sectors'],
         optional: false,
       },
       {
-        id: 't0-vision-c3',
+        id: 's1-vision-c3',
         label: 'Set stewardship time + budget capacity bands.',
-        feedsInto: ['t6-phasing'],
+        feedsInto: ['s7-phasing'],
         optional: false,
       },
     ],
     outputKind: 'plan-decision-record',
-    parallelGroupId: 't0-foundation',
+    parallelGroupId: 's1-foundation',
     // Steward's "what is this land for" is the goal-compass develop-plan
     // surface in the legacy module bar — closest existing card for the
     // vision capture work.
     legacyCardSectionId: 'plan-develop-plan',
   },
   {
-    id: 't0-stewardship',
-    tierId: 't0-project-foundation',
+    id: 's1-stewardship',
+    stratumId: 's1-project-foundation',
     title: 'Identify key decision-makers and stewards',
     focusedQuestion: 'Who else works on this land, and in what role?',
     prerequisiteObjectiveIds: [],
     defaultOverlayBundle: [],
     checklist: [
       {
-        id: 't0-stewardship-c1',
+        id: 's1-stewardship-c1',
         label: 'List primary steward and any co-stewards.',
         feedsInto: [],
         optional: false,
       },
       {
-        id: 't0-stewardship-c2',
+        id: 's1-stewardship-c2',
         label: 'Note contractor and reviewer roles if known.',
         feedsInto: [],
         optional: true,
       },
     ],
     outputKind: 'plan-decision-record',
-    parallelGroupId: 't0-foundation',
+    parallelGroupId: 's1-foundation',
     // Social-nodes card already captures people-on-land authoring; reused
     // here for the steward roster work.
     legacyCardSectionId: 'plan-social-nodes',
   },
 
-  // ---------- T1 ----------
+  // ---------- S2 ----------
   {
-    id: 't1-land-baseline',
-    tierId: 't1-land-reading',
+    id: 's2-land-baseline',
+    stratumId: 's2-land-reading',
     title: 'Read the land baseline (climate, landform, water, soil, ecology)',
     focusedQuestion:
       'What is the land already telling you across the base layers?',
-    prerequisiteObjectiveIds: ['t0-vision', 't0-stewardship'],
+    prerequisiteObjectiveIds: ['s1-vision', 's1-stewardship'],
     defaultOverlayBundle: [],
     checklist: [
       {
-        id: 't1-land-baseline-c1',
+        id: 's2-land-baseline-c1',
         label: 'Capture the contour/landform overview.',
-        feedsInto: ['t3-zones-sectors'],
+        feedsInto: ['s4-zones-sectors'],
         optional: false,
       },
       {
-        id: 't1-land-baseline-c2',
+        id: 's2-land-baseline-c2',
         label: 'Note current water flow + standing water.',
-        feedsInto: ['t4-water-strategy'],
+        feedsInto: ['s5-water-strategy'],
         optional: false,
       },
       {
-        id: 't1-land-baseline-c3',
+        id: 's2-land-baseline-c3',
         label: 'Record dominant soils + ecology observations.',
-        feedsInto: ['t3-zones-sectors'],
+        feedsInto: ['s4-zones-sectors'],
         optional: false,
       },
     ],
@@ -186,93 +186,93 @@ export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
     legacyCardSectionId: 'plan-soil-baseline',
   },
 
-  // ---------- T2 ----------
+  // ---------- S3 ----------
   {
-    id: 't2-systems-baseline',
-    tierId: 't2-systems-reading',
+    id: 's3-systems-baseline',
+    stratumId: 's3-systems-reading',
     title: 'Read current systems (flows, cycles, current use)',
     focusedQuestion: 'How is the land currently functioning as a system?',
-    prerequisiteObjectiveIds: ['t1-land-baseline'],
+    prerequisiteObjectiveIds: ['s2-land-baseline'],
     defaultOverlayBundle: [],
     checklist: [
       {
-        id: 't2-systems-baseline-c1',
+        id: 's3-systems-baseline-c1',
         label: 'Document existing access + movement patterns.',
-        feedsInto: ['t4-water-strategy'],
+        feedsInto: ['s5-water-strategy'],
         optional: false,
       },
       {
-        id: 't2-systems-baseline-c2',
+        id: 's3-systems-baseline-c2',
         label: 'Note current resource flows on the land.',
-        feedsInto: ['t5-yield-flows'],
+        feedsInto: ['s6-yield-flows'],
         optional: false,
       },
       {
-        id: 't2-systems-baseline-c3',
+        id: 's3-systems-baseline-c3',
         label: 'Note existing infrastructure and utilities.',
-        feedsInto: ['t4-water-strategy'],
+        feedsInto: ['s5-water-strategy'],
         optional: false,
       },
     ],
     outputKind: 'plan-decision-record',
   },
 
-  // ---------- T3 ----------
+  // ---------- S4 ----------
   {
-    id: 't3-zones-sectors',
-    tierId: 't3-foundation-decisions',
+    id: 's4-zones-sectors',
+    stratumId: 's4-foundation-decisions',
     title: 'Set zones and sectors',
     focusedQuestion:
       'How should the site be zoned, and what sectors influence it?',
-    prerequisiteObjectiveIds: ['t2-systems-baseline'],
+    prerequisiteObjectiveIds: ['s3-systems-baseline'],
     defaultOverlayBundle: [],
     checklist: [
       {
-        id: 't3-zones-sectors-c1',
+        id: 's4-zones-sectors-c1',
         label: 'Draft zone boundaries on the site map.',
-        feedsInto: ['t4-water-strategy'],
+        feedsInto: ['s5-water-strategy'],
         optional: false,
       },
       {
-        id: 't3-zones-sectors-c2',
+        id: 's4-zones-sectors-c2',
         label: 'Confirm sector directions and seasonal coverage.',
-        feedsInto: ['t4-water-strategy'],
+        feedsInto: ['s5-water-strategy'],
         optional: false,
       },
       {
-        id: 't3-zones-sectors-c3',
+        id: 's4-zones-sectors-c3',
         label: 'Capture rationale and trade-offs.',
-        feedsInto: ['t5-yield-flows'],
+        feedsInto: ['s6-yield-flows'],
         optional: false,
       },
     ],
     outputKind: 'plan-decision-record',
   },
 
-  // ---------- T4 ----------
+  // ---------- S5 ----------
   {
-    id: 't4-water-strategy',
-    tierId: 't4-system-design',
+    id: 's5-water-strategy',
+    stratumId: 's5-system-design',
     title: 'Set water strategy',
     focusedQuestion:
       'How does water move, slow, sink, and spread across the design?',
-    prerequisiteObjectiveIds: ['t3-zones-sectors'],
+    prerequisiteObjectiveIds: ['s4-zones-sectors'],
     defaultOverlayBundle: [],
     checklist: [
       {
-        id: 't4-water-strategy-c1',
+        id: 's5-water-strategy-c1',
         label: 'Identify keypoints and primary water lines.',
-        feedsInto: ['t5-yield-flows'],
+        feedsInto: ['s6-yield-flows'],
         optional: false,
       },
       {
-        id: 't4-water-strategy-c2',
+        id: 's5-water-strategy-c2',
         label: 'Choose storage strategy (swales / dams / tanks).',
-        feedsInto: ['t6-phasing'],
+        feedsInto: ['s7-phasing'],
         optional: false,
       },
       {
-        id: 't4-water-strategy-c3',
+        id: 's5-water-strategy-c3',
         label: 'Note flood, drought, and contamination risks.',
         feedsInto: [],
         optional: false,
@@ -281,30 +281,30 @@ export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
     outputKind: 'plan-decision-record',
   },
 
-  // ---------- T5 ----------
+  // ---------- S6 ----------
   {
-    id: 't5-yield-flows',
-    tierId: 't5-integration-design',
+    id: 's6-yield-flows',
+    stratumId: 's6-integration-design',
     title: 'Integrate yield flows across systems',
     focusedQuestion:
       'How do the elements yield to and feed each other across the design?',
-    prerequisiteObjectiveIds: ['t4-water-strategy'],
+    prerequisiteObjectiveIds: ['s5-water-strategy'],
     defaultOverlayBundle: [],
     checklist: [
       {
-        id: 't5-yield-flows-c1',
+        id: 's6-yield-flows-c1',
         label: 'Map primary yield outputs by element.',
-        feedsInto: ['t6-phasing'],
+        feedsInto: ['s7-phasing'],
         optional: false,
       },
       {
-        id: 't5-yield-flows-c2',
+        id: 's6-yield-flows-c2',
         label: 'Identify circular flows + waste-to-yield loops.',
-        feedsInto: ['t6-phasing'],
+        feedsInto: ['s7-phasing'],
         optional: false,
       },
       {
-        id: 't5-yield-flows-c3',
+        id: 's6-yield-flows-c3',
         label: 'Flag unrouted outputs needing a downstream use.',
         feedsInto: [],
         optional: false,
@@ -313,30 +313,30 @@ export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
     outputKind: 'plan-decision-record',
   },
 
-  // ---------- T6 ----------
+  // ---------- S7 ----------
   {
-    id: 't6-phasing',
-    tierId: 't6-phasing-resourcing',
+    id: 's7-phasing',
+    stratumId: 's7-phasing-resourcing',
     title: 'Build the phasing plan',
     focusedQuestion:
       'In what order will the design land, and what does each phase need?',
-    prerequisiteObjectiveIds: ['t5-yield-flows'],
+    prerequisiteObjectiveIds: ['s6-yield-flows'],
     defaultOverlayBundle: [],
     checklist: [
       {
-        id: 't6-phasing-c1',
+        id: 's7-phasing-c1',
         label: 'Group decisions into phases with dependencies clear.',
         feedsInto: [],
         optional: false,
       },
       {
-        id: 't6-phasing-c2',
+        id: 's7-phasing-c2',
         label: 'Estimate labour + material per phase.',
         feedsInto: [],
         optional: false,
       },
       {
-        id: 't6-phasing-c3',
+        id: 's7-phasing-c3',
         label: 'Set capital schedule against phase windows.',
         feedsInto: [],
         optional: false,
@@ -349,17 +349,17 @@ export const PLAN_TIER_OBJECTIVES: readonly PlanTierObjective[] = [
 /**
  * Returns all tier-objectives for a given tier id, in seed order.
  */
-export function getObjectivesForTier(
-  tierId: string,
-): readonly PlanTierObjective[] {
-  return PLAN_TIER_OBJECTIVES.filter((o) => o.tierId === tierId);
+export function getObjectivesForStratum(
+  stratumId: string,
+): readonly PlanStratumObjective[] {
+  return PLAN_STRATUM_OBJECTIVES.filter((o) => o.stratumId === stratumId);
 }
 
 /**
  * Returns the canonical tier-objective for a given id, or `undefined`.
  */
-export function findPlanTierObjective(
+export function findPlanStratumObjective(
   id: string,
-): PlanTierObjective | undefined {
-  return PLAN_TIER_OBJECTIVES.find((o) => o.id === id);
+): PlanStratumObjective | undefined {
+  return PLAN_STRATUM_OBJECTIVES.find((o) => o.id === id);
 }

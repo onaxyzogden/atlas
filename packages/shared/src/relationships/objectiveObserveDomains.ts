@@ -3,7 +3,7 @@
 // Derive the set of Observe universal domains a Plan tier objective is
 // "about" — i.e. the domains where new Observe evidence (verified or
 // diverged) should reopen the objective for cyclical review. The
-// Phase 1 PlanTierObjective schema does not carry an explicit
+// Phase 1 PlanStratumObjective schema does not carry an explicit
 // `observeDomainIds` field, so this helper hides the mapping behind a
 // single accessor that consumers can call without coupling to the
 // underlying source.
@@ -12,21 +12,21 @@
 //
 //   1. Per-objective override table (`OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE`)
 //      — explicit list when the objective's domain footprint is finer
-//      than its tier default (e.g. t6-phasing primarily concerns
+//      than its tier default (e.g. s7-phasing primarily concerns
 //      economics-capacity + monitoring-records, NOT every land-base
 //      domain).
-//   2. Tier default (`TIER_OBSERVE_DOMAINS_DEFAULT`) — the broad set of
+//   2. Tier default (`STRATUM_OBSERVE_DOMAINS_DEFAULT`) — the broad set of
 //      domains that a tier's work routinely depends on, used when an
 //      objective doesn't carry an override.
 //
 // Both maps are tightly scoped to the catalogue shipped with the spec —
 // extending the seed list of tier objectives (or adding a new
-// PlanTierId) requires augmenting both maps with the appropriate
+// PlanStratumId) requires augmenting both maps with the appropriate
 // entries. Keeping both layers explicit makes the wiring contract
 // readable when future objectives ship without churning a derivation
 // algorithm.
 
-import type { PlanTierObjective, PlanTierId } from '../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjective, PlanStratumId } from '../schemas/plan/planTierObjective.schema.js';
 import type { UniversalDomain } from '../schemas/universalDomain.schema.js';
 
 /**
@@ -35,11 +35,11 @@ import type { UniversalDomain } from '../schemas/universalDomain.schema.js';
  * surfaces the tier's work typically reads / writes against. Falls back
  * conservatively wide; the per-objective override narrows when needed.
  */
-export const TIER_OBSERVE_DOMAINS_DEFAULT: Readonly<
-  Record<PlanTierId, readonly UniversalDomain[]>
+export const STRATUM_OBSERVE_DOMAINS_DEFAULT: Readonly<
+  Record<PlanStratumId, readonly UniversalDomain[]>
 > = {
-  't0-project-foundation': ['vision-intent', 'people-governance'],
-  't1-land-reading': [
+  's1-project-foundation': ['vision-intent', 'people-governance'],
+  's2-land-reading': [
     'climate',
     'topography',
     'hydrology',
@@ -47,27 +47,27 @@ export const TIER_OBSERVE_DOMAINS_DEFAULT: Readonly<
     'ecology',
     'land-base',
   ],
-  't2-systems-reading': [
+  's3-systems-reading': [
     'access-circulation',
     'energy-resources',
     'built-infrastructure',
     'monitoring-records',
   ],
-  't3-foundation-decisions': ['topography', 'climate', 'hydrology'],
-  't4-system-design': [
+  's4-foundation-decisions': ['topography', 'climate', 'hydrology'],
+  's5-system-design': [
     'hydrology',
     'risk-compliance',
     'soil',
     'access-circulation',
     'built-infrastructure',
   ],
-  't5-integration-design': [
+  's6-integration-design': [
     'plants-food',
     'animals-livestock',
     'ecology',
     'soil',
   ],
-  't6-phasing-resourcing': [
+  's7-phasing-resourcing': [
     'economics-capacity',
     'monitoring-records',
     'people-governance',
@@ -77,18 +77,18 @@ export const TIER_OBSERVE_DOMAINS_DEFAULT: Readonly<
 /**
  * Per-objective override. Add an entry when the objective's domain
  * footprint is finer-grained than its tier default. Absent ids fall
- * through to `TIER_OBSERVE_DOMAINS_DEFAULT`.
+ * through to `STRATUM_OBSERVE_DOMAINS_DEFAULT`.
  */
 export const OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE: Readonly<
   Record<string, readonly UniversalDomain[]>
 > = {
-  // ---------- T0 ----------
-  't0-vision': ['vision-intent'],
-  't0-stewardship': ['people-governance'],
+  // ---------- S1 ----------
+  's1-vision': ['vision-intent'],
+  's1-stewardship': ['people-governance'],
 
-  // ---------- T1 ----------
+  // ---------- S2 ----------
   // Baseline objective reads the full land-reading surface.
-  't1-land-baseline': [
+  's2-land-baseline': [
     'topography',
     'hydrology',
     'soil',
@@ -97,28 +97,28 @@ export const OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE: Readonly<
     'land-base',
   ],
 
-  // ---------- T2 ----------
-  't2-systems-baseline': [
+  // ---------- S3 ----------
+  's3-systems-baseline': [
     'access-circulation',
     'energy-resources',
     'built-infrastructure',
     'monitoring-records',
   ],
 
-  // ---------- T3 ----------
+  // ---------- S4 ----------
   // Zones + sectors depend on landform, climate sectors, water flow.
-  't3-zones-sectors': ['topography', 'climate', 'hydrology'],
+  's4-zones-sectors': ['topography', 'climate', 'hydrology'],
 
-  // ---------- T4 ----------
+  // ---------- S5 ----------
   // Water strategy is hydrology-led, with soil + risk-compliance
   // (flood / drought / contamination) as required co-readings.
-  't4-water-strategy': ['hydrology', 'soil', 'risk-compliance'],
+  's5-water-strategy': ['hydrology', 'soil', 'risk-compliance'],
 
-  // ---------- T5 ----------
-  't5-yield-flows': ['plants-food', 'animals-livestock', 'ecology', 'soil'],
+  // ---------- S6 ----------
+  's6-yield-flows': ['plants-food', 'animals-livestock', 'ecology', 'soil'],
 
-  // ---------- T6 ----------
-  't6-phasing': [
+  // ---------- S7 ----------
+  's7-phasing': [
     'economics-capacity',
     'monitoring-records',
     'people-governance',
@@ -133,11 +133,11 @@ export const OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE: Readonly<
  * accidentally trigger a Plan revision flag across every objective).
  */
 export function getObjectiveObserveDomains(
-  objective: PlanTierObjective,
+  objective: PlanStratumObjective,
 ): readonly UniversalDomain[] {
   const override = OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE[objective.id];
   if (override) return override;
-  return TIER_OBSERVE_DOMAINS_DEFAULT[objective.tierId] ?? [];
+  return STRATUM_OBSERVE_DOMAINS_DEFAULT[objective.stratumId] ?? [];
 }
 
 /**
@@ -149,7 +149,7 @@ export function getObjectiveObserveDomains(
  * the inverse scan itself.
  */
 export function getObjectivesForDomain(
-  objectives: readonly PlanTierObjective[],
+  objectives: readonly PlanStratumObjective[],
   domainId: UniversalDomain,
 ): readonly string[] {
   const out: string[] = [];
@@ -169,7 +169,7 @@ export function getObjectivesForDomain(
  * adapter (Slice 4.4) to project feed entries back to a domain.
  */
 export function getPrimaryDomainForObjective(
-  objective: PlanTierObjective,
+  objective: PlanStratumObjective,
 ): UniversalDomain | null {
   const domains = getObjectiveObserveDomains(objective);
   return domains[0] ?? null;

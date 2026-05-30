@@ -7,7 +7,7 @@
 //
 // Phase 4 caller wiring (Slice 4.4 — landed):
 //   `apps/web/src/v3/observe/dashboard/revision/usePlanRevisionFlagSync.ts`
-//   computes `computeObserveRevisionFlag` for every PLAN_TIER_OBJECTIVE
+//   computes `computeObserveRevisionFlag` for every PLAN_STRATUM_OBJECTIVE
 //   against active diverged ObserveDataPoints + diverged ObserveFeedEntries
 //   and flips `cyclicalReviewStore.forceTrigger` / `clearForcedTrigger`
 //   on delta. The `observeRevisionFlag` injection point of this predicate
@@ -18,16 +18,16 @@
 // itself is unchanged across Phases.
 
 import type {
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '../schemas/plan/planTierObjective.schema.js';
 
 export const CYCLICAL_REVIEW_DEFAULT_DAYS = 90;
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 export interface CyclicalReviewInputs {
-  objective: PlanTierObjective;
-  currentStatus: PlanTierObjectiveStatus;
+  objective: PlanStratumObjective;
+  currentStatus: PlanStratumObjectiveStatus;
   /** ISO timestamp the objective last entered `complete` or was last reviewed. */
   lastReviewedAt: string | null;
   /** `Date.now()`-style epoch milliseconds, injected for testability. */

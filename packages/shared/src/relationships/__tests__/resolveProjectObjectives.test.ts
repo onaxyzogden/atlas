@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   resolveProjectObjectives,
-  findPlanTierObjectiveIn,
+  findPlanStratumObjectiveIn,
 } from '../resolveProjectObjectives.js';
 import {
   findUniversalObjective,
@@ -29,14 +29,14 @@ describe('resolveProjectObjectives - regenerative_farm (primary only)', () => {
   });
 
   it('sorts by tier ordinal: first objective in T0, last in T6', () => {
-    expect(r.objectives[0]?.tierId).toBe('t0-project-foundation');
-    expect(r.objectives.at(-1)?.tierId).toBe('t6-phasing-resourcing');
+    expect(r.objectives[0]?.stratumId).toBe('s1-project-foundation');
+    expect(r.objectives.at(-1)?.stratumId).toBe('s7-phasing-resourcing');
   });
 
   it('orders universal before primary within a shared tier', () => {
-    const t0 = r.objectives.filter((o) => o.tierId === 't0-project-foundation');
-    const firstPrimaryIdx = t0.findIndex((o) => o.source === 'primary');
-    const lastUniversalIdx = t0.map((o) => o.source).lastIndexOf('universal');
+    const s1 = r.objectives.filter((o) => o.stratumId === 's1-project-foundation');
+    const firstPrimaryIdx = s1.findIndex((o) => o.source === 'primary');
+    const lastUniversalIdx = s1.map((o) => o.source).lastIndexOf('universal');
     expect(lastUniversalIdx).toBeLessThan(firstPrimaryIdx);
   });
 });
@@ -74,8 +74,8 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
     expect(r.activeTensions).toEqual([]);
   });
 
-  it('injects 2 items into t2-hydrology (5 + 2 = 7), stamped + gate concatenated', () => {
-    const hydro = findPlanTierObjectiveIn(r.objectives, 't2-hydrology');
+  it('injects 2 items into s3-hydrology (5 + 2 = 7), stamped + gate concatenated', () => {
+    const hydro = findPlanStratumObjectiveIn(r.objectives, 's3-hydrology');
     expect(hydro?.checklist).toHaveLength(7);
     const injected = hydro?.checklist.filter(
       (i) => i.expandedBySecondaryId === 'residential',
@@ -87,13 +87,13 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
     );
   });
 
-  it('lands P0 on the regen primary objective rf-t1-landscape-context (6 + 1 = 7)', () => {
-    const lc = findPlanTierObjectiveIn(r.objectives, 'rf-t1-landscape-context');
+  it('lands P0 on the regen primary objective rf-s2-landscape-context (6 + 1 = 7)', () => {
+    const lc = findPlanStratumObjectiveIn(r.objectives, 'rf-s2-landscape-context');
     expect(lc?.checklist).toHaveLength(7);
     expect(
       lc?.checklist.some(
         (i) =>
-          i.id === 'rf-t1-landscape-context-pres-1' &&
+          i.id === 'rf-s2-landscape-context-pres-1' &&
           i.expandedBySecondaryId === 'residential',
       ),
     ).toBe(true);
@@ -101,7 +101,7 @@ describe('resolveProjectObjectives - regenerative_farm + residential (M, tension
 
   it('does not mutate the shared catalogue constants', () => {
     // The resolved copy gained items; the source constant must be untouched.
-    expect(findUniversalObjective('t2-hydrology')?.checklist).toHaveLength(5);
+    expect(findUniversalObjective('s3-hydrology')?.checklist).toHaveLength(5);
   });
 });
 
@@ -109,8 +109,8 @@ describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
   // agritourism now has an encoded primary catalogue (29 objectives), so it
   // resolves universal + agritourism-primary. residential is compatible (X) on
   // agritourism, so its catalogue layers in too, but residential's P0 patch
-  // targets rf-t1-landscape-context - a regenfarm objective absent under an
-  // agritourism primary (agritourism has its OWN ag-t1-landscape-context, a
+  // targets rf-s2-landscape-context - a regenfarm objective absent under an
+  // agritourism primary (agritourism has its OWN ag-s2-landscape-context, a
   // different id) => P0 is still skipped, P1-P4 land. The skip-not-throw
   // behaviour holds even with the primary encoded.
   const r = resolveProjectObjectives({
@@ -127,7 +127,7 @@ describe('resolveProjectObjectives - skip-not-throw on a real pairing', () => {
     expect(r.provenance.skippedPatches).toHaveLength(1);
     expect(r.provenance.skippedPatches[0]).toMatchObject({
       secondaryTypeId: 'residential',
-      targetObjectiveId: 'rf-t1-landscape-context',
+      targetObjectiveId: 'rf-s2-landscape-context',
       reason: 'missing-target',
     });
   });
@@ -185,9 +185,9 @@ describe('resolveProjectObjectives - N/A pair (homestead + residential)', () => 
 describe('resolveProjectObjectives - dedup by objective id (synthetic)', () => {
   // A synthetic residential additive objective colliding with a universal id.
   const dup = obj({
-    id: 't2-soil',
-    tierId: 't2-systems-reading',
-    ref: 'RES-T2.2',
+    id: 's3-soil',
+    stratumId: 's3-systems-reading',
+    ref: 'RES-S3.2',
     source: 'secondary',
     sourceTypeId: 'residential',
     secondaryClass: 'additive',
@@ -207,7 +207,7 @@ describe('resolveProjectObjectives - dedup by objective id (synthetic)', () => {
   );
 
   it('drops the duplicate, records it, and keeps the count at 32', () => {
-    expect(r.provenance.dedupedObjectiveIds).toContain('t2-soil');
+    expect(r.provenance.dedupedObjectiveIds).toContain('s3-soil');
     expect(r.objectives).toHaveLength(32);
     const flag = r.provenance.secondaryFlags.find(
       (f) => f.secondaryTypeId === 'residential',
@@ -215,8 +215,8 @@ describe('resolveProjectObjectives - dedup by objective id (synthetic)', () => {
     expect(flag?.additiveCount).toBe(0);
   });
 
-  it('keeps the original universal t2-soil (first occurrence wins)', () => {
-    const soil = findPlanTierObjectiveIn(r.objectives, 't2-soil');
+  it('keeps the original universal s3-soil (first occurrence wins)', () => {
+    const soil = findPlanStratumObjectiveIn(r.objectives, 's3-soil');
     expect(soil?.source).toBe('universal');
   });
 });

@@ -121,10 +121,10 @@ export const FieldActionSchema = z
   .object({
     id: z.string().min(1),
     projectId: z.string().min(1),
-    /** PlanTierObjective.id the field action belongs to. */
+    /** PlanStratumObjective.id the field action belongs to. */
     planObjectiveId: z.string().min(1),
-    /** PlanTier.id (denormalized for View B grouping without a join). */
-    tierId: z.string().min(1),
+    /** PlanStratum.id (denormalized for View B grouping without a join). */
+    stratumId: z.string().min(1),
 
     title: z.string().min(1),
     description: z.string().optional(),

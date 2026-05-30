@@ -40,7 +40,7 @@ import type {
   FieldActionStatus,
 } from '../schemas/fieldAction/fieldAction.schema.js';
 import type { ObserveDataPoint } from '../schemas/observe/dataPoint.schema.js';
-import type { PlanTierObjectiveStatus } from '../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjectiveStatus } from '../schemas/plan/planTierObjective.schema.js';
 import type { UniversalDomain } from '../schemas/universalDomain.schema.js';
 import { FOUNDATION_DOMAINS_FOR_REVISION } from './revisionPriority.js';
 import type { ObserveFreshness } from './observeFreshness.js';
@@ -95,7 +95,7 @@ export interface ProjectUrgencyInputs {
   lastActivityAt?: string | null;
 
   /** Already-computed status map from `computeAllObjectiveStatuses`. */
-  objectiveStatuses: Readonly<Record<string, PlanTierObjectiveStatus>>;
+  objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
 
   /** Objective ids that the cyclical-review predicate currently flags
    *  as due (90-day cadence OR Observe-driven revision flag). */

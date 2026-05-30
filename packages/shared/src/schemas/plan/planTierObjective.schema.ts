@@ -1,8 +1,8 @@
 // planTierObjective.schema.ts
 //
-// Schemas for the 7-tier Plan stage spec (OLOS Plan Navigation Spec v1).
-// A PlanTier is one of seven ordered groupings (T0 Project Foundation -
-// T6 Phasing & Resourcing). Each Plan Tier Objective is a thin shell that
+// Schemas for the 7-stratum Plan stage spec (OLOS Plan Navigation Spec v1).
+// A PlanStratum is one of seven ordered groupings (S1 Project Foundation -
+// S7 Phasing & Resourcing). Each Plan Stratum Objective is a thin shell that
 // represents one decision unit; it may LINK to an existing legacy module
 // card via `legacyCardSectionId` (no-deletion rule — see project memory
 // `feedback_no_deletion`). Status flows through a 4-state machine driven
@@ -15,40 +15,40 @@ import {
   SecondaryClass,
 } from './projectTypeTaxonomy.schema.js';
 
-export const PlanTierId = z.enum([
-  't0-project-foundation',
-  't1-land-reading',
-  't2-systems-reading',
-  't3-foundation-decisions',
-  't4-system-design',
-  't5-integration-design',
-  't6-phasing-resourcing',
+export const PlanStratumId = z.enum([
+  's1-project-foundation',
+  's2-land-reading',
+  's3-systems-reading',
+  's4-foundation-decisions',
+  's5-system-design',
+  's6-integration-design',
+  's7-phasing-resourcing',
 ]);
-export type PlanTierId = z.infer<typeof PlanTierId>;
+export type PlanStratumId = z.infer<typeof PlanStratumId>;
 
-export const PlanTierObjectiveStatus = z.enum([
+export const PlanStratumObjectiveStatus = z.enum([
   'locked',
   'available',
   'active',
   'complete',
 ]);
-export type PlanTierObjectiveStatus = z.infer<typeof PlanTierObjectiveStatus>;
+export type PlanStratumObjectiveStatus = z.infer<typeof PlanStratumObjectiveStatus>;
 
-export const PlanTierState = z.enum([
+export const PlanStratumState = z.enum([
   'locked',
   'available',
   'active',
   'complete',
 ]);
-export type PlanTierState = z.infer<typeof PlanTierState>;
+export type PlanStratumState = z.infer<typeof PlanStratumState>;
 
-export const PlanTierObjectiveOutputKind = z.enum([
+export const PlanStratumObjectiveOutputKind = z.enum([
   'plan-decision-record',
   'observation-record',
   'reference-doc',
 ]);
-export type PlanTierObjectiveOutputKind = z.infer<
-  typeof PlanTierObjectiveOutputKind
+export type PlanStratumObjectiveOutputKind = z.infer<
+  typeof PlanStratumObjectiveOutputKind
 >;
 
 /**
@@ -92,17 +92,17 @@ export type PlanDecisionChecklistItem = z.infer<
   typeof PlanDecisionChecklistItemSchema
 >;
 
-export const PlanTierSchema = z.object({
-  id: PlanTierId,
-  ordinal: z.number().int().min(0).max(6),
+export const PlanStratumSchema = z.object({
+  id: PlanStratumId,
+  ordinal: z.number().int().min(1).max(7),
   title: z.string().min(1),
   summary: z.string().min(1),
 });
-export type PlanTier = z.infer<typeof PlanTierSchema>;
+export type PlanStratum = z.infer<typeof PlanStratumSchema>;
 
-export const PlanTierObjectiveSchema = z.object({
+export const PlanStratumObjectiveSchema = z.object({
   id: z.string().min(1),
-  tierId: PlanTierId,
+  stratumId: PlanStratumId,
   title: z.string().min(1),
   focusedQuestion: z.string().min(1),
   /**
@@ -113,7 +113,7 @@ export const PlanTierObjectiveSchema = z.object({
   prerequisiteObjectiveIds: z.array(z.string()).default([]),
   defaultOverlayBundle: z.array(OverlayId).default([]),
   checklist: z.array(PlanDecisionChecklistItemSchema).default([]),
-  outputKind: PlanTierObjectiveOutputKind.default('plan-decision-record'),
+  outputKind: PlanStratumObjectiveOutputKind.default('plan-decision-record'),
   /**
    * Optional pointer into the legacy MODULE_CARDS catalogue
    * (apps/web/src/v3/plan/types.ts). When set the ObjectiveDetailPanel's
@@ -144,8 +144,8 @@ export const PlanTierObjectiveSchema = z.object({
    */
   secondaryClass: SecondaryClass.optional(),
   /**
-   * Catalogue reference code per Authoring Standards v1.4 (e.g. "U-T0.1",
-   * "HS-T3.2"). Stable id used in provenance and cross-references.
+   * Catalogue reference code per Authoring Standards v1.4 (e.g. "U-S1.1",
+   * "HS-S4.2"). Stable id used in provenance and cross-references.
    */
   ref: z.string().optional(),
   /**
@@ -165,7 +165,7 @@ export const PlanTierObjectiveSchema = z.object({
    */
   scopeNotes: z.string().optional(),
 });
-export type PlanTierObjective = z.infer<typeof PlanTierObjectiveSchema>;
+export type PlanStratumObjective = z.infer<typeof PlanStratumObjectiveSchema>;
 
 /**
  * A checklist item injected into an existing objective by a secondary layer's
@@ -197,7 +197,7 @@ export const PatchRecordSchema = z.object({
   secondaryTypeId: ProjectTypeId,
   /** Id of the existing objective this patch injects into. */
   targetObjectiveId: z.string().min(1),
-  /** Catalogue reference per Authoring Standards v1.4 (e.g. "RES>U-T0.1"). */
+  /** Catalogue reference per Authoring Standards v1.4 (e.g. "RES>U-S1.1"). */
   ref: z.string().optional(),
   /**
    * Checklist items injected into the target objective. Ids must be globally

@@ -12,25 +12,25 @@
 // shell still renders so the steward can see the placeholder.
 
 import type {
-  PlanTierObjective,
-  PlanTierState,
+  PlanStratumObjective,
+  PlanStratumState,
 } from '../schemas/plan/planTierObjective.schema.js';
-import type { PlanTierObjectiveStatusMap } from './tierObjectiveStatus.js';
+import type { PlanStratumObjectiveStatusMap } from './tierObjectiveStatus.js';
 
-export function computeTierState(
-  tierId: string,
-  objectives: readonly PlanTierObjective[],
-  statuses: PlanTierObjectiveStatusMap,
-): PlanTierState {
-  const tierObjectives = objectives.filter((o) => o.tierId === tierId);
-  if (tierObjectives.length === 0) return 'available';
+export function computeStratumState(
+  stratumId: string,
+  objectives: readonly PlanStratumObjective[],
+  statuses: PlanStratumObjectiveStatusMap,
+): PlanStratumState {
+  const stratumObjectives = objectives.filter((o) => o.stratumId === stratumId);
+  if (stratumObjectives.length === 0) return 'available';
 
   let hasActive = false;
   let hasAvailable = false;
   let allComplete = true;
   let allLocked = true;
 
-  for (const obj of tierObjectives) {
+  for (const obj of stratumObjectives) {
     const s = statuses[obj.id] ?? 'locked';
     if (s !== 'complete') allComplete = false;
     if (s !== 'locked') allLocked = false;
@@ -47,20 +47,20 @@ export function computeTierState(
 }
 
 /** Tier-state snapshot keyed by tier id. */
-export type PlanTierStateMap = Readonly<Record<string, PlanTierState>>;
+export type PlanStratumStateMap = Readonly<Record<string, PlanStratumState>>;
 
 /**
  * Roll up all tier statuses in one pass given the per-objective status
  * map produced by `computeAllObjectiveStatuses`.
  */
-export function computeAllTierStates(
-  tierIds: readonly string[],
-  objectives: readonly PlanTierObjective[],
-  statuses: PlanTierObjectiveStatusMap,
-): PlanTierStateMap {
-  const out: Record<string, PlanTierState> = {};
-  for (const tierId of tierIds) {
-    out[tierId] = computeTierState(tierId, objectives, statuses);
+export function computeAllStratumStates(
+  stratumIds: readonly string[],
+  objectives: readonly PlanStratumObjective[],
+  statuses: PlanStratumObjectiveStatusMap,
+): PlanStratumStateMap {
+  const out: Record<string, PlanStratumState> = {};
+  for (const stratumId of stratumIds) {
+    out[stratumId] = computeStratumState(stratumId, objectives, statuses);
   }
   return out;
 }

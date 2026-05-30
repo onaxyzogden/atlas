@@ -2,7 +2,7 @@
 //
 // Tiny authoring helpers for the per-type objective catalogues (OLOS
 // Project-Type + Secondary-Layer Spec v1.2). They fill the defaulted
-// PlanTierObjectiveSchema / PlanDecisionChecklistItemSchema fields
+// PlanStratumObjectiveSchema / PlanDecisionChecklistItemSchema fields
 // (prerequisiteObjectiveIds, defaultOverlayBundle, outputKind, feedsInto,
 // optional) so the catalogue files read as faithful transcriptions of the
 // source docs rather than walls of boilerplate.
@@ -14,8 +14,8 @@
 import type {
   PlanDecisionChecklistItem,
   PlanObjectiveSource,
-  PlanTierId,
-  PlanTierObjective,
+  PlanStratumId,
+  PlanStratumObjective,
   PatchRecord,
 } from '../../../schemas/plan/planTierObjective.schema.js';
 import type {
@@ -34,7 +34,7 @@ export function ck(id: string, label: string): PlanDecisionChecklistItem {
 
 export interface ObjectiveInput {
   id: string;
-  tierId: PlanTierId;
+  stratumId: PlanStratumId;
   title: string;
   focusedQuestion: string;
   checklist: PlanDecisionChecklistItem[];
@@ -42,7 +42,7 @@ export interface ObjectiveInput {
   actHandoff: string;
   /** Which layer emitted this objective. */
   source: PlanObjectiveSource;
-  /** Authoring Standards v1.4 reference code (e.g. "U-T0.1", "RF-T0.4"). */
+  /** Authoring Standards v1.4 reference code (e.g. "U-S1.1", "RF-S1.4"). */
   ref: string;
   /** Set for primary / secondary objectives; omit for universal. */
   sourceTypeId?: ProjectTypeId;
@@ -53,14 +53,14 @@ export interface ObjectiveInput {
 }
 
 /**
- * Build a PlanTierObjective with the defaulted shell fields applied. Optional
+ * Build a PlanStratumObjective with the defaulted shell fields applied. Optional
  * provenance fields are only set when supplied so the object stays clean
  * (absent === not applicable), matching how the static skeleton reads.
  */
-export function obj(input: ObjectiveInput): PlanTierObjective {
+export function obj(input: ObjectiveInput): PlanStratumObjective {
   return {
     id: input.id,
-    tierId: input.tierId,
+    stratumId: input.stratumId,
     title: input.title,
     focusedQuestion: input.focusedQuestion,
     prerequisiteObjectiveIds: [],

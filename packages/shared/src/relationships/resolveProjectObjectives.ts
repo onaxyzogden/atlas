@@ -37,8 +37,8 @@ import type {
   PatchRecord,
   PlanDecisionChecklistItem,
   PlanObjectiveSource,
-  PlanTierId,
-  PlanTierObjective,
+  PlanStratumId,
+  PlanStratumObjective,
 } from '../schemas/plan/planTierObjective.schema.js';
 import type { ProjectTypeId } from '../schemas/plan/projectTypeTaxonomy.schema.js';
 import {
@@ -56,14 +56,14 @@ import {
 } from '../constants/plan/relationshipMatrix.js';
 
 /** Tier ids in ordinal order (drives the resolved-set sort). */
-const TIER_ORDER: readonly PlanTierId[] = [
-  't0-project-foundation',
-  't1-land-reading',
-  't2-systems-reading',
-  't3-foundation-decisions',
-  't4-system-design',
-  't5-integration-design',
-  't6-phasing-resourcing',
+const STRATUM_ORDER: readonly PlanStratumId[] = [
+  's1-project-foundation',
+  's2-land-reading',
+  's3-systems-reading',
+  's4-foundation-decisions',
+  's5-system-design',
+  's6-integration-design',
+  's7-phasing-resourcing',
 ];
 
 /** Stable sort rank by source layer: universal < primary < secondary. */
@@ -73,9 +73,9 @@ const SOURCE_RANK: Record<PlanObjectiveSource, number> = {
   secondary: 2,
 };
 
-function tierOrdinal(tierId: PlanTierId): number {
-  const i = TIER_ORDER.indexOf(tierId);
-  return i === -1 ? TIER_ORDER.length : i;
+function stratumOrdinal(stratumId: PlanStratumId): number {
+  const i = STRATUM_ORDER.indexOf(stratumId);
+  return i === -1 ? STRATUM_ORDER.length : i;
 }
 
 function sourceRank(source: PlanObjectiveSource | undefined): number {
@@ -87,7 +87,7 @@ function sourceRank(source: PlanObjectiveSource | undefined): number {
  * rewrite) never bleed into the shared catalogue constants. Only the mutated
  * branches need real copies; scalars are spread-copied.
  */
-function cloneObjective(o: PlanTierObjective): PlanTierObjective {
+function cloneObjective(o: PlanStratumObjective): PlanStratumObjective {
   return {
     ...o,
     prerequisiteObjectiveIds: [...o.prerequisiteObjectiveIds],
@@ -154,7 +154,7 @@ export interface ResolveProvenance {
 export interface ResolvedProjectObjectives {
   primaryTypeId: ProjectTypeId;
   secondaryTypeIds: ProjectTypeId[];
-  objectives: PlanTierObjective[];
+  objectives: PlanStratumObjective[];
   activeTensions: DesignTension[];
   provenance: ResolveProvenance;
 }
@@ -193,14 +193,14 @@ export function resolveProjectObjectives(
 
   // --- Base set: universal + primary, deep-copied -------------------------
   interface Entry {
-    objective: PlanTierObjective;
+    objective: PlanStratumObjective;
     order: number;
   }
   const entries: Entry[] = [];
-  const byId = new Map<string, PlanTierObjective>();
+  const byId = new Map<string, PlanStratumObjective>();
   let order = 0;
 
-  const addObjective = (source: PlanTierObjective): boolean => {
+  const addObjective = (source: PlanStratumObjective): boolean => {
     if (byId.has(source.id)) {
       provenance.dedupedObjectiveIds.push(source.id);
       return false;
@@ -277,8 +277,8 @@ export function resolveProjectObjectives(
 
   // --- Sort: tier ordinal, then source layer, then authored order ---------
   entries.sort((a, b) => {
-    const ta = tierOrdinal(a.objective.tierId);
-    const tb = tierOrdinal(b.objective.tierId);
+    const ta = stratumOrdinal(a.objective.stratumId);
+    const tb = stratumOrdinal(b.objective.stratumId);
     if (ta !== tb) return ta - tb;
     const sa = sourceRank(a.objective.source);
     const sb = sourceRank(b.objective.source);
@@ -298,9 +298,9 @@ export function resolveProjectObjectives(
 }
 
 /** Find an objective by id within an already-resolved set. */
-export function findPlanTierObjectiveIn(
-  objectives: readonly PlanTierObjective[],
+export function findPlanStratumObjectiveIn(
+  objectives: readonly PlanStratumObjective[],
   id: string,
-): PlanTierObjective | undefined {
+): PlanStratumObjective | undefined {
   return objectives.find((o) => o.id === id);
 }

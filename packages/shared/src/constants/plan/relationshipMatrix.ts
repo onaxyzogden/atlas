@@ -18,7 +18,7 @@
 // compatible at all (cell !== 'NA') and (b) the display hint.
 
 import type { ProjectTypeId } from '../../schemas/plan/projectTypeTaxonomy.schema.js';
-import type { PlanTierId } from '../../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumId } from '../../schemas/plan/planTierObjective.schema.js';
 
 /** A single matrix cell. */
 export type RelationCell = 'M' | 'A' | 'X' | 'NA';
@@ -200,10 +200,10 @@ export interface DesignTension {
   id: string;
   typeA: ProjectTypeId;
   typeB: ProjectTypeId;
-  /** Tier at which the tension is resolved during planning. */
-  resolutionTierId: PlanTierId;
-  /** Human-facing tier label transcribed from the spec (may name >1 tier). */
-  resolutionTierLabel: string;
+  /** Stratum at which the tension is resolved during planning. */
+  resolutionStratumId: PlanStratumId;
+  /** Human-facing stratum label transcribed from the spec (may name >1 stratum). */
+  resolutionStratumLabel: string;
   description: string;
 }
 
@@ -213,17 +213,17 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-1',
     typeA: 'wellness',
     typeB: 'agritourism',
-    resolutionTierId: 't3-foundation-decisions',
-    resolutionTierLabel: 'Tier 3 - Zone Allocation',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
     description:
-      'Quiet vs. visitor traffic. Sanctuary design requires low-stimulation, privacy-graded zones. High-traffic guest programs conflict unless spatially separated. Advisory, not blocking - the steward may be designing a quiet retreat, not a high-traffic operation. Resolution anchored to Tier 3 Zone Allocation.',
+      'Quiet vs. visitor traffic. Sanctuary design requires low-stimulation, privacy-graded zones. High-traffic guest programs conflict unless spatially separated. Advisory, not blocking - the steward may be designing a quiet retreat, not a high-traffic operation. Resolution anchored to Stratum 4 Zone Allocation.',
   },
   {
     id: 'tension-2',
     typeA: 'conservation',
     typeB: 'market_garden',
-    resolutionTierId: 't3-foundation-decisions',
-    resolutionTierLabel: 'Tier 3 - Zone Allocation',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
     description:
       'Intervention philosophy conflict. High-input annual production contradicts minimal-intervention habitat logic. Requires hard spatial boundaries between production and restoration zones.',
   },
@@ -231,8 +231,8 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-3',
     typeA: 'conservation',
     typeB: 'silvopasture',
-    resolutionTierId: 't3-foundation-decisions',
-    resolutionTierLabel: 'Tier 3 - Zone Allocation, Tier 5',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation, Stratum 6',
     description:
       'Animal impact vs. habitat recovery. Grazing pressure, compaction, and browse damage threaten sensitive restoration areas. Requires fencing, exclusion zones, and corridor design before Act.',
   },
@@ -240,8 +240,8 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-4',
     typeA: 'off_grid',
     typeB: 'education',
-    resolutionTierId: 't4-system-design',
-    resolutionTierLabel: 'Tier 4 - Access & Circulation',
+    resolutionStratumId: 's5-system-design',
+    resolutionStratumLabel: 'Stratum 5 - Access & Circulation',
     description:
       'Access conflict. Remote settlement design minimises and controls site access. Education requires regular, safe, predictable public access. Driveway, parking, and security design must reconcile both.',
   },
@@ -249,8 +249,8 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-5',
     typeA: 'ecovillage',
     typeB: 'agritourism',
-    resolutionTierId: 't3-foundation-decisions',
-    resolutionTierLabel: 'Tier 3 - Zone Allocation',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
     description:
       'Governance and privacy conflict. Resident consent, community agreements, and private living zones may directly conflict with open visitor access. Requires explicit visitor policy before Zone Allocation.',
   },
@@ -258,8 +258,8 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-6',
     typeA: 'silvopasture',
     typeB: 'market_garden',
-    resolutionTierId: 't4-system-design',
-    resolutionTierLabel: 'Tier 4 - Access & Circulation, Design',
+    resolutionStratumId: 's5-system-design',
+    resolutionStratumLabel: 'Stratum 5 - Access & Circulation, Design',
     description:
       'Contamination and damage risk. Animal movement near intensive crop beds creates pathogen, compaction, and browse risk. Requires strict spatial and temporal separation.',
   },
@@ -267,8 +267,8 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-7',
     typeA: 'silvopasture',
     typeB: 'wellness',
-    resolutionTierId: 't3-foundation-decisions',
-    resolutionTierLabel: 'Tier 3 - Zone Allocation',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
     description:
       'Sensory conflict. Animal noise, odour, and operational activity are incompatible with low-stimulation sanctuary zones unless sufficient distance and screening is designed in.',
   },
@@ -276,8 +276,8 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-8',
     typeA: 'off_grid',
     typeB: 'agritourism',
-    resolutionTierId: 't4-system-design',
-    resolutionTierLabel: 'Tier 4 - Access & Circulation',
+    resolutionStratumId: 's5-system-design',
+    resolutionStratumLabel: 'Stratum 5 - Access & Circulation',
     description:
       'Access conflict. Remote settlement deliberately limits visitor access for security and privacy. Agritourism requires regular, predictable, open public access. Driveway, security, and visitor management design must reconcile both.',
   },
@@ -285,8 +285,8 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-9',
     typeA: 'residential',
     typeB: 'agritourism',
-    resolutionTierId: 't3-foundation-decisions',
-    resolutionTierLabel: 'Tier 3 - Zone Allocation',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
     description:
       "Private residence vs. visitor access conflict. The steward's home is on the same land guests are visiting. Private living zones, family security, and household routines must be explicitly separated from visitor circulation before Zone Allocation.",
   },
@@ -294,8 +294,8 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     id: 'tension-10',
     typeA: 'residential',
     typeB: 'wellness',
-    resolutionTierId: 't3-foundation-decisions',
-    resolutionTierLabel: 'Tier 3 - Zone Allocation',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
     description:
       'Private domestic life vs. therapeutic sanctuary zones. Household noise, activity, and domestic infrastructure conflict with the low-stimulation, privacy-graded environment required for a healing sanctuary. Requires hard spatial separation and acoustic buffering.',
   },

@@ -14,7 +14,7 @@
 
 import type {
   PatchRecord,
-  PlanTierObjective,
+  PlanStratumObjective,
 } from '../../../schemas/plan/planTierObjective.schema.js';
 import type { ProjectTypeId } from '../../../schemas/plan/projectTypeTaxonomy.schema.js';
 import { UNIVERSAL_PLAN_OBJECTIVES, findUniversalObjective } from './universal.js';
@@ -39,14 +39,14 @@ export {
 /** The universal baseline plus a primary type's own objectives. */
 export interface PrimaryCatalogue {
   /** The 19 universal objectives, shared by every project. */
-  universal: readonly PlanTierObjective[];
+  universal: readonly PlanStratumObjective[];
   /** The primary type's own objectives (empty for not-yet-encoded types). */
-  primary: readonly PlanTierObjective[];
+  primary: readonly PlanStratumObjective[];
 }
 
 /** A secondary type's additive objectives plus its modifying patch records. */
 export interface SecondaryCatalogue {
-  additive: readonly PlanTierObjective[];
+  additive: readonly PlanStratumObjective[];
   patches: readonly PatchRecord[];
 }
 
@@ -58,7 +58,7 @@ export interface SecondaryCatalogue {
 export function getPrimaryCatalogue(
   primaryTypeId: ProjectTypeId,
 ): PrimaryCatalogue {
-  const primary: readonly PlanTierObjective[] =
+  const primary: readonly PlanStratumObjective[] =
     primaryTypeId === 'regenerative_farm'
       ? REGEN_FARM_PRIMARY_OBJECTIVES
       : primaryTypeId === 'ecovillage'
@@ -92,8 +92,8 @@ export function getSecondaryCatalogue(
 // injected items are not standalone objectives - they live inside their target
 // objective's checklist in the resolved set - so they are intentionally absent.
 
-const ALL_CATALOGUE_OBJECTIVES: readonly PlanTierObjective[] = (() => {
-  const byId = new Map<string, PlanTierObjective>();
+const ALL_CATALOGUE_OBJECTIVES: readonly PlanStratumObjective[] = (() => {
+  const byId = new Map<string, PlanStratumObjective>();
   for (const o of [
     ...UNIVERSAL_PLAN_OBJECTIVES,
     ...REGEN_FARM_PRIMARY_OBJECTIVES,
@@ -107,11 +107,11 @@ const ALL_CATALOGUE_OBJECTIVES: readonly PlanTierObjective[] = (() => {
 })();
 
 /** Every standalone objective across all encoded catalogues, de-duplicated by id. */
-export function allCatalogueObjectives(): readonly PlanTierObjective[] {
+export function allCatalogueObjectives(): readonly PlanStratumObjective[] {
   return ALL_CATALOGUE_OBJECTIVES;
 }
 
-const ALL_CATALOGUE_OBJECTIVES_BY_ID: ReadonlyMap<string, PlanTierObjective> =
+const ALL_CATALOGUE_OBJECTIVES_BY_ID: ReadonlyMap<string, PlanStratumObjective> =
   new Map(ALL_CATALOGUE_OBJECTIVES.map((o) => [o.id, o]));
 
 /**
@@ -121,6 +121,6 @@ const ALL_CATALOGUE_OBJECTIVES_BY_ID: ReadonlyMap<string, PlanTierObjective> =
  */
 export function findObjectiveAcrossCatalogues(
   id: string,
-): PlanTierObjective | undefined {
+): PlanStratumObjective | undefined {
   return ALL_CATALOGUE_OBJECTIVES_BY_ID.get(id);
 }

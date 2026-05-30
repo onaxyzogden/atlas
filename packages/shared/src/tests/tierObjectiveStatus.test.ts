@@ -4,24 +4,24 @@ import {
   computeAllObjectiveStatuses,
 } from '../relationships/tierObjectiveStatus.js';
 import {
-  computeTierState,
-  computeAllTierStates,
+  computeStratumState,
+  computeAllStratumStates,
 } from '../relationships/tierState.js';
 import {
   isCyclicalReviewDue,
   CYCLICAL_REVIEW_DEFAULT_DAYS,
 } from '../relationships/cyclicalReviewTrigger.js';
 import {
-  PLAN_TIERS,
-  PLAN_TIER_OBJECTIVES,
-  getObjectivesForTier,
-  findPlanTierObjective,
+  PLAN_STRATA,
+  PLAN_STRATUM_OBJECTIVES,
+  getObjectivesForStratum,
+  findPlanStratumObjective,
 } from '../constants/plan/tierObjectives.js';
-import type { PlanTierObjective } from '../schemas/plan/planTierObjective.schema.js';
+import type { PlanStratumObjective } from '../schemas/plan/planTierObjective.schema.js';
 
 const mkObjective = (
-  overrides: Partial<PlanTierObjective> & Pick<PlanTierObjective, 'id' | 'tierId'>,
-): PlanTierObjective => ({
+  overrides: Partial<PlanStratumObjective> & Pick<PlanStratumObjective, 'id' | 'stratumId'>,
+): PlanStratumObjective => ({
   title: 'Test',
   focusedQuestion: 'Test?',
   prerequisiteObjectiveIds: [],
@@ -31,31 +31,31 @@ const mkObjective = (
   ...overrides,
 });
 
-describe('PLAN_TIERS seed', () => {
+describe('PLAN_STRATA seed', () => {
   it('has exactly 7 tiers in ordinal order 0..6', () => {
-    expect(PLAN_TIERS).toHaveLength(7);
-    PLAN_TIERS.forEach((tier, idx) => {
+    expect(PLAN_STRATA).toHaveLength(7);
+    PLAN_STRATA.forEach((tier, idx) => {
       expect(tier.ordinal).toBe(idx);
     });
   });
 
   it('exposes every tier id distinctly', () => {
-    const ids = new Set(PLAN_TIERS.map((t) => t.id));
-    expect(ids.size).toBe(PLAN_TIERS.length);
+    const ids = new Set(PLAN_STRATA.map((t) => t.id));
+    expect(ids.size).toBe(PLAN_STRATA.length);
   });
 });
 
-describe('PLAN_TIER_OBJECTIVES seed', () => {
+describe('PLAN_STRATUM_OBJECTIVES seed', () => {
   it('binds every objective to a known tier id', () => {
-    const tierIds = new Set(PLAN_TIERS.map((t) => t.id));
-    for (const obj of PLAN_TIER_OBJECTIVES) {
-      expect(tierIds.has(obj.tierId)).toBe(true);
+    const stratumIds = new Set(PLAN_STRATA.map((t) => t.id));
+    for (const obj of PLAN_STRATUM_OBJECTIVES) {
+      expect(stratumIds.has(obj.stratumId)).toBe(true);
     }
   });
 
   it('only references prereq objective ids that exist in the seed', () => {
-    const objIds = new Set(PLAN_TIER_OBJECTIVES.map((o) => o.id));
-    for (const obj of PLAN_TIER_OBJECTIVES) {
+    const objIds = new Set(PLAN_STRATUM_OBJECTIVES.map((o) => o.id));
+    for (const obj of PLAN_STRATUM_OBJECTIVES) {
       for (const prereq of obj.prerequisiteObjectiveIds) {
         expect(objIds.has(prereq)).toBe(true);
       }
@@ -63,18 +63,18 @@ describe('PLAN_TIER_OBJECTIVES seed', () => {
   });
 
   it('lookup helpers resolve canonical entries', () => {
-    expect(findPlanTierObjective('t0-vision')?.tierId).toBe(
-      't0-project-foundation',
+    expect(findPlanStratumObjective('s1-vision')?.stratumId).toBe(
+      's1-project-foundation',
     );
-    expect(getObjectivesForTier('t0-project-foundation').length).toBe(2);
-    expect(findPlanTierObjective('nope')).toBeUndefined();
+    expect(getObjectivesForStratum('s1-project-foundation').length).toBe(2);
+    expect(findPlanStratumObjective('nope')).toBeUndefined();
   });
 });
 
 describe('computeObjectiveStatus', () => {
   const objWith2Required = mkObjective({
     id: 'a',
-    tierId: 't1-land-reading',
+    stratumId: 's2-land-reading',
     checklist: [
       { id: 'a1', label: 'A1', feedsInto: [], optional: false },
       { id: 'a2', label: 'A2', feedsInto: [], optional: false },
@@ -84,7 +84,7 @@ describe('computeObjectiveStatus', () => {
   it('returns locked when any prereq is not complete', () => {
     const obj = mkObjective({
       id: 'b',
-      tierId: 't1-land-reading',
+      stratumId: 's2-land-reading',
       prerequisiteObjectiveIds: ['a'],
     });
     expect(computeObjectiveStatus(obj, {}, { a: 'available' })).toBe('locked');
@@ -115,7 +115,7 @@ describe('computeObjectiveStatus', () => {
   it('treats objectives with no required items as complete once prereqs met', () => {
     const obj = mkObjective({
       id: 'opt',
-      tierId: 't1-land-reading',
+      stratumId: 's2-land-reading',
       checklist: [
         { id: 'opt-1', label: 'O', feedsInto: [], optional: true },
       ],
@@ -126,7 +126,7 @@ describe('computeObjectiveStatus', () => {
   it('ignores optional items when judging completion', () => {
     const obj = mkObjective({
       id: 'mix',
-      tierId: 't1-land-reading',
+      stratumId: 's2-land-reading',
       checklist: [
         { id: 'r', label: 'R', feedsInto: [], optional: false },
         { id: 'o', label: 'O', feedsInto: [], optional: true },
@@ -140,18 +140,18 @@ describe('computeAllObjectiveStatuses', () => {
   it('propagates completion through a prereq chain', () => {
     const a = mkObjective({
       id: 'a',
-      tierId: 't0-project-foundation',
+      stratumId: 's1-project-foundation',
       checklist: [{ id: 'a1', label: 'A1', feedsInto: [], optional: false }],
     });
     const b = mkObjective({
       id: 'b',
-      tierId: 't1-land-reading',
+      stratumId: 's2-land-reading',
       prerequisiteObjectiveIds: ['a'],
       checklist: [{ id: 'b1', label: 'B1', feedsInto: [], optional: false }],
     });
     const c = mkObjective({
       id: 'c',
-      tierId: 't2-systems-reading',
+      stratumId: 's3-systems-reading',
       prerequisiteObjectiveIds: ['b'],
     });
 
@@ -184,19 +184,19 @@ describe('computeAllObjectiveStatuses', () => {
   it('handles parallel objectives sharing no prereq order', () => {
     const v = mkObjective({
       id: 'v',
-      tierId: 't0-project-foundation',
+      stratumId: 's1-project-foundation',
       parallelGroupId: 'g',
       checklist: [{ id: 'v1', label: 'V', feedsInto: [], optional: false }],
     });
     const s = mkObjective({
       id: 's',
-      tierId: 't0-project-foundation',
+      stratumId: 's1-project-foundation',
       parallelGroupId: 'g',
       checklist: [{ id: 's1', label: 'S', feedsInto: [], optional: false }],
     });
     const next = mkObjective({
       id: 'next',
-      tierId: 't1-land-reading',
+      stratumId: 's2-land-reading',
       prerequisiteObjectiveIds: ['v', 's'],
     });
 
@@ -209,71 +209,71 @@ describe('computeAllObjectiveStatuses', () => {
   });
 
   it('the shipped seed produces only T0 objectives as available when empty', () => {
-    const statuses = computeAllObjectiveStatuses(PLAN_TIER_OBJECTIVES, {});
-    expect(statuses['t0-vision']).toBe('available');
-    expect(statuses['t0-stewardship']).toBe('available');
-    expect(statuses['t1-land-baseline']).toBe('locked');
-    expect(statuses['t6-phasing']).toBe('locked');
+    const statuses = computeAllObjectiveStatuses(PLAN_STRATUM_OBJECTIVES, {});
+    expect(statuses['s1-vision']).toBe('available');
+    expect(statuses['s1-stewardship']).toBe('available');
+    expect(statuses['s2-land-baseline']).toBe('locked');
+    expect(statuses['s7-phasing']).toBe('locked');
   });
 });
 
-describe('computeTierState', () => {
+describe('computeStratumState', () => {
   it('marks tier complete when every objective is complete', () => {
     expect(
-      computeTierState(
-        't0-project-foundation',
-        PLAN_TIER_OBJECTIVES,
-        { 't0-vision': 'complete', 't0-stewardship': 'complete' },
+      computeStratumState(
+        's1-project-foundation',
+        PLAN_STRATUM_OBJECTIVES,
+        { 's1-vision': 'complete', 's1-stewardship': 'complete' },
       ),
     ).toBe('complete');
   });
 
   it('marks tier active when any objective is active', () => {
     expect(
-      computeTierState(
-        't0-project-foundation',
-        PLAN_TIER_OBJECTIVES,
-        { 't0-vision': 'active', 't0-stewardship': 'available' },
+      computeStratumState(
+        's1-project-foundation',
+        PLAN_STRATUM_OBJECTIVES,
+        { 's1-vision': 'active', 's1-stewardship': 'available' },
       ),
     ).toBe('active');
   });
 
   it('marks tier available when no objectives are active but at least one is available', () => {
     expect(
-      computeTierState(
-        't0-project-foundation',
-        PLAN_TIER_OBJECTIVES,
-        { 't0-vision': 'available', 't0-stewardship': 'available' },
+      computeStratumState(
+        's1-project-foundation',
+        PLAN_STRATUM_OBJECTIVES,
+        { 's1-vision': 'available', 's1-stewardship': 'available' },
       ),
     ).toBe('available');
   });
 
   it('marks tier locked when every objective is locked', () => {
     expect(
-      computeTierState(
-        't1-land-reading',
-        PLAN_TIER_OBJECTIVES,
-        { 't1-land-baseline': 'locked' },
+      computeStratumState(
+        's2-land-reading',
+        PLAN_STRATUM_OBJECTIVES,
+        { 's2-land-baseline': 'locked' },
       ),
     ).toBe('locked');
   });
 
   it('rolls up all 7 tiers in one pass against the empty-progress seed', () => {
-    const statuses = computeAllObjectiveStatuses(PLAN_TIER_OBJECTIVES, {});
-    const tierStates = computeAllTierStates(
-      PLAN_TIERS.map((t) => t.id),
-      PLAN_TIER_OBJECTIVES,
+    const statuses = computeAllObjectiveStatuses(PLAN_STRATUM_OBJECTIVES, {});
+    const tierStates = computeAllStratumStates(
+      PLAN_STRATA.map((t) => t.id),
+      PLAN_STRATUM_OBJECTIVES,
       statuses,
     );
-    expect(tierStates['t0-project-foundation']).toBe('available');
-    expect(tierStates['t1-land-reading']).toBe('locked');
-    expect(tierStates['t6-phasing-resourcing']).toBe('locked');
+    expect(tierStates['s1-project-foundation']).toBe('available');
+    expect(tierStates['s2-land-reading']).toBe('locked');
+    expect(tierStates['s7-phasing-resourcing']).toBe('locked');
   });
 });
 
 describe('isCyclicalReviewDue', () => {
-  const objective = findPlanTierObjective('t0-vision');
-  if (!objective) throw new Error('seed missing t0-vision');
+  const objective = findPlanStratumObjective('s1-vision');
+  if (!objective) throw new Error('seed missing s1-vision');
   const now = Date.UTC(2026, 5, 1); // 2026-06-01
 
   it('returns false when status is not complete', () => {

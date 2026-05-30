@@ -8,21 +8,21 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  TIER_OBSERVE_DOMAINS_DEFAULT,
+  STRATUM_OBSERVE_DOMAINS_DEFAULT,
   OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE,
   getObjectiveObserveDomains,
   getObjectivesForDomain,
   getPrimaryDomainForObjective,
 } from '../objectiveObserveDomains.js';
-import type { PlanTierObjective } from '../../schemas/plan/planTierObjective.schema.js';
-import { PLAN_TIER_OBJECTIVES } from '../../constants/plan/tierObjectives.js';
+import type { PlanStratumObjective } from '../../schemas/plan/planTierObjective.schema.js';
+import { PLAN_STRATUM_OBJECTIVES } from '../../constants/plan/tierObjectives.js';
 
 function objective(
-  patch: Partial<PlanTierObjective> & Pick<PlanTierObjective, 'id' | 'tierId'>,
-): PlanTierObjective {
+  patch: Partial<PlanStratumObjective> & Pick<PlanStratumObjective, 'id' | 'stratumId'>,
+): PlanStratumObjective {
   return {
     id: patch.id,
-    tierId: patch.tierId,
+    stratumId: patch.stratumId,
     title: patch.title ?? 'Test Objective',
     focusedQuestion: patch.focusedQuestion ?? 'Q?',
     prerequisiteObjectiveIds: patch.prerequisiteObjectiveIds ?? [],
@@ -36,19 +36,19 @@ function objective(
 
 describe('getObjectiveObserveDomains', () => {
   it('returns the per-objective override when one is registered', () => {
-    const obj = objective({ id: 't0-vision', tierId: 't0-project-foundation' });
+    const obj = objective({ id: 's1-vision', stratumId: 's1-project-foundation' });
     expect(getObjectiveObserveDomains(obj)).toEqual(
-      OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE['t0-vision'],
+      OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE['s1-vision'],
     );
   });
 
   it('falls through to the tier default when no override exists', () => {
     const obj = objective({
       id: 'unknown-id',
-      tierId: 't1-land-reading',
+      stratumId: 's2-land-reading',
     });
     expect(getObjectiveObserveDomains(obj)).toEqual(
-      TIER_OBSERVE_DOMAINS_DEFAULT['t1-land-reading'],
+      STRATUM_OBSERVE_DOMAINS_DEFAULT['s2-land-reading'],
     );
   });
 
@@ -56,13 +56,13 @@ describe('getObjectiveObserveDomains', () => {
     const obj = objective({
       id: 'unknown-id',
       // @ts-expect-error — exercising the defensive fallback path
-      tierId: 'tX-nonexistent',
+      stratumId: 'tX-nonexistent',
     });
     expect(getObjectiveObserveDomains(obj)).toEqual([]);
   });
 
   it('every seeded plan tier objective resolves to at least one domain', () => {
-    for (const obj of PLAN_TIER_OBJECTIVES) {
+    for (const obj of PLAN_STRATUM_OBJECTIVES) {
       const domains = getObjectiveObserveDomains(obj);
       expect(domains.length).toBeGreaterThan(0);
     }
@@ -72,8 +72,8 @@ describe('getObjectiveObserveDomains', () => {
 describe('getPrimaryDomainForObjective', () => {
   it('returns the first domain in the resolved list', () => {
     const obj = objective({
-      id: 't4-water-strategy',
-      tierId: 't4-system-design',
+      id: 's5-water-strategy',
+      stratumId: 's5-system-design',
     });
     expect(getPrimaryDomainForObjective(obj)).toBe('hydrology');
   });
@@ -82,7 +82,7 @@ describe('getPrimaryDomainForObjective', () => {
     const obj = objective({
       id: 'unknown-id',
       // @ts-expect-error — exercising the defensive null path
-      tierId: 'tX-nonexistent',
+      stratumId: 'tX-nonexistent',
     });
     expect(getPrimaryDomainForObjective(obj)).toBeNull();
   });
@@ -90,10 +90,10 @@ describe('getPrimaryDomainForObjective', () => {
 
 describe('getObjectivesForDomain', () => {
   it('returns the ids of objectives whose footprint includes the domain', () => {
-    const set = getObjectivesForDomain(PLAN_TIER_OBJECTIVES, 'soil');
+    const set = getObjectivesForDomain(PLAN_STRATUM_OBJECTIVES, 'soil');
     expect(set.length).toBeGreaterThan(0);
     for (const id of set) {
-      const obj = PLAN_TIER_OBJECTIVES.find((o) => o.id === id);
+      const obj = PLAN_STRATUM_OBJECTIVES.find((o) => o.id === id);
       expect(obj).toBeDefined();
       expect(getObjectiveObserveDomains(obj!)).toContain('soil');
     }

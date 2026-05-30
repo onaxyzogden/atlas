@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
-  PlanTierObjectiveSchema,
+  PlanStratumObjectiveSchema,
   PatchRecordSchema,
-  type PlanTierObjective,
+  type PlanStratumObjective,
 } from '../../../schemas/plan/planTierObjective.schema.js';
 import {
   UNIVERSAL_PLAN_OBJECTIVES,
@@ -14,10 +14,10 @@ import {
 } from '../catalogues/index.js';
 import {
   resolveProjectObjectives,
-  findPlanTierObjectiveIn,
+  findPlanStratumObjectiveIn,
 } from '../../../relationships/resolveProjectObjectives.js';
 
-const ALL_AUTHORED: readonly PlanTierObjective[] = [
+const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...UNIVERSAL_PLAN_OBJECTIVES,
   ...REGEN_FARM_PRIMARY_OBJECTIVES,
   ...ECOVILLAGE_PRIMARY_OBJECTIVES,
@@ -30,15 +30,15 @@ const OBJECTIVE_REF = /^(U|RF|RES|EV|AG)-T[0-6]\.\d+$/;
 // Objectives transcribed verbatim from a pre-v1.4 source (Authoring Standards
 // v1.3 or earlier) may carry fewer than the v1.4 5-item floor. Each is listed
 // here with its source so the floor stays tight for every v1.4 catalogue.
-//   ag-t5-food-integration: Agritourism v1.0 / Standards v1.3, 4 items in source
-const SHORT_OBJECTIVE_ALLOWLIST = new Set<string>(['ag-t5-food-integration']);
+//   ag-s6-food-integration: Agritourism v1.0 / Standards v1.3, 4 items in source
+const SHORT_OBJECTIVE_ALLOWLIST = new Set<string>(['ag-s6-food-integration']);
 const PATCH_REF = /^RES>(U|RF)-T[0-6]\.\d+$/;
 
 describe('catalogue conformance - schema validity', () => {
-  it('every authored objective parses via PlanTierObjectiveSchema', () => {
+  it('every authored objective parses via PlanStratumObjectiveSchema', () => {
     for (const o of ALL_AUTHORED) {
       // .parse throws a descriptive ZodError naming the offending objective.
-      expect(() => PlanTierObjectiveSchema.parse(o), o.id).not.toThrow();
+      expect(() => PlanStratumObjectiveSchema.parse(o), o.id).not.toThrow();
     }
   });
 
@@ -156,23 +156,23 @@ describe('catalogue conformance - patch targets + bridge ids', () => {
   it('every residential patch target exists in the regen+residential resolved set', () => {
     for (const p of RESIDENTIAL_PATCHES) {
       expect(
-        findPlanTierObjectiveIn(objectives, p.targetObjectiveId),
+        findPlanStratumObjectiveIn(objectives, p.targetObjectiveId),
         p.targetObjectiveId,
       ).toBeDefined();
     }
   });
 
-  it('preserves the 3 visionProfileToChecklist bridge ids on t0-vision', () => {
-    // t0-vision-c1/c2/c3 are written by the bridge; they MUST exist or seeded
-    // Tier-0 progress is orphaned. (t0-stewardship-c1/c2 are intentionally NOT
+  it('preserves the 3 visionProfileToChecklist bridge ids on s1-vision', () => {
+    // s1-vision-c1/c2/c3 are written by the bridge; they MUST exist or seeded
+    // Tier-0 progress is orphaned. (s1-stewardship-c1/c2 are intentionally NOT
     // in the per-type model - RegenFarm v1.3 has external stakeholders, not an
     // internal-team T0 objective; those two bridge mappings are inert for
     // per-type projects and only resolve against the legacy fallback skeleton.)
-    const vision = findPlanTierObjectiveIn(objectives, 't0-vision');
+    const vision = findPlanStratumObjectiveIn(objectives, 's1-vision');
     const itemIds = new Set(vision?.checklist.map((i) => i.id));
-    expect(itemIds.has('t0-vision-c1')).toBe(true);
-    expect(itemIds.has('t0-vision-c2')).toBe(true);
-    expect(itemIds.has('t0-vision-c3')).toBe(true);
+    expect(itemIds.has('s1-vision-c1')).toBe(true);
+    expect(itemIds.has('s1-vision-c2')).toBe(true);
+    expect(itemIds.has('s1-vision-c3')).toBe(true);
   });
 });
 
@@ -198,7 +198,7 @@ describe('catalogue conformance - ecovillage primary resolution', () => {
 
   it('every ecovillage ref is unique within the primary set', () => {
     // Guards the source's duplicate "6.6" (adaptive management), reassigned to
-    // EV-T6.9 in ecovillage.ts.
+    // EV-S7.9 in ecovillage.ts.
     const refs = ECOVILLAGE_PRIMARY_OBJECTIVES.map((o) => o.ref);
     expect(new Set(refs).size).toBe(refs.length);
   });

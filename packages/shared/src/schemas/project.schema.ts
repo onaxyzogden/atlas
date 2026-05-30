@@ -93,9 +93,9 @@ export const ProjectMetadata = z.object({
   // Project Creation Wizard Step 3 (Phase 2 / Slice 2.3). Captures the
   // primary steward identity plus a queue of pending invites. Sends are
   // deferred to Phase 6's notification architecture — for now the queue
-  // is durable but inert so the wizard can hand off cleanly. The Tier 0
+  // is durable but inert so the wizard can hand off cleanly. The Stratum 1
   // bridge extension (Slice 2.4) reads this shape to satisfy
-  // `t0-stewardship-c1` / `c2`.
+  // `s1-stewardship-c1` / `c2`.
   team: z
     .object({
       primarySteward: z

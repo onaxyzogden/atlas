@@ -1,6 +1,6 @@
 // tierObjectiveStatus.ts
 //
-// Pure status engine for Plan Tier Objectives. Status flows through a
+// Pure status engine for Plan Stratum Objectives. Status flows through a
 // 4-state machine driven by (a) prerequisite satisfaction and
 // (b) checklist completion. The engine is dependency-free — no I/O,
 // no store access — so the same helpers can be used in apps/web,
@@ -16,13 +16,13 @@
 
 import type {
   PlanChecklistProgress,
-  PlanTierObjective,
-  PlanTierObjectiveStatus,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
 } from '../schemas/plan/planTierObjective.schema.js';
 
 /** Snapshot of computed objective statuses keyed by objective id. */
-export type PlanTierObjectiveStatusMap = Readonly<
-  Record<string, PlanTierObjectiveStatus>
+export type PlanStratumObjectiveStatusMap = Readonly<
+  Record<string, PlanStratumObjectiveStatus>
 >;
 
 /**
@@ -34,10 +34,10 @@ export type PlanTierObjectiveStatusMap = Readonly<
  * treated as `locked` (conservative default).
  */
 export function computeObjectiveStatus(
-  objective: PlanTierObjective,
+  objective: PlanStratumObjective,
   progress: PlanChecklistProgress,
-  prerequisiteStatuses: PlanTierObjectiveStatusMap,
-): PlanTierObjectiveStatus {
+  prerequisiteStatuses: PlanStratumObjectiveStatusMap,
+): PlanStratumObjectiveStatus {
   const prereqsSatisfied = objective.prerequisiteObjectiveIds.every(
     (prereqId) => prerequisiteStatuses[prereqId] === 'complete',
   );
@@ -74,10 +74,10 @@ export function computeObjectiveStatus(
  * Vitest suite catches).
  */
 export function computeAllObjectiveStatuses(
-  objectives: readonly PlanTierObjective[],
+  objectives: readonly PlanStratumObjective[],
   progress: PlanChecklistProgress,
-): PlanTierObjectiveStatusMap {
-  const result: Record<string, PlanTierObjectiveStatus> = {};
+): PlanStratumObjectiveStatusMap {
+  const result: Record<string, PlanStratumObjectiveStatus> = {};
   const remaining = new Set(objectives.map((o) => o.id));
   const byId = new Map(objectives.map((o) => [o.id, o]));
 
