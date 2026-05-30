@@ -5,7 +5,7 @@
  * Act Map View, per spec §5.4.1 "View A and the Act map view ship as a
  * single unit") when an objectiveId is present.
  *
- * Mirrors PlanTierShell's role for the Plan stage: an early-return shell
+ * Mirrors PlanStratumShell's role for the Plan stage: an early-return shell
  * mounted by `ActLayout` when `actShellMode === 'field-action'`. The
  * `ActShellToggle` overlay lets the steward flip back to the legacy
  * command-centre module shell at any time.
