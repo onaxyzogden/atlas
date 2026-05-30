@@ -87,4 +87,5 @@ sessions (capitalPartnerSummary, EconomicsPanel, financialStore, the Design/Diag
 OperateMap trio, MaterialSubstitutions, graphify-out/*, ZoneSomSidebar, scratch
 `_*.txt` / `tsc_*.txt` / `vitest_*.txt`) left uncommitted per [[feedback-no-deletion]].
 CSRA model untouched; ASCII-only copy. Next economic catalogue when scheduled:
-**Wellness**.
+**Wellness** -- now encoded (2026-05-30, commit `81812c20`); see
+[[log/2026-05-30-atlas-wellness-catalogue]].
