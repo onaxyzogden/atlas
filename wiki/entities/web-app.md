@@ -190,6 +190,44 @@ ADR: [[2026-05-29-atlas-per-type-objective-model]].
   (neutral filled pill, distinct from the gold feeds chips + green Stage Zero
   badge).
 
+## Act Tier Shell -- promoted to the default Act page (2026-05-30)
+
+The Act stage now opens on a **map-centric 4-rail tier shell** by default, the
+sibling of the Plan stratum spine. `ActShellMode` is a 3-way per-project toggle
+`'tier-shell' | 'field-action' | 'command-centre'`; `getActShellMode`'s default
+is `'tier-shell'` (explicit per-project values still win -- toggle invariant, no
+persist migration). The two legacy Act shells stay reachable behind
+`ActShellToggle` per [[feedback-no-deletion]], and the throwaway prototype at
+`act/tier-prototype` (`ActProtoTierShell`) is left untouched -- the real shell
+*copies* its structure, never imports it. ADR
+[[2026-05-30-atlas-act-tier-shell-promotion]]; log
+[[log/2026-05-30-act-tier-shell-promotion]].
+
+- **`v3/act/tier-shell/`** -- `ActTierShell` is the entry: objective selection is
+  URL-driven (static-prefixed routes `act/tier-shell` + `act/tier-shell/$objectiveId`,
+  since two dynamic siblings under `act/` are impossible -- `act/$module` exists);
+  `selectedStratumId` / right-mode / armed-module are local state. The spine mounts
+  ABOVE `StageShell` (no top slot), with the four rails in the 5 slots: TOP
+  `ActTierSpine` (real per-stratum execution states), LEFT
+  `ActTierObjectiveRail`+`ActTierObjectiveCard` (`useProjectObjectives` filtered by
+  stratum, real "N/M verified" chips), CENTER the full read-only Act substrate +
+  `ActDrawHost`, RIGHT the already-real `ViewBDashboard` / `ViewAObjectiveExecution`
+  behind a dashboard/detail toggle, BOTTOM `ActTierToolsRail`. `objectiveProgress.ts`
+  computes per-objective progress ONCE, shared by the left rail and the map markers
+  so they cannot drift.
+- **`v3/act/tier-shell/ActTierToolsRail`** arms map tools for real:
+  `setActiveModule` + `useMapToolStore.setActiveTool`, picked up by the inline
+  `ActDrawHost`; the armed tool highlights via `data-active`. The `QUICK_LOGS`
+  registry was extracted from `ActTools.tsx` to a shared `v3/act/quickLogs.ts` so
+  the rail and `ActTools` share one source.
+- **Stratum execution state** comes from the new shared
+  `computeAllActStratumStates` (see [[shared-package]]), which -- unlike Plan's
+  `computeStratumState` -- **never returns `locked`** (Act execution reaches every
+  stratum). The one non-real bit: objective markers use a deterministic
+  centroid-offset (no per-objective geometry exists yet), flagged for a real-geometry
+  pass. Known deferred seam: `ViewAObjectiveExecution`'s "Back to all tasks" still
+  routes to `act/field-action`, not mode-aware.
+
 ## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
 - `projectStore` — project CRUD, active project selection. `applyBuiltinsToStore`
