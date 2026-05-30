@@ -1,55 +1,43 @@
 // PortfolioHomePage.tsx
 //
-// Phase 5, Slice 5.3 — Portfolio Home. Surfaces every active (non-archived)
-// project as an urgency-ordered card grid. The urgency score is computed by
-// `useProjectUrgency` and used purely as the sort key; each card surfaces
-// the underlying reasons (divergences, stale domains, drafts, inactivity)
-// rather than the score itself.
+// Container for the multi-project Portfolio Home surface
+// (OLOS_Portfolio_Home_Spec_v1.0). A slim top bar carries the view toggle
+// (§6) and the New-project action; below it sits either the four-zone Map
+// view (§2, the primary surface) or the card-grid Dashboard view (§3).
 //
-// Mounted at `/v3/portfolio`. The existing `/v3/project` (no projectId)
-// "Property Candidates" landing surface is preserved per the no-deletion
-// rule — Portfolio Home is a sibling surface, not a replacement.
-//
-// "Finish setup" badge on draft projects per the Phase 2 carry-over in
-// the OLOS plan: drafts route the user back into the wizard at the step
-// they left, while complete projects route to the project view (Slice 5.4
-// will repoint that to `/v3/project/$id/home`).
+// Mounted at `/v3/portfolio`. The original urgency-ordered card grid (Phase 5,
+// Slice 5.3) is preserved as PortfolioDashboardView per the no-deletion rule —
+// the map view is the new default, the grid is one toggle away.
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { sortByUrgency } from '@ogden/shared';
-import PageHeader from '../components/PageHeader.js';
 import { useProjectStore } from '../../store/projectStore.js';
-import { useProjectUrgency } from '../home/useProjectUrgency.js';
-import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
-import ProjectUrgencyCard from './ProjectUrgencyCard.js';
+import PortfolioMapPage from './PortfolioMapPage.js';
+import PortfolioDashboardView from './PortfolioDashboardView.js';
+import PortfolioViewToggle, { type PortfolioView } from './PortfolioViewToggle.js';
 import css from './PortfolioHomePage.module.css';
 
 export default function PortfolioHomePage() {
   const projects = useProjectStore((s) => s.projects);
   const navigate = useNavigate();
+  const [view, setView] = useState<PortfolioView>('map');
 
   const activeProjects = useMemo(
     () => projects.filter((p) => p.status !== 'archived'),
     [projects],
   );
 
-  const urgencyMap = useProjectUrgency(activeProjects);
-  const roleMap = useMyProjectRoles();
-
-  const ordered = useMemo(
-    () =>
-      sortByUrgency(activeProjects, (p) => urgencyMap.get(p.id)?.score ?? 0),
-    [activeProjects, urgencyMap],
-  );
-
   return (
-    <div className={css.scrollHost}>
-      <PageHeader
-        eyebrow="Portfolio"
-        title="Your land at a glance"
-        subtitle="Projects ordered by what needs attention. Tap a card to dive in."
-        actions={
+    <div className={css.container}>
+      <div className={css.topbar}>
+        <div className={css.topbarLead}>
+          <span className={css.eyebrow}>Portfolio</span>
+          <span className={css.countLabel}>
+            {activeProjects.length} {activeProjects.length === 1 ? 'project' : 'projects'}
+          </span>
+        </div>
+        <div className={css.topbarActions}>
+          <PortfolioViewToggle view={view} onChange={setView} />
           <button
             type="button"
             className={css.addBtn}
@@ -57,32 +45,18 @@ export default function PortfolioHomePage() {
           >
             + New project
           </button>
-        }
-      />
+        </div>
+      </div>
 
-      {activeProjects.length === 0 ? (
-        <div className={css.emptyState}>
-          <p>You haven't created any projects yet.</p>
-          <button
-            type="button"
-            className={css.helpLink}
-            onClick={() => navigate({ to: '/v3/project/wizard' })}
-          >
-            + Create your first project
-          </button>
-        </div>
-      ) : (
-        <div className={css.grid}>
-          {ordered.map((project) => (
-            <ProjectUrgencyCard
-              key={project.id}
-              project={project}
-              urgency={urgencyMap.get(project.id)}
-              role={project.serverId ? roleMap.get(project.serverId) : undefined}
-            />
-          ))}
-        </div>
-      )}
+      <div className={css.viewArea}>
+        {view === 'map' ? (
+          <PortfolioMapPage projects={activeProjects} />
+        ) : (
+          <div className={css.scrollHost}>
+            <PortfolioDashboardView projects={activeProjects} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

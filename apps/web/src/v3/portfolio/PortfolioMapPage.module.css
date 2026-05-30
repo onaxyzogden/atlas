@@ -1,0 +1,126 @@
+/*
+ * Four-zone Portfolio Home grid (§2). Modelled on ActMapFirstLayout's grid +
+ * scroll discipline: the map fills the centre 1fr, the list + rail are fixed
+ * side columns, and the stage rail spans the full width along the bottom.
+ */
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 8px;
+  gap: 8px;
+}
+
+.zones {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 320px;
+  gap: 8px;
+  min-height: 0;
+}
+
+.listZone,
+.railZone {
+  min-height: 0;
+  min-width: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.railZone {
+  display: flex;
+  flex-direction: column;
+}
+
+.mapZone {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* ---- Stage rail (bottom, full width) ------------------------------------ */
+
+.stageZone {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 8px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+/* ---- Placeholders (P2 replaces these) ----------------------------------- */
+
+.railStub {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 14px;
+}
+
+.railStubName {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.railStubHint {
+  margin: auto;
+  padding: 24px 16px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.stageStub {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.stageStubMuted {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ---- Responsive (full mobile treatment lands in P3) --------------------- */
+
+@media (max-width: 1200px) {
+  .zones {
+    grid-template-columns: 240px minmax(0, 1fr) 300px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .zones {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .railZone {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .zones {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(180px, 38%) minmax(0, 1fr);
+  }
+  .listZone {
+    order: 2;
+  }
+  .mapZone {
+    order: 1;
+  }
+}
