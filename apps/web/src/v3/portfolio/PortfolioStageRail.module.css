@@ -1,0 +1,130 @@
+/* PortfolioStageRail.module.css
+ *
+ * Bottom stage-rail styling. Each button's colour is bound to its High-Tech
+ * Earth stage identity token. Inactive buttons are outlined in the stage
+ * colour; the button matching the project's current stage is filled. These
+ * bindings are surfaced for P3 sign-off.
+ */
+
+.rail {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 100%;
+  padding: 0 16px;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.idleHint {
+  font-size: 12px;
+  color: var(--color-text-subtle);
+}
+
+.projectLabel {
+  flex: none;
+  max-width: 180px;
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.stageBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 130px;
+  padding: 6px 14px;
+  border: 1.5px solid currentColor;
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stageBtnText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+
+.stageBtnLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.stageBtnSub {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.85;
+}
+
+/* Per-stage colour (outlined state uses the colour as text + border). */
+.plan {
+  color: var(--color-stage-plan);
+}
+.act {
+  color: var(--color-stage-act);
+}
+.observe {
+  color: var(--color-stage-observe);
+}
+
+.stageBtn:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* Filled state for the current stage. */
+.active {
+  color: #fff;
+}
+.plan.active {
+  background: var(--color-stage-plan);
+  box-shadow: 0 1px 3px rgba(var(--color-stage-plan-rgb), 0.4);
+}
+.act.active {
+  background: var(--color-stage-act);
+  box-shadow: 0 1px 3px rgba(var(--color-stage-act-rgb), 0.4);
+}
+.observe.active {
+  background: var(--color-stage-observe);
+  box-shadow: 0 1px 3px rgba(var(--color-stage-observe-rgb), 0.4);
+}
+
+.plan.active:hover,
+.act.active:hover,
+.observe.active:hover {
+  background: var(--color-stage-plan);
+  filter: brightness(1.05);
+}
+.act.active:hover {
+  background: var(--color-stage-act);
+}
+.observe.active:hover {
+  background: var(--color-stage-observe);
+}
+
+@media (max-width: 640px) {
+  .stageBtn {
+    min-width: 0;
+    flex: 1;
+  }
+  .projectLabel {
+    display: none;
+  }
+  .buttons {
+    width: 100%;
+  }
+}

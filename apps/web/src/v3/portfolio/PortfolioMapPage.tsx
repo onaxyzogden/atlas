@@ -5,9 +5,9 @@
  * primary `/v3/portfolio` view; the card grid (PortfolioDashboardView) is the
  * alternate accessed via the top-bar toggle.
  *
- * Selection state is owned here and shared with the list + map. P1 ships the
- * list + map + selection wiring; the right rail (§2.4) and bottom stage rail
- * (§2.5) are placeholders that P2 fills with live shared-selector data.
+ * Selection state is owned here and shared with the list, map, and both rails.
+ * The right rail (§2.4) and bottom stage rail (§2.5) read a single composing
+ * briefing hook for the selected project — strictly read-only.
  */
 
 import { useState } from 'react';
@@ -15,12 +15,16 @@ import { useNavigate } from '@tanstack/react-router';
 import type { LocalProject } from '../../store/projectStore.js';
 import PortfolioMap from './PortfolioMap.js';
 import PortfolioProjectList from './PortfolioProjectList.js';
+import PortfolioAtAGlanceRail from './PortfolioAtAGlanceRail.js';
+import PortfolioStageRail from './PortfolioStageRail.js';
+import { usePortfolioBriefing } from './usePortfolioBriefing.js';
 import css from './PortfolioMapPage.module.css';
 
 export default function PortfolioMapPage({ projects }: { projects: LocalProject[] }) {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = projects.find((p) => p.id === selectedId) ?? null;
+  const briefing = usePortfolioBriefing(selected);
 
   return (
     <div className={css.shell}>
