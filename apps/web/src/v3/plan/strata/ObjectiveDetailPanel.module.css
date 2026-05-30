@@ -1,7 +1,7 @@
 /*
  * ObjectiveDetailPanel — host card for the four spec sections. Uses the
  * BentoBox surface treatment (color-mix bg, hairline border, --radius-lg)
- * so the panel reads as a sibling to TierRow / ObjectiveCard / NextUpCard.
+ * so the panel reads as a sibling to StratumRow / ObjectiveCard / NextUpCard.
  */
 
 .panel {

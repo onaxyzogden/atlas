@@ -106,7 +106,7 @@ import { usePlanCompassStore } from '../store/planCompassStore.js';
 import { useObjectiveSummaryStore } from '../store/objectiveSummaryStore.js';
 import { useStageGateOverrideStore } from '../store/stageGateOverrideStore.js';
 import { useCyclicalReviewStore } from '../store/cyclicalReviewStore.js';
-import { usePlanTierProgressStore } from '../store/planTierStore.js';
+import { usePlanStratumProgressStore } from '../store/planStratumStore.js';
 import { useFieldActionStore } from '../store/fieldActionStore.js';
 import { useObserveFeedStore } from '../store/observeFeedStore.js';
 import { useObserveDataPointStore } from '../store/observeDataPointStore.js';
@@ -357,7 +357,7 @@ const observationNeedsShape: BlobShape = {
  * checklist completion + tier-unlock celebration log); both slices are
  * owned by the same projectId. Same pattern as observationNeedsShape.
  */
-const planTierShape: BlobShape = {
+const planStratumShape: BlobShape = {
   select: (s, pid) => ({
     byProject: (s as any)?.byProject?.[pid] ?? {},
     celebratedByProject: (s as any)?.celebratedByProject?.[pid] ?? [],
@@ -702,10 +702,10 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
 
   // --- OLOS Plan-tier substrate (Phase 1) ---
   // Per-objective checklist completion + per-tier celebration log, both
-  // keyed by projectId. Custom shape (planTierShape) carries both maps
+  // keyed by projectId. Custom shape (planStratumShape) carries both maps
   // for one project together. v3 matches the store's persist version
   // (v1->v2 backfilled celebratedByProject; v2->v3 renumbered to Stratum 1-7).
-  blob('ogden-plan-tier-progress', usePlanTierProgressStore, 'byProject', 3, planTierShape),
+  blob('ogden-plan-tier-progress', usePlanStratumProgressStore, 'byProject', 3, planStratumShape),
   // Cyclical-review records keyed by (projectId, objectiveId). Tracks
   // lastReviewedAt / reviewMode / lastDecisionConfirmedAt per objective.
   // v2 matches the persist version (v1->v2 renumbered objective keys to Stratum).

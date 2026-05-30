@@ -26,10 +26,10 @@ import { useFieldActionStore } from '../../store/fieldActionStore.js';
 import { useObserveDataPointStore } from '../../store/observeDataPointStore.js';
 import {
   toProgressMap,
-  usePlanTierProgressStore,
-} from '../../store/planTierStore.js';
+  usePlanStratumProgressStore,
+} from '../../store/planStratumStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
-import { useProjectObjectives } from '../plan/tiers/useProjectObjectives.js';
+import { useProjectObjectives } from '../plan/strata/useProjectObjectives.js';
 import css from './PerProjectHomePage.module.css';
 
 export interface StageStatusRowProps {
@@ -89,7 +89,7 @@ export default function StageStatusRow({ project }: StageStatusRowProps) {
   // Sub-slice D - Plan metrics count THIS project's resolved objective set, not
   // the static skeleton (falls back to it for null-type / pre-slice projects).
   const { objectives } = useProjectObjectives(project.id);
-  const planProgress = usePlanTierProgressStore(
+  const planProgress = usePlanStratumProgressStore(
     (s) => s.byProject[project.id],
   );
   const fieldActions = useFieldActionStore((s) => s.byProject[project.id]);

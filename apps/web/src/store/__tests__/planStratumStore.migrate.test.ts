@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 /**
- * planTierStore - Stratum-rename persistence migration tests (Slice 4.2).
+ * planStratumStore - Stratum-rename persistence migration tests (Slice 4.2).
  *
  * Covers the v2 -> v3 (and composed v1 -> v3) `migrate` that renumbers the
  * Plan tier spine to Stratum 1-7:
@@ -14,9 +14,9 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  usePlanTierProgressStore,
-  migratePlanTierProgress,
-} from '../planTierStore.js';
+  usePlanStratumProgressStore,
+  migratePlanStratumProgress,
+} from '../planStratumStore.js';
 
 const PERSIST_KEY = 'ogden-plan-tier-progress';
 
@@ -27,11 +27,11 @@ interface LoosePlanState {
 }
 
 function reset(): void {
-  usePlanTierProgressStore.setState({ byProject: {}, celebratedByProject: {} });
+  usePlanStratumProgressStore.setState({ byProject: {}, celebratedByProject: {} });
   window.localStorage.clear();
 }
 
-describe('migratePlanTierProgress (v2 -> v3): Stratum slug renumber', () => {
+describe('migratePlanStratumProgress (v2 -> v3): Stratum slug renumber', () => {
   // Realistic pre-rename blob: skeleton + per-type slugs, completed items,
   // celebrated full-tier slugs, two projects.
   const v2 = {
@@ -52,7 +52,7 @@ describe('migratePlanTierProgress (v2 -> v3): Stratum slug renumber', () => {
   };
 
   it('renumbers objective KEYS and completed item VALUES under byProject', () => {
-    const out = migratePlanTierProgress(v2, 2) as unknown as LoosePlanState;
+    const out = migratePlanStratumProgress(v2, 2) as unknown as LoosePlanState;
     const a = out.byProject['proj-A']!;
     expect(Object.keys(a).sort()).toEqual([
       'rf-s2-landscape-context',
@@ -68,7 +68,7 @@ describe('migratePlanTierProgress (v2 -> v3): Stratum slug renumber', () => {
   });
 
   it('renumbers celebrated full-tier slugs via remapTierId', () => {
-    const out = migratePlanTierProgress(v2, 2) as unknown as LoosePlanState;
+    const out = migratePlanStratumProgress(v2, 2) as unknown as LoosePlanState;
     expect(out.celebratedByProject['proj-A']).toEqual([
       's1-project-foundation',
       's2-land-reading',
@@ -77,7 +77,7 @@ describe('migratePlanTierProgress (v2 -> v3): Stratum slug renumber', () => {
   });
 
   it('preserves projectId keys and per-project objective + item counts', () => {
-    const out = migratePlanTierProgress(v2, 2) as unknown as LoosePlanState;
+    const out = migratePlanStratumProgress(v2, 2) as unknown as LoosePlanState;
     expect(Object.keys(out.byProject).sort()).toEqual(['proj-A', 'proj-B']);
     expect(Object.keys(out.byProject['proj-A']!)).toHaveLength(3);
     const items = Object.values(out.byProject['proj-A']!).flat();
@@ -85,14 +85,14 @@ describe('migratePlanTierProgress (v2 -> v3): Stratum slug renumber', () => {
   });
 });
 
-describe('migratePlanTierProgress - idempotency + safety', () => {
+describe('migratePlanStratumProgress - idempotency + safety', () => {
   it('is a no-op on already-migrated s{n} data (no double-bump)', () => {
     // Even if mislabeled as pre-v3, remapId/remapTierId are no-ops on s{n}.
     const v3 = {
       byProject: { p: { 's1-vision': ['s1-vision-c1'] } },
       celebratedByProject: { p: ['s1-project-foundation'] },
     };
-    const out = migratePlanTierProgress(v3, 2) as unknown as LoosePlanState;
+    const out = migratePlanStratumProgress(v3, 2) as unknown as LoosePlanState;
     expect(out.byProject.p!['s1-vision']).toEqual(['s1-vision-c1']);
     expect(out.celebratedByProject.p).toEqual(['s1-project-foundation']);
   });
@@ -102,38 +102,38 @@ describe('migratePlanTierProgress - idempotency + safety', () => {
       byProject: { p: { 's3-systems-baseline': ['s3-systems-baseline-c1'] } },
       celebratedByProject: {},
     };
-    const out = migratePlanTierProgress(v3, 3) as unknown as LoosePlanState;
+    const out = migratePlanStratumProgress(v3, 3) as unknown as LoosePlanState;
     expect(out.byProject.p!['s3-systems-baseline']).toEqual([
       's3-systems-baseline-c1',
     ]);
   });
 
   it('tolerates null + empty persisted state', () => {
-    const fromNull = migratePlanTierProgress(
+    const fromNull = migratePlanStratumProgress(
       null,
       2,
     ) as unknown as LoosePlanState;
     expect(fromNull.byProject).toEqual({});
     expect(fromNull.celebratedByProject).toEqual({});
-    const fromEmpty = migratePlanTierProgress({}, 2) as unknown as LoosePlanState;
+    const fromEmpty = migratePlanStratumProgress({}, 2) as unknown as LoosePlanState;
     expect(fromEmpty.byProject).toEqual({});
     expect(fromEmpty.celebratedByProject).toEqual({});
   });
 });
 
-describe('migratePlanTierProgress (v1 -> v3): composite', () => {
+describe('migratePlanStratumProgress (v1 -> v3): composite', () => {
   it('backfills celebratedByProject ({}) and still renumbers byProject', () => {
     // v1 predates celebratedByProject (added v2); only byProject exists.
     const v1 = {
       byProject: { p: { 't0-vision': ['t0-vision-c1'] } },
     };
-    const out = migratePlanTierProgress(v1, 1) as unknown as LoosePlanState;
+    const out = migratePlanStratumProgress(v1, 1) as unknown as LoosePlanState;
     expect(out.byProject.p!['s1-vision']).toEqual(['s1-vision-c1']);
     expect(out.celebratedByProject).toEqual({});
   });
 });
 
-describe('planTierStore persist lifecycle: v2 blob -> rehydrate', () => {
+describe('planStratumStore persist lifecycle: v2 blob -> rehydrate', () => {
   beforeEach(() => reset());
 
   it('rehydrates renamed progress so completion + celebration survive', async () => {
@@ -153,9 +153,9 @@ describe('planTierStore persist lifecycle: v2 blob -> rehydrate', () => {
       }),
     );
 
-    await usePlanTierProgressStore.persist.rehydrate();
+    await usePlanStratumProgressStore.persist.rehydrate();
 
-    const s = usePlanTierProgressStore.getState();
+    const s = usePlanStratumProgressStore.getState();
     expect(s.getCompletedItemIds('proj-A', 's1-vision')).toEqual([
       's1-vision-c1',
       's1-vision-c2',
@@ -165,7 +165,7 @@ describe('planTierStore persist lifecycle: v2 blob -> rehydrate', () => {
     ).toBe(true);
     // old slug no longer resolves
     expect(s.getCompletedItemIds('proj-A', 't0-vision')).toEqual([]);
-    expect(s.hasCelebratedTier('proj-A', 's1-project-foundation')).toBe(true);
-    expect(s.hasCelebratedTier('proj-A', 't0-project-foundation')).toBe(false);
+    expect(s.hasCelebratedStratum('proj-A', 's1-project-foundation')).toBe(true);
+    expect(s.hasCelebratedStratum('proj-A', 't0-project-foundation')).toBe(false);
   });
 });

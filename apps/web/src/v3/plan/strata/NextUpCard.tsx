@@ -1,7 +1,7 @@
-// NextUpCard — featured next-best objective inside an active tier
+// NextUpCard — featured next-best objective inside an active stratum
 // (Plan Navigation Spec v1, Slice 1.5). Larger and louder than
 // ObjectiveCard; the steward should land here first when entering a
-// tier. Hidden if the tier has no `available` or `active` objective.
+// stratum. Hidden if the stratum has no `available` or `active` objective.
 
 import { ArrowRight, RefreshCcw } from 'lucide-react';
 import type {

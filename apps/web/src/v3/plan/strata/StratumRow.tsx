@@ -1,15 +1,15 @@
-// TierRow — single row in the Plan tier spine (Plan Navigation Spec v1).
-// Visualises one of the 7 tiers with its ordinal badge, title, objective
+// StratumRow — single row in the Plan stratum spine (Plan Navigation Spec v1).
+// Visualises one of the 7 strata with its ordinal badge, title, objective
 // count summary, and a state pill driven by `computeStratumState`. Click
-// behaviour is owned by the parent (TierSpine) so the spine can hoist a
-// shared locked-tier popover instead of every row carrying its own.
+// behaviour is owned by the parent (StratumSpine) so the spine can hoist a
+// shared locked-stratum popover instead of every row carrying its own.
 
 import { Check, Lock } from 'lucide-react';
 import type { PlanStratum, PlanStratumState } from '@ogden/shared';
-import css from './TierRow.module.css';
+import css from './StratumRow.module.css';
 
 interface Props {
-  tier: PlanStratum;
+  stratum: PlanStratum;
   state: PlanStratumState;
   objectiveCount: number;
   completeCount: number;
@@ -20,7 +20,7 @@ interface Props {
    * is unchanged.
    */
   isHighlighting?: boolean;
-  onSelect: (tier: PlanStratum) => void;
+  onSelect: (stratum: PlanStratum) => void;
 }
 
 const STATE_LABEL: Record<PlanStratumState, string> = {
@@ -30,8 +30,8 @@ const STATE_LABEL: Record<PlanStratumState, string> = {
   complete: 'Complete',
 };
 
-export default function TierRow({
-  tier,
+export default function StratumRow({
+  stratum,
   state,
   objectiveCount,
   completeCount,
@@ -46,9 +46,9 @@ export default function TierRow({
       data-state={state}
       data-active={isActive}
       data-highlighting={isHighlighting ? 'true' : undefined}
-      onClick={() => onSelect(tier)}
+      onClick={() => onSelect(stratum)}
       aria-expanded={isActive}
-      aria-label={`${tier.title}: ${STATE_LABEL[state]}, ${completeCount} of ${objectiveCount} objectives complete`}
+      aria-label={`${stratum.title}: ${STATE_LABEL[state]}, ${completeCount} of ${objectiveCount} objectives complete`}
     >
       <span className={css.spineDot} aria-hidden="true">
         {state === 'complete' ? (
@@ -59,9 +59,9 @@ export default function TierRow({
           <span className={css.spineDotInner} />
         )}
       </span>
-      <span className={css.ordinal}>S{tier.ordinal}</span>
+      <span className={css.ordinal}>S{stratum.ordinal}</span>
       <span className={css.body}>
-        <span className={css.title}>{tier.title}</span>
+        <span className={css.title}>{stratum.title}</span>
         <span className={css.summary}>
           {objectiveCount === 0
             ? 'No objectives yet'

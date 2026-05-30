@@ -16,7 +16,7 @@ import { useProjectUrgency } from '../useProjectUrgency.js';
 import { useFieldActionStore } from '../../../store/fieldActionStore.js';
 import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
 import { useObserveFeedStore } from '../../../store/observeFeedStore.js';
-import { usePlanTierProgressStore } from '../../../store/planTierStore.js';
+import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
 import { useCyclicalReviewStore } from '../../../store/cyclicalReviewStore.js';
 import type { LocalProject } from '../../../store/projectStore.js';
 
@@ -55,7 +55,7 @@ function resetStores() {
   useFieldActionStore.setState({ byProject: {} });
   useObserveDataPointStore.setState({ byProject: {} });
   useObserveFeedStore.setState({ byProject: {} });
-  usePlanTierProgressStore.setState({ byProject: {} });
+  usePlanStratumProgressStore.setState({ byProject: {} });
   useCyclicalReviewStore.setState({ byProject: {} });
 }
 

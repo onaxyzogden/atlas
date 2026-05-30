@@ -1,8 +1,8 @@
-// MapActivationStrip — Plan-tier wrapper around the OLOS OverlayBundleStrip
+// MapActivationStrip — Plan-stratum wrapper around the OLOS OverlayBundleStrip
 // (Plan Navigation Spec v1, Slice 1.6). The strip itself is presentational —
 // the steward owns `activeOverlayIds` higher up in ObjectiveDetailPanel so
 // the embedded map and the chip strip stay in lockstep without prop drilling
-// past one layer. Plan stage tier objectives ship with `defaultOverlayBundle`
+// past one layer. Plan stage stratum objectives ship with `defaultOverlayBundle`
 // — empty in the Slice 1.1 seed; Slice 1.6 onward populates real bundles.
 
 import type {

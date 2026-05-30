@@ -1,8 +1,8 @@
 // PlanNavToggle — segmented two-state control that flips the Plan stage
-// between the new 7-tier spine (OLOS Plan Navigation Spec v1) and the
+// between the new 7-stratum spine (OLOS Plan Navigation Spec v1) and the
 // legacy module-bar shell. Lives in the canvas as a top-right overlay
 // in both shells so the steward can switch back-and-forth while we
-// migrate the 52 module cards into tier objectives.
+// migrate the 52 module cards into stratum objectives.
 //
 // Retires in Phase 7 alongside the module bar itself.
 
@@ -20,7 +20,7 @@ const OPTIONS: ReadonlyArray<{
   label: string;
   Icon: typeof ListTree;
 }> = [
-  { mode: 'tier-spine', label: 'Stratum spine', Icon: ListTree },
+  { mode: 'stratum-spine', label: 'Stratum spine', Icon: ListTree },
   { mode: 'module-bar', label: 'Module bar', Icon: Columns3 },
 ];
 

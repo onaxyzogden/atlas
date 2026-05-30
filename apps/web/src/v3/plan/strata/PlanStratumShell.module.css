@@ -30,8 +30,8 @@
 }
 
 /*
- * .layout — switches between a single-column spine view (no tier
- * selected) and a two-column spine + ObjectiveColumn view (tier
+ * .layout — switches between a single-column spine view (no stratum
+ * selected) and a two-column spine + ObjectiveColumn view (stratum
  * selected). The single-column mode keeps the centered, low-density
  * look from Slice 1.4; the two-column mode opens the spine to the
  * left and lets the ObjectiveColumn breathe on the right.
@@ -67,7 +67,7 @@
    * scroll on the shell and let each section size to its own content.
    * This re-enables the shell-level scroll that desktop turns off, and
    * by content-sizing the grid rows it leaves the per-column
-   * overflow-y rules (in TierSpine/ObjectiveColumn/ObjectiveDetailPanel)
+   * overflow-y rules (in StratumSpine/ObjectiveColumn/ObjectiveDetailPanel)
    * inert here — each section gets its full content height.
    */
   .shell {

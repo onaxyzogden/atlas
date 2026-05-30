@@ -1,6 +1,6 @@
 /*
- * TierLockedPopover — modal popover used when the steward taps a locked
- * tier (Plan Navigation Spec v1, screenshot 2). The overlay fades the
+ * StratumLockedPopover — modal popover used when the steward taps a locked
+ * stratum (Plan Navigation Spec v1, screenshot 2). The overlay fades the
  * canvas; the popover anchors centred to keep the keyboard and
  * touch-target ergonomics consistent across viewports.
  */

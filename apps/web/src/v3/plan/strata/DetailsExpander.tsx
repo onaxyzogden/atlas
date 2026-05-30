@@ -2,19 +2,19 @@
 // (Plan Navigation Spec v1, Slice 1.8). Collapsible host that lazy-loads
 // the legacy module card pointed to by `objective.legacyCardSectionId`.
 //
-// The tier shell intentionally does NOT depend on PlanModuleSlideUp's
+// The stratum shell intentionally does NOT depend on PlanModuleSlideUp's
 // chrome (sheet, focus trap, orphan-output gate, view badge). The
 // REFERENCE section is a flat in-panel embed — only the card content
 // itself is reused.
 //
-// Each card is wrapped in `React.lazy` so the tier route only pays the
+// Each card is wrapped in `React.lazy` so the stratum route only pays the
 // chunk cost when a steward actually expands the section (see plan §"Risks
 // & Mitigations" — "Module-card embed in REFERENCE section pulls heavy
-// module-bar dependencies into the tier route").
+// module-bar dependencies into the stratum route").
 //
 // New legacy mappings: extend the switch + add a `lazy()` line for the
 // matching card. The catalogue lives in
-// `packages/shared/src/constants/plan/tierObjectives.ts`.
+// `packages/shared/src/constants/plan/stratumObjectives.ts`.
 
 import {
   Component,
@@ -31,7 +31,7 @@ import {
 } from '../../../store/projectStore.js';
 import css from './DetailsExpander.module.css';
 
-// Lazy card imports — only the legacy cards currently mapped from a tier
+// Lazy card imports — only the legacy cards currently mapped from a stratum
 // objective's `legacyCardSectionId` need to be listed here. Add more as
 // the seed grows. Each line creates its own JS chunk.
 const DevelopPlanTab = lazy(
@@ -147,7 +147,7 @@ function renderLegacyCard(
 }
 
 // Boundary so a card whose data dependencies aren't hydrated yet can't
-// take down the panel. The tier shell embeds run with looser preconditions
+// take down the panel. The stratum shell embeds run with looser preconditions
 // than ModuleSlideUp (no orphan-output gate, no probe), so failures here
 // degrade to a readable notice instead of bubbling to the route.
 class CardErrorBoundary extends Component<

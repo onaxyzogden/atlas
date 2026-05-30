@@ -1,11 +1,11 @@
 // useProjectObjectives.ts
 //
-// Per-project objective resolution for the Plan tier spine (OLOS Project-Type +
+// Per-project objective resolution for the Plan stratum spine (OLOS Project-Type +
 // Secondary-Layer Spec v1.2, Sub-slice D). Replaces the single static
 // PLAN_STRATUM_OBJECTIVES skeleton that every Plan consumer used to read with a set
 // resolved from the project's own type selection.
 //
-// Two entry points share one 4-tier fallback ladder:
+// Two entry points share one 4-level fallback ladder:
 //   - resolveObjectivesForProject(project)  pure; for non-React + loop callers
 //     (useProjectUrgency loops over many projects, so it cannot call a hook
 //     per project).
@@ -21,8 +21,8 @@
 //   3. static PLAN_STRATUM_OBJECTIVES                  -> the legacy 16-objective skeleton
 //      (MTC null-type projects + every project created before this slice)
 //
-// Tiers 1-2 reuse the universal skeleton ids the visionProfileToChecklist bridge
-// targets, so persisted planTierStore progress carries over with no client
+// Levels 1-2 reuse the universal skeleton ids the visionProfileToChecklist bridge
+// targets, so persisted planStratumStore progress carries over with no client
 // migration (Plan, Risk row 4). Resolution is pure + deterministic, so the
 // resolved set is reproduced from metadata.projectTypeRecord on every reload -
 // no separate persisted objective store is required for this slice (the Plan's
@@ -40,17 +40,17 @@ import {
 } from '@ogden/shared';
 import { useProjectStore } from '../../../store/projectStore.js';
 
-/** Which fallback tier produced a project's resolved objective set. */
+/** Which fallback level produced a project's resolved objective set. */
 export type ObjectiveResolutionSource = 'record' | 'projectType' | 'static';
 
 export interface ProjectObjectiveResolution {
-  /** The resolved, tier-sorted objective set this project's Plan spine renders. */
+  /** The resolved, stratum-sorted objective set this project's Plan spine renders. */
   objectives: readonly PlanStratumObjective[];
   /** Active design tensions for the type pairing (always empty for static). */
   activeTensions: readonly DesignTension[];
   /** Resolver provenance (applied/skipped patches, dedup); null when static. */
   provenance: ResolveProvenance | null;
-  /** Which fallback tier produced this set. */
+  /** Which fallback level produced this set. */
   source: ObjectiveResolutionSource;
 }
 
@@ -77,7 +77,7 @@ function resolveFromInputs(
   projectType: string | null | undefined,
   record: ProjectTypeRecord | null | undefined,
 ): ProjectObjectiveResolution {
-  // Tier 1 - a completed wizard wrote a full type record (Sub-slice E).
+  // Level 1 - a completed wizard wrote a full type record (Sub-slice E).
   if (record) {
     const r = resolveProjectObjectives({
       primaryTypeId: record.primaryTypeId,
@@ -91,7 +91,7 @@ function resolveFromInputs(
     };
   }
 
-  // Tier 2 - a bare projectType string naming a valid PRIMARY type.
+  // Level 2 - a bare projectType string naming a valid PRIMARY type.
   // residential is secondary-only (canBePrimary: false) and unknown strings
   // return undefined, so both fall through to the static skeleton.
   const def = projectType ? findProjectType(projectType) : undefined;
@@ -105,12 +105,12 @@ function resolveFromInputs(
     };
   }
 
-  // Tier 3 - null type (MTC) or a pre-slice project: the legacy static skeleton.
+  // Level 3 - null type (MTC) or a pre-slice project: the legacy static skeleton.
   return STATIC_RESOLUTION;
 }
 
 /**
- * Pure 4-tier resolution. Safe to call in loops and non-React code (the resolver
+ * Pure 4-level resolution. Safe to call in loops and non-React code (the resolver
  * is pure). Always returns a set - the static skeleton for null/unknown types -
  * so every project has objectives to render.
  */

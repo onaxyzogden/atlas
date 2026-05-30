@@ -1,6 +1,6 @@
 /*
- * ObjectiveCard — compact tier-objective row used inside ObjectiveColumn.
- * Surface treatment mirrors TierRow but at a smaller scale to keep the
+ * ObjectiveCard — compact stratum-objective row used inside ObjectiveColumn.
+ * Surface treatment mirrors StratumRow but at a smaller scale to keep the
  * objective list visually subordinate to the spine.
  */
 
@@ -175,7 +175,7 @@
 }
 
 /* --- Slice 2.4 highlight flash ------------------------------------------ */
-/* See TierRow.module.css for the rationale + the matching animation on the
+/* See StratumRow.module.css for the rationale + the matching animation on the
    spine row; the card-level flash points the steward at the specific
    incomplete objectives once T0 is opened. */
 @keyframes objective-card-highlight-pulse {

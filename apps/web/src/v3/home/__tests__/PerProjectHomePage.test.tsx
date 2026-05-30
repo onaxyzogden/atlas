@@ -131,13 +131,13 @@ vi.mock('../../../store/fieldActionStore.js', () => ({
     }),
 }));
 
-vi.mock('../../../store/planTierStore.js', async () => {
+vi.mock('../../../store/planStratumStore.js', async () => {
   const actual = await vi.importActual<Record<string, unknown>>(
-    '../../../store/planTierStore.js',
+    '../../../store/planStratumStore.js',
   );
   return {
     ...actual,
-    usePlanTierProgressStore: (
+    usePlanStratumProgressStore: (
       selector: (state: { byProject: Record<string, unknown> }) => unknown,
     ) => selector({ byProject: {} }),
   };

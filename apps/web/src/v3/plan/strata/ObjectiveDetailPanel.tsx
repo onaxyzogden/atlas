@@ -1,5 +1,5 @@
-// ObjectiveDetailPanel — right column of the Plan tier shell, mounted when a
-// tier objective is selected (Plan Navigation Spec v1, Slice 1.6). Hosts the
+// ObjectiveDetailPanel — right column of the Plan stratum shell, mounted when a
+// stratum objective is selected (Plan Navigation Spec v1, Slice 1.6). Hosts the
 // four spec sections: OBJECTIVE (ObjectiveHeader), MAP ACTIVATION
 // (MapActivationStrip + ObjectiveMap), YOUR DECISIONS (Slice 1.7), and
 // REFERENCE (Slice 1.8). LaunchActButton (Slice 1.9) anchors the bottom.
@@ -17,7 +17,7 @@ import type {
 } from '@ogden/shared';
 import { isCyclicalReviewDue } from '@ogden/shared';
 import type { Project } from '../../types.js';
-import { usePlanTierProgressStore } from '../../../store/planTierStore.js';
+import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
 import { useCyclicalReviewStore } from '../../../store/cyclicalReviewStore.js';
 import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
 import ObjectiveHeader from './ObjectiveHeader.js';
@@ -32,22 +32,22 @@ import css from './ObjectiveDetailPanel.module.css';
 
 interface Props {
   projectId: string;
-  tier: PlanStratum;
+  stratum: PlanStratum;
   objective: PlanStratumObjective;
   status: PlanStratumObjectiveStatus;
   project: Project | null;
-  onBackToTier: (tier: PlanStratum) => void;
+  onBackToStratum: (stratum: PlanStratum) => void;
   /** Slice 1.12 — items the Vision Builder bridge has pre-satisfied. */
   visionDerivedMap?: VisionDerivedMap;
 }
 
 export default function ObjectiveDetailPanel({
   projectId,
-  tier,
+  stratum,
   objective,
   status,
   project,
-  onBackToTier,
+  onBackToStratum,
   visionDerivedMap,
 }: Props) {
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
@@ -56,10 +56,10 @@ export default function ObjectiveDetailPanel({
 
   // Subscribe to just this objective's slice so toggles elsewhere don't
   // re-render the panel.
-  const completedItemIds = usePlanTierProgressStore((s) =>
+  const completedItemIds = usePlanStratumProgressStore((s) =>
     s.getCompletedItemIds(projectId, objective.id),
   );
-  const toggleItem = usePlanTierProgressStore((s) => s.toggleItem);
+  const toggleItem = usePlanStratumProgressStore((s) => s.toggleItem);
   const onToggleChecklistItem = useCallback(
     (itemId: string) => {
       if (!projectId) return;
@@ -135,10 +135,10 @@ export default function ObjectiveDetailPanel({
       data-testid="plan-objective-detail-panel"
     >
       <ObjectiveHeader
-        tier={tier}
+        stratum={stratum}
         objective={objective}
         status={status}
-        onBackToTier={onBackToTier}
+        onBackToStratum={onBackToStratum}
       />
 
       {reviewDue && (

@@ -1,6 +1,6 @@
-// TierLockedPopover — popover triggered when the steward taps a locked
-// tier in the spine (Plan Navigation Spec v1, screenshot 2). Lists the
-// unmet prerequisite objectives for the tier and offers an Acknowledge
+// StratumLockedPopover — popover triggered when the steward taps a locked
+// stratum in the spine (Plan Navigation Spec v1, screenshot 2). Lists the
+// unmet prerequisite objectives for the stratum and offers an Acknowledge
 // CTA that routes to the first one so the steward can immediately work
 // it. Dismiss via overlay click, Escape, or the close button.
 
@@ -11,18 +11,18 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
-import css from './TierLockedPopover.module.css';
+import css from './StratumLockedPopover.module.css';
 
 interface Props {
-  tier: PlanStratum;
+  stratum: PlanStratum;
   objectives: readonly PlanStratumObjective[];
   objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
   onAcknowledge: (objective: PlanStratumObjective) => void;
   onDismiss: () => void;
 }
 
-export default function TierLockedPopover({
-  tier,
+export default function StratumLockedPopover({
+  stratum,
   objectives,
   objectiveStatuses,
   onAcknowledge,
@@ -31,10 +31,10 @@ export default function TierLockedPopover({
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // Collect distinct unmet prerequisite objectives referenced by any
-  // objective in this tier. We preserve seed order so the first
+  // objective in this stratum. We preserve seed order so the first
   // unfinished prereq is the natural "next step" target.
   const unmetPrereqs = useMemo(() => {
-    const stratumObjectives = objectives.filter((o) => o.stratumId === tier.id);
+    const stratumObjectives = objectives.filter((o) => o.stratumId === stratum.id);
     const referenced = new Set<string>();
     for (const obj of stratumObjectives) {
       for (const prereqId of obj.prerequisiteObjectiveIds) {
@@ -44,7 +44,7 @@ export default function TierLockedPopover({
     return objectives.filter(
       (o) => referenced.has(o.id) && objectiveStatuses[o.id] !== 'complete',
     );
-  }, [tier.id, objectives, objectiveStatuses]);
+  }, [stratum.id, objectives, objectiveStatuses]);
 
   const firstUnmet = unmetPrereqs[0] ?? null;
 
@@ -63,26 +63,26 @@ export default function TierLockedPopover({
     <div
       className={css.overlay}
       onClick={onDismiss}
-      data-testid="tier-locked-overlay"
+      data-testid="stratum-locked-overlay"
     >
       <div
         ref={dialogRef}
         className={css.popover}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="tier-locked-title"
+        aria-labelledby="stratum-locked-title"
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        data-testid="tier-locked-popover"
+        data-testid="stratum-locked-popover"
       >
         <header className={css.header}>
           <span className={css.iconBadge} aria-hidden="true">
             <Lock size={14} strokeWidth={2} />
           </span>
           <div className={css.headerText}>
-            <p className={css.eyebrow}>Stratum {tier.ordinal} locked</p>
-            <h3 className={css.title} id="tier-locked-title">
-              {tier.title}
+            <p className={css.eyebrow}>Stratum {stratum.ordinal} locked</p>
+            <h3 className={css.title} id="stratum-locked-title">
+              {stratum.title}
             </h3>
           </div>
           <button

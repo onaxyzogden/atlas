@@ -3,12 +3,12 @@
 // Composing hook that assembles `ProjectUrgencyInputs` from the five
 // stores that feed the engine (per the urgency-engine docstring
 // contract: observeDataPointStore, observeFeedStore, fieldActionStore,
-// planTierStore, cyclicalReviewStore + the LocalProject record) and
+// planStratumStore, cyclicalReviewStore + the LocalProject record) and
 // returns a `Map<projectId, ProjectUrgencyResult>` ready for Portfolio
 // Home (Slice 5.3) and Per-Project Home (Slice 5.4) to consume.
 //
 // Why a hook, not a server selector: the score depends on locally-
-// persisted shell state (planTierStore checklist progress,
+// persisted shell state (planStratumStore checklist progress,
 // cyclicalReviewStore forced triggers, fieldActionStore status,
 // observeDataPointStore captures, observeFeedStore divergence rows)
 // that doesn't reach the server today. Server-side ordering is a
@@ -39,11 +39,11 @@ import { useObserveDataPointStore } from '../../store/observeDataPointStore.js';
 import { useObserveFeedStore } from '../../store/observeFeedStore.js';
 import {
   toProgressMap,
-  usePlanTierProgressStore,
-} from '../../store/planTierStore.js';
+  usePlanStratumProgressStore,
+} from '../../store/planStratumStore.js';
 import { useCyclicalReviewStore } from '../../store/cyclicalReviewStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
-import { resolveObjectivesForProject } from '../plan/tiers/useProjectObjectives.js';
+import { resolveObjectivesForProject } from '../plan/strata/useProjectObjectives.js';
 
 /** Stable empty map identity so the consumer's React equality check
  *  short-circuits when there are no projects to score. */
@@ -80,7 +80,7 @@ export function useProjectUrgency(
   const fieldActionsByProject = useFieldActionStore((s) => s.byProject);
   const dataPointsByProject = useObserveDataPointStore((s) => s.byProject);
   const feedByProject = useObserveFeedStore((s) => s.byProject);
-  const planProgressByProject = usePlanTierProgressStore((s) => s.byProject);
+  const planProgressByProject = usePlanStratumProgressStore((s) => s.byProject);
   const cyclicalReviewByProject = useCyclicalReviewStore((s) => s.byProject);
 
   // `now` once per hook call so the score doesn't flicker across

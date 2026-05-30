@@ -20,7 +20,7 @@
  *                                injection point so the engine stays
  *                                I/O-free.
  *
- * Kept separate from `planTierStore` (checklist completion) so the two
+ * Kept separate from `planStratumStore` (checklist completion) so the two
  * concerns can evolve independently — review cadence is a temporal axis,
  * not a completion axis.
  */

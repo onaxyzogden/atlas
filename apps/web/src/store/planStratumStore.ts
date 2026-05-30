@@ -1,17 +1,17 @@
 /**
- * planTierStore — Plan-tier checklist progress (Slice 1.7) +
- * tier-unlock celebration log (Slice 1.10).
+ * planStratumStore — Plan-stratum checklist progress (Slice 1.7) +
+ * stratum-unlock celebration log (Slice 1.10).
  *
  * Tracks which checklist items the steward has ticked for each
- * (projectId, objectiveId) pair, plus the set of tier ids that have
- * already triggered a `TierUnlockCelebration` for each project so the
+ * (projectId, objectiveId) pair, plus the set of stratum ids that have
+ * already triggered a `StratumUnlockCelebration` for each project so the
  * modal never fires twice for the same unlock.
  *
  * Kept separate from the existing OLOS `checklistProgressStore` because
- * the Plan-tier and OLOS-universal objective catalogues are distinct
+ * the Plan-stratum and OLOS-universal objective catalogues are distinct
  * data sources with disjoint item-id namespaces — sharing one store
  * would risk seed drift and force a schema couple that the spec
- * explicitly avoids (see plan §"New file: planTierStore.ts" — separate
+ * explicitly avoids (see plan §"New file: planStratumStore.ts" — separate
  * concern from `planVersionStore`).
  *
  * Item ids are globally unique across every objective catalogue (the
@@ -31,16 +31,16 @@ const PERSIST_KEY = 'ogden-plan-tier-progress';
 
 type ItemIds = readonly string[];
 type ByObjective = Readonly<Record<string, ItemIds>>;
-type TierIds = readonly string[];
+type StratumIds = readonly string[];
 
 const EMPTY_ITEM_IDS: ItemIds = Object.freeze([]);
 const EMPTY_BY_OBJECTIVE: ByObjective = Object.freeze({});
-const EMPTY_TIER_IDS: TierIds = Object.freeze([]);
+const EMPTY_STRATUM_IDS: StratumIds = Object.freeze([]);
 
-interface PlanTierProgressState {
+interface PlanStratumProgressState {
   byProject: Record<string, ByObjective>;
-  /** Tier ids that have already shown the unlock celebration, keyed by project. */
-  celebratedByProject: Record<string, TierIds>;
+  /** Stratum ids that have already shown the unlock celebration, keyed by project. */
+  celebratedByProject: Record<string, StratumIds>;
 
   /** Read all completed item ids for one objective in a project. */
   getCompletedItemIds: (projectId: string, objectiveId: string) => ItemIds;
@@ -63,10 +63,10 @@ interface PlanTierProgressState {
   /** Clear progress for one objective (used by cyclical-review revisions). */
   clearForObjective: (projectId: string, objectiveId: string) => void;
 
-  /** True if this project has already celebrated the tier unlock. */
-  hasCelebratedTier: (projectId: string, tierId: string) => boolean;
-  /** Mark a tier as celebrated for this project (idempotent). */
-  markTierCelebrated: (projectId: string, tierId: string) => void;
+  /** True if this project has already celebrated the stratum unlock. */
+  hasCelebratedStratum: (projectId: string, stratumId: string) => boolean;
+  /** Mark a stratum as celebrated for this project (idempotent). */
+  markStratumCelebrated: (projectId: string, stratumId: string) => void;
 }
 
 /**
@@ -81,14 +81,14 @@ interface PlanTierProgressState {
  *    already-renumbered s{n} ids.
  * Exported for the round-trip migration test.
  */
-export function migratePlanTierProgress(
+export function migratePlanStratumProgress(
   persistedState: unknown,
   version: number,
-): PlanTierProgressState {
+): PlanStratumProgressState {
   const safe =
-    (persistedState as Partial<PlanTierProgressState> | null) ?? {};
+    (persistedState as Partial<PlanStratumProgressState> | null) ?? {};
   let byProject: Record<string, ByObjective> = safe.byProject ?? {};
-  let celebratedByProject: Record<string, TierIds> =
+  let celebratedByProject: Record<string, StratumIds> =
     safe.celebratedByProject ?? {};
 
   if (version < 3) {
@@ -104,7 +104,7 @@ export function migratePlanTierProgress(
     }
     byProject = remappedByProject;
 
-    const remappedCelebrated: Record<string, TierIds> = {};
+    const remappedCelebrated: Record<string, StratumIds> = {};
     for (const [projectId, tierIds] of Object.entries(celebratedByProject)) {
       remappedCelebrated[projectId] = (tierIds ?? []).map((id) =>
         remapTierId(id),
@@ -113,10 +113,10 @@ export function migratePlanTierProgress(
     celebratedByProject = remappedCelebrated;
   }
 
-  return { ...safe, byProject, celebratedByProject } as PlanTierProgressState;
+  return { ...safe, byProject, celebratedByProject } as PlanStratumProgressState;
 }
 
-export const usePlanTierProgressStore = create<PlanTierProgressState>()(
+export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
   persist(
     (set, get) => ({
       byProject: {},
@@ -156,19 +156,19 @@ export const usePlanTierProgressStore = create<PlanTierProgressState>()(
           };
         }),
 
-      hasCelebratedTier: (projectId, tierId) =>
-        (get().celebratedByProject[projectId] ?? EMPTY_TIER_IDS).includes(
-          tierId,
+      hasCelebratedStratum: (projectId, stratumId) =>
+        (get().celebratedByProject[projectId] ?? EMPTY_STRATUM_IDS).includes(
+          stratumId,
         ),
 
-      markTierCelebrated: (projectId, tierId) =>
+      markStratumCelebrated: (projectId, stratumId) =>
         set((s) => {
           const existing = s.celebratedByProject[projectId] ?? [];
-          if (existing.includes(tierId)) return s;
+          if (existing.includes(stratumId)) return s;
           return {
             celebratedByProject: {
               ...s.celebratedByProject,
-              [projectId]: [...existing, tierId],
+              [projectId]: [...existing, stratumId],
             },
           };
         }),
@@ -180,12 +180,12 @@ export const usePlanTierProgressStore = create<PlanTierProgressState>()(
         byProject: state.byProject,
         celebratedByProject: state.celebratedByProject,
       }),
-      migrate: migratePlanTierProgress,
+      migrate: migratePlanStratumProgress,
     },
   ),
 );
 
-rehydrateWithLogging(usePlanTierProgressStore);
+rehydrateWithLogging(usePlanStratumProgressStore);
 
 /**
  * Stable accessor for the per-project map of objective → completed item ids.
@@ -193,22 +193,22 @@ rehydrateWithLogging(usePlanTierProgressStore);
  * callers using it as a hook selector see a stable identity.
  */
 export function selectProjectProgress(
-  state: PlanTierProgressState,
+  state: PlanStratumProgressState,
   projectId: string,
 ): ByObjective {
   return state.byProject[projectId] ?? EMPTY_BY_OBJECTIVE;
 }
 
 /**
- * Stable accessor for the tier ids this project has already celebrated.
+ * Stable accessor for the stratum ids this project has already celebrated.
  * Returns a frozen empty array when nothing has been celebrated yet so
  * the selector identity stays stable.
  */
-export function selectCelebratedTiers(
-  state: PlanTierProgressState,
+export function selectCelebratedStrata(
+  state: PlanStratumProgressState,
   projectId: string,
-): TierIds {
-  return state.celebratedByProject[projectId] ?? EMPTY_TIER_IDS;
+): StratumIds {
+  return state.celebratedByProject[projectId] ?? EMPTY_STRATUM_IDS;
 }
 
 /**

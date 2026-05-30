@@ -1,14 +1,14 @@
 /**
  * visionProfileToChecklist — Phase-1 bridge between the existing Stage
  * Zero Vision Builder output (`project.metadata.visionProfile`) and the
- * Tier 0 checklist items shipped by Slice 1.1 (see
- * packages/shared/src/constants/plan/tierObjectives.ts).
+ * Stratum 1 checklist items shipped by Slice 1.1 (see
+ * packages/shared/src/constants/plan/stratumObjectives.ts).
  *
  * Why this exists
  * ---------------
  * Stage Zero is still the only place the steward authors land vision /
  * project type / capacity bands as of 2026-05-25 (Phase 2 wizard is
- * still upstream). Without a bridge, opening Tier 0 on a project that
+ * still upstream). Without a bridge, opening Stratum 1 on a project that
  * already finished Stage Zero would show every checklist item empty —
  * a regression in perceived progress.
  *
@@ -50,7 +50,7 @@ function formatList(ids: readonly string[]): string {
 }
 
 /**
- * Derive Tier 0 checklist completion + evidence from a VisionProfile.
+ * Derive Stratum 1 checklist completion + evidence from a VisionProfile.
  * Returns a frozen empty map when no profile (or no fields) are present
  * so callers using this as a memo input see a stable identity.
  *
@@ -64,7 +64,7 @@ function formatList(ids: readonly string[]): string {
  *      satisfied only when BOTH `budgetRange` AND `timelineProgress`
  *      are set — both axes of the band are required to call it done.
  */
-export function deriveTier0EvidenceMap(
+export function deriveStratum1EvidenceMap(
   profile: VisionProfile | null | undefined,
 ): VisionDerivedMap {
   if (!profile) return EMPTY_MAP;
@@ -162,9 +162,9 @@ function inviteRoleLabel(role: QueuedInvite['role']): string {
 }
 
 /**
- * Derive Tier 0 stewardship checklist completion + evidence from the
- * wizard's Step 3 Team payload. Mirrors `deriveTier0EvidenceMap` in
- * shape so both maps can be unioned by `PlanTierShell` before the
+ * Derive Stratum 1 stewardship checklist completion + evidence from the
+ * wizard's Step 3 Team payload. Mirrors `deriveStratum1EvidenceMap` in
+ * shape so both maps can be unioned by `PlanStratumShell` before the
  * status engine runs.
  *
  * Coverage map:
@@ -178,7 +178,7 @@ function inviteRoleLabel(role: QueuedInvite['role']): string {
  *      because the checklist label explicitly singles out the
  *      non-default roles.
  */
-export function deriveTier0StewardshipMap(
+export function deriveStratum1StewardshipMap(
   team: ProjectTeam | null | undefined,
 ): VisionDerivedMap {
   if (!team) return EMPTY_MAP;
@@ -228,10 +228,10 @@ export function deriveTier0StewardshipMap(
 }
 
 /**
- * Returns the steward's checklist progress map (from planTierStore)
+ * Returns the steward's checklist progress map (from planStratumStore)
  * unioned with the items the bridge has derived as `isComplete`. Used
- * by `computeAllObjectiveStatuses` so the Tier 0 spine state reflects
- * Stage Zero progress without writing to the planTierStore.
+ * by `computeAllObjectiveStatuses` so the Stratum 1 spine state reflects
+ * Stage Zero progress without writing to the planStratumStore.
  */
 export function mergeDerivedIntoProgress(
   storeProgress: Readonly<Record<string, boolean>>,

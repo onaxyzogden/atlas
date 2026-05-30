@@ -48,7 +48,7 @@ import {
   resolveAllDomainsForObjective,
   resolveDomainByObjectiveId,
 } from './resolveDomainForObjective.js';
-import { useProjectObjectives } from '../../../plan/tiers/useProjectObjectives.js';
+import { useProjectObjectives } from '../../../plan/strata/useProjectObjectives.js';
 
 const DIVERGENT_STATUSES = new Set([
   'needs_investigation',

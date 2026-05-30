@@ -1,4 +1,4 @@
-// ObjectiveCard — compact row for a single tier objective inside
+// ObjectiveCard — compact row for a single stratum objective inside
 // ObjectiveColumn (Plan Navigation Spec v1, Slice 1.5). Surfaces the
 // objective's focused question (one-line excerpt) and the current
 // status pill. Click is owned by the parent so the same

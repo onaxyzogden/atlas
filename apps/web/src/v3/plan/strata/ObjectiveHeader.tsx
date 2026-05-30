@@ -1,7 +1,7 @@
 // ObjectiveHeader — the OBJECTIVE section header inside ObjectiveDetailPanel
-// (Plan Navigation Spec v1, Slice 1.6). Tier breadcrumb on top, then the
+// (Plan Navigation Spec v1, Slice 1.6). Stratum breadcrumb on top, then the
 // objective title and its focused question, then a status pill. Status colors
-// mirror TierRow / ObjectiveCard so the spine, column, and panel all read
+// mirror StratumRow / ObjectiveCard so the spine, column, and panel all read
 // the same state at a glance.
 
 import { ArrowLeft } from 'lucide-react';
@@ -13,10 +13,10 @@ import type {
 import css from './ObjectiveHeader.module.css';
 
 interface Props {
-  tier: PlanStratum;
+  stratum: PlanStratum;
   objective: PlanStratumObjective;
   status: PlanStratumObjectiveStatus;
-  onBackToTier: (tier: PlanStratum) => void;
+  onBackToStratum: (stratum: PlanStratum) => void;
 }
 
 const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
@@ -27,22 +27,22 @@ const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
 };
 
 export default function ObjectiveHeader({
-  tier,
+  stratum,
   objective,
   status,
-  onBackToTier,
+  onBackToStratum,
 }: Props) {
   return (
     <header className={css.header} data-status={status}>
       <button
         type="button"
         className={css.crumb}
-        onClick={() => onBackToTier(tier)}
-        aria-label={`Back to ${tier.title}`}
+        onClick={() => onBackToStratum(stratum)}
+        aria-label={`Back to ${stratum.title}`}
       >
         <ArrowLeft size={12} aria-hidden="true" />
         <span>
-          Stratum {tier.ordinal} &middot; {tier.title}
+          Stratum {stratum.ordinal} &middot; {stratum.title}
         </span>
       </button>
       <h1 className={css.title}>{objective.title}</h1>

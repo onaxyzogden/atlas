@@ -1,5 +1,5 @@
-// ObjectiveColumn — right-hand column of the Plan tier shell shown when
-// a tier is selected (Plan Navigation Spec v1, Slice 1.5). Composes an
+// ObjectiveColumn — right-hand column of the Plan stratum shell shown when
+// a stratum is selected (Plan Navigation Spec v1, Slice 1.5). Composes an
 // optional ParallelCallout, a featured NextUpCard, and the remaining
 // objectives as ObjectiveCards. Click is delegated to the parent so the
 // shell can hoist navigation centrally.
@@ -26,7 +26,7 @@ const DIVERGENT_STATUSES = new Set([
 ]);
 
 interface Props {
-  tier: PlanStratum;
+  stratum: PlanStratum;
   objectives: readonly PlanStratumObjective[];
   objectiveStatuses: Readonly<Record<string, PlanStratumObjectiveStatus>>;
   activeObjectiveId: string | null;
@@ -61,7 +61,7 @@ const STATUS_PRIORITY: PlanStratumObjectiveStatus[] = [
 ];
 
 export default function ObjectiveColumn({
-  tier,
+  stratum,
   objectives,
   objectiveStatuses,
   activeObjectiveId,
@@ -75,8 +75,8 @@ export default function ObjectiveColumn({
     [highlightObjectiveIds],
   );
   const stratumObjectives = useMemo(
-    () => objectives.filter((o) => o.stratumId === tier.id),
-    [tier.id, objectives],
+    () => objectives.filter((o) => o.stratumId === stratum.id),
+    [stratum.id, objectives],
   );
 
   // Slice 3.5 — divergence flag counts per objective from Act (§6.4).
@@ -162,7 +162,7 @@ export default function ObjectiveColumn({
   }, [stratumObjectives, nextUp, objectiveStatuses]);
 
   return (
-    <section className={css.column} aria-label={`Objectives in ${tier.title}`}>
+    <section className={css.column} aria-label={`Objectives in ${stratum.title}`}>
       {parallelSiblings.length >= 2 && (
         <ParallelCallout objectives={parallelSiblings} />
       )}

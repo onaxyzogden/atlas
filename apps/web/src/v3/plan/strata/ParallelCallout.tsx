@@ -1,5 +1,5 @@
 // ParallelCallout — banner that surfaces when two or more objectives in
-// a tier share the same `parallelGroupId` and are simultaneously
+// a stratum share the same `parallelGroupId` and are simultaneously
 // available with no prerequisite ordering between them (Plan Navigation
 // Spec v1, Slice 1.5). Lets the steward know they can pick either to
 // start.

@@ -30,16 +30,16 @@ import {
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
 import {
-  usePlanTierProgressStore,
+  usePlanStratumProgressStore,
   selectProjectProgress,
   toProgressMap,
-} from '../../../store/planTierStore.js';
+} from '../../../store/planStratumStore.js';
 import ActObjectiveHeader from './ActObjectiveHeader.js';
 import ActMapStrip from './ActMapStrip.js';
 import ActTaskList from './ActTaskList.js';
 import ActObjectiveCompletionGate from './ActObjectiveCompletionGate.js';
 import ActMapView from './ActMapView.js';
-import { useProjectObjectives } from '../../plan/tiers/useProjectObjectives.js';
+import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
 import css from './ViewAObjectiveExecution.module.css';
 
 interface Props {
@@ -74,7 +74,7 @@ function useObjectiveStatus(
   // checklist progress so prereq satisfaction is honoured topologically — no
   // optimistic approximation that would falsely flip a locked objective
   // to available.
-  const byObjective = usePlanTierProgressStore((s) =>
+  const byObjective = usePlanStratumProgressStore((s) =>
     selectProjectProgress(s, projectId),
   );
   return useMemo<PlanStratumObjectiveStatus>(() => {

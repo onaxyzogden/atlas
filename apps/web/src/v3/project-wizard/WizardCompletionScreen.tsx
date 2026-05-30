@@ -24,9 +24,9 @@ import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { useProjectStore } from '../../store/projectStore.js';
-import { useProjectObjectives } from '../plan/tiers/useProjectObjectives.js';
+import { useProjectObjectives } from '../plan/strata/useProjectObjectives.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
-import { deriveTier0EvidenceMap } from '../plan/tiers/visionProfileToChecklist.js';
+import { deriveStratum1EvidenceMap } from '../plan/strata/visionProfileToChecklist.js';
 import styles from './WizardCompletionScreen.module.css';
 
 interface WizardCompletionScreenProps {
@@ -74,7 +74,7 @@ export default function WizardCompletionScreen({
   );
 
   const derivedMap = useMemo(
-    () => deriveTier0EvidenceMap(project?.metadata?.visionProfile),
+    () => deriveStratum1EvidenceMap(project?.metadata?.visionProfile),
     [project?.metadata?.visionProfile],
   );
 

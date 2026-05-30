@@ -11,7 +11,7 @@
  *
  * Persisted (key `ogden-project-wizard`) so a steward who closes the
  * tab mid-Step-1 can resume at the same fresh URL. Distinct from
- * `planTierStore` / `cyclicalReviewStore` — different lifetime (pre-
+ * `planStratumStore` / `cyclicalReviewStore` — different lifetime (pre-
  * create only) and different key namespace.
  *
  * No coupling to `projectStore`: this store knows nothing about

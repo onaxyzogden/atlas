@@ -1,6 +1,6 @@
 /*
- * ObjectiveHeader — tier breadcrumb, title, focused question, status pill.
- * Status colors mirror TierRow.module.css / ObjectiveCard.module.css so the
+ * ObjectiveHeader — stratum breadcrumb, title, focused question, status pill.
+ * Status colors mirror StratumRow.module.css / ObjectiveCard.module.css so the
  * full spine reads the same state palette.
  */
 

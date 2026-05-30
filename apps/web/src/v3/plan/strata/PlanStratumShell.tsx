@@ -1,6 +1,6 @@
-// PlanTierShell — entry point for the OLOS Plan tier spine (Plan
+// PlanStratumShell — entry point for the OLOS Plan stratum spine (Plan
 // Navigation Spec v1). Slice 1.5 adds the right-hand ObjectiveColumn
-// that surfaces the active tier's objectives (NextUpCard, parallel
+// that surfaces the active stratum's objectives (NextUpCard, parallel
 // callout, ObjectiveCards). Slice 1.6 mounts the ObjectiveDetailPanel
 // as a 3rd column when an objective is selected — OBJECTIVE header
 // + MAP ACTIVATION strip + embedded ObjectiveMap (Plan stage = DesignMap).
@@ -18,37 +18,37 @@ import {
 import type { PlanStratum, PlanStratumObjective } from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
 import {
-  selectCelebratedTiers,
+  selectCelebratedStrata,
   selectProjectProgress,
   toProgressMap,
-  usePlanTierProgressStore,
-} from '../../../store/planTierStore.js';
+  usePlanStratumProgressStore,
+} from '../../../store/planStratumStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import PlanNavToggle from '../PlanNavToggle.js';
-import TierSpine from './TierSpine.js';
-import TierLockedPopover from './TierLockedPopover.js';
+import StratumSpine from './StratumSpine.js';
+import StratumLockedPopover from './StratumLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import { useProjectObjectives } from './useProjectObjectives.js';
-import TierUnlockCelebration from './TierUnlockCelebration.js';
+import StratumUnlockCelebration from './StratumUnlockCelebration.js';
 import {
-  deriveTier0EvidenceMap,
-  deriveTier0StewardshipMap,
+  deriveStratum1EvidenceMap,
+  deriveStratum1StewardshipMap,
   mergeDerivedIntoProgress,
   type VisionDerivedMap,
 } from './visionProfileToChecklist.js';
-import css from './PlanTierShell.module.css';
+import css from './PlanStratumShell.module.css';
 
 const HIGHLIGHT_DURATION_MS = 3000;
-const T0_TIER_ID = 's1-project-foundation';
+const S1_STRATUM_ID = 's1-project-foundation';
 
 interface Props {
   shellMode: PlanShellMode;
   onShellModeChange: (mode: PlanShellMode) => void;
 }
 
-export default function PlanTierShell({
+export default function PlanStratumShell({
   shellMode,
   onShellModeChange,
 }: Props) {
@@ -62,7 +62,7 @@ export default function PlanTierShell({
     objectiveId?: string;
   };
   // Slice 2.4 — wizard completion can deep-link with
-  // `?highlightIncomplete=s1` to flash attention onto T0's incomplete
+  // `?highlightIncomplete=s1` to flash attention onto S1's incomplete
   // objectives. Read non-strict so the same shell handles every plan
   // route (the param is only forwarded by /plan but every plan route
   // mounts this shell).
@@ -76,16 +76,16 @@ export default function PlanTierShell({
   // static skeleton. Falls back to the skeleton for null-type (MTC) and
   // pre-slice projects (see useProjectObjectives).
   const { objectives } = useProjectObjectives(projectId);
-  const activeTierId = params.stratumId ?? null;
+  const activeStratumId = params.stratumId ?? null;
   const activeObjective = params.objectiveId
     ? (findPlanStratumObjectiveIn(objectives, params.objectiveId) ?? null)
     : null;
   const activeObjectiveId = activeObjective?.id ?? null;
-  // Prefer the URL tier when present; otherwise fall back to the
-  // objective's owning tier so the panel still mounts if a deep link
-  // omits the tier segment.
-  const activeTier = activeTierId
-    ? (findPlanStratum(activeTierId) ?? null)
+  // Prefer the URL stratum when present; otherwise fall back to the
+  // objective's owning stratum so the panel still mounts if a deep link
+  // omits the stratum segment.
+  const activeStratum = activeStratumId
+    ? (findPlanStratum(activeStratumId) ?? null)
     : activeObjective
       ? (findPlanStratum(activeObjective.stratumId) ?? null)
       : null;
@@ -95,21 +95,21 @@ export default function PlanTierShell({
   // all objective catalogues + injected patch items, so the flat
   // `Record<itemId, boolean>` collapse is lossless. Selector returns a stable
   // empty record when the project has no progress, so re-renders stay tight.
-  const projectProgress = usePlanTierProgressStore((s) =>
+  const projectProgress = usePlanStratumProgressStore((s) =>
     selectProjectProgress(s, projectId),
   );
 
   // Slice 1.12 — Stage Zero Vision Builder bridge. The steward's
-  // VisionProfile answers pre-satisfy a subset of the T0 checklist
+  // VisionProfile answers pre-satisfy a subset of the S1 checklist
   // (see visionProfileToChecklist.ts for coverage). Merge the derived
   // completions into the progress map BEFORE the status engine runs
-  // so the tier spine and TierUnlockCelebration reflect Stage Zero
-  // progress without any write to planTierStore.
+  // so the stratum spine and StratumUnlockCelebration reflect Stage Zero
+  // progress without any write to planStratumStore.
   const visionProfile = useProjectStore(
     (s) => s.projects.find((p) => p.id === projectId)?.metadata?.visionProfile,
   );
   const visionDerivedMap = useMemo(
-    () => deriveTier0EvidenceMap(visionProfile),
+    () => deriveStratum1EvidenceMap(visionProfile),
     [visionProfile],
   );
 
@@ -121,7 +121,7 @@ export default function PlanTierShell({
     (s) => s.projects.find((p) => p.id === projectId)?.metadata?.team,
   );
   const stewardshipDerivedMap = useMemo(
-    () => deriveTier0StewardshipMap(team),
+    () => deriveStratum1StewardshipMap(team),
     [team],
   );
 
@@ -144,7 +144,7 @@ export default function PlanTierShell({
       ),
     [objectives, projectProgress, derivedMap],
   );
-  const tierStates = useMemo(
+  const stratumStates = useMemo(
     () =>
       computeAllStratumStates(
         PLAN_STRATA.map((t) => t.id),
@@ -154,24 +154,24 @@ export default function PlanTierShell({
     [objectives, objectiveStatuses],
   );
 
-  // The locked-tier popover is hoisted into the shell so the spine stays
+  // The locked-stratum popover is hoisted into the shell so the spine stays
   // presentational. `null` means no popover is open.
-  const [lockedPopoverTier, setLockedPopoverTier] = useState<PlanStratum | null>(
+  const [lockedPopoverStratum, setLockedPopoverStratum] = useState<PlanStratum | null>(
     null,
   );
 
-  // Slice 2.4 — transient flash on T0's incomplete objectives, driven by
+  // Slice 2.4 — transient flash on S1's incomplete objectives, driven by
   // `?highlightIncomplete=s1`. The wizard "Continue setup in Plan" CTA is
   // the canonical source; deep links also work. Strip the URL once
   // consumed so a refresh doesn't re-fire.
-  const [highlightTierId, setHighlightTierId] = useState<string | null>(null);
+  const [highlightStratumId, setHighlightStratumId] = useState<string | null>(null);
   const highlightConsumedRef = useRef(false);
 
   useEffect(() => {
     if (highlightConsumedRef.current) return;
     if (search?.highlightIncomplete !== 's1') return;
     highlightConsumedRef.current = true;
-    setHighlightTierId(T0_TIER_ID);
+    setHighlightStratumId(S1_STRATUM_ID);
     if (typeof window !== 'undefined') {
       try {
         const url = new URL(window.location.href);
@@ -183,64 +183,64 @@ export default function PlanTierShell({
       }
     }
     const timer = window.setTimeout(
-      () => setHighlightTierId(null),
+      () => setHighlightStratumId(null),
       HIGHLIGHT_DURATION_MS,
     );
     return () => window.clearTimeout(timer);
   }, [search?.highlightIncomplete]);
 
   const highlightObjectiveIds = useMemo<readonly string[]>(() => {
-    if (!highlightTierId) return [];
+    if (!highlightStratumId) return [];
     return objectives.filter(
       (o) =>
-        o.stratumId === highlightTierId &&
+        o.stratumId === highlightStratumId &&
         (objectiveStatuses[o.id] ?? 'locked') !== 'complete',
     ).map((o) => o.id);
-  }, [highlightTierId, objectives, objectiveStatuses]);
+  }, [highlightStratumId, objectives, objectiveStatuses]);
 
-  // Slice 1.10 — TierUnlockCelebration. Watch tier states and surface a
-  // celebration the first time any tier (other than T0, which has no
+  // Slice 1.10 — StratumUnlockCelebration. Watch stratum states and surface a
+  // celebration the first time any stratum (other than S1, which has no
   // prereqs to "unlock" from) reaches a non-locked state without having
-  // been celebrated yet. Once dismissed or opened, the tier id is logged
-  // to the planTierStore so it never fires again.
-  const celebratedTierIds = usePlanTierProgressStore((s) =>
-    selectCelebratedTiers(s, projectId),
+  // been celebrated yet. Once dismissed or opened, the stratum id is logged
+  // to the planStratumStore so it never fires again.
+  const celebratedStratumIds = usePlanStratumProgressStore((s) =>
+    selectCelebratedStrata(s, projectId),
   );
-  const markTierCelebrated = usePlanTierProgressStore(
-    (s) => s.markTierCelebrated,
+  const markStratumCelebrated = usePlanStratumProgressStore(
+    (s) => s.markStratumCelebrated,
   );
-  const [celebratingTierId, setCelebratingTierId] = useState<string | null>(
+  const [celebratingStratumId, setCelebratingStratumId] = useState<string | null>(
     null,
   );
 
   useEffect(() => {
-    if (!projectId || celebratingTierId) return;
-    for (const tier of PLAN_STRATA) {
-      if (tier.ordinal === 0) continue;
-      const state = tierStates[tier.id] ?? 'locked';
+    if (!projectId || celebratingStratumId) return;
+    for (const stratum of PLAN_STRATA) {
+      if (stratum.ordinal === 0) continue;
+      const state = stratumStates[stratum.id] ?? 'locked';
       if (state === 'locked') continue;
-      if (celebratedTierIds.includes(tier.id)) continue;
-      setCelebratingTierId(tier.id);
+      if (celebratedStratumIds.includes(stratum.id)) continue;
+      setCelebratingStratumId(stratum.id);
       return;
     }
-  }, [tierStates, projectId, celebratingTierId, celebratedTierIds]);
+  }, [stratumStates, projectId, celebratingStratumId, celebratedStratumIds]);
 
-  const celebratingTier = celebratingTierId
-    ? (findPlanStratum(celebratingTierId) ?? null)
+  const celebratingStratum = celebratingStratumId
+    ? (findPlanStratum(celebratingStratumId) ?? null)
     : null;
-  const celebratingFirstObjective = celebratingTier
+  const celebratingFirstObjective = celebratingStratum
     ? (objectives.find(
         (o) =>
-          o.stratumId === celebratingTier.id &&
+          o.stratumId === celebratingStratum.id &&
           (objectiveStatuses[o.id] ?? 'locked') !== 'locked',
       ) ?? null)
     : null;
 
-  const navigateToTier = (tier: PlanStratum) => {
+  const navigateToStratum = (stratum: PlanStratum) => {
     if (!projectId) return;
     navigate({
       to: '/v3/project/$projectId/plan/stratum/$stratumId',
-      params: { projectId, stratumId: tier.id },
+      params: { projectId, stratumId: stratum.id },
     });
   };
 
@@ -252,7 +252,7 @@ export default function PlanTierShell({
     });
   };
 
-  // Slice 4.4 — deep-link from a Plan tier objective divergence pill
+  // Slice 4.4 — deep-link from a Plan stratum objective divergence pill
   // into the matching Observe Domain Detail surface so the steward can
   // see the diverged evidence in context (spec §6.4).
   const navigateToDomainDetail = (domainId: string) => {
@@ -269,21 +269,21 @@ export default function PlanTierShell({
     navigateToDomainDetail(domainId);
   };
 
-  const handleSelectTier = (tier: PlanStratum) => {
-    const state = tierStates[tier.id] ?? 'locked';
+  const handleSelectStratum = (stratum: PlanStratum) => {
+    const state = stratumStates[stratum.id] ?? 'locked';
     if (state === 'locked') {
-      setLockedPopoverTier(tier);
+      setLockedPopoverStratum(stratum);
       return;
     }
-    navigateToTier(tier);
+    navigateToStratum(stratum);
   };
 
   const handleSelectObjective = (obj: PlanStratumObjective) => {
     navigateToObjective(obj.id, obj.stratumId);
   };
 
-  const hasObjectiveColumn = activeTier !== null;
-  const hasDetailPanel = activeObjective !== null && activeTier !== null;
+  const hasObjectiveColumn = activeStratum !== null;
+  const hasDetailPanel = activeObjective !== null && activeStratum !== null;
 
   return (
     <div className={css.shell}>
@@ -301,19 +301,19 @@ export default function PlanTierShell({
         data-has-objective-column={hasObjectiveColumn}
         data-has-detail-panel={hasDetailPanel}
       >
-        <TierSpine
-          tiers={PLAN_STRATA}
+        <StratumSpine
+          strata={PLAN_STRATA}
           objectives={objectives}
           objectiveStatuses={objectiveStatuses}
-          tierStates={tierStates}
-          activeTierId={activeTierId}
-          highlightTierId={highlightTierId}
-          onSelectTier={handleSelectTier}
+          stratumStates={stratumStates}
+          activeStratumId={activeStratumId}
+          highlightStratumId={highlightStratumId}
+          onSelectStratum={handleSelectStratum}
         />
 
-        {activeTier && (
+        {activeStratum && (
           <ObjectiveColumn
-            tier={activeTier}
+            stratum={activeStratum}
             objectives={objectives}
             objectiveStatuses={objectiveStatuses}
             activeObjectiveId={activeObjectiveId}
@@ -324,45 +324,45 @@ export default function PlanTierShell({
           />
         )}
 
-        {hasDetailPanel && activeObjective && activeTier && (
+        {hasDetailPanel && activeObjective && activeStratum && (
           <ObjectiveDetailPanel
             key={activeObjective.id}
             projectId={projectId}
-            tier={activeTier}
+            stratum={activeStratum}
             objective={activeObjective}
             status={objectiveStatuses[activeObjective.id] ?? 'locked'}
             project={project}
-            onBackToTier={navigateToTier}
+            onBackToStratum={navigateToStratum}
             visionDerivedMap={derivedMap}
           />
         )}
       </div>
 
-      {lockedPopoverTier && (
-        <TierLockedPopover
-          tier={lockedPopoverTier}
+      {lockedPopoverStratum && (
+        <StratumLockedPopover
+          stratum={lockedPopoverStratum}
           objectives={objectives}
           objectiveStatuses={objectiveStatuses}
           onAcknowledge={(obj) => {
-            setLockedPopoverTier(null);
+            setLockedPopoverStratum(null);
             navigateToObjective(obj.id, obj.stratumId);
           }}
-          onDismiss={() => setLockedPopoverTier(null)}
+          onDismiss={() => setLockedPopoverStratum(null)}
         />
       )}
 
-      {celebratingTier && (
-        <TierUnlockCelebration
-          tier={celebratingTier}
+      {celebratingStratum && (
+        <StratumUnlockCelebration
+          stratum={celebratingStratum}
           firstObjective={celebratingFirstObjective}
-          onOpenTier={() => {
-            markTierCelebrated(projectId, celebratingTier.id);
-            setCelebratingTierId(null);
-            navigateToTier(celebratingTier);
+          onOpenStratum={() => {
+            markStratumCelebrated(projectId, celebratingStratum.id);
+            setCelebratingStratumId(null);
+            navigateToStratum(celebratingStratum);
           }}
           onDismiss={() => {
-            markTierCelebrated(projectId, celebratingTier.id);
-            setCelebratingTierId(null);
+            markStratumCelebrated(projectId, celebratingStratum.id);
+            setCelebratingStratumId(null);
           }}
         />
       )}

@@ -1,30 +1,30 @@
-// TierUnlockCelebration — overlay shown when a Plan tier transitions from
+// StratumUnlockCelebration — overlay shown when a Plan stratum transitions from
 // `locked` to a reachable state (Plan Navigation Spec v1, Slice 1.10).
-// Matches the spec's screenshot 4 — tier ordinal + title, the steward's
-// first available objective in the new tier, and two CTAs: "Open Tier"
+// Matches the spec's screenshot 4 — stratum ordinal + title, the steward's
+// first available objective in the new stratum, and two CTAs: "Open Stratum"
 // navigates and dismisses, "Close" simply dismisses.
 //
-// Dedup: trigger logic in PlanTierShell consults
-// `planTierStore.hasCelebratedTier` before mounting this component, and
-// calls `markTierCelebrated` when it dismisses. The component itself is
+// Dedup: trigger logic in PlanStratumShell consults
+// `planStratumStore.hasCelebratedStratum` before mounting this component, and
+// calls `markStratumCelebrated` when it dismisses. The component itself is
 // stateless beyond focus management.
 
 import { useEffect, useRef } from 'react';
 import { ArrowRight, Sparkles, X } from 'lucide-react';
 import type { PlanStratum, PlanStratumObjective } from '@ogden/shared';
-import css from './TierUnlockCelebration.module.css';
+import css from './StratumUnlockCelebration.module.css';
 
 interface Props {
-  tier: PlanStratum;
+  stratum: PlanStratum;
   firstObjective: PlanStratumObjective | null;
-  onOpenTier: () => void;
+  onOpenStratum: () => void;
   onDismiss: () => void;
 }
 
-export default function TierUnlockCelebration({
-  tier,
+export default function StratumUnlockCelebration({
+  stratum,
   firstObjective,
-  onOpenTier,
+  onOpenStratum,
   onDismiss,
 }: Props) {
   const openButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -44,22 +44,22 @@ export default function TierUnlockCelebration({
       className={css.backdrop}
       role="presentation"
       onClick={onDismiss}
-      data-testid="plan-tier-unlock-backdrop"
+      data-testid="plan-stratum-unlock-backdrop"
     >
       <div
         className={css.card}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="tier-unlock-title"
+        aria-labelledby="stratum-unlock-title"
         onClick={(e) => e.stopPropagation()}
-        data-testid="plan-tier-unlock-card"
+        data-testid="plan-stratum-unlock-card"
       >
         <button
           type="button"
           className={css.close}
           onClick={onDismiss}
           aria-label="Close celebration"
-          data-testid="plan-tier-unlock-close"
+          data-testid="plan-stratum-unlock-close"
         >
           <X size={16} aria-hidden />
         </button>
@@ -68,11 +68,11 @@ export default function TierUnlockCelebration({
           <Sparkles size={22} />
         </div>
 
-        <p className={css.eyebrow}>Stratum {tier.ordinal} unlocked</p>
-        <h2 className={css.title} id="tier-unlock-title">
-          {tier.title}
+        <p className={css.eyebrow}>Stratum {stratum.ordinal} unlocked</p>
+        <h2 className={css.title} id="stratum-unlock-title">
+          {stratum.title}
         </h2>
-        <p className={css.summary}>{tier.summary}</p>
+        <p className={css.summary}>{stratum.summary}</p>
 
         {firstObjective ? (
           <div className={css.objectiveBlock}>
@@ -96,7 +96,7 @@ export default function TierUnlockCelebration({
             type="button"
             className={css.secondary}
             onClick={onDismiss}
-            data-testid="plan-tier-unlock-dismiss"
+            data-testid="plan-stratum-unlock-dismiss"
           >
             Close
           </button>
@@ -104,8 +104,8 @@ export default function TierUnlockCelebration({
             ref={openButtonRef}
             type="button"
             className={css.primary}
-            onClick={onOpenTier}
-            data-testid="plan-tier-unlock-open"
+            onClick={onOpenStratum}
+            data-testid="plan-stratum-unlock-open"
           >
             <span>Open stratum</span>
             <ArrowRight size={14} aria-hidden />

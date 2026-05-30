@@ -1,8 +1,8 @@
 /*
- * TierSpine — vertical column of TierRows with a left-edge connecting
+ * StratumSpine — vertical column of StratumRows with a left-edge connecting
  * line that threads the spine dots. The connecting line is a single
- * 2px column positioned to fall under the centres of each TierRow's
- * spineDot (TierRow column 1 is 28px wide; the dot is 24px centred,
+ * 2px column positioned to fall under the centres of each StratumRow's
+ * spineDot (StratumRow column 1 is 28px wide; the dot is 24px centred,
  * so the line sits at 14px + the row's 14px left padding = 28px).
  */
 

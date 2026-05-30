@@ -1,15 +1,15 @@
 /*
- * TierRow — single row in the Plan tier spine (Plan Navigation Spec v1).
- * The row aligns its spine dot with the parent TierSpine's connecting
- * line so the 7 tiers visually thread together. Surface treatment leans
+ * StratumRow — single row in the Plan stratum spine (Plan Navigation Spec v1).
+ * The row aligns its spine dot with the parent StratumSpine's connecting
+ * line so the 7 strata visually thread together. Surface treatment leans
  * on the BentoBox primitive (color-mix surface 96%/white + hairline
  * border + --radius-lg) for visual cohesion with the rest of OLOS.
  */
 
 .row {
-  --tier-state-color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
-  --tier-state-bg: color-mix(in srgb, var(--color-surface, #1f1d1a) 92%, #fff);
-  --tier-state-border: color-mix(
+  --stratum-state-color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  --stratum-state-bg: color-mix(in srgb, var(--color-surface, #1f1d1a) 92%, #fff);
+  --stratum-state-border: color-mix(
     in srgb,
     var(--color-border, rgba(242, 237, 227, 0.12)) 88%,
     #fff
@@ -22,8 +22,8 @@
   gap: 14px;
   padding: 14px 18px 14px 14px;
   width: 100%;
-  background: var(--tier-state-bg);
-  border: 1px solid var(--tier-state-border);
+  background: var(--stratum-state-bg);
+  border: 1px solid var(--stratum-state-border);
   border-radius: var(--radius-lg, 12px);
   font-family: inherit;
   font-size: 14px;
@@ -37,8 +37,8 @@
 .row:hover {
   border-color: color-mix(
     in srgb,
-    var(--tier-state-color) 45%,
-    var(--tier-state-border)
+    var(--stratum-state-color) 45%,
+    var(--stratum-state-border)
   );
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
@@ -51,22 +51,22 @@
 /* --- state colors -------------------------------------------------------- */
 
 .row[data-state='complete'] {
-  --tier-state-color: #5dd39e;
+  --stratum-state-color: #5dd39e;
 }
 
 .row[data-state='active'] {
-  --tier-state-color: var(--color-gold-brand, #c4a265);
+  --stratum-state-color: var(--color-gold-brand, #c4a265);
   border-color: color-mix(
     in srgb,
     var(--color-gold-brand, #c4a265) 45%,
-    var(--tier-state-border)
+    var(--stratum-state-border)
   );
   box-shadow: 0 0 0 1px
     color-mix(in srgb, var(--color-gold-brand, #c4a265) 25%, transparent);
 }
 
 .row[data-state='available'] {
-  --tier-state-color: color-mix(
+  --stratum-state-color: color-mix(
     in srgb,
     var(--color-gold-brand, #c4a265) 70%,
     var(--color-text, #f2ede3)
@@ -85,7 +85,7 @@
   background: color-mix(
     in srgb,
     var(--color-gold-brand, #c4a265) 10%,
-    var(--tier-state-bg)
+    var(--stratum-state-bg)
   );
 }
 
@@ -101,20 +101,20 @@
   height: 24px;
   border-radius: 50%;
   background: var(--color-bg, #1f1d1a);
-  border: 2px solid var(--tier-state-color);
-  color: var(--tier-state-color);
+  border: 2px solid var(--stratum-state-color);
+  color: var(--stratum-state-color);
 }
 
 .spineDotInner {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--tier-state-color);
+  background: var(--stratum-state-color);
   opacity: 0.85;
 }
 
 .row[data-state='complete'] .spineDot {
-  background: var(--tier-state-color);
+  background: var(--stratum-state-color);
   color: #18221b;
 }
 
@@ -128,7 +128,7 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: var(--tier-state-color);
+  color: var(--stratum-state-color);
 }
 
 .body {
@@ -160,8 +160,8 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: color-mix(in srgb, var(--tier-state-color) 18%, transparent);
-  color: var(--tier-state-color);
+  background: color-mix(in srgb, var(--stratum-state-color) 18%, transparent);
+  color: var(--stratum-state-color);
   white-space: nowrap;
 }
 
@@ -182,10 +182,10 @@
 /* --- Slice 2.4 highlight flash ------------------------------------------ */
 /*
  * Three 1s pulses of a gold ring around the row, then fade. Triggered by
- * the wizard "Continue setup in Plan" CTA (?highlightIncomplete=t0) and
- * cleared by PlanTierShell after 3s. Honours reduced-motion preferences.
+ * the wizard "Continue setup in Plan" CTA (?highlightIncomplete=s1) and
+ * cleared by PlanStratumShell after 3s. Honours reduced-motion preferences.
  */
-@keyframes tier-row-highlight-pulse {
+@keyframes stratum-row-highlight-pulse {
   0%,
   100% {
     box-shadow: 0 0 0 0
@@ -198,7 +198,7 @@
 }
 
 .row[data-highlighting='true'] {
-  animation: tier-row-highlight-pulse 1s ease-out 3;
+  animation: stratum-row-highlight-pulse 1s ease-out 3;
 }
 
 @media (prefers-reduced-motion: reduce) {

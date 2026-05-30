@@ -85,7 +85,7 @@ import DesignStatusChip from './header/DesignStatusChip.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import PlanReadyCue from './components/PlanReadyCue.js';
 import PlanNavToggle from './PlanNavToggle.js';
-import PlanTierShell from './tiers/PlanTierShell.js';
+import PlanStratumShell from './strata/PlanStratumShell.js';
 import css from './PlanLayout.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -445,7 +445,7 @@ export default function PlanLayout() {
     />
   );
 
-  if (planShellMode === 'tier-spine') {
+  if (planShellMode === 'stratum-spine') {
     return (
       <PlanViewProvider view={activeView}>
         <StageShell
@@ -454,7 +454,7 @@ export default function PlanLayout() {
           rightRailLabel="Plan checklist"
           leftRail={null}
           canvas={
-            <PlanTierShell
+            <PlanStratumShell
               shellMode={planShellMode}
               onShellModeChange={handleShellModeChange}
             />

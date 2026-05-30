@@ -4,7 +4,7 @@
  *
  * Visual sibling to DecisionChecklist — top hairline, gold eyebrow, body
  * gets a dashed surface so the embedded legacy card visually separates
- * from the tier-shell chrome that owns it.
+ * from the stratum-shell chrome that owns it.
  */
 
 .section {
@@ -63,7 +63,7 @@
   border-radius: var(--radius-md, 8px);
   background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
   /* Embedded legacy cards expect roughly full-width room. Scroll if a card
-   * is too tall — keeps the tier shell layout predictable. */
+   * is too tall — keeps the stratum shell layout predictable. */
   max-height: 520px;
   overflow: auto;
 }
