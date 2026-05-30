@@ -6,13 +6,15 @@
 // catalogue means adding it here and nowhere else.
 //
 // Currently encoded: regenerative_farm (primary, anchor v1.3), ecovillage
-// (primary, v1.2), agritourism (primary, v1.0), and wellness (primary, v1.0)
-// on the primary side; residential (secondary, v1.0) and wellness (secondary,
-// authored overlay per the 2026-05-30 derive+author ruling) on the secondary
-// side. Every other primary resolves to the universal-only baseline; every
-// other secondary returns undefined (nothing to layer). agritourism
-// canBeSecondary in the taxonomy, but its catalogue doc carries only a primary
-// layer - no secondary spec yet.
+// (primary, v1.2), agritourism (primary, v1.0), wellness (primary, v1.0),
+// silvopasture (primary, v1.0), and orchard_food_forest (primary, v1.0) on the
+// primary side; residential (secondary, v1.0) and wellness (secondary, authored
+// overlay per the 2026-05-30 derive+author ruling) on the secondary side. Every
+// other primary resolves to the universal-only baseline; every other secondary
+// returns undefined (nothing to layer). agritourism canBeSecondary in the
+// taxonomy, but its catalogue doc carries only a primary layer - no secondary
+// spec yet. silvopasture / orchard secondary layers and their primary-sourced
+// universal-augmentation patches are pending operator source files (2026-05-30).
 
 import type {
   PatchRecord,
@@ -31,6 +33,8 @@ import {
   WELLNESS_PRIMARY_OBJECTIVES,
   WELLNESS_SECONDARY_OBJECTIVES,
 } from './wellness.js';
+import { SILVOPASTURE_PRIMARY_OBJECTIVES } from './silvopasture.js';
+import { ORCHARD_PRIMARY_OBJECTIVES } from './orchard.js';
 
 export {
   UNIVERSAL_PLAN_OBJECTIVES,
@@ -42,6 +46,8 @@ export {
   RESIDENTIAL_PATCHES,
   WELLNESS_PRIMARY_OBJECTIVES,
   WELLNESS_SECONDARY_OBJECTIVES,
+  SILVOPASTURE_PRIMARY_OBJECTIVES,
+  ORCHARD_PRIMARY_OBJECTIVES,
 };
 
 /** The universal baseline plus a primary type's own objectives. */
@@ -75,7 +81,11 @@ export function getPrimaryCatalogue(
           ? AGRITOURISM_PRIMARY_OBJECTIVES
           : primaryTypeId === 'wellness'
             ? WELLNESS_PRIMARY_OBJECTIVES
-            : [];
+            : primaryTypeId === 'silvopasture'
+              ? SILVOPASTURE_PRIMARY_OBJECTIVES
+              : primaryTypeId === 'orchard_food_forest'
+                ? ORCHARD_PRIMARY_OBJECTIVES
+                : [];
   return { universal: UNIVERSAL_PLAN_OBJECTIVES, primary };
 }
 
@@ -118,6 +128,8 @@ const ALL_CATALOGUE_OBJECTIVES: readonly PlanStratumObjective[] = (() => {
     ...RESIDENTIAL_ADDITIVE_OBJECTIVES,
     ...WELLNESS_PRIMARY_OBJECTIVES,
     ...WELLNESS_SECONDARY_OBJECTIVES,
+    ...SILVOPASTURE_PRIMARY_OBJECTIVES,
+    ...ORCHARD_PRIMARY_OBJECTIVES,
   ]) {
     if (!byId.has(o.id)) byId.set(o.id, o);
   }

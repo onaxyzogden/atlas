@@ -13,6 +13,8 @@ import {
   RESIDENTIAL_PATCHES,
   WELLNESS_PRIMARY_OBJECTIVES,
   WELLNESS_SECONDARY_OBJECTIVES,
+  SILVOPASTURE_PRIMARY_OBJECTIVES,
+  ORCHARD_PRIMARY_OBJECTIVES,
 } from '../catalogues/index.js';
 import {
   resolveProjectObjectives,
@@ -27,9 +29,11 @@ const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...RESIDENTIAL_ADDITIVE_OBJECTIVES,
   ...WELLNESS_PRIMARY_OBJECTIVES,
   ...WELLNESS_SECONDARY_OBJECTIVES,
+  ...SILVOPASTURE_PRIMARY_OBJECTIVES,
+  ...ORCHARD_PRIMARY_OBJECTIVES,
 ];
 
-const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL)-S[1-7]\.\d+$/;
+const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH)-S[1-7]\.\d+$/;
 
 const PATCH_REF = /^RES>(U|RF)-S[1-7]\.\d+$/;
 
@@ -127,6 +131,20 @@ describe('catalogue conformance - source/layer discipline', () => {
     for (const o of WELLNESS_PRIMARY_OBJECTIVES) {
       expect(o.source, o.id).toBe('primary');
       expect(o.sourceTypeId, o.id).toBe('wellness');
+    }
+  });
+
+  it('silvopasture primary objectives are source=primary, sourceTypeId=silvopasture', () => {
+    for (const o of SILVOPASTURE_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('silvopasture');
+    }
+  });
+
+  it('orchard primary objectives are source=primary, sourceTypeId=orchard_food_forest', () => {
+    for (const o of ORCHARD_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('orchard_food_forest');
     }
   });
 
@@ -311,5 +329,53 @@ describe('catalogue conformance - wellness secondary resolution', () => {
     expect(new Set(itemIds).size).toBe(itemIds.length);
     const objIds = objectives.map((o) => o.id);
     expect(new Set(objIds).size).toBe(objIds.length);
+  });
+});
+
+describe('catalogue conformance - silvopasture primary resolution', () => {
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'silvopasture',
+    secondaryTypeIds: [],
+  });
+
+  it('resolves to 45 objectives (19 universal + 26 primary)', () => {
+    expect(SILVOPASTURE_PRIMARY_OBJECTIVES.length).toBe(26);
+    expect(objectives.length).toBe(45);
+  });
+
+  it('has globally unique checklist item ids (toProgressMap invariant)', () => {
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+
+  it('every silvopasture primary ref is unique within the primary set', () => {
+    const refs = SILVOPASTURE_PRIMARY_OBJECTIVES.map((o) => o.ref);
+    expect(new Set(refs).size).toBe(refs.length);
+  });
+});
+
+describe('catalogue conformance - orchard primary resolution', () => {
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'orchard_food_forest',
+    secondaryTypeIds: [],
+  });
+
+  it('resolves to 44 objectives (19 universal + 25 primary)', () => {
+    expect(ORCHARD_PRIMARY_OBJECTIVES.length).toBe(25);
+    expect(objectives.length).toBe(44);
+  });
+
+  it('has globally unique checklist item ids (toProgressMap invariant)', () => {
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+
+  it('every orchard primary ref is unique within the primary set', () => {
+    const refs = ORCHARD_PRIMARY_OBJECTIVES.map((o) => o.ref);
+    expect(new Set(refs).size).toBe(refs.length);
   });
 });
