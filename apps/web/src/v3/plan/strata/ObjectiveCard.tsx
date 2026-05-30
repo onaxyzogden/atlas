@@ -36,6 +36,13 @@ interface Props {
    * domains. Rendered as an amber pill when > 0.
    */
   divergenceCount?: number;
+  /**
+   * Plan Nav v1.1 §7 — true when this objective's cyclical review is due
+   * (90-day clock elapsed or a forced trigger). Surfaces a small blue
+   * "Review" badge. Complete-only by predicate, so it never lights up a
+   * locked/active/available card.
+   */
+  reviewSuggested?: boolean;
   onSelect: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — optional callback fired when the divergence pill is
@@ -58,15 +65,21 @@ export default function ObjectiveCard({
   isActive,
   isHighlighting,
   divergenceCount = 0,
+  reviewSuggested = false,
   onSelect,
   onDivergenceClick,
 }: Props) {
   const hasDivergence = divergenceCount > 0;
   const sourceTag = getSourceTag(objective);
   const baseLabel = `${objective.title}: ${STATUS_LABEL[status]}`;
-  const ariaLabel = hasDivergence
-    ? `${baseLabel} — ${divergenceCount} divergence flag${divergenceCount === 1 ? '' : 's'}`
-    : baseLabel;
+  const ariaParts = [baseLabel];
+  if (hasDivergence) {
+    ariaParts.push(
+      `${divergenceCount} divergence flag${divergenceCount === 1 ? '' : 's'}`,
+    );
+  }
+  if (reviewSuggested) ariaParts.push('review suggested');
+  const ariaLabel = ariaParts.join(' — ');
   const handleClick = () => onSelect(objective);
   const handleKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -128,6 +141,12 @@ export default function ObjectiveCard({
             <RefreshCcw size={10} strokeWidth={2.5} aria-hidden="true" />
             {divergenceCount} divergence{divergenceCount === 1 ? '' : 's'}
           </button>
+        )}
+        {reviewSuggested && (
+          <span className={css.reviewBadge} title="Review suggested">
+            <RefreshCcw size={10} strokeWidth={2.5} aria-hidden="true" />
+            Review
+          </span>
         )}
         <span className={css.pill}>{STATUS_LABEL[status]}</span>
       </span>

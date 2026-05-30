@@ -4,9 +4,11 @@
 // objectives as ObjectiveCards. Click is delegated to the parent so the
 // shell can hoist navigation centrally.
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   getObjectiveObserveDomains,
+  isCyclicalReviewDue,
+  type DesignTension,
   type PlanStratum,
   type PlanStratumObjective,
   type PlanStratumObjectiveStatus,
@@ -14,9 +16,15 @@ import {
 } from '@ogden/shared';
 import { useObserveFeedStore } from '../../../store/observeFeedStore.js';
 import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
+import {
+  useCyclicalReviewStore,
+  selectProjectReviewMap,
+} from '../../../store/cyclicalReviewStore.js';
+import { usePlanTensionBannerStore } from '../../../store/planTensionBannerStore.js';
 import NextUpCard from './NextUpCard.js';
 import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
+import DesignTensionBanner from './DesignTensionBanner.js';
 import { getSourceTag, type SourceTagKind } from './sourceTag.js';
 import css from './ObjectiveColumn.module.css';
 
@@ -43,6 +51,18 @@ interface Props {
    * empty), divergence counts default to 0.
    */
   projectId?: string;
+  /**
+   * Plan Nav v1.1 §8 — active design tensions for this project's type
+   * pairing (from `useProjectObjectives`). Surfaced as a collapsible banner
+   * at the top of the column. Empty/omitted = no banner.
+   */
+  tensions?: readonly DesignTension[];
+  /**
+   * Plan Nav v1.1 §8 — the currently-open stratum id. Tensions whose
+   * `resolutionStratumId` matches get a static highlight ring and trigger a
+   * transient auto-expand of the banner.
+   */
+  activeStratumId?: string | null;
   onSelectObjective: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — invoked when the divergence pill on an objective card is
@@ -61,6 +81,11 @@ const STATUS_PRIORITY: PlanStratumObjectiveStatus[] = [
   'complete',
 ];
 
+// Plan Nav v1.1 §8 — how long the tension banner stays auto-expanded after the
+// steward arrives at a stratum where a tension resolves. Mirrors the spine's
+// HIGHLIGHT_DURATION_MS cadence (a touch longer, since there is reading to do).
+const TENSION_AUTO_EXPAND_MS = 5000;
+
 // Plan Nav v1.1 §5 — source filter. Purely a view filter over the rendered
 // list; it never touches `objectiveStatuses` or the spine's progress/unlock.
 type SourceFilter = 'all' | SourceTagKind;
@@ -78,6 +103,8 @@ export default function ObjectiveColumn({
   activeObjectiveId,
   highlightObjectiveIds,
   projectId,
+  tensions,
+  activeStratumId,
   onSelectObjective,
   onObjectiveDivergenceClick,
 }: Props) {
@@ -163,6 +190,65 @@ export default function ObjectiveColumn({
     return counts;
   }, [projectId, observeByProject, divergedDataPointDomainCounts, objectives]);
 
+  // Plan Nav v1.1 §7 — per-card "review suggested" flag. Subscribes to this
+  // project's cyclical-review map so a badge appears the moment a 90-day clock
+  // elapses or `forceTrigger` fires (dev-tools / the Phase-4 Observe-revision
+  // stand-in). The predicate is complete-only, so only complete objectives can
+  // light up; it is purely presentational and never feeds the status engine.
+  const reviewMap = useCyclicalReviewStore((s) =>
+    selectProjectReviewMap(s, projectId ?? ''),
+  );
+  const reviewSuggestedByObjective = useMemo(() => {
+    const map: Record<string, boolean> = {};
+    if (!projectId) return map;
+    for (const o of stratumObjectives) {
+      const record = reviewMap[o.id];
+      map[o.id] = isCyclicalReviewDue({
+        objective: o,
+        currentStatus: objectiveStatuses[o.id] ?? 'locked',
+        lastReviewedAt: record?.lastReviewedAt ?? null,
+        now: Date.now(),
+        observeRevisionFlag: record?.forcedTrigger ? () => true : undefined,
+      });
+    }
+    return map;
+  }, [projectId, reviewMap, stratumObjectives, objectiveStatuses]);
+
+  // Plan Nav v1.1 §8 — design-tension banner. The resolved tension list is
+  // passed in (derived, never persisted); only the collapse PREFERENCE is
+  // persisted (per project, default collapsed). Tensions whose resolution
+  // stratum is the one currently open get a static ring, and the banner
+  // transiently auto-expands so the steward notices "reconcile it here".
+  const tensionList = tensions ?? [];
+  const tensionCollapsed = usePlanTensionBannerStore((s) =>
+    s.isCollapsed(projectId ?? ''),
+  );
+  const setTensionCollapsed = usePlanTensionBannerStore((s) => s.setCollapsed);
+  const highlightTensionIds = useMemo(() => {
+    if (!activeStratumId) return [] as string[];
+    return tensionList
+      .filter((t) => t.resolutionStratumId === activeStratumId)
+      .map((t) => t.id);
+  }, [tensionList, activeStratumId]);
+  const hasHighlightedTension = highlightTensionIds.length > 0;
+  const [tensionAutoExpanded, setTensionAutoExpanded] = useState(false);
+  useEffect(() => {
+    if (!hasHighlightedTension) return;
+    setTensionAutoExpanded(true);
+    const timer = window.setTimeout(
+      () => setTensionAutoExpanded(false),
+      TENSION_AUTO_EXPAND_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [activeStratumId, hasHighlightedTension]);
+  const tensionExpanded = tensionAutoExpanded || !tensionCollapsed;
+  const handleToggleTensions = () => {
+    // Manual intent wins over the transient auto-expand: clear it and persist
+    // the inverse of whatever is currently showing.
+    setTensionAutoExpanded(false);
+    setTensionCollapsed(projectId ?? '', tensionExpanded);
+  };
+
   // Next-up = first active, else first available. Falls back to the
   // first objective so the column still has a focal point.
   const nextUp = useMemo(() => {
@@ -201,6 +287,15 @@ export default function ObjectiveColumn({
 
   return (
     <section className={css.column} aria-label={`Objectives in ${stratum.title}`}>
+      {tensionList.length > 0 && (
+        <DesignTensionBanner
+          tensions={tensionList}
+          expanded={tensionExpanded}
+          highlightTensionIds={highlightTensionIds}
+          onToggle={handleToggleTensions}
+        />
+      )}
+
       {sourceKinds.size > 1 && (
         <div
           className={css.filterBar}
@@ -247,6 +342,7 @@ export default function ObjectiveColumn({
                 isActive={obj.id === activeObjectiveId}
                 isHighlighting={highlightSet.has(obj.id)}
                 divergenceCount={divergenceByObjective[obj.id] ?? 0}
+                reviewSuggested={reviewSuggestedByObjective[obj.id] ?? false}
                 onSelect={onSelectObjective}
                 onDivergenceClick={onObjectiveDivergenceClick}
               />

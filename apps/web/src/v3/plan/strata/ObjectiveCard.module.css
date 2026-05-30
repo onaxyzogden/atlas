@@ -201,6 +201,24 @@
   border-color: rgba(232, 169, 88, 0.55);
 }
 
+/* Plan Nav v1.1 §7 — "review suggested" badge. Blue (info), distinct from
+   the amber divergence pill: a due review is a cadence cue, not field-truth.
+   Complete-only by predicate, so it only ever appears on a complete card. */
+.reviewBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--color-info, #5aa9c9) 16%, transparent);
+  color: var(--color-info, #5aa9c9);
+}
+
 /* --- Slice 2.4 highlight flash ------------------------------------------ */
 /* See StratumRow.module.css for the rationale + the matching animation on the
    spine row; the card-level flash points the steward at the specific

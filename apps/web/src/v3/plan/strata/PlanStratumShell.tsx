@@ -75,7 +75,7 @@ export default function PlanStratumShell({
   // (universal + its primary/secondary types with patches applied), not the
   // static skeleton. Falls back to the skeleton for null-type (MTC) and
   // pre-slice projects (see useProjectObjectives).
-  const { objectives } = useProjectObjectives(projectId);
+  const { objectives, activeTensions } = useProjectObjectives(projectId);
   const activeStratumId = params.stratumId ?? null;
   const activeObjective = params.objectiveId
     ? (findPlanStratumObjectiveIn(objectives, params.objectiveId) ?? null)
@@ -319,6 +319,8 @@ export default function PlanStratumShell({
             activeObjectiveId={activeObjectiveId}
             highlightObjectiveIds={highlightObjectiveIds}
             projectId={projectId}
+            tensions={activeTensions}
+            activeStratumId={activeStratumId}
             onSelectObjective={handleSelectObjective}
             onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
           />
