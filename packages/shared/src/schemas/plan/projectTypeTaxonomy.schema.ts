@@ -55,6 +55,18 @@ export const TensionAck = z.object({
 export type TensionAck = z.infer<typeof TensionAck>;
 
 /**
+ * What kind of edit produced a ProjectTypeVersion entry. Optional and absent on
+ * pre-existing history (which validates unchanged); set going forward by the
+ * wizard and the mid-project secondary-add flow (Plan Navigation Spec v1.1 9).
+ */
+export const ProjectTypeVersionAction = z.enum([
+  'wizard-complete',
+  'secondary-added',
+  'secondary-removed',
+]);
+export type ProjectTypeVersionAction = z.infer<typeof ProjectTypeVersionAction>;
+
+/**
  * One entry in a project's type-selection history. Stamped on wizard
  * completion and on every later add/remove of a secondary, so provenance for
  * the resolved objective set survives across edits.
@@ -67,8 +79,27 @@ export const ProjectTypeVersion = z.object({
   changedAt: z.string().datetime(),
   // Free-form note, e.g. "wizard completion" / "added secondary: residential".
   note: z.string().max(500).optional(),
+  // Who made the change (e.g. an email). Optional/additive; absent on history
+  // written before the v1.1 secondary-add flow.
+  actor: z.string().max(200).optional(),
+  // Which edit produced this entry. Optional/additive for the same reason.
+  action: ProjectTypeVersionAction.optional(),
 });
 export type ProjectTypeVersion = z.infer<typeof ProjectTypeVersion>;
+
+/**
+ * Steward acknowledgement that a mid-project secondary addition reopened one or
+ * more previously-complete objectives for review (Plan Navigation Spec v1.1
+ * 9). Append-only: one entry per acknowledged reopen event, recording which
+ * secondary triggered it and which objectives were affected. Never blocking -
+ * the steward clicks "I understand, continue" and the choice is recorded here.
+ */
+export const ReopeningAck = z.object({
+  secondaryTypeId: ProjectTypeId,
+  affectedObjectiveIds: z.array(z.string()).default([]),
+  acknowledgedAt: z.string().datetime(),
+});
+export type ReopeningAck = z.infer<typeof ReopeningAck>;
 
 /**
  * The per-project type selection that drives objective resolution. Stored on
@@ -82,5 +113,9 @@ export const ProjectTypeRecord = z.object({
   secondaryTypeIds: z.array(ProjectTypeId).max(8).default([]),
   tensionAcknowledgements: z.array(TensionAck).max(50).default([]),
   versionHistory: z.array(ProjectTypeVersion).max(100).default([]),
+  // Append-only reopen acknowledgements (Plan Navigation Spec v1.1 9).
+  // Additive + Zod-defaulted -> records written before the v1.1 flow validate
+  // unchanged.
+  reopeningAcknowledgements: z.array(ReopeningAck).max(200).default([]),
 });
 export type ProjectTypeRecord = z.infer<typeof ProjectTypeRecord>;

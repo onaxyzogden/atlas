@@ -10,3 +10,4 @@ export * from './cyclicalReviewTrigger.js';
 export * from './fieldActionStatus.js';
 export * from './urgencyScore.js';
 export * from './resolveProjectObjectives.js';
+export * from './computeObjectivesDelta.js';

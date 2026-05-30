@@ -138,6 +138,12 @@ export {
   type SecondaryResolutionFlag,
 } from './relationships/resolveProjectObjectives.js';
 export {
+  computeObjectivesDelta,
+  type ObjectivesDelta,
+  type InjectedItemDelta,
+  type GateAmendmentDelta,
+} from './relationships/computeObjectivesDelta.js';
+export {
   computeObjectiveStatus,
   computeAllObjectiveStatuses,
   type PlanStratumObjectiveStatusMap,
