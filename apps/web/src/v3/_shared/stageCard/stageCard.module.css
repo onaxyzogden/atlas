@@ -4,28 +4,26 @@
 
 .page { max-width: 880px; }
 
+/* Hero gradient derives from the stage's wayfinding accent (set per
+ * `data-stage` below) mixed toward the cool surface/bg — a single rule instead
+ * of six hand-tuned warm literals. Mixes never reach #000 (always toward
+ * --color-surface / --color-bg), honouring the no-pure-black rule. Falls back
+ * to gold where no stage accent is set. */
 .hero {
   margin-bottom: 24px;
   padding: 24px 28px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--stage-hero-a, #2a1f10) 0%, var(--stage-hero-mid, #1a130a) 50%, var(--stage-hero-b, #2a1d12) 100%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--stage-accent, var(--color-primary)) 22%, var(--color-surface)) 0%,
+    var(--color-surface) 55%,
+    color-mix(in srgb, var(--stage-accent, var(--color-primary)) 10%, var(--color-bg)) 100%
+  );
   border: 1px solid var(--color-hairline);
 }
-.hero[data-stage='plan'] {
-  --stage-hero-a: #2a1f10;
-  --stage-hero-mid: #1a130a;
-  --stage-hero-b: #2a1d12;
-}
-.hero[data-stage='act'] {
-  --stage-hero-a: #221530;
-  --stage-hero-mid: #14101c;
-  --stage-hero-b: #261a18;
-}
-.hero[data-stage='observe'] {
-  --stage-hero-a: #1a2a18;
-  --stage-hero-mid: #0f1a10;
-  --stage-hero-b: #1d2c15;
-}
+.hero[data-stage='observe'] { --stage-accent: var(--color-stage-observe); }
+.hero[data-stage='plan']    { --stage-accent: var(--color-stage-plan); }
+.hero[data-stage='act']     { --stage-accent: var(--color-stage-act); }
 
 .heroTag {
   font-size: 10px;

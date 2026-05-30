@@ -18,15 +18,20 @@
      ======================================================================== */
 
   /* Elevation ladder — hold chroma/hue constant so surfaces differ only in L.
-     Estate-palette retune (2026-04-28): hue shifted from warm yellow (60) to
-     near-neutral green (155) and chroma dropped to 0.005 so the dark-mode base
-     reads as deep-forest near-black rather than warm-brown. */
-  --l-bg:            9%;
-  --l-surface:       13%;
-  --l-raised:        18%;
-  --l-popover:       24%;
-  --c-warm-neutral:  0.005;
-  --h-warm-neutral:  155;
+     "High-Tech Earth" retune (2026-05-30): hue shifted from warm-neutral green
+     (155) to cool slate-blue (253) and chroma lifted to 0.010 so the dark-mode
+     base reads as cool Obsidian rather than deep-forest. The L ladder is also
+     corrected upward — the prior 9%/13%/18% rendered well below the intended
+     hex fallback (≈16%) and the doc's Obsidian target #0B0D10 (L≈15.8%), i.e.
+     OKLCH browsers were rendering near-black. Var names kept (--c/-h-warm-
+     neutral) so the 4 @supports reference sites need no change.
+     bg=Obsidian #0B0D10 · surface=Mineral Slate #14191F. */
+  --l-bg:            15.8%;
+  --l-surface:       21.1%;
+  --l-raised:        25.3%;
+  --l-popover:       31%;
+  --c-warm-neutral:  0.010;
+  --h-warm-neutral:  253;
 
   /* Semantic hue channels (dark-mode targets) — gold + sage at full clarity */
   --l-primary: 75%;   --c-primary: 0.10;   --h-primary: 82;
@@ -131,6 +136,28 @@
   --color-group-compliance:  #8a8a6a;
   --color-group-reporting:   #15803D;
   --color-group-general:     #9a7a8a;
+
+  /* ========================================================================
+     STAGE ACCENTS  ("High-Tech Earth" lifecycle, 2026-05-30)
+     Wayfinding / identity ONLY — these tint chrome (header spine, stage hero,
+     stage badges) to give each lifecycle stage a recognisable color. They are
+     NOT action colors: gold (--color-primary) remains the universal action /
+     active / selection accent, and conifer green marks completion. Theme-
+     agnostic (same hue in light & dark). The 4 doc lifecycles map to the app's
+     3 stages + a completion accent:
+       Observe → Flint Blue · Plan → Verdigris Teal · Act → Loam Amber
+       (Stewardship) → Bio-Conifer Green, used for completed/100% states.
+     Per the doc's "glow" guidance, highlights use a transparent tint bg +
+     crisp lightened text rather than solid color blocks. Glow text colors are
+     lightened from the base hue so they clear WCAG AA on their own 0.15 tint. */
+  --color-stage-observe: #6c8294;  --color-stage-observe-rgb: 108, 130, 148;  /* Flint Blue */
+  --color-stage-plan:    #38a3a5;  --color-stage-plan-rgb:    56, 163, 165;   /* Verdigris Teal */
+  --color-stage-act:     #d9a036;  --color-stage-act-rgb:     217, 160, 54;   /* Loam Amber */
+  --color-stage-steward: #4a7c59;  --color-stage-steward-rgb: 74, 124, 89;    /* Bio-Conifer Green */
+  --color-stage-observe-glow-bg: rgba(108, 130, 148, 0.15);  --color-stage-observe-glow-text: #8ba3b5;
+  --color-stage-plan-glow-bg:    rgba(56, 163, 165, 0.15);   --color-stage-plan-glow-text:    #4fc3c5;
+  --color-stage-act-glow-bg:     rgba(217, 160, 54, 0.15);   --color-stage-act-glow-text:     #e6b860;
+  --color-stage-steward-glow-bg: rgba(74, 124, 89, 0.15);    --color-stage-steward-glow-text: #6fa37e;
 
   /* ========================================================================
      LIGHT MODE SEMANTIC TOKENS

@@ -38,7 +38,9 @@ export default function StageSpine({
         const active = stage.id === activeStage;
         const Icon = stage.icon;
         // Every segment shows its stage's real verified %.
-        const readout = `${progressByStage[stage.id].pct}%`;
+        const pct = progressByStage[stage.id].pct;
+        const complete = pct >= 100;
+        const readout = `${pct}%`;
         return (
           <div key={stage.id} className={css.segment}>
             <button
@@ -46,6 +48,7 @@ export default function StageSpine({
               className={css.stage}
               data-active={active}
               data-stage={stage.id}
+              data-complete={complete}
               onClick={() => onNavigateStage(stage.id)}
               aria-current={active ? 'step' : undefined}
             >

@@ -28,7 +28,7 @@
 
 ### Color Palette
 
-The shipping palette is a **warm-neutral dark-chrome** system: earth-tinted neutrals frame the UI so they don't compete with biophilic map data. Brand moments use earth-gold; active-state UI uses a higher-chroma gold for AA contrast on dark chrome.
+The shipping palette is a **cool "High-Tech Earth" dark-chrome** system (rebrand 2026-05-30): an **Obsidian** canvas (`#0B0D10`), **Mineral-Slate** surfaces (`#14191F`), **Stratum-Line** slate borders (`#242F3D`), and **Parchment-White / Lichen-Gray** text — a cool, technical "operating system" backdrop that doesn't compete with biophilic map data. Brand moments and **all action / active / selection** states keep the two-gold accent; per-stage wayfinding uses the stage-accent system; completion uses Bio-Conifer green. (Prior to 2026-05-30 the canvas was a warm-neutral/deep-forest base; the two-gold brand identity is unchanged.)
 
 The source of truth is [`apps/web/src/styles/tokens.css`](../../apps/web/src/styles/tokens.css). Reference variables — never hard-code hex values in component CSS.
 
@@ -36,16 +36,22 @@ The source of truth is [`apps/web/src/styles/tokens.css`](../../apps/web/src/sty
 
 OKLCH is perceptually uniform: equal L → equal perceived brightness. Held chroma + hue, varying L gives a derivable elevation ladder. See the [OKLCH ADR](../../wiki/decisions/2026-04-23-oklch-token-migration.md) for the full rationale and `@supports` gating.
 
-**Elevation ladder** (`tokens.css:21-26`):
+**Elevation ladder** (`tokens.css`, "High-Tech Earth" retune 2026-05-30 — var
+names `--c/-h-warm-neutral` retained so the 4 `@supports` reference sites need
+no change, despite the hue now being cool):
 
 | Token | Value | Usage |
 |------|-----|--------------|
-| `--l-bg` | `15.5%` | Page background |
-| `--l-surface` | `21%` | Card / panel surface |
-| `--l-raised` | `26.5%` | Raised surface (hover, popover) |
-| `--l-popover` | `33%` | (Reserved — not yet mapped) |
+| `--l-bg` | `15.8%` | Page background (Obsidian `#0B0D10`) |
+| `--l-surface` | `21.1%` | Card / panel surface (Mineral Slate `#14191F`) |
+| `--l-raised` | `25.3%` | Raised surface (hover, popover) |
+| `--l-popover` | `31%` | (Reserved — not yet mapped) |
 | `--c-warm-neutral` | `0.010` | Chroma anchor (all elevation tiers) |
-| `--h-warm-neutral` | `60` | Hue anchor (warm yellow-brown) |
+| `--h-warm-neutral` | `253` | Hue anchor (cool slate-blue) |
+
+> The prior ladder bottomed out at `--l-bg: 9%`, which rendered near-black on
+> OKLCH-capable browsers (well below the hex fallback's ≈16%). The retune both
+> cools the hue and corrects the L ladder up to the intended Obsidian values.
 
 **Semantic hue channels** (`tokens.css:29-34`):
 
@@ -120,9 +126,37 @@ Earth-gold (`#c4a265`) fails WCAG AA at small sizes on dark brown chrome. So:
 
 Active states on dark chrome **must** use `--color-gold-active`, not `--color-gold-brand`.
 
+#### Stage accents — wayfinding, **not** action (High-Tech Earth, 2026-05-30)
+
+The doc's four lifecycle hues map to the app's three stages plus a completion
+accent. **Governing principle:** *gold = action / active / selection (content
+surfaces); stage accent = identity / wayfinding (chrome — header spine, stage
+hero, stage badges); Bio-Conifer green = completion.* These never compete in the
+same affordance — e.g. Loam Amber only ever tints **Act chrome**, never a
+button (buttons stay gold), which keeps amber and gold from colliding.
+
+| Token | Hex | Stage / role | AA as text |
+|------|-----|------|------|
+| `--color-stage-observe` | `#6C8294` (Flint Blue) | Observe — objective/analytical | — (use fill/icon) |
+| `--color-stage-plan` | `#38A3A5` (Verdigris Teal) | Plan — blueprint/precision | — (use fill/icon) |
+| `--color-stage-act` | `#D9A036` (Loam Amber) | Act — active physical work | — (use fill/icon) |
+| `--color-stage-steward` | `#4A7C59` (Bio-Conifer) | Completion / 100% | `4.00` (large/bold/icon/fill only) |
+
+Per the doc's **"glow" guidance**, highlights use a transparent tint background
+(`rgba(..., 0.15)`) + crisp **lightened** text rather than solid color blocks —
+each accent ships a `*-glow-bg` / `*-glow-text` pair. The lightened glow texts
+clear AA on their own tint: Observe `#8BA3B5`, Plan `#4FC3C5`, Act `#E6B860`,
+Steward `#6FA37E` (all ≥5.2:1).
+
+Wiring is **CSS-only** off the spine's existing `data-stage` / `data-active`
+attributes (`StageSpine.module.css` sets `--stage-accent` per active stage; the
+hero gradient in `stageCard.module.css` derives from `--stage-accent` mixed
+toward `--color-surface`/`--color-bg`). The steward glow lights the spine's `%`
+readout when a stage hits 100% (`data-complete`).
+
 #### No pure `#000` in component CSS
 
-To darken a surface or status color (typically inside `color-mix(...)`), mix toward `--color-chrome-bg` or `--color-neutral-900` — **never** `#000` / `#000000`. Pure black mixed into the warm chrome introduces a cool dead zone, "halates" against bright text, and undermines the OKLCH elevation ladder (where higher = lighter, not shadowed). Dark-mode `--shadow-*` tokens follow the same rule: warm-tinted (`rgba(15, 12, 8, …)`) at lower alpha so depth reads as a lift, not a hole. Regex for review: `color-mix\([^)]*#0{3,6}` should return zero hits across `apps/web/src`.
+To darken a surface or status color (typically inside `color-mix(...)`), mix toward `--color-bg` (Obsidian `#0B0D10`), `--color-surface`, or `--color-neutral-900` — **never** `#000` / `#000000`. Pure black mixed into the cool chrome introduces a dead zone, "halates" against bright text, and undermines the OKLCH elevation ladder (where higher = lighter, not shadowed). Dark-mode `--shadow-*` tokens follow the same rule: **cool-tinted but non-black** (`rgba(6, 9, 13, …)`) at lower alpha so depth reads as a lift, not a hole. Regex for review: `color-mix\([^)]*#0{3,6}` should return zero hits across `apps/web/src`.
 
 #### Identity scales (categorical)
 
@@ -286,13 +320,13 @@ The primitive owns the shared chrome (background, border, blur, inset highlight)
 
 ## Style Guidelines
 
-**Positioning:** *Warm-neutral chrome over biophilic map data. Brand moments in earth-gold; OKLCH-derived elevation; minimal shadow, max-blur translucency for map-tethered surfaces.*
+**Positioning:** *Cool "High-Tech Earth" Obsidian chrome over biophilic map data. Brand moments + actions in two-gold; per-stage wayfinding accents; OKLCH-derived elevation; minimal (cool, non-black) shadow, max-blur translucency for map-tethered surfaces.*
 
-**Keywords:** warm-neutral, earth-tinted, OKLCH-derived, dark-chrome, max-blur, gold-accent.
+**Keywords:** high-tech-earth, cool-slate, obsidian, OKLCH-derived, dark-chrome, max-blur, gold-accent, stage-accents.
 
 **Best for:** Geospatial workspaces where map imagery is the primary signal and chrome must recede. The chrome's job is to frame, not compete.
 
-**Key effects:** Earth-tinted shadows; `backdrop-filter: blur(8–10px)` on chrome containers; warm-gold hairline borders at `rgba(125, 97, 64, 0.4)` for elevated surfaces; OKLCH-uniform elevation steps in dark mode.
+**Key effects:** Cool-tinted (non-black) shadows; `backdrop-filter: blur(8–10px)` on chrome containers; Stratum-Line slate hairline borders (`--color-border #242F3D`) for elevated surfaces; OKLCH-uniform elevation steps in dark mode.
 
 ### Page Patterns
 
