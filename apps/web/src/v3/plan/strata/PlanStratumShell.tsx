@@ -7,15 +7,21 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import { Layers } from 'lucide-react';
 import {
   PLAN_STRATA,
   computeAllObjectiveStatuses,
   computeAllStratumStates,
   findPlanStratum,
   findPlanStratumObjectiveIn,
+  findProjectType,
   getPrimaryDomainForObjective,
 } from '@ogden/shared';
-import type { PlanStratum, PlanStratumObjective } from '@ogden/shared';
+import type {
+  PlanStratum,
+  PlanStratumObjective,
+  ProjectTypeId,
+} from '@ogden/shared';
 import type { PlanShellMode } from '../../../store/projectStore.js';
 import {
   selectCelebratedStrata,
@@ -32,6 +38,10 @@ import ObjectiveColumn from './ObjectiveColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import { useProjectObjectives } from './useProjectObjectives.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
+import SecondaryAddModal from './SecondaryAddModal.js';
+import SecondaryReopenModal from './SecondaryReopenModal.js';
+import ObserveGapBanner from './ObserveGapBanner.js';
+import type { SecondaryAddPreview } from './useSecondaryAddPreview.js';
 import {
   deriveStratum1EvidenceMap,
   deriveStratum1StewardshipMap,
@@ -252,6 +262,74 @@ export default function PlanStratumShell({
     });
   };
 
+  // Phase B3 (Plan Navigation Spec v1.1 section 9) - mid-project secondary
+  // addition. The "Project type" trigger opens the add modal; a successful add
+  // may reopen previously-complete objectives (reopen modal) and/or flag an
+  // Observe-stage data gap (teal banner). Every piece of state here is
+  // transient component state - no persist bump.
+  const typeRecord = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId)?.metadata?.projectTypeRecord,
+  );
+  const addSecondaryType = useProjectStore((s) => s.addSecondaryType);
+  const acknowledgeReopening = useProjectStore((s) => s.acknowledgeReopening);
+  const primaryTypeId = typeRecord?.primaryTypeId ?? null;
+  const currentSecondaryIds = typeRecord?.secondaryTypeIds ?? [];
+
+  const [secondaryAddOpen, setSecondaryAddOpen] = useState(false);
+  const [reopenPayload, setReopenPayload] = useState<{
+    secondaryTypeId: ProjectTypeId;
+    secondaryLabel: string;
+    objectives: PlanStratumObjective[];
+  } | null>(null);
+  const [observeGapCount, setObserveGapCount] = useState(0);
+
+  // The preview snapshot is captured pre-mutation inside the modal and handed
+  // up here; after the write the candidate is no longer eligible, so the
+  // reopen list / observe-gap count must come from that snapshot, not a
+  // re-derivation.
+  const handleConfirmSecondaryAdd = (
+    secondaryTypeId: ProjectTypeId,
+    preview: SecondaryAddPreview,
+  ) => {
+    const ok = addSecondaryType(projectId, secondaryTypeId);
+    setSecondaryAddOpen(false);
+    if (!ok) return;
+    if (preview.reopenedObjectives.length > 0) {
+      setReopenPayload({
+        secondaryTypeId,
+        secondaryLabel: findProjectType(secondaryTypeId)?.label ?? secondaryTypeId,
+        objectives: preview.reopenedObjectives,
+      });
+    }
+    if (preview.observeGapObjectiveIds.length > 0) {
+      setObserveGapCount(preview.observeGapObjectiveIds.length);
+    }
+  };
+
+  const handleReopenContinue = () => {
+    if (!reopenPayload) return;
+    acknowledgeReopening(
+      projectId,
+      reopenPayload.secondaryTypeId,
+      reopenPayload.objectives.map((o) => o.id),
+    );
+    setReopenPayload(null);
+  };
+
+  // Jumping to a reopened objective is itself engagement with the review, so
+  // it records the same append-only acknowledgement the explicit CTA does.
+  const handleReopenNavigate = (objectiveId: string, stratumId: string) => {
+    if (reopenPayload) {
+      acknowledgeReopening(
+        projectId,
+        reopenPayload.secondaryTypeId,
+        reopenPayload.objectives.map((o) => o.id),
+      );
+    }
+    setReopenPayload(null);
+    navigateToObjective(objectiveId, stratumId);
+  };
+
   // Slice 4.4 — deep-link from a Plan stratum objective divergence pill
   // into the matching Observe Domain Detail surface so the steward can
   // see the diverged evidence in context (spec §6.4).
@@ -289,12 +367,32 @@ export default function PlanStratumShell({
     <div className={css.shell}>
       <PlanNavToggle mode={shellMode} onChange={onShellModeChange} />
       <div className={css.intro}>
-        <h2 className={css.title}>Plan stratum spine</h2>
+        <div className={css.introHead}>
+          <h2 className={css.title}>Plan stratum spine</h2>
+          {primaryTypeId && (
+            <button
+              type="button"
+              className={css.typeButton}
+              onClick={() => setSecondaryAddOpen(true)}
+              data-testid="plan-secondary-add-trigger"
+            >
+              <Layers size={13} aria-hidden />
+              <span>Project type</span>
+            </button>
+          )}
+        </div>
         <p className={css.subtitle}>
           7 strata from foundation to phasing. Each stratum unlocks once its
           prerequisites complete.
         </p>
       </div>
+
+      {observeGapCount > 0 && (
+        <ObserveGapBanner
+          count={observeGapCount}
+          onDismiss={() => setObserveGapCount(0)}
+        />
+      )}
 
       <div
         className={css.layout}
@@ -366,6 +464,26 @@ export default function PlanStratumShell({
             markStratumCelebrated(projectId, celebratingStratum.id);
             setCelebratingStratumId(null);
           }}
+        />
+      )}
+
+      {secondaryAddOpen && primaryTypeId && (
+        <SecondaryAddModal
+          projectId={projectId}
+          primaryTypeId={primaryTypeId}
+          currentSecondaryIds={currentSecondaryIds}
+          onConfirm={handleConfirmSecondaryAdd}
+          onDismiss={() => setSecondaryAddOpen(false)}
+        />
+      )}
+
+      {reopenPayload && (
+        <SecondaryReopenModal
+          secondaryLabel={reopenPayload.secondaryLabel}
+          objectives={reopenPayload.objectives}
+          onNavigate={handleReopenNavigate}
+          onContinue={handleReopenContinue}
+          onDismiss={() => setReopenPayload(null)}
         />
       )}
     </div>

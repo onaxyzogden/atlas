@@ -27,6 +27,13 @@ export interface WizardSecondaryPickerProps {
   selectedIds: readonly ProjectTypeId[];
   /** Toggle a secondary type id on or off. */
   onToggle: (id: ProjectTypeId) => void;
+  /**
+   * Secondary type ids to omit from the offered chips entirely. Used by the
+   * mid-project add-secondary flow to hide layers the project already carries
+   * (those are not re-addable). Defaults to none - the wizard offers every
+   * compatible secondary.
+   */
+  excludeIds?: readonly ProjectTypeId[];
 }
 
 // Display-only hint per non-NA matrix cell. 'X' (tension) is surfaced in full
@@ -41,9 +48,11 @@ export default function WizardSecondaryPicker({
   primaryId,
   selectedIds,
   onToggle,
+  excludeIds,
 }: WizardSecondaryPickerProps) {
-  const compatible = SECONDARY_TYPES.filter((t) =>
-    isCompatibleSecondary(t.id, primaryId),
+  const excluded = new Set(excludeIds ?? []);
+  const compatible = SECONDARY_TYPES.filter(
+    (t) => isCompatibleSecondary(t.id, primaryId) && !excluded.has(t.id),
   );
 
   if (compatible.length === 0) {

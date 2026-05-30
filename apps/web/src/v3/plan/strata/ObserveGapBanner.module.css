@@ -1,0 +1,80 @@
+/*
+ * ObserveGapBanner - teal Plan-spine notice that a secondary addition created
+ * objectives needing Observe-stage data (Plan Navigation Spec v1.1 section 9).
+ * Uses the info/teal accent reserved for Observe + Universal source tags, so it
+ * reads as an Observe-stage pointer rather than a Plan blocker. Mirrors the
+ * CyclicalReviewBanner rounded recipe. Tokens + CSS Modules only.
+ */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  margin: 0 0 16px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, var(--color-info, #5aa9c4) 35%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+}
+
+.iconWrap {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-info, #5aa9c4) 22%, transparent);
+  color: var(--color-info, #5aa9c4);
+  margin-top: 1px;
+}
+
+.body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-info, #5aa9c4);
+}
+
+.copy {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+}
+
+.dismiss {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.dismiss:hover {
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, #ffffff);
+  color: var(--color-text, #f2ede3);
+}
+
+.dismiss:focus-visible {
+  outline: 2px solid var(--color-info, #5aa9c4);
+  outline-offset: 2px;
+}
