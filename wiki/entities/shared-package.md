@@ -105,7 +105,7 @@ Decision: [decisions/2026-05-29-atlas-per-type-objective-model.md](../decisions/
 
 Resolution is **on the fly** per project (web `useProjectObjectives(projectId)`,
 4-tier fallback to the static skeleton) -- no persisted resolved-set store.
-Verified pair regen_farm + residential = **38 objectives** across 7 tiers
+Verified pair regen_farm + residential = **38 objectives** across 7 strata
 (5/6/5/6/6/4/6). The `planTierStore.toProgressMap` global-id-uniqueness
 invariant holds: injected patch item ids are namespaced and `catalogues.test.ts`
 asserts global uniqueness incl. patch items.
