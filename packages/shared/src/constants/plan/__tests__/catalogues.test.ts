@@ -11,6 +11,8 @@ import {
   AGRITOURISM_PRIMARY_OBJECTIVES,
   RESIDENTIAL_ADDITIVE_OBJECTIVES,
   RESIDENTIAL_PATCHES,
+  WELLNESS_PRIMARY_OBJECTIVES,
+  WELLNESS_SECONDARY_OBJECTIVES,
 } from '../catalogues/index.js';
 import {
   resolveProjectObjectives,
@@ -23,9 +25,11 @@ const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...ECOVILLAGE_PRIMARY_OBJECTIVES,
   ...AGRITOURISM_PRIMARY_OBJECTIVES,
   ...RESIDENTIAL_ADDITIVE_OBJECTIVES,
+  ...WELLNESS_PRIMARY_OBJECTIVES,
+  ...WELLNESS_SECONDARY_OBJECTIVES,
 ];
 
-const OBJECTIVE_REF = /^(U|RF|RES|EV|AG)-S[1-7]\.\d+$/;
+const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL)-S[1-7]\.\d+$/;
 
 const PATCH_REF = /^RES>(U|RF)-S[1-7]\.\d+$/;
 
@@ -115,6 +119,23 @@ describe('catalogue conformance - source/layer discipline', () => {
     for (const o of RESIDENTIAL_ADDITIVE_OBJECTIVES) {
       expect(o.source, o.id).toBe('secondary');
       expect(o.sourceTypeId, o.id).toBe('residential');
+      expect(o.secondaryClass, o.id).toBe('additive');
+    }
+  });
+
+  it('wellness primary objectives are source=primary, sourceTypeId=wellness', () => {
+    for (const o of WELLNESS_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('wellness');
+    }
+  });
+
+  it('wellness secondary objectives are source=secondary/additive, sourceTypeId=wellness', () => {
+    // Authored under the 2026-05-30 "derive + author" override (the v1.0 source
+    // has no secondary section). Additive only - no patch records.
+    for (const o of WELLNESS_SECONDARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('secondary');
+      expect(o.sourceTypeId, o.id).toBe('wellness');
       expect(o.secondaryClass, o.id).toBe('additive');
     }
   });
@@ -221,5 +242,74 @@ describe('catalogue conformance - agritourism primary resolution', () => {
     // this locks that the encoded set keeps them unique.
     const refs = AGRITOURISM_PRIMARY_OBJECTIVES.map((o) => o.ref);
     expect(new Set(refs).size).toBe(refs.length);
+  });
+});
+
+describe('catalogue conformance - wellness primary resolution', () => {
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'wellness',
+    secondaryTypeIds: [],
+  });
+
+  it('resolves to 46 objectives (19 universal + 27 primary)', () => {
+    expect(WELLNESS_PRIMARY_OBJECTIVES.length).toBe(27);
+    expect(objectives.length).toBe(46);
+  });
+
+  it('has globally unique checklist item ids (toProgressMap invariant)', () => {
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+
+  it('every wellness primary ref is unique within the primary set', () => {
+    const refs = WELLNESS_PRIMARY_OBJECTIVES.map((o) => o.ref);
+    expect(new Set(refs).size).toBe(refs.length);
+  });
+
+  it('well-s7-program-launch meets the 5-item floor (operator-authorized c5)', () => {
+    // Source lists 4; c5 added under the 2026-05-30 "draft 5th" ruling.
+    const launch = WELLNESS_PRIMARY_OBJECTIVES.find(
+      (o) => o.id === 'well-s7-program-launch',
+    );
+    expect(launch?.checklist.length).toBe(5);
+  });
+});
+
+describe('catalogue conformance - wellness secondary resolution', () => {
+  it('contributes 5 additive overlay objectives and no patches', () => {
+    expect(WELLNESS_SECONDARY_OBJECTIVES.length).toBe(5);
+  });
+
+  it('resolves wellness-secondary onto a regen primary as additive only', () => {
+    const base = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: [],
+    });
+    const withWellness = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['wellness'],
+    });
+    // Additive only: exactly +5 objectives, no patch injection on existing ones.
+    expect(withWellness.objectives.length).toBe(base.objectives.length + 5);
+  });
+
+  it('wellness secondary refs do not collide with wellness primary refs', () => {
+    const primaryRefs = new Set(WELLNESS_PRIMARY_OBJECTIVES.map((o) => o.ref));
+    for (const o of WELLNESS_SECONDARY_OBJECTIVES) {
+      expect(primaryRefs.has(o.ref), o.ref).toBe(false);
+    }
+  });
+
+  it('has globally unique checklist item ids when layered (toProgressMap invariant)', () => {
+    const { objectives } = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['wellness'],
+    });
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
   });
 });
