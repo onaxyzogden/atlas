@@ -4,7 +4,7 @@
 // objectives as ObjectiveCards. Click is delegated to the parent so the
 // shell can hoist navigation centrally.
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   getObjectiveObserveDomains,
   type PlanStratum,
@@ -17,6 +17,7 @@ import { useObserveDataPointStore } from '../../../store/observeDataPointStore.j
 import NextUpCard from './NextUpCard.js';
 import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
+import { getSourceTag, type SourceTagKind } from './sourceTag.js';
 import css from './ObjectiveColumn.module.css';
 
 const DIVERGENT_STATUSES = new Set([
@@ -60,6 +61,16 @@ const STATUS_PRIORITY: PlanStratumObjectiveStatus[] = [
   'complete',
 ];
 
+// Plan Nav v1.1 §5 — source filter. Purely a view filter over the rendered
+// list; it never touches `objectiveStatuses` or the spine's progress/unlock.
+type SourceFilter = 'all' | SourceTagKind;
+const SOURCE_FILTERS: ReadonlyArray<{ key: SourceFilter; label: string }> = [
+  { key: 'all', label: 'All' },
+  { key: 'universal', label: 'Universal' },
+  { key: 'primary', label: 'Primary' },
+  { key: 'secondary', label: 'Secondary' },
+];
+
 export default function ObjectiveColumn({
   stratum,
   objectives,
@@ -77,6 +88,33 @@ export default function ObjectiveColumn({
   const stratumObjectives = useMemo(
     () => objectives.filter((o) => o.stratumId === stratum.id),
     [stratum.id, objectives],
+  );
+
+  // Plan Nav v1.1 §5 — source filter (All / Universal / Primary / Secondary).
+  // The bar only shows when this stratum actually mixes sources; on an
+  // all-universal stratum it would be inert noise. The filter is applied
+  // BEFORE the nextUp / parallel / sorted memos so the featured card and the
+  // list stay consistent, but it never feeds the status engine.
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const sourceKinds = useMemo(() => {
+    const kinds = new Set<SourceTagKind>();
+    for (const o of stratumObjectives) kinds.add(getSourceTag(o).kind);
+    return kinds;
+  }, [stratumObjectives]);
+  // Guard against a sticky filter hiding everything after the steward
+  // navigates to a stratum that lacks the previously-selected source.
+  const effectiveFilter: SourceFilter =
+    sourceFilter !== 'all' && sourceKinds.has(sourceFilter)
+      ? sourceFilter
+      : 'all';
+  const visibleObjectives = useMemo(
+    () =>
+      effectiveFilter === 'all'
+        ? stratumObjectives
+        : stratumObjectives.filter(
+            (o) => getSourceTag(o).kind === effectiveFilter,
+          ),
+    [stratumObjectives, effectiveFilter],
   );
 
   // Slice 3.5 — divergence flag counts per objective from Act (§6.4).
@@ -129,40 +167,63 @@ export default function ObjectiveColumn({
   // first objective so the column still has a focal point.
   const nextUp = useMemo(() => {
     for (const target of ['active', 'available'] as const) {
-      const found = stratumObjectives.find(
+      const found = visibleObjectives.find(
         (o) => objectiveStatuses[o.id] === target,
       );
       if (found) return found;
     }
     return null;
-  }, [stratumObjectives, objectiveStatuses]);
+  }, [visibleObjectives, objectiveStatuses]);
 
   // Parallel cluster = the next-up objective's parallel group, sized 2+.
   const parallelSiblings = useMemo(() => {
     if (!nextUp?.parallelGroupId) return [] as PlanStratumObjective[];
-    const group = stratumObjectives.filter(
+    const group = visibleObjectives.filter(
       (o) =>
         o.parallelGroupId === nextUp.parallelGroupId &&
         (objectiveStatuses[o.id] === 'available' ||
           objectiveStatuses[o.id] === 'active'),
     );
     return group.length >= 2 ? group : [];
-  }, [nextUp, stratumObjectives, objectiveStatuses]);
+  }, [nextUp, visibleObjectives, objectiveStatuses]);
 
   // Sorted objectives for the list below NextUpCard, with nextUp removed.
   const sortedObjectives = useMemo(() => {
     const list = nextUp
-      ? stratumObjectives.filter((o) => o.id !== nextUp.id)
-      : stratumObjectives;
+      ? visibleObjectives.filter((o) => o.id !== nextUp.id)
+      : visibleObjectives;
     return [...list].sort((a, b) => {
       const sa = STATUS_PRIORITY.indexOf(objectiveStatuses[a.id] ?? 'locked');
       const sb = STATUS_PRIORITY.indexOf(objectiveStatuses[b.id] ?? 'locked');
       return sa - sb;
     });
-  }, [stratumObjectives, nextUp, objectiveStatuses]);
+  }, [visibleObjectives, nextUp, objectiveStatuses]);
 
   return (
     <section className={css.column} aria-label={`Objectives in ${stratum.title}`}>
+      {sourceKinds.size > 1 && (
+        <div
+          className={css.filterBar}
+          role="group"
+          aria-label="Filter objectives by source"
+        >
+          {SOURCE_FILTERS.filter(
+            (f) => f.key === 'all' || sourceKinds.has(f.key),
+          ).map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              className={css.filterButton}
+              data-active={effectiveFilter === f.key}
+              aria-pressed={effectiveFilter === f.key}
+              onClick={() => setSourceFilter(f.key)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {parallelSiblings.length >= 2 && (
         <ParallelCallout objectives={parallelSiblings} />
       )}
@@ -196,6 +257,12 @@ export default function ObjectiveColumn({
 
       {stratumObjectives.length === 0 && (
         <p className={css.empty}>No objectives recorded for this stratum yet.</p>
+      )}
+
+      {stratumObjectives.length > 0 && visibleObjectives.length === 0 && (
+        <p className={css.empty}>
+          No {effectiveFilter} objectives in this stratum.
+        </p>
       )}
     </section>
   );

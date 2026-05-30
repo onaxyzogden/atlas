@@ -76,6 +76,27 @@
   color: #f4e6cb;
 }
 
+/* Plan Nav v1.1 §5 — source-tag pill (Universal / Primary / Secondary). */
+.sourceTag {
+  padding: 3px 10px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  --source-color: var(--color-info, #5aa9c9);
+  background: color-mix(in srgb, var(--source-color) 18%, transparent);
+  color: var(--source-color);
+}
+
+.sourceTag[data-source='primary'] {
+  --source-color: var(--color-success, #5dd39e);
+}
+
+.sourceTag[data-source='secondary'] {
+  --source-color: #e8a958;
+}
+
 /* Slice 3.5 — divergence flag from Act (spec §6.4). Amber, not red. */
 .pillRow {
   display: inline-flex;

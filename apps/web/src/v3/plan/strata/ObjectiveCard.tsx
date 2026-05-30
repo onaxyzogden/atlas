@@ -16,6 +16,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { getSourceTag } from './sourceTag.js';
 import css from './ObjectiveCard.module.css';
 
 interface Props {
@@ -61,6 +62,7 @@ export default function ObjectiveCard({
   onDivergenceClick,
 }: Props) {
   const hasDivergence = divergenceCount > 0;
+  const sourceTag = getSourceTag(objective);
   const baseLabel = `${objective.title}: ${STATUS_LABEL[status]}`;
   const ariaLabel = hasDivergence
     ? `${baseLabel} — ${divergenceCount} divergence flag${divergenceCount === 1 ? '' : 's'}`
@@ -102,6 +104,13 @@ export default function ObjectiveCard({
         <span className={css.title}>{objective.focusedQuestion}</span>
       </span>
       <span className={css.trail}>
+        <span
+          className={css.sourceTag}
+          data-source={sourceTag.kind}
+          title={sourceTag.label}
+        >
+          {sourceTag.label}
+        </span>
         {hasDivergence && (
           <button
             type="button"

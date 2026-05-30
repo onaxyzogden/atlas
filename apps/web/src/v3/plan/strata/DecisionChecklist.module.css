@@ -144,21 +144,84 @@
 /*
  * Provenance chip for a checklist item injected by a secondary layer's
  * modifying patch (resolveProjectObjectives stamps expandedBySecondaryId).
- * A neutral filled pill — distinct from the gold `feeds` chips (downstream
- * links) and the green Stage Zero badge (bridge-derived) — so the steward
- * can see at a glance which decisions a secondary layer added.
+ * Amber — the shared "secondary / patch" accent (matches the source-tag
+ * Secondary pill and the divergence/tension treatment) — so the steward can
+ * see at a glance which decisions a secondary layer added. Distinct from the
+ * gold `feeds` chips (downstream links) and the green Stage Zero badge.
  */
 .expandedBy {
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
-  border-radius: 999px;
+  border-radius: var(--radius-full, 999px);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.02em;
-  background: color-mix(in srgb, var(--color-text, #f2ede3) 10%, transparent);
-  color: var(--color-text, #f2ede3);
-  border: 1px solid color-mix(in srgb, var(--color-text, #f2ede3) 22%, transparent);
+  background: color-mix(in srgb, #e8a958 16%, transparent);
+  color: #e8a958;
+  border: 1px solid color-mix(in srgb, #e8a958 40%, transparent);
+}
+
+/* Plan Nav v1.1 §5.5 — a checklist item injected by a secondary layer's
+   modifying patch gets an amber left-border so the injection reads at a
+   glance even before the steward notices the "Added by" chip. */
+.row[data-injected='true'] {
+  border-left: 2px solid color-mix(in srgb, #e8a958 55%, transparent);
+  border-top-left-radius: var(--radius-sm, 6px);
+  border-bottom-left-radius: var(--radius-sm, 6px);
+  background: color-mix(in srgb, #e8a958 5%, transparent);
+}
+
+/* Plan Nav v1.1 §5.6 — completion-gate block. The gate text is the
+   objective's pass condition; when a secondary layer amended it (the
+   resolver concatenates onto the base gate) an amber "Amended by" pill
+   credits the contributing type. */
+.gate {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.1));
+  border-radius: var(--radius-md, 8px);
+}
+
+.gateHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gateEyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-gold-brand, #c4a265);
+}
+
+.amendedBy {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, #e8a958 16%, transparent);
+  color: #e8a958;
+  border: 1px solid color-mix(in srgb, #e8a958 40%, transparent);
+}
+
+.gateBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
 }
 
 /* Slice 1.12 — Stage Zero Vision bridge. Items satisfied by the

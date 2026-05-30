@@ -22,6 +22,7 @@ import { useCyclicalReviewStore } from '../../../store/cyclicalReviewStore.js';
 import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
 import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
+import ActProgressBar from './ActProgressBar.js';
 import DecisionChecklist from './DecisionChecklist.js';
 import DetailsExpander from './DetailsExpander.js';
 import LaunchActButton from './LaunchActButton.js';
@@ -166,6 +167,8 @@ export default function ObjectiveDetailPanel({
           </div>
         </>
       )}
+
+      <ActProgressBar projectId={projectId} objectiveId={objective.id} />
 
       <DecisionChecklist
         objective={objective}

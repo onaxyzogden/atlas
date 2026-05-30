@@ -10,6 +10,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { getSourceTag } from './sourceTag.js';
 import css from './ObjectiveHeader.module.css';
 
 interface Props {
@@ -32,6 +33,7 @@ export default function ObjectiveHeader({
   status,
   onBackToStratum,
 }: Props) {
+  const sourceTag = getSourceTag(objective);
   return (
     <header className={css.header} data-status={status}>
       <button
@@ -47,9 +49,14 @@ export default function ObjectiveHeader({
       </button>
       <h1 className={css.title}>{objective.title}</h1>
       <p className={css.question}>{objective.focusedQuestion}</p>
-      <span className={css.pill} data-status={status}>
-        {STATUS_LABEL[status]}
-      </span>
+      <div className={css.pillRow}>
+        <span className={css.sourceTag} data-source={sourceTag.kind}>
+          {sourceTag.label}
+        </span>
+        <span className={css.pill} data-status={status}>
+          {STATUS_LABEL[status]}
+        </span>
+      </div>
     </header>
   );
 }

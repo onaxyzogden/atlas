@@ -73,9 +73,16 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
 }
 
-.pill {
+.pillRow {
+  display: inline-flex;
   align-self: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 4px;
+}
+
+.pill {
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 11px;
@@ -85,4 +92,26 @@
   background: color-mix(in srgb, var(--status-color) 16%, var(--color-bg, #1f1d1a));
   color: var(--status-color);
   border: 1px solid color-mix(in srgb, var(--status-color) 32%, transparent);
+}
+
+/* Plan Nav v1.1 §5 — source-tag pill (Universal / Primary / Secondary). */
+.sourceTag {
+  padding: 3px 9px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  --source-color: var(--color-info, #5aa9c9);
+  background: color-mix(in srgb, var(--source-color) 16%, var(--color-bg, #1f1d1a));
+  color: var(--source-color);
+  border: 1px solid color-mix(in srgb, var(--source-color) 32%, transparent);
+}
+
+.sourceTag[data-source='primary'] {
+  --source-color: var(--color-success, #5dd39e);
+}
+
+.sourceTag[data-source='secondary'] {
+  --source-color: #e8a958;
 }

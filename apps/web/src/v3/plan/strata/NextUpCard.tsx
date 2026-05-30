@@ -8,6 +8,7 @@ import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
+import { getSourceTag } from './sourceTag.js';
 import css from './NextUpCard.module.css';
 
 interface Props {
@@ -35,6 +36,7 @@ export default function NextUpCard({
   onSelect,
 }: Props) {
   const hasDivergence = divergenceCount > 0;
+  const sourceTag = getSourceTag(objective);
   return (
     <button
       type="button"
@@ -52,6 +54,9 @@ export default function NextUpCard({
         <p className={css.eyebrow}>Next up</p>
         <h3 className={css.title}>{objective.focusedQuestion}</h3>
         <div className={css.pillRow}>
+          <span className={css.sourceTag} data-source={sourceTag.kind}>
+            {sourceTag.label}
+          </span>
           <span className={css.statusPill}>{STATUS_LABEL[status]}</span>
           {hasDivergence && (
             <span

@@ -41,6 +41,13 @@ export default function DecisionChecklist({
 }: Props) {
   const completed = new Set(completedItemIds);
   const items = objective.checklist;
+  // Plan Nav v1.1 §5.6 — when a secondary layer's modifying patch injects
+  // checklist items it also amends the completion gate (the resolver
+  // concatenates, never replaces). The same patch stamps each injected item
+  // with `expandedBySecondaryId`, so the most-common stamp is the amender we
+  // attribute the gate change to. (Precise per-clause provenance is a later
+  // seam; see plan "Out of scope".)
+  const amenderTypeId = mostCommonAmender(items);
   const isDerived = (id: string) =>
     derivedEvidence?.[id]?.isComplete === true;
   const isItemComplete = (id: string) => completed.has(id) || isDerived(id);
@@ -78,8 +85,47 @@ export default function DecisionChecklist({
           })}
         </ol>
       )}
+
+      {objective.completionGate ? (
+        <div className={css.gate}>
+          <div className={css.gateHeader}>
+            <p className={css.gateEyebrow}>Completion gate</p>
+            {amenderTypeId ? (
+              <span className={css.amendedBy}>
+                Amended by{' '}
+                {findProjectType(amenderTypeId)?.label ?? amenderTypeId}
+              </span>
+            ) : null}
+          </div>
+          <p className={css.gateBody}>{objective.completionGate}</p>
+        </div>
+      ) : null}
     </section>
   );
+}
+
+/**
+ * The secondary type credited with amending the completion gate: the
+ * most-common `expandedBySecondaryId` across injected checklist items.
+ * Returns undefined when no item was injected by a secondary layer.
+ */
+function mostCommonAmender(
+  items: readonly PlanDecisionChecklistItem[],
+): string | undefined {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    const id = item.expandedBySecondaryId;
+    if (id) counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  let best: string | undefined;
+  let bestCount = 0;
+  for (const [id, count] of counts) {
+    if (count > bestCount) {
+      best = id;
+      bestCount = count;
+    }
+  }
+  return best;
 }
 
 interface RowProps {
@@ -91,11 +137,13 @@ interface RowProps {
 
 function ChecklistRow({ item, isComplete, derived, onToggle }: RowProps) {
   const isFromBridge = Boolean(derived);
+  const isInjected = Boolean(item.expandedBySecondaryId);
   return (
     <label
       className={css.row}
       data-complete={isComplete}
       data-derived={isFromBridge}
+      data-injected={isInjected ? 'true' : undefined}
     >
       <input
         type="checkbox"
@@ -115,7 +163,7 @@ function ChecklistRow({ item, isComplete, derived, onToggle }: RowProps) {
           ) : null}
           {item.expandedBySecondaryId ? (
             <span className={css.expandedBy}>
-              Expanded by:{' '}
+              Added by{' '}
               {findProjectType(item.expandedBySecondaryId)?.label ??
                 item.expandedBySecondaryId}
             </span>
