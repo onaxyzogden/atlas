@@ -109,6 +109,7 @@ export default function WizardStep2Vision({ projectId }: WizardStep2VisionProps)
         secondaryTypeIds: keptSecondaries,
         tensionAcknowledgements: existing?.tensionAcknowledgements ?? [],
         versionHistory: existing?.versionHistory ?? [],
+        reopeningAcknowledgements: existing?.reopeningAcknowledgements ?? [],
       });
     },
     [project?.metadata?.projectTypeRecord, writeRecord],

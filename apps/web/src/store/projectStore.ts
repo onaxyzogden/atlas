@@ -6,7 +6,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
-import { ProjectType, type CreateProjectInput, type ProjectMetadata } from '@ogden/shared';
+import {
+  ProjectType,
+  getActiveTensions,
+  isCompatibleSecondary,
+  type CreateProjectInput,
+  type ProjectMetadata,
+  type ProjectTypeId,
+  type ProjectTypeRecord,
+  type ProjectTypeVersion,
+  type TensionAck,
+  type ReopeningAck,
+} from '@ogden/shared';
 import { cascadeDeleteProject } from './cascadeDelete.js';
 import { cascadeCloneProject } from './cascadeClone.js';
 import { geodataCache } from '../lib/geodataCache.js';
@@ -285,6 +296,34 @@ interface ProjectState {
   ) => void;
   /** Strip the field so the project falls back to defaults. */
   clearZoneThresholds: (projectId: string) => void;
+  /**
+   * Add a secondary project type to an active project mid-project (OLOS
+   * Plan Navigation Spec v1.1 §9). Returns `true` when applied, `false`
+   * (no-op) when guarded out: no primary chosen yet, the id IS the primary,
+   * a duplicate, incompatible with the primary, or the 8-secondary ceiling
+   * is reached. On success it appends a `ProjectTypeVersion`
+   * (action `'secondary-added'`, actor defaulting to the steward), records
+   * `TensionAck`s for any newly-active tensions, and sets the new
+   * `secondaryTypeIds`. Metadata is written wholesale via `updateProject`
+   * (so the builtin allowlist + `updatedAt` stamping apply). No persist bump
+   * — every touched field is additive / Zod-defaulted.
+   */
+  addSecondaryType: (
+    projectId: string,
+    secondaryTypeId: ProjectTypeId,
+    opts?: { actor?: string; note?: string },
+  ) => boolean;
+  /**
+   * Record a steward acknowledgement that a mid-project secondary addition
+   * reopened one or more previously-complete objectives for review (Plan
+   * Navigation Spec v1.1 §9). Append-only — one `ReopeningAck` per event.
+   * No-op when the project or its type record is absent.
+   */
+  acknowledgeReopening: (
+    projectId: string,
+    secondaryTypeId: ProjectTypeId,
+    affectedObjectiveIds: string[],
+  ) => void;
 }
 
 function generateId(): string {
@@ -587,6 +626,87 @@ export const useProjectStore = create<ProjectState>()(
             return { ...rest, updatedAt: new Date().toISOString() } as LocalProject;
           }),
         })),
+
+      addSecondaryType: (projectId, secondaryTypeId, opts) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return false;
+        const existing = project.metadata?.projectTypeRecord;
+        // Cannot add a secondary before a primary type is chosen.
+        if (!existing) return false;
+        const primaryTypeId = existing.primaryTypeId;
+        const currentSecondaries = existing.secondaryTypeIds ?? [];
+        // Guards — any failure is a silent no-op (returns false).
+        if (secondaryTypeId === primaryTypeId) return false;
+        if (currentSecondaries.includes(secondaryTypeId)) return false;
+        if (!isCompatibleSecondary(secondaryTypeId, primaryTypeId)) return false;
+        if (currentSecondaries.length >= 8) return false;
+
+        const now = new Date().toISOString();
+        const nextSecondaries = [...currentSecondaries, secondaryTypeId];
+
+        // Acknowledge any tensions that become active with this addition and
+        // are not already acknowledged (mirrors the wizard's tension flow;
+        // the add-secondary modal gates confirm on the steward acknowledging).
+        const active = getActiveTensions(primaryTypeId, nextSecondaries);
+        const ackedIds = new Set(
+          (existing.tensionAcknowledgements ?? []).map((a) => a.tensionId),
+        );
+        const newAcks: TensionAck[] = active
+          .filter((t) => !ackedIds.has(t.id))
+          .map((t) => ({ tensionId: t.id, acknowledgedAt: now }));
+
+        const versionEntry: ProjectTypeVersion = {
+          primaryTypeId,
+          secondaryTypeIds: nextSecondaries,
+          changedAt: now,
+          note: opts?.note ?? `added secondary: ${secondaryTypeId}`,
+          actor: opts?.actor ?? 'yousef@ogden.ag',
+          action: 'secondary-added',
+        };
+
+        const nextRecord: ProjectTypeRecord = {
+          ...existing,
+          secondaryTypeIds: nextSecondaries,
+          tensionAcknowledgements: [
+            ...(existing.tensionAcknowledgements ?? []),
+            ...newAcks,
+          ],
+          versionHistory: [...(existing.versionHistory ?? []), versionEntry],
+          // Defensive default — records drafted before the v1.1 schema lack
+          // this field at runtime even though the inferred type marks it
+          // required (Zod default applies only on parse).
+          reopeningAcknowledgements: existing.reopeningAcknowledgements ?? [],
+        };
+
+        // Wholesale metadata write — reuses updateProject's builtin allowlist
+        // (metadata is allowed) and updatedAt stamping. No persist bump.
+        get().updateProject(projectId, {
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+        return true;
+      },
+
+      acknowledgeReopening: (projectId, secondaryTypeId, affectedObjectiveIds) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return;
+        const existing = project.metadata?.projectTypeRecord;
+        if (!existing) return;
+        const ack: ReopeningAck = {
+          secondaryTypeId,
+          affectedObjectiveIds,
+          acknowledgedAt: new Date().toISOString(),
+        };
+        const nextRecord: ProjectTypeRecord = {
+          ...existing,
+          reopeningAcknowledgements: [
+            ...(existing.reopeningAcknowledgements ?? []),
+            ack,
+          ],
+        };
+        get().updateProject(projectId, {
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+      },
     }),
     {
       name: 'ogden-projects',
