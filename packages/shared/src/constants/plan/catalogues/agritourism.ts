@@ -27,12 +27,13 @@
 // the v1.0 content the body specifies; the filename/body skew is flagged here.
 //
 // Checklist-length note: AG-S6.4 (Design farm-to-guest integration feedback
-// loop) carries only 4 checklist items in the source. The catalogue rubric test
-// floors checklist length at 5 (Authoring Standards v1.4), which postdates this
-// v1.0 / Standards v1.3 document. Per "don't invent content" the objective is
-// encoded verbatim at 4 items; the rubric test carries a documented single-id
-// allowlist (ag-s6-food-integration) so the 5-item floor stays tight for every
-// other (and every future v1.4) catalogue.
+// loop) carries only 4 checklist items in the v1.0 / Standards v1.3 source,
+// below the v1.4 5-item floor. Originally encoded verbatim at 4 behind a rubric-
+// test allowlist (flagged as an operator review item). RESOLVED 2026-05-30: the
+// operator issued an explicit informed override of "don't invent content" for
+// this single objective, authorising an authored 5th item (ag-s6-food-
+// integration-c5, the loop-closing seasonal review step); the objective now
+// meets the v1.4 floor and the allowlist entry was removed.
 //
 // Economic objectives AG-S4.8 (booking, pricing & revenue model) and AG-S7.6
 // (phased launch & financial viability plan) are encoded verbatim as plain data
@@ -916,8 +917,11 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     title: 'Design farm-to-guest integration feedback loop',
     focusedQuestion:
       'How will the farm understand which enterprises are feeding the guest experience - and what gaps need to be filled?',
-    // 4 checklist items in source (below the v1.4 5-item floor); encoded
-    // verbatim per "don't invent content". The rubric test allowlists this id.
+    // 5 checklist items: c1-c4 verbatim from the v1.0 / Standards v1.3 source
+    // (which carries only 4), plus c5 authored under the operator's explicit
+    // 2026-05-30 informed override of "don't invent content" to meet the v1.4
+    // 5-item floor (deviation resolved; rubric-test allowlist removed). c5
+    // closes the feedback loop: the recurring review step over c1-c4's data.
     checklist: [
       ck(
         'ag-s6-food-integration-c1',
@@ -934,6 +938,10 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'ag-s6-food-integration-c4',
         'Define farm production adjustment protocol when guest demand reveals gaps',
+      ),
+      ck(
+        'ag-s6-food-integration-c5',
+        'Define review cadence and owner for the farm-to-guest loop - who reviews produce tracking and gap data each season and decides next-season adjustments',
       ),
     ],
     completionGate:

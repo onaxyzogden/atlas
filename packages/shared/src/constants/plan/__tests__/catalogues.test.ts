@@ -27,11 +27,6 @@ const ALL_AUTHORED: readonly PlanStratumObjective[] = [
 
 const OBJECTIVE_REF = /^(U|RF|RES|EV|AG)-S[1-7]\.\d+$/;
 
-// Objectives transcribed verbatim from a pre-v1.4 source (Authoring Standards
-// v1.3 or earlier) may carry fewer than the v1.4 5-item floor. Each is listed
-// here with its source so the floor stays tight for every v1.4 catalogue.
-//   ag-s6-food-integration: Agritourism v1.0 / Standards v1.3, 4 items in source
-const SHORT_OBJECTIVE_ALLOWLIST = new Set<string>(['ag-s6-food-integration']);
 const PATCH_REF = /^RES>(U|RF)-S[1-7]\.\d+$/;
 
 describe('catalogue conformance - schema validity', () => {
@@ -52,8 +47,7 @@ describe('catalogue conformance - schema validity', () => {
 describe('catalogue conformance - authoring rubric (Standards v1.4)', () => {
   it('every objective has 5-15 checklist items', () => {
     for (const o of ALL_AUTHORED) {
-      const floor = SHORT_OBJECTIVE_ALLOWLIST.has(o.id) ? 4 : 5;
-      expect(o.checklist.length, o.id).toBeGreaterThanOrEqual(floor);
+      expect(o.checklist.length, o.id).toBeGreaterThanOrEqual(5);
       expect(o.checklist.length, o.id).toBeLessThanOrEqual(15);
     }
   });
