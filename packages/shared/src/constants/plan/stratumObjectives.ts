@@ -215,6 +215,9 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       },
     ],
     outputKind: 'plan-decision-record',
+    // Zone-circulation overview is the closest existing surface for reading
+    // current access/movement + how the land functions as a system.
+    legacyCardSectionId: 'plan-zone-overview',
   },
 
   // ---------- S4 ----------
@@ -247,6 +250,9 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       },
     ],
     outputKind: 'plan-decision-record',
+    // Sector overlay card authors the sector directions + seasonal coverage
+    // this objective decides.
+    legacyCardSectionId: 'plan-sector-overlay',
   },
 
   // ---------- S5 ----------
@@ -279,6 +285,9 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       },
     ],
     outputKind: 'plan-decision-record',
+    // Water network & balance card is the existing surface for keylines,
+    // storage strategy, and water-line design.
+    legacyCardSectionId: 'plan-water-network',
   },
 
   // ---------- S6 ----------
@@ -311,6 +320,9 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       },
     ],
     outputKind: 'plan-decision-record',
+    // Closed-loop graph card visualises yield outputs + waste-to-yield loops
+    // across elements — the integration this objective designs.
+    legacyCardSectionId: 'plan-closed-loop-graph',
   },
 
   // ---------- S7 ----------
@@ -343,6 +355,9 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       },
     ],
     outputKind: 'plan-decision-record',
+    // Phasing matrix card is the existing scale-of-permanence phasing surface
+    // this objective builds against.
+    legacyCardSectionId: 'plan-phasing-matrix',
   },
 ] as const;
 

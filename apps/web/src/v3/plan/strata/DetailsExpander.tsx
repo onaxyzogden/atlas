@@ -43,6 +43,21 @@ const SocialNodesCard = lazy(
 const SoilBaselineCard = lazy(
   () => import('../cards/soil-fertility/SoilBaselineCard.js'),
 );
+const ZoneCirculationOverviewCard = lazy(
+  () => import('../cards/zone-circulation/ZoneCirculationOverviewCard.js'),
+);
+const SectorOverlayCard = lazy(
+  () => import('../cards/zone-circulation/SectorOverlayCard.js'),
+);
+const WaterNetworkCard = lazy(
+  () => import('../cards/water-management/WaterNetworkCard.js'),
+);
+const ClosedLoopGraphCard = lazy(
+  () => import('../cards/soil-fertility/ClosedLoopGraphCard.js'),
+);
+const PhasingMatrixCard = lazy(
+  () => import('../../../features/plan/PhasingMatrixCard.js'),
+);
 
 const noop = () => {};
 
@@ -124,6 +139,11 @@ const LEGACY_CARD_LABELS: Readonly<Record<string, string>> = {
   'plan-develop-plan': 'develop plan',
   'plan-social-nodes': 'social nodes',
   'plan-soil-baseline': 'soil baseline',
+  'plan-zone-overview': 'zone overview',
+  'plan-sector-overlay': 'sectors',
+  'plan-water-network': 'water network',
+  'plan-closed-loop-graph': 'closed-loop graph',
+  'plan-phasing-matrix': 'phasing matrix',
 };
 
 function renderLegacyCard(
@@ -137,6 +157,18 @@ function renderLegacyCard(
       return <SocialNodesCard project={project} onSwitchToMap={noop} />;
     case 'plan-soil-baseline':
       return <SoilBaselineCard project={project} onSwitchToMap={noop} />;
+    case 'plan-zone-overview':
+      return (
+        <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />
+      );
+    case 'plan-sector-overlay':
+      return <SectorOverlayCard project={project} onSwitchToMap={noop} />;
+    case 'plan-water-network':
+      return <WaterNetworkCard project={project} onSwitchToMap={noop} />;
+    case 'plan-closed-loop-graph':
+      return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;
+    case 'plan-phasing-matrix':
+      return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;
     default:
       return (
         <p className={css.placeholder}>
