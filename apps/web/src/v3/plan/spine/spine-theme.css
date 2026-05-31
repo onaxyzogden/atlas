@@ -16,6 +16,15 @@
  * suffix on a `var()` would be invalid CSS).
  */
 
+/* ── Base font reset — ensures all spine elements use the OLOS default Inter
+ * stack. Elements that explicitly set fontFamily (F.serif / F.mono) still win
+ * because inline styles have higher specificity than a CSS selector rule.
+ * Without this, elements that rely purely on CSS inheritance can render in a
+ * browser UA default (e.g. system serif) if the inheritance chain is broken.  */
+.olos-spine-root * {
+  font-family: var(--font-sans);
+}
+
 /* ── Dark (native / default) ── */
 .olos-spine-root {
   --spine-bg: #0f0f0d;

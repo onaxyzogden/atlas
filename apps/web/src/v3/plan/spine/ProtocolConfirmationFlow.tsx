@@ -168,7 +168,7 @@ function ConfirmationCard({
                 <span style={{ color: C.textTertiary, width: 110, flexShrink: 0, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 }}>
                   {k}
                 </span>
-                <span style={{ color: C.textSecondary }}>{v}</span>
+                <span style={{ color: C.textSecondary, fontFamily: F.sans }}>{v}</span>
               </div>
             ))}
           </div>

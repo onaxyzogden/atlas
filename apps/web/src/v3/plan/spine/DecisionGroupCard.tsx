@@ -95,7 +95,7 @@ export default function DecisionGroupCard({
           </span>
         )}
         {hasItems && (
-          <span style={{ fontSize: 10, color: accentColor, opacity: 0.7, flexShrink: 0 }}>
+          <span style={{ fontSize: 10, color: accentColor, opacity: 0.7, flexShrink: 0, fontFamily: F.sans }}>
             {expanded ? '▲' : '▼'}
           </span>
         )}
@@ -148,7 +148,7 @@ export default function DecisionGroupCard({
                   opacity: 0.7,
                 }}
               >
-                {isDone && <span style={{ fontSize: 9, color: C.greenDim }}>✓</span>}
+                {isDone && <span style={{ fontSize: 9, color: C.greenDim, fontFamily: F.sans }}>✓</span>}
               </div>
               <span
                 style={{
