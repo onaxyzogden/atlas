@@ -6,7 +6,7 @@
  */
 
 import { Link } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, GitCompare } from 'lucide-react';
 import type {
   ObserveFreshness,
   ObserveStatusOutput,
@@ -82,6 +82,14 @@ export default function DomainDetailHeader({
             {divergenceCount} flagged for review
           </span>
         )}
+        <Link
+          to="/v3/portfolio/observe-compare"
+          search={{ from: projectId, domain: domainId }}
+          className={css.compareLink}
+        >
+          <GitCompare size={13} aria-hidden="true" />
+          <span>Compare with other projects</span>
+        </Link>
       </div>
     </header>
   );

@@ -130,3 +130,19 @@
   color: #7a4a10;
   font-weight: 600;
 }
+
+.compareLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  color: var(--color-text-muted, #6b6450);
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.compareLink:hover {
+  background: var(--color-surface-alt, #f3efe6);
+  color: var(--color-text, #2a2018);
+}

@@ -9,7 +9,8 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { GitCompare, Plus, Search } from 'lucide-react';
 import type { LocalProject } from '../../store/projectStore.js';
 import {
   STAGE_FILTERS,
@@ -125,6 +126,14 @@ export default function PortfolioProjectList({
           })}
         </ul>
       )}
+
+      {/* Portfolio-level entry to cross-project Observe comparison (§6). */}
+      <footer className={css.footer}>
+        <Link to="/v3/portfolio/observe-compare" className={css.compareLink}>
+          <GitCompare size={14} strokeWidth={1.75} aria-hidden="true" />
+          <span>Compare Observe data</span>
+        </Link>
+      </footer>
     </div>
   );
 }

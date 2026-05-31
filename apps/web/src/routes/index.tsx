@@ -39,6 +39,7 @@ import V3HomePage from '../v3/pages/HomePage.js';
 import PerProjectHomePage from '../v3/home/PerProjectHomePage.js';
 import ProjectsLandingPage from '../v3/pages/ProjectsLandingPage.js';
 import PortfolioHomePage from '../v3/portfolio/PortfolioHomePage.js';
+import PortfolioObserveComparePage from '../v3/portfolio/observe-compare/PortfolioObserveComparePage.js';
 import V3DesignPage from '../v3/pages/DesignPage.js';
 import V3ProvePage from '../v3/pages/ProvePage.js';
 import V3BuildPage from '../v3/pages/BuildPage.js';
@@ -262,6 +263,24 @@ const v3PortfolioHomeRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/portfolio',
   component: PortfolioHomePage,
+});
+
+// Plan P6 — cross-project Observe comparison (spec §6). Sibling of the
+// Portfolio Home route under appShellRoute. Read-only: derives entirely from
+// the client-side Phase-4 ObserveDataPoint store. Optional search params seed
+// the initial selection when reached from a per-project Observe domain header
+// (`?from=<projectId>&domain=<domainId>`).
+const v3PortfolioObserveCompareRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/portfolio/observe-compare',
+  component: PortfolioObserveComparePage,
+  validateSearch: (search: Record<string, unknown>): {
+    from?: string;
+    domain?: string;
+  } => ({
+    from: typeof search.from === 'string' ? search.from : undefined,
+    domain: typeof search.domain === 'string' ? search.domain : undefined,
+  }),
 });
 
 // Phase 2 / Slice 2.1.g — Project Creation Wizard entry. `/v3/project/wizard`
@@ -834,6 +853,7 @@ const routeTree = rootRoute.addChildren([
     v3ComponentsDebugRoute,
     v3ProjectsLandingRoute,
     v3PortfolioHomeRoute,
+    v3PortfolioObserveCompareRoute,
     v3WizardCreateRoute,
     v3ProjectLayoutRoute.addChildren([
       v3WizardResumeRoute,
