@@ -34,10 +34,12 @@ import {
 import { useProjectStore } from '../../../store/projectStore.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import PlanNavToggle from '../PlanNavToggle.js';
+import ModeToggle, { type SpinePlanMode } from '../spine/ModeToggle.js';
 import StratumSpine from './StratumSpine.js';
 import StratumLockedPopover from './StratumLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
+import ProtocolLayerPanel from './ProtocolLayerPanel.js';
 import { useProjectObjectives } from './useProjectObjectives.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
 import SecondaryAddModal from './SecondaryAddModal.js';
@@ -87,7 +89,14 @@ export default function PlanStratumShell({
   // mounts this shell).
   const search = useSearch({ strict: false }) as {
     highlightIncomplete?: string;
+    planMode?: string;
   };
+  // Plan Spine re-skin Phase 2 — Design ⇄ Protocol mode is route-driven via
+  // `?planMode=protocol` (consistent with the existing $stratumId/$objectiveId/
+  // highlightIncomplete route-as-state pattern), so it survives stratum and
+  // objective navigation and is deep-linkable. Anything but 'protocol' is Design.
+  const planMode: SpinePlanMode =
+    search?.planMode === 'protocol' ? 'protocol' : 'design';
   const projectId = params.projectId ?? '';
   const project = useV3Project(projectId);
   // Sub-slice D - the Plan spine renders THIS project's resolved objective set
@@ -433,6 +442,21 @@ export default function PlanStratumShell({
     navigateToObjective(obj.id, obj.stratumId);
   };
 
+  // Plan Spine re-skin Phase 2 — flip the Design ⇄ Protocol mode by rewriting
+  // only the `planMode` search param on the CURRENT path (`to: '.'`), preserving
+  // the active stratum/objective segments. Design mode omits the param entirely
+  // (validatePlanSearch only honours `planMode: 'protocol'`). `as never` matches
+  // the codebase's pattern for loosely-typed search updates.
+  const handlePlanModeChange = (mode: SpinePlanMode) => {
+    navigate({
+      to: '.',
+      search: (prev: Record<string, unknown>) => ({
+        ...prev,
+        planMode: mode === 'protocol' ? 'protocol' : undefined,
+      }),
+    } as never);
+  };
+
   const hasDetailPanel = activeObjective !== null && activeStratum !== null;
 
   return (
@@ -533,6 +557,11 @@ export default function PlanStratumShell({
           <div style={{ marginTop: 12 }}>
             <PlanNavToggle mode={shellMode} onChange={onShellModeChange} />
           </div>
+
+          {/* Design ⇄ Protocol mode toggle (Plan Spine re-skin Phase 2) */}
+          <div style={{ marginTop: 8 }}>
+            <ModeToggle mode={planMode} onChange={handlePlanModeChange} />
+          </div>
         </div>
 
         {/* Observe-stage data-gap banner (transient, from a mid-project add) */}
@@ -585,7 +614,13 @@ export default function PlanStratumShell({
           overflow: 'hidden',
         }}
       >
-        {hasDetailPanel && activeObjective && activeStratum ? (
+        {planMode === 'protocol' ? (
+          <ProtocolLayerPanel
+            projectId={projectId}
+            primaryTypeId={primaryTypeId}
+            secondaryTypeIds={currentSecondaryIds}
+          />
+        ) : hasDetailPanel && activeObjective && activeStratum ? (
           <ObjectiveDetailPanel
             key={activeObjective.id}
             projectId={projectId}

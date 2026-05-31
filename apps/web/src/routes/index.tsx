@@ -460,7 +460,13 @@ const v3PlanCommandCentreRoute = createRoute({
 // the spine regardless of whether the steward lands on /plan,
 // /plan/stratum/$stratumId, or
 // /plan/stratum/$stratumId/objective/$objectiveId.
-type PlanSearch = { highlightIncomplete?: 's1' };
+//
+// Plan Spine re-skin Phase 2 adds `?planMode=protocol` — the Design ⇄ Protocol
+// ModeToggle on the spine header. Absent/anything-else means Design mode, so
+// the param is omitted (not `=design`) when the steward is in the default mode.
+// Kept on all three plan-shell routes so the mode survives stratum/objective
+// navigation.
+type PlanSearch = { highlightIncomplete?: 's1'; planMode?: 'protocol' };
 
 const validatePlanSearch = (
   search: Record<string, unknown>,
@@ -468,6 +474,9 @@ const validatePlanSearch = (
   const out: PlanSearch = {};
   if (search.highlightIncomplete === 's1') {
     out.highlightIncomplete = 's1';
+  }
+  if (search.planMode === 'protocol') {
+    out.planMode = 'protocol';
   }
   return out;
 };
