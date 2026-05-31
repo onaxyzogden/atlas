@@ -13,7 +13,7 @@
 //                             unique so progress is shared across Act + Plan views.
 //   - Photo counts / confirms / notes -> actEvidenceStore (projectId, objectiveId, descriptorId)
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Camera, Check, ClipboardCheck, Plus } from 'lucide-react';
 import type {
   PlanStratum,
@@ -58,6 +58,31 @@ function isEvidenceSatisfied(
   return capture.notesSaved[descriptor.id] === true;
 }
 
+/**
+ * Pull a human-readable note out of an observation's measurementValue, which is
+ * typed `unknown` on the schema. The Act write path stores either
+ * `{ label }` or `{ label, note }`, so read `.note` defensively.
+ */
+function readNote(mv: unknown): string | null {
+  if (mv && typeof mv === 'object' && 'note' in mv) {
+    const note = (mv as { note?: unknown }).note;
+    if (typeof note === 'string' && note.trim().length > 0) return note;
+  }
+  return null;
+}
+
+/** Compact local timestamp for an activity row (no date util imported here). */
+function formatActyTimestamp(iso: string): string {
+  const ms = Date.parse(iso);
+  if (!Number.isFinite(ms)) return iso;
+  return new Date(ms).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 interface Props {
   projectId: string;
   tier: PlanStratum | undefined;
@@ -92,6 +117,19 @@ export default function ActTierExecutionPanel({
 
   // Observe substrate: completing an objective emits a manual observation.
   const recordDataPoint = useObserveDataPointStore((s) => s.recordDataPoint);
+
+  // Per-objective activity feed. Subscribe to the raw byProject map and
+  // useMemo-filter (mirrors useDomainPoints) so the selector never returns a
+  // fresh array reference per render. Newest first.
+  const pointsByProject = useObserveDataPointStore((s) => s.byProject);
+  const objectiveObservations = useMemo(
+    () =>
+      (pointsByProject[projectId] ?? [])
+        .filter((p) => p.sourceObjectiveId === objective.id)
+        .slice()
+        .sort((a, b) => Date.parse(b.capturedAt) - Date.parse(a.capturedAt)),
+    [pointsByProject, projectId, objective.id],
+  );
 
   // -------------------------------------------------------------------------
   // Progress derivations.
@@ -128,14 +166,9 @@ export default function ActTierExecutionPanel({
   );
   const ready = checklistReady && evidenceReady && domainId !== null;
 
-  // Session-local "recorded" feedback, reset whenever the objective changes.
-  // (ObserveDataPoint links by domain, not objective, so we cannot derive this
-  // per-objective from the store -- local flag is the lightweight signal.)
-  const [recorded, setRecorded] = useState(false);
-  useEffect(() => {
-    setRecorded(false);
-  }, [objective.id]);
-
+  // Repeat recordings are allowed: the activity feed below is the persistent
+  // history, so the Record button stays armed and a new row is the confirmation
+  // (no post-record lock).
   function handleRecord() {
     if (!ready || domainId === null) return;
     const savedNotes = evidence
@@ -164,7 +197,6 @@ export default function ActTierExecutionPanel({
       capturedBy: 'act-tier',
     };
     recordDataPoint(point);
-    setRecorded(true);
   }
 
   // -------------------------------------------------------------------------
@@ -327,7 +359,23 @@ export default function ActTierExecutionPanel({
 
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>This need&apos;s activity</h4>
-        <p className={styles.execEmpty}>No observations recorded.</p>
+        {objectiveObservations.length === 0 ? (
+          <p className={styles.execEmpty}>No observations recorded.</p>
+        ) : (
+          <ol className={styles.actyList} aria-label="Recorded observations">
+            {objectiveObservations.map((obs) => {
+              const note = readNote(obs.measurementValue);
+              return (
+                <li key={obs.id} className={styles.actyRow}>
+                  <span className={styles.actyMeta}>
+                    {formatActyTimestamp(obs.capturedAt)} &middot; {obs.capturedBy}
+                  </span>
+                  {note && <span className={styles.actyNote}>{note}</span>}
+                </li>
+              );
+            })}
+          </ol>
+        )}
         <button type="button" className={styles.linkBtn}>
           <Plus size={13} aria-hidden="true" />
           Raise follow-up need
@@ -337,11 +385,11 @@ export default function ActTierExecutionPanel({
       <button
         type="button"
         className={styles.recordBtn}
-        disabled={!ready || recorded}
+        disabled={!ready}
         onClick={handleRecord}
       >
         <ClipboardCheck size={16} aria-hidden="true" />
-        {recorded ? 'Observation recorded' : 'Record observation'}
+        Record observation
       </button>
       </div>
     </div>

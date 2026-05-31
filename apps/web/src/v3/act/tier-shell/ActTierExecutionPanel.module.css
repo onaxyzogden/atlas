@@ -285,6 +285,40 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
 }
 
+/* ---- Per-objective activity feed (recorded observations) --------------- */
+
+.actyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actyRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--color-bg, #1f1d1a);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+}
+
+.actyMeta {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.actyNote {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text, #f2ede3);
+}
+
 .linkBtn {
   align-self: flex-start;
   display: inline-flex;
