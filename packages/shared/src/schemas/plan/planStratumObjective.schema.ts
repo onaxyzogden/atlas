@@ -203,6 +203,30 @@ export const PlanStratumObjectiveSchema = z.object({
    */
   completionGate: z.string().optional(),
   /**
+   * Part D (Plan Nav v1.1 greyed gate history): the pre-amendment completion
+   * gate, captured by the resolver the FIRST time a secondary patch amends
+   * `completionGate`. Lets the Plan render show the original gate text greyed
+   * ("Previously:") beneath the current concatenated gate. Runtime-only
+   * (resolved objectives are never persisted) and absent when the gate was
+   * never amended, so seed/catalogue objects validate unchanged.
+   */
+  completionGateBase: z.string().optional(),
+  /**
+   * Part D: ordered trail of completion-gate amendments, one entry per applied
+   * secondary patch (in patch-application order), each attributing its
+   * amendment text to the responsible secondary. Drives the per-amendment
+   * "Amended by <Type>" history beneath the gate. Runtime-only; absent when the
+   * gate was never amended.
+   */
+  completionGateAmendments: z
+    .array(
+      z.object({
+        secondaryTypeId: ProjectTypeId,
+        text: z.string(),
+      }),
+    )
+    .optional(),
+  /**
    * Plain-text descriptor of what this objective hands off to the Act stage on
    * completion (creation hook only this slice; the Field Actions Center that
    * consumes it is out of scope). Stored verbatim.

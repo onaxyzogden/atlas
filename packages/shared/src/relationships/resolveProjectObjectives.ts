@@ -284,6 +284,20 @@ export function resolveProjectObjectives(
     target.decisionGroups = [...target.decisionGroups, ...injectedGroups];
 
     // Concatenate gate amendment + scope note onto the target (never replace).
+    // Part D: before concatenating, capture the pre-amendment base (first
+    // amendment only) and push an attributed entry onto the ordered amendment
+    // trail, so the Plan render can show the full greyed "Previously:" history
+    // beneath the current concatenated gate. Only when this patch actually
+    // amends the gate; a non-empty base is required for there to be history.
+    if (p.completionGateAmendment && p.completionGateAmendment.trim()) {
+      if (target.completionGateBase === undefined) {
+        target.completionGateBase = target.completionGate;
+      }
+      target.completionGateAmendments = [
+        ...(target.completionGateAmendments ?? []),
+        { secondaryTypeId: p.secondaryTypeId, text: p.completionGateAmendment },
+      ];
+    }
     target.completionGate = concatText(target.completionGate, p.completionGateAmendment);
     target.scopeNotes = concatText(target.scopeNotes, p.scopeNote);
 

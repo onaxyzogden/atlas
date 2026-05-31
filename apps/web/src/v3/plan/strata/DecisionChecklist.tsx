@@ -48,6 +48,15 @@ export default function DecisionChecklist({
   // attribute the gate change to. (Precise per-clause provenance is a later
   // seam; see plan "Out of scope".)
   const amenderTypeId = mostCommonAmender(items);
+  // Part D (greyed gate history): when secondary patches amended the gate, the
+  // resolver captured the pre-amendment base + an ordered, attributed amendment
+  // trail. Render the base greyed ("Previously:") with each amendment credited
+  // to its secondary, beneath the current concatenated gate. History shows only
+  // when there is a real base to contrast against the current text.
+  const gateAmendments = objective.completionGateAmendments ?? [];
+  const gateBase = objective.completionGateBase;
+  const hasGateHistory =
+    gateAmendments.length > 0 && Boolean(gateBase && gateBase.trim());
   const isDerived = (id: string) =>
     derivedEvidence?.[id]?.isComplete === true;
   const isItemComplete = (id: string) => completed.has(id) || isDerived(id);
@@ -97,6 +106,29 @@ export default function DecisionChecklist({
               </span>
             ) : null}
           </div>
+          {hasGateHistory ? (
+            <div
+              className={css.gateHistory}
+              data-testid="plan-gate-history"
+            >
+              <p className={css.gatePreviousLabel}>Previously</p>
+              <p className={css.gatePrevious}>{gateBase}</p>
+              <ul className={css.gateAmendments}>
+                {gateAmendments.map((a, i) => (
+                  <li
+                    key={`${a.secondaryTypeId}-${i}`}
+                    className={css.gateAmendment}
+                  >
+                    <span className={css.gateAmendmentSource}>
+                      {findProjectType(a.secondaryTypeId)?.label ??
+                        a.secondaryTypeId}
+                    </span>{' '}
+                    added: {a.text}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <p className={css.gateBody}>{objective.completionGate}</p>
         </div>
       ) : null}
