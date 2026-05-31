@@ -51,7 +51,11 @@ import BaseMapCard from '../plan/canvas/BaseMapCard.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import ActReadyCue from './components/ActReadyCue.js';
 import ActShellToggle from './field-action/ActShellToggle.js';
-import ActFieldActionLayout from './field-action/ActFieldActionLayout.js';
+// ADR 7 headline: the live field-action surface is now map-first
+// (ActMapFirstLayout). The legacy rail-with-map ActFieldActionLayout is
+// preserved on disk as a reversible fallback (swap the import below to
+// restore it) per the no-deletion-in-revamps rule.
+import ActMapFirstLayout from './field-action/ActMapFirstLayout.js';
 // tier-shell: the promoted map-centric 4-rail Act shell (default mode).
 import ActTierShell from './tier-shell/ActTierShell.js';
 import css from './ActLayout.module.css';
@@ -175,19 +179,9 @@ export default function ActLayout() {
 
   if (actShellMode === 'field-action') {
     return (
-      <StageShell
-        canvasLabel="Act canvas"
-        leftRailLabel="Act tools"
-        rightRailLabel="Act checklist"
-        leftRail={null}
-        canvas={
-          <ActFieldActionLayout
-            shellMode={actShellMode}
-            onShellModeChange={handleActShellModeChange}
-          />
-        }
-        rightRail={null}
-        bottomTray={null}
+      <ActMapFirstLayout
+        shellMode={actShellMode}
+        onShellModeChange={handleActShellModeChange}
       />
     );
   }
