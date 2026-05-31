@@ -11,6 +11,7 @@ import PageHeader from "../components/PageHeader.js";
 import BlockerCard from "../components/BlockerCard.js";
 import DecisionRail from "../components/DecisionRail.js";
 import StratumSpine from "../plan/strata/StratumSpine.js";
+import PlanSpinePrototype from "../plan/spine/PlanSpinePrototype.js";
 import { MTC_PROJECT } from "../data/mockProject.js";
 import { PLAN_STRATA, type PlanStratumState } from "@ogden/shared";
 import css from "./ComponentsDebugPage.module.css";
@@ -92,6 +93,19 @@ export default function ComponentsDebugPage() {
           activeStratumId={STRATUM_DEMO_ACTIVE}
           onSelectStratum={() => {}}
         />
+      </Section>
+
+      <Section title="Plan Spine prototype — Design ▸ Protocol modes (OLOS Protocol Layer slice 1)">
+        <div
+          style={{
+            height: 760,
+            borderRadius: 12,
+            overflow: "hidden",
+            border: "1px solid #2A2A25",
+          }}
+        >
+          <PlanSpinePrototype height="100%" />
+        </div>
       </Section>
     </div>
   );
