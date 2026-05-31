@@ -24,7 +24,16 @@
 // straight.
 
 import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj } from './authoring.js';
+import { ck, dg, obj } from './authoring.js';
+
+// Decision groups (Decision Groups Reference v1.0; OLOS spec 9.3-9.4) - AUTHORED
+// under the 2026-05-31 extended override ("author meaningful labels"). The
+// reference doc does not enumerate matching groups for this derived nursery
+// secondary, so every group here - label, item membership, observeFeeds - is
+// authored editorially to partition each objective's checklist into 2-3 named
+// decision scopes (full mutually-exclusive partition). This catalogue carries no
+// PatchRecords (per the source: "Observe domains added: None new"), so there are
+// no injectedGroups.
 
 const SECONDARY = 'nursery' as const;
 
@@ -62,6 +71,11 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Identify local growing media components available - perlite, coir, sand, biochar sources',
       ),
     ],
+    decisionGroups: [
+      dg('nur-sec-s1-propagation-infra-survey-dg1', 'Existing structures', ['nur-sec-s1-propagation-infra-survey-c1', 'nur-sec-s1-propagation-infra-survey-c2'], ['Infrastructure & Access']),
+      dg('nur-sec-s1-propagation-infra-survey-dg2', 'On-site media & compost capacity', ['nur-sec-s1-propagation-infra-survey-c3', 'nur-sec-s1-propagation-infra-survey-c4'], ['Soil']),
+      dg('nur-sec-s1-propagation-infra-survey-dg3', 'Local media components', ['nur-sec-s1-propagation-infra-survey-c5'], ['Soil']),
+    ],
     completionGate:
       'Existing propagation infrastructure inventoried. Growing media resources assessed.',
     actHandoff: 'Existing Propagation Infrastructure & Growing Media Survey',
@@ -97,6 +111,11 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'nur-sec-s1-water-survey-c5',
         'Confirm water quality meets the growing system philosophy requirements',
       ),
+    ],
+    decisionGroups: [
+      dg('nur-sec-s1-water-survey-dg1', 'Quality & contamination', ['nur-sec-s1-water-survey-c1', 'nur-sec-s1-water-survey-c2'], ['Water & Hydrology']),
+      dg('nur-sec-s1-water-survey-dg2', 'Pressure & softness', ['nur-sec-s1-water-survey-c3', 'nur-sec-s1-water-survey-c4'], ['Water & Hydrology']),
+      dg('nur-sec-s1-water-survey-dg3', 'Growing-philosophy fit', ['nur-sec-s1-water-survey-c5'], ['Water & Hydrology']),
     ],
     completionGate:
       'Propagation water quality and supply confirmed. Any treatment requirements defined.',
@@ -134,6 +153,11 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'nur-sec-s2-biosecurity-survey-c5',
         'Define sanitation and hygiene baseline for proposed propagation areas',
       ),
+    ],
+    decisionGroups: [
+      dg('nur-sec-s2-biosecurity-survey-dg1', 'Disease & pest risks', ['nur-sec-s2-biosecurity-survey-c1', 'nur-sec-s2-biosecurity-survey-c2'], ['Ecology & Habitat']),
+      dg('nur-sec-s2-biosecurity-survey-dg2', 'Weed & material contamination', ['nur-sec-s2-biosecurity-survey-c3', 'nur-sec-s2-biosecurity-survey-c4'], ['Ecology & Habitat']),
+      dg('nur-sec-s2-biosecurity-survey-dg3', 'Sanitation baseline', ['nur-sec-s2-biosecurity-survey-c5'], []),
     ],
     completionGate: 'Pest, disease, and biosecurity risk survey complete.',
     actHandoff: 'Propagation Pest, Disease & Biosecurity Risk Survey',
@@ -174,6 +198,11 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'nur-sec-s3-propagation-strategy-c6',
         'Confirm production mix is achievable within available infrastructure and water capacity',
       ),
+    ],
+    decisionGroups: [
+      dg('nur-sec-s3-propagation-strategy-dg1', 'Purpose & production mix', ['nur-sec-s3-propagation-strategy-c1', 'nur-sec-s3-propagation-strategy-c2'], []),
+      dg('nur-sec-s3-propagation-strategy-dg2', 'System philosophy & biosecurity', ['nur-sec-s3-propagation-strategy-c3', 'nur-sec-s3-propagation-strategy-c4'], []),
+      dg('nur-sec-s3-propagation-strategy-dg3', 'Registration & capacity fit', ['nur-sec-s3-propagation-strategy-c5', 'nur-sec-s3-propagation-strategy-c6'], []),
     ],
     completionGate:
       'Propagation strategy, production mix, and biosecurity framework approved. Regulatory requirements identified.',
@@ -216,6 +245,11 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Define quality testing protocol for growing media batches',
       ),
     ],
+    decisionGroups: [
+      dg('nur-sec-s3-growing-media-dg1', 'Formulation & on-site compost', ['nur-sec-s3-growing-media-c1', 'nur-sec-s3-growing-media-c2'], ['Soil']),
+      dg('nur-sec-s3-growing-media-dg2', 'External inputs & fertigation', ['nur-sec-s3-growing-media-c3', 'nur-sec-s3-growing-media-c4'], ['Soil']),
+      dg('nur-sec-s3-growing-media-dg3', 'Philosophy fit & batch testing', ['nur-sec-s3-growing-media-c5', 'nur-sec-s3-growing-media-c6'], ['Soil']),
+    ],
     completionGate: 'Growing media strategy and fertility inputs approved.',
     actHandoff: 'Growing Media Strategy & Fertility Brief',
   }),
@@ -256,6 +290,11 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm capacity meets propagation calendar requirements',
       ),
     ],
+    decisionGroups: [
+      dg('nur-sec-s4-propagation-infra-design-dg1', 'Protected growing structures', ['nur-sec-s4-propagation-infra-design-c1', 'nur-sec-s4-propagation-infra-design-c2'], ['Infrastructure & Access']),
+      dg('nur-sec-s4-propagation-infra-design-dg2', 'Germination & hardening off', ['nur-sec-s4-propagation-infra-design-c3', 'nur-sec-s4-propagation-infra-design-c4'], ['Infrastructure & Access']),
+      dg('nur-sec-s4-propagation-infra-design-dg3', 'Potting & capacity', ['nur-sec-s4-propagation-infra-design-c5', 'nur-sec-s4-propagation-infra-design-c6'], ['Infrastructure & Access']),
+    ],
     completionGate:
       'Propagation infrastructure design approved. Capacity confirmed.',
     actHandoff: 'Propagation Infrastructure Design Package',
@@ -292,6 +331,11 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm system delivers required uniformity and pressure across all production areas',
       ),
     ],
+    decisionGroups: [
+      dg('nur-sec-s4-irrigation-design-dg1', 'Misting & growing-on delivery', ['nur-sec-s4-irrigation-design-c1', 'nur-sec-s4-irrigation-design-c2'], ['Water & Hydrology']),
+      dg('nur-sec-s4-irrigation-design-dg2', 'Valves & filtration', ['nur-sec-s4-irrigation-design-c3', 'nur-sec-s4-irrigation-design-c4'], ['Water & Hydrology']),
+      dg('nur-sec-s4-irrigation-design-dg3', 'Uniformity confirmation', ['nur-sec-s4-irrigation-design-c5'], ['Water & Hydrology']),
+    ],
     completionGate: 'Propagation irrigation system design approved.',
     actHandoff: 'Propagation Irrigation System Design Package',
   }),
@@ -326,6 +370,11 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'nur-sec-s4-sales-dispatch-c5',
         'Confirm biosecurity zone separation is maintained - production zones isolated from public access',
       ),
+    ],
+    decisionGroups: [
+      dg('nur-sec-s4-sales-dispatch-dg1', 'Sales & quarantine zones', ['nur-sec-s4-sales-dispatch-c1', 'nur-sec-s4-sales-dispatch-c2'], ['Infrastructure & Access']),
+      dg('nur-sec-s4-sales-dispatch-dg2', 'Labelling & packing', ['nur-sec-s4-sales-dispatch-c3', 'nur-sec-s4-sales-dispatch-c4'], ['Infrastructure & Access']),
+      dg('nur-sec-s4-sales-dispatch-dg3', 'Zone separation confirmation', ['nur-sec-s4-sales-dispatch-c5'], ['Infrastructure & Access']),
     ],
     completionGate:
       'Plant sales, dispatch, and biosecurity infrastructure design approved. Zone separation confirmed.',
