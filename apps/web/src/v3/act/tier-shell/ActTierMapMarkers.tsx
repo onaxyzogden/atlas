@@ -5,11 +5,10 @@
 // that objective (drives the URL + flips the right rail to execution detail).
 // Mirrors the marker lifecycle of ActProtoMapMarkers / CaptureMapMarkers.
 //
-// Geometry caveat: PlanStratumObjective carries no per-objective geometry yet,
-// so pin positions use a deterministic offset from the parcel centroid
-// (copied locally from the prototype's protoSeed math, NOT imported from
-// tier-prototype/). This is the one acceptable non-real bit — flagged for a
-// later "real objective geometry" pass once objectives carry feature links.
+// Pin positions are REAL: ActTierShell derives each objective's location from
+// the centroid of its field actions' logged geometry (objectiveMarkerGeometry).
+// Objectives without any logged location are absent from positionByObjective
+// and render NO pin (hide-until-real) — there is no synthetic fallback.
 
 import { useEffect, useRef } from 'react';
 import type { PlanStratumObjective } from '@ogden/shared';
@@ -18,7 +17,9 @@ import type { ObjectiveProgress } from './objectiveProgress.js';
 
 interface Props {
   map: maplibregl.Map;
-  centroid: [number, number];
+  /** Real per-objective [lng, lat] from field-action geometry; objectives
+   *  absent from this map have no logged location and render no pin. */
+  positionByObjective: Readonly<Record<string, [number, number]>>;
   objectives: readonly PlanStratumObjective[];
   progressByObjective: Readonly<Record<string, ObjectiveProgress>>;
   activeObjectiveId: string | null;
@@ -32,23 +33,6 @@ const STATE_COLOR: Record<ObjectiveProgress['state'], string> = {
   active: '#c4a265',
   available: '#5b8aa8',
 };
-
-// Deterministic pseudo-coordinates offset from the parcel centroid, so pins
-// read as distinct field locations without any geo data. Copied from the
-// prototype's protoSeed (tier-prototype is deletable, so we don't import it).
-function objectiveOffset(
-  centroid: [number, number],
-  index: number,
-): [number, number] {
-  const [baseLng, baseLat] = centroid;
-  const ring = Math.floor(index / 4) + 1;
-  const angle = (index % 4) * (Math.PI / 2) + ring * 0.6;
-  const radius = 0.0015 * ring;
-  return [
-    baseLng + Math.cos(angle) * radius,
-    baseLat + Math.sin(angle) * radius,
-  ];
-}
 
 function buildPin(color: string, isActive: boolean): HTMLDivElement {
   const el = document.createElement('div');
@@ -66,7 +50,7 @@ function buildPin(color: string, isActive: boolean): HTMLDivElement {
 
 export default function ActTierMapMarkers({
   map,
-  centroid,
+  positionByObjective,
   objectives,
   progressByObjective,
   activeObjectiveId,
@@ -80,16 +64,19 @@ export default function ActTierMapMarkers({
     const known = markersRef.current;
     const seen = new Set<string>();
 
-    objectives.forEach((objective, index) => {
+    objectives.forEach((objective) => {
+      const pos = positionByObjective[objective.id];
+      // Hide-until-real: objectives with no logged field-action geometry get no
+      // pin. Leaving them out of `seen` also tears down any stale marker below.
+      if (!pos) return;
       seen.add(objective.id);
       // Teardown-and-replace each pass so the active outline + state colour
       // stay current; the marker count is tiny, so this beats in-place mutation.
       known.get(objective.id)?.remove();
-      const [lng, lat] = objectiveOffset(centroid, index);
       const state = progressByObjective[objective.id]?.state ?? 'available';
       const el = buildPin(STATE_COLOR[state], objective.id === activeObjectiveId);
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-        .setLngLat([lng, lat])
+        .setLngLat(pos)
         .addTo(map);
       el.addEventListener('click', (ev) => {
         ev.stopPropagation();
@@ -104,7 +91,7 @@ export default function ActTierMapMarkers({
         known.delete(id);
       }
     }
-  }, [map, centroid, objectives, progressByObjective, activeObjectiveId]);
+  }, [map, positionByObjective, objectives, progressByObjective, activeObjectiveId]);
 
   useEffect(() => {
     const known = markersRef.current;

@@ -61,6 +61,7 @@ import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
 import type { ActModule } from '../types.js';
 import type { QuickLog } from '../quickLogs.js';
 import { computeObjectiveProgress } from './objectiveProgress.js';
+import { computeObjectiveMarkerPositions } from './objectiveMarkerGeometry.js';
 import ActTierSpine from './ActTierSpine.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
@@ -173,6 +174,14 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     [objectives, selectedStratumId],
   );
 
+  // Real per-objective marker positions from field-action geometry. Objectives
+  // with no logged location are absent here, so the map renders no pin for them
+  // (hide-until-real; no synthetic fallback). Scoped to the rendered stratum.
+  const positionByObjective = useMemo(
+    () => computeObjectiveMarkerPositions(stratumObjectives, actions),
+    [stratumObjectives, actions],
+  );
+
   const goToObjective = useCallback(
     (nextObjectiveId: string | null) => {
       if (!params.projectId) return;
@@ -256,7 +265,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                     <ActStructurePopover map={map} projectId={id} />
                     <ActTierMapMarkers
                       map={map}
-                      centroid={baseCentroid}
+                      positionByObjective={positionByObjective}
                       objectives={stratumObjectives}
                       progressByObjective={progressByObjective}
                       activeObjectiveId={objectiveId}
