@@ -172,6 +172,89 @@
   background: color-mix(in srgb, #e8a958 5%, transparent);
 }
 
+/* Decision Groups Reference v1.0 (OLOS spec 9.3-9.4) — when an objective
+   carries decision groups, the checklist renders grouped under each group's
+   sub-header: label + "N items" count + observe-feed chips, with the item
+   rows nested beneath. A group injected by a secondary layer
+   (sourceSecondaryId stamped by the resolver) reuses the amber patch accent. */
+.groups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.group[data-injected='true'] {
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, #e8a958 55%, transparent);
+  border-top-left-radius: var(--radius-sm, 6px);
+  border-bottom-left-radius: var(--radius-sm, 6px);
+}
+
+.groupHeader {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.groupLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--color-text, #f2ede3);
+}
+
+.groupCount {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+  font-variant-numeric: tabular-nums;
+}
+
+.groupAddedBy {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, #e8a958 16%, transparent);
+  color: #e8a958;
+  border: 1px solid color-mix(in srgb, #e8a958 40%, transparent);
+}
+
+.groupFeeds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.groupFeed {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--color-text, #f2ede3) 7%, transparent);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.16));
+}
+
 /* Plan Nav v1.1 §5.6 — completion-gate block. The gate text is the
    objective's pass condition; when a secondary layer amended it (the
    resolver concatenates onto the base gate) an amber "Amended by" pill

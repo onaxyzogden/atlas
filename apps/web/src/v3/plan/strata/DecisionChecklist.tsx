@@ -14,6 +14,7 @@
 // can drive cyclical-review revisions in Slice 1.11 without a refactor.
 
 import type {
+  DecisionGroup,
   PlanDecisionChecklistItem,
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
@@ -76,22 +77,32 @@ export default function DecisionChecklist({
 
       {items.length === 0 ? (
         <p className={css.empty}>No checklist items for this objective yet.</p>
+      ) : objective.decisionGroups.length > 0 ? (
+        // Decision Groups Reference v1.0 (OLOS spec 9.3-9.4): when the objective
+        // carries decision groups, the checklist is rendered grouped under each
+        // group's label, item count, and observe-feed chips. Item checkboxes stay
+        // nested (the stratum-progress completion model is keyed on per-item ids;
+        // a groups-only display with group-level completion is a later refinement
+        // — disclosed divergence from the spec's "Plan shows only groups" intent).
+        <GroupedChecklist
+          groups={objective.decisionGroups}
+          items={items}
+          completed={completed}
+          derivedEvidence={derivedEvidence}
+          onToggleItem={onToggleItem}
+        />
       ) : (
         <ol className={css.list}>
-          {items.map((item) => {
-            const derived = derivedEvidence?.[item.id];
-            const fromBridge = derived?.isComplete === true;
-            return (
-              <li key={item.id} className={css.item}>
-                <ChecklistRow
-                  item={item}
-                  isComplete={completed.has(item.id) || fromBridge}
-                  derived={fromBridge ? derived : undefined}
-                  onToggle={() => onToggleItem(item.id)}
-                />
-              </li>
-            );
-          })}
+          {items.map((item) => (
+            <li key={item.id} className={css.item}>
+              <ItemRow
+                item={item}
+                completed={completed}
+                derivedEvidence={derivedEvidence}
+                onToggleItem={onToggleItem}
+              />
+            </li>
+          ))}
         </ol>
       )}
 
@@ -158,6 +169,147 @@ function mostCommonAmender(
     }
   }
   return best;
+}
+
+interface ItemRowProps {
+  item: PlanDecisionChecklistItem;
+  completed: Set<string>;
+  derivedEvidence?: VisionDerivedMap;
+  onToggleItem: (itemId: string) => void;
+}
+
+/**
+ * One checklist <ChecklistRow>, resolving its derived/bridge state. Shared by
+ * the flat list and the grouped render so both paths stay byte-identical per
+ * item.
+ */
+function ItemRow({
+  item,
+  completed,
+  derivedEvidence,
+  onToggleItem,
+}: ItemRowProps) {
+  const derived = derivedEvidence?.[item.id];
+  const fromBridge = derived?.isComplete === true;
+  return (
+    <ChecklistRow
+      item={item}
+      isComplete={completed.has(item.id) || fromBridge}
+      derived={fromBridge ? derived : undefined}
+      onToggle={() => onToggleItem(item.id)}
+    />
+  );
+}
+
+interface GroupedChecklistProps {
+  groups: readonly DecisionGroup[];
+  items: readonly PlanDecisionChecklistItem[];
+  completed: Set<string>;
+  derivedEvidence?: VisionDerivedMap;
+  onToggleItem: (itemId: string) => void;
+}
+
+/**
+ * Render the checklist grouped under each decision group's sub-header (label +
+ * "N items" + observe-feed chips). A group injected by a secondary layer
+ * (`sourceSecondaryId != null`, stamped by the resolver) reuses the amber
+ * "Added by <Type>" treatment + injected left-border, matching the per-item
+ * patch attribution. Items not claimed by any group fall through to a trailing
+ * "Other decisions" block so the render stays lossless if a catalogue is only
+ * partially grouped (the partition invariant is enforced in the shared tests).
+ */
+function GroupedChecklist({
+  groups,
+  items,
+  completed,
+  derivedEvidence,
+  onToggleItem,
+}: GroupedChecklistProps) {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const claimed = new Set<string>();
+
+  const rendered = groups.map((group) => {
+    const groupItems = group.itemIds
+      .map((id) => byId.get(id))
+      .filter((i): i is PlanDecisionChecklistItem => Boolean(i));
+    groupItems.forEach((i) => claimed.add(i.id));
+    const injected = group.sourceSecondaryId != null;
+    return (
+      <li
+        key={group.id}
+        className={css.group}
+        data-injected={injected ? 'true' : undefined}
+        data-testid={`plan-decision-group-${group.id}`}
+      >
+        <div className={css.groupHeader}>
+          <span className={css.groupLabel}>{group.label}</span>
+          <span className={css.groupCount}>
+            {groupItems.length}{' '}
+            {groupItems.length === 1 ? 'item' : 'items'}
+          </span>
+          {injected && group.sourceSecondaryId ? (
+            <span className={css.groupAddedBy}>
+              Added by{' '}
+              {findProjectType(group.sourceSecondaryId)?.label ??
+                group.sourceSecondaryId}
+            </span>
+          ) : null}
+        </div>
+        {group.observeFeeds.length > 0 ? (
+          <div className={css.groupFeeds}>
+            {group.observeFeeds.map((feed) => (
+              <span key={feed} className={css.groupFeed}>
+                {feed}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        <ol className={css.list}>
+          {groupItems.map((item) => (
+            <li key={item.id} className={css.item}>
+              <ItemRow
+                item={item}
+                completed={completed}
+                derivedEvidence={derivedEvidence}
+                onToggleItem={onToggleItem}
+              />
+            </li>
+          ))}
+        </ol>
+      </li>
+    );
+  });
+
+  const ungrouped = items.filter((i) => !claimed.has(i.id));
+
+  return (
+    <ol className={css.groups}>
+      {rendered}
+      {ungrouped.length > 0 ? (
+        <li className={css.group} data-testid="plan-decision-group-ungrouped">
+          <div className={css.groupHeader}>
+            <span className={css.groupLabel}>Other decisions</span>
+            <span className={css.groupCount}>
+              {ungrouped.length}{' '}
+              {ungrouped.length === 1 ? 'item' : 'items'}
+            </span>
+          </div>
+          <ol className={css.list}>
+            {ungrouped.map((item) => (
+              <li key={item.id} className={css.item}>
+                <ItemRow
+                  item={item}
+                  completed={completed}
+                  derivedEvidence={derivedEvidence}
+                  onToggleItem={onToggleItem}
+                />
+              </li>
+            ))}
+          </ol>
+        </li>
+      ) : null}
+    </ol>
+  );
 }
 
 interface RowProps {
