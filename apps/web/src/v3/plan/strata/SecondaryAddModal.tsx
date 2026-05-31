@@ -15,7 +15,7 @@
 // candidate is no longer eligible and a fresh preview would be empty.
 
 import { useEffect, useRef, useState } from 'react';
-import { Layers, X } from 'lucide-react';
+import { Layers, X, Trash2 } from 'lucide-react';
 import { findProjectType, type ProjectTypeId } from '@ogden/shared';
 import WizardSecondaryPicker from '../../project-wizard/WizardSecondaryPicker.js';
 import WizardTensionPanel from '../../project-wizard/WizardTensionPanel.js';
@@ -23,6 +23,10 @@ import {
   useSecondaryAddPreview,
   type SecondaryAddPreview,
 } from './useSecondaryAddPreview.js';
+import {
+  useSecondaryRemovePreview,
+  type BlockingObjective,
+} from './useSecondaryRemovePreview.js';
 import css from './SecondaryAddModal.module.css';
 
 interface Props {
@@ -31,7 +35,100 @@ interface Props {
   currentSecondaryIds: readonly ProjectTypeId[];
   /** Fired with the chosen secondary + its pre-mutation preview snapshot. */
   onConfirm: (secondaryTypeId: ProjectTypeId, preview: SecondaryAddPreview) => void;
+  /**
+   * Plan Nav v1.1 §8.3 — fired to remove a secondary whose delta objectives
+   * are all unstarted (the row has already confirmed removability via
+   * useSecondaryRemovePreview). The parent performs the store mutation.
+   */
+  onRemove: (secondaryTypeId: ProjectTypeId) => void;
+  /**
+   * Plan Nav v1.1 §8.3 — fired when removal is blocked because one or more
+   * delta objectives are active/complete/deferred. The parent opens the
+   * blocked modal with the named blockers; nothing is mutated.
+   */
+  onRemoveBlocked: (
+    secondaryTypeId: ProjectTypeId,
+    blockingObjectives: BlockingObjective[],
+  ) => void;
   onDismiss: () => void;
+}
+
+/**
+ * One current-secondary row in the manage list. Calls the (pure, read-only)
+ * remove preview for its own secondary so the Remove control knows whether a
+ * removal is clean or blocked. A clean removal asks for an inline confirm
+ * first (it drops objectives); a blocked removal routes straight to the
+ * blocked modal via `onRemoveBlocked`.
+ */
+function CurrentSecondaryRow({
+  projectId,
+  secondaryTypeId,
+  onRemove,
+  onRemoveBlocked,
+}: {
+  projectId: string;
+  secondaryTypeId: ProjectTypeId;
+  onRemove: (secondaryTypeId: ProjectTypeId) => void;
+  onRemoveBlocked: (
+    secondaryTypeId: ProjectTypeId,
+    blockingObjectives: BlockingObjective[],
+  ) => void;
+}) {
+  const preview = useSecondaryRemovePreview(projectId, secondaryTypeId);
+  const [confirming, setConfirming] = useState(false);
+  const label = findProjectType(secondaryTypeId)?.label ?? secondaryTypeId;
+  const dropCount = preview.removedObjectiveIds.length;
+
+  const handleRemoveClick = () => {
+    if (!preview.removable) {
+      onRemoveBlocked(secondaryTypeId, preview.blockingObjectives);
+      return;
+    }
+    setConfirming(true);
+  };
+
+  return (
+    <li className={css.currentRow} data-testid="plan-secondary-current-row">
+      <span className={css.currentLabel}>{label}</span>
+      {confirming ? (
+        <span className={css.confirmGroup}>
+          <span className={css.confirmHint}>
+            Drop {dropCount} objective{dropCount === 1 ? '' : 's'}?
+          </span>
+          <button
+            type="button"
+            className={css.confirmRemove}
+            onClick={() => {
+              setConfirming(false);
+              onRemove(secondaryTypeId);
+            }}
+            data-testid="plan-secondary-remove-confirm"
+          >
+            Remove
+          </button>
+          <button
+            type="button"
+            className={css.confirmCancel}
+            onClick={() => setConfirming(false)}
+            data-testid="plan-secondary-remove-cancel"
+          >
+            Cancel
+          </button>
+        </span>
+      ) : (
+        <button
+          type="button"
+          className={css.removeButton}
+          onClick={handleRemoveClick}
+          data-testid="plan-secondary-remove-trigger"
+          aria-label={`Remove ${label}`}
+        >
+          <Trash2 size={13} aria-hidden />
+          <span>Remove</span>
+        </button>
+      )}
+    </li>
+  );
 }
 
 export default function SecondaryAddModal({
@@ -39,6 +136,8 @@ export default function SecondaryAddModal({
   primaryTypeId,
   currentSecondaryIds,
   onConfirm,
+  onRemove,
+  onRemoveBlocked,
   onDismiss,
 }: Props) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -114,13 +213,34 @@ export default function SecondaryAddModal({
         </div>
 
         <h2 className={css.title} id="secondary-add-title">
-          Add a project type
+          Manage project types
         </h2>
         <p className={css.copy}>
           Layer a compatible secondary use onto this project. New objectives
           appear in the spine, and completed decisions that the new use touches
           are reopened for review - your existing answers are kept.
         </p>
+
+        {currentSecondaryIds.length > 0 && (
+          <div
+            className={css.currentWrap}
+            data-testid="plan-secondary-current"
+          >
+            <p className={css.sectionEyebrow}>Current secondary types</p>
+            <ul className={css.currentList}>
+              {currentSecondaryIds.map((id) => (
+                <CurrentSecondaryRow
+                  key={id}
+                  projectId={projectId}
+                  secondaryTypeId={id}
+                  onRemove={onRemove}
+                  onRemoveBlocked={onRemoveBlocked}
+                />
+              ))}
+            </ul>
+            <p className={css.sectionEyebrow}>Add another type</p>
+          </div>
+        )}
 
         <div className={css.pickerWrap}>
           <WizardSecondaryPicker

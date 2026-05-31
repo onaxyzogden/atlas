@@ -13,6 +13,11 @@
 //   active     — all prereqs satisfied, some (but not all required)
 //                checklist items checked.
 //   complete   — every required checklist item is checked.
+//   deferred   — explicit steward override (NOT derived from progress): the
+//                objective is shelved as the "mark as Deferred instead"
+//                alternative to a blocked secondary removal (spec section 8.3).
+//                A deferred objective is treated as NOT complete for its
+//                dependents, so they stay `locked` while it is parked.
 
 import type {
   PlanChecklistProgress,
@@ -25,6 +30,9 @@ export type PlanStratumObjectiveStatusMap = Readonly<
   Record<string, PlanStratumObjectiveStatus>
 >;
 
+/** Shared empty deferred-id set so the default arg allocates nothing per call. */
+const EMPTY_DEFERRED: ReadonlySet<string> = new Set<string>();
+
 /**
  * Compute the status for a single stratum objective given the steward's
  * checklist progress and the already-known statuses of its prerequisite
@@ -32,12 +40,22 @@ export type PlanStratumObjectiveStatusMap = Readonly<
  *
  * The function is total and deterministic — undefined prereq statuses are
  * treated as `locked` (conservative default).
+ *
+ * `deferredIds` carries the steward's explicit Deferred overrides. If this
+ * objective's id is present, the result is `deferred` regardless of progress
+ * or prereqs (the override wins). Defaults to an empty set, so existing callers
+ * are unaffected.
  */
 export function computeObjectiveStatus(
   objective: PlanStratumObjective,
   progress: PlanChecklistProgress,
   prerequisiteStatuses: PlanStratumObjectiveStatusMap,
+  deferredIds: ReadonlySet<string> = EMPTY_DEFERRED,
 ): PlanStratumObjectiveStatus {
+  if (deferredIds.has(objective.id)) {
+    return 'deferred';
+  }
+
   const prereqsSatisfied = objective.prerequisiteObjectiveIds.every(
     (prereqId) => prerequisiteStatuses[prereqId] === 'complete',
   );
@@ -72,10 +90,17 @@ export function computeObjectiveStatus(
  * If a cycle is detected the remaining objectives default to `locked`
  * (the conservative outcome — a real cycle is a seed-data bug that the
  * Vitest suite catches).
+ *
+ * `deferredIds` (optional) carries the steward's explicit Deferred overrides:
+ * any objective whose id is present resolves to `deferred`, and because a
+ * `deferred` prereq is not `complete`, that objective's dependents stay
+ * `locked` while it is parked. Omitting the arg preserves the legacy 4-state
+ * behaviour for existing callers.
  */
 export function computeAllObjectiveStatuses(
   objectives: readonly PlanStratumObjective[],
   progress: PlanChecklistProgress,
+  deferredIds: ReadonlySet<string> = EMPTY_DEFERRED,
 ): PlanStratumObjectiveStatusMap {
   const result: Record<string, PlanStratumObjectiveStatus> = {};
   const remaining = new Set(objectives.map((o) => o.id));
@@ -86,11 +111,21 @@ export function computeAllObjectiveStatuses(
     let progressedThisRound = false;
     for (const id of [...remaining]) {
       const obj = byId.get(id)!;
+      // Deferred is an explicit override — resolve it eagerly, independent of
+      // prereq-resolution order, so it never falls through to the cycle
+      // fallback. Its dependents then see a non-`complete` status and stay
+      // locked.
+      if (deferredIds.has(id)) {
+        result[id] = 'deferred';
+        remaining.delete(id);
+        progressedThisRound = true;
+        continue;
+      }
       const allResolved = obj.prerequisiteObjectiveIds.every((p) =>
         Object.prototype.hasOwnProperty.call(result, p),
       );
       if (!allResolved) continue;
-      result[id] = computeObjectiveStatus(obj, progress, result);
+      result[id] = computeObjectiveStatus(obj, progress, result, deferredIds);
       remaining.delete(id);
       progressedThisRound = true;
     }

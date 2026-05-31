@@ -41,6 +41,14 @@ interface PlanStratumProgressState {
   byProject: Record<string, ByObjective>;
   /** Stratum ids that have already shown the unlock celebration, keyed by project. */
   celebratedByProject: Record<string, StratumIds>;
+  /**
+   * Objective ids the steward has explicitly marked Deferred, keyed by project.
+   * Deferred is the "mark as Deferred instead" alternative to a blocked
+   * secondary removal (spec section 8.3): the objective is shelved (progress
+   * preserved) and the status engine renders it `deferred`. Threaded into
+   * `computeAllObjectiveStatuses` via `toDeferredSet(selectDeferredObjectives())`.
+   */
+  deferredByProject: Record<string, StratumIds>;
 
   /** Read all completed item ids for one objective in a project. */
   getCompletedItemIds: (projectId: string, objectiveId: string) => ItemIds;
@@ -67,6 +75,11 @@ interface PlanStratumProgressState {
   hasCelebratedStratum: (projectId: string, stratumId: string) => boolean;
   /** Mark a stratum as celebrated for this project (idempotent). */
   markStratumCelebrated: (projectId: string, stratumId: string) => void;
+
+  /** Mark an objective Deferred for this project (idempotent, append-only). */
+  deferObjective: (projectId: string, objectiveId: string) => void;
+  /** Un-defer (Restore) an objective for this project (idempotent). */
+  undeferObjective: (projectId: string, objectiveId: string) => void;
 }
 
 /**
@@ -79,6 +92,8 @@ interface PlanStratumProgressState {
  *    `celebratedByProject` (via `remapTierId`). projectId keys are opaque and
  *    left untouched. Idempotent on v3+ input — the slug remaps are no-ops on
  *    already-renumbered s{n} ids.
+ *  - v3 -> v4: `deferredByProject` was added (Deferred objective state, spec
+ *    section 8.3); backfill `{}`. Purely additive.
  * Exported for the round-trip migration test.
  */
 export function migratePlanStratumProgress(
@@ -90,6 +105,8 @@ export function migratePlanStratumProgress(
   let byProject: Record<string, ByObjective> = safe.byProject ?? {};
   let celebratedByProject: Record<string, StratumIds> =
     safe.celebratedByProject ?? {};
+  const deferredByProject: Record<string, StratumIds> =
+    safe.deferredByProject ?? {};
 
   if (version < 3) {
     const remappedByProject: Record<string, ByObjective> = {};
@@ -113,7 +130,12 @@ export function migratePlanStratumProgress(
     celebratedByProject = remappedCelebrated;
   }
 
-  return { ...safe, byProject, celebratedByProject } as PlanStratumProgressState;
+  return {
+    ...safe,
+    byProject,
+    celebratedByProject,
+    deferredByProject,
+  } as PlanStratumProgressState;
 }
 
 export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
@@ -121,6 +143,7 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
     (set, get) => ({
       byProject: {},
       celebratedByProject: {},
+      deferredByProject: {},
 
       getCompletedItemIds: (projectId, objectiveId) =>
         get().byProject[projectId]?.[objectiveId] ?? EMPTY_ITEM_IDS,
@@ -172,13 +195,38 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
             },
           };
         }),
+
+      deferObjective: (projectId, objectiveId) =>
+        set((s) => {
+          const existing = s.deferredByProject[projectId] ?? [];
+          if (existing.includes(objectiveId)) return s;
+          return {
+            deferredByProject: {
+              ...s.deferredByProject,
+              [projectId]: [...existing, objectiveId],
+            },
+          };
+        }),
+
+      undeferObjective: (projectId, objectiveId) =>
+        set((s) => {
+          const existing = s.deferredByProject[projectId];
+          if (!existing || !existing.includes(objectiveId)) return s;
+          return {
+            deferredByProject: {
+              ...s.deferredByProject,
+              [projectId]: existing.filter((id) => id !== objectiveId),
+            },
+          };
+        }),
     }),
     {
       name: PERSIST_KEY,
-      version: 3,
+      version: 4,
       partialize: (state) => ({
         byProject: state.byProject,
         celebratedByProject: state.celebratedByProject,
+        deferredByProject: state.deferredByProject,
       }),
       migrate: migratePlanStratumProgress,
     },
@@ -209,6 +257,27 @@ export function selectCelebratedStrata(
   projectId: string,
 ): StratumIds {
   return state.celebratedByProject[projectId] ?? EMPTY_STRATUM_IDS;
+}
+
+/**
+ * Stable accessor for the objective ids this project has marked Deferred.
+ * Returns a frozen empty array when nothing is deferred so the selector
+ * identity stays stable.
+ */
+export function selectDeferredObjectives(
+  state: PlanStratumProgressState,
+  projectId: string,
+): StratumIds {
+  return state.deferredByProject[projectId] ?? EMPTY_STRATUM_IDS;
+}
+
+/**
+ * Build the `ReadonlySet<string>` of deferred objective ids that
+ * `computeAllObjectiveStatuses` / `computeObjectiveStatus` consume as their
+ * `deferredIds` argument.
+ */
+export function toDeferredSet(ids: StratumIds): ReadonlySet<string> {
+  return new Set(ids);
 }
 
 /**

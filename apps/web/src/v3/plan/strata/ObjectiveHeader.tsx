@@ -25,6 +25,7 @@ const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
   available: 'Ready',
   active: 'In progress',
   complete: 'Complete',
+  deferred: 'Deferred',
 };
 
 export default function ObjectiveHeader({

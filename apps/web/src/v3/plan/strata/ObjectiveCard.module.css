@@ -62,6 +62,20 @@
   opacity: 0.6;
 }
 
+/* Plan Nav v1.1 §8.3 — a `deferred` objective is shelved by the steward as the
+   "mark as Deferred instead" alternative to a blocked secondary removal. It is
+   greyed and visually subordinate (like locked), but distinct: it carries a
+   muted sage status color + a Restore control rather than a lock. */
+.card[data-status='deferred'] {
+  --status-color: color-mix(
+    in srgb,
+    var(--color-sage, #8aa399) 70%,
+    var(--color-text-muted, rgba(242, 237, 227, 0.65))
+  );
+  opacity: 0.7;
+  border-style: dashed;
+}
+
 .card[data-active='true'] {
   border-color: var(--color-gold-brand, #c4a265);
   background: color-mix(
@@ -152,6 +166,38 @@
 
 .sourceTag[data-source='secondary'] {
   --source-color: #e8a958;
+}
+
+/* Plan Nav v1.1 §8.3 — "Restore" control on a deferred card. Muted sage pill
+   (matches the deferred status color), distinct from the amber divergence pill.
+   Nested real <button> inside the role="button" card, so it stops propagation. */
+.restoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--color-sage, #8aa399) 16%, transparent);
+  color: color-mix(in srgb, var(--color-sage, #8aa399) 92%, var(--color-text, #f2ede3));
+  border: 1px solid color-mix(in srgb, var(--color-sage, #8aa399) 45%, transparent);
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.restoreBtn:hover {
+  background: color-mix(in srgb, var(--color-sage, #8aa399) 26%, transparent);
+  border-color: color-mix(in srgb, var(--color-sage, #8aa399) 70%, transparent);
+}
+
+.restoreBtn:focus-visible {
+  outline: 2px solid var(--color-sage, #8aa399);
+  outline-offset: 2px;
 }
 
 /* Slice 3.5 — divergence flag from Act (spec §6.4). Amber, not red:

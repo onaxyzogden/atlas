@@ -25,7 +25,9 @@ import type {
 import type { PlanShellMode } from '../../../store/projectStore.js';
 import {
   selectCelebratedStrata,
+  selectDeferredObjectives,
   selectProjectProgress,
+  toDeferredSet,
   toProgressMap,
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
@@ -40,8 +42,10 @@ import { useProjectObjectives } from './useProjectObjectives.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
 import SecondaryAddModal from './SecondaryAddModal.js';
 import SecondaryReopenModal from './SecondaryReopenModal.js';
+import SecondaryRemoveBlockedModal from './SecondaryRemoveBlockedModal.js';
 import ObserveGapBanner from './ObserveGapBanner.js';
 import type { SecondaryAddPreview } from './useSecondaryAddPreview.js';
+import type { BlockingObjective } from './useSecondaryRemovePreview.js';
 import {
   deriveStratum1EvidenceMap,
   deriveStratum1StewardshipMap,
@@ -109,6 +113,17 @@ export default function PlanStratumShell({
     selectProjectProgress(s, projectId),
   );
 
+  // Plan Nav v1.1 §8.3 — the steward's explicit Deferred overrides for this
+  // project. Threaded into the status engine so deferred objectives resolve to
+  // `deferred` (and keep their dependents locked) without any progress change.
+  const deferredObjectiveIds = usePlanStratumProgressStore((s) =>
+    selectDeferredObjectives(s, projectId),
+  );
+  const deferredSet = useMemo(
+    () => toDeferredSet(deferredObjectiveIds),
+    [deferredObjectiveIds],
+  );
+
   // Slice 1.12 — Stage Zero Vision Builder bridge. The steward's
   // VisionProfile answers pre-satisfy a subset of the S1 checklist
   // (see visionProfileToChecklist.ts for coverage). Merge the derived
@@ -151,8 +166,9 @@ export default function PlanStratumShell({
           toProgressMap(projectProgress),
           derivedMap,
         ),
+        deferredSet,
       ),
-    [objectives, projectProgress, derivedMap],
+    [objectives, projectProgress, derivedMap, deferredSet],
   );
   const stratumStates = useMemo(
     () =>
@@ -271,7 +287,10 @@ export default function PlanStratumShell({
     (s) => s.projects.find((p) => p.id === projectId)?.metadata?.projectTypeRecord,
   );
   const addSecondaryType = useProjectStore((s) => s.addSecondaryType);
+  const removeSecondaryType = useProjectStore((s) => s.removeSecondaryType);
   const acknowledgeReopening = useProjectStore((s) => s.acknowledgeReopening);
+  const deferObjective = usePlanStratumProgressStore((s) => s.deferObjective);
+  const undeferObjective = usePlanStratumProgressStore((s) => s.undeferObjective);
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const currentSecondaryIds = typeRecord?.secondaryTypeIds ?? [];
 
@@ -282,6 +301,16 @@ export default function PlanStratumShell({
     objectives: PlanStratumObjective[];
   } | null>(null);
   const [observeGapCount, setObserveGapCount] = useState(0);
+
+  // Plan Nav v1.1 §8.3 — when a steward tries to remove a secondary whose
+  // delta objectives have started (active/complete/deferred), removal is
+  // blocked and this payload drives the blocked modal that names the blockers
+  // and offers "Mark as Deferred instead".
+  const [removeBlockedPayload, setRemoveBlockedPayload] = useState<{
+    secondaryTypeId: ProjectTypeId;
+    secondaryLabel: string;
+    blockingObjectives: BlockingObjective[];
+  } | null>(null);
 
   // The preview snapshot is captured pre-mutation inside the modal and handed
   // up here; after the write the candidate is no longer eligible, so the
@@ -327,6 +356,45 @@ export default function PlanStratumShell({
       );
     }
     setReopenPayload(null);
+    navigateToObjective(objectiveId, stratumId);
+  };
+
+  // Plan Nav v1.1 §8.3 — mid-project secondary REMOVAL. The manage surface
+  // checks removability per-secondary (useSecondaryRemovePreview) and routes
+  // here: a clean removal calls the store action directly; a blocked removal
+  // opens the blocked modal with the named blockers (no mutation).
+  const handleRemoveSecondary = (secondaryTypeId: ProjectTypeId) => {
+    const result = removeSecondaryType(projectId, secondaryTypeId);
+    // The row only reaches this path when its preview reported `removable`,
+    // but guard defensively: if a race made it blocked, do nothing rather
+    // than surface a stale success.
+    if (!result.ok) return;
+  };
+
+  const handleRemoveSecondaryBlocked = (
+    secondaryTypeId: ProjectTypeId,
+    blockingObjectives: BlockingObjective[],
+  ) => {
+    setRemoveBlockedPayload({
+      secondaryTypeId,
+      secondaryLabel: findProjectType(secondaryTypeId)?.label ?? secondaryTypeId,
+      blockingObjectives,
+    });
+  };
+
+  // "Mark as Deferred instead" — shelve every blocking objective (progress
+  // preserved, dependents stay locked) and keep the secondary. Removal stays
+  // blocked; this is the alternative path, not a forced removal.
+  const handleDeferBlockers = () => {
+    if (!removeBlockedPayload) return;
+    for (const { objective } of removeBlockedPayload.blockingObjectives) {
+      deferObjective(projectId, objective.id);
+    }
+    setRemoveBlockedPayload(null);
+  };
+
+  const handleBlockedNavigate = (objectiveId: string, stratumId: string) => {
+    setRemoveBlockedPayload(null);
     navigateToObjective(objectiveId, stratumId);
   };
 
@@ -421,6 +489,7 @@ export default function PlanStratumShell({
             activeStratumId={activeStratumId}
             onSelectObjective={handleSelectObjective}
             onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
+            onRestoreObjective={(obj) => undeferObjective(projectId, obj.id)}
           />
         )}
 
@@ -473,7 +542,19 @@ export default function PlanStratumShell({
           primaryTypeId={primaryTypeId}
           currentSecondaryIds={currentSecondaryIds}
           onConfirm={handleConfirmSecondaryAdd}
+          onRemove={handleRemoveSecondary}
+          onRemoveBlocked={handleRemoveSecondaryBlocked}
           onDismiss={() => setSecondaryAddOpen(false)}
+        />
+      )}
+
+      {removeBlockedPayload && (
+        <SecondaryRemoveBlockedModal
+          secondaryLabel={removeBlockedPayload.secondaryLabel}
+          blockingObjectives={removeBlockedPayload.blockingObjectives}
+          onNavigate={handleBlockedNavigate}
+          onDefer={handleDeferBlockers}
+          onDismiss={() => setRemoveBlockedPayload(null)}
         />
       )}
 

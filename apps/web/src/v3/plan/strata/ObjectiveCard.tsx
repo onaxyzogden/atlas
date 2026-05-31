@@ -11,7 +11,7 @@
 // preserves the prior accessibility contract.
 
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { Check, Lock, RefreshCcw } from 'lucide-react';
+import { Archive, Check, Lock, RefreshCcw, RotateCcw } from 'lucide-react';
 import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
@@ -50,6 +50,13 @@ interface Props {
    * Domain Detail surface. When omitted, the pill is purely visual.
    */
   onDivergenceClick?: (objective: PlanStratumObjective) => void;
+  /**
+   * Plan Nav v1.1 §8.3 — optional callback fired when the "Restore"
+   * control on a `deferred` card is clicked. Parents wire this to
+   * `undeferObjective`, returning the objective to the live status
+   * engine. Only rendered when status is `deferred` and this is provided.
+   */
+  onRestore?: (objective: PlanStratumObjective) => void;
 }
 
 const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
@@ -57,6 +64,7 @@ const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
   available: 'Ready',
   active: 'In progress',
   complete: 'Complete',
+  deferred: 'Deferred',
 };
 
 export default function ObjectiveCard({
@@ -68,8 +76,10 @@ export default function ObjectiveCard({
   reviewSuggested = false,
   onSelect,
   onDivergenceClick,
+  onRestore,
 }: Props) {
   const hasDivergence = divergenceCount > 0;
+  const isDeferred = status === 'deferred';
   const sourceTag = getSourceTag(objective);
   const baseLabel = `${objective.title}: ${STATUS_LABEL[status]}`;
   const ariaParts = [baseLabel];
@@ -91,6 +101,10 @@ export default function ObjectiveCard({
     e.stopPropagation();
     if (onDivergenceClick) onDivergenceClick(objective);
   };
+  const handleRestoreClick = (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (onRestore) onRestore(objective);
+  };
   return (
     <div
       className={css.card}
@@ -109,6 +123,8 @@ export default function ObjectiveCard({
           <Check size={14} strokeWidth={2.5} />
         ) : status === 'locked' ? (
           <Lock size={12} strokeWidth={2} />
+        ) : isDeferred ? (
+          <Archive size={12} strokeWidth={2} />
         ) : (
           <span className={css.dot} />
         )}
@@ -147,6 +163,19 @@ export default function ObjectiveCard({
             <RefreshCcw size={10} strokeWidth={2.5} aria-hidden="true" />
             Review
           </span>
+        )}
+        {isDeferred && onRestore && (
+          <button
+            type="button"
+            className={css.restoreBtn}
+            onClick={handleRestoreClick}
+            data-testid={`objective-restore-${objective.id}`}
+            title="Restore this objective to active planning"
+            aria-label={`Restore ${objective.title}`}
+          >
+            <RotateCcw size={10} strokeWidth={2.5} aria-hidden="true" />
+            Restore
+          </button>
         )}
         <span className={css.pill}>{STATUS_LABEL[status]}</span>
       </span>

@@ -10,6 +10,9 @@ import {
   ProjectType,
   getActiveTensions,
   isCompatibleSecondary,
+  computeObjectivesDelta,
+  resolveProjectObjectives,
+  computeAllObjectiveStatuses,
   type CreateProjectInput,
   type ProjectMetadata,
   type ProjectTypeId,
@@ -28,6 +31,13 @@ import {
   BUILTIN_PROJECT_NARRATIVE,
 } from '../data/builtinSampleObserveData.js';
 import { useSiteDataStore } from './siteDataStore.js';
+import {
+  usePlanStratumProgressStore,
+  selectProjectProgress,
+  toProgressMap,
+  selectDeferredObjectives,
+  toDeferredSet,
+} from './planStratumStore.js';
 import { seedCuratedMtcActionsIfEmpty } from '../v3/act/field-action/seedCuratedMtcActions.js';
 import { seedMtcObserveDataPoints } from '../data/builtinObserveDataPoints.js';
 import type { MockLayerResult } from '@ogden/shared/scoring';
@@ -324,6 +334,23 @@ interface ProjectState {
     secondaryTypeId: ProjectTypeId,
     affectedObjectiveIds: string[],
   ) => void;
+  /**
+   * Remove a secondary type from an active project (spec section 8.3).
+   * Permitted only when none of the secondary's delta objectives (its additive
+   * objectives + any objective it injected items into) are currently `active`,
+   * `complete`, or `deferred`. When blocked, returns the blocking objective ids
+   * (the UI names them and offers "mark as Deferred instead") WITHOUT mutating.
+   * When allowed, drops the secondary, appends a `'secondary-removed'`
+   * `ProjectTypeVersion`, prunes orphaned checklist progress for the removed
+   * objectives, and writes metadata wholesale via `updateProject`. No persist
+   * bump (append to existing `versionHistory`; `secondaryTypeIds` already exists).
+   * Guard failures (missing project/record, secondary not present) return
+   * `{ ok: false, blockingObjectiveIds: [] }`.
+   */
+  removeSecondaryType: (
+    projectId: string,
+    secondaryTypeId: ProjectTypeId,
+  ) => { ok: true } | { ok: false; blockingObjectiveIds: string[] };
 }
 
 function generateId(): string {
@@ -706,6 +733,90 @@ export const useProjectStore = create<ProjectState>()(
         get().updateProject(projectId, {
           metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
         });
+      },
+
+      removeSecondaryType: (projectId, secondaryTypeId) => {
+        const blocked = (ids: string[] = []) =>
+          ({ ok: false, blockingObjectiveIds: ids }) as const;
+
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return blocked();
+        const existing = project.metadata?.projectTypeRecord;
+        if (!existing) return blocked();
+        const primaryTypeId = existing.primaryTypeId;
+        const currentSecondaries = existing.secondaryTypeIds ?? [];
+        if (!currentSecondaries.includes(secondaryTypeId)) return blocked();
+
+        const nextSecondaries = currentSecondaries.filter(
+          (id) => id !== secondaryTypeId,
+        );
+
+        // Inverse delta: diffing the post-removal record AGAINST the current one
+        // surfaces the objectives that would disappear (`newObjectiveIds`) and
+        // the host objectives that would lose injected items
+        // (`objectivesWithNewItems`) — i.e. exactly this secondary's delta.
+        const current = { primaryTypeId, secondaryTypeIds: currentSecondaries };
+        const afterRemoval = { primaryTypeId, secondaryTypeIds: nextSecondaries };
+        const inverse = computeObjectivesDelta(afterRemoval, current);
+        const deltaObjectiveIds = Array.from(
+          new Set([
+            ...inverse.newObjectiveIds,
+            ...inverse.objectivesWithNewItems,
+          ]),
+        );
+
+        // Block removal if any delta objective is started/finished/parked.
+        // Status is computed from the CURRENT resolution against the same
+        // progress + deferred sets the spine uses.
+        const progressStore = usePlanStratumProgressStore.getState();
+        const progressMap = toProgressMap(
+          selectProjectProgress(progressStore, projectId),
+        );
+        const deferredSet = toDeferredSet(
+          selectDeferredObjectives(progressStore, projectId),
+        );
+        const currentObjectives = resolveProjectObjectives(current).objectives;
+        const statuses = computeAllObjectiveStatuses(
+          currentObjectives,
+          progressMap,
+          deferredSet,
+        );
+        const BLOCKING = new Set(['active', 'complete', 'deferred']);
+        const blockingObjectiveIds = deltaObjectiveIds.filter((id) =>
+          BLOCKING.has(statuses[id] ?? 'locked'),
+        );
+        if (blockingObjectiveIds.length > 0) {
+          return blocked(blockingObjectiveIds);
+        }
+
+        const now = new Date().toISOString();
+        const versionEntry: ProjectTypeVersion = {
+          primaryTypeId,
+          secondaryTypeIds: nextSecondaries,
+          changedAt: now,
+          note: `removed secondary: ${secondaryTypeId}`,
+          actor: 'yousef@ogden.ag',
+          action: 'secondary-removed',
+        };
+        const nextRecord: ProjectTypeRecord = {
+          ...existing,
+          secondaryTypeIds: nextSecondaries,
+          versionHistory: [...(existing.versionHistory ?? []), versionEntry],
+          reopeningAcknowledgements: existing.reopeningAcknowledgements ?? [],
+        };
+        get().updateProject(projectId, {
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+
+        // Prune orphaned progress: the additive objectives that no longer exist
+        // (their item ids would otherwise strand in the progress store). Host
+        // objectives that merely lose injected items keep their own progress —
+        // and, since removal was permitted, hold no checked injected items.
+        const removedObjectiveIds = new Set(inverse.newObjectiveIds);
+        for (const objId of removedObjectiveIds) {
+          progressStore.clearForObjective(projectId, objId);
+        }
+        return { ok: true };
       },
     }),
     {

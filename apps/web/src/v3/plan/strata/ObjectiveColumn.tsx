@@ -72,6 +72,12 @@ interface Props {
    * the parent can resolve its primary domain.
    */
   onObjectiveDivergenceClick?: (objective: PlanStratumObjective) => void;
+  /**
+   * Plan Nav v1.1 §8.3 — invoked when the "Restore" control on a deferred
+   * objective card is clicked. Parents wire this to `undeferObjective`.
+   * When omitted, deferred cards render without a restore affordance.
+   */
+  onRestoreObjective?: (objective: PlanStratumObjective) => void;
 }
 
 const STATUS_PRIORITY: PlanStratumObjectiveStatus[] = [
@@ -107,6 +113,7 @@ export default function ObjectiveColumn({
   activeStratumId,
   onSelectObjective,
   onObjectiveDivergenceClick,
+  onRestoreObjective,
 }: Props) {
   const highlightSet = useMemo(
     () => new Set(highlightObjectiveIds ?? []),
@@ -273,11 +280,21 @@ export default function ObjectiveColumn({
     return group.length >= 2 ? group : [];
   }, [nextUp, visibleObjectives, objectiveStatuses]);
 
-  // Sorted objectives for the list below NextUpCard, with nextUp removed.
+  // Plan Nav v1.1 §8.3 — deferred objectives are shelved by the steward and
+  // shown in a muted group at the bottom of the column, NOT mixed into the
+  // active list. This is a pure view partition (like the source filter); the
+  // status engine is never mutated.
+  const deferredObjectives = useMemo(
+    () => visibleObjectives.filter((o) => objectiveStatuses[o.id] === 'deferred'),
+    [visibleObjectives, objectiveStatuses],
+  );
+
+  // Sorted objectives for the list below NextUpCard, with nextUp and any
+  // deferred objectives removed (deferred render in their own group below).
   const sortedObjectives = useMemo(() => {
-    const list = nextUp
-      ? visibleObjectives.filter((o) => o.id !== nextUp.id)
-      : visibleObjectives;
+    const list = visibleObjectives.filter(
+      (o) => o.id !== nextUp?.id && objectiveStatuses[o.id] !== 'deferred',
+    );
     return [...list].sort((a, b) => {
       const sa = STATUS_PRIORITY.indexOf(objectiveStatuses[a.id] ?? 'locked');
       const sb = STATUS_PRIORITY.indexOf(objectiveStatuses[b.id] ?? 'locked');
@@ -349,6 +366,28 @@ export default function ObjectiveColumn({
             </li>
           ))}
         </ul>
+      )}
+
+      {deferredObjectives.length > 0 && (
+        <div className={css.deferredGroup} data-testid="objective-deferred-group">
+          <p className={css.deferredHeading}>
+            Deferred ({deferredObjectives.length})
+          </p>
+          <ul className={css.list}>
+            {deferredObjectives.map((obj) => (
+              <li key={obj.id} className={css.item}>
+                <ObjectiveCard
+                  objective={obj}
+                  status="deferred"
+                  isActive={obj.id === activeObjectiveId}
+                  divergenceCount={divergenceByObjective[obj.id] ?? 0}
+                  onSelect={onSelectObjective}
+                  onRestore={onRestoreObjective}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {stratumObjectives.length === 0 && (

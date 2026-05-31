@@ -27,6 +27,7 @@ const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
   available: 'Ready to start',
   active: 'In progress',
   complete: 'Complete',
+  deferred: 'Deferred',
 };
 
 export default function NextUpCard({

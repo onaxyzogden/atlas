@@ -23,6 +23,7 @@ const STATUS_LABEL: Record<PlanStratumObjectiveStatus, string> = {
   available: 'Available',
   active: 'Active',
   complete: 'Complete',
+  deferred: 'Deferred',
 };
 
 export default function ActObjectiveHeader({ objective, status, onBack }: Props) {

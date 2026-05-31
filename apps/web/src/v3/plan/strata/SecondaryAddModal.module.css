@@ -94,6 +94,143 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
 }
 
+/* Plan Nav v1.1 §8.3 — manage surface: current secondary types with a Remove
+   control each, above the add picker. Quiet sectioning so it reads as a list,
+   not another call to action. */
+.currentWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.sectionEyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+.currentList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.currentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, #e8a958 30%, transparent);
+  background: color-mix(in srgb, #e8a958 7%, transparent);
+}
+
+.currentLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text, #f2ede3);
+}
+
+.removeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid color-mix(in srgb, var(--color-danger, #d9776b) 45%, transparent);
+  background: transparent;
+  color: color-mix(in srgb, var(--color-danger, #d9776b) 92%, var(--color-text, #f2ede3));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.removeButton:hover {
+  background: color-mix(in srgb, var(--color-danger, #d9776b) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-danger, #d9776b) 70%, transparent);
+}
+
+.removeButton:focus-visible {
+  outline: 2px solid var(--color-danger, #d9776b);
+  outline-offset: 2px;
+}
+
+.confirmGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.confirmHint {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.confirmRemove {
+  padding: 5px 12px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid color-mix(in srgb, var(--color-danger, #d9776b) 65%, transparent);
+  background: color-mix(in srgb, var(--color-danger, #d9776b) 26%, transparent);
+  color: color-mix(in srgb, var(--color-danger, #d9776b) 96%, var(--color-text, #f2ede3));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.confirmRemove:hover {
+  background: color-mix(in srgb, var(--color-danger, #d9776b) 38%, transparent);
+}
+
+.confirmRemove:focus-visible {
+  outline: 2px solid var(--color-danger, #d9776b);
+  outline-offset: 2px;
+}
+
+.confirmCancel {
+  padding: 5px 10px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.confirmCancel:hover {
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, #ffffff);
+  color: var(--color-text, #f2ede3);
+}
+
+.confirmCancel:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
 .pickerWrap {
   margin-top: 6px;
 }
