@@ -12,7 +12,7 @@
  *   CENTER map       — the exact read-only Act substrate ActMapFirstLayout
  *                     mounts, PLUS objective markers and ActDrawHost so the
  *                     bottom tools actually arm map tools.
- *   RIGHT  panel     — the already-real ViewBDashboard / ViewAObjectiveExecution
+ *   RIGHT  panel     — the already-real ActOpsDashboard / ViewAObjectiveExecution
  *                     behind a dashboard/detail toggle.
  *   BOTTOM tools     — real QUICK_LOGS; arming a tool sets the active module +
  *                     the map tool, which ActDrawHost picks up.
@@ -55,7 +55,7 @@ import ActStructurePopover from '../ActStructurePopover.js';
 import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
-import ViewBDashboard from '../field-action/ViewBDashboard.js';
+import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
 import ViewAObjectiveExecution from '../field-action/ViewAObjectiveExecution.js';
 import ActShellToggle from '../field-action/ActShellToggle.js';
 import ProofSyncIndicator from '../field-action/proof/ProofSyncIndicator.js';
@@ -127,8 +127,8 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   // Defensive first-load seed for a detail-first deep link on a non-MTC
   // project (the dashboard, which normally seeds on mount, may not be
   // mounted yet). Idempotent — a no-op once any action exists. MTC seeds at
-  // hydrate via seedMtcDemo, and ViewBDashboard seeds when shown, so this only
-  // bites the deep-link-into-detail edge.
+  // hydrate via seedMtcDemo; this effect seeds unconditionally on mount, so the
+  // ops dashboard (which does not seed) always has data regardless of right-mode.
   const isMtc = useMemo(
     () =>
       id === 'mtc' ||
@@ -350,7 +350,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                 {rightMode === 'detail' && objectiveId ? (
                   <ViewAObjectiveExecution projectId={id} objectiveId={objectiveId} />
                 ) : (
-                  <ViewBDashboard projectId={id} />
+                  <ActOpsDashboard projectId={id} />
                 )}
               </div>
             </div>
