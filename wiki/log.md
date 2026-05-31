@@ -666,3 +666,48 @@ Chronological record of significant operations. Each entry is its own file under
 - [2026-05-21 — Habitat-feature unification into Plan design elements (Slices 1-3 landed then dropped by external rebase, Slice 4 partial)](log/2026-05-21-habitat-feature-unification-into-design-elements.md) — Steward-chosen direction for the A2 habitat commitments (owl/nest boxes, raptor perches, hedgerows, insectary strips, brush piles, snags, wildlife ponds): unify into Plan `DesignElement` subtypes under a new `habitat` category in `elementCatalog.ts`. Three slices landed and verified — **Slice 1** (`43dd56a9`) new category + 7 first-class kinds (`owl-box` / `raptor-perch` / `nest-box` / `brush-pile` / `snag` / `insectary-strip` / `wetland-edge`) + 6 colour tokens + Lucide icons + explicit tool-dispatch switch cases (discovered against plan assumption: dispatch is NOT fully catalog-driven), template-literal arm on `MapToolId`, `TOOL_GROUPS` `'habitat-allocation'` rail; **Slice 2** (`933c0709`) optional `habitatMetadata?` slot on `DesignElement` (scoped down from per-kind popover — schema-only suffices for all four downstream consumers); **Slice 3** (`ac11dfa6`) extends `BeneficialStructureKind` + `BENEFICIAL_STRUCTURE_FUNCTIONS` with cited categories for each new kind (Cornell NestWatch / Audubon Working Lands / USDA NRCS / USDA Forest Service PNW-GTR-181 / Xerces CSP 422 — preserves B5 cite-every-claim covenant) and adds 7 new aggregate fields + 7 new structural-loop arms to `beneficialHabitatMath`, updating `structuralPoints` to `hedgerowM/100 + pondM²/500 + shrubs + owlBoxes + raptorPerches + nestBoxes + brushPiles + snags + insectaryStripM/100 + wetlandEdgeM²/500`; envelope clamp unchanged so effect on existing projects is monotonic increase. 37 vitest specs added across catalog + math suites, all green at commit time. **Slice 4** (uncommitted) introduced pure-selector module `apps/web/src/features/biodiversity/habitatCommitments.ts` (10-kind `HabitatCommitmentTally` shape via turf line-length / polygon-area helpers) with 10-spec colocated test, an additive "Planned habitat commitments" sub-panel on `BiodiversityMonitorCard`, and a read-only "Placed on map" summary block at the top of `FeatureInventoryPanel` (legacy scalar add-form retained as soft-deprecated path; destructive v1→v2 bridge migration deliberately skipped to keep the slice rebase-safe). **Slice 5** (D0 spine seeder via `habitatFeatureSpineSync.ts`) not started. After commits landed, an external interactive rebase replayed `feat/atlas-permaculture` onto a new base and dropped all three slice commits from the resulting history (the exact failure mode [[feedback-commit-immediately-on-rebased-branches]] warns about — committed work survives rebases unless a pick is explicitly dropped, which here it was); Slice 4 file edits + the two new untracked files were also wiped by the subsequent hard-reset. Local now matches `origin/feat/atlas-permaculture` exactly. Re-application path: plan checked into `~/.claude/plans/habitat-features-need-a-lively-oasis.md`, file inventory in the linked log entry, all per-file content documented.
 - [2026-05-24 — Stage compass wheel fills its space + True North banner clears the header](log/2026-05-24-compass-wheel-fit-and-true-north-banner.md) — Two Observe-compass UI-polish fixes (shared across Observe/Plan/Act). Banner: was `position:fixed; top:var(--space-4)` behind the 48px AppShell header (higher z-index) so its top half clipped → pinned to `calc(48px + var(--space-3))`. Wheel: was double-capped (`.wheelHost max-width:440px` + shared `.mcw-svg max-width:540px`) → height-driven square fit (`height:100%; aspect-ratio:1; max-width:100%`) + `:global(.mcw-svg)` cap override, sizing to `min(width,height)`. Verified live at 1920/1137/375 (944/449/300px, square, no overflow). One explicit-path commit `73d2678e`, CSS-only, covenant clean.
 - [2026-05-24 — Global wheel fill-to-fit standard + proportional center overlays](log/2026-05-24-global-wheel-fit-standard-and-proportional-overlays.md) — Made the same-day wheel fit ([[log/2026-05-24-compass-wheel-fit-and-true-north-banner]]) the **global standard** via a shared CSS module `apps/web/src/components/wheel-shared/wheelFit.module.css`, consumed through CSS-Modules `composes` (zero TSX changes). Two layout families forced a split: **dedicated full-bleed** surfaces (Observe/Plan/Act + True North) get `.fillHost` true height-driven fit + `.quiet` biophilic fills; **content-flow** surfaces (Cycle page, OPA dashboard) get `.relaxedHost` (fixed px cap removed, width-driven so stacked siblings stay intact). Center overlay made proportional: `.hotspot` 29.5% of wheel (tracks the ~28% hub), `.hint` `top:103.8%` resolved against the hotspot **button** (not the host) — the subtle bug, originally mis-set to 65.9%. Six files (1 new + 5 edits), CSS-only, covenant clean. Verified live: Observe 944/300px + True North 777px, hotspot centered, hint clears hub at both sizes; `tsc` + `vite build` exit 0.
+
+## 2026-05-31 - Wizard light-mode theming + bento section cards
+
+**Commit:** 020dd913 (feat/atlas-permaculture, pushed 0/0)
+
+**Objective:** Make the project-creation wizard honor the app light/dark toggle
+(it was stuck dark) and replace horizontal divider lines with bordered bento
+cards across every section of every step.
+
+**Root cause (light-mode bug):** every project-wizard/*.module.css referenced an
+undefined legacy token namespace (--surface-*, --text-*, --border-*, --accent-*)
+with hardcoded dark hex fallbacks, plus bare dark literals (rgba(14,20,19,a)
+glass, #0e1413 button text, gold/amber tints, rgba(232,225,208,a) hover). With
+the tokens undefined, CSS always fell back to the dark hex, so the wizard never
+flipped.
+
+**Change 1 - token migration (17 CSS modules):** mapped all legacy/hardcoded
+values onto canonical --color-* tokens that flip per data-theme: surfaces ->
+--color-bg / --color-surface / --color-surface-raised; borders ->
+--color-border(-subtle); text -> --color-text(-muted); accents ->
+--color-gold-brand / --color-primary-hover / --color-warning / --color-success
+/ --color-error; map glass -> rgba(var(--color-map-panel-rgb), a); gold/amber
+tints -> rgba(var(--color-*-rgb), a); button text on gold -> --color-on-primary;
+hover -> --color-hover-overlay. One inline style in WizardStepRouter.tsx fixed
+too. tokens.css / dark-mode.css left untouched (out of scope).
+
+**Change 2 - bento cards:** added a shared .bento card (border 1px
+--color-border-subtle, radius 12px, bg --color-surface, padding 16px) to Steps
+1-3; wrapped each section in its own card (Step 1: name / country+address /
+units; Step 2: project-type grid / secondary layers; Step 3: primary steward);
+dropped the unused Step 2 .divider rule; converted the Step 3 invites group from
+a border-top divider into a full card. WizardTensionPanel and the Completion
+.nextUp were already cards, left as-is.
+
+**Verification:** typecheck clean (TSC_EXIT=0); grep LEGACY=0 across all wizard
+CSS; CSS_BENTO=3, TSX_BENTO_USES=6, Step2 divider=0, Step3 border-top=0. Guarded
+staging committed ONLY the 21 project-wizard files (foreign WIP -
+Diagnose/Design/OperateMap, financial files, graphify-out - correctly excluded).
+
+**Note:** preview light/dark screenshots were NOT captured this session - the
+tool-result channel was severely degraded (sustained buffering/outage), so per
+project policy this is recorded as unverified-by-screenshot rather than claimed.
+Visual confirmation in both themes remains a follow-up.
+
+**Deferred:** light+dark preview screenshots of the wizard steps.
