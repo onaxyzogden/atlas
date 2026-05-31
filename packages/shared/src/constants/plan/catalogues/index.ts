@@ -13,8 +13,11 @@
 // other primary resolves to the universal-only baseline; every other secondary
 // returns undefined (nothing to layer). agritourism canBeSecondary in the
 // taxonomy, but its catalogue doc carries only a primary layer - no secondary
-// spec yet. silvopasture / orchard secondary layers and their primary-sourced
-// universal-augmentation patches are pending operator source files (2026-05-30).
+// spec yet. The Nursery secondary (8 additive, no patches) is encoded verbatim
+// from the operator docx; the Silvopasture secondary (5 additive + 3 universal
+// patches) is DERIVED under the operator's scoped 2026-05-31 "spec + expertise"
+// authorization. The Orchard secondary and the primary-sourced
+// universal-augmentation patches remain pending operator source files.
 
 import type {
   PatchRecord,
@@ -33,8 +36,13 @@ import {
   WELLNESS_PRIMARY_OBJECTIVES,
   WELLNESS_SECONDARY_OBJECTIVES,
 } from './wellness.js';
-import { SILVOPASTURE_PRIMARY_OBJECTIVES } from './silvopasture.js';
+import {
+  SILVOPASTURE_PRIMARY_OBJECTIVES,
+  SILVOPASTURE_SECONDARY_OBJECTIVES,
+  SILVOPASTURE_SECONDARY_PATCHES,
+} from './silvopasture.js';
 import { ORCHARD_PRIMARY_OBJECTIVES } from './orchard.js';
+import { NURSERY_SECONDARY_OBJECTIVES } from './nursery.js';
 
 export {
   UNIVERSAL_PLAN_OBJECTIVES,
@@ -47,7 +55,10 @@ export {
   WELLNESS_PRIMARY_OBJECTIVES,
   WELLNESS_SECONDARY_OBJECTIVES,
   SILVOPASTURE_PRIMARY_OBJECTIVES,
+  SILVOPASTURE_SECONDARY_OBJECTIVES,
+  SILVOPASTURE_SECONDARY_PATCHES,
   ORCHARD_PRIMARY_OBJECTIVES,
+  NURSERY_SECONDARY_OBJECTIVES,
 };
 
 /** The universal baseline plus a primary type's own objectives. */
@@ -108,6 +119,18 @@ export function getSecondaryCatalogue(
       patches: [],
     };
   }
+  if (secondaryTypeId === 'nursery') {
+    return {
+      additive: NURSERY_SECONDARY_OBJECTIVES,
+      patches: [],
+    };
+  }
+  if (secondaryTypeId === 'silvopasture') {
+    return {
+      additive: SILVOPASTURE_SECONDARY_OBJECTIVES,
+      patches: SILVOPASTURE_SECONDARY_PATCHES,
+    };
+  }
   return undefined;
 }
 
@@ -128,7 +151,9 @@ const ALL_CATALOGUE_OBJECTIVES: readonly PlanStratumObjective[] = (() => {
     ...RESIDENTIAL_ADDITIVE_OBJECTIVES,
     ...WELLNESS_PRIMARY_OBJECTIVES,
     ...WELLNESS_SECONDARY_OBJECTIVES,
+    ...NURSERY_SECONDARY_OBJECTIVES,
     ...SILVOPASTURE_PRIMARY_OBJECTIVES,
+    ...SILVOPASTURE_SECONDARY_OBJECTIVES,
     ...ORCHARD_PRIMARY_OBJECTIVES,
   ]) {
     if (!byId.has(o.id)) byId.set(o.id, o);

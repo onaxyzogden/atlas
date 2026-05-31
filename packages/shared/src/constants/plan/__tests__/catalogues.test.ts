@@ -14,7 +14,10 @@ import {
   WELLNESS_PRIMARY_OBJECTIVES,
   WELLNESS_SECONDARY_OBJECTIVES,
   SILVOPASTURE_PRIMARY_OBJECTIVES,
+  SILVOPASTURE_SECONDARY_OBJECTIVES,
+  SILVOPASTURE_SECONDARY_PATCHES,
   ORCHARD_PRIMARY_OBJECTIVES,
+  NURSERY_SECONDARY_OBJECTIVES,
 } from '../catalogues/index.js';
 import {
   resolveProjectObjectives,
@@ -29,13 +32,15 @@ const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...RESIDENTIAL_ADDITIVE_OBJECTIVES,
   ...WELLNESS_PRIMARY_OBJECTIVES,
   ...WELLNESS_SECONDARY_OBJECTIVES,
+  ...NURSERY_SECONDARY_OBJECTIVES,
   ...SILVOPASTURE_PRIMARY_OBJECTIVES,
+  ...SILVOPASTURE_SECONDARY_OBJECTIVES,
   ...ORCHARD_PRIMARY_OBJECTIVES,
 ];
 
-const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH)-S[1-7]\.\d+$/;
+const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH|NRS)-S[1-7]\.\d+$/;
 
-const PATCH_REF = /^RES>(U|RF)-S[1-7]\.\d+$/;
+const PATCH_REF = /^(RES|SILV)>(U|RF)-S[1-7]\.\d+$/;
 
 describe('catalogue conformance - schema validity', () => {
   it('every authored objective parses via PlanStratumObjectiveSchema', () => {
@@ -154,6 +159,22 @@ describe('catalogue conformance - source/layer discipline', () => {
     for (const o of WELLNESS_SECONDARY_OBJECTIVES) {
       expect(o.source, o.id).toBe('secondary');
       expect(o.sourceTypeId, o.id).toBe('wellness');
+      expect(o.secondaryClass, o.id).toBe('additive');
+    }
+  });
+
+  it('nursery secondary objectives are source=secondary/additive, sourceTypeId=nursery', () => {
+    for (const o of NURSERY_SECONDARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('secondary');
+      expect(o.sourceTypeId, o.id).toBe('nursery');
+      expect(o.secondaryClass, o.id).toBe('additive');
+    }
+  });
+
+  it('silvopasture secondary objectives are source=secondary/additive, sourceTypeId=silvopasture', () => {
+    for (const o of SILVOPASTURE_SECONDARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('secondary');
+      expect(o.sourceTypeId, o.id).toBe('silvopasture');
       expect(o.secondaryClass, o.id).toBe('additive');
     }
   });
@@ -377,5 +398,129 @@ describe('catalogue conformance - orchard primary resolution', () => {
   it('every orchard primary ref is unique within the primary set', () => {
     const refs = ORCHARD_PRIMARY_OBJECTIVES.map((o) => o.ref);
     expect(new Set(refs).size).toBe(refs.length);
+  });
+});
+
+describe('catalogue conformance - nursery secondary resolution', () => {
+  it('contributes exactly 8 additive objectives and no patches', () => {
+    expect(NURSERY_SECONDARY_OBJECTIVES.length).toBe(8);
+  });
+
+  it('resolves nursery onto a regen primary as additive only (+8)', () => {
+    const base = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: [],
+    });
+    const withNursery = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['nursery'],
+    });
+    expect(withNursery.objectives.length).toBe(base.objectives.length + 8);
+  });
+
+  it('applies no patches and records none as skipped', () => {
+    const result = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['nursery'],
+    });
+    const injected = result.objectives.filter((o) =>
+      o.checklist.some((c) => c.expandedBySecondaryId === 'nursery'),
+    );
+    expect(injected.length).toBe(0);
+    expect(result.provenance.skippedPatches).toEqual([]);
+  });
+
+  it('nursery additive refs do not collide with the regen primary refs', () => {
+    const primaryRefs = new Set(REGEN_FARM_PRIMARY_OBJECTIVES.map((o) => o.ref));
+    for (const o of NURSERY_SECONDARY_OBJECTIVES) {
+      expect(primaryRefs.has(o.ref), o.ref).toBe(false);
+    }
+  });
+
+  it('has globally unique checklist item ids when layered', () => {
+    const { objectives } = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['nursery'],
+    });
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+});
+
+describe('catalogue conformance - silvopasture secondary resolution', () => {
+  it('contributes exactly 5 additive objectives and 3 patches', () => {
+    expect(SILVOPASTURE_SECONDARY_OBJECTIVES.length).toBe(5);
+    expect(SILVOPASTURE_SECONDARY_PATCHES.length).toBe(3);
+  });
+
+  it('every silvopasture secondary patch ref matches the patch format', () => {
+    for (const p of SILVOPASTURE_SECONDARY_PATCHES) {
+      expect(p.ref, p.targetObjectiveId).toMatch(PATCH_REF);
+    }
+  });
+
+  it('every silvopasture secondary patch parses via PatchRecordSchema', () => {
+    for (const p of SILVOPASTURE_SECONDARY_PATCHES) {
+      expect(() => PatchRecordSchema.parse(p), p.ref).not.toThrow();
+    }
+  });
+
+  it('resolves silvopasture onto a regen primary as +5 additive', () => {
+    const base = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: [],
+    });
+    const withSilv = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['silvopasture'],
+    });
+    expect(withSilv.objectives.length).toBe(base.objectives.length + 5);
+  });
+
+  it('applies all 3 patches to universal targets, none skipped', () => {
+    const result = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['silvopasture'],
+    });
+    const patched = result.objectives.filter((o) =>
+      o.checklist.some((c) => c.expandedBySecondaryId === 'silvopasture'),
+    );
+    expect(patched.length).toBe(3);
+    expect(result.provenance.skippedPatches).toEqual([]);
+  });
+
+  it('concatenates patch gate amendments onto the target completion gate', () => {
+    const result = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['silvopasture'],
+    });
+    const water = findPlanStratumObjectiveIn(
+      result.objectives,
+      's4-water-strategy',
+    );
+    expect(water).toBeDefined();
+    expect(water?.completionGate).toContain('drinking-water demand');
+  });
+
+  it('silvopasture secondary refs do not collide with silvopasture primary refs', () => {
+    const primaryRefs = new Set(
+      SILVOPASTURE_PRIMARY_OBJECTIVES.map((o) => o.ref),
+    );
+    for (const o of SILVOPASTURE_SECONDARY_OBJECTIVES) {
+      expect(primaryRefs.has(o.ref), o.ref).toBe(false);
+    }
+  });
+
+  it('has globally unique checklist item ids when layered', () => {
+    const { objectives } = resolveProjectObjectives({
+      primaryTypeId: 'regenerative_farm',
+      secondaryTypeIds: ['silvopasture'],
+    });
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
   });
 });

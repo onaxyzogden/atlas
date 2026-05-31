@@ -43,10 +43,14 @@
 // Refs follow Authoring Standards (SILV-S<stratum>.<n>). ASCII-only copy:
 // em/en dashes -> " - "; curly quotes -> straight.
 
-import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj } from './authoring.js';
+import type {
+  PatchRecord,
+  PlanStratumObjective,
+} from '../../../schemas/plan/planStratumObjective.schema.js';
+import { ck, obj, patch } from './authoring.js';
 
 const PRIMARY = 'silvopasture' as const;
+const SECONDARY = 'silvopasture' as const;
 
 export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
   // ---------------------------------------------------------------- Stratum 1
@@ -1022,5 +1026,300 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     completionGate:
       'Pasture spelling and recovery protocol approved. Re-entry indicators defined. All rotation decisions tied to recovery data.',
     actHandoff: 'Pasture Spelling & Recovery Protocol',
+  }),
+];
+
+// ===========================================================================
+// SILVOPASTURE SECONDARY LAYER (derived 2026-05-31)
+//
+// No operator source document exists for the Silvopasture secondary. Per the
+// operator's explicit, scoped authorization ("Missing Silvopasture as secondary
+// doc but you can use the spec and expertise to fill the gap"), this layer is
+// DERIVED from the Catalogue Authoring Standards and silvopasture domain
+// expertise - analogous to the Wellness-secondary derive+author ruling. The
+// standing "catalogue docs operator-provided, don't invent content" rule is
+// overridden ONLY for this secondary, at the chosen depth: "additive + universal
+// patches" (5 additive objectives PLUS PatchRecords that inject livestock items
+// into shared universal objectives - richer integration, like Residential).
+//
+// A Silvopasture SECONDARY answers: "this enterprise is primarily something else
+// (regen farm, orchard/food forest, homestead) and is now adding integrated
+// grazing livestock under trees/pasture." It contributes the livestock-specific
+// reading + design that a non-livestock primary lacks, and patches the shared
+// universal water / access / soil objectives so livestock demand is folded into
+// those whole-of-site decisions rather than bolted on.
+//
+// Stratum numbering is DIRECT for secondaries (S1 -> s1 ... S4 -> s4); no Tier+1
+// shift. Refs use the SILV-S<stratum>.20+ band, collision-free against the
+// primary layer (primary maxes at S1.6 / S3.5 / S4.8). Patch refs are
+// SILV>U-S<n>.<n>; injected checklist ids are <targetObjectiveId>-silv-<n>.
+//
+// Amanah Gate: integrated grazing = halal animal husbandry / land stewardship.
+// SILV-S4.22 makes humane + halal handling and slaughter-pathway intent explicit.
+// No advance sale, no financial product, no riba/gharar/CSRA surface.
+//
+// source: 'secondary', sourceTypeId: 'silvopasture', secondaryClass: 'additive'
+// on every additive objective. ASCII-only copy.
+// ===========================================================================
+
+export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
+  // ---------------------------------------------------------------- Stratum 1
+  obj({
+    id: 'silv-sec-s1-livestock-intent',
+    stratumId: 's1-project-foundation',
+    ref: 'SILV-S1.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Define livestock enterprise intent & integration rationale',
+    focusedQuestion:
+      'Why is grazing livestock being integrated into this primary enterprise, and what role does it serve - production, land management, or both?',
+    checklist: [
+      ck(
+        'silv-sec-s1-livestock-intent-c1',
+        'Define the integration rationale - grazing as a land-management tool, a production enterprise, or both',
+      ),
+      ck(
+        'silv-sec-s1-livestock-intent-c2',
+        'Identify candidate species and classes of stock under consideration - ruminants, poultry, mixed',
+      ),
+      ck(
+        'silv-sec-s1-livestock-intent-c3',
+        'Define how livestock relate to the primary enterprise - complementary, supplementary, or competing for land',
+      ),
+      ck(
+        'silv-sec-s1-livestock-intent-c4',
+        'Identify operator livestock experience and labour availability for daily stock care',
+      ),
+      ck(
+        'silv-sec-s1-livestock-intent-c5',
+        'Confirm livestock intent is compatible with the primary enterprise vision and site scale',
+      ),
+    ],
+    completionGate:
+      'Livestock enterprise intent and integration rationale defined. Candidate species identified. Labour and experience baseline confirmed.',
+    actHandoff: 'Livestock Enterprise Intent & Integration Brief',
+  }),
+  // ---------------------------------------------------------------- Stratum 3
+  obj({
+    id: 'silv-sec-s3-forage-survey',
+    stratumId: 's3-systems-reading',
+    ref: 'SILV-S3.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Survey existing forage base & grazing capacity',
+    focusedQuestion:
+      'What forage already exists across the site, and what is the realistic grazing capacity by zone and season?',
+    checklist: [
+      ck(
+        'silv-sec-s3-forage-survey-c1',
+        'Map existing pasture and understorey forage by zone - species composition and condition',
+      ),
+      ck(
+        'silv-sec-s3-forage-survey-c2',
+        'Assess seasonal forage availability and identify feed gaps across the year',
+      ),
+      ck(
+        'silv-sec-s3-forage-survey-c3',
+        'Estimate baseline carrying capacity per zone - conservative stocking under current condition',
+      ),
+      ck(
+        'silv-sec-s3-forage-survey-c4',
+        'Identify shade, shelter, and tree-protection constraints that affect grazeable area',
+      ),
+      ck(
+        'silv-sec-s3-forage-survey-c5',
+        'Assess weed and toxic-plant presence relevant to the candidate stock species',
+      ),
+    ],
+    completionGate:
+      'Forage base mapped. Seasonal availability and feed gaps identified. Baseline carrying capacity estimated per zone.',
+    actHandoff: 'Forage Base & Grazing Capacity Survey',
+  }),
+  // ---------------------------------------------------------------- Stratum 4
+  obj({
+    id: 'silv-sec-s4-grazing-design',
+    stratumId: 's4-foundation-decisions',
+    ref: 'SILV-S4.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Design grazing system & rotation framework',
+    focusedQuestion:
+      'How will stock be moved across the site to balance animal nutrition, pasture recovery, and tree protection?',
+    checklist: [
+      ck(
+        'silv-sec-s4-grazing-design-c1',
+        'Define the grazing method - rotational, cell, or set-stocking - and the rationale',
+      ),
+      ck(
+        'silv-sec-s4-grazing-design-c2',
+        'Define paddock or cell layout and target mob size per move',
+      ),
+      ck(
+        'silv-sec-s4-grazing-design-c3',
+        'Define graze-period and rest-period targets per season tied to recovery indicators',
+      ),
+      ck(
+        'silv-sec-s4-grazing-design-c4',
+        'Define tree-protection rules - exclusion windows for young plantings, browse limits',
+      ),
+      ck(
+        'silv-sec-s4-grazing-design-c5',
+        'Define the feed-gap contingency - supplementary feed, destocking, or agistment triggers',
+      ),
+      ck(
+        'silv-sec-s4-grazing-design-c6',
+        'Confirm the grazing framework is consistent with the surveyed carrying capacity',
+      ),
+    ],
+    completionGate:
+      'Grazing method, rotation framework, and tree-protection rules approved. Graze/rest targets tied to recovery indicators. Feed-gap contingency defined.',
+    actHandoff: 'Grazing System & Rotation Framework Design Package',
+  }),
+  obj({
+    id: 'silv-sec-s4-stock-infrastructure',
+    stratumId: 's4-foundation-decisions',
+    ref: 'SILV-S4.21',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Design core stock infrastructure - water, fencing & handling',
+    focusedQuestion:
+      'What water, fencing, and handling infrastructure must be in place before any livestock arrive on site?',
+    checklist: [
+      ck(
+        'silv-sec-s4-stock-infrastructure-c1',
+        'Design stock water reticulation - troughs, supply lines, and per-paddock access',
+      ),
+      ck(
+        'silv-sec-s4-stock-infrastructure-c2',
+        'Design perimeter and subdivision fencing - permanent, electric, or hybrid per zone',
+      ),
+      ck(
+        'silv-sec-s4-stock-infrastructure-c3',
+        'Design stock handling facilities - yards, race, and loading appropriate to species and scale',
+      ),
+      ck(
+        'silv-sec-s4-stock-infrastructure-c4',
+        'Design shade and shelter provision adequate for the candidate stock and climate',
+      ),
+      ck(
+        'silv-sec-s4-stock-infrastructure-c5',
+        'Confirm infrastructure sequencing - the go/no-go that no livestock arrive before water, fencing, and handling all pass independent readiness checks',
+      ),
+    ],
+    completionGate:
+      'Stock water, fencing, and handling infrastructure designed. Shade and shelter confirmed. Hard gate set: no livestock arrive before water, fencing, and handling facilities each pass an independent go/no-go test.',
+    actHandoff: 'Core Stock Infrastructure Design Package',
+  }),
+  obj({
+    id: 'silv-sec-s4-husbandry-framework',
+    stratumId: 's4-foundation-decisions',
+    ref: 'SILV-S4.22',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Define livestock husbandry & welfare framework',
+    focusedQuestion:
+      'What husbandry, health, and welfare standards govern the herd or flock - including humane and halal handling?',
+    checklist: [
+      ck(
+        'silv-sec-s4-husbandry-framework-c1',
+        'Define animal health program - vaccination, parasite management, and veterinary relationship',
+      ),
+      ck(
+        'silv-sec-s4-husbandry-framework-c2',
+        'Define breeding or replacement strategy and seasonal husbandry calendar',
+      ),
+      ck(
+        'silv-sec-s4-husbandry-framework-c3',
+        'Define daily welfare standard - feed, water, shade, and handling stress minimisation',
+      ),
+      ck(
+        'silv-sec-s4-husbandry-framework-c4',
+        'Define humane and halal handling and slaughter-pathway intent where stock is raised for meat',
+      ),
+      ck(
+        'silv-sec-s4-husbandry-framework-c5',
+        'Define record-keeping for stock numbers, health events, and movements',
+      ),
+      ck(
+        'silv-sec-s4-husbandry-framework-c6',
+        'Confirm the husbandry framework is consistent with available labour and the welfare standard',
+      ),
+    ],
+    completionGate:
+      'Livestock husbandry, health, and welfare framework approved. Humane and halal handling intent defined. Record-keeping established.',
+    actHandoff: 'Livestock Husbandry & Welfare Framework Brief',
+  }),
+];
+
+// ---------------------------------------------------------------------------
+// SILVOPASTURE SECONDARY PATCHES
+//
+// Inject livestock-specific items into the shared UNIVERSAL objectives so stock
+// demand is folded into the whole-of-site water / access / soil decisions. The
+// resolver looks targets up by id, concatenates gate amendments, and stamps each
+// injected item with expandedBySecondaryId at apply time.
+// ---------------------------------------------------------------------------
+export const SILVOPASTURE_SECONDARY_PATCHES: readonly PatchRecord[] = [
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's4-water-strategy',
+    ref: 'SILV>U-S4.2',
+    injectedItems: [
+      ck(
+        's4-water-strategy-silv-1',
+        'Add livestock drinking-water demand to the water balance - peak daily intake by species, class, and season',
+      ),
+      ck(
+        's4-water-strategy-silv-2',
+        'Confirm reticulated supply can serve every grazing paddock through the dry season',
+      ),
+    ],
+    completionGateAmendment:
+      'Livestock drinking-water demand is included in the water balance and reticulation reaches all grazing paddocks.',
+    scopeNote:
+      'Silvopasture secondary: grazing stock adds a continuous, paddock-distributed water demand the base primary may not account for.',
+  }),
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's5-access',
+    ref: 'SILV>U-S5.1',
+    injectedItems: [
+      ck(
+        's5-access-silv-1',
+        'Design stock-movement laneways linking paddocks to water, handling yards, and shelter',
+      ),
+      ck(
+        's5-access-silv-2',
+        'Design gated crossings where stock laneways intersect vehicle access or waterways - minimise stress points',
+      ),
+    ],
+    completionGateAmendment:
+      'Stock-movement laneways and gated crossings are designed to move livestock with minimal stress.',
+    scopeNote:
+      'Silvopasture secondary: integrated grazing requires a stock-circulation layer over the base access network.',
+  }),
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's5-soil-improvement',
+    ref: 'SILV>U-S5.3',
+    injectedItems: [
+      ck(
+        's5-soil-improvement-silv-1',
+        'Define grazing-impact monitoring - ground cover, compaction, and pasture condition by zone',
+      ),
+      ck(
+        's5-soil-improvement-silv-2',
+        'Define graze/rest thresholds that protect soil and ground cover from overgrazing',
+      ),
+    ],
+    completionGateAmendment:
+      'Grazing-impact monitoring and graze/rest thresholds protect soil and ground cover from overgrazing.',
+    scopeNote:
+      'Silvopasture secondary: livestock are both a soil-building tool and a compaction/overgrazing risk; the soil strategy must govern grazing pressure.',
   }),
 ];
