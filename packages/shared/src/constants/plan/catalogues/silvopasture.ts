@@ -47,7 +47,20 @@ import type {
   PatchRecord,
   PlanStratumObjective,
 } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj, patch } from './authoring.js';
+import { ck, dg, obj, patch } from './authoring.js';
+
+// Decision groups (Decision Groups Reference v1.0; OLOS spec 9.3-9.4) - AUTHORED
+// under the 2026-05-31 extended override ("author meaningful labels"). The
+// reference doc's Silvopasture (SP) section enumerates a different objective set
+// whose groups are generic placeholders ("Primary decisions / Secondary
+// considerations -> Multiple") on SP.S refs that do not map cleanly to this v1.0
+// SILV-S catalogue, so every group here - label, item membership, observeFeeds -
+// is authored editorially to partition each objective's checklist into 2-3 named
+// decision scopes (full mutually-exclusive partition). The three secondary
+// PatchRecords inject a single decision group apiece (dgsilv) that partitions the
+// livestock items they fold into the shared universal water / access / soil
+// objectives; the resolver stamps sourceSecondaryId from secondaryTypeId.
+// Universal-objective base groups live in universal.ts (the RF-anchored set).
 
 const PRIMARY = 'silvopasture' as const;
 const SECONDARY = 'silvopasture' as const;
@@ -89,6 +102,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define marketing and sales strategy for each enterprise',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s1-enterprise-mix-dg1', 'Species & production intent', ['silv-s1-enterprise-mix-c1', 'silv-s1-enterprise-mix-c2']),
+      dg('silv-s1-enterprise-mix-dg2', 'Numbers & integration', ['silv-s1-enterprise-mix-c3', 'silv-s1-enterprise-mix-c4']),
+      dg('silv-s1-enterprise-mix-dg3', 'Capacity & marketing', ['silv-s1-enterprise-mix-c5', 'silv-s1-enterprise-mix-c6']),
+    ],
     completionGate:
       'Livestock enterprise mix approved. Species, breeds, numbers, and production intent confirmed.',
     actHandoff: 'Livestock Enterprise Mix & Stocking Strategy Brief',
@@ -123,6 +141,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s1-land-improvement-philosophy-c5',
         'Confirm philosophy is consistent with tree integration intent',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s1-land-improvement-philosophy-dg1', 'Management & grazing philosophy', ['silv-s1-land-improvement-philosophy-c1', 'silv-s1-land-improvement-philosophy-c2']),
+      dg('silv-s1-land-improvement-philosophy-dg2', 'Improvement targets', ['silv-s1-land-improvement-philosophy-c3']),
+      dg('silv-s1-land-improvement-philosophy-dg3', 'Design constraint & tree fit', ['silv-s1-land-improvement-philosophy-c4', 'silv-s1-land-improvement-philosophy-c5']),
     ],
     completionGate:
       'Land improvement philosophy approved. Design constraint documented.',
@@ -162,6 +185,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s1-animal-welfare-c6',
         'Confirm standards comply with relevant animal welfare legislation',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s1-animal-welfare-dg1', 'Space & shelter', ['silv-s1-animal-welfare-c1', 'silv-s1-animal-welfare-c2']),
+      dg('silv-s1-animal-welfare-dg2', 'Water & handling', ['silv-s1-animal-welfare-c3', 'silv-s1-animal-welfare-c4']),
+      dg('silv-s1-animal-welfare-dg3', 'Emergency & compliance', ['silv-s1-animal-welfare-c5', 'silv-s1-animal-welfare-c6']),
     ],
     completionGate:
       'Animal welfare standards defined and confirmed compliant with legislation.',
@@ -203,6 +231,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Record seasonal variation in pasture availability and quality',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s2-pasture-condition-dg1', 'Composition & condition', ['silv-s2-pasture-condition-c1', 'silv-s2-pasture-condition-c2']),
+      dg('silv-s2-pasture-condition-dg2', 'Forage & weed species', ['silv-s2-pasture-condition-c3', 'silv-s2-pasture-condition-c4'], ['Vegetation & Succession']),
+      dg('silv-s2-pasture-condition-dg3', 'Capacity & seasonality', ['silv-s2-pasture-condition-c5', 'silv-s2-pasture-condition-c6']),
+    ],
     completionGate:
       'Pasture condition and forage species survey complete. Carrying capacity estimated.',
     actHandoff: 'Existing Pasture Condition & Forage Species Survey',
@@ -238,6 +271,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Assess existing shelters - condition and species suitability',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s2-livestock-infrastructure-dg1', 'Fencing & yards', ['silv-s2-livestock-infrastructure-c1', 'silv-s2-livestock-infrastructure-c2'], ['Infrastructure & Access']),
+      dg('silv-s2-livestock-infrastructure-dg2', 'Water & laneways', ['silv-s2-livestock-infrastructure-c3', 'silv-s2-livestock-infrastructure-c4'], ['Infrastructure & Access']),
+      dg('silv-s2-livestock-infrastructure-dg3', 'Shelters', ['silv-s2-livestock-infrastructure-c5'], ['Infrastructure & Access']),
+    ],
     completionGate:
       'Existing livestock infrastructure inventoried. Condition and reuse potential assessed.',
     actHandoff: 'Existing Livestock Infrastructure Survey',
@@ -272,6 +310,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s2-landscape-context-c5',
         'Identify landscape-scale weed pressure sources affecting pasture',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s2-landscape-context-dg1', 'Surrounding land use & spray drift', ['silv-s2-landscape-context-c1', 'silv-s2-landscape-context-c2']),
+      dg('silv-s2-landscape-context-dg2', 'Biosecurity & water contamination', ['silv-s2-landscape-context-c3', 'silv-s2-landscape-context-c4'], ['Ecology & Habitat']),
+      dg('silv-s2-landscape-context-dg3', 'Weed pressure', ['silv-s2-landscape-context-c5']),
     ],
     completionGate: 'Landscape context and vector survey complete.',
     actHandoff: 'Landscape Context & Vector Survey Package',
@@ -310,6 +353,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s2-grazing-history-c6',
         'Define restoration baseline - what must improve before target stocking is reached',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s2-grazing-history-dg1', 'Stocking history & compaction', ['silv-s2-grazing-history-c1', 'silv-s2-grazing-history-c2'], ['Soil']),
+      dg('silv-s2-grazing-history-dg2', 'Bare ground & weed legacy', ['silv-s2-grazing-history-c3', 'silv-s2-grazing-history-c4']),
+      dg('silv-s2-grazing-history-dg3', 'Recovery baseline', ['silv-s2-grazing-history-c5', 'silv-s2-grazing-history-c6']),
     ],
     completionGate:
       'Grazing history and animal impact assessment complete. Recovery baseline defined.',
@@ -351,6 +399,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Confirm maximum stocking supportable by available water',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s3-stock-water-availability-dg1', 'Demand & source yields', ['silv-s3-stock-water-availability-c1', 'silv-s3-stock-water-availability-c2'], ['Water & Hydrology']),
+      dg('silv-s3-stock-water-availability-dg2', 'Seasonal gap & distribution', ['silv-s3-stock-water-availability-c3', 'silv-s3-stock-water-availability-c4'], ['Water & Hydrology']),
+      dg('silv-s3-stock-water-availability-dg3', 'Storage & maximum stocking', ['silv-s3-stock-water-availability-c5', 'silv-s3-stock-water-availability-c6'], ['Water & Hydrology']),
+    ],
     completionGate:
       'Stock water availability confirmed. Seasonal gap and storage requirements defined.',
     actHandoff: 'Stock Water Availability & Seasonal Supply Survey',
@@ -386,6 +439,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define compaction remediation requirements per zone - biological, mechanical, or management',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s3-soil-compaction-dg1', 'Testing & mapping', ['silv-s3-soil-compaction-c1', 'silv-s3-soil-compaction-c2'], ['Soil']),
+      dg('silv-s3-soil-compaction-dg2', 'Cause & subsoil structure', ['silv-s3-soil-compaction-c3', 'silv-s3-soil-compaction-c4'], ['Soil']),
+      dg('silv-s3-soil-compaction-dg3', 'Remediation', ['silv-s3-soil-compaction-c5'], ['Soil']),
+    ],
     completionGate:
       'Soil compaction survey complete. Remediation requirements defined per zone.',
     actHandoff: 'Soil Compaction & Structure Survey',
@@ -420,6 +478,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s3-forage-productivity-c5',
         'Calculate carrying capacity from forage productivity baseline',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s3-forage-productivity-dg1', 'Yield & quality', ['silv-s3-forage-productivity-c1', 'silv-s3-forage-productivity-c2'], ['Vegetation & Succession']),
+      dg('silv-s3-forage-productivity-dg2', 'Gaps & supplementation', ['silv-s3-forage-productivity-c3', 'silv-s3-forage-productivity-c4']),
+      dg('silv-s3-forage-productivity-dg3', 'Carrying capacity', ['silv-s3-forage-productivity-c5']),
     ],
     completionGate:
       'Forage productivity and nutritional baseline complete. Carrying capacity confirmed from productivity data.',
@@ -461,6 +524,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Confirm paddock layout is achievable with available fencing budget',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s4-paddock-layout-dg1', 'Paddock count & boundaries', ['silv-s4-paddock-layout-c1', 'silv-s4-paddock-layout-c2'], ['Terrain & Topography']),
+      dg('silv-s4-paddock-layout-dg2', 'Rotation & density', ['silv-s4-paddock-layout-c3', 'silv-s4-paddock-layout-c4']),
+      dg('silv-s4-paddock-layout-dg3', 'Capacity & budget', ['silv-s4-paddock-layout-c5', 'silv-s4-paddock-layout-c6']),
+    ],
     completionGate:
       'Paddock layout and rotational grazing framework approved. Carrying capacity confirmed.',
     actHandoff: 'Paddock Layout & Rotational Grazing Framework Brief',
@@ -499,6 +567,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s4-stock-water-strategy-c6',
         'Confirm system capacity against seasonal demand assessment',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s4-stock-water-strategy-dg1', 'Source & distribution', ['silv-s4-stock-water-strategy-c1', 'silv-s4-stock-water-strategy-c2'], ['Water & Hydrology']),
+      dg('silv-s4-stock-water-strategy-dg2', 'Troughs & water-point density', ['silv-s4-stock-water-strategy-c3', 'silv-s4-stock-water-strategy-c4'], ['Water & Hydrology']),
+      dg('silv-s4-stock-water-strategy-dg3', 'Emergency & capacity', ['silv-s4-stock-water-strategy-c5', 'silv-s4-stock-water-strategy-c6'], ['Water & Hydrology']),
     ],
     completionGate:
       'Stock water infrastructure strategy approved. All paddocks confirmed with reliable water access.',
@@ -539,6 +612,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Set measurable pasture improvement targets with timeframes',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s4-forage-improvement-dg1', 'Species mix & overseeding', ['silv-s4-forage-improvement-c1', 'silv-s4-forage-improvement-c2'], ['Vegetation & Succession']),
+      dg('silv-s4-forage-improvement-dg2', 'Fertility & weed control', ['silv-s4-forage-improvement-c3', 'silv-s4-forage-improvement-c4'], ['Soil']),
+      dg('silv-s4-forage-improvement-dg3', 'Sequence & targets', ['silv-s4-forage-improvement-c5', 'silv-s4-forage-improvement-c6']),
+    ],
     completionGate:
       'Forage and pasture improvement strategy approved. Target species, fertility, and improvement sequence confirmed.',
     actHandoff: 'Forage & Pasture Improvement Strategy Brief',
@@ -578,6 +656,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Confirm species selection is consistent with land improvement philosophy and climate',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s4-tree-integration-dg1', 'Species & placement', ['silv-s4-tree-integration-c1', 'silv-s4-tree-integration-c2'], ['Vegetation & Succession']),
+      dg('silv-s4-tree-integration-dg2', 'Density & protection', ['silv-s4-tree-integration-c3', 'silv-s4-tree-integration-c4'], ['Vegetation & Succession']),
+      dg('silv-s4-tree-integration-dg3', 'Canopy & fit', ['silv-s4-tree-integration-c5', 'silv-s4-tree-integration-c6']),
+    ],
     completionGate:
       'Tree integration strategy approved. Species, placement, density, and protection confirmed.',
     actHandoff: 'Tree Integration Strategy Brief',
@@ -616,6 +699,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s4-animal-health-c6',
         'Confirm all handling facilities support low-stress routine health procedures',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s4-animal-health-dg1', 'Routine & preventive care', ['silv-s4-animal-health-c1', 'silv-s4-animal-health-c2']),
+      dg('silv-s4-animal-health-dg2', 'Vet access & isolation', ['silv-s4-animal-health-c3', 'silv-s4-animal-health-c4']),
+      dg('silv-s4-animal-health-dg3', 'Mortality & handling', ['silv-s4-animal-health-c5', 'silv-s4-animal-health-c6']),
     ],
     completionGate:
       'Animal health and veterinary protocol approved. Emergency vet access confirmed.',
@@ -657,6 +745,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define fencing installation sequence - align with stocking buildup plan',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s5-fencing-dg1', 'Subdivision & type', ['silv-s5-fencing-c1', 'silv-s5-fencing-c2'], ['Infrastructure & Access']),
+      dg('silv-s5-fencing-dg2', 'Gates & boundary', ['silv-s5-fencing-c3', 'silv-s5-fencing-c4'], ['Infrastructure & Access']),
+      dg('silv-s5-fencing-dg3', 'Crossings & sequence', ['silv-s5-fencing-c5', 'silv-s5-fencing-c6'], ['Infrastructure & Access']),
+    ],
     completionGate:
       'Fencing and paddock design approved. All paddocks accessible without cross-paddock movement.',
     actHandoff: 'Fencing & Paddock Infrastructure Design Package',
@@ -696,6 +789,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Confirm all troughs meet species welfare water access standard',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s5-stock-water-distribution-dg1', 'Pipeline & troughs', ['silv-s5-stock-water-distribution-c1', 'silv-s5-stock-water-distribution-c2'], ['Water & Hydrology']),
+      dg('silv-s5-stock-water-distribution-dg2', 'Valves & pressure', ['silv-s5-stock-water-distribution-c3', 'silv-s5-stock-water-distribution-c4'], ['Water & Hydrology']),
+      dg('silv-s5-stock-water-distribution-dg3', 'Materials & welfare', ['silv-s5-stock-water-distribution-c5', 'silv-s5-stock-water-distribution-c6'], ['Water & Hydrology']),
+    ],
     completionGate:
       'Stock water distribution network design approved. All paddocks confirmed with welfare-standard water access.',
     actHandoff: 'Stock Water Distribution Network Design Package',
@@ -730,6 +828,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s5-shelters-handling-c5',
         'Confirm all facilities meet animal welfare standards defined in Tier 0',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s5-shelters-handling-dg1', 'Yards & crush', ['silv-s5-shelters-handling-c1', 'silv-s5-shelters-handling-c2'], ['Infrastructure & Access']),
+      dg('silv-s5-shelters-handling-dg2', 'Shade & isolation', ['silv-s5-shelters-handling-c3', 'silv-s5-shelters-handling-c4'], ['Infrastructure & Access']),
+      dg('silv-s5-shelters-handling-dg3', 'Welfare confirmation', ['silv-s5-shelters-handling-c5']),
     ],
     completionGate:
       'Livestock shelters and handling facilities design approved. Welfare standard compliance confirmed.',
@@ -770,6 +873,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define grazing exclusion period per tree species until establishment is confirmed',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s5-tree-planting-dg1', 'Locations & method', ['silv-s5-tree-planting-c1', 'silv-s5-tree-planting-c2'], ['Vegetation & Succession']),
+      dg('silv-s5-tree-planting-dg2', 'Protection & irrigation', ['silv-s5-tree-planting-c3', 'silv-s5-tree-planting-c4']),
+      dg('silv-s5-tree-planting-dg3', 'Sequence & exclusion', ['silv-s5-tree-planting-c5', 'silv-s5-tree-planting-c6']),
+    ],
     completionGate:
       'Tree planting and protection plan approved. Establishment sequence aligned with paddock rotation.',
     actHandoff: 'Silvopasture Tree Planting & Protection Plan',
@@ -806,6 +914,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Specify data recording system - simple paddock diary or digital log',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s6-pasture-monitoring-dg1', 'Condition scoring & frequency', ['silv-s6-pasture-monitoring-c1', 'silv-s6-pasture-monitoring-c2'], ['Vegetation & Succession']),
+      dg('silv-s6-pasture-monitoring-dg2', 'Impact & recovery', ['silv-s6-pasture-monitoring-c3', 'silv-s6-pasture-monitoring-c4'], ['Soil']),
+      dg('silv-s6-pasture-monitoring-dg3', 'Recording', ['silv-s6-pasture-monitoring-c5']),
+    ],
     completionGate:
       'Livestock and pasture monitoring protocol approved. Pre/post-grazing assessment and recovery criteria defined.',
     actHandoff: 'Livestock & Pasture Monitoring Protocol',
@@ -841,6 +954,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define seasonal health risk calendar - drenching, vaccination, fertility monitoring windows',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s6-animal-health-monitoring-dg1', 'Indicators & frequency', ['silv-s6-animal-health-monitoring-c1', 'silv-s6-animal-health-monitoring-c2']),
+      dg('silv-s6-animal-health-monitoring-dg2', 'Triggers & records', ['silv-s6-animal-health-monitoring-c3', 'silv-s6-animal-health-monitoring-c4']),
+      dg('silv-s6-animal-health-monitoring-dg3', 'Seasonal calendar', ['silv-s6-animal-health-monitoring-c5']),
+    ],
     completionGate:
       'Animal health monitoring system approved. Veterinary trigger thresholds defined.',
     actHandoff: 'Animal Health Monitoring System',
@@ -875,6 +993,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s6-adaptive-management-c5',
         'Document all management changes with date, trigger, and outcome',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s6-adaptive-management-dg1', 'Stocking & rotation triggers', ['silv-s6-adaptive-management-c1', 'silv-s6-adaptive-management-c2']),
+      dg('silv-s6-adaptive-management-dg2', 'Destocking & annual review', ['silv-s6-adaptive-management-c3', 'silv-s6-adaptive-management-c4']),
+      dg('silv-s6-adaptive-management-dg3', 'Documentation', ['silv-s6-adaptive-management-c5']),
     ],
     completionGate:
       'Adaptive management protocol approved. Stocking and rotation decisions tied to pasture monitoring data.',
@@ -912,6 +1035,10 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define livestock sourcing timeline - breed, vendor, transport, quarantine',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s7-livestock-establishment-dg1', 'Infrastructure readiness gates', ['silv-s7-livestock-establishment-c1', 'silv-s7-livestock-establishment-c2', 'silv-s7-livestock-establishment-c3'], ['Infrastructure & Access']),
+      dg('silv-s7-livestock-establishment-dg2', 'Go/no-go & sourcing', ['silv-s7-livestock-establishment-c4', 'silv-s7-livestock-establishment-c5']),
+    ],
     completionGate:
       'Livestock establishment sequence approved. All infrastructure go/no-go tests defined. No livestock arrive before all infrastructure passes.',
     actHandoff: 'Livestock Establishment Sequence',
@@ -948,6 +1075,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s7-stocking-buildup-c5',
         'Confirm stocking buildup plan is consistent with tree protection requirements',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s7-stocking-buildup-dg1', 'Initial rate & increase triggers', ['silv-s7-stocking-buildup-c1', 'silv-s7-stocking-buildup-c2']),
+      dg('silv-s7-stocking-buildup-dg2', 'Increase limits & target', ['silv-s7-stocking-buildup-c3', 'silv-s7-stocking-buildup-c4']),
+      dg('silv-s7-stocking-buildup-dg3', 'Tree-protection fit', ['silv-s7-stocking-buildup-c5']),
     ],
     completionGate:
       'Stocking buildup plan approved. All stocking increases tied to pasture condition monitoring, not calendar.',
@@ -988,6 +1120,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define financial review trigger - market or production change that requires model review',
       ),
     ],
+    decisionGroups: [
+      dg('silv-s7-financial-viability-dg1', 'Infrastructure & stock costs', ['silv-s7-financial-viability-c1', 'silv-s7-financial-viability-c2']),
+      dg('silv-s7-financial-viability-dg2', 'Revenue & break-even', ['silv-s7-financial-viability-c3', 'silv-s7-financial-viability-c4']),
+      dg('silv-s7-financial-viability-dg3', 'Viability threshold & review', ['silv-s7-financial-viability-c5', 'silv-s7-financial-viability-c6']),
+    ],
     completionGate:
       'Enterprise financial viability plan approved. Break-even confirmed.',
     actHandoff: 'Enterprise Financial Viability Plan',
@@ -1022,6 +1159,11 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s7-pasture-spelling-c5',
         'Confirm recovery protocol is consistent with tree establishment protection requirements',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-s7-pasture-spelling-dg1', 'Rest periods & recovery indicator', ['silv-s7-pasture-spelling-c1', 'silv-s7-pasture-spelling-c2'], ['Vegetation & Succession']),
+      dg('silv-s7-pasture-spelling-dg2', 'Seasonal & emergency spelling', ['silv-s7-pasture-spelling-c3', 'silv-s7-pasture-spelling-c4']),
+      dg('silv-s7-pasture-spelling-dg3', 'Tree-protection fit', ['silv-s7-pasture-spelling-c5']),
     ],
     completionGate:
       'Pasture spelling and recovery protocol approved. Re-entry indicators defined. All rotation decisions tied to recovery data.',
@@ -1096,6 +1238,11 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
         'Confirm livestock intent is compatible with the primary enterprise vision and site scale',
       ),
     ],
+    decisionGroups: [
+      dg('silv-sec-s1-livestock-intent-dg1', 'Rationale & candidate species', ['silv-sec-s1-livestock-intent-c1', 'silv-sec-s1-livestock-intent-c2']),
+      dg('silv-sec-s1-livestock-intent-dg2', 'Relationship & labour', ['silv-sec-s1-livestock-intent-c3', 'silv-sec-s1-livestock-intent-c4']),
+      dg('silv-sec-s1-livestock-intent-dg3', 'Compatibility', ['silv-sec-s1-livestock-intent-c5']),
+    ],
     completionGate:
       'Livestock enterprise intent and integration rationale defined. Candidate species identified. Labour and experience baseline confirmed.',
     actHandoff: 'Livestock Enterprise Intent & Integration Brief',
@@ -1132,6 +1279,11 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
         'silv-sec-s3-forage-survey-c5',
         'Assess weed and toxic-plant presence relevant to the candidate stock species',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-sec-s3-forage-survey-dg1', 'Forage mapping & seasonality', ['silv-sec-s3-forage-survey-c1', 'silv-sec-s3-forage-survey-c2'], ['Vegetation & Succession']),
+      dg('silv-sec-s3-forage-survey-dg2', 'Capacity & constraints', ['silv-sec-s3-forage-survey-c3', 'silv-sec-s3-forage-survey-c4']),
+      dg('silv-sec-s3-forage-survey-dg3', 'Weed & toxic plants', ['silv-sec-s3-forage-survey-c5']),
     ],
     completionGate:
       'Forage base mapped. Seasonal availability and feed gaps identified. Baseline carrying capacity estimated per zone.',
@@ -1174,6 +1326,11 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
         'Confirm the grazing framework is consistent with the surveyed carrying capacity',
       ),
     ],
+    decisionGroups: [
+      dg('silv-sec-s4-grazing-design-dg1', 'Method & layout', ['silv-sec-s4-grazing-design-c1', 'silv-sec-s4-grazing-design-c2']),
+      dg('silv-sec-s4-grazing-design-dg2', 'Graze/rest & tree protection', ['silv-sec-s4-grazing-design-c3', 'silv-sec-s4-grazing-design-c4'], ['Vegetation & Succession']),
+      dg('silv-sec-s4-grazing-design-dg3', 'Contingency & capacity fit', ['silv-sec-s4-grazing-design-c5', 'silv-sec-s4-grazing-design-c6']),
+    ],
     completionGate:
       'Grazing method, rotation framework, and tree-protection rules approved. Graze/rest targets tied to recovery indicators. Feed-gap contingency defined.',
     actHandoff: 'Grazing System & Rotation Framework Design Package',
@@ -1209,6 +1366,11 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
         'silv-sec-s4-stock-infrastructure-c5',
         'Confirm infrastructure sequencing - the go/no-go that no livestock arrive before water, fencing, and handling all pass independent readiness checks',
       ),
+    ],
+    decisionGroups: [
+      dg('silv-sec-s4-stock-infrastructure-dg1', 'Water & fencing', ['silv-sec-s4-stock-infrastructure-c1', 'silv-sec-s4-stock-infrastructure-c2'], ['Infrastructure & Access']),
+      dg('silv-sec-s4-stock-infrastructure-dg2', 'Handling & shelter', ['silv-sec-s4-stock-infrastructure-c3', 'silv-sec-s4-stock-infrastructure-c4'], ['Infrastructure & Access']),
+      dg('silv-sec-s4-stock-infrastructure-dg3', 'Sequencing gate', ['silv-sec-s4-stock-infrastructure-c5']),
     ],
     completionGate:
       'Stock water, fencing, and handling infrastructure designed. Shade and shelter confirmed. Hard gate set: no livestock arrive before water, fencing, and handling facilities each pass an independent go/no-go test.',
@@ -1250,6 +1412,11 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
         'Confirm the husbandry framework is consistent with available labour and the welfare standard',
       ),
     ],
+    decisionGroups: [
+      dg('silv-sec-s4-husbandry-framework-dg1', 'Health & breeding', ['silv-sec-s4-husbandry-framework-c1', 'silv-sec-s4-husbandry-framework-c2']),
+      dg('silv-sec-s4-husbandry-framework-dg2', 'Welfare & halal handling', ['silv-sec-s4-husbandry-framework-c3', 'silv-sec-s4-husbandry-framework-c4']),
+      dg('silv-sec-s4-husbandry-framework-dg3', 'Records & labour fit', ['silv-sec-s4-husbandry-framework-c5', 'silv-sec-s4-husbandry-framework-c6']),
+    ],
     completionGate:
       'Livestock husbandry, health, and welfare framework approved. Humane and halal handling intent defined. Record-keeping established.',
     actHandoff: 'Livestock Husbandry & Welfare Framework Brief',
@@ -1279,6 +1446,9 @@ export const SILVOPASTURE_SECONDARY_PATCHES: readonly PatchRecord[] = [
         'Confirm reticulated supply can serve every grazing paddock through the dry season',
       ),
     ],
+    injectedGroups: [
+      dg('s4-water-strategy-dgsilv1', 'Livestock water demand', ['s4-water-strategy-silv-1', 's4-water-strategy-silv-2'], ['Water & Hydrology']),
+    ],
     completionGateAmendment:
       'Livestock drinking-water demand is included in the water balance and reticulation reaches all grazing paddocks.',
     scopeNote:
@@ -1298,6 +1468,9 @@ export const SILVOPASTURE_SECONDARY_PATCHES: readonly PatchRecord[] = [
         'Design gated crossings where stock laneways intersect vehicle access or waterways - minimise stress points',
       ),
     ],
+    injectedGroups: [
+      dg('s5-access-dgsilv1', 'Stock movement & crossings', ['s5-access-silv-1', 's5-access-silv-2'], ['Infrastructure & Access']),
+    ],
     completionGateAmendment:
       'Stock-movement laneways and gated crossings are designed to move livestock with minimal stress.',
     scopeNote:
@@ -1316,6 +1489,9 @@ export const SILVOPASTURE_SECONDARY_PATCHES: readonly PatchRecord[] = [
         's5-soil-improvement-silv-2',
         'Define graze/rest thresholds that protect soil and ground cover from overgrazing',
       ),
+    ],
+    injectedGroups: [
+      dg('s5-soil-improvement-dgsilv1', 'Grazing impact & graze/rest', ['s5-soil-improvement-silv-1', 's5-soil-improvement-silv-2'], ['Soil']),
     ],
     completionGateAmendment:
       'Grazing-impact monitoring and graze/rest thresholds protect soil and ground cover from overgrazing.',
