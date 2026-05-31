@@ -1,4 +1,4 @@
-// catalogues/index.ts
+﻿// catalogues/index.ts
 //
 // Catalogue registry - the single place that knows which primary and secondary
 // project types are encoded (OLOS Project-Type + Secondary-Layer Spec v1.2).
@@ -15,9 +15,10 @@
 // taxonomy, but its catalogue doc carries only a primary layer - no secondary
 // spec yet. The Nursery secondary (8 additive, no patches) is encoded verbatim
 // from the operator docx; the Silvopasture secondary (5 additive + 3 universal
-// patches) is DERIVED under the operator's scoped 2026-05-31 "spec + expertise"
-// authorization. The Orchard secondary and the primary-sourced
-// universal-augmentation patches remain pending operator source files.
+// patches) and the Orchard secondary (5 additive + 4 universal patches incl.
+// pollinator) are DERIVED under the operator's scoped 2026-05-31 "spec +
+// expertise" authorization. The primary-sourced universal-augmentation patches
+// remain pending an operator source file (no primary->universal seam yet).
 
 import type {
   PatchRecord,
@@ -41,7 +42,11 @@ import {
   SILVOPASTURE_SECONDARY_OBJECTIVES,
   SILVOPASTURE_SECONDARY_PATCHES,
 } from './silvopasture.js';
-import { ORCHARD_PRIMARY_OBJECTIVES } from './orchard.js';
+import {
+  ORCHARD_PRIMARY_OBJECTIVES,
+  ORCHARD_SECONDARY_OBJECTIVES,
+  ORCHARD_SECONDARY_PATCHES,
+} from './orchard.js';
 import { NURSERY_SECONDARY_OBJECTIVES } from './nursery.js';
 
 export {
@@ -58,6 +63,8 @@ export {
   SILVOPASTURE_SECONDARY_OBJECTIVES,
   SILVOPASTURE_SECONDARY_PATCHES,
   ORCHARD_PRIMARY_OBJECTIVES,
+  ORCHARD_SECONDARY_OBJECTIVES,
+  ORCHARD_SECONDARY_PATCHES,
   NURSERY_SECONDARY_OBJECTIVES,
 };
 
@@ -131,6 +138,12 @@ export function getSecondaryCatalogue(
       patches: SILVOPASTURE_SECONDARY_PATCHES,
     };
   }
+  if (secondaryTypeId === 'orchard_food_forest') {
+    return {
+      additive: ORCHARD_SECONDARY_OBJECTIVES,
+      patches: ORCHARD_SECONDARY_PATCHES,
+    };
+  }
   return undefined;
 }
 
@@ -155,6 +168,7 @@ const ALL_CATALOGUE_OBJECTIVES: readonly PlanStratumObjective[] = (() => {
     ...SILVOPASTURE_PRIMARY_OBJECTIVES,
     ...SILVOPASTURE_SECONDARY_OBJECTIVES,
     ...ORCHARD_PRIMARY_OBJECTIVES,
+    ...ORCHARD_SECONDARY_OBJECTIVES,
   ]) {
     if (!byId.has(o.id)) byId.set(o.id, o);
   }

@@ -41,10 +41,14 @@
 // Refs follow Authoring Standards (ORCH-S<stratum>.<n>). ASCII-only copy:
 // em/en dashes -> " - "; curly quotes -> straight.
 
-import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj } from './authoring.js';
+import type {
+  PatchRecord,
+  PlanStratumObjective,
+} from '../../../schemas/plan/planStratumObjective.schema.js';
+import { ck, obj, patch } from './authoring.js';
 
 const PRIMARY = 'orchard_food_forest' as const;
+const SECONDARY = 'orchard_food_forest' as const;
 
 export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
   // ---------------------------------------------------------------- Stratum 1
@@ -977,5 +981,300 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Enterprise financial viability plan approved. Cash flow gap and bridge strategy confirmed.',
     actHandoff: 'Enterprise Financial Viability Plan',
+  }),
+];
+
+// ===========================================================================
+// ORCHARD / FOOD FOREST SECONDARY-LAYER OBJECTIVES (derived)
+//
+// When orchard_food_forest is selected as a SECONDARY on a non-orchard primary
+// (e.g. a regenerative farm or ecovillage adding a food-forest element), these
+// objectives layer the perennial tree-crop concerns the host primary lacks.
+// No operator source doc exists; this layer is a derivation under the operator's
+// scoped 2026-05-31 directive ("Orchard secondary (derive)") and chosen depth
+// (5 additive + 4 universal patches incl. pollinator) - the same scoped-derive
+// pattern used for the Wellness and Silvopasture secondaries.
+//
+// Refs use the .20+ band (ORCH PRIMARY maxes at S*.8) so they never collide with
+// the primary layer. The ref NUMBER tracks the canonical stratum NUMBER. stratumId
+// drives placement; ref is label-only (regex-validated). source: 'secondary',
+// sourceTypeId: 'orchard_food_forest', secondaryClass: 'additive' on every entry.
+//
+// Amanah Gate: ordinary perennial food production and its sale. The harvest
+// objective scopes the market destination as halal with no riba/gharar; no
+// advance-sale / CSRA / financial-product content. Clean.
+// ===========================================================================
+export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
+  // ---------------------------------------------------------------- Stratum 2
+  obj({
+    id: 'orch-sec-s2-climate-chill-fit',
+    stratumId: 's2-land-reading',
+    ref: 'ORCH-S2.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Assess climate & chill-hour fit for intended tree crops',
+    focusedQuestion:
+      'Does the site climate actually suit the intended fruit and nut species - chill hours, frost windows, summer heat, and hardiness zone?',
+    checklist: [
+      ck(
+        'orch-sec-s2-climate-chill-fit-c1',
+        'Estimate site chill-hour accumulation and compare against each intended species requirement',
+      ),
+      ck(
+        'orch-sec-s2-climate-chill-fit-c2',
+        'Map bloom-period frost risk - late frost against early-flowering species',
+      ),
+      ck(
+        'orch-sec-s2-climate-chill-fit-c3',
+        'Confirm summer heat and hardiness zone are within tolerance for each species',
+      ),
+      ck(
+        'orch-sec-s2-climate-chill-fit-c4',
+        'Identify marginal species and define backup or lower-chill alternatives',
+      ),
+      ck(
+        'orch-sec-s2-climate-chill-fit-c5',
+        'Record the climate-matched species shortlist as a constraint on later selection',
+      ),
+    ],
+    completionGate:
+      'Climate and chill-hour fit assessed for every intended species. Marginal species flagged with backups. Climate-matched shortlist recorded.',
+    actHandoff: 'Climate & Chill-Hour Fit Assessment',
+  }),
+  // ---------------------------------------------------------------- Stratum 4
+  obj({
+    id: 'orch-sec-s4-species-pollination',
+    stratumId: 's4-foundation-decisions',
+    ref: 'ORCH-S4.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Decide cultivars, rootstocks & pollination partners',
+    focusedQuestion:
+      'Which cultivars and rootstocks will be planted, and are pollination partners and bloom overlap secured for fruit set?',
+    checklist: [
+      ck(
+        'orch-sec-s4-species-pollination-c1',
+        'Select cultivars per species against the climate-matched shortlist and production intent',
+      ),
+      ck(
+        'orch-sec-s4-species-pollination-c2',
+        'Select rootstock per species by vigor - which drives final spacing and density',
+      ),
+      ck(
+        'orch-sec-s4-species-pollination-c3',
+        'Define pollination groups and bloom-overlap partners for cross-pollinated species',
+      ),
+      ck(
+        'orch-sec-s4-species-pollination-c4',
+        'Record which species are self-fertile and which require a compatible partner on site',
+      ),
+      ck(
+        'orch-sec-s4-species-pollination-c5',
+        'Confirm true-to-type planting-stock sourcing and lead time for each cultivar and rootstock',
+      ),
+    ],
+    completionGate:
+      'Cultivar and rootstock selections approved. Pollination partners and bloom overlap secured. True-to-type stock sourcing confirmed.',
+    actHandoff: 'Cultivar, Rootstock & Pollination Decision Brief',
+  }),
+  // ---------------------------------------------------------------- Stratum 5
+  obj({
+    id: 'orch-sec-s5-guild-layout',
+    stratumId: 's5-system-design',
+    ref: 'ORCH-S5.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Design multilayer guild layout & spacing',
+    focusedQuestion:
+      'How are canopy, understory, and support species arranged in space and density, integrated with the host primary layout?',
+    checklist: [
+      ck(
+        'orch-sec-s5-guild-layout-c1',
+        'Set tree spacing and density from rootstock vigor and harvest-access needs',
+      ),
+      ck(
+        'orch-sec-s5-guild-layout-c2',
+        'Design the multilayer guild - canopy, understory, shrub, and ground layers per zone',
+      ),
+      ck(
+        'orch-sec-s5-guild-layout-c3',
+        'Place support species - nitrogen fixers and insectary plants - within each guild',
+      ),
+      ck(
+        'orch-sec-s5-guild-layout-c4',
+        'Check light competition - confirm understory receives adequate light at canopy maturity',
+      ),
+      ck(
+        'orch-sec-s5-guild-layout-c5',
+        'Integrate the layout with the host primary existing zones, access, and infrastructure',
+      ),
+    ],
+    completionGate:
+      'Spaced multilayer guild layout drawn and integrated with the host design. Light competition resolved at maturity.',
+    actHandoff: 'Guild Layout & Spacing Design Package',
+  }),
+  // ---------------------------------------------------------------- Stratum 6
+  obj({
+    id: 'orch-sec-s6-perennial-care',
+    stratumId: 's6-integration-design',
+    ref: 'ORCH-S6.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Commit to a perennial pruning, training & IPM regime',
+    focusedQuestion:
+      'Is there a realistic, resourced recurring regime for pruning, training, thinning, and pest and disease care across the life of the system?',
+    checklist: [
+      ck(
+        'orch-sec-s6-perennial-care-c1',
+        'Define the pruning and training system per species and its annual cycle',
+      ),
+      ck(
+        'orch-sec-s6-perennial-care-c2',
+        'Define the integrated pest and disease management approach - monitoring, thresholds, and response',
+      ),
+      ck(
+        'orch-sec-s6-perennial-care-c3',
+        'Cost the seasonal-labor peaks - pruning, thinning, and harvest - against available capacity',
+      ),
+      ck(
+        'orch-sec-s6-perennial-care-c4',
+        'Address the skills and tools gap - training, contractors, or equipment required',
+      ),
+      ck(
+        'orch-sec-s6-perennial-care-c5',
+        'Confirm the recurring regime is committed and resourced before any trees are planted',
+      ),
+    ],
+    completionGate:
+      'A resourced recurring pruning, training, and IPM regime is committed, with seasonal-labor peaks costed and the skills gap addressed.',
+    actHandoff: 'Perennial Care & IPM Commitment Brief',
+  }),
+  obj({
+    id: 'orch-sec-s6-harvest-pathway',
+    stratumId: 's6-integration-design',
+    ref: 'ORCH-S6.21',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Define the harvest, storage & value-add pathway',
+    focusedQuestion:
+      'How will the perennial yield be harvested, stored, and turned into use or income through a halal pathway?',
+    checklist: [
+      ck(
+        'orch-sec-s6-harvest-pathway-c1',
+        'Define harvest windows and expected yield ramp per species across establishment years',
+      ),
+      ck(
+        'orch-sec-s6-harvest-pathway-c2',
+        'Define post-harvest handling and cold or dry storage appropriate to each crop',
+      ),
+      ck(
+        'orch-sec-s6-harvest-pathway-c3',
+        'Define processing and value-add options - dried, pressed, or preserved - where relevant',
+      ),
+      ck(
+        'orch-sec-s6-harvest-pathway-c4',
+        'Define the destination - subsistence, direct sale, or wholesale - as a halal pathway with no riba or gharar',
+      ),
+      ck(
+        'orch-sec-s6-harvest-pathway-c5',
+        'Confirm the pathway is consistent with steward capacity and the production intent',
+      ),
+    ],
+    completionGate:
+      'A harvest-to-use-or-market pathway with storage and handling is planned. Destination confirmed as a halal pathway free of riba and gharar.',
+    actHandoff: 'Harvest, Storage & Value-Add Pathway Brief',
+  }),
+];
+
+// ---------------------------------------------------------------------------
+// ORCHARD / FOOD FOREST SECONDARY PATCHES
+//
+// Inject perennial tree-crop items into the shared UNIVERSAL objectives so the
+// orchard demand is folded into the whole-of-site water / soil / ecology / Phase-1
+// decisions. The resolver looks targets up by id, concatenates gate amendments,
+// and stamps each injected item with expandedBySecondaryId at apply time. All
+// four target ids are real universal objectives -> zero skipped patches.
+// ---------------------------------------------------------------------------
+export const ORCHARD_SECONDARY_PATCHES: readonly PatchRecord[] = [
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's4-water-strategy',
+    ref: 'ORCH>U-S4.2',
+    injectedItems: [
+      ck(
+        's4-water-strategy-orch-1',
+        'Add perennial establishment irrigation demand to the water balance - per-tree volume across the 3-5 year establishment window',
+      ),
+      ck(
+        's4-water-strategy-orch-2',
+        'Define drip or micro-irrigation to establishing trees and a weaning schedule toward rainfall dependence',
+      ),
+    ],
+    completionGateAmendment:
+      'Perennial establishment and drought-year irrigation demand are in the water balance, with a drip delivery and weaning schedule defined.',
+    scopeNote:
+      'Orchard secondary: tree crops need reliable establishment-years water before canopy maturity that the base primary may not account for.',
+  }),
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's5-soil-improvement',
+    ref: 'ORCH>U-S5.3',
+    injectedItems: [
+      ck(
+        's5-soil-improvement-orch-1',
+        'Define pre-plant deep soil preparation - decompaction and organic matter - per planting zone',
+      ),
+      ck(
+        's5-soil-improvement-orch-2',
+        'Define ongoing orchard-floor fertility - mulch rings, compost, and living mulch',
+      ),
+    ],
+    completionGateAmendment:
+      'Pre-plant deep soil preparation and ongoing orchard-floor fertility are designed for every planting zone.',
+    scopeNote:
+      'Orchard secondary: perennial roots need deep pre-plant preparation and sustained floor fertility, not just annual-crop soil work.',
+  }),
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's2-ecology',
+    ref: 'ORCH>U-S2.3',
+    injectedItems: [
+      ck(
+        's2-ecology-orch-1',
+        'Baseline pollinator and beneficial-insect presence relevant to fruit and nut set',
+      ),
+      ck(
+        's2-ecology-orch-2',
+        'Plan insectary and flowering-understory provision to support pollination across the bloom window',
+      ),
+    ],
+    completionGateAmendment:
+      'Pollinator and beneficial-insect habitat is baselined and an insectary or flowering-understory provision supports fruit and nut set.',
+    scopeNote:
+      'Orchard secondary: fruit and nut yield depends on pollination, so the ecology survey must read and provision for pollinator habitat.',
+  }),
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's7-phase1',
+    ref: 'ORCH>U-S7.1',
+    injectedItems: [
+      ck(
+        's7-phase1-orch-1',
+        'Add perennial tree and shrub stock with rootstock and spacing to the Phase 1 planting palette',
+      ),
+      ck(
+        's7-phase1-orch-2',
+        'Sequence a staged multi-year establishment with tree protection - guards, stakes, and mulch - at planting',
+      ),
+    ],
+    completionGateAmendment:
+      'Phase 1 includes the perennial planting palette and a staged multi-year establishment with tree protection at planting.',
+    scopeNote:
+      'Orchard secondary: tree crops establish over years, not one season, so Phase 1 must stage planting and protection rather than treat it as a single event.',
   }),
 ];
