@@ -12,9 +12,20 @@
 //
 // source: 'primary', sourceTypeId: 'regenerative_farm' on every objective.
 // Refs follow Authoring Standards v1.4 (RF-T<tier>.<n>). ASCII-only copy.
+//
+// Decision groups (Decision Groups Reference v1.0; spec section 9.3-9.4):
+// the reference doc supplies decision-group rows ONLY for the 19 universal
+// objectives (its RegenFarm primary rows are a different catalogue generation
+// that does not match these encoded objectives). Per the 2026-05-31 EXTENDED
+// operator override, the decision groups below - labels, item membership, AND
+// observe-feed labels - are FULLY AUTHORED by Claude (not transcribed). Each
+// objective has 2-4 groups; membership is a full mutually-exclusive partition
+// of the checklist (every item in exactly one group); feed labels reuse the
+// doc's display vocabulary by semantic fit (`Multiple` for cross-cutting; `[]`
+// where no single domain dominates). Group ids follow <objId>-dg<n>.
 
 import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj } from './authoring.js';
+import { ck, dg, obj } from './authoring.js';
 
 export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
   // ---------------------------------------------------------------- Stratum 1
@@ -61,6 +72,22 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Define ecological readiness criteria that must be met before each enterprise launches',
       ),
     ],
+    decisionGroups: [
+      dg('rf-s1-enterprise-mix-dg1', 'Enterprise inventory & priorities', [
+        'rf-s1-enterprise-mix-c1',
+        'rf-s1-enterprise-mix-c2',
+      ]),
+      dg('rf-s1-enterprise-mix-dg2', 'Interdependencies & sequencing', [
+        'rf-s1-enterprise-mix-c3',
+        'rf-s1-enterprise-mix-c4',
+        'rf-s1-enterprise-mix-c5',
+      ]),
+      dg('rf-s1-enterprise-mix-dg3', 'Feasibility & readiness', [
+        'rf-s1-enterprise-mix-c6',
+        'rf-s1-enterprise-mix-c7',
+        'rf-s1-enterprise-mix-c8',
+      ]),
+    ],
     completionGate: 'Enterprise mix confirmed, prioritised, and integrated.',
     actHandoff: 'Enterprise Mix & Priority Brief',
   }),
@@ -100,6 +127,29 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Prioritise degradation zones by urgency and design implication',
       ),
     ],
+    decisionGroups: [
+      dg(
+        'rf-s2-land-health-dg1',
+        'Physical degradation',
+        ['rf-s2-land-health-c1', 'rf-s2-land-health-c2', 'rf-s2-land-health-c8'],
+        ['Soil'],
+      ),
+      dg(
+        'rf-s2-land-health-dg2',
+        'Biological & chemical condition',
+        ['rf-s2-land-health-c3', 'rf-s2-land-health-c7'],
+        ['Soil'],
+      ),
+      dg(
+        'rf-s2-land-health-dg3',
+        'Land-use history & landscape vectors',
+        ['rf-s2-land-health-c4', 'rf-s2-land-health-c5', 'rf-s2-land-health-c6'],
+        ['Multiple'],
+      ),
+      dg('rf-s2-land-health-dg4', 'Degradation prioritisation', [
+        'rf-s2-land-health-c9',
+      ]),
+    ],
     completionGate:
       'Land health assessment complete. All degradation zones mapped and prioritised.',
     actHandoff: 'Land Health & Degradation Assessment',
@@ -131,6 +181,28 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s2-landscape-context-c6',
         'Note landscape-scale opportunities - shared water, wildlife, markets',
+      ),
+    ],
+    decisionGroups: [
+      dg(
+        'rf-s2-landscape-context-dg1',
+        'Adjacent land use & risk',
+        [
+          'rf-s2-landscape-context-c1',
+          'rf-s2-landscape-context-c2',
+          'rf-s2-landscape-context-c5',
+        ],
+        ['Multiple'],
+      ),
+      dg(
+        'rf-s2-landscape-context-dg2',
+        'Landscape flows & opportunities',
+        [
+          'rf-s2-landscape-context-c3',
+          'rf-s2-landscape-context-c4',
+          'rf-s2-landscape-context-c6',
+        ],
+        ['Multiple'],
       ),
     ],
     completionGate:
@@ -165,6 +237,30 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         'rf-s3-nutrient-cycling-c6',
         'Record biological indicators of soil health - earthworm counts, root depth, smell',
+      ),
+    ],
+    decisionGroups: [
+      dg(
+        'rf-s3-nutrient-cycling-dg1',
+        'Biological activity & indicators',
+        ['rf-s3-nutrient-cycling-c1', 'rf-s3-nutrient-cycling-c6'],
+        ['Soil'],
+      ),
+      dg(
+        'rf-s3-nutrient-cycling-dg2',
+        'Organic matter flows',
+        [
+          'rf-s3-nutrient-cycling-c2',
+          'rf-s3-nutrient-cycling-c3',
+          'rf-s3-nutrient-cycling-c5',
+        ],
+        ['Soil'],
+      ),
+      dg(
+        'rf-s3-nutrient-cycling-dg3',
+        'Existing fertility infrastructure',
+        ['rf-s3-nutrient-cycling-c4'],
+        ['Soil'],
       ),
     ],
     completionGate:
@@ -206,6 +302,23 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Prioritise pressures by enterprise risk and design implication',
       ),
     ],
+    decisionGroups: [
+      dg(
+        'rf-s3-pest-pressure-dg1',
+        'Pest, disease & weed inventory',
+        ['rf-s3-pest-pressure-c1', 'rf-s3-pest-pressure-c2', 'rf-s3-pest-pressure-c3'],
+        ['Ecology & Habitat'],
+      ),
+      dg(
+        'rf-s3-pest-pressure-dg2',
+        'Ecological drivers & sources',
+        ['rf-s3-pest-pressure-c4', 'rf-s3-pest-pressure-c5', 'rf-s3-pest-pressure-c6'],
+        ['Ecology & Habitat'],
+      ),
+      dg('rf-s3-pest-pressure-dg3', 'Pressure prioritisation', [
+        'rf-s3-pest-pressure-c7',
+      ]),
+    ],
     completionGate:
       'Pest, disease, and weed pressure baseline complete. Ecological relationships identified.',
     actHandoff: 'Pest, Disease & Weed Pressure Baseline Report',
@@ -236,6 +349,26 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck('rf-s4-fertility-strategy-c5', 'Define external input reduction targets'),
       ck('rf-s4-fertility-strategy-c6', 'Establish fertility monitoring indicators'),
+    ],
+    decisionGroups: [
+      dg(
+        'rf-s4-fertility-strategy-dg1',
+        'Fertility inputs & sources',
+        ['rf-s4-fertility-strategy-c1', 'rf-s4-fertility-strategy-c2'],
+        ['Soil'],
+      ),
+      dg(
+        'rf-s4-fertility-strategy-dg2',
+        'Biological cycling',
+        ['rf-s4-fertility-strategy-c3', 'rf-s4-fertility-strategy-c4'],
+        ['Soil'],
+      ),
+      dg(
+        'rf-s4-fertility-strategy-dg3',
+        'Targets & monitoring',
+        ['rf-s4-fertility-strategy-c5', 'rf-s4-fertility-strategy-c6'],
+        ['Soil'],
+      ),
     ],
     completionGate:
       'Fertility strategy approved. Closed-loop cycling approach defined for all enterprises.',
@@ -275,6 +408,30 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck('rf-s4-biodiversity-strategy-c6', 'Define invasive species management strategy'),
     ],
+    decisionGroups: [
+      dg(
+        'rf-s4-biodiversity-strategy-dg1',
+        'Readiness goals & indicators',
+        ['rf-s4-biodiversity-strategy-c1', 'rf-s4-biodiversity-strategy-c5'],
+        ['Ecology & Habitat'],
+      ),
+      dg(
+        'rf-s4-biodiversity-strategy-dg2',
+        'Habitat siting & commitments',
+        [
+          'rf-s4-biodiversity-strategy-c2',
+          'rf-s4-biodiversity-strategy-c3',
+          'rf-s4-biodiversity-strategy-c4',
+        ],
+        ['Ecology & Habitat'],
+      ),
+      dg(
+        'rf-s4-biodiversity-strategy-dg3',
+        'Invasive management',
+        ['rf-s4-biodiversity-strategy-c6'],
+        ['Ecology & Habitat'],
+      ),
+    ],
     completionGate:
       'Biodiversity readiness strategy approved. Habitat infrastructure locations decided and ecological roles defined. Design deferred to Stratum 5.',
     actHandoff: 'Biodiversity Readiness & Habitat Infrastructure Strategy Brief',
@@ -307,6 +464,26 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Specify external input substitution plan - what gets replaced, by what, by when',
       ),
       ck('rf-s5-fertility-system-c6', 'Design nutrient monitoring and adjustment protocol'),
+    ],
+    decisionGroups: [
+      dg(
+        'rf-s5-fertility-system-dg1',
+        'Compost production & application',
+        ['rf-s5-fertility-system-c1', 'rf-s5-fertility-system-c2'],
+        ['Soil'],
+      ),
+      dg(
+        'rf-s5-fertility-system-dg2',
+        'Rotational cycling',
+        ['rf-s5-fertility-system-c3', 'rf-s5-fertility-system-c4'],
+        ['Soil'],
+      ),
+      dg(
+        'rf-s5-fertility-system-dg3',
+        'Substitution & monitoring',
+        ['rf-s5-fertility-system-c5', 'rf-s5-fertility-system-c6'],
+        ['Soil'],
+      ),
     ],
     completionGate:
       'Integrated fertility system design approved. All components specified and sequenced.',
@@ -352,6 +529,27 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ),
       ck('rf-s5-windbreaks-c8', 'Define long-term management and coppicing strategy'),
     ],
+    decisionGroups: [
+      dg(
+        'rf-s5-windbreaks-dg1',
+        'Siting & structure',
+        ['rf-s5-windbreaks-c1', 'rf-s5-windbreaks-c2'],
+        ['Climate & Sectors'],
+      ),
+      dg(
+        'rf-s5-windbreaks-dg2',
+        'Species & layout',
+        ['rf-s5-windbreaks-c3', 'rf-s5-windbreaks-c7'],
+        ['Vegetation & Succession'],
+      ),
+      dg(
+        'rf-s5-windbreaks-dg3',
+        'Ecological & fire function',
+        ['rf-s5-windbreaks-c4', 'rf-s5-windbreaks-c5', 'rf-s5-windbreaks-c6'],
+        ['Ecology & Habitat'],
+      ),
+      dg('rf-s5-windbreaks-dg4', 'Long-term management', ['rf-s5-windbreaks-c8']),
+    ],
     completionGate:
       'Windbreak and shelterbelt design approved. Multi-strata structure, wildlife corridor function, and wildfire mitigation confirmed.',
     actHandoff: 'Windbreak & Shelterbelt Design Package',
@@ -374,6 +572,26 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('rf-s6-biodiversity-monitoring-c3', 'Define survey frequency and seasonal timing'),
       ck('rf-s6-biodiversity-monitoring-c4', 'Specify recording methods and data storage'),
       ck('rf-s6-biodiversity-monitoring-c5', 'Define threshold triggers for management response'),
+    ],
+    decisionGroups: [
+      dg(
+        'rf-s6-biodiversity-monitoring-dg1',
+        'Indicators & sampling design',
+        ['rf-s6-biodiversity-monitoring-c1', 'rf-s6-biodiversity-monitoring-c2'],
+        ['Ecology & Habitat'],
+      ),
+      dg(
+        'rf-s6-biodiversity-monitoring-dg2',
+        'Survey protocol',
+        ['rf-s6-biodiversity-monitoring-c3', 'rf-s6-biodiversity-monitoring-c4'],
+        ['Ecology & Habitat'],
+      ),
+      dg(
+        'rf-s6-biodiversity-monitoring-dg3',
+        'Response triggers',
+        ['rf-s6-biodiversity-monitoring-c5'],
+        ['Ecology & Habitat'],
+      ),
     ],
     completionGate:
       'Biodiversity monitoring protocol approved. Indicators, methods, and triggers defined.',
@@ -418,6 +636,30 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Define record-keeping system for tracking loop performance over time',
       ),
     ],
+    decisionGroups: [
+      dg(
+        'rf-s6-enterprise-integration-dg1',
+        'Waste-to-input mapping',
+        ['rf-s6-enterprise-integration-c1', 'rf-s6-enterprise-integration-c2'],
+        ['Multiple'],
+      ),
+      dg(
+        'rf-s6-enterprise-integration-dg2',
+        'Loop operationalisation',
+        [
+          'rf-s6-enterprise-integration-c3',
+          'rf-s6-enterprise-integration-c4',
+          'rf-s6-enterprise-integration-c5',
+        ],
+        ['Multiple'],
+      ),
+      dg(
+        'rf-s6-enterprise-integration-dg3',
+        'Calendar & records',
+        ['rf-s6-enterprise-integration-c6', 'rf-s6-enterprise-integration-c7'],
+        ['Multiple'],
+      ),
+    ],
     completionGate:
       'Waste-to-input matrix complete with at least one confirmed operational loop per enterprise. All unconnected enterprises explicitly flagged. Farm calendar approved.',
     actHandoff: 'Enterprise Integration Matrix & Operational Calendar',
@@ -448,6 +690,17 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('rf-s7-enterprise-sequencing-c4', 'Sequence enterprise launches across planning cycles'),
       ck('rf-s7-enterprise-sequencing-c5', 'Define go/no-go criteria for each enterprise launch'),
     ],
+    decisionGroups: [
+      dg('rf-s7-enterprise-sequencing-dg1', 'Dependencies & priorities', [
+        'rf-s7-enterprise-sequencing-c1',
+        'rf-s7-enterprise-sequencing-c2',
+      ]),
+      dg('rf-s7-enterprise-sequencing-dg2', 'Launch sequencing', [
+        'rf-s7-enterprise-sequencing-c3',
+        'rf-s7-enterprise-sequencing-c4',
+        'rf-s7-enterprise-sequencing-c5',
+      ]),
+    ],
     completionGate:
       'Enterprise sequencing logic approved. Launch order and enabling dependencies confirmed.',
     actHandoff: 'Enterprise Sequencing & Phasing Logic Brief',
@@ -473,6 +726,17 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'rf-s7-cash-flow-c5',
         'Confirm scope stays within operational planning - no capital formation or investor structure content',
       ),
+    ],
+    decisionGroups: [
+      dg('rf-s7-cash-flow-dg1', 'Revenue & cost timeline', [
+        'rf-s7-cash-flow-c1',
+        'rf-s7-cash-flow-c2',
+      ]),
+      dg('rf-s7-cash-flow-dg2', 'Gap & viability', [
+        'rf-s7-cash-flow-c3',
+        'rf-s7-cash-flow-c4',
+      ]),
+      dg('rf-s7-cash-flow-dg3', 'Scope confirmation', ['rf-s7-cash-flow-c5']),
     ],
     completionGate:
       'Cash flow staging approved. Revenue timeline and gap strategy confirmed within operational planning scope.',

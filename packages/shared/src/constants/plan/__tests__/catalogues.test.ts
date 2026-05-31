@@ -528,6 +528,176 @@ describe('catalogue conformance - silvopasture secondary resolution', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Decision Groups (Decision Groups Reference v1.0; OLOS spec 9.3-9.4).
+// A decision group is a Plan-layer editorial grouping of an objective's
+// Act-layer checklist items into 1-6 named decision scopes. Group labels /
+// counts / observeFeeds are source-verbatim; item membership is authored under
+// the 2026-05-31 operator override (R1), extended the same day to authoring
+// full group taxonomy for objectives the doc does not cover.
+// ---------------------------------------------------------------------------
+
+/** Objectives whose checklist must be fully partitioned by their groups. */
+const OBJECTIVES_WITH_GROUPS = ALL_AUTHORED.filter(
+  (o) => o.decisionGroups.length > 0,
+);
+
+/**
+ * Assert the full mutually-exclusive partition invariant for one objective:
+ * 1-6 groups; every group has >=1 item; no item in two groups; the union of
+ * all group itemIds equals the objective's checklist item-id set; every
+ * group itemId resolves to a real checklist item.
+ */
+function expectFullPartition(o: PlanStratumObjective): void {
+  expect(o.decisionGroups.length, `${o.id} group count`).toBeGreaterThanOrEqual(
+    1,
+  );
+  expect(o.decisionGroups.length, `${o.id} group count`).toBeLessThanOrEqual(6);
+
+  const checklistIds = new Set(o.checklist.map((i) => i.id));
+  const seen = new Set<string>();
+  for (const g of o.decisionGroups) {
+    expect(g.itemIds.length, `${g.id} item count`).toBeGreaterThanOrEqual(1);
+    for (const itemId of g.itemIds) {
+      // resolves to a real checklist item
+      expect(checklistIds.has(itemId), `${g.id} -> ${itemId} unknown`).toBe(
+        true,
+      );
+      // mutually exclusive (no item in two groups)
+      expect(seen.has(itemId), `${itemId} appears in two groups`).toBe(false);
+      seen.add(itemId);
+    }
+  }
+  // full partition: every checklist item is covered exactly once
+  expect(seen.size, `${o.id} partition coverage`).toBe(checklistIds.size);
+}
+
+describe('catalogue conformance - decision group partition invariant', () => {
+  it('every grouped objective is a full mutually-exclusive partition', () => {
+    for (const o of OBJECTIVES_WITH_GROUPS) {
+      expectFullPartition(o);
+    }
+  });
+
+  it('observeFeeds entries are non-empty strings (R2: "-" encoded as [])', () => {
+    for (const o of OBJECTIVES_WITH_GROUPS) {
+      for (const g of o.decisionGroups) {
+        for (const feed of g.observeFeeds) {
+          expect(typeof feed, `${g.id} feed type`).toBe('string');
+          expect(feed.trim().length, `${g.id} empty feed`).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it('authored decision-group ids are globally unique across catalogues', () => {
+    const ids = ALL_AUTHORED.flatMap((o) =>
+      o.decisionGroups.map((g) => g.id),
+    );
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('authored base groups carry sourceSecondaryId=null', () => {
+    // Patch-injected groups get their sourceSecondaryId stamped by the
+    // resolver; statically-authored base groups must leave it null.
+    for (const o of OBJECTIVES_WITH_GROUPS) {
+      for (const g of o.decisionGroups) {
+        expect(g.sourceSecondaryId, `${g.id}`).toBeNull();
+      }
+    }
+  });
+});
+
+describe('catalogue conformance - decision group Phase 3a coverage', () => {
+  it('all 19 universal objectives carry decision groups', () => {
+    for (const o of UNIVERSAL_PLAN_OBJECTIVES) {
+      expect(o.decisionGroups.length, o.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('all regen-farm primary objectives carry decision groups', () => {
+    for (const o of REGEN_FARM_PRIMARY_OBJECTIVES) {
+      expect(o.decisionGroups.length, o.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('all residential additive objectives carry decision groups', () => {
+    for (const o of RESIDENTIAL_ADDITIVE_OBJECTIVES) {
+      expect(o.decisionGroups.length, o.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('every residential patch injects a decision group bundling its items', () => {
+    for (const p of RESIDENTIAL_PATCHES) {
+      expect(p.injectedGroups.length, p.ref).toBeGreaterThan(0);
+      const injectedItemIds = new Set(p.injectedItems.map((i) => i.id));
+      const groupedItemIds = p.injectedGroups.flatMap((g) => g.itemIds);
+      // injected groups partition exactly the injected items
+      expect(new Set(groupedItemIds).size, `${p.ref} dup`).toBe(
+        groupedItemIds.length,
+      );
+      for (const itemId of groupedItemIds) {
+        expect(injectedItemIds.has(itemId), `${p.ref} -> ${itemId}`).toBe(true);
+      }
+      expect(groupedItemIds.length, `${p.ref} coverage`).toBe(
+        injectedItemIds.size,
+      );
+    }
+  });
+});
+
+describe('catalogue conformance - decision group resolution (regen+residential)', () => {
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'regenerative_farm',
+    secondaryTypeIds: ['residential'],
+  });
+
+  it('every resolved grouped objective remains a full partition', () => {
+    // Base groups partition base items; patch-injected groups partition
+    // injected items; together they must cover the resolved checklist exactly.
+    for (const o of objectives) {
+      if (o.decisionGroups.length > 0) expectFullPartition(o);
+    }
+  });
+
+  it('decision-group ids are globally unique in the resolved set', () => {
+    const ids = objectives.flatMap((o) => o.decisionGroups.map((g) => g.id));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('resolver stamps sourceSecondaryId=residential on patch-injected groups only', () => {
+    const injected = objectives.flatMap((o) =>
+      o.decisionGroups.filter((g) => g.sourceSecondaryId !== null),
+    );
+    // The 5 residential patches each inject exactly one group.
+    expect(injected.length).toBe(RESIDENTIAL_PATCHES.length);
+    for (const g of injected) {
+      expect(g.sourceSecondaryId, g.id).toBe('residential');
+    }
+    // Every other group is an unstamped base group.
+    const base = objectives.flatMap((o) =>
+      o.decisionGroups.filter((g) => g.sourceSecondaryId === null),
+    );
+    for (const g of base) {
+      expect(g.id.includes('-dgres'), g.id).toBe(false);
+    }
+  });
+
+  it('does not mutate the shared universal catalogue decisionGroups', () => {
+    // The resolver deep-copies; the shared constant for a patched universal
+    // objective (e.g. s3-hydrology) must keep only its authored base groups.
+    const sharedHydrology = UNIVERSAL_PLAN_OBJECTIVES.find(
+      (o) => o.id === 's3-hydrology',
+    );
+    expect(
+      sharedHydrology?.decisionGroups.every((g) => g.sourceSecondaryId === null),
+    ).toBe(true);
+    expect(
+      sharedHydrology?.decisionGroups.some((g) => g.id.includes('-dgres')),
+    ).toBe(false);
+  });
+});
+
 describe('catalogue conformance - orchard secondary resolution', () => {
   it('contributes exactly 5 additive objectives and 4 patches', () => {
     expect(ORCHARD_SECONDARY_OBJECTIVES.length).toBe(5);

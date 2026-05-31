@@ -28,13 +28,25 @@
 // Gate amendments are stored as standalone capitalised clauses; the resolver
 // CONCATENATES them onto the target's completionGate (never replaces).
 //
+// Decision groups (Decision Groups Reference v1.0; spec section 9.3-9.4): the
+// reference doc supplies no decision-group rows matching this catalogue's
+// objectives. Per the 2026-05-31 EXTENDED operator override, the groups below -
+// labels, item membership, AND observe-feed labels - are FULLY AUTHORED by
+// Claude (not transcribed). Each additive objective has 2-4 groups forming a
+// full mutually-exclusive partition of its checklist. Each patch also carries
+// `injectedGroups`: an authored group bundling that patch's injected items, so
+// the residential decisions appear as one attributed group on the target
+// objective; the resolver stamps sourceSecondaryId='residential' at apply time
+// (never authored inline). Authored-group ids follow <objId>-dg<n>;
+// patch-injected-group ids follow <targetObjId>-dgres<n>.
+//
 // ASCII-only copy.
 
 import type {
   PatchRecord,
   PlanStratumObjective,
 } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj, patch } from './authoring.js';
+import { ck, dg, obj, patch } from './authoring.js';
 
 const SECONDARY = 'residential' as const;
 
@@ -75,6 +87,18 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
         'res-s1-household-needs-c6',
         'Record domestic needs that will always be sourced externally',
       ),
+    ],
+    decisionGroups: [
+      dg('res-s1-household-needs-dg1', 'Household & daily needs', [
+        'res-s1-household-needs-c1',
+        'res-s1-household-needs-c2',
+        'res-s1-household-needs-c3',
+      ]),
+      dg('res-s1-household-needs-dg2', 'Habitability requirements', [
+        'res-s1-household-needs-c4',
+        'res-s1-household-needs-c5',
+        'res-s1-household-needs-c6',
+      ]),
     ],
     completionGate:
       'Residential household needs defined. Minimum habitability threshold confirmed before Act begins.',
@@ -119,6 +143,29 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define treatment requirements for each source to reach intended use standard',
       ),
     ],
+    decisionGroups: [
+      dg(
+        'res-s3-water-quality-dg1',
+        'Contamination testing',
+        [
+          'res-s3-water-quality-c1',
+          'res-s3-water-quality-c2',
+          'res-s3-water-quality-c3',
+          'res-s3-water-quality-c4',
+        ],
+        ['Water & Hydrology'],
+      ),
+      dg(
+        'res-s3-water-quality-dg2',
+        'Potability & treatment',
+        [
+          'res-s3-water-quality-c5',
+          'res-s3-water-quality-c6',
+          'res-s3-water-quality-c7',
+        ],
+        ['Water & Hydrology'],
+      ),
+    ],
     completionGate:
       'Water quality assessment complete for all sources. Potability status and treatment requirements defined.',
     actHandoff: 'Domestic Water Quality Report',
@@ -155,6 +202,18 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
         'res-s4-living-zone-c6',
         'Confirm living zone placement is safe from operational hazards - machinery routes, chemical storage, livestock',
       ),
+    ],
+    decisionGroups: [
+      dg('res-s4-living-zone-dg1', 'Zone & privacy', [
+        'res-s4-living-zone-c1',
+        'res-s4-living-zone-c2',
+        'res-s4-living-zone-c3',
+      ]),
+      dg('res-s4-living-zone-dg2', 'Conflict & safety', [
+        'res-s4-living-zone-c4',
+        'res-s4-living-zone-c5',
+        'res-s4-living-zone-c6',
+      ]),
     ],
     completionGate:
       'Domestic living zone defined and privacy strategy approved. All conflicts with visitor or operational zones resolved.',
@@ -204,6 +263,36 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Specify communications infrastructure - internet, phone, emergency communications',
       ),
     ],
+    decisionGroups: [
+      dg(
+        'res-s5-living-infrastructure-dg1',
+        'Dwelling fabric',
+        ['res-s5-living-infrastructure-c1', 'res-s5-living-infrastructure-c2'],
+        ['Infrastructure & Access'],
+      ),
+      dg(
+        'res-s5-living-infrastructure-dg2',
+        'Energy & climate systems',
+        ['res-s5-living-infrastructure-c3', 'res-s5-living-infrastructure-c4'],
+        ['Infrastructure & Access'],
+      ),
+      dg(
+        'res-s5-living-infrastructure-dg3',
+        'Water & waste systems',
+        [
+          'res-s5-living-infrastructure-c5',
+          'res-s5-living-infrastructure-c6',
+          'res-s5-living-infrastructure-c7',
+        ],
+        ['Infrastructure & Access'],
+      ),
+      dg(
+        'res-s5-living-infrastructure-dg4',
+        'Communications',
+        ['res-s5-living-infrastructure-c8'],
+        ['Infrastructure & Access'],
+      ),
+    ],
     completionGate:
       'Domestic living infrastructure design approved. All dwelling, utility, and household system components specified.',
     actHandoff: 'Domestic Living Infrastructure Design Package',
@@ -241,6 +330,17 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
         'res-s6-self-sufficiency-c5',
         'Specify record format - simple enough to maintain consistently alongside working the land',
       ),
+    ],
+    decisionGroups: [
+      dg('res-s6-self-sufficiency-dg1', 'Provision & gap tracking', [
+        'res-s6-self-sufficiency-c1',
+        'res-s6-self-sufficiency-c2',
+        'res-s6-self-sufficiency-c3',
+      ]),
+      dg('res-s6-self-sufficiency-dg2', 'Review rhythm & format', [
+        'res-s6-self-sufficiency-c4',
+        'res-s6-self-sufficiency-c5',
+      ]),
     ],
     completionGate:
       'Household self-sufficiency feedback loop designed. Provision and gap tracking systems approved. Connects to Stratum 1 household needs baseline.',
@@ -280,6 +380,17 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
         'Define go/no-go criteria for moving on-site - what must be complete, tested, and confirmed',
       ),
     ],
+    decisionGroups: [
+      dg('res-s7-phasing-dg1', 'Habitability & sequencing', [
+        'res-s7-phasing-c1',
+        'res-s7-phasing-c2',
+        'res-s7-phasing-c4',
+      ]),
+      dg('res-s7-phasing-dg2', 'Transition & go/no-go', [
+        'res-s7-phasing-c3',
+        'res-s7-phasing-c5',
+      ]),
+    ],
     completionGate:
       'Residential phasing plan approved. Habitability threshold defined. Move-on-site go/no-go criteria confirmed.',
     actHandoff: 'Residential Phasing & Domestic Establishment Plan',
@@ -300,6 +411,14 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
         'Ensure the landscape vector survey checklist explicitly covers drinking water catchment contamination risk relevant to domestic living',
       ),
     ],
+    injectedGroups: [
+      dg(
+        'rf-s2-landscape-context-dgres1',
+        'Domestic water catchment',
+        ['rf-s2-landscape-context-pres-1'],
+        ['Water & Hydrology'],
+      ),
+    ],
     scopeNote:
       'Residential Stratum 2 has no standalone objective - the primary landscape vector survey must explicitly cover drinking-water catchment contamination.',
   }),
@@ -316,6 +435,14 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
       ck(
         's3-hydrology-pres-2',
         'Confirm water source yield is sufficient for combined domestic and productive demand',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's3-hydrology-dgres1',
+        'Domestic water demand',
+        ['s3-hydrology-pres-1', 's3-hydrology-pres-2'],
+        ['Water & Hydrology'],
       ),
     ],
     completionGateAmendment: 'Domestic water demand confirmed against available yield.',
@@ -343,6 +470,19 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
         'Specify domestic hot water system - solar, gas, electric, wood-fired',
       ),
     ],
+    injectedGroups: [
+      dg(
+        's4-water-strategy-dgres1',
+        'Domestic water & grey water',
+        [
+          's4-water-strategy-pres-1',
+          's4-water-strategy-pres-2',
+          's4-water-strategy-pres-3',
+          's4-water-strategy-pres-4',
+        ],
+        ['Water & Hydrology'],
+      ),
+    ],
     completionGateAmendment:
       'Potable supply confirmed for domestic use, grey water strategy defined.',
   }),
@@ -361,6 +501,13 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
         's4-zones-pres-3',
         'Define privacy screening requirements between living zone and any visitor access areas',
       ),
+    ],
+    injectedGroups: [
+      dg('s4-zones-dgres1', 'Domestic living zone', [
+        's4-zones-pres-1',
+        's4-zones-pres-2',
+        's4-zones-pres-3',
+      ]),
     ],
     completionGateAmendment:
       'Domestic living zone allocated without conflict with enterprise or visitor zones.',
@@ -386,6 +533,19 @@ export const RESIDENTIAL_PATCHES: readonly PatchRecord[] = [
       ck(
         's5-water-infrastructure-pres-4',
         'Specify domestic hot water system infrastructure - tank, solar collectors, backup',
+      ),
+    ],
+    injectedGroups: [
+      dg(
+        's5-water-infrastructure-dgres1',
+        'Domestic water systems',
+        [
+          's5-water-infrastructure-pres-1',
+          's5-water-infrastructure-pres-2',
+          's5-water-infrastructure-pres-3',
+          's5-water-infrastructure-pres-4',
+        ],
+        ['Water & Hydrology'],
       ),
     ],
     completionGateAmendment:

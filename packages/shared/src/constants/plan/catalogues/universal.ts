@@ -11,19 +11,34 @@
 // are not yet authored, so every primary currently resolves against this
 // baseline. The 11 not-yet-encoded primaries therefore render universal-only.
 //
+// Decision groups (Decision Groups Reference v1.0; spec section 9.3-9.4):
+// group `label` + per-group item COUNT + `observeFeeds` labels are transcribed
+// VERBATIM from the reference doc's RegenFarm section (the designated anchor;
+// the doc's universal rows are repeated per type section and RF carries the
+// real labels, whereas later sections fall back to generic placeholders). The
+// doc gives only per-group item COUNTS, not explicit item ids, and its counts
+// predate the 19-universal checklists (systemic ~+1 drift in code). Per the
+// 2026-05-31 operator override, `itemIds` membership is AUTHORED here:
+// items are assigned to the doc's verbatim groups by semantic fit while
+// respecting each group's item count, drift-extra items go to the
+// semantically-closest group, and the union is a full mutually-exclusive
+// partition of the objective's checklist (every item in exactly one group).
+// The doc's `-` (no feed) is encoded as `[]`; its `Multiple` sentinel is kept
+// literally; feeds are display-only chips (NOT wired to divergence routing).
+//
 // Id scheme: t<tier>-<slug> for the objective; <objId>-c<n> for items, except
 // the three Tier-0 vision items the visionProfileToChecklist bridge targets
 // (s1-vision-c1 / s1-vision-c2 / s1-vision-c3) and two semantic slugs
 // (s1-vision-labour, s1-vision-constraints, s1-vision-classify,
 // s1-vision-assumptions) which keep stable ids. All ids are globally unique
 // across catalogues (planTierStore.toProgressMap invariant) and verified by a
-// catalogue conformance test.
+// catalogue conformance test. Decision-group ids follow <objId>-dg<n>.
 //
 // ASCII-only copy: em/en dashes from the source -> " - "/"-"; curly quotes
 // -> straight.
 
 import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj } from './authoring.js';
+import { ck, dg, obj } from './authoring.js';
 
 export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
   // ---------------------------------------------------------------- Stratum 1
@@ -50,6 +65,19 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s1-vision-classify', 'Classify vision elements as committed vs. aspirational'),
       ck('s1-vision-assumptions', 'Record assumptions and known unknowns'),
     ],
+    decisionGroups: [
+      dg('s1-vision-dg1', 'Purpose & intent', [
+        's1-vision-c1',
+        's1-vision-c2',
+        's1-vision-classify',
+      ]),
+      dg('s1-vision-dg2', 'Capacity & constraints', [
+        's1-vision-labour',
+        's1-vision-c3',
+        's1-vision-constraints',
+        's1-vision-assumptions',
+      ]),
+    ],
     completionGate:
       'A bounded, evidence-grounded vision is approved with clear success criteria and capacity constraints documented.',
     actHandoff: 'Vision & Capacity Brief',
@@ -73,6 +101,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         's1-boundaries-c7',
         'Note required permits for planned activities - building, earthworks, water harvesting',
       ),
+    ],
+    decisionGroups: [
+      dg(
+        's1-boundaries-dg1',
+        'Title & boundary',
+        ['s1-boundaries-c1', 's1-boundaries-c2'],
+        ['Infrastructure & Access'],
+      ),
+      dg('s1-boundaries-dg2', 'Legal & permit obligations', [
+        's1-boundaries-c3',
+        's1-boundaries-c4',
+        's1-boundaries-c5',
+        's1-boundaries-c6',
+        's1-boundaries-c7',
+      ]),
     ],
     completionGate:
       'All legal constraints and boundary conditions are mapped, recorded, and reviewed. No design work proceeds into areas of legal ambiguity.',
@@ -103,6 +146,18 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Record preferred communication channels for each stakeholder group',
       ),
     ],
+    decisionGroups: [
+      dg('s1-stakeholders-dg1', 'Neighbours & authority', [
+        's1-stakeholders-c1',
+        's1-stakeholders-c2',
+        's1-stakeholders-c3',
+      ]),
+      dg('s1-stakeholders-dg2', 'Networks & partnerships', [
+        's1-stakeholders-c4',
+        's1-stakeholders-c5',
+        's1-stakeholders-c6',
+      ]),
+    ],
     completionGate: 'Stakeholder map is complete. No known relationships unrecorded.',
     actHandoff: 'Stakeholder Register',
   }),
@@ -125,6 +180,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s2-terrain-c4', 'Identify flat areas, ridgelines, saddles, and hollows'),
       ck('s2-terrain-c5', 'Note areas of instability, erosion, or landslip risk'),
     ],
+    decisionGroups: [
+      dg(
+        's2-terrain-dg1',
+        'Landform & elevation',
+        ['s2-terrain-c1', 's2-terrain-c3'],
+        ['Terrain & Topography'],
+      ),
+      dg(
+        's2-terrain-dg2',
+        'Slope & drainage',
+        ['s2-terrain-c2', 's2-terrain-c4'],
+        ['Terrain & Topography'],
+      ),
+      dg('s2-terrain-dg3', 'Erosion risk', ['s2-terrain-c5'], ['Terrain & Topography']),
+    ],
     completionGate: 'Full topographic survey complete. Landform map approved.',
     actHandoff: 'Topographic Survey Package',
   }),
@@ -144,6 +214,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s2-climate-c5', 'Identify fire risk sectors and direction'),
       ck('s2-climate-c6', 'Note microclimate variations across the site'),
     ],
+    decisionGroups: [
+      dg(
+        's2-climate-dg1',
+        'Rainfall & temperature',
+        ['s2-climate-c1', 's2-climate-c3', 's2-climate-c6'],
+        ['Climate & Sectors'],
+      ),
+      dg(
+        's2-climate-dg2',
+        'Wind, sun & fire sectors',
+        ['s2-climate-c2', 's2-climate-c4', 's2-climate-c5'],
+        ['Climate & Sectors'],
+      ),
+    ],
     completionGate:
       'Climate and sector data recorded and mapped. All major sectors identified.',
     actHandoff: 'Climate & Sector Survey Package',
@@ -162,6 +246,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s2-ecology-c3', 'Note wildlife corridors, nesting sites, and movement patterns'),
       ck('s2-ecology-c4', 'Assess habitat connectivity to surrounding landscape'),
       ck('s2-ecology-c5', 'Record water-dependent habitat areas'),
+    ],
+    decisionGroups: [
+      dg(
+        's2-ecology-dg1',
+        'Vegetation communities',
+        ['s2-ecology-c1', 's2-ecology-c2'],
+        ['Ecology & Habitat'],
+      ),
+      dg(
+        's2-ecology-dg2',
+        'Species & habitat',
+        ['s2-ecology-c3', 's2-ecology-c4', 's2-ecology-c5'],
+        ['Ecology & Habitat'],
+      ),
     ],
     completionGate:
       'Ecological survey complete. All habitat types and significant species recorded.',
@@ -185,6 +283,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s2-infrastructure-c4', 'Identify legal access points and access constraints'),
       ck('s2-infrastructure-c5', 'Record existing fencing and boundary structures'),
     ],
+    decisionGroups: [
+      dg(
+        's2-infrastructure-dg1',
+        'Roads & tracks',
+        ['s2-infrastructure-c1', 's2-infrastructure-c4'],
+        ['Infrastructure & Access'],
+      ),
+      dg(
+        's2-infrastructure-dg2',
+        'Buildings & services',
+        ['s2-infrastructure-c2', 's2-infrastructure-c3', 's2-infrastructure-c5'],
+        ['Infrastructure & Access'],
+      ),
+    ],
     completionGate: 'Full infrastructure inventory complete and mapped.',
     actHandoff: 'Infrastructure Survey Package',
   }),
@@ -202,6 +314,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s3-hydrology-c3', 'Locate springs, seeps, and water table indicators'),
       ck('s3-hydrology-c4', 'Assess runoff patterns and infiltration rates by zone'),
       ck('s3-hydrology-c5', 'Map existing drainage infrastructure and its performance'),
+    ],
+    decisionGroups: [
+      dg(
+        's3-hydrology-dg1',
+        'Surface flows & catchment',
+        ['s3-hydrology-c1', 's3-hydrology-c2', 's3-hydrology-c4'],
+        ['Water & Hydrology'],
+      ),
+      dg(
+        's3-hydrology-dg2',
+        'Springs, infiltration & drainage',
+        ['s3-hydrology-c3', 's3-hydrology-c5'],
+        ['Water & Hydrology'],
+      ),
     ],
     completionGate:
       'Hydrological survey complete. Water movement mapped across all seasons.',
@@ -224,6 +350,21 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s3-soil-c3', 'Test soil pH, organic matter, and basic nutrient levels'),
       ck('s3-soil-c4', 'Assess drainage class and water retention characteristics'),
       ck('s3-soil-c5', 'Map soil type variation across the site'),
+    ],
+    decisionGroups: [
+      dg(
+        's3-soil-dg1',
+        'Profile & composition',
+        ['s3-soil-c1', 's3-soil-c2'],
+        ['Soil'],
+      ),
+      dg('s3-soil-dg2', 'Fertility & chemistry', ['s3-soil-c3'], ['Soil']),
+      dg(
+        's3-soil-dg3',
+        'Physical assessment',
+        ['s3-soil-c4', 's3-soil-c5'],
+        ['Soil'],
+      ),
     ],
     completionGate:
       'Soil survey complete. Profile assessments and test results recorded for all representative zones.',
@@ -251,6 +392,18 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s4-direction-c4', 'Define first-cycle success criteria'),
       ck('s4-direction-c5', 'Record assumptions and unresolved questions'),
       ck('s4-direction-c6', 'Approve bounded planning direction'),
+    ],
+    decisionGroups: [
+      dg('s4-direction-dg1', 'Survey validation', [
+        's4-direction-c1',
+        's4-direction-c2',
+        's4-direction-c5',
+      ]),
+      dg('s4-direction-dg2', 'Scope & first cycle', [
+        's4-direction-c3',
+        's4-direction-c4',
+        's4-direction-c6',
+      ]),
     ],
     completionGate:
       'Project direction confirmed. All vision elements classified. Planning direction approved.',
@@ -281,6 +434,25 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Define water conservation priorities and drought response protocol',
       ),
     ],
+    decisionGroups: [
+      dg(
+        's4-water-strategy-dg1',
+        'Supply & storage',
+        [
+          's4-water-strategy-c1',
+          's4-water-strategy-c2',
+          's4-water-strategy-c3',
+          's4-water-strategy-c4',
+        ],
+        ['Water & Hydrology'],
+      ),
+      dg(
+        's4-water-strategy-dg2',
+        'Conservation & drought',
+        ['s4-water-strategy-c5', 's4-water-strategy-c6'],
+        ['Water & Hydrology'],
+      ),
+    ],
     completionGate:
       'Water strategy approved. Supply, storage, and distribution approach defined for all enterprises.',
     actHandoff: 'Water Strategy Decision Brief',
@@ -304,6 +476,15 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s4-zones-c5', 'Define buffer zones and transition areas'),
       ck('s4-zones-c6', 'Confirm zone framework against capacity and feasibility constraints'),
     ],
+    decisionGroups: [
+      dg('s4-zones-dg1', 'Zone allocation', [
+        's4-zones-c1',
+        's4-zones-c2',
+        's4-zones-c3',
+        's4-zones-c6',
+      ]),
+      dg('s4-zones-dg2', 'Conflict resolution', ['s4-zones-c4', 's4-zones-c5']),
+    ],
     completionGate:
       'Spatial framework approved. All enterprise zones allocated without unresolved conflict.',
     actHandoff: 'Zone Allocation Framework',
@@ -326,6 +507,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s5-access-c3', 'Design pedestrian pathways between key working areas'),
       ck('s5-access-c4', 'Resolve conflicts between vehicle, animal, and pedestrian movement'),
       ck('s5-access-c5', 'Specify turning radii and passing points for farm vehicles'),
+    ],
+    decisionGroups: [
+      dg(
+        's5-access-dg1',
+        'Primary access',
+        ['s5-access-c1', 's5-access-c2'],
+        ['Infrastructure & Access'],
+      ),
+      dg(
+        's5-access-dg2',
+        'Internal circulation',
+        ['s5-access-c3', 's5-access-c4', 's5-access-c5'],
+        ['Infrastructure & Access'],
+      ),
     ],
     completionGate:
       'Access and circulation design approved. All movement conflicts resolved.',
@@ -352,6 +547,24 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s5-water-infrastructure-c4', 'Design emergency overflow and spillway infrastructure'),
       ck('s5-water-infrastructure-c5', 'Specify materials and construction standards'),
     ],
+    decisionGroups: [
+      dg(
+        's5-water-infrastructure-dg1',
+        'Harvesting & storage',
+        [
+          's5-water-infrastructure-c1',
+          's5-water-infrastructure-c2',
+          's5-water-infrastructure-c5',
+        ],
+        ['Water & Hydrology'],
+      ),
+      dg(
+        's5-water-infrastructure-dg2',
+        'Distribution & overflow',
+        ['s5-water-infrastructure-c3', 's5-water-infrastructure-c4'],
+        ['Water & Hydrology'],
+      ),
+    ],
     completionGate:
       'Water infrastructure design approved. All harvesting, storage, and distribution components specified.',
     actHandoff: 'Water Infrastructure Design Package',
@@ -376,6 +589,24 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Establish soil health monitoring baseline for improvement tracking',
       ),
     ],
+    decisionGroups: [
+      dg(
+        's5-soil-improvement-dg1',
+        'Fertility inputs',
+        [
+          's5-soil-improvement-c1',
+          's5-soil-improvement-c2',
+          's5-soil-improvement-c3',
+        ],
+        ['Soil'],
+      ),
+      dg(
+        's5-soil-improvement-dg2',
+        'Biological enhancement',
+        ['s5-soil-improvement-c4', 's5-soil-improvement-c5'],
+        ['Soil'],
+      ),
+    ],
     completionGate: 'Soil improvement strategy designed and approved for all zones.',
     actHandoff: 'Soil Improvement Design Package',
   }),
@@ -396,6 +627,20 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck(
         's6-monitoring-c5',
         'Define Observe feedback trigger points - when data initiates a Plan review',
+      ),
+    ],
+    decisionGroups: [
+      dg(
+        's6-monitoring-dg1',
+        'Key indicators',
+        ['s6-monitoring-c1', 's6-monitoring-c3'],
+        ['Multiple'],
+      ),
+      dg(
+        's6-monitoring-dg2',
+        'Data collection & triggers',
+        ['s6-monitoring-c2', 's6-monitoring-c4', 's6-monitoring-c5'],
+        ['Multiple'],
       ),
     ],
     completionGate:
@@ -421,6 +666,17 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s7-phase1-c4', 'Define Phase 1 completion milestones'),
       ck('s7-phase1-c5', 'Confirm Phase 1 scope against capacity and resource plan'),
     ],
+    decisionGroups: [
+      dg('s7-phase1-dg1', 'Scope & sequence', [
+        's7-phase1-c1',
+        's7-phase1-c2',
+        's7-phase1-c3',
+      ]),
+      dg('s7-phase1-dg2', 'Milestones & resources', [
+        's7-phase1-c4',
+        's7-phase1-c5',
+      ]),
+    ],
     completionGate:
       'Phase 1 implementation plan approved. Scope, sequence, responsibilities, and milestones confirmed.',
     actHandoff: 'Phase 1 Implementation Plan',
@@ -440,6 +696,17 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s7-resource-plan-c4', 'Estimate Phase 1 capital requirements by category'),
       ck('s7-resource-plan-c5', 'Define procurement priorities and sourcing plan'),
     ],
+    decisionGroups: [
+      dg('s7-resource-plan-dg1', 'Labour & skills', [
+        's7-resource-plan-c1',
+        's7-resource-plan-c2',
+        's7-resource-plan-c3',
+      ]),
+      dg('s7-resource-plan-dg2', 'Capital & procurement', [
+        's7-resource-plan-c4',
+        's7-resource-plan-c5',
+      ]),
+    ],
     completionGate:
       'Resource and capacity plan approved. All Phase 1 requirements identified and sourcing strategy confirmed.',
     actHandoff: 'Resource & Capacity Plan',
@@ -458,6 +725,17 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('s7-risk-register-c3', 'Define contingency response for each risk'),
       ck('s7-risk-register-c4', 'Identify early warning indicators for each risk'),
       ck('s7-risk-register-c5', 'Assign risk monitoring responsibility'),
+    ],
+    decisionGroups: [
+      dg('s7-risk-register-dg1', 'Risk identification', [
+        's7-risk-register-c1',
+        's7-risk-register-c2',
+        's7-risk-register-c4',
+      ]),
+      dg('s7-risk-register-dg2', 'Contingency & monitoring', [
+        's7-risk-register-c3',
+        's7-risk-register-c5',
+      ]),
     ],
     completionGate:
       'Risk register approved. All principal risks identified with defined contingency responses.',
