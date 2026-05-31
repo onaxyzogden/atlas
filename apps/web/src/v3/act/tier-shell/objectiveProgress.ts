@@ -5,7 +5,7 @@
 // and shared by the left rail cards and the map markers, so neither recomputes
 // and both always agree. Pure — no React, no store reads.
 
-import type { FieldAction } from '@ogden/shared';
+import type { FieldAction, PlanStratumObjective } from '@ogden/shared';
 
 /** Per-objective execution rollup the rail + markers render. */
 export interface ObjectiveProgress {
@@ -59,6 +59,39 @@ export function computeObjectiveProgress(
   const out: Record<string, ObjectiveProgress> = {};
   for (const objective of objectives) {
     out[objective.id] = deriveProgress(grouped.get(objective.id) ?? []);
+  }
+  return out;
+}
+
+/**
+ * Checklist-based rollup for the LEFT objective rail. Counts completed
+ * checklist items (from planStratumStore) against each objective's
+ * `checklist.length` -- the same signal the right-rail execution panel shows
+ * ("N/M steps"). This keeps the rail and the panel in agreement and stops the
+ * rail reporting "No tasks yet" for objectives that have a populated checklist
+ * but no logged field actions. (`verified` carries the done-count so the
+ * shared ObjectiveProgress shape is reused; the map markers keep the separate
+ * field-action progress from computeObjectiveProgress.)
+ */
+export function computeChecklistProgress(
+  objectives: readonly PlanStratumObjective[],
+  completedByObjective: Readonly<Record<string, readonly string[]>>,
+): Record<string, ObjectiveProgress> {
+  const out: Record<string, ObjectiveProgress> = {};
+  for (const objective of objectives) {
+    const completed = completedByObjective[objective.id] ?? [];
+    const total = objective.checklist.length;
+    let done = 0;
+    for (const item of objective.checklist) {
+      if (completed.includes(item.id)) done += 1;
+    }
+    const state: ObjectiveProgress['state'] =
+      total > 0 && done === total
+        ? 'complete'
+        : done > 0
+          ? 'active'
+          : 'available';
+    out[objective.id] = { total, verified: done, state };
   }
   return out;
 }

@@ -1,10 +1,11 @@
 // ActTierObjectiveCard.tsx
 //
 // Objective card for the left rail: category eyebrow, title, focused
-// question, and a REAL execution-progress chip ("3/5 verified") derived from
-// the project's field actions. Mirrors the role="button" keyboard pattern of
-// the real ObjectiveCard. The prototype's mock priority + SEED-coordinate
-// badges are dropped — progress is the live signal here.
+// question, and a REAL checklist-progress chip ("3/5 done") derived from the
+// objective's checklist + planStratumStore completion (the same signal the
+// right-rail execution panel shows). Mirrors the role="button" keyboard
+// pattern of the real ObjectiveCard. The prototype's mock priority +
+// SEED-coordinate badges are dropped — progress is the live signal here.
 
 import type { KeyboardEvent } from 'react';
 import type { PlanStratumObjective } from '@ogden/shared';
@@ -36,7 +37,7 @@ export default function ActTierObjectiveCard({
   const progressLabel =
     progress.total === 0
       ? 'No tasks yet'
-      : `${progress.verified}/${progress.total} verified`;
+      : `${progress.verified}/${progress.total} done`;
 
   return (
     <div

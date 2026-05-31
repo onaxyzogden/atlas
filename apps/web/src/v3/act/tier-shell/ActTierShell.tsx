@@ -69,7 +69,10 @@ import ProofSyncIndicator from '../field-action/proof/ProofSyncIndicator.js';
 import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
 import type { ActModule } from '../types.js';
 import { QUICK_LOGS } from '../quickLogs.js';
-import { computeObjectiveProgress } from './objectiveProgress.js';
+import {
+  computeChecklistProgress,
+  computeObjectiveProgress,
+} from './objectiveProgress.js';
 import { computeObjectiveMarkerPositions } from './objectiveMarkerGeometry.js';
 import ActTierSpine from './ActTierSpine.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
@@ -185,6 +188,15 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   const planProgress = usePlanStratumProgressStore((s) =>
     selectProjectProgress(s, id),
   );
+
+  // Rail cards reflect CHECKLIST completion (planStratumStore), agreeing with
+  // the right-rail execution panel's "N/M steps". The field-action
+  // progressByObjective above stays the source for the map markers.
+  const checklistProgressByObjective = useMemo(
+    () => computeChecklistProgress(objectives, planProgress),
+    [objectives, planProgress],
+  );
+
   const selectedObjectiveStatus = useMemo(() => {
     if (!selectedObjective) return 'locked' as const;
     const statuses = computeAllObjectiveStatuses(
@@ -349,7 +361,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
             <ActTierObjectiveRail
               stratum={selectedStratum}
               objectives={stratumObjectives}
-              progressByObjective={progressByObjective}
+              progressByObjective={checklistProgressByObjective}
               activeObjectiveId={objectiveId}
               onSelectObjective={handleSelectObjective}
             />
