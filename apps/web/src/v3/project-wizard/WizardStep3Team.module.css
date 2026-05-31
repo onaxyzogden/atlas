@@ -15,6 +15,9 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  /* min-height:0 lets this grid child actually scroll instead of stretching
+     the row past the viewport (which would scroll the whole page). */
+  min-height: 0;
   overflow-y: auto;
 }
 
@@ -128,10 +131,13 @@
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
+    /* Stacked (form above thumbnail): scroll the column as one. */
+    overflow-y: auto;
   }
   .form {
     border-right: none;
     border-bottom: 1px solid var(--border-subtle, #2a2d2e);
+    overflow-y: visible;
   }
   .primaryStewardRow {
     grid-template-columns: 1fr;

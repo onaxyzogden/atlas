@@ -32,7 +32,7 @@ import WizardDrawRectangleTool from './WizardDrawRectangleTool.js';
 import WizardUploadBoundary from './WizardUploadBoundary.js';
 import WizardGpsWalkTool from './WizardGpsWalkTool.js';
 import WizardBasemapToggle from './WizardBasemapToggle.js';
-import WizardAddressSearch from './WizardAddressSearch.js';
+import WizardMapRegistrar from './WizardMapRegistrar.js';
 import BoundaryConfirmationStrip from './BoundaryConfirmationStrip.js';
 import type { WizardUnits } from '../../store/projectWizardStore.js';
 import styles from './WizardSiteMap.module.css';
@@ -161,7 +161,7 @@ export default function WizardSiteMap({
       >
         {({ map }) => (
           <>
-            <WizardAddressSearch map={map} country={country} />
+            <WizardMapRegistrar map={map} />
             {!polygon && mode === 'polygon' && (
               <WizardDrawPolygonTool map={map} onComplete={handleCapture} />
             )}

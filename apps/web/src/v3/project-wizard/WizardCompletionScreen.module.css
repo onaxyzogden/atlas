@@ -52,6 +52,9 @@
 }
 
 .panel {
+  /* Pin to content height so the map (flex:1.4) takes the rest and the screen
+     never page-scrolls. */
+  flex: 0 0 auto;
   padding: 28px 32px 32px;
   background: var(--surface-elevated, #161b1a);
   border-top: 1px solid var(--border-subtle, #2a2d2e);

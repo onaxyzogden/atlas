@@ -90,34 +90,46 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
       controls: {},
       styles: MAPLIBRE_DRAW_STYLES,
     });
-    map.addControl(draw);
-    // MapboxDraw's `changeMode` is typed as a string-literal overload that
-    // doesn't include our union directly; cast through to satisfy.
-    (draw.changeMode as (m: string) => unknown)(mode);
+    // Guard the map-touching setup. The wizard "Redo" affordance clears the
+    // boundary, which makes DiagnoseMap tear down and recreate its map; this
+    // effect can then briefly hold a removed map whose internal style is gone,
+    // so addControl / getLayer would throw "Cannot read properties of
+    // undefined (reading 'getLayer')". Bail cleanly in that case - the next
+    // effect run wires up the fresh map. Observe always passes a live map, so
+    // its behaviour is unchanged.
+    try {
+      map.addControl(draw);
+      // MapboxDraw's `changeMode` is typed as a string-literal overload that
+      // doesn't include our union directly; cast through to satisfy.
+      (draw.changeMode as (m: string) => unknown)(mode);
 
-    // Tint the in-progress polygon to the active tool's color. MapboxDraw
-    // adds these layers via addControl above and mutates only its GeoJSON
-    // source thereafter, so a single paint override holds for the session.
-    if (previewColor) {
-      if (map.getLayer('gl-draw-polygon-fill')) {
-        map.setPaintProperty(
-          'gl-draw-polygon-fill',
-          'fill-color',
-          previewColor,
-        );
-        map.setPaintProperty(
-          'gl-draw-polygon-fill',
-          'fill-outline-color',
-          previewColor,
-        );
+      // Tint the in-progress polygon to the active tool's color. MapboxDraw
+      // adds these layers via addControl above and mutates only its GeoJSON
+      // source thereafter, so a single paint override holds for the session.
+      if (previewColor) {
+        if (map.getLayer('gl-draw-polygon-fill')) {
+          map.setPaintProperty(
+            'gl-draw-polygon-fill',
+            'fill-color',
+            previewColor,
+          );
+          map.setPaintProperty(
+            'gl-draw-polygon-fill',
+            'fill-outline-color',
+            previewColor,
+          );
+        }
+        if (map.getLayer('gl-draw-polygon-stroke')) {
+          map.setPaintProperty(
+            'gl-draw-polygon-stroke',
+            'line-color',
+            previewColor,
+          );
+        }
       }
-      if (map.getLayer('gl-draw-polygon-stroke')) {
-        map.setPaintProperty(
-          'gl-draw-polygon-stroke',
-          'line-color',
-          previewColor,
-        );
-      }
+    } catch {
+      /* map torn down during setup; nothing wired, nothing to clean up */
+      return;
     }
 
     const expectedType =
@@ -223,12 +235,13 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
     map.on('draw.render', onRender);
 
     return () => {
-      map.off('draw.create', onCreate);
-      map.off('draw.render', onRender);
       if (rafId !== null) cancelAnimationFrame(rafId);
       setLiveArea(null);
       setLiveLength(null);
+      // Guard the whole map teardown: the map may already be disposed.
       try {
+        map.off('draw.create', onCreate);
+        map.off('draw.render', onRender);
         map.removeControl(draw);
       } catch {
         /* map already disposed */

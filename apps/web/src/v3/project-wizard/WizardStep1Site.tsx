@@ -1,22 +1,22 @@
 /**
  * WizardStep1Site — Step 1 of the Project Creation Wizard.
  *
- * Split layout: left-third form (name, country, units, projectType),
+ * Split layout: left-third form (name, country, units, address search),
  * right two-thirds map host with boundary tools. Step 1 "Next" promotes
  * the draft to a real project (createProject + updateProject with the
  * boundary) and routes to /wizard/vision.
  *
- * Required for Next: name (non-empty) AND boundary present. ProjectType
- * is optional — defaults to undefined at the API.
+ * Required for Next: name (non-empty) AND boundary present.
+ *
+ * The address search lives in the form column. It needs the live map handle
+ * (flyTo + marker), which only exists inside DiagnoseMap's render-prop in
+ * WizardSiteMap; WizardMapRegistrar publishes it to wizardMapStore and we
+ * read it back here.
  */
 
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import type {
-  Country,
-  ParcelBoundaryGeojson,
-  ProjectType,
-} from '@ogden/shared';
+import type { Country, ParcelBoundaryGeojson } from '@ogden/shared';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useAuthStore } from '../../store/authStore.js';
 import {
@@ -30,6 +30,8 @@ import { parcelAcreage } from '../../lib/geo.js';
 import { toast } from '../../components/Toast.js';
 import ProjectWizardShell from './ProjectWizardShell.js';
 import WizardSiteMap from './WizardSiteMap.js';
+import WizardAddressSearch from './WizardAddressSearch.js';
+import { useWizardMapStore } from './wizardMapStore.js';
 import styles from './WizardStep1Site.module.css';
 
 const COUNTRY_OPTIONS: ReadonlyArray<{ id: Country; label: string }> = [
@@ -41,20 +43,6 @@ const COUNTRY_OPTIONS: ReadonlyArray<{ id: Country; label: string }> = [
 const UNIT_OPTIONS: ReadonlyArray<{ id: WizardUnits; label: string }> = [
   { id: 'imperial', label: 'Imperial (acres)' },
   { id: 'metric', label: 'Metric (hectares)' },
-];
-
-// Legacy Step-1 project-type chip. Repointed to valid taxonomy ids after the
-// v1.2 rename (educational_farm -> education, retreat_center -> agritourism,
-// multi_enterprise -> ecovillage; regenerative_farm already present). This
-// optional quick-pick is superseded by the required Step-2 12-card grid
-// (Sub-slice E); kept here, not deleted, until that lands.
-const PROJECT_TYPE_OPTIONS: ReadonlyArray<{ id: ProjectType; label: string }> = [
-  { id: 'regenerative_farm', label: 'Regenerative farm' },
-  { id: 'homestead', label: 'Homestead' },
-  { id: 'education', label: 'Education' },
-  { id: 'agritourism', label: 'Agritourism' },
-  { id: 'conservation', label: 'Conservation' },
-  { id: 'ecovillage', label: 'Ecovillage' },
 ];
 
 /**
@@ -105,13 +93,17 @@ export default function WizardStep1Site() {
   const setName = useProjectWizardStore((s) => s.setName);
   const setCountry = useProjectWizardStore((s) => s.setCountry);
   const setUnits = useProjectWizardStore((s) => s.setUnits);
-  const setProjectType = useProjectWizardStore((s) => s.setProjectType);
   const setBoundary = useProjectWizardStore((s) => s.setBoundary);
   const clearDraft = useProjectWizardStore((s) => s.clear);
 
   const createProject = useProjectStore((s) => s.createProject);
   const updateProject = useProjectStore((s) => s.updateProject);
   const token = useAuthStore((s) => s.token);
+
+  // Live map handle published by WizardMapRegistrar (inside DiagnoseMap's
+  // render-prop). Null until the map mounts; the address search renders only
+  // once it is available.
+  const wizardMap = useWizardMapStore((s) => s.map);
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -215,6 +207,13 @@ export default function WizardStep1Site() {
             </select>
           </label>
 
+          {wizardMap && (
+            <div className={styles.field}>
+              <span className={styles.label}>Find your property by address</span>
+              <WizardAddressSearch map={wizardMap} country={draft.country} />
+            </div>
+          )}
+
           <fieldset className={styles.field}>
             <legend className={styles.label}>Units</legend>
             <div className={styles.chipRow}>
@@ -229,28 +228,6 @@ export default function WizardStep1Site() {
                   {u.label}
                 </button>
               ))}
-            </div>
-          </fieldset>
-
-          <fieldset className={styles.field}>
-            <legend className={styles.label}>Project type (optional)</legend>
-            <div className={styles.chipRow}>
-              {PROJECT_TYPE_OPTIONS.map((p) => {
-                const selected = draft.projectType === p.id;
-                return (
-                  <button
-                    type="button"
-                    key={p.id}
-                    className={styles.chip}
-                    data-selected={selected ? 'true' : 'false'}
-                    onClick={() =>
-                      setProjectType(selected ? undefined : p.id)
-                    }
-                  >
-                    {p.label}
-                  </button>
-                );
-              })}
             </div>
           </fieldset>
         </aside>
