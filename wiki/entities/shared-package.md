@@ -21,6 +21,7 @@ Zod schemas, type utilities, and constants shared between API and web app. Singl
 
 ## Utilities
 - `lib/caseTransform.ts` — `toCamelCase()` for converting snake_case DB rows to camelCase
+- `climate/climateContext.ts` — **Added 2026-05-31 (Portfolio Home P4).** `deriveClimateContext(lat, date) => { hemisphere, latitudeBand, season }`, **main-barrel** export. Reuses the `Season` vocabulary + `SEASON_DATES` from `astronomy/sunPath` (no redefined seasons); bands at the Tropic 23.5 / Polar Circle 66.5; UTC-stable season inverted for the southern hemisphere. **No Köppen `climateZone`** (lat+date can't derive one; a lat-proxy would duplicate latitudeBand — a disclosed amendment to the planned signature). Consumed by the web cross-project Observe comparison badge (P6). 31-case test (`tests/climateContext.test.ts`). See [[log/2026-05-31-portfolio-home-p4-climate-context]].
 
 ## Constants
 - `constants/dataSources.ts` — ADAPTER_REGISTRY (7 layers x 2 countries = 14 adapters)

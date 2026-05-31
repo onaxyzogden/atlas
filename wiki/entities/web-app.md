@@ -256,6 +256,55 @@ not previously logged in the wiki. ADR
 [[log/2026-05-31-portfolio-home-p7]]; continues
 [[log/2026-05-28-portfolio-home-slice53]].
 
+## Portfolio Home P1-P6 -- four-zone map, rails, stage colouring, climate util, relationships, cross-project Observe (2026-05-30/31)
+
+The foundation the P7 section above polishes -- Phases 1-6 of the OLOS
+Portfolio Home epic (`OLOS_Portfolio_Home_Spec_v1.0`) at `v3/portfolio/`,
+code-committed in prior sessions and **wiki-backfilled 2026-05-31 from commit
+history**. Per-phase logs hold the detail; the surface in brief:
+
+- **P1 -- four-zone shell + multi-boundary map** (`37f0d062`). `/v3/portfolio`
+  defaults to a four-zone **Map** view (left project list / centre multi-boundary
+  MapLibre map / right + bottom rails) with a top-bar toggle preserving the
+  existing urgency-card grid as the **Dashboard** view (grid extracted verbatim,
+  [[feedback-no-deletion]]). `portfolioModel.ts` (`PortfolioStage`, `STAGE_PAINT`,
+  coarse `derivePortfolioStage`, boundary FeatureCollection / centroid / area);
+  `PortfolioMap.tsx` (MapLibre host reusing `lib/maplibre` + basemap store +
+  `MapTokenMissing`, data-driven paint, idempotent `styledata` re-add, DOM pins,
+  feature-state selection + fly-to); `PortfolioProjectList`; `PortfolioViewToggle`
+  + `PortfolioDashboardView`. See [[log/2026-05-30-portfolio-home-p1-four-zone-shell]].
+- **P2 -- at-a-glance + stage rails** (`7a0ff085` + mount follow-up `15bd29a2`).
+  `usePortfolioBriefing` (read-only composing hook, reuses the same shared
+  selectors + `useProjectUrgency` the other surfaces use, no mutators);
+  `PortfolioAtAGlanceRail` (§2.4); `PortfolioStageRail` (§2.5, High-Tech Earth
+  tokens, navigates into the per-project stage). See
+  [[log/2026-05-30-portfolio-home-p2-rails]].
+- **P3 -- §2.6 stage colouring unified + mobile** (`203b5d39`). Ratifies §2.6
+  onto the existing High-Tech Earth stage tokens; reconciles `STAGE_PAINT`
+  (plan #38a3a5 / act #d9a036 / observe #6c8294); extracts `OUTSTANDING_STATUSES`
+  + `deriveStageFromSignals`; new `usePortfolioStages` computes the live stage for
+  **every** project (fixing P1's coarse all-teal paint); mobile slide-up list +
+  bottom-sheet rail. See [[log/2026-05-31-portfolio-home-p3-stage-colouring-mobile]].
+- **P4 -- climate-context util (shared)** (`0b8c8ef7`). `deriveClimateContext`
+  in `@ogden/shared` (see [[entities/shared-package]]). Consumed by P6's badge.
+  See [[log/2026-05-31-portfolio-home-p4-climate-context]].
+- **P5 -- cross-project relationships (full-stack)** (`d1c9a7ff` backend +
+  `e52c1b27` frontend). `crossRelationshipStore` (API-synced, not persisted),
+  `apiClient.crossRelationships`, `PortfolioMap` relationship lines + off-by-default
+  Connections toggle + two-pin creation, rail relationships list, `--rel-*` tokens.
+  Kept distinct from the within-project Needs & Yields graph. Display/awareness
+  metadata only -- zero effect on Plan/Act/Observe (§9.4). Backend in
+  [[entities/api]]. See [[log/2026-05-31-portfolio-home-p5-cross-project-relationships]].
+- **P6 -- cross-project Observe comparison** (`070d4026`). `/v3/portfolio/observe-compare`;
+  **frontend-only** (derives from the client-side P4 `useObserveDataPointStore`;
+  disclosed divergence from the plan's full-stack P6). `observeCompareModel.ts`,
+  inline-SVG `ComparisonChart`, `PortfolioObserveComparePage` (min-2 / max-5,
+  shared-domain intersection, climate badges). Strictly read-only. See
+  [[log/2026-05-31-portfolio-home-p6-cross-project-observe]].
+
+ADR [[decisions/2026-05-31-atlas-portfolio-home-p7]] (the epic's only ADR);
+index in [[log]].
+
 ## Act Tier Shell -- promoted to the default Act page (2026-05-30)
 
 The Act stage now opens on a **map-centric 4-rail tier shell** by default, the
