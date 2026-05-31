@@ -41,6 +41,16 @@ show-everything tool strip with an objective-conditional, categorized rail
   is now persisted** (2026-05-31): photo counts, confirms, note text + saved
   flags write to `actEvidenceStore`; checklist completion writes to the shared
   `planStratumStore` (unified with the Plan stage). All state survives reload.
+  The header + progress bar are wrapped in one bordered `.execHeaderBox` (with a
+  `border-bottom` divider) over an `.execBody`, mirroring the objective rail's
+  `.railPanel`/`.railHeader` (2026-05-31). The **Record-observation button is
+  armed** (2026-05-31): it enables only when the checklist is complete AND every
+  REQUIRED evidence item is satisfied AND `getPrimaryDomainForObjective` resolves
+  non-null, then writes a `manual_observation` `ObserveDataPoint`
+  (`statusOutput:'clear'`, domain-linked, `capturedBy:'act-tier'`) via
+  `useObserveDataPointStore.recordDataPoint` and relabels to "Observation
+  recorded" (session-local `recorded` flag). First Act->Observe write path; see
+  [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]].
 - `actToolCatalog.ts` — app-layer catalogue joining catalogue-id strings to
   `{ label, icon, category, arm }`. `ActToolArm` is a discriminated union
   `{kind:'map';mapToolId:MapToolId} | {kind:'log';quickLogId:string}`.
@@ -49,11 +59,15 @@ show-everything tool strip with an objective-conditional, categorized rail
   `dem` omitted (analysis-only, un-armable).
 - `ActTierToolsRail.tsx` — superseded three-log rail; preserved, unmounted.
 - `ActTierObjectiveRail.tsx` / `ActTierObjectiveCard.tsx` — LEFT rail with real
-  "N/M verified" chips.
+  **"N/M done" checklist chips** (2026-05-31): fed by `computeChecklistProgress`
+  (checklist completion), not field actions, so a populated checklist no longer
+  reads "No tasks yet". Map markers keep the field-action progress.
 - `ActTierMapMarkers.tsx` — per-objective markers (real geometry,
   hide-until-real, [[decisions/2026-05-31-atlas-act-objective-marker-geometry]]).
-- `objectiveProgress.ts` / `objectiveMarkerGeometry.ts` — pure helpers shared
-  by rail + markers.
+- `objectiveProgress.ts` / `objectiveMarkerGeometry.ts` — pure helpers.
+  `objectiveProgress.ts` now exports BOTH `computeObjectiveProgress` (field
+  actions -> markers) and `computeChecklistProgress` (checklist -> rail);
+  `objectiveMarkerGeometry.ts` feeds markers.
 
 ## Data: objective -> tool map
 
@@ -191,6 +205,17 @@ also marks the matching checklist item complete via the new idempotent
 guards on `current.includes(itemId)`). The two stores are now fully coherent
 for s1-vision: modal save simultaneously persists form text (actEvidenceStore)
 and advances checklist progress (planStratumStore). tsc 0 errors.
+
+Record-observation flow + exec-header containment + rail checklist progress
+shipped later the same day (commits `6e5ff3bc` Slice 1 -> `63c23ce8` Slice 2 ->
+`79c8c05f` Slice 3). The Record button now writes a `manual_observation`
+`ObserveDataPoint` once the checklist + required evidence are satisfied (first
+Act->Observe write path); the header + progress sit in one bordered region; the
+rail reads "N/M done" from the checklist instead of "No tasks yet". tsc clean for
+all five files (only foreign-WIP `ProtocolLayerPanel` errored, untouched); live
+preview verified end-to-end via DOM probe + screenshots (button gate ->
+localStorage data-point write -> relabel). ADR
+[[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]].
 
 ## Notes
 

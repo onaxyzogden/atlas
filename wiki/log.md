@@ -711,3 +711,20 @@ project policy this is recorded as unverified-by-screenshot rather than claimed.
 Visual confirmation in both themes remains a follow-up.
 
 **Deferred:** light+dark preview screenshots of the wizard steps.
+
+---
+
+## 2026-05-31 -- Act tier-shell: Record-observation flow, contained exec header, rail checklist progress
+
+Three explicit-path slices on `feat/atlas-permaculture` (`6e5ff3bc` -> `63c23ce8`
+-> `79c8c05f`, not pushed). (1) Armed the Record-observation button to write a
+`manual_observation` `ObserveDataPoint` once the checklist + required evidence are
+satisfied (first Act->Observe write path; gate also requires a non-null primary
+domain; relabels to "Observation recorded"). (2) Wrapped the exec header + progress
+in one bordered `.execHeaderBox` with a `border-bottom` divider, mirroring the
+objective rail. (3) Rail now reads "N/M done" from `computeChecklistProgress`
+(checklist) instead of "No tasks yet"; markers keep field-action progress.
+Verified: five files tsc-clean (foreign-WIP `ProtocolLayerPanel` errors untouched);
+live preview end-to-end (gate -> localStorage data-point write -> relabel) +
+screenshots. Detail: [[log/2026-05-31-act-tier-shell-record-observation]];
+ADR [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]].
