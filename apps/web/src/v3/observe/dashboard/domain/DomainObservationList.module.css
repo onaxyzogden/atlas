@@ -96,6 +96,18 @@
   border: 1px dashed var(--color-border, #d6cebe);
 }
 
+/* Provenance chip for points recorded against a Plan objective in Act.
+ * Gold accent distinguishes it from the dashed "from field log" tag. */
+.objectiveTag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(196, 162, 101, 0.16);
+  color: #7a5a1f;
+  border: 1px solid rgba(196, 162, 101, 0.6);
+}
+
 .proofRow {
   display: flex;
   flex-wrap: wrap;

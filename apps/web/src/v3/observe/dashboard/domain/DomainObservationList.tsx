@@ -22,6 +22,7 @@
 import { useMemo } from 'react';
 import { Camera, MapPin, Ruler, FileText, ClipboardList } from 'lucide-react';
 import type { ObserveDataPoint, ObserveStatusOutput } from '@ogden/shared';
+import { findObjectiveAcrossCatalogues } from '@ogden/shared';
 import type { DomainPointsView } from './useDomainPoints.js';
 import SupersessionControl from './SupersessionControl.js';
 import css from './DomainObservationList.module.css';
@@ -127,6 +128,20 @@ export default function DomainObservationList({ projectId, view }: Props) {
                   from field log
                 </span>
               )}
+              {point.sourceObjectiveId &&
+                (() => {
+                  const objectiveTitle = findObjectiveAcrossCatalogues(
+                    point.sourceObjectiveId,
+                  )?.title;
+                  return objectiveTitle ? (
+                    <span
+                      className={css.objectiveTag}
+                      title="Recorded against a Plan objective"
+                    >
+                      {objectiveTitle}
+                    </span>
+                  ) : null;
+                })()}
             </div>
 
             {point.proofItems.length > 0 && (
