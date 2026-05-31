@@ -31,6 +31,12 @@ export const PlanStratumObjectiveStatus = z.enum([
   'available',
   'active',
   'complete',
+  // `deferred` is an explicit steward override (NOT derived from checklist
+  // progress): the objective is shelved as the "mark as Deferred instead"
+  // alternative to a blocked secondary removal (spec section 8.3). Progress is
+  // preserved; the objective is hidden from active work and a deferred
+  // objective is treated as NOT complete for its dependents (they stay locked).
+  'deferred',
 ]);
 export type PlanStratumObjectiveStatus = z.infer<typeof PlanStratumObjectiveStatus>;
 
@@ -91,6 +97,49 @@ export const PlanDecisionChecklistItemSchema = z.object({
 export type PlanDecisionChecklistItem = z.infer<
   typeof PlanDecisionChecklistItemSchema
 >;
+
+/**
+ * A Decision Group is a Plan-layer editorial grouping of an objective's
+ * Act-layer checklist items into a named decision scope (Decision Groups
+ * Reference v1.0; OLOS spec section 9.3-9.4). Plan surfaces the GROUPS (the
+ * decisions a steward must make); the itemised checklist is the Act-layer
+ * detail. Authoring rules: every objective has 1-6 groups; group membership is
+ * mutually exclusive (no item in two groups); the union of all groups' itemIds
+ * covers the objective's full checklist (full partition).
+ *
+ * Provenance (see catalogue authoring): group `label`/count/`observeFeeds` are
+ * transcribed VERBATIM from the reference doc, but `itemIds` membership is
+ * AUTHORED (the doc gives only per-group item counts, not explicit ids, and its
+ * counts predate the 19-universal checklists) under the 2026-05-31 operator
+ * override — partitioned in checklist order by the doc's labels + counts, with
+ * drift-extra items assigned to the semantically-closest group.
+ */
+export const DecisionGroupSchema = z.object({
+  /** Stable id, globally unique in a resolved set. Rubric: `<objId>-dg<n>`. */
+  id: z.string().min(1),
+  /** Human label, verbatim from the reference doc. */
+  label: z.string().min(1),
+  /**
+   * Checklist item ids belonging to this group. Authored (see schema note); at
+   * least one per group; mutually exclusive across the objective's groups.
+   */
+  itemIds: z.array(z.string().min(1)).min(1),
+  /**
+   * Observe-stage feed labels this group's outputs flow into, transcribed
+   * VERBATIM from the reference doc (display-only feed chips in Plan; NOT wired
+   * to divergence/revision routing). The doc's `Multiple` sentinel is kept
+   * literally; the doc's `-` (none) is encoded as an empty array.
+   */
+  observeFeeds: z.array(z.string()).default([]),
+  /**
+   * When this group was injected into an existing objective by a secondary
+   * layer's patch, the responsible secondary ProjectTypeId — drives the amber
+   * "Added by: <Type>" attribution. Stamped by the resolver from the parent
+   * PatchRecord; null on authored (non-injected) groups.
+   */
+  sourceSecondaryId: ProjectTypeId.nullable().default(null),
+});
+export type DecisionGroup = z.infer<typeof DecisionGroupSchema>;
 
 export const PlanStratumSchema = z.object({
   id: PlanStratumId,
@@ -164,6 +213,15 @@ export const PlanStratumObjectiveSchema = z.object({
    * objective's scope. Surfaced alongside the "Expanded by" label.
    */
   scopeNotes: z.string().optional(),
+  /**
+   * Plan-layer editorial groupings of this objective's checklist into named
+   * decision scopes (Decision Groups Reference v1.0). Defaulted empty so the
+   * static skeleton + not-yet-encoded catalogues validate unchanged; populated
+   * for encoded objectives and surfaced by the Plan DecisionChecklist render.
+   * Patch-injected groups (from secondaries) are appended by the resolver and
+   * carry a non-null `sourceSecondaryId`.
+   */
+  decisionGroups: z.array(DecisionGroupSchema).default([]),
 });
 export type PlanStratumObjective = z.infer<typeof PlanStratumObjectiveSchema>;
 
@@ -204,6 +262,14 @@ export const PatchRecordSchema = z.object({
    * unique (see PatchItemSchema).
    */
   injectedItems: z.array(PatchItemSchema).default([]),
+  /**
+   * Decision groups injected into the target objective. Parallel to
+   * `injectedItems`: the resolver stamps each with `sourceSecondaryId =
+   * secondaryTypeId` and appends it to the target's `decisionGroups`. Group ids
+   * must be globally unique across the resolved set. Authors leave
+   * `sourceSecondaryId` unset here; the resolver fills it.
+   */
+  injectedGroups: z.array(DecisionGroupSchema).default([]),
   /**
    * Text concatenated onto the target objective's `completionGate` (never
    * replaces it). Optional.

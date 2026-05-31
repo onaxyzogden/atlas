@@ -12,6 +12,7 @@
 // Zod schema to guarantee runtime validity.
 
 import type {
+  DecisionGroup,
   PlanDecisionChecklistItem,
   PlanObjectiveSource,
   PlanStratumId,
@@ -32,6 +33,24 @@ export function ck(id: string, label: string): PlanDecisionChecklistItem {
   return { id, label, feedsInto: [], optional: false };
 }
 
+/**
+ * Build a Decision Group (Decision Groups Reference v1.0). `label` + the
+ * `observeFeeds` labels are transcribed VERBATIM from the reference doc;
+ * `itemIds` membership is AUTHORED under the 2026-05-31 operator override (the
+ * doc gives only per-group item counts). `sourceSecondaryId` is left null here;
+ * for secondary-injected groups the resolver stamps it from the patch's
+ * secondaryTypeId. The doc's `-` (no feed) is encoded as `[]`; its `Multiple`
+ * sentinel is passed through literally.
+ */
+export function dg(
+  id: string,
+  label: string,
+  itemIds: string[],
+  observeFeeds: string[] = [],
+): DecisionGroup {
+  return { id, label, itemIds, observeFeeds, sourceSecondaryId: null };
+}
+
 export interface ObjectiveInput {
   id: string;
   stratumId: PlanStratumId;
@@ -50,6 +69,11 @@ export interface ObjectiveInput {
   secondaryClass?: SecondaryClass;
   /** Free-text scope note transcribed from the catalogue (doc "Note" rows). */
   scopeNotes?: string;
+  /**
+   * Decision groups for this objective (Decision Groups Reference v1.0). Omit
+   * for not-yet-encoded objectives; the helper defaults to `[]`.
+   */
+  decisionGroups?: DecisionGroup[];
 }
 
 /**
@@ -66,6 +90,7 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
     prerequisiteObjectiveIds: [],
     defaultOverlayBundle: [],
     checklist: input.checklist,
+    decisionGroups: input.decisionGroups ?? [],
     outputKind: 'plan-decision-record',
     source: input.source,
     ref: input.ref,
@@ -82,6 +107,11 @@ export interface PatchInput {
   targetObjectiveId: string;
   ref: string;
   injectedItems: PlanDecisionChecklistItem[];
+  /**
+   * Decision groups injected onto the target objective. Authored with `dg(...)`
+   * (sourceSecondaryId null); the resolver stamps secondaryTypeId at apply time.
+   */
+  injectedGroups?: DecisionGroup[];
   completionGateAmendment?: string;
   scopeNote?: string;
 }
@@ -97,6 +127,7 @@ export function patch(input: PatchInput): PatchRecord {
     targetObjectiveId: input.targetObjectiveId,
     ref: input.ref,
     injectedItems: input.injectedItems,
+    injectedGroups: input.injectedGroups ?? [],
     ...(input.completionGateAmendment
       ? { completionGateAmendment: input.completionGateAmendment }
       : {}),

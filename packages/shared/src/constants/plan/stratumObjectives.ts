@@ -96,6 +96,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       'What is this land for, who is it for, and how much capacity do you have to steward it?',
     prerequisiteObjectiveIds: [],
     defaultOverlayBundle: [],
+    decisionGroups: [],
     checklist: [
       {
         id: 's1-vision-c1',
@@ -130,6 +131,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion: 'Who else works on this land, and in what role?',
     prerequisiteObjectiveIds: [],
     defaultOverlayBundle: [],
+    decisionGroups: [],
     checklist: [
       {
         id: 's1-stewardship-c1',
@@ -160,6 +162,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       'What is the land already telling you across the base layers?',
     prerequisiteObjectiveIds: ['s1-vision', 's1-stewardship'],
     defaultOverlayBundle: [],
+    decisionGroups: [],
     checklist: [
       {
         id: 's2-land-baseline-c1',
@@ -194,6 +197,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion: 'How is the land currently functioning as a system?',
     prerequisiteObjectiveIds: ['s2-land-baseline'],
     defaultOverlayBundle: [],
+    decisionGroups: [],
     checklist: [
       {
         id: 's3-systems-baseline-c1',
@@ -229,6 +233,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       'How should the site be zoned, and what sectors influence it?',
     prerequisiteObjectiveIds: ['s3-systems-baseline'],
     defaultOverlayBundle: [],
+    decisionGroups: [],
     checklist: [
       {
         id: 's4-zones-sectors-c1',
@@ -264,6 +269,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       'How does water move, slow, sink, and spread across the design?',
     prerequisiteObjectiveIds: ['s4-zones-sectors'],
     defaultOverlayBundle: [],
+    decisionGroups: [],
     checklist: [
       {
         id: 's5-water-strategy-c1',
@@ -299,6 +305,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       'How do the elements yield to and feed each other across the design?',
     prerequisiteObjectiveIds: ['s5-water-strategy'],
     defaultOverlayBundle: [],
+    decisionGroups: [],
     checklist: [
       {
         id: 's6-yield-flows-c1',
@@ -334,6 +341,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
       'In what order will the design land, and what does each phase need?',
     prerequisiteObjectiveIds: ['s6-yield-flows'],
     defaultOverlayBundle: [],
+    decisionGroups: [],
     checklist: [
       {
         id: 's7-phasing-c1',

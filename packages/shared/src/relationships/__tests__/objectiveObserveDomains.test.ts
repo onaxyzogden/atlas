@@ -28,6 +28,7 @@ function objective(
     prerequisiteObjectiveIds: patch.prerequisiteObjectiveIds ?? [],
     defaultOverlayBundle: patch.defaultOverlayBundle ?? [],
     checklist: patch.checklist ?? [],
+    decisionGroups: patch.decisionGroups ?? [],
     outputKind: patch.outputKind ?? 'plan-decision-record',
     legacyCardSectionId: patch.legacyCardSectionId,
     parallelGroupId: patch.parallelGroupId,

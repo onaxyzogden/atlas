@@ -27,6 +27,7 @@ const mkObjective = (
   prerequisiteObjectiveIds: [],
   defaultOverlayBundle: [],
   checklist: [],
+  decisionGroups: [],
   outputKind: 'plan-decision-record',
   ...overrides,
 });

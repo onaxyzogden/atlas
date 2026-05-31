@@ -34,6 +34,7 @@
 // pass nothing and get the real catalogues + matrix.
 
 import type {
+  DecisionGroup,
   PatchRecord,
   PlanDecisionChecklistItem,
   PlanObjectiveSource,
@@ -93,6 +94,11 @@ function cloneObjective(o: PlanStratumObjective): PlanStratumObjective {
     prerequisiteObjectiveIds: [...o.prerequisiteObjectiveIds],
     defaultOverlayBundle: [...o.defaultOverlayBundle],
     checklist: o.checklist.map((it) => ({ ...it, feedsInto: [...it.feedsInto] })),
+    decisionGroups: o.decisionGroups.map((g) => ({
+      ...g,
+      itemIds: [...g.itemIds],
+      observeFeeds: [...g.observeFeeds],
+    })),
   };
 }
 
@@ -266,6 +272,16 @@ export function resolveProjectObjectives(
       expandedBySecondaryId: p.secondaryTypeId,
     }));
     target.checklist = [...target.checklist, ...injected];
+
+    // Inject decision groups, stamped with the responsible secondary so the
+    // Plan render can show the amber "Added by: <Type>" attribution.
+    const injectedGroups: DecisionGroup[] = p.injectedGroups.map((g) => ({
+      ...g,
+      itemIds: [...g.itemIds],
+      observeFeeds: [...g.observeFeeds],
+      sourceSecondaryId: p.secondaryTypeId,
+    }));
+    target.decisionGroups = [...target.decisionGroups, ...injectedGroups];
 
     // Concatenate gate amendment + scope note onto the target (never replace).
     target.completionGate = concatText(target.completionGate, p.completionGateAmendment);
