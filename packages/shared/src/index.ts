@@ -234,6 +234,14 @@ export {
   STRATUM_ACT_TOOLS_DEFAULT,
 } from './relationships/objectiveActTools.js';
 export {
+  getObjectiveEvidence,
+  EVIDENCE_CATALOG,
+  OBJECTIVE_EVIDENCE_OVERRIDE,
+  STRATUM_EVIDENCE_DEFAULT,
+  type EvidenceDescriptor,
+  type EvidenceKind,
+} from './relationships/objectiveEvidence.js';
+export {
   hasCapability,
   roleSatisfies,
   PROJECT_ROLE_CAPABILITIES,

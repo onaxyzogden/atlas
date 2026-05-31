@@ -2,13 +2,23 @@
 //
 // Production tier-shell right-rail detail panel: progress + checklist + ephemeral
 // evidence capture for the selected objective. Promoted from the (disposable)
-// tier-prototype ActProtoExecutionPanel so production owns its own copy. Evidence
-// state (photos / route-confirm / note / checklist) is LOCAL and not yet persisted —
-// a deliberate visual-first swap; store wiring is a separate follow-up.
+// tier-prototype ActProtoExecutionPanel so production owns its own copy.
+//
+// The Evidence section is now OBJECTIVE-DRIVEN: each objective declares which
+// proof items it requires via getObjectiveEvidence (packages/shared), instead of
+// the old hardcoded trio shown for every objective. Evidence state (photos /
+// confirms / notes / checklist) is still LOCAL and not yet persisted -- a
+// deliberate visual-first swap; store wiring is a separate follow-up.
 
 import { useMemo, useState } from 'react';
 import { Camera, Check, ClipboardCheck, Plus } from 'lucide-react';
-import type { PlanStratum, PlanStratumObjective, PlanStratumObjectiveStatus } from '@ogden/shared';
+import type {
+  PlanStratum,
+  PlanStratumObjective,
+  PlanStratumObjectiveStatus,
+  EvidenceDescriptor,
+} from '@ogden/shared';
+import { getObjectiveEvidence } from '@ogden/shared';
 import styles from './ActTierExecutionPanel.module.css';
 
 interface Props {
@@ -17,18 +27,23 @@ interface Props {
   status: PlanStratumObjectiveStatus;
 }
 
-const PHOTO_TARGET = 3;
-
 export default function ActTierExecutionPanel({
   tier,
   objective,
   status,
 }: Props) {
   const [checked, setChecked] = useState<Set<string>>(() => new Set());
-  const [photoCount, setPhotoCount] = useState(0);
-  const [confirmed, setConfirmed] = useState(false);
-  const [note, setNote] = useState('');
-  const [noteSaved, setNoteSaved] = useState(false);
+  // Evidence state keyed by descriptor id so multiple cards of the same kind
+  // can coexist (e.g. two photo cards). Local + ephemeral per the header note.
+  const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
+  const [confirms, setConfirms] = useState<Record<string, boolean>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [noteSaved, setNoteSaved] = useState<Record<string, boolean>>({});
+
+  const evidence = useMemo(
+    () => getObjectiveEvidence(objective),
+    [objective],
+  );
 
   const total = objective.checklist.length;
   const done = useMemo(
@@ -48,6 +63,112 @@ export default function ActTierExecutionPanel({
       }
       return next;
     });
+  }
+
+  // Render one evidence card from its descriptor. Each branch reproduces the
+  // exact markup/classes the old hardcoded cards used, so the visual is
+  // unchanged for any card that is shown -- only WHICH cards appear is now
+  // objective-driven.
+  function renderEvidenceCard(descriptor: EvidenceDescriptor) {
+    const reqMark = descriptor.required ? (
+      <span className={styles.req}> *</span>
+    ) : null;
+
+    if (descriptor.kind === 'photo') {
+      const target = descriptor.target ?? 1;
+      const count = photoCounts[descriptor.id] ?? 0;
+      return (
+        <div className={styles.evCard} key={descriptor.id}>
+          <div className={styles.evCardTop}>
+            <span className={styles.evCardTitle}>
+              {descriptor.label}
+              {reqMark}
+            </span>
+            <span className={styles.evCardCount}>
+              {count}/{target}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={styles.evBtnFull}
+            onClick={() =>
+              setPhotoCounts((prev) => ({
+                ...prev,
+                [descriptor.id]: Math.min(target, (prev[descriptor.id] ?? 0) + 1),
+              }))
+            }
+          >
+            <Camera size={14} aria-hidden="true" />
+            Add photo
+          </button>
+        </div>
+      );
+    }
+
+    if (descriptor.kind === 'confirm') {
+      const ok = confirms[descriptor.id] ?? false;
+      return (
+        <div className={styles.evCard} key={descriptor.id}>
+          <div className={styles.evCardTop}>
+            <span className={styles.evCardTitle}>
+              {descriptor.label}
+              {reqMark}
+            </span>
+            <span className={styles.evCardCount}>{ok ? 1 : 0}/1</span>
+          </div>
+          <button
+            type="button"
+            className={styles.evBtnFull}
+            data-confirmed={ok}
+            onClick={() =>
+              setConfirms((prev) => ({ ...prev, [descriptor.id]: true }))
+            }
+          >
+            <Check size={14} aria-hidden="true" />
+            {ok ? 'Confirmed' : 'Confirm'}
+          </button>
+        </div>
+      );
+    }
+
+    // kind === 'note'
+    const noteValue = notes[descriptor.id] ?? '';
+    const saved = noteSaved[descriptor.id] ?? false;
+    return (
+      <div className={styles.evCard} key={descriptor.id}>
+        <div className={styles.evCardTop}>
+          <span className={styles.evCardTitle}>
+            {descriptor.label}
+            {reqMark}
+          </span>
+          <span className={styles.evCardCount}>{saved ? 1 : 0}/1</span>
+        </div>
+        <textarea
+          className={styles.noteArea}
+          rows={3}
+          placeholder={descriptor.label}
+          value={noteValue}
+          onChange={(event) => {
+            const { value } = event.target;
+            setNotes((prev) => ({ ...prev, [descriptor.id]: value }));
+            setNoteSaved((prev) => ({ ...prev, [descriptor.id]: false }));
+          }}
+        />
+        <div className={styles.evBtnRow}>
+          <button
+            type="button"
+            className={styles.evBtnSmall}
+            data-saved={saved}
+            disabled={noteValue.trim().length === 0}
+            onClick={() =>
+              setNoteSaved((prev) => ({ ...prev, [descriptor.id]: true }))
+            }
+          >
+            {saved ? 'Saved' : 'Save note'}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -94,75 +215,7 @@ export default function ActTierExecutionPanel({
 
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>Evidence</h4>
-
-        <div className={styles.evCard}>
-          <div className={styles.evCardTop}>
-            <span className={styles.evCardTitle}>
-              Checkpoint photos<span className={styles.req}> *</span>
-            </span>
-            <span className={styles.evCardCount}>
-              {photoCount}/{PHOTO_TARGET}
-            </span>
-          </div>
-          <button
-            type="button"
-            className={styles.evBtnFull}
-            onClick={() =>
-              setPhotoCount((count) => Math.min(PHOTO_TARGET, count + 1))
-            }
-          >
-            <Camera size={14} aria-hidden="true" />
-            Add photo
-          </button>
-        </div>
-
-        <div className={styles.evCard}>
-          <div className={styles.evCardTop}>
-            <span className={styles.evCardTitle}>
-              Route passable confirmation<span className={styles.req}> *</span>
-            </span>
-            <span className={styles.evCardCount}>{confirmed ? 1 : 0}/1</span>
-          </div>
-          <button
-            type="button"
-            className={styles.evBtnFull}
-            data-confirmed={confirmed}
-            onClick={() => setConfirmed(true)}
-          >
-            <Check size={14} aria-hidden="true" />
-            {confirmed ? 'Confirmed' : 'Confirm'}
-          </button>
-        </div>
-
-        <div className={styles.evCard}>
-          <div className={styles.evCardTop}>
-            <span className={styles.evCardTitle}>
-              Summary note<span className={styles.req}> *</span>
-            </span>
-            <span className={styles.evCardCount}>{noteSaved ? 1 : 0}/1</span>
-          </div>
-          <textarea
-            className={styles.noteArea}
-            rows={3}
-            placeholder="Summary note"
-            value={note}
-            onChange={(event) => {
-              setNote(event.target.value);
-              setNoteSaved(false);
-            }}
-          />
-          <div className={styles.evBtnRow}>
-            <button
-              type="button"
-              className={styles.evBtnSmall}
-              data-saved={noteSaved}
-              disabled={note.trim().length === 0}
-              onClick={() => setNoteSaved(true)}
-            >
-              {noteSaved ? 'Saved' : 'Save note'}
-            </button>
-          </div>
-        </div>
+        {evidence.map(renderEvidenceCard)}
       </section>
 
       <section className={styles.execSection}>
