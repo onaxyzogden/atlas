@@ -93,14 +93,11 @@ export default function StratumCircle({
             strokeWidth={status === 'active' ? 1.5 : 1}
             opacity={status === 'locked' ? 0.35 : 1}
           />
-          {/* Icon/number */}
+          {/* Icon/number — always show the stratum number; locked state is
+              conveyed by ring colour + ellipse opacity, not a symbol. */}
           {status === 'complete' ? (
             <text x={28} y={33} textAnchor="middle" fill={C.green} fontSize={14} fontFamily={F.sans} fontWeight="700">
               ✓
-            </text>
-          ) : status === 'locked' ? (
-            <text x={28} y={33} textAnchor="middle" fill={C.textTertiary} fontSize={12}>
-              ⌒
             </text>
           ) : (
             <text x={28} y={33} textAnchor="middle" fill={ring} fontSize={13} fontFamily={F.mono} fontWeight="700">
