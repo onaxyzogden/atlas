@@ -53,6 +53,11 @@
   display: flex;
   gap: 8px;
   padding: 8px 8px 0;
+  /* Pin to natural height: as a shrinkable flex child the spine was being
+     squeezed by the canvas, and `overflow-x: auto` forces `overflow-y` to
+     compute to `auto`, so the clipped tabs scrolled vertically. flex-shrink:0
+     keeps the full tab height; .shellWrap (flex:1, min-height:0) absorbs it. */
+  flex: 0 0 auto;
   overflow-x: auto;
 }
 

@@ -24,6 +24,13 @@
   padding: 8px;
 }
 
+/* 'between-rails' bottom placement: drop the second (auto) row so the body
+   owns the full layout height and the rails span top-to-bottom. The bottom
+   tray moves into the center column (see .center). */
+.layoutBetween {
+  grid-template-rows: 1fr;
+}
+
 .body {
   display: grid;
   gap: 8px;
@@ -31,6 +38,25 @@
   /* Default: canvas-only single column. Overridden below by :has() when
      rails are present. */
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* Center column wrapper used only in 'between-rails' mode: stacks the canvas
+   (fills) above the bottom tray (pinned), so the tray sits between the
+   full-height rails instead of as a full-width row beneath them. */
+.center {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  min-width: 0;
+}
+
+.center > .canvas {
+  flex: 1 1 auto;
+}
+
+.center > .bottom {
+  flex: 0 0 auto;
 }
 
 .body:has(> .left):has(> .right) {

@@ -235,6 +235,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
       />
       <div className={styles.shellWrap}>
         <StageShell
+          bottomPlacement="between-rails"
           canvasLabel="Act tier canvas"
           leftRailLabel="Stratum objectives"
           rightRailLabel="Dashboard and objective detail"

@@ -42,6 +42,14 @@ export interface StageShellProps {
   leftRailLabel?: string;
   /** Aria label for the right-rail <aside>. Defaults to 'Stage guidance'. */
   rightRailLabel?: string;
+  /**
+   * Where the bottom tray sits relative to the rails.
+   * - 'full' (default): full-width row beneath the 3-column body — the rails
+   *   stop above it. Every existing consumer keeps this behaviour.
+   * - 'between-rails': the tray is nested in the center column under the canvas,
+   *   so the left/right rails run full height and the tray sits between them.
+   */
+  bottomPlacement?: 'full' | 'between-rails';
 }
 
 export default function StageShell({
@@ -53,18 +61,37 @@ export default function StageShell({
   canvasLabel = 'Stage canvas',
   leftRailLabel = 'Stage tools',
   rightRailLabel = 'Stage guidance',
+  bottomPlacement = 'full',
 }: StageShellProps) {
+  const between = bottomPlacement === 'between-rails';
+  const hasBottom = bottomTray !== undefined && bottomTray !== null;
+  const bottom = hasBottom ? (
+    <div className={css.bottom} data-stage-bottom="">
+      {bottomTray}
+    </div>
+  ) : null;
+  const main = (
+    <main className={css.canvas} aria-label={canvasLabel}>
+      {canvas}
+    </main>
+  );
+
   return (
-    <div className={css.layout}>
+    <div className={`${css.layout} ${between ? css.layoutBetween : ''}`}>
       <div className={css.body}>
         {leftRail !== undefined && leftRail !== null && (
           <aside className={css.left} aria-label={leftRailLabel}>
             {leftRail}
           </aside>
         )}
-        <main className={css.canvas} aria-label={canvasLabel}>
-          {canvas}
-        </main>
+        {between ? (
+          <div className={css.center}>
+            {main}
+            {bottom}
+          </div>
+        ) : (
+          main
+        )}
         {rightRail !== undefined && rightRail !== null && (
           <aside className={css.right} aria-label={rightRailLabel}>
             {rightRail}
@@ -72,11 +99,7 @@ export default function StageShell({
         )}
       </div>
 
-      {bottomTray !== undefined && bottomTray !== null && (
-        <div className={css.bottom} data-stage-bottom="">
-          {bottomTray}
-        </div>
-      )}
+      {!between && bottom}
 
       {overlay}
     </div>
