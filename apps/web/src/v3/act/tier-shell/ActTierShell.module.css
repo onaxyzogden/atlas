@@ -406,13 +406,18 @@
 }
 
 .toolsRow {
+  /* One category fills the row; siblings stack below and snap in on vertical
+     scroll. The StageShell bottom tray is content-sized (no fixed viewport for
+     a percentage height to fill), so the scroll viewport is capped to exactly
+     one category height (--act-cat-h) and each .toolCat is pinned to the same
+     height. */
+  --act-cat-h: 116px;
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  max-height: var(--act-cat-h);
   gap: 8px;
   overflow-y: auto;
-  padding-bottom: 2px;
   scroll-snap-type: y mandatory;
 }
 
@@ -495,11 +500,16 @@
 
 .toolCat {
   flex: 0 0 auto;
+  /* Pinned to one viewport height (set on .toolsRow) so exactly one category
+     shows at a time; the row caps to the same height and scroll-snaps between
+     categories. */
+  height: var(--act-cat-h, 116px);
   background: var(--color-bg, #1f1d1a);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
   padding: 8px;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .toolCatHeader {
