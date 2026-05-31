@@ -45,6 +45,9 @@ interface PortfolioMapProps {
   projects: LocalProject[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** Live-data §2.6 stage per project (usePortfolioStages). Falls back to the
+   *  coarse geometry-only derivation for any project not present. */
+  stageById?: ReadonlyMap<string, PortfolioStage>;
 }
 
 /**
@@ -65,7 +68,7 @@ function stageMatch(pick: (p: StagePaint) => string | number, fallback: string |
   ];
 }
 
-export default function PortfolioMap({ projects, selectedId, onSelect }: PortfolioMapProps) {
+export default function PortfolioMap({ projects, selectedId, onSelect, stageById }: PortfolioMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const basemap = useBasemapStore((s) => s.basemap);
@@ -80,7 +83,10 @@ export default function PortfolioMap({ projects, selectedId, onSelect }: Portfol
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
 
-  const fc = useMemo(() => buildBoundaryFeatureCollection(projects), [projects]);
+  const fc = useMemo(
+    () => buildBoundaryFeatureCollection(projects, stageById),
+    [projects, stageById],
+  );
 
   // Centroid + stage per project, for label pins (includes geometry-less
   // projects that still carry an intake centroid).
@@ -89,10 +95,11 @@ export default function PortfolioMap({ projects, selectedId, onSelect }: Portfol
       projects
         .map((p) => {
           const at = projectCentroid(p);
-          return at ? { id: p.id, name: p.name, stage: derivePortfolioStage(p), at } : null;
+          const stage = stageById?.get(p.id) ?? derivePortfolioStage(p);
+          return at ? { id: p.id, name: p.name, stage, at } : null;
         })
         .filter((x): x is { id: string; name: string; stage: PortfolioStage; at: [number, number] } => x !== null),
-    [projects],
+    [projects, stageById],
   );
 
   // ── Construct map once ───────────────────────────────────────────────────

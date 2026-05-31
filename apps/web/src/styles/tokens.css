@@ -154,6 +154,13 @@
   --color-stage-plan:    #38a3a5;  --color-stage-plan-rgb:    56, 163, 165;   /* Verdigris Teal */
   --color-stage-act:     #d9a036;  --color-stage-act-rgb:     217, 160, 54;   /* Loam Amber */
   --color-stage-steward: #4a7c59;  --color-stage-steward-rgb: 74, 124, 89;    /* Bio-Conifer Green */
+  /* Portfolio §2.6 boundary stages without a lifecycle hue: pre-Plan setup +
+     archived/inactive. Muted-sand setup is kept distinct from Act amber (both
+     warm) by being desaturated and only ever dashed on the map. These two
+     mirror STAGE_PAINT.setup/archived in portfolioModel.ts (map paint can't
+     read CSS vars, so the hexes are duplicated there and must stay in sync). */
+  --color-stage-setup:    #b08a3a;  --color-stage-setup-rgb:    176, 138, 58;  /* Muted Sand */
+  --color-stage-archived: #8a8f94;  --color-stage-archived-rgb: 138, 143, 148; /* Neutral Grey */
   --color-stage-observe-glow-bg: rgba(108, 130, 148, 0.15);  --color-stage-observe-glow-text: #8ba3b5;
   --color-stage-plan-glow-bg:    rgba(56, 163, 165, 0.15);   --color-stage-plan-glow-text:    #4fc3c5;
   --color-stage-act-glow-bg:     rgba(217, 160, 54, 0.15);   --color-stage-act-glow-text:     #e6b860;

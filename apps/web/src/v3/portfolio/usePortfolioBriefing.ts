@@ -42,6 +42,7 @@ import {
 import type { LocalProject } from '../../store/projectStore.js';
 import { resolveObjectivesForProject } from '../plan/strata/useProjectObjectives.js';
 import { useProjectUrgency } from '../home/useProjectUrgency.js';
+import { OUTSTANDING_STATUSES, deriveStageFromSignals } from './portfolioModel.js';
 
 /** A project's coarse lifecycle position, surfaced as the rail header pill +
  *  the bottom rail's filled (active) stage button. Mirrors PortfolioStage in
@@ -126,15 +127,6 @@ const SEVERITY: Record<ObserveStatusOutput, number> = {
   major_constraint: 3,
   potential_disqualifier: 4,
 };
-
-/** Field-action statuses that still demand attention (not verified, not a
- *  resolved divergence). */
-const OUTSTANDING_STATUSES = new Set([
-  'not_started',
-  'in_progress',
-  'submitted',
-  'blocked',
-]);
 
 const LAST_STRATUM_ID = PLAN_STRATA[PLAN_STRATA.length - 1]!.id;
 
@@ -342,24 +334,16 @@ export function usePortfolioBriefing(
       }
     }
 
-    // --- Coarse lifecycle stage (live-data refinement of derivePortfolioStage) ---
-    let stage: BriefingStage;
-    if (project.status === 'archived') {
-      stage = 'archived';
-    } else {
-      const wizardComplete = project.metadata?.wizardStatus === 'complete';
-      const hasBoundary =
-        project.hasParcelBoundary || project.parcelBoundaryGeojson != null;
-      if (!wizardComplete && !hasBoundary) {
-        stage = 'setup';
-      } else if (outstanding > 0) {
-        stage = 'act';
-      } else if (hasData && allComplete) {
-        stage = 'observe';
-      } else {
-        stage = 'plan';
-      }
-    }
+    // --- Live-data lifecycle stage (shared rule; see portfolioModel) ---
+    const stage: BriefingStage = deriveStageFromSignals({
+      archived: project.status === 'archived',
+      wizardComplete: project.metadata?.wizardStatus === 'complete',
+      hasBoundary:
+        project.hasParcelBoundary || project.parcelBoundaryGeojson != null,
+      outstanding,
+      hasData,
+      allComplete,
+    });
 
     return {
       project,

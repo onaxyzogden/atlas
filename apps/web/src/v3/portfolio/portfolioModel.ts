@@ -34,20 +34,70 @@ export interface StagePaint {
   dashed: boolean;
 }
 
-// §2.6 boundary colour coding. Estate-palette hexes chosen to honour the
-// spec's stage semantics (amber setup · blue Plan · green Act · teal Observe ·
-// grey archived) while staying within the gold/sage identity.
+// §2.6 boundary colour coding. The hexes MIRROR the High-Tech Earth stage
+// tokens in tokens.css (--color-stage-plan/act/observe/setup/archived): MapLibre
+// paint expressions can't read CSS custom properties, so the concrete values are
+// duplicated here and MUST be kept in sync with the tokens. The spec's §2.6
+// table names a generic blue/green/teal palette (--color-primary/complete/teal);
+// those map onto the project's actual identity as Plan=Verdigris Teal,
+// Act=Loam Amber, Observe=Flint Blue (ratified P3, same tokens the rails use).
 export const STAGE_PAINT: Record<PortfolioStage, StagePaint> = {
   setup: { label: 'Setup', color: '#b08a3a', fill: '#b08a3a', fillOpacity: 0.16, strokeWidth: 1.5, dashed: true },
-  plan: { label: 'Plan', color: '#5b8eaf', fill: '#5b8eaf', fillOpacity: 0.2, strokeWidth: 1.5, dashed: false },
-  act: { label: 'Act', color: '#527852', fill: '#527852', fillOpacity: 0.2, strokeWidth: 1.5, dashed: false },
-  observe: { label: 'Observe', color: '#2f8f86', fill: '#2f8f86', fillOpacity: 0.2, strokeWidth: 1.5, dashed: false },
+  plan: { label: 'Plan', color: '#38a3a5', fill: '#38a3a5', fillOpacity: 0.2, strokeWidth: 1.5, dashed: false },
+  act: { label: 'Act', color: '#d9a036', fill: '#d9a036', fillOpacity: 0.2, strokeWidth: 1.5, dashed: false },
+  observe: { label: 'Observe', color: '#6c8294', fill: '#6c8294', fillOpacity: 0.2, strokeWidth: 1.5, dashed: false },
   archived: { label: 'Archived', color: '#8a8f94', fill: '#8a8f94', fillOpacity: 0.2, strokeWidth: 1.0, dashed: true },
 };
 
 /** The four stage filters surfaced as chips in the left rail (§2.1). */
 export const STAGE_FILTERS = ['plan', 'act', 'observe'] as const;
 export type StageFilter = (typeof STAGE_FILTERS)[number];
+
+/** Field-action statuses that still demand attention (not verified, not a
+ *  resolved divergence). Shared by usePortfolioBriefing (selected project) and
+ *  usePortfolioStages (all projects) so the Act-in-progress signal is derived
+ *  identically for the rail and the map. */
+export const OUTSTANDING_STATUSES: ReadonlySet<string> = new Set([
+  'not_started',
+  'in_progress',
+  'submitted',
+  'blocked',
+]);
+
+/**
+ * Inputs to the live-data stage derivation (§2.5/§2.6). Decoupled from any
+ * store/hook so the *same* rule colours the selected project's rail and every
+ * project's map boundary.
+ */
+export interface StageSignals {
+  /** `project.status === 'archived'`. */
+  archived: boolean;
+  /** `project.metadata?.wizardStatus === 'complete'`. */
+  wizardComplete: boolean;
+  /** Has parcel geometry (`hasParcelBoundary` flag or inline GeoJSON). */
+  hasBoundary: boolean;
+  /** Count of field-actions in an OUTSTANDING_STATUSES state. */
+  outstanding: number;
+  /** Any Observe data points captured. */
+  hasData: boolean;
+  /** Every Plan objective complete (and at least one exists). */
+  allComplete: boolean;
+}
+
+/**
+ * The single live-data stage rule (§2.6). Archived wins; a project whose wizard
+ * is incomplete *and* has no boundary is still in setup; outstanding field-work
+ * means Act; a fully-planned project with Observe data is in its Observe cycle;
+ * otherwise it is in Plan. This is the canonical refinement of the coarse
+ * geometry-only `derivePortfolioStage` below.
+ */
+export function deriveStageFromSignals(s: StageSignals): PortfolioStage {
+  if (s.archived) return 'archived';
+  if (!s.wizardComplete && !s.hasBoundary) return 'setup';
+  if (s.outstanding > 0) return 'act';
+  if (s.hasData && s.allComplete) return 'observe';
+  return 'plan';
+}
 
 /**
  * Derive the portfolio stage for boundary + pin colour coding (§2.5/§2.6).
@@ -146,14 +196,18 @@ export interface PortfolioFeatureProps {
  */
 export function buildBoundaryFeatureCollection(
   projects: LocalProject[],
+  stageById?: ReadonlyMap<string, PortfolioStage>,
 ): GeoJSON.FeatureCollection<GeoJSON.Polygon, PortfolioFeatureProps> {
   const features: GeoJSON.Feature<GeoJSON.Polygon, PortfolioFeatureProps>[] = [];
   for (const p of projects) {
     const poly = projectPolygon(p);
     if (!poly) continue;
+    // Prefer the live-data stage (usePortfolioStages); fall back to the coarse
+    // geometry-only derivation for any project missing from the store-backed map.
+    const stage = stageById?.get(p.id) ?? derivePortfolioStage(p);
     features.push({
       type: 'Feature',
-      properties: { id: p.id, name: p.name, stage: derivePortfolioStage(p) },
+      properties: { id: p.id, name: p.name, stage },
       geometry: poly,
     });
   }

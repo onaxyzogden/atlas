@@ -16,6 +16,7 @@ import {
   STAGE_PAINT,
   derivePortfolioStage,
   projectAreaLabel,
+  type PortfolioStage,
   type StageFilter,
 } from './portfolioModel.js';
 import css from './PortfolioProjectList.module.css';
@@ -25,6 +26,10 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onNewProject: () => void;
+  /** Live-data §2.6 stage per project (usePortfolioStages), so the row pill +
+   *  stage filter match the map boundaries + the selected project's rail.
+   *  Falls back to coarse geometry-only derivation when absent. */
+  stageById?: ReadonlyMap<string, PortfolioStage>;
 }
 
 export default function PortfolioProjectList({
@@ -32,18 +37,23 @@ export default function PortfolioProjectList({
   selectedId,
   onSelect,
   onNewProject,
+  stageById,
 }: Props) {
   const [query, setQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<StageFilter | 'all'>('all');
+
+  const stageOf = (p: LocalProject): PortfolioStage =>
+    stageById?.get(p.id) ?? derivePortfolioStage(p);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return projects.filter((p) => {
       if (q && !p.name.toLowerCase().includes(q)) return false;
-      if (stageFilter !== 'all' && derivePortfolioStage(p) !== stageFilter) return false;
+      if (stageFilter !== 'all' && stageOf(p) !== stageFilter) return false;
       return true;
     });
-  }, [projects, query, stageFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects, query, stageFilter, stageById]);
 
   return (
     <div className={css.root}>
@@ -88,7 +98,7 @@ export default function PortfolioProjectList({
       ) : (
         <ul className={css.list}>
           {filtered.map((p) => {
-            const stage = derivePortfolioStage(p);
+            const stage = stageOf(p);
             const isSelected = p.id === selectedId;
             return (
               <li key={p.id}>
