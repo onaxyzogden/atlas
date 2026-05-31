@@ -68,6 +68,18 @@ interface PlanStratumProgressState {
     objectiveId: string,
     itemId: string,
   ) => void;
+  /**
+   * Mark a checklist item as complete. Idempotent — no-op when the item
+   * is already in the completed list. Unlike `toggleItem`, this never
+   * removes a completed item, making it safe to call from form-save
+   * handlers (e.g. s1-vision form capture) without accidentally
+   * unchecking a manually-ticked item.
+   */
+  setItemComplete: (
+    projectId: string,
+    objectiveId: string,
+    itemId: string,
+  ) => void;
   /** Clear progress for one objective (used by cyclical-review revisions). */
   clearForObjective: (projectId: string, objectiveId: string) => void;
 
@@ -164,6 +176,22 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
               [projectId]: {
                 ...project,
                 [objectiveId]: next,
+              },
+            },
+          };
+        }),
+
+      setItemComplete: (projectId, objectiveId, itemId) =>
+        set((s) => {
+          const project = s.byProject[projectId] ?? {};
+          const current = project[objectiveId] ?? [];
+          if (current.includes(itemId)) return s; // already complete -- no-op
+          return {
+            byProject: {
+              ...s.byProject,
+              [projectId]: {
+                ...project,
+                [objectiveId]: [...current, itemId],
               },
             },
           };

@@ -279,9 +279,19 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   const handleFormSave = useCallback(
     (formId: string, text: string) => {
       useActEvidenceStore.getState().saveVisionForm(id, formId, text);
+      // The formId IS the checklist item id (1:1 per actToolCatalog design).
+      // Mark it complete so the execution-panel checklist reflects the capture.
+      // Uses setItemComplete (add-only) rather than toggleItem so a
+      // manually-unchecked item is never accidentally re-checked and then
+      // removed by a second form save.
+      if (objectiveId) {
+        usePlanStratumProgressStore
+          .getState()
+          .setItemComplete(id, objectiveId, formId);
+      }
       setOpenForm(null);
     },
-    [id],
+    [id, objectiveId],
   );
 
   const handleActivateTool = useCallback(
