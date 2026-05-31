@@ -142,8 +142,9 @@ export default function StratumSpineCircle({
             strokeWidth={status === 'active' ? 1.5 : 1}
             opacity={status === 'locked' ? 0.35 : 1}
           />
-          {/* Icon/number — always show the stratum number; locked state is
-              conveyed by ring colour + ellipse opacity, not a symbol. */}
+          {/* Icon/number — show the stratum slug "S{n}"; locked state is
+              conveyed by ring colour + ellipse opacity, not a symbol.
+              Completed strata show a check instead of the slug. */}
           {status === 'complete' ? (
             <text
               x={28}
@@ -166,13 +167,14 @@ export default function StratumSpineCircle({
               fontFamily={F.mono}
               fontWeight="700"
             >
-              {n}
+              S{n}
             </text>
           )}
         </svg>
       </div>
 
-      {/* Label */}
+      {/* Label — the stratum title is the bold primary line (the ordinal now
+          lives in the circle as "S{n}"), so no separate subtitle is shown. */}
       <div style={{ minWidth: 0 }}>
         <div
           style={{
@@ -182,18 +184,6 @@ export default function StratumSpineCircle({
             fontFamily: F.sans,
             marginBottom: 2,
             letterSpacing: '0.01em',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Stratum {n}
-        </div>
-        <div
-          style={{
-            fontSize: 10,
-            color: status === 'locked' ? C.textTertiary : C.textSecondary,
-            fontFamily: F.sans,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
