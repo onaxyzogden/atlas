@@ -223,6 +223,12 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     (tool: ActTool) => {
       const arm = tool.arm;
       if (arm.kind === 'map') {
+        // Toggle: a second click on the already-armed tool disarms it.
+        const current = useMapToolStore.getState().activeTool;
+        if (current === arm.mapToolId) {
+          setActiveTool(null);
+          return;
+        }
         // Arm a real placement/draw tool. ObserveDrawHost / PlanDrawHost
         // (mounted on this canvas) pick the id up by prefix and open the
         // matching draw dock; placement persists to the shared stores.
