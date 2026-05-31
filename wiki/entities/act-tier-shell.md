@@ -37,8 +37,10 @@ show-everything tool strip with an objective-conditional, categorized rail
   % ready, checklist, Evidence, activity, record). Checklist items are bordered
   cards matching the Evidence cards (2026-05-31). The Evidence section is
   **per-objective** (2026-05-31): driven by `getObjectiveEvidence(objective)`
-  via descriptor-keyed local state + a `renderEvidenceCard` helper; evidence
-  capture is still LOCAL/ephemeral (not persisted).
+  via descriptor-keyed state + a `renderEvidenceCard` helper. **Evidence capture
+  is now persisted** (2026-05-31): photo counts, confirms, note text + saved
+  flags write to `actEvidenceStore`; checklist completion writes to the shared
+  `planStratumStore` (unified with the Plan stage). All state survives reload.
 - `actToolCatalog.ts` — app-layer catalogue joining catalogue-id strings to
   `{ label, icon, category, arm }`. `ActToolArm` is a discriminated union
   `{kind:'map';mapToolId:MapToolId} | {kind:'log';quickLogId:string}`.
@@ -127,6 +129,31 @@ by writing through the shared stores (one source of truth) and keeping
 - `act/tier-shell` — dashboard mode
 - `act/tier-shell/$objectiveId` — objective-execution mode
 
+## Data: Evidence capture persistence
+
+`apps/web/src/store/actEvidenceStore.ts` (net-new, 2026-05-31):
+
+- Persist key: `ogden-act-evidence`, version 1.
+- `byProject: Record<projectId, Record<objectiveId, EvidenceCapture>>` —
+  photo counts, confirm flags, note text + notesSaved flags; keyed by
+  `descriptorId` within each capture so multiple cards of one kind coexist.
+- `visionForms: Record<projectId, Record<formId, string>>` — text captured
+  via the s1-vision VisionFormModal tiles.
+- Actions: `addPhoto` (cap at `maxTarget`), `setConfirm` (idempotent),
+  `updateNote` (atomically clears saved flag), `saveNote` (idempotent),
+  `saveVisionForm`. All immutably patch nested records via `patchCapture`.
+- `EMPTY_CAPTURE` — module-level frozen object returned by selectors when no
+  capture exists for an objective. Prevents the Zustand v5 `getSnapshot`
+  infinite re-render loop (`?? {}` creates a new object every render).
+- Checklist completion is NOT stored here; it writes to the shared
+  `planStratumStore.toggleItem(projectId, objectiveId, itemId)` so Plan and
+  Act share one source of truth.
+
+`ActTierExecutionPanel` selects each action individually
+(`useActEvidenceStore((s) => s.addPhoto)`) to avoid composite-selector
+object churn. `ActTierShell.handleFormSave` uses `getState()` (imperative,
+not a render-phase hook) to call `saveVisionForm`.
+
 ## Current state (2026-05-31)
 
 Phase C shipped: categorized objective-driven bottom rail + cross-stage arming
@@ -149,6 +176,13 @@ Three execution-panel + tools-rail follow-ups shipped later the same day
    dash) instead of a native scrollbar.
 tsc clean (apps/web + packages/shared); conformance 6/6; live preview verified
 with screenshots. ADR [[decisions/2026-05-31-atlas-act-evidence-perobjective-and-dots]].
+
+Evidence + checklist persistence wired later the same day (commit `e6f06475`,
+three files: `actEvidenceStore.ts` NEW, `ActTierExecutionPanel.tsx`,
+`ActTierShell.tsx`). Closed the "visual-first, not persisted" gap: all
+evidence capture, checklist progress, and s1-vision form values now survive
+reload. Verified: write -> objective-switch -> hard reload all confirmed via
+store-module imports + DOM probes.
 
 ## Notes
 
