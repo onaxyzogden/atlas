@@ -13,18 +13,29 @@
 // map-free, screenshot-safe verification.
 
 import { useState } from 'react';
+import { templatesForEnterprises, type EnterpriseId } from '@ogden/shared';
 import { C, F } from './tokens.js';
-import { OBJECTIVES, STRATA } from './mockData.js';
-import type { SpineObjective, SpineObjectiveSource } from './types.js';
+import { OBJECTIVES, STRATA, APPROVED_TIER_OUTPUTS } from './mockData.js';
+import type { SpineObjective, SpineObjectiveSource, ProposalDecision } from './types.js';
 import StratumCircle from './StratumCircle.js';
 import SpineObjectiveCard from './SpineObjectiveCard.js';
 import DesignDetailPanel from './DesignDetailPanel.js';
 import ProtocolModePanel from './ProtocolModePanel.js';
+import ProtocolConfirmationFlow from './ProtocolConfirmationFlow.js';
 import ModeToggle, { type SpinePlanMode } from './ModeToggle.js';
 
 type SourceFilter = 'all' | SpineObjectiveSource;
 
 const SOURCE_FILTERS: SourceFilter[] = ['all', 'universal', 'primary', 'secondary'];
+
+// The slice's active enterprises (spec §4.3) — Homestead + Silvopasture:
+// livestock, no poultry, so Pest Diversion stays hidden. Shared by the Protocol
+// library and the confirmation flow so both show the same 9 templates.
+const ENTERPRISES: readonly EnterpriseId[] = ['sheep_beef'];
+
+// The Stratum-6 ("Integration", formerly Tier 5) objective whose approval is the
+// §10.1 trigger for protocol auto-instantiation.
+const INTEGRATION_STRATUM = 6;
 
 export default function PlanSpinePrototype({
   height = '100vh',
@@ -41,12 +52,38 @@ export default function PlanSpinePrototype({
   const [selectedObj, setSelectedObj] = useState<SpineObjective | null>(OBJECTIVES[1] ?? null);
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
 
+  // §10.1 / §4.1 confirmation-flow state (prototype-local; no persistence).
+  const [integrationApproved, setIntegrationApproved] = useState(false);
+  const [confirmFlowOpen, setConfirmFlowOpen] = useState(false);
+  // Per-template decision, keyed by template id. Missing → 'pending'.
+  const [decisions, setDecisions] = useState<Record<string, ProposalDecision>>({});
+
+  const confirmTemplates = templatesForEnterprises(ENTERPRISES);
+
   const filteredObjs = OBJECTIVES.filter(
     (o) => (sourceFilter === 'all' || o.source === sourceFilter) && o.stratum === activeStratum,
   );
 
   const activeStratumData = STRATA.find((s) => s.n === activeStratum);
   const nextUp = OBJECTIVES.find((o) => o.status === 'in_progress' && o.stratum === activeStratum);
+
+  // The Integration objective drives the approval trigger + back-ref navigation.
+  const integrationObj = OBJECTIVES.find((o) => o.stratum === INTEGRATION_STRATUM) ?? null;
+  const isIntegrationSelected = !!selectedObj && selectedObj.stratum === INTEGRATION_STRATUM;
+
+  const setDecision = (id: string, value: ProposalDecision) =>
+    setDecisions((prev) => ({ ...prev, [id]: value }));
+
+  const handleApprove = () => {
+    setIntegrationApproved(true);
+    setConfirmFlowOpen(true);
+  };
+
+  const handleNavigateToSource = () => {
+    setMode('design');
+    setActiveStratum(INTEGRATION_STRATUM);
+    if (integrationObj) setSelectedObj(integrationObj);
+  };
 
   return (
     <div
@@ -189,12 +226,34 @@ export default function PlanSpinePrototype({
           </div>
         </div>
 
-        {/* ── RIGHT: Detail / Protocol panel ── */}
+        {/* ── RIGHT: Confirmation flow / Detail / Protocol panel ── */}
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', minWidth: 0 }}>
-          {mode === 'protocol' ? (
-            <ProtocolModePanel />
+          {confirmFlowOpen ? (
+            <ProtocolConfirmationFlow
+              templates={confirmTemplates}
+              decisions={decisions}
+              outputs={APPROVED_TIER_OUTPUTS}
+              onActivate={(id) => setDecision(id, 'activated')}
+              onSkip={(id) => setDecision(id, 'skipped')}
+              onUndo={(id) => setDecision(id, 'pending')}
+              onClose={() => {
+                setConfirmFlowOpen(false);
+                setMode('protocol');
+              }}
+            />
+          ) : mode === 'protocol' ? (
+            <ProtocolModePanel
+              enterprises={ENTERPRISES}
+              decisions={decisions}
+              integrationApproved={integrationApproved}
+              onRestore={(id) => setDecision(id, 'activated')}
+              onNavigateToSource={handleNavigateToSource}
+            />
           ) : selectedObj ? (
-            <DesignDetailPanel obj={selectedObj} />
+            <DesignDetailPanel
+              obj={selectedObj}
+              onApprove={isIntegrationSelected && !integrationApproved ? handleApprove : undefined}
+            />
           ) : (
             <div
               style={{
@@ -206,7 +265,7 @@ export default function PlanSpinePrototype({
                 fontFamily: F.sans,
               }}
             >
-              Select an objective to view its protocols
+              Select an objective to view its decision groups
             </div>
           )}
         </div>

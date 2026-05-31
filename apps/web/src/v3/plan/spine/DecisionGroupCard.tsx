@@ -1,33 +1,33 @@
-// ProtocolCard.tsx — the prototype's ProtocolCard, transcribed VERBATIM from
-// olos_plan_spine.jsx. Read-only, expandable item previews, "Open in Act →"
-// CTA. NOTE: here "protocol" means the prototype's read-only survey-method
-// grouping — NOT the Protocol Layer spec's conditional rule. The naming
-// collision is flagged for a follow-up decision; the label is kept verbatim
-// for pixel fidelity.
+// DecisionGroupCard.tsx — the prototype's read-only decision-group card
+// (formerly "ProtocolCard"), transcribed VERBATIM from olos_plan_spine.jsx.
+// Read-only, expandable item previews, "Open in Act →" CTA. A decision group is
+// a named scope within an objective that partitions its Act checklist items and
+// feeds an Observe domain — matching the live `decisionGroups` schema. (Renamed
+// from "protocol" so "Protocol" refers only to the spec's conditional rules.)
 
 import { useState } from 'react';
 import { C, F } from './tokens.js';
-import type { SpineProtocol } from './types.js';
+import type { SpineDecisionGroup } from './types.js';
 
-export default function ProtocolCard({
-  protocol,
+export default function DecisionGroupCard({
+  group,
   index,
   isPatched,
 }: {
-  protocol: SpineProtocol;
+  group: SpineDecisionGroup;
   index: number;
   isPatched: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const isDone = protocol.done;
-  const hasItems = !!protocol.items && protocol.items.length > 0;
+  const isDone = group.done;
+  const hasItems = !!group.items && group.items.length > 0;
   const accentColor = isPatched ? C.amber : isDone ? C.green : C.blue;
   const bgColor = isPatched ? C.amberDim : isDone ? C.greenDim : C.blueDim;
   const borderColor = isPatched ? C.amber + '55' : isDone ? C.green + '44' : C.border;
 
   return (
     <div style={{ borderRadius: 8, overflow: 'hidden', border: `1px solid ${borderColor}`, marginBottom: 8 }}>
-      {/* Protocol header — tappable if has items */}
+      {/* Group header — tappable if has items */}
       <div
         onClick={() => hasItems && setExpanded((p) => !p)}
         style={{
@@ -76,7 +76,7 @@ export default function ProtocolCard({
               textDecoration: isDone ? 'line-through' : 'none',
             }}
           >
-            {protocol.label}
+            {group.label}
           </div>
         </div>
         {isPatched && (
@@ -120,7 +120,7 @@ export default function ProtocolCard({
             </span>
           </div>
           {/* Items */}
-          {protocol.items!.map((item, i) => (
+          {group.items!.map((item, i) => (
             <div
               key={i}
               style={{
@@ -128,7 +128,7 @@ export default function ProtocolCard({
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: 10,
-                borderBottom: i < protocol.items!.length - 1 ? `1px solid ${C.border}33` : 'none',
+                borderBottom: i < group.items!.length - 1 ? `1px solid ${C.border}33` : 'none',
                 background: i % 2 === 0 ? C.bg : C.bg2,
               }}
             >
@@ -183,7 +183,7 @@ export default function ProtocolCard({
         </div>
       )}
 
-      {/* Protocol meta footer */}
+      {/* Group meta footer */}
       {!expanded && (
         <div
           style={{
@@ -194,7 +194,7 @@ export default function ProtocolCard({
             justifyContent: 'space-between',
           }}
         >
-          <span style={{ fontSize: 10, color: C.teal, fontFamily: F.sans }}>→ feeds {protocol.feeds}</span>
+          <span style={{ fontSize: 10, color: C.teal, fontFamily: F.sans }}>→ feeds {group.feeds}</span>
           <span
             style={{
               fontSize: 10,
@@ -205,7 +205,7 @@ export default function ProtocolCard({
               padding: '1px 7px',
             }}
           >
-            {protocol.count} item{protocol.count !== 1 ? 's' : ''}
+            {group.count} item{group.count !== 1 ? 's' : ''}
           </span>
         </div>
       )}

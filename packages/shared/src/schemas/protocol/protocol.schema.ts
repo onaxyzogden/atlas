@@ -94,6 +94,14 @@ export const StandardProtocolTemplateSchema = z.object({
    * chips this slice (not wired to the evaluation engine).
    */
   feeds: z.array(z.string().min(1)).default([]),
+  /**
+   * The tier/stratum objective whose approval authored this protocol (spec §9.1
+   * `tier_authored`). Records provenance for the §10.1 auto-instantiation: the
+   * standard templates are generated when the Stratum-6 ("Integration", formerly
+   * "Tier 5") objective is approved. Optional — custom-authored protocols added
+   * later need not carry it.
+   */
+  tierAuthored: z.string().min(1).optional(),
 });
 export type StandardProtocolTemplate = z.infer<
   typeof StandardProtocolTemplateSchema

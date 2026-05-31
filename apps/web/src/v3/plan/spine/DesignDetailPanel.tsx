@@ -5,10 +5,21 @@
 import { useState } from 'react';
 import { C, F } from './tokens.js';
 import SourcePill from './SourcePill.js';
-import ProtocolCard from './ProtocolCard.js';
+import DecisionGroupCard from './DecisionGroupCard.js';
 import type { SpineObjective } from './types.js';
 
-export default function DesignDetailPanel({ obj }: { obj: SpineObjective }) {
+export default function DesignDetailPanel({
+  obj,
+  onApprove,
+}: {
+  obj: SpineObjective;
+  /**
+   * Supplied only for the Stratum-6 Integration objective (§10.1 "on objective
+   * approval"). When present, renders an "Approve & instantiate protocols →"
+   * button in the Completion Gate area that triggers the confirmation flow.
+   */
+  onApprove?: () => void;
+}) {
   const [gateOpen, setGateOpen] = useState(false);
   const doneCount = obj.actDone;
   const totalCount = obj.actTotal;
@@ -169,7 +180,7 @@ export default function DesignDetailPanel({ obj }: { obj: SpineObjective }) {
           )}
         </div>
 
-        {/* Protocols */}
+        {/* Decision groups */}
         <div style={{ padding: '16px 22px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <span
@@ -182,19 +193,19 @@ export default function DesignDetailPanel({ obj }: { obj: SpineObjective }) {
                 letterSpacing: '0.1em',
               }}
             >
-              Protocols
+              Decision groups
             </span>
             <div style={{ flex: 1, height: 1, background: C.border }} />
             <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>
-              {obj.protocols.length + obj.patchProtocols.length} areas
+              {obj.decisionGroups.length + obj.patchDecisionGroups.length} groups
             </span>
           </div>
 
-          {obj.protocols.map((p, i) => (
-            <ProtocolCard key={p.id} protocol={p} index={i} isPatched={false} />
+          {obj.decisionGroups.map((p, i) => (
+            <DecisionGroupCard key={p.id} group={p} index={i} isPatched={false} />
           ))}
 
-          {obj.patchProtocols.length > 0 && (
+          {obj.patchDecisionGroups.length > 0 && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '16px 0 10px' }}>
                 <div style={{ height: 1, background: `${C.amber}44`, flex: 1 }} />
@@ -207,12 +218,12 @@ export default function DesignDetailPanel({ obj }: { obj: SpineObjective }) {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  Added by {obj.patchProtocols[0]?.secondary}
+                  Added by {obj.patchDecisionGroups[0]?.secondary}
                 </span>
                 <div style={{ height: 1, background: `${C.amber}44`, flex: 1 }} />
               </div>
-              {obj.patchProtocols.map((p, i) => (
-                <ProtocolCard key={p.id} protocol={p} index={i} isPatched={true} />
+              {obj.patchDecisionGroups.map((p, i) => (
+                <DecisionGroupCard key={p.id} group={p} index={i} isPatched={true} />
               ))}
             </>
           )}
@@ -253,7 +264,7 @@ export default function DesignDetailPanel({ obj }: { obj: SpineObjective }) {
               <div style={{ fontSize: 12, color: C.textPrimary, fontFamily: F.sans, lineHeight: 1.6, marginBottom: 10 }}>
                 {obj.gate}
               </div>
-              {obj.patchProtocols.length > 0 && (
+              {obj.patchDecisionGroups.length > 0 && (
                 <span
                   style={{
                     display: 'inline-flex',
@@ -269,10 +280,36 @@ export default function DesignDetailPanel({ obj }: { obj: SpineObjective }) {
                     fontWeight: 600,
                   }}
                 >
-                  Amended by {obj.patchProtocols[0]?.secondary}
+                  Amended by {obj.patchDecisionGroups[0]?.secondary}
                 </span>
               )}
             </div>
+          )}
+
+          {/* §10.1 — approving the Stratum-6 Integration objective instantiates
+              all enterprise-eligible standard protocols. Only rendered when the
+              parent supplies onApprove (i.e. this is the Integration objective). */}
+          {onApprove && (
+            <button
+              onClick={onApprove}
+              style={{
+                width: '100%',
+                marginTop: 10,
+                padding: '11px 14px',
+                borderRadius: 8,
+                background: C.blue,
+                border: 'none',
+                color: 'white',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: F.sans,
+                letterSpacing: '0.01em',
+                boxShadow: `0 2px 16px ${C.blue}44`,
+              }}
+            >
+              Approve &amp; instantiate protocols →
+            </button>
           )}
         </div>
 

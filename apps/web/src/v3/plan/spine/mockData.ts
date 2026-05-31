@@ -12,7 +12,9 @@ export const STRATA: SpineStratum[] = [
   { n: 3, name: 'Systems Reading', status: 'active', done: 2, total: 6 },
   { n: 4, name: 'Foundation Decisions', status: 'available', done: 0, total: 8 },
   { n: 5, name: 'Design', status: 'locked', done: 0, total: 9 },
-  { n: 6, name: 'Integration', status: 'locked', done: 0, total: 4 },
+  // Stratum 6 (Tier 5 — Integration) is set 'available' for this slice so the
+  // demo can select its objective and trigger §10.1 protocol auto-instantiation.
+  { n: 6, name: 'Integration', status: 'available', done: 0, total: 4 },
   { n: 7, name: 'Phasing & Resourcing', status: 'locked', done: 0, total: 6 },
 ];
 
@@ -26,12 +28,12 @@ export const OBJECTIVES: SpineObjective[] = [
     question: 'How does water move through this site across seasons?',
     actDone: 5,
     actTotal: 5,
-    protocols: [
+    decisionGroups: [
       { id: 'p1', label: 'Surface flows & catchment mapping', count: 2, feeds: 'Water & Hydrology', done: true },
       { id: 'p2', label: 'Springs, seeps & infiltration', count: 2, feeds: 'Water & Hydrology', done: true },
       { id: 'p3', label: 'Drainage infrastructure assessment', count: 1, feeds: 'Infrastructure & Access', done: true },
     ],
-    patchProtocols: [],
+    patchDecisionGroups: [],
     gate: 'Hydrological survey complete. Seasonal flow patterns documented.',
     handoff: 'Hydrology Survey Package',
     observeFeeds: ['Water & Hydrology'],
@@ -47,7 +49,7 @@ export const OBJECTIVES: SpineObjective[] = [
       'What soil characteristics are relevant to pasture recovery, tree establishment, and infrastructure foundations?',
     actDone: 2,
     actTotal: 8,
-    protocols: [
+    decisionGroups: [
       {
         id: 'p4',
         label: 'Profile & composition',
@@ -82,7 +84,7 @@ export const OBJECTIVES: SpineObjective[] = [
         ],
       },
     ],
-    patchProtocols: [
+    patchDecisionGroups: [
       {
         id: 'pp1',
         label: 'Silvopasture — forage establishment methodology',
@@ -107,12 +109,12 @@ export const OBJECTIVES: SpineObjective[] = [
       'Is there sufficient water to sustain target stocking numbers through the driest months?',
     actDone: 0,
     actTotal: 6,
-    protocols: [
+    decisionGroups: [
       { id: 'p7', label: 'Demand calculation — stock by species & season', count: 2, feeds: 'Livestock & Animal Health', done: false },
       { id: 'p8', label: 'Source yield & seasonal gap analysis', count: 3, feeds: 'Water & Hydrology', done: false },
       { id: 'p9', label: 'Storage & paddock distribution design', count: 1, feeds: 'Pasture & Forage', done: false },
     ],
-    patchProtocols: [],
+    patchDecisionGroups: [],
     gate: 'Stock water availability confirmed. Seasonal gap and storage requirements defined.',
     handoff: 'Stock Water Availability & Seasonal Supply Survey',
     observeFeeds: ['Water & Hydrology', 'Livestock & Animal Health'],
@@ -127,10 +129,10 @@ export const OBJECTIVES: SpineObjective[] = [
     question: 'Where is compaction present and what does it tell us about pasture recovery?',
     actDone: 0,
     actTotal: 4,
-    protocols: [
+    decisionGroups: [
       { id: 'p10', label: 'Compaction mapping & remediation', count: 4, feeds: 'Soil', done: false },
     ],
-    patchProtocols: [],
+    patchDecisionGroups: [],
     gate: 'Compaction survey complete. Remediation requirements defined per zone.',
     handoff: 'Soil Compaction & Structure Survey',
     observeFeeds: ['Soil'],
@@ -146,13 +148,75 @@ export const OBJECTIVES: SpineObjective[] = [
       'What is the current pasture yield per hectare, seasonal availability, and nutritional profile?',
     actDone: 0,
     actTotal: 5,
-    protocols: [
+    decisionGroups: [
       { id: 'p11', label: 'Yield, nutrition & carrying capacity', count: 5, feeds: 'Pasture & Forage', done: false },
     ],
-    patchProtocols: [],
+    patchDecisionGroups: [],
     gate: 'Forage productivity and nutritional baseline complete.',
     handoff: 'Forage Productivity & Nutritional Baseline Survey',
     observeFeeds: ['Pasture & Forage'],
     overlays: ['Pasture & Forage'],
   },
+  {
+    // Stratum 6 (Tier 5) — Integration. Approving this objective is the §10.1
+    // trigger that instantiates all enterprise-eligible standard protocols as
+    // standing operational logic (the confirmation card-stack flow).
+    id: 'o6',
+    stratum: 6,
+    source: 'primary',
+    status: 'available',
+    title: 'Enterprise integration & feedback loops',
+    question:
+      'How do the enterprise decisions converge into standing operational logic — the thresholds, judgments, and cycles the land runs on?',
+    actDone: 0,
+    actTotal: 4,
+    decisionGroups: [
+      {
+        id: 'p12',
+        label: 'Operational thresholds & response rules',
+        count: 2,
+        feeds: 'Livestock & Animal Health',
+        done: false,
+        items: [
+          'Confirm grazing-pressure and feed-cover thresholds that trigger destocking or supplementary feed',
+          'Set water-reserve and recovery targets that gate stocking decisions through the dry season',
+        ],
+      },
+      {
+        id: 'p13',
+        label: 'Monitoring cycles & review cadence',
+        count: 2,
+        feeds: 'Pasture & Forage',
+        done: false,
+        items: [
+          'Define the pasture-assessment and animal-condition review cadence across the season',
+          'Confirm the windows and judgment cues for rotation, weaning, and sale decisions',
+        ],
+      },
+    ],
+    patchDecisionGroups: [],
+    gate: 'Enterprise feedback loops confirmed. Approving instantiates the standing Protocol Layer from these decisions.',
+    handoff: 'Integration & Protocol Instantiation Package',
+    observeFeeds: ['Livestock & Animal Health', 'Pasture & Forage', 'Water & Hydrology'],
+    overlays: ['Pasture & Forage', 'Water & Hydrology'],
+  },
 ];
+
+/**
+ * Illustrative "approved tier outputs" for the prototype's auto-fill (spec §4.1
+ * AUTO-FILLED fields). The canonical @ogden/shared catalogue keeps the spec's
+ * bracket placeholders verbatim; these mock values are supplied web-side only so
+ * the confirmation cards can show substituted IF→THEN segments. Fabricated demo
+ * numbers — deliberately kept out of @ogden/shared. Real values will come from
+ * genuine approved Stratum-6 outputs (deferred).
+ */
+export const APPROVED_TIER_OUTPUTS: Record<string, string> = {
+  'approved threshold': '1,500 kg DM/ha',
+  'approved day limit': '3 days',
+  'approved recovery target': '2,400 kg DM/ha',
+  'configured window': '7 days',
+  'emergency threshold': '800 kg DM/ha',
+  'approved minimum': '1,200 kg DM/ha',
+  'approved interval': '21 days',
+  'approved cover': '2,000 kg DM/ha',
+};

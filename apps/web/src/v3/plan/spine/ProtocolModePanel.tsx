@@ -11,51 +11,37 @@
 // "derived from Tier 5 ▸" back-reference and "Open in Act →" affordance are
 // presentational stubs that later phases turn into real links.
 //
-// Terminology note: "protocol" here is the spec's CONDITIONAL RULE (IF → THEN),
-// distinct from the prototype ProtocolCard's read-only survey-method grouping.
-// The collision is flagged for a follow-up naming decision; both labels are
-// kept as-is in this slice.
+// Terminology note: "protocol" here means ONLY the spec's CONDITIONAL RULE
+// (IF → THEN). The prototype's read-only survey-method groupings were renamed to
+// "decision groups" (matching the live `decisionGroups` schema), so the former
+// naming collision is resolved — "Protocol/Protocol Layer" is now unambiguous.
 
 import {
   templatesForEnterprises,
   type EnterpriseId,
-  type ProtocolType,
   type StandardProtocolTemplate,
 } from '@ogden/shared';
 import { C, F } from './tokens.js';
+import { TypeBadge } from './protocolTypeStyle.js';
+import type { ProposalDecision } from './types.js';
 
-// Type badge palette — one accent per protocol type, drawn from the prototype's
-// token set so the badges sit naturally beside the Design-Mode pills.
-const TYPE_STYLE: Record<ProtocolType, { bg: string; color: string; label: string }> = {
-  threshold: { bg: C.blueDim, color: C.blue, label: 'Threshold' },
-  judgment: { bg: C.amberDim, color: C.amber, label: 'Judgment' },
-  cyclical: { bg: C.tealDim, color: C.teal, label: 'Cyclical' },
-  freeform: { bg: C.goldDim, color: C.gold, label: 'Freeform' },
-};
-
-function TypeBadge({ type }: { type: ProtocolType }) {
-  const s = TYPE_STYLE[type];
-  return (
-    <span
-      style={{
-        background: s.bg,
-        border: `1px solid ${s.color}55`,
-        color: s.color,
-        borderRadius: 12,
-        padding: '2px 9px',
-        fontSize: 10,
-        fontWeight: 600,
-        letterSpacing: '0.04em',
-        whiteSpace: 'nowrap',
-        fontFamily: F.sans,
-      }}
-    >
-      {s.label}
-    </span>
-  );
-}
-
-function ProtocolLibraryCard({ template }: { template: StandardProtocolTemplate }) {
+function ProtocolLibraryCard({
+  template,
+  decision,
+  integrationApproved,
+}: {
+  template: StandardProtocolTemplate;
+  /** Post-confirmation decision for this template; 'pending' pre-confirmation. */
+  decision: ProposalDecision;
+  /** True once the Stratum-6 Integration objective has been approved (§10.1). */
+  integrationApproved: boolean;
+}) {
+  // Status label: before approval everything reads "Standard template"; after,
+  // activated templates read "Active" (green). Skipped ones move to a separate
+  // recoverable section, so they are not rendered by this card.
+  const isActive = integrationApproved && decision === 'activated';
+  const statusLabel = isActive ? 'Active' : 'Standard template';
+  const statusColor = isActive ? C.green : C.textTertiary;
   return (
     <div
       style={{
@@ -143,9 +129,25 @@ function ProtocolLibraryCard({ template }: { template: StandardProtocolTemplate 
             </span>
           ))}
         </div>
-        {/* Lifecycle status — standard templates are not-yet-activated proposals */}
-        <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-          Standard template
+        {/* Lifecycle status — pre-approval: not-yet-activated proposal; post: Active */}
+        <span
+          style={{
+            fontSize: 9,
+            color: statusColor,
+            fontFamily: F.sans,
+            fontWeight: 600,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+          }}
+        >
+          {isActive && (
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, display: 'inline-block' }} />
+          )}
+          {statusLabel}
         </span>
       </div>
     </div>
@@ -154,6 +156,10 @@ function ProtocolLibraryCard({ template }: { template: StandardProtocolTemplate 
 
 export default function ProtocolModePanel({
   enterprises = ['sheep_beef'],
+  decisions = {},
+  integrationApproved = false,
+  onRestore,
+  onNavigateToSource,
 }: {
   /**
    * The project's active animal enterprises (spec 4.3). Defaults to the
@@ -161,9 +167,24 @@ export default function ProtocolModePanel({
    * Silvopasture Pest Diversion template is correctly hidden.
    */
   enterprises?: readonly EnterpriseId[];
+  /** Per-template confirmation decision (post §4.1 flow), keyed by template id. */
+  decisions?: Record<string, ProposalDecision>;
+  /** True once the Stratum-6 Integration objective has been approved (§10.1). */
+  integrationApproved?: boolean;
+  /** Restore a skipped template to active (§4.1 recoverable skipped list). */
+  onRestore?: (id: string) => void;
+  /** Navigate back to the originating Stratum-6 Integration objective. */
+  onNavigateToSource?: () => void;
 }) {
   const templates = templatesForEnterprises(enterprises);
   const hasPoultry = enterprises.includes('poultry');
+  // Post-approval, split skipped templates out into the recoverable section.
+  const skippedTemplates = integrationApproved
+    ? templates.filter((t) => decisions[t.id] === 'skipped')
+    : [];
+  const visibleTemplates = integrationApproved
+    ? templates.filter((t) => decisions[t.id] !== 'skipped')
+    : templates;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: C.bg }}>
@@ -205,19 +226,134 @@ export default function ProtocolModePanel({
 
       {/* Scrollable library */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 22px 80px' }}>
+        {/* Pre-approval banner — templates are read-only proposals until the
+            Stratum-6 Integration objective is approved (§10.1 trigger). */}
+        {!integrationApproved && templates.length > 0 && (
+          <div
+            style={{
+              background: C.blueDim,
+              border: `1px solid ${C.blue}44`,
+              borderRadius: 9,
+              padding: '11px 14px',
+              marginBottom: 14,
+            }}
+          >
+            <div style={{ fontSize: 11, color: C.textPrimary, fontFamily: F.sans, lineHeight: 1.5, marginBottom: 8 }}>
+              Approve the{' '}
+              <span style={{ fontWeight: 700 }}>Stratum 6 — Integration</span> objective to instantiate
+              these as standing protocols.
+            </div>
+            {onNavigateToSource && (
+              <button
+                onClick={onNavigateToSource}
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${C.blue}66`,
+                  borderRadius: 7,
+                  color: C.blue,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  fontFamily: F.sans,
+                  padding: '5px 12px',
+                  cursor: 'pointer',
+                }}
+              >
+                Go to Integration objective →
+              </button>
+            )}
+          </div>
+        )}
+
         {templates.length === 0 ? (
           <div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans, fontStyle: 'italic', padding: '24px 0', textAlign: 'center' }}>
             No animal protocol templates — this property has no livestock enterprise.
           </div>
         ) : (
-          templates.map((t) => <ProtocolLibraryCard key={t.id} template={t} />)
+          visibleTemplates.map((t) => (
+            <ProtocolLibraryCard
+              key={t.id}
+              template={t}
+              decision={decisions[t.id] ?? 'pending'}
+              integrationApproved={integrationApproved}
+            />
+          ))
         )}
 
-        {/* Back-reference stub — later phases link to the Tier 5 objective */}
-        {templates.length > 0 && (
-          <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans, fontStyle: 'italic', marginTop: 6, lineHeight: 1.5 }}>
-            ⌒ Derived from Tier 5 ▸ Integration decisions · auto-instantiated on objective approval (deferred)
+        {/* Skipped — recoverable (§4.1). Skipped proposals are not lost; the
+            steward can restore any of them to an active standing protocol. */}
+        {skippedTemplates.length > 0 && (
+          <div style={{ marginTop: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: C.textTertiary, fontFamily: F.sans, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                Skipped — recoverable
+              </span>
+              <div style={{ flex: 1, height: 1, background: C.border }} />
+              <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>{skippedTemplates.length}</span>
+            </div>
+            {skippedTemplates.map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '10px 14px',
+                  background: C.bg2,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 9,
+                  marginBottom: 8,
+                  opacity: 0.85,
+                }}
+              >
+                <TypeBadge type={t.type} />
+                <span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans, flex: 1, minWidth: 0 }}>
+                  {t.name}
+                </span>
+                {onRestore && (
+                  <button
+                    onClick={() => onRestore(t.id)}
+                    style={{
+                      background: 'transparent',
+                      border: `1px solid ${C.green}66`,
+                      borderRadius: 7,
+                      color: C.green,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      fontFamily: F.sans,
+                      padding: '5px 12px',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    Restore
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
+        )}
+
+        {/* Back-reference — a real cross-link to the originating Stratum-6 objective. */}
+        {templates.length > 0 && onNavigateToSource && (
+          <button
+            onClick={onNavigateToSource}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: C.textTertiary,
+              fontSize: 10,
+              fontFamily: F.sans,
+              fontStyle: 'italic',
+              marginTop: 14,
+              lineHeight: 1.5,
+              cursor: 'pointer',
+              padding: 0,
+              textAlign: 'left',
+            }}
+          >
+            ⌒ Derived from Stratum 6 ▸ Integration decisions
+            {integrationApproved ? ' · instantiated on objective approval' : ' · auto-instantiated on objective approval'} →
+          </button>
         )}
       </div>
     </div>

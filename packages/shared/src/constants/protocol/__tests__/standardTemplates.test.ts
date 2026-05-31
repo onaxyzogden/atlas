@@ -30,6 +30,12 @@ describe('STANDARD_PROTOCOL_TEMPLATES', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it('records tierAuthored provenance on every template (spec §9.1 / §10.1)', () => {
+    for (const t of STANDARD_PROTOCOL_TEMPLATES) {
+      expect(t.tierAuthored).toBe('Stratum 6 — Integration');
+    }
+  });
+
   it('scopes only Pest Diversion to poultry; all others to sheep_beef', () => {
     for (const t of STANDARD_PROTOCOL_TEMPLATES) {
       if (t.id === PEST_DIVERSION_ID) {

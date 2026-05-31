@@ -16,6 +16,15 @@ export type SpineObjectiveStatus =
 
 export type SpineObjectiveSource = 'universal' | 'primary' | 'secondary';
 
+/**
+ * Per-proposal decision in the §4.1 auto-instantiation confirmation flow.
+ * Web-only prototype UI state — distinct from the spec's canonical
+ * `ProtocolStatus` lifecycle (draft/active/triggered/suspended/retired). A
+ * proposal starts 'pending', then the steward either 'activated' it (becomes a
+ * standing protocol) or 'skipped' it (recoverable from the §4.1 skipped list).
+ */
+export type ProposalDecision = 'pending' | 'activated' | 'skipped';
+
 export interface SpineStratum {
   n: number;
   name: string;
@@ -24,7 +33,14 @@ export interface SpineStratum {
   total: number;
 }
 
-export interface SpineProtocol {
+/**
+ * A named scope within an objective that partitions its Act checklist items and
+ * feeds an Observe domain. Mirrors the live `decisionGroups` field on
+ * planStratumObjective.schema.ts (DecisionGroup[]). Formerly mislabeled
+ * "protocol" in the prototype — renamed to free "Protocol" for the spec's
+ * conditional-rule Protocol Layer.
+ */
+export interface SpineDecisionGroup {
   id: string;
   label: string;
   count: number;
@@ -32,7 +48,7 @@ export interface SpineProtocol {
   done: boolean;
   /** Expandable read-only item previews (Act-only methodology). */
   items?: string[];
-  /** Set on patch protocols — the secondary layer that added them. */
+  /** Set on patch groups — the secondary layer that added them. */
   secondary?: string;
 }
 
@@ -45,8 +61,8 @@ export interface SpineObjective {
   question: string;
   actDone: number;
   actTotal: number;
-  protocols: SpineProtocol[];
-  patchProtocols: SpineProtocol[];
+  decisionGroups: SpineDecisionGroup[];
+  patchDecisionGroups: SpineDecisionGroup[];
   gate: string;
   handoff: string;
   observeFeeds: string[];
