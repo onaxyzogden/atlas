@@ -208,6 +208,54 @@ with group-level completion is a deliberate later refinement. Tests in
 grouped render, item bucketing, feed chips, amber attribution, and flat
 fallback. ADR: [[decisions/2026-05-31-atlas-decision-groups-encode]].
 
+## Portfolio Home P7 -- Dashboard polish, summary bar, access control, nav model (2026-05-31)
+
+Phase 7 of the OLOS Portfolio Home epic (`OLOS_Portfolio_Home_Spec_v1.0`) at
+`v3/portfolio/`. The multi-project surface (`/v3/portfolio`) is the forward
+"all projects" landing for stewards with 2+ projects.
+
+- **`portfolioModel.ts`** -- `portfolioAccess(project, roleMap)` is the single
+  source of truth for the spec's §8 access matrix: returns
+  `{ role, isOwnerTier, canEdit, isContractor }`, deriving every gate from
+  `hasCapability(role, cap)` (`@ogden/shared`), never role-name literals.
+  Local-only projects (no `serverId`) resolve to owner-tier. There is **no
+  `admin` ProjectRole**, so New-project stays open to all authed users
+  (creating ⇒ owner). Also exports `projectTypeBadges(p)` (shared by card +
+  rail) and `STAGE_PAINT` (the High-Tech Earth stage hexes; mirror of the
+  `--color-stage-*` tokens -- MapLibre can't read CSS vars).
+- **`PortfolioSummaryBar.tsx`** (in `PortfolioDashboardView` above `.grid`) --
+  total projects, total area (Σ numeric `p.acreage`, dominant `units`),
+  per-stage `STAGE_PAINT` count chips, open-divergences metric; each tappable,
+  driving a `stageFilter` + `divergedOnly` state lifted into
+  `PortfolioDashboardView` (no new store).
+- **`ProjectUrgencyCard.tsx`** -- full §3.3 BentoBox composition: stage colour
+  bar, serif name, type badges, stage + active-stratum + Plan-progress bar,
+  last-activity line, urgency-chip alert row (the old chip logic, preserved),
+  area, explicit Open CTA. Stage + Plan progress are computed once in the
+  parent (`usePortfolioStages`, `usePortfolioPlanProgress`) and passed as
+  props -- no per-card store subscriptions in the grid. `RoleBadge` kept for
+  non-steward roles. The `stage` prop is required.
+- **`usePortfolioContractorRedirect.ts`** -- component-level effect (roles are
+  async, so NOT in `beforeLoad`): a contractor-somewhere / owner-tier-nowhere
+  viewer is redirected to their assigned project's Act surface, avoiding the
+  PerProjectHomePage contractor empty-state dead-end.
+- **Nav model §6** -- `landingRoute` (`routes/index.tsx`) `beforeLoad` is a
+  sync project-count branch on `useProjectStore.getState()` (zustand-persist,
+  hydrates synchronously): 0 → `/home`, 1 → `/v3/project/$id/home`, 2+ →
+  `/v3/portfolio`; no role logic. `AppShell.tsx` "All Projects → `/v3/project`"
+  repointed to `/v3/portfolio` "Portfolio".
+- **Compare gating** -- cross-project Observe compare entry points hidden in
+  `PortfolioProjectList` (new `canCompare` prop) + `DomainDetailHeader`;
+  `PortfolioObserveComparePage` short-circuits to a read-only notice when the
+  viewer is owner-tier on no project.
+
+Commit `6bdbb80c` (17 files). Web tsc clean (own files);
+`ProjectUrgencyCard` 3/3. P1-P6 of this four-zone spec were code-committed but
+not previously logged in the wiki. ADR
+[[decisions/2026-05-31-atlas-portfolio-home-p7]]; log
+[[log/2026-05-31-portfolio-home-p7]]; continues
+[[log/2026-05-28-portfolio-home-slice53]].
+
 ## Act Tier Shell -- promoted to the default Act page (2026-05-30)
 
 The Act stage now opens on a **map-centric 4-rail tier shell** by default, the
