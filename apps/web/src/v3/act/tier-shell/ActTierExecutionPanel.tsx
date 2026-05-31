@@ -150,6 +150,7 @@ export default function ActTierExecutionPanel({
       sourceType: 'manual_observation',
       sourceActionId: null,
       sourceFeedEntryId: null,
+      sourceObjectiveId: objective.id,
       locationGeometry: null,
       cycleId: 0,
       isSuperseded: false,

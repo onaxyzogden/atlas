@@ -86,6 +86,7 @@ export function buildBuiltinObserveDataPoints(
       sourceType: 'manual_observation' as const,
       sourceActionId: null,
       sourceFeedEntryId: null,
+      sourceObjectiveId: null,
       locationGeometry: row.location
         ? { type: 'Point' as const, coordinates: [row.location[0], row.location[1]] }
         : null,

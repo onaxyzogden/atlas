@@ -55,6 +55,10 @@ export function routeToDataPoint(
         : 'task_verification',
     sourceActionId: entry.sourceActionId,
     sourceFeedEntryId: entry.id,
+    // Feed projections are not objective-scoped here; enriching this from the
+    // entry's parent objective is a named deferred item (see the Act/Observe
+    // objective-link ADR).
+    sourceObjectiveId: null,
     locationGeometry: null,
     cycleId: 0,
     isSuperseded: false,

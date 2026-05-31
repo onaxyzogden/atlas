@@ -49,6 +49,14 @@ interface ObserveDataPointState {
     projectId: string,
     domainId: ObserveDataPoint['domainId'],
   ) => readonly ObserveDataPoint[];
+  getByObjective: (
+    projectId: string,
+    objectiveId: string,
+  ) => readonly ObserveDataPoint[];
+  getActiveByObjective: (
+    projectId: string,
+    objectiveId: string,
+  ) => readonly ObserveDataPoint[];
 
   // --- mutators ---
   /** Insert a new data point. Computes supersession against existing
@@ -98,6 +106,16 @@ export const useObserveDataPointStore = create<ObserveDataPointState>()(
       getActiveByDomain: (projectId, domainId) =>
         (get().byProject[projectId] ?? []).filter(
           (p) => p.domainId === domainId && !p.isSuperseded,
+        ),
+
+      getByObjective: (projectId, objectiveId) =>
+        (get().byProject[projectId] ?? []).filter(
+          (p) => p.sourceObjectiveId === objectiveId,
+        ),
+
+      getActiveByObjective: (projectId, objectiveId) =>
+        (get().byProject[projectId] ?? []).filter(
+          (p) => p.sourceObjectiveId === objectiveId && !p.isSuperseded,
         ),
 
       recordDataPoint: (point) =>
@@ -161,8 +179,24 @@ export const useObserveDataPointStore = create<ObserveDataPointState>()(
     }),
     {
       name: PERSIST_KEY,
-      version: 1,
+      version: 2,
       partialize: (state) => ({ byProject: state.byProject }),
+      // v2: ObserveDataPoint gained sourceObjectiveId. Persisted points are
+      // not re-parsed on rehydrate, so backfill the field to null to keep
+      // stored data consistent with the schema's output type.
+      migrate: (persisted, version) => {
+        const state = persisted as { byProject?: ByProject } | undefined;
+        if (!state || version >= 2) return state as { byProject: ByProject };
+        const byProject = state.byProject ?? {};
+        const next: ByProject = {};
+        for (const [projectId, points] of Object.entries(byProject)) {
+          next[projectId] = (points ?? []).map((p) => ({
+            ...p,
+            sourceObjectiveId: p.sourceObjectiveId ?? null,
+          }));
+        }
+        return { byProject: next };
+      },
     },
   ),
 );

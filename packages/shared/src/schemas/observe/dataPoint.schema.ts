@@ -9,7 +9,9 @@
 // sourceActionId), from a divergence-evidence capture (also via
 // sourceActionId), from an existing ObserveFeedEntry projection (via
 // sourceFeedEntryId), or from a manual observation captured directly
-// against the dashboard surface.
+// against the dashboard surface. A point may additionally carry
+// sourceObjectiveId — the Plan objective it was recorded against (set
+// by the Act execution panel) — for Plan->Act->Observe provenance.
 //
 // `cycleId` is a monotonically advancing integer per (project, domain)
 // stamped by `cycleAdvance.ts` (Phase 4 Slice 4.5) whenever a Plan
@@ -87,6 +89,8 @@ export const ObserveDataPointSchema = z
     sourceActionId: z.string().nullable().default(null),
     /** Phase 3 ObserveFeedEntry id this observation projected from (null = direct). */
     sourceFeedEntryId: z.string().nullable().default(null),
+    /** Plan objective this observation was recorded against (null = not objective-scoped). */
+    sourceObjectiveId: z.string().nullable().default(null),
     locationGeometry: ObserveDataPointGeometrySchema.nullable().default(null),
     /** Monotonic per (project, domain); advanced by Plan revision confirmation. */
     cycleId: z.number().int().nonnegative().default(0),

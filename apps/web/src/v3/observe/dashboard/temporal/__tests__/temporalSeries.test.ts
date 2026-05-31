@@ -23,6 +23,7 @@ function point(
     sourceType: 'task_verification',
     sourceActionId: null,
     sourceFeedEntryId: null,
+    sourceObjectiveId: null,
     locationGeometry: null,
     cycleId: 1,
     isSuperseded: false,

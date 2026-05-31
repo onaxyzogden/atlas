@@ -29,6 +29,7 @@ function fixture(
     sourceType: 'manual_observation',
     sourceActionId: null,
     sourceFeedEntryId: null,
+    sourceObjectiveId: null,
     locationGeometry: null,
     cycleId: 0,
     isSuperseded: false,
