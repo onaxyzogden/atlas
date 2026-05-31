@@ -29,6 +29,11 @@ import LaunchActButton from './LaunchActButton.js';
 import CyclicalReviewBanner from './CyclicalReviewBanner.js';
 import CyclicalReviewModal from './CyclicalReviewModal.js';
 import type { VisionDerivedMap } from './visionProfileToChecklist.js';
+// Plan Spine re-skin — the panel is now the full-bleed RIGHT pane of the
+// 3-column spine shell (no longer a bordered BentoBox card). Its inner sections
+// (map body, reference placeholders) keep their existing CSS module, which
+// already resolves against the app's dark `--color-*` theme.
+import { C } from '../spine/tokens.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 interface Props {
@@ -131,9 +136,17 @@ export default function ObjectiveDetailPanel({
 
   return (
     <section
-      className={css.panel}
       aria-label={`Objective: ${objective.title}`}
       data-testid="plan-objective-detail-panel"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minWidth: 0,
+        minHeight: 0,
+        height: '100%',
+        overflow: 'hidden auto',
+        background: C.bg,
+      }}
     >
       <ObjectiveHeader
         stratum={stratum}

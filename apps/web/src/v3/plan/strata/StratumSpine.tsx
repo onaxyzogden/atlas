@@ -1,9 +1,10 @@
-// StratumSpine — vertical column of 7 StratumRows with a connecting line that
-// threads through the spine dots (Plan Navigation Spec v1, Slice 1.4).
-// The spine is the centrepiece of the Plan stratum shell: it shows the
-// stewardship arc S1 -> S7 + each stratum's roll-up state and click
-// behaviour. The parent (PlanStratumShell) decides what tap-on-locked means
-// so this component stays presentational.
+// StratumSpine — vertical column of 7 StratumSpineCircles forming the LEFT rail
+// of the Plan stratum shell (Plan Navigation Spec v1, Slice 1.4; re-skinned to
+// the Plan Spine layout). The spine shows the stewardship arc S1 -> S7 + each
+// stratum's roll-up state and click behaviour. The parent (PlanStratumShell)
+// owns the surrounding 220px column chrome (header + progress footer) and
+// decides what tap-on-locked means, so this component stays presentational —
+// it renders only the scrollable list of organic stratum circles.
 
 import type {
   PlanStratum,
@@ -11,8 +12,7 @@ import type {
   PlanStratumObjectiveStatus,
   PlanStratumState,
 } from '@ogden/shared';
-import StratumRow from './StratumRow.js';
-import css from './StratumSpine.module.css';
+import StratumSpineCircle from './StratumSpineCircle.js';
 
 interface Props {
   strata: readonly PlanStratum[];
@@ -40,8 +40,17 @@ export default function StratumSpine({
   onSelectStratum,
 }: Props) {
   return (
-    <ol className={css.spine} aria-label="Plan stratum spine">
-      <span className={css.spineLine} aria-hidden="true" />
+    <ol
+      aria-label="Plan stratum spine"
+      style={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: 'auto',
+        listStyle: 'none',
+        margin: 0,
+        padding: '8px 6px',
+      }}
+    >
       {strata.map((stratum) => {
         const stratumObjectives = objectives.filter(
           (o) => o.stratumId === stratum.id,
@@ -53,8 +62,8 @@ export default function StratumSpine({
         const isHighlighting =
           highlightStratumId === stratum.id && state !== 'complete';
         return (
-          <li key={stratum.id} className={css.spineItem}>
-            <StratumRow
+          <li key={stratum.id} style={{ margin: 0, padding: 0 }}>
+            <StratumSpineCircle
               stratum={stratum}
               state={state}
               objectiveCount={stratumObjectives.length}

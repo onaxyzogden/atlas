@@ -52,7 +52,12 @@ import {
   mergeDerivedIntoProgress,
   type VisionDerivedMap,
 } from './visionProfileToChecklist.js';
-import css from './PlanStratumShell.module.css';
+// Plan Spine re-skin — the live strata shell now renders in the prototype's
+// dark/gold 3-column spine layout. Colour/font tokens (`C`/`F`/`CA`) resolve to
+// the `--spine-*` custom properties declared in spine-theme.css, which is
+// scoped to `.olos-spine-root` so it never leaks into sibling surfaces.
+import { C, F } from '../spine/tokens.js';
+import '../spine/spine-theme.css';
 
 const HIGHLIGHT_DURATION_MS = 3000;
 const S1_STRATUM_ID = 's1-project-foundation';
@@ -428,45 +433,119 @@ export default function PlanStratumShell({
     navigateToObjective(obj.id, obj.stratumId);
   };
 
-  const hasObjectiveColumn = activeStratum !== null;
   const hasDetailPanel = activeObjective !== null && activeStratum !== null;
 
   return (
-    <div className={css.shell}>
-      <PlanNavToggle mode={shellMode} onChange={onShellModeChange} />
-      <div className={css.intro}>
-        <div className={css.introHead}>
-          <h2 className={css.title}>Plan stratum spine</h2>
+    <div
+      className="olos-spine-root"
+      style={{
+        height: '100%',
+        display: 'flex',
+        background: C.bg,
+        fontFamily: F.sans,
+        color: C.textPrimary,
+        overflow: 'hidden',
+      }}
+    >
+      <style>{`
+        .olos-spine-root *, .olos-spine-root *::before, .olos-spine-root *::after { box-sizing: border-box; }
+        .olos-spine-root ::-webkit-scrollbar { width: 3px; }
+        .olos-spine-root ::-webkit-scrollbar-track { background: transparent; }
+        .olos-spine-root ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 2px; }
+      `}</style>
+
+      {/* ── LEFT: 220px stratum spine ── */}
+      <div
+        style={{
+          width: 220,
+          flexShrink: 0,
+          background: C.bg2,
+          borderRight: `1px solid ${C.border}`,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Spine header — title, blurb, Project-type trigger, shell nav toggle */}
+        <div
+          style={{
+            padding: '16px 14px 12px',
+            borderBottom: `1px solid ${C.border}`,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              color: C.textTertiary,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              marginBottom: 6,
+            }}
+          >
+            OLOS · Plan
+          </div>
+          <h2
+            style={{
+              margin: '0 0 4px',
+              fontSize: 15,
+              fontWeight: 700,
+              letterSpacing: '-0.01em',
+              color: C.textPrimary,
+            }}
+          >
+            Plan stratum spine
+          </h2>
+          <p style={{ margin: 0, fontSize: 11, lineHeight: 1.45, color: C.textSecondary }}>
+            7 strata from foundation to phasing. Each unlocks once its
+            prerequisites complete.
+          </p>
+
           {primaryTypeId && (
             <button
               type="button"
-              className={css.typeButton}
               onClick={() => setSecondaryAddOpen(true)}
               data-testid="plan-secondary-add-trigger"
+              style={{
+                marginTop: 10,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 11px',
+                borderRadius: 999,
+                border: `1px solid ${C.border}`,
+                background: C.bg3,
+                color: C.textSecondary,
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                fontFamily: F.sans,
+              }}
             >
-              <Layers size={13} aria-hidden />
+              <Layers size={12} aria-hidden />
               <span>Project type</span>
             </button>
           )}
+
+          {/* Plan shell nav toggle (stratum-spine ⇄ legacy module-bar) */}
+          <div style={{ marginTop: 12 }}>
+            <PlanNavToggle mode={shellMode} onChange={onShellModeChange} />
+          </div>
         </div>
-        <p className={css.subtitle}>
-          7 strata from foundation to phasing. Each stratum unlocks once its
-          prerequisites complete.
-        </p>
-      </div>
 
-      {observeGapCount > 0 && (
-        <ObserveGapBanner
-          count={observeGapCount}
-          onDismiss={() => setObserveGapCount(0)}
-        />
-      )}
+        {/* Observe-stage data-gap banner (transient, from a mid-project add) */}
+        {observeGapCount > 0 && (
+          <div style={{ padding: '8px 12px 0' }}>
+            <ObserveGapBanner
+              count={observeGapCount}
+              onDismiss={() => setObserveGapCount(0)}
+            />
+          </div>
+        )}
 
-      <div
-        className={css.layout}
-        data-has-objective-column={hasObjectiveColumn}
-        data-has-detail-panel={hasDetailPanel}
-      >
+        {/* Strata list (own scroll region) */}
         <StratumSpine
           strata={PLAN_STRATA}
           objectives={objectives}
@@ -476,24 +555,37 @@ export default function PlanStratumShell({
           highlightStratumId={highlightStratumId}
           onSelectStratum={handleSelectStratum}
         />
+      </div>
 
-        {activeStratum && (
-          <ObjectiveColumn
-            stratum={activeStratum}
-            objectives={objectives}
-            objectiveStatuses={objectiveStatuses}
-            activeObjectiveId={activeObjectiveId}
-            highlightObjectiveIds={highlightObjectiveIds}
-            projectId={projectId}
-            tensions={activeTensions}
-            activeStratumId={activeStratumId}
-            onSelectObjective={handleSelectObjective}
-            onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
-            onRestoreObjective={(obj) => undeferObjective(projectId, obj.id)}
-          />
-        )}
+      {/* ── CENTRE: objective column (mounts only when a stratum is open) ── */}
+      {activeStratum && (
+        <ObjectiveColumn
+          stratum={activeStratum}
+          objectives={objectives}
+          objectiveStatuses={objectiveStatuses}
+          activeObjectiveId={activeObjectiveId}
+          highlightObjectiveIds={highlightObjectiveIds}
+          projectId={projectId}
+          tensions={activeTensions}
+          activeStratumId={activeStratumId}
+          onSelectObjective={handleSelectObjective}
+          onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
+          onRestoreObjective={(obj) => undeferObjective(projectId, obj.id)}
+        />
+      )}
 
-        {hasDetailPanel && activeObjective && activeStratum && (
+      {/* ── RIGHT: objective detail panel (flex-1) ── */}
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+      >
+        {hasDetailPanel && activeObjective && activeStratum ? (
           <ObjectiveDetailPanel
             key={activeObjective.id}
             projectId={projectId}
@@ -504,6 +596,24 @@ export default function PlanStratumShell({
             onBackToStratum={navigateToStratum}
             visionDerivedMap={derivedMap}
           />
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              padding: 24,
+              textAlign: 'center',
+              color: C.textTertiary,
+              fontSize: 13,
+              fontFamily: F.sans,
+            }}
+          >
+            {activeStratum
+              ? 'Select an objective to view its decisions and map.'
+              : 'Select a stratum to begin.'}
+          </div>
         )}
       </div>
 

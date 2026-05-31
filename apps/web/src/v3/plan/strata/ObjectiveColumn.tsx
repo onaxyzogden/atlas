@@ -26,6 +26,11 @@ import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
 import DesignTensionBanner from './DesignTensionBanner.js';
 import { getSourceTag, type SourceTagKind } from './sourceTag.js';
+// Plan Spine re-skin — the column container + source-filter pills now use the
+// spine palette tokens so they sit in the dark/gold 3-column shell. The card
+// children (NextUpCard, ObjectiveCard, banners) keep their own CSS modules,
+// which already resolve against the app's dark `--color-*` theme.
+import { C, F } from '../spine/tokens.js';
 import css from './ObjectiveColumn.module.css';
 
 const DIVERGENT_STATUSES = new Set([
@@ -303,7 +308,37 @@ export default function ObjectiveColumn({
   }, [visibleObjectives, nextUp, objectiveStatuses]);
 
   return (
-    <section className={css.column} aria-label={`Objectives in ${stratum.title}`}>
+    <section
+      aria-label={`Objectives in ${stratum.title}`}
+      style={{
+        width: 292,
+        flexShrink: 0,
+        minWidth: 0,
+        minHeight: 0,
+        overflowY: 'auto',
+        background: C.bg,
+        borderRight: `1px solid ${C.border}`,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        padding: '14px 12px',
+      }}
+    >
+      {/* Stratum heading — orients the column inside the dark spine shell. */}
+      <div>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: C.textPrimary,
+            marginBottom: 2,
+          }}
+        >
+          Stratum {stratum.ordinal}
+        </div>
+        <div style={{ fontSize: 11, color: C.textSecondary }}>{stratum.title}</div>
+      </div>
+
       {tensionList.length > 0 && (
         <DesignTensionBanner
           tensions={tensionList}
@@ -315,24 +350,37 @@ export default function ObjectiveColumn({
 
       {sourceKinds.size > 1 && (
         <div
-          className={css.filterBar}
           role="group"
           aria-label="Filter objectives by source"
+          style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}
         >
           {SOURCE_FILTERS.filter(
             (f) => f.key === 'all' || sourceKinds.has(f.key),
-          ).map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              className={css.filterButton}
-              data-active={effectiveFilter === f.key}
-              aria-pressed={effectiveFilter === f.key}
-              onClick={() => setSourceFilter(f.key)}
-            >
-              {f.label}
-            </button>
-          ))}
+          ).map((f) => {
+            const isActive = effectiveFilter === f.key;
+            return (
+              <button
+                key={f.key}
+                type="button"
+                data-active={isActive}
+                aria-pressed={isActive}
+                onClick={() => setSourceFilter(f.key)}
+                style={{
+                  padding: '3px 10px',
+                  borderRadius: 10,
+                  border: `1px solid ${isActive ? C.blue : C.border}`,
+                  background: isActive ? C.blueDim : 'transparent',
+                  color: isActive ? C.blue : C.textTertiary,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  fontFamily: F.sans,
+                }}
+              >
+                {f.label}
+              </button>
+            );
+          })}
         </div>
       )}
 
