@@ -223,10 +223,16 @@ persist migration). The two legacy Act shells stay reachable behind
 - **Stratum execution state** comes from the new shared
   `computeAllActStratumStates` (see [[shared-package]]), which -- unlike Plan's
   `computeStratumState` -- **never returns `locked`** (Act execution reaches every
-  stratum). The one non-real bit: objective markers use a deterministic
-  centroid-offset (no per-objective geometry exists yet), flagged for a real-geometry
-  pass. Known deferred seam: `ViewAObjectiveExecution`'s "Back to all tasks" still
-  routes to `act/field-action`, not mode-aware.
+  stratum). Objective markers are now **real** (2026-05-31, [[log/2026-05-31-act-tier-shell-followups]]):
+  pure `tier-shell/objectiveMarkerGeometry.ts` (`representativePoint` +
+  `computeObjectiveMarkerPositions`) sites each pin at the centroid of its
+  objective's field-action `locationGeometry` (Point/LineString/Polygon via
+  `lib/geo.ts` `polygonCentroid`); objectives with no logged geometry render
+  **no pin** (hide-until-real, no synthetic fallback -- ADR
+  [[decisions/2026-05-31-atlas-act-objective-marker-geometry]]). MTC's seed logs no
+  geometry so it shows zero objective pins today. `ViewAObjectiveExecution`'s
+  "Back to all tasks" is now mode-aware -- it resolves `getActShellMode` inside ViewA
+  and returns to `act/tier-shell` vs `act/field-action` for whichever shell is active.
 
 ## Zustand Stores (25)
 All use `persist` middleware with localStorage. Key stores:
