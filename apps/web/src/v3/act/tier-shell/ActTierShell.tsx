@@ -79,9 +79,14 @@ import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import VisionFormModal from './VisionFormModal.js';
 import type { ActTool } from './actToolCatalog.js';
+import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
 import styles from './ActTierShell.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
+// Stable empty fallback for the visionForms selector so it never returns a
+// new object literal, which would trigger an infinite React re-render loop
+// under Zustand v5 (getSnapshot result must be referentially stable).
+const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
 const DEFAULT_STRATUM_ID = 's2-land-reading';
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 
@@ -197,15 +202,19 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   );
   const [activeModule, setActiveModule] = useState<ActModule | null>(null);
 
-  // Form-arm state: which VisionFormModal is open and per-formId saved text.
-  // Text is ephemeral (survives within the session, resets on reload).
-  // Full cross-session persistence in planStratumStore is a follow-up slice.
+  // Form-arm state: which VisionFormModal is open (local UI state, ephemeral).
+  // The text VALUES the steward enters are persisted in actEvidenceStore.
   const [openForm, setOpenForm] = useState<{
     formId: string;
     prompt: string;
     placeholder?: string;
   } | null>(null);
-  const [formValues, setFormValues] = useState<Record<string, string>>({});
+
+  // Read vision form values from the persisted store (keyed by formId under
+  // this project). Falls back to an empty record when nothing is saved yet.
+  const visionForms = useActEvidenceStore(
+    (s) => s.visionForms[id] ?? EMPTY_FORMS,
+  );
 
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
@@ -267,10 +276,13 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     [goToObjective],
   );
 
-  const handleFormSave = useCallback((formId: string, text: string) => {
-    setFormValues((prev) => ({ ...prev, [formId]: text }));
-    setOpenForm(null);
-  }, []);
+  const handleFormSave = useCallback(
+    (formId: string, text: string) => {
+      useActEvidenceStore.getState().saveVisionForm(id, formId, text);
+      setOpenForm(null);
+    },
+    [id],
+  );
 
   const handleActivateTool = useCallback(
     (tool: ActTool) => {
@@ -422,6 +434,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
               <div className={styles.rightBody}>
                 {rightMode === 'detail' && selectedObjective ? (
                   <ActTierExecutionPanel
+                    projectId={id}
                     tier={selectedObjectiveTier}
                     objective={selectedObjective}
                     status={selectedObjectiveStatus}
@@ -447,7 +460,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         formId={openForm?.formId ?? ''}
         prompt={openForm?.prompt ?? ''}
         placeholder={openForm?.placeholder}
-        initialValue={openForm ? (formValues[openForm.formId] ?? '') : ''}
+        initialValue={openForm ? (visionForms[openForm.formId] ?? '') : ''}
         onSave={handleFormSave}
         onClose={() => setOpenForm(null)}
       />

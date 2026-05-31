@@ -1,16 +1,19 @@
 // ActTierExecutionPanel.tsx
 //
-// Production tier-shell right-rail detail panel: progress + checklist + ephemeral
-// evidence capture for the selected objective. Promoted from the (disposable)
-// tier-prototype ActProtoExecutionPanel so production owns its own copy.
+// Production tier-shell right-rail detail panel: progress + checklist +
+// persisted evidence capture for the selected objective. Promoted from the
+// (disposable) tier-prototype ActProtoExecutionPanel so production owns its
+// own copy.
 //
-// The Evidence section is now OBJECTIVE-DRIVEN: each objective declares which
-// proof items it requires via getObjectiveEvidence (packages/shared), instead of
-// the old hardcoded trio shown for every objective. Evidence state (photos /
-// confirms / notes / checklist) is still LOCAL and not yet persisted -- a
-// deliberate visual-first swap; store wiring is a separate follow-up.
+// Evidence is now OBJECTIVE-DRIVEN (each objective declares which proof items
+// it requires via getObjectiveEvidence, @ogden/shared) and PERSISTED:
+//
+//   - Checklist completion  -> planStratumStore.toggleItem (projectId, objectiveId, itemId)
+//                             Same store the Plan stage reads; item ids are globally
+//                             unique so progress is shared across Act + Plan views.
+//   - Photo counts / confirms / notes -> actEvidenceStore (projectId, objectiveId, descriptorId)
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Camera, Check, ClipboardCheck, Plus } from 'lucide-react';
 import type {
   PlanStratum,
@@ -19,27 +22,54 @@ import type {
   EvidenceDescriptor,
 } from '@ogden/shared';
 import { getObjectiveEvidence } from '@ogden/shared';
+import {
+  usePlanStratumProgressStore,
+} from '../../../store/planStratumStore.js';
+import {
+  useActEvidenceStore,
+  EMPTY_CAPTURE,
+} from '../../../store/actEvidenceStore.js';
 import styles from './ActTierExecutionPanel.module.css';
 
+// Stable empty fallback so the completedIds selector never returns a new
+// array reference when the project has no progress for this objective yet.
+const EMPTY_IDS: readonly string[] = Object.freeze([]);
+
 interface Props {
+  projectId: string;
   tier: PlanStratum | undefined;
   objective: PlanStratumObjective;
   status: PlanStratumObjectiveStatus;
 }
 
 export default function ActTierExecutionPanel({
+  projectId,
   tier,
   objective,
   status,
 }: Props) {
-  const [checked, setChecked] = useState<Set<string>>(() => new Set());
-  // Evidence state keyed by descriptor id so multiple cards of the same kind
-  // can coexist (e.g. two photo cards). Local + ephemeral per the header note.
-  const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
-  const [confirms, setConfirms] = useState<Record<string, boolean>>({});
-  const [notes, setNotes] = useState<Record<string, string>>({});
-  const [noteSaved, setNoteSaved] = useState<Record<string, boolean>>({});
+  // -------------------------------------------------------------------------
+  // Checklist -- wired to planStratumStore (shared with Plan stage).
+  // -------------------------------------------------------------------------
+  const completedIds = usePlanStratumProgressStore(
+    (s) => s.byProject[projectId]?.[objective.id] ?? EMPTY_IDS,
+  );
+  const toggleItem = usePlanStratumProgressStore((s) => s.toggleItem);
 
+  // -------------------------------------------------------------------------
+  // Evidence -- wired to actEvidenceStore.
+  // -------------------------------------------------------------------------
+  const capture = useActEvidenceStore(
+    (s) => s.byProject[projectId]?.[objective.id] ?? EMPTY_CAPTURE,
+  );
+  const addPhoto = useActEvidenceStore((s) => s.addPhoto);
+  const setConfirm = useActEvidenceStore((s) => s.setConfirm);
+  const updateNote = useActEvidenceStore((s) => s.updateNote);
+  const saveNote = useActEvidenceStore((s) => s.saveNote);
+
+  // -------------------------------------------------------------------------
+  // Progress derivations.
+  // -------------------------------------------------------------------------
   const evidence = useMemo(
     () => getObjectiveEvidence(objective),
     [objective],
@@ -47,28 +77,20 @@ export default function ActTierExecutionPanel({
 
   const total = objective.checklist.length;
   const done = useMemo(
-    () => objective.checklist.filter((item) => checked.has(item.id)).length,
-    [objective.checklist, checked],
+    () =>
+      objective.checklist.filter((item) => completedIds.includes(item.id))
+        .length,
+    [objective.checklist, completedIds],
   );
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
   const ready = total > 0 && done === total;
 
-  function toggle(itemId: string) {
-    setChecked((prev) => {
-      const next = new Set(prev);
-      if (next.has(itemId)) {
-        next.delete(itemId);
-      } else {
-        next.add(itemId);
-      }
-      return next;
-    });
-  }
-
-  // Render one evidence card from its descriptor. Each branch reproduces the
-  // exact markup/classes the old hardcoded cards used, so the visual is
-  // unchanged for any card that is shown -- only WHICH cards appear is now
-  // objective-driven.
+  // -------------------------------------------------------------------------
+  // Evidence card renderer. Each branch reproduces the exact markup/classes
+  // the old hardcoded cards used, so the visual is unchanged for any card
+  // that is shown -- only WHICH cards appear is objective-driven, and the
+  // state is now persisted rather than ephemeral.
+  // -------------------------------------------------------------------------
   function renderEvidenceCard(descriptor: EvidenceDescriptor) {
     const reqMark = descriptor.required ? (
       <span className={styles.req}> *</span>
@@ -76,7 +98,7 @@ export default function ActTierExecutionPanel({
 
     if (descriptor.kind === 'photo') {
       const target = descriptor.target ?? 1;
-      const count = photoCounts[descriptor.id] ?? 0;
+      const count = capture.photos[descriptor.id] ?? 0;
       return (
         <div className={styles.evCard} key={descriptor.id}>
           <div className={styles.evCardTop}>
@@ -92,10 +114,7 @@ export default function ActTierExecutionPanel({
             type="button"
             className={styles.evBtnFull}
             onClick={() =>
-              setPhotoCounts((prev) => ({
-                ...prev,
-                [descriptor.id]: Math.min(target, (prev[descriptor.id] ?? 0) + 1),
-              }))
+              addPhoto(projectId, objective.id, descriptor.id, target)
             }
           >
             <Camera size={14} aria-hidden="true" />
@@ -106,7 +125,7 @@ export default function ActTierExecutionPanel({
     }
 
     if (descriptor.kind === 'confirm') {
-      const ok = confirms[descriptor.id] ?? false;
+      const ok = capture.confirms[descriptor.id] ?? false;
       return (
         <div className={styles.evCard} key={descriptor.id}>
           <div className={styles.evCardTop}>
@@ -121,7 +140,7 @@ export default function ActTierExecutionPanel({
             className={styles.evBtnFull}
             data-confirmed={ok}
             onClick={() =>
-              setConfirms((prev) => ({ ...prev, [descriptor.id]: true }))
+              setConfirm(projectId, objective.id, descriptor.id, true)
             }
           >
             <Check size={14} aria-hidden="true" />
@@ -132,8 +151,8 @@ export default function ActTierExecutionPanel({
     }
 
     // kind === 'note'
-    const noteValue = notes[descriptor.id] ?? '';
-    const saved = noteSaved[descriptor.id] ?? false;
+    const noteValue = capture.notes[descriptor.id] ?? '';
+    const saved = capture.notesSaved[descriptor.id] ?? false;
     return (
       <div className={styles.evCard} key={descriptor.id}>
         <div className={styles.evCardTop}>
@@ -149,9 +168,12 @@ export default function ActTierExecutionPanel({
           placeholder={descriptor.label}
           value={noteValue}
           onChange={(event) => {
-            const { value } = event.target;
-            setNotes((prev) => ({ ...prev, [descriptor.id]: value }));
-            setNoteSaved((prev) => ({ ...prev, [descriptor.id]: false }));
+            updateNote(
+              projectId,
+              objective.id,
+              descriptor.id,
+              event.target.value,
+            );
           }}
         />
         <div className={styles.evBtnRow}>
@@ -161,7 +183,7 @@ export default function ActTierExecutionPanel({
             data-saved={saved}
             disabled={noteValue.trim().length === 0}
             onClick={() =>
-              setNoteSaved((prev) => ({ ...prev, [descriptor.id]: true }))
+              saveNote(projectId, objective.id, descriptor.id)
             }
           >
             {saved ? 'Saved' : 'Save note'}
@@ -201,8 +223,8 @@ export default function ActTierExecutionPanel({
             <label key={item.id} className={styles.execCheckRow}>
               <input
                 type="checkbox"
-                checked={checked.has(item.id)}
-                onChange={() => toggle(item.id)}
+                checked={completedIds.includes(item.id)}
+                onChange={() => toggleItem(projectId, objective.id, item.id)}
               />
               <span>
                 {item.label}
