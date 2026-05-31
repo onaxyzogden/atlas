@@ -50,7 +50,18 @@
 // em/en dashes -> " - "; curly quotes -> straight.
 
 import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj } from './authoring.js';
+import { ck, dg, obj } from './authoring.js';
+
+// Decision groups (Decision Groups Reference v1.0; OLOS spec 9.3-9.4) - AUTHORED
+// under the 2026-05-31 extended override ("author meaningful labels"). The
+// reference doc's Wellness (WL) section enumerates a different, older objective
+// set whose groups are generic placeholders ("Primary decisions / Secondary
+// considerations -> Multiple") on WL.S refs that do not map to this v1.0
+// catalogue's WELL-S refs/titles. So every group here - label, item membership,
+// and observeFeeds - is authored editorially to partition each objective's
+// checklist into 1-3 named decision scopes (full mutually-exclusive partition).
+// Universal-objective groups live in universal.ts (the RF-anchored set); this
+// file carries only the wellness primary + authored secondary layers.
 
 const PRIMARY = 'wellness' as const;
 
@@ -90,6 +101,18 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s1-healing-philosophy-c6',
         'Document philosophy as a design constraint - all Tier 3-4 decisions evaluated against it',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s1-healing-philosophy-dg1', 'Philosophy & modalities', [
+        'well-s1-healing-philosophy-c1',
+        'well-s1-healing-philosophy-c2',
+        'well-s1-healing-philosophy-c3',
+      ]),
+      dg('well-s1-healing-philosophy-dg2', 'Environmental constraints & sign-off', [
+        'well-s1-healing-philosophy-c4',
+        'well-s1-healing-philosophy-c5',
+        'well-s1-healing-philosophy-c6',
+      ]),
     ],
     completionGate:
       'Healing philosophy approved. Design constraint document signed by all practitioners.',
@@ -131,6 +154,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s1-guest-intake-c6',
         'Confirm intake framework is consistent with practitioner scope of practice',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s1-guest-intake-dg1', 'Guest profile & welcomed conditions', [
+        'well-s1-guest-intake-c1',
+        'well-s1-guest-intake-c2',
+      ]),
+      dg('well-s1-guest-intake-dg2', 'Assessment & referral boundaries', [
+        'well-s1-guest-intake-c3',
+        'well-s1-guest-intake-c4',
+      ]),
+      dg('well-s1-guest-intake-dg3', 'Intake process', [
+        'well-s1-guest-intake-c5',
+        'well-s1-guest-intake-c6',
+      ]),
     ],
     completionGate:
       'Guest intake and suitability framework approved. All conditions classified and intake process defined.',
@@ -175,6 +212,21 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Obtain legal or professional advice before any therapeutic service is offered',
       ),
     ],
+    decisionGroups: [
+      dg('well-s1-regulatory-standards-dg1', 'Qualifications & insurance', [
+        'well-s1-regulatory-standards-c1',
+        'well-s1-regulatory-standards-c2',
+      ]),
+      dg('well-s1-regulatory-standards-dg2', 'Scope & compliance obligations', [
+        'well-s1-regulatory-standards-c3',
+        'well-s1-regulatory-standards-c4',
+        'well-s1-regulatory-standards-c5',
+      ]),
+      dg('well-s1-regulatory-standards-dg3', 'Compliance calendar & advice', [
+        'well-s1-regulatory-standards-c6',
+        'well-s1-regulatory-standards-c7',
+      ]),
+    ],
     completionGate:
       'Regulatory and professional standards framework confirmed. All qualifications and insurance in place before any therapeutic service is offered.',
     actHandoff: 'Regulatory & Professional Standards Framework',
@@ -216,6 +268,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Obtain legal advice on privacy obligations for therapeutic services in this jurisdiction',
       ),
     ],
+    decisionGroups: [
+      dg('well-s1-privacy-policy-dg1', 'Data collection & storage', [
+        'well-s1-privacy-policy-c1',
+        'well-s1-privacy-policy-c2',
+      ]),
+      dg('well-s1-privacy-policy-dg2', 'Confidentiality & disclosure', [
+        'well-s1-privacy-policy-c3',
+        'well-s1-privacy-policy-c4',
+      ]),
+      dg('well-s1-privacy-policy-dg3', 'Consent & legal review', [
+        'well-s1-privacy-policy-c5',
+        'well-s1-privacy-policy-c6',
+      ]),
+    ],
     completionGate:
       'Privacy and confidentiality policy approved and legally reviewed.',
     actHandoff: 'Privacy & Confidentiality Policy',
@@ -253,6 +319,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm baseline sensory conditions are consistent with healing philosophy requirements',
       ),
     ],
+    decisionGroups: [
+      dg('well-s2-sensory-environment-dg1', 'Noise baseline & sources', [
+        'well-s2-sensory-environment-c1',
+        'well-s2-sensory-environment-c2',
+      ]),
+      dg('well-s2-sensory-environment-dg2', 'Light conditions', [
+        'well-s2-sensory-environment-c3',
+        'well-s2-sensory-environment-c4',
+      ]),
+      dg('well-s2-sensory-environment-dg3', 'Olfactory & philosophy fit', [
+        'well-s2-sensory-environment-c5',
+        'well-s2-sensory-environment-c6',
+      ]),
+    ],
     completionGate:
       'Sensory environment survey complete. Baseline noise, light, and olfactory conditions recorded.',
     actHandoff: 'Sensory Environment Survey',
@@ -287,6 +367,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s2-retreat-infrastructure-c5',
         'Identify renovation requirements and therapeutic enhancement potential for each space',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s2-retreat-infrastructure-dg1', 'Space inventory & light', [
+        'well-s2-retreat-infrastructure-c1',
+        'well-s2-retreat-infrastructure-c2',
+      ], ['Infrastructure & Access']),
+      dg('well-s2-retreat-infrastructure-dg2', 'Acoustic & privacy condition', [
+        'well-s2-retreat-infrastructure-c3',
+        'well-s2-retreat-infrastructure-c4',
+      ], ['Infrastructure & Access']),
+      dg('well-s2-retreat-infrastructure-dg3', 'Renovation potential', [
+        'well-s2-retreat-infrastructure-c5',
+      ], ['Infrastructure & Access']),
     ],
     completionGate:
       'Existing retreat and healing infrastructure inventoried. Therapeutic reuse potential assessed.',
@@ -323,6 +416,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Identify any surrounding developments that could compromise sanctuary character',
       ),
     ],
+    decisionGroups: [
+      dg('well-s2-landscape-context-dg1', 'Surrounding land & visual', [
+        'well-s2-landscape-context-c1',
+        'well-s2-landscape-context-c2',
+      ]),
+      dg('well-s2-landscape-context-dg2', 'Acoustic impact', [
+        'well-s2-landscape-context-c3',
+      ]),
+      dg('well-s2-landscape-context-dg3', 'Contamination & threats', [
+        'well-s2-landscape-context-c4',
+        'well-s2-landscape-context-c5',
+      ]),
+    ],
     completionGate:
       'Landscape context survey complete. Visual, acoustic, and contamination risks identified.',
     actHandoff: 'Landscape Context & Vector Survey Package',
@@ -357,6 +463,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s2-privacy-gradient-c5',
         'Identify privacy gaps requiring designed mitigation',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s2-privacy-gradient-dg1', 'Sightlines & acoustic paths', [
+        'well-s2-privacy-gradient-c1',
+        'well-s2-privacy-gradient-c2',
+      ]),
+      dg('well-s2-privacy-gradient-dg2', 'Buffers & natural assets', [
+        'well-s2-privacy-gradient-c3',
+        'well-s2-privacy-gradient-c4',
+      ]),
+      dg('well-s2-privacy-gradient-dg3', 'Privacy gaps', [
+        'well-s2-privacy-gradient-c5',
+      ]),
     ],
     completionGate:
       'Privacy gradient survey complete. Sightlines, acoustic paths, and buffer distances mapped.',
@@ -394,6 +513,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm whether existing acoustic conditions meet healing philosophy thresholds - or define the mitigation gap',
       ),
     ],
+    decisionGroups: [
+      dg('well-s3-acoustic-conditions-dg1', 'Acoustic survey & levels', [
+        'well-s3-acoustic-conditions-c1',
+        'well-s3-acoustic-conditions-c2',
+      ]),
+      dg('well-s3-acoustic-conditions-dg2', 'Sources & transmission', [
+        'well-s3-acoustic-conditions-c3',
+        'well-s3-acoustic-conditions-c4',
+      ]),
+      dg('well-s3-acoustic-conditions-dg3', 'Threshold gap', [
+        'well-s3-acoustic-conditions-c5',
+      ]),
+    ],
     completionGate:
       'Acoustic conditions survey complete. Noise levels mapped against healing philosophy thresholds. Mitigation gap defined where applicable.',
     actHandoff: 'Acoustic Conditions Survey',
@@ -429,6 +561,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm water features are compatible with guest safety requirements',
       ),
     ],
+    decisionGroups: [
+      dg('well-s3-water-features-dg1', 'Feature inventory & quality', [
+        'well-s3-water-features-c1',
+        'well-s3-water-features-c2',
+      ], ['Water & Hydrology']),
+      dg('well-s3-water-features-dg2', 'Therapeutic & new potential', [
+        'well-s3-water-features-c3',
+        'well-s3-water-features-c4',
+      ], ['Water & Hydrology']),
+      dg('well-s3-water-features-dg3', 'Safety compatibility', [
+        'well-s3-water-features-c5',
+      ], ['Water & Hydrology']),
+    ],
     completionGate:
       'Water features and hydrological potential survey complete. Therapeutic potential assessed.',
     actHandoff: 'Water Features & Hydrological Potential Survey',
@@ -463,6 +608,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s3-healing-garden-ecology-c5',
         'Define what the site can support without intensive soil improvement',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s3-healing-garden-ecology-dg1', 'Existing species & soil', [
+        'well-s3-healing-garden-ecology-c1',
+        'well-s3-healing-garden-ecology-c2',
+      ], ['Soil']),
+      dg('well-s3-healing-garden-ecology-dg2', 'Microclimate & sensory plants', [
+        'well-s3-healing-garden-ecology-c3',
+        'well-s3-healing-garden-ecology-c4',
+      ], ['Soil']),
+      dg('well-s3-healing-garden-ecology-dg3', 'Support capacity', [
+        'well-s3-healing-garden-ecology-c5',
+      ], ['Soil']),
     ],
     completionGate:
       'Healing garden potential survey complete. Existing therapeutic species and soil conditions assessed.',
@@ -508,6 +666,21 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Document standards as design gate - all Tier 4 decisions evaluated against them',
       ),
     ],
+    decisionGroups: [
+      dg('well-s4-sensory-design-standards-dg1', 'Noise thresholds', [
+        'well-s4-sensory-design-standards-c1',
+        'well-s4-sensory-design-standards-c2',
+      ]),
+      dg('well-s4-sensory-design-standards-dg2', 'Light & scent standards', [
+        'well-s4-sensory-design-standards-c3',
+        'well-s4-sensory-design-standards-c4',
+      ]),
+      dg('well-s4-sensory-design-standards-dg3', 'Visual restraint & gate', [
+        'well-s4-sensory-design-standards-c5',
+        'well-s4-sensory-design-standards-c6',
+        'well-s4-sensory-design-standards-c7',
+      ]),
+    ],
     completionGate:
       'Sensory design standards approved and documented. All Tier 4 designs must meet these thresholds.',
     actHandoff: 'Sensory Design Philosophy & Low-Stimulation Standards',
@@ -549,6 +722,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm all practitioners hold required qualifications and insurance before programme launch',
       ),
     ],
+    decisionGroups: [
+      dg('well-s4-therapeutic-program-dg1', 'Modalities & qualifications', [
+        'well-s4-therapeutic-program-c1',
+        'well-s4-therapeutic-program-c2',
+      ]),
+      dg('well-s4-therapeutic-program-dg2', 'Ratios & session design', [
+        'well-s4-therapeutic-program-c3',
+        'well-s4-therapeutic-program-c4',
+      ]),
+      dg('well-s4-therapeutic-program-dg3', 'Referral & insurance gate', [
+        'well-s4-therapeutic-program-c5',
+        'well-s4-therapeutic-program-c6',
+      ]),
+    ],
     completionGate:
       'Therapeutic programme and practitioner framework approved. All qualifications confirmed.',
     actHandoff: 'Therapeutic Program & Practitioner Framework Brief',
@@ -584,6 +771,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm privacy gradient is achievable against site survey findings',
       ),
     ],
+    decisionGroups: [
+      dg('well-s4-privacy-zone-hierarchy-dg1', 'Privacy tiers & separation', [
+        'well-s4-privacy-zone-hierarchy-c1',
+        'well-s4-privacy-zone-hierarchy-c2',
+      ]),
+      dg('well-s4-privacy-zone-hierarchy-dg2', 'Transitions & access control', [
+        'well-s4-privacy-zone-hierarchy-c3',
+        'well-s4-privacy-zone-hierarchy-c4',
+      ]),
+      dg('well-s4-privacy-zone-hierarchy-dg3', 'Feasibility', [
+        'well-s4-privacy-zone-hierarchy-c5',
+      ]),
+    ],
     completionGate:
       'Privacy gradient and zone hierarchy approved. Physical separation methods defined for all zone boundaries.',
     actHandoff: 'Privacy Gradient & Zone Hierarchy Brief',
@@ -618,6 +818,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s4-healing-garden-strategy-c5',
         'Confirm planting strategy is consistent with sensory design standards',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s4-healing-garden-strategy-dg1', 'Planting & water strategy', [
+        'well-s4-healing-garden-strategy-c1',
+        'well-s4-healing-garden-strategy-c2',
+      ]),
+      dg('well-s4-healing-garden-strategy-dg2', 'Sensory walk & calendar', [
+        'well-s4-healing-garden-strategy-c3',
+        'well-s4-healing-garden-strategy-c4',
+      ]),
+      dg('well-s4-healing-garden-strategy-dg3', 'Standards fit', [
+        'well-s4-healing-garden-strategy-c5',
+      ]),
     ],
     completionGate:
       'Healing garden and therapeutic landscape strategy approved. Planting palette and water feature strategy confirmed.',
@@ -662,6 +875,21 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Obtain legal advice on safeguarding obligations for this therapeutic context',
       ),
     ],
+    decisionGroups: [
+      dg('well-s4-safeguarding-protocol-dg1', 'Crisis & trauma response', [
+        'well-s4-safeguarding-protocol-c1',
+        'well-s4-safeguarding-protocol-c2',
+      ]),
+      dg('well-s4-safeguarding-protocol-dg2', 'Referral & emergency', [
+        'well-s4-safeguarding-protocol-c3',
+        'well-s4-safeguarding-protocol-c4',
+      ]),
+      dg('well-s4-safeguarding-protocol-dg3', 'Incident, training & legal', [
+        'well-s4-safeguarding-protocol-c5',
+        'well-s4-safeguarding-protocol-c6',
+        'well-s4-safeguarding-protocol-c7',
+      ]),
+    ],
     completionGate:
       'Safeguarding protocol approved and legally reviewed. All practitioners trained before first guest.',
     actHandoff: 'Guest Wellbeing Safeguarding Protocol',
@@ -704,6 +932,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm all spaces meet sensory design standard thresholds',
       ),
     ],
+    decisionGroups: [
+      dg('well-s5-treatment-spaces-dg1', 'Treatment room & acoustics', [
+        'well-s5-treatment-spaces-c1',
+        'well-s5-treatment-spaces-c2',
+      ], ['Infrastructure & Access']),
+      dg('well-s5-treatment-spaces-dg2', 'Meditation & outdoor spaces', [
+        'well-s5-treatment-spaces-c3',
+        'well-s5-treatment-spaces-c4',
+      ], ['Infrastructure & Access']),
+      dg('well-s5-treatment-spaces-dg3', 'Materials & thresholds', [
+        'well-s5-treatment-spaces-c5',
+        'well-s5-treatment-spaces-c6',
+      ], ['Infrastructure & Access']),
+    ],
     completionGate:
       'Treatment, therapy, and meditation space designs approved. All sensory thresholds confirmed.',
     actHandoff: 'Treatment, Therapy & Meditation Spaces Design Package',
@@ -742,6 +984,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s5-healing-garden-design-c6',
         'Confirm all elements meet sensory design standards',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s5-healing-garden-design-dg1', 'Planting & sensory walk', [
+        'well-s5-healing-garden-design-c1',
+        'well-s5-healing-garden-design-c2',
+      ], ['Vegetation & Succession']),
+      dg('well-s5-healing-garden-design-dg2', 'Water & seating', [
+        'well-s5-healing-garden-design-c3',
+        'well-s5-healing-garden-design-c4',
+      ], ['Vegetation & Succession']),
+      dg('well-s5-healing-garden-design-dg3', 'Paths & standards', [
+        'well-s5-healing-garden-design-c5',
+        'well-s5-healing-garden-design-c6',
+      ], ['Vegetation & Succession']),
     ],
     completionGate:
       'Healing garden and sensory landscape design approved. All elements consistent with sensory standards.',
@@ -782,6 +1038,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm accommodation meets sensory design standard thresholds',
       ),
     ],
+    decisionGroups: [
+      dg('well-s5-guest-accommodation-dg1', 'Placement & acoustics', [
+        'well-s5-guest-accommodation-c1',
+        'well-s5-guest-accommodation-c2',
+      ], ['Infrastructure & Access']),
+      dg('well-s5-guest-accommodation-dg2', 'Ventilation & outdoor', [
+        'well-s5-guest-accommodation-c3',
+        'well-s5-guest-accommodation-c4',
+      ], ['Infrastructure & Access']),
+      dg('well-s5-guest-accommodation-dg3', 'Materials & thresholds', [
+        'well-s5-guest-accommodation-c5',
+        'well-s5-guest-accommodation-c6',
+      ], ['Infrastructure & Access']),
+    ],
     completionGate:
       'Guest accommodation design approved. Acoustic performance and sensory standards confirmed.',
     actHandoff: 'Guest Accommodation & Private Retreat Spaces Design Package',
@@ -816,6 +1086,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s5-privacy-screening-c5',
         'Confirm all screening meets privacy gradient and sensory design standards',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s5-privacy-screening-dg1', 'Boundary planting & bunding', [
+        'well-s5-privacy-screening-c1',
+        'well-s5-privacy-screening-c2',
+      ], ['Infrastructure & Access']),
+      dg('well-s5-privacy-screening-dg2', 'Barriers & internal screening', [
+        'well-s5-privacy-screening-c3',
+        'well-s5-privacy-screening-c4',
+      ], ['Infrastructure & Access']),
+      dg('well-s5-privacy-screening-dg3', 'Standards confirmation', [
+        'well-s5-privacy-screening-c5',
+      ], ['Infrastructure & Access']),
     ],
     completionGate:
       'Privacy screening and acoustic buffering design approved. All zone boundaries meet defined standards.',
@@ -856,6 +1139,20 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm dining design is consistent with sensory design standards',
       ),
     ],
+    decisionGroups: [
+      dg('well-s5-dining-nourishment-dg1', 'Kitchen design & equipment', [
+        'well-s5-dining-nourishment-c1',
+        'well-s5-dining-nourishment-c2',
+      ], ['Infrastructure & Access']),
+      dg('well-s5-dining-nourishment-dg2', 'Dining & storage', [
+        'well-s5-dining-nourishment-c3',
+        'well-s5-dining-nourishment-c4',
+      ], ['Infrastructure & Access']),
+      dg('well-s5-dining-nourishment-dg3', 'Nourishment philosophy & standards', [
+        'well-s5-dining-nourishment-c5',
+        'well-s5-dining-nourishment-c6',
+      ], ['Infrastructure & Access']),
+    ],
     completionGate:
       'Dining and nourishment infrastructure design approved. Sensory and nourishment standards confirmed.',
     actHandoff: 'Dining & Nourishment Infrastructure Design Package',
@@ -892,6 +1189,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm all monitoring is consistent with privacy and confidentiality policy',
       ),
     ],
+    decisionGroups: [
+      dg('well-s6-outcome-monitoring-dg1', 'Outcome indicators & feedback', [
+        'well-s6-outcome-monitoring-c1',
+        'well-s6-outcome-monitoring-c2',
+      ]),
+      dg('well-s6-outcome-monitoring-dg2', 'Practitioner review & cadence', [
+        'well-s6-outcome-monitoring-c3',
+        'well-s6-outcome-monitoring-c4',
+      ]),
+      dg('well-s6-outcome-monitoring-dg3', 'Privacy alignment', [
+        'well-s6-outcome-monitoring-c5',
+      ]),
+    ],
     completionGate:
       'Guest wellbeing and therapeutic outcome monitoring system approved. Consistent with privacy policy.',
     actHandoff: 'Guest Wellbeing & Therapeutic Outcome Monitoring System',
@@ -927,6 +1237,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Specify monitoring frequency and documentation requirements',
       ),
     ],
+    decisionGroups: [
+      dg('well-s6-sensory-monitoring-dg1', 'Acoustic & light monitoring', [
+        'well-s6-sensory-monitoring-c1',
+        'well-s6-sensory-monitoring-c2',
+      ]),
+      dg('well-s6-sensory-monitoring-dg2', 'Olfactory & breach protocol', [
+        'well-s6-sensory-monitoring-c3',
+        'well-s6-sensory-monitoring-c4',
+      ]),
+      dg('well-s6-sensory-monitoring-dg3', 'Frequency & documentation', [
+        'well-s6-sensory-monitoring-c5',
+      ]),
+    ],
     completionGate:
       'Sensory environment monitoring protocol approved. Breach response protocol defined.',
     actHandoff: 'Sensory Environment Monitoring Protocol',
@@ -958,6 +1281,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s6-external-relations-c5',
         'Define annual external relations review',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s6-external-relations-dg1', 'Compliance calendar & audits', [
+        'well-s6-external-relations-c1',
+        'well-s6-external-relations-c2',
+      ]),
+      dg('well-s6-external-relations-dg2', 'Neighbour & complaint relations', [
+        'well-s6-external-relations-c3',
+        'well-s6-external-relations-c4',
+      ]),
+      dg('well-s6-external-relations-dg3', 'Annual review', [
+        'well-s6-external-relations-c5',
+      ]),
     ],
     completionGate:
       'External relations and compliance monitoring system approved.',
@@ -994,6 +1330,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'well-s7-program-launch-c5',
         'Assign ownership and review cadence for the launch sequence - who signs off the soft-launch and full-launch gates, and when the soft-launch review is re-run as each new modality is phased in before public bookings expand',
       ),
+    ],
+    decisionGroups: [
+      dg('well-s7-program-launch-dg1', 'Soft launch & review gate', [
+        'well-s7-program-launch-c1',
+        'well-s7-program-launch-c2',
+      ]),
+      dg('well-s7-program-launch-dg2', 'Full launch & phased modalities', [
+        'well-s7-program-launch-c3',
+        'well-s7-program-launch-c4',
+      ]),
+      dg('well-s7-program-launch-dg3', 'Ownership & cadence', [
+        'well-s7-program-launch-c5',
+      ]),
     ],
     completionGate:
       'Therapeutic programme launch sequence approved. Soft launch pass/fail criteria defined as hard gate before public bookings.',
@@ -1032,6 +1381,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm all practitioners have completed onboarding before first guest arrival',
       ),
     ],
+    decisionGroups: [
+      dg('well-s7-practitioner-onboarding-dg1', 'Orientation & supervision', [
+        'well-s7-practitioner-onboarding-c1',
+        'well-s7-practitioner-onboarding-c2',
+      ]),
+      dg('well-s7-practitioner-onboarding-dg2', 'Performance & wellbeing', [
+        'well-s7-practitioner-onboarding-c3',
+        'well-s7-practitioner-onboarding-c4',
+      ]),
+      dg('well-s7-practitioner-onboarding-dg3', 'Onboarding gate', [
+        'well-s7-practitioner-onboarding-c5',
+      ]),
+    ],
     completionGate:
       'Practitioner onboarding and supervision framework approved. All practitioners inducted before launch.',
     actHandoff: 'Practitioner Onboarding & Supervision Framework',
@@ -1067,6 +1429,19 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Define 3-year comprehensive review against Tier 0 healing philosophy and vision',
       ),
     ],
+    decisionGroups: [
+      dg('well-s7-adaptive-management-dg1', 'Annual review & triggers', [
+        'well-s7-adaptive-management-c1',
+        'well-s7-adaptive-management-c2',
+      ]),
+      dg('well-s7-adaptive-management-dg2', 'Escalation & documentation', [
+        'well-s7-adaptive-management-c3',
+        'well-s7-adaptive-management-c4',
+      ]),
+      dg('well-s7-adaptive-management-dg3', 'Three-year review', [
+        'well-s7-adaptive-management-c5',
+      ]),
+    ],
     completionGate:
       'Adaptive management protocol approved. Review cycle, triggers, and documentation confirmed.',
     actHandoff: 'Adaptive Management Protocol',
@@ -1100,6 +1475,19 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('well-sec-s1-healing-philosophy-c4', 'Establish the non-negotiable environmental conditions the healing layer requires - silence, light, privacy'),
       ck('well-sec-s1-healing-philosophy-c5', 'Confirm the healing overlay supports rather than competes with the primary land purpose'),
     ],
+    decisionGroups: [
+      dg('well-sec-s1-healing-philosophy-dg1', 'Philosophy & modalities', [
+        'well-sec-s1-healing-philosophy-c1',
+        'well-sec-s1-healing-philosophy-c2',
+      ]),
+      dg('well-sec-s1-healing-philosophy-dg2', 'Host compatibility & conditions', [
+        'well-sec-s1-healing-philosophy-c3',
+        'well-sec-s1-healing-philosophy-c4',
+      ]),
+      dg('well-sec-s1-healing-philosophy-dg3', 'Reconciliation', [
+        'well-sec-s1-healing-philosophy-c5',
+      ]),
+    ],
     completionGate: 'Healing philosophy overlay approved and reconciled with the primary land purpose.',
     actHandoff: 'Healing Philosophy Overlay Brief',
   }),
@@ -1122,6 +1510,19 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('well-sec-s1-regulatory-standards-c4', 'Define the compliance calendar for the therapeutic layer - renewals, CPD, audits'),
       ck('well-sec-s1-regulatory-standards-c5', 'Confirm no therapeutic service is offered until all qualifications and insurance are in place'),
     ],
+    decisionGroups: [
+      dg('well-sec-s1-regulatory-standards-dg1', 'Qualifications & insurance', [
+        'well-sec-s1-regulatory-standards-c1',
+        'well-sec-s1-regulatory-standards-c2',
+      ]),
+      dg('well-sec-s1-regulatory-standards-dg2', 'Obligations & calendar', [
+        'well-sec-s1-regulatory-standards-c3',
+        'well-sec-s1-regulatory-standards-c4',
+      ]),
+      dg('well-sec-s1-regulatory-standards-dg3', 'Service gate', [
+        'well-sec-s1-regulatory-standards-c5',
+      ]),
+    ],
     completionGate:
       'Therapeutic regulatory and professional standards confirmed for the overlay before any service is offered.',
     actHandoff: 'Therapeutic Regulatory & Standards Overlay Brief',
@@ -1142,6 +1543,19 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('well-sec-s4-sensory-standards-c3', 'Map host primary operations that could breach sensory thresholds and define buffering'),
       ck('well-sec-s4-sensory-standards-c4', 'Define visual-complexity and privacy standards separating therapeutic zones from the working land'),
       ck('well-sec-s4-sensory-standards-c5', 'Confirm sensory standards are achievable alongside the primary land operations'),
+    ],
+    decisionGroups: [
+      dg('well-sec-s4-sensory-standards-dg1', 'Noise & light/scent thresholds', [
+        'well-sec-s4-sensory-standards-c1',
+        'well-sec-s4-sensory-standards-c2',
+      ]),
+      dg('well-sec-s4-sensory-standards-dg2', 'Host buffering & privacy', [
+        'well-sec-s4-sensory-standards-c3',
+        'well-sec-s4-sensory-standards-c4',
+      ]),
+      dg('well-sec-s4-sensory-standards-dg3', 'Feasibility', [
+        'well-sec-s4-sensory-standards-c5',
+      ]),
     ],
     completionGate:
       'Sensory and low-stimulation standards for therapeutic zones approved against host operations.',
@@ -1164,6 +1578,19 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('well-sec-s4-therapeutic-program-c4', 'Define the referral network for conditions outside scope'),
       ck('well-sec-s4-therapeutic-program-c5', 'Confirm all practitioners hold required qualifications and insurance before launch'),
     ],
+    decisionGroups: [
+      dg('well-sec-s4-therapeutic-program-dg1', 'Modalities & qualifications', [
+        'well-sec-s4-therapeutic-program-c1',
+        'well-sec-s4-therapeutic-program-c2',
+      ]),
+      dg('well-sec-s4-therapeutic-program-dg2', 'Scheduling & referral', [
+        'well-sec-s4-therapeutic-program-c3',
+        'well-sec-s4-therapeutic-program-c4',
+      ]),
+      dg('well-sec-s4-therapeutic-program-dg3', 'Insurance gate', [
+        'well-sec-s4-therapeutic-program-c5',
+      ]),
+    ],
     completionGate: 'Therapeutic programme and practitioner framework for the overlay approved.',
     actHandoff: 'Therapeutic Program Overlay Brief',
   }),
@@ -1185,6 +1612,19 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('well-sec-s4-safeguarding-c3', 'Define the clinical referral and emergency services contact pathway'),
       ck('well-sec-s4-safeguarding-c4', 'Define incident recording and review, including any host-staff involvement'),
       ck('well-sec-s4-safeguarding-c5', 'Confirm all practitioners and relevant host staff are trained before the first guest'),
+    ],
+    decisionGroups: [
+      dg('well-sec-s4-safeguarding-dg1', 'Crisis & trauma response', [
+        'well-sec-s4-safeguarding-c1',
+        'well-sec-s4-safeguarding-c2',
+      ]),
+      dg('well-sec-s4-safeguarding-dg2', 'Referral & incident', [
+        'well-sec-s4-safeguarding-c3',
+        'well-sec-s4-safeguarding-c4',
+      ]),
+      dg('well-sec-s4-safeguarding-dg3', 'Training gate', [
+        'well-sec-s4-safeguarding-c5',
+      ]),
     ],
     completionGate:
       'Safeguarding protocol for the overlay approved and legally reviewed; staff trained before first guest.',
