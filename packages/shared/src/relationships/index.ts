@@ -11,3 +11,4 @@ export * from './fieldActionStatus.js';
 export * from './urgencyScore.js';
 export * from './resolveProjectObjectives.js';
 export * from './computeObjectivesDelta.js';
+export * from './observeGap.js';

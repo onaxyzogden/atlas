@@ -30,6 +30,7 @@ import {
   type PlanStratumObjective,
   type ProjectTypeId,
 } from '@ogden/shared';
+import { collectObserveGapObjectives } from '@ogden/shared/relationships';
 import { useProjectStore } from '../../../store/projectStore.js';
 import {
   usePlanStratumProgressStore,
@@ -146,16 +147,15 @@ export function useSecondaryAddPreview(
       (t) => !tensionsBefore.has(t.id),
     );
 
-    // Observe-stage gaps.
-    const observeGap = new Set<string>();
-    for (const o of delta.newObjectives) {
-      if (o.outputKind === 'observation-record') observeGap.add(o.id);
-    }
-    for (const objId of delta.objectivesWithNewItems) {
-      const o = afterById.get(objId);
-      if (o && (o.defaultOverlayBundle?.length ?? 0) > 0) observeGap.add(objId);
-    }
-    const observeGapObjectiveIds = [...observeGap];
+    // Observe-stage gaps. Delegated to the shared rule (collectObserveGapObjectives
+    // with a delta) so the Plan add-preview and the Observe re-derivation can
+    // never drift. The delta path reproduces the original two-part logic exactly:
+    // a NEW observation-record objective, or an objective that gained items and
+    // carries a non-empty overlay bundle.
+    const observeGapObjectiveIds = collectObserveGapObjectives(
+      afterObjectives,
+      delta,
+    );
 
     return {
       eligible: true,

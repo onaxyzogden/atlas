@@ -69,6 +69,7 @@ import SelectionFloater from './components/SelectionFloater.js';
 import SectorCompassOverlay from './components/overlays/SectorCompassOverlay.js';
 import ObserveObjectiveCompletePrompt from '../compass/ObserveObjectiveCompletePrompt.js';
 import TrueNorthAdvisoryBanner from '../true-north/TrueNorthAdvisoryBanner.js';
+import ObserveStageGapBanner from './ObserveStageGapBanner.js';
 import { useObservationNeed } from '../observation-needs/useObservationNeeds.js';
 import { requiredLayersToModules } from '../observation-needs/observationNeed.js';
 import CaptureMapFocus from './capture/CaptureMapFocus.js';
@@ -462,6 +463,7 @@ export default function ObserveLayout() {
       overlay={
         <>
           <TrueNorthAdvisoryBanner projectId={id} />
+          <ObserveStageGapBanner projectId={id} />
           <ModuleSlideUp
             module={validModule}
             open={slideUpOpen && validModule !== null}
