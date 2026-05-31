@@ -405,20 +405,72 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.5));
 }
 
+.toolsBody {
+  /* Row wrapper: the scrolling category column on the left, the dots navigator
+     on the right. --act-cat-h is declared here so both children can read it. */
+  --act-cat-h: 116px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: stretch;
+  flex: 0 0 auto;
+}
+
 .toolsRow {
   /* One category fills the row; siblings stack below and snap in on vertical
      scroll. The StageShell bottom tray is content-sized (no fixed viewport for
      a percentage height to fill), so the scroll viewport is capped to exactly
      one category height (--act-cat-h) and each .toolCat is pinned to the same
-     height. */
-  --act-cat-h: 116px;
+     height. The native scrollbar is hidden -- the .toolsDots navigator both
+     indicates and drives the category page. */
   display: flex;
   flex-direction: column;
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   max-height: var(--act-cat-h);
   gap: 8px;
   overflow-y: auto;
   scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+}
+
+.toolsRow::-webkit-scrollbar {
+  display: none;
+}
+
+.toolsDots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  padding: 0 2px;
+}
+
+.toolDot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-text-muted, rgba(242, 237, 227, 0.35));
+  cursor: pointer;
+  transition: background 120ms ease, height 120ms ease;
+}
+
+.toolDot:hover {
+  background: var(--color-text, rgba(242, 237, 227, 0.7));
+}
+
+.toolDot:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.toolDot[data-active='true'] {
+  background: var(--color-gold-brand, #c4a265);
+  height: 16px;
 }
 
 .toolBtn {

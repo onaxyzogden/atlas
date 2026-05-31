@@ -13,7 +13,7 @@
 // on non-spatial items. Field logs (harvest / water / livestock) and form tools
 // now appear only when the selected objective calls for them.
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { PlanStratumObjective } from '@ogden/shared';
 import { getObjectiveActTools } from '@ogden/shared';
@@ -65,6 +65,53 @@ export default function ActTierCategorizedToolsRail({
   const activeTool = useMapToolStore((s) => s.activeTool);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
+  // Refs + active-page state for the dots navigator. The row is the scroll
+  // viewport; each .toolCat is a snap target whose visibility drives activeIndex.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const catRefs = useRef<(HTMLElement | null)[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Build the rendered-categories list once so it is indexable and stays in
+  // lockstep with the dots (one dot per visible category, same order).
+  const tools = objective
+    ? resolveActTools(getObjectiveActTools(objective))
+    : [];
+  const visibleCats = ACT_TOOL_CATEGORIES.map((category) => ({
+    category,
+    catTools: tools.filter((t) => t.category === category.id),
+  })).filter((c) => c.catTools.length > 0);
+
+  const objectiveId = objective?.id ?? null;
+  const visibleCount = visibleCats.length;
+
+  // Track which category is framed in the viewport so the matching dot lights up.
+  useEffect(() => {
+    const root = rowRef.current;
+    if (!root || visibleCount <= 1) {
+      setActiveIndex(0);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let best = -1;
+        let bestRatio = 0;
+        for (const entry of entries) {
+          const idx = catRefs.current.indexOf(entry.target as HTMLElement);
+          if (idx >= 0 && entry.intersectionRatio > bestRatio) {
+            bestRatio = entry.intersectionRatio;
+            best = idx;
+          }
+        }
+        if (best >= 0) setActiveIndex(best);
+      },
+      { root, threshold: [0.25, 0.5, 0.75, 1] },
+    );
+    for (const el of catRefs.current) {
+      if (el) observer.observe(el);
+    }
+    return () => observer.disconnect();
+  }, [objectiveId, visibleCount]);
+
   function toggle(categoryId: string) {
     setCollapsed((prev) => ({ ...prev, [categoryId]: !prev[categoryId] }));
   }
@@ -79,9 +126,7 @@ export default function ActTierCategorizedToolsRail({
     );
   }
 
-  const tools = resolveActTools(getObjectiveActTools(objective));
-
-  if (tools.length === 0) {
+  if (visibleCats.length === 0) {
     return (
       <div className={styles.toolsPanel} aria-label="Objective tools">
         <div className={styles.toolsHeader}>
@@ -100,56 +145,89 @@ export default function ActTierCategorizedToolsRail({
           Arm a tool, then place it on the map
         </span>
       </div>
-      <div className={styles.toolsRow}>
-        {ACT_TOOL_CATEGORIES.map((category) => {
-          const catTools = tools.filter((t) => t.category === category.id);
-          if (catTools.length === 0) return null;
-          const isCollapsed = collapsed[category.id] ?? false;
-          return (
-            <section key={category.id} className={styles.toolCat}>
-              <button
-                type="button"
-                className={styles.toolCatHeader}
-                aria-expanded={!isCollapsed}
-                onClick={() => toggle(category.id)}
+      <div className={styles.toolsBody}>
+        <div className={styles.toolsRow} ref={rowRef}>
+          {visibleCats.map(({ category, catTools }, index) => {
+            const isCollapsed = collapsed[category.id] ?? false;
+            return (
+              <section
+                key={category.id}
+                className={styles.toolCat}
+                ref={(el) => {
+                  catRefs.current[index] = el;
+                }}
               >
-                {isCollapsed ? (
-                  <ChevronRight size={14} aria-hidden="true" />
-                ) : (
-                  <ChevronDown size={14} aria-hidden="true" />
+                <button
+                  type="button"
+                  className={styles.toolCatHeader}
+                  aria-expanded={!isCollapsed}
+                  onClick={() => toggle(category.id)}
+                >
+                  {isCollapsed ? (
+                    <ChevronRight size={14} aria-hidden="true" />
+                  ) : (
+                    <ChevronDown size={14} aria-hidden="true" />
+                  )}
+                  <span className={styles.toolCatLabel}>{category.label}</span>
+                  <span className={styles.toolCatCount}>{catTools.length}</span>
+                </button>
+                {!isCollapsed && (
+                  <div className={styles.toolGrid}>
+                    {catTools.map((tool) => {
+                      const Icon = tool.icon;
+                      const isArmed = isToolArmed(
+                        tool,
+                        activeTool,
+                        activeFormId,
+                      );
+                      return (
+                        <button
+                          key={tool.id}
+                          type="button"
+                          className={styles.catTile}
+                          data-active={isArmed}
+                          disabled={disabled}
+                          onClick={() => onActivate(tool)}
+                          title={tool.label}
+                        >
+                          <span
+                            className={styles.catTileIcon}
+                            aria-hidden="true"
+                          >
+                            <Icon size={18} strokeWidth={1.7} />
+                          </span>
+                          <span className={styles.catTileLabel}>
+                            {tool.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
-                <span className={styles.toolCatLabel}>{category.label}</span>
-                <span className={styles.toolCatCount}>{catTools.length}</span>
-              </button>
-              {!isCollapsed && (
-                <div className={styles.toolGrid}>
-                  {catTools.map((tool) => {
-                    const Icon = tool.icon;
-                    const isArmed = isToolArmed(tool, activeTool, activeFormId);
-                    return (
-                      <button
-                        key={tool.id}
-                        type="button"
-                        className={styles.catTile}
-                        data-active={isArmed}
-                        disabled={disabled}
-                        onClick={() => onActivate(tool)}
-                        title={tool.label}
-                      >
-                        <span className={styles.catTileIcon} aria-hidden="true">
-                          <Icon size={18} strokeWidth={1.7} />
-                        </span>
-                        <span className={styles.catTileLabel}>
-                          {tool.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          );
-        })}
+              </section>
+            );
+          })}
+        </div>
+        {visibleCats.length > 1 && (
+          <nav className={styles.toolsDots} aria-label="Tool categories">
+            {visibleCats.map(({ category }, index) => (
+              <button
+                key={category.id}
+                type="button"
+                className={styles.toolDot}
+                data-active={index === activeIndex}
+                aria-current={index === activeIndex}
+                aria-label={`Show ${category.label}`}
+                onClick={() =>
+                  catRefs.current[index]?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                  })
+                }
+              />
+            ))}
+          </nav>
+        )}
       </div>
     </div>
   );
