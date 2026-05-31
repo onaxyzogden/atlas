@@ -45,7 +45,17 @@ import type {
   PatchRecord,
   PlanStratumObjective,
 } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, obj, patch } from './authoring.js';
+import { ck, dg, obj, patch } from './authoring.js';
+
+// Decision groups (Decision Groups Reference v1.0; OLOS spec 9.3-9.4) - AUTHORED
+// under the 2026-05-31 extended override ("author meaningful labels"). The
+// reference doc's Orchard / Food Forest section maps to a divergent objective set
+// with generic placeholder groups, so every group here - label, item membership,
+// observeFeeds - is authored editorially to partition each objective's checklist
+// into 2-3 named decision scopes (full mutually-exclusive partition). The four
+// secondary PatchRecords each inject one decision group (dgorch) partitioning the
+// perennial items they fold into the shared universal water / soil / ecology /
+// Phase-1 objectives; the resolver stamps sourceSecondaryId from secondaryTypeId.
 
 const PRIMARY = 'orchard_food_forest' as const;
 const SECONDARY = 'orchard_food_forest' as const;
@@ -83,6 +93,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Document species philosophy as design constraint - all Tier 3 species decisions evaluated against it',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s1-species-philosophy-dg1', 'Design intent & succession', ['orch-s1-species-philosophy-c1', 'orch-s1-species-philosophy-c2']),
+      dg('orch-s1-species-philosophy-dg2', 'Layering & ecological function', ['orch-s1-species-philosophy-c3', 'orch-s1-species-philosophy-c4']),
+      dg('orch-s1-species-philosophy-dg3', 'Design constraint', ['orch-s1-species-philosophy-c5']),
+    ],
     completionGate:
       'Species selection philosophy and succession intent approved and documented as design constraint.',
     actHandoff: 'Species Selection Philosophy & Succession Intent Brief',
@@ -117,6 +132,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s1-production-intent-c5',
         'Confirm production intent is achievable within steward capacity and site potential',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s1-production-intent-dg1', 'Production intent & priorities', ['orch-s1-production-intent-c1', 'orch-s1-production-intent-c2']),
+      dg('orch-s1-production-intent-dg2', 'Harvest & sales', ['orch-s1-production-intent-c3', 'orch-s1-production-intent-c4']),
+      dg('orch-s1-production-intent-dg3', 'Capacity fit', ['orch-s1-production-intent-c5']),
     ],
     completionGate:
       'Production and harvest intent approved. Sales channel requirements confirmed.',
@@ -156,6 +176,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s1-provenance-sourcing-c6',
         'Confirm all species are legally available in this jurisdiction - biosecurity restrictions',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s1-provenance-sourcing-dg1', 'Rootstock & provenance', ['orch-s1-provenance-sourcing-c1', 'orch-s1-provenance-sourcing-c2']),
+      dg('orch-s1-provenance-sourcing-dg2', 'Nursery & lead time', ['orch-s1-provenance-sourcing-c3', 'orch-s1-provenance-sourcing-c4']),
+      dg('orch-s1-provenance-sourcing-dg3', 'Stock form & legality', ['orch-s1-provenance-sourcing-c5', 'orch-s1-provenance-sourcing-c6']),
     ],
     completionGate:
       'Provenance and sourcing strategy approved. Nursery relationships and lead times confirmed.',
@@ -199,6 +224,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Assess existing guild species and understory composition',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s2-tree-cover-dg1', 'Existing trees & canopy', ['orch-s2-tree-cover-c1', 'orch-s2-tree-cover-c2'], ['Vegetation & Succession']),
+      dg('orch-s2-tree-cover-dg2', 'Integration & removal', ['orch-s2-tree-cover-c3', 'orch-s2-tree-cover-c4']),
+      dg('orch-s2-tree-cover-dg3', 'Gaps & understory', ['orch-s2-tree-cover-c5', 'orch-s2-tree-cover-c6'], ['Vegetation & Succession']),
+    ],
     completionGate:
       'Existing tree cover and canopy survey complete. Integration potential and removal requirements identified.',
     actHandoff: 'Existing Tree Cover & Canopy Condition Survey',
@@ -238,6 +268,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm frost drainage findings against topographic survey',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s2-frost-drainage-dg1', 'Cold air drainage & pockets', ['orch-s2-frost-drainage-c1', 'orch-s2-frost-drainage-c2'], ['Climate & Sectors']),
+      dg('orch-s2-frost-drainage-dg2', 'Aspect & frost history', ['orch-s2-frost-drainage-c3', 'orch-s2-frost-drainage-c4'], ['Climate & Sectors']),
+      dg('orch-s2-frost-drainage-dg3', 'Warm zones & confirmation', ['orch-s2-frost-drainage-c5', 'orch-s2-frost-drainage-c6']),
+    ],
     completionGate:
       'Frost drainage and microclimate zones mapped. Species placement zones defined by frost risk.',
     actHandoff: 'Frost Drainage & Microclimate Zone Survey',
@@ -272,6 +307,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s2-landscape-context-c5',
         'Identify landscape-scale pest and disease pressure sources - codling moth, fireblight',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s2-landscape-context-dg1', 'Neighbouring land & spray drift', ['orch-s2-landscape-context-c1', 'orch-s2-landscape-context-c2']),
+      dg('orch-s2-landscape-context-dg2', 'Pollination & water risk', ['orch-s2-landscape-context-c3', 'orch-s2-landscape-context-c4']),
+      dg('orch-s2-landscape-context-dg3', 'Pest & disease pressure', ['orch-s2-landscape-context-c5']),
     ],
     completionGate: 'Landscape context and vector survey complete.',
     actHandoff: 'Landscape Context & Vector Survey Package',
@@ -312,6 +352,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Flag planting sites that fail minimum rootzone requirement for remediation or exclusion',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s3-rootzone-depth-dg1', 'Profile & depth mapping', ['orch-s3-rootzone-depth-c1', 'orch-s3-rootzone-depth-c2'], ['Soil']),
+      dg('orch-s3-rootzone-depth-dg2', 'Restrictions & drainage', ['orch-s3-rootzone-depth-c3', 'orch-s3-rootzone-depth-c4'], ['Soil']),
+      dg('orch-s3-rootzone-depth-dg3', 'Minimum depth & flagging', ['orch-s3-rootzone-depth-c5', 'orch-s3-rootzone-depth-c6']),
+    ],
     completionGate:
       'Rootzone depth survey complete. Inadequate sites identified and flagged.',
     actHandoff: 'Soil Depth & Rootzone Potential Survey',
@@ -347,6 +392,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm water source can meet establishment demand - or define the gap',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s3-water-availability-dg1', 'Source yield & demand', ['orch-s3-water-availability-c1', 'orch-s3-water-availability-c2'], ['Water & Hydrology']),
+      dg('orch-s3-water-availability-dg2', 'Total demand & dry season', ['orch-s3-water-availability-c3', 'orch-s3-water-availability-c4'], ['Water & Hydrology']),
+      dg('orch-s3-water-availability-dg3', 'Gap confirmation', ['orch-s3-water-availability-c5'], ['Water & Hydrology']),
+    ],
     completionGate:
       'Water availability for establishment confirmed. Irrigation demand and gap defined.',
     actHandoff: 'Water Availability & Seasonal Dry Period Survey',
@@ -381,6 +431,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s3-pest-disease-pressure-c5',
         'Record any prior crop failures related to pest or disease at this location',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s3-pest-disease-pressure-dg1', 'Pest & disease risks', ['orch-s3-pest-disease-pressure-c1', 'orch-s3-pest-disease-pressure-c2']),
+      dg('orch-s3-pest-disease-pressure-dg2', 'Soil-borne & predators', ['orch-s3-pest-disease-pressure-c3', 'orch-s3-pest-disease-pressure-c4']),
+      dg('orch-s3-pest-disease-pressure-dg3', 'Site history', ['orch-s3-pest-disease-pressure-c5']),
     ],
     completionGate:
       'Pest and disease pressure baseline complete. High-risk species and site history recorded.',
@@ -426,6 +481,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm all species are available from identified nursery sources',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s4-species-mix-dg1', 'Canopy & understory', ['orch-s4-species-mix-c1', 'orch-s4-species-mix-c2'], ['Vegetation & Succession']),
+      dg('orch-s4-species-mix-dg2', 'Shrub & ground layers', ['orch-s4-species-mix-c3', 'orch-s4-species-mix-c4'], ['Vegetation & Succession']),
+      dg('orch-s4-species-mix-dg3', 'Pioneers, philosophy & availability', ['orch-s4-species-mix-c5', 'orch-s4-species-mix-c6', 'orch-s4-species-mix-c7']),
+    ],
     completionGate:
       'Species mix and planting plan strategy approved. All species confirmed available.',
     actHandoff: 'Species Mix & Planting Plan Strategy Brief',
@@ -460,6 +520,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s4-water-strategy-c5',
         'Define permanent vs. temporary irrigation infrastructure',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s4-water-strategy-dg1', 'Establishment irrigation', ['orch-s4-water-strategy-c1', 'orch-s4-water-strategy-c2'], ['Water & Hydrology']),
+      dg('orch-s4-water-strategy-dg2', 'Weaning & mature triggers', ['orch-s4-water-strategy-c3', 'orch-s4-water-strategy-c4'], ['Water & Hydrology']),
+      dg('orch-s4-water-strategy-dg3', 'Infrastructure permanence', ['orch-s4-water-strategy-c5']),
     ],
     completionGate:
       'Establishment and maturity water strategy approved. Weaning schedule defined.',
@@ -500,6 +565,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm all guild species are consistent with succession intent',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s4-guild-planting-dg1', 'Guild composition & N-fixers', ['orch-s4-guild-planting-c1', 'orch-s4-guild-planting-c2']),
+      dg('orch-s4-guild-planting-dg2', 'Accumulators & pest confusers', ['orch-s4-guild-planting-c3', 'orch-s4-guild-planting-c4']),
+      dg('orch-s4-guild-planting-dg3', 'Ground cover & succession fit', ['orch-s4-guild-planting-c5', 'orch-s4-guild-planting-c6']),
+    ],
     completionGate:
       'Guild planting and companion species strategy approved.',
     actHandoff: 'Guild Planting & Companion Species Strategy Brief',
@@ -534,6 +604,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s4-succession-management-c5',
         'Define system maturity indicator - when management reduces to minimal intervention',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s4-succession-management-dg1', 'Stage targets & interventions', ['orch-s4-succession-management-c1', 'orch-s4-succession-management-c2']),
+      dg('orch-s4-succession-management-dg2', 'Removal & canopy management', ['orch-s4-succession-management-c3', 'orch-s4-succession-management-c4']),
+      dg('orch-s4-succession-management-dg3', 'Maturity indicator', ['orch-s4-succession-management-c5']),
     ],
     completionGate:
       'Succession management strategy approved. Stage targets and interventions defined.',
@@ -573,6 +648,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s4-pest-disease-management-c6',
         'Confirm all interventions are consistent with growing philosophy',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s4-pest-disease-management-dg1', 'Variety & biological control', ['orch-s4-pest-disease-management-c1', 'orch-s4-pest-disease-management-c2']),
+      dg('orch-s4-pest-disease-management-dg2', 'Spray & sanitation', ['orch-s4-pest-disease-management-c3', 'orch-s4-pest-disease-management-c4']),
+      dg('orch-s4-pest-disease-management-dg3', 'Monitoring & philosophy fit', ['orch-s4-pest-disease-management-c5', 'orch-s4-pest-disease-management-c6']),
     ],
     completionGate:
       'Pest and disease management strategy approved. All interventions philosophy-consistent.',
@@ -614,6 +694,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Produce planting map with species, coordinates, and planting date',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s5-planting-layout-dg1', 'Orientation & spacing', ['orch-s5-planting-layout-c1', 'orch-s5-planting-layout-c2']),
+      dg('orch-s5-planting-layout-dg2', 'Species placement', ['orch-s5-planting-layout-c3', 'orch-s5-planting-layout-c4']),
+      dg('orch-s5-planting-layout-dg3', 'Succession fit & map', ['orch-s5-planting-layout-c5', 'orch-s5-planting-layout-c6']),
+    ],
     completionGate:
       'Tree planting layout approved. Planting map produced.',
     actHandoff: 'Tree Planting Layout & Species Placement Design',
@@ -648,6 +733,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s5-guild-plan-c5',
         'Confirm all guild species are sourced and available for Phase 1 planting',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s5-guild-plan-dg1', 'Companion placement & sequence', ['orch-s5-guild-plan-c1', 'orch-s5-guild-plan-c2']),
+      dg('orch-s5-guild-plan-dg2', 'Density & ground cover', ['orch-s5-guild-plan-c3', 'orch-s5-guild-plan-c4']),
+      dg('orch-s5-guild-plan-dg3', 'Sourcing', ['orch-s5-guild-plan-c5']),
     ],
     completionGate: 'Guild planting plan approved. All species sourced.',
     actHandoff: 'Guild Planting Plan',
@@ -687,6 +777,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Design for future extension as planting expands',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s5-establishment-irrigation-dg1', 'Mainline & emitters', ['orch-s5-establishment-irrigation-c1', 'orch-s5-establishment-irrigation-c2'], ['Water & Hydrology']),
+      dg('orch-s5-establishment-irrigation-dg2', 'Valves & filtration', ['orch-s5-establishment-irrigation-c3', 'orch-s5-establishment-irrigation-c4'], ['Water & Hydrology']),
+      dg('orch-s5-establishment-irrigation-dg3', 'Materials & extension', ['orch-s5-establishment-irrigation-c5', 'orch-s5-establishment-irrigation-c6']),
+    ],
     completionGate:
       'Establishment irrigation design approved. Coverage of all planted trees confirmed.',
     actHandoff: 'Establishment Irrigation Design Package',
@@ -722,6 +817,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm all paths meet harvest vehicle specifications',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s5-access-harvest-dg1', 'Picking paths & stations', ['orch-s5-access-harvest-c1', 'orch-s5-access-harvest-c2'], ['Infrastructure & Access']),
+      dg('orch-s5-access-harvest-dg2', 'Pack-out & storage', ['orch-s5-access-harvest-c3', 'orch-s5-access-harvest-c4'], ['Infrastructure & Access']),
+      dg('orch-s5-access-harvest-dg3', 'Vehicle spec confirmation', ['orch-s5-access-harvest-c5']),
+    ],
     completionGate:
       'Access paths and harvest infrastructure design approved.',
     actHandoff: 'Access Paths & Harvest Infrastructure Design Package',
@@ -756,6 +856,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s5-tree-protection-c5',
         'Specify browse-line protection for larger trees - spiral guards vs. mesh guards',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s5-tree-protection-dg1', 'Guards & installation', ['orch-s5-tree-protection-c1', 'orch-s5-tree-protection-c2']),
+      dg('orch-s5-tree-protection-dg2', 'Exclusion & removal', ['orch-s5-tree-protection-c3', 'orch-s5-tree-protection-c4']),
+      dg('orch-s5-tree-protection-dg3', 'Browse-line protection', ['orch-s5-tree-protection-c5']),
     ],
     completionGate:
       'Tree protection infrastructure design approved. All planting sites assigned protection type.',
@@ -793,6 +898,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm phenological data feeds variety selection and management decisions annually',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s6-phenological-monitoring-dg1', 'Phenology & frost recording', ['orch-s6-phenological-monitoring-c1', 'orch-s6-phenological-monitoring-c2'], ['Climate & Sectors']),
+      dg('orch-s6-phenological-monitoring-dg2', 'Harvest & succession tracking', ['orch-s6-phenological-monitoring-c3', 'orch-s6-phenological-monitoring-c4']),
+      dg('orch-s6-phenological-monitoring-dg3', 'Feedback to decisions', ['orch-s6-phenological-monitoring-c5']),
+    ],
     completionGate:
       'Phenological monitoring protocol approved. Calendar and recording system confirmed.',
     actHandoff: 'Phenological Monitoring Protocol',
@@ -827,6 +937,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s6-pest-disease-monitoring-c5',
         'Define record-keeping system - log of pressure, intervention, and outcome',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s6-pest-disease-monitoring-dg1', 'Method & frequency', ['orch-s6-pest-disease-monitoring-c1', 'orch-s6-pest-disease-monitoring-c2']),
+      dg('orch-s6-pest-disease-monitoring-dg2', 'Thresholds & scouting', ['orch-s6-pest-disease-monitoring-c3', 'orch-s6-pest-disease-monitoring-c4']),
+      dg('orch-s6-pest-disease-monitoring-dg3', 'Record-keeping', ['orch-s6-pest-disease-monitoring-c5']),
     ],
     completionGate:
       'Pest and disease monitoring protocol approved. Intervention thresholds defined.',
@@ -863,6 +978,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Document all management changes with year, trigger, and outcome',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s6-adaptive-management-dg1', 'Annual review & variety triggers', ['orch-s6-adaptive-management-c1', 'orch-s6-adaptive-management-c2']),
+      dg('orch-s6-adaptive-management-dg2', 'Species & succession triggers', ['orch-s6-adaptive-management-c3', 'orch-s6-adaptive-management-c4']),
+      dg('orch-s6-adaptive-management-dg3', 'Documentation', ['orch-s6-adaptive-management-c5']),
+    ],
     completionGate: 'Adaptive management protocol approved.',
     actHandoff: 'Adaptive Management Protocol',
   }),
@@ -897,6 +1017,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s7-planting-establishment-c5',
         'Define planting order by species - frost-hardy before frost-sensitive, canopy before understory',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s7-planting-establishment-dg1', 'Soil & irrigation readiness', ['orch-s7-planting-establishment-c1', 'orch-s7-planting-establishment-c2'], ['Infrastructure & Access']),
+      dg('orch-s7-planting-establishment-dg2', 'Wind & guard readiness', ['orch-s7-planting-establishment-c3', 'orch-s7-planting-establishment-c4']),
+      dg('orch-s7-planting-establishment-dg3', 'Planting order', ['orch-s7-planting-establishment-c5']),
     ],
     completionGate:
       'Planting establishment sequence approved. All prerequisite infrastructure confirmed before tree arrival.',
@@ -939,6 +1064,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm long-term plan is consistent with steward capacity across timeline',
       ),
     ],
+    decisionGroups: [
+      dg('orch-s7-succession-plan-dg1', 'Year 5 & 10 targets', ['orch-s7-succession-plan-c1', 'orch-s7-succession-plan-c2']),
+      dg('orch-s7-succession-plan-dg2', 'Year 25 & interventions', ['orch-s7-succession-plan-c3', 'orch-s7-succession-plan-c4']),
+      dg('orch-s7-succession-plan-dg3', 'Species schedule & capacity', ['orch-s7-succession-plan-c5', 'orch-s7-succession-plan-c6']),
+    ],
     completionGate:
       'Long-term succession management plan approved. 5, 10, and 25-year targets defined.',
     actHandoff: 'Long-Term Succession Management Plan',
@@ -977,6 +1107,11 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-s7-financial-viability-c6',
         'Define break-even year at projected yield and price',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-s7-financial-viability-dg1', 'Production timeline & revenue', ['orch-s7-financial-viability-c1', 'orch-s7-financial-viability-c2']),
+      dg('orch-s7-financial-viability-dg2', 'Costs & cash flow gap', ['orch-s7-financial-viability-c3', 'orch-s7-financial-viability-c4']),
+      dg('orch-s7-financial-viability-dg3', 'Scale & break-even', ['orch-s7-financial-viability-c5', 'orch-s7-financial-viability-c6']),
     ],
     completionGate:
       'Enterprise financial viability plan approved. Cash flow gap and bridge strategy confirmed.',
@@ -1038,6 +1173,11 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Record the climate-matched species shortlist as a constraint on later selection',
       ),
     ],
+    decisionGroups: [
+      dg('orch-sec-s2-climate-chill-fit-dg1', 'Chill & frost fit', ['orch-sec-s2-climate-chill-fit-c1', 'orch-sec-s2-climate-chill-fit-c2'], ['Climate & Sectors']),
+      dg('orch-sec-s2-climate-chill-fit-dg2', 'Heat tolerance & alternatives', ['orch-sec-s2-climate-chill-fit-c3', 'orch-sec-s2-climate-chill-fit-c4'], ['Climate & Sectors']),
+      dg('orch-sec-s2-climate-chill-fit-dg3', 'Shortlist constraint', ['orch-sec-s2-climate-chill-fit-c5']),
+    ],
     completionGate:
       'Climate and chill-hour fit assessed for every intended species. Marginal species flagged with backups. Climate-matched shortlist recorded.',
     actHandoff: 'Climate & Chill-Hour Fit Assessment',
@@ -1074,6 +1214,11 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'orch-sec-s4-species-pollination-c5',
         'Confirm true-to-type planting-stock sourcing and lead time for each cultivar and rootstock',
       ),
+    ],
+    decisionGroups: [
+      dg('orch-sec-s4-species-pollination-dg1', 'Cultivar & rootstock', ['orch-sec-s4-species-pollination-c1', 'orch-sec-s4-species-pollination-c2']),
+      dg('orch-sec-s4-species-pollination-dg2', 'Pollination partners', ['orch-sec-s4-species-pollination-c3', 'orch-sec-s4-species-pollination-c4']),
+      dg('orch-sec-s4-species-pollination-dg3', 'Stock sourcing', ['orch-sec-s4-species-pollination-c5']),
     ],
     completionGate:
       'Cultivar and rootstock selections approved. Pollination partners and bloom overlap secured. True-to-type stock sourcing confirmed.',
@@ -1112,6 +1257,11 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Integrate the layout with the host primary existing zones, access, and infrastructure',
       ),
     ],
+    decisionGroups: [
+      dg('orch-sec-s5-guild-layout-dg1', 'Spacing & multilayer guild', ['orch-sec-s5-guild-layout-c1', 'orch-sec-s5-guild-layout-c2'], ['Vegetation & Succession']),
+      dg('orch-sec-s5-guild-layout-dg2', 'Support species & light', ['orch-sec-s5-guild-layout-c3', 'orch-sec-s5-guild-layout-c4']),
+      dg('orch-sec-s5-guild-layout-dg3', 'Host integration', ['orch-sec-s5-guild-layout-c5']),
+    ],
     completionGate:
       'Spaced multilayer guild layout drawn and integrated with the host design. Light competition resolved at maturity.',
     actHandoff: 'Guild Layout & Spacing Design Package',
@@ -1149,6 +1299,11 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm the recurring regime is committed and resourced before any trees are planted',
       ),
     ],
+    decisionGroups: [
+      dg('orch-sec-s6-perennial-care-dg1', 'Pruning & IPM regime', ['orch-sec-s6-perennial-care-c1', 'orch-sec-s6-perennial-care-c2']),
+      dg('orch-sec-s6-perennial-care-dg2', 'Labour & skills', ['orch-sec-s6-perennial-care-c3', 'orch-sec-s6-perennial-care-c4']),
+      dg('orch-sec-s6-perennial-care-dg3', 'Commitment gate', ['orch-sec-s6-perennial-care-c5']),
+    ],
     completionGate:
       'A resourced recurring pruning, training, and IPM regime is committed, with seasonal-labor peaks costed and the skills gap addressed.',
     actHandoff: 'Perennial Care & IPM Commitment Brief',
@@ -1185,6 +1340,11 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'Confirm the pathway is consistent with steward capacity and the production intent',
       ),
     ],
+    decisionGroups: [
+      dg('orch-sec-s6-harvest-pathway-dg1', 'Harvest & storage', ['orch-sec-s6-harvest-pathway-c1', 'orch-sec-s6-harvest-pathway-c2']),
+      dg('orch-sec-s6-harvest-pathway-dg2', 'Value-add & destination', ['orch-sec-s6-harvest-pathway-c3', 'orch-sec-s6-harvest-pathway-c4']),
+      dg('orch-sec-s6-harvest-pathway-dg3', 'Capacity fit', ['orch-sec-s6-harvest-pathway-c5']),
+    ],
     completionGate:
       'A harvest-to-use-or-market pathway with storage and handling is planned. Destination confirmed as a halal pathway free of riba and gharar.',
     actHandoff: 'Harvest, Storage & Value-Add Pathway Brief',
@@ -1215,6 +1375,9 @@ export const ORCHARD_SECONDARY_PATCHES: readonly PatchRecord[] = [
         'Define drip or micro-irrigation to establishing trees and a weaning schedule toward rainfall dependence',
       ),
     ],
+    injectedGroups: [
+      dg('s4-water-strategy-dgorch1', 'Perennial establishment irrigation', ['s4-water-strategy-orch-1', 's4-water-strategy-orch-2'], ['Water & Hydrology']),
+    ],
     completionGateAmendment:
       'Perennial establishment and drought-year irrigation demand are in the water balance, with a drip delivery and weaning schedule defined.',
     scopeNote:
@@ -1233,6 +1396,9 @@ export const ORCHARD_SECONDARY_PATCHES: readonly PatchRecord[] = [
         's5-soil-improvement-orch-2',
         'Define ongoing orchard-floor fertility - mulch rings, compost, and living mulch',
       ),
+    ],
+    injectedGroups: [
+      dg('s5-soil-improvement-dgorch1', 'Pre-plant & floor fertility', ['s5-soil-improvement-orch-1', 's5-soil-improvement-orch-2'], ['Soil']),
     ],
     completionGateAmendment:
       'Pre-plant deep soil preparation and ongoing orchard-floor fertility are designed for every planting zone.',
@@ -1253,6 +1419,9 @@ export const ORCHARD_SECONDARY_PATCHES: readonly PatchRecord[] = [
         'Plan insectary and flowering-understory provision to support pollination across the bloom window',
       ),
     ],
+    injectedGroups: [
+      dg('s2-ecology-dgorch1', 'Pollinator habitat & provision', ['s2-ecology-orch-1', 's2-ecology-orch-2'], ['Ecology & Habitat']),
+    ],
     completionGateAmendment:
       'Pollinator and beneficial-insect habitat is baselined and an insectary or flowering-understory provision supports fruit and nut set.',
     scopeNote:
@@ -1271,6 +1440,9 @@ export const ORCHARD_SECONDARY_PATCHES: readonly PatchRecord[] = [
         's7-phase1-orch-2',
         'Sequence a staged multi-year establishment with tree protection - guards, stakes, and mulch - at planting',
       ),
+    ],
+    injectedGroups: [
+      dg('s7-phase1-dgorch1', 'Perennial planting & protection', ['s7-phase1-orch-1', 's7-phase1-orch-2'], ['Vegetation & Succession']),
     ],
     completionGateAmendment:
       'Phase 1 includes the perennial planting palette and a staged multi-year establishment with tree protection at planting.',
