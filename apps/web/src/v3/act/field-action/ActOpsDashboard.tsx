@@ -10,10 +10,12 @@
 // same composition, but mounted on the live field-action surface and slated to
 // outlive the tier-prototype folder.
 
+import { useProtocolStore } from '../../../store/protocolStore.js';
 import WeatherStrip from '../ops/WeatherStrip.js';
 import TodaysPriorities from '../ops/TodaysPriorities.js';
 import AlertsPanel from '../ops/AlertsPanel.js';
 import UpcomingEvents from '../ops/UpcomingEvents.js';
+import TriggeredProtocolsPanel from '../ops/TriggeredProtocolsPanel.js';
 import styles from './ActOpsDashboard.module.css';
 
 interface Props {
@@ -25,8 +27,12 @@ function noop() {
 }
 
 export default function ActOpsDashboard({ projectId }: Props) {
+  const triggered = useProtocolStore((s) => s.getTriggered(projectId ?? ''));
   return (
     <div className={styles.dashboard}>
+      {triggered.length > 0 && (
+        <TriggeredProtocolsPanel projectId={projectId} activeModule={null} />
+      )}
       <WeatherStrip projectId={projectId} onOpen={noop} />
       <TodaysPriorities projectId={projectId} activeModule={null} />
       <AlertsPanel projectId={projectId} activeModule={null} />

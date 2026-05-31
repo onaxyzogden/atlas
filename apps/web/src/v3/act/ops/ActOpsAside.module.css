@@ -189,6 +189,14 @@
 .alertItem[data-severity='high']   { --alert-color: #d27071; }
 .alertItem[data-severity='medium'] { --alert-color: #c4a265; }
 .alertItem[data-severity='low']    { --alert-color: #5fc7d4; }
+.alertItem[data-protocol='triggered'] { --alert-color: #c4a265; }
+
+.protocolActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
 
 /* —— Events —— */
 

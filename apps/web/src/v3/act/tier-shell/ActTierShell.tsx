@@ -27,6 +27,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LayoutDashboard, Target } from 'lucide-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import { useProtocolStore } from '../../../store/protocolStore.js';
 import {
   PLAN_STRATA,
   computeAllActStratumStates,
@@ -73,6 +74,7 @@ import { computeObjectiveMarkerPositions } from './objectiveMarkerGeometry.js';
 import ActTierSpine from './ActTierSpine.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
+import ProtocolMapMarkers from './ProtocolMapMarkers.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import type { ActTool } from './actToolCatalog.js';
@@ -185,6 +187,9 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     );
     return statuses[selectedObjective.id] ?? 'locked';
   }, [selectedObjective, objectives, planProgress]);
+
+  const triggeredProtocols = useProtocolStore((s) => s.getTriggered(id));
+  const triggeredCount = triggeredProtocols.length;
 
   const [selectedStratumId, setSelectedStratumId] = useState(DEFAULT_STRATUM_ID);
   const [rightMode, setRightMode] = useState<RightMode>(
@@ -326,6 +331,11 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                       progressByObjective={progressByObjective}
                       activeObjectiveId={objectiveId}
                       onSelectObjective={handleSelectObjective}
+                    />
+                    <ProtocolMapMarkers
+                      map={map}
+                      centroid={baseCentroid}
+                      triggeredCount={triggeredCount}
                     />
                     <ActDrawHost map={map} projectId={params.projectId ?? null} />
                     {/*

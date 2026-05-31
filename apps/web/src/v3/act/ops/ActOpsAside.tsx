@@ -17,11 +17,13 @@
  */
 
 import { useNavigate, useParams } from '@tanstack/react-router';
+import { useProtocolStore } from '../../../store/protocolStore.js';
 import type { ActModule } from '../types.js';
 import TodaysPriorities from './TodaysPriorities.js';
 import AlertsPanel from './AlertsPanel.js';
 import UpcomingEvents from './UpcomingEvents.js';
 import WeatherStrip from './WeatherStrip.js';
+import TriggeredProtocolsPanel from './TriggeredProtocolsPanel.js';
 import css from './ActOpsAside.module.css';
 
 interface Props {
@@ -41,6 +43,9 @@ export default function ActOpsAside({
   const projectId = params.projectId ?? null;
   const navigate = useNavigate();
 
+  const triggered = useProtocolStore((s) => s.getTriggered(projectId ?? ''));
+  const showProtocols = triggered.length > 0;
+
   const openSchedule = () => {
     onSelectModule('economics-capacity');
     onOpenSlideUp();
@@ -52,6 +57,9 @@ export default function ActOpsAside({
   if (activeModule === null) {
     return (
       <div className={css.aside} data-active-module="all">
+        {showProtocols && (
+          <TriggeredProtocolsPanel projectId={projectId} activeModule={null} />
+        )}
         <div className={css.emptyPrompt}>
           <p className={css.emptyText}>No objective selected.</p>
           <p className={css.emptyHint}>
@@ -82,6 +90,9 @@ export default function ActOpsAside({
       className={css.aside}
       data-active-module={activeModule}
     >
+      {showProtocols && (
+        <TriggeredProtocolsPanel projectId={projectId} activeModule={activeModule} />
+      )}
       <WeatherStrip projectId={projectId} onOpen={openSchedule} />
       <TodaysPriorities projectId={projectId} activeModule={activeModule} />
       <AlertsPanel projectId={projectId} activeModule={activeModule} />

@@ -13,10 +13,12 @@
 // map-free, screenshot-safe verification.
 
 import { useState } from 'react';
+import { useParams } from '@tanstack/react-router';
 import { templatesForEnterprises, type EnterpriseId } from '@ogden/shared';
 import { C, F } from './tokens.js';
 import { OBJECTIVES, STRATA, APPROVED_TIER_OUTPUTS } from './mockData.js';
 import type { SpineObjective, SpineObjectiveSource, ProposalDecision } from './types.js';
+import { useProtocolStore } from '../../../store/protocolStore.js';
 import StratumCircle from './StratumCircle.js';
 import SpineObjectiveCard from './SpineObjectiveCard.js';
 import DesignDetailPanel from './DesignDetailPanel.js';
@@ -47,6 +49,9 @@ export default function PlanSpinePrototype({
    */
   height?: string | number;
 } = {}) {
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const activateProtocol = useProtocolStore((s) => s.activateProtocol);
+
   const [mode, setMode] = useState<SpinePlanMode>('design');
   const [activeStratum, setActiveStratum] = useState(3);
   const [selectedObj, setSelectedObj] = useState<SpineObjective | null>(OBJECTIVES[1] ?? null);
@@ -233,7 +238,10 @@ export default function PlanSpinePrototype({
               templates={confirmTemplates}
               decisions={decisions}
               outputs={APPROVED_TIER_OUTPUTS}
-              onActivate={(id) => setDecision(id, 'activated')}
+              onActivate={(id) => {
+                setDecision(id, 'activated');
+                if (projectId) activateProtocol(projectId, id);
+              }}
               onSkip={(id) => setDecision(id, 'skipped')}
               onUndo={(id) => setDecision(id, 'pending')}
               onClose={() => {
@@ -246,7 +254,10 @@ export default function PlanSpinePrototype({
               enterprises={ENTERPRISES}
               decisions={decisions}
               integrationApproved={integrationApproved}
-              onRestore={(id) => setDecision(id, 'activated')}
+              onRestore={(id) => {
+                setDecision(id, 'activated');
+                if (projectId) activateProtocol(projectId, id);
+              }}
               onNavigateToSource={handleNavigateToSource}
             />
           ) : selectedObj ? (
