@@ -129,6 +129,25 @@ Silvopasture/Orchard **secondary** catalogues remain blocked on operator
 source files -- these three specs do not supply them (both types appear only
 as primaries in the Decision Groups Reference).
 
+**Decision groups ENCODED 2026-05-31 (delta #4 above now closed).**
+`DecisionGroupSchema` ({ id, label, itemIds[>=1], observeFeeds[] verbatim
+strings, sourceSecondaryId nullable }) added to
+`planStratumObjective.schema.ts`; `decisionGroups[]` on the objective and
+`injectedGroups[]` on `PatchRecordSchema`, both defaulted. `resolveProjectObjectives`
+deep-clones groups and stamps `sourceSecondaryId = p.secondaryTypeId` on
+patch-injected groups (mirroring the `injectedItems`/`expandedBySecondaryId`
+path). A `dg(...)` helper joins `ck`/`obj`/`patch` in `catalogues/authoring.ts`.
+Every encoded catalogue now carries full mutually-exclusive group partitions:
+universal/regenFarm/residential (Phase 3a, residential patches inject groups,
+rubric `-dgres<n>`), then agritourism, wellness, silvopasture (`-dgsilv1`),
+orchard (`-dgorch1`), nursery (no patches), ecovillage (primary-only, no
+patches). Group ids `<objId>-dg<n>`, globally unique. The catalogues test
+asserts the 1-6/full-partition/unique-id invariants; resolver test asserts
+the sourceSecondaryId stamping and shared-constant immutability. Per the
+2026-05-31 rulings: R1 (authored item membership), R2 (verbatim feed strings),
+extended override + "author meaningful labels" for rows the doc doesn't
+enumerate. ADR: [[decisions/2026-05-31-atlas-decision-groups-encode]].
+
 ## Act telemetry schema (`schemas/actTelemetry.schema.ts`)
 Main-barrel schema backing the Act-stage affinity pipeline (migration
 024 + the `apps/api` telemetry route + `apps/web/src/lib/actInteractionLog.ts`).

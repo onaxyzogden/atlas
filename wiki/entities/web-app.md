@@ -190,6 +190,24 @@ ADR: [[2026-05-29-atlas-per-type-objective-model]].
   (neutral filled pill, distinct from the gold feeds chips + green Stage Zero
   badge).
 
+## Plan decision-group render in DecisionChecklist (2026-05-31)
+
+`v3/plan/strata/DecisionChecklist.tsx` now groups the checklist when the
+objective carries `decisionGroups[]` (see [[concepts/decision-groups]]): each
+group renders a sub-header with its `label`, a "N items" count, and verbatim
+`observeFeeds` chips, with the existing per-item checkboxes nested beneath.
+When `decisionGroups` is empty it falls back to today's flat list (unencoded
+catalogues + the static MTC skeleton are unaffected). Patch-injected groups
+(`sourceSecondaryId != null`) reuse the established amber treatment -- the
+`#e8a958` left-border + an "Added by <Type>" chip via `findProjectType`. No
+new prop plumbing (the component already receives the full objective).
+**Disclosed divergence:** per-item checkboxes are kept (not groups-only)
+because `planStratumProgressStore` is keyed on item ids; a groups-only display
+with group-level completion is a deliberate later refinement. Tests in
+`v3/plan/strata/__tests__/DecisionChecklist.test.tsx` (happy-dom) cover
+grouped render, item bucketing, feed chips, amber attribution, and flat
+fallback. ADR: [[decisions/2026-05-31-atlas-decision-groups-encode]].
+
 ## Act Tier Shell -- promoted to the default Act page (2026-05-30)
 
 The Act stage now opens on a **map-centric 4-rail tier shell** by default, the
