@@ -1,0 +1,76 @@
+/* WizardAddressSearch - top-center overlay on the Step 1 map. */
+
+.wrap {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 11;
+  width: min(420px, calc(100% - 140px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.clearBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted, #8a8275);
+  cursor: pointer;
+  padding: 0;
+}
+.clearBtn:hover {
+  color: var(--text-primary, #e8e1d0);
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgba(14, 20, 19, 0.96);
+  border: 1px solid var(--border-subtle, #2a2d2e);
+  backdrop-filter: blur(6px);
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.result {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-primary, #e8e1d0);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.result:hover {
+  background: rgba(196, 162, 101, 0.14);
+}
+
+.hint,
+.empty,
+.error {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(14, 20, 19, 0.92);
+  border: 1px solid var(--border-subtle, #2a2d2e);
+  backdrop-filter: blur(6px);
+  font-size: 12px;
+  color: var(--text-muted, #8a8275);
+}
+
+.error {
+  color: var(--accent-danger, #c2654f);
+  border-color: var(--accent-danger, #c2654f);
+}

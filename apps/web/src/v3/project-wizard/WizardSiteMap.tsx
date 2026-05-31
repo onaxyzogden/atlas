@@ -31,6 +31,8 @@ import WizardDrawPolygonTool from './WizardDrawPolygonTool.js';
 import WizardDrawRectangleTool from './WizardDrawRectangleTool.js';
 import WizardUploadBoundary from './WizardUploadBoundary.js';
 import WizardGpsWalkTool from './WizardGpsWalkTool.js';
+import WizardBasemapToggle from './WizardBasemapToggle.js';
+import WizardAddressSearch from './WizardAddressSearch.js';
 import BoundaryConfirmationStrip from './BoundaryConfirmationStrip.js';
 import type { WizardUnits } from '../../store/projectWizardStore.js';
 import styles from './WizardSiteMap.module.css';
@@ -159,6 +161,7 @@ export default function WizardSiteMap({
       >
         {({ map }) => (
           <>
+            <WizardAddressSearch map={map} country={country} />
             {!polygon && mode === 'polygon' && (
               <WizardDrawPolygonTool map={map} onComplete={handleCapture} />
             )}
@@ -183,6 +186,8 @@ export default function WizardSiteMap({
           </>
         )}
       </DiagnoseMap>
+
+      <WizardBasemapToggle />
 
       {!polygon && (
         <div className={styles.toolbar} role="toolbar" aria-label="Boundary capture tools">

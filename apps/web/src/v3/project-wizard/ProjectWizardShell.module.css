@@ -3,13 +3,17 @@
 .shell {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--header-h, 64px));
+  /* Occupy exactly the viewport (minus the app header) and never page-scroll;
+     individual sections (e.g. the Step 1 form column) scroll internally. */
+  height: calc(100vh - var(--header-h, 64px));
+  overflow: hidden;
   background: var(--surface-canvas, #0e1413);
   color: var(--text-primary, #e8e1d0);
 }
 
 /* Step indicator strip */
 .indicator {
+  flex: 0 0 auto;
   border-bottom: 1px solid var(--border-subtle, #2a2d2e);
   padding: 18px 24px;
 }
@@ -99,6 +103,7 @@
 
 /* Footer */
 .footer {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
