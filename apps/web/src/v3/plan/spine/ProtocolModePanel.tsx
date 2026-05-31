@@ -23,18 +23,25 @@ import {
 } from '@ogden/shared';
 import { C, F } from './tokens.js';
 import { TypeBadge } from './protocolTypeStyle.js';
+import AutoFilledCondition from './AutoFilledCondition.js';
 import type { ProposalDecision } from './types.js';
 
 function ProtocolLibraryCard({
   template,
   decision,
   integrationApproved,
+  outputs,
+  edited,
 }: {
   template: StandardProtocolTemplate;
   /** Post-confirmation decision for this template; 'pending' pre-confirmation. */
   decision: ProposalDecision;
   /** True once the Stratum-6 Integration objective has been approved (§10.1). */
   integrationApproved: boolean;
+  /** Effective outputs for this template: defaults merged with steward edits. */
+  outputs: Record<string, string>;
+  /** True when this template's values diverge from the pre-filled defaults. */
+  edited: boolean;
 }) {
   // Status label: before approval everything reads "Standard template"; after,
   // activated templates read "Active" (green). Skipped ones move to a separate
@@ -77,9 +84,7 @@ function ProtocolLibraryCard({
             <span style={{ fontSize: 9, fontWeight: 700, color: C.amber, fontFamily: F.mono, letterSpacing: '0.08em', flexShrink: 0 }}>
               IF
             </span>
-            <span style={{ fontSize: 11, color: C.textPrimary, fontFamily: F.sans, lineHeight: 1.5 }}>
-              {template.condition.replace(/^IF\s+/, '')}
-            </span>
+            <AutoFilledCondition condition={template.condition} outputs={outputs} />
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
             <span style={{ fontSize: 9, fontWeight: 700, color: C.green, fontFamily: F.mono, letterSpacing: '0.08em', flexShrink: 0 }}>
@@ -148,6 +153,22 @@ function ProtocolLibraryCard({
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: C.green, display: 'inline-block' }} />
           )}
           {statusLabel}
+          {isActive && edited && (
+            <span
+              style={{
+                fontSize: 8,
+                background: C.amberDim,
+                color: C.amber,
+                border: `1px solid ${C.amber}55`,
+                borderRadius: 6,
+                padding: '1px 5px',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Edited
+            </span>
+          )}
         </span>
       </div>
     </div>
@@ -158,6 +179,8 @@ export default function ProtocolModePanel({
   enterprises = ['sheep_beef'],
   decisions = {},
   integrationApproved = false,
+  outputs = {},
+  editedValues = {},
   onRestore,
   onNavigateToSource,
 }: {
@@ -171,6 +194,10 @@ export default function ProtocolModePanel({
   decisions?: Record<string, ProposalDecision>;
   /** True once the Stratum-6 Integration objective has been approved (§10.1). */
   integrationApproved?: boolean;
+  /** Mock approved tier outputs (defaults) for AUTO-FILLED substitution. */
+  outputs?: Record<string, string>;
+  /** Per-template Edit-First overrides, keyed by template id then token. */
+  editedValues?: Record<string, Record<string, string>>;
   /** Restore a skipped template to active (§4.1 recoverable skipped list). */
   onRestore?: (id: string) => void;
   /** Navigate back to the originating Stratum-6 Integration objective. */
@@ -275,6 +302,8 @@ export default function ProtocolModePanel({
               template={t}
               decision={decisions[t.id] ?? 'pending'}
               integrationApproved={integrationApproved}
+              outputs={{ ...outputs, ...(editedValues[t.id] ?? {}) }}
+              edited={Object.entries(editedValues[t.id] ?? {}).some(([k, v]) => v !== outputs[k])}
             />
           ))
         )}
