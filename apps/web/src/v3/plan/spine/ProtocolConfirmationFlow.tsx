@@ -4,11 +4,12 @@
 // a CARD STACK (operator decision): when the steward approves the Stratum-6
 // "Integration" objective (§10.1), OLOS generates a pre-filled confirmation
 // request for every enterprise-eligible standard template. Each proposal is one
-// scrollable card the steward acts on independently — Activate / Edit First
-// (deferred) / Skip — with a running tally and per-card Undo.
+// scrollable card the steward acts on independently — Activate / Edit First /
+// Skip — with a running tally and per-card Undo. "Edit First" opens an inline
+// form to adjust the auto-filled threshold values before activating (§4.1).
 //
-// Scope (everything else deferred): no persistence, no evaluation engine, no
-// "Edit First" schema form (the action is rendered but disabled). AUTO-FILLED
+// Scope (everything else deferred): no persistence, no evaluation engine. Edits
+// live as local React state in PlanSpinePrototype (editedValues). AUTO-FILLED
 // IF→THEN segments are substituted from the web-side mock APPROVED_TIER_OUTPUTS
 // via the pure renderConditionSegments helper — no eval.
 
@@ -16,6 +17,7 @@ import { useState } from 'react';
 import { C, F } from './tokens.js';
 import { TYPE_STYLE, TypeBadge } from './protocolTypeStyle.js';
 import AutoFilledCondition from './AutoFilledCondition.js';
+import { renderConditionSegments } from './autoFill.js';
 import type { ProposalDecision } from './types.js';
 import type { StandardProtocolTemplate } from '@ogden/shared';
 
@@ -23,18 +25,47 @@ function ConfirmationCard({
   template,
   decision,
   outputs,
+  isEdited,
   onActivate,
   onSkip,
   onUndo,
+  onEditCommit,
 }: {
   template: StandardProtocolTemplate;
   decision: ProposalDecision;
+  /** Effective outputs for this card: defaults merged with this card's edits. */
   outputs: Record<string, string>;
+  /** True when this card's values diverge from the pre-filled defaults. */
+  isEdited: boolean;
   onActivate: () => void;
   onSkip: () => void;
   onUndo: () => void;
+  onEditCommit: (values: Record<string, string>) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
+  // The condition's distinct auto-fill tokens (e.g. 'approved threshold'). Edit
+  // First is only meaningful when there is at least one.
+  const tokens = [
+    ...new Set(
+      renderConditionSegments(template.condition.replace(/^IF\s+/, ''), outputs)
+        .map((s) => s.token)
+        .filter((t): t is string => !!t),
+    ),
+  ];
+  const canEdit = tokens.length > 0;
+
+  const startEdit = () => {
+    setDraft(Object.fromEntries(tokens.map((tk) => [tk, outputs[tk] ?? ''])));
+    setEditing(true);
+  };
+  const saveEdit = () => {
+    onEditCommit(draft);
+    setEditing(false);
+  };
+
   const acted = decision !== 'pending';
   const accent =
     decision === 'activated' ? C.green : decision === 'skipped' ? C.textTertiary : TYPE_STYLE[template.type].color;
@@ -155,7 +186,74 @@ function ConfirmationCard({
           gap: 8,
         }}
       >
-        {acted ? (
+        {editing ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
+            {tokens.map((tk) => (
+              <div key={tk} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label
+                  style={{
+                    fontSize: 9,
+                    color: C.textTertiary,
+                    fontFamily: F.sans,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  {tk}
+                </label>
+                <input
+                  value={draft[tk] ?? ''}
+                  onChange={(e) => setDraft((prev) => ({ ...prev, [tk]: e.target.value }))}
+                  style={{
+                    background: C.bg,
+                    border: `1px solid ${C.amber}55`,
+                    borderRadius: 7,
+                    color: C.textPrimary,
+                    fontSize: 12,
+                    fontFamily: F.mono,
+                    padding: '6px 10px',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            ))}
+            <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+              <button
+                onClick={saveEdit}
+                style={{
+                  background: C.green,
+                  border: 'none',
+                  borderRadius: 7,
+                  color: 'white',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  fontFamily: F.sans,
+                  padding: '6px 14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Save &amp; activate
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                style={{
+                  background: 'transparent',
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 7,
+                  color: C.textSecondary,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  fontFamily: F.sans,
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : acted ? (
           <>
             <span
               style={{
@@ -169,6 +267,22 @@ function ConfirmationCard({
               }}
             >
               {decision === 'activated' ? '✓ Activated' : '⊘ Skipped'}
+              {decision === 'activated' && isEdited && (
+                <span
+                  style={{
+                    fontSize: 8,
+                    background: C.amberDim,
+                    color: C.amber,
+                    border: `1px solid ${C.amber}55`,
+                    borderRadius: 6,
+                    padding: '1px 5px',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  Edited
+                </span>
+              )}
             </span>
             <button
               onClick={onUndo}
@@ -206,39 +320,24 @@ function ConfirmationCard({
             >
               Activate
             </button>
-            {/* Edit First — rendered but deferred this slice */}
             <button
-              disabled
-              title="Schema editing is deferred in this slice"
+              onClick={startEdit}
+              disabled={!canEdit}
+              title={canEdit ? 'Adjust the auto-filled values before activating' : 'No auto-filled values to edit'}
               style={{
                 background: 'transparent',
                 border: `1px solid ${C.border}`,
                 borderRadius: 7,
-                color: C.textTertiary,
+                color: canEdit ? C.textSecondary : C.textTertiary,
                 fontSize: 11,
                 fontWeight: 600,
                 fontFamily: F.sans,
                 padding: '6px 12px',
-                cursor: 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
+                cursor: canEdit ? 'pointer' : 'not-allowed',
+                opacity: canEdit ? 1 : 0.6,
               }}
             >
               Edit First
-              <span
-                style={{
-                  fontSize: 8,
-                  background: C.bg4,
-                  color: C.textTertiary,
-                  borderRadius: 6,
-                  padding: '1px 5px',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Deferred
-              </span>
             </button>
             <button
               onClick={onSkip}
@@ -268,20 +367,28 @@ export default function ProtocolConfirmationFlow({
   templates,
   decisions,
   outputs,
+  editedValues,
+  isEdited,
   onActivate,
   onSkip,
   onUndo,
+  onEditCommit,
   onClose,
 }: {
   /** Already enterprise-filtered (spec §4.3) standard templates to confirm. */
   templates: readonly StandardProtocolTemplate[];
   /** Per-template decision state, keyed by template id. */
   decisions: Record<string, ProposalDecision>;
-  /** Mock approved tier outputs for AUTO-FILLED bracket substitution. */
+  /** Mock approved tier outputs (defaults) for AUTO-FILLED bracket substitution. */
   outputs: Record<string, string>;
+  /** Per-template Edit-First overrides, keyed by template id then token. */
+  editedValues: Record<string, Record<string, string>>;
+  /** Whether a template's values diverge from defaults (drives the "Edited" tag). */
+  isEdited: (id: string) => boolean;
   onActivate: (id: string) => void;
   onSkip: (id: string) => void;
   onUndo: (id: string) => void;
+  onEditCommit: (id: string, values: Record<string, string>) => void;
   onClose: () => void;
 }) {
   const activated = templates.filter((t) => decisions[t.id] === 'activated').length;
@@ -346,10 +453,12 @@ export default function ProtocolConfirmationFlow({
             key={t.id}
             template={t}
             decision={decisions[t.id] ?? 'pending'}
-            outputs={outputs}
+            outputs={{ ...outputs, ...(editedValues[t.id] ?? {}) }}
+            isEdited={isEdited(t.id)}
             onActivate={() => onActivate(t.id)}
             onSkip={() => onSkip(t.id)}
             onUndo={() => onUndo(t.id)}
+            onEditCommit={(values) => onEditCommit(t.id, values)}
           />
         ))}
 
@@ -368,7 +477,7 @@ export default function ProtocolConfirmationFlow({
           >
             highlighted
           </span>{' '}
-          values are auto-filled from approved Stratum-6 outputs · &ldquo;Edit First&rdquo; is deferred this slice
+          values are auto-filled from approved Stratum-6 outputs · use &ldquo;Edit First&rdquo; to adjust a threshold before activating
         </div>
       </div>
     </div>

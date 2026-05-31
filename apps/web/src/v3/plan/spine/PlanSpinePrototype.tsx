@@ -62,6 +62,9 @@ export default function PlanSpinePrototype({
   const [confirmFlowOpen, setConfirmFlowOpen] = useState(false);
   // Per-template decision, keyed by template id. Missing → 'pending'.
   const [decisions, setDecisions] = useState<Record<string, ProposalDecision>>({});
+  // §4.1 Edit-First overrides: per-template { token -> edited value }. Merged over
+  // APPROVED_TIER_OUTPUTS wherever the condition renders. Empty = pristine defaults.
+  const [editedValues, setEditedValues] = useState<Record<string, Record<string, string>>>({});
 
   const confirmTemplates = templatesForEnterprises(ENTERPRISES);
 
@@ -78,6 +81,34 @@ export default function PlanSpinePrototype({
 
   const setDecision = (id: string, value: ProposalDecision) =>
     setDecisions((prev) => ({ ...prev, [id]: value }));
+
+  // Save the Edit-First form: record the per-template overrides and activate (§4.1
+  // "save activates immediately"). Preserves the protocolStore activation so an
+  // edited protocol is instantiated identically to a plain activate.
+  const commitEdit = (id: string, values: Record<string, string>) => {
+    setEditedValues((prev) => ({ ...prev, [id]: values }));
+    setDecision(id, 'activated');
+    if (projectId) activateProtocol(projectId, id);
+  };
+
+  // Undo also discards any Edit-First override, returning the proposal to its
+  // pristine pre-filled defaults.
+  const handleUndo = (id: string) => {
+    setDecision(id, 'pending');
+    setEditedValues((prev) => {
+      if (!(id in prev)) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+
+  // A template counts as "edited" only when an override actually diverges from the
+  // default approved output (saving the form unchanged does not flag it).
+  const isEdited = (id: string) => {
+    const e = editedValues[id];
+    return !!e && Object.entries(e).some(([k, v]) => v !== APPROVED_TIER_OUTPUTS[k]);
+  };
 
   const handleApprove = () => {
     setIntegrationApproved(true);
@@ -238,12 +269,15 @@ export default function PlanSpinePrototype({
               templates={confirmTemplates}
               decisions={decisions}
               outputs={APPROVED_TIER_OUTPUTS}
+              editedValues={editedValues}
+              isEdited={isEdited}
               onActivate={(id) => {
                 setDecision(id, 'activated');
                 if (projectId) activateProtocol(projectId, id);
               }}
               onSkip={(id) => setDecision(id, 'skipped')}
-              onUndo={(id) => setDecision(id, 'pending')}
+              onUndo={handleUndo}
+              onEditCommit={commitEdit}
               onClose={() => {
                 setConfirmFlowOpen(false);
                 setMode('protocol');
@@ -254,6 +288,8 @@ export default function PlanSpinePrototype({
               enterprises={ENTERPRISES}
               decisions={decisions}
               integrationApproved={integrationApproved}
+              outputs={APPROVED_TIER_OUTPUTS}
+              editedValues={editedValues}
               onRestore={(id) => {
                 setDecision(id, 'activated');
                 if (projectId) activateProtocol(projectId, id);
