@@ -184,6 +184,14 @@ evidence capture, checklist progress, and s1-vision form values now survive
 reload. Verified: write -> objective-switch -> hard reload all confirmed via
 store-module imports + DOM probes.
 
+s1-vision form → checklist wiring (commit `2624c3ca`, two files:
+`planStratumStore.ts`, `ActTierShell.tsx`): saving a Vision tile modal now
+also marks the matching checklist item complete via the new idempotent
+`planStratumStore.setItemComplete` action. Re-saving is a no-op (the action
+guards on `current.includes(itemId)`). The two stores are now fully coherent
+for s1-vision: modal save simultaneously persists form text (actEvidenceStore)
+and advances checklist progress (planStratumStore). tsc 0 errors.
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
