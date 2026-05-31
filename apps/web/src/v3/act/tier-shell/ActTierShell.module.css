@@ -380,6 +380,8 @@
   border-radius: var(--radius-lg, 12px);
   padding: 8px 10px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .toolsHeader {
@@ -387,6 +389,7 @@
   align-items: baseline;
   gap: 8px;
   padding: 2px 2px 8px;
+  flex: 0 0 auto;
 }
 
 .toolsLabel {
@@ -404,10 +407,13 @@
 
 .toolsRow {
   display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: 8px;
-  overflow-x: auto;
+  overflow-y: auto;
   padding-bottom: 2px;
-  justify-content: safe center;
+  scroll-snap-type: y mandatory;
 }
 
 .toolBtn {
@@ -493,6 +499,7 @@
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
   padding: 8px;
+  scroll-snap-align: start;
 }
 
 .toolCatHeader {
@@ -525,15 +532,15 @@
 }
 
 .toolGrid {
-  display: grid;
-  grid-template-rows: repeat(2, 1fr);
-  grid-auto-flow: column;
-  grid-auto-columns: 62px;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   gap: 6px;
   margin-top: 8px;
 }
 
 .catTile {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
