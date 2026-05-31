@@ -61,53 +61,115 @@ export const STRATUM_ACT_TOOLS_DEFAULT: Readonly<
 
 /**
  * Per-objective override. The explicit, ordered tool list each objective
- * calls for. Absent ids fall through to `STRATUM_ACT_TOOLS_DEFAULT`.
+ * "calls for", scoped to that objective's OWN checklist (not the whole
+ * stratum). Keyed by the REAL objective ids in
+ * constants/plan/catalogues/universal.ts. Absent ids fall through to
+ * `STRATUM_ACT_TOOLS_DEFAULT`.
+ *
+ * Coverage principle (operator decision, 2026-05-31): every checklist item
+ * that has a real, mountable map-draw tool (a `MapToolId` handled by
+ * ObserveDrawHost / PlanDrawHost) is backed by a rail tool here. Pure-analysis,
+ * decision, or data-import items (e.g. "identify slope gradients and aspects",
+ * "assess total water demand", legal/title items) have NO draw tool by nature
+ * and are intentionally left uncovered - noted as "gap:" against each objective.
+ * Every tool id below is verified to mount a real draw tool; every id resolves
+ * in the app-layer ACT_TOOL_CATALOG (guarded by objectiveActTools.test.ts).
  */
 export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   Record<string, readonly string[]>
 > = {
-  // ---------- S1 — Project Foundation (non-spatial) ----------
+  // ---------- S1 — Project Foundation ----------
+  // Vision/goals/capacity are entirely non-spatial. gap: all 7 items.
   's1-vision': [],
-  's1-stewardship': [],
+  // Map property boundaries on a base layer is the only spatial item, but the
+  // legacy 'boundary' measure tool is not mounted on the Act canvas, so there
+  // is no draw tool to arm. gap: all items (title/boundary/easements/zoning/
+  // water-rights/covenant/permits are legal + data-import).
+  's1-boundaries': [],
+  // Neighbours and stewards are placeable; authority/indigenous/conflict/comms
+  // are non-spatial. gap: c2/c3/c5/c6.
+  's1-stakeholders': ['neighbour-pin', 'steward'],
 
   // ---------- S2 — Land Reading ----------
-  // Read the land baseline: landform, water, soil, ecology, erosion.
-  's2-land-baseline': ['contour', 'drainage', 'soil', 'vegetation', 'erosion'],
-
-  // ---------- S3 — Systems Reading ----------
-  // Existing access, utilities, and infrastructure on the ground.
-  's3-systems-baseline': [
+  // Terrain & topography: contour map, elevation high points, drainage divides,
+  // runoff, erosion. gap: c2 slope/aspect (analysis-only, no draw tool).
+  's2-terrain': ['contour', 'high-point', 'drainage', 'runoff-path', 'erosion'],
+  // Climate & sectors: sun/wind/fire sectors, frost pockets, hazard zones.
+  // gap: c1 rainfall averages (data).
+  's2-climate': [
+    'sun-sector',
+    'wind-sector',
+    'fire-sector',
+    'frost-pocket',
+    'hazard-zone',
+  ],
+  // Existing ecology & habitat: vegetation communities, pasture/grassland,
+  // wildlife corridors, water-dependent habitat. gap: c4 connectivity (analysis).
+  's2-ecology': ['vegetation', 'pasture', 'wildlife-sector', 'watercourse'],
+  // Existing infrastructure & access: full coverage of the 5 items.
+  's2-infrastructure': [
     'roads',
+    'buildings',
     'power',
     'water-lines',
     'gates',
     'fencing',
-    'buildings',
   ],
+
+  // ---------- S3 — Systems Reading ----------
+  // Water movement & hydrology: surface flows, drainage, catchment, springs,
+  // runoff/infiltration. Full coverage.
+  's3-hydrology': [
+    'watercourse',
+    'drainage',
+    'catchment',
+    'spring',
+    'runoff-path',
+  ],
+  // Soil & subsurface: soil sampling at representative points, sampling
+  // transect. gap: c4 drainage class (partly analysis).
+  's3-soil': ['soil', 'transect'],
 
   // ---------- S4 — Foundation Decisions ----------
-  // Zones + sectors framed by access boundaries and primary structures.
-  's4-zones-sectors': ['roads', 'gates', 'fencing', 'buildings'],
+  // Project direction & feasibility is a pure decision objective. gap: all.
+  's4-direction': [],
+  // Water strategy: source options + storage. gap: c1 demand, c3 supply choice,
+  // c6 conservation/drought (decisions).
+  's4-water-strategy': ['catchment', 'spring', 'storage', 'swale', 'tanks', 'wells'],
+  // Spatial framework & zones: zone polygons + buffer/transition rings.
+  // gap: c4 conflict resolution, c6 confirmation (decisions).
+  's4-zones': ['zone', 'buffer-ring'],
 
   // ---------- S5 — System Design ----------
-  // Water strategy: lines, storage, sources, plus the maintenance log.
-  's5-water-strategy': ['water-lines', 'tanks', 'wells', 'water'],
+  // Access & circulation: vehicle roads + pedestrian paths. gap: c4 movement
+  // conflicts (analysis).
+  's5-access': ['roads', 'path'],
+  // Water harvesting & storage infrastructure: swales, storage, tanks,
+  // distribution lines, sinks/overflow, wells. gap: c5 materials (decision).
+  's5-water-infrastructure': [
+    'swale',
+    'storage',
+    'tanks',
+    'water-lines',
+    'sink',
+    'wells',
+  ],
+  // Soil improvement: compost, fertility units, monitoring baseline transect.
+  // gap: c2/c3 application rates + machinery (decisions).
+  's5-soil-improvement': ['compost', 'fertility-unit', 'transect'],
 
   // ---------- S6 — Integration Design ----------
-  // Production systems + yield/livestock field logs.
-  's6-yield-flows': [
-    'crops',
-    'orchards',
-    'paddocks',
-    'beds',
-    'compost',
-    'harvest',
-    'livestock',
-  ],
+  // Monitoring & observation: data-collection transects + field notes.
+  // gap: indicators/frequency/responsibility/triggers (decisions).
+  's6-monitoring': ['transect', 'note'],
 
   // ---------- S7 — Phasing & Resourcing ----------
-  // Structures phasing/placement.
-  's7-phasing': ['buildings', 'barns', 'tanks'],
+  // Phase 1 plan and resource/capacity plan are non-spatial. gap: all.
+  's7-phase1': [],
+  's7-resource-plan': [],
+  // Risk register: spatial risk areas can be flagged as hazard zones.
+  // gap: likelihood/contingency/monitoring (register fields).
+  's7-risk-register': ['hazard-zone'],
 };
 
 /**

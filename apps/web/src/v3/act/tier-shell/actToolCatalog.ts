@@ -46,15 +46,40 @@ import {
   LayoutGrid,
   Recycle,
   Shuffle,
+  Triangle,
+  Spline,
+  Sun,
+  Wind,
+  Flame,
+  Snowflake,
+  ShieldAlert,
+  CloudRain,
+  Container,
+  Leaf,
+  Bird,
+  Wheat,
+  Ruler,
+  StickyNote,
+  Map as MapIcon,
+  CircleDashed,
+  Footprints,
+  MapPin,
+  UserCheck,
   type LucideIcon,
 } from 'lucide-react';
 import type { MapToolId } from '../../observe/components/measure/useMapToolStore.js';
 
 export type ActToolCategoryId =
   | 'terrain-survey'
+  | 'climate-sectors'
+  | 'water'
+  | 'soil'
+  | 'ecology-habitat'
   | 'access-utilities'
   | 'structures'
   | 'production-systems'
+  | 'zones-planning'
+  | 'people'
   | 'field-logs';
 
 export interface ActToolCategoryMeta {
@@ -65,9 +90,15 @@ export interface ActToolCategoryMeta {
 /** Display order + labels for the categories shown in the rail. */
 export const ACT_TOOL_CATEGORIES: readonly ActToolCategoryMeta[] = [
   { id: 'terrain-survey', label: 'Terrain & Survey' },
+  { id: 'climate-sectors', label: 'Climate & Sectors' },
+  { id: 'water', label: 'Water & Hydrology' },
+  { id: 'soil', label: 'Soil' },
+  { id: 'ecology-habitat', label: 'Ecology & Habitat' },
   { id: 'access-utilities', label: 'Access & Utilities' },
   { id: 'structures', label: 'Structures' },
   { id: 'production-systems', label: 'Production Systems' },
+  { id: 'zones-planning', label: 'Zones & Planning' },
+  { id: 'people', label: 'People & Stakeholders' },
   { id: 'field-logs', label: 'Field logs' },
 ] as const;
 
@@ -92,6 +123,13 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     category: 'terrain-survey',
     arm: { kind: 'map', mapToolId: 'observe.topography.contour-line' },
   },
+  'high-point': {
+    id: 'high-point',
+    label: 'High points',
+    icon: Triangle,
+    category: 'terrain-survey',
+    arm: { kind: 'map', mapToolId: 'observe.topography.high-point' },
+  },
   drainage: {
     id: 'drainage',
     label: 'Drainage lines',
@@ -99,19 +137,12 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     category: 'terrain-survey',
     arm: { kind: 'map', mapToolId: 'observe.topography.drainage-line' },
   },
-  soil: {
-    id: 'soil',
-    label: 'Soil sampling',
-    icon: FlaskConical,
+  'runoff-path': {
+    id: 'runoff-path',
+    label: 'Runoff paths',
+    icon: Spline,
     category: 'terrain-survey',
-    arm: { kind: 'map', mapToolId: 'observe.earth-water-ecology.soil-sample' },
-  },
-  vegetation: {
-    id: 'vegetation',
-    label: 'Vegetation cover',
-    icon: Trees,
-    category: 'terrain-survey',
-    arm: { kind: 'map', mapToolId: 'observe.earth-water-ecology.vegetation' },
+    arm: { kind: 'map', mapToolId: 'observe.topography.runoff-path' },
   },
   erosion: {
     id: 'erosion',
@@ -119,6 +150,133 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     icon: AlertTriangle,
     category: 'terrain-survey',
     arm: { kind: 'map', mapToolId: 'observe.topography.erosion-flag' },
+  },
+
+  // ---- Climate & Sectors ----
+  'sun-sector': {
+    id: 'sun-sector',
+    label: 'Sun sectors',
+    icon: Sun,
+    category: 'climate-sectors',
+    arm: { kind: 'map', mapToolId: 'observe.sectors-zones.sun-summer' },
+  },
+  'wind-sector': {
+    id: 'wind-sector',
+    label: 'Wind sectors',
+    icon: Wind,
+    category: 'climate-sectors',
+    arm: { kind: 'map', mapToolId: 'observe.sectors-zones.wind-prevailing' },
+  },
+  'fire-sector': {
+    id: 'fire-sector',
+    label: 'Fire sector',
+    icon: Flame,
+    category: 'climate-sectors',
+    arm: { kind: 'map', mapToolId: 'observe.sectors-zones.fire' },
+  },
+  'frost-pocket': {
+    id: 'frost-pocket',
+    label: 'Frost pockets',
+    icon: Snowflake,
+    category: 'climate-sectors',
+    arm: { kind: 'map', mapToolId: 'observe.macroclimate-hazards.frost-pocket' },
+  },
+  'hazard-zone': {
+    id: 'hazard-zone',
+    label: 'Hazard zones',
+    icon: ShieldAlert,
+    category: 'climate-sectors',
+    arm: { kind: 'map', mapToolId: 'observe.macroclimate-hazards.hazard-zone' },
+  },
+
+  // ---- Water & Hydrology ----
+  watercourse: {
+    id: 'watercourse',
+    label: 'Watercourses',
+    icon: Waves,
+    category: 'water',
+    arm: { kind: 'map', mapToolId: 'observe.earth-water-ecology.watercourse' },
+  },
+  catchment: {
+    id: 'catchment',
+    label: 'Catchment areas',
+    icon: CloudRain,
+    category: 'water',
+    arm: { kind: 'map', mapToolId: 'plan.water-management.catchment' },
+  },
+  spring: {
+    id: 'spring',
+    label: 'Springs',
+    icon: Droplet,
+    category: 'water',
+    arm: { kind: 'map', mapToolId: 'plan.water-management.spring' },
+  },
+  storage: {
+    id: 'storage',
+    label: 'Water storage',
+    icon: Container,
+    category: 'water',
+    arm: { kind: 'map', mapToolId: 'plan.water-management.storage' },
+  },
+  swale: {
+    id: 'swale',
+    label: 'Swales',
+    icon: Waves,
+    category: 'water',
+    arm: { kind: 'map', mapToolId: 'plan.water-management.swale' },
+  },
+  sink: {
+    id: 'sink',
+    label: 'Sinks / overflow',
+    icon: Droplets,
+    category: 'water',
+    arm: { kind: 'map', mapToolId: 'plan.water-management.sink' },
+  },
+
+  // ---- Soil ----
+  soil: {
+    id: 'soil',
+    label: 'Soil sampling',
+    icon: FlaskConical,
+    category: 'soil',
+    arm: { kind: 'map', mapToolId: 'observe.earth-water-ecology.soil-sample' },
+  },
+  'fertility-unit': {
+    id: 'fertility-unit',
+    label: 'Fertility units',
+    icon: Wheat,
+    category: 'soil',
+    arm: { kind: 'map', mapToolId: 'plan.soil-fertility.fertility-unit' },
+  },
+  transect: {
+    id: 'transect',
+    label: 'Monitoring transect',
+    icon: Ruler,
+    category: 'soil',
+    arm: { kind: 'map', mapToolId: 'plan.principle-verification.transect' },
+  },
+
+  // ---- Ecology & Habitat ----
+  vegetation: {
+    id: 'vegetation',
+    label: 'Vegetation cover',
+    icon: Trees,
+    category: 'ecology-habitat',
+    arm: { kind: 'map', mapToolId: 'observe.earth-water-ecology.vegetation' },
+  },
+  pasture: {
+    id: 'pasture',
+    label: 'Pasture / grassland',
+    icon: Leaf,
+    category: 'ecology-habitat',
+    arm: { kind: 'map', mapToolId: 'observe.earth-water-ecology.pasture' },
+  },
+  'wildlife-sector': {
+    id: 'wildlife-sector',
+    label: 'Wildlife corridors',
+    icon: Bird,
+    category: 'ecology-habitat',
+    arm: { kind: 'map', mapToolId: 'observe.sectors-zones.wildlife' },
   },
 
   // ---- Access & Utilities ----
@@ -163,6 +321,13 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     icon: Fence,
     category: 'access-utilities',
     arm: { kind: 'map', mapToolId: 'observe.built-environment.fence' },
+  },
+  path: {
+    id: 'path',
+    label: 'Paths',
+    icon: Footprints,
+    category: 'access-utilities',
+    arm: { kind: 'map', mapToolId: 'plan.zone-circulation.path' },
   },
 
   // ---- Structures ----
@@ -238,6 +403,45 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     icon: Recycle,
     category: 'production-systems',
     arm: { kind: 'map', mapToolId: 'observe.built-environment.compost' },
+  },
+
+  // ---- Zones & Planning ----
+  zone: {
+    id: 'zone',
+    label: 'Zones',
+    icon: MapIcon,
+    category: 'zones-planning',
+    arm: { kind: 'map', mapToolId: 'plan.zone-circulation.zone' },
+  },
+  'buffer-ring': {
+    id: 'buffer-ring',
+    label: 'Buffer zones',
+    icon: CircleDashed,
+    category: 'zones-planning',
+    arm: { kind: 'map', mapToolId: 'plan.zone-circulation.buffer-ring' },
+  },
+  note: {
+    id: 'note',
+    label: 'Field note',
+    icon: StickyNote,
+    category: 'zones-planning',
+    arm: { kind: 'map', mapToolId: 'plan.principle-verification.note' },
+  },
+
+  // ---- People & Stakeholders ----
+  'neighbour-pin': {
+    id: 'neighbour-pin',
+    label: 'Neighbours',
+    icon: MapPin,
+    category: 'people',
+    arm: { kind: 'map', mapToolId: 'observe.human-context.neighbour-pin' },
+  },
+  steward: {
+    id: 'steward',
+    label: 'Stewards',
+    icon: UserCheck,
+    category: 'people',
+    arm: { kind: 'map', mapToolId: 'observe.human-context.steward' },
   },
 
   // ---- Field logs (act.* — route through QUICK_LOGS) ----
