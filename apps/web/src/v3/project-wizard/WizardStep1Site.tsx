@@ -179,57 +179,63 @@ export default function WizardStep1Site() {
             boundary to anchor everything you do next.
           </p>
 
-          <label className={styles.field}>
-            <span className={styles.label}>Project name</span>
-            <input
-              type="text"
-              className={styles.input}
-              value={draft.name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Cedar Hollow Farm"
-              maxLength={200}
-              autoFocus
-            />
-          </label>
+          <div className={styles.bento}>
+            <label className={styles.field}>
+              <span className={styles.label}>Project name</span>
+              <input
+                type="text"
+                className={styles.input}
+                value={draft.name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g., Cedar Hollow Farm"
+                maxLength={200}
+                autoFocus
+              />
+            </label>
+          </div>
 
-          <label className={styles.field}>
-            <span className={styles.label}>Country</span>
-            <select
-              className={styles.input}
-              value={draft.country}
-              onChange={(e) => setCountry(e.target.value as Country)}
-            >
-              {COUNTRY_OPTIONS.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className={styles.bento}>
+            <label className={styles.field}>
+              <span className={styles.label}>Country</span>
+              <select
+                className={styles.input}
+                value={draft.country}
+                onChange={(e) => setCountry(e.target.value as Country)}
+              >
+                {COUNTRY_OPTIONS.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          {wizardMap && (
-            <div className={styles.field}>
-              <span className={styles.label}>Find your property by address</span>
-              <WizardAddressSearch map={wizardMap} country={draft.country} />
-            </div>
-          )}
+            {wizardMap && (
+              <div className={styles.field}>
+                <span className={styles.label}>Find your property by address</span>
+                <WizardAddressSearch map={wizardMap} country={draft.country} />
+              </div>
+            )}
+          </div>
 
-          <fieldset className={styles.field}>
-            <legend className={styles.label}>Units</legend>
-            <div className={styles.chipRow}>
-              {UNIT_OPTIONS.map((u) => (
-                <button
-                  type="button"
-                  key={u.id}
-                  className={styles.chip}
-                  data-selected={draft.units === u.id ? 'true' : 'false'}
-                  onClick={() => setUnits(u.id)}
-                >
-                  {u.label}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+          <div className={styles.bento}>
+            <fieldset className={styles.field}>
+              <legend className={styles.label}>Units</legend>
+              <div className={styles.chipRow}>
+                {UNIT_OPTIONS.map((u) => (
+                  <button
+                    type="button"
+                    key={u.id}
+                    className={styles.chip}
+                    data-selected={draft.units === u.id ? 'true' : 'false'}
+                    onClick={() => setUnits(u.id)}
+                  >
+                    {u.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          </div>
         </aside>
 
         <div className={styles.mapHost}>

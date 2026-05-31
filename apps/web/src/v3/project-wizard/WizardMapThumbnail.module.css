@@ -4,8 +4,8 @@
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--border-subtle, #2a2d2e);
-  background: var(--surface-canvas, #0e1413);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg);
   min-height: 320px;
   display: flex;
 }
@@ -25,9 +25,9 @@
   gap: 2px;
   padding: 8px 12px;
   border-radius: 8px;
-  background: rgba(14, 20, 19, 0.85);
-  border: 1px solid var(--border-strong, #3d4243);
-  color: var(--text-primary, #e8e1d0);
+  background: rgba(var(--color-map-panel-rgb), 0.85);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
   max-width: calc(100% - 24px);
 }
 
@@ -35,7 +35,7 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
 }
 
 .name {

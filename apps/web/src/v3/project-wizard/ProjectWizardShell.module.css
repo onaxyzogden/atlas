@@ -7,14 +7,14 @@
      individual sections (e.g. the Step 1 form column) scroll internally. */
   height: calc(100vh - var(--header-h, 64px));
   overflow: hidden;
-  background: var(--surface-canvas, #0e1413);
-  color: var(--text-primary, #e8e1d0);
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 /* Step indicator strip */
 .indicator {
   flex: 0 0 auto;
-  border-bottom: 1px solid var(--border-subtle, #2a2d2e);
+  border-bottom: 1px solid var(--color-border-subtle);
   padding: 18px 24px;
 }
 
@@ -46,30 +46,30 @@
   left: -10px;
   width: 8px;
   height: 1px;
-  background: var(--border-subtle, #2a2d2e);
+  background: var(--color-border-subtle);
 }
 
 .step[data-state='complete'] .stepNum {
-  background: var(--accent-success, #4f8c5a);
-  color: #0e1413;
+  background: var(--color-success);
+  color: var(--color-on-primary);
   border-color: transparent;
 }
 
 .step[data-state='current'] {
-  background: rgba(196, 162, 101, 0.08);
+  background: rgba(var(--color-primary-rgb), 0.08);
 }
 .step[data-state='current'] .stepNum {
-  background: var(--accent-gold, #c4a265);
-  color: #0e1413;
+  background: var(--color-gold-brand);
+  color: var(--color-on-primary);
   border-color: transparent;
 }
 .step[data-state='current'] .stepLabel {
-  color: var(--text-primary, #e8e1d0);
+  color: var(--color-text);
 }
 
 .step[data-state='pending'] .stepNum,
 .step[data-state='pending'] .stepLabel {
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
 }
 
 .stepNum {
@@ -79,7 +79,7 @@
   width: 24px;
   height: 24px;
   border-radius: 999px;
-  border: 1px solid var(--border-subtle, #2a2d2e);
+  border: 1px solid var(--color-border-subtle);
   font-size: 12px;
   font-weight: 600;
   flex-shrink: 0;
@@ -109,8 +109,8 @@
   align-items: center;
   gap: 16px;
   padding: 14px 24px;
-  border-top: 1px solid var(--border-subtle, #2a2d2e);
-  background: var(--surface-elevated, #161b1a);
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
 }
 
 .footerLeft {
@@ -120,7 +120,7 @@
 
 .footerHint {
   font-size: 12px;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
   text-align: center;
   min-height: 1em;
 }
@@ -150,32 +150,32 @@
 .backBtn,
 .skipBtn {
   background: transparent;
-  border: 1px solid var(--border-subtle, #2a2d2e);
-  color: var(--text-primary, #e8e1d0);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text);
 }
 .backBtn:hover,
 .skipBtn:hover {
-  background: rgba(232, 225, 208, 0.06);
-  border-color: var(--border-strong, #3d4243);
+  background: var(--color-hover-overlay);
+  border-color: var(--color-border);
 }
 
 .skipBtn {
   border-color: transparent;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
 }
 .skipBtn:hover {
-  color: var(--text-primary, #e8e1d0);
-  background: rgba(232, 225, 208, 0.06);
+  color: var(--color-text);
+  background: var(--color-hover-overlay);
 }
 
 .nextBtn {
-  background: var(--accent-gold, #c4a265);
-  border: 1px solid var(--accent-gold, #c4a265);
-  color: #0e1413;
+  background: var(--color-gold-brand);
+  border: 1px solid var(--color-gold-brand);
+  color: var(--color-on-primary);
 }
 .nextBtn:hover:not(:disabled) {
-  background: var(--accent-gold-hover, #d4b275);
-  border-color: var(--accent-gold-hover, #d4b275);
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 .nextBtn:disabled {
   opacity: 0.45;

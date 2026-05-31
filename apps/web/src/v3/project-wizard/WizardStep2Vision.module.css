@@ -10,8 +10,8 @@
 
 .form {
   padding: 28px 28px 24px;
-  border-right: 1px solid var(--border-subtle, #2a2d2e);
-  background: var(--surface-elevated, #161b1a);
+  border-right: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -24,14 +24,14 @@
 .title {
   font-size: 22px;
   font-weight: 600;
-  color: var(--text-primary, #e8e1d0);
+  color: var(--color-text);
   margin: 0;
   line-height: 1.2;
 }
 
 .subtitle {
   font-size: 13px;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
   line-height: 1.5;
   margin: 0 0 4px;
 }
@@ -46,20 +46,24 @@
 .subheading {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary, #e8e1d0);
+  color: var(--color-text);
   margin: 0;
   line-height: 1.3;
 }
 
-.divider {
-  border: 0;
-  border-top: 1px solid var(--border-subtle, #2a2d2e);
-  margin: 4px 0 0;
+.bento {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
 }
 
 .thumbHost {
   position: relative;
-  background: var(--surface-canvas, #0e1413);
+  background: var(--color-bg);
   padding: 24px;
   display: flex;
   align-items: stretch;
@@ -67,7 +71,7 @@
 
 .empty {
   padding: 32px;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 900px) {
@@ -78,7 +82,7 @@
   }
   .form {
     border-right: none;
-    border-bottom: 1px solid var(--border-subtle, #2a2d2e);
+    border-bottom: 1px solid var(--color-border-subtle);
     overflow-y: visible;
   }
   .thumbHost {

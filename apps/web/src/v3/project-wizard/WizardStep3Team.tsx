@@ -210,39 +210,41 @@ export default function WizardStep3Team({ projectId }: WizardStep3TeamProps) {
             the notification system ships.
           </p>
 
-          <h2 className={styles.sectionLabel}>Primary steward</h2>
-          <div className={styles.primaryStewardRow}>
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="primary-steward-name">
-                Name
-              </label>
-              <input
-                id="primary-steward-name"
-                type="text"
-                className={styles.input}
-                value={primary.name}
-                onChange={(e) =>
-                  setPrimary((p) => ({ ...p, name: e.target.value }))
-                }
-                placeholder="Your name"
-                autoComplete="name"
-              />
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label} htmlFor="primary-steward-email">
-                Email
-              </label>
-              <input
-                id="primary-steward-email"
-                type="email"
-                className={styles.input}
-                value={primary.email}
-                onChange={(e) =>
-                  setPrimary((p) => ({ ...p, email: e.target.value }))
-                }
-                placeholder="name@example.com"
-                autoComplete="email"
-              />
+          <div className={styles.bento}>
+            <h2 className={styles.sectionLabel}>Primary steward</h2>
+            <div className={styles.primaryStewardRow}>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="primary-steward-name">
+                  Name
+                </label>
+                <input
+                  id="primary-steward-name"
+                  type="text"
+                  className={styles.input}
+                  value={primary.name}
+                  onChange={(e) =>
+                    setPrimary((p) => ({ ...p, name: e.target.value }))
+                  }
+                  placeholder="Your name"
+                  autoComplete="name"
+                />
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label} htmlFor="primary-steward-email">
+                  Email
+                </label>
+                <input
+                  id="primary-steward-email"
+                  type="email"
+                  className={styles.input}
+                  value={primary.email}
+                  onChange={(e) =>
+                    setPrimary((p) => ({ ...p, email: e.target.value }))
+                  }
+                  placeholder="name@example.com"
+                  autoComplete="email"
+                />
+              </div>
             </div>
           </div>
 

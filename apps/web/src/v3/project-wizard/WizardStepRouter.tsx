@@ -74,7 +74,7 @@ export default function WizardStepRouter() {
     return (
       <ProjectWizardShell step="site">
         <div style={{ padding: 24 }}>
-          <p style={{ color: 'var(--text-muted, #8a8275)' }}>
+          <p style={{ color: 'var(--color-text-muted)' }}>
             Project not found.
           </p>
         </div>

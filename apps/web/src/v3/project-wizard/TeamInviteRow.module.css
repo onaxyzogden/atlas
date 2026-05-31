@@ -17,9 +17,9 @@
 .select {
   padding: 8px 10px;
   border-radius: 6px;
-  border: 1px solid var(--border-subtle, #2a2d2e);
-  background: var(--surface-canvas, #0e1413);
-  color: var(--text-primary, #e8e1d0);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-family: inherit;
   font-size: 13px;
   transition: border-color 120ms ease, box-shadow 120ms ease;
@@ -27,12 +27,12 @@
 .input:focus,
 .select:focus {
   outline: none;
-  border-color: var(--accent-gold, #c4a265);
-  box-shadow: 0 0 0 3px rgba(196, 162, 101, 0.18);
+  border-color: var(--color-gold-brand);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.18);
 }
 .input[data-duplicate='true'] {
-  border-color: var(--accent-warning, #d88e3a);
-  box-shadow: 0 0 0 2px rgba(216, 142, 58, 0.18);
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 2px rgba(var(--color-warning-rgb), 0.18);
 }
 
 .removeBtn {
@@ -42,19 +42,19 @@
   border-radius: 6px;
   border: 1px solid transparent;
   background: transparent;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
   cursor: pointer;
   transition: color 120ms ease, background-color 120ms ease;
 }
 .removeBtn:hover {
-  color: var(--accent-warning, #d88e3a);
-  background: rgba(216, 142, 58, 0.08);
+  color: var(--color-warning);
+  background: rgba(var(--color-warning-rgb), 0.08);
 }
 
 .warning {
   grid-column: 1 / -1;
   font-size: 11px;
-  color: var(--accent-warning, #d88e3a);
+  color: var(--color-warning);
   padding-left: 2px;
 }
 

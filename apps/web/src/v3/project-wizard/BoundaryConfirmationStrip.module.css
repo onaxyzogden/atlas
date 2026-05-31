@@ -11,10 +11,10 @@
   gap: 14px;
   padding: 10px 14px;
   border-radius: 12px;
-  background: rgba(14, 20, 19, 0.94);
-  border: 1px solid var(--border-strong, #3d4243);
+  background: rgba(var(--color-map-panel-rgb), 0.94);
+  border: 1px solid var(--color-border);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
-  color: var(--text-primary, #e8e1d0);
+  color: var(--color-text);
   font-family: inherit;
   max-width: calc(100% - 32px);
 }
@@ -37,20 +37,20 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
 }
 
 .value {
   font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--text-primary, #e8e1d0);
+  color: var(--color-text);
 }
 
 .divider {
   width: 1px;
   height: 24px;
-  background: var(--border-soft, rgba(232, 225, 208, 0.15));
+  background: var(--color-border-subtle);
 }
 
 .redoBtn {
@@ -59,9 +59,9 @@
   gap: 6px;
   padding: 7px 12px;
   border-radius: 8px;
-  border: 1px solid var(--border-strong, #3d4243);
+  border: 1px solid var(--color-border);
   background: transparent;
-  color: var(--text-primary, #e8e1d0);
+  color: var(--color-text);
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
@@ -69,6 +69,6 @@
   transition: background-color 120ms ease, border-color 120ms ease;
 }
 .redoBtn:hover {
-  background: rgba(232, 225, 208, 0.06);
-  border-color: var(--accent-gold, #c4a265);
+  background: var(--color-hover-overlay);
+  border-color: var(--color-gold-brand);
 }

@@ -203,19 +203,23 @@ export default function WizardStep2Vision({ projectId }: WizardStep2VisionProps)
             Pick the primary purpose - this sets the objectives you will plan
             against. You can layer compatible secondary uses on top.
           </p>
-          <WizardProjectTypeGrid
-            selectedId={primaryTypeId}
-            onSelect={handleSelectPrimary}
-          />
+          <div className={styles.bento}>
+            <WizardProjectTypeGrid
+              selectedId={primaryTypeId}
+              onSelect={handleSelectPrimary}
+            />
+          </div>
 
           {primaryTypeId && (
-            <div className={styles.subsection}>
-              <h2 className={styles.subheading}>Secondary layers (optional)</h2>
-              <WizardSecondaryPicker
-                primaryId={primaryTypeId}
-                selectedIds={secondaryTypeIds}
-                onToggle={handleToggleSecondary}
-              />
+            <div className={styles.bento}>
+              <div className={styles.subsection}>
+                <h2 className={styles.subheading}>Secondary layers (optional)</h2>
+                <WizardSecondaryPicker
+                  primaryId={primaryTypeId}
+                  selectedIds={secondaryTypeIds}
+                  onToggle={handleToggleSecondary}
+                />
+              </div>
             </div>
           )}
 

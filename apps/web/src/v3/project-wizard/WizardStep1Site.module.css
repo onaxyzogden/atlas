@@ -10,8 +10,8 @@
 
 .form {
   padding: 28px 28px 24px;
-  border-right: 1px solid var(--border-subtle, #2a2d2e);
-  background: var(--surface-elevated, #161b1a);
+  border-right: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -24,16 +24,26 @@
 .title {
   font-size: 22px;
   font-weight: 600;
-  color: var(--text-primary, #e8e1d0);
+  color: var(--color-text);
   margin: 0;
   line-height: 1.2;
 }
 
 .subtitle {
   font-size: 13px;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
   line-height: 1.5;
   margin: 0 0 4px;
+}
+
+.bento {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
 }
 
 .field {
@@ -50,24 +60,24 @@
   font-weight: 500;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
 }
 
 .input {
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid var(--border-subtle, #2a2d2e);
-  background: var(--surface-canvas, #0e1413);
-  color: var(--text-primary, #e8e1d0);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg);
+  color: var(--color-text);
   font-family: inherit;
   font-size: 14px;
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 .input:focus {
   outline: none;
-  border-color: var(--accent-gold, #c4a265);
-  box-shadow: 0 0 0 3px rgba(196, 162, 101, 0.18);
+  border-color: var(--color-gold-brand);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.18);
 }
 
 .chipRow {
@@ -79,9 +89,9 @@
 .chip {
   padding: 7px 12px;
   border-radius: 999px;
-  border: 1px solid var(--border-subtle, #2a2d2e);
+  border: 1px solid var(--color-border-subtle);
   background: transparent;
-  color: var(--text-muted, #8a8275);
+  color: var(--color-text-muted);
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
@@ -89,19 +99,19 @@
   transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 .chip:hover {
-  background: rgba(232, 225, 208, 0.05);
-  color: var(--text-primary, #e8e1d0);
+  background: var(--color-hover-overlay);
+  color: var(--color-text);
 }
 .chip[data-selected='true'] {
-  background: rgba(196, 162, 101, 0.16);
-  color: var(--accent-gold, #c4a265);
-  border-color: var(--accent-gold, #c4a265);
+  background: rgba(var(--color-primary-rgb), 0.16);
+  color: var(--color-gold-brand);
+  border-color: var(--color-gold-brand);
 }
 
 .mapHost {
   position: relative;
   min-height: 480px;
-  background: var(--surface-canvas, #0e1413);
+  background: var(--color-bg);
 }
 
 /* Stack on narrow screens — Step 1 is desktop-first but stays usable on tablet. */
@@ -114,7 +124,7 @@
   }
   .form {
     border-right: none;
-    border-bottom: 1px solid var(--border-subtle, #2a2d2e);
+    border-bottom: 1px solid var(--color-border-subtle);
     overflow-y: visible;
   }
   .mapHost {
