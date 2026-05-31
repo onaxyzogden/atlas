@@ -1,24 +1,41 @@
 // ProjectUrgencyCard.tsx
 //
-// A single project card on Portfolio Home (Phase 5, Slice 5.3). Renders the
-// project name, a "Finish setup" badge when the wizard hasn't finished, and
-// chips for each non-zero urgency reason from the breakdown. The score
-// itself is never displayed per the urgency-engine docstring contract:
+// A single project card on the Portfolio Dashboard (OLOS Portfolio Home Spec
+// §3.3). P7 revamp: the card now carries the full §3.3 composition — a stage
+// colour bar, serif name, primary/secondary type badges, stage + active
+// stratum with a Plan-progress bar, a last-activity line, the alert badges
+// (the urgency chips, preserved from Phase 5), the area, and an explicit Open
+// CTA. The urgency *score* is still never displayed (ordering signal only):
 //
 //   "The number is an ordering signal only — the UI surfaces the
 //    underlying reasons (divergences, stale domains, drafts) directly
 //    rather than ever rendering the score."
 //
-// Tapping the card navigates to Per-Project Home at
-// `/v3/project/$id/home` (Slice 5.4 repoint).
+// Stage + Plan-progress are computed once in the parent (usePortfolioStages /
+// usePortfolioPlanProgress) and passed in as props so the grid never runs a
+// hook per card. Tapping the card (or the Open CTA) navigates to Per-Project
+// Home, or resumes the wizard when setup is unfinished.
 
 import { useNavigate } from '@tanstack/react-router';
-import { AlertTriangle, Clock, RefreshCw, Sprout } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowRight,
+  Clock,
+  RefreshCw,
+  Sprout,
+} from 'lucide-react';
 import type { ProjectUrgencyResult, ProjectRole } from '@ogden/shared';
 import { BentoBox } from '../../components/ui/BentoBox.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { buildUrgencyChips } from '../home/urgencyChips.js';
-import css from './PortfolioHomePage.module.css';
+import {
+  STAGE_PAINT,
+  projectAreaLabel,
+  projectTypeBadges,
+  type PortfolioStage,
+} from './portfolioModel.js';
+import type { PortfolioPlanProgress } from './usePortfolioPlanProgress.js';
+import css from './ProjectUrgencyCard.module.css';
 
 // Non-steward roles get a badge; owner / primary_steward are omitted (the
 // portfolio belongs to the steward, so their own projects carry no badge).
@@ -31,15 +48,28 @@ const ROLE_BADGE_LABEL: Partial<Record<ProjectRole, string>> = {
   landowner: 'Landowner',
 };
 
+function lastActivityLabel(days: number | undefined): string | null {
+  if (days == null || !Number.isFinite(days)) return null;
+  if (days <= 0) return 'Active today';
+  if (days === 1) return 'Active yesterday';
+  return `Active ${days} days ago`;
+}
+
 export interface ProjectUrgencyCardProps {
   project: LocalProject;
   urgency: ProjectUrgencyResult | undefined;
+  /** Live-data §2.6 stage (usePortfolioStages) — drives the colour bar + pill. */
+  stage: PortfolioStage;
+  /** Live-data Plan progress (usePortfolioPlanProgress) — stratum + bar. */
+  planProgress?: PortfolioPlanProgress;
   role?: ProjectRole;
 }
 
 export default function ProjectUrgencyCard({
   project,
   urgency,
+  stage,
+  planProgress,
   role,
 }: ProjectUrgencyCardProps) {
   const navigate = useNavigate();
@@ -47,6 +77,18 @@ export default function ProjectUrgencyCard({
   const draftWizard = urgency?.breakdown.draftWizard ?? false;
   const chips = buildUrgencyChips(urgency);
   const allClear = !draftWizard && chips.length === 0;
+
+  const paint = STAGE_PAINT[stage];
+  const { primary, secondary } = projectTypeBadges(project);
+  const activity = lastActivityLabel(urgency?.breakdown.inactivityDays);
+
+  const stratumLabel =
+    planProgress && planProgress.activeStratumOrdinal != null
+      ? `S${planProgress.activeStratumOrdinal} — ${planProgress.activeStratumTitle}`
+      : planProgress?.allComplete
+        ? 'All strata complete'
+        : 'Plan not started';
+  const showProgress = (planProgress?.objectivesTotal ?? 0) > 0;
 
   const handleOpen = () => {
     if (draftWizard) {
@@ -67,8 +109,9 @@ export default function ProjectUrgencyCard({
   return (
     <BentoBox
       outer="elevated"
-      padding="md"
+      padding="none"
       className={css.card}
+      style={{ ['--stage-color' as string]: paint.color }}
       role="button"
       tabIndex={0}
       onClick={handleOpen}
@@ -80,22 +123,77 @@ export default function ProjectUrgencyCard({
       }}
       aria-label={`Open ${project.name}`}
     >
-      <BentoBox.Header className={css.cardHeader}>
-        <div className={css.titleBlock}>
-          <h3 className={css.cardTitle}>{project.name}</h3>
-          {project.description ? (
-            <p className={css.cardSubtitle}>{project.description}</p>
-          ) : null}
-        </div>
-        {draftWizard ? (
-          <span className={css.finishSetupBadge}>
-            <Sprout size={12} aria-hidden /> Finish setup
-          </span>
-        ) : null}
-        {roleLabel ? <span className={css.roleBadge}>{roleLabel}</span> : null}
-      </BentoBox.Header>
+      <div className={css.stageBar} aria-hidden />
+      <div className={css.inner}>
+        {/* ---- Header: name + type badges · status badges ----------------- */}
+        <header className={css.header}>
+          <div className={css.titleBlock}>
+            <h3 className={css.name}>{project.name}</h3>
+            {primary || secondary.length > 0 ? (
+              <div className={css.typeBadges}>
+                {primary ? (
+                  <span className={`${css.typeBadge} ${css.typePrimary}`}>
+                    {primary.label}
+                  </span>
+                ) : null}
+                {secondary.map((t) => (
+                  <span
+                    key={t.id}
+                    className={`${css.typeBadge} ${css.typeSecondary}`}
+                  >
+                    {t.label}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className={css.headerMeta}>
+            {draftWizard ? (
+              <span className={css.finishSetupBadge}>
+                <Sprout size={12} aria-hidden /> Finish setup
+              </span>
+            ) : null}
+            {roleLabel ? <span className={css.roleBadge}>{roleLabel}</span> : null}
+          </div>
+        </header>
 
-      <BentoBox.Body className={css.cardBody}>
+        {/* ---- Stage & stratum + Plan progress --------------------------- */}
+        <div className={css.stageRow}>
+          <span className={`${css.stagePill} ${css[`stage-${stage}`]}`}>
+            {paint.label}
+          </span>
+          <span className={css.stratumLabel}>{stratumLabel}</span>
+        </div>
+        {showProgress ? (
+          <div className={css.progressBlock}>
+            <div
+              className={css.progressTrack}
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={planProgress?.pct ?? 0}
+              aria-label="Plan objectives complete"
+            >
+              <div
+                className={css.progressFill}
+                style={{ width: `${planProgress?.pct ?? 0}%` }}
+              />
+            </div>
+            <span className={css.progressCaption}>
+              {planProgress?.objectivesComplete}/{planProgress?.objectivesTotal}{' '}
+              objectives
+            </span>
+          </div>
+        ) : null}
+
+        {/* ---- Last activity --------------------------------------------- */}
+        {activity ? (
+          <p className={css.activity}>
+            <Clock size={12} aria-hidden /> {activity}
+          </p>
+        ) : null}
+
+        {/* ---- Alert badges ---------------------------------------------- */}
         {allClear ? (
           <p className={css.allClear}>No urgent signals. Land is steady.</p>
         ) : (
@@ -117,7 +215,23 @@ export default function ProjectUrgencyCard({
             ))}
           </ul>
         )}
-      </BentoBox.Body>
+
+        {/* ---- Footer: area + Open CTA ----------------------------------- */}
+        <footer className={css.footer}>
+          <span className={css.area}>{projectAreaLabel(project)}</span>
+          <button
+            type="button"
+            className={css.openBtn}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpen();
+            }}
+          >
+            {draftWizard ? 'Finish setup' : 'Open'}
+            <ArrowRight size={13} aria-hidden />
+          </button>
+        </footer>
+      </div>
     </BentoBox>
   );
 }

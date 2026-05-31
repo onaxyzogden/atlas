@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import type { ObserveStatusOutput, CrossRelationship } from '@ogden/shared';
+import { hasCapability } from '@ogden/shared';
 import { buildUrgencyChips } from '../home/urgencyChips.js';
 import { useCrossRelationshipStore } from '../../store/crossRelationshipStore.js';
 import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
@@ -95,7 +96,11 @@ export default function PortfolioAtAGlanceRail({
   const { project, plan, observe, lastActivity, urgency } = briefing;
   const chips = buildUrgencyChips(urgency);
   const relationships = relationshipsByProject[project.id] ?? [];
-  const isOwner = roleMap.get(project.id) === 'owner';
+  // Roles are keyed by SERVER project id; local-only projects (no serverId)
+  // are absent from the map and are owned by the steward. Owner-tier =
+  // manage_members capability (owner / primary_steward).
+  const scopedRole = project.serverId ? roleMap.get(project.serverId) : undefined;
+  const isOwner = scopedRole == null || hasCapability(scopedRole, 'manage_members');
   const progressPct =
     plan.objectivesTotal > 0
       ? Math.round((plan.objectivesComplete / plan.objectivesTotal) * 100)

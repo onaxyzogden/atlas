@@ -27,6 +27,9 @@ import PortfolioStageRail from './PortfolioStageRail.js';
 import { usePortfolioBriefing } from './usePortfolioBriefing.js';
 import { usePortfolioStages } from './usePortfolioStages.js';
 import { useCrossRelationshipStore } from '../../store/crossRelationshipStore.js';
+import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
+import { usePortfolioContractorRedirect } from './usePortfolioContractorRedirect.js';
+import { portfolioAccess } from './portfolioModel.js';
 import css from './PortfolioMapPage.module.css';
 
 export default function PortfolioMapPage({ projects }: { projects: LocalProject[] }) {
@@ -37,6 +40,13 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
   const selected = projects.find((p) => p.id === selectedId) ?? null;
   const briefing = usePortfolioBriefing(selected);
   const stageById = usePortfolioStages(projects);
+
+  // §8 access control. Roles are async (useMyProjectRoles fetches) — gates here
+  // tolerate the empty-map first render (owner-tier defaults open for local
+  // projects, contractor redirect waits until roles resolve).
+  const roleMap = useMyProjectRoles();
+  const canCompare = projects.some((p) => portfolioAccess(p, roleMap).isOwnerTier);
+  usePortfolioContractorRedirect(projects, roleMap);
 
   // Cross-project relationships (§5) for the selected project — fetched on
   // selection, drawn as centroid-to-centroid lines on the map.
@@ -94,6 +104,7 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
             onSelect={handleSelect}
             onNewProject={() => navigate({ to: '/v3/project/wizard' })}
             stageById={stageById}
+            canCompare={canCompare}
           />
         </aside>
 

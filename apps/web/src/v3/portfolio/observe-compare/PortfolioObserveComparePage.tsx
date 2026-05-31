@@ -31,7 +31,8 @@ import {
 } from '@ogden/shared';
 import { useProjectStore } from '../../../store/projectStore.js';
 import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
-import { projectCentroid } from '../portfolioModel.js';
+import { useMyProjectRoles } from '../../../hooks/useMyProjectRoles.js';
+import { portfolioAccess, projectCentroid } from '../portfolioModel.js';
 import {
   buildComparison,
   domainIntersection,
@@ -83,11 +84,20 @@ export default function PortfolioObserveComparePage() {
 
   const projects = useProjectStore((s) => s.projects);
   const byProject = useObserveDataPointStore((s) => s.byProject);
+  const roleMap = useMyProjectRoles();
 
   // Active projects only; archived ones never enter the portfolio surfaces.
   const activeProjects = useMemo(
     () => projects.filter((p) => p.status !== 'archived'),
     [projects],
+  );
+
+  // §8: cross-project compare is owner-tier-gated. Local-only projects resolve
+  // to owner-tier, so a steward with their own projects always passes; a
+  // read-only collaborator (viewer/team_member/landowner on every project)
+  // sees a notice instead. Computed (not a hook) so it sits beside the data.
+  const canCompare = activeProjects.some(
+    (p) => portfolioAccess(p, roleMap).isOwnerTier,
   );
 
   const metas: CompareProjectMeta[] = useMemo(
@@ -179,6 +189,36 @@ export default function PortfolioObserveComparePage() {
 
   const hasPlottableData =
     result !== null && result.series.some((s) => s.points.length >= 2);
+
+  // §8 read-only short-circuit: collaborators with no owner-tier project may
+  // not run cross-project comparisons. Render after all hooks (Rules of Hooks).
+  if (!canCompare) {
+    return (
+      <div className={css.page}>
+        <header className={css.header}>
+          <button
+            type="button"
+            className={css.backBtn}
+            onClick={() => navigate({ to: '/v3/portfolio' })}
+          >
+            <ArrowLeft size={15} aria-hidden /> Portfolio
+          </button>
+          <div>
+            <h1 className={css.title}>Compare Observe data</h1>
+            <p className={css.subtitle}>
+              Cross-project comparison is available to project owners and
+              stewards. You have read-only access to these projects.
+            </p>
+          </div>
+        </header>
+        <p className={css.notice}>
+          You do not own or steward any of these projects, so cross-project
+          Observe comparison is unavailable. Open a project's Observe dashboard
+          to view its data.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={css.page}>

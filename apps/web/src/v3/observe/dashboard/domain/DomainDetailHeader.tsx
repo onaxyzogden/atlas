@@ -13,6 +13,9 @@ import type {
 } from '@ogden/shared';
 import { UNIVERSAL_DOMAIN_PURPOSE } from '@ogden/shared';
 import type { UniversalDomain } from '@ogden/shared';
+import { useProjectStore } from '../../../../store/projectStore.js';
+import { useMyProjectRoles } from '../../../../hooks/useMyProjectRoles.js';
+import { portfolioAccess } from '../../../portfolio/portfolioModel.js';
 import css from './DomainDetailHeader.module.css';
 
 interface Props {
@@ -49,6 +52,15 @@ export default function DomainDetailHeader({
   observationCount,
   divergenceCount,
 }: Props) {
+  // §8: the cross-project compare entry mirrors the compare page's own gate —
+  // shown only when the steward is owner-tier on at least one project (local
+  // projects resolve to owner-tier, so a normal steward always sees it).
+  const projects = useProjectStore((s) => s.projects);
+  const roleMap = useMyProjectRoles();
+  const canCompare = projects.some(
+    (p) => p.status !== 'archived' && portfolioAccess(p, roleMap).isOwnerTier,
+  );
+
   return (
     <header className={css.header}>
       <div className={css.headRow}>
@@ -82,14 +94,16 @@ export default function DomainDetailHeader({
             {divergenceCount} flagged for review
           </span>
         )}
-        <Link
-          to="/v3/portfolio/observe-compare"
-          search={{ from: projectId, domain: domainId }}
-          className={css.compareLink}
-        >
-          <GitCompare size={13} aria-hidden="true" />
-          <span>Compare with other projects</span>
-        </Link>
+        {canCompare ? (
+          <Link
+            to="/v3/portfolio/observe-compare"
+            search={{ from: projectId, domain: domainId }}
+            className={css.compareLink}
+          >
+            <GitCompare size={13} aria-hidden="true" />
+            <span>Compare with other projects</span>
+          </Link>
+        ) : null}
       </div>
     </header>
   );

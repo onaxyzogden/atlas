@@ -106,10 +106,12 @@ export default function AppShell({ children }: AppShellProps) {
           </Link>
         )}
 
-        {/* Back to Projects */}
+        {/* Back to Portfolio (§6 — the multi-project Portfolio Home is the
+            forward "all projects" surface, replacing the legacy candidates
+            list at /v3/project). */}
         {!isHome && pathname !== '/new' && (
-          <Link to="/v3/project" aria-label="Back to all projects" className={styles.backLink}>
-            All Projects
+          <Link to="/v3/portfolio" aria-label="Back to portfolio" className={styles.backLink}>
+            Portfolio
           </Link>
         )}
       </header>}

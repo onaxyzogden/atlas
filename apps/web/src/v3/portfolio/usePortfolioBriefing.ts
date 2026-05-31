@@ -21,7 +21,6 @@ import { useMemo } from 'react';
 import {
   computeAllObjectiveStatuses,
   computeAllStratumStates,
-  findProjectType,
   PLAN_STRATA,
   UNIVERSAL_DOMAINS,
   UNIVERSAL_DOMAIN_LABELS,
@@ -42,7 +41,11 @@ import {
 import type { LocalProject } from '../../store/projectStore.js';
 import { resolveObjectivesForProject } from '../plan/strata/useProjectObjectives.js';
 import { useProjectUrgency } from '../home/useProjectUrgency.js';
-import { OUTSTANDING_STATUSES, deriveStageFromSignals } from './portfolioModel.js';
+import {
+  OUTSTANDING_STATUSES,
+  deriveStageFromSignals,
+  projectTypeBadges,
+} from './portfolioModel.js';
 
 /** A project's coarse lifecycle position, surfaced as the rail header pill +
  *  the bottom rail's filled (active) stage button. Mirrors PortfolioStage in
@@ -183,21 +186,9 @@ export function usePortfolioBriefing(
     const id = project.id;
     const urgency = urgencyMap.get(id);
 
-    // --- Project type badges ---
-    const primaryDef = project.projectType
-      ? findProjectType(project.projectType)
-      : undefined;
-    const primaryType: BriefingTypeBadge | null = primaryDef
-      ? { id: primaryDef.id, label: primaryDef.label }
-      : null;
-    const secondaryIds =
-      project.metadata?.projectTypeRecord?.secondaryTypeIds ?? [];
-    const secondaryTypes: BriefingTypeBadge[] = secondaryIds
-      .map((sid): BriefingTypeBadge | null => {
-        const def = findProjectType(sid);
-        return def ? { id: def.id, label: def.label } : null;
-      })
-      .filter((b): b is BriefingTypeBadge => b !== null);
+    // --- Project type badges (shared helper; see portfolioModel) ---
+    const { primary: primaryType, secondary: secondaryTypes } =
+      projectTypeBadges(project);
 
     // --- Plan: objectives + active stratum ---
     const { objectives } = resolveObjectivesForProject(project);

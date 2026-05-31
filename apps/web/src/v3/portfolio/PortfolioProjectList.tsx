@@ -4,8 +4,10 @@
  * filter chips, and selectable rows with a stage pill. Selection is shared
  * with the map via `selectedId` / `onSelect`.
  *
- * Owner-only gating of the New-project button (§8) lands in P7; for now it is
- * always shown.
+ * Access control (§8): the New-project button is shown to every authenticated
+ * user by design — there is no `admin` ProjectRole to gate against, and
+ * creating a project makes the creator its owner. Per-project capability gates
+ * (relationship create, compare) live on the surfaces that own those actions.
  */
 
 import { useMemo, useState } from 'react';
@@ -31,6 +33,9 @@ interface Props {
    *  stage filter match the map boundaries + the selected project's rail.
    *  Falls back to coarse geometry-only derivation when absent. */
   stageById?: ReadonlyMap<string, PortfolioStage>;
+  /** §8: show the cross-project Observe-compare entry only when the steward is
+   *  owner-tier on at least one project. Defaults to true (open). */
+  canCompare?: boolean;
 }
 
 export default function PortfolioProjectList({
@@ -39,6 +44,7 @@ export default function PortfolioProjectList({
   onSelect,
   onNewProject,
   stageById,
+  canCompare = true,
 }: Props) {
   const [query, setQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<StageFilter | 'all'>('all');
@@ -127,13 +133,16 @@ export default function PortfolioProjectList({
         </ul>
       )}
 
-      {/* Portfolio-level entry to cross-project Observe comparison (§6). */}
-      <footer className={css.footer}>
-        <Link to="/v3/portfolio/observe-compare" className={css.compareLink}>
-          <GitCompare size={14} strokeWidth={1.75} aria-hidden="true" />
-          <span>Compare Observe data</span>
-        </Link>
-      </footer>
+      {/* Portfolio-level entry to cross-project Observe comparison (§6). Hidden
+          for read-only stewards (no owner-tier project) per §8. */}
+      {canCompare ? (
+        <footer className={css.footer}>
+          <Link to="/v3/portfolio/observe-compare" className={css.compareLink}>
+            <GitCompare size={14} strokeWidth={1.75} aria-hidden="true" />
+            <span>Compare Observe data</span>
+          </Link>
+        </footer>
+      ) : null}
     </div>
   );
 }

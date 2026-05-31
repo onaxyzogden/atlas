@@ -81,6 +81,7 @@ import { ShowcaseTierPage } from '../showcase/routes/showcase.$tier.js';
 import { ShowcaseCapturePage } from '../showcase/routes/showcase._capture.js';
 import WizardStep1Site from '../v3/project-wizard/WizardStep1Site.js';
 import WizardStepRouter from '../v3/project-wizard/WizardStepRouter.js';
+import { useProjectStore } from '../store/projectStore.js';
 
 // ActPlaceholderPage retained per feedback_no_deletion.md — superseded by
 // ActLayout but left importable for any future fallback need.
@@ -692,9 +693,28 @@ const landingRoute = createRoute({
   path: '/',
   component: LandingPage,
   beforeLoad: () => {
-    if (isAuthenticated()) {
+    if (!isAuthenticated()) return;
+    // §6 project-count-aware landing. projectStore is zustand-persist (hydrates
+    // synchronously from localStorage on import), so the count is readable here
+    // in beforeLoad. Roles are async and must NOT gate here — only the sync
+    // count branch lives in beforeLoad; role-based redirects (contractor) run in
+    // the destination route's component.
+    const active = useProjectStore
+      .getState()
+      .projects.filter((p) => p.status !== 'archived');
+    if (active.length === 0) {
+      // No projects yet — keep the legacy /home create flow.
       throw redirect({ to: '/home' });
     }
+    if (active.length === 1) {
+      const only = active[0]!;
+      throw redirect({
+        to: '/v3/project/$projectId/home',
+        params: { projectId: only.id },
+      });
+    }
+    // 2+ projects — land on the multi-project Portfolio surface.
+    throw redirect({ to: '/v3/portfolio' });
   },
 });
 

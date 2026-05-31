@@ -10,6 +10,7 @@
 // values (same pattern as DiagnoseMap's `#e6c34a` boundary stroke). P3 mirrors
 // these into stage-semantic tokens in tokens.css for the DOM (pills, cards).
 
+import { findProjectType, hasCapability, type ProjectRole } from '@ogden/shared';
 import type { LocalProject } from '../../store/projectStore.js';
 
 /**
@@ -222,4 +223,70 @@ export function projectAreaLabel(p: LocalProject): string {
   const unit = p.units === 'imperial' ? 'ac' : 'ha';
   const rounded = p.acreage >= 10 ? Math.round(p.acreage) : Math.round(p.acreage * 10) / 10;
   return `${rounded} ${unit}`;
+}
+
+/** A project's display type badge — primary or one of its secondaries (§3.3). */
+export interface ProjectTypeBadge {
+  id: string;
+  label: string;
+}
+
+/**
+ * Primary + secondary project-type badges, derived purely from the project
+ * record (no store). Shared by the Dashboard card (§3.3) and the at-a-glance
+ * rail (§2.4) so both label types identically. `primary` comes from
+ * `project.projectType`; `secondary` from
+ * `metadata.projectTypeRecord.secondaryTypeIds`, resolved via the shared
+ * project-type catalogue (`findProjectType`).
+ */
+export function projectTypeBadges(p: LocalProject): {
+  primary: ProjectTypeBadge | null;
+  secondary: ProjectTypeBadge[];
+} {
+  const primaryDef = p.projectType ? findProjectType(p.projectType) : undefined;
+  const primary: ProjectTypeBadge | null = primaryDef
+    ? { id: primaryDef.id, label: primaryDef.label }
+    : null;
+  const secondaryIds = p.metadata?.projectTypeRecord?.secondaryTypeIds ?? [];
+  const secondary: ProjectTypeBadge[] = secondaryIds
+    .map((sid): ProjectTypeBadge | null => {
+      const def = findProjectType(sid);
+      return def ? { id: def.id, label: def.label } : null;
+    })
+    .filter((b): b is ProjectTypeBadge => b !== null);
+  return { primary, secondary };
+}
+
+/**
+ * Resolved §8 access for one project on the Portfolio surface. Single source
+ * of truth for every Portfolio Home capability gate (relationship create,
+ * cross-project Observe compare, contractor redirect).
+ *
+ * Role keying: `useMyProjectRoles()` is keyed by SERVER project id. A
+ * local-only project (no `serverId`) is absent from the map and is owned by
+ * the steward — so `role` is `null` and the project is treated as owner-tier.
+ * Gates use capability checks (`hasCapability`) rather than literal role names,
+ * so all 8 ProjectRole variants resolve correctly without an `admin` role.
+ */
+export interface PortfolioAccess {
+  role: ProjectRole | null;
+  /** owner / primary_steward (manage_members), or local-only ⇒ owner. */
+  isOwnerTier: boolean;
+  /** owner-tier + designer / team_member / contractor (edit capability). */
+  canEdit: boolean;
+  /** Granted role is literally `contractor` (drives the §8 redirect). */
+  isContractor: boolean;
+}
+
+export function portfolioAccess(
+  project: LocalProject,
+  roleMap: ReadonlyMap<string, ProjectRole>,
+): PortfolioAccess {
+  const role = project.serverId ? roleMap.get(project.serverId) ?? null : null;
+  return {
+    role,
+    isOwnerTier: role == null || hasCapability(role, 'manage_members'),
+    canEdit: role == null || hasCapability(role, 'edit'),
+    isContractor: role === 'contractor',
+  };
 }

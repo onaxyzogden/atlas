@@ -58,20 +58,32 @@ afterEach(() => cleanup());
 describe('ProjectUrgencyCard role badge', () => {
   it('renders a badge for a non-steward role', () => {
     render(
-      <ProjectUrgencyCard project={baseProject} urgency={undefined} role="contractor" />,
+      <ProjectUrgencyCard
+        project={baseProject}
+        urgency={undefined}
+        stage="plan"
+        role="contractor"
+      />,
     );
     expect(screen.getByText('Contractor')).toBeTruthy();
   });
 
   it('renders no badge for the owner', () => {
     render(
-      <ProjectUrgencyCard project={baseProject} urgency={undefined} role="owner" />,
+      <ProjectUrgencyCard
+        project={baseProject}
+        urgency={undefined}
+        stage="plan"
+        role="owner"
+      />,
     );
     expect(screen.queryByText('Owner')).toBeNull();
   });
 
   it('renders no badge and still shows the project when role is undefined', () => {
-    render(<ProjectUrgencyCard project={baseProject} urgency={undefined} />);
+    render(
+      <ProjectUrgencyCard project={baseProject} urgency={undefined} stage="plan" />,
+    );
     expect(screen.getByText('Acme Homestead')).toBeTruthy();
     expect(screen.queryByText('Contractor')).toBeNull();
   });

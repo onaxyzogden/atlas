@@ -1,0 +1,310 @@
+/* ProjectUrgencyCard — §3.3 Portfolio Dashboard card.
+ *
+ * The card root is a BentoBox (outer="elevated", padding="none"); this module
+ * owns the full-bleed stage colour bar + internal padding so the bar reaches
+ * the box edges. --stage-color is set inline from STAGE_PAINT[stage].color. */
+
+.card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg, 0 8px 20px rgba(0, 0, 0, 0.12));
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-accent, #c9a05a);
+  outline-offset: 2px;
+}
+
+/* ---- Stage colour bar (full-bleed top strip) --------------------------- */
+
+.stageBar {
+  height: 4px;
+  width: 100%;
+  background: var(--stage-color, var(--color-border));
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: var(--space-3, 12px) var(--space-4, 16px) var(--space-4, 16px);
+}
+
+/* ---- Header ------------------------------------------------------------ */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.typeBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-full, 999px);
+}
+
+.typePrimary {
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.typeSecondary {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-subtle, var(--color-border));
+}
+
+.headerMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.finishSetupBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, #c9a05a 18%, transparent);
+  color: #c9a05a;
+  border: 1px solid color-mix(in srgb, #c9a05a 35%, transparent);
+  border-radius: var(--radius-full, 999px);
+  white-space: nowrap;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, #6b8cce 16%, transparent);
+  color: #6b8cce;
+  border: 1px solid color-mix(in srgb, #6b8cce 35%, transparent);
+  border-radius: var(--radius-full, 999px);
+  white-space: nowrap;
+}
+
+/* ---- Stage & stratum --------------------------------------------------- */
+
+.stageRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stagePill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full, 999px);
+  color: var(--stage-color, var(--color-text));
+  background: color-mix(in srgb, var(--stage-color, var(--color-border)) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--stage-color, var(--color-border)) 35%, transparent);
+}
+
+/* Per-stage pill hooks. Colour comes from --stage-color (set inline on the
+ * card root), so these are intentional no-op markers kept for semantic class
+ * names + future per-stage overrides; defined to avoid `undefined` in the
+ * className string when the card composes `css[`stage-${stage}`]`. */
+.stage-setup,
+.stage-plan,
+.stage-act,
+.stage-observe,
+.stage-archived {
+  /* colour delivered via var(--stage-color) on .stagePill */
+}
+
+.stratumLabel {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progressBlock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 5px;
+  border-radius: var(--radius-full, 999px);
+  background: color-mix(in srgb, var(--color-text) 10%, transparent);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: var(--radius-full, 999px);
+  background: var(--stage-color, var(--color-accent, #c9a05a));
+}
+
+.progressCaption {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--color-text-subtle);
+}
+
+/* ---- Last activity ----------------------------------------------------- */
+
+.activity {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--color-text-subtle);
+}
+
+/* ---- Alerts ------------------------------------------------------------ */
+
+.allClear {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.chipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.chip-critical {
+  border-color: color-mix(in srgb, #e88aa4 45%, var(--color-border));
+  background: color-mix(in srgb, #e88aa4 15%, var(--color-bg));
+  color: color-mix(in srgb, #e88aa4 75%, var(--color-text));
+}
+
+.chip-high {
+  border-color: color-mix(in srgb, #e6c34a 45%, var(--color-border));
+  background: color-mix(in srgb, #e6c34a 15%, var(--color-bg));
+  color: color-mix(in srgb, #e6c34a 75%, var(--color-text));
+}
+
+.chip-foundation {
+  border-color: color-mix(in srgb, #5dd39e 45%, var(--color-border));
+  background: color-mix(in srgb, #5dd39e 15%, var(--color-bg));
+  color: color-mix(in srgb, #5dd39e 75%, var(--color-text));
+}
+
+.chip-cadence {
+  border-color: color-mix(in srgb, #c9a05a 45%, var(--color-border));
+  background: color-mix(in srgb, #c9a05a 15%, var(--color-bg));
+  color: color-mix(in srgb, #c9a05a 75%, var(--color-text));
+}
+
+.chip-info {
+  /* default neutral tones inherited from .chip */
+}
+
+/* ---- Footer ------------------------------------------------------------ */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-subtle, var(--color-border));
+}
+
+.area {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.openBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.openBtn:hover {
+  border-color: var(--color-accent, #c9a05a);
+  color: var(--color-accent, #c9a05a);
+}
