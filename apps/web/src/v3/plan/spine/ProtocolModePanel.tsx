@@ -21,7 +21,7 @@ import {
   type EnterpriseId,
   type StandardProtocolTemplate,
 } from '@ogden/shared';
-import { C, F } from './tokens.js';
+import { C, F, CA } from './tokens.js';
 import { TypeBadge } from './protocolTypeStyle.js';
 import AutoFilledCondition from './AutoFilledCondition.js';
 import type { ProposalDecision } from './types.js';
@@ -121,7 +121,7 @@ function ProtocolLibraryCard({
               key={f}
               style={{
                 background: C.tealDim,
-                border: `1px solid ${C.teal}55`,
+                border: `1px solid ${CA('teal', 0.33)}`,
                 borderRadius: 10,
                 padding: '2px 9px',
                 fontSize: 10,
@@ -159,7 +159,7 @@ function ProtocolLibraryCard({
                 fontSize: 8,
                 background: C.amberDim,
                 color: C.amber,
-                border: `1px solid ${C.amber}55`,
+                border: `1px solid ${CA('amber', 0.33)}`,
                 borderRadius: 6,
                 padding: '1px 5px',
                 letterSpacing: '0.06em',
@@ -259,7 +259,7 @@ export default function ProtocolModePanel({
           <div
             style={{
               background: C.blueDim,
-              border: `1px solid ${C.blue}44`,
+              border: `1px solid ${CA('blue', 0.27)}`,
               borderRadius: 9,
               padding: '11px 14px',
               marginBottom: 14,
@@ -275,7 +275,7 @@ export default function ProtocolModePanel({
                 onClick={onNavigateToSource}
                 style={{
                   background: 'transparent',
-                  border: `1px solid ${C.blue}66`,
+                  border: `1px solid ${CA('blue', 0.4)}`,
                   borderRadius: 7,
                   color: C.blue,
                   fontSize: 11,
@@ -343,7 +343,7 @@ export default function ProtocolModePanel({
                     onClick={() => onRestore(t.id)}
                     style={{
                       background: 'transparent',
-                      border: `1px solid ${C.green}66`,
+                      border: `1px solid ${CA('green', 0.4)}`,
                       borderRadius: 7,
                       color: C.green,
                       fontSize: 11,

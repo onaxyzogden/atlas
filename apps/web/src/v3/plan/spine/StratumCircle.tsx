@@ -2,7 +2,7 @@
 // olos_plan_spine.jsx. The slightly-off ellipse (rx 18 / ry 19) and the
 // progress arc are reproduced exactly.
 
-import { C, F } from './tokens.js';
+import { C, F, CA } from './tokens.js';
 import type { SpineStratum } from './types.js';
 
 export default function StratumCircle({
@@ -26,7 +26,14 @@ export default function StratumCircle({
           ? C.amber
           : C.textTertiary;
 
-  const bgFill = isActive ? C.bg3 : 'transparent';
+  // Organic-ring interior fill. Was `ring + '22'` / `ring + '18'`, which is
+  // invalid once `ring` is a `var()`; resolve the status colour through CA().
+  const ellipseFill =
+    status === 'complete'
+      ? CA('green', 0.13)
+      : isActive
+        ? CA(status === 'available' ? 'amber' : 'blue', 0.09)
+        : C.bg3;
 
   return (
     <div
@@ -34,13 +41,16 @@ export default function StratumCircle({
       style={{
         padding: '8px 12px',
         cursor: status === 'locked' ? 'default' : 'pointer',
-        background: bgFill,
+        // Unified gold "selected" treatment — the active stratum and the
+        // selected objective card share one distinctive gold-bordered surface.
+        background: isActive ? CA('amber', 0.07) : 'transparent',
         borderRadius: 10,
         transition: 'background 0.2s',
         display: 'flex',
         alignItems: 'center',
         gap: 12,
-        borderLeft: isActive ? `2px solid ${ring}` : '2px solid transparent',
+        border: isActive ? `1px solid ${C.gold}` : '1px solid transparent',
+        borderLeft: isActive ? `2px solid ${C.gold}` : '2px solid transparent',
       }}
     >
       {/* Organic circle */}
@@ -78,7 +88,7 @@ export default function StratumCircle({
             cy={28}
             rx={18}
             ry={19}
-            fill={status === 'complete' ? ring + '22' : isActive ? ring + '18' : C.bg3}
+            fill={ellipseFill}
             stroke={ring}
             strokeWidth={status === 'active' ? 1.5 : 1}
             opacity={status === 'locked' ? 0.35 : 1}

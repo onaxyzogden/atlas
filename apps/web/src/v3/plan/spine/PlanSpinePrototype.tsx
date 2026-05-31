@@ -15,7 +15,8 @@
 import { useState } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { templatesForEnterprises, type EnterpriseId } from '@ogden/shared';
-import { C, F } from './tokens.js';
+import { C, F, CA } from './tokens.js';
+import './spine-theme.css';
 import { OBJECTIVES, STRATA, APPROVED_TIER_OUTPUTS } from './mockData.js';
 import type { SpineObjective, SpineObjectiveSource, ProposalDecision } from './types.js';
 import { useProtocolStore } from '../../../store/protocolStore.js';
@@ -133,7 +134,6 @@ export default function PlanSpinePrototype({
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         .olos-spine-root * { box-sizing: border-box; margin: 0; padding: 0; }
         .olos-spine-root ::-webkit-scrollbar { width: 3px; }
         .olos-spine-root ::-webkit-scrollbar-track { background: transparent; }
@@ -235,7 +235,7 @@ export default function PlanSpinePrototype({
                 padding: '10px 13px',
                 background: C.blueDim,
                 borderRadius: 9,
-                border: `1px solid ${C.blue}44`,
+                border: `1px solid ${CA('blue', 0.27)}`,
                 cursor: 'pointer',
               }}
             >

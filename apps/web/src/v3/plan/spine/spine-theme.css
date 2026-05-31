@@ -1,0 +1,81 @@
+/* spine-theme.css
+ *
+ * Theme variables for the OLOS Plan Spine prototype. The spine's tokens.ts
+ * `C` palette resolves to these `--spine-*` custom properties, so a single
+ * declaration block re-skins all ~220 inline-styled elements.
+ *
+ * Dark is the prototype's native palette (verbatim from the original
+ * hardcoded tokens.ts). The light variant is keyed to the app's existing
+ * `data-theme` attribute (set on <html> by useUIStore). Scoped to
+ * `.olos-spine-root` so it never leaks into the rest of the app — custom
+ * properties still inherit to descendants even though that element is
+ * `display:contents`.
+ *
+ * The `*-rgb` triplets back the CA(token, alpha) helper in tokens.ts, which
+ * builds translucent colours via `rgba(var(--spine-x-rgb), a)` (a hex-alpha
+ * suffix on a `var()` would be invalid CSS).
+ */
+
+/* ── Dark (native / default) ── */
+.olos-spine-root {
+  --spine-bg: #0f0f0d;
+  --spine-bg2: #161613;
+  --spine-bg3: #1e1e1a;
+  --spine-bg4: #252520;
+  --spine-border: #2a2a25;
+  --spine-border-light: #353530;
+  --spine-text-primary: #ede9e0;
+  --spine-text-secondary: #8a8680;
+  --spine-text-tertiary: #4a4845;
+  --spine-blue: #4a8fd4;
+  --spine-blue-dim: #1a2f45;
+  --spine-blue-mid: #243c55;
+  --spine-green: #5aaf72;
+  --spine-green-dim: #162a1c;
+  --spine-amber: #d4944a;
+  --spine-amber-dim: #2e1f0a;
+  --spine-teal: #3a9b8a;
+  --spine-teal-dim: #0e2420;
+  --spine-red: #c45a4a;
+  --spine-gold: #c4a84a;
+  --spine-gold-dim: #2a220a;
+
+  --spine-blue-rgb: 74, 143, 212;
+  --spine-green-rgb: 90, 175, 114;
+  --spine-amber-rgb: 212, 148, 74;
+  --spine-teal-rgb: 58, 155, 138;
+  --spine-border-rgb: 42, 42, 37;
+  --spine-gold-rgb: 196, 168, 74;
+}
+
+/* ── Light variant — warm paper palette aligned with production light tokens ── */
+:root[data-theme='light'] .olos-spine-root {
+  --spine-bg: #f6f4ee;
+  --spine-bg2: #ffffff;
+  --spine-bg3: #f3efe6;
+  --spine-bg4: #ece7db;
+  --spine-border: rgba(84, 92, 100, 0.16);
+  --spine-border-light: rgba(84, 92, 100, 0.28);
+  --spine-text-primary: #1b1e22;
+  --spine-text-secondary: #565c63;
+  --spine-text-tertiary: #8a909a;
+  --spine-blue: #2f6fb0;
+  --spine-blue-dim: #e4edf6;
+  --spine-blue-mid: #d2e1f0;
+  --spine-green: #3e8f58;
+  --spine-green-dim: #e3f1e7;
+  --spine-amber: #b07a2e;
+  --spine-amber-dim: #f6ecda;
+  --spine-teal: #2c7e70;
+  --spine-teal-dim: #e0f0ec;
+  --spine-red: #b0463a;
+  --spine-gold: #9a771f;
+  --spine-gold-dim: #f3ead0;
+
+  --spine-blue-rgb: 47, 111, 176;
+  --spine-green-rgb: 62, 143, 88;
+  --spine-amber-rgb: 176, 122, 46;
+  --spine-teal-rgb: 44, 126, 112;
+  --spine-border-rgb: 84, 92, 100;
+  --spine-gold-rgb: 154, 119, 31;
+}

@@ -2,7 +2,7 @@
 // from olos_plan_spine.jsx. Renamed from "ObjectiveCard" to avoid clashing with
 // the live strata/ObjectiveCard.tsx; styling is unchanged.
 
-import { C, F } from './tokens.js';
+import { C, F, CA } from './tokens.js';
 import SourcePill from './SourcePill.js';
 import StatusPill from './StatusPill.js';
 import type { SpineObjective } from './types.js';
@@ -25,8 +25,10 @@ export default function SpineObjectiveCard({
         margin: '0 8px 6px',
         borderRadius: 10,
         cursor: locked ? 'default' : 'pointer',
-        background: isSelected ? C.bg4 : 'transparent',
-        border: `1px solid ${isSelected ? C.borderLight : 'transparent'}`,
+        // Unified gold "selected" treatment — shares the active stratum's
+        // gold border + faint warm wash so the current pair reads as linked.
+        background: isSelected ? CA('amber', 0.07) : 'transparent',
+        border: `1px solid ${isSelected ? C.gold : 'transparent'}`,
         transition: 'all 0.15s',
         opacity: locked ? 0.5 : 1,
       }}

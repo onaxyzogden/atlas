@@ -7,7 +7,7 @@
 // values identically. Pure presentation over the pure renderConditionSegments
 // helper — no eval, no state.
 
-import { C, F } from './tokens.js';
+import { C, F, CA } from './tokens.js';
 import { renderConditionSegments } from './autoFill.js';
 
 export default function AutoFilledCondition({
@@ -27,7 +27,7 @@ export default function AutoFilledCondition({
             key={i}
             style={{
               background: C.amberDim,
-              border: `1px solid ${C.amber}55`,
+              border: `1px solid ${CA('amber', 0.33)}`,
               color: C.amber,
               borderRadius: 5,
               padding: '1px 6px',

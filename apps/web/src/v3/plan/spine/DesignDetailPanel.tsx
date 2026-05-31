@@ -3,7 +3,7 @@
 // Design-Mode right pane (the sibling Protocol-Mode pane is ProtocolModePanel).
 
 import { useState } from 'react';
-import { C, F } from './tokens.js';
+import { C, F, CA } from './tokens.js';
 import SourcePill from './SourcePill.js';
 import DecisionGroupCard from './DecisionGroupCard.js';
 import type { SpineObjective } from './types.js';
@@ -37,7 +37,7 @@ export default function DesignDetailPanel({
   const ctaColor = obj.status === 'locked' ? C.textTertiary : 'white';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: C.bg }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', background: C.bg }}>
       {/* Header */}
       <div style={{ padding: '20px 22px 16px', borderBottom: `1px solid ${C.border}` }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -80,56 +80,19 @@ export default function DesignDetailPanel({
         </div>
       </div>
 
-      {/* Map strip */}
-      <div
-        style={{
-          height: 44,
-          background: C.bg2,
-          borderBottom: `1px solid ${C.border}`,
-          display: 'flex',
-          alignItems: 'center',
-          padding: '0 22px',
-          gap: 10,
-        }}
-      >
-        <span
-          style={{
-            width: 7,
-            height: 7,
-            borderRadius: '50%',
-            background: C.green,
-            display: 'inline-block',
-            boxShadow: `0 0 8px ${C.green}`,
-            flexShrink: 0,
-          }}
-        />
-        <span style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans }}>
-          {obj.overlays.length} overlays activate on the map
-        </span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 5 }}>
-          {obj.overlays.slice(0, 2).map((o) => (
-            <span
-              key={o}
-              style={{
-                background: C.bg4,
-                border: `1px solid ${C.border}`,
-                borderRadius: 5,
-                padding: '2px 8px',
-                fontSize: 10,
-                color: C.textPrimary,
-                fontFamily: F.sans,
-              }}
-            >
-              {o}
-            </span>
-          ))}
-        </div>
-      </div>
-
       {/* Scrollable body */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 0 80px' }}>
-        {/* Act progress */}
-        <div style={{ padding: '16px 22px 12px', borderBottom: `1px solid ${C.border}` }}>
+        {/* Act progress — sticky so it stays pinned while decision groups scroll. */}
+        <div
+          style={{
+            padding: '16px 22px 12px',
+            borderBottom: `1px solid ${C.border}`,
+            position: 'sticky',
+            top: 0,
+            zIndex: 2,
+            background: C.bg, // opaque so scrolled content doesn't bleed through
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <span
               style={{
@@ -208,7 +171,7 @@ export default function DesignDetailPanel({
           {obj.patchDecisionGroups.length > 0 && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '16px 0 10px' }}>
-                <div style={{ height: 1, background: `${C.amber}44`, flex: 1 }} />
+                <div style={{ height: 1, background: CA('amber', 0.27), flex: 1 }} />
                 <span
                   style={{
                     fontSize: 10,
@@ -220,7 +183,7 @@ export default function DesignDetailPanel({
                 >
                   Added by {obj.patchDecisionGroups[0]?.secondary}
                 </span>
-                <div style={{ height: 1, background: `${C.amber}44`, flex: 1 }} />
+                <div style={{ height: 1, background: CA('amber', 0.27), flex: 1 }} />
               </div>
               {obj.patchDecisionGroups.map((p, i) => (
                 <DecisionGroupCard key={p.id} group={p} index={i} isPatched={true} />
@@ -271,7 +234,7 @@ export default function DesignDetailPanel({
                     alignItems: 'center',
                     gap: 5,
                     background: C.amberDim,
-                    border: `1px solid ${C.amber}55`,
+                    border: `1px solid ${CA('amber', 0.33)}`,
                     borderRadius: 10,
                     padding: '2px 10px',
                     fontSize: 10,
@@ -305,7 +268,7 @@ export default function DesignDetailPanel({
                 cursor: 'pointer',
                 fontFamily: F.sans,
                 letterSpacing: '0.01em',
-                boxShadow: `0 2px 16px ${C.blue}44`,
+                boxShadow: `0 2px 16px ${CA('blue', 0.27)}`,
               }}
             >
               Approve &amp; instantiate protocols →
@@ -334,7 +297,7 @@ export default function DesignDetailPanel({
                 key={f}
                 style={{
                   background: C.tealDim,
-                  border: `1px solid ${C.teal}55`,
+                  border: `1px solid ${CA('teal', 0.33)}`,
                   borderRadius: 10,
                   padding: '3px 10px',
                   fontSize: 10,
@@ -369,8 +332,8 @@ export default function DesignDetailPanel({
         style={{
           position: 'absolute',
           bottom: 0,
+          left: 0,
           right: 0,
-          width: 380,
           height: 64,
           background: C.bg2,
           borderTop: `1px solid ${C.border}`,
@@ -394,7 +357,7 @@ export default function DesignDetailPanel({
             fontFamily: F.sans,
             letterSpacing: '0.01em',
             boxShadow:
-              obj.status !== 'locked' && obj.status !== 'complete' ? `0 2px 16px ${C.blue}44` : 'none',
+              obj.status !== 'locked' && obj.status !== 'complete' ? `0 2px 16px ${CA('blue', 0.27)}` : 'none',
           }}
         >
           {ctaLabel}

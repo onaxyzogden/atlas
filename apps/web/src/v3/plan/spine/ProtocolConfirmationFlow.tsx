@@ -14,7 +14,7 @@
 // via the pure renderConditionSegments helper — no eval.
 
 import { useState } from 'react';
-import { C, F } from './tokens.js';
+import { C, F, CA } from './tokens.js';
 import { TYPE_STYLE, TypeBadge } from './protocolTypeStyle.js';
 import AutoFilledCondition from './AutoFilledCondition.js';
 import { renderConditionSegments } from './autoFill.js';
@@ -74,7 +74,7 @@ function ConfirmationCard({
     <div
       style={{
         borderRadius: 10,
-        border: `1px solid ${decision === 'activated' ? C.green + '55' : C.border}`,
+        border: `1px solid ${decision === 'activated' ? CA('green', 0.33) : C.border}`,
         background: C.bg2,
         marginBottom: 10,
         overflow: 'hidden',
@@ -207,7 +207,7 @@ function ConfirmationCard({
                   onChange={(e) => setDraft((prev) => ({ ...prev, [tk]: e.target.value }))}
                   style={{
                     background: C.bg,
-                    border: `1px solid ${C.amber}55`,
+                    border: `1px solid ${CA('amber', 0.33)}`,
                     borderRadius: 7,
                     color: C.textPrimary,
                     fontSize: 12,
@@ -273,7 +273,7 @@ function ConfirmationCard({
                     fontSize: 8,
                     background: C.amberDim,
                     color: C.amber,
-                    border: `1px solid ${C.amber}55`,
+                    border: `1px solid ${CA('amber', 0.33)}`,
                     borderRadius: 6,
                     padding: '1px 5px',
                     letterSpacing: '0.06em',
@@ -467,7 +467,7 @@ export default function ProtocolConfirmationFlow({
           <span
             style={{
               background: C.amberDim,
-              border: `1px solid ${C.amber}55`,
+              border: `1px solid ${CA('amber', 0.33)}`,
               color: C.amber,
               borderRadius: 5,
               padding: '1px 6px',

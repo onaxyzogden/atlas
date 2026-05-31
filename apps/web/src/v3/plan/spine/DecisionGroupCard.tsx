@@ -6,7 +6,7 @@
 // from "protocol" so "Protocol" refers only to the spec's conditional rules.)
 
 import { useState } from 'react';
-import { C, F } from './tokens.js';
+import { C, F, CA } from './tokens.js';
 import type { SpineDecisionGroup } from './types.js';
 
 export default function DecisionGroupCard({
@@ -23,7 +23,7 @@ export default function DecisionGroupCard({
   const hasItems = !!group.items && group.items.length > 0;
   const accentColor = isPatched ? C.amber : isDone ? C.green : C.blue;
   const bgColor = isPatched ? C.amberDim : isDone ? C.greenDim : C.blueDim;
-  const borderColor = isPatched ? C.amber + '55' : isDone ? C.green + '44' : C.border;
+  const borderColor = isPatched ? CA('amber', 0.33) : isDone ? CA('green', 0.27) : C.border;
 
   return (
     <div style={{ borderRadius: 8, overflow: 'hidden', border: `1px solid ${borderColor}`, marginBottom: 8 }}>
@@ -128,7 +128,7 @@ export default function DecisionGroupCard({
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: 10,
-                borderBottom: i < group.items!.length - 1 ? `1px solid ${C.border}33` : 'none',
+                borderBottom: i < group.items!.length - 1 ? `1px solid ${CA('border', 0.2)}` : 'none',
                 background: i % 2 === 0 ? C.bg : C.bg2,
               }}
             >
