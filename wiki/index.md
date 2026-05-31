@@ -20,6 +20,7 @@ Read this first at the start of every session.
 - [Showcase Portal](entities/showcase-portal.md) — Public scrollytelling portal at `/showcase/three-streams` + 3 tier sub-routes; cold-visitor Y0→Y2 narrative on static SSG (Phase 3, shipped 2026-05-21)
 - [Site Annotations Store](entities/site-annotations-store.md) — Persisted store for user-authored OBSERVE annotations (hazards, transects, sectors, ecology, succession, SWOT)
 - [PlacedFeaturesCard](entities/placed-features-card.md) — Right-rail inventory of every feature placed on the map, unified across three stores (built / design / zone) and scoped per stage (observe / plan)
+- [Act Tier Shell](entities/act-tier-shell.md) — Default map-centric Act page; objective-driven categorized tools rail (`objectiveActTools` map + `actToolCatalog`) arming real placements through Act/Observe/Plan DrawHosts on one canvas (ADR-7 add-only seam)
 - [Three Streams Farm](entities/three-streams-farm.md) — Fictional Ontario showcase farm canon (rural Milton, ~180 acres, 8-year arc)
 - [Ecosystem Farm Template](entities/ecosystem-farm-template.md) — Public, system-owned project template extracted from Three Streams canon; per-tier ContactCTA deep links instantiate against visitor boundary (Phase 4, shipped 2026-05-21)
 - [Organization](entities/organization.md) — Multi-tenant workspace primitive: register-time auto-org for all tiers, `projects.org_id NOT NULL` invariant, Stewarding-tier `/organizations/new` prelude with progressive disclosure (Phase 4.5, shipped 2026-05-21)
