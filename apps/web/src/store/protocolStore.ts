@@ -12,6 +12,7 @@
  * Persist key: 'ogden-protocols', version 1.
  */
 
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
@@ -160,3 +161,38 @@ export const useProtocolStore = create<ProtocolState>()(
 );
 
 rehydrateWithLogging(useProtocolStore);
+
+/**
+ * Stable empty result so consumers with no projectId (or no triggered records)
+ * keep a referentially-stable array across renders.
+ */
+const EMPTY: ActivatedProtocolRecord[] = [];
+
+/**
+ * useTriggeredProtocols — reactive hook returning the project's triggered,
+ * non-deferred protocol records.
+ *
+ * IMPORTANT: do NOT call `useProtocolStore((s) => s.getTriggered(id))` directly.
+ * `getTriggered` runs `.filter()` and returns a fresh array reference on every
+ * call; under Zustand v5 that new snapshot is read as a state change on each
+ * render and drives an infinite re-render loop ("Maximum update depth
+ * exceeded"). Here we select the reference-stable `records` array and derive the
+ * filtered list in `useMemo`, so the result only changes when `records` or
+ * `projectId` actually change. (`getTriggered` remains for imperative
+ * `getState()` / console use.)
+ */
+export function useTriggeredProtocols(
+  projectId: string | null,
+): ActivatedProtocolRecord[] {
+  const records = useProtocolStore((s) => s.records);
+  return useMemo(() => {
+    if (!projectId) return EMPTY;
+    const now = new Date();
+    return records.filter(
+      (r) =>
+        r.projectId === projectId &&
+        r.status === 'triggered' &&
+        (!r.deferredUntil || new Date(r.deferredUntil) <= now),
+    );
+  }, [records, projectId]);
+}

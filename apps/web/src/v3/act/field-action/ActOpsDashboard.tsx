@@ -10,7 +10,7 @@
 // same composition, but mounted on the live field-action surface and slated to
 // outlive the tier-prototype folder.
 
-import { useProtocolStore } from '../../../store/protocolStore.js';
+import { useTriggeredProtocols } from '../../../store/protocolStore.js';
 import WeatherStrip from '../ops/WeatherStrip.js';
 import TodaysPriorities from '../ops/TodaysPriorities.js';
 import AlertsPanel from '../ops/AlertsPanel.js';
@@ -27,7 +27,7 @@ function noop() {
 }
 
 export default function ActOpsDashboard({ projectId }: Props) {
-  const triggered = useProtocolStore((s) => s.getTriggered(projectId ?? ''));
+  const triggered = useTriggeredProtocols(projectId);
   return (
     <div className={styles.dashboard}>
       {triggered.length > 0 && (

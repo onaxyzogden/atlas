@@ -16,7 +16,7 @@
 import { useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { STANDARD_PROTOCOL_TEMPLATES } from '@ogden/shared';
-import { useProtocolStore } from '../../../store/protocolStore.js';
+import { useProtocolStore, useTriggeredProtocols } from '../../../store/protocolStore.js';
 import { FEEDS_TO_MODULE } from '../data/protocolFeedsMap.js';
 import type { ActModule } from '../types.js';
 import css from './ActOpsAside.module.css';
@@ -27,9 +27,7 @@ interface Props {
 }
 
 export default function TriggeredProtocolsPanel({ projectId, activeModule }: Props) {
-  const triggered = useProtocolStore((s) =>
-    projectId ? s.getTriggered(projectId) : [],
-  );
+  const triggered = useTriggeredProtocols(projectId);
   const logResponse = useProtocolStore((s) => s.logResponse);
   const defer = useProtocolStore((s) => s.defer);
 

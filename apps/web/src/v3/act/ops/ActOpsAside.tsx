@@ -17,7 +17,7 @@
  */
 
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useProtocolStore } from '../../../store/protocolStore.js';
+import { useTriggeredProtocols } from '../../../store/protocolStore.js';
 import type { ActModule } from '../types.js';
 import TodaysPriorities from './TodaysPriorities.js';
 import AlertsPanel from './AlertsPanel.js';
@@ -43,7 +43,7 @@ export default function ActOpsAside({
   const projectId = params.projectId ?? null;
   const navigate = useNavigate();
 
-  const triggered = useProtocolStore((s) => s.getTriggered(projectId ?? ''));
+  const triggered = useTriggeredProtocols(projectId);
   const showProtocols = triggered.length > 0;
 
   const openSchedule = () => {

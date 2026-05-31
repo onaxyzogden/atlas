@@ -30,3 +30,7 @@
 **tsc.** Verified clean via `pnpm run typecheck` (8 GB heap, per `_b4_web_tsc3.txt` precedent).
 
 Continues [[log/2026-05-31-atlas-act-objective-tool-rail]] and [[log/2026-05-31-plan-nav-v1.1-deferred-seams]]. Protocol store connects Plan [[entities/web-app]] activation seam to Act display.
+
+---
+
+**Addendum (same day) -- bugfix: "Maximum update depth exceeded".** The four Act consumers read triggered records via `useProtocolStore((s) => s.getTriggered(projectId))`. `getTriggered` runs `.filter()` and returns a **fresh array reference on every call**; under Zustand v5 the selector result is the `useSyncExternalStore` snapshot, so a new reference each render is read as a state change and drives an infinite re-render loop (the `: []` fallback literal in `TriggeredProtocolsPanel` had the same defect). No `useShallow` precedent exists in the codebase, so the fix selects the reference-stable `records` array and derives the filtered list in `useMemo`, centralised in a new exported hook `useTriggeredProtocols(projectId)` in `protocolStore.ts` (module-level `EMPTY` constant for the stable null/empty result). The imperative `getTriggered` store method is retained for `getState()` / console use (`markTriggered` verification path). All four call sites (`TriggeredProtocolsPanel`, `ActOpsAside`, `ActOpsDashboard`, `ActTierShell`) now call the hook. tsc clean (exit 0, 8 GB heap).

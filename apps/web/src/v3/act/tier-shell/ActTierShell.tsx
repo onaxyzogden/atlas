@@ -27,7 +27,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LayoutDashboard, Target } from 'lucide-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useProtocolStore } from '../../../store/protocolStore.js';
+import { useTriggeredProtocols } from '../../../store/protocolStore.js';
 import {
   PLAN_STRATA,
   computeAllActStratumStates,
@@ -188,8 +188,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     return statuses[selectedObjective.id] ?? 'locked';
   }, [selectedObjective, objectives, planProgress]);
 
-  const triggeredProtocols = useProtocolStore((s) => s.getTriggered(id));
-  const triggeredCount = triggeredProtocols.length;
+  const triggeredCount = useTriggeredProtocols(id).length;
 
   const [selectedStratumId, setSelectedStratumId] = useState(DEFAULT_STRATUM_ID);
   const [rightMode, setRightMode] = useState<RightMode>(
