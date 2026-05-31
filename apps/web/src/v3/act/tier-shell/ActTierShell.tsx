@@ -12,7 +12,8 @@
  *   CENTER map       — the exact read-only Act substrate ActMapFirstLayout
  *                     mounts, PLUS objective markers and ActDrawHost so the
  *                     bottom tools actually arm map tools.
- *   RIGHT  panel     — the already-real ActOpsDashboard / ViewAObjectiveExecution
+ *   RIGHT  panel     — the already-real ActOpsDashboard / ActTierExecutionPanel
+ *                     (progress + checklist + ephemeral evidence capture)
  *                     behind a dashboard/detail toggle.
  *   BOTTOM tools     — real QUICK_LOGS; arming a tool sets the active module +
  *                     the map tool, which ActDrawHost picks up.
@@ -29,6 +30,7 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   PLAN_STRATA,
   computeAllActStratumStates,
+  computeAllObjectiveStatuses,
 } from '@ogden/shared';
 import {
   useProjectStore,
@@ -39,6 +41,11 @@ import {
   selectFieldActionsForProject,
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
+import {
+  usePlanStratumProgressStore,
+  selectProjectProgress,
+  toProgressMap,
+} from '../../../store/planStratumStore.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import { extractBoundaryGeometry } from '../../../lib/geo.js';
 import { useV3Project } from '../../data/useV3Project.js';
@@ -56,7 +63,6 @@ import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
 import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
-import ViewAObjectiveExecution from '../field-action/ViewAObjectiveExecution.js';
 import ActShellToggle from '../field-action/ActShellToggle.js';
 import ProofSyncIndicator from '../field-action/proof/ProofSyncIndicator.js';
 import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
@@ -68,6 +74,7 @@ import ActTierSpine from './ActTierSpine.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
+import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import type { ActTool } from './actToolCatalog.js';
 import styles from './ActTierShell.module.css';
 
@@ -152,6 +159,32 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     () => computeObjectiveProgress(objectives, actions),
     [objectives, actions],
   );
+
+  // The URL-selected objective + its Plan tier and real prereq-aware status,
+  // feeding the right-rail execution panel. Status mirrors
+  // ViewAObjectiveExecution's useObjectiveStatus so the pill is canonical (no mock).
+  const selectedObjective = useMemo(
+    () => objectives.find((o) => o.id === objectiveId) ?? null,
+    [objectives, objectiveId],
+  );
+  const selectedObjectiveTier = useMemo(
+    () =>
+      selectedObjective
+        ? PLAN_STRATA.find((t) => t.id === selectedObjective.stratumId)
+        : undefined,
+    [selectedObjective],
+  );
+  const planProgress = usePlanStratumProgressStore((s) =>
+    selectProjectProgress(s, id),
+  );
+  const selectedObjectiveStatus = useMemo(() => {
+    if (!selectedObjective) return 'locked' as const;
+    const statuses = computeAllObjectiveStatuses(
+      objectives,
+      toProgressMap(planProgress),
+    );
+    return statuses[selectedObjective.id] ?? 'locked';
+  }, [selectedObjective, objectives, planProgress]);
 
   const [selectedStratumId, setSelectedStratumId] = useState(DEFAULT_STRATUM_ID);
   const [rightMode, setRightMode] = useState<RightMode>(
@@ -353,8 +386,12 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
               </div>
               <ProofSyncIndicator />
               <div className={styles.rightBody}>
-                {rightMode === 'detail' && objectiveId ? (
-                  <ViewAObjectiveExecution projectId={id} objectiveId={objectiveId} />
+                {rightMode === 'detail' && selectedObjective ? (
+                  <ActTierExecutionPanel
+                    tier={selectedObjectiveTier}
+                    objective={selectedObjective}
+                    status={selectedObjectiveStatus}
+                  />
                 ) : (
                   <ActOpsDashboard projectId={id} />
                 )}
@@ -363,7 +400,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
           }
           bottomTray={
             <ActTierCategorizedToolsRail
-              objective={objectives.find((o) => o.id === objectiveId) ?? null}
+              objective={selectedObjective}
               disabled={!params.projectId}
               onActivate={handleActivateTool}
             />
