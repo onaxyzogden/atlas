@@ -13,27 +13,50 @@
 //                             unique so progress is shared across Act + Plan views.
 //   - Photo counts / confirms / notes -> actEvidenceStore (projectId, objectiveId, descriptorId)
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Camera, Check, ClipboardCheck, Plus } from 'lucide-react';
 import type {
   PlanStratum,
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
   EvidenceDescriptor,
+  ObserveDataPoint,
 } from '@ogden/shared';
-import { getObjectiveEvidence } from '@ogden/shared';
+import { getObjectiveEvidence, getPrimaryDomainForObjective } from '@ogden/shared';
 import {
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
 import {
   useActEvidenceStore,
   EMPTY_CAPTURE,
+  type EvidenceCapture,
 } from '../../../store/actEvidenceStore.js';
+import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
 // array reference when the project has no progress for this objective yet.
 const EMPTY_IDS: readonly string[] = Object.freeze([]);
+
+/**
+ * Is one evidence descriptor satisfied by the persisted capture?
+ *   photo   -> count reached its target
+ *   confirm -> confirmed true
+ *   note    -> a note has been saved
+ * Pure; reads only the descriptor + capture so it can gate the Record button.
+ */
+function isEvidenceSatisfied(
+  descriptor: EvidenceDescriptor,
+  capture: EvidenceCapture,
+): boolean {
+  if (descriptor.kind === 'photo') {
+    return (capture.photos[descriptor.id] ?? 0) >= (descriptor.target ?? 1);
+  }
+  if (descriptor.kind === 'confirm') {
+    return capture.confirms[descriptor.id] === true;
+  }
+  return capture.notesSaved[descriptor.id] === true;
+}
 
 interface Props {
   projectId: string;
@@ -67,6 +90,9 @@ export default function ActTierExecutionPanel({
   const updateNote = useActEvidenceStore((s) => s.updateNote);
   const saveNote = useActEvidenceStore((s) => s.saveNote);
 
+  // Observe substrate: completing an objective emits a manual observation.
+  const recordDataPoint = useObserveDataPointStore((s) => s.recordDataPoint);
+
   // -------------------------------------------------------------------------
   // Progress derivations.
   // -------------------------------------------------------------------------
@@ -83,7 +109,62 @@ export default function ActTierExecutionPanel({
     [objective.checklist, completedIds],
   );
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-  const ready = total > 0 && done === total;
+
+  // Record-observation gate: checklist complete AND every REQUIRED evidence
+  // item satisfied AND the objective resolves to a primary Observe domain (so
+  // the emitted data point is schema-valid). The progress bar above stays
+  // checklist-only -- its sublabel reads "{done}/{total} steps".
+  const domainId = useMemo(
+    () => getPrimaryDomainForObjective(objective),
+    [objective],
+  );
+  const checklistReady = total > 0 && done === total;
+  const evidenceReady = useMemo(
+    () =>
+      evidence
+        .filter((d) => d.required)
+        .every((d) => isEvidenceSatisfied(d, capture)),
+    [evidence, capture],
+  );
+  const ready = checklistReady && evidenceReady && domainId !== null;
+
+  // Session-local "recorded" feedback, reset whenever the objective changes.
+  // (ObserveDataPoint links by domain, not objective, so we cannot derive this
+  // per-objective from the store -- local flag is the lightweight signal.)
+  const [recorded, setRecorded] = useState(false);
+  useEffect(() => {
+    setRecorded(false);
+  }, [objective.id]);
+
+  function handleRecord() {
+    if (!ready || domainId === null) return;
+    const savedNotes = evidence
+      .filter((d) => d.kind === 'note' && capture.notesSaved[d.id])
+      .map((d) => capture.notes[d.id])
+      .filter((text): text is string => Boolean(text))
+      .join(' -- ');
+    const point: ObserveDataPoint = {
+      id: crypto.randomUUID(),
+      projectId,
+      domainId,
+      sourceType: 'manual_observation',
+      sourceActionId: null,
+      sourceFeedEntryId: null,
+      locationGeometry: null,
+      cycleId: 0,
+      isSuperseded: false,
+      supersededBy: null,
+      statusOutput: 'clear',
+      measurementValue: savedNotes
+        ? { label: objective.title, note: savedNotes }
+        : { label: objective.title },
+      proofItems: [],
+      capturedAt: new Date().toISOString(),
+      capturedBy: 'act-tier',
+    };
+    recordDataPoint(point);
+    setRecorded(true);
+  }
 
   // -------------------------------------------------------------------------
   // Evidence card renderer. Each branch reproduces the exact markup/classes
@@ -249,9 +330,14 @@ export default function ActTierExecutionPanel({
         </button>
       </section>
 
-      <button type="button" className={styles.recordBtn} disabled={!ready}>
+      <button
+        type="button"
+        className={styles.recordBtn}
+        disabled={!ready || recorded}
+        onClick={handleRecord}
+      >
         <ClipboardCheck size={16} aria-hidden="true" />
-        Record observation
+        {recorded ? 'Observation recorded' : 'Record observation'}
       </button>
     </div>
   );
