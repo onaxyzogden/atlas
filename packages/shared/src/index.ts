@@ -169,6 +169,11 @@ export {
   type CyclicalReviewInputs,
 } from './relationships/cyclicalReviewTrigger.js';
 
+// Protocol Layer (OLOS Protocol Layer Spec v1.0 — vertical slice 1: typed
+// foundation + read-only standard-template catalogue; engine/authoring deferred)
+export * from './schemas/protocol/protocol.schema.js';
+export * from './constants/protocol/standardTemplates.js';
+
 // Field action (OLOS Act Command Center Spec v1 — Phase 3)
 export * from './schemas/fieldAction/proofItem.schema.js';
 export * from './schemas/fieldAction/proofSchema.schema.js';
