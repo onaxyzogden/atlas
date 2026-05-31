@@ -224,6 +224,11 @@ export {
   STRATUM_OBSERVE_DOMAINS_DEFAULT,
 } from './relationships/objectiveObserveDomains.js';
 export {
+  getObjectiveActTools,
+  OBJECTIVE_ACT_TOOLS_OVERRIDE,
+  STRATUM_ACT_TOOLS_DEFAULT,
+} from './relationships/objectiveActTools.js';
+export {
   hasCapability,
   roleSatisfies,
   PROJECT_ROLE_CAPABILITIES,

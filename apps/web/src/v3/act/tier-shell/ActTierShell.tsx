@@ -53,19 +53,22 @@ import ActDataLayers from '../layers/ActDataLayers.js';
 import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActDrawHost from '../draw/ActDrawHost.js';
+import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
+import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
 import ViewBDashboard from '../field-action/ViewBDashboard.js';
 import ViewAObjectiveExecution from '../field-action/ViewAObjectiveExecution.js';
 import ActShellToggle from '../field-action/ActShellToggle.js';
 import ProofSyncIndicator from '../field-action/proof/ProofSyncIndicator.js';
 import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
 import type { ActModule } from '../types.js';
-import type { QuickLog } from '../quickLogs.js';
+import { QUICK_LOGS } from '../quickLogs.js';
 import { computeObjectiveProgress } from './objectiveProgress.js';
 import { computeObjectiveMarkerPositions } from './objectiveMarkerGeometry.js';
 import ActTierSpine from './ActTierSpine.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
-import ActTierToolsRail from './ActTierToolsRail.js';
+import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
+import type { ActTool } from './actToolCatalog.js';
 import styles from './ActTierShell.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -217,11 +220,24 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   );
 
   const handleActivateTool = useCallback(
-    (log: QuickLog) => {
+    (tool: ActTool) => {
+      const arm = tool.arm;
+      if (arm.kind === 'map') {
+        // Arm a real placement/draw tool. ObserveDrawHost / PlanDrawHost
+        // (mounted on this canvas) pick the id up by prefix and open the
+        // matching draw dock; placement persists to the shared stores.
+        setActiveTool(arm.mapToolId);
+        return;
+      }
+      // Field log (harvest / water / livestock) — route through the existing
+      // QuickLog path so ActDrawHost handles the click-to-log interaction.
+      // `arm` is hoisted to a const so the narrowing survives the closure.
+      const log = QUICK_LOGS.find((l) => l.id === arm.quickLogId);
+      if (!log) return;
       setActiveModule(log.module);
       if (log.toolId) setActiveTool(log.toolId);
     },
-    [setActiveTool],
+    [setActiveModule, setActiveTool],
   );
 
   return (
@@ -273,6 +289,23 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                       onSelectObjective={handleSelectObjective}
                     />
                     <ActDrawHost map={map} projectId={params.projectId ?? null} />
+                    {/*
+                      ADR-7 tension: the Act canvas adds execution placements
+                      via Observe/Plan draw tools (one armed at a time). These
+                      hosts hard-guard on their own id prefix and return null
+                      otherwise, so they compose safely with ActDrawHost. They
+                      write to the SHARED stores (one source of truth); existing
+                      Plan features stay read-only here (PlanDataLayers
+                      editable={false}) — Act adds, it does not edit Plan
+                      decisions.
+                    */}
+                    <ObserveDrawHost map={map} projectId={id} />
+                    <PlanDrawHost
+                      map={map}
+                      projectId={id}
+                      variant="current"
+                      parcelBoundary={boundary}
+                    />
                   </>
                 )}
               </DiagnoseMap>
@@ -323,7 +356,8 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
             </div>
           }
           bottomTray={
-            <ActTierToolsRail
+            <ActTierCategorizedToolsRail
+              objective={objectives.find((o) => o.id === objectiveId) ?? null}
               disabled={!params.projectId}
               onActivate={handleActivateTool}
             />
