@@ -219,4 +219,11 @@ export const APPROVED_TIER_OUTPUTS: Record<string, string> = {
   'approved minimum': '1,200 kg DM/ha',
   'approved interval': '21 days',
   'approved cover': '2,000 kg DM/ha',
+  // Tokens used by the per-stratum sample protocols (mockProtocols.ts).
+  'review interval': '12 months',
+  'rainfall trigger': '50 mm / 24 h',
+  'survey interval': '24 months',
+  'flow baseline': '60% of baseline flow',
+  'establishment target': '80% survival',
+  'growth deviation': '20%',
 };

@@ -25,6 +25,8 @@ import { C, F, CA } from './tokens.js';
 import { TypeBadge } from './protocolTypeStyle.js';
 import AutoFilledCondition from './AutoFilledCondition.js';
 import type { ProposalDecision } from './types.js';
+import { STRATA } from './mockData.js';
+import { mockProtocolsForEnterprises, type SpineProtocolTemplate } from './mockProtocols.js';
 
 function ProtocolLibraryCard({
   template,
@@ -203,15 +205,35 @@ export default function ProtocolModePanel({
   /** Navigate back to the originating Stratum-6 Integration objective. */
   onNavigateToSource?: () => void;
 }) {
-  const templates = templatesForEnterprises(enterprises);
+  // Stratum 6 stays sourced from the shared catalogue (so the §10.1
+  // Integration-approval flow is untouched); strata 1–5 & 7 are spine-local
+  // illustrative samples. Combined into one list, then grouped by stratum.
+  const sharedSix: SpineProtocolTemplate[] = templatesForEnterprises(enterprises).map(
+    (t) => ({ ...t, stratum: 6 }),
+  );
+  const allTemplates: SpineProtocolTemplate[] = [
+    ...mockProtocolsForEnterprises(enterprises),
+    ...sharedSix,
+  ];
   const hasPoultry = enterprises.includes('poultry');
   // Post-approval, split skipped templates out into the recoverable section.
+  // Only the Stratum-6 shared templates ever carry a decision; mock samples
+  // have no `decisions[id]` entry, so they always stay visible.
   const skippedTemplates = integrationApproved
-    ? templates.filter((t) => decisions[t.id] === 'skipped')
+    ? allTemplates.filter((t) => decisions[t.id] === 'skipped')
     : [];
   const visibleTemplates = integrationApproved
-    ? templates.filter((t) => decisions[t.id] !== 'skipped')
-    : templates;
+    ? allTemplates.filter((t) => decisions[t.id] !== 'skipped')
+    : allTemplates;
+
+  // Group visible templates by authoring stratum, ascending.
+  const groups = Array.from(new Set(visibleTemplates.map((t) => t.stratum)))
+    .sort((a, b) => a - b)
+    .map((n) => ({
+      n,
+      name: STRATA.find((s) => s.n === n)?.name ?? '',
+      items: visibleTemplates.filter((t) => t.stratum === n),
+    }));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: C.bg }}>
@@ -222,7 +244,7 @@ export default function ProtocolModePanel({
             Protocol Layer
           </span>
           <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>
-            {templates.length} template{templates.length !== 1 ? 's' : ''}
+            {allTemplates.length} template{allTemplates.length !== 1 ? 's' : ''}
           </span>
         </div>
         <div style={{ fontSize: 19, fontFamily: F.sans, fontWeight: 400, color: C.textPrimary, lineHeight: 1.3, marginBottom: 8 }}>
@@ -255,7 +277,7 @@ export default function ProtocolModePanel({
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 22px 80px' }}>
         {/* Pre-approval banner — templates are read-only proposals until the
             Stratum-6 Integration objective is approved (§10.1 trigger). */}
-        {!integrationApproved && templates.length > 0 && (
+        {!integrationApproved && allTemplates.length > 0 && (
           <div
             style={{
               background: C.blueDim,
@@ -291,20 +313,42 @@ export default function ProtocolModePanel({
           </div>
         )}
 
-        {templates.length === 0 ? (
+        {allTemplates.length === 0 ? (
           <div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans, fontStyle: 'italic', padding: '24px 0', textAlign: 'center' }}>
             No animal protocol templates — this property has no livestock enterprise.
           </div>
         ) : (
-          visibleTemplates.map((t) => (
-            <ProtocolLibraryCard
-              key={t.id}
-              template={t}
-              decision={decisions[t.id] ?? 'pending'}
-              integrationApproved={integrationApproved}
-              outputs={{ ...outputs, ...(editedValues[t.id] ?? {}) }}
-              edited={Object.entries(editedValues[t.id] ?? {}).some(([k, v]) => v !== outputs[k])}
-            />
+          groups.map((g) => (
+            <div key={g.n} style={{ marginBottom: 18 }}>
+              {/* Stratum section header — protocols are grouped by authoring stratum. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: C.textSecondary,
+                    fontFamily: F.sans,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Stratum {g.n} — {g.name}
+                </span>
+                <div style={{ flex: 1, height: 1, background: C.border }} />
+                <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>{g.items.length}</span>
+              </div>
+              {g.items.map((t) => (
+                <ProtocolLibraryCard
+                  key={t.id}
+                  template={t}
+                  decision={decisions[t.id] ?? 'pending'}
+                  integrationApproved={integrationApproved}
+                  outputs={{ ...outputs, ...(editedValues[t.id] ?? {}) }}
+                  edited={Object.entries(editedValues[t.id] ?? {}).some(([k, v]) => v !== outputs[k])}
+                />
+              ))}
+            </div>
           ))
         )}
 
@@ -363,7 +407,7 @@ export default function ProtocolModePanel({
         )}
 
         {/* Back-reference — a real cross-link to the originating Stratum-6 objective. */}
-        {templates.length > 0 && onNavigateToSource && (
+        {allTemplates.length > 0 && onNavigateToSource && (
           <button
             onClick={onNavigateToSource}
             style={{
