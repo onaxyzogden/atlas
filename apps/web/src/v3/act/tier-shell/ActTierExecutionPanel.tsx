@@ -276,27 +276,30 @@ export default function ActTierExecutionPanel({
 
   return (
     <div className={styles.execPanel}>
-      <div className={styles.execHeader}>
-        <span className={styles.execEyebrow}>{tier?.title ?? 'Objective'}</span>
-        <span className={styles.execTitle}>{objective.title}</span>
-        <span className={styles.execStatus} data-status={status}>
-          {status}
-        </span>
-        <p className={styles.execDesc}>{objective.focusedQuestion}</p>
-      </div>
-
-      <div className={styles.execProgress}>
-        <div className={styles.execBar}>
-          <div className={styles.execBarFill} style={{ width: `${pct}%` }} />
-        </div>
-        <div className={styles.execProgressTop}>
-          <span>{pct}% ready</span>
-          <span>
-            {done}/{total} steps
+      <div className={styles.execHeaderBox}>
+        <div className={styles.execHeader}>
+          <span className={styles.execEyebrow}>{tier?.title ?? 'Objective'}</span>
+          <span className={styles.execTitle}>{objective.title}</span>
+          <span className={styles.execStatus} data-status={status}>
+            {status}
           </span>
+          <p className={styles.execDesc}>{objective.focusedQuestion}</p>
+        </div>
+
+        <div className={styles.execProgress}>
+          <div className={styles.execBar}>
+            <div className={styles.execBarFill} style={{ width: `${pct}%` }} />
+          </div>
+          <div className={styles.execProgressTop}>
+            <span>{pct}% ready</span>
+            <span>
+              {done}/{total} steps
+            </span>
+          </div>
         </div>
       </div>
 
+      <div className={styles.execBody}>
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>Checklist</h4>
         <div className={styles.execChecklist}>
@@ -339,6 +342,7 @@ export default function ActTierExecutionPanel({
         <ClipboardCheck size={16} aria-hidden="true" />
         {recorded ? 'Observation recorded' : 'Record observation'}
       </button>
+      </div>
     </div>
   );
 }
