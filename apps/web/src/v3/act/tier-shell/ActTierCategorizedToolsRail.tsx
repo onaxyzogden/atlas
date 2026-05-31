@@ -9,8 +9,9 @@
 // ACT_TOOL_CATALOG. Each tool arms a REAL action: kind 'map' arms a placement/
 // draw tool via setActiveTool (picked up by ObserveDrawHost / PlanDrawHost on
 // the Act canvas); kind 'log' routes through the shell's QuickLog handler
-// (ActDrawHost). Field logs (harvest / water / livestock) now appear only when
-// the selected objective calls for them.
+// (ActDrawHost); kind 'form' opens a VisionFormModal for text/decision capture
+// on non-spatial items. Field logs (harvest / water / livestock) and form tools
+// now appear only when the selected objective calls for them.
 
 import { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -29,23 +30,37 @@ interface Props {
   objective: PlanStratumObjective | null;
   disabled?: boolean;
   onActivate: (tool: ActTool) => void;
+  /** formId of the currently-open VisionFormModal, or null. Used to highlight
+   *  the tile whose form is open, matching the armed-tool gold-border pattern. */
+  activeFormId?: string | null;
 }
 
-/** Map a tool to the MapToolId that should highlight it as armed. */
-function armedToolId(tool: ActTool): string | null {
+/** Return true if the tool should show as "armed" / active. */
+function isToolArmed(
+  tool: ActTool,
+  activeTool: string | null,
+  activeFormId: string | null | undefined,
+): boolean {
   const arm = tool.arm;
-  if (arm.kind === 'map') return arm.mapToolId;
+  if (arm.kind === 'map') {
+    return !!activeTool && arm.mapToolId === activeTool;
+  }
+  if (arm.kind === 'form') {
+    return activeFormId === arm.formId;
+  }
+  // kind === 'log': check the toolId the QuickLog arms on the map.
   // Hoisted to a const so the discriminant narrowing survives into the
   // `.find` closure below (TS drops narrowing of a parameter property inside
   // a nested function).
   const log = QUICK_LOGS.find((l) => l.id === arm.quickLogId);
-  return log?.toolId ?? null;
+  return !!activeTool && !!log?.toolId && log.toolId === activeTool;
 }
 
 export default function ActTierCategorizedToolsRail({
   objective,
   disabled,
   onActivate,
+  activeFormId,
 }: Props) {
   const activeTool = useMapToolStore((s) => s.activeTool);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -72,7 +87,7 @@ export default function ActTierCategorizedToolsRail({
         <div className={styles.toolsHeader}>
           <span className={styles.toolsLabel}>{objective.title}</span>
         </div>
-        <p className={styles.toolsEmpty}>This objective has no map tools</p>
+        <p className={styles.toolsEmpty}>This objective has no tools</p>
       </div>
     );
   }
@@ -110,8 +125,7 @@ export default function ActTierCategorizedToolsRail({
                 <div className={styles.toolGrid}>
                   {catTools.map((tool) => {
                     const Icon = tool.icon;
-                    const isArmed =
-                      !!activeTool && armedToolId(tool) === activeTool;
+                    const isArmed = isToolArmed(tool, activeTool, activeFormId);
                     return (
                       <button
                         key={tool.id}

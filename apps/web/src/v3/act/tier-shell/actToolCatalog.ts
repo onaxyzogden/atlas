@@ -4,14 +4,18 @@
 // stable catalogue id (reused from the tier-prototype vocabulary) to its label,
 // lucide icon, category, and the REAL action it arms:
 //
-//   - kind: 'map'  -> arms a placement/draw tool via useMapToolStore.setActiveTool.
-//                     Each `mapToolId` is a member of the MapToolId union, so a
-//                     typo fails `tsc` (the main safety net). Every id below was
-//                     verified against the live DrawHost dispatch (ObserveDrawHost
-//                     bespoke cases + registry path; PlanDrawHost switch +
-//                     DESIGN_ELEMENT_TOOL_IDS) so arming actually mounts a tool.
-//   - kind: 'log'  -> routes through QUICK_LOGS (act.* field logs) via the shell's
-//                     existing setActiveModule + setActiveTool path.
+//   - kind: 'map'   -> arms a placement/draw tool via useMapToolStore.setActiveTool.
+//                      Each `mapToolId` is a member of the MapToolId union, so a
+//                      typo fails `tsc` (the main safety net). Every id below was
+//                      verified against the live DrawHost dispatch (ObserveDrawHost
+//                      bespoke cases + registry path; PlanDrawHost switch +
+//                      DESIGN_ELEMENT_TOOL_IDS) so arming actually mounts a tool.
+//   - kind: 'log'   -> routes through QUICK_LOGS (act.* field logs) via the shell's
+//                      existing setActiveModule + setActiveTool path.
+//   - kind: 'form'  -> opens a VisionFormModal for text/decision capture on
+//                      non-spatial checklist items. `formId` matches the checklist
+//                      item id; `prompt` is shown as the modal heading; `placeholder`
+//                      is optional helper text inside the textarea.
 //
 // This file lives in the app layer (not packages/shared) because it imports the
 // MapToolId union and lucide icons, both app-only. The objective->tool mapping
@@ -65,11 +69,19 @@ import {
   Footprints,
   MapPin,
   UserCheck,
+  FileText,
+  Target,
+  HardHat,
+  Wallet,
+  Lock,
+  Layers,
+  HelpCircle,
   type LucideIcon,
 } from 'lucide-react';
 import type { MapToolId } from '../../observe/components/measure/useMapToolStore.js';
 
 export type ActToolCategoryId =
+  | 'vision'
   | 'terrain-survey'
   | 'climate-sectors'
   | 'water'
@@ -89,6 +101,7 @@ export interface ActToolCategoryMeta {
 
 /** Display order + labels for the categories shown in the rail. */
 export const ACT_TOOL_CATEGORIES: readonly ActToolCategoryMeta[] = [
+  { id: 'vision', label: 'Vision & Setup' },
   { id: 'terrain-survey', label: 'Terrain & Survey' },
   { id: 'climate-sectors', label: 'Climate & Sectors' },
   { id: 'water', label: 'Water & Hydrology' },
@@ -104,7 +117,8 @@ export const ACT_TOOL_CATEGORIES: readonly ActToolCategoryMeta[] = [
 
 export type ActToolArm =
   | { kind: 'map'; mapToolId: MapToolId }
-  | { kind: 'log'; quickLogId: string };
+  | { kind: 'log'; quickLogId: string }
+  | { kind: 'form'; formId: string; prompt: string; placeholder?: string };
 
 export interface ActTool {
   id: string;
@@ -115,6 +129,99 @@ export interface ActTool {
 }
 
 export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
+  // ---- Vision & Setup (form tools -- open a text-capture popup) ----
+  'purpose-statement': {
+    id: 'purpose-statement',
+    label: 'Primary purpose',
+    icon: FileText,
+    category: 'vision',
+    arm: {
+      kind: 'form',
+      formId: 's1-vision-c1',
+      prompt: 'State the primary purpose of this land project in plain language',
+      placeholder:
+        'Describe the land project in 2-4 sentences. What is it for? Who does it serve? What does success look like in plain terms?',
+    },
+  },
+  'success-criteria': {
+    id: 'success-criteria',
+    label: 'Success criteria',
+    icon: Target,
+    category: 'vision',
+    arm: {
+      kind: 'form',
+      formId: 's1-vision-c2',
+      prompt: 'Define 3-5 measurable success criteria for the first planning cycle',
+      placeholder:
+        'List each criterion on its own line. Make them specific and measurable -- e.g. "10mm/hr infiltration rate on all surveyed zones by end of year 1."',
+    },
+  },
+  'labour-inventory': {
+    id: 'labour-inventory',
+    label: 'Labour inventory',
+    icon: HardHat,
+    category: 'vision',
+    arm: {
+      kind: 'form',
+      formId: 's1-vision-labour',
+      prompt: 'Inventory available labour -- hours per week, seasonal variation, skill level',
+      placeholder:
+        'Who is available? How many hours per week? Does availability change by season? Note relevant skills (earthworks, fencing, irrigation, etc.).',
+    },
+  },
+  'capital-budget': {
+    id: 'capital-budget',
+    label: 'Capital budget',
+    icon: Wallet,
+    category: 'vision',
+    arm: {
+      kind: 'form',
+      formId: 's1-vision-c3',
+      prompt: 'Inventory available capital -- initial budget and estimated annual operating budget',
+      placeholder:
+        'State the initial capital available and an estimated annual operating budget. Note any restrictions on how funds can be used.',
+    },
+  },
+  constraints: {
+    id: 'constraints',
+    label: 'Constraints',
+    icon: Lock,
+    category: 'vision',
+    arm: {
+      kind: 'form',
+      formId: 's1-vision-constraints',
+      prompt: 'Identify non-negotiables and hard constraints',
+      placeholder:
+        'What cannot change? Include legal, financial, physical, or personal constraints. List each on its own line.',
+    },
+  },
+  'vision-classify': {
+    id: 'vision-classify',
+    label: 'Vision elements',
+    icon: Layers,
+    category: 'vision',
+    arm: {
+      kind: 'form',
+      formId: 's1-vision-classify',
+      prompt: 'Classify vision elements as committed vs. aspirational',
+      placeholder:
+        'Committed: things you will definitely do regardless of cost or effort.\nAspirational: things you want to do if resources allow.',
+    },
+  },
+  assumptions: {
+    id: 'assumptions',
+    label: 'Assumptions',
+    icon: HelpCircle,
+    category: 'vision',
+    arm: {
+      kind: 'form',
+      formId: 's1-vision-assumptions',
+      prompt: 'Record assumptions and known unknowns',
+      placeholder:
+        'What are you assuming to be true that you have not yet verified? What do you know you do not know? List each on its own line.',
+    },
+  },
+
   // ---- Terrain & Survey ----
   contour: {
     id: 'contour',

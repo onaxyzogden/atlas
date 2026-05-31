@@ -79,8 +79,17 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   Record<string, readonly string[]>
 > = {
   // ---------- S1 — Project Foundation ----------
-  // Vision/goals/capacity are entirely non-spatial. gap: all 7 items.
-  's1-vision': [],
+  // Vision/goals/capacity: all 7 items are text/decision capture, served by
+  // form-arm tools that open a popup on click. No map-draw tool involved.
+  's1-vision': [
+    'purpose-statement',
+    'success-criteria',
+    'labour-inventory',
+    'capital-budget',
+    'constraints',
+    'vision-classify',
+    'assumptions',
+  ],
   // Map property boundaries on a base layer is the only spatial item, but the
   // legacy 'boundary' measure tool is not mounted on the Act canvas, so there
   // is no draw tool to arm. gap: all items (title/boundary/easements/zoning/

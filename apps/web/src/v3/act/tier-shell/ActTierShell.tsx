@@ -77,6 +77,7 @@ import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
+import VisionFormModal from './VisionFormModal.js';
 import type { ActTool } from './actToolCatalog.js';
 import styles from './ActTierShell.module.css';
 
@@ -196,6 +197,16 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   );
   const [activeModule, setActiveModule] = useState<ActModule | null>(null);
 
+  // Form-arm state: which VisionFormModal is open and per-formId saved text.
+  // Text is ephemeral (survives within the session, resets on reload).
+  // Full cross-session persistence in planStratumStore is a follow-up slice.
+  const [openForm, setOpenForm] = useState<{
+    formId: string;
+    prompt: string;
+    placeholder?: string;
+  } | null>(null);
+  const [formValues, setFormValues] = useState<Record<string, string>>({});
+
   const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
   // URL drives detail/dashboard: a selected objective shows detail; clearing
@@ -256,6 +267,11 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     [goToObjective],
   );
 
+  const handleFormSave = useCallback((formId: string, text: string) => {
+    setFormValues((prev) => ({ ...prev, [formId]: text }));
+    setOpenForm(null);
+  }, []);
+
   const handleActivateTool = useCallback(
     (tool: ActTool) => {
       const arm = tool.arm;
@@ -270,6 +286,15 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         // (mounted on this canvas) pick the id up by prefix and open the
         // matching draw dock; placement persists to the shared stores.
         setActiveTool(arm.mapToolId);
+        return;
+      }
+      if (arm.kind === 'form') {
+        // Non-spatial checklist item: open the text-capture popup.
+        setOpenForm({
+          formId: arm.formId,
+          prompt: arm.prompt,
+          placeholder: arm.placeholder,
+        });
         return;
       }
       // Field log (harvest / water / livestock) — route through the existing
@@ -412,10 +437,20 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
               objective={selectedObjective}
               disabled={!params.projectId}
               onActivate={handleActivateTool}
+              activeFormId={openForm?.formId ?? null}
             />
           }
         />
       </div>
+      <VisionFormModal
+        open={openForm !== null}
+        formId={openForm?.formId ?? ''}
+        prompt={openForm?.prompt ?? ''}
+        placeholder={openForm?.placeholder}
+        initialValue={openForm ? (formValues[openForm.formId] ?? '') : ''}
+        onSave={handleFormSave}
+        onClose={() => setOpenForm(null)}
+      />
     </div>
   );
 }
