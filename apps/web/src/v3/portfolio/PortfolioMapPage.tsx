@@ -15,16 +15,18 @@
  * same selection state — no separate mobile component tree.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { List, X } from 'lucide-react';
 import type { LocalProject } from '../../store/projectStore.js';
+import type { CrossRelationship } from '@ogden/shared';
 import PortfolioMap from './PortfolioMap.js';
 import PortfolioProjectList from './PortfolioProjectList.js';
 import PortfolioAtAGlanceRail from './PortfolioAtAGlanceRail.js';
 import PortfolioStageRail from './PortfolioStageRail.js';
 import { usePortfolioBriefing } from './usePortfolioBriefing.js';
 import { usePortfolioStages } from './usePortfolioStages.js';
+import { useCrossRelationshipStore } from '../../store/crossRelationshipStore.js';
 import css from './PortfolioMapPage.module.css';
 
 export default function PortfolioMapPage({ projects }: { projects: LocalProject[] }) {
@@ -35,6 +37,34 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
   const selected = projects.find((p) => p.id === selectedId) ?? null;
   const briefing = usePortfolioBriefing(selected);
   const stageById = usePortfolioStages(projects);
+
+  // Cross-project relationships (§5) for the selected project — fetched on
+  // selection, drawn as centroid-to-centroid lines on the map.
+  const fetchRelationships = useCrossRelationshipStore((s) => s.fetchForProject);
+  const createRelationship = useCrossRelationshipStore((s) => s.createRelationship);
+  const relationshipsByProject = useCrossRelationshipStore((s) => s.byProject);
+  const relationships: CrossRelationship[] = selectedId
+    ? (relationshipsByProject[selectedId] ?? [])
+    : [];
+
+  useEffect(() => {
+    if (selectedId) void fetchRelationships(selectedId);
+  }, [selectedId, fetchRelationships]);
+
+  const handleAddRelationship = (
+    projectAId: string,
+    projectBId: string,
+    type: CrossRelationship['relationshipType'],
+    notes: string | null,
+  ) => {
+    void createRelationship(projectAId, {
+      projectBId,
+      relationshipType: type,
+      notes,
+    }).catch(() => {
+      // Surfaced via console in the store; a toast layer can hook here later.
+    });
+  };
 
   // Selecting a project closes the mobile list sheet (and, by populating
   // `selected`, opens the right-rail bottom sheet on mobile).
@@ -73,6 +103,8 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
             selectedId={selectedId}
             onSelect={handleSelect}
             stageById={stageById}
+            relationships={relationships}
+            onAddRelationship={handleAddRelationship}
           />
         </div>
 

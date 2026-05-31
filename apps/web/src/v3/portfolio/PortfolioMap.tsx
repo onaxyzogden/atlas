@@ -25,6 +25,7 @@ import {
 import MapTokenMissing from '../../components/MapTokenMissing.js';
 import { useBasemapStore } from '../observe/components/measure/useMapToolStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
+import type { CrossRelationship } from '@ogden/shared';
 import {
   STAGE_PAINT,
   buildBoundaryFeatureCollection,
@@ -41,6 +42,60 @@ const LINE_SOLID_LAYER = 'portfolio-boundary-line-solid';
 const LINE_DASHED_LAYER = 'portfolio-boundary-line-dashed';
 const FIT_PADDING = 56;
 
+// ── Cross-project relationship lines (§2.7) ─────────────────────────────────
+const REL_SRC = 'portfolio-relationships';
+const REL_SOLID_LAYER = 'portfolio-rel-line-solid';
+const REL_DASHED_LAYER = 'portfolio-rel-line-dashed';
+
+type RelType = CrossRelationship['relationshipType'];
+
+// §2.7 line styling. Solid = adjacent_boundary / same_management_unit; the
+// rest are dashed. Colours MUST mirror the --rel-* tokens in tokens.css
+// (MapLibre paint can't read CSS vars, so the hexes are duplicated here).
+const REL_SOLID_TYPES: RelType[] = ['adjacent_boundary', 'same_management_unit'];
+const REL_DASHED_TYPES: RelType[] = ['shared_watershed', 'habitat_corridor', 'shared_infrastructure'];
+const REL_COLORS: Record<RelType, string> = {
+  shared_watershed: '#3b82f6',
+  adjacent_boundary: '#6b7280',
+  habitat_corridor: '#16a34a',
+  same_management_unit: '#f97316',
+  shared_infrastructure: '#9333ea',
+};
+const REL_TYPE_LABEL: Record<RelType, string> = {
+  shared_watershed: 'Shared watershed',
+  adjacent_boundary: 'Adjacent boundary',
+  habitat_corridor: 'Habitat corridor',
+  same_management_unit: 'Same management unit',
+  shared_infrastructure: 'Shared infrastructure',
+};
+const REL_TYPE_ORDER: RelType[] = [
+  'adjacent_boundary',
+  'same_management_unit',
+  'shared_watershed',
+  'habitat_corridor',
+  'shared_infrastructure',
+];
+
+// Data-driven `line-color` over the relationship_type property.
+const relColorMatch: unknown = [
+  'match',
+  ['get', 'relationshipType'],
+  'shared_watershed', REL_COLORS.shared_watershed,
+  'adjacent_boundary', REL_COLORS.adjacent_boundary,
+  'habitat_corridor', REL_COLORS.habitat_corridor,
+  'same_management_unit', REL_COLORS.same_management_unit,
+  'shared_infrastructure', REL_COLORS.shared_infrastructure,
+  '#6b7280',
+];
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 interface PortfolioMapProps {
   projects: LocalProject[];
   selectedId: string | null;
@@ -48,6 +103,18 @@ interface PortfolioMapProps {
   /** Live-data §2.6 stage per project (usePortfolioStages). Falls back to the
    *  coarse geometry-only derivation for any project not present. */
   stageById?: ReadonlyMap<string, PortfolioStage>;
+  /** Cross-project relationships touching the selected project (§5). Drawn as
+   *  centroid-to-centroid lines; display/awareness only (§5.1, §9.4). */
+  relationships?: readonly CrossRelationship[];
+  /** Owner-only two-pin creation: tap project A then B, pick a type. */
+  onAddRelationship?: (
+    projectAId: string,
+    projectBId: string,
+    type: RelType,
+    notes: string | null,
+  ) => void;
+  /** Fired when a relationship line is tapped (in addition to the map tooltip). */
+  onSelectRelationship?: (rel: CrossRelationship) => void;
 }
 
 /**
@@ -68,7 +135,15 @@ function stageMatch(pick: (p: StagePaint) => string | number, fallback: string |
   ];
 }
 
-export default function PortfolioMap({ projects, selectedId, onSelect, stageById }: PortfolioMapProps) {
+export default function PortfolioMap({
+  projects,
+  selectedId,
+  onSelect,
+  stageById,
+  relationships,
+  onAddRelationship,
+  onSelectRelationship,
+}: PortfolioMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
   const basemap = useBasemapStore((s) => s.basemap);
@@ -82,6 +157,103 @@ export default function PortfolioMap({ projects, selectedId, onSelect, stageById
   // Keep the latest onSelect without re-binding marker click handlers.
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
+
+  // ── Relationship UI state (§2.7) ───────────────────────────────────────────
+  // Lines are OFF by default (§2.7); the toggle lives in the controls cluster.
+  const [relVisible, setRelVisible] = useState(false);
+  // Two-pin creation: `creating` arms the mode, `firstPick` holds the first
+  // tapped project, `pendingPair` opens the type/notes picker once both chosen.
+  const [creating, setCreating] = useState(false);
+  const [firstPick, setFirstPick] = useState<string | null>(null);
+  const [pendingPair, setPendingPair] = useState<{ aId: string; bId: string } | null>(null);
+  const [pickType, setPickType] = useState<RelType>('adjacent_boundary');
+  const [pickNotes, setPickNotes] = useState('');
+
+  const relList = useMemo<readonly CrossRelationship[]>(() => relationships ?? [], [relationships]);
+  const relCount = relList.length;
+
+  // Centroid per project id (covers projects with geometry or an intake
+  // centroid) — the endpoints of every relationship line.
+  const centroidById = useMemo(() => {
+    const m = new Map<string, [number, number]>();
+    for (const p of projects) {
+      const at = projectCentroid(p);
+      if (at) m.set(p.id, at);
+    }
+    return m;
+  }, [projects]);
+
+  const nameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of projects) m.set(p.id, p.name);
+    return m;
+  }, [projects]);
+
+  // LineString FeatureCollection between the two projects' centroids.
+  const relFc = useMemo<GeoJSON.FeatureCollection<GeoJSON.LineString, { id: string; relationshipType: string }>>(() => {
+    const features: GeoJSON.Feature<GeoJSON.LineString, { id: string; relationshipType: string }>[] = [];
+    for (const r of relList) {
+      const a = centroidById.get(r.projectAId);
+      const b = centroidById.get(r.projectBId);
+      if (!a || !b) continue;
+      features.push({
+        type: 'Feature',
+        properties: { id: r.id, relationshipType: r.relationshipType },
+        geometry: { type: 'LineString', coordinates: [a, b] },
+      });
+    }
+    return { type: 'FeatureCollection', features };
+  }, [relList, centroidById]);
+
+  // Lookup for the line-click tooltip + onSelectRelationship callback.
+  const relById = useMemo(() => {
+    const m = new Map<string, CrossRelationship>();
+    for (const r of relList) m.set(r.id, r);
+    return m;
+  }, [relList]);
+  const relByIdRef = useRef(relById);
+  relByIdRef.current = relById;
+  const onSelectRelationshipRef = useRef(onSelectRelationship);
+  onSelectRelationshipRef.current = onSelectRelationship;
+
+  // Pin-tap routing: in creation mode taps pick relationship endpoints,
+  // otherwise they select the project. Held in a ref so the marker click
+  // listeners (bound once) always see the latest mode without re-binding.
+  const handlePinActivate = (id: string) => {
+    if (creating) {
+      if (!firstPick) {
+        setFirstPick(id);
+        return;
+      }
+      if (firstPick === id) {
+        setFirstPick(null); // tap the first pin again to deselect it
+        return;
+      }
+      setPickType('adjacent_boundary');
+      setPickNotes('');
+      setPendingPair({ aId: firstPick, bId: id });
+      return;
+    }
+    onSelectRef.current(id);
+  };
+  const pinActivateRef = useRef(handlePinActivate);
+  pinActivateRef.current = handlePinActivate;
+
+  const cancelCreate = () => {
+    setCreating(false);
+    setFirstPick(null);
+    setPendingPair(null);
+  };
+
+  const submitCreate = () => {
+    if (!pendingPair) return;
+    onAddRelationship?.(pendingPair.aId, pendingPair.bId, pickType, pickNotes.trim() || null);
+    setPendingPair(null);
+    setFirstPick(null);
+    setCreating(false);
+    // Reveal the lines so the freshly-created connection is visible.
+    setRelVisible(true);
+  };
 
   const fc = useMemo(
     () => buildBoundaryFeatureCollection(projects, stageById),
@@ -229,6 +401,97 @@ export default function PortfolioMap({ projects, selectedId, onSelect, stageById
     };
   }, [map]);
 
+  // ── Relationship lines (§2.7) — idempotent re-add on every styledata, added
+  //    AFTER the boundary layers so lines sit above the fills. Display only:
+  //    these have zero effect on Plan/Act/Observe logic (§9.4). ────────────────
+  useEffect(() => {
+    if (!map) return;
+
+    const ensureRel = () => {
+      if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
+      const existing = map.getSource(REL_SRC) as maplibregl.GeoJSONSource | undefined;
+      if (!existing) {
+        map.addSource(REL_SRC, { type: 'geojson', data: relFc, promoteId: 'id' });
+      } else {
+        existing.setData(relFc);
+      }
+      const vis = relVisible ? 'visible' : 'none';
+      // line-dasharray is not data-driven, so solid vs dashed types get
+      // separate layers behind a type filter (same split as the boundaries).
+      if (!map.getLayer(REL_SOLID_LAYER)) {
+        map.addLayer({
+          id: REL_SOLID_LAYER,
+          type: 'line',
+          source: REL_SRC,
+          filter: ['in', ['get', 'relationshipType'], ['literal', REL_SOLID_TYPES]] as never,
+          layout: { visibility: vis, 'line-cap': 'round' },
+          paint: { 'line-color': relColorMatch as never, 'line-width': 2.5 },
+        });
+      }
+      if (!map.getLayer(REL_DASHED_LAYER)) {
+        map.addLayer({
+          id: REL_DASHED_LAYER,
+          type: 'line',
+          source: REL_SRC,
+          filter: ['in', ['get', 'relationshipType'], ['literal', REL_DASHED_TYPES]] as never,
+          layout: { visibility: vis, 'line-cap': 'round' },
+          paint: { 'line-color': relColorMatch as never, 'line-width': 2.5, 'line-dasharray': [2, 2] },
+        });
+      }
+      // Sync visibility on toggle without rebuilding the layers.
+      if (map.getLayer(REL_SOLID_LAYER)) map.setLayoutProperty(REL_SOLID_LAYER, 'visibility', vis);
+      if (map.getLayer(REL_DASHED_LAYER)) map.setLayoutProperty(REL_DASHED_LAYER, 'visibility', vis);
+    };
+
+    ensureRel();
+    map.on('styledata', ensureRel);
+    return () => {
+      map.off('styledata', ensureRel);
+    };
+  }, [map, relFc, relVisible]);
+
+  // ── Click a relationship line → tooltip (type + notes) + callback ──────────
+  useEffect(() => {
+    if (!map) return;
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const id = e.features?.[0]?.properties?.['id'];
+      if (typeof id !== 'string') return;
+      const rel = relByIdRef.current.get(id);
+      if (!rel) return;
+      onSelectRelationshipRef.current?.(rel);
+      const label = REL_TYPE_LABEL[rel.relationshipType];
+      const notes = rel.notes ? escapeHtml(rel.notes) : '';
+      const html =
+        `<div style="font-family:inherit;font-size:12px;max-width:200px">` +
+        `<strong>${escapeHtml(label)}</strong>` +
+        (notes ? `<div style="margin-top:4px;color:#555">${notes}</div>` : '') +
+        `</div>`;
+      new maplibregl.Popup({ closeButton: true, closeOnClick: true, offset: 8 })
+        .setLngLat(e.lngLat)
+        .setHTML(html)
+        .addTo(map);
+    };
+    const enter = () => {
+      map.getCanvas().style.cursor = 'pointer';
+    };
+    const leave = () => {
+      map.getCanvas().style.cursor = '';
+    };
+    const layers = [REL_SOLID_LAYER, REL_DASHED_LAYER];
+    for (const layer of layers) {
+      map.on('click', layer, onClick);
+      map.on('mouseenter', layer, enter);
+      map.on('mouseleave', layer, leave);
+    }
+    return () => {
+      for (const layer of layers) {
+        map.off('click', layer, onClick);
+        map.off('mouseenter', layer, enter);
+        map.off('mouseleave', layer, leave);
+      }
+    };
+  }, [map]);
+
   // ── Label pins (DOM markers, reconciled by id) ─────────────────────────────
   useEffect(() => {
     if (!map) return;
@@ -250,7 +513,7 @@ export default function PortfolioMap({ projects, selectedId, onSelect, stageById
         el.className = css.pin ?? '';
         el.addEventListener('click', (ev) => {
           ev.stopPropagation();
-          onSelectRef.current(pin.id);
+          pinActivateRef.current(pin.id);
         });
         const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat(pin.at)
@@ -262,6 +525,9 @@ export default function PortfolioMap({ projects, selectedId, onSelect, stageById
       }
       entry.el.dataset['stage'] = pin.stage;
       entry.el.dataset['selected'] = pin.id === selectedId ? 'true' : 'false';
+      // Creation-mode affordance: every pin is pickable, the first pick glows.
+      entry.el.dataset['picking'] = creating ? 'true' : 'false';
+      entry.el.dataset['firstpick'] = creating && pin.id === firstPick ? 'true' : 'false';
       entry.el.innerHTML = '';
       const dot = document.createElement('span');
       dot.className = css.pinDot ?? '';
@@ -271,7 +537,7 @@ export default function PortfolioMap({ projects, selectedId, onSelect, stageById
       label.textContent = pin.name;
       entry.el.append(dot, label);
     }
-  }, [map, pins, selectedId]);
+  }, [map, pins, selectedId, creating, firstPick]);
 
   // Remove all markers on unmount.
   useEffect(() => {
@@ -349,6 +615,88 @@ export default function PortfolioMap({ projects, selectedId, onSelect, stageById
           <button type="button" className={css.control} onClick={fitAll} title="Fit all projects">
             Fit all
           </button>
+
+          {/* Relationship-layer toggle (§2.7) — off by default; disabled with a
+              §7 hint when the selected project has no relationships yet. */}
+          <button
+            type="button"
+            className={`${css.control} ${relVisible ? css.controlActive : ''}`}
+            onClick={() => setRelVisible((v) => !v)}
+            disabled={relCount === 0}
+            aria-pressed={relVisible}
+            title={
+              relCount === 0
+                ? 'Add relationships to see connections'
+                : relVisible
+                  ? 'Hide cross-project connections'
+                  : 'Show cross-project connections'
+            }
+          >
+            Connections{relCount > 0 ? ` (${relCount})` : ''}
+          </button>
+
+          {/* Owner-only two-pin creation entry point (§5.5). */}
+          {onAddRelationship ? (
+            <button
+              type="button"
+              className={`${css.control} ${creating ? css.controlActive : ''}`}
+              onClick={() => (creating ? cancelCreate() : setCreating(true))}
+              aria-pressed={creating}
+              title="Connect two projects"
+            >
+              {creating ? 'Cancel link' : '+ Link'}
+            </button>
+          ) : null}
+        </div>
+      )}
+
+      {/* Creation hint while picking the two endpoints. */}
+      {creating && !pendingPair && (
+        <div className={css.relBanner} role="status">
+          {firstPick
+            ? `Now tap a second project to connect with "${nameById.get(firstPick) ?? 'project'}".`
+            : 'Tap a project, then another, to connect them.'}
+        </div>
+      )}
+
+      {/* Type + notes picker once both endpoints are chosen. */}
+      {pendingPair && (
+        <div className={css.relPicker} role="dialog" aria-label="New relationship">
+          <p className={css.relPickerTitle}>
+            Connect <strong>{nameById.get(pendingPair.aId) ?? 'project'}</strong> &amp;{' '}
+            <strong>{nameById.get(pendingPair.bId) ?? 'project'}</strong>
+          </p>
+          <label className={css.relField}>
+            <span>Relationship</span>
+            <select
+              value={pickType}
+              onChange={(e) => setPickType(e.target.value as RelType)}
+            >
+              {REL_TYPE_ORDER.map((t) => (
+                <option key={t} value={t}>
+                  {REL_TYPE_LABEL[t]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={css.relField}>
+            <span>Notes (optional)</span>
+            <textarea
+              rows={2}
+              maxLength={2000}
+              value={pickNotes}
+              onChange={(e) => setPickNotes(e.target.value)}
+              placeholder="e.g. both drain into Miller Creek"
+            />
+          </label>
+          <div className={css.relPickerActions}>
+            <button type="button" className={css.relBtnGhost} onClick={cancelCreate}>
+              Cancel
+            </button>
+            <button type="button" className={css.relBtnPrimary} onClick={submitCreate}>
+              Create
+            </button>
+          </div>
         </div>
       )}
     </div>

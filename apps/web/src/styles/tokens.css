@@ -166,6 +166,18 @@
   --color-stage-act-glow-bg:     rgba(217, 160, 54, 0.15);   --color-stage-act-glow-text:     #e6b860;
   --color-stage-steward-glow-bg: rgba(74, 124, 89, 0.15);    --color-stage-steward-glow-text: #6fa37e;
 
+  /* Cross-project relationship line colours (Portfolio Home §2.7). DOM parity
+     for the legend / rail / picker; the map duplicates these hexes in
+     PortfolioMap.tsx (REL_COLORS) because MapLibre paint can't read CSS vars —
+     keep the two in sync. shared_watershed=blue · adjacent_boundary=grey ·
+     habitat_corridor=green · same_management_unit=orange ·
+     shared_infrastructure=purple. */
+  --rel-shared-watershed:      #3b82f6;
+  --rel-adjacent-boundary:     #6b7280;
+  --rel-habitat-corridor:      #16a34a;
+  --rel-same-management-unit:  #f97316;
+  --rel-shared-infrastructure: #9333ea;
+
   /* ========================================================================
      LIGHT MODE SEMANTIC TOKENS
      ======================================================================== */

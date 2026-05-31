@@ -18,9 +18,12 @@ import {
   Link2,
   Minus,
   RefreshCw,
+  X,
 } from 'lucide-react';
-import type { ObserveStatusOutput } from '@ogden/shared';
+import type { ObserveStatusOutput, CrossRelationship } from '@ogden/shared';
 import { buildUrgencyChips } from '../home/urgencyChips.js';
+import { useCrossRelationshipStore } from '../../store/crossRelationshipStore.js';
+import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
 import type { PortfolioBriefing, BriefingStage } from './usePortfolioBriefing.js';
 import css from './PortfolioAtAGlanceRail.module.css';
 
@@ -30,6 +33,25 @@ const STAGE_LABEL: Record<BriefingStage, string> = {
   act: 'Act',
   observe: 'Observe',
   archived: 'Archived',
+};
+
+type RelType = CrossRelationship['relationshipType'];
+
+const REL_TYPE_LABEL: Record<RelType, string> = {
+  shared_watershed: 'Shared watershed',
+  adjacent_boundary: 'Adjacent boundary',
+  habitat_corridor: 'Habitat corridor',
+  same_management_unit: 'Same management unit',
+  shared_infrastructure: 'Shared infrastructure',
+};
+
+// DOM parity with the map line colours (REL_COLORS) and the --rel-* tokens.
+const REL_TYPE_TOKEN: Record<RelType, string> = {
+  shared_watershed: 'var(--rel-shared-watershed)',
+  adjacent_boundary: 'var(--rel-adjacent-boundary)',
+  habitat_corridor: 'var(--rel-habitat-corridor)',
+  same_management_unit: 'var(--rel-same-management-unit)',
+  shared_infrastructure: 'var(--rel-shared-infrastructure)',
 };
 
 const STATUS_LABEL: Record<ObserveStatusOutput, string> = {
@@ -57,6 +79,10 @@ export default function PortfolioAtAGlanceRail({
   briefing,
 }: PortfolioAtAGlanceRailProps) {
   const navigate = useNavigate();
+  // Hooks must run before the early return; derive per-project values below.
+  const relationshipsByProject = useCrossRelationshipStore((s) => s.byProject);
+  const deleteRelationship = useCrossRelationshipStore((s) => s.deleteRelationship);
+  const roleMap = useMyProjectRoles();
 
   if (!briefing) {
     return (
@@ -68,6 +94,8 @@ export default function PortfolioAtAGlanceRail({
 
   const { project, plan, observe, lastActivity, urgency } = briefing;
   const chips = buildUrgencyChips(urgency);
+  const relationships = relationshipsByProject[project.id] ?? [];
+  const isOwner = roleMap.get(project.id) === 'owner';
   const progressPct =
     plan.objectivesTotal > 0
       ? Math.round((plan.objectivesComplete / plan.objectivesTotal) * 100)
@@ -245,15 +273,56 @@ export default function PortfolioAtAGlanceRail({
           )}
         </section>
 
-        {/* ---- Relationships (stub until P5) ------------------------------ */}
+        {/* ---- Relationships (§5) ----------------------------------------- */}
         <section className={css.section}>
           <div className={css.sectionHead}>
             <Link2 size={13} aria-hidden />
             <span className={css.sectionLabel}>Relationships</span>
+            {relationships.length > 0 ? (
+              <span className={css.sectionMeta}>{relationships.length}</span>
+            ) : null}
           </div>
-          <p className={css.stubLine}>
-            Cross-project relationships arrive in a later pass.
-          </p>
+          {relationships.length === 0 ? (
+            <p className={css.stubLine}>
+              {isOwner
+                ? 'No connections yet. Use the + Link tool on the map to connect this project to another.'
+                : 'No cross-project connections recorded.'}
+            </p>
+          ) : (
+            <ul className={css.relList}>
+              {relationships.map((rel) => (
+                <li key={rel.id} className={css.relItem}>
+                  <span
+                    className={css.relDot}
+                    style={{ background: REL_TYPE_TOKEN[rel.relationshipType] }}
+                    aria-hidden
+                  />
+                  <span className={css.relBody}>
+                    <span className={css.relType}>
+                      {REL_TYPE_LABEL[rel.relationshipType]}
+                    </span>
+                    <span className={css.relOther}>
+                      {rel.otherProjectName ?? 'Other project'}
+                    </span>
+                    {rel.notes ? (
+                      <span className={css.relNotes}>{rel.notes}</span>
+                    ) : null}
+                  </span>
+                  {isOwner ? (
+                    <button
+                      type="button"
+                      className={css.relRemove}
+                      onClick={() => void deleteRelationship(project.id, rel.id)}
+                      aria-label={`Remove ${REL_TYPE_LABEL[rel.relationshipType]} relationship`}
+                      title="Remove relationship"
+                    >
+                      <X size={13} aria-hidden />
+                    </button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
     </div>

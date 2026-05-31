@@ -37,9 +37,133 @@
   backdrop-filter: blur(4px);
 }
 
-.control:hover {
+.control:hover:not(:disabled) {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.controlActive {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb, 56, 163, 165), 0.12);
+}
+
+/* ---- Relationship creation (§5.5) --------------------------------------- */
+
+.relBanner {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  padding: 7px 14px;
+  background: rgba(var(--color-map-panel-rgb), 0.96);
+  color: var(--color-text);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(4px);
+  max-width: 80%;
+  text-align: center;
+}
+
+.relPicker {
+  position: absolute;
+  top: 52px;
+  left: 10px;
+  z-index: 7;
+  width: 260px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(var(--color-map-panel-rgb), 0.98);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(4px);
+}
+
+.relPickerTitle {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--color-text);
+}
+
+.relField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.relField select,
+.relField textarea {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 7px 9px;
+  resize: vertical;
+}
+
+.relField select:focus,
+.relField textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.relPickerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.relBtnGhost,
+.relBtnPrimary {
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+}
+
+.relBtnGhost {
+  background: transparent;
+  color: var(--color-text);
+}
+
+.relBtnGhost:hover {
+  border-color: var(--color-text-muted);
+}
+
+.relBtnPrimary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary, #fff);
+}
+
+.relBtnPrimary:hover {
+  filter: brightness(1.05);
 }
 
 /* ---- Project label pins (DOM markers) ----------------------------------- */
@@ -73,6 +197,19 @@
 .pin[data-selected='true'] {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-focus-ring);
+  font-weight: 600;
+}
+
+/* Two-pin creation mode: every pin signals it is pickable; the first pick
+   gets a stronger ring until the second is chosen. */
+.pin[data-picking='true'] {
+  border-style: dashed;
+  border-color: var(--color-primary);
+}
+
+.pin[data-firstpick='true'] {
+  border-style: solid;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
   font-weight: 600;
 }
 

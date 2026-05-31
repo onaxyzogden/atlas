@@ -77,6 +77,8 @@ import type {
   Stage,
   UniversalDomain,
   StewardshipFrequency,
+  CrossRelationship,
+  CreateCrossRelationshipInput,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -1104,6 +1106,29 @@ export const api = {
 
     delete: (projectId: string, edgeId: string) =>
       request<null>('DELETE', `/api/v1/projects/${projectId}/relationships/${edgeId}`),
+  },
+
+  // Cross-project relationships (Portfolio Home §5) — distinct from the
+  // within-project `relationships` graph above. Connects two whole projects.
+  crossRelationships: {
+    list: (projectId: string) =>
+      request<CrossRelationship[]>(
+        'GET',
+        `/api/v1/projects/${projectId}/cross-project-relationships`,
+      ),
+
+    create: (projectId: string, input: CreateCrossRelationshipInput) =>
+      request<CrossRelationship>(
+        'POST',
+        `/api/v1/projects/${projectId}/cross-project-relationships`,
+        input,
+      ),
+
+    delete: (projectId: string, relationshipId: string) =>
+      request<null>(
+        'DELETE',
+        `/api/v1/projects/${projectId}/cross-project-relationships/${relationshipId}`,
+      ),
   },
 
   telemetry: {
