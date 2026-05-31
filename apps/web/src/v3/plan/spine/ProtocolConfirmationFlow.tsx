@@ -85,7 +85,7 @@ function ConfirmationCard({
       {/* Header: name + type badge */}
       <div style={{ padding: '13px 16px 11px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-          <span style={{ fontSize: 14, fontFamily: F.serif, fontWeight: 500, color: C.textPrimary, lineHeight: 1.3 }}>
+          <span style={{ fontSize: 14, fontFamily: F.sans, fontWeight: 500, color: C.textPrimary, lineHeight: 1.3 }}>
             {template.name}
           </span>
           <TypeBadge type={template.type} />
@@ -420,7 +420,7 @@ export default function ProtocolConfirmationFlow({
             Close
           </button>
         </div>
-        <div style={{ fontSize: 19, fontFamily: F.serif, fontWeight: 400, color: C.textPrimary, lineHeight: 1.3, marginBottom: 8 }}>
+        <div style={{ fontSize: 19, fontFamily: F.sans, fontWeight: 400, color: C.textPrimary, lineHeight: 1.3, marginBottom: 8 }}>
           Standing operational logic
         </div>
         <div style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.5, fontStyle: 'italic', marginBottom: 12 }}>

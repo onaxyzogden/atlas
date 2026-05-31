@@ -50,7 +50,7 @@ export default function SpineObjectiveCard({
           fontSize: 13,
           fontWeight: 500,
           color: C.textPrimary,
-          fontFamily: F.serif,
+          fontFamily: F.sans,
           lineHeight: 1.35,
           marginBottom: 4,
         }}

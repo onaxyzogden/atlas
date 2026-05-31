@@ -58,7 +58,7 @@ export default function DesignDetailPanel({
         <div
           style={{
             fontSize: 19,
-            fontFamily: F.serif,
+            fontFamily: F.sans,
             fontWeight: 400,
             color: C.textPrimary,
             lineHeight: 1.3,

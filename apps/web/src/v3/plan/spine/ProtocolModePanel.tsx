@@ -62,7 +62,7 @@ function ProtocolLibraryCard({
       {/* Header: name + type badge */}
       <div style={{ padding: '13px 16px 11px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 8 }}>
-          <span style={{ fontSize: 14, fontFamily: F.serif, fontWeight: 500, color: C.textPrimary, lineHeight: 1.3 }}>
+          <span style={{ fontSize: 14, fontFamily: F.sans, fontWeight: 500, color: C.textPrimary, lineHeight: 1.3 }}>
             {template.name}
           </span>
           <TypeBadge type={template.type} />
@@ -225,7 +225,7 @@ export default function ProtocolModePanel({
             {templates.length} template{templates.length !== 1 ? 's' : ''}
           </span>
         </div>
-        <div style={{ fontSize: 19, fontFamily: F.serif, fontWeight: 400, color: C.textPrimary, lineHeight: 1.3, marginBottom: 8 }}>
+        <div style={{ fontSize: 19, fontFamily: F.sans, fontWeight: 400, color: C.textPrimary, lineHeight: 1.3, marginBottom: 8 }}>
           Standing operational logic
         </div>
         <div style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.5, fontStyle: 'italic' }}>

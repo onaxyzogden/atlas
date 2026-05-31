@@ -242,7 +242,7 @@ export default function PlanSpinePrototype({
               <div style={{ fontSize: 9, color: C.blue, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5 }}>
                 Next Up
               </div>
-              <div style={{ fontSize: 12, color: C.textPrimary, fontWeight: 500, fontFamily: F.serif }}>
+              <div style={{ fontSize: 12, color: C.textPrimary, fontWeight: 500, fontFamily: F.sans }}>
                 Survey soil conditions & subsurface
               </div>
               <div style={{ fontSize: 10, color: C.textSecondary, marginTop: 3, fontFamily: F.mono }}>2 of 8 complete</div>
