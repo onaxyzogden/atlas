@@ -12,7 +12,9 @@
 import { useEffect } from "react";
 import { Outlet, useParams, useRouterState } from "@tanstack/react-router";
 import LandOsShell from "../features/land-os/LandOsShell.js";
-import V3LifecycleSidebar from "./components/V3LifecycleSidebar.js";
+// V3LifecycleSidebar (the "Project chrome" left nav) is intentionally no longer
+// mounted — the v3 workspace runs without the left sidebar. The component is
+// preserved for reuse; do not delete it.
 import ProjectBundleBar from "./components/ProjectBundleBar.js";
 import DecisionRail, { type RailStage } from "./components/DecisionRail.js";
 import { useV3Project } from "./data/useV3Project.js";
@@ -100,10 +102,7 @@ export default function V3ProjectLayout() {
     : <DecisionRail stage={stage} project={project} activeModule={module} />;
 
   return (
-    <LandOsShell
-      sidebar={<V3LifecycleSidebar activeStage={stage} />}
-      rail={rail}
-    >
+    <LandOsShell rail={rail}>
       <div className={css.frame}>
         <ProjectBundleBar />
         <div className={css.outletHost}>
