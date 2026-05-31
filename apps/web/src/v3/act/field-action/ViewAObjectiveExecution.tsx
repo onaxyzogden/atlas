@@ -34,6 +34,7 @@ import {
   selectProjectProgress,
   toProgressMap,
 } from '../../../store/planStratumStore.js';
+import { getActShellMode, useProjectStore } from '../../../store/projectStore.js';
 import ActObjectiveHeader from './ActObjectiveHeader.js';
 import ActMapStrip from './ActMapStrip.js';
 import ActTaskList from './ActTaskList.js';
@@ -118,12 +119,31 @@ export default function ViewAObjectiveExecution({ projectId, objectiveId }: Prop
 
   const status = useObjectiveStatus(objective, objectives, projectId);
 
+  // Resolve the active Act shell so "back" returns the user to whichever shell
+  // they came from (tier-shell deep-link vs the legacy field-action layout)
+  // rather than silently ejecting them into a different shell. Mirrors how
+  // ActLayout itself resolves the mode via getActShellMode; defaults to the
+  // post-promotion default ('tier-shell') when the project is unresolved.
+  const shellMode = useProjectStore((s) => {
+    const p = s.projects.find(
+      (proj) => proj.id === projectId || proj.serverId === projectId,
+    );
+    return p ? getActShellMode(p) : 'tier-shell';
+  });
+
   const handleBack = useCallback(() => {
-    navigate({
-      to: '/v3/project/$projectId/act/field-action',
-      params: { projectId },
-    });
-  }, [navigate, projectId]);
+    navigate(
+      shellMode === 'tier-shell'
+        ? {
+            to: '/v3/project/$projectId/act/tier-shell',
+            params: { projectId },
+          }
+        : {
+            to: '/v3/project/$projectId/act/field-action',
+            params: { projectId },
+          },
+    );
+  }, [navigate, projectId, shellMode]);
 
   if (!objective) {
     return (
