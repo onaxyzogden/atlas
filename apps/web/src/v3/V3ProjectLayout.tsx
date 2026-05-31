@@ -97,9 +97,19 @@ export default function V3ProjectLayout() {
     return <Outlet />;
   }
 
-  const rail = SELF_RAILED_STAGES.has(stage)
-    ? undefined
-    : <DecisionRail stage={stage} project={project} activeModule={module} />;
+  // The Project Creation Wizard (/wizard/site|vision|team|complete) owns its
+  // own chrome (step indicator + footer) and must not show the DecisionRail.
+  // It still lives inside LandOsShell so the global header + ProjectBundleBar
+  // stay visible — only the rail track is omitted.
+  const isWizard = pathname
+    .split("/")
+    .filter(Boolean)
+    .includes("wizard");
+
+  const rail =
+    isWizard || SELF_RAILED_STAGES.has(stage) ? undefined : (
+      <DecisionRail stage={stage} project={project} activeModule={module} />
+    );
 
   return (
     <LandOsShell rail={rail}>

@@ -3,9 +3,13 @@
 .shell {
   display: flex;
   flex-direction: column;
-  /* Occupy exactly the viewport (minus the app header) and never page-scroll;
-     individual sections (e.g. the Step 1 form column) scroll internally. */
-  height: calc(100vh - var(--header-h, 64px));
+  /* Fill the layout slot we are given (V3ProjectLayout's .outletHost, which
+     already sits below the app header AND the ProjectBundleBar) and never
+     page-scroll; individual sections (e.g. the Step 1 form column) scroll
+     internally. Measuring from 100vh here would overshoot by the bundle-bar
+     height and push the whole page into a scroll. */
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
   background: var(--color-bg);
   color: var(--color-text);
