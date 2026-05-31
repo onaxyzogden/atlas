@@ -18,6 +18,12 @@ export interface ConditionSegment {
   text: string;
   /** True when this segment was substituted from an approved tier output. */
   autoFilled: boolean;
+  /**
+   * The bracket token name (without brackets, e.g. `'approved threshold'`) for
+   * an auto-filled segment. Absent on literal segments. Lets the Edit-First form
+   * map each input back to the token it overrides.
+   */
+  token?: string;
 }
 
 /**
@@ -56,7 +62,7 @@ export function renderConditionSegments(
     const value = outputs[token];
     // Substitute the approved output if known; otherwise keep the placeholder
     // verbatim (still flagged so the UI shows it as an unresolved auto-fill).
-    segments.push({ text: value ?? match[0], autoFilled: true });
+    segments.push({ text: value ?? match[0], autoFilled: true, token });
     lastIndex = pattern.lastIndex;
   }
 

@@ -15,47 +15,50 @@ const OUTPUTS = {
 };
 
 describe('renderConditionSegments', () => {
-  it('substitutes a known bracket token and flags it auto-filled', () => {
+  it('substitutes a known bracket token and flags it auto-filled with its token name', () => {
     const segs = renderConditionSegments('pasture cover < [approved threshold] kg DM/ha', OUTPUTS);
     expect(segs).toEqual([
       { text: 'pasture cover < ', autoFilled: false },
-      { text: '1,500 kg DM/ha', autoFilled: true },
+      { text: '1,500 kg DM/ha', autoFilled: true, token: 'approved threshold' },
       { text: ' kg DM/ha', autoFilled: false },
     ]);
   });
 
-  it('returns a single literal segment when there are no brackets', () => {
+  it('returns a single literal segment (no token) when there are no brackets', () => {
     const segs = renderConditionSegments('rotation entry event', OUTPUTS);
     expect(segs).toEqual([{ text: 'rotation entry event', autoFilled: false }]);
   });
 
-  it('keeps an unknown bracket token verbatim but still flags it auto-filled', () => {
+  it('keeps an unknown bracket token verbatim, flags it auto-filled, and still records the token', () => {
     const segs = renderConditionSegments('grazing days ≥ [unmapped token]', OUTPUTS);
     expect(segs).toEqual([
       { text: 'grazing days ≥ ', autoFilled: false },
-      { text: '[unmapped token]', autoFilled: true },
+      { text: '[unmapped token]', autoFilled: true, token: 'unmapped token' },
     ]);
   });
 
-  it('handles multiple bracket tokens in one condition', () => {
+  it('handles multiple bracket tokens, recording each token name', () => {
     const segs = renderConditionSegments(
       '[approved threshold] then [emergency threshold]',
       OUTPUTS,
     );
     expect(segs).toEqual([
-      { text: '1,500 kg DM/ha', autoFilled: true },
+      { text: '1,500 kg DM/ha', autoFilled: true, token: 'approved threshold' },
       { text: ' then ', autoFilled: false },
-      { text: '800 kg DM/ha', autoFilled: true },
+      { text: '800 kg DM/ha', autoFilled: true, token: 'emergency threshold' },
     ]);
-    // The auto-filled segments carry no leftover bracket characters.
     expect(segs.filter((s) => s.autoFilled).every((s) => !/[[\]]/.test(s.text))).toBe(true);
   });
 
-  it('drops the leading "IF " before splitting (caller responsibility mirrored)', () => {
-    // The card strips "IF " before calling; confirm a bare condition with no IF
-    // is unaffected and the first literal segment is preserved.
+  it('records the token on a mid-string substitution', () => {
     const segs = renderConditionSegments('no body condition score in [approved day limit]', OUTPUTS);
     expect(segs[0]).toEqual({ text: 'no body condition score in ', autoFilled: false });
-    expect(segs[1]).toEqual({ text: '3 days', autoFilled: true });
+    expect(segs[1]).toEqual({ text: '3 days', autoFilled: true, token: 'approved day limit' });
+  });
+
+  it('does not set a token on literal segments', () => {
+    const segs = renderConditionSegments('cover < [approved threshold] now', OUTPUTS);
+    expect(segs[0]).not.toHaveProperty('token');
+    expect(segs[2]).not.toHaveProperty('token');
   });
 });
