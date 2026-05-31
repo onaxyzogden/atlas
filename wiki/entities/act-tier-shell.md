@@ -29,7 +29,16 @@ show-everything tool strip with an objective-conditional, categorized rail
 - `ActTierCategorizedToolsRail.tsx` — bottom rail (Phase C). Renders the
   non-empty tool categories for the selected objective; armed-tile highlight
   from `useMapToolStore`; two empty states. Replaced the always-on three-log
-  `ActTierToolsRail` (preserved on disk, no longer mounted).
+  `ActTierToolsRail` (preserved on disk, no longer mounted). Navigated by a
+  vertical **dots navigator** (2026-05-31): an `IntersectionObserver` tracks the
+  framed category and lights the matching dot; clicking a dot `scrollIntoView`s
+  its category; native scrollbar hidden. Dots render only when >1 category.
+- `ActTierExecutionPanel.tsx` — RIGHT-rail objective-execution detail (header,
+  % ready, checklist, Evidence, activity, record). Checklist items are bordered
+  cards matching the Evidence cards (2026-05-31). The Evidence section is
+  **per-objective** (2026-05-31): driven by `getObjectiveEvidence(objective)`
+  via descriptor-keyed local state + a `renderEvidenceCard` helper; evidence
+  capture is still LOCAL/ephemeral (not persisted).
 - `actToolCatalog.ts` — app-layer catalogue joining catalogue-id strings to
   `{ label, icon, category, arm }`. `ActToolArm` is a discriminated union
   `{kind:'map';mapToolId:MapToolId} | {kind:'log';quickLogId:string}`.
@@ -58,6 +67,25 @@ Mapping: s1-* -> [] (non-spatial); s2-land-baseline -> terrain/survey set;
 s3/s4 -> access + structures; s5-water-strategy -> water systems + water log;
 s6-yield-flows -> production systems + harvest/livestock logs; s7-phasing ->
 structures.
+
+## Data: objective -> evidence map
+
+`packages/shared/src/relationships/objectiveEvidence.ts` (net-new product data,
+mirrors `objectiveActTools.ts`; 2026-05-31). The Evidence descriptor data has
+NO app deps, so the catalogue AND the relevance map both live in `@ogden/shared`
+and the resolver returns ready-to-render descriptors:
+- `EvidenceKind = 'photo' | 'confirm' | 'note'`;
+  `EvidenceDescriptor { id, kind, label, required, target? }`.
+- `EVIDENCE_CATALOG` (5): `checkpoint-photos`, `route-passable`, `summary-note`
+  (original 3, verbatim) + `site-photo`, `measurement-confirm`.
+- `OBJECTIVE_EVIDENCE_OVERRIDE` keyed by the real 19 universal objective ids;
+  `STRATUM_EVIDENCE_DEFAULT` backstop.
+- `getObjectiveEvidence(objective): readonly EvidenceDescriptor[]` —
+  `OVERRIDE[id] ?? STRATUM_DEFAULT[stratumId] ?? ['summary-note']`, mapped to
+  descriptors. `summary-note` floor on every objective; `route-passable` only on
+  `s5-access` + `s2-infrastructure`. Guarded by
+  `__tests__/objectiveEvidenceCoverage.test.ts` (6 invariants).
+See [[decisions/2026-05-31-atlas-act-evidence-perobjective-and-dots]].
 
 ## DrawHost composition (the ADR-7 seam)
 
@@ -108,6 +136,19 @@ its own ops dashboard in the same session (`ActOpsDashboard`, commits
 (scope: field-action only). tsc-clean for all changed files; live preview
 verified functionally via DOM (`preview_screenshot` hung on the WebGL canvas,
 disclosed per [[project-screenshot-hang]]).
+
+Three execution-panel + tools-rail follow-ups shipped later the same day
+(commits `efd4c41f` boxed checklist -> `1135366d` per-objective Evidence ->
+`1098cd58` dots navigator; ahead 25, not behind):
+1. Right-rail checklist items are bordered cards matching the Evidence cards.
+2. The Evidence section is per-objective (the `objectiveEvidence.ts` map above);
+   "Route passable confirmation" now appears only on `s5-access` +
+   `s2-infrastructure`, every objective shows at least a summary note,
+   conformance-guarded.
+3. The tools rail navigates by a vertical dots column (circle -> active gold
+   dash) instead of a native scrollbar.
+tsc clean (apps/web + packages/shared); conformance 6/6; live preview verified
+with screenshots. ADR [[decisions/2026-05-31-atlas-act-evidence-perobjective-and-dots]].
 
 ## Notes
 
