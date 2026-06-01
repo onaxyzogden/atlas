@@ -32,10 +32,13 @@ const PERSIST_KEY = 'ogden-plan-tier-progress';
 type ItemIds = readonly string[];
 type ByObjective = Readonly<Record<string, ItemIds>>;
 type StratumIds = readonly string[];
+/** Per-objective steward-entered parameter values, keyed by parameter item id. */
+type ValuesByObjective = Readonly<Record<string, Readonly<Record<string, string>>>>;
 
 const EMPTY_ITEM_IDS: ItemIds = Object.freeze([]);
 const EMPTY_BY_OBJECTIVE: ByObjective = Object.freeze({});
 const EMPTY_STRATUM_IDS: StratumIds = Object.freeze([]);
+const EMPTY_VALUES: Readonly<Record<string, string>> = Object.freeze({});
 
 interface PlanStratumProgressState {
   byProject: Record<string, ByObjective>;
@@ -49,6 +52,15 @@ interface PlanStratumProgressState {
    * `computeAllObjectiveStatuses` via `toDeferredSet(selectDeferredObjectives())`.
    */
   deferredByProject: Record<string, StratumIds>;
+  /**
+   * Steward-entered operating-threshold parameter values (§10.1 Integration),
+   * keyed project -> objective -> parameter-item-id -> value. A PARALLEL slice
+   * to `byProject`: it holds free-text parameter entries (the protocol token
+   * source) and is deliberately kept separate from checklist completion so the
+   * status engine (`toProgressMap`) is never touched. Empty until a steward
+   * fills the S6 Integration parameter group.
+   */
+  valuesByProject: Record<string, ValuesByObjective>;
 
   /** Read all completed item ids for one objective in a project. */
   getCompletedItemIds: (projectId: string, objectiveId: string) => ItemIds;
@@ -92,6 +104,23 @@ interface PlanStratumProgressState {
   deferObjective: (projectId: string, objectiveId: string) => void;
   /** Un-defer (Restore) an objective for this project (idempotent). */
   undeferObjective: (projectId: string, objectiveId: string) => void;
+
+  /**
+   * Set one parameter value for an objective. An empty/whitespace-only value is
+   * stored as-is (the `buildProtocolOutputs` derive step trims + omits blanks);
+   * callers may pass `''` to clear a field.
+   */
+  setParameterValue: (
+    projectId: string,
+    objectiveId: string,
+    itemId: string,
+    value: string,
+  ) => void;
+  /** Read the parameter-value map for one objective (itemId -> value). */
+  getParameterValues: (
+    projectId: string,
+    objectiveId: string,
+  ) => Readonly<Record<string, string>>;
 }
 
 /**
@@ -106,6 +135,9 @@ interface PlanStratumProgressState {
  *    already-renumbered s{n} ids.
  *  - v3 -> v4: `deferredByProject` was added (Deferred objective state, spec
  *    section 8.3); backfill `{}`. Purely additive.
+ *  - v4 -> v5: `valuesByProject` was added (§10.1 operating-threshold parameter
+ *    values, the protocol token source); backfill `{}`. Purely additive — never
+ *    touches `byProject`/`celebratedByProject`/`deferredByProject`.
  * Exported for the round-trip migration test.
  */
 export function migratePlanStratumProgress(
@@ -119,6 +151,8 @@ export function migratePlanStratumProgress(
     safe.celebratedByProject ?? {};
   const deferredByProject: Record<string, StratumIds> =
     safe.deferredByProject ?? {};
+  const valuesByProject: Record<string, ValuesByObjective> =
+    safe.valuesByProject ?? {};
 
   if (version < 3) {
     const remappedByProject: Record<string, ByObjective> = {};
@@ -147,6 +181,7 @@ export function migratePlanStratumProgress(
     byProject,
     celebratedByProject,
     deferredByProject,
+    valuesByProject,
   } as PlanStratumProgressState;
 }
 
@@ -156,6 +191,7 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
       byProject: {},
       celebratedByProject: {},
       deferredByProject: {},
+      valuesByProject: {},
 
       getCompletedItemIds: (projectId, objectiveId) =>
         get().byProject[projectId]?.[objectiveId] ?? EMPTY_ITEM_IDS,
@@ -247,14 +283,33 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
             },
           };
         }),
+
+      setParameterValue: (projectId, objectiveId, itemId, value) =>
+        set((s) => {
+          const project = s.valuesByProject[projectId] ?? {};
+          const objective = project[objectiveId] ?? {};
+          return {
+            valuesByProject: {
+              ...s.valuesByProject,
+              [projectId]: {
+                ...project,
+                [objectiveId]: { ...objective, [itemId]: value },
+              },
+            },
+          };
+        }),
+
+      getParameterValues: (projectId, objectiveId) =>
+        get().valuesByProject[projectId]?.[objectiveId] ?? EMPTY_VALUES,
     }),
     {
       name: PERSIST_KEY,
-      version: 4,
+      version: 5,
       partialize: (state) => ({
         byProject: state.byProject,
         celebratedByProject: state.celebratedByProject,
         deferredByProject: state.deferredByProject,
+        valuesByProject: state.valuesByProject,
       }),
       migrate: migratePlanStratumProgress,
     },
@@ -297,6 +352,19 @@ export function selectDeferredObjectives(
   projectId: string,
 ): StratumIds {
   return state.deferredByProject[projectId] ?? EMPTY_STRATUM_IDS;
+}
+
+/**
+ * Stable accessor for one objective's parameter-value map (itemId -> value).
+ * Returns a frozen empty record when the objective has no entries yet so a
+ * hook selector keeps a stable identity (Zustand v5 — avoid inline filters).
+ */
+export function selectParameterValues(
+  state: PlanStratumProgressState,
+  projectId: string,
+  objectiveId: string,
+): Readonly<Record<string, string>> {
+  return state.valuesByProject[projectId]?.[objectiveId] ?? EMPTY_VALUES;
 }
 
 /**

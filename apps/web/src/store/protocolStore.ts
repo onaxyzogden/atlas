@@ -39,6 +39,13 @@ interface ProtocolState {
    */
   activateProtocol: (projectId: string, templateId: string) => void;
 
+  /**
+   * Remove the activated record for this (projectId, templateId) entirely —
+   * the inverse of `activateProtocol`, used by the §10.1 confirmation flow's
+   * Undo. Idempotent: a no-op when no matching record exists.
+   */
+  deactivateProtocol: (projectId: string, templateId: string) => void;
+
   /** Mark a protocol as triggered (condition has fired). */
   markTriggered: (projectId: string, templateId: string) => void;
 
@@ -100,6 +107,14 @@ export const useProtocolStore = create<ProtocolState>()(
             status: 'active',
             deferredUntil: undefined,
           }),
+        })),
+
+      deactivateProtocol: (projectId, templateId) =>
+        set((s) => ({
+          records: s.records.filter(
+            (r) =>
+              !(r.projectId === projectId && r.templateId === templateId),
+          ),
         })),
 
       markTriggered: (projectId, templateId) =>
