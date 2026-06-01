@@ -1,0 +1,211 @@
+/*
+ * AsBuiltReconciliationCard -- Plan-stage surface for Act as-built deviations.
+ * Amber/warn tone signals active field divergence, distinct from the gold
+ * CyclicalReviewBanner (periodic review). Mounted directly below it.
+ */
+
+.card {
+  margin: 8px 16px 0;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, #e2951a 35%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 90%, #e2951a 10%);
+  overflow: hidden;
+}
+
+/* ---- header row ---- */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid color-mix(in srgb, #e2951a 20%, transparent);
+}
+
+.headerIcon {
+  flex: 0 0 auto;
+  color: #e2951a;
+}
+
+.headerLabel {
+  flex: 1 1 auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e2951a;
+}
+
+.headerCount {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #e2951a 30%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  color: #e2951a;
+}
+
+/* ---- item list ---- */
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item + .item {
+  border-top: 1px solid color-mix(in srgb, #e2951a 12%, transparent);
+}
+
+/* ---- meta row ---- */
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kindBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, #e2951a 20%, transparent);
+  color: #e2951a;
+  border: 1px solid color-mix(in srgb, #e2951a 35%, transparent);
+}
+
+.time {
+  font-size: 11px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+  margin-left: auto;
+}
+
+/* ---- diff block ---- */
+
+.diffBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.diffField {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.diffChange {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.asPlanned {
+  font-size: 12px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.55));
+  text-decoration: line-through;
+}
+
+.arrow {
+  font-size: 12px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
+}
+
+.asBuilt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.geometryNote {
+  font-size: 12px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.78));
+  font-style: italic;
+}
+
+.readOnly {
+  font-size: 11px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
+}
+
+/* ---- action row ---- */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-top: 2px;
+}
+
+.applyBtn,
+.keepBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.applyBtn {
+  border: 1px solid color-mix(in srgb, #e2951a 65%, transparent);
+  background: color-mix(in srgb, #e2951a 22%, transparent);
+  color: #e2951a;
+}
+
+.applyBtn:hover {
+  background: color-mix(in srgb, #e2951a 34%, transparent);
+  border-color: color-mix(in srgb, #e2951a 85%, transparent);
+}
+
+.keepBtn {
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.keepBtn:hover {
+  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, #ffffff);
+  color: var(--color-text, #f2ede3);
+}
+
+.applyBtn:active,
+.keepBtn:active {
+  transform: translateY(1px);
+}
+
+.applyBtn:focus-visible,
+.keepBtn:focus-visible {
+  outline: 2px solid #e2951a;
+  outline-offset: 2px;
+}

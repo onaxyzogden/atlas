@@ -29,6 +29,7 @@ import DetailsExpander from './DetailsExpander.js';
 import LaunchActButton from './LaunchActButton.js';
 import CyclicalReviewBanner from './CyclicalReviewBanner.js';
 import CyclicalReviewModal from './CyclicalReviewModal.js';
+import AsBuiltReconciliationCard from './AsBuiltReconciliationCard.js';
 import type { VisionDerivedMap } from '../../strata/visionProfileToChecklist.js';
 import ParameterGroup from './ParameterGroup.js';
 import ProtocolApprovalOverlay from './ProtocolApprovalOverlay.js';
@@ -174,6 +175,13 @@ export default function ObjectiveDetailPanel({
           onRevise={handleReviseDecision}
         />
       )}
+
+      {/* Act as-built deviations for this objective's domain footprint.
+          Renders nothing when there are no active feature-scoped divergences. */}
+      <AsBuiltReconciliationCard
+        projectId={projectId}
+        objective={objective}
+      />
 
       {hasOverlays && (
         <>
