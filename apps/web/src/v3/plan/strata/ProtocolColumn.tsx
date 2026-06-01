@@ -40,8 +40,7 @@ export default function ProtocolColumn({
     <section
       data-testid="protocol-column"
       style={{
-        width: 292,
-        flexShrink: 0,
+        flex: 1,
         minWidth: 0,
         minHeight: 0,
         overflowY: 'auto',

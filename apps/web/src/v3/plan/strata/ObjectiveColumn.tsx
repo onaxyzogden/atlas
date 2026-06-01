@@ -312,8 +312,7 @@ export default function ObjectiveColumn({
     <section
       aria-label={`Objectives in ${stratum.title}`}
       style={{
-        width: 292,
-        flexShrink: 0,
+        flex: 1,
         minWidth: 0,
         minHeight: 0,
         overflowY: 'auto',
@@ -337,7 +336,7 @@ export default function ObjectiveColumn({
         >
           Stratum {stratum.ordinal}
         </div>
-        <div style={{ fontSize: 11, color: C.textSecondary }}>{stratum.title}</div>
+        <div style={{ fontSize: 12, color: C.textSecondary }}>{stratum.title}</div>
       </div>
 
       {tensionList.length > 0 && (
@@ -372,7 +371,7 @@ export default function ObjectiveColumn({
                   border: `1px solid ${isActive ? C.blue : C.border}`,
                   background: isActive ? C.blueDim : 'transparent',
                   color: isActive ? C.blue : C.textTertiary,
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 600,
                   cursor: 'pointer',
                   fontFamily: F.sans,
