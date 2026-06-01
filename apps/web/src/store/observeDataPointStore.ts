@@ -71,6 +71,11 @@ interface ObserveDataPointState {
   ) => void;
   /** Remove a data point entirely (used by tests + admin tooling). */
   removeDataPoint: (projectId: string, pointId: string) => void;
+  /** Steward acknowledged a data point (e.g. "Apply to design" or "Keep
+   *  plan" on the Plan reconciliation card). Flips it to superseded so it
+   *  drops out of the active selectors and stops forcing the Plan revision
+   *  flag, while preserving the row (no hard delete). */
+  acknowledgeDataPoint: (projectId: string, pointId: string) => void;
   /** Overwrite the project's points wholesale (used by import flows
    *  + tests; bypasses supersession). */
   setProjectPoints: (
@@ -85,6 +90,34 @@ function resolveRadius(domainId: ObserveDataPoint['domainId']): number {
     OBSERVE_DOMAIN_CATALOG[domainId]?.supersessionProximityMeters ??
     DEFAULT_SUPERSESSION_PROXIMITY_METERS
   );
+}
+
+/**
+ * Persist migration for the data-point store. Persisted points are not
+ * re-parsed on rehydrate, so backfill new nullable fields to keep stored
+ * data consistent with the schema's output type. Cumulative — any pre-v3
+ * blob gets both backfills:
+ *   v2: ObserveDataPoint gained sourceObjectiveId.
+ *   v3: ObserveDataPoint gained sourceFeatureRef (as-built deviations).
+ * Exported for direct unit testing (mirrors migrateCropStore).
+ */
+export function migrateObserveDataPointStore(
+  persisted: unknown,
+  version: number,
+): { byProject: ByProject } {
+  const state = persisted as { byProject?: ByProject } | undefined;
+  if (!state) return { byProject: {} };
+  if (version >= 3) return { byProject: state.byProject ?? {} };
+  const byProject = state.byProject ?? {};
+  const next: ByProject = {};
+  for (const [projectId, points] of Object.entries(byProject)) {
+    next[projectId] = (points ?? []).map((p) => ({
+      ...p,
+      sourceObjectiveId: p.sourceObjectiveId ?? null,
+      sourceFeatureRef: p.sourceFeatureRef ?? null,
+    }));
+  }
+  return { byProject: next };
 }
 
 export const useObserveDataPointStore = create<ObserveDataPointState>()(
@@ -165,6 +198,23 @@ export const useObserveDataPointStore = create<ObserveDataPointState>()(
           };
         }),
 
+      acknowledgeDataPoint: (projectId, pointId) =>
+        set((s) => {
+          const list = s.byProject[projectId];
+          if (!list) return s;
+          let changed = false;
+          const next = list.map((p) => {
+            if (p.id !== pointId) return p;
+            if (p.isSuperseded) return p;
+            changed = true;
+            return { ...p, isSuperseded: true };
+          });
+          if (!changed) return s;
+          return {
+            byProject: { ...s.byProject, [projectId]: next },
+          };
+        }),
+
       setProjectPoints: (projectId, points) =>
         set((s) => ({
           byProject: { ...s.byProject, [projectId]: [...points] },
@@ -179,24 +229,10 @@ export const useObserveDataPointStore = create<ObserveDataPointState>()(
     }),
     {
       name: PERSIST_KEY,
-      version: 2,
+      version: 3,
       partialize: (state) => ({ byProject: state.byProject }),
-      // v2: ObserveDataPoint gained sourceObjectiveId. Persisted points are
-      // not re-parsed on rehydrate, so backfill the field to null to keep
-      // stored data consistent with the schema's output type.
-      migrate: (persisted, version) => {
-        const state = persisted as { byProject?: ByProject } | undefined;
-        if (!state || version >= 2) return state as { byProject: ByProject };
-        const byProject = state.byProject ?? {};
-        const next: ByProject = {};
-        for (const [projectId, points] of Object.entries(byProject)) {
-          next[projectId] = (points ?? []).map((p) => ({
-            ...p,
-            sourceObjectiveId: p.sourceObjectiveId ?? null,
-          }));
-        }
-        return { byProject: next };
-      },
+      migrate: (persisted, version) =>
+        migrateObserveDataPointStore(persisted, version),
     },
   ),
 );

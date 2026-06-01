@@ -30,6 +30,7 @@ function fixture(
     sourceActionId: null,
     sourceFeedEntryId: null,
     sourceObjectiveId: null,
+    sourceFeatureRef: null,
     locationGeometry: null,
     cycleId: 0,
     isSuperseded: false,

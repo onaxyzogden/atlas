@@ -71,6 +71,9 @@ export function routeToDataPoint(
     sourceObjectiveId: findObjectiveAcrossCatalogues(entry.feedKey)
       ? entry.feedKey
       : null,
+    // Feed-routed projections reference an objective/feed entry, not a placed
+    // Plan feature, so they never carry an as-built feature ref.
+    sourceFeatureRef: null,
     locationGeometry: null,
     cycleId: 0,
     isSuperseded: false,

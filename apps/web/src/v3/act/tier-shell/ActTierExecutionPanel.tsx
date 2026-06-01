@@ -171,6 +171,8 @@ export default function ActTierExecutionPanel({
       sourceActionId: null,
       sourceFeedEntryId: null,
       sourceObjectiveId: objective.id,
+      // Objective-progress recordings are not scoped to a placed Plan feature.
+      sourceFeatureRef: null,
       locationGeometry: null,
       cycleId: 0,
       isSuperseded: false,

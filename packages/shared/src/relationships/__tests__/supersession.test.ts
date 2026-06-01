@@ -19,6 +19,7 @@ function fixture(
     sourceActionId: null,
     sourceFeedEntryId: null,
     sourceObjectiveId: null,
+    sourceFeatureRef: null,
     locationGeometry: {
       type: 'Point',
       coordinates: [-118.5, 34.1],
