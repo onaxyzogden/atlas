@@ -539,28 +539,11 @@ export default function PlanStratumShell() {
               color: C.textPrimary,
             }}
           >
-            Plan stratum spine
+            {project?.name ?? 'Untitled project'}
           </h2>
           <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: C.textSecondary }}>
-            7 strata from foundation to phasing. Each unlocks once its
-            prerequisites complete.
+            {primaryTypeLabel ?? 'No project type set'}
           </p>
-
-          {primaryTypeLabel && (
-            <div
-              data-testid="plan-header-project-type"
-              style={{
-                marginTop: 8,
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: '0.01em',
-                color: C.textSecondary,
-                fontFamily: F.sans,
-              }}
-            >
-              {primaryTypeLabel}
-            </div>
-          )}
 
           {primaryTypeId && (
             <button
