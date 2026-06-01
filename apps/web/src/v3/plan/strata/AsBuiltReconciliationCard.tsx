@@ -34,8 +34,7 @@ import {
   useObserveDataPointStore,
   selectObserveDataPointsForProject,
 } from '../../../store/observeDataPointStore.js';
-import { useCropStore } from '../../../store/cropStore.js';
-import type { CropArea } from '../../../store/cropStore.js';
+import { applyAsBuiltDiff, canApplyDiff } from './applyAsBuiltDiff.js';
 import css from './AsBuiltReconciliationCard.module.css';
 
 const DIVERGENT_STATUSES = new Set([
@@ -118,19 +117,19 @@ function DeviationItem({ projectId, point }: ItemProps) {
   // All hooks must be called unconditionally (rules of hooks).
   const diff = asAsBuiltDiff(point.measurementValue);
   const acknowledge = useObserveDataPointStore((s) => s.acknowledgeDataPoint);
-  const updateCropArea = useCropStore((s) => s.updateCropArea);
 
   const { sourceFeatureRef } = point;
   if (!sourceFeatureRef) return null;
 
-  const canApply = diff?.kind === 'attribute' && sourceFeatureRef.kind === 'cropArea';
+  // Per-kind Apply eligibility + mutation live in applyAsBuiltDiff.ts so the
+  // structure's nested-metadata mapping stays out of the card and is unit
+  // tested. cropArea / paddock / zone patch flat props; structure maps
+  // label/notes/subtype/phase into the V2 metadata blocks.
+  const canApply = canApplyDiff(diff, sourceFeatureRef.kind);
 
   const handleApply = () => {
-    if (diff?.kind === 'attribute' && sourceFeatureRef.kind === 'cropArea') {
-      // Safe cast: field comes from a CropArea attribute form; the value is
-      // the same type that was originally read from the crop.
-      const patch = { [diff.field]: diff.asBuilt } as Partial<CropArea>;
-      updateCropArea(sourceFeatureRef.id, patch);
+    if (diff && canApply) {
+      applyAsBuiltDiff(sourceFeatureRef.kind, sourceFeatureRef.id, diff);
     }
     acknowledge(projectId, point.id);
   };

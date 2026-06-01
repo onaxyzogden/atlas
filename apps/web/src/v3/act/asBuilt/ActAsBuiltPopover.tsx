@@ -1,15 +1,17 @@
 /**
  * ActAsBuiltPopover - Act-stage affordance for recording an "as-built"
  * deviation on a placed Plan feature. Anchored at the click point (pairs with
- * `ActFeatureClickHandler`). Slice 2 handles crop areas; paddock + zone arrive
- * in Slice 4.
+ * `ActFeatureClickHandler` for crop/paddock/zone, and with `ActStructurePopover`'s
+ * "Record as-built change" hand-off for structures). Slice 4: all four kinds.
  *
- * It reuses the Plan-stage field set (`buildCropEditSchema`) for parity, but
- * its Save does NOT call the geometry-store mutator. Instead it diffs the
- * steward's edits against the as-planned values and emits a single divergent
- * Observe data point (`recordAsBuiltDeviation`). The Plan reconciliation card
- * later offers "Apply to design" / "Keep plan" - the only place a Plan-store
- * mutation happens. This preserves "Act adds, it does not edit Plan decisions."
+ * It reuses the Plan-stage field sets (`buildCropEditSchema` /
+ * `buildPaddockEditSchema` / `buildZoneEditSchema` / `buildBuildingEditSchema`)
+ * for parity, but its Save does NOT call the geometry-store mutators. Instead it
+ * diffs the steward's edits against the as-planned values and emits a single
+ * divergent Observe data point (`recordAsBuiltDeviation`). The Plan
+ * reconciliation card later offers "Apply to design" / "Keep plan" - the only
+ * place a Plan-store mutation happens. This preserves "Act adds, it does not
+ * edit Plan decisions."
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -20,8 +22,17 @@ import {
   polygonCentroid,
 } from './recordAsBuiltDeviation.js';
 import { buildAttributeDiff, type FormValues } from './attributeDiff.js';
-import { useCropStore, type CropArea } from '../../../store/cropStore.js';
-import { buildCropEditSchema } from '../../plan/layers/inlineEditSchemas.js';
+import { useCropStore } from '../../../store/cropStore.js';
+import { useLivestockStore } from '../../../store/livestockStore.js';
+import { useZoneStore } from '../../../store/zoneStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../store/builtEnvironmentStoreV2.js';
+import {
+  buildCropEditSchema,
+  buildPaddockEditSchema,
+  buildZoneEditSchema,
+  buildBuildingEditSchema,
+} from '../../plan/layers/inlineEditSchemas.js';
+import type { InlineFormPayload } from '../../plan/draw/inlineFormStore.js';
 import css from './ActAsBuiltPopover.module.css';
 
 interface Props {
@@ -31,15 +42,41 @@ interface Props {
 
 const POPOVER_WIDTH = 280;
 
-/** No-op standing in for the Plan-stage `updateCropArea`; the as-built flow
- *  reuses the schema only for its field set + initial values, never its
- *  geometry-store mutation. */
-const NOOP_UPDATE = (_id: string, _updates: Partial<CropArea>): void => {};
+/** No-op standing in for the Plan-stage geometry-store mutators; the as-built
+ *  flow reuses each schema only for its field set + initial values, never its
+ *  mutation. Parameterless so it is assignable to all builders' update-fn
+ *  param types (`updateCropArea` / `updatePaddock` / `updateZone`). */
+const NOOP_UPDATE = (): void => {};
+
+type ResolvedSchema = Omit<InlineFormPayload, 'anchor'>;
+
+/** Centroid for the divergence's `locationGeometry` + proximity supersession.
+ *  Handles the kinds' geometry shapes; callers fall back to the click anchor. */
+function featureCentroid(
+  geometry: GeoJSON.Geometry | null | undefined,
+): [number, number] | null {
+  if (!geometry) return null;
+  if (geometry.type === 'Polygon') return polygonCentroid(geometry);
+  if (geometry.type === 'MultiPolygon') {
+    const first = geometry.coordinates[0];
+    return first ? polygonCentroid({ type: 'Polygon', coordinates: first }) : null;
+  }
+  if (geometry.type === 'Point') {
+    const [lng, lat] = geometry.coordinates;
+    return [lng, lat];
+  }
+  return null;
+}
 
 export default function ActAsBuiltPopover({ map, projectId }: Props) {
   const active = useActAsBuiltPopoverStore((s) => s.active);
   const close = useActAsBuiltPopoverStore((s) => s.close);
+  // Subscribe to every kind's store unconditionally (Rules of Hooks); the
+  // resolution memo below picks the one matching active.kind.
   const cropAreas = useCropStore((s) => s.cropAreas);
+  const paddocks = useLivestockStore((s) => s.paddocks);
+  const zones = useZoneStore((s) => s.zones);
+  const structures = useBuiltEnvironmentStoreV2((s) => s.entities);
 
   const [screen, setScreen] = useState<{
     x: number;
@@ -50,21 +87,69 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const seededFor = useRef<string | null>(null);
 
-  // Resolve the live feature. Slice 2: crop areas only.
-  const crop =
-    active?.kind === 'cropArea'
-      ? cropAreas.find((c) => c.id === active.id) ?? null
-      : null;
+  // Resolve the live feature + its Plan-stage field schema, per kind. Slice 4:
+  // all four kinds. Each schema is reused for its `fields` + `initial` ONLY;
+  // the mutators are no-ops (cropArea/paddock/zone) or never invoked
+  // (buildBuildingEditSchema closures its own store and is never Save()d here).
+  const resolved = useMemo<{
+    id: string;
+    name: string;
+    geometry: GeoJSON.Geometry | null | undefined;
+    schema: ResolvedSchema;
+  } | null>(() => {
+    if (!active) return null;
+    switch (active.kind) {
+      case 'cropArea': {
+        const c = cropAreas.find((x) => x.id === active.id);
+        if (!c) return null;
+        return {
+          id: c.id,
+          name: c.name,
+          geometry: c.geometry,
+          schema: buildCropEditSchema(c, NOOP_UPDATE, []),
+        };
+      }
+      case 'paddock': {
+        const pd = paddocks.find((x) => x.id === active.id);
+        if (!pd) return null;
+        return {
+          id: pd.id,
+          name: pd.name,
+          geometry: pd.geometry,
+          schema: buildPaddockEditSchema(pd, NOOP_UPDATE, []),
+        };
+      }
+      case 'zone': {
+        const z = zones.find((x) => x.id === active.id);
+        if (!z) return null;
+        return {
+          id: z.id,
+          name: z.name,
+          geometry: z.geometry,
+          schema: buildZoneEditSchema(z, NOOP_UPDATE),
+        };
+      }
+      case 'structure': {
+        const s = structures.find((x) => x.id === active.id);
+        if (!s) return null;
+        return {
+          id: s.id,
+          name: s.label ?? 'Structure',
+          geometry: s.geometry,
+          schema: buildBuildingEditSchema(s),
+        };
+      }
+      default:
+        return null;
+    }
+  }, [active, cropAreas, paddocks, zones, structures]);
 
-  const schema = useMemo(
-    () => (crop ? buildCropEditSchema(crop, NOOP_UPDATE, []) : null),
-    [crop],
-  );
+  const schema = resolved?.schema ?? null;
 
   // Auto-close if the feature was deleted while the popover was open.
   useEffect(() => {
-    if (active && active.kind === 'cropArea' && !crop) close();
-  }, [active, crop, close]);
+    if (active && !resolved) close();
+  }, [active, resolved, close]);
 
   // Seed the form once per opened feature (don't clobber in-progress edits
   // if the store updates for unrelated reasons).
@@ -130,7 +215,7 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     return () => document.removeEventListener('mousedown', onDown);
   }, [active, close]);
 
-  if (!active || !crop || !schema || !screen) return null;
+  if (!active || !resolved || !schema || !screen) return null;
 
   const initial = schema.initial;
   const hasChanges = schema.fields.some(
@@ -147,10 +232,10 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     }
     recordAsBuiltDeviation({
       projectId,
-      kind: 'cropArea',
-      featureId: crop.id,
+      kind: active.kind,
+      featureId: resolved.id,
       diff,
-      centroid: polygonCentroid(crop.geometry),
+      centroid: featureCentroid(resolved.geometry) ?? active.anchor,
     });
     close();
   };
@@ -166,7 +251,7 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     >
       <div className={css.header}>
         <span className={css.title}>Record as-built change</span>
-        <span className={css.subtitle}>{crop.name}</span>
+        <span className={css.subtitle}>{resolved.name}</span>
       </div>
 
       <div className={css.body}>

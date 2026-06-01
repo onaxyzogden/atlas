@@ -45,6 +45,8 @@ import ActDrawHost from './draw/ActDrawHost.js';
 import ActDataLayers from './layers/ActDataLayers.js';
 import ActStructureClickHandler from './layers/ActStructureClickHandler.js';
 import ActStructurePopover from './ActStructurePopover.js';
+import ActFeatureClickHandler from './layers/ActFeatureClickHandler.js';
+import ActAsBuiltPopover from './asBuilt/ActAsBuiltPopover.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
@@ -233,6 +235,9 @@ export default function ActLayout() {
                 <ActStructureClickHandler map={map} projectId={params.projectId} />
               ) : null}
               {params.projectId ? (
+                <ActFeatureClickHandler map={map} projectId={params.projectId} />
+              ) : null}
+              {params.projectId ? (
                 <ActDataLayers
                   map={map}
                   projectId={params.projectId}
@@ -244,6 +249,7 @@ export default function ActLayout() {
               <SectorCompassOverlay projectId={id} map={map} />
               <PlanSelectionFloater />
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
+              <ActAsBuiltPopover map={map} projectId={params.projectId ?? null} />
               <ActObjectiveCompletePrompt
                 projectId={params.projectId ?? null}
                 module={validModule}

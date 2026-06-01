@@ -114,6 +114,23 @@
   border: 1px solid rgba(242, 237, 227, 0.25);
 }
 
+.primaryBtn {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--color-accent, #c9a14a);
+  color: #1a1a1a;
+  border: 1px solid transparent;
+}
+
+.primaryBtn:hover {
+  filter: brightness(1.08);
+}
+
 .secondaryBtn:hover {
   border-color: rgba(242, 237, 227, 0.5);
 }

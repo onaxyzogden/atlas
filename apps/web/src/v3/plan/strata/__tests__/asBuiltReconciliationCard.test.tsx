@@ -38,6 +38,9 @@ vi.mock('lucide-react', () => ({
 
 import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
 import { useCropStore } from '../../../../store/cropStore.js';
+import { useLivestockStore } from '../../../../store/livestockStore.js';
+import { useZoneStore } from '../../../../store/zoneStore.js';
+import { useBuiltEnvironmentStoreV2 } from '../../../../store/builtEnvironmentStoreV2.js';
 import type { ObserveDataPoint } from '@ogden/shared';
 import { findObjectiveGlobally } from '../../objectiveCatalog.js';
 import AsBuiltReconciliationCard from '../AsBuiltReconciliationCard.js';
@@ -84,6 +87,9 @@ beforeEach(() => {
   // Reset stores between tests.
   useObserveDataPointStore.getState().clearForProject(PROJECT_ID);
   useCropStore.setState({ cropAreas: [] });
+  useLivestockStore.setState({ paddocks: [] });
+  useZoneStore.setState({ zones: [] });
+  useBuiltEnvironmentStoreV2.setState({ entities: [] });
   vi.restoreAllMocks();
 });
 
@@ -203,5 +209,101 @@ describe('AsBuiltReconciliationCard -- actions', () => {
 
     const active = useObserveDataPointStore.getState().getActiveByProject(PROJECT_ID);
     expect(active.some((p) => p.id === point.id)).toBe(false);
+  });
+});
+
+// Slice 4: fan-out to paddock / zone / structure. The card filters by domain
+// overlap (independent of kind) and dispatches Apply by sourceFeatureRef.kind,
+// so each kind is exercised with the same plants-food / s6-yield-flows visibility
+// while only the feature ref + diff field vary.
+describe('AsBuiltReconciliationCard -- Slice 4 fan-out', () => {
+  it('"Apply to design" calls updatePaddock for a paddock deviation', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        sourceFeatureRef: { kind: 'paddock', id: 'pad-1' },
+        measurementValue: {
+          kind: 'attribute',
+          field: 'fencing',
+          label: 'Fencing',
+          asPlanned: 'electric',
+          asBuilt: 'permanent',
+        },
+      }),
+    );
+    const spy = vi.spyOn(useLivestockStore.getState(), 'updatePaddock');
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+    fireEvent.click(screen.getByTestId('plan-asbuilt-apply'));
+
+    expect(spy).toHaveBeenCalledOnce();
+    const [id, patch] = spy.mock.calls[0]!;
+    expect(id).toBe('pad-1');
+    expect(patch).toMatchObject({ fencing: 'permanent' });
+  });
+
+  it('"Apply to design" calls updateZone for a zone deviation', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        sourceFeatureRef: { kind: 'zone', id: 'zone-1' },
+        measurementValue: {
+          kind: 'attribute',
+          field: 'name',
+          label: 'Name',
+          asPlanned: 'Front Field',
+          asBuilt: 'Back Field',
+        },
+      }),
+    );
+    const spy = vi.spyOn(useZoneStore.getState(), 'updateZone');
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+    fireEvent.click(screen.getByTestId('plan-asbuilt-apply'));
+
+    expect(spy).toHaveBeenCalledOnce();
+    const [id, patch] = spy.mock.calls[0]!;
+    expect(id).toBe('zone-1');
+    expect(patch).toMatchObject({ name: 'Back Field' });
+  });
+
+  it('"Apply to design" maps a structure subtype to nested updateMetadata', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        sourceFeatureRef: { kind: 'structure', id: 'st-1' },
+        measurementValue: {
+          kind: 'attribute',
+          field: 'subtype',
+          label: 'Subtype',
+          asPlanned: 'barn',
+          asBuilt: 'greenhouse',
+        },
+      }),
+    );
+    const spy = vi.spyOn(useBuiltEnvironmentStoreV2.getState(), 'updateMetadata');
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+    fireEvent.click(screen.getByTestId('plan-asbuilt-apply'));
+
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy).toHaveBeenCalledWith('st-1', { existing: { subtype: 'greenhouse' } });
+  });
+
+  it('shows only Keep (no Apply) for a geometry-coupled structure dimension', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        sourceFeatureRef: { kind: 'structure', id: 'st-1' },
+        measurementValue: {
+          kind: 'attribute',
+          field: 'widthM',
+          label: 'Width',
+          asPlanned: 10,
+          asBuilt: 12,
+        },
+      }),
+    );
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+
+    expect(screen.queryByTestId('plan-asbuilt-apply')).toBeNull();
+    expect(screen.getByTestId('plan-asbuilt-keep')).toBeDefined();
   });
 });
