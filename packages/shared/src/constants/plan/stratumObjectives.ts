@@ -330,6 +330,53 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     // Closed-loop graph card visualises yield outputs + waste-to-yield loops
     // across elements — the integration this objective designs.
     legacyCardSectionId: 'plan-closed-loop-graph',
+    // §10.1 Integration — the steward enters real operating thresholds here.
+    // Each item's `token` is transcribed VERBATIM from the standard protocol
+    // template catalogue (constants/protocol/standardTemplates.ts); approving
+    // this objective derives the protocol token substitutions from the entered
+    // values (buildProtocolOutputs). Labels/units/placeholders are descriptive
+    // UI only — NOT fabricated approved values (placeholders are illustrative).
+    parameterGroup: {
+      id: 's6-yield-flows-params',
+      label: 'Operating thresholds',
+      items: [
+        {
+          id: 's6-yield-flows-param-cover-trigger',
+          token: 'approved threshold',
+          label: 'Paddock rotation — cover trigger',
+          unit: 'kg DM/ha',
+          placeholder: 'e.g. 1,500',
+        },
+        {
+          id: 's6-yield-flows-param-day-limit',
+          token: 'approved day limit',
+          label: 'Paddock rotation — grazing day limit',
+          unit: 'days',
+          placeholder: 'e.g. 3',
+        },
+        {
+          id: 's6-yield-flows-param-recovery-target',
+          token: 'approved recovery target',
+          label: 'Rest period — re-entry recovery target',
+          unit: 'kg DM/ha',
+          placeholder: 'e.g. 2,400',
+        },
+        {
+          id: 's6-yield-flows-param-bcs-window',
+          token: 'configured window',
+          label: 'Livestock health — body-condition check window',
+          unit: 'days',
+          placeholder: 'e.g. 30',
+        },
+        {
+          id: 's6-yield-flows-param-emergency-threshold',
+          token: 'emergency threshold',
+          label: 'Emergency destocking — cover floor',
+          unit: 'kg DM/ha',
+          placeholder: 'e.g. 800',
+        },
+      ],
+    },
   },
 
   // ---------- S7 ----------

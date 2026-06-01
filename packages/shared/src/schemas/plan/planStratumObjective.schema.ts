@@ -141,6 +141,38 @@ export const DecisionGroupSchema = z.object({
 });
 export type DecisionGroup = z.infer<typeof DecisionGroupSchema>;
 
+/**
+ * A single operating-threshold parameter the steward enters on a Plan objective
+ * (§10.1 Integration). Each maps a human-readable field to a protocol `token`
+ * (transcribed VERBATIM from the standard-template catalogue) so the entered
+ * value can be substituted into a protocol condition at activation. `label`,
+ * `unit`, and `placeholder` are descriptive UI only — NEVER fabricated approved
+ * values (the placeholder is illustrative, not a default).
+ */
+export const ParameterItemSchema = z.object({
+  id: z.string().min(1),
+  /** Protocol token this parameter fills (matches a standard-template token). */
+  token: z.string().min(1),
+  label: z.string().min(1),
+  /** Optional unit suffix shown beside the input (e.g. "kg DM/ha", "days"). */
+  unit: z.string().optional(),
+  /** Optional input placeholder. Illustrative only — not a default value. */
+  placeholder: z.string().optional(),
+});
+export type ParameterItem = z.infer<typeof ParameterItemSchema>;
+
+/**
+ * A named group of operating-threshold parameters on a Plan objective. Rendered
+ * as an editable group ("Plan decides") in the ObjectiveDetailPanel; its values
+ * are the single source of truth for protocol token substitution.
+ */
+export const ParameterGroupSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  items: z.array(ParameterItemSchema).min(1),
+});
+export type ParameterGroup = z.infer<typeof ParameterGroupSchema>;
+
 export const PlanStratumSchema = z.object({
   id: PlanStratumId,
   ordinal: z.number().int().min(1).max(7),
@@ -246,6 +278,14 @@ export const PlanStratumObjectiveSchema = z.object({
    * carry a non-null `sourceSecondaryId`.
    */
   decisionGroups: z.array(DecisionGroupSchema).default([]),
+  /**
+   * Optional steward-editable operating-threshold parameters (§10.1
+   * Integration). When present (today only the S6 Integration objective), the
+   * Plan ObjectiveDetailPanel renders an editable parameter group; the entered
+   * values derive the protocol token substitutions at activation. Optional, so
+   * every existing seed/catalogue objective validates unchanged.
+   */
+  parameterGroup: ParameterGroupSchema.optional(),
 });
 export type PlanStratumObjective = z.infer<typeof PlanStratumObjectiveSchema>;
 
