@@ -11,7 +11,6 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import useGlobalAnnotationUndo from '../v3/observe/hooks/useGlobalAnnotationUndo.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
-import { Button } from '../components/ui/Button.js';
 import { FLAGS } from '@ogden/shared';
 import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
@@ -40,7 +39,7 @@ export default function AppShell({ children }: AppShellProps) {
       </a>
       {FLAGS.OFFLINE_MODE && <OfflineBanner />}
       {!isProjectPage && <header className={styles.header}>
-        <Link to="/v3/project" className={styles.logo}>
+        <Link to="/v3/portfolio" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>
           <span className={styles.logoSub}>Land OS</span>
         </Link>
@@ -96,13 +95,6 @@ export default function AppShell({ children }: AppShellProps) {
         ) : (
           <Link to="/login" className={styles.signInLink}>
             Sign In
-          </Link>
-        )}
-
-        {/* New Project button */}
-        {pathname !== '/new' && (
-          <Link to="/new" className={styles.newProjectLink}>
-            <Button variant="primary" size="sm">New Project</Button>
           </Link>
         )}
 

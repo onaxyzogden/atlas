@@ -21,7 +21,6 @@ import {
   useProjectStore,
   MTC_SEED,
   getPlanShellMode,
-  type PlanShellMode,
 } from '../../store/projectStore.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { usePhaseStore } from '../../store/phaseStore.js';
@@ -84,7 +83,6 @@ import TemporalScrubSlider from './canvas/TemporalScrubSlider.js';
 import DesignStatusChip from './header/DesignStatusChip.js';
 import StageGateOverlay from './StageGateOverlay.js';
 import PlanReadyCue from './components/PlanReadyCue.js';
-import PlanNavToggle from './PlanNavToggle.js';
 import PlanStratumShell from './strata/PlanStratumShell.js';
 import css from './PlanLayout.module.css';
 
@@ -113,9 +111,6 @@ export default function PlanLayout() {
   );
 
   const planShellMode = getPlanShellMode(project);
-  const handleShellModeChange = (mode: PlanShellMode) => {
-    updateProject(project.id, { planShellMode: mode });
-  };
 
   const boundary = v3Project?.location.boundary;
   // Coords-only fallback (no boundary): prefer the parcel's intake center
@@ -454,10 +449,7 @@ export default function PlanLayout() {
           rightRailLabel="Plan checklist"
           leftRail={null}
           canvas={
-            <PlanStratumShell
-              shellMode={planShellMode}
-              onShellModeChange={handleShellModeChange}
-            />
+            <PlanStratumShell />
           }
           rightRail={null}
           bottomTray={null}
@@ -497,10 +489,6 @@ export default function PlanLayout() {
             module={validModule}
           />
           <PlanPhaseTabs active={activeView} onChange={setActiveView} />
-          <PlanNavToggle
-            mode={planShellMode}
-            onChange={handleShellModeChange}
-          />
           <PlanStampToast />
           <TemporalScrubSlider />
           <StampModePicker />

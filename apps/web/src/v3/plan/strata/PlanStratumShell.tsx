@@ -22,7 +22,6 @@ import type {
   PlanStratumObjective,
   ProjectTypeId,
 } from '@ogden/shared';
-import type { PlanShellMode } from '../../../store/projectStore.js';
 import {
   selectCelebratedStrata,
   selectDeferredObjectives,
@@ -33,7 +32,6 @@ import {
 } from '../../../store/planStratumStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
 import { useV3Project } from '../../data/useV3Project.js';
-import PlanNavToggle from '../PlanNavToggle.js';
 import ModeToggle, { type SpinePlanMode } from '../spine/ModeToggle.js';
 import StratumSpine from './StratumSpine.js';
 import StratumLockedPopover from './StratumLockedPopover.js';
@@ -41,6 +39,7 @@ import ObjectiveColumn from './ObjectiveColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import ProtocolLayerPanel from './ProtocolLayerPanel.js';
 import { useProjectObjectives } from './useProjectObjectives.js';
+import { planHeaderProjectTypeLabel } from './planHeaderLabel.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
 import SecondaryAddModal from './SecondaryAddModal.js';
 import SecondaryReopenModal from './SecondaryReopenModal.js';
@@ -64,15 +63,7 @@ import '../spine/spine-theme.css';
 const HIGHLIGHT_DURATION_MS = 3000;
 const S1_STRATUM_ID = 's1-project-foundation';
 
-interface Props {
-  shellMode: PlanShellMode;
-  onShellModeChange: (mode: PlanShellMode) => void;
-}
-
-export default function PlanStratumShell({
-  shellMode,
-  onShellModeChange,
-}: Props) {
+export default function PlanStratumShell() {
   const navigate = useNavigate();
   // Slice 1.3 routes — `plan/stratum/$stratumId` and
   // `plan/stratum/$stratumId/objective/$objectiveId`. Read loosely so the same
@@ -307,6 +298,10 @@ export default function PlanStratumShell({
   const undeferObjective = usePlanStratumProgressStore((s) => s.undeferObjective);
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const currentSecondaryIds = typeRecord?.secondaryTypeIds ?? [];
+  // Plan header — surface the project type (steward: "project type ... used to
+  // appear here. Bring it back"). Project type only; no cycle number.
+  const secondaryCount = currentSecondaryIds.length;
+  const primaryTypeLabel = planHeaderProjectTypeLabel(primaryTypeId, secondaryCount);
 
   const [secondaryAddOpen, setSecondaryAddOpen] = useState(false);
   const [reopenPayload, setReopenPayload] = useState<{
@@ -525,6 +520,22 @@ export default function PlanStratumShell({
             prerequisites complete.
           </p>
 
+          {primaryTypeLabel && (
+            <div
+              data-testid="plan-header-project-type"
+              style={{
+                marginTop: 8,
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.01em',
+                color: C.textSecondary,
+                fontFamily: F.sans,
+              }}
+            >
+              {primaryTypeLabel}
+            </div>
+          )}
+
           {primaryTypeId && (
             <button
               type="button"
@@ -552,11 +563,6 @@ export default function PlanStratumShell({
               <span>Project type</span>
             </button>
           )}
-
-          {/* Plan shell nav toggle (stratum-spine ⇄ legacy module-bar) */}
-          <div style={{ marginTop: 12 }}>
-            <PlanNavToggle mode={shellMode} onChange={onShellModeChange} />
-          </div>
 
           {/* Design ⇄ Protocol mode toggle (Plan Spine re-skin Phase 2) */}
           <div style={{ marginTop: 8 }}>
