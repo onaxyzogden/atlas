@@ -66,10 +66,21 @@ show-everything tool strip with an objective-conditional, categorized rail
   production-systems, field-logs); ~21 map tools + 3 logs; `slope`/`aspect`/
   `dem` omitted (analysis-only, un-armable).
 - `ActTierToolsRail.tsx` — superseded three-log rail; preserved, unmounted.
+- `ActRailModeToggle.tsx` — two-segment radiogroup ("Objectives" / "Protocols")
+  rendered at the top of the left rail (2026-05-31). Props:
+  `{ mode: RailMode; onChange; attentionCount: number }`. When
+  `attentionCount > 0` an amber pill badge (`data-testid="act-rail-protocol-badge"`,
+  `--color-gold-brand`) appears on the Protocols segment. Styled with Act
+  `--color-*` vars, NOT the spine hard-coded palette.
 - `ActTierObjectiveRail.tsx` / `ActTierObjectiveCard.tsx` — LEFT rail with real
   **"N/M done" checklist chips** (2026-05-31): fed by `computeChecklistProgress`
   (checklist completion), not field actions, so a populated checklist no longer
-  reads "No tasks yet". Map markers keep the field-action progress.
+  reads "No tasks yet". Map markers keep the field-action progress. Also renders
+  `ActRailModeToggle` at the top of `.railPanel` (2026-05-31). In
+  `mode === 'protocols'` mounts `ProtocolLayerPanel` (from `plan/strata/`,
+  reused not forked) in a `flex:1; min-height:0` `.railProtocolBody` wrapper so
+  the panel fills and scrolls; the objective list is hidden. In
+  `mode === 'objectives'` (default) renders the existing header + list unchanged.
 - `ActTierMapMarkers.tsx` — per-objective markers (real geometry,
   hide-until-real, [[decisions/2026-05-31-atlas-act-objective-marker-geometry]]).
 - `objectiveProgress.ts` / `objectiveMarkerGeometry.ts` — pure helpers.
@@ -243,6 +254,65 @@ persisted with `sourceObjectiveId: "s2-terrain"`; test points cleaned up. This
 **supersedes decision #2** of the record-observation ADR in part (domain-only link
 -> domain link PLUS objective provenance). ADR
 [[decisions/2026-05-31-atlas-observe-datapoint-objective-link]].
+
+## Objectives/Protocols rail mode toggle (2026-05-31)
+
+The LEFT rail's header now carries an Objectives/Protocols segmented control
+(`ActRailModeToggle`, commit `15d797c1`). `ActTierShell` holds
+`useState<RailMode>('objectives')` (not persisted; URL/store persistence
+deferred). The amber attention badge feeds from `useTriggeredProtocols(id).length`.
+Protocol view reuses `ProtocolLayerPanel` from `plan/strata/` (not forked).
+`primaryTypeId`/`secondaryTypeIds` derived from
+`project.metadata?.projectTypeRecord` (same pattern as Plan).
+
+Tests: `ActRailModeToggle.test.tsx` (5) + `ActTierObjectiveRail.test.tsx` (2);
+31/31 tier-shell tests total.
+
+ADR: [[decisions/2026-05-31-atlas-act-protocol-rail-plan-header]].
+Log: [[log/2026-05-31-act-protocol-rail-plan-header]].
+
+## As-built deviation capture (2026-06-01)
+
+The tier shell now hosts the **Act side** of the closed-loop as-built deviation
+feature ([[decisions/2026-06-01-atlas-act-asbuilt-deviation-loop]], Slices 1-2 of 5).
+A steward can record that reality has diverged from the Plan design on a specific
+placed feature WITHOUT mutating the Plan store; the edit is written only to Observe
+as a divergent `ObserveDataPoint`, and the existing `usePlanRevisionFlagSync` lights
+the Plan divergence pill + `CyclicalReviewBanner` with zero trigger-layer changes.
+Preserves "Act adds, it does not edit Plan decisions".
+
+New `apps/web/src/v3/act/asBuilt/` + the crop click seam:
+- `ActFeatureClickHandler.tsx` (`layers/`) -- crop-area click seam on
+  `plan-data-poly-fill` (mirrors `ActStructureClickHandler`); opens the popover at
+  the click point. Slice 2 handles crop areas; paddock + zone arrive in Slice 4.
+- `ActAsBuiltPopover.tsx` + `actAsBuiltPopoverStore.ts` -- Act-scoped singleton
+  popover (mirrors `actStructurePopoverStore`, sidestepping the `inlineFormStore`
+  module-singleton collision; works on the default tier-shell, which does not mount
+  `InlineFeaturePopover`). Reuses `buildCropEditSchema(crop, NOOP_UPDATE, [])` for
+  the field set ONLY -- `NOOP_UPDATE` never touches `cropStore`.
+- `attributeDiff.ts` -- pure `buildAttributeDiff` (one field -> scalar; select ->
+  human option label; many -> one bundled `key+key` diff).
+- `recordAsBuiltDeviation.ts` -- emits one divergent `ObserveDataPoint`
+  (`sourceType:'divergence_evidence'`, `statusOutput:'needs_investigation'`,
+  `domainId: domainForFeatureKind(kind)`, `sourceFeatureRef:{kind,id}`, centroid
+  geometry, the `AsBuiltDiff` in `measurementValue`, `capturedBy:'act-as-built'`).
+- `ActTierShell.tsx` mounts both new components (+4 lines).
+
+The substrate lives in `@ogden/shared` (`AsBuiltFeatureKind` /
+`ObserveSourceFeatureRefSchema` / `AsBuiltDiffSchema` / `asAsBuiltDiff` on
+`dataPoint.schema.ts`; `featureRefDomain.ts` `domainForFeatureKind`) and
+`observeDataPointStore` (persist v2->v3 + `acknowledgeDataPoint` soft-supersede).
+The feature-kind -> domain map (cropArea->plants-food, paddock->animals-livestock,
+structure->built-infrastructure, zone->land-base) is what lands the divergence on
+the right objective by DOMAIN overlap.
+
+**Project-type caveat (load-bearing for Slice 3):** the verification gate's
+`s6-yield-flows` is the STATIC skeleton stratum-6 id; regenerative_farm projects
+resolve different stratum-6 ids (`s6-monitoring` / `rf-s6-biodiversity-monitoring` /
+`rf-s6-enterprise-integration`), each owning `plants-food`. The loop forces whichever
+objectives own the domain, so it works across project types -- the Slice-3
+reconciliation card must read by domain overlap, never a hardcoded id. tsc 0;
+42 tests green. Log: [[log/2026-06-01-atlas-act-asbuilt-deviation-slice1-2]].
 
 ## Notes
 
