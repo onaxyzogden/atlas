@@ -138,3 +138,86 @@ export function resolveSeverityTier(t: {
 }): SeverityTier {
   return t.severityTier ?? 'respond';
 }
+
+/**
+ * How the steward resolved a Trigger Recognition prompt (Trigger Recognition
+ * UX Spec v1.1, 4). Each prompt writes exactly one ProtocolActivation carrying
+ * one of these states:
+ * - confirmed:      the condition is real; the response recipe proceeds.
+ * - false_positive: dismissed; the trigger did not actually hold.
+ * - pending_review: flagged for later judgement (the PENDING pseudo-tier).
+ */
+export const ConfirmationStatus = z.enum([
+  'confirmed',
+  'false_positive',
+  'pending_review',
+]);
+export type ConfirmationStatus = z.infer<typeof ConfirmationStatus>;
+
+/**
+ * The four seasons, reserved for the biodynamic / seasonal-calendar phase
+ * (Object Model Spec v1.1, 9.4). Activations may record the season they fired
+ * in so cyclical protocols can be analysed per-cycle. Unpopulated this slice.
+ */
+export const SeasonName = z.enum(['spring', 'summer', 'autumn', 'winter']);
+export type SeasonName = z.infer<typeof SeasonName>;
+
+/**
+ * The field surface a protocol trigger was recognised on (Trigger Recognition
+ * UX Spec v1.1, 2 - the three contexts). Defaults to the most common surface,
+ * Act proof capture; the slice only wires that one, the other two are valid
+ * values for later phases.
+ */
+export const TriggerContext = z.enum([
+  'act_proof_capture',
+  'act_map',
+  'observe_domain_detail',
+]);
+export type TriggerContext = z.infer<typeof TriggerContext>;
+
+/**
+ * A frozen copy of the protocol recipe at the instant of activation (Object
+ * Model Spec v1.1, 9.3). Snapshotting name/condition/response means later edits
+ * to the source template never rewrite an activation's history - the record is
+ * the immutable fact of what fired and what the recipe said at that moment.
+ */
+export const RecipeSnapshotSchema = z.object({
+  name: z.string().min(1),
+  condition: z.string().min(1),
+  response: z.string().min(1),
+});
+export type RecipeSnapshot = z.infer<typeof RecipeSnapshotSchema>;
+
+/**
+ * The immutable record written when a protocol's trigger is recognised in the
+ * field (Object Model & Architecture Spec v1.1, 9; Trigger Recognition UX Spec
+ * v1.1, 4). Append-only: never mutated after creation. `recipeSnapshot` freezes
+ * the recipe so history is stable; `season`/`cycleNumber`/
+ * `weatherConditionAtActivation` are reserved for the biodynamic phase and stay
+ * unpopulated this slice.
+ */
+export const ProtocolActivationSchema = z.object({
+  /** Stable unique id (caller- or store-generated via crypto.randomUUID()). */
+  id: z.string().min(1),
+  /** The project this activation belongs to. */
+  projectId: z.string().min(1),
+  /** The standard/custom template whose trigger was recognised. */
+  templateId: z.string().min(1),
+  /** Severity posture at activation time. */
+  severityTier: SeverityTier,
+  /** How the steward resolved the recognition prompt. */
+  confirmationStatus: ConfirmationStatus,
+  /** Frozen recipe copy (immutability guarantee). */
+  recipeSnapshot: RecipeSnapshotSchema,
+  /** ISO-8601 timestamp of activation. */
+  activatedAt: z.string().min(1),
+  /** Reserved (biodynamic phase): season the trigger fired in. */
+  season: SeasonName.optional(),
+  /** Reserved (biodynamic phase): rotation/observation cycle index. */
+  cycleNumber: z.number().int().nonnegative().optional(),
+  /** Reserved (biodynamic phase): free-text weather note at activation. */
+  weatherConditionAtActivation: z.string().min(1).optional(),
+  /** Field surface the trigger was recognised on; defaults to proof capture. */
+  triggerContext: TriggerContext.default('act_proof_capture'),
+});
+export type ProtocolActivation = z.infer<typeof ProtocolActivationSchema>;
