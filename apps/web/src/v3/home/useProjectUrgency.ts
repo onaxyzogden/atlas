@@ -37,13 +37,11 @@ import {
 import { useFieldActionStore } from '../../store/fieldActionStore.js';
 import { useObserveDataPointStore } from '../../store/observeDataPointStore.js';
 import { useObserveFeedStore } from '../../store/observeFeedStore.js';
-import {
-  toProgressMap,
-  usePlanStratumProgressStore,
-} from '../../store/planStratumStore.js';
+import { usePlanStratumProgressStore } from '../../store/planStratumStore.js';
 import { useCyclicalReviewStore } from '../../store/cyclicalReviewStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { resolveObjectivesForProject } from '../plan/strata/useProjectObjectives.js';
+import { computeEffectiveProgress } from '../strata/effectiveProgress.js';
 
 /** Stable empty map identity so the consumer's React equality check
  *  short-circuits when there are no projects to score. */
@@ -103,10 +101,16 @@ export function useProjectUrgency(
       const progress = planProgressByProject[projectId] ?? {};
       const reviewMap = cyclicalReviewByProject[projectId] ?? {};
 
-      const objectiveStatuses = computeAllObjectiveStatuses(
+      // Single source of truth (2026-05-31): union stored progress with
+      // wizard-derived Stratum-1 completion so urgency scoring sees the same
+      // objective completion Plan + Act show (per-project pure call in a loop).
+      const { flatMap } = computeEffectiveProgress(
+        progress,
+        project.metadata?.visionProfile,
+        project.metadata?.team,
         objectives,
-        toProgressMap(progress),
       );
+      const objectiveStatuses = computeAllObjectiveStatuses(objectives, flatMap);
 
       const observeRevisionFlag = (objectiveId: string): boolean =>
         reviewMap[objectiveId]?.forcedTrigger === true;

@@ -29,12 +29,8 @@ import {
   selectFieldActionsForProject,
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
-import {
-  usePlanStratumProgressStore,
-  selectProjectProgress,
-  toProgressMap,
-} from '../../../store/planStratumStore.js';
 import { getActShellMode, useProjectStore } from '../../../store/projectStore.js';
+import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import ActObjectiveHeader from './ActObjectiveHeader.js';
 import ActMapStrip from './ActMapStrip.js';
 import ActTaskList from './ActTaskList.js';
@@ -75,15 +71,15 @@ function useObjectiveStatus(
   // checklist progress so prereq satisfaction is honoured topologically — no
   // optimistic approximation that would falsely flip a locked objective
   // to available.
-  const byObjective = usePlanStratumProgressStore((s) =>
-    selectProjectProgress(s, projectId),
-  );
+  // Single source of truth (2026-05-31): effective progress = stored ∪
+  // wizard-derived Stratum-1 completion, the same hook Plan + the Act tier
+  // shell consume, so the View A status pill never drifts from Plan.
+  const { flatMap } = useEffectiveChecklistProgress(projectId, objectives);
   return useMemo<PlanStratumObjectiveStatus>(() => {
     if (!objective) return 'locked';
-    const progress = toProgressMap(byObjective);
-    const statuses = computeAllObjectiveStatuses(objectives, progress);
+    const statuses = computeAllObjectiveStatuses(objectives, flatMap);
     return statuses[objective.id] ?? 'locked';
-  }, [objective, objectives, byObjective]);
+  }, [objective, objectives, flatMap]);
 }
 
 export default function ViewAObjectiveExecution({ projectId, objectiveId }: Props) {

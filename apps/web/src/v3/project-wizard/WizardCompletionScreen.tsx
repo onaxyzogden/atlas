@@ -26,7 +26,7 @@ import type { PlanStratumObjective } from '@ogden/shared';
 import { useProjectStore } from '../../store/projectStore.js';
 import { useProjectObjectives } from '../plan/strata/useProjectObjectives.js';
 import DiagnoseMap from '../components/DiagnoseMap.js';
-import { deriveStratum1EvidenceMap } from '../plan/strata/visionProfileToChecklist.js';
+import { deriveStratum1EvidenceMap } from '../strata/visionProfileToChecklist.js';
 import styles from './WizardCompletionScreen.module.css';
 
 interface WizardCompletionScreenProps {

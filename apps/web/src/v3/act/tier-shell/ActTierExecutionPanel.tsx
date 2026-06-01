@@ -26,12 +26,17 @@ import { getObjectiveEvidence, getPrimaryDomainForObjective } from '@ogden/share
 import {
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
+import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import {
   useActEvidenceStore,
   EMPTY_CAPTURE,
   type EvidenceCapture,
 } from '../../../store/actEvidenceStore.js';
 import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
+import {
+  readNote,
+  formatActyTimestamp,
+} from '../../observe/dashboard/observationDisplay.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
@@ -58,31 +63,6 @@ function isEvidenceSatisfied(
   return capture.notesSaved[descriptor.id] === true;
 }
 
-/**
- * Pull a human-readable note out of an observation's measurementValue, which is
- * typed `unknown` on the schema. The Act write path stores either
- * `{ label }` or `{ label, note }`, so read `.note` defensively.
- */
-function readNote(mv: unknown): string | null {
-  if (mv && typeof mv === 'object' && 'note' in mv) {
-    const note = (mv as { note?: unknown }).note;
-    if (typeof note === 'string' && note.trim().length > 0) return note;
-  }
-  return null;
-}
-
-/** Compact local timestamp for an activity row (no date util imported here). */
-function formatActyTimestamp(iso: string): string {
-  const ms = Date.parse(iso);
-  if (!Number.isFinite(ms)) return iso;
-  return new Date(ms).toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
 interface Props {
   projectId: string;
   tier: PlanStratum | undefined;
@@ -99,9 +79,16 @@ export default function ActTierExecutionPanel({
   // -------------------------------------------------------------------------
   // Checklist -- wired to planStratumStore (shared with Plan stage).
   // -------------------------------------------------------------------------
-  const completedIds = usePlanStratumProgressStore(
-    (s) => s.byProject[projectId]?.[objective.id] ?? EMPTY_IDS,
+  // Single source of truth (2026-05-31): completed ids come from effective
+  // progress (stored ∪ wizard-derived Stratum-1 completion), so this panel's
+  // checklist + "N/M steps" match Plan for a freshly-wizard-completed project.
+  // Writes still go straight to planStratumStore via toggleItem below.
+  const objectivesArg = useMemo(() => [objective], [objective]);
+  const effectiveProgress = useEffectiveChecklistProgress(
+    projectId,
+    objectivesArg,
   );
+  const completedIds = effectiveProgress.byObjective[objective.id] ?? EMPTY_IDS;
   const toggleItem = usePlanStratumProgressStore((s) => s.toggleItem);
 
   // -------------------------------------------------------------------------

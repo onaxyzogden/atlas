@@ -20,7 +20,7 @@ import type {
   PlanStratumObjective,
 } from '@ogden/shared';
 import DecisionChecklist from '../DecisionChecklist.js';
-import type { VisionDerivedMap } from '../visionProfileToChecklist.js';
+import type { VisionDerivedMap } from '../../../strata/visionProfileToChecklist.js';
 
 function ck(
   id: string,

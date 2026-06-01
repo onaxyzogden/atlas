@@ -4,6 +4,20 @@
  * Stratum 1 checklist items shipped by Slice 1.1 (see
  * packages/shared/src/constants/plan/stratumObjectives.ts).
  *
+ * MOVED 2026-05-31 from `v3/plan/strata/visionProfileToChecklist.ts` to the
+ * surface-neutral `v3/strata/` directory so Act, Plan, Portfolio and Home can
+ * all import the derivation without Act depending on Plan (a layering smell).
+ *
+ * FIXED 2026-05-31: the derived keys were updated from the pre-renumber
+ * `t0-vision-*` / `t0-stewardship-*` namespace to the live catalogue
+ * `s1-vision-*` / `s1-stewardship-*` ids. The `t0->s1` stratum renumber
+ * (constants/plan/remapSlug.ts) renamed the catalogue checklist ids but this
+ * bridge's hardcoded output keys were not migrated, so the derivation silently
+ * matched nothing (verified live: Plan + Act showed 0/N with no "From Stage
+ * Zero Vision" badge on a wizard-completed project). The required targets are
+ * pinned by constants/plan/__tests__/catalogues.test.ts ("preserves the 3
+ * visionProfileToChecklist bridge ids on s1-vision").
+ *
  * Why this exists
  * ---------------
  * Stage Zero is still the only place the steward authors land vision /
@@ -13,7 +27,7 @@
  * a regression in perceived progress.
  *
  * The bridge maps a small set of VisionProfile fields to the three
- * `t0-vision-*` checklist items (the `t0-stewardship-*` items have no
+ * `s1-vision-*` checklist items (the `s1-stewardship-*` items have no
  * VisionProfile equivalent — Phase 2 Step 3 "Team" supplies those).
  * When Phase 2 lands, the wizard's Step 2 output is the SAME
  * VisionProfile shape, so this bridge keeps working without change.
@@ -55,12 +69,12 @@ function formatList(ids: readonly string[]): string {
  * so callers using this as a memo input see a stable identity.
  *
  * Coverage map:
- *  - `t0-vision-c1` (Articulate the land vision)
+ *  - `s1-vision-c1` (Articulate the land vision)
  *      satisfied when `primaryOutcomes` or `landIdentity` has entries.
- *  - `t0-vision-c2` (Primary land-use goals)
+ *  - `s1-vision-c2` (Primary land-use goals)
  *      satisfied when `systemsInScope` has any group with entries OR
  *      `primaryOutcomes` has entries.
- *  - `t0-vision-c3` (Stewardship time + budget capacity bands)
+ *  - `s1-vision-c3` (Stewardship time + budget capacity bands)
  *      satisfied only when BOTH `budgetRange` AND `timelineProgress`
  *      are set — both axes of the band are required to call it done.
  */
@@ -71,7 +85,7 @@ export function deriveStratum1EvidenceMap(
 
   const map: Record<string, VisionDerivedItem> = {};
 
-  // --- t0-vision-c1 -------------------------------------------------------
+  // --- s1-vision-c1 -------------------------------------------------------
   const primaryOutcomes = listOrEmpty(profile.primaryOutcomes);
   const landIdentity = listOrEmpty(profile.landIdentity);
   if (primaryOutcomes.length > 0 || landIdentity.length > 0) {
@@ -82,13 +96,13 @@ export function deriveStratum1EvidenceMap(
     if (landIdentity.length > 0) {
       fragments.push(`Land identity: ${formatList(landIdentity)}`);
     }
-    map['t0-vision-c1'] = {
+    map['s1-vision-c1'] = {
       isComplete: true,
       evidence: fragments.join('. '),
     };
   }
 
-  // --- t0-vision-c2 -------------------------------------------------------
+  // --- s1-vision-c2 -------------------------------------------------------
   const systemsInScope = profile.systemsInScope;
   const scopeFragments: string[] = [];
   if (systemsInScope) {
@@ -99,7 +113,7 @@ export function deriveStratum1EvidenceMap(
     }
   }
   if (scopeFragments.length > 0 || primaryOutcomes.length > 0) {
-    map['t0-vision-c2'] = {
+    map['s1-vision-c2'] = {
       isComplete: true,
       evidence:
         scopeFragments.length > 0
@@ -108,7 +122,7 @@ export function deriveStratum1EvidenceMap(
     };
   }
 
-  // --- t0-vision-c3 -------------------------------------------------------
+  // --- s1-vision-c3 -------------------------------------------------------
   const budgetRange = profile.budgetRange;
   const timelineProgress = profile.timelineProgress;
   if (budgetRange || timelineProgress) {
@@ -121,7 +135,7 @@ export function deriveStratum1EvidenceMap(
     if (constraints.length > 0) {
       fragments.push(`Constraints: ${formatList(constraints)}`);
     }
-    map['t0-vision-c3'] = {
+    map['s1-vision-c3'] = {
       // Both axes are required to call the capacity band "set".
       isComplete: !!budgetRange && !!timelineProgress,
       evidence: fragments.join('. '),
@@ -168,11 +182,11 @@ function inviteRoleLabel(role: QueuedInvite['role']): string {
  * status engine runs.
  *
  * Coverage map:
- *  - `t0-stewardship-c1` (List primary steward and any co-stewards)
+ *  - `s1-stewardship-c1` (List primary steward and any co-stewards)
  *      satisfied when `primarySteward` has a name OR email, OR any
  *      `coStewards` entry exists, OR any invite has been queued (the
  *      steward has clearly named who else works on the land).
- *  - `t0-stewardship-c2` (Note contractor and reviewer roles if known)
+ *  - `s1-stewardship-c2` (Note contractor and reviewer roles if known)
  *      satisfied when any queued invite has role `contractor`,
  *      `landowner`, or `reviewer`. `team_member` alone does not count
  *      because the checklist label explicitly singles out the
@@ -191,7 +205,7 @@ export function deriveStratum1StewardshipMap(
     .filter((s): s is string => !!s);
   const invites = team.queuedInvites ?? [];
 
-  // --- t0-stewardship-c1 -------------------------------------------------
+  // --- s1-stewardship-c1 -------------------------------------------------
   if (stewardLabel || coStewards.length > 0 || invites.length > 0) {
     const fragments: string[] = [];
     if (stewardLabel) fragments.push(`Primary steward: ${stewardLabel}`);
@@ -201,13 +215,13 @@ export function deriveStratum1StewardshipMap(
     if (!stewardLabel && coStewards.length === 0 && invites.length > 0) {
       fragments.push(`${invites.length} invite(s) queued`);
     }
-    map['t0-stewardship-c1'] = {
+    map['s1-stewardship-c1'] = {
       isComplete: true,
       evidence: fragments.join('. '),
     };
   }
 
-  // --- t0-stewardship-c2 -------------------------------------------------
+  // --- s1-stewardship-c2 -------------------------------------------------
   const flaggedInvites = invites.filter(
     (i) =>
       i.role === 'contractor' ||
@@ -218,7 +232,7 @@ export function deriveStratum1StewardshipMap(
     const fragments = flaggedInvites.map(
       (i) => `${inviteRoleLabel(i.role)} invited: ${i.email}`,
     );
-    map['t0-stewardship-c2'] = {
+    map['s1-stewardship-c2'] = {
       isComplete: true,
       evidence: fragments.join('. '),
     };

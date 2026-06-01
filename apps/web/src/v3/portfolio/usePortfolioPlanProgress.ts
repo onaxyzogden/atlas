@@ -16,12 +16,10 @@ import {
   computeAllStratumStates,
   PLAN_STRATA,
 } from '@ogden/shared';
-import {
-  toProgressMap,
-  usePlanStratumProgressStore,
-} from '../../store/planStratumStore.js';
+import { usePlanStratumProgressStore } from '../../store/planStratumStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { resolveObjectivesForProject } from '../plan/strata/useProjectObjectives.js';
+import { computeEffectiveProgress } from '../strata/effectiveProgress.js';
 
 export interface PortfolioPlanProgress {
   /** 1-based ordinal of the first non-complete stratum, or null when all done. */
@@ -64,10 +62,16 @@ export function usePortfolioPlanProgress(
         out.set(id, EMPTY);
         continue;
       }
-      const objectiveStatuses = computeAllObjectiveStatuses(
+      // Single source of truth (2026-05-31): union the stored progress with
+      // wizard-derived Stratum-1 completion so portfolio cards count S1 the
+      // same way Plan + Act do (per-project pure call — this loops projects).
+      const { flatMap } = computeEffectiveProgress(
+        planProgressByProject[id] ?? {},
+        project.metadata?.visionProfile,
+        project.metadata?.team,
         objectives,
-        toProgressMap(planProgressByProject[id] ?? {}),
       );
+      const objectiveStatuses = computeAllObjectiveStatuses(objectives, flatMap);
       const objectivesTotal = objectives.length;
       const objectivesComplete = objectives.filter(
         (o) => objectiveStatuses[o.id] === 'complete',
