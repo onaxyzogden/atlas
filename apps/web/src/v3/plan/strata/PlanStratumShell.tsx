@@ -25,9 +25,7 @@ import type {
 import {
   selectCelebratedStrata,
   selectDeferredObjectives,
-  selectProjectProgress,
   toDeferredSet,
-  toProgressMap,
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
@@ -50,9 +48,9 @@ import type { BlockingObjective } from './useSecondaryRemovePreview.js';
 import {
   deriveStratum1EvidenceMap,
   deriveStratum1StewardshipMap,
-  mergeDerivedIntoProgress,
   type VisionDerivedMap,
-} from './visionProfileToChecklist.js';
+} from '../../strata/visionProfileToChecklist.js';
+import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 // Plan Spine re-skin — the live strata shell now renders in the prototype's
 // dark/gold 3-column spine layout. Colour/font tokens (`C`/`F`/`CA`) resolve to
 // the `--spine-*` custom properties declared in spine-theme.css, which is
@@ -114,9 +112,13 @@ export default function PlanStratumShell() {
   // all objective catalogues + injected patch items, so the flat
   // `Record<itemId, boolean>` collapse is lossless. Selector returns a stable
   // empty record when the project has no progress, so re-renders stay tight.
-  const projectProgress = usePlanStratumProgressStore((s) =>
-    selectProjectProgress(s, projectId),
-  );
+  // Single source of truth (2026-05-31): effective checklist progress =
+  // stored planStratumStore progress UNIONED with wizard-derived Stratum-1
+  // completion. Shared with Act / Portfolio / Home via
+  // useEffectiveChecklistProgress so no surface can drift. `flatMap` feeds the
+  // status engine below; the local derivedMap (further down) is kept only for
+  // the evidence chips rendered in ObjectiveDetailPanel.
+  const effectiveProgress = useEffectiveChecklistProgress(projectId, objectives);
 
   // Plan Nav v1.1 §8.3 — the steward's explicit Deferred overrides for this
   // project. Threaded into the status engine so deferred objectives resolve to
@@ -167,13 +169,10 @@ export default function PlanStratumShell() {
     () =>
       computeAllObjectiveStatuses(
         objectives,
-        mergeDerivedIntoProgress(
-          toProgressMap(projectProgress),
-          derivedMap,
-        ),
+        effectiveProgress.flatMap,
         deferredSet,
       ),
-    [objectives, projectProgress, derivedMap, deferredSet],
+    [objectives, effectiveProgress, deferredSet],
   );
   const stratumStates = useMemo(
     () =>
