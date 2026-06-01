@@ -1,7 +1,7 @@
 # 2026-06-01 -- Act as-built deviation loop: a steward records reality-vs-plan in Act; it surfaces in Plan without mutating Plan
 
-**Status:** accepted (partial -- Slices 1-3 of 5 shipped) | **Branch:** `feat/atlas-permaculture` | **Surface:** Atlas web (`apps/web`) + `@ogden/shared`
-**Commits:** `fea7d1d6` (Slice 1 substrate) -> `9ceba563` (Slice 2 thinnest end-to-end loop) -> `26dc308b` (wiki) -> `bff6a8ba` (Slice 3 reconciliation card); not pushed
+**Status:** accepted (partial -- Slices 1-4 of 5 shipped) | **Branch:** `feat/atlas-permaculture` | **Surface:** Atlas web (`apps/web`) + `@ogden/shared`
+**Commits:** `fea7d1d6` (Slice 1 substrate) -> `9ceba563` (Slice 2 thinnest end-to-end loop) -> `26dc308b` (wiki) -> `bff6a8ba` (Slice 3 reconciliation card) -> `f96478ca` (Slice 4 paddock/zone/structure fan-out); not pushed (branch externally rebased; commit-only)
 **Entity:** [[entities/act-tier-shell]] | **Log:** [[log/2026-06-01-atlas-act-asbuilt-deviation-slice1-2]]
 **Builds on:** [[decisions/2026-05-31-atlas-observe-datapoint-objective-link]], [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]]
 
@@ -144,9 +144,39 @@ re-introduce a hardcoded id.
   clears reactively. 10/10 tests. Full round-trip live-verified: card renders, Apply and Keep
   both clear the card + flip `isSuperseded:true`, divergence count decrements, `cropsUnchanged`
   on Keep (screenshots captured).
-- **Deferred to Slice 4 (#31):** fan out to paddock + zone + structure -- widen
-  `ActFeatureClickHandler`; add "Record as-built change" to `ActStructurePopover`; widen the
-  card's Apply switch; `ActLayout` parity mount.
+- **Shipped (Slice 4, `f96478ca`):** fan-out to paddock + zone + structure. The substrate was
+  already kind-generic (`domainForFeatureKind`, `recordAsBuiltDeviation`, `actAsBuiltPopoverStore`
+  carrying `kind`, `buildAttributeDiff`, `acknowledgeDataPoint`); only **entity resolution** (Act
+  popover) and the **Apply switch** (Plan card) were cropArea-only.
+  - `ActFeatureClickHandler` `KIND_MAP { crop, paddock, zone }` widens the polygon click seam
+    (structures keep their dedicated inspector).
+  - `ActAsBuiltPopover` resolves the entity + Plan field schema per kind
+    (`buildCropEditSchema` / `buildPaddockEditSchema` / `buildZoneEditSchema` /
+    `buildBuildingEditSchema`) with a parameterless `NOOP_UPDATE` (assignable to every builder's
+    update-fn param); a `featureCentroid` helper covers Polygon / MultiPolygon (zone) / Point
+    (structure), falling back to the click anchor; `onSave` passes the resolved `kind` + `id` to
+    `recordAsBuiltDeviation`.
+  - `ActStructurePopover` gains a "Record as-built change" hand-off button into the shared
+    `actAsBuiltPopoverStore` (the read-only inspector cannot author a diff itself).
+  - **New `applyAsBuiltDiff.ts`** is the one tested place holding per-kind Apply mapping (mirrors
+    the ADR's `featureRefDomain` "small explicit map" philosophy). cropArea / paddock / zone patch
+    FLAT (`{ [field]: value }`); structure is NESTED via `updateMetadata` (`label`/`notes`
+    top-level, `subtype` -> `existing.subtype`, `phase` -> `proposed.phase`; the V2 store
+    shallow-merges both blocks, so a partial nested patch never wipes siblings). `canApplyDiff`
+    requires a SINGLE SCALAR attribute field -- rejecting bundled multi-field (`a+b`) diffs for
+    EVERY kind (a deliberate hardening of the existing cropArea path), geometry diffs, and the
+    geometry-coupled structure dims (`widthM` / `depthM` / `rotationDeg` / `heightM`, which are a
+    Slice 5 "fix shape, not attributes" concern). `AsBuiltReconciliationCard` now routes Apply
+    through the dispatcher (no testid/JSX change).
+  - `ActLayout` parity mount adds `ActFeatureClickHandler` + `ActAsBuiltPopover` to the legacy
+    StageShell path so all four kinds (incl. the structure hand-off) work outside the tier-shell.
+  - **Tests:** `applyAsBuiltDiff` (11 -- per-kind patch shape + `canApplyDiff` rejections) +
+    extended `asBuiltReconciliationCard` (14, was 10 -- paddock `updatePaddock`, zone `updateZone`,
+    structure nested `updateMetadata`, structure-dim Keep-only). apps/web + `@ogden/shared` tsc
+    exit 0. Pre-existing foreign-WIP suite failures (module-taxonomy rename + new
+    `ogden-protocols` / `ogden-act-evidence` / `ogden-plan-tension-banner` stores) are unrelated
+    and untouched.
+  - **Not yet live-verified** (localhost round-trip per kind) -- deferred to next session.
 - **Deferred to Slice 5 (#32, optional):** shape-deviation (geometry) capture, rendered
   read-only in Plan (no geometry Apply in v1 -- matches "just fix attributes, not shape").
 - ASCII-only copy; CSRA model untouched ([[fiqh-csra-erased-2026-05-04]]).
