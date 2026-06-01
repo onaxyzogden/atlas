@@ -1,7 +1,7 @@
 # 2026-06-01 -- Act as-built deviation loop: a steward records reality-vs-plan in Act; it surfaces in Plan without mutating Plan
 
-**Status:** accepted (partial -- Slices 1-4 of 5 shipped) | **Branch:** `feat/atlas-permaculture` | **Surface:** Atlas web (`apps/web`) + `@ogden/shared`
-**Commits:** `fea7d1d6` (Slice 1 substrate) -> `9ceba563` (Slice 2 thinnest end-to-end loop) -> `26dc308b` (wiki) -> `bff6a8ba` (Slice 3 reconciliation card) -> `f96478ca` (Slice 4 paddock/zone/structure fan-out); not pushed (branch externally rebased; commit-only)
+**Status:** accepted (Slices 1-5 of 5 shipped) | **Branch:** `feat/atlas-permaculture` | **Surface:** Atlas web (`apps/web`) + `@ogden/shared`
+**Commits:** `fea7d1d6` (Slice 1 substrate) -> `9ceba563` (Slice 2 thinnest end-to-end loop) -> `26dc308b` (wiki) -> `bff6a8ba` (Slice 3 reconciliation card) -> `f96478ca` (Slice 4 paddock/zone/structure fan-out) -> `8983ab6d` (select-field raw-value Apply fix, found during Slice 4 live-verify) -> `a6d356b4` (Slice 5 geometry shape-deviation capture); not pushed (branch externally rebased; commit-only)
 **Entity:** [[entities/act-tier-shell]] | **Log:** [[log/2026-06-01-atlas-act-asbuilt-deviation-slice1-2]]
 **Builds on:** [[decisions/2026-05-31-atlas-observe-datapoint-objective-link]], [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]]
 
@@ -127,10 +127,11 @@ re-introduce a hardcoded id.
   feature keeps one active divergence (latest wins).
 - The loop closes with ZERO trigger-layer changes: the new divergent points slot straight
   into `usePlanRevisionFlagSync`.
-- 52 tests green. Slice 1: `asBuiltDiff` 10 + `featureRefDomain` 6 +
+- Tests green across all slices. Slice 1: `asBuiltDiff` 10 + `featureRefDomain` 6 +
   `observeDataPointStore.asBuilt` 6 = 22. Slice 2: `attributeDiff` 8 +
-  `recordAsBuiltDeviation` 8 + `planRevisionFlag.asBuilt` 4 = 20. Slice 3:
-  `asBuiltReconciliationCard` 10 = 10. apps/web + `@ogden/shared` tsc exit 0.
+  `recordAsBuiltDeviation` 8 + `planRevisionFlag.asBuilt` 4 = 20. Slice 3-5:
+  `asBuiltReconciliationCard` 16 + `applyAsBuiltDiff` 13 + `geometryDiff` 6.
+  apps/web + `@ogden/shared` tsc exit 0.
 
 ## Resolved / still-deferred
 
@@ -176,7 +177,42 @@ re-introduce a hardcoded id.
     exit 0. Pre-existing foreign-WIP suite failures (module-taxonomy rename + new
     `ogden-protocols` / `ogden-act-evidence` / `ogden-plan-tension-banner` stores) are unrelated
     and untouched.
-  - **Not yet live-verified** (localhost round-trip per kind) -- deferred to next session.
-- **Deferred to Slice 5 (#32, optional):** shape-deviation (geometry) capture, rendered
-  read-only in Plan (no geometry Apply in v1 -- matches "just fix attributes, not shape").
+  - **Live-verified (2026-06-01):** the Slice 4 round-trip was exercised on localhost (mtc
+    project). Verification surfaced a REAL defect -- a select-valued attribute Apply wrote the
+    human option label (e.g. "Food forest") instead of the enum code ("food_forest"), corrupting
+    the entity prop, because `buildAttributeDiff` carries display labels in `asPlanned`/`asBuilt`
+    while `applyAsBuiltDiff` wrote `asBuilt` straight to the store. **Fixed in `8983ab6d`:** the
+    attribute diff now also carries `asPlannedRaw` / `asBuiltRaw` (the un-labeled stored codes),
+    and `applyAsBuiltDiff` prefers the raw value when scalar. The honesty gate held (stop, fix,
+    re-verify before Slice 5).
+- **Shipped (Slice 5, `a6d356b4`):** geometry shape-deviation capture. A steward toggles "Shape
+  differs on the ground" in `ActAsBuiltPopover`, adds a note + OPTIONAL approximate as-built area,
+  and Records; the popover emits a `geometry` `AsBuiltDiff` (asPlanned.areaM2 from
+  `parcelAreaM2(feature.geometry)`; asBuilt `{ note, areaM2? }`) instead of an attribute diff.
+  Geometry takes PRECEDENCE over attribute edits on Save (one Save = one data point). There is NO
+  polygon redraw and NO Plan mutation -- shape divergence is recorded as evidence only, matching
+  "fix attributes, not shape."
+  - **New `geometryDiff.ts`** pure helper `buildGeometryDiff(plannedAreaM2, note, asBuiltAreaM2?)`:
+    null when blank note AND no area; rounds areas to whole m2; omits null/NaN planned area. 6 unit
+    tests (the pure-helper + unit-test pattern from `attributeDiff.ts`).
+  - `ActAsBuiltPopover` gains `shapeDiffers` / `geomNote` / `asBuiltAreaInput` state (reset per
+    opened feature), a "Shape differs" toggle + note textarea + optional area input, an `onSave`
+    geometry-precedence branch, and a widened `canSave` (the geometry path saves with a note even
+    when no attribute changed). The attribute flow is byte-identical when the toggle is off.
+  - `AsBuiltReconciliationCard` geometry branch renders the area delta ("93131 m2 -> 650 m2
+    (-92481 m2)", `formatAreaDelta`) when both areas are present, plus the note, read-only with
+    Keep only (`canApplyDiff` already rejects geometry -- no Apply button).
+  - **Tests:** `geometryDiff` 6 + extended `asBuiltReconciliationCard` 16 (was 14 -- geometry delta
+    + note + Keep-only; note-only no-delta). `applyAsBuiltDiff` 13 (includes the raw-value
+    regressions) + `attributeDiff` 8 unbroken. apps/web + `@ogden/shared` tsc exit 0.
+  - **Live-verified (2026-06-01):** paddock "shape differs" -> geometry divergent point (real
+    planned area 93131 m2, domain `animals-livestock`, `sourceFeatureRef.kind:'paddock'`) -> Plan
+    card shows "SHAPE DIFFERS / 93131 m2 -> 650 m2 (-92481 m2) / note / no Apply, Keep only" ->
+    Keep soft-supersedes the point, paddock geometry unchanged. Dev-injected point removed; the Act
+    popover store dev hook (used because the maplibre layer click is unreachable from preview
+    tooling) was reverted before commit.
+- **Loop complete:** all 5 slices shipped; the Act -> Observe -> Plan as-built deviation loop covers
+  all four feature kinds (cropArea / paddock / zone / structure) for attribute fixes and geometry
+  (shape) evidence, with the only Plan-store mutation being the steward's explicit "Apply to design"
+  click (attributes only) in Plan.
 - ASCII-only copy; CSRA model untouched ([[fiqh-csra-erased-2026-05-04]]).
