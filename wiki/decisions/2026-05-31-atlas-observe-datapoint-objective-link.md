@@ -105,7 +105,21 @@ rejected alternative. This ADR records the reversal and the resulting build.
   `findObjectiveAcrossCatalogues`); Observe Domain Detail field-log rows show the
   same objective provenance chip that direct Act recordings already show. This
   closes the first named deferred item from the original ADR.
-- **Still deferred (named):** an "from Act" filter/section on the Observe Domain
-  Detail surface; surfacing the per-objective feed anywhere beyond the Act panel +
-  Observe domain list (e.g. a Unified Land State rollup).
+- **Resolved follow-up (`cb1e9159`):** the "from Act" source filter now ships on
+  the Observe Domain Detail list. A pure `classifyObservationSource` classifier
+  (`observationSource.ts`, conformance-tested) drives an `All / From Act /
+  Baseline` segmented chip control with live counts; `From Act` =
+  `isVirtual(point) || sourceObjectiveId != null` (direct recordings AND field-log
+  projections), `Baseline` = the null-objective seed complement. This closes the
+  second named deferred item.
+- **Resolved follow-up (`ba1d5b8c`):** the per-objective activity feed is now
+  surfaced beyond the single Act exec panel via a new objective-centric Observe
+  surface (Surface 4) at route `observe/dashboard/rollup` -- one
+  `ObjectiveRollupCard` per Plan objective (title + primary-domain freshness pill +
+  recent recorded observations, newest-first) with a "recorded only" coverage
+  toggle, reachable from a "By objective" button on the Unified surface header. The
+  `readNote` / `formatActyTimestamp` display helpers were extracted to
+  `observe/dashboard/observationDisplay.ts` and shared with the Act panel. This
+  closes the third named deferred item -- **all named deferrals from this ADR are
+  now resolved.** See [[log/2026-05-31-atlas-observe-from-act-filter-objective-rollup]].
 - ASCII-only copy; CSRA model untouched ([[fiqh-csra-erased-2026-05-04]]).
