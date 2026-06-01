@@ -1,4 +1,4 @@
-# 2026-06-01 -- Act as-built deviation loop: Slices 1-2 (substrate + thinnest cropArea end-to-end)
+# 2026-06-01 -- Act as-built deviation loop: Slices 1-3 (substrate + cropArea end-to-end + Plan reconciliation card)
 
 **Branch.** `feat/atlas-permaculture` (two explicit-path commits `fea7d1d6` Slice 1
 substrate -> `9ceba563` Slice 2 loop; rebased out-of-band, divergence-checked; **not
@@ -105,4 +105,50 @@ screenshot honesty ([[project-screenshot-hang]]); CSRA model untouched
 
 Entity [[entities/act-tier-shell]]; ADR [[decisions/2026-06-01-atlas-act-asbuilt-deviation-loop]];
 builds on [[decisions/2026-05-31-atlas-observe-datapoint-objective-link]] +
-[[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]]. Pending: Slices 3-5.
+[[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]]. Pending: Slices 4-5.
+
+## Slice 3 -- Plan reconciliation card (`bff6a8ba`, 4 files, +642 insertions)
+
+New `apps/web/src/v3/plan/strata/AsBuiltReconciliationCard.tsx` + `.module.css`:
+- Reads active, non-superseded data points where `sourceFeatureRef != null`, `statusOutput` is
+  divergent (`needs_investigation` / `major_constraint` / `potential_disqualifier`), and
+  `domainId in new Set(resolveAllDomainsForObjective(objective))`. NEVER hardcodes an objective
+  id -- reads by domain overlap only (project-type-finding from Slice 2 verified: works on both
+  static-skeleton and regen-farm project types).
+- Parses `measurementValue` via `asAsBuiltDiff(point.measurementValue): AsBuiltDiff | null`.
+- Renders amber-tone `<aside data-testid="plan-asbuilt-reconciliation-card">`: header
+  (AlertTriangle + "AS-BUILT DIVERGENCE" + count badge), one `<DeviationItem>` per point.
+- `DeviationItem`: kind badge (CROP AREA / PADDOCK / ...), timestamp, field label, diff block
+  (`asPlanned` struck through + arrow + `asBuilt` in bold for `attribute`; read-only geometry
+  note for `geometry`). Buttons: "APPLY TO DESIGN" (amber, `canApply = kind==='attribute' &&
+  featureRef.kind==='cropArea'`) and "KEEP PLAN" (always). All hooks called before any early
+  return (Rules of Hooks compliance).
+- Apply: `updateCropArea(featureRef.id, { [diff.field]: diff.asBuilt })` +
+  `acknowledgeDataPoint(projectId, point.id)`. Keep: `acknowledgeDataPoint` only. Both clear
+  the card reactively on the next Zustand selector pass.
+- `ObjectiveDetailPanel.tsx`: +2 lines to import + mount the card below `CyclicalReviewBanner`.
+
+Tests: `plan/strata/__tests__/asBuiltReconciliationCard.test.tsx` (10 -- renders/filters/
+both actions). Lucide-react CJS multi-instance React crash in the vitest environment fixed by
+`vi.mock('lucide-react', () => ({ AlertTriangle: () => null, ... }))` at the top of the file.
+
+## Verification (Slice 3)
+
+- apps/web tsc exit 0 (confirmed before commit).
+- 10/10 tests green: renders when matching point, attribute asPlanned/asBuilt displayed,
+  renders nothing when no points / superseded / no sourceFeatureRef, Apply+Keep both for
+  attribute; Keep only for geometry; Apply calls updateCropArea with correct patch + acknowledges;
+  Keep does not call updateCropArea + acknowledges.
+- Live (localhost:5202, `feat/atlas-permaculture` bff6a8ba, fresh Vite cold start after
+  clearing both `apps/web/node_modules/.vite` and `packages/shared/node_modules/.vite`):
+  Vite stale cache confirmed cleared (10 live exports including `asAsBuiltDiff` visible via
+  dynamic import in browser). Test deviation point injected directly via
+  `useObserveDataPointStore.getState().recordDataPoint(...)` (domainId "plants-food",
+  statusOutput "needs_investigation", kind "attribute", field "name", asPlanned "Apple
+  Orchard", asBuilt "Pear Orchard"). Navigated to
+  `/v3/project/mtc/plan/stratum/s6-integration-design/objective/s6-yield-flows` via
+  pushState. **Screenshot confirmed:** AS-BUILT DIVERGENCE card visible with CROP AREA badge,
+  "Apple Orchard -> Pear Orchard" diff, APPLY TO DESIGN + KEEP PLAN buttons, divergence count
+  2 in middle panel. Apply: card cleared, count 2->1, `isSuperseded:true` confirmed in
+  `byProject` store. Keep: second injected point (species diff), card cleared, count 2->1,
+  `isSuperseded:true`, `cropsUnchanged:true`. Full round-trip verified.

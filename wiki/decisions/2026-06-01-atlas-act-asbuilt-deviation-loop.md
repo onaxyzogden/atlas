@@ -1,7 +1,7 @@
 # 2026-06-01 -- Act as-built deviation loop: a steward records reality-vs-plan in Act; it surfaces in Plan without mutating Plan
 
-**Status:** accepted (partial -- Slices 1-2 of 5 shipped) | **Branch:** `feat/atlas-permaculture` | **Surface:** Atlas web (`apps/web`) + `@ogden/shared`
-**Commits:** `fea7d1d6` (Slice 1 substrate) -> `9ceba563` (Slice 2 thinnest end-to-end loop); not pushed
+**Status:** accepted (partial -- Slices 1-3 of 5 shipped) | **Branch:** `feat/atlas-permaculture` | **Surface:** Atlas web (`apps/web`) + `@ogden/shared`
+**Commits:** `fea7d1d6` (Slice 1 substrate) -> `9ceba563` (Slice 2 thinnest end-to-end loop) -> `26dc308b` (wiki) -> `bff6a8ba` (Slice 3 reconciliation card); not pushed
 **Entity:** [[entities/act-tier-shell]] | **Log:** [[log/2026-06-01-atlas-act-asbuilt-deviation-slice1-2]]
 **Builds on:** [[decisions/2026-05-31-atlas-observe-datapoint-objective-link]], [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]]
 
@@ -127,10 +127,10 @@ re-introduce a hardcoded id.
   feature keeps one active divergence (latest wins).
 - The loop closes with ZERO trigger-layer changes: the new divergent points slot straight
   into `usePlanRevisionFlagSync`.
-- 42 tests green. Slice 1: `asBuiltDiff` 10 + `featureRefDomain` 6 +
+- 52 tests green. Slice 1: `asBuiltDiff` 10 + `featureRefDomain` 6 +
   `observeDataPointStore.asBuilt` 6 = 22. Slice 2: `attributeDiff` 8 +
-  `recordAsBuiltDeviation` 8 + `planRevisionFlag.asBuilt` 4 = 20. apps/web + `@ogden/shared`
-  tsc exit 0.
+  `recordAsBuiltDeviation` 8 + `planRevisionFlag.asBuilt` 4 = 20. Slice 3:
+  `asBuiltReconciliationCard` 10 = 10. apps/web + `@ogden/shared` tsc exit 0.
 
 ## Resolved / still-deferred
 
@@ -138,10 +138,12 @@ re-introduce a hardcoded id.
   attribute edit emits a `plants-food` divergent point; the Plan objective divergence pill +
   `CyclicalReviewBanner` appear live (screenshot-verified on the static-skeleton project; the
   loop was also exercised on a regen-farm project).
-- **Deferred to Slice 3 (#30):** `AsBuiltReconciliationCard` in `ObjectiveDetailPanel` (below
-  `CyclicalReviewBanner`) -- as-planned / as-built diff with "Apply to design"
-  (`updateCropArea` + `acknowledgeDataPoint`) and "Keep plan" (`acknowledgeDataPoint` only).
-  MUST read by domain overlap (see the project-type finding above).
+- **Shipped (Slice 3, `bff6a8ba`):** `AsBuiltReconciliationCard` in `ObjectiveDetailPanel`
+  (below `CyclicalReviewBanner`). Reads by domain overlap (domain overlap, NOT hardcoded id).
+  Apply -> `updateCropArea + acknowledgeDataPoint`; Keep -> `acknowledgeDataPoint` only; card
+  clears reactively. 10/10 tests. Full round-trip live-verified: card renders, Apply and Keep
+  both clear the card + flip `isSuperseded:true`, divergence count decrements, `cropsUnchanged`
+  on Keep (screenshots captured).
 - **Deferred to Slice 4 (#31):** fan out to paddock + zone + structure -- widen
   `ActFeatureClickHandler`; add "Record as-built change" to `ActStructurePopover`; widen the
   card's Apply switch; `ActLayout` parity mount.
