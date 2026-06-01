@@ -16,7 +16,21 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
-import type { ProtocolStatus } from '@ogden/shared';
+import type { ProtocolStatus, ProtocolActivation } from '@ogden/shared';
+
+/**
+ * Input to `recordActivation`: a ProtocolActivation with the auto-defaulted
+ * fields made optional. Callers (the Trigger Recognition sheet) supply the
+ * semantic fields; tests may pin `id` / `activatedAt` for determinism.
+ */
+export type RecordActivationInput = Omit<
+  ProtocolActivation,
+  'id' | 'activatedAt' | 'triggerContext'
+> & {
+  id?: string;
+  activatedAt?: string;
+  triggerContext?: ProtocolActivation['triggerContext'];
+};
 
 export interface ActivatedProtocolRecord {
   templateId: string;
@@ -32,6 +46,23 @@ export interface ActivatedProtocolRecord {
 
 interface ProtocolState {
   records: ActivatedProtocolRecord[];
+
+  /**
+   * Append-only history of recognised protocol triggers (Object Model Spec
+   * v1.1, 9). Never mutated after creation; lives alongside the `records`
+   * lifecycle array, which it does not touch.
+   */
+  activations: ProtocolActivation[];
+
+  /**
+   * Append an immutable ProtocolActivation. Defaults id (crypto.randomUUID()),
+   * activatedAt (now, ISO) and triggerContext ('act_proof_capture') when the
+   * caller omits them. Does NOT change the `records` lifecycle array.
+   */
+  recordActivation: (input: RecordActivationInput) => void;
+
+  /** Read-time: this project's activations, newest-first. */
+  getActivations: (projectId: string) => ProtocolActivation[];
 
   /**
    * Idempotent activate: upserts a record with status 'active'.
@@ -100,6 +131,39 @@ export const useProtocolStore = create<ProtocolState>()(
   persist(
     (set, get) => ({
       records: [],
+      activations: [],
+
+      recordActivation: (input) =>
+        set((s) => {
+          const activation: ProtocolActivation = {
+            id: input.id ?? crypto.randomUUID(),
+            projectId: input.projectId,
+            templateId: input.templateId,
+            severityTier: input.severityTier,
+            confirmationStatus: input.confirmationStatus,
+            recipeSnapshot: input.recipeSnapshot,
+            activatedAt: input.activatedAt ?? new Date().toISOString(),
+            triggerContext: input.triggerContext ?? 'act_proof_capture',
+            ...(input.season !== undefined ? { season: input.season } : {}),
+            ...(input.cycleNumber !== undefined
+              ? { cycleNumber: input.cycleNumber }
+              : {}),
+            ...(input.weatherConditionAtActivation !== undefined
+              ? {
+                  weatherConditionAtActivation:
+                    input.weatherConditionAtActivation,
+                }
+              : {}),
+          };
+          // Append-only: never mutate prior activations or `records`.
+          return { activations: [...s.activations, activation] };
+        }),
+
+      getActivations: (projectId) =>
+        get()
+          .activations.filter((a) => a.projectId === projectId)
+          .slice()
+          .sort((a, b) => b.activatedAt.localeCompare(a.activatedAt)),
 
       activateProtocol: (projectId, templateId) =>
         set((s) => ({
@@ -168,9 +232,27 @@ export const useProtocolStore = create<ProtocolState>()(
     }),
     {
       name: 'ogden-protocols',
-      version: 1,
-      migrate: (persisted) => persisted as never,
-      partialize: (state) => ({ records: state.records }),
+      version: 2,
+      // v1 -> v2: gain the empty `activations` slice while preserving the
+      // existing `records` lifecycle array. Version-aware so v1 users are not
+      // wiped (the old `persisted as never` would have dropped activations).
+      // Persist re-merges the action functions after migrate runs, so migrate
+      // only needs to return the persisted data shape; cast through unknown
+      // (the store type includes actions this object intentionally omits).
+      migrate: (persisted, fromVersion) => {
+        const p = (persisted ?? {}) as Partial<ProtocolState>;
+        if (fromVersion < 2) {
+          return {
+            records: p.records ?? [],
+            activations: [],
+          } as unknown as ProtocolState;
+        }
+        return p as unknown as ProtocolState;
+      },
+      partialize: (state) => ({
+        records: state.records,
+        activations: state.activations,
+      }),
     },
   ),
 );
@@ -210,4 +292,29 @@ export function useTriggeredProtocols(
         (!r.deferredUntil || new Date(r.deferredUntil) <= now),
     );
   }, [records, projectId]);
+}
+
+/** Stable empty result for activation consumers with no projectId. */
+const EMPTY_ACTIVATIONS: ProtocolActivation[] = [];
+
+/**
+ * useProtocolActivations - reactive hook for a project's activations,
+ * newest-first. Mirrors `useTriggeredProtocols`: it selects the stable
+ * `activations` array and derives the filtered/sorted list in `useMemo`.
+ * Do NOT call `useProtocolStore((s) => s.getActivations(id))` directly - that
+ * returns a fresh array each render and drives a Zustand-v5 infinite loop
+ * ("Maximum update depth exceeded"). `getActivations` remains for imperative
+ * `getState()` use.
+ */
+export function useProtocolActivations(
+  projectId: string | null,
+): ProtocolActivation[] {
+  const activations = useProtocolStore((s) => s.activations);
+  return useMemo(() => {
+    if (!projectId) return EMPTY_ACTIVATIONS;
+    return activations
+      .filter((a) => a.projectId === projectId)
+      .slice()
+      .sort((a, b) => b.activatedAt.localeCompare(a.activatedAt));
+  }, [activations, projectId]);
 }
