@@ -24,9 +24,14 @@ import ObserveShellToggle from './ObserveShellToggle.js';
 import UnifiedLandStateSurface from './UnifiedLandStateSurface.js';
 import DomainDetailLayout from './domain/DomainDetailLayout.js';
 import TemporalLayerSurface from './temporal/TemporalLayerSurface.js';
+import ObjectiveRollupSurface from './rollup/ObjectiveRollupSurface.js';
 import css from './ObserveDashboardLayout.module.css';
 
-export type ObserveDashboardSurface = 'unified' | 'domain' | 'temporal';
+export type ObserveDashboardSurface =
+  | 'unified'
+  | 'domain'
+  | 'temporal'
+  | 'rollup';
 
 interface Props {
   projectId: string;
@@ -54,20 +59,26 @@ export default function ObserveDashboardLayout({
 
   // Effective surface — only mount the temporal/domain branches when the
   // domainId actually resolves. A stale `?domainId=junk` falls back to
-  // Surface 1 so the steward never lands on a blank surface.
+  // Surface 1 so the steward never lands on a blank surface. The rollup
+  // surface (Surface 4) is objective-keyed, not domain-keyed, so it carries
+  // no domainId requirement.
   const effectiveSurface: ObserveDashboardSurface =
-    surface === 'temporal' && validDomainId
-      ? 'temporal'
-      : surface === 'domain' && validDomainId
-        ? 'domain'
-        : validDomainId && !surface
+    surface === 'rollup'
+      ? 'rollup'
+      : surface === 'temporal' && validDomainId
+        ? 'temporal'
+        : surface === 'domain' && validDomainId
           ? 'domain'
-          : 'unified';
+          : validDomainId && !surface
+            ? 'domain'
+            : 'unified';
 
   return (
     <div className={css.canvas}>
       <ObserveShellToggle mode={shellMode} onChange={onShellModeChange} />
-      {effectiveSurface === 'temporal' && validDomainId ? (
+      {effectiveSurface === 'rollup' ? (
+        <ObjectiveRollupSurface projectId={projectId} />
+      ) : effectiveSurface === 'temporal' && validDomainId ? (
         <TemporalLayerSurface projectId={projectId} domainId={validDomainId} />
       ) : effectiveSurface === 'domain' && validDomainId ? (
         <DomainDetailLayout projectId={projectId} domainId={validDomainId} />

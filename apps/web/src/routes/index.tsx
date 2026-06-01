@@ -427,6 +427,16 @@ const v3ObserveDashboardTemporalRoute = createRoute({
   path: 'observe/dashboard/temporal/$domainId',
   component: ObserveLayout,
 });
+// Objective Rollup surface (Surface 4). Static `observe/dashboard/rollup`
+// resolves BEFORE `observe/$module` so the objective-centric rollup does not
+// collide with the legacy module routes. ObserveLayout inspects the path and
+// passes `surface='rollup'` to ObserveDashboardLayout, which mounts
+// ObjectiveRollupSurface (one card per Plan objective, no domainId needed).
+const v3ObserveDashboardRollupRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'observe/dashboard/rollup',
+  component: ObserveLayout,
+});
 const v3ObserveIndexRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe',
@@ -886,6 +896,7 @@ const routeTree = rootRoute.addChildren([
       v3ObserveCommandCentreRoute,
       v3ObserveDashboardTemporalRoute,
       v3ObserveDashboardDomainRoute,
+      v3ObserveDashboardRollupRoute,
       v3ObserveDashboardRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,

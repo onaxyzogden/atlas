@@ -135,12 +135,14 @@ export default function ObserveLayout() {
   // routes/index.tsx). Domain detail is the default when a domainId is
   // present and the URL is not temporal; otherwise Surface 1.
   const location = useLocation();
-  const dashboardSurface: 'unified' | 'domain' | 'temporal' =
-    /\/observe\/dashboard\/temporal\//.test(location.pathname)
-      ? 'temporal'
-      : params.domainId
-        ? 'domain'
-        : 'unified';
+  const dashboardSurface: 'unified' | 'domain' | 'temporal' | 'rollup' =
+    /\/observe\/dashboard\/rollup(\/|$)/.test(location.pathname)
+      ? 'rollup'
+      : /\/observe\/dashboard\/temporal\//.test(location.pathname)
+        ? 'temporal'
+        : params.domainId
+          ? 'domain'
+          : 'unified';
   // Prefer the parcel's intake coordinates over the hard-coded stage
   // fallback. DiagnoseMap still wins with fit-to-bounds when a boundary
   // polygon exists, so this only takes effect for coords-only projects.

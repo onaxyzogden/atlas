@@ -14,6 +14,7 @@
  */
 
 import { useMemo, useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import type { ObserveFreshness } from '@ogden/shared';
 import { useProjectStore } from '../../../store/projectStore.js';
 import { useDomainSnapshots } from './useDomainSnapshot.js';
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export default function UnifiedLandStateSurface({ projectId }: Props) {
+  const navigate = useNavigate();
   const snapshots = useDomainSnapshots(projectId);
   const project = useProjectStore((s) =>
     s.projects.find((p) => p.id === projectId),
@@ -47,6 +49,18 @@ export default function UnifiedLandStateSurface({ projectId }: Props) {
       <div className={css.header}>
         <PlanRevisionBanner projectId={projectId} />
         <div className={css.toolbar}>
+          <button
+            type="button"
+            className={css.presentButton}
+            onClick={() =>
+              navigate({
+                to: '/v3/project/$projectId/observe/dashboard/rollup',
+                params: { projectId },
+              })
+            }
+          >
+            By objective
+          </button>
           <button
             type="button"
             className={css.presentButton}
