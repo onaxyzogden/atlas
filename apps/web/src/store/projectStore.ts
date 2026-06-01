@@ -13,6 +13,7 @@ import {
   computeObjectivesDelta,
   resolveProjectObjectives,
   computeAllObjectiveStatuses,
+  findProjectType,
   type CreateProjectInput,
   type ProjectMetadata,
   type ProjectTypeId,
@@ -306,6 +307,22 @@ interface ProjectState {
   ) => void;
   /** Strip the field so the project falls back to defaults. */
   clearZoneThresholds: (projectId: string) => void;
+  /**
+   * Set the PRIMARY project type when none has been chosen yet (e.g. a
+   * project created without a type, like the builtin MTC). Additive and
+   * strictly non-destructive: returns `false` (no-op) when the project is
+   * missing, when a `projectTypeRecord` ALREADY exists (replacing a primary
+   * mid-project is out of scope — the wizard owns that), or when the id is
+   * not a valid primary (e.g. `residential`, which is secondary-only).
+   * On success it writes a fresh `ProjectTypeRecord` with the chosen primary
+   * and empty secondary/ack/version arrays (mirroring the wizard's
+   * primary-select write — no `versionHistory` entry, since the taxonomy has
+   * no `'primary-set'` action), and normalizes the legacy bare `projectType`
+   * string in the same write so record- and string-level resolution agree.
+   * Metadata is written wholesale via `updateProject` (builtin allowlist +
+   * `updatedAt` stamping apply). Returns `true` when applied.
+   */
+  setPrimaryType: (projectId: string, primaryTypeId: ProjectTypeId) => boolean;
   /**
    * Add a secondary project type to an active project mid-project (OLOS
    * Plan Navigation Spec v1.1 §9). Returns `true` when applied, `false`
@@ -653,6 +670,38 @@ export const useProjectStore = create<ProjectState>()(
             return { ...rest, updatedAt: new Date().toISOString() } as LocalProject;
           }),
         })),
+
+      setPrimaryType: (projectId, primaryTypeId) => {
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return false;
+        // Non-destructive: only sets a primary when none exists. Replacing an
+        // already-set primary mid-project orphans progress and is owned by the
+        // wizard — refuse it here.
+        if (project.metadata?.projectTypeRecord) return false;
+        // Reject ids that cannot be a primary (e.g. residential, secondary-only).
+        const def = findProjectType(primaryTypeId);
+        if (!def?.canBePrimary) return false;
+
+        // Mirror the wizard's primary-select write: a fresh record with the
+        // chosen primary and empty arrays. The taxonomy has no 'primary-set'
+        // version action, so — like the wizard — record no versionHistory entry.
+        const nextRecord: ProjectTypeRecord = {
+          primaryTypeId,
+          secondaryTypeIds: [],
+          tensionAcknowledgements: [],
+          versionHistory: [],
+          reopeningAcknowledgements: [],
+        };
+
+        // Wholesale write — updateProject's builtin allowlist permits both
+        // `projectType` and `metadata`. Writing the legacy bare string keeps
+        // string-level resolution aligned with the authoritative record.
+        get().updateProject(projectId, {
+          projectType: primaryTypeId,
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+        return true;
+      },
 
       addSecondaryType: (projectId, secondaryTypeId, opts) => {
         const project = get().projects.find((p) => p.id === projectId);

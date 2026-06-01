@@ -41,6 +41,7 @@ import { useProtocolLibrary } from './useProtocolLibrary.js';
 import { useProjectObjectives } from './useProjectObjectives.js';
 import { planHeaderProjectTypeLabel } from './planHeaderLabel.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
+import PrimarySetModal from './PrimarySetModal.js';
 import SecondaryAddModal from './SecondaryAddModal.js';
 import SecondaryReopenModal from './SecondaryReopenModal.js';
 import SecondaryRemoveBlockedModal from './SecondaryRemoveBlockedModal.js';
@@ -305,6 +306,7 @@ export default function PlanStratumShell() {
   const typeRecord = useProjectStore(
     (s) => s.projects.find((p) => p.id === projectId)?.metadata?.projectTypeRecord,
   );
+  const setPrimaryType = useProjectStore((s) => s.setPrimaryType);
   const addSecondaryType = useProjectStore((s) => s.addSecondaryType);
   const removeSecondaryType = useProjectStore((s) => s.removeSecondaryType);
   const acknowledgeReopening = useProjectStore((s) => s.acknowledgeReopening);
@@ -342,6 +344,7 @@ export default function PlanStratumShell() {
     [protocolLib.templates, selectedProtocolIds],
   );
 
+  const [primarySetOpen, setPrimarySetOpen] = useState(false);
   const [secondaryAddOpen, setSecondaryAddOpen] = useState(false);
   const [reopenPayload, setReopenPayload] = useState<{
     secondaryTypeId: ProjectTypeId;
@@ -554,9 +557,35 @@ export default function PlanStratumShell() {
           >
             {project?.name ?? 'Untitled project'}
           </h2>
-          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: C.textSecondary }}>
-            {primaryTypeLabel ?? 'No project type set'}
-          </p>
+          {primaryTypeId ? (
+            <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: C.textSecondary }}>
+              {primaryTypeLabel}
+            </p>
+          ) : (
+            // No primary chosen yet (e.g. MTC) - the type line becomes a control
+            // that opens the primary-type picker, which derives the objectives.
+            <button
+              type="button"
+              onClick={() => setPrimarySetOpen(true)}
+              data-testid="plan-primary-set-trigger"
+              style={{
+                margin: 0,
+                padding: 0,
+                border: 'none',
+                background: 'transparent',
+                font: 'inherit',
+                fontSize: 12,
+                lineHeight: 1.45,
+                color: C.textSecondary,
+                textAlign: 'left',
+                textDecoration: 'underline dotted',
+                textUnderlineOffset: 3,
+                cursor: 'pointer',
+              }}
+            >
+              Set project type
+            </button>
+          )}
 
           {primaryTypeId && (
             <button
@@ -763,6 +792,16 @@ export default function PlanStratumShell() {
             markStratumCelebrated(projectId, celebratingStratum.id);
             setCelebratingStratumId(null);
           }}
+        />
+      )}
+
+      {primarySetOpen && !primaryTypeId && (
+        <PrimarySetModal
+          onConfirm={(id) => {
+            setPrimaryType(projectId, id);
+            setPrimarySetOpen(false);
+          }}
+          onDismiss={() => setPrimarySetOpen(false)}
         />
       )}
 
