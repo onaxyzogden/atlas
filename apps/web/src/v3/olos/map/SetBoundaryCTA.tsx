@@ -27,7 +27,7 @@ export default function SetBoundaryCTA({ projectId }: SetBoundaryCTAProps) {
         location-aware tools.
       </p>
       <Link
-        to="/v3/project/$projectId/true-north"
+        to="/v3/project/$projectId/observe"
         params={{ projectId }}
         className={css.link}
       >

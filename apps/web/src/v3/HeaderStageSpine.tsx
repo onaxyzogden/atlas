@@ -8,15 +8,15 @@
  * navigation (so route literals stay out of the presentational spine).
  * Renders nothing off the recognised v3 project stage routes.
  *
- * Navigation rules (steward-locked):
- *  - Observe segment → the Compass while Observe is incomplete; once every
+ * Navigation rules (steward-locked; compass pages retired 2026-05-31):
+ *  - Observe segment → the Observe working surface while incomplete; once every
  *    Observe objective is verified (pct === 100) → the Command Centre.
- *  - Plan segment → the Plan Compass while incomplete; once every Plan objective
- *    is verified (pct === 100) → the Plan Command Centre. A no-op when already on
- *    a Plan route.
- *  - Act segment → the Act Compass while incomplete; once every Act objective
- *    is verified (pct === 100) → the Act Command Centre. A no-op when already on
- *    an Act route.
+ *  - Plan segment → the Plan working surface while incomplete; once every Plan
+ *    objective is verified (pct === 100) → the Plan Command Centre. A no-op when
+ *    already on a Plan route.
+ *  - Act segment → the Act working surface (map-first field-action shell) while
+ *    incomplete; once every Act objective is verified (pct === 100) → the Act
+ *    Command Centre. A no-op when already on an Act route.
  */
 
 import { useRouterState, useNavigate } from '@tanstack/react-router';
@@ -27,12 +27,11 @@ import { useActCompassData } from './act/compass/useActCompassData.js';
 import type { Stage } from './compass/compassTypes.js';
 
 const ROUTE_RE =
-  /^\/v3\/project\/([^/]+)\/(compass|observe|plan|act|report)(?:\/|$)/;
+  /^\/v3\/project\/([^/]+)\/(observe|plan|act|report)(?:\/|$)/;
 
-/** compass + observe sections → Observe active; report → none highlighted. */
+/** observe section → Observe active; report → none highlighted. */
 function sectionToStage(section: string): Stage | null {
   switch (section) {
-    case 'compass':
     case 'observe':
       return 'observe';
     case 'plan':
@@ -74,7 +73,7 @@ export default function HeaderStageSpine() {
         });
       } else {
         navigate({
-          to: '/v3/project/$projectId/compass',
+          to: '/v3/project/$projectId/observe',
           params: { projectId },
         });
       }
@@ -89,7 +88,7 @@ export default function HeaderStageSpine() {
         });
       } else {
         navigate({
-          to: '/v3/project/$projectId/plan/compass',
+          to: '/v3/project/$projectId/plan',
           params: { projectId },
         });
       }
@@ -103,7 +102,7 @@ export default function HeaderStageSpine() {
         });
       } else {
         navigate({
-          to: '/v3/project/$projectId/act/compass',
+          to: '/v3/project/$projectId/act',
           params: { projectId },
         });
       }

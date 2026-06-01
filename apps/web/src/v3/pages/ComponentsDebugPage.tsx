@@ -12,8 +12,11 @@ import BlockerCard from "../components/BlockerCard.js";
 import DecisionRail from "../components/DecisionRail.js";
 import StratumSpine from "../plan/strata/StratumSpine.js";
 import PlanSpinePrototype from "../plan/spine/PlanSpinePrototype.js";
+import ObserveCompassWheel from "../compass/ObserveCompassWheel.js";
+import type { ObjectiveView } from "../compass/compassTypes.js";
 import { MTC_PROJECT } from "../data/mockProject.js";
 import { PLAN_STRATA, type PlanStratumState } from "@ogden/shared";
+import { Mountain, Droplets, Building2, Compass, Users } from "lucide-react";
 import css from "./ComponentsDebugPage.module.css";
 
 const STAGES = ["home", "discover", "diagnose", "design", "prove", "build", "operate", "report"] as const;
@@ -31,6 +34,98 @@ const STRATUM_DEMO_STATES: Record<string, PlanStratumState> = {
   "s7-phasing-resourcing": "locked",
 };
 const STRATUM_DEMO_ACTIVE = "s3-systems-reading";
+
+// Mock objective views for the ObserveCompassWheel demo. The live wheel is fed
+// by useCompassData; here we hand a static spread of states (fully verified →
+// in-progress → untouched) so every segment fill level and the hover "Next"
+// card are visible in the gallery without wiring a store. Shapes mirror
+// compassTypes (ObjectiveView = { objective, states, progress }).
+const COMPASS_DEMO_VIEWS: ObjectiveView[] = [
+  {
+    objective: {
+      id: "topography",
+      ordinal: 1,
+      label: "Topography",
+      icon: Mountain,
+      accent: "#7a8b6f",
+      summary: "Read the landform — elevation, contour, and drainage.",
+      nodes: [
+        { index: 0, label: "Walk the contour lines" },
+        { index: 1, label: "Mark high and low points" },
+        { index: 2, label: "Trace drainage paths" },
+      ],
+    },
+    states: ["verified", "verified", "verified"],
+    progress: { verified: 3, total: 3, pct: 100 },
+  },
+  {
+    objective: {
+      id: "hydrology",
+      ordinal: 2,
+      label: "Hydrology",
+      icon: Droplets,
+      accent: "#5b8aa6",
+      summary: "Trace water and soil — streams, swales, and test pits.",
+      nodes: [
+        { index: 0, label: "Locate water sources" },
+        { index: 1, label: "Dig soil test pits" },
+        { index: 2, label: "Map seasonal flows" },
+      ],
+    },
+    states: ["verified", "evidence-in", "open"],
+    progress: { verified: 1, total: 3, pct: 33 },
+  },
+  {
+    objective: {
+      id: "built-infrastructure",
+      ordinal: 3,
+      label: "Built Infrastructure",
+      icon: Building2,
+      accent: "#a6855b",
+      summary: "Map buildings, wells, utilities, and fence lines.",
+      nodes: [
+        { index: 0, label: "Inventory structures" },
+        { index: 1, label: "Trace utility runs" },
+        { index: 2, label: "Record fence lines" },
+      ],
+    },
+    states: ["verified", "open", "locked"],
+    progress: { verified: 1, total: 3, pct: 33 },
+  },
+  {
+    objective: {
+      id: "access-circulation",
+      ordinal: 4,
+      label: "Access & Circulation",
+      icon: Compass,
+      accent: "#8b7355",
+      summary: "Map sectors flowing in and zones of human use radiating out.",
+      nodes: [
+        { index: 0, label: "Sketch the sector wheel" },
+        { index: 1, label: "Define use zones" },
+      ],
+    },
+    states: ["open", "locked"],
+    progress: { verified: 0, total: 2, pct: 0 },
+  },
+  {
+    objective: {
+      id: "people-governance",
+      ordinal: 5,
+      label: "People & Governance",
+      icon: Users,
+      accent: "#9a6b8b",
+      summary: "Understand the people and stewardship practices on the land.",
+      nodes: [
+        { index: 0, label: "Interview stakeholders" },
+        { index: 1, label: "Capture historical use" },
+        { index: 2, label: "Record governance norms" },
+      ],
+    },
+    states: ["open", "locked", "locked"],
+    progress: { verified: 0, total: 3, pct: 0 },
+  },
+];
 
 export default function ComponentsDebugPage() {
   return (
@@ -93,6 +188,26 @@ export default function ComponentsDebugPage() {
           activeStratumId={STRATUM_DEMO_ACTIVE}
           onSelectStratum={() => {}}
         />
+      </Section>
+
+      <Section title="ObserveCompassWheel — Maqasid comparison wheel">
+        <div
+          style={{
+            height: 520,
+            borderRadius: 12,
+            overflow: "hidden",
+            border: "1px solid #2A2A25",
+            padding: 24,
+            boxSizing: "border-box",
+          }}
+        >
+          <ObserveCompassWheel
+            views={COMPASS_DEMO_VIEWS}
+            selected={null}
+            onSelect={() => {}}
+            centerLabel="OBSERVE"
+          />
+        </div>
       </Section>
 
       <Section title="Plan Spine prototype — Design ▸ Protocol modes (OLOS Protocol Layer slice 1)">

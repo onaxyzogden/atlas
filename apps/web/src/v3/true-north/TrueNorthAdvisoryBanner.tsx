@@ -49,12 +49,12 @@ export default function TrueNorthAdvisoryBanner({
         className={css.action}
         onClick={() =>
           navigate({
-            to: '/v3/project/$projectId/true-north',
+            to: '/v3/project/$projectId/observe',
             params: { projectId },
           })
         }
       >
-        Go to True North
+        Go to Observe
       </button>
       <button
         type="button"

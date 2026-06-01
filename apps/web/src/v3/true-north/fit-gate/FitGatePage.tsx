@@ -21,13 +21,15 @@ export default function FitGatePage() {
 
   const { result, ready, stagePct, hasGis } = useFitGate(projectId);
 
+  // True North retired 2026-05-31 — the "back" affordance now returns to the
+  // Observe working surface (the forward Stage-0→Observe handoff).
   const backToTrueNorth = () =>
     navigate({
-      to: '/v3/project/$projectId/true-north',
+      to: '/v3/project/$projectId/observe',
       params: { projectId },
     });
   const goObserve = () =>
-    navigate({ to: '/v3/project/$projectId/compass', params: { projectId } });
+    navigate({ to: '/v3/project/$projectId/observe', params: { projectId } });
 
   if (!ready) {
     return (

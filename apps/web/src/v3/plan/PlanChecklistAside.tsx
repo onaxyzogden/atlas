@@ -165,8 +165,7 @@ export default function PlanChecklistAside({
         <div className={css.emptyPrompt}>
           <p className={css.emptyText}>No objective selected.</p>
           <p className={css.emptyHint}>
-            Pick one from the module bar below, or open the Plan Compass to
-            choose your next objective.
+            Pick one from the module bar below to choose your next objective.
           </p>
           {projectId && (
             <button
@@ -174,12 +173,12 @@ export default function PlanChecklistAside({
               className={css.compassLink}
               onClick={() =>
                 navigate({
-                  to: '/v3/project/$projectId/plan/compass',
+                  to: '/v3/project/$projectId/plan',
                   params: { projectId },
                 })
               }
             >
-              Open Plan Compass
+              Back to Plan
             </button>
           )}
         </div>

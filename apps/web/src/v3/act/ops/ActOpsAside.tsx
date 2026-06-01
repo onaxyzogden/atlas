@@ -63,8 +63,7 @@ export default function ActOpsAside({
         <div className={css.emptyPrompt}>
           <p className={css.emptyText}>No objective selected.</p>
           <p className={css.emptyHint}>
-            Pick one from the module bar below, or open the Act Compass to
-            choose your next objective.
+            Pick one from the module bar below to choose your next objective.
           </p>
           {projectId && (
             <button
@@ -72,12 +71,12 @@ export default function ActOpsAside({
               className={css.compassLink}
               onClick={() =>
                 navigate({
-                  to: '/v3/project/$projectId/act/compass',
+                  to: '/v3/project/$projectId/act',
                   params: { projectId },
                 })
               }
             >
-              Open Act Compass
+              Back to Act
             </button>
           )}
         </div>

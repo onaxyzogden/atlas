@@ -425,7 +425,7 @@ export default function PlanTools({
               className={css.compassLink}
               onClick={() =>
                 navigate({
-                  to: '/v3/project/$projectId/plan/compass',
+                  to: '/v3/project/$projectId/plan',
                   params: { projectId: params.projectId! },
                 })
               }

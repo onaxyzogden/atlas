@@ -172,14 +172,9 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
         <span className={css.eyebrow}>Project</span>
       </header>
 
-      <Link
-        to="/v3/project/$projectId/true-north"
-        params={{ projectId }}
-        className={css.homeLink}
-        data-active={pathname.includes('/true-north') ? 'true' : 'false'}
-      >
-        True North · Stage 0
-      </Link>
+      {/* True North · Stage 0 nav entry retired 2026-05-31 — the concept is no
+          longer part of the IA. The Fit Gate verdict surface remains reachable
+          at /true-north/fit-gate for projects that link to it directly. */}
 
       <Link
         to="/v3/project/$projectId/home"

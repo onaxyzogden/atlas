@@ -45,20 +45,20 @@ export default function ActObjectiveCompletePrompt({
       <div className={css.body}>
         <p className={css.title}>Objective complete</p>
         <p className={css.text}>
-          Every step here is verified. Return to the compass to pick your next
-          objective.
+          Every step here is verified. Open the Act Command Centre to run the
+          stage and pick your next objective.
         </p>
         <button
           type="button"
           className={css.action}
           onClick={() =>
             navigate({
-              to: '/v3/project/$projectId/act/compass',
+              to: '/v3/project/$projectId/act/command-centre',
               params: { projectId },
             })
           }
         >
-          Return to Compass
+          Open the Act Command Centre
         </button>
       </div>
       <button

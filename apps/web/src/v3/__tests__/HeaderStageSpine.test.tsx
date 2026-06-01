@@ -10,7 +10,9 @@
  *     pathname so each test can place the spine on a different route;
  *     `useNavigate` returns a spy.
  *  3. `../compass/useCompassData.js` — returns a hoisted Observe aggregate so we
- *     can exercise the < 100 (→ Compass) vs === 100 (→ Command Centre) branch.
+ *     can exercise the < 100 (→ stage surface) vs === 100 (→ Command Centre)
+ *     branch. (Compass pages retired 2026-05-31; incomplete stages land on the
+ *     stage base route, not a compass.)
  *  4. `../plan/compass/usePlanCompassData.js` + `../act/compass/useActCompassData.js`
  *     — return hoisted Plan/Act aggregates so every header segment shows its
  *     own real %.
@@ -21,7 +23,7 @@ import * as React from 'react';
 import { render, cleanup, fireEvent } from '@testing-library/react';
 
 const h = vi.hoisted(() => ({
-  pathname: '/v3/project/mtc/compass',
+  pathname: '/v3/project/mtc/observe',
   pct: 50,
   planPct: 12,
   actPct: 0,
@@ -93,7 +95,7 @@ vi.mock('../act/compass/useActCompassData.js', () => ({
 import HeaderStageSpine from '../HeaderStageSpine';
 
 beforeEach(() => {
-  h.pathname = '/v3/project/mtc/compass';
+  h.pathname = '/v3/project/mtc/observe';
   h.pct = 50;
   h.planPct = 12;
   h.actPct = 0;
@@ -110,8 +112,8 @@ describe('HeaderStageSpine', () => {
     expect(container.querySelector('[aria-label="Lifecycle stages"]')).toBeNull();
   });
 
-  it('renders the spine with Observe active on the compass route', () => {
-    h.pathname = '/v3/project/mtc/compass';
+  it('renders the spine with Observe active on the observe route', () => {
+    h.pathname = '/v3/project/mtc/observe';
     const { container } = render(<HeaderStageSpine />);
     expect(container.querySelector('[aria-label="Lifecycle stages"]')).not.toBeNull();
     expect(
@@ -120,7 +122,7 @@ describe('HeaderStageSpine', () => {
   });
 
   it('shows each stage’s own real % from its compass hook (no em dash)', () => {
-    h.pathname = '/v3/project/mtc/compass';
+    h.pathname = '/v3/project/mtc/observe';
     h.pct = 50;
     h.planPct = 12;
     h.actPct = 0;
@@ -163,21 +165,21 @@ describe('HeaderStageSpine', () => {
     }
   });
 
-  it('routes Plan to the Plan Compass while Plan is incomplete', () => {
-    h.pathname = '/v3/project/mtc/compass';
+  it('routes Plan to the Plan surface while Plan is incomplete', () => {
+    h.pathname = '/v3/project/mtc/observe';
     h.planPct = 12;
     const { container } = render(<HeaderStageSpine />);
     fireEvent.click(container.querySelector('[data-stage="plan"]')!);
     expect(h.navigateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: '/v3/project/$projectId/plan/compass',
+        to: '/v3/project/$projectId/plan',
         params: { projectId: 'mtc' },
       }),
     );
   });
 
   it('routes Plan to the Command Centre once Plan is complete (pct === 100)', () => {
-    h.pathname = '/v3/project/mtc/compass';
+    h.pathname = '/v3/project/mtc/observe';
     h.planPct = 100;
     const { container } = render(<HeaderStageSpine />);
     fireEvent.click(container.querySelector('[data-stage="plan"]')!);
@@ -189,14 +191,14 @@ describe('HeaderStageSpine', () => {
     );
   });
 
-  it('routes Observe to the Compass while Observe is incomplete', () => {
+  it('routes Observe to the Observe surface while Observe is incomplete', () => {
     h.pathname = '/v3/project/mtc/plan';
     h.pct = 60;
     const { container } = render(<HeaderStageSpine />);
     fireEvent.click(container.querySelector('[data-stage="observe"]')!);
     expect(h.navigateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: '/v3/project/$projectId/compass',
+        to: '/v3/project/$projectId/observe',
         params: { projectId: 'mtc' },
       }),
     );
@@ -215,21 +217,21 @@ describe('HeaderStageSpine', () => {
     );
   });
 
-  it('routes Act to the Act Compass while Act is incomplete', () => {
-    h.pathname = '/v3/project/mtc/compass';
+  it('routes Act to the Act surface while Act is incomplete', () => {
+    h.pathname = '/v3/project/mtc/observe';
     h.actPct = 0;
     const { container } = render(<HeaderStageSpine />);
     fireEvent.click(container.querySelector('[data-stage="act"]')!);
     expect(h.navigateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        to: '/v3/project/$projectId/act/compass',
+        to: '/v3/project/$projectId/act',
         params: { projectId: 'mtc' },
       }),
     );
   });
 
   it('routes Act to the Command Centre once Act is complete (pct === 100)', () => {
-    h.pathname = '/v3/project/mtc/compass';
+    h.pathname = '/v3/project/mtc/observe';
     h.actPct = 100;
     const { container } = render(<HeaderStageSpine />);
     fireEvent.click(container.querySelector('[data-stage="act"]')!);

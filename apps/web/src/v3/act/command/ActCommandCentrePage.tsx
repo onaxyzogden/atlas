@@ -78,7 +78,7 @@ export default function ActCommandCentrePage() {
     data.views.length > 0 && data.views.every((v) => v.progress.pct === 100);
 
   const backToCompass = () =>
-    navigate({ to: '/v3/project/$projectId/act/compass', params: { projectId } });
+    navigate({ to: '/v3/project/$projectId/act', params: { projectId } });
 
   const goReport = () =>
     navigate({ to: '/v3/project/$projectId/report', params: { projectId } });

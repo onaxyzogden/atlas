@@ -51,16 +51,20 @@ import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTele
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
 import StageZeroVisionPage from '../v3/stage-zero/StageZeroVisionPage.js';
-import StageCompassPage from '../v3/compass/StageCompassPage.js';
-import PlanStageCompassPage from '../v3/plan/compass/PlanStageCompassPage.js';
-import ActStageCompassPage from '../v3/act/compass/ActStageCompassPage.js';
+// Compass stage-landing pages retired 2026-05-31 — routes removed, page
+// components preserved on disk per feedback_no_deletion.md:
+//   ../v3/compass/StageCompassPage.js               (Observe compass)
+//   ../v3/plan/compass/PlanStageCompassPage.js       (Plan compass)
+//   ../v3/act/compass/ActStageCompassPage.js         (Act compass)
+//   ../v3/true-north/TrueNorthCompassPage.js         (True North / Stage 0)
+// Each stage now lands directly on its working surface; the comparison wheel
+// itself is showcased in /v3/components (ObserveCompassWheel).
 import ObserveCommandCentrePage from '../v3/command/ObserveCommandCentrePage.js';
 import PlanCommandCentrePage from '../v3/plan/command/PlanCommandCentrePage.js';
 import ActCommandCentrePage from '../v3/act/command/ActCommandCentrePage.js';
 // PROTOTYPE-ONLY: map-centric Act tier shell concept (dev route only). See
 // apps/web/src/v3/act/tier-prototype/ — coexists with ActLayout, deletable.
 import ActProtoTierShell from '../v3/act/tier-prototype/ActProtoTierShell.js';
-import TrueNorthCompassPage from '../v3/true-north/TrueNorthCompassPage.js';
 import FitGatePage from '../v3/true-north/fit-gate/FitGatePage.js';
 import PlanLayout from '../v3/plan/PlanLayout.js';
 import PlanReviewsPage from '../v3/plan/impact/PlanReviewsPage.js';
@@ -214,8 +218,10 @@ const projectRoute = createRoute({
   component: () => null,
   beforeLoad: ({ params }) => {
     const { projectId } = params as { projectId: string };
+    // True North retired 2026-05-31 — legacy /project/$id now lands on Observe,
+    // the forward working surface.
     throw redirect({
-      to: '/v3/project/$projectId/true-north',
+      to: '/v3/project/$projectId/observe',
       params: { projectId },
     });
   },
@@ -364,13 +370,9 @@ const v3DiagnoseRoute = createRoute({
     });
   },
 });
-// True North — Stage 0 "define your goal" compass, rendered before Observe.
-// Full-bleed (V3ProjectLayout skips LandOsShell for `true-north`).
-const v3TrueNorthRoute = createRoute({
-  getParentRoute: () => v3ProjectLayoutRoute,
-  path: 'true-north',
-  component: TrueNorthCompassPage,
-});
+// True North Stage-0 compass route retired 2026-05-31 (page preserved on disk
+// at ../v3/true-north/TrueNorthCompassPage.js). Stage-0 entry points now land
+// on the Fit Gate verdict surface below.
 // Fit Gate — Stage 0 verdict surface the True North center unlocks into.
 // Static path resolves before any sibling param routes.
 const v3FitGateRoute = createRoute({
@@ -378,12 +380,8 @@ const v3FitGateRoute = createRoute({
   path: 'true-north/fit-gate',
   component: FitGatePage,
 });
-// Stage Compass — per-project full-screen "mission select" landing for Observe.
-const v3CompassRoute = createRoute({
-  getParentRoute: () => v3ProjectLayoutRoute,
-  path: 'compass',
-  component: StageCompassPage,
-});
+// Observe Stage Compass route retired 2026-05-31 (page preserved on disk at
+// ../v3/compass/StageCompassPage.js). Observe now lands on its working surface.
 // Observe Command Centre — the aggregate "run the stage" surface the compass
 // center unlocks into. Static path resolves before the `observe/$module` param.
 // Stage Zero Vision Builder — full-screen questionnaire that captures the
@@ -439,13 +437,9 @@ const v3ObserveModuleRoute = createRoute({
   path: 'observe/$module',
   component: ObserveLayout,
 });
-// Plan Stage Compass — per-stage "mission select". Static path resolves before
-// the `plan/$module` param route.
-const v3PlanCompassRoute = createRoute({
-  getParentRoute: () => v3ProjectLayoutRoute,
-  path: 'plan/compass',
-  component: PlanStageCompassPage,
-});
+// Plan Stage Compass route retired 2026-05-31 (page preserved on disk at
+// ../v3/plan/compass/PlanStageCompassPage.js). Plan now lands on its working
+// surface.
 // Plan Command Centre — the aggregate "run the stage" surface the Plan compass
 // center unlocks into. Static path resolves before the `plan/$module` param.
 const v3PlanCommandCentreRoute = createRoute({
@@ -559,13 +553,9 @@ const v3PlanModuleRoute = createRoute({
   path: 'plan/$module',
   component: PlanLayout,
 });
-// Act Stage Compass — per-stage "mission select". Static path resolves before
-// the `act/$module` param route.
-const v3ActCompassRoute = createRoute({
-  getParentRoute: () => v3ProjectLayoutRoute,
-  path: 'act/compass',
-  component: ActStageCompassPage,
-});
+// Act Stage Compass route retired 2026-05-31 (page preserved on disk at
+// ../v3/act/compass/ActStageCompassPage.js). Act now lands on its working
+// surface (map-first field-action shell).
 // OLOS Act Command Center spec — field-action routes. Both mount ActLayout,
 // which reads `actShellMode` and branches into ActFieldActionLayout when
 // field-action is the active shell. Static `act/field-action/...` prefixes
@@ -890,9 +880,8 @@ const routeTree = rootRoute.addChildren([
       v3HomeRoute,
       v3DiscoverRoute,
       v3DiagnoseRoute,
-      v3TrueNorthRoute,
+      // v3TrueNorthRoute + v3CompassRoute retired 2026-05-31 (pages on disk).
       v3FitGateRoute,
-      v3CompassRoute,
       v3StageZeroRoute,
       v3ObserveCommandCentreRoute,
       v3ObserveDashboardTemporalRoute,
@@ -900,7 +889,7 @@ const routeTree = rootRoute.addChildren([
       v3ObserveDashboardRoute,
       v3ObserveIndexRoute,
       v3ObserveModuleRoute,
-      v3PlanCompassRoute,
+      // v3PlanCompassRoute retired 2026-05-31 (page on disk).
       v3PlanCommandCentreRoute,
       v3PlanRoute,
       v3PlanReviewRoute,
@@ -913,7 +902,7 @@ const routeTree = rootRoute.addChildren([
       v3PlanStratumRoute,
       v3PlanStratumObjectiveRoute,
       v3PlanModuleRoute,
-      v3ActCompassRoute,
+      // v3ActCompassRoute retired 2026-05-31 (page on disk).
       v3ActCommandCentreRoute,
       v3ActTierPrototypeRoute,
       v3ActTierShellRoute,

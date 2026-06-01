@@ -59,7 +59,7 @@ export default function PlanCommandCentrePage() {
     data.views.length > 0 && data.views.every((v) => v.progress.pct === 100);
 
   const backToCompass = () =>
-    navigate({ to: '/v3/project/$projectId/plan/compass', params: { projectId } });
+    navigate({ to: '/v3/project/$projectId/plan', params: { projectId } });
 
   const goAct = () =>
     navigate({ to: '/v3/project/$projectId/act', params: { projectId } });

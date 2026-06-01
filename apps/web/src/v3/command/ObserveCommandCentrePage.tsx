@@ -58,7 +58,7 @@ export default function ObserveCommandCentrePage() {
     data.views.length > 0 && data.views.every((v) => v.progress.pct === 100);
 
   const backToCompass = () =>
-    navigate({ to: '/v3/project/$projectId/compass', params: { projectId } });
+    navigate({ to: '/v3/project/$projectId/observe', params: { projectId } });
 
   const goPlan = () =>
     navigate({ to: '/v3/project/$projectId/plan', params: { projectId } });
