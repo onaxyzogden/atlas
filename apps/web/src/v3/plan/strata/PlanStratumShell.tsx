@@ -315,9 +315,9 @@ export default function PlanStratumShell() {
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const currentSecondaryIds = typeRecord?.secondaryTypeIds ?? [];
   // Plan header — surface the project type (steward: "project type ... used to
-  // appear here. Bring it back"). Project type only; no cycle number.
-  const secondaryCount = currentSecondaryIds.length;
-  const primaryTypeLabel = planHeaderProjectTypeLabel(primaryTypeId, secondaryCount);
+  // appear here. Bring it back" + "show all chosen project types instead of
+  // hiding it behind +#"). All chosen types, primary first, no cycle number.
+  const primaryTypeLabel = planHeaderProjectTypeLabel(primaryTypeId, currentSecondaryIds);
 
   // Plan Protocol mode (Phase 3) — the center column is a multi-select protocol
   // list and the right column stacks the detail of each selection. Selection is
