@@ -48,9 +48,17 @@ show-everything tool strip with an objective-conditional, categorized rail
   REQUIRED evidence item is satisfied AND `getPrimaryDomainForObjective` resolves
   non-null, then writes a `manual_observation` `ObserveDataPoint`
   (`statusOutput:'clear'`, domain-linked, `capturedBy:'act-tier'`) via
-  `useObserveDataPointStore.recordDataPoint` and relabels to "Observation
-  recorded" (session-local `recorded` flag). First Act->Observe write path; see
-  [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]].
+  `useObserveDataPointStore.recordDataPoint`. First Act->Observe write path; see
+  [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]]. **The point
+  also carries `sourceObjectiveId: objective.id`** (2026-05-31): a nullable FK added
+  to the `ObserveDataPoint` schema, so the activity section is now a **real
+  per-objective feed** -- it subscribes to `observeDataPointStore.byProject` and
+  `useMemo`-filters by `sourceObjectiveId`, newest-first, rendering each recorded
+  point's timestamp + note (`.actyList`/`.actyRow`). **Repeat recordings are
+  allowed**: the prior session-local `recorded` lock was removed -- the feed gaining
+  a row is the confirmation, the button stays `disabled={!ready}`. See
+  [[decisions/2026-05-31-atlas-observe-datapoint-objective-link]] (supersedes
+  decision #2 of the record-observation ADR in part).
 - `actToolCatalog.ts` — app-layer catalogue joining catalogue-id strings to
   `{ label, icon, category, arm }`. `ActToolArm` is a discriminated union
   `{kind:'map';mapToolId:MapToolId} | {kind:'log';quickLogId:string}`.
@@ -216,6 +224,25 @@ all five files (only foreign-WIP `ProtocolLayerPanel` errored, untouched); live
 preview verified end-to-end via DOM probe + screenshots (button gate ->
 localStorage data-point write -> relabel). ADR
 [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]].
+
+Objective<->observation link + per-objective feed + Observe provenance shipped
+later the same day (commits `389bff36` Slice A schema+store -> `67926c85` Slice B
+Act feed -> `66aee783` Slice C Observe chip). `ObserveDataPoint` gained a nullable
+`sourceObjectiveId` FK (persist `version` 1->2 with backfill migrate;
+`getByObjective`/`getActiveByObjective` selectors); the Act write path stamps
+`objective.id`; the exec panel's "This need's activity" became a real per-objective
+feed (newest-first, filtered by `sourceObjectiveId`); repeat recordings allowed
+(the `recorded` lock removed); the Observe `DomainObservationList` shows a gold
+objective-title provenance chip on Act-emitted rows via
+`findObjectiveAcrossCatalogues`. New conformance test
+`observeDataPointObjectiveLink.test.ts` (default-null, round-trip, every universal
+objective id resolves a title). tsc clean (apps/web + packages/shared; foreign
+TanStack route-tree churn isolated, none in my files); live preview verified --
+2 recorded points showed 2 feed rows + 2 Observe chips, button stayed armed, both
+persisted with `sourceObjectiveId: "s2-terrain"`; test points cleaned up. This
+**supersedes decision #2** of the record-observation ADR in part (domain-only link
+-> domain link PLUS objective provenance). ADR
+[[decisions/2026-05-31-atlas-observe-datapoint-objective-link]].
 
 ## Notes
 
