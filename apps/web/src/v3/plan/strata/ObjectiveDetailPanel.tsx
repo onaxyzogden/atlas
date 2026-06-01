@@ -8,7 +8,7 @@
 // Reset is keyed to objective.id at the parent via `<ObjectiveDetailPanel
 // key={objective.id} ... />` — clean reset, no useEffect.
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type {
   OverlayId,
   PlanStratum,
@@ -60,18 +60,11 @@ export default function ObjectiveDetailPanel({
     ...objective.defaultOverlayBundle,
   ]);
 
-  // Subscribe to just this objective's slice so toggles elsewhere don't
-  // re-render the panel.
+  // Subscribe to just this objective's completion slice. Phase B made the Plan
+  // checklist read-only ("decisions are worked through in Act"), so the panel
+  // only READS completion state here — no toggling wiring.
   const completedItemIds = usePlanStratumProgressStore((s) =>
     s.getCompletedItemIds(projectId, objective.id),
-  );
-  const toggleItem = usePlanStratumProgressStore((s) => s.toggleItem);
-  const onToggleChecklistItem = useCallback(
-    (itemId: string) => {
-      if (!projectId) return;
-      toggleItem(projectId, objective.id, itemId);
-    },
-    [toggleItem, projectId, objective.id],
   );
 
   // Slice 1.11 — cyclical review wiring. Subscribe to this objective's
@@ -187,7 +180,6 @@ export default function ObjectiveDetailPanel({
         objective={objective}
         status={status}
         completedItemIds={completedItemIds}
-        onToggleItem={onToggleChecklistItem}
         derivedEvidence={visionDerivedMap}
       />
 

@@ -1,15 +1,18 @@
 /**
  * @vitest-environment happy-dom
  *
- * DecisionChecklist — Decision Groups Reference v1.0 render (Phase 4).
- * Asserts the grouped layout (group sub-headers + "N items" + observe-feed
- * chips + nested item rows), the amber "Added by <Type>" attribution on a
- * secondary-sourced group, the flat-list fallback when an objective carries no
- * decision groups, and the lossless "Other decisions" fallback for any item a
- * partial grouping leaves unclaimed.
+ * DecisionChecklist — Phase B faithful read-only re-skin (DecisionGroupCard
+ * format). Asserts: each decision group renders as a card (header label +
+ * collapsed "N items" footer + observe-feed chips); the amber "Added by <Type>"
+ * attribution on a secondary-sourced group; the implicit single-group fallback
+ * when an objective carries no decision groups; the lossless "Other decisions"
+ * fallback for unclaimed items; that completion is DISPLAY-ONLY (no interactive
+ * checkbox / no toggling) with completed items rendering ✓ + line-through; and
+ * that production adornments (feeds / optional / Stage Zero derived) survive as
+ * read-only chips.
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, within, fireEvent } from '@testing-library/react';
 import type {
   DecisionGroup,
@@ -17,9 +20,14 @@ import type {
   PlanStratumObjective,
 } from '@ogden/shared';
 import DecisionChecklist from '../DecisionChecklist.js';
+import type { VisionDerivedMap } from '../visionProfileToChecklist.js';
 
-function ck(id: string, label: string): PlanDecisionChecklistItem {
-  return { id, label, feedsInto: [], optional: false };
+function ck(
+  id: string,
+  label: string,
+  extra: Partial<PlanDecisionChecklistItem> = {},
+): PlanDecisionChecklistItem {
+  return { id, label, feedsInto: [], optional: false, ...extra };
 }
 
 function dg(
@@ -59,9 +67,12 @@ function mkObjective(
   } as PlanStratumObjective;
 }
 
-const noop = () => {};
+/** Expand a collapsed group card by clicking its header label. */
+function expand(group: HTMLElement, label: string) {
+  fireEvent.click(within(group).getByText(label));
+}
 
-describe('DecisionChecklist - grouped render', () => {
+describe('DecisionChecklist - grouped card render', () => {
   const objective = mkObjective({
     checklist: [
       ck('c1', 'Map surface flows'),
@@ -77,13 +88,12 @@ describe('DecisionChecklist - grouped render', () => {
     ],
   });
 
-  it('renders a sub-header per group with label and item count', () => {
+  it('renders a card per group with its label and a collapsed item count', () => {
     render(
       <DecisionChecklist
         objective={objective}
         status="active"
         completedItemIds={[]}
-        onToggleItem={noop}
       />,
     );
     const g1 = screen.getByTestId('plan-decision-group-obj-1-dg1');
@@ -93,47 +103,63 @@ describe('DecisionChecklist - grouped render', () => {
     expect(within(g2).getByText('Springs & drainage')).toBeTruthy();
   });
 
-  it('buckets each item under its owning group only', () => {
+  it('reveals each item under its owning group only when expanded', () => {
     render(
       <DecisionChecklist
         objective={objective}
         status="active"
         completedItemIds={[]}
-        onToggleItem={noop}
       />,
     );
     const g1 = screen.getByTestId('plan-decision-group-obj-1-dg1');
+    // Collapsed: items hidden.
+    expect(within(g1).queryByText('Map surface flows')).toBeNull();
+    expand(g1, 'Surface flows & catchment');
     expect(within(g1).getByText('Map surface flows')).toBeTruthy();
     expect(within(g1).queryByText('Locate springs')).toBeNull();
-    const g2 = screen.getByTestId('plan-decision-group-obj-1-dg2');
-    expect(within(g2).getByText('Locate springs')).toBeTruthy();
   });
 
-  it('renders observe-feed chips transcribed verbatim', () => {
+  it('renders observe-feed chips transcribed verbatim (collapsed footer)', () => {
     render(
       <DecisionChecklist
         objective={objective}
         status="active"
         completedItemIds={[]}
-        onToggleItem={noop}
       />,
     );
     const g1 = screen.getByTestId('plan-decision-group-obj-1-dg1');
     expect(within(g1).getByText('Water & Hydrology')).toBeTruthy();
   });
 
-  it('still toggles a nested item (per-item completion model preserved)', () => {
-    const onToggleItem = vi.fn();
-    render(
+  it('is read-only — no interactive checkbox input is rendered', () => {
+    const { container } = render(
       <DecisionChecklist
         objective={objective}
         status="active"
         completedItemIds={[]}
-        onToggleItem={onToggleItem}
       />,
     );
-    fireEvent.click(screen.getByText('Map surface flows'));
-    expect(onToggleItem).toHaveBeenCalledWith('c1');
+    const g1 = screen.getByTestId('plan-decision-group-obj-1-dg1');
+    expand(g1, 'Surface flows & catchment');
+    expect(container.querySelector('input[type="checkbox"]')).toBeNull();
+    expect(screen.queryByRole('checkbox')).toBeNull();
+  });
+
+  it('reflects completion as ✓ + line-through (display-only)', () => {
+    render(
+      <DecisionChecklist
+        objective={objective}
+        status="active"
+        completedItemIds={['c1', 'c2']}
+      />,
+    );
+    const g1 = screen.getByTestId('plan-decision-group-obj-1-dg1');
+    // Whole group complete → bubble shows ✓ and the group label is struck.
+    const label = within(g1).getByText('Surface flows & catchment');
+    expect(label.style.textDecoration).toBe('line-through');
+    expand(g1, 'Surface flows & catchment');
+    const itemLabel = within(g1).getByText('Map surface flows');
+    expect(itemLabel.style.textDecoration).toBe('line-through');
   });
 });
 
@@ -152,20 +178,18 @@ describe('DecisionChecklist - secondary-sourced group attribution', () => {
         objective={objective}
         status="active"
         completedItemIds={[]}
-        onToggleItem={noop}
       />,
     );
     const injected = screen.getByTestId('plan-decision-group-obj-1-dgres1');
     expect(injected.getAttribute('data-injected')).toBe('true');
     expect(within(injected).getByText(/Added by/)).toBeTruthy();
-    // base group carries no injection marker
     const base = screen.getByTestId('plan-decision-group-obj-1-dg1');
     expect(base.getAttribute('data-injected')).toBeNull();
   });
 });
 
-describe('DecisionChecklist - flat fallback (no groups)', () => {
-  it('renders a flat list and no group sub-headers when ungrouped', () => {
+describe('DecisionChecklist - implicit single-group fallback (no groups)', () => {
+  it('collapses an ungrouped objective into one implicit "Decisions" card', () => {
     const objective = mkObjective({
       checklist: [ck('c1', 'Lone decision'), ck('c2', 'Another decision')],
       decisionGroups: [],
@@ -175,17 +199,20 @@ describe('DecisionChecklist - flat fallback (no groups)', () => {
         objective={objective}
         status="active"
         completedItemIds={[]}
-        onToggleItem={noop}
       />,
     );
-    expect(screen.getByText('Lone decision')).toBeTruthy();
-    expect(screen.getByText('Another decision')).toBeTruthy();
-    expect(screen.queryByTestId(/plan-decision-group-/)).toBeNull();
+    const card = screen.getByTestId('plan-decision-group-obj-1-all');
+    expect(within(card).getByText('Decisions')).toBeTruthy();
+    // Exactly one group card is rendered.
+    expect(screen.getAllByTestId(/plan-decision-group-/)).toHaveLength(1);
+    expand(card, 'Decisions');
+    expect(within(card).getByText('Lone decision')).toBeTruthy();
+    expect(within(card).getByText('Another decision')).toBeTruthy();
   });
 });
 
 describe('DecisionChecklist - lossless partial-grouping fallback', () => {
-  it('renders an unclaimed item under "Other decisions"', () => {
+  it('renders an unclaimed item under an "Other decisions" card', () => {
     const objective = mkObjective({
       checklist: [ck('c1', 'Grouped decision'), ck('c2', 'Orphan decision')],
       decisionGroups: [dg('obj-1-dg1', 'Only group', ['c1'])],
@@ -195,11 +222,41 @@ describe('DecisionChecklist - lossless partial-grouping fallback', () => {
         objective={objective}
         status="active"
         completedItemIds={[]}
-        onToggleItem={noop}
       />,
     );
     const other = screen.getByTestId('plan-decision-group-ungrouped');
     expect(within(other).getByText('Other decisions')).toBeTruthy();
+    expand(other, 'Other decisions');
     expect(within(other).getByText('Orphan decision')).toBeTruthy();
+  });
+});
+
+describe('DecisionChecklist - read-only adornments', () => {
+  it('preserves feeds / optional / Stage Zero derived signals', () => {
+    const objective = mkObjective({
+      checklist: [
+        ck('c1', 'Optional decision', { optional: true }),
+        ck('c2', 'Derived decision'),
+      ],
+      decisionGroups: [],
+    });
+    const derivedEvidence: VisionDerivedMap = {
+      c2: { isComplete: true, evidence: 'Captured in the Stage Zero Vision.' },
+    };
+    render(
+      <DecisionChecklist
+        objective={objective}
+        status="active"
+        completedItemIds={[]}
+        derivedEvidence={derivedEvidence}
+      />,
+    );
+    const card = screen.getByTestId('plan-decision-group-obj-1-all');
+    expand(card, 'Decisions');
+    expect(within(card).getByText('optional')).toBeTruthy();
+    expect(within(card).getByText('From Stage Zero Vision')).toBeTruthy();
+    expect(
+      screen.getByTestId('plan-decision-evidence-c2'),
+    ).toBeTruthy();
   });
 });

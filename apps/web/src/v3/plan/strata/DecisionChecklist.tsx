@@ -1,18 +1,26 @@
-// DecisionChecklist — the YOUR DECISIONS section of ObjectiveDetailPanel
-// (Plan Navigation Spec v1, Slice 1.7). Renders the objective's checklist
-// as a vertical list of checkboxes. Each item that `feedsInto` another
-// objective surfaces those targets as small chips so the steward sees the
-// causal chain at a glance.
+// DecisionChecklist — the YOUR DECISIONS section of ObjectiveDetailPanel.
 //
-// Slice 1.12 — items pre-satisfied by the Stage Zero Vision Builder
-// bridge (visionProfileToChecklist.ts) render as checked + locked, with
-// a "From Stage Zero Vision" badge and the captured evidence beneath.
-// The source of truth is `project.metadata.visionProfile`; toggling here
-// would be a no-op vs the store, so the checkbox is disabled.
+// Phase B re-skin (2026-05-31): adopts the Plan Spine prototype's read-only
+// `DecisionGroupCard` visual language (spine/DecisionGroupCard.tsx) faithfully.
+// Each decision group renders as a coloured card with a tappable header (number
+// bubble / ✓ when done), expand/collapse, a "decisions are worked through in
+// Act" banner, striped item rows with a NON-INTERACTIVE 14px checkbox, and an
+// "Open in Act →" CTA. Completion is now **display-only**: the Plan stage no
+// longer toggles items — it reads the captured completion state (the store's
+// per-item ids + the Stage Zero Vision bridge) and reflects it. "Plan decides,
+// Act executes" — the actual working-through happens in the Act stage.
 //
-// Pure presentational — store wiring lives one level up so the same list
-// can drive cyclical-review revisions in Slice 1.11 without a refactor.
+// Production signals are preserved as read-only adornments: per-item `feedsInto`
+// chips, `optional`/`isMethodology` tags, item `expandedBySecondaryId`
+// ("Expanded by") and group `sourceSecondaryId` ("Added by") attribution, and
+// the Stage Zero "From Stage Zero Vision" derived badge + evidence.
+//
+// Styled with the spine tokens (C/F/CA) inline — the legacy
+// DecisionChecklist.module.css is retired for this surface (left orphaned on
+// disk per "no deletion in revamps").
 
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import type {
   DecisionGroup,
   PlanDecisionChecklistItem,
@@ -22,135 +30,698 @@ import type {
 import { findProjectType } from '@ogden/shared';
 import { findObjectiveGlobally } from '../objectiveCatalog.js';
 import type { VisionDerivedItem, VisionDerivedMap } from './visionProfileToChecklist.js';
-import css from './DecisionChecklist.module.css';
+import { C, F, CA } from '../spine/tokens.js';
 
 interface Props {
   objective: PlanStratumObjective;
   status: PlanStratumObjectiveStatus;
   completedItemIds: readonly string[];
-  onToggleItem: (itemId: string) => void;
-  /** Slice 1.12 — items pre-satisfied by the Stage Zero Vision bridge. */
+  /** Items pre-satisfied by the Stage Zero Vision bridge. */
   derivedEvidence?: VisionDerivedMap;
+}
+
+/** A flattened, render-ready decision group (real group or implicit fallback). */
+interface RenderGroup {
+  id: string;
+  label: string;
+  items: PlanDecisionChecklistItem[];
+  observeFeeds: readonly string[];
+  sourceSecondaryId: string | null;
+  testId: string;
 }
 
 export default function DecisionChecklist({
   objective,
   status,
   completedItemIds,
-  onToggleItem,
   derivedEvidence,
 }: Props) {
   const completed = new Set(completedItemIds);
   const items = objective.checklist;
-  // Plan Nav v1.1 §5.6 — when a secondary layer's modifying patch injects
-  // checklist items it also amends the completion gate (the resolver
-  // concatenates, never replaces). The same patch stamps each injected item
-  // with `expandedBySecondaryId`, so the most-common stamp is the amender we
-  // attribute the gate change to. (Precise per-clause provenance is a later
-  // seam; see plan "Out of scope".)
-  const amenderTypeId = mostCommonAmender(items);
-  // Part D (greyed gate history): when secondary patches amended the gate, the
-  // resolver captured the pre-amendment base + an ordered, attributed amendment
-  // trail. Render the base greyed ("Previously:") with each amendment credited
-  // to its secondary, beneath the current concatenated gate. History shows only
-  // when there is a real base to contrast against the current text.
-  const gateAmendments = objective.completionGateAmendments ?? [];
-  const gateBase = objective.completionGateBase;
-  const hasGateHistory =
-    gateAmendments.length > 0 && Boolean(gateBase && gateBase.trim());
-  const isDerived = (id: string) =>
-    derivedEvidence?.[id]?.isComplete === true;
+
+  const isDerived = (id: string) => derivedEvidence?.[id]?.isComplete === true;
   const isItemComplete = (id: string) => completed.has(id) || isDerived(id);
   const requiredCount = items.filter((i) => !i.optional).length;
   const requiredDoneCount = items.filter(
     (i) => !i.optional && isItemComplete(i.id),
   ).length;
 
+  const groups = buildRenderGroups(objective, items);
+
   return (
-    <section className={css.section} aria-label="Your decisions">
-      <header className={css.header}>
-        <p className={css.eyebrow}>Your decisions</p>
-        <span className={css.meta} data-status={status}>
+    <section
+      aria-label="Your decisions"
+      style={{ padding: '16px 18px 8px', display: 'flex', flexDirection: 'column' }}
+    >
+      <header
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          marginBottom: 12,
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: C.textTertiary,
+            fontFamily: F.sans,
+          }}
+        >
+          Your decisions
+        </p>
+        <span
+          data-status={status}
+          style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.mono }}
+        >
           {requiredDoneCount} / {requiredCount} required
         </span>
       </header>
 
       {items.length === 0 ? (
-        <p className={css.empty}>No checklist items for this objective yet.</p>
-      ) : objective.decisionGroups.length > 0 ? (
-        // Decision Groups Reference v1.0 (OLOS spec 9.3-9.4): when the objective
-        // carries decision groups, the checklist is rendered grouped under each
-        // group's label, item count, and observe-feed chips. Item checkboxes stay
-        // nested (the stratum-progress completion model is keyed on per-item ids;
-        // a groups-only display with group-level completion is a later refinement
-        // — disclosed divergence from the spec's "Plan shows only groups" intent).
-        <GroupedChecklist
-          groups={objective.decisionGroups}
-          items={items}
-          completed={completed}
-          derivedEvidence={derivedEvidence}
-          onToggleItem={onToggleItem}
-        />
+        <p
+          style={{
+            margin: '4px 0 12px',
+            fontSize: 12,
+            color: C.textTertiary,
+            fontFamily: F.sans,
+            fontStyle: 'italic',
+          }}
+        >
+          No checklist items for this objective yet.
+        </p>
       ) : (
-        <ol className={css.list}>
-          {items.map((item) => (
-            <li key={item.id} className={css.item}>
-              <ItemRow
-                item={item}
-                completed={completed}
-                derivedEvidence={derivedEvidence}
-                onToggleItem={onToggleItem}
-              />
-            </li>
-          ))}
-        </ol>
+        groups.map((group, i) => (
+          <ReadOnlyDecisionGroupCard
+            key={group.id}
+            group={group}
+            index={i}
+            isItemComplete={isItemComplete}
+            derivedEvidence={derivedEvidence}
+          />
+        ))
       )}
 
       {objective.completionGate ? (
-        <div className={css.gate}>
-          <div className={css.gateHeader}>
-            <p className={css.gateEyebrow}>Completion gate</p>
-            {amenderTypeId ? (
-              <span className={css.amendedBy}>
-                Amended by{' '}
-                {findProjectType(amenderTypeId)?.label ?? amenderTypeId}
-              </span>
-            ) : null}
-          </div>
-          {hasGateHistory ? (
-            <div
-              className={css.gateHistory}
-              data-testid="plan-gate-history"
-            >
-              <p className={css.gatePreviousLabel}>Previously</p>
-              <p className={css.gatePrevious}>{gateBase}</p>
-              <ul className={css.gateAmendments}>
-                {gateAmendments.map((a, i) => (
-                  <li
-                    key={`${a.secondaryTypeId}-${i}`}
-                    className={css.gateAmendment}
-                  >
-                    <span className={css.gateAmendmentSource}>
-                      {findProjectType(a.secondaryTypeId)?.label ??
-                        a.secondaryTypeId}
-                    </span>{' '}
-                    added: {a.text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          <p className={css.gateBody}>{objective.completionGate}</p>
-        </div>
+        <CompletionGate objective={objective} />
       ) : null}
     </section>
   );
 }
 
 /**
+ * Partition the objective's checklist into render groups. When the objective
+ * carries `decisionGroups`, each becomes a card and any item left unclaimed by
+ * a partial grouping falls through to a trailing "Other decisions" card (the
+ * render stays lossless). When there are no groups, all items collapse into a
+ * single implicit "Decisions" card so every objective renders in one format.
+ */
+function buildRenderGroups(
+  objective: PlanStratumObjective,
+  items: readonly PlanDecisionChecklistItem[],
+): RenderGroup[] {
+  if (objective.decisionGroups.length === 0) {
+    return [
+      {
+        id: `${objective.id}-all`,
+        label: 'Decisions',
+        items: [...items],
+        observeFeeds: [],
+        sourceSecondaryId: null,
+        testId: `plan-decision-group-${objective.id}-all`,
+      },
+    ];
+  }
+
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const claimed = new Set<string>();
+
+  const groups: RenderGroup[] = objective.decisionGroups.map(
+    (group: DecisionGroup) => {
+      const groupItems = group.itemIds
+        .map((id) => byId.get(id))
+        .filter((i): i is PlanDecisionChecklistItem => Boolean(i));
+      groupItems.forEach((i) => claimed.add(i.id));
+      return {
+        id: group.id,
+        label: group.label,
+        items: groupItems,
+        observeFeeds: group.observeFeeds,
+        sourceSecondaryId: group.sourceSecondaryId ?? null,
+        testId: `plan-decision-group-${group.id}`,
+      };
+    },
+  );
+
+  const ungrouped = items.filter((i) => !claimed.has(i.id));
+  if (ungrouped.length > 0) {
+    groups.push({
+      id: 'ungrouped',
+      label: 'Other decisions',
+      items: ungrouped,
+      observeFeeds: [],
+      sourceSecondaryId: null,
+      testId: 'plan-decision-group-ungrouped',
+    });
+  }
+
+  return groups;
+}
+
+interface CardProps {
+  group: RenderGroup;
+  index: number;
+  isItemComplete: (id: string) => boolean;
+  derivedEvidence?: VisionDerivedMap;
+}
+
+/**
+ * One read-only decision-group card, transcribing the prototype's
+ * DecisionGroupCard visuals against the real PlanStratumObjective data. The
+ * header colour follows injected (amber) → done (green) → default (blue). The
+ * card is purely presentational: no toggling, completion is read from props.
+ */
+function ReadOnlyDecisionGroupCard({
+  group,
+  index,
+  isItemComplete,
+  derivedEvidence,
+}: CardProps) {
+  const [expanded, setExpanded] = useState(false);
+  const hasItems = group.items.length > 0;
+  const isDone = hasItems && group.items.every((i) => isItemComplete(i.id));
+  const injected = group.sourceSecondaryId != null;
+
+  const accentColor = injected ? C.amber : isDone ? C.green : C.blue;
+  const bgColor = injected ? C.amberDim : isDone ? C.greenDim : C.blueDim;
+  const borderColor = injected
+    ? CA('amber', 0.33)
+    : isDone
+      ? CA('green', 0.27)
+      : C.border;
+
+  return (
+    <div
+      data-testid={group.testId}
+      data-injected={injected ? 'true' : undefined}
+      style={{
+        borderRadius: 8,
+        overflow: 'hidden',
+        border: `1px solid ${borderColor}`,
+        marginBottom: 8,
+      }}
+    >
+      {/* Group header — tappable if it has items */}
+      <div
+        onClick={() => hasItems && setExpanded((p) => !p)}
+        role={hasItems ? 'button' : undefined}
+        tabIndex={hasItems ? 0 : undefined}
+        onKeyDown={(e) => {
+          if (hasItems && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            setExpanded((p) => !p);
+          }
+        }}
+        style={{
+          background: bgColor,
+          padding: '10px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          borderBottom: expanded ? `1px solid ${borderColor}` : 'none',
+          cursor: hasItems ? 'pointer' : 'default',
+        }}
+      >
+        {/* Number bubble */}
+        <div
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: '50%',
+            background: isDone ? C.green : injected ? C.amber : C.blue,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: isDone ? C.greenDim : injected ? C.amberDim : C.blueDim,
+              fontFamily: F.mono,
+            }}
+          >
+            {isDone ? '✓' : index + 1}
+          </span>
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              fontFamily: F.sans,
+              letterSpacing: '0.01em',
+              color: isDone ? C.textSecondary : C.textPrimary,
+              textDecoration: isDone ? 'line-through' : 'none',
+            }}
+          >
+            {group.label}
+          </div>
+        </div>
+        {injected && group.sourceSecondaryId ? (
+          <span
+            style={{
+              fontSize: 9,
+              color: C.amber,
+              fontFamily: F.sans,
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+              flexShrink: 0,
+            }}
+          >
+            Added by{' '}
+            {findProjectType(group.sourceSecondaryId)?.label ??
+              group.sourceSecondaryId}
+          </span>
+        ) : null}
+        {hasItems ? (
+          <span
+            style={{
+              fontSize: 10,
+              color: accentColor,
+              opacity: 0.7,
+              flexShrink: 0,
+              fontFamily: F.sans,
+            }}
+          >
+            {expanded ? '▲' : '▼'}
+          </span>
+        ) : null}
+      </div>
+
+      {/* Expanded — read-only item preview, worked through in Act */}
+      {expanded && hasItems ? (
+        <div style={{ background: C.bg }}>
+          <div
+            style={{
+              padding: '6px 14px',
+              background: C.bg3,
+              borderBottom: `1px solid ${C.border}`,
+            }}
+          >
+            <span
+              style={{
+                fontSize: 9,
+                color: C.textTertiary,
+                fontFamily: F.sans,
+                fontStyle: 'italic',
+              }}
+            >
+              ⌒ Read-only preview — decisions are worked through in Act
+            </span>
+          </div>
+
+          {group.items.map((item, i) => (
+            <ReadOnlyItemRow
+              key={item.id}
+              item={item}
+              striped={i % 2 === 1}
+              isLast={i === group.items.length - 1}
+              complete={isItemComplete(item.id)}
+              derived={
+                derivedEvidence?.[item.id]?.isComplete === true
+                  ? derivedEvidence[item.id]
+                  : undefined
+              }
+            />
+          ))}
+
+          <div
+            style={{
+              padding: '10px 14px',
+              background: C.bg3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                color: C.textTertiary,
+                fontFamily: F.sans,
+                fontStyle: 'italic',
+              }}
+            >
+              Full methodology available in Act
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                color: C.blue,
+                fontFamily: F.sans,
+                fontWeight: 600,
+              }}
+            >
+              Open in Act →
+            </span>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Collapsed footer — observe feeds + item count */}
+      {!expanded ? (
+        <div
+          style={{
+            background: C.bg3,
+            padding: '7px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              flexWrap: 'wrap',
+              minWidth: 0,
+            }}
+          >
+            {group.observeFeeds.length > 0 ? (
+              <>
+                <span
+                  style={{ fontSize: 10, color: C.teal, fontFamily: F.sans }}
+                >
+                  → feeds
+                </span>
+                {group.observeFeeds.map((feed) => (
+                  <span
+                    key={feed}
+                    style={{
+                      fontSize: 10,
+                      color: C.teal,
+                      fontFamily: F.sans,
+                      background: CA('teal', 0.12),
+                      borderRadius: 8,
+                      padding: '1px 7px',
+                    }}
+                  >
+                    {feed}
+                  </span>
+                ))}
+              </>
+            ) : (
+              <span />
+            )}
+          </div>
+          <span
+            style={{
+              fontSize: 10,
+              color: C.textTertiary,
+              fontFamily: F.mono,
+              background: C.bg4,
+              borderRadius: 8,
+              padding: '1px 7px',
+              flexShrink: 0,
+            }}
+          >
+            {group.items.length} item{group.items.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+interface ItemRowProps {
+  item: PlanDecisionChecklistItem;
+  striped: boolean;
+  isLast: boolean;
+  complete: boolean;
+  derived?: VisionDerivedItem;
+}
+
+/**
+ * A single expanded item: a NON-INTERACTIVE 14px checkbox (✓ when complete) +
+ * the item label and its read-only adornments. No onChange — the Plan stage
+ * does not toggle completion.
+ */
+function ReadOnlyItemRow({
+  item,
+  striped,
+  isLast,
+  complete,
+  derived,
+}: ItemRowProps) {
+  const fromBridge = Boolean(derived);
+  return (
+    <div
+      data-complete={complete}
+      data-derived={fromBridge}
+      data-injected={item.expandedBySecondaryId ? 'true' : undefined}
+      style={{
+        padding: '9px 14px 9px 38px',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 10,
+        borderBottom: isLast ? 'none' : `1px solid ${CA('border', 0.2)}`,
+        background: striped ? C.bg2 : C.bg,
+      }}
+    >
+      {/* Non-interactive checkbox */}
+      <div
+        aria-hidden="true"
+        style={{
+          width: 14,
+          height: 14,
+          borderRadius: 3,
+          flexShrink: 0,
+          marginTop: 2,
+          border: `1.5px solid ${complete ? C.green : C.textTertiary}`,
+          background: complete ? C.green : 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: 0.7,
+        }}
+      >
+        {complete ? (
+          <span style={{ fontSize: 9, color: C.greenDim, fontFamily: F.sans }}>
+            ✓
+          </span>
+        ) : null}
+      </div>
+
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <span
+          style={{
+            fontSize: 11,
+            color: complete ? C.textTertiary : C.textSecondary,
+            fontFamily: F.sans,
+            lineHeight: 1.5,
+            textDecoration: complete ? 'line-through' : 'none',
+          }}
+        >
+          {item.label}
+        </span>
+
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 6,
+            marginTop: 5,
+          }}
+        >
+          {item.optional ? <Tag color={C.textTertiary}>optional</Tag> : null}
+          {item.isMethodology ? <Tag color={C.teal}>methodology</Tag> : null}
+          {item.expandedBySecondaryId ? (
+            <Tag color={C.amber}>
+              Expanded by{' '}
+              {findProjectType(item.expandedBySecondaryId)?.label ??
+                item.expandedBySecondaryId}
+            </Tag>
+          ) : null}
+          {fromBridge ? (
+            <Tag color={C.green}>From Stage Zero Vision</Tag>
+          ) : null}
+          {item.feedsInto.map((targetId) => {
+            const target = findObjectiveGlobally(targetId);
+            return (
+              <Tag key={targetId} color={C.blue}>
+                feeds {target?.title ?? targetId}
+              </Tag>
+            );
+          })}
+        </div>
+
+        {fromBridge && derived?.evidence ? (
+          <p
+            data-testid={`plan-decision-evidence-${item.id}`}
+            style={{
+              margin: '6px 0 0',
+              fontSize: 10,
+              color: C.textTertiary,
+              fontFamily: F.sans,
+              fontStyle: 'italic',
+              lineHeight: 1.5,
+            }}
+          >
+            {derived.evidence}
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function Tag({ color, children }: { color: string; children: ReactNode }) {
+  return (
+    <span
+      style={{
+        fontSize: 9,
+        color,
+        fontFamily: F.sans,
+        fontWeight: 600,
+        letterSpacing: '0.02em',
+        background: C.bg4,
+        borderRadius: 6,
+        padding: '1px 6px',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+/**
+ * The completion-gate block, preserved from the production checklist as a
+ * read-only spine-styled panel (gate text + amendment history). Renders only
+ * when the objective carries a gate.
+ */
+function CompletionGate({ objective }: { objective: PlanStratumObjective }) {
+  const amenderTypeId = mostCommonAmender(objective.checklist);
+  const gateAmendments = objective.completionGateAmendments ?? [];
+  const gateBase = objective.completionGateBase;
+  const hasGateHistory =
+    gateAmendments.length > 0 && Boolean(gateBase && gateBase.trim());
+
+  return (
+    <div
+      style={{
+        marginTop: 4,
+        marginBottom: 12,
+        padding: '12px 14px',
+        borderRadius: 8,
+        border: `1px solid ${C.border}`,
+        background: C.bg2,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          gap: 8,
+          marginBottom: 6,
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: C.textTertiary,
+            fontFamily: F.sans,
+          }}
+        >
+          Completion gate
+        </p>
+        {amenderTypeId ? (
+          <span style={{ fontSize: 9, color: C.amber, fontFamily: F.sans }}>
+            Amended by {findProjectType(amenderTypeId)?.label ?? amenderTypeId}
+          </span>
+        ) : null}
+      </div>
+
+      {hasGateHistory ? (
+        <div data-testid="plan-gate-history" style={{ marginBottom: 8 }}>
+          <p
+            style={{
+              margin: '0 0 2px',
+              fontSize: 9,
+              color: C.textTertiary,
+              fontFamily: F.sans,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
+            Previously
+          </p>
+          <p
+            style={{
+              margin: '0 0 6px',
+              fontSize: 11,
+              color: C.textTertiary,
+              fontFamily: F.sans,
+              textDecoration: 'line-through',
+              lineHeight: 1.5,
+            }}
+          >
+            {gateBase}
+          </p>
+          <ul style={{ margin: 0, paddingLeft: 16 }}>
+            {gateAmendments.map((a, i) => (
+              <li
+                key={`${a.secondaryTypeId}-${i}`}
+                style={{
+                  fontSize: 11,
+                  color: C.textSecondary,
+                  fontFamily: F.sans,
+                  lineHeight: 1.5,
+                }}
+              >
+                <span style={{ color: C.amber, fontWeight: 600 }}>
+                  {findProjectType(a.secondaryTypeId)?.label ??
+                    a.secondaryTypeId}
+                </span>{' '}
+                added: {a.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <p
+        style={{
+          margin: 0,
+          fontSize: 12,
+          color: C.textSecondary,
+          fontFamily: F.sans,
+          lineHeight: 1.55,
+        }}
+      >
+        {objective.completionGate}
+      </p>
+    </div>
+  );
+}
+
+/**
  * The secondary type credited with amending the completion gate: the
  * most-common `expandedBySecondaryId` across injected checklist items.
- * Returns undefined when no item was injected by a secondary layer.
  */
 function mostCommonAmender(
   items: readonly PlanDecisionChecklistItem[],
@@ -169,215 +740,4 @@ function mostCommonAmender(
     }
   }
   return best;
-}
-
-interface ItemRowProps {
-  item: PlanDecisionChecklistItem;
-  completed: Set<string>;
-  derivedEvidence?: VisionDerivedMap;
-  onToggleItem: (itemId: string) => void;
-}
-
-/**
- * One checklist <ChecklistRow>, resolving its derived/bridge state. Shared by
- * the flat list and the grouped render so both paths stay byte-identical per
- * item.
- */
-function ItemRow({
-  item,
-  completed,
-  derivedEvidence,
-  onToggleItem,
-}: ItemRowProps) {
-  const derived = derivedEvidence?.[item.id];
-  const fromBridge = derived?.isComplete === true;
-  return (
-    <ChecklistRow
-      item={item}
-      isComplete={completed.has(item.id) || fromBridge}
-      derived={fromBridge ? derived : undefined}
-      onToggle={() => onToggleItem(item.id)}
-    />
-  );
-}
-
-interface GroupedChecklistProps {
-  groups: readonly DecisionGroup[];
-  items: readonly PlanDecisionChecklistItem[];
-  completed: Set<string>;
-  derivedEvidence?: VisionDerivedMap;
-  onToggleItem: (itemId: string) => void;
-}
-
-/**
- * Render the checklist grouped under each decision group's sub-header (label +
- * "N items" + observe-feed chips). A group injected by a secondary layer
- * (`sourceSecondaryId != null`, stamped by the resolver) reuses the amber
- * "Added by <Type>" treatment + injected left-border, matching the per-item
- * patch attribution. Items not claimed by any group fall through to a trailing
- * "Other decisions" block so the render stays lossless if a catalogue is only
- * partially grouped (the partition invariant is enforced in the shared tests).
- */
-function GroupedChecklist({
-  groups,
-  items,
-  completed,
-  derivedEvidence,
-  onToggleItem,
-}: GroupedChecklistProps) {
-  const byId = new Map(items.map((i) => [i.id, i]));
-  const claimed = new Set<string>();
-
-  const rendered = groups.map((group) => {
-    const groupItems = group.itemIds
-      .map((id) => byId.get(id))
-      .filter((i): i is PlanDecisionChecklistItem => Boolean(i));
-    groupItems.forEach((i) => claimed.add(i.id));
-    const injected = group.sourceSecondaryId != null;
-    return (
-      <li
-        key={group.id}
-        className={css.group}
-        data-injected={injected ? 'true' : undefined}
-        data-testid={`plan-decision-group-${group.id}`}
-      >
-        <div className={css.groupHeader}>
-          <span className={css.groupLabel}>{group.label}</span>
-          <span className={css.groupCount}>
-            {groupItems.length}{' '}
-            {groupItems.length === 1 ? 'item' : 'items'}
-          </span>
-          {injected && group.sourceSecondaryId ? (
-            <span className={css.groupAddedBy}>
-              Added by{' '}
-              {findProjectType(group.sourceSecondaryId)?.label ??
-                group.sourceSecondaryId}
-            </span>
-          ) : null}
-        </div>
-        {group.observeFeeds.length > 0 ? (
-          <div className={css.groupFeeds}>
-            {group.observeFeeds.map((feed) => (
-              <span key={feed} className={css.groupFeed}>
-                {feed}
-              </span>
-            ))}
-          </div>
-        ) : null}
-        <ol className={css.list}>
-          {groupItems.map((item) => (
-            <li key={item.id} className={css.item}>
-              <ItemRow
-                item={item}
-                completed={completed}
-                derivedEvidence={derivedEvidence}
-                onToggleItem={onToggleItem}
-              />
-            </li>
-          ))}
-        </ol>
-      </li>
-    );
-  });
-
-  const ungrouped = items.filter((i) => !claimed.has(i.id));
-
-  return (
-    <ol className={css.groups}>
-      {rendered}
-      {ungrouped.length > 0 ? (
-        <li className={css.group} data-testid="plan-decision-group-ungrouped">
-          <div className={css.groupHeader}>
-            <span className={css.groupLabel}>Other decisions</span>
-            <span className={css.groupCount}>
-              {ungrouped.length}{' '}
-              {ungrouped.length === 1 ? 'item' : 'items'}
-            </span>
-          </div>
-          <ol className={css.list}>
-            {ungrouped.map((item) => (
-              <li key={item.id} className={css.item}>
-                <ItemRow
-                  item={item}
-                  completed={completed}
-                  derivedEvidence={derivedEvidence}
-                  onToggleItem={onToggleItem}
-                />
-              </li>
-            ))}
-          </ol>
-        </li>
-      ) : null}
-    </ol>
-  );
-}
-
-interface RowProps {
-  item: PlanDecisionChecklistItem;
-  isComplete: boolean;
-  derived?: VisionDerivedItem;
-  onToggle: () => void;
-}
-
-function ChecklistRow({ item, isComplete, derived, onToggle }: RowProps) {
-  const isFromBridge = Boolean(derived);
-  const isInjected = Boolean(item.expandedBySecondaryId);
-  return (
-    <label
-      className={css.row}
-      data-complete={isComplete}
-      data-derived={isFromBridge}
-      data-injected={isInjected ? 'true' : undefined}
-    >
-      <input
-        type="checkbox"
-        className={css.checkbox}
-        checked={isComplete}
-        onChange={onToggle}
-        disabled={isFromBridge}
-        aria-describedby={
-          isFromBridge ? `${item.id}-evidence` : undefined
-        }
-      />
-      <div className={css.body}>
-        <span className={css.label}>{item.label}</span>
-        <div className={css.tags}>
-          {item.optional ? (
-            <span className={css.optional}>optional</span>
-          ) : null}
-          {item.expandedBySecondaryId ? (
-            <span className={css.expandedBy}>
-              Added by{' '}
-              {findProjectType(item.expandedBySecondaryId)?.label ??
-                item.expandedBySecondaryId}
-            </span>
-          ) : null}
-          {isFromBridge ? (
-            <span className={css.derivedBadge}>From Stage Zero Vision</span>
-          ) : null}
-          {item.feedsInto.map((targetId) => {
-            // Project-independent title lookup: a feedsInto target may be a
-            // universal, primary, or secondary-additive objective, so resolve
-            // across the catalogue union (Sub-slice D Group 2). The old static
-            // findPlanStratumObjective could only title the 16-objective skeleton.
-            const target = findObjectiveGlobally(targetId);
-            return (
-              <span key={targetId} className={css.feedsInto}>
-                feeds {target?.title ?? targetId}
-              </span>
-            );
-          })}
-        </div>
-        {isFromBridge && derived?.evidence ? (
-          <p
-            id={`${item.id}-evidence`}
-            className={css.evidence}
-            data-testid={`plan-decision-evidence-${item.id}`}
-          >
-            {derived.evidence}
-          </p>
-        ) : null}
-      </div>
-    </label>
-  );
 }
