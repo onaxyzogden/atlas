@@ -36,6 +36,10 @@ interface Props {
   /** §8: show the cross-project Observe-compare entry only when the steward is
    *  owner-tier on at least one project. Defaults to true (open). */
   canCompare?: boolean;
+  /** Manual "Sync now" for an un-synced, non-builtin project. When provided,
+   *  un-synced rows show a "Not synced" tag + a Sync button; the returned
+   *  promise (if any) is awaited to drive the per-row pending state. */
+  onSyncProject?: (id: string) => void | Promise<void>;
 }
 
 export default function PortfolioProjectList({
@@ -45,9 +49,24 @@ export default function PortfolioProjectList({
   onNewProject,
   stageById,
   canCompare = true,
+  onSyncProject,
 }: Props) {
   const [query, setQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<StageFilter | 'all'>('all');
+  // Per-row "Sync now" in-flight id, so only the clicked row shows "Syncing…".
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  const handleSync = async (id: string) => {
+    if (!onSyncProject || syncingId) return;
+    setSyncingId(id);
+    try {
+      await Promise.resolve(onSyncProject(id));
+    } finally {
+      // On success the row flips to "Synced" and the button unmounts; on
+      // failure the button re-enables so the steward can retry.
+      setSyncingId(null);
+    }
+  };
 
   const stageOf = (p: LocalProject): PortfolioStage =>
     stageById?.get(p.id) ?? derivePortfolioStage(p);
@@ -107,8 +126,16 @@ export default function PortfolioProjectList({
           {filtered.map((p) => {
             const stage = stageOf(p);
             const isSelected = p.id === selectedId;
+            // Builtins are system-owned samples (never synced by the steward);
+            // a real project is "synced" once it carries a serverId.
+            const syncState: 'synced' | 'unsynced' | 'builtin' = p.isBuiltin
+              ? 'builtin'
+              : p.serverId
+                ? 'synced'
+                : 'unsynced';
+            const isSyncing = syncingId === p.id;
             return (
-              <li key={p.id}>
+              <li key={p.id} className={css.row}>
                 <button
                   type="button"
                   className={css.item}
@@ -124,9 +151,24 @@ export default function PortfolioProjectList({
                     <span className={css.itemName}>{p.name}</span>
                     <span className={css.itemMeta}>
                       {STAGE_PAINT[stage].label} · {projectAreaLabel(p)}
+                      {syncState === 'unsynced' && (
+                        <span className={css.tagUnsynced}>Not synced</span>
+                      )}
+                      {syncState === 'synced' && <span className={css.tagSynced}>Synced</span>}
+                      {syncState === 'builtin' && <span className={css.tagSample}>Sample</span>}
                     </span>
                   </span>
                 </button>
+                {syncState === 'unsynced' && onSyncProject && (
+                  <button
+                    type="button"
+                    className={css.syncBtn}
+                    disabled={isSyncing}
+                    onClick={() => void handleSync(p.id)}
+                  >
+                    {isSyncing ? 'Syncing…' : 'Sync'}
+                  </button>
+                )}
               </li>
             );
           })}

@@ -22,6 +22,8 @@ import { ArrowRight } from 'lucide-react';
 import { useProjectStore } from '../store/projectStore.js';
 import { useAuthStore } from '../store/authStore.js';
 import { api } from '../lib/apiClient.js';
+import { syncProjectNow } from '../lib/syncService.js';
+import { toast } from '../components/Toast.js';
 import { recordShowcaseEvent } from '../showcase/lib/showcaseEventLog.js';
 import { OrganizationSwitcherModal } from '../features/organizations/OrganizationSwitcherModal.js';
 import styles from './NewProjectPage.module.css';
@@ -95,9 +97,16 @@ export default function NewProjectPage() {
     if (!canSubmit) return;
     setCreating(true);
     const trimmed = name.trim();
+    // Non-template projects sync through the canonical syncProjectNow path; it
+    // reads the chosen workspace from `metadata.orgId`, so stash it there (the
+    // store subscription's auto-sync and the explicit call below then POST the
+    // same org — no double-create with divergent workspaces). The template
+    // branch keeps its own server seam, so it doesn't need the carrier.
     const metadata = prefillTemplate
       ? { instantiatedFromTemplate: prefillTemplate }
-      : undefined;
+      : orgId
+        ? { orgId }
+        : undefined;
 
     // Country/units are captured later (location is gathered in OBSERVE), so
     // seed the schema defaults here — they can be changed in project settings.
@@ -108,8 +117,9 @@ export default function NewProjectPage() {
 
     // Authenticated: mirror to the server and adopt the server id.
     if (token) {
-      try {
-        if (prefillTemplate) {
+      if (prefillTemplate) {
+        // Template instantiation has its own server seam + showcase event.
+        try {
           const { data: serverProject } = await api.templates.instantiatePublic(
             prefillTemplate,
             { name: trimmed, parcelBoundaryGeojson: null, orgId },
@@ -120,16 +130,19 @@ export default function NewProjectPage() {
             projectId: serverProject.id,
             payload: { template: prefillTemplate },
           });
-        } else {
-          const { data: serverProject } = await api.projects.create({
-            name: trimmed,
-            orgId,
-            ...defaults,
-          });
-          updateProject(project.id, { serverId: serverProject.id });
+        } catch {
+          // Backend unavailable — local copy is intact, sync retries later.
         }
-      } catch {
-        // Backend unavailable — local copy is intact, sync retries later.
+      } else {
+        // Single canonical, idempotent, in-flight-deduped sync. Local-first: we
+        // still navigate on failure (the project is saved on-device and
+        // syncQueue retries) but surface an honest toast instead of swallowing.
+        const result = await syncProjectNow(project.id);
+        if (!result.ok && result.error !== 'builtin') {
+          toast.error(
+            "Saved on this device — couldn't reach the server. It'll sync automatically when you're back online.",
+          );
+        }
       }
     }
 

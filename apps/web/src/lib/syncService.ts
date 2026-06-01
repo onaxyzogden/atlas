@@ -91,6 +91,14 @@ let isSyncing = false;
 /** Allow external modules (e.g., wsService) to set the sync guard. */
 export function setSyncGuard(value: boolean) { isSyncing = value; }
 
+/**
+ * In-flight project-create dedup. Keyed by local project id. Guarantees that the
+ * store subscription, the boot catch-up, and any explicit `syncProjectNow` caller
+ * can never fire two concurrent `POST /projects` for the same local project (the
+ * double-create race). A second caller awaits the same promise.
+ */
+const inFlightProjectSync = new Map<string, Promise<void>>();
+
 /** Subscription unsubscribe functions */
 let unsubscribers: (() => void)[] = [];
 
@@ -193,7 +201,10 @@ function subscribeToProjects() {
     prevProjects = curr;
 
     for (const project of added) {
-      syncProjectCreate(project);
+      // Route through the canonical path so the serverId short-circuit + the
+      // in-flight lock dedup against any explicit syncProjectNow caller (wizard
+      // "Create", Portfolio "Sync now") — removes the double-create race.
+      void syncProjectNow(project.id);
     }
     for (const project of updated) {
       syncProjectUpdate(project);
@@ -309,7 +320,72 @@ export function applyServerAcreage(
 }
 
 async function syncProjectCreate(project: LocalProject, rethrow = false) {
+  // Idempotent at entry: a project that already carries a serverId is synced —
+  // never POST a second row for it.
+  if (project.serverId) return;
+  // Dedup concurrent creates for the same local project. If one is already in
+  // flight, await it instead of starting a second POST.
+  const inFlight = inFlightProjectSync.get(project.id);
+  if (inFlight) {
+    if (rethrow) {
+      await inFlight; // surface any rejection to the explicit caller
+    } else {
+      try { await inFlight; } catch { /* the owning call handles queue/logging */ }
+    }
+    return;
+  }
+  const run = syncProjectCreateInner(project, rethrow);
+  inFlightProjectSync.set(project.id, run);
   try {
+    await run;
+  } finally {
+    inFlightProjectSync.delete(project.id);
+  }
+}
+
+/**
+ * Canonical, idempotent, awaitable project→server sync. The single entry point
+ * for explicitly pushing a local project to the backend (wizard "Create", the
+ * Portfolio "Sync now" action, boot catch-up). Resolves a structured result
+ * rather than throwing so callers can surface a toast without a try/catch.
+ *
+ * Guards:
+ *  - project not found        → { ok: false }
+ *  - builtin (system-owned)   → { ok: false, error: 'builtin' }  (never POST a sample)
+ *  - already synced (serverId)→ { ok: true, serverId }            (short-circuit)
+ *
+ * Concurrency is deduped via `inFlightProjectSync` inside `syncProjectCreate`,
+ * so a subscription-driven create and an explicit call can't double-POST.
+ */
+export async function syncProjectNow(
+  localId: string,
+): Promise<{ ok: boolean; serverId?: string; error?: unknown }> {
+  const project = useProjectStore.getState().projects.find((p) => p.id === localId);
+  if (!project) return { ok: false, error: 'not-found' };
+  if (project.isBuiltin) return { ok: false, error: 'builtin' };
+  if (project.serverId) return { ok: true, serverId: project.serverId };
+
+  try {
+    await syncProjectCreate(project, /* rethrow */ true);
+    // Read the freshly-stamped serverId back from the store (write-through above).
+    const synced = useProjectStore.getState().projects.find((p) => p.id === localId);
+    return synced?.serverId
+      ? { ok: true, serverId: synced.serverId }
+      : { ok: false, error: 'no-server-id' };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
+async function syncProjectCreateInner(project: LocalProject, rethrow: boolean) {
+  try {
+    // Workspace: callers that need to land the project in a specific org (the
+    // New Project page's workspace picker) stash the chosen orgId on
+    // `metadata.orgId` BEFORE createProject, so whichever path POSTs first (the
+    // store subscription's auto-sync or an explicit syncProjectNow) carries the
+    // same workspace — no race over which create wins. Omitted → server default org.
+    const orgId =
+      typeof project.metadata?.orgId === 'string' ? (project.metadata.orgId as string) : undefined;
     const { data } = await api.projects.create({
       name: project.name,
       description: project.description ?? undefined,
@@ -319,6 +395,7 @@ async function syncProjectCreate(project: LocalProject, rethrow = false) {
       address: project.address ?? undefined,
       parcelId: project.parcelId ?? undefined,
       units: project.units,
+      ...(orgId ? { orgId } : {}),
     });
 
     // Write serverId back (guarded)

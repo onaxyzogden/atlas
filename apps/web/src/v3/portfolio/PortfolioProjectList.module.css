@@ -166,11 +166,21 @@
   gap: 4px;
 }
 
+/* Row wraps the selectable item button plus an optional "Sync" action button
+   (a sibling, not nested — buttons can't nest). */
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .item {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1 1 auto;
   width: 100%;
+  min-width: 0;
   padding: 9px 10px;
   background: transparent;
   border: 1px solid transparent;
@@ -218,6 +228,66 @@
 .itemMeta {
   font-size: 11px;
   color: var(--color-text-muted);
+}
+
+/* ---- Sync-status tags + manual Sync button ------------------------------- */
+
+/* Small inline pills appended to the meta line. Reuse the muted meta tone; one
+   accent colour flags an un-synced project as needing attention. */
+.tagUnsynced,
+.tagSynced,
+.tagSample {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 0 6px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.tagUnsynced {
+  color: var(--color-warning, #b4690e);
+  background: rgba(180, 105, 14, 0.12);
+}
+
+.tagSynced {
+  color: var(--color-text-subtle);
+  background: var(--color-surface-alt);
+}
+
+.tagSample {
+  color: var(--color-text-subtle);
+  background: var(--color-surface-alt);
+}
+
+.syncBtn {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.syncBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-hover-overlay);
+}
+
+.syncBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .empty {

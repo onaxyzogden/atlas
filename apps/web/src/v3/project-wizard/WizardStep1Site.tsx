@@ -25,7 +25,7 @@ import {
   isStep1Ready,
   type WizardUnits,
 } from '../../store/projectWizardStore.js';
-import { api } from '../../lib/apiClient.js';
+import { syncProjectNow } from '../../lib/syncService.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { toast } from '../../components/Toast.js';
 import ProjectWizardShell from './ProjectWizardShell.js';
@@ -137,18 +137,17 @@ export default function WizardStep1Site() {
         hasParcelBoundary: Boolean(fc),
         acreage: acreage ?? undefined,
       });
-      // Best-effort server mirror; offline path silently skips.
+      // Server mirror through the single canonical sync path (idempotent +
+      // in-flight-deduped against the store subscription, so exactly one row is
+      // created). Local-first: we still navigate even if the sync fails — the
+      // project is already saved on-device and syncQueue will retry — but we no
+      // longer swallow the failure silently; the steward gets an honest toast.
       if (token) {
-        try {
-          const { data: serverProject } = await api.projects.create({
-            name: trimmed,
-            country: draft.country,
-            units: draft.units,
-            projectType: draft.projectType,
-          });
-          updateProject(project.id, { serverId: serverProject.id });
-        } catch {
-          /* offline — local-only is fine */
+        const result = await syncProjectNow(project.id);
+        if (!result.ok && result.error !== 'builtin') {
+          toast.error(
+            "Saved on this device — couldn't reach the server. It'll sync automatically when you're back online.",
+          );
         }
       }
       clearDraft();

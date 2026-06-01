@@ -581,8 +581,16 @@ export default function PortfolioMap({
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
     m.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
     setMap(m);
+    // DEV-only debug handle (mirrors __ogdenProjectStore) so the live flow-line +
+    // layer-idempotency checks can assert `getStyle().layers` from the console.
+    if (import.meta.env.DEV) {
+      (window as unknown as Record<string, unknown>).__portfolioMap = m;
+    }
     return () => {
       setMap(null);
+      if (import.meta.env.DEV) {
+        delete (window as unknown as Record<string, unknown>).__portfolioMap;
+      }
       m.remove();
     };
   }, []);

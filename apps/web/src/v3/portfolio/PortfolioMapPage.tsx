@@ -33,6 +33,7 @@ import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
 import { usePortfolioContractorRedirect } from './usePortfolioContractorRedirect.js';
 import { portfolioAccess } from './portfolioModel.js';
 import { ApiError } from '../../lib/apiClient.js';
+import { syncProjectNow } from '../../lib/syncService.js';
 import css from './PortfolioMapPage.module.css';
 
 export default function PortfolioMapPage({ projects }: { projects: LocalProject[] }) {
@@ -191,6 +192,21 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
     }
   };
 
+  // Manual "Sync now" for an un-synced project (the row's Sync button). Routes
+  // through the canonical idempotent path; on success the project's serverId is
+  // stamped and the row flips to "Synced". A builtin can't be synced (system-
+  // owned) — surface that honestly rather than silently no-op.
+  const handleSyncProject = async (id: string) => {
+    const result = await syncProjectNow(id);
+    if (result.ok) {
+      emitPortfolioToast('Project synced.', 'success');
+    } else if (result.error === 'builtin') {
+      emitPortfolioToast("Sample projects can't be synced.", 'error');
+    } else {
+      emitPortfolioToast("Couldn't sync — it'll retry automatically.", 'error');
+    }
+  };
+
   // Selecting a project closes the mobile list sheet (and, by populating
   // `selected`, opens the right-rail bottom sheet on mobile).
   const handleSelect = (id: string) => {
@@ -220,6 +236,7 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
             onNewProject={() => navigate({ to: '/v3/project/wizard' })}
             stageById={stageById}
             canCompare={canCompare}
+            onSyncProject={handleSyncProject}
           />
         </aside>
 
