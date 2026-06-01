@@ -6,9 +6,10 @@
  * Anchored bottom-right of the map host. Uses platform tokens (no local
  * theming) so it inherits the dark/light palette automatically.
  *
- * Target route: the per-project True North / Stage Zero setup surface,
- * which is the existing entry point for project location + vision data.
- * If a dedicated boundary editor lands later, swap the `to` target.
+ * Target route: the per-project Observe surface, the entry point for
+ * project location + site data (repointed from the retired True North
+ * surface, 2026-05-31). If a dedicated boundary editor lands later,
+ * swap the `to` target.
  */
 
 import { Link } from '@tanstack/react-router';
