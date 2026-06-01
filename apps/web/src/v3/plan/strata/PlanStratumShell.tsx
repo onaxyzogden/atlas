@@ -35,7 +35,9 @@ import StratumSpine from './StratumSpine.js';
 import StratumLockedPopover from './StratumLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
-import ProtocolLayerPanel from './ProtocolLayerPanel.js';
+import ProtocolColumn from './ProtocolColumn.js';
+import ProtocolDetailColumn from './ProtocolDetailColumn.js';
+import { useProtocolLibrary } from './useProtocolLibrary.js';
 import { useProjectObjectives } from './useProjectObjectives.js';
 import { planHeaderProjectTypeLabel } from './planHeaderLabel.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
@@ -302,6 +304,31 @@ export default function PlanStratumShell() {
   const secondaryCount = currentSecondaryIds.length;
   const primaryTypeLabel = planHeaderProjectTypeLabel(primaryTypeId, secondaryCount);
 
+  // Plan Protocol mode (Phase 3) — the center column is a multi-select protocol
+  // list and the right column stacks the detail of each selection. Selection is
+  // transient component state this slice (not persisted to URL/store). The shared
+  // useProtocolLibrary hook derives the same templates/groups/status/outputs the
+  // Act-rail ProtocolLayerPanel uses, so the two surfaces can never drift.
+  const [selectedProtocolIds, setSelectedProtocolIds] = useState<
+    readonly string[]
+  >([]);
+  const toggleProtocol = (id: string) =>
+    setSelectedProtocolIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  const protocolLib = useProtocolLibrary(
+    projectId,
+    primaryTypeId,
+    currentSecondaryIds,
+  );
+  // Filter the ORDERED library by selection so the detail stack is in
+  // catalogue/tier order (stable), not click order.
+  const selectedTemplates = useMemo(
+    () =>
+      protocolLib.templates.filter((t) => selectedProtocolIds.includes(t.id)),
+    [protocolLib.templates, selectedProtocolIds],
+  );
+
   const [secondaryAddOpen, setSecondaryAddOpen] = useState(false);
   const [reopenPayload, setReopenPayload] = useState<{
     secondaryTypeId: ProjectTypeId;
@@ -493,7 +520,7 @@ export default function PlanStratumShell() {
         >
           <div
             style={{
-              fontSize: 10,
+              fontSize: 12,
               color: C.textTertiary,
               fontWeight: 700,
               textTransform: 'uppercase',
@@ -514,7 +541,7 @@ export default function PlanStratumShell() {
           >
             Plan stratum spine
           </h2>
-          <p style={{ margin: 0, fontSize: 11, lineHeight: 1.45, color: C.textSecondary }}>
+          <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: C.textSecondary }}>
             7 strata from foundation to phasing. Each unlocks once its
             prerequisites complete.
           </p>
@@ -524,7 +551,7 @@ export default function PlanStratumShell() {
               data-testid="plan-header-project-type"
               style={{
                 marginTop: 8,
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: '0.01em',
                 color: C.textSecondary,
@@ -550,7 +577,7 @@ export default function PlanStratumShell() {
                 border: `1px solid ${C.border}`,
                 background: C.bg3,
                 color: C.textSecondary,
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: '0.04em',
                 textTransform: 'uppercase',
@@ -591,8 +618,16 @@ export default function PlanStratumShell() {
         />
       </div>
 
-      {/* ── CENTRE: objective column (mounts only when a stratum is open) ── */}
-      {activeStratum && (
+      {/* ── CENTRE: Protocol list (Protocol mode) or objective column (Design,
+           mounts only when a stratum is open) ── */}
+      {planMode === 'protocol' ? (
+        <ProtocolColumn
+          groups={protocolLib.groups}
+          statusByTemplate={protocolLib.statusByTemplate}
+          selectedIds={selectedProtocolIds}
+          onToggle={toggleProtocol}
+        />
+      ) : activeStratum ? (
         <ObjectiveColumn
           stratum={activeStratum}
           objectives={objectives}
@@ -606,7 +641,7 @@ export default function PlanStratumShell() {
           onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
           onRestoreObjective={(obj) => undeferObjective(projectId, obj.id)}
         />
-      )}
+      ) : null}
 
       {/* ── RIGHT: objective detail panel (flex-1) ── */}
       <div
@@ -620,10 +655,10 @@ export default function PlanStratumShell() {
         }}
       >
         {planMode === 'protocol' ? (
-          <ProtocolLayerPanel
-            projectId={projectId}
-            primaryTypeId={primaryTypeId}
-            secondaryTypeIds={currentSecondaryIds}
+          <ProtocolDetailColumn
+            selectedTemplates={selectedTemplates}
+            statusByTemplate={protocolLib.statusByTemplate}
+            outputs={protocolLib.outputs}
           />
         ) : hasDetailPanel && activeObjective && activeStratum ? (
           <ObjectiveDetailPanel
