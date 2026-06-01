@@ -84,6 +84,7 @@ import { observeSectionIdModule } from './observeSectionMap.js';
 import StageShell from '../_shell/StageShell.js';
 import ObserveShellToggle from './dashboard/ObserveShellToggle.js';
 import ObserveDashboardLayout from './dashboard/ObserveDashboardLayout.js';
+import type { SourceFilter } from './dashboard/domain/observationSource.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
@@ -169,6 +170,7 @@ export default function ObserveLayout() {
   const search = useSearch({ strict: false }) as {
     section?: string;
     need?: string;
+    source?: SourceFilter;
   };
   const activeSectionId = search.section ?? null;
   // Observation Capture Workspace: a launched need rides in via `?need=<id>`
@@ -272,6 +274,7 @@ export default function ObserveLayout() {
             onShellModeChange={handleObserveShellModeChange}
             domainId={params.domainId ?? null}
             surface={dashboardSurface}
+            initialSource={search.source ?? null}
           />
         }
         rightRail={null}

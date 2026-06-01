@@ -37,6 +37,7 @@ import DomainDetailHeader from './DomainDetailHeader.js';
 import DomainOverlayStrip from './DomainOverlayStrip.js';
 import DomainMapHost from './DomainMapHost.js';
 import DomainObservationList from './DomainObservationList.js';
+import type { SourceFilter } from './observationSource.js';
 import DomainEvidenceLibrary from './DomainEvidenceLibrary.js';
 import DomainObservationNeeds from './DomainObservationNeeds.js';
 import LegacyModuleEmbed from './LegacyModuleEmbed.js';
@@ -46,6 +47,13 @@ import css from './DomainDetailLayout.module.css';
 interface Props {
   projectId: string;
   domainId: UniversalDomain;
+  /**
+   * Optional pre-seed for the observation list's source filter, supplied when
+   * the steward arrives via an Objective Rollup "View in Domain Detail"
+   * deep-link (`?source=act`). Folded into the list key so re-entering the same
+   * domain through a fresh deep-link re-applies the pre-filter.
+   */
+  initialSourceFilter?: SourceFilter;
 }
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -54,7 +62,11 @@ function bundleFor(domainId: UniversalDomain): readonly OverlayId[] {
   return OBSERVE_DOMAIN_CATALOG[domainId].defaultOverlayBundle;
 }
 
-export default function DomainDetailLayout({ projectId, domainId }: Props) {
+export default function DomainDetailLayout({
+  projectId,
+  domainId,
+  initialSourceFilter,
+}: Props) {
   const project = useV3Project(projectId);
   const view = useDomainPoints(projectId, domainId);
   const snapshots = useDomainSnapshots(projectId);
@@ -128,7 +140,12 @@ export default function DomainDetailLayout({ projectId, domainId }: Props) {
           </div>
           <section className={css.section}>
             <h2 className={css.sectionTitle}>Observations</h2>
-            <DomainObservationList projectId={projectId} view={view} />
+            <DomainObservationList
+              key={`${domainId}:${initialSourceFilter ?? 'all'}`}
+              projectId={projectId}
+              view={view}
+              initialSourceFilter={initialSourceFilter}
+            />
           </section>
         </main>
 

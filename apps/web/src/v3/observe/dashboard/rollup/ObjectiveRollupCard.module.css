@@ -119,3 +119,29 @@
   font-size: 11px;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.45));
 }
+
+.detailLink {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.62));
+  transition: color 120ms ease;
+}
+
+.detailLink:hover {
+  color: var(--color-primary, #c4a265);
+}
+
+.detailLink:focus-visible {
+  outline: 2px solid var(--color-primary, #c4a265);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

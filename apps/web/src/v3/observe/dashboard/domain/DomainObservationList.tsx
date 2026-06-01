@@ -36,6 +36,12 @@ import css from './DomainObservationList.module.css';
 interface Props {
   projectId: string;
   view: DomainPointsView;
+  /**
+   * Initial source-filter selection. Defaults to 'all'; set to 'act' when the
+   * steward deep-links in from an Objective Rollup card so they land on the
+   * Act-emitted rows. Manual chip changes after mount still win.
+   */
+  initialSourceFilter?: SourceFilter;
 }
 
 const STATUS_LABEL: Record<ObserveStatusOutput, string> = {
@@ -85,8 +91,14 @@ function proofTypeIcon(type: string) {
   }
 }
 
-export default function DomainObservationList({ projectId, view }: Props) {
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+export default function DomainObservationList({
+  projectId,
+  view,
+  initialSourceFilter,
+}: Props) {
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>(
+    initialSourceFilter ?? 'all',
+  );
 
   // Build a reverse-lookup so an active row that superseded an older row
   // can render "Supersedes [link]" symmetric to the older row's

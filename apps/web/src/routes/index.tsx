@@ -50,6 +50,7 @@ import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
+import type { SourceFilter } from '../v3/observe/dashboard/domain/observationSource.js';
 import StageZeroVisionPage from '../v3/stage-zero/StageZeroVisionPage.js';
 // Compass stage-landing pages retired 2026-05-31 — routes removed, page
 // components preserved on disk per feedback_no_deletion.md:
@@ -416,6 +417,19 @@ const v3ObserveDashboardDomainRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'observe/dashboard/domain/$domainId',
   component: ObserveLayout,
+  // `?source=` pre-seeds the observation-list source filter when the steward
+  // deep-links here from an Objective Rollup card ("View in Domain Detail"),
+  // so they land on exactly the Act-emitted rows the rollup summarized. Narrow
+  // to the SourceFilter union; any other value falls through to the list's own
+  // 'all' default.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { source?: SourceFilter } => {
+    const s = search.source;
+    return {
+      source: s === 'act' || s === 'baseline' || s === 'all' ? s : undefined,
+    };
+  },
 });
 // Temporal Layer surface (Slice 4.5). Static
 // `observe/dashboard/temporal/$domainId` sits alongside the domain route so

@@ -25,6 +25,7 @@ import UnifiedLandStateSurface from './UnifiedLandStateSurface.js';
 import DomainDetailLayout from './domain/DomainDetailLayout.js';
 import TemporalLayerSurface from './temporal/TemporalLayerSurface.js';
 import ObjectiveRollupSurface from './rollup/ObjectiveRollupSurface.js';
+import type { SourceFilter } from './domain/observationSource.js';
 import css from './ObserveDashboardLayout.module.css';
 
 export type ObserveDashboardSurface =
@@ -39,6 +40,12 @@ interface Props {
   onShellModeChange: (mode: ObserveShellMode) => void;
   domainId?: string | null;
   surface?: ObserveDashboardSurface;
+  /**
+   * Pre-seed for the Domain Detail observation-list source filter, carried in
+   * via `?source=` when the steward deep-links from an Objective Rollup card.
+   * Only consumed by the domain branch; the other surfaces ignore it.
+   */
+  initialSource?: SourceFilter | null;
 }
 
 function isUniversalDomain(value: string): value is UniversalDomain {
@@ -51,6 +58,7 @@ export default function ObserveDashboardLayout({
   onShellModeChange,
   domainId,
   surface,
+  initialSource,
 }: Props) {
   const validDomainId = useMemo<UniversalDomain | null>(() => {
     if (!domainId) return null;
@@ -81,7 +89,11 @@ export default function ObserveDashboardLayout({
       ) : effectiveSurface === 'temporal' && validDomainId ? (
         <TemporalLayerSurface projectId={projectId} domainId={validDomainId} />
       ) : effectiveSurface === 'domain' && validDomainId ? (
-        <DomainDetailLayout projectId={projectId} domainId={validDomainId} />
+        <DomainDetailLayout
+          projectId={projectId}
+          domainId={validDomainId}
+          initialSourceFilter={initialSource ?? undefined}
+        />
       ) : (
         <UnifiedLandStateSurface projectId={projectId} />
       )}

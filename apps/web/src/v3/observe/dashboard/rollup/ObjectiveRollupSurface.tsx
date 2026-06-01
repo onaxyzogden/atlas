@@ -65,6 +65,7 @@ export default function ObjectiveRollupSurface({ projectId }: Props) {
           const domain = getPrimaryDomainForObjective(objective);
           return {
             objective,
+            domain,
             observations: byObjective.get(objective.id) ?? [],
             snapshot: domain ? snapshotByDomain.get(domain) : undefined,
           };
@@ -105,7 +106,9 @@ export default function ObjectiveRollupSurface({ projectId }: Props) {
         {rows.map((row) => (
           <ObjectiveRollupCard
             key={row.objective.id}
+            projectId={projectId}
             objective={row.objective}
+            domainId={row.domain}
             observations={row.observations}
             snapshot={row.snapshot}
           />

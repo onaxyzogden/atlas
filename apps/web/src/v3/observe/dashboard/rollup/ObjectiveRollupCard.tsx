@@ -10,10 +10,13 @@
  * state for objectives with no recorded observations yet.
  */
 
+import { useNavigate } from '@tanstack/react-router';
+import { ArrowUpRight } from 'lucide-react';
 import type {
   ObserveDataPoint,
   ObserveFreshness,
   PlanStratumObjective,
+  UniversalDomain,
 } from '@ogden/shared';
 import type { DomainSnapshot } from '../useDomainSnapshot.js';
 import {
@@ -23,7 +26,10 @@ import {
 import css from './ObjectiveRollupCard.module.css';
 
 interface Props {
+  projectId: string;
   objective: PlanStratumObjective;
+  /** Primary domain for this objective, or null if it has none. */
+  domainId: UniversalDomain | null;
   observations: readonly ObserveDataPoint[];
   snapshot: DomainSnapshot | undefined;
 }
@@ -38,10 +44,13 @@ const FRESHNESS_LABEL: Record<ObserveFreshness, string> = {
 const RECENT_LIMIT = 3;
 
 export default function ObjectiveRollupCard({
+  projectId,
   objective,
+  domainId,
   observations,
   snapshot,
 }: Props) {
+  const navigate = useNavigate();
   const recent = observations.slice(0, RECENT_LIMIT);
   const overflow = observations.length - recent.length;
 
@@ -92,6 +101,23 @@ export default function ObjectiveRollupCard({
             <li className={css.more}>+{overflow} more</li>
           )}
         </ol>
+      )}
+
+      {domainId && (
+        <button
+          type="button"
+          className={css.detailLink}
+          onClick={() =>
+            navigate({
+              to: '/v3/project/$projectId/observe/dashboard/domain/$domainId',
+              params: { projectId, domainId },
+              search: { source: 'act' },
+            })
+          }
+        >
+          View in Domain Detail
+          <ArrowUpRight size={13} aria-hidden="true" />
+        </button>
       )}
     </div>
   );
