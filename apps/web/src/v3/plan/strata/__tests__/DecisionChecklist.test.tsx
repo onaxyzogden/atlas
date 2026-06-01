@@ -12,15 +12,28 @@
  * read-only chips.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within, fireEvent } from '@testing-library/react';
 import type {
   DecisionGroup,
   PlanDecisionChecklistItem,
   PlanStratumObjective,
 } from '@ogden/shared';
+
+// The read-only "Open in Act ->" card link calls useNavigate(); the component
+// renders inside the TanStack router at runtime but not in this unit harness,
+// so stub the hook and capture the navigate spy for the navigation assertions.
+const { navigateMock } = vi.hoisted(() => ({ navigateMock: vi.fn() }));
+vi.mock('@tanstack/react-router', () => ({
+  useNavigate: () => navigateMock,
+}));
+
 import DecisionChecklist from '../DecisionChecklist.js';
 import type { VisionDerivedMap } from '../../../strata/visionProfileToChecklist.js';
+
+beforeEach(() => {
+  navigateMock.mockReset();
+});
 
 function ck(
   id: string,
@@ -91,6 +104,7 @@ describe('DecisionChecklist - grouped card render', () => {
   it('renders a card per group with its label and a collapsed item count', () => {
     render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={[]}
@@ -106,6 +120,7 @@ describe('DecisionChecklist - grouped card render', () => {
   it('reveals each item under its owning group only when expanded', () => {
     render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={[]}
@@ -122,6 +137,7 @@ describe('DecisionChecklist - grouped card render', () => {
   it('renders observe-feed chips transcribed verbatim (collapsed footer)', () => {
     render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={[]}
@@ -134,6 +150,7 @@ describe('DecisionChecklist - grouped card render', () => {
   it('is read-only — no interactive checkbox input is rendered', () => {
     const { container } = render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={[]}
@@ -148,6 +165,7 @@ describe('DecisionChecklist - grouped card render', () => {
   it('reflects completion as ✓ + line-through (display-only)', () => {
     render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={['c1', 'c2']}
@@ -175,6 +193,7 @@ describe('DecisionChecklist - secondary-sourced group attribution', () => {
     });
     render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={[]}
@@ -196,6 +215,7 @@ describe('DecisionChecklist - implicit single-group fallback (no groups)', () =>
     });
     render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={[]}
@@ -219,6 +239,7 @@ describe('DecisionChecklist - lossless partial-grouping fallback', () => {
     });
     render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={[]}
@@ -245,6 +266,7 @@ describe('DecisionChecklist - read-only adornments', () => {
     };
     render(
       <DecisionChecklist
+        projectId="proj-test"
         objective={objective}
         status="active"
         completedItemIds={[]}
@@ -258,5 +280,34 @@ describe('DecisionChecklist - read-only adornments', () => {
     expect(
       screen.getByTestId('plan-decision-evidence-c2'),
     ).toBeTruthy();
+  });
+});
+
+describe('DecisionChecklist - "Open in Act" deep link', () => {
+  const objective = mkObjective({
+    id: 'obj-water',
+    checklist: [ck('c1', 'Map surface flows'), ck('c2', 'Identify catchment')],
+    decisionGroups: [dg('obj-water-dg1', 'Surface flows', ['c1', 'c2'])],
+  });
+
+  it('expands the card and navigates to the objective field-action view on click', () => {
+    render(
+      <DecisionChecklist
+        projectId="mtc"
+        objective={objective}
+        status="active"
+        completedItemIds={[]}
+      />,
+    );
+    const card = screen.getByTestId('plan-decision-group-obj-water-dg1');
+    // The "Open in Act ->" CTA lives in the expanded card body.
+    expand(card, 'Surface flows');
+    const trigger = within(card).getByTestId('open-in-act-trigger');
+    fireEvent.click(trigger);
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith({
+      to: '/v3/project/$projectId/act/field-action/$objectiveId',
+      params: { projectId: 'mtc', objectiveId: 'obj-water' },
+    });
   });
 });

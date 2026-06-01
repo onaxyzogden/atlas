@@ -212,6 +212,7 @@ export default function ObjectiveDetailPanel({
       <ActProgressBar projectId={projectId} objectiveId={objective.id} />
 
       <DecisionChecklist
+        projectId={projectId}
         objective={objective}
         status={status}
         completedItemIds={completedItemIds}

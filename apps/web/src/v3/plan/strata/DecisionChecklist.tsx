@@ -21,6 +21,7 @@
 
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import type {
   DecisionGroup,
   PlanDecisionChecklistItem,
@@ -29,10 +30,12 @@ import type {
 } from '@ogden/shared';
 import { findProjectType } from '@ogden/shared';
 import { findObjectiveGlobally } from '../objectiveCatalog.js';
-import type { VisionDerivedItem, VisionDerivedMap } from './visionProfileToChecklist.js';
+import type { VisionDerivedItem, VisionDerivedMap } from '../../strata/visionProfileToChecklist.js';
 import { C, F, CA } from '../spine/tokens.js';
 
 interface Props {
+  /** Owning project id — threaded to the per-card "Open in Act" deep link. */
+  projectId: string;
   objective: PlanStratumObjective;
   status: PlanStratumObjectiveStatus;
   completedItemIds: readonly string[];
@@ -51,6 +54,7 @@ interface RenderGroup {
 }
 
 export default function DecisionChecklist({
+  projectId,
   objective,
   status,
   completedItemIds,
@@ -118,6 +122,8 @@ export default function DecisionChecklist({
         groups.map((group, i) => (
           <ReadOnlyDecisionGroupCard
             key={group.id}
+            projectId={projectId}
+            objectiveId={objective.id}
             group={group}
             index={i}
             isItemComplete={isItemComplete}
@@ -193,6 +199,8 @@ function buildRenderGroups(
 }
 
 interface CardProps {
+  projectId: string;
+  objectiveId: string;
   group: RenderGroup;
   index: number;
   isItemComplete: (id: string) => boolean;
@@ -206,11 +214,14 @@ interface CardProps {
  * card is purely presentational: no toggling, completion is read from props.
  */
 function ReadOnlyDecisionGroupCard({
+  projectId,
+  objectiveId,
   group,
   index,
   isItemComplete,
   derivedEvidence,
 }: CardProps) {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
   const hasItems = group.items.length > 0;
   const isDone = hasItems && group.items.every((i) => isItemComplete(i.id));
@@ -381,16 +392,30 @@ function ReadOnlyDecisionGroupCard({
             >
               Full methodology available in Act
             </span>
-            <span
+            <button
+              type="button"
+              data-testid="open-in-act-trigger"
+              onClick={() =>
+                navigate({
+                  to: '/v3/project/$projectId/act/field-action/$objectiveId',
+                  params: { projectId, objectiveId },
+                })
+              }
               style={{
+                margin: 0,
+                padding: 0,
+                border: 'none',
+                background: 'transparent',
+                font: 'inherit',
                 fontSize: 10,
                 color: C.blue,
                 fontFamily: F.sans,
                 fontWeight: 600,
+                cursor: 'pointer',
               }}
             >
               Open in Act →
-            </span>
+            </button>
           </div>
         </div>
       ) : null}
