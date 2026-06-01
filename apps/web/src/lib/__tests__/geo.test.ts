@@ -3,6 +3,8 @@ import {
   haversineM,
   polygonCentroid,
   extractBoundaryGeometry,
+  boundaryCentroid,
+  renderablePolygon,
 } from '../geo.js';
 
 describe('polygonCentroid', () => {
@@ -112,6 +114,169 @@ describe('extractBoundaryGeometry', () => {
       features: [],
     };
     expect(extractBoundaryGeometry(empty)).toBeUndefined();
+  });
+});
+
+describe('boundaryCentroid', () => {
+  const square: GeoJSON.Polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [2, 0],
+        [2, 2],
+        [0, 2],
+        [0, 0],
+      ],
+    ],
+  };
+
+  it('averages the outer-ring vertices of a Polygon', () => {
+    const c = boundaryCentroid(square);
+    expect(c).not.toBeNull();
+    // 5-vertex closed ring: sum 4 / 5 = 0.8 on each axis (the closing-repeat
+    // vertex biases the mean toward the [0, 0] corner).
+    expect(c![0]).toBeCloseTo(0.8, 5);
+    expect(c![1]).toBeCloseTo(0.8, 5);
+  });
+
+  it('averages across a MultiPolygon outer rings and stays finite', () => {
+    const mp: GeoJSON.MultiPolygon = {
+      type: 'MultiPolygon',
+      coordinates: [
+        square.coordinates,
+        [
+          [
+            [10, 10],
+            [12, 10],
+            [12, 12],
+            [10, 12],
+            [10, 10],
+          ],
+        ],
+      ],
+    };
+    const c = boundaryCentroid(mp);
+    expect(c).not.toBeNull();
+    expect(Number.isFinite(c![0])).toBe(true);
+    expect(Number.isFinite(c![1])).toBe(true);
+    // Both rings present -> centroid lands between them, never NaN.
+    expect(c![0]).toBeGreaterThan(0);
+    expect(c![1]).toBeGreaterThan(0);
+  });
+
+  it('skips non-finite vertices (NaN does NOT contaminate the result)', () => {
+    const withNaN: GeoJSON.Polygon = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [0, 0],
+          [2, 0],
+          [Number.NaN as unknown as number, 0],
+          [2, 2],
+          [0, 2],
+          [0, 0],
+        ],
+      ],
+    };
+    const c = boundaryCentroid(withNaN);
+    expect(c).not.toBeNull();
+    expect(Number.isFinite(c![0])).toBe(true);
+    expect(Number.isFinite(c![1])).toBe(true);
+  });
+
+  it('returns null when no finite vertex exists', () => {
+    const allNaN: GeoJSON.Polygon = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [Number.NaN as unknown as number, Number.NaN as unknown as number],
+          [Number.NaN as unknown as number, 0],
+        ],
+      ],
+    };
+    expect(boundaryCentroid(allNaN)).toBeNull();
+  });
+
+  it('returns null for an empty Polygon ring', () => {
+    expect(boundaryCentroid({ type: 'Polygon', coordinates: [[]] })).toBeNull();
+  });
+});
+
+describe('renderablePolygon', () => {
+  const square: GeoJSON.Polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [2, 0],
+        [2, 2],
+        [0, 2],
+        [0, 0],
+      ],
+    ],
+  };
+
+  it('returns a single-ring Polygon for a valid Polygon', () => {
+    const r = renderablePolygon(square);
+    expect(r).toBeDefined();
+    expect(r!.type).toBe('Polygon');
+    expect(r!.coordinates[0]).toEqual(square.coordinates[0]);
+  });
+
+  it('picks the first polygon of a MultiPolygon', () => {
+    const mp: GeoJSON.MultiPolygon = {
+      type: 'MultiPolygon',
+      coordinates: [
+        square.coordinates,
+        [
+          [
+            [10, 10],
+            [12, 10],
+            [12, 12],
+            [10, 10],
+          ],
+        ],
+      ],
+    };
+    const r = renderablePolygon(mp);
+    expect(r).toBeDefined();
+    expect(r!.type).toBe('Polygon');
+    expect(r!.coordinates[0]).toEqual(square.coordinates[0]);
+  });
+
+  it('returns undefined when the outer ring carries a non-finite vertex', () => {
+    const withNaN: GeoJSON.Polygon = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [0, 0],
+          [2, 0],
+          [Number.NaN as unknown as number, 2],
+          [0, 2],
+          [0, 0],
+        ],
+      ],
+    };
+    expect(renderablePolygon(withNaN)).toBeUndefined();
+  });
+
+  it('returns undefined for a degenerate ring (< 4 positions)', () => {
+    const degenerate: GeoJSON.Polygon = {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [0, 0],
+          [2, 0],
+          [0, 0],
+        ],
+      ],
+    };
+    expect(renderablePolygon(degenerate)).toBeUndefined();
+  });
+
+  it('returns undefined for undefined input', () => {
+    expect(renderablePolygon(undefined)).toBeUndefined();
   });
 });
 

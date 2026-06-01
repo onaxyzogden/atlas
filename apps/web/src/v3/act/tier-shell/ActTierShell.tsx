@@ -45,10 +45,14 @@ import {
 } from '../../../store/fieldActionStore.js';
 import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
-import { extractBoundaryGeometry } from '../../../lib/geo.js';
+import {
+  extractBoundaryGeometry,
+  boundaryCentroid,
+  renderablePolygon,
+} from '../../../lib/geo.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
-import DiagnoseMap, { polygonBounds } from '../../components/DiagnoseMap.js';
+import DiagnoseMap from '../../components/DiagnoseMap.js';
 import BaseMapCard from '../../plan/canvas/BaseMapCard.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
 import SectorCompassOverlay from '../../observe/components/overlays/SectorCompassOverlay.js';
@@ -121,9 +125,17 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     [projects, id],
   );
 
-  const boundary = extractBoundaryGeometry(project.parcelBoundaryGeojson) as
-    | GeoJSON.Polygon
-    | undefined;
+  // extractBoundaryGeometry can yield a Polygon OR a MultiPolygon (older/
+  // alternate persistence paths). Do NOT cast it to Polygon: a MultiPolygon
+  // mis-read as a single-ring Polygon poisons the bounds with NaN and crashes
+  // maplibre ("Invalid LngLat object: (NaN, NaN)"). Normalize to a render-safe
+  // single Polygon (or undefined) and derive the centroid from a finite-guarded
+  // vertex average instead of polygonBounds().getCenter().
+  const boundaryGeom = extractBoundaryGeometry(project.parcelBoundaryGeojson);
+  const safeBoundary = useMemo(
+    () => renderablePolygon(boundaryGeom),
+    [boundaryGeom],
+  );
 
   // Coords-only fallback (no boundary): prefer the parcel's intake center via
   // the v2->v3 adapter seam over the hard-coded stage centroid.
@@ -131,16 +143,12 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
 
   // One centroid shared by the objective markers so pins sit on the parcel.
-  const baseCentroid = useMemo<[number, number]>(() => {
-    if (boundary) {
-      const bounds = polygonBounds(boundary);
-      if (bounds) {
-        const center = bounds.getCenter();
-        return [center.lng, center.lat];
-      }
-    }
-    return fallbackCenter;
-  }, [boundary, fallbackCenter]);
+  // boundaryCentroid is finite-guarded and handles MultiPolygon; fallbackCenter
+  // is itself always finite -> baseCentroid is guaranteed finite.
+  const baseCentroid = useMemo<[number, number]>(
+    () => boundaryCentroid(boundaryGeom) ?? fallbackCenter,
+    [boundaryGeom, fallbackCenter],
+  );
 
   // Real data: objectives (per-project resolution) + field actions.
   const { objectives } = useProjectObjectives(id);
@@ -402,7 +410,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
           }
           canvas={
             <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-              <DiagnoseMap centroid={baseCentroid} boundary={boundary}>
+              <DiagnoseMap centroid={baseCentroid} boundary={safeBoundary}>
                 {({ map }) => (
                   <>
                     <BaseMapCard stage="act" />
@@ -448,7 +456,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                       map={map}
                       projectId={id}
                       variant="current"
-                      parcelBoundary={boundary}
+                      parcelBoundary={safeBoundary}
                     />
                   </>
                 )}

@@ -25,7 +25,12 @@ import {
   getActShellMode,
   type ActShellMode,
 } from '../../store/projectStore.js';
-import { parcelAcreage, extractBoundaryGeometry } from '../../lib/geo.js';
+import {
+  parcelAcreage,
+  extractBoundaryGeometry,
+  boundaryCentroid,
+  renderablePolygon,
+} from '../../lib/geo.js';
 import { useActTelemetry } from '../../lib/actInteractionLog.js';
 import { useEffectivePlanProjectType } from '../plan/hooks/useEffectivePlanProjectType.js';
 import { useV3Project } from '../data/useV3Project.js';
@@ -91,15 +96,27 @@ export default function ActLayout() {
     updateProject(project.id, { actShellMode: mode });
   };
 
-  const boundary = extractBoundaryGeometry(project.parcelBoundaryGeojson) as
-    | GeoJSON.Polygon
-    | undefined;
+  // extractBoundaryGeometry can yield a Polygon OR a MultiPolygon. Casting it to
+  // Polygon and handing a MultiPolygon to DiagnoseMap poisons the bounds with
+  // NaN and crashes maplibre ("Invalid LngLat object: (NaN, NaN)"). Normalize to
+  // a render-safe single Polygon (or undefined).
+  const boundaryGeom = extractBoundaryGeometry(project.parcelBoundaryGeojson);
+  const safeBoundary = useMemo(
+    () => renderablePolygon(boundaryGeom),
+    [boundaryGeom],
+  );
 
   // Coords-only fallback (no boundary): prefer the parcel's intake center
   // (via the v2→v3 adapter seam) over the hard-coded stage centroid.
-  // DiagnoseMap still fits to `boundary` when one exists.
+  // DiagnoseMap still fits to `safeBoundary` when one exists.
   const v3Project = useV3Project(params.projectId);
   const fallbackCenter = v3Project?.location.center ?? FALLBACK_CENTROID;
+  // Finite-guarded, MultiPolygon-aware centroid so a MultiPolygon parcel still
+  // centers sensibly even when its outline cannot render.
+  const mapCenter = useMemo<[number, number]>(
+    () => boundaryCentroid(boundaryGeom) ?? fallbackCenter,
+    [boundaryGeom, fallbackCenter],
+  );
 
   const [slideUpOpen, setSlideUpOpen] = useState(false);
 
@@ -208,15 +225,15 @@ export default function ActLayout() {
           onChange={handleActShellModeChange}
         />
         <DiagnoseMap
-          centroid={fallbackCenter}
-          boundary={boundary}
+          centroid={mapCenter}
+          boundary={safeBoundary}
         >
           {({ map }) => (
             <>
               <MapToolbar
                 map={map}
                 projectId={params.projectId ?? null}
-                boundary={boundary ?? null}
+                boundary={safeBoundary ?? null}
                 onBoundaryDrawn={handleBoundaryDrawn}
                 showBoundary={false}
               />
