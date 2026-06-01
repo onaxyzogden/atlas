@@ -42,11 +42,7 @@ import {
   selectFieldActionsForProject,
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
-import {
-  usePlanStratumProgressStore,
-  selectProjectProgress,
-  toProgressMap,
-} from '../../../store/planStratumStore.js';
+import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import { extractBoundaryGeometry } from '../../../lib/geo.js';
 import { useV3Project } from '../../data/useV3Project.js';
@@ -73,9 +69,11 @@ import {
   computeChecklistProgress,
   computeObjectiveProgress,
 } from './objectiveProgress.js';
+import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import { computeObjectiveMarkerPositions } from './objectiveMarkerGeometry.js';
 import ActTierSpine from './ActTierSpine.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
+import type { RailMode } from './ActRailModeToggle.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
@@ -185,29 +183,40 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         : undefined,
     [selectedObjective],
   );
-  const planProgress = usePlanStratumProgressStore((s) =>
-    selectProjectProgress(s, id),
-  );
+  // Single source of truth (2026-05-31): effective checklist progress =
+  // stored planStratumStore progress UNIONED with wizard-derived Stratum-1
+  // completion. The SAME hook Plan consumes, so Act never shows a
+  // freshly-wizard-completed project's S1 items as incomplete when Plan
+  // shows them done.
+  const effectiveProgress = useEffectiveChecklistProgress(id, objectives);
 
-  // Rail cards reflect CHECKLIST completion (planStratumStore), agreeing with
+  // Rail cards reflect CHECKLIST completion (effective progress), agreeing with
   // the right-rail execution panel's "N/M steps". The field-action
   // progressByObjective above stays the source for the map markers.
   const checklistProgressByObjective = useMemo(
-    () => computeChecklistProgress(objectives, planProgress),
-    [objectives, planProgress],
+    () => computeChecklistProgress(objectives, effectiveProgress.byObjective),
+    [objectives, effectiveProgress],
   );
 
   const selectedObjectiveStatus = useMemo(() => {
     if (!selectedObjective) return 'locked' as const;
     const statuses = computeAllObjectiveStatuses(
       objectives,
-      toProgressMap(planProgress),
+      effectiveProgress.flatMap,
     );
     return statuses[selectedObjective.id] ?? 'locked';
-  }, [selectedObjective, objectives, planProgress]);
+  }, [selectedObjective, objectives, effectiveProgress]);
 
   const triggeredCount = useTriggeredProtocols(id).length;
 
+  // Project-type record drives the Protocol-mode rail view (same source Plan
+  // reads). null for MTC / null-type projects; ProtocolLayerPanel handles that.
+  const typeRecord = project.metadata?.projectTypeRecord;
+  const primaryTypeId = typeRecord?.primaryTypeId ?? null;
+  const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
+
+  // Left-rail view: design objectives (default) vs the standing-protocol library.
+  const [railMode, setRailMode] = useState<RailMode>('objectives');
   const [selectedStratumId, setSelectedStratumId] = useState(DEFAULT_STRATUM_ID);
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
@@ -364,6 +373,12 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
               progressByObjective={checklistProgressByObjective}
               activeObjectiveId={objectiveId}
               onSelectObjective={handleSelectObjective}
+              mode={railMode}
+              onModeChange={setRailMode}
+              triggeredCount={triggeredCount}
+              projectId={id}
+              primaryTypeId={primaryTypeId}
+              secondaryTypeIds={secondaryTypeIds}
             />
           }
           canvas={
