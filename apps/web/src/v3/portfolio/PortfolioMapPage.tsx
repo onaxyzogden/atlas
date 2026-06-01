@@ -15,7 +15,7 @@
  * same selection state — no separate mobile component tree.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { List, X } from 'lucide-react';
 import type { LocalProject } from '../../store/projectStore.js';
@@ -24,12 +24,14 @@ import PortfolioMap from './PortfolioMap.js';
 import PortfolioProjectList from './PortfolioProjectList.js';
 import PortfolioAtAGlanceRail from './PortfolioAtAGlanceRail.js';
 import PortfolioStageRail from './PortfolioStageRail.js';
+import PortfolioToast, { emitPortfolioToast } from './PortfolioToast.js';
 import { usePortfolioBriefing } from './usePortfolioBriefing.js';
 import { usePortfolioStages } from './usePortfolioStages.js';
 import { useCrossRelationshipStore } from '../../store/crossRelationshipStore.js';
 import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
 import { usePortfolioContractorRedirect } from './usePortfolioContractorRedirect.js';
 import { portfolioAccess } from './portfolioModel.js';
+import { ApiError } from '../../lib/apiClient.js';
 import css from './PortfolioMapPage.module.css';
 
 export default function PortfolioMapPage({ projects }: { projects: LocalProject[] }) {
@@ -50,30 +52,74 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
 
   // Cross-project relationships (§5) for the selected project — fetched on
   // selection, drawn as centroid-to-centroid lines on the map.
+  //
+  // CRITICAL (root-cause of the "Link does nothing / Connections stays
+  // disabled" bug, confirmed live 2026-05-31): the relationship API resolves
+  // projects by their SERVER id (`projects.id`), but the Portfolio Map renders
+  // LOCAL projects whose `id` is a client-minted UUID. Only `serverId` matches
+  // a backend row. Passing the local id 404s on every fetch AND create — and
+  // the old empty `.catch` swallowed it silently. So every API call here is
+  // keyed by `serverId`, and projects lacking one (never synced) are gated with
+  // an explanatory toast instead of a silent no-op.
   const fetchRelationships = useCrossRelationshipStore((s) => s.fetchForProject);
   const createRelationship = useCrossRelationshipStore((s) => s.createRelationship);
   const relationshipsByProject = useCrossRelationshipStore((s) => s.byProject);
-  const relationships: CrossRelationship[] = selectedId
-    ? (relationshipsByProject[selectedId] ?? [])
+
+  // local project id → server id (only synced projects appear).
+  const serverIdByLocal = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of projects) if (p.serverId) m.set(p.id, p.serverId);
+    return m;
+  }, [projects]);
+
+  const selectedServerId = selected?.serverId ?? null;
+  // Relationships are stored keyed by the id we fetched with (the server id);
+  // their endpoints (projectAId/projectBId) are also server ids. The map maps
+  // those back to centroids via a serverId-aware lookup.
+  const relationships: CrossRelationship[] = selectedServerId
+    ? (relationshipsByProject[selectedServerId] ?? [])
     : [];
 
   useEffect(() => {
-    if (selectedId) void fetchRelationships(selectedId);
-  }, [selectedId, fetchRelationships]);
+    if (selectedServerId) void fetchRelationships(selectedServerId);
+  }, [selectedServerId, fetchRelationships]);
 
-  const handleAddRelationship = (
-    projectAId: string,
-    projectBId: string,
+  const handleAddRelationship = async (
+    projectALocalId: string,
+    projectBLocalId: string,
     type: CrossRelationship['relationshipType'],
     notes: string | null,
   ) => {
-    void createRelationship(projectAId, {
-      projectBId,
-      relationshipType: type,
-      notes,
-    }).catch(() => {
-      // Surfaced via console in the store; a toast layer can hook here later.
-    });
+    const aServer = serverIdByLocal.get(projectALocalId);
+    const bServer = serverIdByLocal.get(projectBLocalId);
+    if (!aServer || !bServer) {
+      const unsyncedId = !aServer ? projectALocalId : projectBLocalId;
+      const name = projects.find((p) => p.id === unsyncedId)?.name ?? 'That project';
+      emitPortfolioToast(
+        `"${name}" isn't synced to the server yet, so it can't be linked.`,
+        'error',
+      );
+      return;
+    }
+    try {
+      await createRelationship(aServer, {
+        projectBId: bServer,
+        relationshipType: type,
+        notes,
+      });
+      emitPortfolioToast('Connection created.', 'success');
+    } catch (err) {
+      const status = err instanceof ApiError ? err.status : 0;
+      const message =
+        status === 409
+          ? 'These projects are already linked.'
+          : status === 403
+            ? "You don't have permission to link one of these projects."
+            : status === 404
+              ? "One of these projects isn't synced to the server yet, so it can't be linked."
+              : "Couldn't create the link. Please try again.";
+      emitPortfolioToast(message, 'error');
+    }
   };
 
   // Selecting a project closes the mobile list sheet (and, by populating
@@ -117,6 +163,7 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
             relationships={relationships}
             onAddRelationship={handleAddRelationship}
           />
+          <PortfolioToast />
         </div>
 
         {/* Right at-a-glance rail (§2.4) — read-only briefing for the selected

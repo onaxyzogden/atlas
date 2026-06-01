@@ -34,6 +34,7 @@ import {
   type PortfolioStage,
   type StagePaint,
 } from './portfolioModel.js';
+import { emitPortfolioToast } from './PortfolioToast.js';
 import css from './PortfolioMap.module.css';
 
 const SRC = 'portfolio-boundaries';
@@ -173,14 +174,28 @@ export default function PortfolioMap({
   const relCount = relList.length;
 
   // Centroid per project id (covers projects with geometry or an intake
-  // centroid) — the endpoints of every relationship line.
+  // centroid) — the endpoints of every relationship line. Keyed by BOTH the
+  // local id and the server id: relationship rows come back from the API with
+  // server-id endpoints, while pins/selection use local ids, so both must
+  // resolve to the same centroid for the lines to draw.
   const centroidById = useMemo(() => {
     const m = new Map<string, [number, number]>();
     for (const p of projects) {
       const at = projectCentroid(p);
-      if (at) m.set(p.id, at);
+      if (at) {
+        m.set(p.id, at);
+        if (p.serverId) m.set(p.serverId, at);
+      }
     }
     return m;
+  }, [projects]);
+
+  // Local ids of projects that are synced to the server (have a `serverId`).
+  // Only these can be linked — the relationship API resolves by server id.
+  const syncedLocalIds = useMemo(() => {
+    const s = new Set<string>();
+    for (const p of projects) if (p.serverId) s.add(p.id);
+    return s;
   }, [projects]);
 
   const nameById = useMemo(() => {
@@ -221,6 +236,16 @@ export default function PortfolioMap({
   // listeners (bound once) always see the latest mode without re-binding.
   const handlePinActivate = (id: string) => {
     if (creating) {
+      // A4 — un-synced gate: a project with no `serverId` has no backend row,
+      // so the relationship API can't reference it. Block the pick and explain
+      // rather than letting it fail silently downstream.
+      if (!syncedLocalIds.has(id)) {
+        emitPortfolioToast(
+          `"${nameById.get(id) ?? 'That project'}" isn't synced to the server yet, so it can't be linked.`,
+          'error',
+        );
+        return;
+      }
       if (!firstPick) {
         setFirstPick(id);
         return;
