@@ -329,8 +329,15 @@ export const api = {
         >
       >('GET', '/api/v1/projects/builtins'),
 
+    // Returns the full single-project row. Unlike `list`, this embeds
+    // `parcelBoundaryGeojson` (raw PostGIS geometry via ST_AsGeoJSON) so the
+    // Portfolio Map can lazily hydrate boundaries for server-synced projects
+    // that arrive with `hasParcelBoundary: true` but no geometry.
     get: (id: string) =>
-      request<ProjectSummary>('GET', `/api/v1/projects/${id}`),
+      request<ProjectSummary & { parcelBoundaryGeojson: unknown | null }>(
+        'GET',
+        `/api/v1/projects/${id}`,
+      ),
 
     create: (input: CreateProjectInput) =>
       request<ProjectSummary>('POST', '/api/v1/projects', input),

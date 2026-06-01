@@ -33,7 +33,7 @@ import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
 import { usePortfolioContractorRedirect } from './usePortfolioContractorRedirect.js';
 import { portfolioAccess } from './portfolioModel.js';
 import { ApiError } from '../../lib/apiClient.js';
-import { syncProjectNow } from '../../lib/syncService.js';
+import { syncProjectNow, hydrateProjectBoundaries } from '../../lib/syncService.js';
 import css from './PortfolioMapPage.module.css';
 
 export default function PortfolioMapPage({ projects }: { projects: LocalProject[] }) {
@@ -138,6 +138,33 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
   useEffect(() => {
     void fetchPois();
   }, [fetchPois]);
+
+  // Lazily hydrate parcel geometry for server-synced projects that arrived with
+  // `hasParcelBoundary: true` but no geojson (the list/sync path omits
+  // geometry). Without this their centroid can't be computed, so they render no
+  // pin/boundary and any relationship / POI-flow line targeting them can't draw
+  // (confirmed live 2026-05-31, "Halton Hills"). The store write triggers a
+  // re-render and the lines/pins then draw. The helper is idempotent — projects
+  // already carrying geometry are skipped.
+  //
+  // Re-runs whenever the set of *pending* candidates changes, so projects that
+  // sync down AFTER the map mounts get hydrated too (not just the mount-time
+  // set). The key is built from the un-hydrated candidates' server ids: as each
+  // hydrates its geojson becomes non-null and it drops out, so the key shrinks
+  // monotonically to '' and the effect settles — unrelated project mutations
+  // recompute the same string and don't re-fire it.
+  const pendingBoundaryKey = useMemo(
+    () =>
+      projects
+        .filter((p) => p.serverId && p.hasParcelBoundary && !p.parcelBoundaryGeojson)
+        .map((p) => p.serverId)
+        .join(','),
+    [projects],
+  );
+
+  useEffect(() => {
+    void hydrateProjectBoundaries();
+  }, [pendingBoundaryKey]);
 
   const handleAddPoi = async (input: {
     name: string;

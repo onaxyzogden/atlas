@@ -306,6 +306,7 @@ export default async function projectRoutes(fastify: FastifyInstance) {
           p.acreage::float8 AS acreage,
           p.data_completeness_score::float8 AS data_completeness_score,
           (p.parcel_boundary IS NOT NULL) AS has_parcel_boundary,
+          ST_AsGeoJSON(p.parcel_boundary)::jsonb AS parcel_boundary_geojson,
           p.is_builtin,
           p.owner_notes, p.zoning_notes, p.access_notes, p.water_rights_notes,
           p.metadata,

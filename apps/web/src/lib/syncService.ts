@@ -29,7 +29,7 @@ import {
   type SyncedStoreDescriptor,
   type SyncedRecordMeta,
 } from './syncManifest.js';
-import { useProjectStore, type LocalProject } from '../store/projectStore.js';
+import { useProjectStore, asFeatureCollection, type LocalProject } from '../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../store/zoneStore.js';
 import { usePathStore, type DesignPath } from '../store/pathStore.js';
 import { useUtilityStore, type Utility } from '../store/utilityStore.js';
@@ -98,6 +98,14 @@ export function setSyncGuard(value: boolean) { isSyncing = value; }
  * double-create race). A second caller awaits the same promise.
  */
 const inFlightProjectSync = new Map<string, Promise<void>>();
+
+/**
+ * In-flight boundary-hydration dedup. Keyed by server project id. `hydrateProjectBoundaries`
+ * is now driven by a candidate-key effect that can re-fire while a previous run's
+ * `GET /projects/:id` fetches are still pending; this Set guarantees a given project
+ * is fetched at most once across overlapping runs (no fetch storm).
+ */
+const inFlightBoundaryHydration = new Set<string>();
 
 /** Subscription unsubscribe functions */
 let unsubscribers: (() => void)[] = [];
@@ -317,6 +325,70 @@ export function applyServerAcreage(
   isSyncing = true;
   useProjectStore.getState().updateProject(localProjectId, { acreage });
   isSyncing = wasSyncing;
+}
+
+/**
+ * Lazily hydrate `parcelBoundaryGeojson` for server-synced projects.
+ *
+ * New-from-server projects land locally with `hasParcelBoundary: true` but
+ * `parcelBoundaryGeojson: null` (the list endpoint omits geometry — see the
+ * new-from-server branch in `pullProjectsFromServer`). Without geometry the
+ * Portfolio Map can't compute a centroid, so the project has no pin/boundary
+ * and any relationship / POI-flow line targeting it can't draw.
+ *
+ * This fetches the geometry from `GET /projects/:id` (which now embeds
+ * `parcelBoundaryGeojson`) for every project still missing it, and writes it
+ * back through the store. The write is wrapped in the `isSyncing` guard so the
+ * project subscription does NOT mistake a server→local hydration for a local
+ * boundary edit and echo it back via `POST /boundary` (which would needlessly
+ * recompute acreage and re-enqueue the Tier-1 pipeline).
+ *
+ * Resolves to the number of projects whose geometry was hydrated. Per-project
+ * failures are non-fatal (logged, skipped).
+ */
+export async function hydrateProjectBoundaries(): Promise<number> {
+  const candidates = useProjectStore
+    .getState()
+    .projects.filter(
+      (p) =>
+        p.serverId &&
+        p.hasParcelBoundary &&
+        p.parcelBoundaryGeojson == null &&
+        !inFlightBoundaryHydration.has(p.serverId),
+    );
+  if (candidates.length === 0) return 0;
+
+  let hydrated = 0;
+  for (const project of candidates) {
+    inFlightBoundaryHydration.add(project.serverId!);
+    try {
+      const { data } = await api.projects.get(project.serverId!);
+      // ST_AsGeoJSON returns a bare Geometry; normalize to the FeatureCollection
+      // the store stores (same path the builtins loader uses).
+      const boundary = asFeatureCollection(
+        data.parcelBoundaryGeojson as
+          | GeoJSON.Geometry
+          | GeoJSON.FeatureCollection
+          | null,
+      );
+      if (boundary == null) continue; // server has no geometry after all
+      const wasSyncing = isSyncing;
+      isSyncing = true;
+      useProjectStore
+        .getState()
+        .updateProject(project.id, { parcelBoundaryGeojson: boundary });
+      isSyncing = wasSyncing;
+      hydrated += 1;
+    } catch (err) {
+      console.warn(
+        `[SYNC] Failed to hydrate boundary for project "${project.name}":`,
+        err,
+      );
+    } finally {
+      inFlightBoundaryHydration.delete(project.serverId!);
+    }
+  }
+  return hydrated;
 }
 
 async function syncProjectCreate(project: LocalProject, rethrow = false) {

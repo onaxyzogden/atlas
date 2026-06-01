@@ -1097,7 +1097,15 @@ interface BuiltinRow {
   layers?: MockLayerResult[];
 }
 
-function asFeatureCollection(
+/**
+ * Normalize a server-supplied parcel boundary into the `FeatureCollection`
+ * shape the store stores. `ST_AsGeoJSON(parcel_boundary)` returns a bare
+ * Geometry (Polygon/MultiPolygon), so wrap it in a single-feature FC; an
+ * already-FC value (e.g. a locally-drawn boundary) passes through unchanged.
+ * Exported so the lazy boundary-hydration path in `syncService` can reuse the
+ * exact same normalization (see `hydrateProjectBoundaries`).
+ */
+export function asFeatureCollection(
   raw: GeoJSON.FeatureCollection | GeoJSON.Geometry | null | undefined,
 ): GeoJSON.FeatureCollection | null {
   if (!raw) return null;
