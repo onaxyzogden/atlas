@@ -109,3 +109,29 @@ ASCII-only copy.
 `sourceObjectiveId` (so field-log rows also get a chip); an "from Act"
 filter/section on Observe Domain Detail; surface the per-objective feed beyond the
 Act panel + Observe list (e.g. a Unified Land State rollup).
+
+## Follow-up -- routeToDataPoint field-log chip (`793c4c99`)
+
+The first named deferred item resolved in the same session. One production file +
+one conformance test (2 files, commit `793c4c99`):
+
+- [routeToDataPoint.ts](apps/web/src/v3/observe/dashboard/domain/routeToDataPoint.ts):
+  import `findObjectiveAcrossCatalogues` from `@ogden/shared`; replace
+  `sourceObjectiveId: null` with
+  `findObjectiveAcrossCatalogues(entry.feedKey) ? entry.feedKey : null`.
+  Catalogue-validates the feedKey so domain-routed entries (verified actions
+  tagged with `observeFeedIds`) correctly stay `null`; only objective-routed
+  feedKeys (which resolve via `resolveDomainByObjectiveId`) produce a chip.
+- [__tests__/routeToDataPoint.test.ts](apps/web/src/v3/observe/dashboard/domain/__tests__/routeToDataPoint.test.ts)
+  (NEW, 5 tests): objective-routed feedKey stamps `sourceObjectiveId`; domain-
+  routed/unknown feedKey stays `null` even when the resolver yields a domain;
+  diverged entries are objective-scoped; resolver-null returns `null` projection.
+
+Verification: tsc (apps/web) exit 0; vitest 8/8; dynamic import in preview
+confirmed `sourceObjectiveId: 's2-terrain', domainId: 'topography'` (Vite HMR
+module cache was stale in the running browser -- function correctness proven via
+cache-busting dynamic import; DOM chip not visible due to stale module registry,
+not a code defect).
+
+**Remaining deferred:** "from Act" filter on Observe Domain Detail; Unified Land
+State rollup surface for the per-objective feed.

@@ -100,9 +100,12 @@ rejected alternative. This ADR records the reversal and the resulting build.
 
 - **Resolved this round:** per-objective activity feed (was deferred by decision
   #2); visible Plan->Act->Observe loop closure via the Observe chip.
-- **Still deferred (named):** enriching `routeToDataPoint` field-log projections
-  with `sourceObjectiveId` from the source feed entry's objective (so field-log
-  rows also get a chip); an "from Act" filter/section on the Observe Domain
+- **Resolved follow-up (`793c4c99`):** `routeToDataPoint` field-log projections
+  now carry `sourceObjectiveId` from `feedKey` (catalogue-validated via
+  `findObjectiveAcrossCatalogues`); Observe Domain Detail field-log rows show the
+  same objective provenance chip that direct Act recordings already show. This
+  closes the first named deferred item from the original ADR.
+- **Still deferred (named):** an "from Act" filter/section on the Observe Domain
   Detail surface; surfacing the per-objective feed anywhere beyond the Act panel +
   Observe domain list (e.g. a Unified Land State rollup).
 - ASCII-only copy; CSRA model untouched ([[fiqh-csra-erased-2026-05-04]]).
