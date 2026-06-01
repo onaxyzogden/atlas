@@ -95,7 +95,13 @@ export default function PortfolioAtAGlanceRail({
 
   const { project, plan, observe, lastActivity, urgency } = briefing;
   const chips = buildUrgencyChips(urgency);
-  const relationships = relationshipsByProject[project.id] ?? [];
+  // Relationships are server-synced and stored keyed by SERVER project id (the
+  // id the map fetched with). Local-only projects (no serverId) can't hold
+  // cross-project links, so they correctly show none.
+  const projectServerId = project.serverId ?? null;
+  const relationships = projectServerId
+    ? (relationshipsByProject[projectServerId] ?? [])
+    : [];
   // Roles are keyed by SERVER project id; local-only projects (no serverId)
   // are absent from the map and are owned by the steward. Owner-tier =
   // manage_members capability (owner / primary_steward).
@@ -317,7 +323,10 @@ export default function PortfolioAtAGlanceRail({
                     <button
                       type="button"
                       className={css.relRemove}
-                      onClick={() => void deleteRelationship(project.id, rel.id)}
+                      onClick={() =>
+                        projectServerId &&
+                        void deleteRelationship(projectServerId, rel.id)
+                      }
                       aria-label={`Remove ${REL_TYPE_LABEL[rel.relationshipType]} relationship`}
                       title="Remove relationship"
                     >
