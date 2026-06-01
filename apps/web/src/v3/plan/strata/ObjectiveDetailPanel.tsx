@@ -8,16 +8,17 @@
 // Reset is keyed to objective.id at the parent via `<ObjectiveDetailPanel
 // key={objective.id} ... />` — clean reset, no useEffect.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   OverlayId,
   PlanStratum,
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
 } from '@ogden/shared';
-import { isCyclicalReviewDue } from '@ogden/shared';
+import { enterprisesForProjectTypes, isCyclicalReviewDue } from '@ogden/shared';
 import type { Project } from '../../types.js';
 import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
+import { useProjectStore } from '../../../store/projectStore.js';
 import { useCyclicalReviewStore } from '../../../store/cyclicalReviewStore.js';
 import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
 import ObjectiveHeader from './ObjectiveHeader.js';
@@ -30,6 +31,7 @@ import CyclicalReviewBanner from './CyclicalReviewBanner.js';
 import CyclicalReviewModal from './CyclicalReviewModal.js';
 import type { VisionDerivedMap } from './visionProfileToChecklist.js';
 import ParameterGroup from './ParameterGroup.js';
+import ProtocolApprovalOverlay from './ProtocolApprovalOverlay.js';
 // Plan Spine re-skin — the panel is now the full-bleed RIGHT pane of the
 // 3-column spine shell (no longer a bordered BentoBox card). Its inner sections
 // (map body, reference placeholders) keep their existing CSS module, which
@@ -60,6 +62,23 @@ export default function ObjectiveDetailPanel({
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
     ...objective.defaultOverlayBundle,
   ]);
+
+  // §10.1 — approval overlay state. Shown when the S6 objective is complete and
+  // the project has eligible animal enterprises.
+  const [approvalOverlayOpen, setApprovalOverlayOpen] = useState(false);
+
+  // Derive enterprise eligibility using the same project-store read as
+  // ParameterGroup and ProtocolLayerPanel (no new prop needed).
+  const typeRecord = useProjectStore(
+    (s) =>
+      s.projects.find((p) => p.id === projectId)?.metadata?.projectTypeRecord,
+  );
+  const primaryTypeId = typeRecord?.primaryTypeId ?? null;
+  const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
+  const hasEligibleEnterprises = useMemo(() => {
+    if (!primaryTypeId) return false;
+    return enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds).length > 0;
+  }, [primaryTypeId, secondaryTypeIds]);
 
   // Subscribe to just this objective's completion slice. Phase B made the Plan
   // checklist read-only ("decisions are worked through in Act"), so the panel
@@ -185,6 +204,51 @@ export default function ObjectiveDetailPanel({
       />
 
       <ParameterGroup projectId={projectId} objective={objective} />
+
+      {/* §10.1 — Approve & instantiate protocols button: shown when the S6
+          Integration objective is complete, has a parameter group, and the
+          project has eligible animal enterprises. Opens the confirmation flow
+          (ProtocolApprovalOverlay) which derives token values from the entered
+          thresholds and activates chosen protocols into protocolStore. */}
+      {objective.stratumId === 's6-integration-design' &&
+        Boolean(objective.parameterGroup) &&
+        status === 'complete' &&
+        hasEligibleEnterprises && (
+          <div
+            style={{
+              padding: '12px 20px 16px',
+              borderTop: `1px solid ${'var(--spine-border)'}`,
+            }}
+          >
+            <button
+              data-testid="plan-approve-protocols-button"
+              onClick={() => setApprovalOverlayOpen(true)}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                fontSize: 13,
+                fontFamily: 'var(--font-sans)',
+                fontWeight: 600,
+                color: 'white',
+                background: 'var(--spine-gold)',
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
+                letterSpacing: '0.01em',
+              }}
+            >
+              Approve &amp; instantiate protocols →
+            </button>
+          </div>
+        )}
+
+      {approvalOverlayOpen && (
+        <ProtocolApprovalOverlay
+          projectId={projectId}
+          objective={objective}
+          onClose={() => setApprovalOverlayOpen(false)}
+        />
+      )}
 
       {objective.legacyCardSectionId ? (
         <DetailsExpander

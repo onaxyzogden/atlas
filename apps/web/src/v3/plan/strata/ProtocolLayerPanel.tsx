@@ -12,11 +12,10 @@
 //     without inventing per-stratum protocols).
 //   - Lifecycle status is overlaid from `protocolStore.records` for THIS project.
 //
-// Read-only in v1: there is no production §10.1 "approve objective → instantiate"
-// trigger yet, so the panel reflects whatever `protocolStore` state exists
-// (active / triggered / suspended) and otherwise shows templates as
-// not-yet-activated standard templates. The §4.1 confirmation flow and Edit-First
-// token authoring are deferred — bracket tokens render VERBATIM (`outputs={{}}`).
+// Phase C4: token substitution is now live — bracket tokens are filled from the
+// steward-entered S6 parameter values via `buildProtocolOutputs`; unfilled
+// tokens still render their [bracket] placeholder verbatim. Protocol lifecycle
+// (activate / undo) is triggered from ObjectiveDetailPanel → ProtocolApprovalOverlay.
 //
 // Zustand v5 hazard: we select the reference-stable `records` array and derive the
 // per-project status map in `useMemo`. We never pass an inline `.filter()`-returning
@@ -27,6 +26,8 @@ import { useMemo } from 'react';
 import {
   enterprisesForProjectTypes,
   templatesForEnterprises,
+  buildProtocolOutputs,
+  findPlanStratumObjective,
   type ProjectTypeId,
   type StandardProtocolTemplate,
 } from '@ogden/shared';
@@ -34,6 +35,10 @@ import {
   useProtocolStore,
   type ActivatedProtocolRecord,
 } from '../../../store/protocolStore.js';
+import {
+  usePlanStratumProgressStore,
+  selectParameterValues,
+} from '../../../store/planStratumStore.js';
 import { C, F, CA } from '../spine/tokens.js';
 import { TypeBadge } from '../spine/protocolTypeStyle.js';
 import AutoFilledCondition from '../spine/AutoFilledCondition.js';
@@ -69,9 +74,12 @@ function statusMeta(status: RecordStatus | undefined): {
 function ProtocolLibraryCard({
   template,
   status,
+  outputs,
 }: {
   template: StandardProtocolTemplate;
   status: RecordStatus | undefined;
+  /** Derived parameter outputs for token substitution (filled or verbatim bracket). */
+  outputs: Record<string, string>;
 }) {
   const meta = statusMeta(status);
   return (
@@ -112,7 +120,8 @@ function ProtocolLibraryCard({
           <TypeBadge type={template.type} />
         </div>
 
-        {/* IF → THEN. Bracket tokens render verbatim (no steward outputs in v1). */}
+        {/* IF → THEN. Tokens substituted from steward-entered S6 parameter values
+            (outputs prop); unfilled tokens render their [bracket] verbatim. */}
         <div
           style={{
             background: C.bg,
@@ -137,7 +146,7 @@ function ProtocolLibraryCard({
             >
               IF
             </span>
-            <AutoFilledCondition condition={template.condition} outputs={{}} />
+            <AutoFilledCondition condition={template.condition} outputs={outputs} />
           </div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
             <span
@@ -263,6 +272,23 @@ export default function ProtocolLayerPanel({
     // secondaryTypeIds is captured via secondaryKey (stable primitive).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primaryTypeId, secondaryKey]);
+
+  // §10.1 — derive token-substitution outputs from the steward's S6 parameter
+  // values for this project. selectParameterValues returns a frozen {} when
+  // no values are entered yet, so unfilled tokens render verbatim brackets.
+  // findPlanStratumObjective is pure (constant catalogue object); only `values`
+  // changes when the steward types into a ParameterGroup input.
+  const s6Values = usePlanStratumProgressStore((s) =>
+    selectParameterValues(s, projectId, 's6-yield-flows'),
+  );
+  const derivedOutputs = useMemo(
+    () =>
+      buildProtocolOutputs(
+        findPlanStratumObjective('s6-yield-flows')?.parameterGroup,
+        s6Values,
+      ),
+    [s6Values],
+  );
 
   // Reference-stable selector + useMemo (NEVER an inline `.filter()` selector —
   // Zustand v5 infinite-loop hazard). Build a templateId → status map for THIS
@@ -452,6 +478,7 @@ export default function ProtocolLayerPanel({
                   key={t.id}
                   template={t}
                   status={statusByTemplate[t.id]}
+                  outputs={derivedOutputs}
                 />
               ))}
             </div>
