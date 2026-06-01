@@ -119,7 +119,9 @@ export default function ObjectiveCard({
       aria-label={ariaLabel}
     >
       <span className={css.body}>
-        <span className={css.title}>{objective.title}</span>
+        <span className={css.title}>
+          {objective.shortTitle ?? objective.title}
+        </span>
       </span>
       <span className={css.trail}>
         <span

@@ -36,6 +36,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A clear enterprise mix & priorities',
+    shortTitle: 'Enterprise mix & priorities',
     focusedQuestion:
       'Which enterprises will this farm run, in what priority order, and how do they depend on and support each other?',
     checklist: [
@@ -99,6 +100,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A clear read of land health & degradation',
+    shortTitle: 'Land health & degradation',
     focusedQuestion:
       'What is the current productive and ecological condition of the land, and what degradation must be addressed?',
     checklist: [
@@ -161,6 +163,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A clear read of surrounding landscape context',
+    shortTitle: 'Surrounding landscape context',
     focusedQuestion:
       'How does the surrounding landscape shape the opportunities and constraints of this project?',
     checklist: [
@@ -217,6 +220,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A clear read of nutrient cycling & organic matter',
+    shortTitle: 'Nutrient cycling & organic matter',
     focusedQuestion:
       'How is organic matter currently moving through and accumulating in this system?',
     checklist: [
@@ -274,6 +278,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A clear read of pest, disease & weed pressure',
+    shortTitle: 'Pest, disease & weed pressure',
     focusedQuestion:
       'What pest, disease, and weed pressures exist on this site, and what are their ecological drivers?',
     scopeNotes:
@@ -331,6 +336,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A sound whole-farm fertility & nutrient cycling strategy',
+    shortTitle: 'Whole-farm fertility & nutrient cycling strategy',
     focusedQuestion:
       'How will this farm build and maintain soil fertility through closed-loop nutrient cycling?',
     checklist: [
@@ -381,6 +387,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A sound biodiversity & habitat infrastructure strategy',
+    shortTitle: 'Biodiversity & habitat infrastructure strategy',
     focusedQuestion:
       'What habitat infrastructure will we establish, where, and what ecological roles will it fulfil?',
     scopeNotes:
@@ -444,6 +451,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A working integrated fertility system',
+    shortTitle: 'Integrated fertility system',
     focusedQuestion: 'How will the fertility system physically work across all enterprises?',
     checklist: [
       ck(
@@ -496,6 +504,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'Well-designed windbreaks, shelterbelts & plantings',
+    shortTitle: 'Windbreaks, shelterbelts & plantings',
     focusedQuestion:
       'How will protective plantings be designed to shelter enterprises, create wildlife corridors, and mitigate fire risk?',
     checklist: [
@@ -562,6 +571,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A working whole-farm biodiversity monitoring protocol',
+    shortTitle: 'Whole-farm biodiversity monitoring protocol',
     focusedQuestion: 'How will ecological health be tracked across all zones over time?',
     checklist: [
       ck(
@@ -604,6 +614,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'Working enterprise integration & feedback loops',
+    shortTitle: 'Enterprise integration & feedback loops',
     focusedQuestion:
       'What are the concrete waste-to-input loops between enterprises, and how will they be operationalised?',
     checklist: [
@@ -672,6 +683,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A clear enterprise sequencing & phasing logic',
+    shortTitle: 'Enterprise sequencing & phasing logic',
     focusedQuestion:
       'In what strategic order will enterprises be launched, and how does each enable the next?',
     checklist: [
@@ -712,6 +724,7 @@ export const REGEN_FARM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: 'regenerative_farm',
     title: 'A sound whole-farm cash flow staging',
+    shortTitle: 'Whole-farm cash flow staging',
     focusedQuestion:
       "How will the farm's revenue and expenditure sequence across the establishment phase to ensure financial viability?",
     checklist: [

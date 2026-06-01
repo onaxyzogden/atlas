@@ -74,6 +74,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear livestock enterprise mix & stocking strategy',
+    shortTitle: 'Livestock enterprise mix & stocking strategy',
     focusedQuestion:
       'Which livestock species, breeds, and numbers will this system run - and what is the production intent?',
     checklist: [
@@ -118,6 +119,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear land improvement philosophy',
+    shortTitle: 'Land improvement philosophy',
     focusedQuestion:
       'Is livestock the primary tool for land improvement - and how does regenerative grazing logic shape all management decisions?',
     checklist: [
@@ -158,6 +160,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'Clear animal welfare standards',
+    shortTitle: 'Animal welfare standards',
     focusedQuestion:
       'What minimum welfare standards govern all livestock management decisions - shelter, space, water, and husbandry?',
     checklist: [
@@ -203,6 +206,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of pasture condition & forage species',
+    shortTitle: 'Pasture condition & forage species',
     focusedQuestion:
       'What is the current pasture composition, condition, and carrying capacity estimate?',
     checklist: [
@@ -247,6 +251,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of existing livestock infrastructure',
+    shortTitle: 'Existing livestock infrastructure',
     focusedQuestion:
       'What fencing, yards, troughs, laneways, and shelters already exist - and what condition are they in?',
     checklist: [
@@ -287,6 +292,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of surrounding landscape & vectors',
+    shortTitle: 'Surrounding landscape & vectors',
     focusedQuestion:
       'How does the surrounding landscape affect livestock health, forage quality, and enterprise viability?',
     checklist: [
@@ -326,6 +332,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of grazing history & animal impact',
+    shortTitle: 'Grazing history & animal impact',
     focusedQuestion:
       'What is the grazing history of this land - and what legacy compaction, degradation, and weed burden must be addressed?',
     checklist: [
@@ -371,6 +378,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of stock water availability & supply',
+    shortTitle: 'Stock water availability & supply',
     focusedQuestion:
       'Is there sufficient water available to sustain target stocking numbers through the driest months?',
     checklist: [
@@ -415,6 +423,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of soil compaction under grazing',
+    shortTitle: 'Soil compaction under grazing',
     focusedQuestion:
       'Where is compaction present - and what does it tell us about pasture recovery potential and management requirements?',
     checklist: [
@@ -455,6 +464,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of forage productivity & nutrition',
+    shortTitle: 'Forage productivity & nutrition',
     focusedQuestion:
       'What is the current pasture yield per hectare, seasonal availability, and nutritional profile - and what gaps constrain the livestock enterprise?',
     checklist: [
@@ -496,6 +506,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound paddock layout & rotational grazing framework',
+    shortTitle: 'Paddock layout & rotational grazing framework',
     focusedQuestion:
       'How many paddocks, what size, and what rotation interval - designed to maximise pasture recovery and land improvement?',
     checklist: [
@@ -540,6 +551,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A reliable stock water infrastructure strategy',
+    shortTitle: 'Stock water infrastructure strategy',
     focusedQuestion:
       'How will potable stock water be delivered reliably to all paddocks in all rotations and all seasons?',
     checklist: [
@@ -584,6 +596,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound forage & pasture improvement strategy',
+    shortTitle: 'Forage & pasture improvement strategy',
     focusedQuestion:
       'How will pasture composition, fertility, and productivity be improved to meet enterprise targets?',
     checklist: [
@@ -628,6 +641,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A coherent tree integration strategy',
+    shortTitle: 'Tree integration strategy',
     focusedQuestion:
       'Which tree species will be integrated into the grazing system, where, and how will they be established and protected?',
     checklist: [
@@ -672,6 +686,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound animal health & veterinary protocol',
+    shortTitle: 'Animal health & veterinary protocol',
     focusedQuestion:
       'How will routine animal health, preventive care, and emergency veterinary access be managed?',
     checklist: [
@@ -717,6 +732,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A working fencing & paddock infrastructure design',
+    shortTitle: 'Fencing & paddock infrastructure design',
     focusedQuestion:
       'How will paddock subdivision, gates, and boundary fencing be designed for the defined rotation system?',
     checklist: [
@@ -761,6 +777,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A working stock water distribution network',
+    shortTitle: 'Stock water distribution network',
     focusedQuestion:
       'How will stock water be distributed from source to all paddock troughs?',
     checklist: [
@@ -805,6 +822,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'Well-designed livestock shelters & handling facilities',
+    shortTitle: 'Livestock shelters & handling facilities',
     focusedQuestion:
       'How will yards, crushes, laneways, shade shelters, and isolation facilities be designed?',
     checklist: [
@@ -845,6 +863,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A ready tree planting & protection plan',
+    shortTitle: 'Tree planting & protection plan',
     focusedQuestion:
       'How will trees be established in the grazing system - species placement, guards, and protection from stock?',
     checklist: [
@@ -890,6 +909,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A working livestock & pasture monitoring protocol',
+    shortTitle: 'Livestock & pasture monitoring protocol',
     focusedQuestion:
       'How will pasture condition, grazing impact, and stock performance be tracked to drive rotation decisions?',
     checklist: [
@@ -930,6 +950,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A working animal health monitoring system',
+    shortTitle: 'Animal health monitoring system',
     focusedQuestion:
       'How will livestock health indicators be tracked - and what triggers a veterinary response?',
     checklist: [
@@ -970,6 +991,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound adaptive management protocol',
+    shortTitle: 'Adaptive management protocol',
     focusedQuestion:
       'How will pasture monitoring data drive stocking rate and rotation adjustments - completing the regenerative grazing feedback loop?',
     checklist: [
@@ -1011,6 +1033,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sequenced livestock establishment plan',
+    shortTitle: 'Livestock establishment plan',
     focusedQuestion:
       'In what order will infrastructure and livestock be established - and what hard gates prevent early stocking?',
     checklist: [
@@ -1052,6 +1075,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A staged stocking buildup & pasture readiness plan',
+    shortTitle: 'Stocking buildup & pasture readiness plan',
     focusedQuestion:
       'How will stocking be increased incrementally as pasture condition improves - tied to monitoring data, not a calendar?',
     checklist: [
@@ -1092,6 +1116,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound enterprise financial viability plan',
+    shortTitle: 'Enterprise financial viability plan',
     focusedQuestion:
       'What are the infrastructure costs, stocking costs, and revenue timeline - and when does the enterprise break even?',
     checklist: [
@@ -1136,6 +1161,7 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound pasture spelling & recovery protocol',
+    shortTitle: 'Pasture spelling & recovery protocol',
     focusedQuestion:
       'What rules govern when paddocks are rested and what condition confirms readiness for re-entry?',
     checklist: [
@@ -1214,6 +1240,7 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'A clear livestock enterprise intent & integration rationale',
+    shortTitle: 'Livestock enterprise intent & integration rationale',
     focusedQuestion:
       'Why is grazing livestock being integrated into this primary enterprise, and what role does it serve - production, land management, or both?',
     checklist: [
@@ -1256,6 +1283,7 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'A clear read of forage base & grazing capacity',
+    shortTitle: 'Forage base & grazing capacity',
     focusedQuestion:
       'What forage already exists across the site, and what is the realistic grazing capacity by zone and season?',
     checklist: [
@@ -1298,6 +1326,7 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'A sound grazing system & rotation framework',
+    shortTitle: 'Grazing system & rotation framework',
     focusedQuestion:
       'How will stock be moved across the site to balance animal nutrition, pasture recovery, and tree protection?',
     checklist: [
@@ -1343,6 +1372,7 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'Ready core stock infrastructure - water, fencing & handling',
+    shortTitle: 'Core stock infrastructure - water, fencing & handling',
     focusedQuestion:
       'What water, fencing, and handling infrastructure must be in place before any livestock arrive on site?',
     checklist: [
@@ -1384,6 +1414,7 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'A sound livestock husbandry & welfare framework',
+    shortTitle: 'Livestock husbandry & welfare framework',
     focusedQuestion:
       'What husbandry, health, and welfare standards govern the herd or flock - including humane and halal handling?',
     checklist: [

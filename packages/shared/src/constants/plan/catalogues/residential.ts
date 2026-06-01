@@ -60,6 +60,7 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'Clear residential household needs & provision priorities',
+    shortTitle: 'Residential household needs & provision priorities',
     focusedQuestion:
       'What does the household living on this land need for daily domestic life - food, shelter, warmth, water, connectivity - and how will those needs be met?',
     checklist: [
@@ -112,6 +113,7 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'A clear read of domestic water quality & potability',
+    shortTitle: 'Domestic water quality & potability',
     focusedQuestion:
       'Given landscape vector findings, is the available water safe for drinking, cooking, and bathing - and what treatment is required?',
     scopeNotes:
@@ -178,6 +180,7 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'A clear domestic living zone & privacy strategy',
+    shortTitle: 'Domestic living zone & privacy strategy',
     focusedQuestion:
       'Where does private household life happen on this working land, and how is it protected from operational activity, visitors, and noise?',
     checklist: [
@@ -227,6 +230,7 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'Well-designed domestic living infrastructure',
+    shortTitle: 'Domestic living infrastructure',
     focusedQuestion:
       'How will the dwelling, domestic utilities, and household systems be designed to meet the residential needs and resilience strategy?',
     checklist: [
@@ -305,6 +309,7 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'A working household self-sufficiency feedback loop',
+    shortTitle: 'Household self-sufficiency feedback loop',
     focusedQuestion:
       'How will the household track what it grows vs. buys - and use that to improve provision decisions each season?',
     scopeNotes:
@@ -354,6 +359,7 @@ export const RESIDENTIAL_ADDITIVE_OBJECTIVES: readonly PlanStratumObjective[] = 
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
     title: 'A sequenced residential phasing & establishment plan',
+    shortTitle: 'Residential phasing & establishment plan',
     focusedQuestion:
       'In what sequence will domestic infrastructure be established - and what must be in place before the household moves on-site?',
     scopeNotes:

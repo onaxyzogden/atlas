@@ -55,6 +55,13 @@ export interface ObjectiveInput {
   id: string;
   stratumId: PlanStratumId;
   title: string;
+  /**
+   * Card-tile display label: the core noun phrase with the leading framing
+   * phrase / imperative verb stripped. Optional; the card falls back to
+   * `title`. Full `title` stays the source of truth for the detail header,
+   * aria-label, spine, and search.
+   */
+  shortTitle?: string;
   focusedQuestion: string;
   checklist: PlanDecisionChecklistItem[];
   completionGate: string;
@@ -86,6 +93,7 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
     id: input.id,
     stratumId: input.stratumId,
     title: input.title,
+    ...(input.shortTitle ? { shortTitle: input.shortTitle } : {}),
     focusedQuestion: input.focusedQuestion,
     prerequisiteObjectiveIds: [],
     defaultOverlayBundle: [],

@@ -185,6 +185,15 @@ export const PlanStratumObjectiveSchema = z.object({
   id: z.string().min(1),
   stratumId: PlanStratumId,
   title: z.string().min(1),
+  /**
+   * Card-tile display label: the core noun phrase with the leading framing
+   * phrase / imperative verb stripped (e.g. "A clear vision, goals &
+   * stewardship capacity" -> "Vision, goals & stewardship capacity"). Optional;
+   * the ObjectiveCard tile falls back to `title` when unset. The full `title`
+   * stays the source of truth for the detail-panel header, aria-labels, the
+   * spine prototype, and search.
+   */
+  shortTitle: z.string().min(1).optional(),
   focusedQuestion: z.string().min(1),
   /**
    * Other stratum-objective ids that must be `complete` before this objective

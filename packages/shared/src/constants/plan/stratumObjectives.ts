@@ -92,6 +92,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     id: 's1-vision',
     stratumId: 's1-project-foundation',
     title: 'Define vision, goals & stewardship capacity',
+    shortTitle: 'Vision, goals & stewardship capacity',
     focusedQuestion:
       'What is this land for, who is it for, and how much capacity do you have to steward it?',
     prerequisiteObjectiveIds: [],
@@ -128,6 +129,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     id: 's1-stewardship',
     stratumId: 's1-project-foundation',
     title: 'Identify key decision-makers and stewards',
+    shortTitle: 'Key decision-makers and stewards',
     focusedQuestion: 'Who else works on this land, and in what role?',
     prerequisiteObjectiveIds: [],
     defaultOverlayBundle: [],
@@ -158,6 +160,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     id: 's2-land-baseline',
     stratumId: 's2-land-reading',
     title: 'Read the land baseline (climate, landform, water, soil, ecology)',
+    shortTitle: 'Land baseline (climate, landform, water, soil, ecology)',
     focusedQuestion:
       'What is the land already telling you across the base layers?',
     prerequisiteObjectiveIds: ['s1-vision', 's1-stewardship'],
@@ -194,6 +197,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     id: 's3-systems-baseline',
     stratumId: 's3-systems-reading',
     title: 'Read current systems (flows, cycles, current use)',
+    shortTitle: 'Systems (flows, cycles, current use)',
     focusedQuestion: 'How is the land currently functioning as a system?',
     prerequisiteObjectiveIds: ['s2-land-baseline'],
     defaultOverlayBundle: [],
@@ -229,6 +233,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     id: 's4-zones-sectors',
     stratumId: 's4-foundation-decisions',
     title: 'Set zones and sectors',
+    shortTitle: 'Zones and sectors',
     focusedQuestion:
       'How should the site be zoned, and what sectors influence it?',
     prerequisiteObjectiveIds: ['s3-systems-baseline'],
@@ -265,6 +270,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     id: 's5-water-strategy',
     stratumId: 's5-system-design',
     title: 'Set water strategy',
+    shortTitle: 'Water strategy',
     focusedQuestion:
       'How does water move, slow, sink, and spread across the design?',
     prerequisiteObjectiveIds: ['s4-zones-sectors'],
@@ -301,6 +307,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     id: 's6-yield-flows',
     stratumId: 's6-integration-design',
     title: 'Integrate yield flows across systems',
+    shortTitle: 'Yield flows across systems',
     focusedQuestion:
       'How do the elements yield to and feed each other across the design?',
     prerequisiteObjectiveIds: ['s5-water-strategy'],
@@ -384,6 +391,7 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
     id: 's7-phasing',
     stratumId: 's7-phasing-resourcing',
     title: 'Build the phasing plan',
+    shortTitle: 'Phasing plan',
     focusedQuestion:
       'In what order will the design land, and what does each phase need?',
     prerequisiteObjectiveIds: ['s6-yield-flows'],

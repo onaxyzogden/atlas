@@ -71,6 +71,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear visitor experience vision & commercial model',
+    shortTitle: 'Visitor experience vision & commercial model',
     focusedQuestion:
       "What do guests experience here, what do they pay for, and what is the farm's hospitality identity?",
     checklist: [
@@ -122,6 +123,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear visitor capacity & operational boundary',
+    shortTitle: 'Visitor capacity & operational boundary',
     focusedQuestion:
       'How many guests can this farm host at any one time - and what operational constraints define that limit?',
     checklist: [
@@ -168,6 +170,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound regulatory & licensing framework',
+    shortTitle: 'Regulatory & licensing framework',
     focusedQuestion:
       'What permits, licences, and compliance frameworks must be in place before guests arrive?',
     checklist: [
@@ -229,6 +232,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of visitor access & arrival experience',
+    shortTitle: 'Visitor access & arrival experience',
     focusedQuestion:
       'How do guests currently arrive - and what is the quality of the approach, entry, and first impression?',
     checklist: [
@@ -275,6 +279,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of existing hospitality infrastructure',
+    shortTitle: 'Existing hospitality infrastructure',
     focusedQuestion:
       'What accommodation, kitchen, bathroom, and gathering infrastructure already exists - and what is its condition and reuse potential?',
     checklist: [
@@ -326,6 +331,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of surrounding landscape & vectors',
+    shortTitle: 'Surrounding landscape & vectors',
     focusedQuestion:
       'How does the surrounding landscape shape the guest experience - visual amenity, noise, neighbouring activities - and what contamination risks apply?',
     checklist: [
@@ -369,6 +375,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of seasonal operational patterns',
+    shortTitle: 'Seasonal operational patterns',
     focusedQuestion:
       'When can guests actually visit - what seasons, weather conditions, and farming activities enable or limit access?',
     checklist: [
@@ -416,6 +423,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of guest water & sanitation demand',
+    shortTitle: 'Guest water & sanitation demand',
     focusedQuestion:
       'What water supply and sanitation capacity is required at peak guest numbers - and does the site support it?',
     checklist: [
@@ -467,6 +475,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of noise, privacy & sensory environment',
+    shortTitle: 'Noise, privacy & sensory environment',
     focusedQuestion:
       'What will guests see, hear, and experience - and what sensory conditions support or undermine the guest experience vision?',
     checklist: [
@@ -513,6 +522,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of emergency access & safety conditions',
+    shortTitle: 'Emergency access & safety conditions',
     focusedQuestion:
       'What are the emergency access, evacuation, and safety conditions that must be resolved before public access begins?',
     checklist: [
@@ -566,6 +576,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear read of existing food production capacity',
+    shortTitle: 'Existing food production capacity',
     focusedQuestion:
       'What is already growing on this land that can feed the guest experience - and what gaps exist?',
     checklist: [
@@ -613,6 +624,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A coherent guest experience zones & circulation strategy',
+    shortTitle: 'Guest experience zones & circulation strategy',
     focusedQuestion:
       'Where exactly do guests go, what route do they take, and how is privacy and safety managed throughout?',
     checklist: [
@@ -666,6 +678,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear hospitality service model',
+    shortTitle: 'Hospitality service model',
     focusedQuestion:
       'What food, accommodation, and programming is offered - and at what service standard?',
     checklist: [
@@ -712,6 +725,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound farm-to-guest food production strategy',
+    shortTitle: 'Farm-to-guest food production strategy',
     focusedQuestion:
       'Which farm enterprises feed the guest experience - and how is farm production integrated into hospitality?',
     checklist: [
@@ -758,6 +772,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound safety, emergency & compliance framework',
+    shortTitle: 'Safety, emergency & compliance framework',
     focusedQuestion:
       'What safety systems, emergency protocols, and compliance obligations must be in place before any guest arrives?',
     checklist: [
@@ -813,6 +828,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound booking, pricing & revenue model',
+    shortTitle: 'Booking, pricing & revenue model',
     focusedQuestion:
       'How do guests book, what do they pay, and what financial model makes this enterprise viable?',
     checklist: [
@@ -865,6 +881,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'Well-designed guest accommodation & retreat infrastructure',
+    shortTitle: 'Guest accommodation & retreat infrastructure',
     focusedQuestion:
       'How will guest accommodation be designed - sized to capacity, consistent with experience vision and compliance requirements?',
     checklist: [
@@ -918,6 +935,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'Well-designed guest dining & food service infrastructure',
+    shortTitle: 'Guest dining & food service infrastructure',
     focusedQuestion:
       'How will farm kitchen, dining, and food service infrastructure be designed to food safety standard?',
     checklist: [
@@ -964,6 +982,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'Well-designed guest programming & activity infrastructure',
+    shortTitle: 'Guest programming & activity infrastructure',
     focusedQuestion:
       'How will trails, tour routes, workshop spaces, and demonstration areas be designed?',
     checklist: [
@@ -1010,6 +1029,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'Well-designed guest bathroom & sanitation infrastructure',
+    shortTitle: 'Guest bathroom & sanitation infrastructure',
     focusedQuestion:
       'How will bathrooms, showers, and sanitation facilities be designed at peak guest capacity?',
     checklist: [
@@ -1056,6 +1076,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'Working visitor safety & emergency infrastructure',
+    shortTitle: 'Visitor safety & emergency infrastructure',
     focusedQuestion:
       'How will safety signage, first aid, fire equipment, and emergency infrastructure be designed across all guest areas?',
     checklist: [
@@ -1110,6 +1131,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A working visitor experience feedback & quality monitor',
+    shortTitle: 'Visitor experience feedback & quality monitor',
     focusedQuestion:
       'How will guest satisfaction, repeat visit rate, and experience quality be tracked and improved?',
     checklist: [
@@ -1158,6 +1180,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A working external relations & compliance monitor',
+    shortTitle: 'External relations & compliance monitor',
     focusedQuestion:
       'How will health and safety audits, food safety compliance, licensing renewals, and neighbour relations be actively managed?',
     checklist: [
@@ -1204,6 +1227,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A working farm-to-guest integration feedback loop',
+    shortTitle: 'Farm-to-guest integration feedback loop',
     focusedQuestion:
       'How will the farm understand which enterprises are feeding the guest experience - and what gaps need to be filled?',
     // 5 checklist items: c1-c4 verbatim from the v1.0 / Standards v1.3 source
@@ -1257,6 +1281,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A working capacity & operational load monitor',
+    shortTitle: 'Capacity & operational load monitor',
     focusedQuestion:
       'How will actual guest numbers, infrastructure load, and staff capacity be tracked to prevent drift beyond sustainable limits?',
     checklist: [
@@ -1306,6 +1331,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A clear hospitality staffing & training plan',
+    shortTitle: 'Hospitality staffing & training plan',
     focusedQuestion:
       'Who runs guest services, food preparation, and programming - and what training must be complete before first guests arrive?',
     checklist: [
@@ -1352,6 +1378,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A ready booking system & reservation infrastructure',
+    shortTitle: 'Booking system & reservation infrastructure',
     focusedQuestion:
       'How will guests book, pay, and receive confirmation - and what platform and process supports this?',
     checklist: [
@@ -1398,6 +1425,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound phased launch & financial viability plan',
+    shortTitle: 'Phased launch & financial viability plan',
     focusedQuestion:
       'How will the guest enterprise launch in stages - and what financial milestones confirm it is viable to proceed?',
     checklist: [
@@ -1451,6 +1479,7 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'primary',
     sourceTypeId: PRIMARY,
     title: 'A sound adaptive management protocol',
+    shortTitle: 'Adaptive management protocol',
     focusedQuestion:
       'How will monitoring findings trigger changes to the guest enterprise and farm management plan?',
     checklist: [
