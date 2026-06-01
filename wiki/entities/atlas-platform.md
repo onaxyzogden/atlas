@@ -80,6 +80,20 @@ The living-plan loop layered on the 15-module Plan-Initiation surface is now clo
 ## Pre-Launch Hardening (2026-04-12)
 - 19 CRITICAL/HIGH fixes completed (Phases A–D)
 - 12 MEDIUM/LOW fixes completed (Phases E–F)
-- Test coverage: 420 tests passing (64 API, 356 web)
+- Test coverage: 420 tests passing (64 API, 356 web) at hardening; 384 web tests passing as of 2026-05-31 (see Plan Spine Live Reskin).
 - Build: all 3 workspaces compile clean
 - Remaining deferred items: hardcoded hex colors (510 occ), console statements (79 occ), z-index standardization, WS stale connection cleanup, TS composite references, Docker initdb race, layers snake_case rename
+
+## Plan Spine Live Reskin + §10.1 Protocol Trigger (2026-05-31)
+Branch `feat/atlas-permaculture`, 6 commits this session (`87959dc2`→`58b1d341`):
+
+**Phase A** — `StratumSpineCircle`: circle glyph reads `S{n}` (✓ when complete); bold label reads the stratum title; duplicate subtitle removed.
+
+**Phase B** — `DecisionChecklist` rewritten as faithful read-only `DecisionGroupCard` surface: colored-bubble group headers, expand/collapse, striped rows, non-interactive 14px checkbox, "Open in Act →" CTA, all production adornments preserved as read-only chips. Plan-side toggling removed.
+
+**Phase C1–C4 (§10.1 full S6-derivation build):**
+- `packages/shared`: `ParameterItem`/`ParameterGroup` Zod schemas on `PlanStratumObjective`; S6 `parameterGroup` seed (5 items, tokens verbatim from standard-template catalogue); `buildProtocolOutputs(group, valuesById)` pure derive helper; drift-guard tests.
+- `planStratumStore`: parallel `valuesByProject` slice (v4→v5 persist migration, additive backfill); `setParameterValue`/`getParameterValues`/`selectParameterValues`. `protocolStore`: new `deactivateProtocol(projectId, templateId)` (removes record — inverse of `activateProtocol`).
+- `ParameterGroup.tsx`: spine-token-styled editable inputs, gated on `objective.parameterGroup` + livestock enterprise, persists on keystroke.
+- `ProtocolApprovalOverlay.tsx`: full modal wrapping `spine/ProtocolConfirmationFlow` with real store data — templates enterprise-filtered, outputs derived from steward values (`NO FABRICATION`), `onEditCommit` writes token values back to parameter store (single source of truth). "Approve & instantiate protocols →" gold button in `ObjectiveDetailPanel` (gated on S6 complete + parameterGroup + livestock). `ProtocolLayerPanel` now derives token outputs from `buildProtocolOutputs` (activated conditions show entered thresholds; unfilled tokens render verbatim brackets).
+- Spine prototype files untouched (import-only). 384 web tests passing, web tsc exit 0.
