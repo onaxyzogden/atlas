@@ -186,6 +186,19 @@ export default function PlanStratumShell() {
     [objectives, objectiveStatuses],
   );
 
+  // Overall progress across the project's resolved objective set — drives the
+  // footer pinned beneath the strata spine (mirrors the Plan Spine prototype's
+  // "Overall progress" footer, wired to real completion).
+  const totalObjectives = objectives.length;
+  const completedObjectives = useMemo(
+    () =>
+      objectives.filter((o) => objectiveStatuses[o.id] === 'complete').length,
+    [objectives, objectiveStatuses],
+  );
+  const overallPct = totalObjectives
+    ? Math.round((completedObjectives / totalObjectives) * 100)
+    : 0;
+
   // The locked-stratum popover is hoisted into the shell so the spine stays
   // presentational. `null` means no popover is open.
   const [lockedPopoverStratum, setLockedPopoverStratum] = useState<PlanStratum | null>(
@@ -599,6 +612,55 @@ export default function PlanStratumShell() {
           highlightStratumId={highlightStratumId}
           onSelectStratum={handleSelectStratum}
         />
+
+        {/* Overall progress — pinned footer beneath the strata spine, wired to
+            real completion (mirrors the Plan Spine prototype footer). */}
+        <div
+          data-testid="plan-overall-progress"
+          style={{
+            padding: '12px 16px',
+            borderTop: `1px solid ${C.border}`,
+            background: C.bg3,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              color: C.textTertiary,
+              fontFamily: F.sans,
+              marginBottom: 6,
+            }}
+          >
+            Overall progress
+          </div>
+          <div
+            role="progressbar"
+            aria-label="Overall progress"
+            aria-valuemin={0}
+            aria-valuemax={totalObjectives}
+            aria-valuenow={completedObjectives}
+            style={{ height: 3, background: C.bg4, borderRadius: 2 }}
+          >
+            <div
+              style={{
+                height: '100%',
+                width: `${overallPct}%`,
+                background: C.blue,
+                borderRadius: 2,
+              }}
+            />
+          </div>
+          <div
+            style={{
+              fontSize: 10,
+              color: C.textSecondary,
+              marginTop: 5,
+              fontFamily: F.mono,
+            }}
+          >
+            {completedObjectives} / {totalObjectives} objectives
+          </div>
+        </div>
       </div>
 
       {/* ── CENTRE: Protocol list (Protocol mode) or objective column (Design,

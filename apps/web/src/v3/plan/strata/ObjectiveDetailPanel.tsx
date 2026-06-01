@@ -24,6 +24,7 @@ import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
 import ObjectiveHeader from './ObjectiveHeader.js';
 import MapActivationStrip from './MapActivationStrip.js';
 import ActProgressBar from './ActProgressBar.js';
+import DecisionProgressBar from './DecisionProgressBar.js';
 import DecisionChecklist from './DecisionChecklist.js';
 import DetailsExpander from './DetailsExpander.js';
 import LaunchActButton from './LaunchActButton.js';
@@ -167,6 +168,12 @@ export default function ObjectiveDetailPanel({
         objective={objective}
         status={status}
         onBackToStratum={onBackToStratum}
+      />
+
+      <DecisionProgressBar
+        objective={objective}
+        completedItemIds={completedItemIds}
+        derivedEvidence={visionDerivedMap}
       />
 
       {reviewDue && (
