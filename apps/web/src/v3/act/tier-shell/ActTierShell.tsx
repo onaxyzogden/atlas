@@ -32,6 +32,7 @@ import {
   PLAN_STRATA,
   computeAllActStratumStates,
   computeAllObjectiveStatuses,
+  getObjectiveActTools,
 } from '@ogden/shared';
 import {
   useProjectStore,
@@ -81,8 +82,12 @@ import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
-import VisionFormModal from './VisionFormModal.js';
-import type { ActTool } from './actToolCatalog.js';
+import VisionFormsTabsModal from './VisionFormsTabsModal.js';
+import {
+  ACT_TOOL_CATEGORIES,
+  resolveActTools,
+  type ActTool,
+} from './actToolCatalog.js';
 import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
 import styles from './ActTierShell.module.css';
 
@@ -226,12 +231,14 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   );
   const [activeModule, setActiveModule] = useState<ActModule | null>(null);
 
-  // Form-arm state: which VisionFormModal is open (local UI state, ephemeral).
-  // The text VALUES the steward enters are persisted in actEvidenceStore.
-  const [openForm, setOpenForm] = useState<{
-    formId: string;
-    prompt: string;
-    placeholder?: string;
+  // Form-arm state: which category's tabbed form popup is open (local UI state,
+  // ephemeral). One popup holds every kind:'form' tool in the clicked category;
+  // `activeFormId` is the focused tab. The text VALUES are persisted in
+  // actEvidenceStore.
+  const [openFormGroup, setOpenFormGroup] = useState<{
+    title: string;
+    tools: ActTool[];
+    activeFormId: string;
   } | null>(null);
 
   // Read vision form values from the persisted store (keyed by formId under
@@ -313,7 +320,9 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
           .getState()
           .setItemComplete(id, objectiveId, formId);
       }
-      setOpenForm(null);
+      // Intentionally do NOT close the popup: saving one tab leaves the tabbed
+      // popup open so the steward can fill the remaining fields. Esc /
+      // click-outside / the X close it (handled by Modal).
     },
     [id, objectiveId],
   );
@@ -335,11 +344,18 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         return;
       }
       if (arm.kind === 'form') {
-        // Non-spatial checklist item: open the text-capture popup.
-        setOpenForm({
-          formId: arm.formId,
-          prompt: arm.prompt,
-          placeholder: arm.placeholder,
+        // Non-spatial checklist item: open ONE tabbed popup holding every
+        // kind:'form' tool in this tool's category, focused on the clicked tab.
+        const formTools = (
+          selectedObjective
+            ? resolveActTools(getObjectiveActTools(selectedObjective))
+            : []
+        ).filter((t) => t.arm.kind === 'form' && t.category === tool.category);
+        const cat = ACT_TOOL_CATEGORIES.find((c) => c.id === tool.category);
+        setOpenFormGroup({
+          title: cat?.label ?? 'Forms',
+          tools: formTools.length ? formTools : [tool],
+          activeFormId: arm.formId,
         });
         return;
       }
@@ -351,7 +367,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
       setActiveModule(log.module);
       if (log.toolId) setActiveTool(log.toolId);
     },
-    [setActiveModule, setActiveTool],
+    [setActiveModule, setActiveTool, selectedObjective],
   );
 
   return (
@@ -493,19 +509,22 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
               objective={selectedObjective}
               disabled={!params.projectId}
               onActivate={handleActivateTool}
-              activeFormId={openForm?.formId ?? null}
+              activeFormId={openFormGroup?.activeFormId ?? null}
             />
           }
         />
       </div>
-      <VisionFormModal
-        open={openForm !== null}
-        formId={openForm?.formId ?? ''}
-        prompt={openForm?.prompt ?? ''}
-        placeholder={openForm?.placeholder}
-        initialValue={openForm ? (visionForms[openForm.formId] ?? '') : ''}
+      <VisionFormsTabsModal
+        open={openFormGroup !== null}
+        title={openFormGroup?.title ?? ''}
+        tools={openFormGroup?.tools ?? []}
+        activeFormId={openFormGroup?.activeFormId ?? ''}
+        initialValues={visionForms}
+        onTabChange={(formId) =>
+          setOpenFormGroup((g) => (g ? { ...g, activeFormId: formId } : g))
+        }
         onSave={handleFormSave}
-        onClose={() => setOpenForm(null)}
+        onClose={() => setOpenFormGroup(null)}
       />
     </div>
   );
