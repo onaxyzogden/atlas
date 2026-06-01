@@ -89,6 +89,51 @@
   border-color: rgba(214, 158, 46, 0.7);
 }
 
+.shapeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(242, 237, 227, 0.12);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggleRow input {
+  width: 13px;
+  height: 13px;
+  accent-color: rgba(214, 158, 46, 0.9);
+  cursor: pointer;
+}
+
+.textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+  padding: 5px 7px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  resize: vertical;
+  color: var(--color-text);
+  background: rgba(12, 11, 10, 0.55);
+  border: 1px solid rgba(242, 237, 227, 0.22);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
 .note {
   font-size: 10px;
   font-style: italic;

@@ -22,6 +22,8 @@ import {
   polygonCentroid,
 } from './recordAsBuiltDeviation.js';
 import { buildAttributeDiff, type FormValues } from './attributeDiff.js';
+import { buildGeometryDiff } from './geometryDiff.js';
+import { parcelAreaM2 } from '../../../lib/geo.js';
 import { useCropStore } from '../../../store/cropStore.js';
 import { useLivestockStore } from '../../../store/livestockStore.js';
 import { useZoneStore } from '../../../store/zoneStore.js';
@@ -85,6 +87,12 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     flipped: boolean;
   } | null>(null);
   const [values, setValues] = useState<FormValues>({});
+  // Slice 5 geometry capture: the steward toggles "shape differs", optionally
+  // adding a note + approximate as-built area. Geometry takes precedence over
+  // attribute edits on Save (one Save = one data point).
+  const [shapeDiffers, setShapeDiffers] = useState(false);
+  const [geomNote, setGeomNote] = useState('');
+  const [asBuiltAreaInput, setAsBuiltAreaInput] = useState('');
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const seededFor = useRef<string | null>(null);
 
@@ -163,6 +171,10 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     if (seededFor.current === key) return;
     if (schema) {
       setValues({ ...schema.initial });
+      // Reset the geometry-capture controls for each newly opened feature.
+      setShapeDiffers(false);
+      setGeomNote('');
+      setAsBuiltAreaInput('');
       seededFor.current = key;
     }
   }, [active, schema]);
@@ -222,10 +234,43 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
   const hasChanges = schema.fields.some(
     (f) => String(values[f.key] ?? '') !== String(initial[f.key] ?? ''),
   );
-  const canSave = hasChanges && Boolean(projectId);
+  // Geometry path is "armed" only when the toggle is on AND the steward gave a
+  // note or an as-built area (a bare toggle records nothing).
+  const trimmedNote = geomNote.trim();
+  const geometryArmed =
+    shapeDiffers && (trimmedNote !== '' || asBuiltAreaInput.trim() !== '');
+  const canSave = Boolean(projectId) && (geometryArmed || hasChanges);
 
   const onSave = () => {
     if (!projectId) return;
+    const centroid = featureCentroid(resolved.geometry) ?? active.anchor;
+
+    // Geometry takes precedence: one Save = one data point, so when the shape
+    // toggle is armed any attribute edits in the same form are ignored.
+    if (geometryArmed) {
+      const plannedArea = resolved.geometry
+        ? parcelAreaM2(resolved.geometry)
+        : null;
+      const parsedArea =
+        asBuiltAreaInput.trim() === '' ? null : Number(asBuiltAreaInput);
+      const builtArea =
+        parsedArea != null && Number.isFinite(parsedArea) ? parsedArea : null;
+      const geomDiff = buildGeometryDiff(plannedArea, geomNote, builtArea);
+      if (!geomDiff) {
+        close();
+        return;
+      }
+      recordAsBuiltDeviation({
+        projectId,
+        kind: active.kind,
+        featureId: resolved.id,
+        diff: geomDiff,
+        centroid,
+      });
+      close();
+      return;
+    }
+
     const diff = buildAttributeDiff(schema.fields, initial, values);
     if (!diff) {
       close();
@@ -236,7 +281,7 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
       kind: active.kind,
       featureId: resolved.id,
       diff,
-      centroid: featureCentroid(resolved.geometry) ?? active.anchor,
+      centroid,
     });
     close();
   };
@@ -298,9 +343,44 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
         })}
       </div>
 
+      <div className={css.shapeSection}>
+        <label className={css.toggleRow}>
+          <input
+            type="checkbox"
+            checked={shapeDiffers}
+            onChange={(e) => setShapeDiffers(e.target.checked)}
+          />
+          <span>Shape differs on the ground</span>
+        </label>
+        {shapeDiffers ? (
+          <>
+            <label className={css.field}>
+              <span className={css.fieldLabel}>How it differs</span>
+              <textarea
+                className={css.textarea}
+                value={geomNote}
+                placeholder="e.g. north edge ~3 m short of plan"
+                onChange={(e) => setGeomNote(e.target.value)}
+              />
+            </label>
+            <label className={css.field}>
+              <span className={css.fieldLabel}>As-built area (m2, optional)</span>
+              <input
+                className={css.input}
+                type="number"
+                value={asBuiltAreaInput}
+                placeholder="approx square metres"
+                onChange={(e) => setAsBuiltAreaInput(e.target.value)}
+              />
+            </label>
+          </>
+        ) : null}
+      </div>
+
       <div className={css.note}>
-        Recorded to Observe as a divergence - does not change the Plan. Reconcile
-        from the Plan stage.
+        {geometryArmed
+          ? 'Records a shape deviation (note + area) - the polygon is not redrawn. Reconcile from the Plan stage.'
+          : 'Recorded to Observe as a divergence - does not change the Plan. Reconcile from the Plan stage.'}
       </div>
 
       <div className={css.btnRow}>

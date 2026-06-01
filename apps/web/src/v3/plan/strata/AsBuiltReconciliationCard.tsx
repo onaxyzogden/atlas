@@ -164,6 +164,18 @@ function DeviationItem({ projectId, point }: ItemProps) {
       {diff?.kind === 'geometry' && (
         <div className={css.diffBlock}>
           <span className={css.diffField}>Shape differs</span>
+          {diff.asPlanned.areaM2 != null && diff.asBuilt.areaM2 != null && (
+            <div className={css.diffChange}>
+              <span className={css.asPlanned}>{diff.asPlanned.areaM2} m2</span>
+              <span className={css.arrow} aria-hidden>
+                {'→'}
+              </span>
+              <span className={css.asBuilt}>{diff.asBuilt.areaM2} m2</span>
+              <span className={css.areaDelta}>
+                ({formatAreaDelta(diff.asPlanned.areaM2, diff.asBuilt.areaM2)})
+              </span>
+            </div>
+          )}
           {diff.asBuilt.note != null && (
             <span className={css.geometryNote}>{diff.asBuilt.note}</span>
           )}
@@ -201,6 +213,13 @@ function DeviationItem({ projectId, point }: ItemProps) {
       </div>
     </li>
   );
+}
+
+/** Signed whole-m2 delta for the geometry area line ("-150 m2" / "+40 m2"). */
+function formatAreaDelta(plannedM2: number, builtM2: number): string {
+  const delta = Math.round(builtM2 - plannedM2);
+  const sign = delta > 0 ? '+' : '';
+  return `${sign}${delta} m2`;
 }
 
 function formatCapturedAt(iso: string): string {

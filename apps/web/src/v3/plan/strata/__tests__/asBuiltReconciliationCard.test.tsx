@@ -166,6 +166,51 @@ describe('AsBuiltReconciliationCard -- rendering', () => {
     expect(screen.queryByTestId('plan-asbuilt-apply')).toBeNull();
     expect(screen.getByTestId('plan-asbuilt-keep')).toBeDefined();
   });
+
+  it('renders the area delta + note for a geometry diff (Slice 5)', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        measurementValue: {
+          kind: 'geometry',
+          field: 'geometry',
+          asPlanned: { areaM2: 800 },
+          asBuilt: { areaM2: 650, note: 'north edge 3 m short of plan' },
+        },
+      }),
+    );
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+
+    // Both areas + the signed delta render; geometry stays Keep-only.
+    expect(screen.getByText('Shape differs')).toBeDefined();
+    expect(screen.getByText('800 m2')).toBeDefined();
+    expect(screen.getByText('650 m2')).toBeDefined();
+    expect(screen.getByText('(-150 m2)')).toBeDefined();
+    expect(screen.getByText('north edge 3 m short of plan')).toBeDefined();
+    expect(screen.queryByTestId('plan-asbuilt-apply')).toBeNull();
+    expect(screen.getByTestId('plan-asbuilt-keep')).toBeDefined();
+  });
+
+  it('renders a note-only geometry diff with no area delta', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        measurementValue: {
+          kind: 'geometry',
+          field: 'geometry',
+          asPlanned: {},
+          asBuilt: { note: 'rotated slightly to follow contour' },
+        },
+      }),
+    );
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+
+    expect(screen.getByText('Shape differs')).toBeDefined();
+    expect(screen.getByText('rotated slightly to follow contour')).toBeDefined();
+    // No area line when either area is missing.
+    expect(screen.queryByText(/m2\)$/)).toBeNull();
+    expect(screen.queryByTestId('plan-asbuilt-apply')).toBeNull();
+  });
 });
 
 describe('AsBuiltReconciliationCard -- actions', () => {
