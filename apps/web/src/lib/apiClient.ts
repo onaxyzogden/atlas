@@ -79,6 +79,12 @@ import type {
   StewardshipFrequency,
   CrossRelationship,
   CreateCrossRelationshipInput,
+  PortfolioPoi,
+  CreatePortfolioPoiInput,
+  UpdatePortfolioPoiInput,
+  PoiProjectFlow,
+  CreatePoiFlowInput,
+  UpdatePoiFlowInput,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -1129,6 +1135,37 @@ export const api = {
         'DELETE',
         `/api/v1/projects/${projectId}/cross-project-relationships/${relationshipId}`,
       ),
+  },
+
+  // Portfolio resource POIs (Portfolio Home §2 resource-node extension) —
+  // user-scoped resource nodes that connect to whole projects via material
+  // flows. Server is the source of truth (no localStorage mirror).
+  portfolioPois: {
+    list: () => request<PortfolioPoi[]>('GET', '/api/v1/portfolio-pois'),
+
+    create: (input: CreatePortfolioPoiInput) =>
+      request<PortfolioPoi>('POST', '/api/v1/portfolio-pois', input),
+
+    update: (poiId: string, input: UpdatePortfolioPoiInput) =>
+      request<PortfolioPoi>('PATCH', `/api/v1/portfolio-pois/${poiId}`, input),
+
+    remove: (poiId: string) =>
+      request<null>('DELETE', `/api/v1/portfolio-pois/${poiId}`),
+
+    flows: {
+      create: (poiId: string, input: CreatePoiFlowInput) =>
+        request<PoiProjectFlow>('POST', `/api/v1/portfolio-pois/${poiId}/flows`, input),
+
+      update: (poiId: string, flowId: string, input: UpdatePoiFlowInput) =>
+        request<PoiProjectFlow>(
+          'PATCH',
+          `/api/v1/portfolio-pois/${poiId}/flows/${flowId}`,
+          input,
+        ),
+
+      remove: (poiId: string, flowId: string) =>
+        request<null>('DELETE', `/api/v1/portfolio-pois/${poiId}/flows/${flowId}`),
+    },
   },
 
   telemetry: {
