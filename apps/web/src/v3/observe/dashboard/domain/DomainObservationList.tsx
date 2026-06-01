@@ -19,11 +19,17 @@
  * read-only chronological context with a small "from field log" hint.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Camera, MapPin, Ruler, FileText, ClipboardList } from 'lucide-react';
 import type { ObserveDataPoint, ObserveStatusOutput } from '@ogden/shared';
 import { findObjectiveAcrossCatalogues } from '@ogden/shared';
 import type { DomainPointsView } from './useDomainPoints.js';
+import {
+  classifyObservationSource,
+  isVirtual,
+  matchesSourceFilter,
+  type SourceFilter,
+} from './observationSource.js';
 import SupersessionControl from './SupersessionControl.js';
 import css from './DomainObservationList.module.css';
 
@@ -42,9 +48,11 @@ const STATUS_LABEL: Record<ObserveStatusOutput, string> = {
 
 const PROOF_ICON_SIZE = 13;
 
-function isVirtual(point: ObserveDataPoint): boolean {
-  return point.id.startsWith('feed:');
-}
+const SOURCE_FILTERS: readonly { id: SourceFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'act', label: 'From Act' },
+  { id: 'baseline', label: 'Baseline' },
+];
 
 function formatTimestamp(iso: string): string {
   const ms = Date.parse(iso);
@@ -78,9 +86,13 @@ function proofTypeIcon(type: string) {
 }
 
 export default function DomainObservationList({ projectId, view }: Props) {
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+
   // Build a reverse-lookup so an active row that superseded an older row
   // can render "Supersedes [link]" symmetric to the older row's
   // "Superseded by [link]" — store carries only the forward pointer.
+  // Built from the FULL view so a partner filtered out of the visible rows
+  // still resolves its supersession relationship.
   const reverseSupersededBy = useMemo(() => {
     const m = new Map<string, string>();
     for (const p of view.all) {
@@ -88,6 +100,20 @@ export default function DomainObservationList({ projectId, view }: Props) {
     }
     return m;
   }, [view.all]);
+
+  // Act-vs-baseline provenance counts drive the chip labels + disabled state.
+  const counts = useMemo(() => {
+    let act = 0;
+    for (const p of view.all) {
+      if (classifyObservationSource(p) === 'act') act += 1;
+    }
+    return { all: view.all.length, act, baseline: view.all.length - act };
+  }, [view.all]);
+
+  const rows = useMemo(
+    () => view.all.filter((p) => matchesSourceFilter(p, sourceFilter)),
+    [view.all, sourceFilter],
+  );
 
   if (view.all.length === 0) {
     return (
@@ -98,8 +124,34 @@ export default function DomainObservationList({ projectId, view }: Props) {
   }
 
   return (
-    <ol className={css.list} aria-label="Domain observations">
-      {view.all.map((point) => {
+    <div className={css.wrap}>
+      <div className={css.controls} role="group" aria-label="Filter by source">
+        {SOURCE_FILTERS.map((option) => {
+          const count = counts[option.id];
+          const active = sourceFilter === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              className={active ? css.chipActive : css.chip}
+              aria-pressed={active}
+              disabled={count === 0 && !active}
+              onClick={() => setSourceFilter(option.id)}
+            >
+              {option.label} {count}
+            </button>
+          );
+        })}
+      </div>
+
+      {rows.length === 0 ? (
+        <div className={css.filteredEmpty}>
+          No {sourceFilter === 'act' ? 'From Act' : 'Baseline'} observations for
+          this domain.
+        </div>
+      ) : (
+        <ol className={css.list} aria-label="Domain observations">
+          {rows.map((point) => {
         const virtual = isVirtual(point);
         const supersedingId = reverseSupersededBy.get(point.id) ?? null;
         const renderRestore =
@@ -192,9 +244,11 @@ export default function DomainObservationList({ projectId, view }: Props) {
                 )}
               </div>
             )}
-          </li>
-        );
-      })}
-    </ol>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </div>
   );
 }
