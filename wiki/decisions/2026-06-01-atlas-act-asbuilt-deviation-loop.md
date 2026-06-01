@@ -1,7 +1,7 @@
 # 2026-06-01 -- Act as-built deviation loop: a steward records reality-vs-plan in Act; it surfaces in Plan without mutating Plan
 
-**Status:** accepted (Slices 1-5 of 5 shipped) | **Branch:** `feat/atlas-permaculture` | **Surface:** Atlas web (`apps/web`) + `@ogden/shared`
-**Commits:** `fea7d1d6` (Slice 1 substrate) -> `9ceba563` (Slice 2 thinnest end-to-end loop) -> `26dc308b` (wiki) -> `bff6a8ba` (Slice 3 reconciliation card) -> `f96478ca` (Slice 4 paddock/zone/structure fan-out) -> `8983ab6d` (select-field raw-value Apply fix, found during Slice 4 live-verify) -> `a6d356b4` (Slice 5 geometry shape-deviation capture); not pushed (branch externally rebased; commit-only)
+**Status:** accepted (Slices 1-6 shipped; Slice 6 = geometry capture-and-apply) | **Branch:** `feat/atlas-permaculture` | **Surface:** Atlas web (`apps/web`) + `@ogden/shared`
+**Commits:** `fea7d1d6` (Slice 1 substrate) -> `9ceba563` (Slice 2 thinnest end-to-end loop) -> `26dc308b` (wiki) -> `bff6a8ba` (Slice 3 reconciliation card) -> `f96478ca` (Slice 4 paddock/zone/structure fan-out) -> `8983ab6d` (select-field raw-value Apply fix, found during Slice 4 live-verify) -> `a6d356b4` (Slice 5 geometry shape-deviation capture) -> `6ff06b0e` (Slice 6 geometry capture-and-apply); not pushed (branch externally rebased; commit-only)
 **Entity:** [[entities/act-tier-shell]] | **Log:** [[log/2026-06-01-atlas-act-asbuilt-deviation-slice1-2]]
 **Builds on:** [[decisions/2026-05-31-atlas-observe-datapoint-objective-link]], [[decisions/2026-05-31-atlas-act-record-observation-emits-datapoint]]
 
@@ -211,8 +211,64 @@ re-introduce a hardcoded id.
     Keep soft-supersedes the point, paddock geometry unchanged. Dev-injected point removed; the Act
     popover store dev hook (used because the maplibre layer click is unreachable from preview
     tooling) was reverted before commit.
-- **Loop complete:** all 5 slices shipped; the Act -> Observe -> Plan as-built deviation loop covers
-  all four feature kinds (cropArea / paddock / zone / structure) for attribute fixes and geometry
-  (shape) evidence, with the only Plan-store mutation being the steward's explicit "Apply to design"
-  click (attributes only) in Plan.
+- **Shipped (Slice 6, `6ff06b0e`):** geometry CAPTURE-and-APPLY -- the deferred "Plan re-draw"
+  affordance. A steward redraws the REAL as-built polygon in Act and Plan can apply it to the design,
+  closing the shape-reconciliation half of the loop (Slice 5 recorded shape divergence as read-only
+  evidence; Slice 6 makes it reconcilable). Two operator forks settled this session: capture path =
+  "capture-in-Act then Apply" (over reuse-the-Plan-vertex-editor / full-redraw); kinds = all four.
+  - **Invariant preserved.** This adds Act *geometry authoring* but NOT Act *Plan-mutation*: Act only
+    writes the captured polygon into an Observe data point as evidence (`asBuilt.capturedGeometry`).
+    The single Plan-store mutation remains the explicit Plan-side "Apply to design" click -- identical
+    in spirit to the attribute Apply path. "Act adds, it does not edit Plan decisions" holds in letter
+    and intent.
+  - **Act capture.** `actAsBuiltPopoverStore` gains a transient `capture` sub-state
+    (`{ drawing, geometry, areaM2 }` + `startDrawing` / `cancelDrawing` / `setCaptured` / `clearCaptured`;
+    `open`/`close` reset it) -- the same store-bridge pattern as `planVertexEditStore`. New
+    **`ActAsBuiltDrawHandler.tsx`** (a thin `map`-prop shell, returns null) calls
+    `useMapboxDrawTool<Polygon>({ map, mode:'draw_polygon', enabled: capture.drawing, onComplete })`
+    where `onComplete(poly) = setCaptured(poly, parcelAreaM2(poly))`; the hook is always called and
+    gated by `enabled` (Rules-of-Hooks safe; `enabled:false` mounts no control -- true no-op). Mounted
+    after `<ActAsBuiltPopover>` in BOTH shells (`ActTierShell` ~403, `ActLayout` ~252; grep-verified --
+    missing one silently no-ops redraw in that shell). `ActAsBuiltPopover` adds a "Redraw shape on map"
+    button (`startDrawing`) + a "Shape captured - N m2 / Clear" readout; while `capture.drawing` it
+    renders null (yields the canvas) after all hooks, Esc -> `cancelDrawing` (else `close`),
+    click-outside early-returns. `geometryArmed = shapeDiffers && (note || areaInput ||
+    capture.geometry != null)`; `onSave` passes `capture.geometry` into `buildGeometryDiff`.
+  - **`geometryDiff.ts`** gains an optional 4th param `capturedGeometry?: Polygon`: when present it
+    stamps `asBuilt.capturedGeometry` and, if no explicit area was typed, derives `asBuilt.areaM2` via
+    `parcelAreaM2`. Slice-5 3-arg callers unchanged. The `capturedGeometry` slot was ALREADY in the
+    schema (`z.unknown().optional()`) -- NO schema change; shape is enforced by a runtime guard at the
+    apply boundary, not by schema coupling to turf's polygon type.
+  - **Plan apply.** `applyAsBuiltDiff.ts` gains `asCapturedPolygon(v): Polygon | null` (runtime guard:
+    `type==='Polygon'`, `coordinates[0]` ring length >= 4). `canApplyDiff` now lights a geometry diff
+    IFF `asCapturedPolygon(diff.asBuilt.capturedGeometry) !== null` (all four kinds; note/area-only
+    geometry stays read-only). `applyGeometryDiff` writes geometry + recomputed `areaM2`
+    (`parcelAreaM2`, guarded spread -- omit `areaM2` if null) to cropArea/paddock/zone via
+    `updateCropArea`/`updatePaddock`/`updateZone`, and routes structure through `updateStructure(id,
+    { geometry })` (which feeds `updateGeometry`; `widthM`/`depthM`/`rotationDeg` go stale by design --
+    same accepted behavior as the Plan vertex editor). `AsBuiltReconciliationCard` lights "Apply to
+    design" for free (it already renders off `canApply`); the read-only label swaps to "As-built shape
+    captured -- Apply redraws the design polygon", and for structure adds a caution that apply replaces
+    the parametric footprint.
+  - **Tests:** `geometryDiff` 9 (+3 -- stamps polygon + derives area; captured-alone is a divergence;
+    typed area wins over derived), `applyAsBuiltDiff` 20 (+ accept-all-4-kinds-with-captured, reject
+    malformed, a "captured geometry" block: crop/paddock/zone write geometry+areaM2, structure routes
+    through an `updateGeometry` spy, no-op on malformed), `asBuiltReconciliationCard` 19 (+ Apply shows
+    for captured-polygon geometry + "As-built shape captured" copy; Apply writes the polygon to the crop
+    store with numeric areaM2; structure "parametric footprint" caution). apps/web + `@ogden/shared` tsc
+    exit 0. `act/asBuilt` + `plan/strata` suites green (144 tests across 18 files). The full vitest run
+    hung on unrelated network-bound suites (dead `localhost:3000`) and was stopped; the directly-affected
+    directories were run clean as a whole instead.
+  - **Verification honesty note:** the new and risky logic -- `applyGeometryDiff`, the `canApplyDiff`
+    geometry branch, the card label -- is comprehensively unit-covered (the `applyAsBuiltDiff` suite
+    injects a captured polygon and asserts the per-kind geometry+areaM2 store write). A live localhost
+    round-trip was NOT driven: the Act capture side requires drawing a polygon on the maplibre canvas,
+    which (like the layer clicks documented in Slices 4-5) is unreachable from preview automation, and
+    the dev API was down. Per the standing honesty gate this is recorded as unit/typecheck-verified, NOT
+    live-verified -- no fabricated status.
+- **Loop complete:** all 6 slices shipped; the Act -> Observe -> Plan as-built deviation loop covers
+  all four feature kinds (cropArea / paddock / zone / structure) for attribute fixes, geometry (shape)
+  evidence, AND geometry capture-and-apply, with the only Plan-store mutation being the steward's
+  explicit "Apply to design" click in Plan (attribute values; or the captured as-built polygon for
+  geometry diffs).
 - ASCII-only copy; CSRA model untouched ([[fiqh-csra-erased-2026-05-04]]).
