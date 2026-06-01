@@ -43,6 +43,8 @@ describe('buildAttributeDiff', () => {
       label: 'Name',
       asPlanned: 'North Block',
       asBuilt: 'North Orchard',
+      asPlannedRaw: 'North Block',
+      asBuiltRaw: 'North Orchard',
     });
   });
 
@@ -55,6 +57,9 @@ describe('buildAttributeDiff', () => {
       label: 'Type',
       asPlanned: 'Orchard',
       asBuilt: 'Alley crop',
+      // raw codes preserved for Apply, alongside the human labels for display
+      asPlannedRaw: 'orchard',
+      asBuiltRaw: 'alley',
     });
   });
 

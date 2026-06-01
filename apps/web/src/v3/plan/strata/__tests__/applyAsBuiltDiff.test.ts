@@ -30,6 +30,24 @@ function attr(field: string, asBuilt: unknown, asPlanned: unknown = 'x'): AsBuil
   return { kind: 'attribute', field, label: field, asPlanned, asBuilt } as AsBuiltDiff;
 }
 
+/** A select-field diff: display labels in asPlanned/asBuilt, raw codes in the
+ *  *Raw companions (the shape buildAttributeDiff now emits). */
+function attrRaw(
+  field: string,
+  builtLabel: string,
+  builtRaw: string,
+): AsBuiltDiff {
+  return {
+    kind: 'attribute',
+    field,
+    label: field,
+    asPlanned: 'Orchard',
+    asBuilt: builtLabel,
+    asPlannedRaw: 'orchard',
+    asBuiltRaw: builtRaw,
+  } as AsBuiltDiff;
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
 });
@@ -96,6 +114,29 @@ describe('applyAsBuiltDiff -- flat polygon kinds', () => {
     applyAsBuiltDiff('zone', 'zone-1', attr('name', 'Back Field'));
     expect(spy).toHaveBeenCalledOnce();
     expect(spy.mock.calls[0]).toEqual(['zone-1', { name: 'Back Field' }]);
+  });
+
+  it('writes the RAW select code, not the display label', () => {
+    // Regression: a select diff carries the human label ("Food forest") in
+    // asBuilt for display but the enum code ("food_forest") in asBuiltRaw.
+    // Apply must write the code so it never corrupts an enum-valued prop.
+    const spy = vi.spyOn(useCropStore.getState(), 'updateCropArea');
+    applyAsBuiltDiff(
+      'cropArea',
+      'crop-1',
+      attrRaw('type', 'Food forest', 'food_forest'),
+    );
+    expect(spy.mock.calls[0]).toEqual(['crop-1', { type: 'food_forest' }]);
+  });
+
+  it('maps the raw subtype code for a structure', () => {
+    const spy = vi.spyOn(useBuiltEnvironmentStoreV2.getState(), 'updateMetadata');
+    applyAsBuiltDiff(
+      'structure',
+      'st-1',
+      attrRaw('subtype', 'Greenhouse', 'greenhouse'),
+    );
+    expect(spy).toHaveBeenCalledWith('st-1', { existing: { subtype: 'greenhouse' } });
   });
 });
 

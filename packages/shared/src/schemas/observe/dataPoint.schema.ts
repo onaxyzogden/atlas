@@ -162,6 +162,16 @@ export const AsBuiltAttributeDiffSchema = z.object({
   label: z.string().optional(),
   asPlanned: z.unknown(),
   asBuilt: z.unknown(),
+  /**
+   * Raw stored values (pre-label-resolution) for "Apply to design". For a
+   * select field, `asPlanned`/`asBuilt` hold the human option labels (e.g.
+   * "Food forest") for display, while these hold the underlying entity codes
+   * (e.g. "food_forest"). Apply writes the raw code so it never corrupts an
+   * enum-valued prop; absent for text/number fields (where label === value)
+   * and on legacy points, where Apply falls back to `asBuilt`.
+   */
+  asPlannedRaw: z.unknown().optional(),
+  asBuiltRaw: z.unknown().optional(),
 });
 export type AsBuiltAttributeDiff = z.infer<typeof AsBuiltAttributeDiffSchema>;
 

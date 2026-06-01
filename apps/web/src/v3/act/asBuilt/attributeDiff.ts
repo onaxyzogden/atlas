@@ -49,6 +49,11 @@ export function buildAttributeDiff(
       label: only.label,
       asPlanned: labelForValue(only, initial[only.key]),
       asBuilt: labelForValue(only, values[only.key]),
+      // Preserve the raw entity codes so "Apply to design" writes the
+      // underlying value (e.g. "food_forest"), not the display label
+      // ("Food forest"), which would corrupt an enum-valued prop.
+      asPlannedRaw: initial[only.key] ?? '',
+      asBuiltRaw: values[only.key] ?? '',
     };
   }
   const asPlanned: Record<string, string> = {};

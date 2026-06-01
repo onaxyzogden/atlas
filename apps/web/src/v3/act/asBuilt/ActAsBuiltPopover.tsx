@@ -63,7 +63,8 @@ function featureCentroid(
   }
   if (geometry.type === 'Point') {
     const [lng, lat] = geometry.coordinates;
-    return [lng, lat];
+    if (typeof lng === 'number' && typeof lat === 'number') return [lng, lat];
+    return null;
   }
   return null;
 }

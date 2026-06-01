@@ -66,7 +66,10 @@ export function applyAsBuiltDiff(
   if (diff.kind !== 'attribute') return;
   if (!isScalar(diff.asBuilt)) return;
   const { field } = diff;
-  const value = diff.asBuilt;
+  // Prefer the raw entity code (select fields carry the display label in
+  // `asBuilt` but the underlying code in `asBuiltRaw`); fall back to `asBuilt`
+  // for text/number fields and legacy points that predate the raw fields.
+  const value = isScalar(diff.asBuiltRaw) ? diff.asBuiltRaw : diff.asBuilt;
 
   switch (kind) {
     case 'cropArea':
