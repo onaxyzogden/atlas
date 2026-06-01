@@ -55,7 +55,9 @@ import PlanDataLayers from '../../plan/layers/PlanDataLayers.js';
 import StageShell from '../../_shell/StageShell.js';
 import ActDataLayers from '../layers/ActDataLayers.js';
 import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
+import ActFeatureClickHandler from '../layers/ActFeatureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
+import ActAsBuiltPopover from '../asBuilt/ActAsBuiltPopover.js';
 import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
@@ -390,6 +392,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                     <ObserveAnnotationLayers map={map} projectId={id} />
                     <PlanDataLayers map={map} projectId={id} editable={false} />
                     <ActStructureClickHandler map={map} projectId={id} />
+                    <ActFeatureClickHandler map={map} projectId={id} />
                     <ActDataLayers
                       map={map}
                       projectId={id}
@@ -397,6 +400,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                     />
                     <SectorCompassOverlay projectId={id} map={map} />
                     <ActStructurePopover map={map} projectId={id} />
+                    <ActAsBuiltPopover map={map} projectId={id} />
                     <ActTierMapMarkers
                       map={map}
                       positionByObjective={positionByObjective}
