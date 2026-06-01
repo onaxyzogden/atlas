@@ -194,6 +194,18 @@ export default function V3LifecycleSidebar({ activeStage }: V3LifecycleSidebarPr
         Report
       </Link>
 
+      {/* OLOS Protocol System — Protocol Dashboard, a peer surface of the three
+          lifecycle stages (Observe / Plan / Act). Flat link (no module list),
+          mirroring Project Home / Report. */}
+      <Link
+        to="/v3/project/$projectId/protocols"
+        params={{ projectId }}
+        className={css.homeLink}
+        data-active={activeStage === 'protocols' ? 'true' : 'false'}
+      >
+        Protocols
+      </Link>
+
       <div className={css.stageGroups}>
         {STAGE_ENTRIES.map((entry) => {
           const isActive = stageIsActive(entry.id);

@@ -52,6 +52,7 @@ function activeFromPath(pathname: string): ActiveRoute {
     }
     if (seg === "plan") return { stage: "plan" };
     if (seg === "act") return { stage: "act" };
+    if (seg === "protocols") return { stage: "protocols" };
     if ((LIFECYCLE_STAGES as readonly string[]).includes(seg)) {
       return { stage: seg as LifecycleStage | "home" };
     }
@@ -61,7 +62,7 @@ function activeFromPath(pathname: string): ActiveRoute {
 
 // Stages that own their own right rail via StageShell.rightRail. The outer
 // LandOsShell rail track is omitted entirely on these routes.
-const SELF_RAILED_STAGES = new Set<RailStage>(["design", "prove", "operate", "plan", "act"]);
+const SELF_RAILED_STAGES = new Set<RailStage>(["design", "prove", "operate", "plan", "act", "protocols"]);
 
 export default function V3ProjectLayout() {
   const params = useParams({ strict: false }) as { projectId?: string };

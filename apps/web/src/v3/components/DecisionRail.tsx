@@ -24,7 +24,7 @@ const SiteIntelligencePanel = lazy(
   () => import("../../components/panels/SiteIntelligencePanel.js"),
 );
 
-export type RailStage = LifecycleStage | "home" | "observe" | "plan" | "act";
+export type RailStage = LifecycleStage | "home" | "observe" | "plan" | "act" | "protocols";
 
 export interface DecisionRailProps {
   stage: RailStage;
@@ -44,12 +44,13 @@ const STAGE_TITLE: Record<RailStage, string> = {
   observe: "Observe",
   plan: "Plan",
   act: "Act",
+  protocols: "Protocols",
 };
 
 // Stages that own their own right rail via StageShell.rightRail.
 // DecisionRail short-circuits on these so the outer LandOsShell rail stays empty
 // and only the page-owned rail renders.
-const SELF_RAILED_STAGES: readonly RailStage[] = ["design", "prove", "operate", "plan", "act"];
+const SELF_RAILED_STAGES: readonly RailStage[] = ["design", "prove", "operate", "plan", "act", "protocols"];
 
 export default function DecisionRail({ stage, project, activeModule }: DecisionRailProps) {
   if (SELF_RAILED_STAGES.includes(stage)) {

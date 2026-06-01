@@ -47,6 +47,7 @@ import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
+import ProtocolsDashboardPage from '../v3/protocols/ProtocolsDashboardPage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
 import CyclePage from '../pages/CyclePage.js';
 import ObserveLayout from '../v3/observe/ObserveLayout.js';
@@ -641,6 +642,20 @@ const v3ActModuleRoute = createRoute({
   path: 'act/$module',
   component: ActLayout,
 });
+// OLOS Protocol System — Protocol Dashboard (peer of Plan / Act / Observe).
+// Active view only this slice; `?view=active` is reserved so the future
+// Overview / History / Authoring views can ride the same route shape without a
+// migration. Self-railed: ProtocolsDashboardPage owns its full layout.
+const v3ProtocolsRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'protocols',
+  component: ProtocolsDashboardPage,
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { view?: 'active' } => ({
+    view: search.view === 'active' ? 'active' : undefined,
+  }),
+});
 // Legacy 7-stage routes redirect onto the v3 forward path (Observe/Plan/Act).
 // Page components stay importable per feedback_no_deletion.md (void-referenced
 // near the top) for potential reuse in a later phase.
@@ -936,6 +951,7 @@ const routeTree = rootRoute.addChildren([
       v3ActFieldActionObjectiveRoute,
       v3ActRoute,
       v3ActModuleRoute,
+      v3ProtocolsRoute,
       v3DesignRoute,
       v3ProveRoute,
       v3BuildRoute,
