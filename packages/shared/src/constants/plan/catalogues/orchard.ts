@@ -68,7 +68,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S1.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define species selection philosophy & succession intent',
+    title: 'A clear species selection philosophy & succession intent',
     focusedQuestion:
       'What ecological trajectory is being designed toward - and how does that determine species selection, layering, and management?',
     checklist: [
@@ -108,7 +108,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S1.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define production & harvest intent',
+    title: 'A clear production & harvest intent',
     focusedQuestion:
       'What is this system producing, for whom, and what does harvest and sales infrastructure need to support?',
     checklist: [
@@ -148,7 +148,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S1.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define provenance & sourcing strategy',
+    title: 'A sound provenance & sourcing strategy',
     focusedQuestion:
       'Where will tree stock come from - and how far in advance must sourcing be secured?',
     checklist: [
@@ -195,7 +195,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S2.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey existing tree cover & canopy condition',
+    title: 'A clear read of tree cover & canopy condition',
     focusedQuestion:
       'What trees already exist - and how do they shape light availability, species selection, and succession trajectory?',
     checklist: [
@@ -239,7 +239,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S2.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey frost drainage & microclimate zones',
+    title: 'A clear read of frost drainage & microclimate zones',
     focusedQuestion:
       'How does cold air move across this site - and which zones are most and least frost-prone?',
     checklist: [
@@ -283,7 +283,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S2.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey surrounding landscape context & vectors',
+    title: 'A clear read of surrounding landscape & vectors',
     focusedQuestion:
       'What neighbouring orchard practices, pest pressure, and contamination risks affect this system?',
     checklist: [
@@ -323,7 +323,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S3.3',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey soil depth & rootzone potential',
+    title: 'A clear read of soil depth & rootzone potential',
     focusedQuestion:
       'Is there sufficient soil depth for target tree species - and are there hardpan or restrictive layers that constrain planting site selection?',
     checklist: [
@@ -367,7 +367,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S3.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey water availability & seasonal dry period',
+    title: 'A clear read of water availability & dry period',
     focusedQuestion:
       'Is there sufficient water for tree establishment - and what irrigation is required through the dry season?',
     checklist: [
@@ -407,7 +407,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S3.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey pest & disease pressure by species',
+    title: 'A clear read of pest & disease pressure by species',
     focusedQuestion:
       'What pest and disease pressures exist for the intended species mix - and does the site history indicate elevated risk?',
     checklist: [
@@ -448,7 +448,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S4.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define species mix & planting plan strategy',
+    title: 'A sound species mix & planting plan',
     focusedQuestion:
       'What species, in what layers, in what proportions - designed for the defined succession trajectory?',
     checklist: [
@@ -496,7 +496,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S4.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define water strategy for establishment & maturity',
+    title: 'A sound water strategy for establishment & maturity',
     focusedQuestion:
       'How will trees receive sufficient water through the 3-5 year establishment window - and how will the system transition to rainfall dependence?',
     checklist: [
@@ -536,7 +536,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S4.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define guild planting & companion species strategy',
+    title: 'A coherent guild planting & companion species strategy',
     focusedQuestion:
       'What companion species will be planted with trees - nitrogen fixers, dynamic accumulators, pest confusers, and ground covers?',
     checklist: [
@@ -580,7 +580,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S4.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define succession management strategy',
+    title: 'A sound succession management strategy',
     focusedQuestion:
       'How will this system be guided from pioneer to productive to climax - and what management interventions shape that trajectory?',
     checklist: [
@@ -620,7 +620,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S4.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define pest & disease management strategy',
+    title: 'A sound pest & disease management strategy',
     focusedQuestion:
       'How will pests and diseases be managed - through variety selection, biological controls, and minimum-intervention practices?',
     checklist: [
@@ -665,7 +665,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S5.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design tree planting layout & species placement',
+    title: 'A clear tree planting layout & species placement',
     focusedQuestion:
       'How will trees be positioned - spacing, rows, species placement relative to microclimate and succession design?',
     checklist: [
@@ -709,7 +709,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S5.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design guild planting plan',
+    title: 'A ready guild planting plan',
     focusedQuestion:
       'How will companion and guild species be physically planted - timing, placement, and establishment relative to trees?',
     checklist: [
@@ -748,7 +748,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S5.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design establishment irrigation',
+    title: 'A working establishment irrigation design',
     focusedQuestion:
       'How will the drip irrigation system be designed for the 3-5 year establishment window?',
     checklist: [
@@ -792,7 +792,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S5.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design access paths & harvest infrastructure',
+    title: 'Well-designed access paths & harvest infrastructure',
     focusedQuestion:
       'How will harvest access paths, picking stations, and pack-out infrastructure be designed?',
     checklist: [
@@ -832,7 +832,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S5.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design tree protection infrastructure',
+    title: 'Working tree protection infrastructure',
     focusedQuestion:
       'How will establishing trees be protected from wildlife, rabbits, and stock - through the full establishment period?',
     checklist: [
@@ -873,7 +873,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S6.2',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design phenological monitoring protocol',
+    title: 'A working phenological monitoring protocol',
     focusedQuestion:
       'How will bloom dates, frost events, harvest windows, and succession trajectory be tracked?',
     checklist: [
@@ -913,7 +913,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S6.3',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design pest & disease monitoring protocol',
+    title: 'A working pest & disease monitoring protocol',
     focusedQuestion:
       'How will pest and disease pressure be monitored - with triggers for intervention before threshold is reached?',
     checklist: [
@@ -953,7 +953,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S6.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define adaptive management protocol',
+    title: 'A sound adaptive management protocol',
     focusedQuestion:
       'How will annual monitoring data drive changes to species selection, succession management, and production strategy?',
     checklist: [
@@ -993,7 +993,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S7.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define planting establishment sequence',
+    title: 'A sequenced planting establishment plan',
     focusedQuestion:
       'In what order will soil preparation, windbreaks, water, and trees be established - and what must precede planting?',
     checklist: [
@@ -1035,7 +1035,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S7.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define long-term succession management plan',
+    title: 'A clear long-term succession management plan',
     focusedQuestion:
       'What are the 5, 10, and 25-year succession targets - and how will the system be guided toward them?',
     checklist: [
@@ -1079,7 +1079,7 @@ export const ORCHARD_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'ORCH-S7.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define enterprise financial viability plan',
+    title: 'A sound enterprise financial viability plan',
     focusedQuestion:
       'What are the cash flow requirements through the pre-production years - and when does the system break even?',
     checklist: [
@@ -1148,7 +1148,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Assess climate & chill-hour fit for intended tree crops',
+    title: 'A clear read of climate & chill-hour fit',
     focusedQuestion:
       'Does the site climate actually suit the intended fruit and nut species - chill hours, frost windows, summer heat, and hardiness zone?',
     checklist: [
@@ -1190,7 +1190,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Decide cultivars, rootstocks & pollination partners',
+    title: 'Settled cultivars, rootstocks & pollination partners',
     focusedQuestion:
       'Which cultivars and rootstocks will be planted, and are pollination partners and bloom overlap secured for fruit set?',
     checklist: [
@@ -1232,7 +1232,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Design multilayer guild layout & spacing',
+    title: 'A clear multilayer guild layout & spacing',
     focusedQuestion:
       'How are canopy, understory, and support species arranged in space and density, integrated with the host primary layout?',
     checklist: [
@@ -1274,7 +1274,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Commit to a perennial pruning, training & IPM regime',
+    title: 'A committed perennial pruning, training & IPM regime',
     focusedQuestion:
       'Is there a realistic, resourced recurring regime for pruning, training, thinning, and pest and disease care across the life of the system?',
     checklist: [
@@ -1315,7 +1315,7 @@ export const ORCHARD_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Define the harvest, storage & value-add pathway',
+    title: 'A clear harvest, storage & value-add pathway',
     focusedQuestion:
       'How will the perennial yield be harvested, stored, and turned into use or income through a halal pathway?',
     checklist: [

@@ -73,7 +73,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S1.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define healing philosophy & therapeutic intent',
+    title: 'A clear healing philosophy & therapeutic intent',
     focusedQuestion:
       'What is this sanctuary for - rest, trauma recovery, spiritual retreat, somatic healing - and how does that philosophy gate all design decisions?',
     checklist: [
@@ -126,7 +126,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S1.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define guest intake & suitability framework',
+    title: 'A sound guest intake & suitability framework',
     focusedQuestion:
       'Who is this sanctuary for, what conditions are welcomed, and what requires professional referral?',
     checklist: [
@@ -179,7 +179,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S1.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define regulatory & professional standards framework',
+    title: 'A sound regulatory & professional standards framework',
     focusedQuestion:
       'What practitioner qualifications, insurance, scope of practice, and compliance obligations govern therapeutic services here?',
     checklist: [
@@ -239,7 +239,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S1.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define privacy & confidentiality policy',
+    title: 'A sound privacy & confidentiality policy',
     focusedQuestion:
       'How will guest privacy and confidential disclosures be protected - before any guest arrives?',
     checklist: [
@@ -293,7 +293,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S2.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey sensory environment - noise, light & smell',
+    title: 'A clear read of the sensory environment - noise, light & smell',
     focusedQuestion:
       'What is the baseline sensory condition across the site - ambient noise levels, light quality, and olfactory environment?',
     checklist: [
@@ -343,7 +343,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S2.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey existing retreat & healing infrastructure',
+    title: 'A clear read of existing retreat & healing infrastructure',
     focusedQuestion:
       'What treatment rooms, meditation spaces, accommodation, and gathering spaces already exist - and what is their therapeutic potential?',
     checklist: [
@@ -391,7 +391,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S2.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey surrounding landscape context & vectors',
+    title: 'A clear read of surrounding landscape & vectors',
     focusedQuestion:
       'How does the surrounding landscape shape the sanctuary experience - and what contamination risks apply?',
     checklist: [
@@ -439,7 +439,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S2.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey privacy gradient across the site',
+    title: 'A clear read of the privacy gradient across the site',
     focusedQuestion:
       'What existing privacy conditions exist across the site - sightlines, acoustic separation, and buffer distances from boundaries?',
     checklist: [
@@ -488,7 +488,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S3.3',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey acoustic conditions & noise sources',
+    title: 'A clear read of acoustic conditions & noise sources',
     focusedQuestion:
       'What are the measurable acoustic conditions across the site - and do they meet the thresholds required by the healing philosophy?',
     checklist: [
@@ -536,7 +536,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S3.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey water features & hydrological potential',
+    title: 'A clear read of water features & hydrological potential',
     focusedQuestion:
       'What springs, streams, ponds, and water features exist - and what therapeutic landscape potential do they offer?',
     checklist: [
@@ -584,7 +584,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S3.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey soil & plant ecology for healing garden potential',
+    title: 'A clear read of soil & plant ecology for healing gardens',
     focusedQuestion:
       'What medicinal, sensory, and therapeutic plant species are already present - and what does the soil support?',
     checklist: [
@@ -633,7 +633,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S4.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define sensory design philosophy & low-stimulation standards',
+    title: 'A clear sensory design philosophy & low-stimulation standards',
     focusedQuestion:
       'What measurable sensory thresholds define this sanctuary - noise, light, scent, and visual complexity - and how do they gate all design decisions?',
     checklist: [
@@ -693,7 +693,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S4.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define therapeutic program & practitioner framework',
+    title: 'A sound therapeutic program & practitioner framework',
     focusedQuestion:
       'What modalities are offered, who delivers them, under what qualifications and scope of practice?',
     checklist: [
@@ -746,7 +746,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S4.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define privacy gradient & zone hierarchy',
+    title: 'A clear privacy gradient & zone hierarchy',
     focusedQuestion:
       'Which zones are most private, how is separation achieved between zones, and what transitions connect them?',
     checklist: [
@@ -794,7 +794,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S4.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define healing garden & therapeutic landscape strategy',
+    title: 'A sound healing garden & therapeutic landscape strategy',
     focusedQuestion:
       'Which plants, water features, and sensory elements will constitute the therapeutic landscape - and where?',
     checklist: [
@@ -842,7 +842,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S4.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define guest wellbeing safeguarding protocol',
+    title: 'A sound guest wellbeing safeguarding protocol',
     focusedQuestion:
       'What happens if a guest presents in crisis, discloses trauma, or requires clinical referral - before any guest arrives?',
     checklist: [
@@ -903,7 +903,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S5.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design treatment, therapy & meditation spaces',
+    title: 'Well-designed treatment, therapy & meditation spaces',
     focusedQuestion:
       'How will treatment rooms, meditation halls, and therapy spaces be designed to meet sensory design standards?',
     checklist: [
@@ -956,7 +956,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S5.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design healing garden & sensory landscape',
+    title: 'A designed healing garden & sensory landscape',
     focusedQuestion:
       'How will the healing garden and therapeutic landscape be physically designed?',
     checklist: [
@@ -1009,7 +1009,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S5.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design guest accommodation & private retreat spaces',
+    title: 'Well-designed guest accommodation & retreat spaces',
     focusedQuestion:
       'How will guest accommodation be designed for maximum privacy, acoustic isolation, and low-stimulation comfort?',
     checklist: [
@@ -1062,7 +1062,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S5.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design privacy screening & acoustic buffering infrastructure',
+    title: 'Working privacy screening & acoustic buffering',
     focusedQuestion:
       'How will the physical privacy gradient be implemented - earth bunding, dense planting, acoustic barriers?',
     checklist: [
@@ -1110,7 +1110,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S5.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design dining & nourishment infrastructure',
+    title: 'Well-designed dining & nourishment infrastructure',
     focusedQuestion:
       'How will kitchen, dining, and food preparation be designed as a therapeutic modality - quiet, unhurried, whole-food focused?',
     checklist: [
@@ -1164,7 +1164,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S6.2',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design guest wellbeing & therapeutic outcome monitoring',
+    title: 'A working guest wellbeing & outcome monitor',
     focusedQuestion:
       'How will guest experience, therapeutic outcomes, and practitioner feedback be tracked and improved?',
     checklist: [
@@ -1212,7 +1212,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S6.3',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design sensory environment monitoring',
+    title: 'A working sensory environment monitor',
     focusedQuestion:
       'How will acoustic, light, and olfactory conditions be monitored to confirm sanctuary standards are maintained?',
     checklist: [
@@ -1260,7 +1260,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S6.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design external relations & compliance monitoring system',
+    title: 'A working external relations & compliance monitor',
     focusedQuestion:
       'How will practitioner registrations, insurance, safeguarding audits, and neighbour relations be actively managed?',
     checklist: [
@@ -1306,7 +1306,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S7.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define therapeutic program launch sequence',
+    title: 'A sequenced therapeutic program launch',
     focusedQuestion:
       'In what order will therapeutic modalities be offered - soft launch with limited programme before full offering?',
     checklist: [
@@ -1356,7 +1356,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S7.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define practitioner onboarding & supervision framework',
+    title: 'A sound practitioner onboarding & supervision framework',
     focusedQuestion:
       'How will practitioners be inducted, supervised, and supported - before first guest arrives?',
     checklist: [
@@ -1404,7 +1404,7 @@ export const WELLNESS_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'WELL-S7.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define adaptive management protocol',
+    title: 'A sound adaptive management protocol',
     focusedQuestion:
       'How will monitoring findings trigger changes to the sanctuary programme and management plan?',
     checklist: [
@@ -1465,7 +1465,7 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: PRIMARY,
     secondaryClass: 'additive',
-    title: 'Define healing philosophy & therapeutic overlay intent',
+    title: 'A clear healing philosophy & therapeutic overlay intent',
     focusedQuestion:
       "When wellness is layered onto this land's primary purpose, what does healing mean here and how does it constrain the host design?",
     checklist: [
@@ -1498,7 +1498,7 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: PRIMARY,
     secondaryClass: 'additive',
-    title: 'Confirm therapeutic regulatory & professional standards for the overlay',
+    title: 'Confirmed therapeutic regulatory & professional standards',
     focusedQuestion:
       'What practitioner qualifications, insurance, and compliance obligations must be added before therapeutic services run alongside the primary use?',
     scopeNotes:
@@ -1534,7 +1534,7 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: PRIMARY,
     secondaryClass: 'additive',
-    title: 'Define sensory & low-stimulation standards for therapeutic zones',
+    title: 'Clear sensory & low-stimulation standards for therapeutic zones',
     focusedQuestion:
       "What measurable sensory thresholds must therapeutic zones meet, given the host primary's operations nearby?",
     checklist: [
@@ -1568,7 +1568,7 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: PRIMARY,
     secondaryClass: 'additive',
-    title: 'Define therapeutic program & practitioner framework for the overlay',
+    title: 'A sound therapeutic program & practitioner framework for the overlay',
     focusedQuestion:
       'What modalities are offered, who delivers them, and how do sessions fit around the primary land use?',
     checklist: [
@@ -1601,7 +1601,7 @@ export const WELLNESS_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: PRIMARY,
     secondaryClass: 'additive',
-    title: 'Define guest wellbeing safeguarding protocol for the overlay',
+    title: 'A sound guest wellbeing safeguarding protocol for the overlay',
     focusedQuestion:
       'What happens if a therapeutic guest presents in crisis or discloses trauma on a working primary site - before any guest arrives?',
     scopeNotes:

@@ -46,7 +46,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Survey existing propagation infrastructure & growing media resources',
+    title: 'A clear read of propagation infrastructure & media resources',
     focusedQuestion:
       'What propagation infrastructure, equipment, and growing media inputs already exist on this site?',
     checklist: [
@@ -87,7 +87,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Survey water quality & supply for propagation use',
+    title: 'A clear read of water quality & supply for propagation',
     focusedQuestion:
       'Is the available water suitable for propagation - pH, EC, contamination - and is pressure adequate?',
     checklist: [
@@ -129,7 +129,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Survey pest, disease & biosecurity risks in propagation areas',
+    title: 'A clear read of pest, disease & biosecurity risks',
     focusedQuestion:
       "What pest, disease, and biosecurity risks exist in proposed propagation zones - and what is the site's contamination history?",
     checklist: [
@@ -170,7 +170,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Define propagation strategy, production mix & biosecurity framework',
+    title: 'A sound propagation strategy, production mix & biosecurity framework',
     focusedQuestion:
       'What will be propagated, in what volumes, for what purpose - and what biosecurity standard governs production?',
     checklist: [
@@ -216,7 +216,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Define growing media strategy & fertility inputs',
+    title: 'A sound growing media strategy & fertility inputs',
     focusedQuestion:
       'What growing media formulations will be used - and how will fertility be managed through the propagation cycle?',
     checklist: [
@@ -261,7 +261,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Design propagation infrastructure',
+    title: 'Well-designed propagation infrastructure',
     focusedQuestion:
       'How will glasshouses, shade houses, misting benches, and propagation zones be physically designed?',
     checklist: [
@@ -306,7 +306,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Design irrigation system for propagation zones',
+    title: 'A working irrigation system for propagation zones',
     focusedQuestion:
       'How will the irrigation system serve propagation, growing on, and hardening off zones with appropriate uniformity?',
     checklist: [
@@ -346,7 +346,7 @@ export const NURSERY_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     source: 'secondary',
     sourceTypeId: SECONDARY,
     secondaryClass: 'additive',
-    title: 'Design plant sales, dispatch & biosecurity infrastructure',
+    title: 'Well-designed plant sales, dispatch & biosecurity infrastructure',
     focusedQuestion:
       'How will plant sales, order dispatch, and incoming material quarantine be physically designed?',
     checklist: [

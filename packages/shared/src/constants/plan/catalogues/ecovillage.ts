@@ -62,7 +62,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S1.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define legal entity, land tenure & governance model',
+    title: 'A sound legal entity, tenure & governance model',
     focusedQuestion:
       'What legal structure will hold the land, how will ownership and tenure be structured for members, and how will collective decisions be made?',
     checklist: [
@@ -104,7 +104,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S1.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define communal vs. private provision balance',
+    title: 'A clear communal vs. private provision balance',
     focusedQuestion:
       'What will be shared across the community - food, water, energy, infrastructure, finances - and what will remain private to each household?',
     checklist: [
@@ -144,7 +144,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S1.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define conflict resolution & community agreement framework',
+    title: 'A sound conflict resolution & community agreement framework',
     focusedQuestion:
       'How will this community make decisions, resolve disputes, and handle member exits - before anyone moves onto the land?',
     scopeNotes:
@@ -195,7 +195,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S2.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey site carrying capacity for intended population',
+    title: 'A clear read of site carrying capacity for the population',
     focusedQuestion:
       'How many households can this site sustainably support - across water, food, waste, energy, and space - at intended population density?',
     scopeNotes:
@@ -244,7 +244,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S2.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey existing land tenure & boundary conditions',
+    title: 'A clear read of land tenure & boundary conditions',
     focusedQuestion:
       'What are the legal access conditions, shared boundary agreements, and rights of way that affect communal land use?',
     checklist: [
@@ -281,7 +281,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S2.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey surrounding landscape context & vectors',
+    title: 'A clear read of surrounding landscape & vectors',
     focusedQuestion:
       'How does the surrounding landscape and community context shape the risks and opportunities for this ecovillage?',
     checklist: [
@@ -322,7 +322,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S2.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey existing community relationships & social fabric',
+    title: 'A clear read of community relationships & social fabric',
     focusedQuestion:
       'What existing relationships, trust networks, and community history does the founding group bring - and how does this shape what is possible?',
     checklist: [
@@ -366,7 +366,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S3.3',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey site water yield relative to population demand',
+    title: 'A clear read of water yield vs. population demand',
     focusedQuestion:
       'Is there sufficient water available on this site to sustain the intended population across all seasons - and what is the seasonal gap?',
     checklist: [
@@ -398,7 +398,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S3.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey waste & nutrient cycling capacity',
+    title: 'A clear read of waste & nutrient cycling capacity',
     focusedQuestion:
       'Can this site absorb communal waste streams - sewage, grey water, organic waste - at intended population density without ecological degradation?',
     checklist: [
@@ -436,7 +436,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S3.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey energy generation & distribution potential',
+    title: 'A clear read of energy generation & distribution potential',
     focusedQuestion:
       'What energy can this site generate - solar, wind, hydro, biomass - and how can it be distributed communally to all dwellings?',
     checklist: [
@@ -474,7 +474,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S3.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Survey existing communal infrastructure condition',
+    title: 'A clear read of communal infrastructure condition',
     focusedQuestion:
       'What shared buildings, roads, utilities, and systems already exist on the site - and what is their condition and reuse potential?',
     checklist: [
@@ -515,7 +515,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S4.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define phased settlement strategy',
+    title: 'A clear phased settlement strategy',
     focusedQuestion:
       'Who moves in when, under what conditions, and what infrastructure must be ready before each household cohort arrives?',
     scopeNotes:
@@ -561,7 +561,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S4.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define communal infrastructure strategy',
+    title: 'A sound communal infrastructure strategy',
     focusedQuestion:
       'What shared infrastructure will be built communally, in what sequence, and how will it be governed and maintained?',
     checklist: [
@@ -601,7 +601,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S4.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define housing cluster & private zone framework',
+    title: 'A coherent housing cluster & private zone framework',
     focusedQuestion:
       'How will housing clusters be sited, and how will private household space be protected within communal land?',
     checklist: [
@@ -641,7 +641,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S4.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define community food system strategy',
+    title: 'A sound community food system strategy',
     focusedQuestion:
       'How will food be produced and distributed across this community - communal growing, individual plots, or hybrid - and how does this connect to the provision balance decided in Stratum 1?',
     checklist: [
@@ -682,7 +682,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S4.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define financial contribution & shared economics model',
+    title: 'A sound financial contribution & shared economics model',
     focusedQuestion:
       "How will members contribute financially to communal infrastructure, ongoing costs, and the community's economic health?",
     scopeNotes:
@@ -729,7 +729,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S5.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design housing cluster layouts & private dwelling zones',
+    title: 'Well-designed housing clusters & private dwelling zones',
     focusedQuestion:
       'How will housing clusters be physically laid out - orientation, spacing, privacy, shared transitions - to serve both communal connection and household privacy?',
     checklist: [
@@ -773,7 +773,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S5.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design communal infrastructure systems',
+    title: 'Working communal infrastructure systems',
     focusedQuestion:
       'How will shared buildings and communal facilities be designed to serve the whole community?',
     checklist: [
@@ -814,7 +814,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S5.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design communal sanitation & waste systems',
+    title: 'Well-designed communal sanitation & waste systems',
     focusedQuestion:
       'How will sewage, grey water, and organic waste be managed safely across the community at intended population density?',
     checklist: [
@@ -849,7 +849,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S5.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design communal energy system',
+    title: 'A working communal energy system',
     focusedQuestion:
       'How will community-scale energy generation, storage, and distribution be designed to serve all dwellings and communal facilities?',
     checklist: [
@@ -887,7 +887,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S5.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design community food production zones',
+    title: 'Well-designed community food production zones',
     focusedQuestion:
       'How will communal gardens, individual plots, orchard, food forest, and shared food infrastructure be physically designed and allocated?',
     checklist: [
@@ -929,7 +929,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S6.2',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design community health & social fabric monitoring system',
+    title: 'A working community health & social fabric monitor',
     focusedQuestion:
       'How will the community track its social health over time - governance function, conflict frequency, member satisfaction, and financial wellbeing?',
     checklist: [
@@ -967,7 +967,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S6.3',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design communal infrastructure maintenance & stewardship protocol',
+    title: 'A sound communal infrastructure maintenance protocol',
     focusedQuestion:
       'How will shared infrastructure be maintained over time - who does what, how often, funded by whom?',
     checklist: [
@@ -1004,7 +1004,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S6.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design communal systems coordination & household feedback protocols',
+    title: 'Working communal coordination & household feedback protocols',
     focusedQuestion:
       'How do communal water, energy, and food systems actively inform household decisions - and how do household actions feed back into communal system management?',
     checklist: [
@@ -1044,7 +1044,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S6.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Design community-external relations & planning compliance monitoring',
+    title: 'A working external relations & compliance monitor',
     focusedQuestion:
       'How will this community actively manage its ongoing relationships with neighbours, local authority, and planning bodies throughout establishment and beyond?',
     checklist: [
@@ -1086,7 +1086,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S7.4',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define phased settlement implementation plan',
+    title: 'A ready phased settlement implementation plan',
     focusedQuestion:
       'Who arrives in each phase, what must be complete before they arrive, and how are habitability thresholds enforced?',
     scopeNotes:
@@ -1125,7 +1125,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S7.5',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define communal financial plan & capital contribution schedule',
+    title: 'A sound communal financial plan & contribution schedule',
     focusedQuestion:
       'How will founding infrastructure be funded, and what is the payment schedule for founding member contributions?',
     checklist: [
@@ -1159,7 +1159,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S7.6',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define enterprise sequencing & communal systems launch order',
+    title: 'A clear enterprise sequencing & launch order',
     focusedQuestion:
       'In what order will communal systems be established - water before people, sanitation before food production, energy before winter?',
     checklist: [
@@ -1196,7 +1196,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S7.7',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define membership onboarding & integration protocol',
+    title: 'A sound membership onboarding & integration protocol',
     focusedQuestion:
       'How will new members join the community, complete a trial period, and achieve full membership?',
     checklist: [
@@ -1231,7 +1231,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S7.9',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define adaptive management protocol',
+    title: 'A sound adaptive management protocol',
     focusedQuestion:
       'How will land monitoring and community health findings trigger changes to the community management plan?',
     checklist: [
@@ -1271,7 +1271,7 @@ export const ECOVILLAGE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     ref: 'EV-S7.8',
     source: 'primary',
     sourceTypeId: PRIMARY,
-    title: 'Define member exit & land succession protocol',
+    title: 'A sound member exit & land succession protocol',
     focusedQuestion:
       'How will departing members be bought out, how will their dwelling and land share transfer, and what happens if the community dissolves?',
     scopeNotes:

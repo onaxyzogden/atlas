@@ -47,7 +47,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's1-project-foundation',
     ref: 'U-S1.1',
     source: 'universal',
-    title: 'Define vision, goals & stewardship capacity',
+    title: 'A clear vision, goals & stewardship capacity',
     focusedQuestion:
       'What is this project for, what does success look like, and what resources does the steward have to work with?',
     checklist: [
@@ -87,7 +87,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's1-project-foundation',
     ref: 'U-S1.2',
     source: 'universal',
-    title: 'Establish site boundaries & legal constraints',
+    title: 'Settled site boundaries & legal constraints',
     focusedQuestion:
       'What are the legal, physical, and regulatory boundaries within which this project must operate?',
     checklist: [
@@ -126,7 +126,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's1-project-foundation',
     ref: 'U-S1.3',
     source: 'universal',
-    title: 'Map stakeholders & community relationships',
+    title: 'A mapped picture of stakeholders & community',
     focusedQuestion:
       'Who has an interest in, connection to, or jurisdiction over this land and project?',
     checklist: [
@@ -167,7 +167,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's2-land-reading',
     ref: 'U-S2.1',
     source: 'universal',
-    title: 'Survey terrain & topography',
+    title: 'A clear read of terrain & topography',
     focusedQuestion:
       'What are the physical landform characteristics that will shape all design decisions?',
     checklist: [
@@ -203,7 +203,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's2-land-reading',
     ref: 'U-S2.2',
     source: 'universal',
-    title: 'Survey climate & sectors',
+    title: 'A clear read of climate & sectors',
     focusedQuestion:
       'What are the climate patterns and energy sectors that must be accommodated in all design decisions?',
     checklist: [
@@ -237,7 +237,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's2-land-reading',
     ref: 'U-S2.3',
     source: 'universal',
-    title: 'Survey existing ecology & habitat',
+    title: 'A clear read of existing ecology & habitat',
     focusedQuestion:
       'What ecological communities, species, and habitat values are present on the site?',
     checklist: [
@@ -270,7 +270,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's2-land-reading',
     ref: 'U-S2.4',
     source: 'universal',
-    title: 'Survey existing infrastructure & access',
+    title: 'A clear read of existing infrastructure & access',
     focusedQuestion:
       'What infrastructure, access routes, and services currently exist on the site?',
     checklist: [
@@ -306,7 +306,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's3-systems-reading',
     ref: 'U-S3.1',
     source: 'universal',
-    title: 'Survey water movement & hydrology',
+    title: 'A clear read of how water moves across the site',
     focusedQuestion: 'How does water move through and across this site?',
     checklist: [
       ck('s3-hydrology-c1', 'Map all surface water flows - seasonal and permanent'),
@@ -338,7 +338,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's3-systems-reading',
     ref: 'U-S3.2',
     source: 'universal',
-    title: 'Survey soil conditions & subsurface',
+    title: 'A clear read of soil conditions & subsurface',
     focusedQuestion:
       'What are the soil characteristics and subsurface conditions across the site?',
     checklist: [
@@ -376,7 +376,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's4-foundation-decisions',
     ref: 'U-S4.1',
     source: 'universal',
-    title: 'Confirm project direction & feasibility',
+    title: 'A confirmed, feasible project direction',
     focusedQuestion:
       'Given all observed conditions, what version of this project should be planned?',
     checklist: [
@@ -414,7 +414,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's4-foundation-decisions',
     ref: 'U-S4.2',
     source: 'universal',
-    title: 'Define water strategy',
+    title: 'A sound, resilient water strategy',
     focusedQuestion:
       'How will this project collect, store, distribute, and conserve water?',
     checklist: [
@@ -462,7 +462,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's4-foundation-decisions',
     ref: 'U-S4.3',
     source: 'universal',
-    title: 'Define spatial framework & zones',
+    title: 'A coherent spatial framework & zoning',
     focusedQuestion:
       'How will this site be spatially organised to serve all project purposes efficiently?',
     checklist: [
@@ -495,7 +495,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's5-system-design',
     ref: 'U-S5.1',
     source: 'universal',
-    title: 'Design access & circulation',
+    title: 'An efficient access & circulation design',
     focusedQuestion:
       'How will people, vehicles, and materials move through the farm efficiently and safely?',
     checklist: [
@@ -531,7 +531,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's5-system-design',
     ref: 'U-S5.2',
     source: 'universal',
-    title: 'Design water harvesting & storage infrastructure',
+    title: 'A working water harvesting & storage system',
     focusedQuestion:
       'How will water harvesting and storage infrastructure be designed to meet all project needs?',
     checklist: [
@@ -574,7 +574,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's5-system-design',
     ref: 'U-S5.3',
     source: 'universal',
-    title: 'Design soil improvement strategy',
+    title: 'A sound soil improvement strategy',
     focusedQuestion: 'How will soil health be improved across all enterprise zones?',
     checklist: [
       ck(
@@ -616,7 +616,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's6-integration-design',
     ref: 'U-S6.1',
     source: 'universal',
-    title: 'Design monitoring & observation system',
+    title: 'A working monitoring & observation system',
     focusedQuestion:
       'How will the farm continuously read its own performance and feed that data back into Observe?',
     checklist: [
@@ -653,7 +653,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's7-phasing-resourcing',
     ref: 'U-S7.1',
     source: 'universal',
-    title: 'Define Phase 1 implementation plan',
+    title: 'A ready Phase 1 implementation plan',
     focusedQuestion:
       'What will be built, planted, and established in the first implementation cycle?',
     checklist: [
@@ -686,7 +686,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's7-phasing-resourcing',
     ref: 'U-S7.2',
     source: 'universal',
-    title: 'Define resource & capacity plan',
+    title: 'A realistic resource & capacity plan',
     focusedQuestion:
       'What labour, capital, equipment, and skills are required, and how will they be sourced?',
     checklist: [
@@ -716,7 +716,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     stratumId: 's7-phasing-resourcing',
     ref: 'U-S7.3',
     source: 'universal',
-    title: 'Define risk & contingency register',
+    title: 'A complete risk & contingency register',
     focusedQuestion:
       'What are the principal risks to Phase 1 success, and what are the contingency responses?',
     checklist: [
