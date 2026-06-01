@@ -29,7 +29,7 @@ import DetailsExpander from './DetailsExpander.js';
 import LaunchActButton from './LaunchActButton.js';
 import CyclicalReviewBanner from './CyclicalReviewBanner.js';
 import CyclicalReviewModal from './CyclicalReviewModal.js';
-import type { VisionDerivedMap } from './visionProfileToChecklist.js';
+import type { VisionDerivedMap } from '../../strata/visionProfileToChecklist.js';
 import ParameterGroup from './ParameterGroup.js';
 import ProtocolApprovalOverlay from './ProtocolApprovalOverlay.js';
 // Plan Spine re-skin — the panel is now the full-bleed RIGHT pane of the
@@ -250,20 +250,11 @@ export default function ObjectiveDetailPanel({
         />
       )}
 
-      {objective.legacyCardSectionId ? (
+      {objective.legacyCardSectionId && (
         <DetailsExpander
           projectId={projectId}
           legacyCardSectionId={objective.legacyCardSectionId}
         />
-      ) : (
-        <div className={css.placeholderStack}>
-          <div className={css.placeholderSection}>
-            <p className={css.placeholderEyebrow}>Reference</p>
-            <p className={css.placeholderBody}>
-              No legacy module card linked to this objective.
-            </p>
-          </div>
-        </div>
       )}
 
       <LaunchActButton

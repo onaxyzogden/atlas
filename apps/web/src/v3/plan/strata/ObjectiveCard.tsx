@@ -11,7 +11,7 @@
 // preserves the prior accessibility contract.
 
 import type { KeyboardEvent, MouseEvent } from 'react';
-import { Archive, Check, Lock, RefreshCcw, RotateCcw } from 'lucide-react';
+import { RefreshCcw, RotateCcw } from 'lucide-react';
 import type {
   PlanStratumObjective,
   PlanStratumObjectiveStatus,
@@ -118,19 +118,8 @@ export default function ObjectiveCard({
       onKeyDown={handleKey}
       aria-label={ariaLabel}
     >
-      <span className={css.icon} aria-hidden="true">
-        {status === 'complete' ? (
-          <Check size={14} strokeWidth={2.5} />
-        ) : status === 'locked' ? (
-          <Lock size={12} strokeWidth={2} />
-        ) : isDeferred ? (
-          <Archive size={12} strokeWidth={2} />
-        ) : (
-          <span className={css.dot} />
-        )}
-      </span>
       <span className={css.body}>
-        <span className={css.title}>{objective.focusedQuestion}</span>
+        <span className={css.title}>{objective.title}</span>
       </span>
       <span className={css.trail}>
         <span

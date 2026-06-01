@@ -1,8 +1,8 @@
 // ObjectiveColumn — right-hand column of the Plan stratum shell shown when
 // a stratum is selected (Plan Navigation Spec v1, Slice 1.5). Composes an
-// optional ParallelCallout, a featured NextUpCard, and the remaining
-// objectives as ObjectiveCards. Click is delegated to the parent so the
-// shell can hoist navigation centrally.
+// optional ParallelCallout and a uniform list of ObjectiveCards (the next-up
+// objective sorts to the top rather than being pulled into a bespoke card).
+// Click is delegated to the parent so the shell can hoist navigation centrally.
 
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -21,14 +21,13 @@ import {
   selectProjectReviewMap,
 } from '../../../store/cyclicalReviewStore.js';
 import { usePlanTensionBannerStore } from '../../../store/planTensionBannerStore.js';
-import NextUpCard from './NextUpCard.js';
 import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
 import DesignTensionBanner from './DesignTensionBanner.js';
 import { getSourceTag, type SourceTagKind } from './sourceTag.js';
 // Plan Spine re-skin — the column container + source-filter pills now use the
 // spine palette tokens so they sit in the dark/gold 3-column shell. The card
-// children (NextUpCard, ObjectiveCard, banners) keep their own CSS modules,
+// children (ObjectiveCard, banners) keep their own CSS modules,
 // which already resolve against the app's dark `--color-*` theme.
 import { C, F } from '../spine/tokens.js';
 import css from './ObjectiveColumn.module.css';
@@ -294,18 +293,20 @@ export default function ObjectiveColumn({
     [visibleObjectives, objectiveStatuses],
   );
 
-  // Sorted objectives for the list below NextUpCard, with nextUp and any
-  // deferred objectives removed (deferred render in their own group below).
+  // Uniform objective list, with deferred objectives removed (they render in
+  // their own muted group below). The next-up objective is no longer pulled
+  // out into a bespoke card — it appears inline here, sorted to the top by
+  // STATUS_PRIORITY (active/available first) and highlighted when selected.
   const sortedObjectives = useMemo(() => {
     const list = visibleObjectives.filter(
-      (o) => o.id !== nextUp?.id && objectiveStatuses[o.id] !== 'deferred',
+      (o) => objectiveStatuses[o.id] !== 'deferred',
     );
     return [...list].sort((a, b) => {
       const sa = STATUS_PRIORITY.indexOf(objectiveStatuses[a.id] ?? 'locked');
       const sb = STATUS_PRIORITY.indexOf(objectiveStatuses[b.id] ?? 'locked');
       return sa - sb;
     });
-  }, [visibleObjectives, nextUp, objectiveStatuses]);
+  }, [visibleObjectives, objectiveStatuses]);
 
   return (
     <section
@@ -386,15 +387,6 @@ export default function ObjectiveColumn({
 
       {parallelSiblings.length >= 2 && (
         <ParallelCallout objectives={parallelSiblings} />
-      )}
-
-      {nextUp && (
-        <NextUpCard
-          objective={nextUp}
-          status={objectiveStatuses[nextUp.id] ?? 'locked'}
-          divergenceCount={divergenceByObjective[nextUp.id] ?? 0}
-          onSelect={onSelectObjective}
-        />
       )}
 
       {sortedObjectives.length > 0 && (
