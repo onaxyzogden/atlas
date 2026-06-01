@@ -515,10 +515,10 @@ export default function PlanStratumShell() {
         .olos-spine-root ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 2px; }
       `}</style>
 
-      {/* ── LEFT: stratum spine (flex 1 of the 1-1-2 column ratio) ── */}
+      {/* ── LEFT: stratum spine (flex 2 of the 2-3-5 column ratio) ── */}
       <div
         style={{
-          flex: 1,
+          flex: 2,
           minWidth: 0,
           background: C.bg2,
           borderRight: `1px solid ${C.border}`,
@@ -717,10 +717,10 @@ export default function PlanStratumShell() {
         />
       ) : null}
 
-      {/* ── RIGHT: objective detail panel (flex 2 of the 1-1-2 column ratio) ── */}
+      {/* ── RIGHT: objective detail panel (flex 5 of the 2-3-5 column ratio) ── */}
       <div
         style={{
-          flex: 2,
+          flex: 5,
           minWidth: 0,
           position: 'relative',
           display: 'flex',

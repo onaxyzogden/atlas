@@ -312,7 +312,7 @@ export default function ObjectiveColumn({
     <section
       aria-label={`Objectives in ${stratum.title}`}
       style={{
-        flex: 1,
+        flex: 3,
         minWidth: 0,
         minHeight: 0,
         overflowY: 'auto',
