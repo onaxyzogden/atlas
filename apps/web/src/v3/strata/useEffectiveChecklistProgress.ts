@@ -50,12 +50,11 @@ export function useEffectiveChecklistProgress(
   const storedByObjective = usePlanStratumProgressStore((s) =>
     selectProjectProgress(s, projectId),
   );
-  const visionProfile = useProjectStore(
-    (s) => s.projects.find((p) => p.id === projectId)?.metadata?.visionProfile,
+  const metadata = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId)?.metadata,
   );
-  const team = useProjectStore(
-    (s) => s.projects.find((p) => p.id === projectId)?.metadata?.team,
-  );
+  const visionProfile = metadata?.visionProfile;
+  const team = metadata?.team;
 
   return useMemo(
     () =>
@@ -64,7 +63,8 @@ export function useEffectiveChecklistProgress(
         visionProfile,
         team,
         objectives,
+        metadata,
       ),
-    [storedByObjective, visionProfile, team, objectives],
+    [storedByObjective, visionProfile, team, objectives, metadata],
   );
 }

@@ -38,16 +38,27 @@ import { useProtocolLibrary } from '../../plan/strata/useProtocolLibrary.js';
 import { FEEDS_TO_MODULE } from '../data/protocolFeedsMap.js';
 import TriggerRecognitionSheet from '../protocols/TriggerRecognitionSheet.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
+import { resolveAnswerSpec } from '../../strata/resolveAnswerSpec.js';
+import AnswerRecap from './AnswerRecap.js';
 import {
   useActEvidenceStore,
   EMPTY_CAPTURE,
   type EvidenceCapture,
 } from '../../../store/actEvidenceStore.js';
 import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
+import { useObservationNeedStore } from '../../../store/observationNeedStore.js';
 import {
   readNote,
   formatActyTimestamp,
 } from '../../observe/dashboard/observationDisplay.js';
+import { Modal } from '../../../components/ui/Modal.js';
+import RaiseNeedForm from '../../observe/capture/RaiseNeedForm.js';
+import {
+  buildRaisedNeed,
+  type RaiseNeedInput,
+} from '../../observation-needs/observationNeed.js';
+import { useObservationNeeds } from '../../observation-needs/useObservationNeeds.js';
+import type { ObserveModule } from '../../observe/types.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
@@ -116,6 +127,14 @@ export default function ActTierExecutionPanel({
   // Observe substrate: completing an objective emits a manual observation.
   const recordDataPoint = useObserveDataPointStore((s) => s.recordDataPoint);
 
+  // Raise-follow-up-need: opens the shared RaiseNeedForm in a modal and creates
+  // a tracked ObservationNeed (surfaces in the Observe Command Centre + the
+  // domain needs panels). Mirrors the Command Centre's manual-raise path.
+  const [raising, setRaising] = useState(false);
+  const [raisedTitle, setRaisedTitle] = useState<string | null>(null);
+  const createNeed = useObservationNeedStore((s) => s.createNeed);
+  const needViews = useObservationNeeds(projectId);
+
   // -------------------------------------------------------------------------
   // Protocol Trigger Recognition (OLOS slice C3).
   // -------------------------------------------------------------------------
@@ -124,10 +143,10 @@ export default function ActTierExecutionPanel({
   // active protocol library (same source as Plan) and, after a record, surface
   // the Trigger Recognition sheet for the highest-priority ACTIVE RESPOND
   // protocol whose feed maps to this objective's primary Observe domain.
-  const typeRecord = useProjectStore(
-    (s) =>
-      s.projects.find((p) => p.id === projectId)?.metadata?.projectTypeRecord,
+  const metadata = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId)?.metadata,
   );
+  const typeRecord = metadata?.projectTypeRecord;
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
   const { templates, statusByTemplate, outputs } = useProtocolLibrary(
@@ -227,6 +246,31 @@ export default function ActTierExecutionPanel({
     const trigger = pickTrigger();
     if (trigger) setPendingTrigger(trigger);
   }
+
+  // Mean center of existing needs (fallback to MTC) -- an Act-tier raise is not
+  // tied to a placed map point, same analog as a manual Command-Centre raise.
+  const FALLBACK_CENTER: [number, number] = [-78.2, 44.5];
+  const meanCenter = (): [number, number] => {
+    const cs = needViews.map((v) => v.objective.target.center);
+    if (cs.length === 0) return FALLBACK_CENTER;
+    return [
+      cs.reduce((a, c) => a + c[0], 0) / cs.length,
+      cs.reduce((a, c) => a + c[1], 0) / cs.length,
+    ];
+  };
+
+  const raiseFollowUp = (input: RaiseNeedInput & { module: ObserveModule }) => {
+    const need = buildRaisedNeed(input, {
+      id: crypto.randomUUID(),
+      projectId,
+      module: input.module,
+      target: { center: meanCenter() },
+      origin: 'manual',
+    });
+    createNeed(projectId, need);
+    setRaising(false);
+    setRaisedTitle(need.title);
+  };
 
   /**
    * Highest-priority (catalogue-order) ACTIVE, RESPOND-tier template whose
@@ -407,19 +451,36 @@ export default function ActTierExecutionPanel({
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>Checklist</h4>
         <div className={styles.execChecklist}>
-          {objective.checklist.map((item) => (
-            <label key={item.id} className={styles.execCheckRow}>
-              <input
-                type="checkbox"
-                checked={completedIds.includes(item.id)}
-                onChange={() => toggleItem(projectId, objective.id, item.id)}
-              />
-              <span>
-                {item.label}
-                {!item.optional && <span className={styles.req}> *</span>}
-              </span>
-            </label>
-          ))}
+          {objective.checklist.map((item) => {
+            // Prefilled read-only recap: when the item carries an answerSpec
+            // whose source data is already present (wizard / Vision Builder /
+            // team step), show the prior answer in its original control style
+            // instead of re-asking. It auto-satisfies via effective progress,
+            // so no checkbox is shown; editing happens in Plan via the link.
+            if (item.answerSpec && resolveAnswerSpec(metadata, item.answerSpec).isAnswered) {
+              return (
+                <AnswerRecap
+                  key={item.id}
+                  projectId={projectId}
+                  item={item}
+                  metadata={metadata}
+                />
+              );
+            }
+            return (
+              <label key={item.id} className={styles.execCheckRow}>
+                <input
+                  type="checkbox"
+                  checked={completedIds.includes(item.id)}
+                  onChange={() => toggleItem(projectId, objective.id, item.id)}
+                />
+                <span>
+                  {item.label}
+                  {!item.optional && <span className={styles.req}> *</span>}
+                </span>
+              </label>
+            );
+          })}
         </div>
       </section>
 
@@ -447,10 +508,19 @@ export default function ActTierExecutionPanel({
             })}
           </ol>
         )}
-        <button type="button" className={styles.linkBtn}>
+        <button
+          type="button"
+          className={styles.linkBtn}
+          onClick={() => setRaising(true)}
+        >
           <Plus size={13} aria-hidden="true" />
           Raise follow-up need
         </button>
+        {raisedTitle && (
+          <p className={styles.raisedConfirm}>
+            Raised follow-up need: {raisedTitle}
+          </p>
+        )}
       </section>
 
       <button
@@ -474,6 +544,21 @@ export default function ActTierExecutionPanel({
           onClose={() => setPendingTrigger(null)}
         />
       )}
+
+      <Modal
+        open={raising}
+        onClose={() => setRaising(false)}
+        title="Raise follow-up need"
+        size="md"
+      >
+        <RaiseNeedForm
+          showModulePicker
+          defaultModule={domainId ?? undefined}
+          submitLabel="Raise need"
+          onSubmit={raiseFollowUp}
+          onCancel={() => setRaising(false)}
+        />
+      </Modal>
     </div>
   );
 }

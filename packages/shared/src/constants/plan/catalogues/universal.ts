@@ -38,7 +38,7 @@
 // -> straight.
 
 import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, dg, obj } from './authoring.js';
+import { ck, ckA, dg, obj } from './authoring.js';
 
 export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
   // ---------------------------------------------------------------- Stratum 1
@@ -52,15 +52,44 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     focusedQuestion:
       'What is this project for, what does success look like, and what resources does the steward have to work with?',
     checklist: [
-      ck('s1-vision-c1', 'State the primary purpose of this land project in plain language'),
-      ck('s1-vision-c2', 'Define 3-5 measurable success criteria for the first planning cycle'),
+      // Primary purpose was chosen as the project's primary TYPE in the
+      // creation wizard (single-select from the prescribed taxonomy), so the
+      // Act stage shows that selection read-only instead of re-asking in prose.
+      ckA(
+        's1-vision-c1',
+        'State the primary purpose of this land project in plain language',
+        {
+          fieldType: 'single_select',
+          optionSetId: 'projectPrimaryType',
+          sourceField: 'projectTypeRecord.primaryTypeId',
+          editRoute: { kind: 'plan-type' },
+        },
+      ),
+      // Success criteria map to the Vision Builder's chosen primary outcomes.
+      ckA(
+        's1-vision-c2',
+        'Define 3-5 measurable success criteria for the first planning cycle',
+        {
+          fieldType: 'multi_select',
+          optionSetId: 'visionPrimaryOutcomes',
+          sourceField: 'visionProfile.primaryOutcomes',
+          editRoute: { kind: 'wizard-step', step: 'vision' },
+        },
+      ),
       ck(
         's1-vision-labour',
         'Inventory available labour - hours per week, seasonal variation, skill level',
       ),
-      ck(
+      // Capital band = the Vision Builder budget + timeline bands (both axes
+      // required to count as answered, matching the legacy s1-vision-c3 rule).
+      ckA(
         's1-vision-c3',
         'Inventory available capital - initial budget and estimated annual operating budget',
+        {
+          fieldType: 'band',
+          sourceField: ['visionProfile.budgetRange', 'visionProfile.timelineProgress'],
+          editRoute: { kind: 'wizard-step', step: 'vision' },
+        },
       ),
       ck('s1-vision-constraints', 'Identify non-negotiables and hard constraints'),
       ck('s1-vision-classify', 'Classify vision elements as committed vs. aspirational'),

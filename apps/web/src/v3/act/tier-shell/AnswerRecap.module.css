@@ -1,0 +1,130 @@
+/* AnswerRecap.module.css
+ *
+ * Read-only recap row for a checklist item whose answer was already captured in
+ * the wizard / Vision Builder / team step. Sits in the Act tier-shell Checklist
+ * in place of the bare checkbox row, so it shares that row's surface (bg/border/
+ * radius from ActTierExecutionPanel.module.css .execCheckRow) but lays out a
+ * heading line (check + label + edit link) over a typed value display. */
+
+.recap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #fbfaf7;
+  border: 1px solid #e7e2d6;
+  border-radius: 8px;
+}
+
+.recapHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The item is auto-satisfied from source data, so a static check stands in for
+ * the (now absent) interactive checkbox. */
+.recapCheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: #4f7a52;
+  color: #fff;
+}
+
+.recapLabel {
+  flex: 1 1 auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a362c;
+  line-height: 1.35;
+}
+
+.editLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a6d3b;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.editLink:hover {
+  color: #6f5526;
+  background: #f3ecdd;
+  border-color: #e2d4b8;
+}
+
+/* Value displays, mirroring each control's original style, read-only. */
+.recapValue {
+  padding-left: 24px; /* align under the label, past the check */
+}
+
+.chipRow,
+.bandRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #4a4536;
+  background: #efeadd;
+  border: 1px solid #ddd4c0;
+  border-radius: 999px;
+}
+
+/* The single chosen option in a single_select reads as "selected". */
+.chipSelected {
+  color: #2f4a31;
+  background: #e3efe1;
+  border-color: #bcd6bb;
+  font-weight: 600;
+}
+
+.bandPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a4a5a;
+  background: #e7eef4;
+  border: 1px solid #c7d6e2;
+  border-radius: 6px;
+}
+
+.stewardList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stewardLine {
+  font-size: 12px;
+  color: #4a4536;
+}
+
+.text {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #4a4536;
+  white-space: pre-wrap;
+}

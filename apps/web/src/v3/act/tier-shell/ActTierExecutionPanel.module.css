@@ -343,6 +343,13 @@
   text-decoration: underline;
 }
 
+.raisedConfirm {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #5dd39e;
+}
+
 .recordBtn {
   display: inline-flex;
   align-items: center;

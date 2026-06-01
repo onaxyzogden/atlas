@@ -12,6 +12,7 @@
 // Zod schema to guarantee runtime validity.
 
 import type {
+  AnswerSpec,
   DecisionGroup,
   PlanDecisionChecklistItem,
   PlanObjectiveSource,
@@ -31,6 +32,22 @@ import type {
  */
 export function ck(id: string, label: string): PlanDecisionChecklistItem {
   return { id, label, feedsInto: [], optional: false };
+}
+
+/**
+ * Like `ck`, but attaches an `answerSpec` marking this item's answer as already
+ * captured upstream (wizard / vision / team). The Act tier shell then renders a
+ * typed, read-only PREFILLED recap of the prior answer (in its original control
+ * style) with an "Edit in Plan" link, and the item auto-satisfies from the
+ * source data. Authoring stays terse; the schema field is optional so plain
+ * `ck(...)` items are unaffected.
+ */
+export function ckA(
+  id: string,
+  label: string,
+  answerSpec: AnswerSpec,
+): PlanDecisionChecklistItem {
+  return { id, label, feedsInto: [], optional: false, answerSpec };
 }
 
 /**

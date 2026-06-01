@@ -13,6 +13,7 @@ import { describe, it, expect } from 'vitest';
 import {
   computeAllObjectiveStatuses,
   type PlanStratumObjective,
+  type ProjectMetadata,
   type VisionProfile,
 } from '@ogden/shared';
 import { computeEffectiveProgress } from '../effectiveProgress.js';
@@ -101,6 +102,50 @@ describe('computeEffectiveProgress', () => {
       's1-vision-c2',
       's1-vision-c3',
     ]);
+  });
+
+  it('unions answerSpec-derived completion from metadata (5th arg)', () => {
+    // An objective whose item carries an answerSpec resolves to complete purely
+    // from ProjectMetadata — no stored progress, no VisionProfile bridge — when
+    // the 5th `metadata` arg is supplied.
+    const objectives = [
+      {
+        id: 's1-purpose',
+        checklist: [
+          {
+            id: 's1-purpose-c1',
+            label: 'Primary purpose',
+            feedsInto: [],
+            optional: false,
+            answerSpec: {
+              fieldType: 'single_select',
+              optionSetId: 'projectPrimaryType',
+              sourceField: 'projectTypeRecord.primaryTypeId',
+              editRoute: { kind: 'plan-type' },
+            },
+          },
+        ],
+      } as unknown as PlanStratumObjective,
+    ];
+
+    const metadata = {
+      projectTypeRecord: { primaryTypeId: 'food-forest' },
+    } as unknown as ProjectMetadata;
+
+    // Without metadata: not satisfied.
+    const before = computeEffectiveProgress({}, undefined, undefined, objectives);
+    expect(before.flatMap['s1-purpose-c1']).toBeUndefined();
+
+    // With metadata: the answerSpec auto-satisfies the item.
+    const after = computeEffectiveProgress(
+      {},
+      undefined,
+      undefined,
+      objectives,
+      metadata,
+    );
+    expect(after.flatMap['s1-purpose-c1']).toBe(true);
+    expect(after.byObjective['s1-purpose']).toEqual(['s1-purpose-c1']);
   });
 
   it('Act effective progress equals Plan: same flatMap feeds the status engine', () => {

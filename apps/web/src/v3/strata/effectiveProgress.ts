@@ -23,6 +23,7 @@ import {
   deriveStratum1StewardshipMap,
   mergeDerivedIntoProgress,
 } from './visionProfileToChecklist.js';
+import { resolveAnswerSpec } from './resolveAnswerSpec.js';
 
 type ProjectTeam = NonNullable<ProjectMetadata['team']>;
 
@@ -63,6 +64,7 @@ export function computeEffectiveProgress(
   visionProfile: VisionProfile | null | undefined,
   team: ProjectTeam | null | undefined,
   objectives: readonly PlanStratumObjective[],
+  metadata?: ProjectMetadata | null,
 ): EffectiveChecklistProgress {
   const visionMap = deriveStratum1EvidenceMap(visionProfile);
   const stewardshipMap = deriveStratum1StewardshipMap(team);
@@ -71,10 +73,28 @@ export function computeEffectiveProgress(
       ? visionMap
       : { ...visionMap, ...stewardshipMap };
 
-  const flatMap = mergeDerivedIntoProgress(
-    flattenProgress(storedByObjective),
-    derivedMap,
-  );
+  // Fresh mutable copy so the answerSpec union below can write into it (the
+  // merge helper returns a Readonly map and may alias its input).
+  const flatMap: Record<string, boolean> = {
+    ...mergeDerivedIntoProgress(flattenProgress(storedByObjective), derivedMap),
+  };
+
+  // Data-driven auto-satisfy: any checklist item carrying an `answerSpec` whose
+  // source data (wizard / vision / team) is already filled in is unioned into
+  // the flat map — the generalisation of the two hand-coded S1 derivations
+  // above. Sourced from the full `ProjectMetadata` (visionProfile + team +
+  // projectTypeRecord); a no-op when metadata is absent (e.g. batch callers
+  // that don't pass it), so nothing flips without source data.
+  if (metadata) {
+    for (const objective of objectives) {
+      for (const item of objective.checklist) {
+        if (!item.answerSpec || flatMap[item.id]) continue;
+        if (resolveAnswerSpec(metadata, item.answerSpec).isAnswered) {
+          flatMap[item.id] = true;
+        }
+      }
+    }
+  }
 
   const byObjective: Record<string, readonly string[]> = {};
   for (const objective of objectives) {

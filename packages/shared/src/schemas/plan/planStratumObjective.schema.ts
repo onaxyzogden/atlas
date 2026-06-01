@@ -70,6 +70,81 @@ export const PlanObjectiveSource = z.enum([
 ]);
 export type PlanObjectiveSource = z.infer<typeof PlanObjectiveSource>;
 
+/**
+ * The read-only control style an Act-stage checklist item's prior answer is
+ * rendered with when it was already captured upstream (project-creation wizard
+ * / Stage Zero Vision Builder / team step). Drives the typed `AnswerRecap`
+ * renderer in the Act tier shell (apps/web). See
+ * `wiki/decisions` Act answer-recap and the `answerSpec` field below.
+ */
+export const AnswerSpecFieldType = z.enum([
+  'single_select',
+  'multi_select',
+  'text',
+  'band',
+  'steward',
+]);
+export type AnswerSpecFieldType = z.infer<typeof AnswerSpecFieldType>;
+
+/**
+ * Where the steward edits this answer. The Act recap renders an "Edit in Plan"
+ * deep-link from it: `wizard-step` -> /v3/project/$id/wizard/$step (the canonical
+ * vision/team editors); `plan-type` -> /v3/project/$id/plan (the Plan header
+ * PrimarySetModal / SecondaryAddModal own project-type editing).
+ */
+export const AnswerSpecEditRoute = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('wizard-step'),
+    step: z.enum(['vision', 'team']),
+  }),
+  z.object({ kind: z.literal('plan-type') }),
+]);
+export type AnswerSpecEditRoute = z.infer<typeof AnswerSpecEditRoute>;
+
+/**
+ * Semantic id of the option set this answer's stored value(s) belong to. Labels
+ * are NOT inlined here: the renderer (apps/web) maps id -> label from the
+ * existing constants (`PROJECT_TYPES` / `findProjectType`) and the Vision
+ * Builder config (`visionBuilderQuestions.ts`), so `packages/shared` stays free
+ * of any apps/web dependency. Optional/advisory: the renderer falls back to
+ * humanising the raw id when a set is unset or a label is not found.
+ */
+export const AnswerOptionSetId = z.enum([
+  'projectPrimaryType',
+  'projectSecondaryType',
+  'visionPrimaryOutcomes',
+  'visionLandIdentity',
+  'visionSystems',
+  'visionBudgetBand',
+  'visionTimelineBand',
+]);
+export type AnswerOptionSetId = z.infer<typeof AnswerOptionSetId>;
+
+/**
+ * Declarative spec that lets the Act stage show a checklist item's answer
+ * PREFILLED in the format it was originally given (a select as a select, chips
+ * as chips, a band as a band), read-only, instead of re-asking for free text.
+ * Surface-neutral data: the pure resolver (apps/web `resolveAnswerSpec`) reads
+ * `sourceField` out of `ProjectMetadata` to decide completion + value, and the
+ * `AnswerRecap` renderer presents it. Optional on every item, so all existing
+ * seed/catalogue objects validate unchanged.
+ */
+export const AnswerSpecSchema = z.object({
+  fieldType: AnswerSpecFieldType,
+  /** Option set the stored id(s) belong to (label mapping lives in apps/web). */
+  optionSetId: AnswerOptionSetId.optional(),
+  /**
+   * Dotted path(s) into `ProjectMetadata` holding the answer, e.g.
+   * `projectTypeRecord.primaryTypeId`, `visionProfile.primaryOutcomes`. An
+   * array names multiple axes — used by `band` (e.g. budget + timeline), where
+   * ALL named axes must be present for the item to count as answered (mirrors
+   * the legacy `s1-vision-c3` both-axes rule).
+   */
+  sourceField: z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]),
+  editRoute: AnswerSpecEditRoute,
+});
+export type AnswerSpec = z.infer<typeof AnswerSpecSchema>;
+
 export const PlanDecisionChecklistItemSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
@@ -93,6 +168,15 @@ export const PlanDecisionChecklistItemSchema = z.object({
    * PatchRecord; unset on authored (non-injected) items.
    */
   expandedBySecondaryId: ProjectTypeId.optional(),
+  /**
+   * Optional declarative spec marking this item's answer as already captured
+   * upstream (wizard / vision / team). When present and resolvable, the Act
+   * tier shell renders a typed, read-only PREFILLED recap (in the answer's
+   * original control style) with an "Edit in Plan" link, and the item
+   * auto-satisfies from the source data via `computeEffectiveProgress`. Absent
+   * on every existing item, so the static seed + catalogues validate unchanged.
+   */
+  answerSpec: AnswerSpecSchema.optional(),
 });
 export type PlanDecisionChecklistItem = z.infer<
   typeof PlanDecisionChecklistItemSchema

@@ -70,6 +70,7 @@ export function usePortfolioPlanProgress(
         project.metadata?.visionProfile,
         project.metadata?.team,
         objectives,
+        project.metadata,
       );
       const objectiveStatuses = computeAllObjectiveStatuses(objectives, flatMap);
       const objectivesTotal = objectives.length;

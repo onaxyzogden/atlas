@@ -109,6 +109,7 @@ export function useProjectUrgency(
         project.metadata?.visionProfile,
         project.metadata?.team,
         objectives,
+        project.metadata,
       );
       const objectiveStatuses = computeAllObjectiveStatuses(objectives, flatMap);
 
