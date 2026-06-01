@@ -46,6 +46,20 @@ export const ProtocolStatus = z.enum([
 export type ProtocolStatus = z.infer<typeof ProtocolStatus>;
 
 /**
+ * The four OLOS severity tiers (Protocol System Object Model & Architecture
+ * Spec v1.1). ORTHOGONAL to ProtocolType: `type` describes HOW a protocol
+ * evaluates; `severityTier` describes the RESPONSE POSTURE when it fires.
+ * - stop:      halt project-wide; Plan approval to resume.
+ * - respond:   generate an assignable field action; affected area paused
+ *              (the canonical "produces work" tier).
+ * - watch:     log only; no action required (30s auto-confirm in the field).
+ * - abundance: a positive condition was reached; begin an observation cycle
+ *              before acting (the permaculture observe-before-act tier).
+ */
+export const SeverityTier = z.enum(['stop', 'respond', 'watch', 'abundance']);
+export type SeverityTier = z.infer<typeof SeverityTier>;
+
+/**
  * The animal/livestock enterprises that gate which standard templates surface
  * (Protocol Layer Spec 4.3). This is the slice's minimal enterprise vocabulary
  * — not the full ProjectType taxonomy. A template surfaces when any id in its
@@ -102,7 +116,25 @@ export const StandardProtocolTemplateSchema = z.object({
    * later need not carry it.
    */
   tierAuthored: z.string().min(1).optional(),
+  /**
+   * Response posture when this protocol fires (Object Model Spec v1.1).
+   * Optional for backward compatibility: the existing catalogue templates were
+   * authored before tiers existed and omit it; `resolveSeverityTier` treats an
+   * absent value as RESPOND. Authoring surfaces set it explicitly going forward.
+   */
+  severityTier: SeverityTier.optional(),
 });
 export type StandardProtocolTemplate = z.infer<
   typeof StandardProtocolTemplateSchema
 >;
+
+/**
+ * Safe accessor for a template's severity tier: any template without an
+ * explicit tier is treated as RESPOND (the canonical "produces work" posture).
+ * Keeps the default out of the stored data so provenance stays honest.
+ */
+export function resolveSeverityTier(t: {
+  severityTier?: SeverityTier;
+}): SeverityTier {
+  return t.severityTier ?? 'respond';
+}
