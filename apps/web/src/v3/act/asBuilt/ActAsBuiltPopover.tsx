@@ -74,6 +74,13 @@ function featureCentroid(
 export default function ActAsBuiltPopover({ map, projectId }: Props) {
   const active = useActAsBuiltPopoverStore((s) => s.active);
   const close = useActAsBuiltPopoverStore((s) => s.close);
+  // Slice 6 capture bridge: the map-mounted `ActAsBuiltDrawHandler` writes the
+  // redrawn polygon back here via `setCaptured`; this popover arms/disarms it
+  // and reads the result for the readout + Record.
+  const capture = useActAsBuiltPopoverStore((s) => s.capture);
+  const startDrawing = useActAsBuiltPopoverStore((s) => s.startDrawing);
+  const cancelDrawing = useActAsBuiltPopoverStore((s) => s.cancelDrawing);
+  const clearCaptured = useActAsBuiltPopoverStore((s) => s.clearCaptured);
   // Subscribe to every kind's store unconditionally (Rules of Hooks); the
   // resolution memo below picks the one matching active.kind.
   const cropAreas = useCropStore((s) => s.cropAreas);
@@ -202,23 +209,26 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     };
   }, [active, map]);
 
-  // ESC closes
+  // ESC: while redrawing, cancel the draw (keep the popover); otherwise close.
   useEffect(() => {
     if (!active) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        close();
+        if (capture.drawing) cancelDrawing();
+        else close();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [active, close]);
+  }, [active, close, capture.drawing, cancelDrawing]);
 
-  // Click-outside closes
+  // Click-outside closes - but never while redrawing (the popover is hidden and
+  // every map click is a draw vertex, so an outside click must not close it).
   useEffect(() => {
     if (!active) return;
     const onDown = (e: MouseEvent) => {
+      if (capture.drawing) return;
       const node = popoverRef.current;
       if (!node) return;
       if (e.target instanceof Node && node.contains(e.target)) return;
@@ -226,19 +236,26 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
-  }, [active, close]);
+  }, [active, close, capture.drawing]);
 
   if (!active || !resolved || !schema || !screen) return null;
+  // While the steward is drawing the as-built polygon, hide the popover so the
+  // map canvas is fully interactive; the map-mounted draw handler is armed and
+  // writes the polygon back to the store on completion (then disarms).
+  if (capture.drawing) return null;
 
   const initial = schema.initial;
   const hasChanges = schema.fields.some(
     (f) => String(values[f.key] ?? '') !== String(initial[f.key] ?? ''),
   );
-  // Geometry path is "armed" only when the toggle is on AND the steward gave a
-  // note or an as-built area (a bare toggle records nothing).
+  // Geometry path is "armed" when the toggle is on AND the steward gave a note,
+  // an as-built area, OR a redrawn polygon (a bare toggle records nothing).
   const trimmedNote = geomNote.trim();
   const geometryArmed =
-    shapeDiffers && (trimmedNote !== '' || asBuiltAreaInput.trim() !== '');
+    shapeDiffers &&
+    (trimmedNote !== '' ||
+      asBuiltAreaInput.trim() !== '' ||
+      capture.geometry != null);
   const canSave = Boolean(projectId) && (geometryArmed || hasChanges);
 
   const onSave = () => {
@@ -253,9 +270,16 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
         : null;
       const parsedArea =
         asBuiltAreaInput.trim() === '' ? null : Number(asBuiltAreaInput);
+      // Typed area wins; else fall back to the captured polygon's derived area
+      // (buildGeometryDiff derives from the polygon when builtArea is null).
       const builtArea =
         parsedArea != null && Number.isFinite(parsedArea) ? parsedArea : null;
-      const geomDiff = buildGeometryDiff(plannedArea, geomNote, builtArea);
+      const geomDiff = buildGeometryDiff(
+        plannedArea,
+        geomNote,
+        builtArea,
+        capture.geometry ?? undefined,
+      );
       if (!geomDiff) {
         close();
         return;
@@ -373,13 +397,39 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
                 onChange={(e) => setAsBuiltAreaInput(e.target.value)}
               />
             </label>
+            <div className={css.captureRow}>
+              <button
+                type="button"
+                className={css.secondaryBtn}
+                onClick={startDrawing}
+              >
+                {capture.geometry ? 'Redraw shape on map' : 'Draw shape on map'}
+              </button>
+              {capture.geometry ? (
+                <span className={css.captureReadout}>
+                  Shape captured
+                  {capture.areaM2 != null
+                    ? ` - ${Math.round(capture.areaM2)} m2`
+                    : ''}
+                  <button
+                    type="button"
+                    className={css.clearBtn}
+                    onClick={clearCaptured}
+                  >
+                    Clear
+                  </button>
+                </span>
+              ) : null}
+            </div>
           </>
         ) : null}
       </div>
 
       <div className={css.note}>
         {geometryArmed
-          ? 'Records a shape deviation (note + area) - the polygon is not redrawn. Reconcile from the Plan stage.'
+          ? capture.geometry != null
+            ? 'Records the redrawn shape - Plan can apply it to the design polygon. Reconcile from the Plan stage.'
+            : 'Records a shape deviation (note + area). Draw the shape to let Plan apply it. Reconcile from the Plan stage.'
           : 'Recorded to Observe as a divergence - does not change the Plan. Reconcile from the Plan stage.'}
       </div>
 

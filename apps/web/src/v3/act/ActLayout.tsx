@@ -47,6 +47,7 @@ import ActStructureClickHandler from './layers/ActStructureClickHandler.js';
 import ActStructurePopover from './ActStructurePopover.js';
 import ActFeatureClickHandler from './layers/ActFeatureClickHandler.js';
 import ActAsBuiltPopover from './asBuilt/ActAsBuiltPopover.js';
+import ActAsBuiltDrawHandler from './asBuilt/ActAsBuiltDrawHandler.js';
 import { isActModule, type ActModule } from './types.js';
 import StageShell from '../_shell/StageShell.js';
 import BaseMapCard from '../plan/canvas/BaseMapCard.js';
@@ -250,6 +251,7 @@ export default function ActLayout() {
               <PlanSelectionFloater />
               <ActStructurePopover map={map} projectId={params.projectId ?? null} />
               <ActAsBuiltPopover map={map} projectId={params.projectId ?? null} />
+              <ActAsBuiltDrawHandler map={map} />
               <ActObjectiveCompletePrompt
                 projectId={params.projectId ?? null}
                 module={validModule}

@@ -58,6 +58,7 @@ import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
 import ActFeatureClickHandler from '../layers/ActFeatureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActAsBuiltPopover from '../asBuilt/ActAsBuiltPopover.js';
+import ActAsBuiltDrawHandler from '../asBuilt/ActAsBuiltDrawHandler.js';
 import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
@@ -401,6 +402,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                     <SectorCompassOverlay projectId={id} map={map} />
                     <ActStructurePopover map={map} projectId={id} />
                     <ActAsBuiltPopover map={map} projectId={id} />
+                    <ActAsBuiltDrawHandler map={map} />
                     <ActTierMapMarkers
                       map={map}
                       positionByObjective={positionByObjective}

@@ -352,3 +352,83 @@ describe('AsBuiltReconciliationCard -- Slice 4 fan-out', () => {
     expect(screen.getByTestId('plan-asbuilt-keep')).toBeDefined();
   });
 });
+
+// Slice 6: a geometry diff carrying a captured as-built polygon becomes
+// applicable -- the card lights "Apply to design", and Apply writes the polygon
+// to the design store. Note/area-only geometry diffs stay Keep-only (above).
+const CAPTURED_SQUARE: GeoJSON.Polygon = {
+  type: 'Polygon',
+  coordinates: [
+    [
+      [0, 0],
+      [0, 0.001],
+      [0.001, 0.001],
+      [0.001, 0],
+      [0, 0],
+    ],
+  ],
+};
+
+describe('AsBuiltReconciliationCard -- Slice 6 captured geometry', () => {
+  it('shows Apply for a geometry diff carrying a captured polygon', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        measurementValue: {
+          kind: 'geometry',
+          field: 'geometry',
+          asPlanned: { areaM2: 800 },
+          asBuilt: { areaM2: 650, capturedGeometry: CAPTURED_SQUARE },
+        },
+      }),
+    );
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+
+    expect(screen.getByTestId('plan-asbuilt-apply')).toBeDefined();
+    expect(
+      screen.getByText(/As-built shape captured/),
+    ).toBeDefined();
+  });
+
+  it('"Apply to design" writes the captured polygon to the crop store', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        measurementValue: {
+          kind: 'geometry',
+          field: 'geometry',
+          asPlanned: { areaM2: 800 },
+          asBuilt: { capturedGeometry: CAPTURED_SQUARE },
+        },
+      }),
+    );
+    const spy = vi.spyOn(useCropStore.getState(), 'updateCropArea');
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+    fireEvent.click(screen.getByTestId('plan-asbuilt-apply'));
+
+    expect(spy).toHaveBeenCalledOnce();
+    const [id, patch] = spy.mock.calls[0]!;
+    expect(id).toBe(CROP_ID);
+    expect(patch.geometry).toEqual(CAPTURED_SQUARE);
+    expect(typeof patch.areaM2).toBe('number');
+  });
+
+  it('shows the parametric-footprint caution for a structure captured-geometry diff', () => {
+    useObserveDataPointStore.getState().recordDataPoint(
+      mkPoint({
+        sourceFeatureRef: { kind: 'structure', id: 'st-1' },
+        measurementValue: {
+          kind: 'geometry',
+          field: 'geometry',
+          asPlanned: {},
+          asBuilt: { capturedGeometry: CAPTURED_SQUARE },
+        },
+      }),
+    );
+
+    render(<AsBuiltReconciliationCard projectId={PROJECT_ID} objective={objective} />);
+
+    expect(screen.getByTestId('plan-asbuilt-apply')).toBeDefined();
+    expect(screen.getByText(/parametric footprint/)).toBeDefined();
+  });
+});

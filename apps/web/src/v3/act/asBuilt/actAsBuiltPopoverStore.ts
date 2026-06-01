@@ -26,16 +26,53 @@ export interface ActAsBuiltPopoverPayload {
   anchor: [number, number];
 }
 
+/**
+ * Transient per-open capture state (Slice 6). Bridges the DOM popover to the
+ * map-mounted `ActAsBuiltDrawHandler` - same store-bridge pattern as
+ * `planVertexEditStore`. `drawing` arms the MapboxDraw polygon tool; once the
+ * steward closes a polygon the handler stashes it here via `setCaptured`, the
+ * popover reads it for the readout, and `onSave` folds it into the geometry
+ * diff. Reset to empty on every `open`/`close` (capture is per-feature-session).
+ */
+export interface ActAsBuiltCaptureState {
+  drawing: boolean;
+  geometry: GeoJSON.Polygon | null;
+  areaM2: number | null;
+}
+
+const EMPTY_CAPTURE: ActAsBuiltCaptureState = {
+  drawing: false,
+  geometry: null,
+  areaM2: null,
+};
+
 interface ActAsBuiltPopoverState {
   active: ActAsBuiltPopoverPayload | null;
+  capture: ActAsBuiltCaptureState;
   open: (payload: ActAsBuiltPopoverPayload) => void;
   close: () => void;
+  /** Arm the polygon draw tool (keeps any previously captured polygon). */
+  startDrawing: () => void;
+  /** Disarm the draw tool without discarding an already-captured polygon. */
+  cancelDrawing: () => void;
+  /** Stash the redrawn polygon + its geodesic area; disarms the draw tool. */
+  setCaptured: (geometry: GeoJSON.Polygon, areaM2: number | null) => void;
+  /** Drop the captured polygon (steward clicked "Clear"). */
+  clearCaptured: () => void;
 }
 
 export const useActAsBuiltPopoverStore = create<ActAsBuiltPopoverState>(
   (set) => ({
     active: null,
-    open: (payload) => set({ active: payload }),
-    close: () => set({ active: null }),
+    capture: EMPTY_CAPTURE,
+    open: (payload) => set({ active: payload, capture: EMPTY_CAPTURE }),
+    close: () => set({ active: null, capture: EMPTY_CAPTURE }),
+    startDrawing: () =>
+      set((s) => ({ capture: { ...s.capture, drawing: true } })),
+    cancelDrawing: () =>
+      set((s) => ({ capture: { ...s.capture, drawing: false } })),
+    setCaptured: (geometry, areaM2) =>
+      set({ capture: { drawing: false, geometry, areaM2 } }),
+    clearCaptured: () => set({ capture: EMPTY_CAPTURE }),
   }),
 );

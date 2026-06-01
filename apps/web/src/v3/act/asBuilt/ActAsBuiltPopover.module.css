@@ -134,6 +134,37 @@
   border-color: rgba(242, 237, 227, 0.5);
 }
 
+.captureRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.captureReadout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(245, 158, 11, 0.95);
+}
+
+.clearBtn {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid rgba(242, 237, 227, 0.25);
+}
+
+.clearBtn:hover {
+  border-color: rgba(242, 237, 227, 0.5);
+}
+
 .note {
   font-size: 10px;
   font-style: italic;

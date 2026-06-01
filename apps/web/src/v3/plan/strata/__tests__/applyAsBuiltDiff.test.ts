@@ -30,6 +30,34 @@ function attr(field: string, asBuilt: unknown, asPlanned: unknown = 'x'): AsBuil
   return { kind: 'attribute', field, label: field, asPlanned, asBuilt } as AsBuiltDiff;
 }
 
+// A small closed square; turf.area gives a stable positive m2 for the lockstep
+// areaM2 assertions.
+const SQUARE: GeoJSON.Polygon = {
+  type: 'Polygon',
+  coordinates: [
+    [
+      [0, 0],
+      [0, 0.001],
+      [0.001, 0.001],
+      [0.001, 0],
+      [0, 0],
+    ],
+  ],
+};
+
+/** A geometry diff carrying (or not) a captured as-built polygon. */
+function geomDiff(captured?: unknown): AsBuiltDiff {
+  return {
+    kind: 'geometry',
+    field: 'geometry',
+    asPlanned: { areaM2: 800 },
+    asBuilt: {
+      note: 'redrawn',
+      ...(captured !== undefined ? { capturedGeometry: captured } : {}),
+    },
+  } as AsBuiltDiff;
+}
+
 /** A select-field diff: display labels in asPlanned/asBuilt, raw codes in the
  *  *Raw companions (the shape buildAttributeDiff now emits). */
 function attrRaw(
@@ -81,7 +109,7 @@ describe('canApplyDiff', () => {
     expect(canApplyDiff(bundled, 'structure')).toBe(false);
   });
 
-  it('rejects non-scalar asBuilt and geometry diffs', () => {
+  it('rejects non-scalar asBuilt and note/area-only geometry diffs', () => {
     expect(canApplyDiff(attr('name', { nested: true }), 'cropArea')).toBe(false);
     const geom: AsBuiltDiff = {
       kind: 'geometry',
@@ -89,8 +117,68 @@ describe('canApplyDiff', () => {
       asPlanned: { areaM2: 800 },
       asBuilt: { areaM2: 650 },
     } as AsBuiltDiff;
+    // No captured polygon -> read-only evidence, not applicable.
     expect(canApplyDiff(geom, 'cropArea')).toBe(false);
     expect(canApplyDiff(null, 'cropArea')).toBe(false);
+  });
+
+  it('accepts a geometry diff carrying a captured polygon for ALL four kinds', () => {
+    for (const kind of ['cropArea', 'paddock', 'zone', 'structure'] as const) {
+      expect(canApplyDiff(geomDiff(SQUARE), kind)).toBe(true);
+    }
+  });
+
+  it('rejects a geometry diff whose captured polygon is malformed', () => {
+    const tooFewPoints: GeoJSON.Polygon = {
+      type: 'Polygon',
+      coordinates: [[[0, 0], [0, 1], [0, 0]]], // ring length 3 < 4
+    };
+    expect(canApplyDiff(geomDiff(tooFewPoints), 'cropArea')).toBe(false);
+    expect(canApplyDiff(geomDiff({ type: 'Point', coordinates: [0, 0] }), 'zone')).toBe(false);
+    expect(canApplyDiff(geomDiff('not-an-object'), 'paddock')).toBe(false);
+  });
+});
+
+describe('applyAsBuiltDiff -- captured geometry', () => {
+  it('cropArea writes the polygon + recomputed areaM2 in lockstep', () => {
+    const spy = vi.spyOn(useCropStore.getState(), 'updateCropArea');
+    applyAsBuiltDiff('cropArea', 'crop-1', geomDiff(SQUARE));
+    expect(spy).toHaveBeenCalledOnce();
+    const [id, patch] = spy.mock.calls[0]!;
+    expect(id).toBe('crop-1');
+    expect(patch.geometry).toEqual(SQUARE);
+    expect(typeof patch.areaM2).toBe('number');
+    expect(patch.areaM2).toBeGreaterThan(0);
+  });
+
+  it('paddock writes the polygon + areaM2', () => {
+    const spy = vi.spyOn(useLivestockStore.getState(), 'updatePaddock');
+    applyAsBuiltDiff('paddock', 'pad-1', geomDiff(SQUARE));
+    const [id, patch] = spy.mock.calls[0]!;
+    expect(id).toBe('pad-1');
+    expect(patch.geometry).toEqual(SQUARE);
+    expect(typeof patch.areaM2).toBe('number');
+  });
+
+  it('zone writes the polygon + areaM2', () => {
+    const spy = vi.spyOn(useZoneStore.getState(), 'updateZone');
+    applyAsBuiltDiff('zone', 'zone-1', geomDiff(SQUARE));
+    const [id, patch] = spy.mock.calls[0]!;
+    expect(id).toBe('zone-1');
+    expect(patch.geometry).toEqual(SQUARE);
+    expect(typeof patch.areaM2).toBe('number');
+  });
+
+  it('structure routes the polygon through updateGeometry', () => {
+    const spy = vi.spyOn(useBuiltEnvironmentStoreV2.getState(), 'updateGeometry');
+    applyAsBuiltDiff('structure', 'st-1', geomDiff(SQUARE));
+    expect(spy).toHaveBeenCalledWith('st-1', SQUARE);
+  });
+
+  it('is a no-op when the captured polygon is malformed', () => {
+    const cropSpy = vi.spyOn(useCropStore.getState(), 'updateCropArea');
+    applyAsBuiltDiff('cropArea', 'crop-1', geomDiff('garbage'));
+    expect(cropSpy).not.toHaveBeenCalled();
   });
 });
 

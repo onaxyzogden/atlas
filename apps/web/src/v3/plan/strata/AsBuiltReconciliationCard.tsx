@@ -179,7 +179,21 @@ function DeviationItem({ projectId, point }: ItemProps) {
           {diff.asBuilt.note != null && (
             <span className={css.geometryNote}>{diff.asBuilt.note}</span>
           )}
-          <span className={css.readOnly}>Recorded -- no Apply in v1</span>
+          {canApply ? (
+            <>
+              <span className={css.geometryNote}>
+                As-built shape captured -- Apply redraws the design polygon.
+              </span>
+              {sourceFeatureRef.kind === 'structure' && (
+                <span className={css.readOnly}>
+                  Replaces the parametric footprint; width/depth/rotation stop
+                  driving the shape.
+                </span>
+              )}
+            </>
+          ) : (
+            <span className={css.readOnly}>Recorded -- no Apply in v1</span>
+          )}
         </div>
       )}
 
