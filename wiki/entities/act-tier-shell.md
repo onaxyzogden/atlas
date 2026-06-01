@@ -314,6 +314,43 @@ objectives own the domain, so it works across project types -- the Slice-3
 reconciliation card must read by domain overlap, never a hardcoded id. tsc 0;
 42 tests green. Log: [[log/2026-06-01-atlas-act-asbuilt-deviation-slice1-2]].
 
+## Exec panel: scroll containment + Raise-follow-up-need (2026-06-01)
+
+Two right-rail `ActTierExecutionPanel` follow-ups
+([[log/2026-06-01-atlas-act-exec-panel-scroll-raise-need]]):
+
+- **Slice 1 (CSS, committed `eae3644f`):** the panel's bottom bento (Record
+  button) was clipped until the whole rail scrolled. Fixed by giving `.execPanel`
+  `height: 100%`, `.execHeaderBox` `flex: 0 0 auto`, and `.execBody`
+  `flex: 1 1 auto; min-height: 0; overflow-y: auto`. The objective title +
+  progress bar now act as a fixed header while ONLY the body (Checklist /
+  Evidence / activity / Record) scrolls. No JSX change (header/body were already
+  sibling blocks).
+- **Slice 2 (TSX + 1 CSS rule):** the inert "+ Raise follow-up need" link now
+  opens the shared `RaiseNeedForm` in a `Modal` and creates a tracked
+  `ObservationNeed` via `buildRaisedNeed` + `useObservationNeedStore.createNeed`
+  (`origin: 'manual'`, `module = getPrimaryDomainForObjective(objective)` since
+  `ObserveModule = UniversalDomain`, target = mean of existing need centers with
+  `[-78.2, 44.5]` MTC fallback). Mirrors the Command Centre `raiseManual` path.
+  The need surfaces in the Observe Command Centre + `DomainObservationNeeds`, NOT
+  the panel's "This need's activity" feed (that reads `observeDataPointStore`); an
+  inline `.raisedConfirm` line is the in-panel confirmation. Preview-verified
+  (modal opened, need persisted under `createdByProject`); tsc 0.
+
+**Rebase-race note (institutional).** Slice 2 verified but was NOT yet committed
+when an out-of-band rebase actor ran `git add` + commit on `feat/atlas-permaculture`.
+That sweep folded my uncommitted Slice 2 edits into the foreign commit
+`c640acbb` ("typed read-only recap...", the AnswerRecap / `resolveAnswerSpec` /
+effectiveProgress refactor). The hunk-only patch-against-HEAD stage I had prepared
+was reset to an empty index, so my own `git commit -F` was a no-op. Net: the Slice 2
+code is live and intact in HEAD (verified: all 5 edits + `.raisedConfirm` present in
+`c640acbb`), but co-mingled with foreign work under a foreign message and without my
+attribution trailer. No history surgery was attempted (foreign commit carries
+substantial foreign work; branch is rebased externally). Reinforces
+[[feedback-commit-immediately-on-rebased-branches]]: on this branch, commit the
+instant a slice verifies -- the window between verify and commit is where the sweep
+strikes.
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel

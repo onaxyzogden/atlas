@@ -775,3 +775,24 @@ measurement (scrollHeight > clientHeight) was NOT captured this session - the
 headless eval's deep dynamic-route rehydration via pushState was intermittent
 (`shellSectionFound` flickered false on single-nav runs). Recorded as
 structurally-sound, not pixel-measured, rather than overclaimed.
+
+---
+
+## 2026-06-01 -- Act exec panel: scroll containment + functional "Raise follow-up need"
+
+Two slices on the production right-rail `ActTierExecutionPanel`
+(`feat/atlas-permaculture`, not pushed). (1, `eae3644f`, CSS-only) contained the
+panel to its `.rightBody` cell -- `.execPanel height:100%`, `.execHeaderBox
+flex:0 0 auto`, `.execBody flex:1 1 auto; min-height:0; overflow-y:auto` -- so the
+objective title + progress bar act as a fixed header and only the body
+(Checklist/Evidence/activity/Record) scrolls; the bottom Record bento is no longer
+clipped. (2, TSX + 1 CSS rule) the inert "+ Raise follow-up need" link now opens
+the shared `RaiseNeedForm` in a `Modal` and creates a tracked `ObservationNeed`
+via `buildRaisedNeed` + `createNeed` (origin manual, primary-domain module, mean/
+MTC-fallback center), surfacing in the Observe Command Centre + domain needs
+panels with an inline confirmation. Preview-verified (need persisted under
+`createdByProject`); tsc 0. **Rebase-race:** Slice 2 verified but was swept into
+the out-of-band foreign commit `c640acbb` ("typed read-only recap...") before its
+own commit landed -- code is live and intact in HEAD, but under a foreign message
+without attribution; no history surgery (foreign work + externally-rebased branch).
+Detail + lesson: [[log/2026-06-01-atlas-act-exec-panel-scroll-raise-need]].
