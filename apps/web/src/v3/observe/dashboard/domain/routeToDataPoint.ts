@@ -18,6 +18,14 @@
  * conservative table: verified → 'clear', diverged → 'needs_investigation'.
  * The richer divergence-type → status output mapping arrives in Slice 4.4
  * alongside the resolver.
+ *
+ * Objective provenance: the projection carries `sourceObjectiveId` when the
+ * entry's `feedKey` is a real Plan objective id (validated against the shared
+ * catalogue via `findObjectiveAcrossCatalogues`). Domain-routed feedKeys
+ * (verified actions tagged with `observeFeedIds`) stay `null`. This lets the
+ * Observe Domain Detail list render the same objective provenance chip on
+ * field-log rows that direct Act recordings already carry (Act/Observe
+ * objective-link ADR).
  */
 
 import type {
@@ -25,6 +33,7 @@ import type {
   ObserveStatusOutput,
   UniversalDomain,
 } from '@ogden/shared';
+import { findObjectiveAcrossCatalogues } from '@ogden/shared';
 import type { ObserveFeedEntry } from '../../../../store/observeFeedStore.js';
 
 export type ResolveDomainForObjective = (
@@ -55,10 +64,13 @@ export function routeToDataPoint(
         : 'task_verification',
     sourceActionId: entry.sourceActionId,
     sourceFeedEntryId: entry.id,
-    // Feed projections are not objective-scoped here; enriching this from the
-    // entry's parent objective is a named deferred item (see the Act/Observe
-    // objective-link ADR).
-    sourceObjectiveId: null,
+    // feedKey is the parent objective id for objective-routed entries; validate it
+    // against the catalogue so domain-routed (observeFeedIds) keys stay null and only
+    // chip-resolvable ids are stored (mirrors the DomainObservationList chip guard).
+    // Closes the deferred field-log enrichment in the Act/Observe objective-link ADR.
+    sourceObjectiveId: findObjectiveAcrossCatalogues(entry.feedKey)
+      ? entry.feedKey
+      : null,
     locationGeometry: null,
     cycleId: 0,
     isSuperseded: false,
