@@ -25,7 +25,15 @@ import {
 import MapTokenMissing from '../../components/MapTokenMissing.js';
 import { useBasemapStore } from '../observe/components/measure/useMapToolStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
-import type { CrossRelationship } from '@ogden/shared';
+import type {
+  CrossRelationship,
+  PortfolioPoi,
+  PoiProjectFlow,
+  PoiKind,
+  PoiFlowDirection,
+  MaterialKind,
+} from '@ogden/shared';
+import { MATERIAL_KIND_CONFIG } from '../../store/closedLoopStore.js';
 import {
   STAGE_PAINT,
   buildBoundaryFeatureCollection,
@@ -89,6 +97,91 @@ const relColorMatch: unknown = [
   '#6b7280',
 ];
 
+// ── Resource POIs + POI↔project material flows ──────────────────────────────
+// POIs are owner-scoped resource nodes (a regional compost depot, a shared
+// water source…) that connect to projects via material flows — one operation's
+// waste output becoming another's input ("one man's trash is another's
+// treasure"). POI markers are DOM markers (diamond glyph); the flow lines reuse
+// the relationship LineString + dual-layer styledata-idempotent pattern, added
+// LAST so they paint atop boundaries + relationship lines.
+const POI_FLOW_SRC = 'portfolio-poi-flows';
+const POI_FLOW_OUTPUT_LAYER = 'portfolio-poi-flow-line-output';
+const POI_FLOW_INPUT_LAYER = 'portfolio-poi-flow-line-input';
+const POI_FLOW_BIDIR_LAYER = 'portfolio-poi-flow-line-bidir';
+
+// POI kind → display label + accent colour for the diamond marker. POIs carry a
+// `poiKind` (not a `materialKind`), so the colours borrow from the shared
+// MATERIAL_KIND_CONFIG palette where a natural material maps to the kind.
+const POI_KIND_CONFIG: Record<PoiKind, { label: string; color: string }> = {
+  compost_hub: { label: 'Compost hub', color: MATERIAL_KIND_CONFIG.compost.color },
+  water_source: { label: 'Water source', color: MATERIAL_KIND_CONFIG.water.color },
+  feed_store: { label: 'Feed store', color: MATERIAL_KIND_CONFIG.grain.color },
+  energy_node: { label: 'Energy node', color: MATERIAL_KIND_CONFIG.energy.color },
+  aggregation_point: { label: 'Aggregation point', color: '#9a8070' },
+  market: { label: 'Market', color: '#7a5cae' },
+  other: { label: 'Other', color: '#6b7280' },
+};
+
+const POI_KIND_ORDER: PoiKind[] = [
+  'compost_hub',
+  'water_source',
+  'feed_store',
+  'energy_node',
+  'aggregation_point',
+  'market',
+  'other',
+];
+
+const MATERIAL_KIND_ORDER: MaterialKind[] = [
+  'compost',
+  'manure',
+  'mulch',
+  'water',
+  'grain',
+  'energy',
+  'organic_matter',
+  'greywater',
+  'other',
+];
+
+// Data-driven `line-color` over the flow's `materialKind` property (mirrors
+// relColorMatch). Built from the shared MATERIAL_KIND_CONFIG palette.
+const poiFlowColorMatch: unknown = [
+  'match',
+  ['get', 'materialKind'],
+  ...MATERIAL_KIND_ORDER.flatMap((k) => [k, MATERIAL_KIND_CONFIG[k].color]),
+  '#6b7280',
+];
+
+/** Quantity field a single picker value maps to, by material kind. */
+function quantityFieldFor(
+  kind: MaterialKind,
+): 'massKgPerMonth' | 'volumeLPerMonth' | 'energyKwhPerMonth' {
+  if (kind === 'water' || kind === 'greywater') return 'volumeLPerMonth';
+  if (kind === 'energy') return 'energyKwhPerMonth';
+  return 'massKgPerMonth';
+}
+
+/** Unit label for the quantity input, by material kind. */
+function quantityUnitFor(kind: MaterialKind): string {
+  if (kind === 'water' || kind === 'greywater') return 'L / month';
+  if (kind === 'energy') return 'kWh / month';
+  return 'kg / month';
+}
+
+/** A POI→project flow draft emitted by the map's flow picker. The page
+ *  translates the local project id → server id, maps `quantity` to the right
+ *  per-month column, and builds the `CreatePoiFlowInput`. */
+export interface PoiFlowDraft {
+  materialKind: MaterialKind;
+  direction: PoiFlowDirection;
+  /** The per-month column `quantity` should populate (derived from material). */
+  quantityField: 'massKgPerMonth' | 'volumeLPerMonth' | 'energyKwhPerMonth';
+  quantity: number | null;
+  label: string | null;
+  notes: string | null;
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -116,6 +209,18 @@ interface PortfolioMapProps {
   ) => void;
   /** Fired when a relationship line is tapped (in addition to the map tooltip). */
   onSelectRelationship?: (rel: CrossRelationship) => void;
+
+  // ── Resource POIs (owner-scoped) + their material flows to projects ─────────
+  /** All portfolio POIs (server-backed). Drawn as diamond DOM markers. */
+  pois?: readonly PortfolioPoi[];
+  /** All POI↔project material flows. Drawn POI-centroid → project-centroid. */
+  poiFlows?: readonly PoiProjectFlow[];
+  /** Owner-only: place a new POI on the map (lng/lat from a map tap). */
+  onAddPoi?: (input: { name: string; poiKind: PoiKind; lng: number; lat: number }) => void;
+  /** Owner-only: connect a POI to a project as a material flow. `projectLocalId`
+   *  is the LOCAL id (the page translates it to the server id, exactly like
+   *  relationships). */
+  onAddPoiFlow?: (poiId: string, projectLocalId: string, draft: PoiFlowDraft) => void;
 }
 
 /**
@@ -144,6 +249,10 @@ export default function PortfolioMap({
   relationships,
   onAddRelationship,
   onSelectRelationship,
+  pois,
+  poiFlows,
+  onAddPoi,
+  onAddPoiFlow,
 }: PortfolioMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [map, setMap] = useState<maplibregl.Map | null>(null);
@@ -153,6 +262,10 @@ export default function PortfolioMap({
   const didInitialFitRef = useRef(false);
   const prevSelectedRef = useRef<string | null>(null);
   const markersRef = useRef<Map<string, { marker: maplibregl.Marker; el: HTMLButtonElement }>>(
+    new Map(),
+  );
+  // Separate marker registry for resource-POI diamond markers.
+  const poiMarkersRef = useRef<Map<string, { marker: maplibregl.Marker; el: HTMLButtonElement }>>(
     new Map(),
   );
   // Keep the latest onSelect without re-binding marker click handlers.
@@ -169,6 +282,45 @@ export default function PortfolioMap({
   const [pendingPair, setPendingPair] = useState<{ aId: string; bId: string } | null>(null);
   const [pickType, setPickType] = useState<RelType>('adjacent_boundary');
   const [pickNotes, setPickNotes] = useState('');
+
+  // ── Resource-POI UI state ──────────────────────────────────────────────────
+  // Lines are OFF by default (mirrors relationships); the toggle lives in the
+  // controls cluster.
+  const [poiVisible, setPoiVisible] = useState(false);
+  // Place-a-POI mode: arm a one-shot map click to capture lng/lat, then open the
+  // create dialog. `poiDraft` holds the tapped coordinate.
+  const [placingPoi, setPlacingPoi] = useState(false);
+  const [poiDraft, setPoiDraft] = useState<{ lng: number; lat: number } | null>(null);
+  const [poiName, setPoiName] = useState('');
+  const [poiKind, setPoiKind] = useState<PoiKind>('compost_hub');
+  // Connect-a-flow mode: tap a POI (firstPoiPick), then a project pin
+  // (pendingFlow), then pick material/direction/quantity.
+  const [flowCreating, setFlowCreating] = useState(false);
+  const [firstPoiPick, setFirstPoiPick] = useState<string | null>(null);
+  const [pendingFlow, setPendingFlow] = useState<{ poiId: string; projectLocalId: string } | null>(
+    null,
+  );
+  const [flowMaterial, setFlowMaterial] = useState<MaterialKind>('compost');
+  const [flowDirection, setFlowDirection] = useState<PoiFlowDirection>('output');
+  const [flowQuantity, setFlowQuantity] = useState('');
+  const [flowNotes, setFlowNotes] = useState('');
+
+  const poiList = useMemo<readonly PortfolioPoi[]>(() => pois ?? [], [pois]);
+  const flowList = useMemo<readonly PoiProjectFlow[]>(() => poiFlows ?? [], [poiFlows]);
+  const poiCount = poiList.length;
+
+  // POI lng/lat by id — one endpoint of every flow line.
+  const poiLngLatById = useMemo(() => {
+    const m = new Map<string, [number, number]>();
+    for (const p of poiList) m.set(p.id, [p.lng, p.lat]);
+    return m;
+  }, [poiList]);
+
+  const poiNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of poiList) m.set(p.id, p.name);
+    return m;
+  }, [poiList]);
 
   const relList = useMemo<readonly CrossRelationship[]>(() => relationships ?? [], [relationships]);
   const relCount = relList.length;
@@ -231,6 +383,41 @@ export default function PortfolioMap({
   const onSelectRelationshipRef = useRef(onSelectRelationship);
   onSelectRelationshipRef.current = onSelectRelationship;
 
+  // POI↔project flow LineStrings: POI lng/lat → project centroid. Flows carry a
+  // SERVER projectId; `centroidById` is keyed by both local and server ids, so
+  // the server endpoint resolves. Properties carry materialKind (colour) and
+  // direction (dash style).
+  const poiFlowFc = useMemo<
+    GeoJSON.FeatureCollection<GeoJSON.LineString, { id: string; materialKind: string; direction: string }>
+  >(() => {
+    const features: GeoJSON.Feature<
+      GeoJSON.LineString,
+      { id: string; materialKind: string; direction: string }
+    >[] = [];
+    for (const f of flowList) {
+      const a = poiLngLatById.get(f.poiId);
+      const b = centroidById.get(f.projectId);
+      if (!a || !b) continue;
+      features.push({
+        type: 'Feature',
+        properties: { id: f.id, materialKind: f.materialKind, direction: f.direction },
+        geometry: { type: 'LineString', coordinates: [a, b] },
+      });
+    }
+    return { type: 'FeatureCollection', features };
+  }, [flowList, poiLngLatById, centroidById]);
+
+  // Lookup for the flow-line click tooltip.
+  const flowById = useMemo(() => {
+    const m = new Map<string, PoiProjectFlow>();
+    for (const f of flowList) m.set(f.id, f);
+    return m;
+  }, [flowList]);
+  const flowByIdRef = useRef(flowById);
+  flowByIdRef.current = flowById;
+  const poiNameByIdRef = useRef(poiNameById);
+  poiNameByIdRef.current = poiNameById;
+
   // Pin-tap routing: in creation mode taps pick relationship endpoints,
   // otherwise they select the project. Held in a ref so the marker click
   // listeners (bound once) always see the latest mode without re-binding.
@@ -259,10 +446,42 @@ export default function PortfolioMap({
       setPendingPair({ aId: firstPick, bId: id });
       return;
     }
+    // Flow-creating mode: a project pin is the SECOND pick (after a POI). The
+    // flow carries a server projectId, so the project must be synced.
+    if (flowCreating && firstPoiPick) {
+      if (!syncedLocalIds.has(id)) {
+        emitPortfolioToast(
+          `"${nameById.get(id) ?? 'That project'}" isn't synced to the server yet, so it can't receive a flow.`,
+          'error',
+        );
+        return;
+      }
+      setFlowMaterial('compost');
+      setFlowDirection('output');
+      setFlowQuantity('');
+      setFlowNotes('');
+      setPendingFlow({ poiId: firstPoiPick, projectLocalId: id });
+      return;
+    }
+    if (flowCreating && !firstPoiPick) {
+      emitPortfolioToast('Tap a resource POI first, then a project.', 'info');
+      return;
+    }
     onSelectRef.current(id);
   };
   const pinActivateRef = useRef(handlePinActivate);
   pinActivateRef.current = handlePinActivate;
+
+  // POI-marker taps: in flow-creating mode they pick the flow's POI endpoint;
+  // otherwise they open a popup (rendered via the click handler effect).
+  const handlePoiActivate = (poiId: string) => {
+    if (flowCreating) {
+      setFirstPoiPick((cur) => (cur === poiId ? null : poiId));
+      return;
+    }
+  };
+  const poiActivateRef = useRef(handlePoiActivate);
+  poiActivateRef.current = handlePoiActivate;
 
   const cancelCreate = () => {
     setCreating(false);
@@ -278,6 +497,55 @@ export default function PortfolioMap({
     setCreating(false);
     // Reveal the lines so the freshly-created connection is visible.
     setRelVisible(true);
+  };
+
+  // ── POI placement + flow-creation handlers ──────────────────────────────────
+  const cancelPlacePoi = () => {
+    setPlacingPoi(false);
+    setPoiDraft(null);
+    setPoiName('');
+  };
+
+  const submitPoi = () => {
+    if (!poiDraft) return;
+    const name = poiName.trim();
+    if (!name) {
+      emitPortfolioToast('Give the resource POI a name.', 'error');
+      return;
+    }
+    onAddPoi?.({ name, poiKind, lng: poiDraft.lng, lat: poiDraft.lat });
+    setPoiDraft(null);
+    setPoiName('');
+    setPlacingPoi(false);
+    setPoiVisible(true);
+  };
+
+  const cancelFlow = () => {
+    setFlowCreating(false);
+    setFirstPoiPick(null);
+    setPendingFlow(null);
+  };
+
+  const submitFlow = () => {
+    if (!pendingFlow) return;
+    const raw = flowQuantity.trim();
+    const qty = raw === '' ? null : Number(raw);
+    if (qty !== null && (!Number.isFinite(qty) || qty < 0)) {
+      emitPortfolioToast('Quantity must be a non-negative number.', 'error');
+      return;
+    }
+    onAddPoiFlow?.(pendingFlow.poiId, pendingFlow.projectLocalId, {
+      materialKind: flowMaterial,
+      direction: flowDirection,
+      quantityField: quantityFieldFor(flowMaterial),
+      quantity: qty,
+      label: null,
+      notes: flowNotes.trim() || null,
+    });
+    setPendingFlow(null);
+    setFirstPoiPick(null);
+    setFlowCreating(false);
+    setPoiVisible(true);
   };
 
   const fc = useMemo(
@@ -517,6 +785,199 @@ export default function PortfolioMap({
     };
   }, [map]);
 
+  // ── POI↔project flow lines — idempotent re-add on every styledata, added
+  //    AFTER boundaries + relationship lines so flows paint on top. Three layers
+  //    split by direction (line-dasharray isn't data-driven): output solid,
+  //    input dashed, bidirectional dash-dot. Colour is data-driven by
+  //    materialKind. Display only — zero effect on Plan/Act/Observe logic. ──────
+  useEffect(() => {
+    if (!map) return;
+
+    const ensurePoiFlows = () => {
+      if ((map.getStyle()?.layers?.length ?? 0) === 0) return;
+      const existing = map.getSource(POI_FLOW_SRC) as maplibregl.GeoJSONSource | undefined;
+      if (!existing) {
+        map.addSource(POI_FLOW_SRC, { type: 'geojson', data: poiFlowFc, promoteId: 'id' });
+      } else {
+        existing.setData(poiFlowFc);
+      }
+      const vis = poiVisible ? 'visible' : 'none';
+      if (!map.getLayer(POI_FLOW_OUTPUT_LAYER)) {
+        map.addLayer({
+          id: POI_FLOW_OUTPUT_LAYER,
+          type: 'line',
+          source: POI_FLOW_SRC,
+          filter: ['==', ['get', 'direction'], 'output'] as never,
+          layout: { visibility: vis, 'line-cap': 'round' },
+          paint: { 'line-color': poiFlowColorMatch as never, 'line-width': 2.5 },
+        });
+      }
+      if (!map.getLayer(POI_FLOW_INPUT_LAYER)) {
+        map.addLayer({
+          id: POI_FLOW_INPUT_LAYER,
+          type: 'line',
+          source: POI_FLOW_SRC,
+          filter: ['==', ['get', 'direction'], 'input'] as never,
+          layout: { visibility: vis, 'line-cap': 'round' },
+          paint: { 'line-color': poiFlowColorMatch as never, 'line-width': 2.5, 'line-dasharray': [2, 2] },
+        });
+      }
+      if (!map.getLayer(POI_FLOW_BIDIR_LAYER)) {
+        map.addLayer({
+          id: POI_FLOW_BIDIR_LAYER,
+          type: 'line',
+          source: POI_FLOW_SRC,
+          filter: ['==', ['get', 'direction'], 'bidirectional'] as never,
+          layout: { visibility: vis, 'line-cap': 'round' },
+          paint: {
+            'line-color': poiFlowColorMatch as never,
+            'line-width': 2.5,
+            'line-dasharray': [4, 2, 1, 2],
+          },
+        });
+      }
+      for (const layer of [POI_FLOW_OUTPUT_LAYER, POI_FLOW_INPUT_LAYER, POI_FLOW_BIDIR_LAYER]) {
+        if (map.getLayer(layer)) map.setLayoutProperty(layer, 'visibility', vis);
+      }
+    };
+
+    ensurePoiFlows();
+    map.on('styledata', ensurePoiFlows);
+    return () => {
+      map.off('styledata', ensurePoiFlows);
+    };
+  }, [map, poiFlowFc, poiVisible]);
+
+  // ── Click a POI flow line → tooltip (POI · material · direction · qty) ──────
+  useEffect(() => {
+    if (!map) return;
+    const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+      const id = e.features?.[0]?.properties?.['id'];
+      if (typeof id !== 'string') return;
+      const flow = flowByIdRef.current.get(id);
+      if (!flow) return;
+      const material = MATERIAL_KIND_CONFIG[flow.materialKind]?.label ?? flow.materialKind;
+      const dirLabel =
+        flow.direction === 'output'
+          ? 'supplies →'
+          : flow.direction === 'input'
+            ? '← receives'
+            : '↔ exchanges';
+      const poiName = poiNameByIdRef.current.get(flow.poiId) ?? 'POI';
+      const proj = flow.projectName ?? 'project';
+      const qty =
+        flow.massKgPerMonth ??
+        flow.volumeLPerMonth ??
+        flow.energyKwhPerMonth ??
+        null;
+      const unit =
+        flow.volumeLPerMonth != null
+          ? 'L/mo'
+          : flow.energyKwhPerMonth != null
+            ? 'kWh/mo'
+            : 'kg/mo';
+      const html =
+        `<div style="font-family:inherit;font-size:12px;max-width:220px">` +
+        `<strong>${escapeHtml(material)}</strong>` +
+        `<div style="margin-top:3px;color:#555">${escapeHtml(poiName)} ${dirLabel} ${escapeHtml(proj)}</div>` +
+        (qty != null ? `<div style="margin-top:2px;color:#555">${qty} ${unit}</div>` : '') +
+        (flow.notes ? `<div style="margin-top:4px;color:#555">${escapeHtml(flow.notes)}</div>` : '') +
+        `</div>`;
+      new maplibregl.Popup({ closeButton: true, closeOnClick: true, offset: 8 })
+        .setLngLat(e.lngLat)
+        .setHTML(html)
+        .addTo(map);
+    };
+    const enter = () => {
+      map.getCanvas().style.cursor = 'pointer';
+    };
+    const leave = () => {
+      map.getCanvas().style.cursor = '';
+    };
+    const layers = [POI_FLOW_OUTPUT_LAYER, POI_FLOW_INPUT_LAYER, POI_FLOW_BIDIR_LAYER];
+    for (const layer of layers) {
+      map.on('click', layer, onClick);
+      map.on('mouseenter', layer, enter);
+      map.on('mouseleave', layer, leave);
+    }
+    return () => {
+      for (const layer of layers) {
+        map.off('click', layer, onClick);
+        map.off('mouseenter', layer, enter);
+        map.off('mouseleave', layer, leave);
+      }
+    };
+  }, [map]);
+
+  // ── Place-a-POI: arm a one-shot map click to capture lng/lat ────────────────
+  useEffect(() => {
+    if (!map || !placingPoi) return;
+    const onClick = (e: maplibregl.MapMouseEvent) => {
+      setPoiDraft({ lng: e.lngLat.lng, lat: e.lngLat.lat });
+      setPoiName('');
+      setPoiKind('compost_hub');
+    };
+    map.once('click', onClick);
+    map.getCanvas().style.cursor = 'crosshair';
+    return () => {
+      map.off('click', onClick);
+      map.getCanvas().style.cursor = '';
+    };
+  }, [map, placingPoi]);
+
+  // ── POI diamond markers (DOM markers, reconciled by id) ─────────────────────
+  useEffect(() => {
+    if (!map) return;
+    const live = poiMarkersRef.current;
+    const wanted = new Set(poiList.map((p) => p.id));
+    for (const [id, entry] of live) {
+      if (!wanted.has(id)) {
+        entry.marker.remove();
+        live.delete(id);
+      }
+    }
+    for (const poi of poiList) {
+      let entry = live.get(poi.id);
+      if (!entry) {
+        const el = document.createElement('button');
+        el.type = 'button';
+        el.className = css.poiPin ?? '';
+        el.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          poiActivateRef.current(poi.id);
+        });
+        const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([poi.lng, poi.lat])
+          .addTo(map);
+        entry = { marker, el };
+        live.set(poi.id, entry);
+      } else {
+        entry.marker.setLngLat([poi.lng, poi.lat]);
+      }
+      const config = POI_KIND_CONFIG[poi.poiKind] ?? POI_KIND_CONFIG.other;
+      entry.el.dataset['picking'] = flowCreating ? 'true' : 'false';
+      entry.el.dataset['firstpick'] = flowCreating && poi.id === firstPoiPick ? 'true' : 'false';
+      entry.el.title = `${poi.name} · ${config.label}`;
+      entry.el.innerHTML = '';
+      const diamond = document.createElement('span');
+      diamond.className = css.poiDiamond ?? '';
+      diamond.style.background = config.color;
+      const label = document.createElement('span');
+      label.className = css.poiLabel ?? '';
+      label.textContent = poi.name;
+      entry.el.append(diamond, label);
+    }
+  }, [map, poiList, flowCreating, firstPoiPick]);
+
+  // Remove all POI markers on unmount.
+  useEffect(() => {
+    const live = poiMarkersRef.current;
+    return () => {
+      for (const [, entry] of live) entry.marker.remove();
+      live.clear();
+    };
+  }, []);
+
   // ── Label pins (DOM markers, reconciled by id) ─────────────────────────────
   useEffect(() => {
     if (!map) return;
@@ -672,6 +1133,56 @@ export default function PortfolioMap({
               {creating ? 'Cancel link' : '+ Link'}
             </button>
           ) : null}
+
+          {/* Resource-POI flow-layer toggle — off by default; disabled until a
+              flow exists. */}
+          <button
+            type="button"
+            className={`${css.control} ${poiVisible ? css.controlActive : ''}`}
+            onClick={() => setPoiVisible((v) => !v)}
+            disabled={flowList.length === 0}
+            aria-pressed={poiVisible}
+            title={
+              flowList.length === 0
+                ? 'Connect a POI to a project to see resource flows'
+                : poiVisible
+                  ? 'Hide resource flows'
+                  : 'Show resource flows'
+            }
+          >
+            Flows{flowList.length > 0 ? ` (${flowList.length})` : ''}
+          </button>
+
+          {/* Owner-only: place a resource POI on the map. */}
+          {onAddPoi ? (
+            <button
+              type="button"
+              className={`${css.control} ${placingPoi ? css.controlActive : ''}`}
+              onClick={() => (placingPoi ? cancelPlacePoi() : setPlacingPoi(true))}
+              aria-pressed={placingPoi}
+              title="Place a resource POI (compost depot, water source…)"
+            >
+              {placingPoi ? 'Cancel POI' : '+ POI'}
+            </button>
+          ) : null}
+
+          {/* Owner-only: connect a POI to a project as a material flow. */}
+          {onAddPoiFlow ? (
+            <button
+              type="button"
+              className={`${css.control} ${flowCreating ? css.controlActive : ''}`}
+              onClick={() => (flowCreating ? cancelFlow() : setFlowCreating(true))}
+              disabled={poiCount === 0}
+              aria-pressed={flowCreating}
+              title={
+                poiCount === 0
+                  ? 'Place a POI first, then connect it to a project'
+                  : 'Connect a POI to a project (resource flow)'
+              }
+            >
+              {flowCreating ? 'Cancel flow' : '+ Flow'}
+            </button>
+          ) : null}
         </div>
       )}
 
@@ -719,6 +1230,120 @@ export default function PortfolioMap({
               Cancel
             </button>
             <button type="button" className={css.relBtnPrimary} onClick={submitCreate}>
+              Create
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Place-a-POI hint while waiting for the map tap. */}
+      {placingPoi && !poiDraft && (
+        <div className={css.relBanner} role="status">
+          Tap the map to place a resource POI.
+        </div>
+      )}
+
+      {/* POI create dialog once a coordinate is captured. */}
+      {poiDraft && (
+        <div className={css.relPicker} role="dialog" aria-label="New resource POI">
+          <p className={css.relPickerTitle}>New resource POI</p>
+          <label className={css.relField}>
+            <span>Name</span>
+            <input
+              type="text"
+              maxLength={200}
+              value={poiName}
+              onChange={(e) => setPoiName(e.target.value)}
+              placeholder="e.g. Regional Compost Depot"
+            />
+          </label>
+          <label className={css.relField}>
+            <span>Kind</span>
+            <select value={poiKind} onChange={(e) => setPoiKind(e.target.value as PoiKind)}>
+              {POI_KIND_ORDER.map((k) => (
+                <option key={k} value={k}>
+                  {POI_KIND_CONFIG[k].label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className={css.relPickerActions}>
+            <button type="button" className={css.relBtnGhost} onClick={cancelPlacePoi}>
+              Cancel
+            </button>
+            <button type="button" className={css.relBtnPrimary} onClick={submitPoi}>
+              Create
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Flow-creation hint while picking the POI then the project. */}
+      {flowCreating && !pendingFlow && (
+        <div className={css.relBanner} role="status">
+          {firstPoiPick
+            ? `Now tap a project to connect with "${poiNameById.get(firstPoiPick) ?? 'POI'}".`
+            : 'Tap a resource POI, then a project, to connect them.'}
+        </div>
+      )}
+
+      {/* POI→project flow picker once both endpoints are chosen. */}
+      {pendingFlow && (
+        <div className={css.relPicker} role="dialog" aria-label="New resource flow">
+          <p className={css.relPickerTitle}>
+            Connect <strong>{poiNameById.get(pendingFlow.poiId) ?? 'POI'}</strong> &amp;{' '}
+            <strong>{nameById.get(pendingFlow.projectLocalId) ?? 'project'}</strong>
+          </p>
+          <label className={css.relField}>
+            <span>Material</span>
+            <select
+              value={flowMaterial}
+              onChange={(e) => setFlowMaterial(e.target.value as MaterialKind)}
+            >
+              {MATERIAL_KIND_ORDER.map((k) => (
+                <option key={k} value={k}>
+                  {MATERIAL_KIND_CONFIG[k].label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={css.relField}>
+            <span>Direction</span>
+            <select
+              value={flowDirection}
+              onChange={(e) => setFlowDirection(e.target.value as PoiFlowDirection)}
+            >
+              <option value="output">POI supplies project</option>
+              <option value="input">Project supplies POI</option>
+              <option value="bidirectional">Both ways</option>
+            </select>
+          </label>
+          <label className={css.relField}>
+            <span>Quantity ({quantityUnitFor(flowMaterial)}, optional)</span>
+            <input
+              type="number"
+              min={0}
+              step="any"
+              value={flowQuantity}
+              onChange={(e) => setFlowQuantity(e.target.value)}
+              placeholder="e.g. 500"
+            />
+          </label>
+          <label className={css.relField}>
+            <span>Notes (optional)</span>
+            <textarea
+              rows={2}
+              maxLength={2000}
+              value={flowNotes}
+              onChange={(e) => setFlowNotes(e.target.value)}
+              placeholder="e.g. monthly manure pickup"
+            />
+          </label>
+          <div className={css.relPickerActions}>
+            <button type="button" className={css.relBtnGhost} onClick={cancelFlow}>
+              Cancel
+            </button>
+            <button type="button" className={css.relBtnPrimary} onClick={submitFlow}>
               Create
             </button>
           </div>

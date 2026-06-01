@@ -19,8 +19,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { List, X } from 'lucide-react';
 import type { LocalProject } from '../../store/projectStore.js';
-import type { CrossRelationship } from '@ogden/shared';
-import PortfolioMap from './PortfolioMap.js';
+import type { CrossRelationship, CreatePoiFlowInput, PoiKind } from '@ogden/shared';
+import PortfolioMap, { type PoiFlowDraft } from './PortfolioMap.js';
 import PortfolioProjectList from './PortfolioProjectList.js';
 import PortfolioAtAGlanceRail from './PortfolioAtAGlanceRail.js';
 import PortfolioStageRail from './PortfolioStageRail.js';
@@ -28,6 +28,7 @@ import PortfolioToast, { emitPortfolioToast } from './PortfolioToast.js';
 import { usePortfolioBriefing } from './usePortfolioBriefing.js';
 import { usePortfolioStages } from './usePortfolioStages.js';
 import { useCrossRelationshipStore } from '../../store/crossRelationshipStore.js';
+import { usePoiStore } from '../../store/poiStore.js';
 import { useMyProjectRoles } from '../../hooks/useMyProjectRoles.js';
 import { usePortfolioContractorRedirect } from './usePortfolioContractorRedirect.js';
 import { portfolioAccess } from './portfolioModel.js';
@@ -122,6 +123,74 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
     }
   };
 
+  // ── Resource POIs (§ "one man's trash is another's treasure") ──────────────
+  // POIs are portfolio-wide (owner-scoped, not per-selection), so fetch once on
+  // mount. Flows carry a SERVER projectId, so creating one translates the local
+  // project id → server id exactly like relationships; un-synced projects are
+  // gated with an explanatory toast.
+  const pois = usePoiStore((s) => s.pois);
+  const poiFlows = usePoiStore((s) => s.flows);
+  const fetchPois = usePoiStore((s) => s.fetchAll);
+  const createPoi = usePoiStore((s) => s.createPoi);
+  const createPoiFlow = usePoiStore((s) => s.createFlow);
+
+  useEffect(() => {
+    void fetchPois();
+  }, [fetchPois]);
+
+  const handleAddPoi = async (input: {
+    name: string;
+    poiKind: PoiKind;
+    lng: number;
+    lat: number;
+  }) => {
+    try {
+      await createPoi(input);
+      emitPortfolioToast('Resource POI placed.', 'success');
+    } catch {
+      emitPortfolioToast("Couldn't place the POI. Please try again.", 'error');
+    }
+  };
+
+  const handleAddPoiFlow = async (
+    poiId: string,
+    projectLocalId: string,
+    draft: PoiFlowDraft,
+  ) => {
+    const projectServerId = serverIdByLocal.get(projectLocalId);
+    if (!projectServerId) {
+      const name = projects.find((p) => p.id === projectLocalId)?.name ?? 'That project';
+      emitPortfolioToast(
+        `"${name}" isn't synced to the server yet, so it can't receive a flow.`,
+        'error',
+      );
+      return;
+    }
+    const input: CreatePoiFlowInput = {
+      projectId: projectServerId,
+      materialKind: draft.materialKind,
+      direction: draft.direction,
+      label: draft.label,
+      notes: draft.notes,
+      [draft.quantityField]: draft.quantity,
+    };
+    try {
+      await createPoiFlow(poiId, input);
+      emitPortfolioToast('Resource flow created.', 'success');
+    } catch (err) {
+      const status = err instanceof ApiError ? err.status : 0;
+      const message =
+        status === 409
+          ? 'This POI is already connected to that project for the same material and direction.'
+          : status === 403
+            ? "You don't have permission to connect to that project."
+            : status === 404
+              ? "That project isn't synced to the server yet, so it can't receive a flow."
+              : "Couldn't create the flow. Please try again.";
+      emitPortfolioToast(message, 'error');
+    }
+  };
+
   // Selecting a project closes the mobile list sheet (and, by populating
   // `selected`, opens the right-rail bottom sheet on mobile).
   const handleSelect = (id: string) => {
@@ -162,6 +231,10 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
             stageById={stageById}
             relationships={relationships}
             onAddRelationship={handleAddRelationship}
+            pois={pois}
+            poiFlows={poiFlows}
+            onAddPoi={handleAddPoi}
+            onAddPoiFlow={handleAddPoiFlow}
           />
           <PortfolioToast />
         </div>

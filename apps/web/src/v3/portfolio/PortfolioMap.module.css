@@ -110,7 +110,8 @@
 }
 
 .relField select,
-.relField textarea {
+.relField textarea,
+.relField input {
   font-family: inherit;
   font-size: 13px;
   font-weight: 400;
@@ -125,7 +126,8 @@
 }
 
 .relField select:focus,
-.relField textarea:focus {
+.relField textarea:focus,
+.relField input:focus {
   outline: none;
   border-color: var(--color-primary);
 }
@@ -222,6 +224,62 @@
 }
 
 .pinLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- Resource-POI markers (diamond DOM markers) ------------------------- */
+
+.poiPin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 170px;
+  padding: 3px 9px 3px 7px;
+  background: rgba(var(--color-map-panel-rgb), 0.94);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease;
+}
+
+.poiPin:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Flow-creation mode: POIs signal they are pickable; the first pick glows. */
+.poiPin[data-picking='true'] {
+  border-style: dashed;
+  border-color: var(--color-primary);
+}
+
+.poiPin[data-firstpick='true'] {
+  border-style: solid;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+  font-weight: 600;
+}
+
+/* The diamond glyph: a rotated square distinguishes POIs from the round
+   project pin dots. */
+.poiDiamond {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.poiLabel {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
