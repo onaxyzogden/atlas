@@ -13,7 +13,7 @@
 //                             unique so progress is shared across Act + Plan views.
 //   - Photo counts / confirms / notes -> actEvidenceStore (projectId, objectiveId, descriptorId)
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Camera, Check, ClipboardCheck, Plus } from 'lucide-react';
 import type {
   PlanStratum,
@@ -21,11 +21,22 @@ import type {
   PlanStratumObjectiveStatus,
   EvidenceDescriptor,
   ObserveDataPoint,
+  StandardProtocolTemplate,
+  ConfirmationStatus,
 } from '@ogden/shared';
-import { getObjectiveEvidence, getPrimaryDomainForObjective } from '@ogden/shared';
+import {
+  getObjectiveEvidence,
+  getPrimaryDomainForObjective,
+  resolveSeverityTier,
+} from '@ogden/shared';
 import {
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
+import { useProjectStore } from '../../../store/projectStore.js';
+import { useProtocolStore } from '../../../store/protocolStore.js';
+import { useProtocolLibrary } from '../../plan/strata/useProtocolLibrary.js';
+import { FEEDS_TO_MODULE } from '../data/protocolFeedsMap.js';
+import TriggerRecognitionSheet from '../protocols/TriggerRecognitionSheet.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import {
   useActEvidenceStore,
@@ -104,6 +115,30 @@ export default function ActTierExecutionPanel({
 
   // Observe substrate: completing an objective emits a manual observation.
   const recordDataPoint = useObserveDataPointStore((s) => s.recordDataPoint);
+
+  // -------------------------------------------------------------------------
+  // Protocol Trigger Recognition (OLOS slice C3).
+  // -------------------------------------------------------------------------
+  // Recording an observation on the proof-capture surface is the seam where a
+  // relevant standing protocol's trigger is recognised. We derive the project's
+  // active protocol library (same source as Plan) and, after a record, surface
+  // the Trigger Recognition sheet for the highest-priority ACTIVE RESPOND
+  // protocol whose feed maps to this objective's primary Observe domain.
+  const typeRecord = useProjectStore(
+    (s) =>
+      s.projects.find((p) => p.id === projectId)?.metadata?.projectTypeRecord,
+  );
+  const primaryTypeId = typeRecord?.primaryTypeId ?? null;
+  const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
+  const { templates, statusByTemplate, outputs } = useProtocolLibrary(
+    projectId,
+    primaryTypeId,
+    secondaryTypeIds,
+  );
+  const recordActivation = useProtocolStore((s) => s.recordActivation);
+  const markTriggered = useProtocolStore((s) => s.markTriggered);
+  const [pendingTrigger, setPendingTrigger] =
+    useState<StandardProtocolTemplate | null>(null);
 
   // Per-objective activity feed. Subscribe to the raw byProject map and
   // useMemo-filter (mirrors useDomainPoints) so the selector never returns a
@@ -186,6 +221,53 @@ export default function ActTierExecutionPanel({
       capturedBy: 'act-tier',
     };
     recordDataPoint(point);
+
+    // After capture, recognise a relevant standing protocol's trigger: the
+    // first ACTIVE RESPOND template whose feed maps to this objective's domain.
+    const trigger = pickTrigger();
+    if (trigger) setPendingTrigger(trigger);
+  }
+
+  /**
+   * Highest-priority (catalogue-order) ACTIVE, RESPOND-tier template whose
+   * `feeds` maps (via FEEDS_TO_MODULE) to this objective's primary Observe
+   * domain. Returns null when none is relevant -- the sheet then stays closed.
+   */
+  function pickTrigger(): StandardProtocolTemplate | null {
+    if (domainId === null) return null;
+    return (
+      templates.find((t) => {
+        if (statusByTemplate[t.id] !== 'active') return false;
+        if (resolveSeverityTier(t) !== 'respond') return false;
+        return t.feeds.some((f) => FEEDS_TO_MODULE[f] === domainId);
+      }) ?? null
+    );
+  }
+
+  /**
+   * Resolve the recognised trigger: write an immutable ProtocolActivation
+   * (snapshotting the recipe now), and on 'confirmed' also light the existing
+   * triggered lifecycle so the legacy Act badge / TriggeredProtocolsPanel react.
+   */
+  function resolveTrigger(confirmationStatus: ConfirmationStatus) {
+    const template = pendingTrigger;
+    if (!template) return;
+    recordActivation({
+      projectId,
+      templateId: template.id,
+      severityTier: resolveSeverityTier(template),
+      confirmationStatus,
+      recipeSnapshot: {
+        name: template.name,
+        condition: template.condition,
+        response: template.response,
+      },
+      triggerContext: 'act_proof_capture',
+    });
+    if (confirmationStatus === 'confirmed') {
+      markTriggered(projectId, template.id);
+    }
+    setPendingTrigger(null);
   }
 
   // -------------------------------------------------------------------------
@@ -381,6 +463,17 @@ export default function ActTierExecutionPanel({
         Record observation
       </button>
       </div>
+
+      {pendingTrigger && (
+        <TriggerRecognitionSheet
+          projectId={projectId}
+          template={pendingTrigger}
+          tier={resolveSeverityTier(pendingTrigger)}
+          outputs={outputs}
+          onResolve={resolveTrigger}
+          onClose={() => setPendingTrigger(null)}
+        />
+      )}
     </div>
   );
 }
