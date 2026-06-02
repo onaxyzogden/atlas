@@ -46,6 +46,7 @@ import V3BuildPage from '../v3/pages/BuildPage.js';
 import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
+import ObserveLensPrototype from '../v3/observe/prototype/ObserveLensPrototype.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import ProtocolsDashboardPage from '../v3/protocols/ProtocolsDashboardPage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
@@ -243,6 +244,14 @@ const v3ComponentsDebugRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/components',
   component: V3ComponentsDebugPage,
+});
+
+// ─── Observe "observational lens" concept — standalone mock prototype ────
+// Deletable, no project context. See apps/web/src/v3/observe/prototype/.
+const observeLensPrototypeRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/v3/prototype/observe-lens',
+  component: ObserveLensPrototype,
 });
 
 // ─── Atlas 3.0 (parallel route tree under /v3) ───────────────────────────
@@ -909,6 +918,7 @@ const routeTree = rootRoute.addChildren([
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
+    observeLensPrototypeRoute,
     v3ProjectsLandingRoute,
     v3PortfolioHomeRoute,
     v3PortfolioObserveCompareRoute,

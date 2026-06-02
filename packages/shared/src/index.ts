@@ -200,6 +200,7 @@ export * from './schemas/observe/supersession.schema.js';
 export * from './schemas/observe/cycle.schema.js';
 export * from './schemas/observe/presentationShare.schema.js';
 export * from './constants/observe/domains.js';
+export * from './constants/observe/lenses.js';
 export {
   computeSupersession,
   restoreFromSupersession,
