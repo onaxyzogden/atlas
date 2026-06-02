@@ -13,9 +13,12 @@
 // that does not resolve here.
 //
 // Covenant: capacity widgets are ECOLOGICAL (animal-unit / forage / water)
-// only. `enterprise-break-even` is a deferred placeholder whose `summarize`
-// always returns `hasResult: false` — no financial / advance-sale / offer
-// framing anywhere.
+// only. `enterprise-break-even` is cost-recovery TIMING math only -- it reads
+// breakEvenYear (+ peak negative cashflow) from the existing financial engine
+// via the pure `computeProjectBreakEven` core, NEVER tenYearROI, and carries no
+// advance-sale / salam / CSRA / investor / yield framing (fiqh-csra-erased
+// 2026-05-04). Revenue refinement stays on the steward-editable revenueOverrides
+// path; there is no advance-purchase surface anywhere.
 
 import { lazy } from 'react';
 import type React from 'react';
@@ -31,6 +34,8 @@ import {
 import { computeRotationCarryingCapacity } from '../../../features/livestock/rotationCapacityMath.js';
 import { computeForageCarryingCapacity } from '../../../features/livestock/forageCarryingCapacityMath.js';
 import { computeStockWaterDemand } from '../../../features/livestock/stockWaterDemandMath.js';
+import { computeProjectBreakEven } from '../../../features/financial/engine/computeProjectBreakEven.js';
+import { assembleFinancialInputs } from '../../../features/financial/engine/assembleFinancialInputs.js';
 import type { Paddock, LivestockSpecies } from '../../../store/livestockStore.js';
 
 export interface FormulaSpec {
@@ -90,8 +95,10 @@ const ForageCarryingCapacityWidget = lazy(
 const StockWaterDemandWidget = lazy(
   () => import('./formula-widgets/StockWaterDemandWidget.js'),
 );
-const BreakEvenPlaceholderWidget = lazy(
-  () => import('./formula-widgets/BreakEvenPlaceholderWidget.js'),
+// BreakEvenPlaceholderWidget.tsx is intentionally LEFT IN PLACE (no-deletion
+// rule) but no longer mounted; the live cost-recovery widget supersedes it.
+const BreakEvenWidget = lazy(
+  () => import('./formula-widgets/BreakEvenWidget.js'),
 );
 
 /* ---------------- catalogue (exhaustive over all 6 ids) ----------------- */
@@ -215,9 +222,26 @@ export const FORMULA_CATALOG: Record<ObjectiveFormulaId, FormulaSpec> = {
   'enterprise-break-even': {
     id: 'enterprise-break-even',
     label: 'Break-even',
-    Widget: BreakEvenPlaceholderWidget,
-    // Deferred & covenant-governed: never auto-satisfies.
-    summarize: () => ({ hasResult: false, display: 'Pending — financial wiring' }),
+    Widget: BreakEvenWidget,
+    // Covenant: cost-recovery TIMING only. Reads breakEvenYear (+ peak negative
+    // cashflow) via the pure core; NEVER tenYearROI, no advance-sale / salam /
+    // CSRA / investor / yield framing (fiqh-csra-erased 2026-05-04). hasResult
+    // tracks hasModel -- true even when recovery is beyond the 10-yr horizon
+    // ("computed even if never"), so the S7 item auto-satisfies once a model exists.
+    summarize: (projectId) => {
+      const result = computeProjectBreakEven(assembleFinancialInputs(projectId));
+      if (!result.hasModel) {
+        return { hasResult: false, display: 'Awaiting cost & enterprise data' };
+      }
+      const year = result.breakEvenYear.mid;
+      return {
+        hasResult: true,
+        display:
+          year != null
+            ? `Cost recovery ~Year ${year}`
+            : 'Cost recovery beyond 10-yr horizon',
+      };
+    },
   },
 };
 
