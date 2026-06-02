@@ -208,6 +208,44 @@ with group-level completion is a deliberate later refinement. Tests in
 grouped render, item bucketing, feed chips, amber attribution, and flat
 fallback. ADR: [[decisions/2026-05-31-atlas-decision-groups-encode]].
 
+## Objective -> formula binding: live livestock calculators + auto-satisfy (2026-06-02)
+
+The silvopasture/livestock Plan objectives now join the two systems they were
+authored independently of: the legacy **livestock formula engine** (pure,
+tested `compute*` functions in `features/livestock/`) and the **map draw
+tools**. Shared carries ids + config (the optional `formulaBinding` schema +
+`ckF`, [[entities/shared-package]]); apps/web joins each id to the real
+function/widget.
+
+- **`v3/plan/strata/formulaCatalog.ts`** -- exhaustive
+  `Record<ObjectiveFormulaId, FormulaSpec>` (`{ id, label, Widget: lazy(),
+  summarize }`) + `resolveFormula(id)`. Each `summarize(projectId)` is
+  **hook-free** (reads stores via `*.getState()`, filtered to
+  `p.projectId === projectId`) returning `{ hasResult, display }`; each `Widget`
+  is `lazy()`. Two NEW pure, ecological-only math modules back widgets:
+  `features/livestock/stockWaterDemandMath.ts` and
+  `features/livestock/forageCarryingCapacityMath.ts` (reuse `LIVESTOCK_SPECIES`
+  + `AU_FACTORS`). The S7 `enterprise-break-even` entry ships a deliberate
+  **placeholder** (`formula-widgets/BreakEvenPlaceholderWidget.tsx`, no
+  inputs/numbers/financial framing; `summarize` always `{ hasResult:false }`) --
+  financial wiring deferred under Scholar Council ([[fiqh-csra-erased-2026-05-04]]).
+- **`FormulaResultSection.tsx`** (+ CSS) in `ObjectiveDetailPanel` collects
+  `objective.checklist.filter(i => i.formulaBinding)`, returns `null` when none
+  (non-livestock panels untouched, no chunk cost), renders each widget inside
+  `Suspense` + a `CardErrorBoundary`.
+- **Auto-satisfy via the existing pure union.** `effectiveProgress.ts` gains an
+  OPTIONAL **6th arg** `formulaSatisfiedItemIds?: ReadonlySet<string>` unioned
+  into the flat map exactly like the answerSpec (5th-arg) path -- the module
+  imports no store and stays pure. New `useObjectiveFormulaProgress.ts` does the
+  store reads: `collectFormulaSatisfiedItemIds(projectId, objectives)`
+  (React-free) + the hook (subscribes livestock/rotation/site-data slices). All
+  three effective-progress consumers (`useEffectiveChecklistProgress`,
+  `usePortfolioPlanProgress`, `useProjectUrgency`) thread the per-project Set, so
+  a computed formula advances Plan/Portfolio/Home through one source of truth.
+
+ADR [[decisions/2026-06-02-atlas-objective-formula-binding]]; Log:
+[[log/2026-06-02-atlas-objective-formula-binding]].
+
 ## Portfolio Home P7 -- Dashboard polish, summary bar, access control, nav model (2026-05-31)
 
 Phase 7 of the OLOS Portfolio Home epic (`OLOS_Portfolio_Home_Spec_v1.0`) at
