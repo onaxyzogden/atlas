@@ -298,12 +298,14 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
           </button>
           <PortfolioAtAGlanceRail briefing={briefing} />
         </aside>
-      </div>
 
-      {/* Bottom stage rail (§2.5) — Plan/Act/Observe navigation for the
-          selected project. Stays fixed full-width across all breakpoints. */}
-      <div className={css.stageZone}>
-        <PortfolioStageRail briefing={briefing} />
+        {/* Stage rail (§2.5) — Plan/Act/Observe navigation for the selected
+            project. Occupies the bottom-centre grid cell between the side
+            columns on desktop; collapses to a full-width bottom bar at narrow
+            widths where the side zones become slide-up sheets. */}
+        <div className={css.stageZone}>
+          <PortfolioStageRail briefing={briefing} />
+        </div>
       </div>
     </div>
   );

@@ -77,9 +77,6 @@ export default function PortfolioStageRail({
 
   return (
     <div className={css.rail} aria-label={`Jump into a stage for ${project.name}`}>
-      <span className={css.projectLabel} title={project.name}>
-        {project.name}
-      </span>
       <div className={css.buttons}>
         <button
           type="button"
