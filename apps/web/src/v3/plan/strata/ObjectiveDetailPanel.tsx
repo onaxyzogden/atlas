@@ -26,6 +26,7 @@ import MapActivationStrip from './MapActivationStrip.js';
 import ActProgressBar from './ActProgressBar.js';
 import DecisionProgressBar from './DecisionProgressBar.js';
 import DecisionChecklist from './DecisionChecklist.js';
+import FormulaResultSection from './FormulaResultSection.js';
 import DetailsExpander from './DetailsExpander.js';
 import LaunchActButton from './LaunchActButton.js';
 import CyclicalReviewBanner from './CyclicalReviewBanner.js';
@@ -218,6 +219,11 @@ export default function ObjectiveDetailPanel({
         completedItemIds={completedItemIds}
         derivedEvidence={visionDerivedMap}
       />
+
+      {/* LIVE CALCULATIONS — reuses the legacy livestock formula engine via
+          formulaCatalog. Renders nothing for objectives without bound
+          checklist items, so non-livestock panels are untouched. */}
+      <FormulaResultSection projectId={projectId} objective={objective} />
 
       <ParameterGroup projectId={projectId} objective={objective} />
 
