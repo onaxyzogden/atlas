@@ -88,7 +88,8 @@ describe('ProtocolLayerPanel', () => {
     expect(activated!.getAttribute('data-protocol-status')).toBe('active');
     expect(within(activated!).getByText('Active')).toBeTruthy();
 
-    // A different, non-activated template still reads as a standard template.
+    // A different, non-activated template carries no lifecycle status and now
+    // omits the default "Standard template" footer label.
     const other = screen
       .getAllByTestId('protocol-template-card')
       .find(
@@ -97,7 +98,7 @@ describe('ProtocolLayerPanel', () => {
           'rest-period-re-entry-gate',
       );
     expect(other!.getAttribute('data-protocol-status')).toBe('none');
-    expect(within(other!).getByText('Standard template')).toBeTruthy();
+    expect(within(other!).queryByText('Standard template')).toBeNull();
   });
 
   it('ignores activation records belonging to a different project', () => {
