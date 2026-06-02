@@ -317,6 +317,14 @@
   display: flex;
 }
 
+/* Inset the spine-themed protocol panel so it reads as a rounded bento card on
+   the rail surface. The outer frame (1px --color-border + --radius-lg +
+   overflow:hidden) is already provided by .railPanel; this padding just gives
+   the panel's own rounded corners (framed) breathing room from the rail edge. */
+.railProtocolFramed {
+  padding: 8px 10px 10px;
+}
+
 /* ---- Objective card ----------------------------------------------------- */
 
 .objCard {

@@ -58,4 +58,13 @@ describe('ActTierObjectiveRail', () => {
     expect(screen.getByTestId('protocol-layer-panel')).toBeTruthy();
     expect(screen.queryByText(OBJECTIVE.title)).toBeNull();
   });
+
+  it('wraps the protocol panel in .olos-spine-root so the spine tokens resolve (bento framing)', () => {
+    renderRail('protocols');
+    const panel = screen.getByTestId('protocol-layer-panel');
+    // The mount wrapper must carry the spine-root scope; without it the shared
+    // protocol cards render "naked" — the --spine-* custom properties they are
+    // styled with are declared only under .olos-spine-root.
+    expect(panel.parentElement?.className).toContain('olos-spine-root');
+  });
 });

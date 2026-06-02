@@ -26,6 +26,11 @@ const EMPTY_PROGRESS: ObjectiveProgress = {
   state: 'available',
 };
 
+/** Stable empty triggered-ids default — keeps ProtocolLayerPanel's useMemo(Set)
+ *  identity stable across renders when the rail is mounted without the prop
+ *  (e.g. existing tests, or before the Act evaluation engine lands). */
+const EMPTY_TRIGGERED_IDS: readonly string[] = [];
+
 interface Props {
   stratum: PlanStratum | undefined;
   objectives: readonly PlanStratumObjective[];
@@ -35,6 +40,8 @@ interface Props {
   mode: RailMode;
   onModeChange: (mode: RailMode) => void;
   triggeredCount: number;
+  /** Template ids the Act evaluation engine currently considers triggered. */
+  triggeredIds?: readonly string[];
   projectId: string;
   primaryTypeId: ProjectTypeId | null;
   secondaryTypeIds: readonly ProjectTypeId[];
@@ -49,6 +56,7 @@ export default function ActTierObjectiveRail({
   mode,
   onModeChange,
   triggeredCount,
+  triggeredIds = EMPTY_TRIGGERED_IDS,
   projectId,
   primaryTypeId,
   secondaryTypeIds,
@@ -66,8 +74,17 @@ export default function ActTierObjectiveRail({
       </div>
 
       {mode === 'protocols' ? (
-        <div className={styles.railProtocolBody}>
+        // .olos-spine-root activates the `--spine-*` custom properties the shared
+        // protocol cards are styled with (declared in spine-theme.css, imported by
+        // ProtocolLayerPanel). Without this scope the cards render "naked" — the
+        // bento framing + emphasis depend on these vars resolving.
+        <div
+          className={`olos-spine-root ${styles.railProtocolBody} ${styles.railProtocolFramed}`}
+        >
           <ProtocolLayerPanel
+            variant="act"
+            framed
+            triggeredIds={triggeredIds}
             projectId={projectId}
             primaryTypeId={primaryTypeId}
             secondaryTypeIds={secondaryTypeIds}

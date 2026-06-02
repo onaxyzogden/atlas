@@ -11,12 +11,23 @@
 // columns share one source. This panel's output is byte-identical to before the
 // extraction — the Act rail and the ProtocolLayerPanel test prove parity.
 
+import { useMemo } from 'react';
 import {
   type ProjectTypeId,
 } from '@ogden/shared';
 import { C, F } from '../spine/tokens.js';
+// Critical: pull the spine theme in with the component so the `--spine-*` tokens
+// the cards rely on resolve even when this panel mounts in an Act-only page that
+// never loads PlanStratumShell. CSS imports are bundler-deduped, so Plan is
+// unaffected. The Act mount still adds the `.olos-spine-root` scope that
+// activates these vars.
+import '../spine/spine-theme.css';
 import ProtocolLibraryCard from './ProtocolLibraryCard.js';
 import { useProtocolLibrary } from './useProtocolLibrary.js';
+
+/** Stable empty default for `triggeredIds` so the useMemo(Set) identity is stable
+ *  across renders when no triggered ids are supplied (Plan / default Act). */
+const EMPTY_IDS: readonly string[] = [];
 
 interface Props {
   projectId: string;
@@ -24,24 +35,46 @@ interface Props {
   primaryTypeId: ProjectTypeId | null;
   /** Persisted secondary type layers (drives enterprise derivation alongside primary). */
   secondaryTypeIds: readonly ProjectTypeId[];
+  /** `act` dims non-triggered + amber-frames triggered + collapses; `plan` (default) is unchanged. */
+  variant?: 'plan' | 'act';
+  /** Template ids currently triggered (from the Act evaluation engine / store). Act-only. */
+  triggeredIds?: readonly string[];
+  /** Round + clip the panel as a framed bento (used by the Act rail). */
+  framed?: boolean;
 }
 
 export default function ProtocolLayerPanel({
   projectId,
   primaryTypeId,
   secondaryTypeIds,
+  variant = 'plan',
+  triggeredIds = EMPTY_IDS,
+  framed = false,
 }: Props) {
   const { templates, groups, statusByTemplate, outputs, activeCount } =
     useProtocolLibrary(projectId, primaryTypeId, secondaryTypeIds);
 
+  const isAct = variant === 'act';
+  // Presentational only: the panel never calls useTriggeredProtocols, so mounting
+  // it in Plan never starts the Act evaluation engine. Triggered state is pushed
+  // in via `triggeredIds` (plus any store status already resolved to 'triggered').
+  const triggeredSet = useMemo(() => new Set(triggeredIds), [triggeredIds]);
+  const isTriggered = (id: string) =>
+    triggeredSet.has(id) || statusByTemplate[id] === 'triggered';
+  const triggeredCount = isAct
+    ? templates.filter((t) => isTriggered(t.id)).length
+    : 0;
+
   return (
     <div
       data-testid="protocol-layer-panel"
+      data-variant={variant}
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         background: C.bg,
+        ...(framed ? { borderRadius: 12, overflow: 'hidden' } : null),
       }}
     >
       {/* Header */}
@@ -73,7 +106,13 @@ export default function ProtocolLayerPanel({
           </span>
           <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>
             {templates.length} template{templates.length !== 1 ? 's' : ''}
-            {activeCount > 0 ? ` · ${activeCount} active` : ''}
+            {isAct
+              ? triggeredCount > 0
+                ? ` · ${triggeredCount} triggered`
+                : ''
+              : activeCount > 0
+                ? ` · ${activeCount} active`
+                : ''}
           </span>
         </div>
         <div
@@ -178,14 +217,27 @@ export default function ProtocolLayerPanel({
                   {g.items.length}
                 </span>
               </div>
-              {g.items.map((t) => (
-                <ProtocolLibraryCard
-                  key={t.id}
-                  template={t}
-                  status={statusByTemplate[t.id]}
-                  outputs={outputs}
-                />
-              ))}
+              {(isAct
+                ? [...g.items].sort(
+                    (a, b) =>
+                      Number(isTriggered(b.id)) - Number(isTriggered(a.id)),
+                  )
+                : g.items
+              ).map((t) => {
+                const triggered = isAct && isTriggered(t.id);
+                return (
+                  <ProtocolLibraryCard
+                    key={t.id}
+                    template={t}
+                    status={statusByTemplate[t.id]}
+                    outputs={outputs}
+                    emphasis={
+                      !isAct ? 'normal' : triggered ? 'triggered' : 'dimmed'
+                    }
+                    collapsed={isAct && !triggered}
+                  />
+                );
+              })}
             </div>
           ))
         )}

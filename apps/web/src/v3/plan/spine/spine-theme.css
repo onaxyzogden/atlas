@@ -25,6 +25,28 @@
   font-family: var(--font-sans);
 }
 
+/* ── Box-sizing + thin-scrollbar reset for every spine-root surface (Plan
+ * stratum shell, Act protocol rail, protocols dashboard). Previously injected
+ * inline by PlanStratumShell, which meant the rules only existed while the Plan
+ * shell was mounted; lifted here so any `.olos-spine-root` consumer inherits
+ * them and the shared protocol cards never render unboxed. Scoped to spine-root
+ * so it never leaks into the rest of the app. */
+.olos-spine-root *,
+.olos-spine-root *::before,
+.olos-spine-root *::after {
+  box-sizing: border-box;
+}
+.olos-spine-root ::-webkit-scrollbar {
+  width: 3px;
+}
+.olos-spine-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.olos-spine-root ::-webkit-scrollbar-thumb {
+  background: var(--spine-border);
+  border-radius: 2px;
+}
+
 /* ── Dark (native / default) ── */
 .olos-spine-root {
   --spine-bg: #0f0f0d;

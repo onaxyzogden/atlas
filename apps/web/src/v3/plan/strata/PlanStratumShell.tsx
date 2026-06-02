@@ -508,12 +508,10 @@ export default function PlanStratumShell() {
         overflow: 'hidden',
       }}
     >
-      <style>{`
-        .olos-spine-root *, .olos-spine-root *::before, .olos-spine-root *::after { box-sizing: border-box; }
-        .olos-spine-root ::-webkit-scrollbar { width: 3px; }
-        .olos-spine-root ::-webkit-scrollbar-track { background: transparent; }
-        .olos-spine-root ::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 2px; }
-      `}</style>
+      {/* The box-sizing + thin-scrollbar reset that used to be injected here
+          inline now lives in spine-theme.css (imported above), so every
+          `.olos-spine-root` surface — including the Act protocol rail — inherits
+          it without each mount re-declaring it. */}
 
       {/* ── LEFT: stratum spine (flex 2 of the 2-3-5 column ratio) ── */}
       <div
