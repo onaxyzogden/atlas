@@ -94,6 +94,24 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         ),
         optional: true,
       },
+      // Primary steward + co-stewards were named in the creation wizard's Team
+      // step; show that roster read-only here instead of re-asking. Optional -
+      // an unset team falls through to a plain checkbox without dragging
+      // required progress. The steward answerSpec auto-satisfies via
+      // computeEffectiveProgress independently of the legacy
+      // deriveStratum1StewardshipMap bridge, so it reaches per-type projects.
+      {
+        ...ckA(
+          's1-vision-steward',
+          'Confirm the primary steward and any co-stewards for this project',
+          {
+            fieldType: 'steward',
+            sourceField: ['team.primarySteward', 'team.coStewards'],
+            editRoute: { kind: 'wizard-step', step: 'team' },
+          },
+        ),
+        optional: true,
+      },
       ck(
         's1-vision-labour',
         'Inventory available labour - hours per week, seasonal variation, skill level',
@@ -118,6 +136,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
         's1-vision-c1',
         's1-vision-c4',
         's1-vision-c2',
+        's1-vision-steward',
         's1-vision-classify',
       ]),
       dg('s1-vision-dg2', 'Capacity & constraints', [

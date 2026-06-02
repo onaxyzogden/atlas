@@ -245,6 +245,22 @@ describe('catalogue conformance - patch targets + bridge ids', () => {
       'projectTypeRecord.secondaryTypeIds',
     );
   });
+
+  it('carries the s1-vision-steward stewardship answerSpec recap item', () => {
+    // s1-vision-steward surfaces the wizard Team-step roster (primary steward +
+    // co-stewards) read-only on per-type projects, since the legacy
+    // s1-stewardship objective only exists in the fallback skeleton. Optional,
+    // steward fieldType, partitioned into the "Purpose & intent" group.
+    const vision = findPlanStratumObjectiveIn(objectives, 's1-vision');
+    const steward = vision?.checklist.find((i) => i.id === 's1-vision-steward');
+    expect(steward).toBeDefined();
+    expect(steward?.optional).toBe(true);
+    expect(steward?.answerSpec?.fieldType).toBe('steward');
+    expect(steward?.answerSpec?.sourceField).toEqual([
+      'team.primarySteward',
+      'team.coStewards',
+    ]);
+  });
 });
 
 describe('catalogue conformance - ecovillage primary resolution', () => {
