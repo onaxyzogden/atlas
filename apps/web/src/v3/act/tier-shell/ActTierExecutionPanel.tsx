@@ -456,16 +456,10 @@ export default function ActTierExecutionPanel({
             // whose source data is already present (wizard / Vision Builder /
             // team step), show the prior answer in its original control style
             // instead of re-asking. It auto-satisfies via effective progress,
-            // so no checkbox is shown; editing happens in Plan via the link.
+            // so no checkbox is shown; editing now happens in the Vision forms
+            // modal tab (Edit in Plan), not here -- the sidebar shows the value.
             if (item.answerSpec && resolveAnswerSpec(metadata, item.answerSpec).isAnswered) {
-              return (
-                <AnswerRecap
-                  key={item.id}
-                  projectId={projectId}
-                  item={item}
-                  metadata={metadata}
-                />
-              );
+              return <AnswerRecap key={item.id} item={item} metadata={metadata} />;
             }
             return (
               <label key={item.id} className={styles.execCheckRow}>

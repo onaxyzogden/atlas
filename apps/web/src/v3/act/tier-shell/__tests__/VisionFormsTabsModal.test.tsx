@@ -48,6 +48,11 @@ function renderModal(overrides: Partial<React.ComponentProps<typeof VisionFormsT
     tools: TOOLS,
     activeFormId: 's1-vision-c1',
     initialValues: {} as Record<string, string>,
+    projectId: 'test-project',
+    metadata: null,
+    // Empty checklist -> no tab resolves as a prefilled recap, so these tests
+    // exercise the textarea capture path (the recap path is covered in preview).
+    checklistItems: [] as React.ComponentProps<typeof VisionFormsTabsModal>['checklistItems'],
     onTabChange: vi.fn(),
     onSave: vi.fn(),
     onClose: vi.fn(),

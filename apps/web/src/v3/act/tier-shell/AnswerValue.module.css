@@ -1,0 +1,65 @@
+/* AnswerValue.module.css
+ *
+ * Typed read-only value renderer shared by the Act tier-shell Checklist recap
+ * (AnswerRecap, beige sidebar card) and the Vision forms modal (dark BentoBox
+ * surface). The value pills are intentionally LIGHT: they read as light-on-dark
+ * tags on the modal and as native pills on the sidebar card. The recap CARD
+ * chrome lives in AnswerRecap.module.css, not here. */
+
+.chipRow,
+.bandRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #4a4536;
+  background: #efeadd;
+  border: 1px solid #ddd4c0;
+  border-radius: 999px;
+}
+
+/* The single chosen option in a single_select reads as "selected". */
+.chipSelected {
+  color: #2f4a31;
+  background: #e3efe1;
+  border-color: #bcd6bb;
+  font-weight: 600;
+}
+
+.bandPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a4a5a;
+  background: #e7eef4;
+  border: 1px solid #c7d6e2;
+  border-radius: 6px;
+}
+
+.stewardList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stewardLine {
+  font-size: 12px;
+  color: #4a4536;
+}
+
+.text {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #4a4536;
+  white-space: pre-wrap;
+}

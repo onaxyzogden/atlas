@@ -44,87 +44,8 @@
   line-height: 1.35;
 }
 
-.editLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex: 0 0 auto;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #8a6d3b;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
-}
-
-.editLink:hover {
-  color: #6f5526;
-  background: #f3ecdd;
-  border-color: #e2d4b8;
-}
-
-/* Value displays, mirroring each control's original style, read-only. */
+/* Value display container. The typed value pills/chips themselves now live in
+ * AnswerValue.module.css (shared with the Vision forms modal recap tab). */
 .recapValue {
   padding-left: 24px; /* align under the label, past the check */
-}
-
-.chipRow,
-.bandRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #4a4536;
-  background: #efeadd;
-  border: 1px solid #ddd4c0;
-  border-radius: 999px;
-}
-
-/* The single chosen option in a single_select reads as "selected". */
-.chipSelected {
-  color: #2f4a31;
-  background: #e3efe1;
-  border-color: #bcd6bb;
-  font-weight: 600;
-}
-
-.bandPill {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #3a4a5a;
-  background: #e7eef4;
-  border: 1px solid #c7d6e2;
-  border-radius: 6px;
-}
-
-.stewardList {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.stewardLine {
-  font-size: 12px;
-  color: #4a4536;
-}
-
-.text {
-  display: block;
-  font-size: 12px;
-  line-height: 1.5;
-  color: #4a4536;
-  white-space: pre-wrap;
 }

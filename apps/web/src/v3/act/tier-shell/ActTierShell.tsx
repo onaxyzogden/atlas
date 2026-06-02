@@ -536,6 +536,9 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         tools={openFormGroup?.tools ?? []}
         activeFormId={openFormGroup?.activeFormId ?? ''}
         initialValues={visionForms}
+        projectId={id}
+        metadata={project.metadata ?? null}
+        checklistItems={selectedObjective?.checklist ?? []}
         onTabChange={(formId) =>
           setOpenFormGroup((g) => (g ? { ...g, activeFormId: formId } : g))
         }
