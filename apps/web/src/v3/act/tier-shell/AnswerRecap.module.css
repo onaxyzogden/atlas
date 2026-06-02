@@ -4,15 +4,17 @@
  * the wizard / Vision Builder / team step. Sits in the Act tier-shell Checklist
  * in place of the bare checkbox row, so it shares that row's surface (bg/border/
  * radius from ActTierExecutionPanel.module.css .execCheckRow) but lays out a
- * heading line (check + label + edit link) over a typed value display. */
+ * heading line (check + label + edit link) over a typed value display.
+ * Theme-token surfaces (no hardcoded light colors) so the card adapts to the
+ * active data-theme (dark/light) instead of rendering a light card on dark. */
 
 .recap {
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 12px 14px;
-  background: #fbfaf7;
-  border: 1px solid #e7e2d6;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
 }
 
@@ -32,15 +34,15 @@
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  background: #4f7a52;
-  color: #fff;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
 }
 
 .recapLabel {
   flex: 1 1 auto;
   font-size: 13px;
   font-weight: 600;
-  color: #3a362c;
+  color: var(--color-text);
   line-height: 1.35;
 }
 
