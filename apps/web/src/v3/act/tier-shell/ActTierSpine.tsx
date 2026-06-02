@@ -25,6 +25,13 @@ interface Props {
   stratumStates: Readonly<Record<string, PlanStratumState>>;
   activeStratumId: string;
   onSelectStratum: (stratumId: string) => void;
+  /** Current project name — shown in the leading identity tile. */
+  projectTitle: string;
+  /**
+   * ` · `-joined project-type label (primary first), or null when no primary
+   * type is set. Null renders a muted "Types not set" placeholder.
+   */
+  projectTypeLabel: string | null;
 }
 
 export default function ActTierSpine({
@@ -33,10 +40,24 @@ export default function ActTierSpine({
   stratumStates,
   activeStratumId,
   onSelectStratum,
+  projectTitle,
+  projectTypeLabel,
 }: Props) {
   return (
-    <div className={styles.spine} role="tablist" aria-label="Act strata">
-      {strata.map((stratum) => {
+    <div className={styles.spineRow}>
+      {/* Project identity tile — static, sticky-pinned, NOT a tab (sibling of
+          the tablist so the tablist a11y semantics stay pure). */}
+      <div className={styles.projectTile}>
+        <span className={styles.projectTileTitle}>{projectTitle}</span>
+        <span
+          className={styles.projectTileTypes}
+          data-empty={projectTypeLabel ? undefined : 'true'}
+        >
+          {projectTypeLabel ?? 'Types not set'}
+        </span>
+      </div>
+      <div className={styles.spine} role="tablist" aria-label="Act strata">
+        {strata.map((stratum) => {
         const status = stratumStates[stratum.id] ?? 'available';
         const count = objectives.filter(
           (o) => o.stratumId === stratum.id,
@@ -72,7 +93,8 @@ export default function ActTierSpine({
             </span>
           </button>
         );
-      })}
+        })}
+      </div>
     </div>
   );
 }

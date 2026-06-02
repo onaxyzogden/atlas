@@ -52,6 +52,7 @@ import {
 } from '../../../lib/geo.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import { useProjectObjectives } from '../../plan/strata/useProjectObjectives.js';
+import { planHeaderProjectTypeLabel } from '../../plan/strata/planHeaderLabel.js';
 import DiagnoseMap from '../../components/DiagnoseMap.js';
 import BaseMapCard from '../../plan/canvas/BaseMapCard.js';
 import ObserveAnnotationLayers from '../../observe/components/layers/ObserveAnnotationLayers.js';
@@ -238,6 +239,12 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   const typeRecord = project.metadata?.projectTypeRecord;
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
+  // Same label the Plan stratum-spine header shows (primary first, ` · `-joined;
+  // null when no primary type). Feeds the Act spine's project identity tile.
+  const projectTypeLabel = planHeaderProjectTypeLabel(
+    primaryTypeId,
+    secondaryTypeIds,
+  );
 
   // Left-rail view: design objectives (default) vs the standing-protocol library.
   const [railMode, setRailMode] = useState<RailMode>('objectives');
@@ -394,6 +401,8 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         stratumStates={stratumStates}
         activeStratumId={selectedStratumId}
         onSelectStratum={handleSelectStratum}
+        projectTitle={project.name}
+        projectTypeLabel={projectTypeLabel}
       />
       <div className={styles.shellWrap}>
         <StageShell
