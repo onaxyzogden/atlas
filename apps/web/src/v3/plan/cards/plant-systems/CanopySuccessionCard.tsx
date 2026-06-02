@@ -98,6 +98,14 @@ const NICHE_META: Array<{ layer: string; label: string }> = [
   { layer: 'root', label: 'Root crops' },
 ];
 
+/** Show a rounded percentage, surfacing a tiny-but-nonzero share as "<1%"
+ *  instead of a misleading "0%". `present` confirms the layer carries a
+ *  pick, so a 0 here is a rounding artifact of a true positive value
+ *  (every displayed row has >=1 pick, and biomass/yield proxies are
+ *  strictly positive for any picked species at year >= 1). */
+const fmtSharePct = (rounded: number, present: boolean) =>
+  present && rounded === 0 ? '<1%' : `${rounded}%`;
+
 export default function CanopySuccessionCard({ project }: Props) {
   const allPicks = usePolycultureStore((s) => s.species);
   const allGuilds = usePolycultureStore((s) => s.guilds);
@@ -326,12 +334,13 @@ export default function CanopySuccessionCard({ project }: Props) {
                 const prod = metrics.productivityByLayer[n.layer] ?? 0;
                 const bio = metrics.biomassByLayer[n.layer] ?? 0;
                 const prodPct = Math.round(prod * 100);
+                const present = (metrics.layerCounts[n.layer] ?? 0) > 0;
                 return (
                   <li key={n.layer} className={styles.listRow}>
                     <div style={{ flex: 1 }}>
                       <strong>{n.label}</strong>
                       <div className={styles.listMeta}>
-                        {metrics.layerCounts[n.layer] ?? 0} picked · {bio}% of biomass
+                        {metrics.layerCounts[n.layer] ?? 0} picked · {fmtSharePct(bio, present)} of biomass
                       </div>
                       <div
                         style={{
@@ -352,7 +361,7 @@ export default function CanopySuccessionCard({ project }: Props) {
                       </div>
                     </div>
                     <span style={{ minWidth: 56, textAlign: 'right', fontSize: 12 }}>
-                      {prodPct}% prod.
+                      {fmtSharePct(prodPct, present)} prod.
                     </span>
                   </li>
                 );
