@@ -379,6 +379,42 @@
   color: var(--color-gold-brand, #c4a265);
 }
 
+/* Source provenance badge (Universal / Primary / Secondary - <Type>). Brings
+   the Act objective rail to parity with the Plan ObjectiveColumn so a steward
+   can see WHICH objectives their secondary project types (e.g. Orchard / Food
+   Forest, Silvopasture) contributed. Universal objectives carry no badge (they
+   are the baseline; a badge on every card would be noise) - only the meaningful
+   primary/secondary provenance is surfaced. Derived from getSourceTag(). */
+.objSource {
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: rgba(242, 237, 227, 0.08);
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+.objSource[data-kind='primary'] {
+  background: color-mix(in srgb, var(--color-gold-brand, #c4a265) 18%, transparent);
+  color: var(--color-gold-brand, #c4a265);
+}
+
+/* Secondary uses a distinct cool accent (teal) so contributed enterprise
+   objectives read as a different provenance class from the gold primary. */
+.objSource[data-kind='secondary'] {
+  background: rgba(111, 179, 196, 0.18);
+  color: #8fc7d6;
+}
+
 .objTitle {
   font-size: 13px;
   font-weight: 600;
