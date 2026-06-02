@@ -159,9 +159,13 @@ describe('resolveProjectObjectives - N/A pair (homestead + residential)', () => 
     secondaryTypeIds: ['residential'],
   });
 
-  it('does not load the incompatible secondary (universal-only = 19)', () => {
-    expect(r.objectives).toHaveLength(19);
-    expect(r.objectives.every((o) => o.source === 'universal')).toBe(true);
+  it('loads homestead primary but not the incompatible secondary (19 universal + 15 homestead primary = 34)', () => {
+    expect(r.objectives).toHaveLength(34);
+    expect(
+      r.objectives.every(
+        (o) => o.source === 'universal' || o.source === 'primary',
+      ),
+    ).toBe(true);
   });
 
   it('records the secondary as not loaded with relation NA', () => {
