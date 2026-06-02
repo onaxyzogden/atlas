@@ -72,9 +72,20 @@ const EMPTY_IDS: readonly string[] = Object.freeze([]);
 /**
  * Map the astronomical Season (which uses 'fall') to the protocol-schema
  * SeasonName (which uses 'autumn'). Only 'fall' differs; the rest are identical.
+ * Exhaustive switch so a future Season member is a compile error here rather
+ * than a silent passthrough of an out-of-vocabulary value.
  */
 function toSeasonName(season: Season): SeasonName {
-  return season === 'fall' ? 'autumn' : season;
+  switch (season) {
+    case 'fall':
+      return 'autumn';
+    case 'spring':
+      return 'spring';
+    case 'summer':
+      return 'summer';
+    case 'winter':
+      return 'winter';
+  }
 }
 
 /**

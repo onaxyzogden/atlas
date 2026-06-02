@@ -275,7 +275,9 @@ describe('ActTierExecutionPanel - temporal bucket stamping', () => {
     const activations = useProtocolStore.getState().activations;
     expect(activations).toHaveLength(1);
     expect(activations[0]!.season).toBeUndefined();
-    // cycleNumber is still stamped (domainId is non-null from s5-water-strategy -> hydrology).
-    expect(typeof activations[0]!.cycleNumber).toBe('number');
+    // cycleNumber is still stamped (domainId is non-null from s5-water-strategy
+    // -> hydrology); an untouched (project, domain) defaults to cycle 0, and 0
+    // is a valid stamped value (guard is on domainId, not the cycle value).
+    expect(activations[0]!.cycleNumber).toBe(0);
   });
 });
