@@ -8,7 +8,8 @@
 // Currently encoded: regenerative_farm (primary, anchor v1.3), ecovillage
 // (primary, v1.2), agritourism (primary, v1.0), wellness (primary, v1.0),
 // silvopasture (primary, v1.0), orchard_food_forest (primary, v1.0), and
-// homestead (primary, v1.1 - 15 primary objectives, no base secondary layer) on
+// homestead (primary, v1.1 - 15 primary objectives, no base secondary layer), and
+// education (primary, v1.0 - 22 primary objectives, no base secondary layer) on
 // the primary side; residential (secondary, v1.0) and wellness (secondary, authored
 // overlay per the 2026-05-30 derive+author ruling) on the secondary side. Every
 // other primary resolves to the universal-only baseline; every other secondary
@@ -50,6 +51,7 @@ import {
 } from './orchard.js';
 import { NURSERY_SECONDARY_OBJECTIVES } from './nursery.js';
 import { HOMESTEAD_PRIMARY_OBJECTIVES } from './homestead.js';
+import { EDUCATION_PRIMARY_OBJECTIVES } from './education.js';
 
 export {
   UNIVERSAL_PLAN_OBJECTIVES,
@@ -69,6 +71,7 @@ export {
   ORCHARD_SECONDARY_PATCHES,
   NURSERY_SECONDARY_OBJECTIVES,
   HOMESTEAD_PRIMARY_OBJECTIVES,
+  EDUCATION_PRIMARY_OBJECTIVES,
 };
 
 /** The universal baseline plus a primary type's own objectives. */
@@ -108,7 +111,9 @@ export function getPrimaryCatalogue(
                 ? ORCHARD_PRIMARY_OBJECTIVES
                 : primaryTypeId === 'homestead'
                   ? HOMESTEAD_PRIMARY_OBJECTIVES
-                  : [];
+                  : primaryTypeId === 'education'
+                    ? EDUCATION_PRIMARY_OBJECTIVES
+                    : [];
   return { universal: UNIVERSAL_PLAN_OBJECTIVES, primary };
 }
 
@@ -175,6 +180,7 @@ const ALL_CATALOGUE_OBJECTIVES: readonly PlanStratumObjective[] = (() => {
     ...ORCHARD_PRIMARY_OBJECTIVES,
     ...ORCHARD_SECONDARY_OBJECTIVES,
     ...HOMESTEAD_PRIMARY_OBJECTIVES,
+    ...EDUCATION_PRIMARY_OBJECTIVES,
   ]) {
     if (!byId.has(o.id)) byId.set(o.id, o);
   }
