@@ -17,6 +17,16 @@
   --color-surface-alt:     #1a2027;
   --color-surface-raised:  #1c232b;
 
+  /* Canvas (deep base behind dashboard surfaces) + numbered elevation aliases.
+     Previously undefined → consumers fell through to warm-brown fallbacks
+     (#181612 / rgba(31,29,26,…)). Mapped onto the cool Obsidian/Mineral-Slate
+     ladder so every var(--color-canvas) / var(--color-surface-N) reads cool. */
+  --color-canvas:          #0b0d10;   /* == --color-bg */
+  --color-surface-0:       #0b0d10;   /* == --color-bg */
+  --color-surface-1:       #14191f;   /* == --color-surface (Mineral Slate) */
+  --color-surface-2:       #1a2027;   /* == --color-surface-alt */
+  --color-surface-3:       #1c232b;   /* == --color-surface-raised */
+
   /* Chrome neutrals override (slightly darker than bg for sidebar contrast) */
   --color-chrome-bg:             #090b0e;
   --color-chrome-bg-translucent: rgba(11, 13, 16, 0.95);
@@ -155,6 +165,12 @@
     --color-surface-alt:     #1a2027;
     --color-surface-raised:  #1c232b;
 
+    --color-canvas:          #0b0d10;
+    --color-surface-0:       #0b0d10;
+    --color-surface-1:       #14191f;
+    --color-surface-2:       #1a2027;
+    --color-surface-3:       #1c232b;
+
     --color-chrome-bg:             #090b0e;
     --color-chrome-bg-translucent: rgba(11, 13, 16, 0.95);
     --color-chrome-bg-overlay:     rgba(11, 13, 16, 0.72);
@@ -275,6 +291,13 @@
     --color-surface-raised: oklch(var(--l-raised)  var(--c-warm-neutral) var(--h-warm-neutral));
     --color-panel-bg:       oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
 
+    /* Canvas + numbered elevation aliases (OKLCH parity with the hex block) */
+    --color-canvas:    oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+    --color-surface-0: oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+    --color-surface-1: oklch(var(--l-surface) var(--c-warm-neutral) var(--h-warm-neutral));
+    --color-surface-2: oklch(24.1%            var(--c-warm-neutral) var(--h-warm-neutral));
+    --color-surface-3: oklch(var(--l-raised)  var(--c-warm-neutral) var(--h-warm-neutral));
+
     /* Cool text + Stratum-Line border (High-Tech Earth, 2026-05-30) — the hex
        fallbacks above would otherwise read warm on OKLCH-capable engines. */
     --color-text:           oklch(97.2% 0.0034 248);
@@ -297,6 +320,12 @@
       --color-surface-alt:    oklch(24.1% var(--c-warm-neutral) var(--h-warm-neutral));
       --color-surface-raised: oklch(var(--l-raised)  var(--c-warm-neutral) var(--h-warm-neutral));
       --color-panel-bg:       oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+
+      --color-canvas:    oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+      --color-surface-0: oklch(var(--l-bg)      var(--c-warm-neutral) var(--h-warm-neutral));
+      --color-surface-1: oklch(var(--l-surface) var(--c-warm-neutral) var(--h-warm-neutral));
+      --color-surface-2: oklch(24.1%            var(--c-warm-neutral) var(--h-warm-neutral));
+      --color-surface-3: oklch(var(--l-raised)  var(--c-warm-neutral) var(--h-warm-neutral));
 
       --color-text:           oklch(97.2% 0.0034 248);
       --color-text-muted:     oklch(67.6% 0.0281 248);

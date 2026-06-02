@@ -49,15 +49,18 @@
 
 /* ── Dark (native / default) ── */
 .olos-spine-root {
-  --spine-bg: #0f0f0d;
-  --spine-bg2: #161613;
-  --spine-bg3: #1e1e1a;
-  --spine-bg4: #252520;
-  --spine-border: #2a2a25;
-  --spine-border-light: #353530;
-  --spine-text-primary: #ede9e0;
-  --spine-text-secondary: #8a8680;
-  --spine-text-tertiary: #4a4845;
+  /* Cool Obsidian/Mineral-Slate ladder (de-browned 2026-06-02) — neutral
+     surfaces, borders, and text aligned to the High-Tech Earth palette so the
+     Plan spine no longer reads warm-grey. Accent hues below are unchanged. */
+  --spine-bg: #0d1014;
+  --spine-bg2: #14181e;
+  --spine-bg3: #1b2026;
+  --spine-bg4: #222831;
+  --spine-border: #242f3d;
+  --spine-border-light: #30404f;
+  --spine-text-primary: #f4f6f8;
+  --spine-text-secondary: #8a99a8;
+  --spine-text-tertiary: #5f6b78;
   --spine-blue: #4a8fd4;
   --spine-blue-dim: #1a2f45;
   --spine-blue-mid: #243c55;

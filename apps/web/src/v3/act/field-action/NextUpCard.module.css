@@ -6,7 +6,7 @@
   background: linear-gradient(
     140deg,
     rgba(196, 162, 101, 0.18) 0%,
-    rgba(31, 29, 26, 0.85) 100%
+    rgba(20, 25, 31, 0.85) 100%
   );
   border: 1px solid rgba(196, 162, 101, 0.45);
   border-radius: 14px;
@@ -93,7 +93,7 @@
   flex-direction: column;
   gap: 6px;
   padding: 24px 20px;
-  background: rgba(31, 29, 26, 0.5);
+  background: rgba(20, 25, 31, 0.5);
   border: 1px dashed rgba(242, 237, 227, 0.2);
   border-radius: 12px;
   color: rgba(242, 237, 227, 0.75);

@@ -8,7 +8,7 @@
   margin: 8px 16px 0;
   border-radius: var(--radius-md, 8px);
   border: 1px solid color-mix(in srgb, #e2951a 35%, transparent);
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 90%, #e2951a 10%);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 90%, #e2951a 10%);
   overflow: hidden;
 }
 
@@ -201,7 +201,7 @@
 }
 
 .keepBtn:hover {
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 70%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 70%, #ffffff);
   color: var(--color-text, #f2ede3);
 }
 

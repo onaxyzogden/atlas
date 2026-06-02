@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   overflow: hidden;
 }
 

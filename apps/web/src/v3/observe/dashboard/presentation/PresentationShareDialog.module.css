@@ -11,7 +11,7 @@
 }
 
 .dialog {
-  background: #181612;
+  background: #0b0d10;
   color: var(--color-text, #f2ede3);
   border: 1px solid rgba(196, 162, 101, 0.4);
   border-radius: 14px;
@@ -61,7 +61,7 @@
 }
 
 .chip {
-  background: rgba(31, 29, 26, 0.85);
+  background: rgba(20, 25, 31, 0.85);
   color: var(--color-text, #f2ede3);
   border: 1px solid rgba(242, 237, 227, 0.18);
   border-radius: 999px;

@@ -17,7 +17,7 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
 }
 
 .shellWrap {
@@ -196,7 +196,7 @@
   flex-direction: column;
   gap: 4px;
   padding: 12px;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
   color: var(--color-text, #f2ede3);
@@ -223,7 +223,7 @@
   background: color-mix(
     in srgb,
     var(--color-gold-brand, #c4a265) 8%,
-    var(--color-bg, #1f1d1a)
+    var(--color-bg, #14191f)
   );
 }
 
@@ -445,7 +445,7 @@
 .execBar {
   height: 6px;
   border-radius: 999px;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   overflow: hidden;
 }
@@ -527,7 +527,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
   color: var(--color-text, #f2ede3);
@@ -554,7 +554,7 @@
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
 }
@@ -736,7 +736,7 @@
 
 .toolCat {
   flex: 0 0 auto;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
   padding: 8px;

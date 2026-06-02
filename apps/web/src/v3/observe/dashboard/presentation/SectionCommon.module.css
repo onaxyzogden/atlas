@@ -53,7 +53,7 @@
 }
 
 .card {
-  background: rgba(31, 29, 26, 0.85);
+  background: rgba(20, 25, 31, 0.85);
   border: 1px solid rgba(242, 237, 227, 0.12);
   border-radius: 12px;
   padding: 14px 16px;
@@ -82,7 +82,7 @@
   border-radius: 999px;
   border: 1px solid rgba(242, 237, 227, 0.18);
   color: rgba(242, 237, 227, 0.85);
-  background: rgba(31, 29, 26, 0.5);
+  background: rgba(20, 25, 31, 0.5);
   width: max-content;
 }
 
@@ -111,7 +111,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: rgba(31, 29, 26, 0.85);
+  background: rgba(20, 25, 31, 0.85);
   border: 1px solid rgba(242, 237, 227, 0.1);
   border-radius: 10px;
   overflow: hidden;

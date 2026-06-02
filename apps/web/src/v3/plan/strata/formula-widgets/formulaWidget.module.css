@@ -12,7 +12,7 @@
   padding: 12px;
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.18));
   border-radius: var(--radius-md, 8px);
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
 }
 
 .title {

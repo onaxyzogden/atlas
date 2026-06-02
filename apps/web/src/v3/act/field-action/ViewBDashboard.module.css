@@ -4,7 +4,7 @@
   overflow-y: auto;
   padding: 20px;
   box-sizing: border-box;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
 }
 
 .column {
@@ -18,7 +18,7 @@
 
 .emptyFiltered {
   padding: 14px 16px;
-  background: rgba(31, 29, 26, 0.5);
+  background: rgba(20, 25, 31, 0.5);
   border: 1px dashed rgba(242, 237, 227, 0.22);
   border-radius: 10px;
   color: rgba(242, 237, 227, 0.75);

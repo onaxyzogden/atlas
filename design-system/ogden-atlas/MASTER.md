@@ -89,6 +89,8 @@ The four foundational ramps. **50** is lightest, **900** is darkest.
 | Page bg | `--color-bg` | `var(--color-sand-50)` |
 | Surface | `--color-surface` | `#ffffff` |
 | Surface raised | `--color-surface-raised` | `#ffffff` |
+| Canvas (deep base) | `--color-canvas` | `var(--color-sand-50)` — alias of `--color-bg`; backs the Observe dashboard surface. Dark = Obsidian `#0b0d10` |
+| Elevation aliases | `--color-surface-0/1/2/3` | Numbered aliases of bg / surface / surface-alt / surface-raised, consumed by Observe cards. Defined cool in dark mode so consumers never fall through to the legacy warm-brown literals (`#181612` / `rgba(31,29,26,…)`) |
 | Border | `--color-border` | `var(--color-earth-200)` |
 | Border subtle | `--color-border-subtle` | `var(--color-earth-100)` |
 | Text | `--color-text` | `var(--color-earth-900)` |

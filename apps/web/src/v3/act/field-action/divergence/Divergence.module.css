@@ -95,7 +95,7 @@
   font-weight: 600;
   cursor: pointer;
   border: 1px solid rgba(242, 237, 227, 0.18);
-  background: rgba(31, 29, 26, 0.55);
+  background: rgba(20, 25, 31, 0.55);
   color: rgba(242, 237, 227, 0.8);
   transition: background 120ms ease, border-color 120ms ease;
 }
@@ -116,7 +116,7 @@
   padding: 8px 10px;
   border-radius: 6px;
   border: 1px solid rgba(242, 237, 227, 0.18);
-  background: rgba(31, 29, 26, 0.85);
+  background: rgba(20, 25, 31, 0.85);
   color: var(--color-text, #f2ede3);
   font-family: inherit;
   font-size: 13px;

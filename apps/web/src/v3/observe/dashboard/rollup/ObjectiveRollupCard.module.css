@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 10px;
   padding: 14px;
-  background: var(--color-surface-1, rgba(31, 29, 26, 0.72));
+  background: var(--color-surface-1, rgba(20, 25, 31, 0.72));
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-left: 3px solid var(--fresh-color, rgba(242, 237, 227, 0.3));
   border-radius: var(--radius-lg, 12px);
@@ -45,7 +45,7 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
   border-radius: 999px;
-  color: var(--color-canvas, #181612);
+  color: var(--color-canvas, #0b0d10);
   background: var(--fresh-pill, rgba(242, 237, 227, 0.3));
 }
 
@@ -97,7 +97,7 @@
   flex-direction: column;
   gap: 2px;
   padding: 8px 10px;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
   border-radius: var(--radius-md, 8px);
 }

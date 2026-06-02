@@ -4,6 +4,6 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--color-canvas, #181612);
+  background: var(--color-canvas, #0b0d10);
   overflow: hidden;
 }

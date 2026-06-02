@@ -2,7 +2,7 @@
   height: 100%;
   width: 100%;
   overflow-y: auto;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   display: flex;
   flex-direction: column;
 }
@@ -17,7 +17,7 @@
 .missing {
   margin: 24px;
   padding: 18px 20px;
-  background: rgba(31, 29, 26, 0.6);
+  background: rgba(20, 25, 31, 0.6);
   border: 1px dashed rgba(217, 119, 87, 0.4);
   border-radius: 12px;
   color: rgba(242, 237, 227, 0.75);

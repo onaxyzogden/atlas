@@ -13,7 +13,7 @@
   background: color-mix(
     in srgb,
     var(--color-gold-brand, #c4a265) 8%,
-    var(--color-bg, #1f1d1a)
+    var(--color-bg, #14191f)
   );
   border: 1px dashed
     color-mix(in srgb, var(--color-gold-brand, #c4a265) 45%, transparent);
