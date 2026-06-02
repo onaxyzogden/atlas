@@ -140,6 +140,18 @@ export const PLAN_STRATUM_OBJECTIVES: readonly PlanStratumObjective[] = [
         label: 'List primary steward and any co-stewards.',
         feedsInto: [],
         optional: false,
+        // Stewards were named in the creation wizard's team step; the Act
+        // stage shows that roster read-only (Name <email> lines) instead of
+        // re-asking. Auto-satisfies via the answerSpec progress union. Only
+        // this legacy fallback skeleton carries an s1-stewardship objective,
+        // so the recap reaches legacy/untyped projects; per-type catalogues
+        // intentionally omit it. (s1-stewardship-c2 stays role-filtered via
+        // its legacy deriveStratum1StewardshipMap derivation.)
+        answerSpec: {
+          fieldType: 'steward',
+          sourceField: ['team.primarySteward', 'team.coStewards'],
+          editRoute: { kind: 'wizard-step', step: 'team' },
+        },
       },
       {
         id: 's1-stewardship-c2',

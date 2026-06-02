@@ -76,6 +76,24 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
           editRoute: { kind: 'wizard-step', step: 'vision' },
         },
       ),
+      // Secondary land uses were chosen as secondary TYPES in the creation
+      // wizard (or via the Plan header's SecondaryAddModal); show that
+      // multi-select read-only instead of re-asking. Optional - not every
+      // project has a secondary type, and an unset value falls through to a
+      // plain checkbox without dragging required progress.
+      {
+        ...ckA(
+          's1-vision-c4',
+          'Confirm any secondary land uses layered onto this project',
+          {
+            fieldType: 'multi_select',
+            optionSetId: 'projectSecondaryType',
+            sourceField: 'projectTypeRecord.secondaryTypeIds',
+            editRoute: { kind: 'plan-type' },
+          },
+        ),
+        optional: true,
+      },
       ck(
         's1-vision-labour',
         'Inventory available labour - hours per week, seasonal variation, skill level',
@@ -98,6 +116,7 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     decisionGroups: [
       dg('s1-vision-dg1', 'Purpose & intent', [
         's1-vision-c1',
+        's1-vision-c4',
         's1-vision-c2',
         's1-vision-classify',
       ]),

@@ -122,25 +122,39 @@ describe('resolveAnswerSpec', () => {
     expect(one.isAnswered).toBe(false);
   });
 
-  it('steward formats name + email and collects array entries', () => {
+  it('steward formats name + email across the real team shape (primarySteward + coStewards)', () => {
+    // Mirrors the authored s1-stewardship-c1 answerSpec: a single-object path
+    // (primarySteward) plus an array path (coStewards), collected in order.
     const spec: AnswerSpec = {
       fieldType: 'steward',
-      sourceField: 'team.members',
+      sourceField: ['team.primarySteward', 'team.coStewards'],
       editRoute: { kind: 'wizard-step', step: 'team' },
     };
     const r = resolveAnswerSpec(
       meta({
         team: {
-          members: [
-            { name: 'Aisha', email: 'aisha@ogden.ag' },
-            { name: 'Bilal' },
-          ],
+          primarySteward: { name: 'Aisha', email: 'aisha@ogden.ag' },
+          coStewards: [{ name: 'Bilal' }, { email: 'omar@ogden.ag' }],
         },
       }),
       spec,
     );
     expect(r.isAnswered).toBe(true);
-    expect(r.values).toEqual(['Aisha <aisha@ogden.ag>', 'Bilal']);
+    expect(r.values).toEqual([
+      'Aisha <aisha@ogden.ag>',
+      'Bilal',
+      'omar@ogden.ag',
+    ]);
+  });
+
+  it('steward is unanswered when team has no steward/co-steward data', () => {
+    const spec: AnswerSpec = {
+      fieldType: 'steward',
+      sourceField: ['team.primarySteward', 'team.coStewards'],
+      editRoute: { kind: 'wizard-step', step: 'team' },
+    };
+    expect(resolveAnswerSpec(meta({ team: {} }), spec).isAnswered).toBe(false);
+    expect(resolveAnswerSpec(meta({}), spec).isAnswered).toBe(false);
   });
 
   it('text passes the stored prose through verbatim', () => {
