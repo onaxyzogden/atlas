@@ -120,7 +120,7 @@ describe('ObjectiveReviewFlagSchema', () => {
   });
 
   // dismissedAt and resolvedAt are distinct fields
-  it('accepts dismissedAt and resolvedAt independently', () => {
+  it('accepts resolvedAt without dismissedAt', () => {
     const parsed = ObjectiveReviewFlagSchema.parse({
       ...MINIMAL_EXISTENTIAL,
       resolvedAt: '2026-02-01T00:00:00.000Z',

@@ -43,6 +43,11 @@ export type FlagDirection = z.infer<typeof FlagDirection>;
  * Rendering weight / structural significance of the flag.
  * Listed from shallowest (threshold: a numeric limit crossed) to deepest
  * (structural: a systemic design issue). Downstream UI sorts/filters by this.
+ *   threshold  -- a numeric operating limit was crossed (shallowest)
+ *   soil       -- a soil-health / ecology indicator is implicated
+ *   water      -- a hydrology / soil-moisture concern is implicated
+ *   zones      -- a permaculture zone / sector boundary is implicated
+ *   structural -- a systemic design assumption is in question (deepest)
  */
 export const FlagDepth = z.enum([
   'threshold',
@@ -59,7 +64,9 @@ export type FlagDepth = z.infer<typeof FlagDepth>;
 
 /**
  * An immutable flag record raised when a project objective's observed activity
- * deviates from expectation (over/under) or is entirely absent (existential).
+ * deviates from a steward-authored expectation (over/under), or when a single
+ * activation of an existentially-significant protocol fires (existential) --
+ * one such firing alone contradicts a load-bearing design assumption.
  *
  * Lifecycle fields:
  *   raisedAt       -- when the evaluation engine raised this flag
@@ -87,14 +94,16 @@ export const ObjectiveReviewFlagSchema = z.object({
   sourceTemplateId: z.string(),
   /**
    * The activation records that contributed observed evidence for this
-   * evaluation window. Defaults to empty (existential flags have none).
+   * evaluation window (including the triggering firing for existential flags).
+   * Defaults to empty.
    */
   sourceActivationIds: z.array(z.string()).default([]),
   /** Count of relevant activations observed in the evaluation window. */
   observedCount: z.number().int().nonnegative(),
   /**
    * The steward-authored expected cadence against which this flag was
-   * evaluated. Absent for existential flags (no evidence at all).
+   * evaluated. Absent for existential flags, whose significance is a single
+   * firing rather than a deviation from a rate.
    */
   expectedRate: ExpectedRateSchema.optional(),
   /**
@@ -113,7 +122,9 @@ export const ObjectiveReviewFlagSchema = z.object({
    * Direction of the deviation:
    *   over        -- more activations than expected
    *   under       -- fewer activations than expected
-   *   existential -- zero activations; the objective has no evidence at all
+   *   existential -- a single firing of an existentially-significant protocol
+   *                  (e.g. emergency destocking); one firing alone contradicts
+   *                  a load-bearing design assumption, independent of any rate
    */
   deviationSign: z.enum(['over', 'under', 'existential']),
   /** Structural significance / rendering weight of this flag. */
