@@ -8,30 +8,36 @@
  * vegetation, etc.). These invariants fail the build the moment that drift
  * recurs.
  *
- * Two packages meet here: OBJECTIVE_ACT_TOOLS_OVERRIDE + UNIVERSAL_PLAN_OBJECTIVES
- * live in @ogden/shared (catalogue-id strings only, no app deps); ACT_TOOL_CATALOG
- * lives in the app layer (lucide icons + MapToolId union). Only the app layer can
- * import both, so the cross-package check lives here.
+ * The override now spans more than one catalogue: the universal baseline plus
+ * the silvopasture primary + secondary livestock objectives (added 2026-06-01
+ * so paddock / pasture / fence tools surface on the livestock objectives rather
+ * than the coarse stratum default). Both OBJECTIVE_ACT_TOOLS_OVERRIDE and the
+ * objective catalogues live in @ogden/shared (catalogue-id strings only, no app
+ * deps); ACT_TOOL_CATALOG lives in the app layer (lucide icons + MapToolId
+ * union). Only the app layer can import both, so the cross-package check lives
+ * here.
  */
 
 import { describe, expect, it } from 'vitest';
 import {
   OBJECTIVE_ACT_TOOLS_OVERRIDE,
   UNIVERSAL_PLAN_OBJECTIVES,
+  SILVOPASTURE_PRIMARY_OBJECTIVES,
+  SILVOPASTURE_SECONDARY_OBJECTIVES,
+  allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
-import {
-  ACT_TOOL_CATALOG,
-  ACT_TOOL_CATEGORIES,
-} from '../actToolCatalog.js';
+import { ACT_TOOL_CATALOG, ACT_TOOL_CATEGORIES } from '../actToolCatalog.js';
 
 describe('Act tier-shell objective->tool coverage', () => {
-  const objectiveIds = new Set(UNIVERSAL_PLAN_OBJECTIVES.map((o) => o.id));
+  const allObjectiveIds = new Set(allCatalogueObjectives().map((o) => o.id));
   const categoryIds = new Set(ACT_TOOL_CATEGORIES.map((c) => c.id));
 
-  it('every override key is a real universal objective id', () => {
+  it('every override key is a real catalogue objective id', () => {
+    // A key must be a real objective id in SOME encoded catalogue (universal or
+    // a per-type layer); a typo or stale id resolves in none and trips here.
     const stale = Object.keys(OBJECTIVE_ACT_TOOLS_OVERRIDE).filter(
-      (id) => !objectiveIds.has(id),
+      (id) => !allObjectiveIds.has(id),
     );
     expect(stale).toEqual([]);
   });
@@ -43,9 +49,27 @@ describe('Act tier-shell objective->tool coverage', () => {
     expect(missing).toEqual([]);
   });
 
+  it('every silvopasture objective has an explicit override entry', () => {
+    // Every silvopasture standalone objective (primary + secondary additive) is
+    // explicitly wired so the rail shows livestock-relevant tools instead of
+    // the coarse stratum default (which omits paddocks/pasture/fencing and
+    // would surface crops/orchards/harvest on monitoring objectives).
+    const silvObjectives = [
+      ...SILVOPASTURE_PRIMARY_OBJECTIVES,
+      ...SILVOPASTURE_SECONDARY_OBJECTIVES,
+    ];
+    const missing = silvObjectives
+      .filter((o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE))
+      .map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
   it('every catalogue id emitted for any objective resolves in ACT_TOOL_CATALOG', () => {
+    // Sweep every encoded catalogue objective through the resolver (override or
+    // stratum default) so a tool id that does not mount is caught regardless of
+    // which catalogue surfaced it.
     const unresolved: string[] = [];
-    for (const objective of UNIVERSAL_PLAN_OBJECTIVES) {
+    for (const objective of allCatalogueObjectives()) {
       for (const id of getObjectiveActTools(objective)) {
         if (!(id in ACT_TOOL_CATALOG)) {
           unresolved.push(`${objective.id} -> ${id}`);

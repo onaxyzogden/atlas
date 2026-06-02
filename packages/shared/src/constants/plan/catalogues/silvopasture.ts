@@ -47,7 +47,7 @@ import type {
   PatchRecord,
   PlanStratumObjective,
 } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, dg, obj, patch } from './authoring.js';
+import { ck, ckF, dg, obj, patch } from './authoring.js';
 
 // Decision groups (Decision Groups Reference v1.0; OLOS spec 9.3-9.4) - AUTHORED
 // under the 2026-05-31 extended override ("author meaningful labels"). The
@@ -226,9 +226,14 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s2-pasture-condition-c4',
         'Identify undesirable or weed species in pasture',
       ),
-      ck(
+      ckF(
         'silv-s2-pasture-condition-c5',
         'Estimate current carrying capacity based on pasture condition',
+        {
+          formulaId: 'carrying-capacity-seasonal',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Estimated carrying capacity',
+        },
       ),
       ck(
         'silv-s2-pasture-condition-c6',
@@ -382,9 +387,14 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
     focusedQuestion:
       'Is there sufficient water available to sustain target stocking numbers through the driest months?',
     checklist: [
-      ck(
+      ckF(
         'silv-s3-stock-water-availability-c1',
         'Calculate stock water demand at target stocking by species and season',
+        {
+          formulaId: 'stock-water-demand',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Stock water demand vs supply',
+        },
       ),
       ck(
         'silv-s3-stock-water-availability-c2',
@@ -484,9 +494,14 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s3-forage-productivity-c4',
         'Define supplementary feeding requirements based on gaps',
       ),
-      ck(
+      ckF(
         'silv-s3-forage-productivity-c5',
         'Calculate carrying capacity from forage productivity baseline',
+        {
+          formulaId: 'forage-carrying-capacity',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Forage carrying capacity',
+        },
       ),
     ],
     decisionGroups: [
@@ -522,13 +537,25 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s4-paddock-layout-c3',
         'Define rotation interval and minimum rest period per paddock',
       ),
-      ck(
+      ckF(
         'silv-s4-paddock-layout-c4',
         'Define stocking density per paddock at defined rotation',
+        {
+          formulaId: 'paddock-stocking-density',
+          // Advisory: surfaces a recommended per-paddock stocking figure but
+          // does NOT auto-satisfy - the steward still sets the density.
+          satisfiesWhenComputed: false,
+          resultLabel: 'Recommended stocking density per paddock',
+        },
       ),
-      ck(
+      ckF(
         'silv-s4-paddock-layout-c5',
         'Calculate total carrying capacity of defined paddock system',
+        {
+          formulaId: 'paddock-system-capacity',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Total paddock-system carrying capacity',
+        },
       ),
       ck(
         'silv-s4-paddock-layout-c6',
@@ -1132,9 +1159,16 @@ export const SILVOPASTURE_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = 
         'silv-s7-financial-viability-c3',
         'Map revenue timeline - first sales, annual income at full stocking',
       ),
-      ck(
+      ckF(
         'silv-s7-financial-viability-c4',
         'Calculate break-even point at defined stocking level and market prices',
+        {
+          // Break-even MATH ONLY (infrastructure / stocking cost vs revenue
+          // timeline). No advance-sale / CSRA / salam framing - global covenant.
+          formulaId: 'enterprise-break-even',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Break-even point',
+        },
       ),
       ck(
         'silv-s7-financial-viability-c5',
@@ -1295,9 +1329,14 @@ export const SILVOPASTURE_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] 
         'silv-sec-s3-forage-survey-c2',
         'Assess seasonal forage availability and identify feed gaps across the year',
       ),
-      ck(
+      ckF(
         'silv-sec-s3-forage-survey-c3',
         'Estimate baseline carrying capacity per zone - conservative stocking under current condition',
+        {
+          formulaId: 'carrying-capacity-seasonal',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Baseline carrying capacity',
+        },
       ),
       ck(
         'silv-sec-s3-forage-survey-c4',

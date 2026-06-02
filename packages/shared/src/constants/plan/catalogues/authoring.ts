@@ -14,6 +14,7 @@
 import type {
   AnswerSpec,
   DecisionGroup,
+  ObjectiveFormulaBinding,
   PlanDecisionChecklistItem,
   PlanObjectiveSource,
   PlanStratumId,
@@ -48,6 +49,21 @@ export function ckA(
   answerSpec: AnswerSpec,
 ): PlanDecisionChecklistItem {
   return { id, label, feedsInto: [], optional: false, answerSpec };
+}
+
+/**
+ * Like `ck`, but attaches a `formulaBinding` linking this item to a live
+ * livestock/grazing formula. The Plan ObjectiveDetailPanel mounts the matching
+ * result widget (resolved app-side via formulaCatalog), and when the binding's
+ * `satisfiesWhenComputed` is set a usable result auto-satisfies the item. The
+ * schema field is optional, so plain `ck(...)` items are unaffected.
+ */
+export function ckF(
+  id: string,
+  label: string,
+  formulaBinding: ObjectiveFormulaBinding,
+): PlanDecisionChecklistItem {
+  return { id, label, feedsInto: [], optional: false, formulaBinding };
 }
 
 /**

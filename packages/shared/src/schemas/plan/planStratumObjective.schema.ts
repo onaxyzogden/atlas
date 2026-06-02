@@ -145,6 +145,49 @@ export const AnswerSpecSchema = z.object({
 });
 export type AnswerSpec = z.infer<typeof AnswerSpecSchema>;
 
+/**
+ * Semantic id of a livestock/grazing compute function in the legacy engine
+ * (apps/web/src/features/livestock/*). The app-layer formula catalogue
+ * (apps/web/src/v3/plan/strata/formulaCatalog.ts) joins this id to the real
+ * pure compute fn + a projectId-scoped store selector + a live result widget.
+ * `packages/shared` holds ONLY the id — mirroring `AnswerOptionSetId` and the
+ * objectiveActTools catalogue-id pattern — so shared stays free of app-layer
+ * deps. A cross-package guard test (mirroring actToolCoverage.test.ts) fails on
+ * drift between this enum and the app-layer catalogue.
+ */
+export const ObjectiveFormulaId = z.enum([
+  'carrying-capacity-seasonal', // computeSeasonalCarryingCapacity
+  'paddock-system-capacity', // computeRotationCarryingCapacity
+  'paddock-stocking-density', // computePaddockRecommendedStocking
+  'stock-water-demand', // stock water demand vs supply
+  'forage-carrying-capacity', // carrying capacity from forage DM productivity
+  'enterprise-break-even', // buildLivestockRevenueStream (break-even math only)
+]);
+export type ObjectiveFormulaId = z.infer<typeof ObjectiveFormulaId>;
+
+/**
+ * Optional binding from a checklist item to a live livestock/grazing formula.
+ * The app-layer catalogue resolves `formulaId` to a compute fn + result widget
+ * rendered in the Plan ObjectiveDetailPanel. When `satisfiesWhenComputed` is
+ * true, a usable computed result auto-satisfies this checklist item via the
+ * existing effective-progress path (mirrors `answerSpec`). Surface-neutral:
+ * shared carries only ids/flags; all compute + render lives in apps/web.
+ */
+export const ObjectiveFormulaBindingSchema = z.object({
+  formulaId: ObjectiveFormulaId,
+  /**
+   * When true, a usable computed result (per the app-layer formula's own
+   * `summarize`) auto-satisfies the checklist item carrying this binding.
+   * Absent/false => the widget is advisory only and never flips completion.
+   */
+  satisfiesWhenComputed: z.boolean().optional(),
+  /** Optional heading override for the result widget; catalogue label is the fallback. */
+  resultLabel: z.string().min(1).optional(),
+});
+export type ObjectiveFormulaBinding = z.infer<
+  typeof ObjectiveFormulaBindingSchema
+>;
+
 export const PlanDecisionChecklistItemSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
@@ -177,6 +220,14 @@ export const PlanDecisionChecklistItemSchema = z.object({
    * on every existing item, so the static seed + catalogues validate unchanged.
    */
   answerSpec: AnswerSpecSchema.optional(),
+  /**
+   * Optional binding to a live livestock/grazing formula. The app-layer formula
+   * catalogue resolves it to a compute fn + result widget mounted in the Plan
+   * ObjectiveDetailPanel; when `satisfiesWhenComputed`, a usable result
+   * auto-satisfies this item (mirrors `answerSpec`). Absent on every existing
+   * item, so the static seed + catalogues validate unchanged.
+   */
+  formulaBinding: ObjectiveFormulaBindingSchema.optional(),
 });
 export type PlanDecisionChecklistItem = z.infer<
   typeof PlanDecisionChecklistItemSchema
