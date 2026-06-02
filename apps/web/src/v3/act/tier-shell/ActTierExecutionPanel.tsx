@@ -346,9 +346,9 @@ export default function ActTierExecutionPanel({
       // Read FRESH post-write snapshots: the component's hook values are closed
       // over the pre-recordActivation render and do NOT include the activation
       // just appended; getState() returns the post-write snapshot.
-      const freshActivations = useProtocolStore.getState().activations;
-      const expectedRate =
-        useProtocolStore.getState().expectationsByProject[projectId]?.[template.id];
+      const { activations: freshActivations, expectationsByProject } =
+        useProtocolStore.getState();
+      const expectedRate = expectationsByProject[projectId]?.[template.id];
       evaluateAndRaiseFlags({
         projectId,
         templateId: template.id,

@@ -36,7 +36,7 @@ function makeActivation(
   return {
     severityTier: 'respond',
     recipeSnapshot: {
-      name: overrides.templateId ?? 'Test Protocol',
+      name: overrides.templateId,
       condition: 'Test condition',
       response: 'Test response',
     },
@@ -225,5 +225,54 @@ describe('evaluateAndRaiseFlags', () => {
     expect(calls).toHaveLength(2);
     expect(calls[0]!.observedCount).toBe(5);
     expect(calls[0]!.deviationSign).toBe('over');
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 8 -- project filter: activations for another project are ignored
+  // ---------------------------------------------------------------------------
+
+  it('8. confirmed activations for a different project do not count', () => {
+    const activations: ProtocolActivation[] = [
+      // 5 confirmed but for OTHER project -- must be excluded by the projectId filter.
+      makeActivation({ id: 'h1', projectId: 'other-proj', templateId: 'paddock-rotation-cover-trigger', confirmationStatus: 'confirmed', activatedAt: '2024-06-01T10:00:00.000Z', season: 'summer' }),
+      makeActivation({ id: 'h2', projectId: 'other-proj', templateId: 'paddock-rotation-cover-trigger', confirmationStatus: 'confirmed', activatedAt: '2024-06-02T10:00:00.000Z', season: 'summer' }),
+      makeActivation({ id: 'h3', projectId: 'other-proj', templateId: 'paddock-rotation-cover-trigger', confirmationStatus: 'confirmed', activatedAt: '2024-06-03T10:00:00.000Z', season: 'summer' }),
+      makeActivation({ id: 'h4', projectId: 'other-proj', templateId: 'paddock-rotation-cover-trigger', confirmationStatus: 'confirmed', activatedAt: '2024-06-04T10:00:00.000Z', season: 'summer' }),
+      makeActivation({ id: 'h5', projectId: 'other-proj', templateId: 'paddock-rotation-cover-trigger', confirmationStatus: 'confirmed', activatedAt: '2024-06-05T10:00:00.000Z', season: 'summer' }),
+    ];
+
+    evaluateAndRaiseFlags({
+      projectId: PROJECT,
+      templateId: 'paddock-rotation-cover-trigger',
+      activations,
+      expectedRate: { count: 2, per: 'season' },
+      raiseFlag,
+    });
+
+    // No activations match PROJECT -> empty confirmed set -> no flags.
+    expect(calls).toHaveLength(0);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Test 9 -- status filter: non-confirmed activations are ignored
+  // ---------------------------------------------------------------------------
+
+  it('9. pending_review / false_positive activations do not count', () => {
+    const activations: ProtocolActivation[] = [
+      makeActivation({ id: 'i1', projectId: PROJECT, templateId: 'paddock-rotation-cover-trigger', confirmationStatus: 'pending_review', activatedAt: '2024-06-01T10:00:00.000Z', season: 'summer' }),
+      makeActivation({ id: 'i2', projectId: PROJECT, templateId: 'paddock-rotation-cover-trigger', confirmationStatus: 'false_positive', activatedAt: '2024-06-02T10:00:00.000Z', season: 'summer' }),
+      makeActivation({ id: 'i3', projectId: PROJECT, templateId: 'paddock-rotation-cover-trigger', confirmationStatus: 'false_positive', activatedAt: '2024-06-03T10:00:00.000Z', season: 'summer' }),
+    ];
+
+    evaluateAndRaiseFlags({
+      projectId: PROJECT,
+      templateId: 'paddock-rotation-cover-trigger',
+      activations,
+      expectedRate: { count: 1, per: 'season' },
+      raiseFlag,
+    });
+
+    // No confirmed activations -> empty confirmed set -> no flags.
+    expect(calls).toHaveLength(0);
   });
 });

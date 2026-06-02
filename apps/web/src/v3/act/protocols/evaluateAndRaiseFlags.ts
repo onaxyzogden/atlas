@@ -84,8 +84,10 @@ export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
   }
 
   // 3. Latest confirmed activation (sort descending by activatedAt).
+  // Direct comparison of ISO-8601 UTC strings (all activatedAt values are
+  // produced by new Date().toISOString()), so lexicographic order == time order.
   const sorted = [...confirmed].sort((a, b) =>
-    b.activatedAt.localeCompare(a.activatedAt),
+    a.activatedAt < b.activatedAt ? 1 : a.activatedAt > b.activatedAt ? -1 : 0,
   );
   const latest = sorted[0];
   if (latest === undefined) {
@@ -104,6 +106,11 @@ export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
     windowed = confirmed;
     count = confirmed.length;
   } else if (expectedRate.per === 'season') {
+    // When the project lacks coordinates, season is undefined on every
+    // activation; `undefined === undefined` then windows ALL confirmed firings.
+    // That is the intended fallback -- coordinate-less projects should still
+    // get deviation detection (all-firings window) rather than silent
+    // suppression. Same applies to the cycle branch below.
     windowed = confirmed.filter((a) => a.season === latestSeason);
     count = windowed.length;
   } else {
@@ -123,9 +130,9 @@ export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
   }
 
   // 6. Build and raise two flags (primary + cascade).
-  // Guard: direction and deviationSign are always present when shouldFlag=true,
-  // but noUncheckedIndexedAccess/strict requires explicit guards.
-  if (!result.direction || !result.deviationSign) {
+  // Guard: direction and deviationSign are always present when shouldFlag=true;
+  // explicit undefined checks narrow both to their non-undefined types.
+  if (result.direction === undefined || result.deviationSign === undefined) {
     return;
   }
 
@@ -133,7 +140,7 @@ export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
   const direction = result.direction;
   const deviationSign = result.deviationSign;
 
-  const window = {
+  const flagWindow = {
     ...(latestSeason !== undefined ? { season: latestSeason } : {}),
     ...(latestCycle !== undefined ? { cycleNumber: latestCycle } : {}),
   };
@@ -153,7 +160,7 @@ export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
     deviationSign,
     depth,
     direction,
-    window,
+    window: flagWindow,
     sourceActivationIds,
     ...(expectedRate !== undefined ? { expectedRate } : {}),
   } as const;
