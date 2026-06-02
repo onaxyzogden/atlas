@@ -343,6 +343,47 @@ history**. Per-phase logs hold the detail; the surface in brief:
 ADR [[decisions/2026-05-31-atlas-portfolio-home-p7]] (the epic's only ADR);
 index in [[log]].
 
+## Project-sync hardening + POI resource-flow lines verified (2026-05-31)
+Follow-on to the Portfolio Home epic. A live diagnosis **inverted** the original
+"build the missing wizard->API sync path" premise: project->server sync already
+works (16/17 local projects carry a `serverId`; only public builtins + the `mtc`
+demo lack one, correctly). The real defect was a **double-create race** --
+`syncService.subscribeToProjects()` fired un-awaited, non-idempotent
+`syncProjectCreate` on every add WHILE both wizard create sites also called
+`api.projects.create()` inline (two server rows per wizard project).
+
+- **`syncProjectNow(localId): {ok, serverId?, error?}`** (`lib/syncService.ts`,
+  commit `e729365d`) -- the single canonical create path. Idempotent (`serverId`
+  short-circuit + `isBuiltin` guard), race-free (module-level `inFlightProjectSync`
+  promise map dedupes concurrent calls), awaitable. `subscribeToProjects` and both
+  wizard sites (`WizardStep1Site.tsx`, non-template branch of `NewProjectPage.tsx`)
+  now route through it; the wizard `toast.error`s on `!ok` but still navigates
+  (local-first). `prefillTemplate` branch left on its own server seam.
+- **Per-project sync status** -- `PortfolioProjectList` shows a "Not synced" tag +
+  "Sync now" button for `!serverId && !isBuiltin` rows (-> `handleSyncProject` ->
+  `emitPortfolioToast`); "Synced" / "Sample" affordances otherwise.
+- **POI resource-flow line verified live** -- DEV `__portfolioMap` handle added;
+  placed POI "Smoke Test Depot", `POST .../portfolio-pois/:id/flows` -> 201, the
+  dashed direction-coloured line rendered to "Phase 4 Smoke" behind the "Flows (N)"
+  toggle, each `portfolio-poi-flow-line-output|-input|-bidir` layer exactly once and
+  survived a basemap swap.
+- **Boundary-hydration gap CLOSED (2026-06-01)** -- `hydrateProjectBoundaries()`
+  (`syncService.ts`) back-fills geometry for server-synced projects
+  (`hasParcelBoundary && parcelBoundaryGeojson == null`) via `api.projects.get(serverId)`,
+  writing through `updateProject` under the `isSyncing` guard. `PortfolioMapPage` drives
+  it from a memoized `pendingBoundaryKey` effect (re-fires when the un-hydrated candidate
+  set changes -- covers projects that sync down after mount), with an
+  `inFlightBoundaryHydration` Set deduping overlapping runs. Server-only projects (e.g.
+  Halton Hills) can now be flow/relationship endpoints. Landed in commit `5aa973a4`.
+  *Caveat:* typecheck-clean + diff matches plan, but **not** live-screenshot-verified --
+  the working tree was polluted with unrelated `sourceFeatureRef` WIP that failed the
+  project-wide typecheck and made a trustworthy preview boot impossible; live confirmation
+  of a line drawn to Halton Hills is a recommended next-session check.
+
+ADR [[decisions/2026-05-31-atlas-project-sync-hardening]]; concept
+[[concepts/local-first-architecture]]; see
+[[log/2026-05-31-atlas-project-sync-hardening-poi-flow-verification]].
+
 ## Act Tier Shell -- promoted to the default Act page (2026-05-30)
 
 The Act stage now opens on a **map-centric 4-rail tier shell** by default, the
@@ -948,6 +989,8 @@ All use `persist` middleware with localStorage. Key stores:
 Design-system primitives + token architecture driven by `design-system/ogden-atlas/ui-ux-scholar-audit.md`.
 
 **Token architecture.** OKLCH primitives live at the top of `apps/web/src/styles/tokens.css` (`--l-bg/surface/raised/popover`, `--c-warm-neutral`, `--h-warm-neutral`, plus L/C/H triples for primary/accent/success/warning/error/info). `apps/web/src/styles/dark-mode.css` wraps its surface + semantic overrides in `@supports (color: oklch(0 0 0))` so the hex declarations above the gate remain authoritative on unsupporting browsers. See ADR `2026-04-23-oklch-token-migration.md`.
+
+**Dark-UI de-brown (2026-06-02).** The dark theme read warm-brown on Observe + Plan despite the cool OKLCH ladder. Root cause was NOT the palette: `--color-canvas` (backs the whole Observe dashboard surface, `UnifiedLandStateSurface.module.css`) and `--color-surface-0..3` (domain/rollup cards) were **referenced everywhere yet defined nowhere**, so consumers fell through to hardcoded warm fallbacks (`#181612`, `rgba(31,29,26,A)`). Fix: (1) defined those five tokens cool (Obsidian `#0b0d10` / Mineral-Slate `#14191f` ladder) in **all four** dark scopes of `dark-mode.css` (hex + `prefers-color-scheme` hex + two `@supports` OKLCH blocks, the OKLCH form holding `--c-warm-neutral 0.020` / `--h-warm-neutral 253`); (2) swept the bare warm literals across ~54 `*.module.css` files (`rgba(31,29,26,A)`->`rgba(20,25,31,A)`, `#181612`->`#0b0d10`, inert `var(--color-bg,#1f1d1a)` fallbacks->`#14191f`); (3) cooled the Plan-spine neutral ladder in `v3/plan/spine/spine-theme.css` (accent hues untouched). This **executes the Phase-4 warm-literal sweep deferred** by `2026-05-25-atlas-earth-to-neutral-chrome.md`. Deliberately untouched: `.tsx` map-layer/chart color literals (data-viz semantics, not chrome) and three `color:#1f1d1a` dark-text-on-gold-pill uses. Commit `b5f1c9ab`. ADR `2026-06-02-atlas-dark-ui-de-brown.md`.
 
 **UI primitives.** Three additions to `apps/web/src/components/ui/`:
 
