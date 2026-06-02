@@ -16,7 +16,7 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
-import type { ProtocolStatus, ProtocolActivation } from '@ogden/shared';
+import type { ProtocolStatus, ProtocolActivation, ExpectedRate } from '@ogden/shared';
 
 /**
  * Input to `recordActivation`: a ProtocolActivation with the auto-defaulted
@@ -53,6 +53,18 @@ interface ProtocolState {
    * lifecycle array, which it does not touch.
    */
   activations: ProtocolActivation[];
+
+  /**
+   * Template-keyed expected-rate metadata, read by the deviation engine
+   * alongside activations. Keyed by projectId -> templateId -> ExpectedRate.
+   */
+  expectationsByProject: Record<string, Record<string, ExpectedRate>>;
+
+  /**
+   * Upsert the expected rate for a (projectId, templateId) pair. Immutable
+   * nested spread: does not mutate sibling projects or templates.
+   */
+  setExpectation: (projectId: string, templateId: string, rate: ExpectedRate) => void;
 
   /**
    * Append an immutable ProtocolActivation. Defaults id (crypto.randomUUID()),
@@ -127,11 +139,52 @@ function upsert(
   ];
 }
 
+/**
+ * Plain selector for a single expected rate. Returns undefined when the
+ * (projectId, templateId) pair has not been set. Selecting a primitive /
+ * undefined value is referentially stable — no useMemo needed in hooks.
+ */
+export function selectExpectation(
+  state: ProtocolState,
+  projectId: string,
+  templateId: string,
+): ExpectedRate | undefined {
+  return state.expectationsByProject[projectId]?.[templateId];
+}
+
+/**
+ * useExpectation - reactive hook returning the expected rate for a
+ * (projectId, templateId) pair, or undefined when unset. Selects a single
+ * value (primitive / undefined), which is referentially stable under Zustand
+ * v5 — no useMemo required here (contrast with useTriggeredProtocols which
+ * derives an array and needs useMemo to avoid an infinite re-render loop).
+ */
+export function useExpectation(
+  projectId: string,
+  templateId: string,
+): ExpectedRate | undefined {
+  return useProtocolStore((state) =>
+    selectExpectation(state, projectId, templateId),
+  );
+}
+
 export const useProtocolStore = create<ProtocolState>()(
   persist(
     (set, get) => ({
       records: [],
       activations: [],
+      expectationsByProject: {},
+
+      setExpectation: (projectId, templateId, rate) =>
+        set((state) => ({
+          expectationsByProject: {
+            ...state.expectationsByProject,
+            [projectId]: {
+              ...(state.expectationsByProject[projectId] ?? {}),
+              [templateId]: rate,
+            },
+          },
+        })),
 
       recordActivation: (input) =>
         set((s) => {
@@ -232,19 +285,27 @@ export const useProtocolStore = create<ProtocolState>()(
     }),
     {
       name: 'ogden-protocols',
-      version: 2,
-      // v1 -> v2: gain the empty `activations` slice while preserving the
-      // existing `records` lifecycle array. Version-aware so v1 users are not
-      // wiped (the old `persisted as never` would have dropped activations).
-      // Persist re-merges the action functions after migrate runs, so migrate
-      // only needs to return the persisted data shape; cast through unknown
-      // (the store type includes actions this object intentionally omits).
+      version: 3,
+      // v1 -> v2: gain the empty `activations` slice while preserving `records`.
+      // v2 -> v3: gain the empty `expectationsByProject` slice while preserving
+      // both `records` and `activations`. Version-aware so prior users are not
+      // wiped. Persist re-merges the action functions after migrate runs, so
+      // migrate only needs to return the persisted data shape; cast through
+      // unknown (the store type includes actions this object intentionally omits).
       migrate: (persisted, fromVersion) => {
         const p = (persisted ?? {}) as Partial<ProtocolState>;
         if (fromVersion < 2) {
           return {
             records: p.records ?? [],
             activations: [],
+            expectationsByProject: {},
+          } as unknown as ProtocolState;
+        }
+        if (fromVersion < 3) {
+          return {
+            records: p.records ?? [],
+            activations: p.activations ?? [],
+            expectationsByProject: {},
           } as unknown as ProtocolState;
         }
         return p as unknown as ProtocolState;
@@ -252,6 +313,7 @@ export const useProtocolStore = create<ProtocolState>()(
       partialize: (state) => ({
         records: state.records,
         activations: state.activations,
+        expectationsByProject: state.expectationsByProject,
       }),
     },
   ),
