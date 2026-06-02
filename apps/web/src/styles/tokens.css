@@ -30,7 +30,9 @@
   --l-surface:       21.1%;
   --l-raised:        25.3%;
   --l-popover:       31%;
-  --c-warm-neutral:  0.010;
+  --c-warm-neutral:  0.020;  /* cool-slate chroma — raised from 0.010 so the
+                                near-neutral darks read clearly blue (not muddy/
+                                brown) and harmonize with the blue border ladder */
   --h-warm-neutral:  253;
 
   /* Semantic hue channels (dark-mode targets) — gold + sage at full clarity */

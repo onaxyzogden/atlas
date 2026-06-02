@@ -46,7 +46,7 @@ no change, despite the hue now being cool):
 | `--l-surface` | `21.1%` | Card / panel surface (Mineral Slate `#14191F`) |
 | `--l-raised` | `25.3%` | Raised surface (hover, popover) |
 | `--l-popover` | `31%` | (Reserved — not yet mapped) |
-| `--c-warm-neutral` | `0.010` | Chroma anchor (all elevation tiers) |
+| `--c-warm-neutral` | `0.020` | Chroma anchor (all elevation tiers) — raised from `0.010` so the near-neutral darks read clearly cool-blue (not muddy/brown) and harmonize with the `~0.030` border ladder |
 | `--h-warm-neutral` | `253` | Hue anchor (cool slate-blue) |
 
 > The prior ladder bottomed out at `--l-bg: 9%`, which rendered near-black on
