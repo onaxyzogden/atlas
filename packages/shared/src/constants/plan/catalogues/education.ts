@@ -541,9 +541,14 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s6-adaptive-management-c2', 'Define decision triggers - what performance drives curriculum or infrastructure change'),
       ck('edu-s6-adaptive-management-c3', 'Define program retirement protocol - when a program is discontinued'),
       ck('edu-s6-adaptive-management-c4', 'Document all changes with reason and outcome'),
+      // c5 added 2026-06-02 to meet Authoring Standards v1.4 (5-item floor); the
+      // v1.0 source authored only 4. Mirrors the multi-year comprehensive-review
+      // item every sibling adaptive-management objective carries (offGrid c5,
+      // conservation c5). FLAGGED for operator review.
+      ck('edu-s6-adaptive-management-c5', 'Define multi-year comprehensive review against the program founding educational goals and capacity targets'),
     ],
     decisionGroups: [
-      dg('edu-s6-adaptive-management-dg1', 'Annual review & triggers', ['edu-s6-adaptive-management-c1', 'edu-s6-adaptive-management-c2']),
+      dg('edu-s6-adaptive-management-dg1', 'Annual review & triggers', ['edu-s6-adaptive-management-c1', 'edu-s6-adaptive-management-c2', 'edu-s6-adaptive-management-c5']),
       dg('edu-s6-adaptive-management-dg2', 'Retirement & documentation', ['edu-s6-adaptive-management-c3', 'edu-s6-adaptive-management-c4']),
     ],
     completionGate: 'Adaptive management protocol approved.',
@@ -565,9 +570,15 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       ck('edu-s7-program-launch-c2', 'Define soft launch review criteria - explicit pass/fail checklist'),
       ck('edu-s7-program-launch-c3', 'Define full program launch criteria'),
       ck('edu-s7-program-launch-c4', 'Define program addition sequence - add complexity after simpler programs are tested'),
+      // c5 added 2026-06-02 to meet Authoring Standards v1.4 (5-item floor); the
+      // v1.0 source authored only 4. Makes explicit the fail path of the hard gate
+      // the objective already names (scopeNotes), mirroring the go/no-go item in
+      // sibling sequencing objectives (offGrid systems-establishment c6). FLAGGED
+      // for operator review.
+      ck('edu-s7-program-launch-c5', 'Define pause and remediation protocol if soft launch review criteria are not met - what halts progression to full launch'),
     ],
     decisionGroups: [
-      dg('edu-s7-program-launch-dg1', 'Soft launch scope & criteria', ['edu-s7-program-launch-c1', 'edu-s7-program-launch-c2']),
+      dg('edu-s7-program-launch-dg1', 'Soft launch scope & criteria', ['edu-s7-program-launch-c1', 'edu-s7-program-launch-c2', 'edu-s7-program-launch-c5']),
       dg('edu-s7-program-launch-dg2', 'Full launch & addition sequence', ['edu-s7-program-launch-c3', 'edu-s7-program-launch-c4']),
     ],
     completionGate:

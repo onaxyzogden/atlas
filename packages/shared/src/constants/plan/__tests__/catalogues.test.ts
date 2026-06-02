@@ -20,6 +20,11 @@ import {
   ORCHARD_SECONDARY_OBJECTIVES,
   ORCHARD_SECONDARY_PATCHES,
   NURSERY_SECONDARY_OBJECTIVES,
+  HOMESTEAD_PRIMARY_OBJECTIVES,
+  EDUCATION_PRIMARY_OBJECTIVES,
+  CONSERVATION_PRIMARY_OBJECTIVES,
+  MARKET_GARDEN_PRIMARY_OBJECTIVES,
+  OFF_GRID_PRIMARY_OBJECTIVES,
 } from '../catalogues/index.js';
 import {
   resolveProjectObjectives,
@@ -39,9 +44,14 @@ const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...SILVOPASTURE_SECONDARY_OBJECTIVES,
   ...ORCHARD_PRIMARY_OBJECTIVES,
   ...ORCHARD_SECONDARY_OBJECTIVES,
+  ...HOMESTEAD_PRIMARY_OBJECTIVES,
+  ...EDUCATION_PRIMARY_OBJECTIVES,
+  ...CONSERVATION_PRIMARY_OBJECTIVES,
+  ...MARKET_GARDEN_PRIMARY_OBJECTIVES,
+  ...OFF_GRID_PRIMARY_OBJECTIVES,
 ];
 
-const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH|NRS)-S[1-7]\.\d+$/;
+const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH|NRS|HMS|EDU|CON|MGD|OFG)-S[1-7]\.\d+$/;
 
 const PATCH_REF = /^(RES|SILV|ORCH)>(U|RF)-S[1-7]\.\d+$/;
 
@@ -179,6 +189,41 @@ describe('catalogue conformance - source/layer discipline', () => {
       expect(o.source, o.id).toBe('secondary');
       expect(o.sourceTypeId, o.id).toBe('silvopasture');
       expect(o.secondaryClass, o.id).toBe('additive');
+    }
+  });
+
+  it('homestead primary objectives are source=primary, sourceTypeId=homestead', () => {
+    for (const o of HOMESTEAD_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('homestead');
+    }
+  });
+
+  it('education primary objectives are source=primary, sourceTypeId=education', () => {
+    for (const o of EDUCATION_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('education');
+    }
+  });
+
+  it('conservation primary objectives are source=primary, sourceTypeId=conservation', () => {
+    for (const o of CONSERVATION_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('conservation');
+    }
+  });
+
+  it('market garden primary objectives are source=primary, sourceTypeId=market_garden', () => {
+    for (const o of MARKET_GARDEN_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('market_garden');
+    }
+  });
+
+  it('off-grid primary objectives are source=primary, sourceTypeId=off_grid', () => {
+    for (const o of OFF_GRID_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('off_grid');
     }
   });
 });
