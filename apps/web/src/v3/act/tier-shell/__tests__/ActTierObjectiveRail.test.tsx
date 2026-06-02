@@ -104,6 +104,39 @@ describe('ActTierObjectiveRail', () => {
     expect(screen.queryByText(STRATUM.summary)).toBeNull();
   });
 
+  it('broadened gate: flow block lights via the compost act-tool on a non-resource-flow id', () => {
+    // Regression for the broadened gate. The farm waste-vector objective
+    // `rf-s6-enterprise-integration` has a `rf-` id (NOT "resource-flow") and a
+    // neutral prose here, so the OLD id-substring gate would have missed it. It
+    // resolves to the s6-integration default toolset (incl. `compost`) via
+    // getObjectiveActTools, so the broadened tool-signal lights the flow block.
+    const toolGatedObjective = {
+      ...OBJECTIVE,
+      id: "rf-s6-enterprise-integration",
+      stratumId: "s6-integration-design",
+      shortTitle: "Enterprise integration",
+      title: "Enterprise integration",
+      focusedQuestion: "How do the enterprises connect into one system?",
+    } as PlanStratumObjective;
+    useClosedLoopStore.setState({
+      materialFlows: [
+        {
+          id: "g1",
+          projectId: "proj-1",
+          label: "Manure to pasture",
+          materialKind: "manure",
+          sourceId: "feat-a",
+          sinkId: "feat-b",
+          origin: "list",
+          createdAt: "2026-06-02T00:00:00.000Z",
+        },
+      ],
+    });
+    renderRail("objectives", 0, toolGatedObjective.id, [toolGatedObjective]);
+    expect(screen.getByText(/Material flows: 1/)).toBeTruthy();
+    expect(screen.getByText(/1 closed-loop/)).toBeTruthy();
+  });
+
   it('surfaces a live closed-loop flow count for resource-flow objectives', () => {
     const flowObjective = {
       ...OBJECTIVE,

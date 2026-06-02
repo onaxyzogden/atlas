@@ -9,7 +9,7 @@
 // standing-protocol library (ProtocolLayerPanel, reused from the Plan spine).
 // An aggregate amber badge on the Protocols segment flags triggered protocols.
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type {
   PlanStratum,
   PlanStratumObjective,
@@ -20,6 +20,7 @@ import ActTierObjectiveCard from './ActTierObjectiveCard.js';
 import ActRailModeToggle, { type RailMode } from './ActRailModeToggle.js';
 import type { ObjectiveProgress } from './objectiveProgress.js';
 import { resolveActTools } from './actToolCatalog.js';
+import { getSourceTag, type SourceTagKind } from '../../plan/strata/sourceTag.js';
 import ProtocolLayerPanel from '../../plan/strata/ProtocolLayerPanel.js';
 import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
 import styles from './ActTierShell.module.css';
@@ -28,12 +29,49 @@ import detail from './ActTierObjectiveRail.module.css';
 /** Max act-tool chips shown inline before collapsing to a "+N more" note. */
 const MAX_TOOL_CHIPS = 6;
 
-/** v1 heuristic: which objectives surface the live closed-loop flow block.
- *  Resource-flow / waste-vector objectives (e.g. homestead `hms-s2-resource-flows`).
- *  Material flows are project-scoped, not objective-scoped, so this is an
- *  id-pattern gate rather than a structural link. */
-function isResourceFlowObjective(objectiveId: string): boolean {
-  return /resource-flow|waste|material-flow/i.test(objectiveId);
+// Source filter (All / Universal / Primary / Secondary) — parity with the Plan
+// ObjectiveColumn. Purely a view filter over the rendered list; it never
+// touches progress, status, or the map markers. The bar only shows when this
+// stratum actually mixes sources, so an all-universal stratum stays uncluttered.
+type SourceFilter = 'all' | SourceTagKind;
+const SOURCE_FILTERS: ReadonlyArray<{ key: SourceFilter; label: string }> = [
+  { key: 'all', label: 'All' },
+  { key: 'universal', label: 'Universal' },
+  { key: 'primary', label: 'Primary' },
+  { key: 'secondary', label: 'Secondary' },
+];
+
+/** Act-tool ids that mark an objective as material-cycling / closed-loop work.
+ *  `compost` (the Recycle-icon `observe.built-environment.compost` tool) is the
+ *  structural closed-loop signal: it is resolved for the s6 integration tier
+ *  (default toolset) across ALL project types, plus soil-improvement and
+ *  forage-improvement objectives. This is what lets the flow block light on the
+ *  regenerative_farm waste-vector objective `rf-s6-enterprise-integration`,
+ *  whose `rf-` id prefix the old substring gate missed. */
+const FLOW_TOOL_IDS: ReadonlySet<string> = new Set(['compost']);
+
+/** Tight prose signal (focused question / title) for waste-vector / closed-loop
+ *  objectives that carry neither a `resource-flow`-style id nor the compost tool.
+ *  Kept narrow to avoid false positives on incidental "minimise waste" copy. */
+const FLOW_PROSE_RE =
+  /waste-to-input|closed[- ]loop|material flow|feedback loop|nutrient cycl/i;
+
+/** Which objectives surface the live closed-loop flow block. Broadened from the
+ *  original id-only substring gate (which missed the `rf-`-prefixed farm
+ *  waste-vector objective) to an OR over three signals -- material flows are
+ *  project-scoped, not objective-scoped, so this stays a heuristic, but it now
+ *  keys off the objective's resolved act-tools and prose rather than its id alone:
+ *    1. id pattern (keeps homestead `hms-s2-resource-flows` lit);
+ *    2. resolved act-tools include a material-cycling tool (`compost`);
+ *    3. focused-question / title prose names a closed-loop / waste-vector concern.
+ */
+function isResourceFlowObjective(
+  objective: PlanStratumObjective,
+  toolIds: readonly string[],
+): boolean {
+  if (/resource-flow|waste|material-flow/i.test(objective.id)) return true;
+  if (toolIds.some((id) => FLOW_TOOL_IDS.has(id))) return true;
+  return FLOW_PROSE_RE.test(`${objective.focusedQuestion} ${objective.title}`);
 }
 
 const EMPTY_PROGRESS: ObjectiveProgress = {
@@ -78,6 +116,29 @@ export default function ActTierObjectiveRail({
   secondaryTypeIds,
 }: Props) {
   const eyebrow = stratum ? `Stratum S${stratum.ordinal}` : 'Stratum';
+
+  // Source filter (parity with Plan ObjectiveColumn). The bar only shows when
+  // this stratum mixes sources; on an all-universal stratum it would be inert
+  // noise. `effectiveFilter` guards against a sticky selection hiding every
+  // card after the steward switches to a stratum lacking that source. The
+  // filter never feeds progress/status or the map markers.
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const sourceKinds = useMemo(() => {
+    const kinds = new Set<SourceTagKind>();
+    for (const o of objectives) kinds.add(getSourceTag(o).kind);
+    return kinds;
+  }, [objectives]);
+  const effectiveFilter: SourceFilter =
+    sourceFilter !== 'all' && sourceKinds.has(sourceFilter)
+      ? sourceFilter
+      : 'all';
+  const visibleObjectives = useMemo(
+    () =>
+      effectiveFilter === 'all'
+        ? objectives
+        : objectives.filter((o) => getSourceTag(o).kind === effectiveFilter),
+    [objectives, effectiveFilter],
+  );
 
   // Resolve the selected objective (header replaces stratum content when set).
   const activeObjective = activeObjectiveId
@@ -196,7 +257,10 @@ export default function ActTierObjectiveRail({
                 </div>
               )}
 
-              {isResourceFlowObjective(activeObjective.id) && (
+              {isResourceFlowObjective(
+                activeObjective,
+                tools.map((t) => t.id),
+              ) && (
                 <div className={detail.flowBlock}>
                   {flows.length > 0 ? (
                     <span className={detail.flowValue}>
@@ -224,11 +288,40 @@ export default function ActTierObjectiveRail({
               )}
             </div>
           )}
+          {sourceKinds.size > 1 && (
+            <div
+              role="group"
+              aria-label="Filter objectives by source"
+              className={styles.railFilterBar}
+            >
+              {SOURCE_FILTERS.filter(
+                (f) => f.key === 'all' || sourceKinds.has(f.key),
+              ).map((f) => {
+                const isActive = effectiveFilter === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    className={styles.railFilterPill}
+                    data-active={isActive}
+                    aria-pressed={isActive}
+                    onClick={() => setSourceFilter(f.key)}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           {objectives.length === 0 ? (
             <p className={styles.railEmpty}>No objectives in this stratum.</p>
+          ) : visibleObjectives.length === 0 ? (
+            <p className={styles.railEmpty}>
+              No {effectiveFilter} objectives in this stratum.
+            </p>
           ) : (
             <div className={styles.railList}>
-              {objectives.map((objective) => (
+              {visibleObjectives.map((objective) => (
                 <ActTierObjectiveCard
                   key={objective.id}
                   objective={objective}
