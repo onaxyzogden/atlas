@@ -23,11 +23,14 @@ import type {
   ObserveDataPoint,
   StandardProtocolTemplate,
   ConfirmationStatus,
+  SeasonName,
+  Season,
 } from '@ogden/shared';
 import {
   getObjectiveEvidence,
   getPrimaryDomainForObjective,
   resolveSeverityTier,
+  deriveClimateContext,
 } from '@ogden/shared';
 import {
   usePlanStratumProgressStore,
@@ -59,11 +62,20 @@ import {
 } from '../../observation-needs/observationNeed.js';
 import { useObservationNeeds } from '../../observation-needs/useObservationNeeds.js';
 import type { ObserveModule } from '../../observe/types.js';
+import { useObserveCycleStore } from '../../../store/observeCycleStore.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
 // array reference when the project has no progress for this objective yet.
 const EMPTY_IDS: readonly string[] = Object.freeze([]);
+
+/**
+ * Map the astronomical Season (which uses 'fall') to the protocol-schema
+ * SeasonName (which uses 'autumn'). Only 'fall' differs; the rest are identical.
+ */
+function toSeasonName(season: Season): SeasonName {
+  return season === 'fall' ? 'autumn' : season;
+}
 
 /**
  * Is one evidence descriptor satisfied by the persisted capture?
@@ -158,6 +170,7 @@ export default function ActTierExecutionPanel({
   const markTriggered = useProtocolStore((s) => s.markTriggered);
   const [pendingTrigger, setPendingTrigger] =
     useState<StandardProtocolTemplate | null>(null);
+  const getCurrentCycle = useObserveCycleStore((s) => s.getCurrentCycle);
 
   // Per-objective activity feed. Subscribe to the raw byProject map and
   // useMemo-filter (mirrors useDomainPoints) so the selector never returns a
@@ -296,6 +309,11 @@ export default function ActTierExecutionPanel({
   function resolveTrigger(confirmationStatus: ConfirmationStatus) {
     const template = pendingTrigger;
     if (!template) return;
+    const season =
+      metadata?.centerLat != null
+        ? toSeasonName(deriveClimateContext(metadata.centerLat, new Date()).season)
+        : undefined;
+    const cycleNumber = domainId ? getCurrentCycle(projectId, domainId) : undefined;
     recordActivation({
       projectId,
       templateId: template.id,
@@ -307,6 +325,8 @@ export default function ActTierExecutionPanel({
         response: template.response,
       },
       triggerContext: 'act_proof_capture',
+      season,
+      cycleNumber,
     });
     if (confirmationStatus === 'confirmed') {
       markTriggered(projectId, template.id);

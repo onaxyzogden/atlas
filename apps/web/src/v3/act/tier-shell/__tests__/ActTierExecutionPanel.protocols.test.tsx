@@ -64,6 +64,7 @@ import { useProtocolStore } from '../../../../store/protocolStore.js';
 import { usePlanStratumProgressStore } from '../../../../store/planStratumStore.js';
 import { useActEvidenceStore } from '../../../../store/actEvidenceStore.js';
 import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
+import { useObserveCycleStore } from '../../../../store/observeCycleStore.js';
 import ActTierExecutionPanel from '../ActTierExecutionPanel.js';
 
 const PROJECT_ID = 'test-proj-c3';
@@ -137,6 +138,7 @@ function resetAll() {
   usePlanStratumProgressStore.setState({ byProject: {} });
   useActEvidenceStore.setState({ byProject: {} });
   useObserveDataPointStore.setState({ byProject: {} });
+  useObserveCycleStore.setState({ byProject: {} });
   window.localStorage.clear();
 }
 
@@ -221,5 +223,59 @@ describe('ActTierExecutionPanel - Trigger Recognition', () => {
         (r) => r.projectId === PROJECT_ID && r.templateId === TRIGGER_TEMPLATE_ID,
       );
     expect(record?.status).toBe('active');
+  });
+});
+
+describe('ActTierExecutionPanel - temporal bucket stamping', () => {
+  it('centerLat present -> season + cycleNumber stamped on confirmed activation', () => {
+    // Seed the project with a northern-hemisphere centerLat so deriveClimateContext
+    // can resolve a season. Patch metadata after seedProject() to add centerLat.
+    useProjectStore.setState((s) => ({
+      projects: s.projects.map((p) =>
+        p.id === PROJECT_ID
+          ? { ...p, metadata: { ...p.metadata, centerLat: 45, centerLng: -75 } }
+          : p,
+      ),
+    }));
+
+    // Advance the hydrology cycle once so cycleNumber is 1 (non-default).
+    // s5-water-strategy resolves to 'hydrology' domain.
+    useObserveCycleStore.getState().advanceCycle(PROJECT_ID, 'hydrology', 'plan_revision_confirmed');
+    const expectedCycle = useObserveCycleStore
+      .getState()
+      .getCurrentCycle(PROJECT_ID, 'hydrology');
+
+    satisfyReadiness();
+    renderPanel();
+
+    fireEvent.click(screen.getByText('Record observation'));
+    fireEvent.click(screen.getByText('Confirm'));
+
+    const activations = useProtocolStore.getState().activations;
+    expect(activations).toHaveLength(1);
+
+    // season must be one of the four valid SeasonName values (not fixed — wall-clock dependent).
+    expect(['spring', 'summer', 'autumn', 'winter']).toContain(
+      activations[0]!.season,
+    );
+
+    // cycleNumber must be the numeric cycle returned by getCurrentCycle.
+    expect(typeof activations[0]!.cycleNumber).toBe('number');
+    expect(activations[0]!.cycleNumber).toBe(expectedCycle);
+  });
+
+  it('centerLat absent -> season is undefined, activation still recorded', () => {
+    // Default seedProject() has no centerLat in metadata — season stays undefined.
+    satisfyReadiness();
+    renderPanel();
+
+    fireEvent.click(screen.getByText('Record observation'));
+    fireEvent.click(screen.getByText('Confirm'));
+
+    const activations = useProtocolStore.getState().activations;
+    expect(activations).toHaveLength(1);
+    expect(activations[0]!.season).toBeUndefined();
+    // cycleNumber is still stamped (domainId is non-null from s5-water-strategy -> hydrology).
+    expect(typeof activations[0]!.cycleNumber).toBe('number');
   });
 });
