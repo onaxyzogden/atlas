@@ -91,8 +91,43 @@ and committed with `git commit -F` (here-strings break on punctuation on Windows
 PowerShell). ASCII-only; JS apostrophes avoided/double-quoted. Commit-only -- NOT
 pushed (branch is force-pushed/rebased externally; push is the operator's call).
 
+## Ratification + upstream propagation (operator request, same day)
+
+Operator asked to (1) review/ratify the three flagged items and (2) raise the 4-item
+undershoot upstream in the source `.docx` so a future re-encode does not reintroduce it.
+
+**Ratification.** Two items stand as authored (homestead contingency-response,
+edu-s7 gate-fail pause). The edu-s6 item was tightened: the sibling archetype uses a
+concrete cycle (offGrid c5 "3-year", conservation c5 "5-year"), so vague "multi-year"
+became **"Define 3-year comprehensive review against founding educational goals and
+capacity targets"** (also drops the awkward apostrophe-avoidance phrase "the program
+founding"). Code change committed `cdb61d74` (education.ts, 1 line).
+
+**Upstream `.docx`.** The same 5th item was inserted into the two master source
+catalogues in `Documents/OLOS New Spec docs/`
+(`OLOS_Homestead_Objective_Catalogue_v1.1.docx`,
+`OLOS_Education_Objective_Catalogue_v1.0.docx`) via python-docx:
+- Timestamped `.bak` backups taken first (`.20260602-170955.bak`).
+- Each checklist lives inside a table; the inserted paragraph was a deep-copy of the
+  objective's last existing checklist item, so it inherits the exact `ListParagraph`
+  style + `numPr` (numId=2) and renders as numbered item 5. The doc house style uses
+  an em-dash (U+2014) clause separator, matched in the inserted text (the edu-s6 item
+  is single-clause, no dash); the in-repo `.ts` keeps the repo ASCII " - " convention.
+- Disambiguation: each title occurs twice in the doc (detail block + bottom objective
+  index table); the script uniquely targets the occurrence followed by a "Checklist"
+  label within 8 paragraphs, guarded to mutate only when exactly 4 items are present.
+- Verified post-edit: both docs re-open cleanly (not corrupted), each target now has 5
+  items, the new paragraph carries ListParagraph/numPr, and re-running is idempotent
+  ("already present, SKIP").
+
+> Recommendation (operator's call): bump the source doc version labels (Homestead
+> v1.1 -> v1.2, Education v1.0 -> v1.1) to reflect the authored additions; left as-is
+> to avoid breaking filename references. Backups preserve the pre-edit state.
+
 ## State after
 
 All 12 selectable primaries' catalogues (those with an encoded layer) are now exercised
 by the runtime conformance rubric, not only by TypeScript. The food-forest adoption
-debt is closed. Three operator-review flags stand on the derived checklist items.
+debt is closed. The three derived checklist items are ratified (one reworded) and have
+been propagated into the master `.docx` sources, so a re-encode reproduces 5 items
+rather than reintroducing the undershoot.
