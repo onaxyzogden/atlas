@@ -41,6 +41,13 @@ import type { ObjectiveReviewFlag } from '@ogden/shared';
  * Input to `raiseFlag`: an ObjectiveReviewFlag with the auto-defaulted fields
  * made optional. Callers supply semantic fields; tests may pin `id` /
  * `raisedAt` for determinism.
+ *
+ * NOTE: this type intentionally still permits the closing-stamp fields
+ * (`resolvedAt`, `dismissedAt`, `dormantSince`, etc.) so tests can construct a
+ * pre-closed flag without a dedicated setter (dormancy setting lands in T1.9).
+ * Production raise sites (the T1.6 evaluation engine) must pass ONLY semantic
+ * fields -- passing a closing stamp here creates a flag that is born non-open,
+ * which silently skips dedup and the open-flag counts. See `raiseFlag`.
  */
 export type RaiseFlagInput = Omit<
   ObjectiveReviewFlag,
@@ -67,6 +74,10 @@ export interface ReviewFlagState {
    * and refresh its window. Otherwise append a new flag.
    *
    * "Open" = no resolvedAt, no dismissedAt, no dormantSince.
+   *
+   * Production callers must pass ONLY semantic fields: a closing stamp in the
+   * input creates a flag that is born non-open (skips dedup + open counts).
+   * See the RaiseFlagInput note above.
    */
   raiseFlag: (input: RaiseFlagInput) => void;
 
@@ -216,17 +227,17 @@ export const useReviewFlagStore = create<ReviewFlagState>()(
         set((state) => ({
           byProject: {
             ...state.byProject,
-            [projectId]: (state.byProject[projectId] ?? []).map((f) => {
-              if (f.id !== flagId) return f;
-              const patched: ObjectiveReviewFlag = {
-                ...f,
-                resolvedAt: new Date().toISOString(),
-              };
-              if (parameterDelta !== undefined) {
-                patched.resolutionParameterDelta = parameterDelta;
-              }
-              return patched;
-            }),
+            [projectId]: (state.byProject[projectId] ?? []).map((f) =>
+              f.id === flagId
+                ? {
+                    ...f,
+                    resolvedAt: new Date().toISOString(),
+                    ...(parameterDelta !== undefined
+                      ? { resolutionParameterDelta: parameterDelta }
+                      : {}),
+                  }
+                : f,
+            ),
           },
         })),
 
