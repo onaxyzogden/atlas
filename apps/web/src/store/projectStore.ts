@@ -272,6 +272,28 @@ export interface ProjectAttachment {
   data: unknown | null;
 }
 
+/** Tally returned by the batch lifecycle actions. */
+export interface BatchResult {
+  ok: number;
+  failed: number;
+}
+
+/** Run a per-id async action across many ids concurrently, tolerating
+ *  individual failures, and tally the outcomes. Exported for unit testing. */
+export async function runBatch(
+  ids: string[],
+  op: (id: string) => Promise<void>,
+): Promise<BatchResult> {
+  const results = await Promise.allSettled(ids.map((id) => op(id)));
+  let ok = 0;
+  let failed = 0;
+  for (const r of results) {
+    if (r.status === 'fulfilled') ok += 1;
+    else failed += 1;
+  }
+  return { ok, failed };
+}
+
 interface ProjectState {
   projects: LocalProject[];
   activeProjectId: string | null;
@@ -285,6 +307,15 @@ interface ProjectState {
   deleteProject: (id: string) => Promise<void>;
   archiveProject: (id: string) => Promise<void>;
   unarchiveProject: (id: string) => Promise<void>;
+  /**
+   * Batch variants of the three lifecycle actions — loop the per-id action
+   * with `Promise.allSettled` and return an `{ ok, failed }` tally so the UI
+   * can surface one summary toast. Each per-id action already handles API
+   * sync, cascade cleanup, builtin no-op, and `activeProjectId` clearing.
+   */
+  archiveProjects: (ids: string[]) => Promise<BatchResult>;
+  unarchiveProjects: (ids: string[]) => Promise<BatchResult>;
+  deleteProjects: (ids: string[]) => Promise<BatchResult>;
   /**
    * Duplicate an existing project — clones the project metadata + parcel
    * boundary + all design-intent entities (zones, structures, paths,
@@ -577,6 +608,10 @@ export const useProjectStore = create<ProjectState>()(
           ),
         }));
       },
+
+      archiveProjects: (ids) => runBatch(ids, get().archiveProject),
+      unarchiveProjects: (ids) => runBatch(ids, get().unarchiveProject),
+      deleteProjects: (ids) => runBatch(ids, get().deleteProject),
 
       duplicateProject: (sourceId, overrideName) => {
         const source = get().projects.find((p) => p.id === sourceId);
