@@ -17,7 +17,6 @@ import type {
 } from '@ogden/shared';
 import { enterprisesForProjectTypes, isCyclicalReviewDue } from '@ogden/shared';
 import type { Project } from '../../types.js';
-import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
 import { useCyclicalReviewStore } from '../../../store/cyclicalReviewStore.js';
 import ObjectiveMap from '../../olos/map/ObjectiveMap.js';
@@ -49,6 +48,16 @@ interface Props {
   status: PlanStratumObjectiveStatus;
   project: Project | null;
   onBackToStratum: (stratum: PlanStratum) => void;
+  /**
+   * This objective's effective completed checklist ids (stored progress UNIONED
+   * with wizard-derived / answerSpec / formula auto-satisfy). Computed once in
+   * PlanStratumShell via `useEffectiveChecklistProgress` and threaded down so the
+   * detail panel reflects the SAME completion the stratum status engine and the
+   * Act tier-shell use (e.g. s1-vision-c1/c4 satisfied by the creation wizard's
+   * `projectTypeRecord`). Replaces the previous raw `getCompletedItemIds` read,
+   * which never ran the answerSpec auto-satisfy.
+   */
+  completedItemIds: readonly string[];
   /** Slice 1.12 — items the Vision Builder bridge has pre-satisfied. */
   visionDerivedMap?: VisionDerivedMap;
 }
@@ -60,6 +69,7 @@ export default function ObjectiveDetailPanel({
   status,
   project,
   onBackToStratum,
+  completedItemIds,
   visionDerivedMap,
 }: Props) {
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
@@ -83,12 +93,10 @@ export default function ObjectiveDetailPanel({
     return enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds).length > 0;
   }, [primaryTypeId, secondaryTypeIds]);
 
-  // Subscribe to just this objective's completion slice. Phase B made the Plan
-  // checklist read-only ("decisions are worked through in Act"), so the panel
-  // only READS completion state here — no toggling wiring.
-  const completedItemIds = usePlanStratumProgressStore((s) =>
-    s.getCompletedItemIds(projectId, objective.id),
-  );
+  // `completedItemIds` arrives as a prop (effective progress, computed once in
+  // PlanStratumShell). Phase B made the Plan checklist read-only ("decisions are
+  // worked through in Act"), so the panel only READS completion state — no
+  // toggling wiring.
 
   // Slice 1.11 — cyclical review wiring. Subscribe to this objective's
   // review record so the banner mounts/unmounts the moment the steward

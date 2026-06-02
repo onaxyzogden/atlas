@@ -64,6 +64,10 @@ import '../spine/spine-theme.css';
 const HIGHLIGHT_DURATION_MS = 3000;
 const S1_STRATUM_ID = 's1-project-foundation';
 
+// Stable empty array for the ObjectiveDetailPanel `completedItemIds` default, so
+// an objective with no effective progress does not feed a fresh array each render.
+const EMPTY_COMPLETED: readonly string[] = [];
+
 export default function PlanStratumShell() {
   const navigate = useNavigate();
   // Slice 1.3 routes — `plan/stratum/$stratumId` and
@@ -741,6 +745,9 @@ export default function PlanStratumShell() {
             status={objectiveStatuses[activeObjective.id] ?? 'locked'}
             project={project}
             onBackToStratum={navigateToStratum}
+            completedItemIds={
+              effectiveProgress.byObjective[activeObjective.id] ?? EMPTY_COMPLETED
+            }
             visionDerivedMap={derivedMap}
           />
         ) : (
