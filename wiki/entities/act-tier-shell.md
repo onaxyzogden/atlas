@@ -93,14 +93,24 @@ show-everything tool strip with an objective-conditional, categorized rail
   throughout. For resource-flow objectives it also shows a **live closed-loop
   material-flow count** ("N flows, M closed-loop") read from `useClosedLoopStore`
   scoped to the project. The flow-block gate (`isResourceFlowObjective`, broadened
-  in commit `4e4b9b34`, [[log/2026-06-02-atlas-act-rail-flow-gate-broaden]]) is an
-  OR over three signals: the id pattern (`/resource-flow|waste|material-flow/`,
-  matching homestead `hms-s2-resource-flows`); the resolved act-tools including the
-  `compost` material-cycling tool (the s6-integration default toolset carries it
-  across ALL project types, so the regenerative_farm `rf-s6-enterprise-integration`
-  objective now lights -- closing the prior id-only gap -- plus soil/forage
-  improvement); and a tight focused-question/title prose match
-  (`waste-to-input|closed[- ]loop|material flow|feedback loop|nutrient cycl`). New sibling stylesheet
+  in commit `4e4b9b34` then `35e8cd3c`,
+  [[log/2026-06-02-atlas-act-rail-flow-gate-broaden]] /
+  [[log/2026-06-02-atlas-act-rail-flow-gate-maximalist]]) is an OR over three
+  signals: the id pattern (`/resource-flow|waste|material-flow/`, matching homestead
+  `hms-s2-resource-flows`); the resolved act-tools including ANY member of the
+  **maximalist material source/sink set** `FLOW_TOOL_IDS` (17 ids:
+  compost/fertility-unit; watercourse/spring/storage/swale/sink/tanks/wells;
+  crops/orchards/beds; paddocks/pasture/barns; harvest/livestock) -- so water,
+  production, livestock and integration objectives all light, not just compost-
+  bearing ones (deliberate operator choice favouring discoverability over signal
+  density; flows are project-scoped so the block degrades gracefully to "No material
+  flows recorded yet", making breadth low-cost); and a focused-question/title prose
+  match (`waste-to-input|closed[- ]loop|material flow|feedback loop|nutrient cycl`
+  plus `grey[- ]?water|rainwater harvest|water re-?use|water recycl` for greywater /
+  water-reuse objectives that resolve to no flow tool). The gate stays a gate --
+  form-only objectives (e.g. `s1-vision`) stay dark. No dedicated greywater /
+  flow-connector Act tool exists yet; when one is added its id becomes the strongest
+  flow signal and should join `FLOW_TOOL_IDS`. New sibling stylesheet
   `ActTierObjectiveRail.module.css` holds the objective-detail classes so
   `ActTierShell.module.css` (foreign WIP) stays untouched.
 - `ActTierMapMarkers.tsx` — per-objective markers (real geometry,
