@@ -85,45 +85,6 @@
   padding-inline: var(--space-3);
 }
 
-/* ─── Search trigger ───────────────────────────────────────────────────── */
-.searchTrigger {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1\.5, 6px);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-1) var(--space-3);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-size: var(--text-xs);
-  min-width: 160px;
-  transition: border-color var(--duration-base) var(--ease-default),
-              box-shadow var(--duration-base) var(--ease-default);
-}
-
-.searchTrigger:hover {
-  border-color: var(--color-neutral-300);
-}
-
-.searchTrigger:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-}
-
-.searchPlaceholder {
-  opacity: 0.6;
-}
-
-.searchKbd {
-  margin-left: auto;
-  font-size: 10px;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: var(--color-active-overlay);
-  font-family: var(--font-mono);
-}
-
 /* ─── Icon buttons ─────────────────────────────────────────────────────── */
 .iconButton {
   background: none;
@@ -216,15 +177,6 @@
   .header {
     padding-inline: var(--space-3);
     gap: var(--space-2);
-  }
-
-  .searchTrigger {
-    min-width: auto;
-    padding: var(--space-1) var(--space-2);
-  }
-
-  .searchKbd {
-    display: none;
   }
 
   .logoSub {

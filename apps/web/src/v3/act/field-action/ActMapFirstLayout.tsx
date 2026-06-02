@@ -40,7 +40,6 @@ import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActOpsDashboard from './ActOpsDashboard.js';
 import ViewAObjectiveExecution from './ViewAObjectiveExecution.js';
-import ProofSyncIndicator from './proof/ProofSyncIndicator.js';
 import ActShellToggle from './ActShellToggle.js';
 import css from './ActMapFirstLayout.module.css';
 
@@ -100,9 +99,6 @@ export default function ActMapFirstLayout({
           </div>
         </div>
         <aside className={css.panel} aria-label="Field actions">
-          <div className={css.panelTop}>
-            <ProofSyncIndicator />
-          </div>
           <div className={css.panelBody}>
             {objectiveId ? (
               <ViewAObjectiveExecution projectId={id} objectiveId={objectiveId} />

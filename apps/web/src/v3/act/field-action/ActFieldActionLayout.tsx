@@ -17,7 +17,6 @@ import { useMemo } from 'react';
 import ActShellToggle from './ActShellToggle.js';
 import ViewBDashboard from './ViewBDashboard.js';
 import ViewAObjectiveExecution from './ViewAObjectiveExecution.js';
-import ProofSyncIndicator from './proof/ProofSyncIndicator.js';
 import css from './ActFieldActionLayout.module.css';
 
 interface Props {
@@ -44,9 +43,6 @@ export default function ActFieldActionLayout({ shellMode, onShellModeChange }: P
 
   return (
     <div className={css.wrap}>
-      <div className={css.topBar}>
-        <ProofSyncIndicator />
-      </div>
       <div className={css.body}>
         {objectiveId ? (
           <ViewAObjectiveExecution projectId={projectId} objectiveId={objectiveId} />

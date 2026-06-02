@@ -69,7 +69,6 @@ import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
 import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
 import ActShellToggle from '../field-action/ActShellToggle.js';
-import ProofSyncIndicator from '../field-action/proof/ProofSyncIndicator.js';
 import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
 import type { ActModule } from '../types.js';
 import { QUICK_LOGS } from '../quickLogs.js';
@@ -223,7 +222,16 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     return statuses[selectedObjective.id] ?? 'locked';
   }, [selectedObjective, objectives, effectiveProgress]);
 
-  const triggeredCount = useTriggeredProtocols(id).length;
+  // Triggered protocols drive both the rail's attention badge (count) and the
+  // per-card emphasis (ids). useMemo keeps the ids array reference-stable so
+  // ProtocolLayerPanel's useMemo(Set) doesn't thrash. (Phase 2 will mount the
+  // auto-evaluation engine here; for now these reflect protocolStore records.)
+  const triggered = useTriggeredProtocols(id);
+  const triggeredCount = triggered.length;
+  const triggeredIds = useMemo(
+    () => triggered.map((r) => r.templateId),
+    [triggered],
+  );
 
   // Project-type record drives the Protocol-mode rail view (same source Plan
   // reads). null for MTC / null-type projects; ProtocolLayerPanel handles that.
@@ -403,6 +411,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
               mode={railMode}
               onModeChange={setRailMode}
               triggeredCount={triggeredCount}
+              triggeredIds={triggeredIds}
               projectId={id}
               primaryTypeId={primaryTypeId}
               secondaryTypeIds={secondaryTypeIds}
@@ -497,7 +506,6 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                   Objective
                 </button>
               </div>
-              <ProofSyncIndicator />
               <div className={styles.rightBody}>
                 {rightMode === 'detail' && selectedObjective ? (
                   <ActTierExecutionPanel

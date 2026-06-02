@@ -14,6 +14,7 @@ import { useAuthStore } from '../store/authStore.js';
 import { FLAGS } from '@ogden/shared';
 import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
+import ProofSyncIndicator from '../v3/act/field-action/proof/ProofSyncIndicator.js';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {
@@ -26,7 +27,6 @@ export default function AppShell({ children }: AppShellProps) {
   const isProjectPage = pathname.startsWith('/project/');
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();
-  const openPalette = useUIStore((s) => s.openCommandPalette);
 
   useKeyboardShortcuts();
   useGlobalAnnotationUndo();
@@ -48,15 +48,8 @@ export default function AppShell({ children }: AppShellProps) {
           <HeaderStageSpine />
         </div>
 
-        {/* Search / Command Palette trigger */}
-        <button
-          onClick={openPalette}
-          aria-label="Search or open command palette"
-          className={styles.searchTrigger}
-        >
-          <span className={styles.searchPlaceholder}>Search...</span>
-          <kbd className={styles.searchKbd}>Ctrl+K</kbd>
-        </button>
+        {/* Sync status (relocated from the Act in-page rails to global header) */}
+        <ProofSyncIndicator />
 
         {/* Theme toggle */}
         <button
