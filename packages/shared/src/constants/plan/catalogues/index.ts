@@ -9,8 +9,9 @@
 // (primary, v1.2), agritourism (primary, v1.0), wellness (primary, v1.0),
 // silvopasture (primary, v1.0), orchard_food_forest (primary, v1.0), and
 // homestead (primary, v1.1 - 15 primary objectives, no base secondary layer),
-// education (primary, v1.0 - 22 primary objectives, no base secondary layer), and
-// conservation (primary, v1.0 - 30 primary objectives, no base secondary layer)
+// education (primary, v1.0 - 22 primary objectives, no base secondary layer),
+// conservation (primary, v1.0 - 30 primary objectives, no base secondary layer), and
+// market_garden (primary, v1.0 - 24 primary objectives, no base secondary layer)
 // on the primary side; residential (secondary, v1.0) and wellness (secondary, authored
 // overlay per the 2026-05-30 derive+author ruling) on the secondary side. Every
 // other primary resolves to the universal-only baseline; every other secondary
@@ -54,6 +55,7 @@ import { NURSERY_SECONDARY_OBJECTIVES } from './nursery.js';
 import { HOMESTEAD_PRIMARY_OBJECTIVES } from './homestead.js';
 import { EDUCATION_PRIMARY_OBJECTIVES } from './education.js';
 import { CONSERVATION_PRIMARY_OBJECTIVES } from './conservation.js';
+import { MARKET_GARDEN_PRIMARY_OBJECTIVES } from './marketGarden.js';
 
 export {
   UNIVERSAL_PLAN_OBJECTIVES,
@@ -75,6 +77,7 @@ export {
   HOMESTEAD_PRIMARY_OBJECTIVES,
   EDUCATION_PRIMARY_OBJECTIVES,
   CONSERVATION_PRIMARY_OBJECTIVES,
+  MARKET_GARDEN_PRIMARY_OBJECTIVES,
 };
 
 /** The universal baseline plus a primary type's own objectives. */
@@ -118,7 +121,9 @@ export function getPrimaryCatalogue(
                     ? EDUCATION_PRIMARY_OBJECTIVES
                     : primaryTypeId === 'conservation'
                       ? CONSERVATION_PRIMARY_OBJECTIVES
-                      : [];
+                      : primaryTypeId === 'market_garden'
+                        ? MARKET_GARDEN_PRIMARY_OBJECTIVES
+                        : [];
   return { universal: UNIVERSAL_PLAN_OBJECTIVES, primary };
 }
 
@@ -187,6 +192,7 @@ const ALL_CATALOGUE_OBJECTIVES: readonly PlanStratumObjective[] = (() => {
     ...HOMESTEAD_PRIMARY_OBJECTIVES,
     ...EDUCATION_PRIMARY_OBJECTIVES,
     ...CONSERVATION_PRIMARY_OBJECTIVES,
+    ...MARKET_GARDEN_PRIMARY_OBJECTIVES,
   ]) {
     if (!byId.has(o.id)) byId.set(o.id, o);
   }
