@@ -351,6 +351,53 @@ substantial foreign work; branch is rebased externally). Reinforces
 instant a slice verifies -- the window between verify and commit is where the sweep
 strikes.
 
+## Answer recap: typed read-only prefill of wizard/vision answers (2026-06-01)
+
+Objective checklist items that re-ask questions already answered in project
+creation now render a prefilled, read-only recap IN THE ORIGINAL CONTROL STYLE
+(selected chip / chip row / band pills / steward lines / prose) plus an "Edit in
+Plan" link, instead of a blank checkbox/text prompt
+([[decisions/2026-06-01-atlas-act-answerspec-typed-recap]], commit `c640acbb`).
+The item auto-satisfies from `ProjectMetadata` -- no re-entry in Act.
+
+- `AnswerRecap.tsx` (+ `.module.css`) -- typed read-only renderer. Guards
+  `if (!spec) / if (!resolved.isAnswered) return null`. Switches on `fieldType`:
+  `single_select` -> one `.chipSelected`; `multi_select` -> `.chip` row;
+  `band` -> `.bandPill` row; `steward` -> `.stewardLine` list; `text` -> prose.
+  A static green `.recapCheck` stands in for the (absent) interactive checkbox;
+  the "Edit in Plan" link `navigate`s by `editRoute` (`wizard-step` ->
+  `/v3/project/$projectId/wizard/$step`; `plan-type` -> `/v3/project/$projectId/plan`).
+- `ActTierExecutionPanel.tsx` -- the checklist `.map` now selects the whole
+  `metadata` (was `?.metadata?.projectTypeRecord`) and renders `<AnswerRecap>` IN
+  PLACE OF the bare checkbox `<label>` when `item.answerSpec &&
+  resolveAnswerSpec(metadata, item.answerSpec).isAnswered`; every other item
+  falls through to the checkbox unchanged. The generic `summary-note` Evidence is
+  untouched -- the recap supplements evidence, does not replace it.
+- **Resolver + label registry live in `apps/web/src/v3/strata/`, NOT shared**:
+  `resolveAnswerSpec.ts` (pure dotted-path reader; multi-value + object-of-arrays
+  flatten; band all-axes rule; steward "Name <email>" format; render-safe when
+  metadata null) and `answerOptionLabels.ts` (`labelForOption`, built from the
+  apps/web-only `visionBuilderQuestions.ts` -- a shared placement would force a
+  forbidden shared -> web import).
+- **Auto-satisfy reuses the existing progress union:** `computeEffectiveProgress`
+  gained a 5th `metadata?` arg that unions any answered-`answerSpec` item into the
+  flat completion map (same idempotent mechanic as the bespoke S1 derivations);
+  `useEffectiveChecklistProgress` / `usePortfolioPlanProgress` / `useProjectUrgency`
+  thread `project.metadata` through, so Plan/Act/Portfolio/Home stay coherent with
+  no per-surface change.
+- **Substrate in `@ogden/shared`:** optional `AnswerSpecSchema` on
+  `PlanDecisionChecklistItemSchema` (all `.optional()`, additive); `ckA(id, label,
+  answerSpec)` authoring helper; `s1-vision-c1/c2/c3` answerSpecs in `universal.ts`.
+- **Preserved** the two legacy `deriveStratum1*Map` derivations (retire only once
+  their items carry answerSpec) -- no-deletion-in-revamps.
+- Tests: `resolveAnswerSpec` (8) + a `computeEffectiveProgress` union case; tsc 0
+  (web + shared); 908 green. Live-verified on "Baseline Test Homestead" --
+  project-type "Regenerative Farm" selected chip + "Edit in Plan"; data-less
+  vision items fall back to plain checkboxes. Note `c640acbb` co-mingles the
+  pre-existing "Raise follow-up need" wiring (inseparable in the working tree;
+  disclosed in the commit message).
+Log: [[log/2026-06-01-atlas-act-answerspec-typed-recap]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel

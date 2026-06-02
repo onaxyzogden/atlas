@@ -796,3 +796,33 @@ the out-of-band foreign commit `c640acbb` ("typed read-only recap...") before it
 own commit landed -- code is live and intact in HEAD, but under a foreign message
 without attribution; no history surgery (foreign work + externally-rebased branch).
 Detail + lesson: [[log/2026-06-01-atlas-act-exec-panel-scroll-raise-need]].
+
+---
+
+## 2026-06-01 -- Act answerSpec: typed read-only recap of wizard/vision answers
+
+Act tier-shell objective checklist items that re-ask questions already answered in
+project creation now render a prefilled, **read-only recap in the original control
+style** (selected chip / chip row / band pills / steward lines / prose) + an "Edit
+in Plan" link, instead of a blank checkbox/text prompt. The item auto-satisfies
+from `ProjectMetadata` -- no re-entry in Act. One commit `c640acbb` on
+`feat/atlas-permaculture` (not pushed), 15 explicitly-staged feature files, 5
+logical slices: (1) `@ogden/shared` optional `AnswerSpecSchema` on
+`PlanDecisionChecklistItemSchema` (all `.optional()`, additive) + `ckA` authoring
+helper + `s1-vision-c1/c2/c3` answerSpecs; (2) pure `resolveAnswerSpec` +
+`answerOptionLabels` registry in `apps/web/src/v3/strata/` (NOT shared -- they read
+the apps/web-only `visionBuilderQuestions.ts`; shared would force a forbidden
+shared -> web import); (3) `computeEffectiveProgress` gains a 5th `metadata?` arg
+unioning answerSpec-derived completion across all objectives (same idempotent
+mechanic as the bespoke S1 derivations), with the three consumers threading
+`project.metadata`; (4) new `AnswerRecap.tsx` (+ CSS) typed renderer +
+`ActTierExecutionPanel` swap; (5) verify + commit. Preserved the two legacy
+`deriveStratum1*Map` derivations (no-deletion-in-revamps). tsc 0 (web + shared);
+908 tests green (8 new `resolveAnswerSpec` + 1 union case); live-verified on
+"Baseline Test Homestead" (project-type "Regenerative Farm" selected chip + "Edit
+in Plan"; data-less vision items fall back to plain checkboxes). **Co-mingled
+commit:** `c640acbb` also carries the pre-existing inseparable "Raise follow-up
+need" wiring (the same event the prior entry records as a rebase-race); the message
+discloses both features + carries the attribution trailer. CSRA untouched; ASCII-only.
+ADR: [[decisions/2026-06-01-atlas-act-answerspec-typed-recap]]; Log:
+[[log/2026-06-01-atlas-act-answerspec-typed-recap]]; Entity: [[entities/act-tier-shell]].
