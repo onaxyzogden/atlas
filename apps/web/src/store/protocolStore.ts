@@ -44,7 +44,7 @@ export interface ActivatedProtocolRecord {
   lastLoggedAt?: string;
 }
 
-interface ProtocolState {
+export interface ProtocolState {
   records: ActivatedProtocolRecord[];
 
   /**

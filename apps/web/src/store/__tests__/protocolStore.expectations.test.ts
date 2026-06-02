@@ -59,20 +59,10 @@ describe('protocolStore - setExpectation / selectExpectation', () => {
 
 describe('protocolStore - persist v3 migration', () => {
   it('migrates v2 blob: preserves records + activations, adds expectationsByProject: {}', () => {
-    // Access the internal migrate function by checking the persist config.
-    // Zustand persist exposes the options via useStore.persist?.getOptions?.() or
-    // we can reach it by accessing the middleware internals. The canonical pattern
-    // used in this codebase is to call useStore.persist.clearStorage / getOptions.
-    // If that path is unavailable, we call the action through a store reset.
-    //
-    // Zustand 5 persist middleware exposes .persist.getOptions() on the store.
-    // Cast through unknown to avoid TS errors on internal API.
-    const options = (useProtocolStore as unknown as {
-      persist: { getOptions: () => { migrate?: (persisted: unknown, fromVersion: number) => unknown };
-    };
-    }).persist.getOptions();
-
-    const migrate = options.migrate;
+    // Zustand 5 persist middleware exposes the configured options (including
+    // the migrate fn) via .persist.getOptions() on the store. Same access
+    // pattern as projectStore.migrate.test.ts.
+    const migrate = useProtocolStore.persist.getOptions().migrate;
     if (!migrate) throw new Error('migrate fn not found on persist options');
 
     const v2Blob = {
@@ -106,6 +96,32 @@ describe('protocolStore - persist v3 migration', () => {
     expect(Array.isArray(result['activations'])).toBe(true);
     expect((result['activations'] as unknown[]).length).toBe(1);
     // Must gain the new slice initialized to empty object
+    expect(result['expectationsByProject']).toEqual({});
+  });
+
+  it('migrates a v1 blob (fromVersion < 2 branch): preserves records, adds activations + expectationsByProject', () => {
+    const migrate = useProtocolStore.persist.getOptions().migrate;
+    if (!migrate) throw new Error('migrate fn not found on persist options');
+
+    // A pre-v2 blob predates the activations slice entirely.
+    const v1Blob = {
+      records: [
+        {
+          templateId: 'tmpl-1',
+          projectId: 'proj-A',
+          status: 'active',
+          activatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = migrate(v1Blob, 1) as Record<string, unknown>;
+
+    // Existing records survive
+    expect(Array.isArray(result['records'])).toBe(true);
+    expect((result['records'] as unknown[]).length).toBe(1);
+    // Both newer slices are initialized
+    expect(result['activations']).toEqual([]);
     expect(result['expectationsByProject']).toEqual({});
   });
 });
