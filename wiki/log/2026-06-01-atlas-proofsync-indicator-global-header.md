@@ -63,8 +63,17 @@ immediately on the rebased branch, commit-only (no push). ASCII-only; no legacy
 component deleted (the three in-page mounts removed but ProofSyncIndicator.tsx
 stays on disk).
 
-## Deferred idea
+## Deferred idea -- DONE (same day, commit `b08208c5`)
 
-ProofSyncIndicator lives under `src/v3/act/field-action/proof/` but is now generic
-global chrome. A cleaner long-term home is `src/components/`. Not moved this
-session (the cross-import from `app/` works; a move would churn unrelated paths).
+ProofSyncIndicator lived under `src/v3/act/field-action/proof/` but is now generic
+global chrome. A cleaner long-term home is `src/components/`. **Resolved:** moved
+via `git mv` to `apps/web/src/components/ProofSyncIndicator.tsx` (rename detected at
+79% -- the docstring + import retargets account for the delta), with a co-located
+`ProofSyncIndicator.module.css` carrying the `.syncIndicator` pill rules and its
+pending/syncing/error variants (the legacy `.syncIndicatorDot` rules were dropped --
+the component renders a lucide icon, not the dot span). The single importer
+(`AppShell.tsx`) now points at `../components/ProofSyncIndicator.js`; the dead
+`.syncIndicator*` rules were removed from `ProofCapture.module.css` and the dead
+`.panelTop` rule + stale comment from `ActMapFirstLayout.module.css`. Typecheck
+exit 0; live-verified one "All synced" pill in the global header. Commit-only
+(rebased branch), not pushed.
