@@ -42,6 +42,7 @@ import { useProjectObjectives } from './useProjectObjectives.js';
 import { planHeaderProjectTypeLabel } from './planHeaderLabel.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
 import PrimarySetModal from './PrimarySetModal.js';
+import PrimaryChangeModal from './PrimaryChangeModal.js';
 import SecondaryAddModal from './SecondaryAddModal.js';
 import SecondaryReopenModal from './SecondaryReopenModal.js';
 import SecondaryRemoveBlockedModal from './SecondaryRemoveBlockedModal.js';
@@ -311,11 +312,14 @@ export default function PlanStratumShell() {
     (s) => s.projects.find((p) => p.id === projectId)?.metadata?.projectTypeRecord,
   );
   const setPrimaryType = useProjectStore((s) => s.setPrimaryType);
+  const changePrimaryType = useProjectStore((s) => s.changePrimaryType);
+  const duplicateProject = useProjectStore((s) => s.duplicateProject);
   const addSecondaryType = useProjectStore((s) => s.addSecondaryType);
   const removeSecondaryType = useProjectStore((s) => s.removeSecondaryType);
   const acknowledgeReopening = useProjectStore((s) => s.acknowledgeReopening);
   const deferObjective = usePlanStratumProgressStore((s) => s.deferObjective);
   const undeferObjective = usePlanStratumProgressStore((s) => s.undeferObjective);
+  const cloneProgressForProject = usePlanStratumProgressStore((s) => s.cloneForProject);
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const currentSecondaryIds = typeRecord?.secondaryTypeIds ?? [];
   // Plan header — surface the project type (steward: "project type ... used to
@@ -349,7 +353,29 @@ export default function PlanStratumShell() {
   );
 
   const [primarySetOpen, setPrimarySetOpen] = useState(false);
+  const [primaryChangeOpen, setPrimaryChangeOpen] = useState(false);
   const [secondaryAddOpen, setSecondaryAddOpen] = useState(false);
+
+  // Mid-project PRIMARY-type change (destructive — re-derives the catalogue).
+  // Optionally clones the project under the OLD type first (with its progress)
+  // as a backup, then switches in place and discards orphaned progress. The
+  // modal owns no writes; this orchestrates clone + switch. Order matters: the
+  // clone must capture progress BEFORE changePrimaryType discards it.
+  const handleConfirmPrimaryChange = (
+    nextPrimaryId: ProjectTypeId,
+    opts: { clone: boolean },
+  ) => {
+    if (opts.clone && primaryTypeId) {
+      const oldLabel = findProjectType(primaryTypeId)?.label ?? 'previous type';
+      const backup = duplicateProject(
+        projectId,
+        `${project?.name ?? 'Project'} — ${oldLabel} snapshot`,
+      );
+      if (backup) cloneProgressForProject(projectId, backup.id);
+    }
+    changePrimaryType(projectId, nextPrimaryId);
+    setPrimaryChangeOpen(false);
+  };
   const [reopenPayload, setReopenPayload] = useState<{
     secondaryTypeId: ProjectTypeId;
     secondaryLabel: string;
@@ -560,9 +586,30 @@ export default function PlanStratumShell() {
             {project?.name ?? 'Untitled project'}
           </h2>
           {primaryTypeId ? (
-            <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: C.textSecondary }}>
+            // A primary IS set — the type line is a control that opens the
+            // change-primary modal (consequences + opt-in backup + discard).
+            <button
+              type="button"
+              onClick={() => setPrimaryChangeOpen(true)}
+              data-testid="plan-primary-change-trigger"
+              title="Change project type"
+              style={{
+                margin: 0,
+                padding: 0,
+                border: 'none',
+                background: 'transparent',
+                font: 'inherit',
+                fontSize: 12,
+                lineHeight: 1.45,
+                color: C.textSecondary,
+                textAlign: 'left',
+                textDecoration: 'underline dotted',
+                textUnderlineOffset: 3,
+                cursor: 'pointer',
+              }}
+            >
               {primaryTypeLabel}
-            </p>
+            </button>
           ) : (
             // No primary chosen yet (e.g. MTC) - the type line becomes a control
             // that opens the primary-type picker, which derives the objectives.
@@ -807,6 +854,15 @@ export default function PlanStratumShell() {
             setPrimarySetOpen(false);
           }}
           onDismiss={() => setPrimarySetOpen(false)}
+        />
+      )}
+
+      {primaryChangeOpen && primaryTypeId && (
+        <PrimaryChangeModal
+          projectId={projectId}
+          primaryTypeId={primaryTypeId}
+          onConfirm={handleConfirmPrimaryChange}
+          onDismiss={() => setPrimaryChangeOpen(false)}
         />
       )}
 

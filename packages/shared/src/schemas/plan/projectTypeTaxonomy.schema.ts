@@ -58,11 +58,14 @@ export type TensionAck = z.infer<typeof TensionAck>;
  * What kind of edit produced a ProjectTypeVersion entry. Optional and absent on
  * pre-existing history (which validates unchanged); set going forward by the
  * wizard and the mid-project secondary-add flow (Plan Navigation Spec v1.1 9).
+ * `primary-changed` is stamped by the mid-project primary-type-change flow,
+ * which re-derives the whole objective catalogue.
  */
 export const ProjectTypeVersionAction = z.enum([
   'wizard-complete',
   'secondary-added',
   'secondary-removed',
+  'primary-changed',
 ]);
 export type ProjectTypeVersionAction = z.infer<typeof ProjectTypeVersionAction>;
 

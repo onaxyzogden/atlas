@@ -94,6 +94,29 @@ interface PlanStratumProgressState {
   ) => void;
   /** Clear progress for one objective (used by cyclical-review revisions). */
   clearForObjective: (projectId: string, objectiveId: string) => void;
+  /**
+   * Discard ALL progress for the given objective ids in a project: clears the
+   * completed-item list (`byProject`), Deferred membership
+   * (`deferredByProject`), and parameter values (`valuesByProject`) for each
+   * id. Used by the primary-type-change flow when a switch orphans
+   * old-type-unique objectives. No-op for ids the project has no progress
+   * under, and a stable no-op (returns the same state) when `objectiveIds` is
+   * empty. Does NOT touch `celebratedByProject` (a stratum-unlock log, not
+   * objective progress).
+   */
+  discardObjectivesProgress: (
+    projectId: string,
+    objectiveIds: readonly string[],
+  ) => void;
+  /**
+   * Deep-copy every per-project progress slice (completed items, celebrated
+   * strata, Deferred objectives, parameter values) from `sourceId` to
+   * `targetId`. Makes a project-clone preserve the steward's checklist work —
+   * `duplicateProject` / `cascadeCloneProject` copy design-intent entities but
+   * NOT stratum progress. Overwrites any existing progress under `targetId`;
+   * a stable no-op when the source has no progress in any slice.
+   */
+  cloneForProject: (sourceId: string, targetId: string) => void;
 
   /** True if this project has already celebrated the stratum unlock. */
   hasCelebratedStratum: (projectId: string, stratumId: string) => boolean;
@@ -241,6 +264,89 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
           return {
             byProject: { ...s.byProject, [projectId]: rest },
           };
+        }),
+
+      discardObjectivesProgress: (projectId, objectiveIds) =>
+        set((s) => {
+          if (objectiveIds.length === 0) return s;
+          const drop = new Set(objectiveIds);
+
+          // byProject — drop the orphaned objectives' completed-item lists.
+          let nextByProject = s.byProject;
+          const project = s.byProject[projectId];
+          if (project && Object.keys(project).some((id) => drop.has(id))) {
+            const rest: Record<string, ItemIds> = {};
+            for (const [objId, itemIds] of Object.entries(project)) {
+              if (!drop.has(objId)) rest[objId] = itemIds;
+            }
+            nextByProject = { ...s.byProject, [projectId]: rest };
+          }
+
+          // valuesByProject — drop the orphaned objectives' parameter values.
+          let nextValues = s.valuesByProject;
+          const values = s.valuesByProject[projectId];
+          if (values && Object.keys(values).some((id) => drop.has(id))) {
+            const rest: Record<string, Readonly<Record<string, string>>> = {};
+            for (const [objId, v] of Object.entries(values)) {
+              if (!drop.has(objId)) rest[objId] = v;
+            }
+            nextValues = { ...s.valuesByProject, [projectId]: rest };
+          }
+
+          // deferredByProject — drop any Deferred membership for these ids.
+          let nextDeferred = s.deferredByProject;
+          const deferred = s.deferredByProject[projectId];
+          if (deferred && deferred.some((id) => drop.has(id))) {
+            nextDeferred = {
+              ...s.deferredByProject,
+              [projectId]: deferred.filter((id) => !drop.has(id)),
+            };
+          }
+
+          return {
+            byProject: nextByProject,
+            valuesByProject: nextValues,
+            deferredByProject: nextDeferred,
+          };
+        }),
+
+      cloneForProject: (sourceId, targetId) =>
+        set((s) => {
+          const srcBy = s.byProject[sourceId];
+          const srcCelebrated = s.celebratedByProject[sourceId];
+          const srcDeferred = s.deferredByProject[sourceId];
+          const srcValues = s.valuesByProject[sourceId];
+          if (!srcBy && !srcCelebrated && !srcDeferred && !srcValues) return s;
+
+          // Deep-copy each slice so the clone is independent of the source.
+          const next: Partial<PlanStratumProgressState> = {};
+          if (srcBy) {
+            const copy: Record<string, ItemIds> = {};
+            for (const [objId, itemIds] of Object.entries(srcBy)) {
+              copy[objId] = [...itemIds];
+            }
+            next.byProject = { ...s.byProject, [targetId]: copy };
+          }
+          if (srcCelebrated) {
+            next.celebratedByProject = {
+              ...s.celebratedByProject,
+              [targetId]: [...srcCelebrated],
+            };
+          }
+          if (srcDeferred) {
+            next.deferredByProject = {
+              ...s.deferredByProject,
+              [targetId]: [...srcDeferred],
+            };
+          }
+          if (srcValues) {
+            const copy: Record<string, Readonly<Record<string, string>>> = {};
+            for (const [objId, v] of Object.entries(srcValues)) {
+              copy[objId] = { ...v };
+            }
+            next.valuesByProject = { ...s.valuesByProject, [targetId]: copy };
+          }
+          return next;
         }),
 
       hasCelebratedStratum: (projectId, stratumId) =>

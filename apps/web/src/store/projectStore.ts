@@ -399,6 +399,33 @@ interface ProjectState {
     projectId: string,
     secondaryTypeId: ProjectTypeId,
   ) => { ok: true } | { ok: false; blockingObjectiveIds: string[] };
+  /**
+   * Change the PRIMARY type of an already-typed project mid-project. Unlike
+   * `setPrimaryType` (which only ever sets a first primary and refuses to
+   * replace one), this DESTRUCTIVELY re-derives the objective catalogue: it
+   * prunes secondaries incompatible with the new primary, appends a
+   * `'primary-changed'` `ProjectTypeVersion`, normalizes the legacy bare
+   * `projectType` string, and discards orphaned checklist progress for the
+   * objectives unique to the OLD type (the inverse delta — objectives present
+   * under the current selection but absent under the next). Tensions newly
+   * active under the new pairing are acknowledged (mirroring the add flow; the
+   * modal gates Confirm on the steward acknowledging). The caller is expected
+   * to offer an opt-in clone backup BEFORE invoking this (see
+   * `cloneForProject`), since the discard is irreversible.
+   *
+   * No-op `{ ok: false }` when the project or its type record is missing, the
+   * candidate is not a valid primary (e.g. `residential`), or it equals the
+   * current primary. On success returns the dropped secondaries and discarded
+   * objective ids so the UI can report counts. No persist bump — every touched
+   * field is additive / already present.
+   */
+  changePrimaryType: (
+    projectId: string,
+    nextPrimaryId: ProjectTypeId,
+    opts?: { actor?: string; note?: string },
+  ) =>
+    | { ok: true; droppedSecondaryIds: ProjectTypeId[]; discardedObjectiveIds: string[] }
+    | { ok: false };
 }
 
 function generateId(): string {
@@ -901,6 +928,88 @@ export const useProjectStore = create<ProjectState>()(
           progressStore.clearForObjective(projectId, objId);
         }
         return { ok: true };
+      },
+
+      changePrimaryType: (projectId, nextPrimaryId, opts) => {
+        const failed = { ok: false } as const;
+        const project = get().projects.find((p) => p.id === projectId);
+        if (!project) return failed;
+        const existing = project.metadata?.projectTypeRecord;
+        // Only for an already-typed project; the unset path is setPrimaryType's.
+        if (!existing) return failed;
+        const fromPrimary = existing.primaryTypeId;
+        // No-op when unchanged or the candidate cannot be a primary
+        // (e.g. residential, secondary-only).
+        if (nextPrimaryId === fromPrimary) return failed;
+        const def = findProjectType(nextPrimaryId);
+        if (!def?.canBePrimary) return failed;
+
+        const currentSecondaries = existing.secondaryTypeIds ?? [];
+        // Prune secondaries incompatible with the new primary.
+        const keptSecondaries = currentSecondaries.filter((s) =>
+          isCompatibleSecondary(s, nextPrimaryId),
+        );
+        const droppedSecondaryIds = currentSecondaries.filter(
+          (s) => !keptSecondaries.includes(s),
+        );
+
+        // Disappearing objectives: present under the CURRENT selection but not
+        // the NEXT (inverse delta — same pattern as removeSecondaryType). These
+        // are the old-type-unique objectives whose progress is now orphaned.
+        const current = { primaryTypeId: fromPrimary, secondaryTypeIds: currentSecondaries };
+        const next = { primaryTypeId: nextPrimaryId, secondaryTypeIds: keptSecondaries };
+        const inverse = computeObjectivesDelta(next, current);
+        const discardedObjectiveIds = Array.from(new Set(inverse.newObjectiveIds));
+
+        const now = new Date().toISOString();
+
+        // Acknowledge tensions that become active under the new pairing and are
+        // not already acknowledged (mirrors addSecondaryType; the change modal
+        // gates Confirm on the steward acknowledging). Prior acks are retained.
+        const active = getActiveTensions(nextPrimaryId, keptSecondaries);
+        const ackedIds = new Set(
+          (existing.tensionAcknowledgements ?? []).map((a) => a.tensionId),
+        );
+        const newAcks: TensionAck[] = active
+          .filter((t) => !ackedIds.has(t.id))
+          .map((t) => ({ tensionId: t.id, acknowledgedAt: now }));
+
+        const versionEntry: ProjectTypeVersion = {
+          primaryTypeId: nextPrimaryId,
+          secondaryTypeIds: keptSecondaries,
+          changedAt: now,
+          note: opts?.note ?? `changed primary: ${fromPrimary} -> ${nextPrimaryId}`,
+          actor: opts?.actor ?? 'yousef@ogden.ag',
+          action: 'primary-changed',
+        };
+
+        const nextRecord: ProjectTypeRecord = {
+          ...existing,
+          primaryTypeId: nextPrimaryId,
+          secondaryTypeIds: keptSecondaries,
+          tensionAcknowledgements: [
+            ...(existing.tensionAcknowledgements ?? []),
+            ...newAcks,
+          ],
+          versionHistory: [...(existing.versionHistory ?? []), versionEntry],
+          reopeningAcknowledgements: existing.reopeningAcknowledgements ?? [],
+        };
+
+        // Wholesale write — updateProject's builtin allowlist permits both
+        // `projectType` and `metadata`. The legacy bare string is kept aligned
+        // with the authoritative record, matching setPrimaryType.
+        get().updateProject(projectId, {
+          projectType: nextPrimaryId,
+          metadata: { ...(project.metadata ?? {}), projectTypeRecord: nextRecord },
+        });
+
+        // Discard orphaned progress on the old-type-unique objectives. This is
+        // checklist DATA the steward explicitly chose to discard (the opt-in
+        // clone preserves it under the old type).
+        const progressStore = usePlanStratumProgressStore.getState();
+        progressStore.discardObjectivesProgress(projectId, discardedObjectiveIds);
+
+        return { ok: true, droppedSecondaryIds, discardedObjectiveIds };
       },
     }),
     {
