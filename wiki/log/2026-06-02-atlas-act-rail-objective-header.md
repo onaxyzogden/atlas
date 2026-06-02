@@ -76,6 +76,13 @@ contain "resource-flow"). Deferred: broaden the gate (e.g. key off the objective
 act-tools or domain rather than an id substring) so it lights on the farm
 waste-vector objective too. Flagged to the operator, not changed without approval.
 
+> **UPDATE 2026-06-02 (commit `4e4b9b34`): this gap is CLOSED.** The gate was
+> broadened to an OR over three signals -- the original id pattern, the resolved
+> act-tools (the `compost` material-cycling tool, which the s6-integration default
+> toolset carries across all project types), and a tight focused-question/title
+> prose match. The farm objective `rf-s6-enterprise-integration` now lights via
+> the compost tool. See [[2026-06-02-atlas-act-rail-flow-gate-broaden]].
+
 ## Verification
 
 - **Typecheck:** `apps/web` exit 0 (background `bfotuljqh`); shared package exit 0.

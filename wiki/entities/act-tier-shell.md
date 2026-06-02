@@ -92,11 +92,15 @@ show-everything tool strip with an objective-conditional, categorized rail
   the stratum header when nothing is selected; the eyebrow keeps naming the stratum
   throughout. For resource-flow objectives it also shows a **live closed-loop
   material-flow count** ("N flows, M closed-loop") read from `useClosedLoopStore`
-  scoped to the project. The flow-block gate is a documented v1 id-pattern heuristic
-  (`/resource-flow|waste|material-flow/`), matching e.g. homestead
-  `hms-s2-resource-flows`; it does NOT match the regenerative_farm waste-vector
-  objective `rf-s6-enterprise-integration` (`rf-` is the project-type prefix, not
-  "resource-flow") -- a known gap, see the log entry. New sibling stylesheet
+  scoped to the project. The flow-block gate (`isResourceFlowObjective`, broadened
+  in commit `4e4b9b34`, [[log/2026-06-02-atlas-act-rail-flow-gate-broaden]]) is an
+  OR over three signals: the id pattern (`/resource-flow|waste|material-flow/`,
+  matching homestead `hms-s2-resource-flows`); the resolved act-tools including the
+  `compost` material-cycling tool (the s6-integration default toolset carries it
+  across ALL project types, so the regenerative_farm `rf-s6-enterprise-integration`
+  objective now lights -- closing the prior id-only gap -- plus soil/forage
+  improvement); and a tight focused-question/title prose match
+  (`waste-to-input|closed[- ]loop|material flow|feedback loop|nutrient cycl`). New sibling stylesheet
   `ActTierObjectiveRail.module.css` holds the objective-detail classes so
   `ActTierShell.module.css` (foreign WIP) stays untouched.
 - `ActTierMapMarkers.tsx` — per-objective markers (real geometry,
