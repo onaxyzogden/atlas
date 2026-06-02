@@ -62,12 +62,6 @@
   overflow: hidden;
 }
 
-/* Holds ProofSyncIndicator, which self-hides when fully synced — so this
-   collapses to zero height until it has something to say. */
-.panelTop:not(:empty) {
-  padding: 8px 10px 0;
-}
-
 .panelBody {
   flex: 1 1 auto;
   min-height: 0;

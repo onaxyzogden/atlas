@@ -14,7 +14,7 @@ import { useAuthStore } from '../store/authStore.js';
 import { FLAGS } from '@ogden/shared';
 import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
-import ProofSyncIndicator from '../v3/act/field-action/proof/ProofSyncIndicator.js';
+import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {

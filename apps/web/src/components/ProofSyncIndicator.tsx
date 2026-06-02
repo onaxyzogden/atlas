@@ -1,15 +1,15 @@
 /**
- * ProofSyncIndicator — top-bar pill showing pending proof uploads count.
+ * ProofSyncIndicator -- global header pill showing pending proof uploads count.
  * Driven by the shared connectivity store (the sync heartbeat keeps
  * `pendingChanges` in step with the IDB queue). "All synced" when empty.
  *
- * Lives on the Act layout top bar so the steward sees the lifecycle of
- * their captures without opening the Connectivity panel.
+ * Mounted in the persistent AppShell header so the steward sees the lifecycle
+ * of their captures on every stage without opening the Connectivity panel.
  */
 
 import { CloudCheck, CloudOff, CloudUpload } from 'lucide-react';
-import { useConnectivityStore } from '../../../../store/connectivityStore.js';
-import css from './ProofCapture.module.css';
+import { useConnectivityStore } from '../store/connectivityStore.js';
+import css from './ProofSyncIndicator.module.css';
 
 export default function ProofSyncIndicator() {
   const pending = useConnectivityStore((s) => s.pendingChanges);
