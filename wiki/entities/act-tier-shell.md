@@ -81,6 +81,24 @@ show-everything tool strip with an objective-conditional, categorized rail
   reused not forked) in a `flex:1; min-height:0` `.railProtocolBody` wrapper so
   the panel fills and scrolls; the objective list is hidden. In
   `mode === 'objectives'` (default) renders the existing header + list unchanged.
+  Card title renders `objective.shortTitle ?? objective.title` (2026-06-01,
+  `5832c9e2`), matching Plan `ObjectiveCard` so the same objective reads
+  identically across Act and Plan (e.g. "Terrain & topography", not the long form).
+  **Header REPLACES with the selected objective's detail** (2026-06-02, `c7f02afc`):
+  when an objective is selected the `.railHeader` swaps from the stratum context to
+  the objective short title + focused question + decision progress (verified/total,
+  state colour cue) + completion gate + act-handoff + resolved act-tool chips
+  (`getObjectiveActTools` -> `resolveActTools`, capped at 6 + "+N more"); reverts to
+  the stratum header when nothing is selected; the eyebrow keeps naming the stratum
+  throughout. For resource-flow objectives it also shows a **live closed-loop
+  material-flow count** ("N flows, M closed-loop") read from `useClosedLoopStore`
+  scoped to the project. The flow-block gate is a documented v1 id-pattern heuristic
+  (`/resource-flow|waste|material-flow/`), matching e.g. homestead
+  `hms-s2-resource-flows`; it does NOT match the regenerative_farm waste-vector
+  objective `rf-s6-enterprise-integration` (`rf-` is the project-type prefix, not
+  "resource-flow") -- a known gap, see the log entry. New sibling stylesheet
+  `ActTierObjectiveRail.module.css` holds the objective-detail classes so
+  `ActTierShell.module.css` (foreign WIP) stays untouched.
 - `ActTierMapMarkers.tsx` — per-objective markers (real geometry,
   hide-until-real, [[decisions/2026-05-31-atlas-act-objective-marker-geometry]]).
 - `objectiveProgress.ts` / `objectiveMarkerGeometry.ts` — pure helpers.
@@ -265,8 +283,10 @@ Protocol view reuses `ProtocolLayerPanel` from `plan/strata/` (not forked).
 `primaryTypeId`/`secondaryTypeIds` derived from
 `project.metadata?.projectTypeRecord` (same pattern as Plan).
 
-Tests: `ActRailModeToggle.test.tsx` (5) + `ActTierObjectiveRail.test.tsx` (2);
-31/31 tier-shell tests total.
+Tests: `ActRailModeToggle.test.tsx` (5) + `ActTierObjectiveRail.test.tsx` (6,
++4 for the objective-detail header: stratum-header when none selected, header
+REPLACES on select, and a live closed-loop flow count for resource-flow
+objectives -- 2026-06-02).
 
 ADR: [[decisions/2026-05-31-atlas-act-protocol-rail-plan-header]].
 Log: [[log/2026-05-31-act-protocol-rail-plan-header]].
@@ -397,6 +417,167 @@ The item auto-satisfies from `ProjectMetadata` -- no re-entry in Act.
   pre-existing "Raise follow-up need" wiring (inseparable in the working tree;
   disclosed in the commit message).
 Log: [[log/2026-06-01-atlas-act-answerspec-typed-recap]].
+
+## Answer recap: value+Edit-in-Plan moved into the Vision forms modal (2026-06-01)
+
+The three prefilled `s1-vision` answers (project type `c1`, success criteria
+`c2`, capital `c3`) previously appeared TWICE and inconsistently: a read-only
+recap card (value + "Edit in Plan" button) in the right sidebar, AND an empty
+re-ask textarea tab in the Vision forms modal (formId === checklist item id,
+1:1). The operator asked that the project type and the "Edit in Plan" affordance
+live in the modal TabsPanel, not the sidebar. Consolidated (commit `6e8bb88c`,
+11 files, one cohesive commit):
+
+- **New shared `AnswerValue.tsx` (+ `.module.css`)** -- the typed VALUE renderer
+  extracted verbatim out of `AnswerRecap` (`single_select` chip / `multi_select`
+  chip row / `band` pills / `steward` list / `text` prose, via `labelForOption`).
+  Single source of truth for value rendering across both surfaces. The value
+  pills keep their LIGHT hardcoded colors -- legible as light-on-dark tags on the
+  dark BentoBox modal.
+- **New shared `EditInPlanButton.tsx` (+ `.module.css`)** -- the Edit-in-Plan
+  `useNavigate` deep-link extracted from `AnswerRecap.onEdit` (`wizard-step` ->
+  `/v3/project/$projectId/wizard/$step`; `plan-type` -> `/v3/project/$projectId/plan`).
+  Dark gold token styling (`--color-gold-brand`) for the modal context.
+- **Sidebar `AnswerRecap`** keeps the recap value (now via `<AnswerValue>`) but
+  DROPS the "Edit in Plan" button, its `onEdit`/`useNavigate`/`Pencil`, the local
+  `renderValue`, and the `projectId` prop; the moved value CSS is deleted from
+  `AnswerRecap.module.css`.
+- **`VisionFormsTabsModal`** is now recap-aware: new props `projectId`,
+  `metadata`, `checklistItems`. A tab whose formId maps to an answered
+  `answerSpec` renders read-only -- prompt + `<AnswerValue>` + hint
+  ("Answered in Plan - edit there to change") + `<EditInPlanButton>`, NO textarea,
+  Save disabled. Non-prefilled tabs keep the textarea capture path. The captured
+  dot shows for recap tabs too.
+- **`ActTierShell`** threads `projectId={id}`, `metadata={project.metadata ?? null}`,
+  `checklistItems={selectedObjective?.checklist ?? []}` into the modal. Non-vision
+  categories carry no answerSpec items, so they resolve `isRecap=false` and are
+  unchanged.
+
+Test defaults gained the three new required props (empty `checklistItems`
+preserves the textarea-path coverage; the recap path is covered in preview).
+tsc clean; modal suite 6/6. Live-verified on the operator's project: sidebar
+recap shows the value with `editLinks: 0`; the Primary-purpose modal tab shows
+"Regenerative Farm" + Edit-in-Plan with `modalTextareas: 0` and Save disabled;
+Edit-in-Plan on the project-type tab navigates to `/v3/project/<id>/plan`. The
+foreign-WIP-heavy working tree was navigated by staging only my 11 files
+(`git diff --cached --name-only` verified, never `git add -A`).
+Log: [[log/2026-06-01-atlas-act-answer-recap-into-modal]].
+
+**Follow-up -- dark-mode token fix (2026-06-01, `9a53c310`):** the recap card +
+value chips rendered as a LIGHT (cream/beige) card on the dark sidebar under
+active dark mode -- the "light pills legible as light-on-dark tags" assumption
+above held for the dark modal but NOT for the recap CARD chrome on the dark
+sidebar, which used hardcoded light hex that never consulted the active
+`data-theme`. Both modules were de-hardcoded to the project's theme tokens so
+the surfaces follow the active theme (dark card on dark, light on light):
+- `AnswerRecap.module.css` -- `.recap` -> `--color-surface` bg /
+  `--color-border`; `.recapCheck` -> `--color-accent` / `--color-on-accent`;
+  `.recapLabel` -> `--color-text`.
+- `AnswerValue.module.css` -- `.chip` -> `--color-surface-alt` /
+  `--color-border` / `--color-text`; `.chipSelected` -> `--color-success(-muted)`
+  (sage-green); `.bandPill` -> `--color-info(-muted)` (info-blue); steward/text
+  -> `--color-text(-muted)`. Semantic meaning preserved (selected single_select =
+  sage, band = info-blue). Verified live in dark mode via `preview_eval`:
+  `.recap` resolves to the dark surface with light text, the plain
+  "Residential / Live-In" chip reads surface-alt, the selected "Regenerative
+  Farm" chip reads sage-green. tsc/CSS-only; 2 files, staged by explicit path
+  (two foreign `ProofSyncIndicator.tsx` files unstaged first). Not pushed.
+
+## Trigger Recognition sheet on proof capture (2026-06-02)
+
+`ActTierExecutionPanel` is the Act proof-capture mount point for the OLOS Protocol
+System's **Trigger Recognition** flow ([[decisions/2026-06-02-olos-protocol-tier-slice]],
+the thin end-to-end slice). After `handleRecord()` records the observation, the panel
+selects the highest-priority **active RESPOND** template relevant to the objective's
+domain (via `useProtocolLibrary` + `FEEDS_TO_MODULE` from
+`v3/act/data/protocolFeedsMap.ts`) and conditionally renders
+`<TriggerRecognitionSheet>` (in `apps/web/src/v3/act/protocols/`). `onResolve(status)`
+calls the new `protocolStore.recordActivation({... recipeSnapshot captured now,
+triggerContext:'act_proof_capture'})` (an immutable `ProtocolActivation`) and, on
+`'confirmed'`, also calls the existing `markTriggered(projectId, template.id)` --
+bridging the new activation history to the legacy triggered lifecycle / Act badge.
+Additive only; all existing panel behaviour intact. The activation then surfaces on
+the Protocol Dashboard peer route (commit `0f3ab43f`). See [[entities/protocols-dashboard]].
+
+## Answer recap: stewardship + secondary-type extensions (2026-06-01)
+
+Follow-up authoring slice extending the answerSpec recap to the two remaining
+source-backed answer kinds the operator asked for, with **no new runtime code**
+-- the `steward` and `multi_select` fieldTypes and the `projectSecondaryType`
+option set were already fully supported from `c640acbb` (commit `4acef400`,
+4 files):
+
+- **Stewardship -- `s1-stewardship-c1` only.** Added a `steward` answerSpec
+  (`sourceField: ['team.primarySteward', 'team.coStewards']`, edit ->
+  `wizard-step team`) to the item in the **legacy fallback skeleton**
+  (`stratumObjectives.ts`). The roster renders read-only as `Name <email>` /
+  name / email lines instead of re-asking; auto-satisfies via the progress
+  union. **Reach is legacy/untyped projects only** -- the s1-stewardship
+  objective exists ONLY in the static skeleton (`PLAN_STRATUM_OBJECTIVES`,
+  the level-3 fallback in `useProjectObjectives.resolveFromInputs`); both
+  per-type catalogues and the universal catalogue omit it. `s1-stewardship-c2`
+  (role-filtered invites) is left untouched on its legacy
+  `deriveStratum1StewardshipMap` derivation -- the declarative `steward` field
+  can't express its contractor/landowner/reviewer filter. Operator-confirmed
+  this limited reach.
+- **Secondary type -- new `s1-vision-c4` item** in `universal.ts` (the primary
+  type was already `s1-vision-c1`). Optional `ckA` item: `multi_select` /
+  `projectSecondaryType` / `projectTypeRecord.secondaryTypeIds` / edit
+  `plan-type`. **Also added to the `s1-vision-dg1` "Purpose & intent" decision
+  group** -- s1-vision is partitioned (dg1+dg2) and `expectFullPartition` in
+  `catalogues.test.ts` requires every checklist item in exactly one group, so
+  authoring the item without grouping it would break the invariant. `optional`
+  keeps an unset secondary type (falls through to a plain checkbox) from
+  dragging required progress.
+- Tests: `resolveAnswerSpec` steward case rewritten to the REAL team shape
+  (`primarySteward` + `coStewards`, replacing a fabricated `team.members` shape
+  that never existed in `ProjectMetadata`) plus an unanswered case (9 total);
+  `catalogues.test.ts` asserts the `s1-vision-c4` recap item (optional +
+  `projectSecondaryType` + `secondaryTypeIds`).
+- Verified: shared suite 896 green; web `resolveAnswerSpec` (9) +
+  `computeEffectiveProgress` (5) green (other web failures are a pre-existing,
+  unrelated Act-module-taxonomy refactor in the working tree, none in my files).
+  Live-screenshotted both recaps: the c4 "Residential / Live-In" secondary chip
+  on "Baseline Test Homestead" (regen_farm + residential), and the steward
+  roster (Aisha/Bilal/Omar) on a static-skeleton project ("k") with injected
+  `team` fixture data (reverted after). Staged only the 4 files explicitly
+  (never `git add -A`; foreign-WIP-heavy tree).
+Log: [[log/2026-06-01-atlas-act-answerspec-stewardship-secondary-type]].
+
+## Answer recap: steward recap extended to per-type projects (2026-06-01)
+
+Closes the limited-reach caveat above. The steward recap only reached
+legacy/untyped projects because s1-stewardship lives solely in the level-3
+static skeleton; typed projects resolve (levels 1-2) to the per-type + universal
+catalogues, which had **no stewardship surface at all**. Operator chose
+(AskUserQuestion) **Option A** -- a steward item inside the existing Vision card
+-- over a standalone stewardship objective (which would trip the 5-15-item
+catalogue floor and break five per-type resolution count tests). Commit
+`6223ade6`, 2 files, +35.
+
+- `universal.ts`: optional `s1-vision-steward` `ckA` item (`fieldType: steward`,
+  `sourceField: ['team.primarySteward','team.coStewards']`, edit ->
+  `wizard-step team`) on the `s1-vision` objective, appended to the
+  `s1-vision-dg1` "Purpose & intent" group (partition invariant). Every primary
+  type inherits the shared universal set, so the roster recap now reaches **all
+  typed projects** at once. Auto-satisfies via `computeEffectiveProgress`
+  independently of the legacy `deriveStratum1StewardshipMap` bridge
+  (`effectiveProgress.ts` iterates resolved objectives' own checklist via
+  `resolveAnswerSpec`); bridge untouched.
+- `catalogues.test.ts`: assertion that `s1-vision-steward` exists in the
+  **regen+residential resolved set** (proves per-type reach), optional, steward
+  answerSpec.
+- Verified: shared typecheck clean; shared suite **897 green** (incl.
+  `expectFullPartition` + unchanged per-type counts); web typecheck clean.
+  **Live UI screenshot blocked** -- the dev bundle would not render (blank across
+  routes) due to a foreign out-of-band deletion of
+  `apps/web/src/v3/act/field-action/proof/ProofSyncIndicator.tsx` (` D` in git
+  status) leaving a dangling vite import. Not my change; not touched. Per the
+  no-claim-without-screenshot rule the live render is NOT asserted; the
+  `AnswerRecap` steward renderer is unchanged from the prior slice (already
+  screenshotted on "k"), and the core fix is proven by the green
+  per-type-resolved test. Injected/reverted a `team` fixture on "Baseline Test
+  Homestead" while attempting verification.
 
 ## Notes
 
