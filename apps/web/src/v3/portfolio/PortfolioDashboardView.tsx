@@ -24,7 +24,22 @@ import { usePortfolioPlanProgress } from './usePortfolioPlanProgress.js';
 import type { PortfolioStage } from './portfolioModel.js';
 import css from './PortfolioHomePage.module.css';
 
-export default function PortfolioDashboardView({ projects }: { projects: LocalProject[] }) {
+export interface PortfolioDashboardViewProps {
+  projects: LocalProject[];
+  /** Multi-select (2026-06-02): when `selectMode` is on, cards toggle batch
+   *  selection instead of navigating. Optional so the view still renders
+   *  standalone (e.g. tests) without the host's select state. */
+  selectMode?: boolean;
+  selectedIds?: ReadonlySet<string>;
+  onToggleSelect?: (id: string) => void;
+}
+
+export default function PortfolioDashboardView({
+  projects,
+  selectMode = false,
+  selectedIds,
+  onToggleSelect,
+}: PortfolioDashboardViewProps) {
   const navigate = useNavigate();
   const urgencyMap = useProjectUrgency(projects);
   const roleMap = useMyProjectRoles();
@@ -102,6 +117,9 @@ export default function PortfolioDashboardView({ projects }: { projects: LocalPr
               stage={stageMap.get(project.id) ?? 'plan'}
               planProgress={planProgressMap.get(project.id)}
               role={project.serverId ? roleMap.get(project.serverId) : undefined}
+              selectMode={selectMode}
+              selected={selectedIds?.has(project.id) ?? false}
+              onToggleSelect={onToggleSelect}
             />
           ))}
         </div>

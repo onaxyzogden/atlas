@@ -209,6 +209,31 @@
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
+/* ---- Select-mode row checkbox ------------------------------------------ */
+
+.rowCheck {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface, #fff);
+  color: #0f172a;
+}
+
+.rowCheckOn {
+  border-color: var(--color-accent, #c9a05a);
+  background: var(--color-accent, #c9a05a);
+  color: #0f172a;
+}
+
+.rowCheckDisabled {
+  opacity: 0.4;
+}
+
 .itemBody {
   display: flex;
   flex-direction: column;

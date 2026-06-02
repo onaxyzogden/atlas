@@ -12,7 +12,7 @@
 
 import { useMemo, useState } from 'react';
 import { Link } from '@tanstack/react-router';
-import { GitCompare, Plus, Search } from 'lucide-react';
+import { Check, GitCompare, Plus, Search } from 'lucide-react';
 import type { LocalProject } from '../../store/projectStore.js';
 import {
   STAGE_FILTERS,
@@ -40,6 +40,12 @@ interface Props {
    *  un-synced rows show a "Not synced" tag + a Sync button; the returned
    *  promise (if any) is awaited to drive the per-row pending state. */
   onSyncProject?: (id: string) => void | Promise<void>;
+  /** Multi-select (2026-06-02): in select mode each row shows a checkbox and
+   *  the row click toggles batch selection instead of the map briefing.
+   *  Builtins are not selectable (their checkbox is inert). */
+  selectMode?: boolean;
+  selectedIds?: ReadonlySet<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 export default function PortfolioProjectList({
@@ -50,6 +56,9 @@ export default function PortfolioProjectList({
   stageById,
   canCompare = true,
   onSyncProject,
+  selectMode = false,
+  selectedIds,
+  onToggleSelect,
 }: Props) {
   const [query, setQuery] = useState('');
   const [stageFilter, setStageFilter] = useState<StageFilter | 'all'>('all');
@@ -125,7 +134,6 @@ export default function PortfolioProjectList({
         <ul className={css.list}>
           {filtered.map((p) => {
             const stage = stageOf(p);
-            const isSelected = p.id === selectedId;
             // Builtins are system-owned samples (never synced by the steward);
             // a real project is "synced" once it carries a serverId.
             const syncState: 'synced' | 'unsynced' | 'builtin' = p.isBuiltin
@@ -134,14 +142,33 @@ export default function PortfolioProjectList({
                 ? 'synced'
                 : 'unsynced';
             const isSyncing = syncingId === p.id;
+            // In select mode the row toggles batch selection (except builtins);
+            // otherwise it drives the map briefing as before.
+            const selectable = selectMode && !p.isBuiltin;
+            const isChecked = selectedIds?.has(p.id) ?? false;
+            const isSelected = selectable ? isChecked : p.id === selectedId;
             return (
               <li key={p.id} className={css.row}>
                 <button
                   type="button"
                   className={css.item}
                   data-selected={isSelected}
-                  onClick={() => onSelect(p.id)}
+                  role={selectable ? 'checkbox' : undefined}
+                  aria-checked={selectable ? isChecked : undefined}
+                  onClick={() =>
+                    selectable ? onToggleSelect?.(p.id) : onSelect(p.id)
+                  }
                 >
+                  {selectMode ? (
+                    <span
+                      className={`${css.rowCheck} ${isChecked ? css.rowCheckOn : ''} ${
+                        p.isBuiltin ? css.rowCheckDisabled : ''
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {isChecked && <Check size={12} strokeWidth={3} />}
+                    </span>
+                  ) : null}
                   <span
                     className={css.itemDot}
                     style={{ background: STAGE_PAINT[stage].color }}

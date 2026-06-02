@@ -36,7 +36,23 @@ import { ApiError } from '../../lib/apiClient.js';
 import { syncProjectNow, hydrateProjectBoundaries } from '../../lib/syncService.js';
 import css from './PortfolioMapPage.module.css';
 
-export default function PortfolioMapPage({ projects }: { projects: LocalProject[] }) {
+export interface PortfolioMapPageProps {
+  projects: LocalProject[];
+  /** Multi-select (2026-06-02): threaded from the host into the left list. In
+   *  select mode the list rows toggle batch selection instead of driving the
+   *  map briefing; the map itself is unaffected. Optional so the map renders
+   *  standalone without the host's select state. */
+  selectMode?: boolean;
+  selectedIds?: ReadonlySet<string>;
+  onToggleSelect?: (id: string) => void;
+}
+
+export default function PortfolioMapPage({
+  projects,
+  selectMode = false,
+  selectedIds,
+  onToggleSelect,
+}: PortfolioMapPageProps) {
   const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Mobile-only: whether the slide-up project list sheet is open.
@@ -264,6 +280,9 @@ export default function PortfolioMapPage({ projects }: { projects: LocalProject[
             stageById={stageById}
             canCompare={canCompare}
             onSyncProject={handleSyncProject}
+            selectMode={selectMode}
+            selectedIds={selectedIds}
+            onToggleSelect={onToggleSelect}
           />
         </aside>
 

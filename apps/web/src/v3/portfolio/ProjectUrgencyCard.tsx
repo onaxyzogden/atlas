@@ -20,6 +20,7 @@ import { useNavigate } from '@tanstack/react-router';
 import {
   AlertTriangle,
   ArrowRight,
+  Check,
   Clock,
   RefreshCw,
   Sprout,
@@ -63,6 +64,12 @@ export interface ProjectUrgencyCardProps {
   /** Live-data Plan progress (usePortfolioPlanProgress) — stratum + bar. */
   planProgress?: PortfolioPlanProgress;
   role?: ProjectRole;
+  /** Multi-select (2026-06-02): in select mode the card toggles batch
+   *  selection instead of navigating, and shows a corner checkbox. Builtins
+   *  are not selectable (the checkbox is hidden / inert). */
+  selectMode?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 export default function ProjectUrgencyCard({
@@ -71,8 +78,14 @@ export default function ProjectUrgencyCard({
   stage,
   planProgress,
   role,
+  selectMode = false,
+  selected = false,
+  onToggleSelect,
 }: ProjectUrgencyCardProps) {
   const navigate = useNavigate();
+  // Builtins are system-owned samples — never archivable/deletable, so they
+  // are not selectable even in select mode.
+  const selectable = selectMode && !project.isBuiltin;
   const roleLabel = role ? ROLE_BADGE_LABEL[role] : undefined;
   const draftWizard = urgency?.breakdown.draftWizard ?? false;
   const chips = buildUrgencyChips(urgency);
@@ -89,6 +102,8 @@ export default function ProjectUrgencyCard({
         ? 'All strata complete'
         : 'Plan not started';
   const showProgress = (planProgress?.objectivesTotal ?? 0) > 0;
+
+  const handleSelect = () => onToggleSelect?.(project.id);
 
   const handleOpen = () => {
     if (draftWizard) {
@@ -110,20 +125,30 @@ export default function ProjectUrgencyCard({
     <BentoBox
       outer="elevated"
       padding="none"
-      className={css.card}
+      className={`${css.card} ${selectable && selected ? css.cardSelected : ''}`}
       style={{ ['--stage-color' as string]: paint.color }}
-      role="button"
+      role={selectable ? 'checkbox' : 'button'}
+      aria-checked={selectable ? selected : undefined}
       tabIndex={0}
-      onClick={handleOpen}
+      onClick={selectable ? handleSelect : handleOpen}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          handleOpen();
+          if (selectable) handleSelect();
+          else handleOpen();
         }
       }}
-      aria-label={`Open ${project.name}`}
+      aria-label={selectable ? `Select ${project.name}` : `Open ${project.name}`}
     >
       <div className={css.stageBar} aria-hidden />
+      {selectable && (
+        <span
+          className={`${css.selectCheck} ${selected ? css.selectCheckOn : ''}`}
+          aria-hidden
+        >
+          {selected && <Check size={13} strokeWidth={3} />}
+        </span>
+      )}
       <div className={css.inner}>
         {/* ---- Header: name + type badges · status badges ----------------- */}
         <header className={css.header}>
@@ -219,17 +244,31 @@ export default function ProjectUrgencyCard({
         {/* ---- Footer: area + Open CTA ----------------------------------- */}
         <footer className={css.footer}>
           <span className={css.area}>{projectAreaLabel(project)}</span>
-          <button
-            type="button"
-            className={css.openBtn}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOpen();
-            }}
-          >
-            {draftWizard ? 'Finish setup' : 'Open'}
-            <ArrowRight size={13} aria-hidden />
-          </button>
+          {selectable ? (
+            <button
+              type="button"
+              className={css.openBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelect();
+              }}
+            >
+              {selected ? 'Selected' : 'Select'}
+              <Check size={13} aria-hidden />
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={css.openBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpen();
+              }}
+            >
+              {draftWizard ? 'Finish setup' : 'Open'}
+              <ArrowRight size={13} aria-hidden />
+            </button>
+          )}
         </footer>
       </div>
     </BentoBox>

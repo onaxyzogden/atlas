@@ -23,6 +23,35 @@
   outline-offset: 2px;
 }
 
+/* ---- Select mode (multi-select toolbar) -------------------------------- */
+
+.cardSelected {
+  outline: 2px solid var(--color-accent, #c9a05a);
+  outline-offset: 2px;
+}
+
+.selectCheck {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface, #fff);
+  color: #0f172a;
+}
+
+.selectCheckOn {
+  border-color: var(--color-accent, #c9a05a);
+  background: var(--color-accent, #c9a05a);
+  color: #0f172a;
+}
+
 /* ---- Stage colour bar (full-bleed top strip) --------------------------- */
 
 .stageBar {
