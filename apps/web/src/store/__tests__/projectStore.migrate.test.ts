@@ -57,8 +57,119 @@ describe('projectStore migrate (v6 -> v7): planShellMode stratum rename', () => 
     expect(out.activeProjectId).toBe('p-tier');
   });
 
-  it('targets persist version 7', () => {
-    expect(options.version).toBe(7);
+  it('targets persist version 8', () => {
+    expect(options.version).toBe(8);
+  });
+});
+
+describe('projectStore migrate (v7 -> v8): bare-projectType -> record backfill', () => {
+  // A pre-v8 blob mixing the cases the backfill must distinguish:
+  //  - a legacy bare primary string with no record (should seed a record);
+  //  - a kebab archetype that normalizes to a primary (should seed, normalized);
+  //  - a project already holding a record (must pass through untouched);
+  //  - a secondary-only string 'residential' (canBePrimary: false -> no record);
+  //  - an unknown string (-> no record);
+  //  - a null-type project like MTC (-> no record).
+  type RecordShape = {
+    primaryTypeId: string;
+    secondaryTypeIds: string[];
+    versionHistory: unknown[];
+  };
+  type LooseTypedProject = {
+    id: string;
+    projectType?: string | null;
+    metadata?: { projectTypeRecord?: RecordShape } | null;
+  };
+  interface LooseTypedState {
+    projects: LooseTypedProject[];
+    activeProjectId: string | null;
+  }
+
+  const v7 = {
+    projects: [
+      { id: 'p-homestead', projectType: 'homestead' },
+      { id: 'p-archetype', projectType: 'regenerative-farm' },
+      {
+        id: 'p-has-record',
+        projectType: 'homestead',
+        metadata: {
+          projectTypeRecord: {
+            primaryTypeId: 'silvopasture',
+            secondaryTypeIds: ['orchard_food_forest'],
+            versionHistory: [{ action: 'secondary-added' }],
+          },
+        },
+      },
+      { id: 'p-residential', projectType: 'residential' },
+      { id: 'p-unknown', projectType: 'not-a-real-type' },
+      { id: 'p-null', projectType: null },
+    ],
+    activeProjectId: 'p-homestead',
+  };
+
+  function migrateV7(): LooseTypedState {
+    return migrate(structuredClone(v7), 7) as unknown as LooseTypedState;
+  }
+
+  it('seeds a fresh record for a legacy bare primary string', () => {
+    const byId = Object.fromEntries(migrateV7().projects.map((p) => [p.id, p]));
+    const record = byId['p-homestead']!.metadata?.projectTypeRecord;
+    expect(record?.primaryTypeId).toBe('homestead');
+    expect(record?.secondaryTypeIds).toEqual([]);
+    // Mirrors setPrimaryType: no version history on a materialized record.
+    expect(record?.versionHistory).toEqual([]);
+  });
+
+  it('normalizes a kebab archetype before materializing the record', () => {
+    const byId = Object.fromEntries(migrateV7().projects.map((p) => [p.id, p]));
+    expect(byId['p-archetype']!.metadata?.projectTypeRecord?.primaryTypeId).toBe(
+      'regenerative_farm',
+    );
+  });
+
+  it('leaves a project that already has a record untouched', () => {
+    const byId = Object.fromEntries(migrateV7().projects.map((p) => [p.id, p]));
+    const record = byId['p-has-record']!.metadata?.projectTypeRecord;
+    expect(record?.primaryTypeId).toBe('silvopasture');
+    expect(record?.secondaryTypeIds).toEqual(['orchard_food_forest']);
+    expect(record?.versionHistory).toEqual([{ action: 'secondary-added' }]);
+  });
+
+  it('skips a secondary-only string (residential cannot be a primary)', () => {
+    const byId = Object.fromEntries(migrateV7().projects.map((p) => [p.id, p]));
+    expect(byId['p-residential']!.metadata?.projectTypeRecord).toBeUndefined();
+  });
+
+  it('skips unknown and null project-type strings', () => {
+    const byId = Object.fromEntries(migrateV7().projects.map((p) => [p.id, p]));
+    expect(byId['p-unknown']!.metadata?.projectTypeRecord).toBeUndefined();
+    expect(byId['p-null']!.metadata?.projectTypeRecord).toBeUndefined();
+  });
+
+  it('preserves array order + activeProjectId', () => {
+    const out = migrateV7();
+    expect(out.projects.map((p) => p.id)).toEqual([
+      'p-homestead',
+      'p-archetype',
+      'p-has-record',
+      'p-residential',
+      'p-unknown',
+      'p-null',
+    ]);
+    expect(out.activeProjectId).toBe('p-homestead');
+  });
+
+  it('is idempotent — re-running on already-migrated v8 data is a no-op', () => {
+    const once = migrateV7();
+    const twice = migrate(
+      structuredClone(once),
+      8,
+    ) as unknown as LooseTypedState;
+    const byId = Object.fromEntries(twice.projects.map((p) => [p.id, p]));
+    expect(byId['p-homestead']!.metadata?.projectTypeRecord?.primaryTypeId).toBe(
+      'homestead',
+    );
+    expect(byId['p-residential']!.metadata?.projectTypeRecord).toBeUndefined();
   });
 });
 

@@ -19,7 +19,10 @@ import {
   resolveProjectObjectives,
   type ProjectTypeRecord,
 } from '@ogden/shared';
-import { useProjectStore } from '../projectStore.js';
+import {
+  useProjectStore,
+  recordFromBareProjectType,
+} from '../projectStore.js';
 
 /** Create a project with NO type (projectType omitted -> normalized to null). */
 function seedNullTypeProject(): string {
@@ -130,6 +133,65 @@ describe('setPrimaryType - additive primary-type write', () => {
     expect(
       useProjectStore.getState().setPrimaryType('no-such-id', 'homestead'),
     ).toBe(false);
+  });
+
+  // --- Legacy bare-string -> can-add-secondary path -----------------------
+  // The wizard (WizardStep2Vision) and the v7->v8 persist migrate both lean on
+  // `recordFromBareProjectType` to materialize the record a legacy project's bare
+  // `projectType` already implies. These pin the helper + prove the materialized
+  // record unblocks secondary additions that the bare string alone could not.
+
+  it('recordFromBareProjectType: bare primary -> fresh record; secondary-only / unknown / null -> null', () => {
+    const record = recordFromBareProjectType('homestead');
+    expect(record).toEqual({
+      primaryTypeId: 'homestead',
+      secondaryTypeIds: [],
+      tensionAcknowledgements: [],
+      versionHistory: [],
+      reopeningAcknowledgements: [],
+    });
+    // Kebab archetype normalizes before the primary lookup.
+    expect(recordFromBareProjectType('regenerative-farm')?.primaryTypeId).toBe(
+      'regenerative_farm',
+    );
+    // residential is secondary-only; unknown + null have no primary.
+    expect(recordFromBareProjectType('residential')).toBeNull();
+    expect(recordFromBareProjectType('not-a-type')).toBeNull();
+    expect(recordFromBareProjectType(null)).toBeNull();
+  });
+
+  it('materializing a legacy bare-string record unblocks add-secondary', () => {
+    // A legacy/seeded project: a valid bare primary, but NO record.
+    const project = useProjectStore.getState().createProject({
+      name: 'Legacy bare-string fixture',
+      projectType: 'homestead',
+      country: 'US',
+      units: 'metric',
+    });
+    expect(project.metadata?.projectTypeRecord).toBeUndefined();
+    // Bug repro: with no record, the store refuses to add a secondary.
+    expect(
+      useProjectStore
+        .getState()
+        .addSecondaryType(project.id, 'orchard_food_forest'),
+    ).toBe(false);
+
+    // Materialize the record from the bare string (what the wizard/migrate do).
+    const record = recordFromBareProjectType(project.projectType);
+    if (!record) throw new Error('expected a record from the bare primary');
+    useProjectStore.getState().updateProject(project.id, {
+      metadata: { ...(project.metadata ?? {}), projectTypeRecord: record },
+    });
+
+    // Now a compatible secondary can be added.
+    expect(
+      useProjectStore
+        .getState()
+        .addSecondaryType(project.id, 'orchard_food_forest'),
+    ).toBe(true);
+    expect(
+      getProject(project.id).metadata?.projectTypeRecord?.secondaryTypeIds,
+    ).toEqual(['orchard_food_forest']);
   });
 
   it('lands the record on a builtin project (the MTC case)', () => {

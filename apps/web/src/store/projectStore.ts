@@ -485,6 +485,43 @@ export function normalizeProjectType(
   return null;
 }
 
+/**
+ * Build a fresh `ProjectTypeRecord` from a project's bare `projectType` string
+ * when — and only when — that string normalizes to a valid PRIMARY type.
+ *
+ * Legacy/seeded projects (e.g. the "351 House" homestead, or a project created
+ * before the wizard wrote records) carry a bare `projectType` but no
+ * `metadata.projectTypeRecord`. The resolution ladder in `useProjectObjectives`
+ * tolerates that via its Level-2 string fallback, but the Step-2 wizard reads the
+ * record DIRECTLY — so without a record it renders no primary selection, hides the
+ * secondary picker, and blocks `handleToggleSecondary`. This helper lets both the
+ * persist `migrate` backfill and the wizard materialize the SAME record the
+ * steward would get by re-picking, mirroring `setPrimaryType`'s write exactly
+ * (empty secondary / ack / version / reopening arrays, no `versionHistory` entry).
+ *
+ *   null / "" / unknown string   -> null
+ *   secondary-only (residential) -> null   (canBePrimary: false)
+ *   kebab archetype / legacy enum -> normalized + materialized (via normalizeProjectType)
+ *
+ * Returns `null` when no valid primary can be derived, so callers leave the
+ * project untouched (it keeps falling through to the static skeleton).
+ */
+export function recordFromBareProjectType(
+  projectType: string | null | undefined,
+): ProjectTypeRecord | null {
+  const normalized = normalizeProjectType(projectType);
+  if (!normalized) return null;
+  const def = findProjectType(normalized);
+  if (!def?.canBePrimary) return null;
+  return {
+    primaryTypeId: def.id,
+    secondaryTypeIds: [],
+    tensionAcknowledgements: [],
+    versionHistory: [],
+    reopeningAcknowledgements: [],
+  };
+}
+
 export const useProjectStore = create<ProjectState>()(
   persist(
     (set, get) => ({
@@ -1014,7 +1051,7 @@ export const useProjectStore = create<ProjectState>()(
     }),
     {
       name: 'ogden-projects',
-      version: 7,
+      version: 8,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 3) {
@@ -1069,6 +1106,31 @@ export const useProjectStore = create<ProjectState>()(
                 ? 'stratum-spine'
                 : (p as { planShellMode?: string }).planShellMode,
           }));
+        }
+        if (version < 8) {
+          // Backfill a `projectTypeRecord` for any project (builtins included)
+          // that carries a valid bare `projectType` but no record yet. Legacy/
+          // seeded projects resolved their objectives via the string-level
+          // fallback in `useProjectObjectives`, but the Step-2 wizard reads the
+          // record directly — so without one the steward cannot add secondary
+          // layers without first re-picking the primary. Seeding the record the
+          // bare string already implies makes resolution uniformly source:'record'
+          // and unblocks the wizard. Idempotent: projects already holding a record
+          // (or whose string is empty / unknown / secondary-only) pass through.
+          const projects = (state.projects ?? []) as Record<string, unknown>[];
+          state.projects = projects.map((p) => {
+            const meta = (p as { metadata?: Record<string, unknown> | null })
+              .metadata;
+            if (meta?.projectTypeRecord) return p;
+            const record = recordFromBareProjectType(
+              (p as { projectType?: string | null }).projectType,
+            );
+            if (!record) return p;
+            return {
+              ...p,
+              metadata: { ...(meta ?? {}), projectTypeRecord: record },
+            };
+          });
         }
         return state;
       },
