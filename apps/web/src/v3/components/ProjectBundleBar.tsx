@@ -19,6 +19,7 @@
  */
 
 import { useRef, useState } from 'react';
+import { Link, useParams } from '@tanstack/react-router';
 import { Download, Upload, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { FLAGS } from '@ogden/shared';
 import {
@@ -50,6 +51,10 @@ interface PendingImport {
 }
 
 export default function ProjectBundleBar() {
+  // The bar mounts on the v3 project frame; surface a thin, always-reachable
+  // entry point to the Protocols dashboard (a peer surface of Observe/Plan/Act
+  // that the header stage-spine does not enumerate). Omitted off-project.
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const [exported, setExported] = useState<boolean>(() => hasExportedBundle());
   const [pending, setPending] = useState<PendingImport | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -161,6 +166,15 @@ export default function ProjectBundleBar() {
       </div>
       <div className={css.actions}>
         {error && <span className={css.error}>{error}</span>}
+        {projectId && (
+          <Link
+            to="/v3/project/$projectId/protocols"
+            params={{ projectId }}
+            className={css.ghostBtn}
+          >
+            <span>Protocols</span>
+          </Link>
+        )}
         <button type="button" className={css.ghostBtn} onClick={onPickFile}>
           <Upload aria-hidden="true" />
           <span>Import bundle</span>
