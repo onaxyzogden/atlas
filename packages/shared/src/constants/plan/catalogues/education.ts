@@ -545,7 +545,7 @@ export const EDUCATION_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       // v1.0 source authored only 4. Mirrors the multi-year comprehensive-review
       // item every sibling adaptive-management objective carries (offGrid c5,
       // conservation c5). FLAGGED for operator review.
-      ck('edu-s6-adaptive-management-c5', 'Define multi-year comprehensive review against the program founding educational goals and capacity targets'),
+      ck('edu-s6-adaptive-management-c5', 'Define 3-year comprehensive review against founding educational goals and capacity targets'),
     ],
     decisionGroups: [
       dg('edu-s6-adaptive-management-dg1', 'Annual review & triggers', ['edu-s6-adaptive-management-c1', 'edu-s6-adaptive-management-c2', 'edu-s6-adaptive-management-c5']),
