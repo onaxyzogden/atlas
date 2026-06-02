@@ -40,6 +40,7 @@ import { useProtocolStore } from '../../../store/protocolStore.js';
 import { useProtocolLibrary } from '../../plan/strata/useProtocolLibrary.js';
 import { FEEDS_TO_MODULE } from '../data/protocolFeedsMap.js';
 import TriggerRecognitionSheet from '../protocols/TriggerRecognitionSheet.js';
+import { evaluateAndRaiseFlags } from '../protocols/evaluateAndRaiseFlags.js';
 import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklistProgress.js';
 import { resolveAnswerSpec } from '../../strata/resolveAnswerSpec.js';
 import AnswerRecap from './AnswerRecap.js';
@@ -50,6 +51,7 @@ import {
 } from '../../../store/actEvidenceStore.js';
 import { useObserveDataPointStore } from '../../../store/observeDataPointStore.js';
 import { useObservationNeedStore } from '../../../store/observationNeedStore.js';
+import { useReviewFlagStore } from '../../../store/reviewFlagStore.js';
 import {
   readNote,
   formatActyTimestamp,
@@ -341,6 +343,19 @@ export default function ActTierExecutionPanel({
     });
     if (confirmationStatus === 'confirmed') {
       markTriggered(projectId, template.id);
+      // Read FRESH post-write snapshots: the component's hook values are closed
+      // over the pre-recordActivation render and do NOT include the activation
+      // just appended; getState() returns the post-write snapshot.
+      const freshActivations = useProtocolStore.getState().activations;
+      const expectedRate =
+        useProtocolStore.getState().expectationsByProject[projectId]?.[template.id];
+      evaluateAndRaiseFlags({
+        projectId,
+        templateId: template.id,
+        activations: freshActivations,
+        expectedRate,
+        raiseFlag: useReviewFlagStore.getState().raiseFlag,
+      });
     }
     setPendingTrigger(null);
   }
