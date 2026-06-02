@@ -46,7 +46,7 @@ import V3BuildPage from '../v3/pages/BuildPage.js';
 import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
-import ObserveLensPrototype from '../v3/observe/prototype/ObserveLensPrototype.js';
+import ObserveLensDashboard from '../v3/observe/lens/ObserveLensDashboard.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import ProtocolsDashboardPage from '../v3/protocols/ProtocolsDashboardPage.js';
 import AffinityTelemetryDashboard from '../features/dashboard/pages/AffinityTelemetryDashboard.js';
@@ -246,12 +246,14 @@ const v3ComponentsDebugRoute = createRoute({
   component: V3ComponentsDebugPage,
 });
 
-// ─── Observe "observational lens" concept — standalone mock prototype ────
-// Deletable, no project context. See apps/web/src/v3/observe/prototype/.
+// ─── Observe "observational lens" dashboard — chrome-free preview alias ────
+// Mock-backed, no project context. The same component is also the live
+// `module-bar` Observe shell (see apps/web/src/v3/observe/lens/). This path is
+// kept as a no-chrome pixel-inspection surface.
 const observeLensPrototypeRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/prototype/observe-lens',
-  component: ObserveLensPrototype,
+  component: ObserveLensDashboard,
 });
 
 // ─── Atlas 3.0 (parallel route tree under /v3) ───────────────────────────

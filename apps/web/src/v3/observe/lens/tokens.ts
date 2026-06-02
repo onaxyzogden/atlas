@@ -1,4 +1,4 @@
-// tokens.ts — PROTOTYPE ONLY (deletable)
+// tokens.ts — Observe lens surface (mock-backed; not yet wired to live data)
 //
 // Self-contained colour + font tokens for the observational-lens Observe
 // concept. Kept verbatim from the source concept (olos_observe_dashboard.jsx)

@@ -1,4 +1,4 @@
-// types.ts — PROTOTYPE ONLY (deletable)
+// types.ts — Observe lens surface (mock-backed; not yet wired to live data)
 //
 // Minimal interfaces to give the faithful JS→TS port a typed spine without
 // over-constraining the mock fixtures. Behaviour and output match the source

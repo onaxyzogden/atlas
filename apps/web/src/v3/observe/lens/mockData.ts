@@ -1,4 +1,4 @@
-// mockData.ts — PROTOTYPE ONLY (deletable)
+// mockData.ts — Observe lens surface (mock-backed; not yet wired to live data)
 //
 // Mock fixtures for the observational-lens Observe concept. Ported verbatim
 // (values unchanged) from the source concept, EXCEPT the lens identity layer:

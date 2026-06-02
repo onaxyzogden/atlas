@@ -1,4 +1,4 @@
-// components.tsx — PROTOTYPE ONLY (deletable)
+// components.tsx — Observe lens surface (mock-backed; not yet wired to live data)
 //
 // Faithful JS→TS port of every presentational component in the observational-
 // lens Observe concept. Inline styles + the local C/F token palette are kept

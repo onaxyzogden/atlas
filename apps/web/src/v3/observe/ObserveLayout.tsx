@@ -84,11 +84,69 @@ import { observeSectionIdModule } from './observeSectionMap.js';
 import StageShell from '../_shell/StageShell.js';
 import ObserveShellToggle from './dashboard/ObserveShellToggle.js';
 import ObserveDashboardLayout from './dashboard/ObserveDashboardLayout.js';
+import ObserveLensDashboard from './lens/ObserveLensDashboard.js';
 import type { SourceFilter } from './dashboard/domain/observationSource.js';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 
+/**
+ * ObserveLayout — route component for all project-scoped `observe*` routes.
+ *
+ * Shell branch:
+ *   - `dashboard`  → the 4-surface OLOS Observe Dashboard (delegated, unchanged,
+ *                    to ObserveDualShellLayoutLegacy below).
+ *   - `module-bar` → the promoted "observational lens" dashboard
+ *                    (ObserveLensDashboard, mock-backed; not yet wired to live
+ *                    data). This REPLACES the legacy module-bar assembly, which
+ *                    is preserved intact in ObserveDualShellLayoutLegacy (kept
+ *                    compiled/reachable for the dashboard path; its own
+ *                    module-bar branch is simply no longer entered).
+ *
+ * ObserveShellToggle remains the escape hatch back to the dashboard shell.
+ */
 export default function ObserveLayout() {
+  const params = useParams({ strict: false }) as { projectId?: string };
+  const id = params.projectId ?? 'mtc';
+  const projects = useProjectStore((s) => s.projects);
+  const updateProject = useProjectStore((s) => s.updateProject);
+  const projectRecord = useMemo(
+    () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
+    [projects, id],
+  );
+  const observeShellMode = getObserveShellMode(projectRecord);
+  const handleObserveShellModeChange = (mode: ObserveShellMode) => {
+    updateProject(projectRecord.id, { observeShellMode: mode });
+  };
+
+  if (observeShellMode === 'module-bar') {
+    return (
+      <StageShell
+        canvasLabel="Observe canvas"
+        leftRailLabel="Observe tools"
+        rightRailLabel="Observe checklist"
+        leftRail={null}
+        canvas={
+          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <ObserveShellToggle
+              mode={observeShellMode}
+              onChange={handleObserveShellModeChange}
+            />
+            <ObserveLensDashboard />
+          </div>
+        }
+        rightRail={null}
+        bottomTray={null}
+      />
+    );
+  }
+
+  return <ObserveDualShellLayoutLegacy />;
+}
+
+// Preserved dual-shell layout (unchanged). Renders the real `dashboard` shell;
+// its internal `module-bar` branch is retained for fidelity / future reuse but
+// is intercepted by the wrapper above and no longer entered in normal flow.
+function ObserveDualShellLayoutLegacy() {
   const params = useParams({ strict: false }) as {
     projectId?: string;
     module?: string;
