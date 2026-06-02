@@ -50,7 +50,7 @@ export default function ActTierObjectiveCard({
       onKeyDown={handleKeyDown}
     >
       <span className={styles.objEyebrow}>{eyebrow}</span>
-      <span className={styles.objTitle}>{objective.title}</span>
+      <span className={styles.objTitle}>{objective.shortTitle ?? objective.title}</span>
       <span className={styles.objDesc}>{objective.focusedQuestion}</span>
       <div className={styles.objFooter}>
         <span className={styles.objProgress} data-state={progress.state}>
