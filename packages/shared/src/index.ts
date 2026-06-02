@@ -173,6 +173,7 @@ export {
 // Protocol Layer (OLOS Protocol Layer Spec v1.0 — vertical slice 1: typed
 // foundation + read-only standard-template catalogue; engine/authoring deferred)
 export * from './schemas/protocol/protocol.schema.js';
+export * from './schemas/protocol/reviewFlag.schema.js';
 export * from './constants/protocol/standardTemplates.js';
 export * from './constants/protocol/projectEnterprises.js';
 export * from './constants/protocol/protocolOutputs.js';
