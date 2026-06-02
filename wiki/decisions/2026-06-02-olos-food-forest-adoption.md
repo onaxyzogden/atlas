@@ -48,13 +48,18 @@ prior app. Separately, 5 of 13 `.docx` objective catalogues were still unencoded
   *primary* remains universal-only (its catalogue is secondary-only).
 - The CSA/scopeNotes precedent keeps verbatim source fidelity while carrying the CSRA
   fiqh caution into generic OLOS catalogues -- reusable for any future catalogue.
-- **New debt:** the 5 newer primary catalogues (HMS/EDU/CON/MGD/OFG) are guarded only by
-  TypeScript compile-time enforcement -- they are absent from the `ALL_AUTHORED` arrays
-  in `catalogues.test.ts` and `shortTitle.test.ts`, so the runtime conformance rubric
-  (ref format, checklist bounds, gate/handoff presence, shortTitle derivation) does not
-  exercise them. Closing this requires widening `OBJECTIVE_REF`
-  (`/^(U|RF|RES|EV|AG|WELL|SILV|ORCH|NRS)-S[1-7]\.\d+$/`) to add `HMS|EDU|CON|MGD|OFG`
-  and adding the five primaries to both arrays. Deferred to a dedicated follow-on slice.
+- **New debt (CLOSED 2026-06-02, commit `8677bda8`):** the 5 newer primary catalogues
+  (HMS/EDU/CON/MGD/OFG) were guarded only by TypeScript compile-time enforcement -- absent
+  from the `ALL_AUTHORED` arrays in `catalogues.test.ts` and `shortTitle.test.ts`, so the
+  runtime conformance rubric did not exercise them. Closed by widening `OBJECTIVE_REF` to
+  add `HMS|EDU|CON|MGD|OFG`, adding the five primaries to both `ALL_AUTHORED` arrays, and
+  adding a per-catalogue source/sourceTypeId discipline test for each. Applying the rubric
+  surfaced a real undershoot the compile-time guard missed: three objectives whose source
+  `.docx` authored only 4 checklist items (below the Standards v1.4 five-item floor),
+  verified faithful-to-source -- `hms-s7-adaptive-management`, `edu-s6-adaptive-management`,
+  `edu-s7-program-launch`. Each was normalized to the floor with ONE within-archetype item
+  borrowed from sibling adaptive-management / sequencing objectives, comment-flagged for
+  operator review. See [[log/2026-06-02-atlas-catalogue-conformance-gap-closed]].
 
 See [[log/2026-06-02-olos-food-forest-adoption]], [[entities/shared-package]],
 [[entities/web-app]].
