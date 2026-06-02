@@ -42,6 +42,10 @@ import { useCyclicalReviewStore } from '../../store/cyclicalReviewStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { resolveObjectivesForProject } from '../plan/strata/useProjectObjectives.js';
 import { computeEffectiveProgress } from '../strata/effectiveProgress.js';
+import { collectFormulaSatisfiedItemIds } from '../strata/useObjectiveFormulaProgress.js';
+import { useLivestockStore } from '../../store/livestockStore.js';
+import { useRotationPlanStore } from '../../store/rotationPlanStore.js';
+import { useSiteDataStore } from '../../store/siteDataStore.js';
 
 /** Stable empty map identity so the consumer's React equality check
  *  short-circuits when there are no projects to score. */
@@ -80,6 +84,11 @@ export function useProjectUrgency(
   const feedByProject = useObserveFeedStore((s) => s.byProject);
   const planProgressByProject = usePlanStratumProgressStore((s) => s.byProject);
   const cyclicalReviewByProject = useCyclicalReviewStore((s) => s.byProject);
+  // Subscribe to the slices livestock-formula summaries read so a computed
+  // formula advances urgency scoring the same way Plan + Act see it.
+  const paddocks = useLivestockStore((s) => s.paddocks);
+  const rotationByProject = useRotationPlanStore((s) => s.byProject);
+  const siteDataByProject = useSiteDataStore((s) => s.dataByProject);
 
   // `now` once per hook call so the score doesn't flicker across
   // unrelated rerenders. Re-reads on the next mount cycle.
@@ -110,6 +119,7 @@ export function useProjectUrgency(
         project.metadata?.team,
         objectives,
         project.metadata,
+        collectFormulaSatisfiedItemIds(projectId, objectives),
       );
       const objectiveStatuses = computeAllObjectiveStatuses(objectives, flatMap);
 
@@ -201,5 +211,8 @@ export function useProjectUrgency(
     planProgressByProject,
     cyclicalReviewByProject,
     nowMs,
+    paddocks,
+    rotationByProject,
+    siteDataByProject,
   ]);
 }

@@ -65,6 +65,13 @@ export function computeEffectiveProgress(
   team: ProjectTeam | null | undefined,
   objectives: readonly PlanStratumObjective[],
   metadata?: ProjectMetadata | null,
+  /**
+   * Item ids a livestock-formula binding has computed a usable result for
+   * (see `useObjectiveFormulaProgress.collectFormulaSatisfiedItemIds`). This
+   * module stays PURE — the caller does all store reads and hands in a plain
+   * Set, exactly like `metadata` for the answerSpec path. A no-op when absent.
+   */
+  formulaSatisfiedItemIds?: ReadonlySet<string> | null,
 ): EffectiveChecklistProgress {
   const visionMap = deriveStratum1EvidenceMap(visionProfile);
   const stewardshipMap = deriveStratum1StewardshipMap(team);
@@ -94,6 +101,13 @@ export function computeEffectiveProgress(
         }
       }
     }
+  }
+
+  // Formula auto-satisfy: a checklist item whose `formulaBinding` has produced
+  // a usable result (predicate evaluated by the caller, passed in as a Set) is
+  // unioned in exactly like an answerSpec. Pure here — no store read.
+  if (formulaSatisfiedItemIds && formulaSatisfiedItemIds.size > 0) {
+    for (const id of formulaSatisfiedItemIds) flatMap[id] = true;
   }
 
   const byObjective: Record<string, readonly string[]> = {};

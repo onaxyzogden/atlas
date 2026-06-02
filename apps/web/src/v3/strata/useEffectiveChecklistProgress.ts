@@ -32,6 +32,7 @@ import {
   computeEffectiveProgress,
   type EffectiveChecklistProgress,
 } from './effectiveProgress.js';
+import { useObjectiveFormulaProgress } from './useObjectiveFormulaProgress.js';
 
 export { computeEffectiveProgress } from './effectiveProgress.js';
 export type { EffectiveChecklistProgress } from './effectiveProgress.js';
@@ -56,6 +57,15 @@ export function useEffectiveChecklistProgress(
   const visionProfile = metadata?.visionProfile;
   const team = metadata?.team;
 
+  // Livestock-formula auto-satisfy: reactive Set of item ids whose bound
+  // formula has a usable result. Reads the livestock/rotation/site-data
+  // stores so a freshly-drawn paddock advances the bar; the pure resolver
+  // below just unions the Set (stays store-free).
+  const formulaSatisfiedItemIds = useObjectiveFormulaProgress(
+    projectId,
+    objectives,
+  );
+
   return useMemo(
     () =>
       computeEffectiveProgress(
@@ -64,7 +74,15 @@ export function useEffectiveChecklistProgress(
         team,
         objectives,
         metadata,
+        formulaSatisfiedItemIds,
       ),
-    [storedByObjective, visionProfile, team, objectives, metadata],
+    [
+      storedByObjective,
+      visionProfile,
+      team,
+      objectives,
+      metadata,
+      formulaSatisfiedItemIds,
+    ],
   );
 }

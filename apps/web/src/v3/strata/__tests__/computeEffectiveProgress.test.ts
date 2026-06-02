@@ -148,6 +148,63 @@ describe('computeEffectiveProgress', () => {
     expect(after.byObjective['s1-purpose']).toEqual(['s1-purpose-c1']);
   });
 
+  it('unions formula-satisfied item ids from the 6th arg (Set), no-op when absent', () => {
+    // A checklist item whose livestock formula has a usable result is unioned in
+    // exactly like an answerSpec. The caller (useObjectiveFormulaProgress) does
+    // the store read and hands in a plain Set; this fn stays pure.
+    const objectives = [
+      {
+        id: 's4-paddock-layout',
+        checklist: [
+          {
+            id: 's4-calc-capacity',
+            label: 'Calculate total carrying capacity',
+            feedsInto: [],
+            optional: false,
+            formulaBinding: {
+              formulaId: 'paddock-system-capacity',
+              satisfiesWhenComputed: true,
+            },
+          },
+          {
+            id: 's4-define-density',
+            label: 'Define stocking density',
+            feedsInto: [],
+            optional: false,
+          },
+        ],
+      } as unknown as PlanStratumObjective,
+    ];
+
+    // Without the Set: nothing flips.
+    const before = computeEffectiveProgress({}, undefined, undefined, objectives);
+    expect(before.flatMap['s4-calc-capacity']).toBeUndefined();
+
+    // With the Set: only the listed id is satisfied.
+    const after = computeEffectiveProgress(
+      {},
+      undefined,
+      undefined,
+      objectives,
+      undefined,
+      new Set(['s4-calc-capacity']),
+    );
+    expect(after.flatMap['s4-calc-capacity']).toBe(true);
+    expect(after.flatMap['s4-define-density']).toBeUndefined();
+    expect(after.byObjective['s4-paddock-layout']).toEqual(['s4-calc-capacity']);
+
+    // Empty Set is a no-op.
+    const noop = computeEffectiveProgress(
+      {},
+      undefined,
+      undefined,
+      objectives,
+      undefined,
+      new Set(),
+    );
+    expect(noop.flatMap['s4-calc-capacity']).toBeUndefined();
+  });
+
   it('Act effective progress equals Plan: same flatMap feeds the status engine', () => {
     // The bug: Act read RAW store progress and skipped the wizard merge, so a
     // freshly-wizard-completed project showed S1 DONE in Plan but EMPTY in Act.

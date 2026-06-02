@@ -17,9 +17,13 @@ import {
   PLAN_STRATA,
 } from '@ogden/shared';
 import { usePlanStratumProgressStore } from '../../store/planStratumStore.js';
+import { useLivestockStore } from '../../store/livestockStore.js';
+import { useRotationPlanStore } from '../../store/rotationPlanStore.js';
+import { useSiteDataStore } from '../../store/siteDataStore.js';
 import type { LocalProject } from '../../store/projectStore.js';
 import { resolveObjectivesForProject } from '../plan/strata/useProjectObjectives.js';
 import { computeEffectiveProgress } from '../strata/effectiveProgress.js';
+import { collectFormulaSatisfiedItemIds } from '../strata/useObjectiveFormulaProgress.js';
 
 export interface PortfolioPlanProgress {
   /** 1-based ordinal of the first non-complete stratum, or null when all done. */
@@ -52,6 +56,11 @@ export function usePortfolioPlanProgress(
   projects: LocalProject[],
 ): ReadonlyMap<string, PortfolioPlanProgress> {
   const planProgressByProject = usePlanStratumProgressStore((s) => s.byProject);
+  // Subscribe to the store slices livestock-formula summaries read so a drawn
+  // paddock / rotation plan / site layer advances portfolio cards too.
+  const paddocks = useLivestockStore((s) => s.paddocks);
+  const rotationByProject = useRotationPlanStore((s) => s.byProject);
+  const siteDataByProject = useSiteDataStore((s) => s.dataByProject);
 
   return useMemo(() => {
     const out = new Map<string, PortfolioPlanProgress>();
@@ -71,6 +80,7 @@ export function usePortfolioPlanProgress(
         project.metadata?.team,
         objectives,
         project.metadata,
+        collectFormulaSatisfiedItemIds(id, objectives),
       );
       const objectiveStatuses = computeAllObjectiveStatuses(objectives, flatMap);
       const objectivesTotal = objectives.length;
@@ -104,5 +114,11 @@ export function usePortfolioPlanProgress(
       });
     }
     return out;
-  }, [projects, planProgressByProject]);
+  }, [
+    projects,
+    planProgressByProject,
+    paddocks,
+    rotationByProject,
+    siteDataByProject,
+  ]);
 }
