@@ -137,6 +137,102 @@ describe('ActTierObjectiveRail', () => {
     expect(screen.getByText(/1 closed-loop/)).toBeTruthy();
   });
 
+  it('maximalist gate: flow block lights via a water act-tool (no compost, neutral prose)', () => {
+    // `s5-water-infrastructure` resolves (via override) to swale/storage/tanks/
+    // sink/wells -- water source/sink tools now in FLOW_TOOL_IDS. The id does not
+    // match the id pattern and the prose is neutral, so it lights ONLY via the
+    // broadened (maximalist) tool signal.
+    const waterObjective = {
+      ...OBJECTIVE,
+      id: "s5-water-infrastructure",
+      stratumId: "s5-system-design",
+      shortTitle: "Water infrastructure",
+      title: "System arrangement",
+      focusedQuestion: "How is the system arranged on the ground?",
+    } as PlanStratumObjective;
+    useClosedLoopStore.setState({
+      materialFlows: [
+        {
+          id: "w1",
+          projectId: "proj-1",
+          label: "Swale to tank",
+          materialKind: "water",
+          sourceId: "feat-a",
+          sinkId: "feat-b",
+          origin: "list",
+          createdAt: "2026-06-02T00:00:00.000Z",
+        },
+      ],
+    });
+    renderRail("objectives", 0, waterObjective.id, [waterObjective]);
+    expect(screen.getByText(/Material flows: 1/)).toBeTruthy();
+    expect(screen.getByText(/1 closed-loop/)).toBeTruthy();
+  });
+
+  it('greywater prose: flow block lights via FLOW_PROSE_RE with no flow tool', () => {
+    // `s1-stakeholders` resolves (via override) to neighbour-pin/steward -- NOT in
+    // FLOW_TOOL_IDS -- and the id does not match. It lights purely because the
+    // focused question names greywater reuse (the broadened prose axis; there is no
+    // dedicated greywater tool in the Act catalogue).
+    const greywaterObjective = {
+      ...OBJECTIVE,
+      id: "s1-stakeholders",
+      stratumId: "s1-project-foundation",
+      shortTitle: "Greywater reuse",
+      title: "Stakeholder alignment",
+      focusedQuestion: "How do we design greywater reuse from the dwellings?",
+    } as PlanStratumObjective;
+    useClosedLoopStore.setState({
+      materialFlows: [
+        {
+          id: "gw1",
+          projectId: "proj-1",
+          label: "Greywater to bed",
+          materialKind: "greywater",
+          sourceId: "feat-a",
+          sinkId: "feat-b",
+          origin: "list",
+          createdAt: "2026-06-02T00:00:00.000Z",
+        },
+      ],
+    });
+    renderRail("objectives", 0, greywaterObjective.id, [greywaterObjective]);
+    expect(screen.getByText(/Material flows: 1/)).toBeTruthy();
+    expect(screen.getByText(/1 closed-loop/)).toBeTruthy();
+  });
+
+  it('stays-dark: a non-flow objective does NOT render the flow block even when maximalist', () => {
+    // `s1-vision` resolves (via override) to form tools only (none in
+    // FLOW_TOOL_IDS); the id does not match and the prose is neutral. The gate is
+    // still a gate: the flow block must be absent. Flows are seeded to prove the
+    // block is suppressed by the gate, not merely by an empty store.
+    const visionObjective = {
+      ...OBJECTIVE,
+      id: "s1-vision",
+      stratumId: "s1-project-foundation",
+      shortTitle: "Project vision",
+      title: "Project direction",
+      focusedQuestion: "What is the primary purpose of this land project?",
+    } as PlanStratumObjective;
+    useClosedLoopStore.setState({
+      materialFlows: [
+        {
+          id: "v1",
+          projectId: "proj-1",
+          label: "Some flow",
+          materialKind: "water",
+          sourceId: "feat-a",
+          sinkId: "feat-b",
+          origin: "list",
+          createdAt: "2026-06-02T00:00:00.000Z",
+        },
+      ],
+    });
+    renderRail("objectives", 0, visionObjective.id, [visionObjective]);
+    expect(screen.queryByText(/Material flows:/)).toBeNull();
+    expect(screen.queryByText(/No material flows recorded yet/)).toBeNull();
+  });
+
   it('surfaces a live closed-loop flow count for resource-flow objectives', () => {
     const flowObjective = {
       ...OBJECTIVE,

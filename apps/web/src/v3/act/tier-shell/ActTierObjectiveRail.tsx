@@ -41,20 +41,52 @@ const SOURCE_FILTERS: ReadonlyArray<{ key: SourceFilter; label: string }> = [
   { key: 'secondary', label: 'Secondary' },
 ];
 
-/** Act-tool ids that mark an objective as material-cycling / closed-loop work.
- *  `compost` (the Recycle-icon `observe.built-environment.compost` tool) is the
- *  structural closed-loop signal: it is resolved for the s6 integration tier
- *  (default toolset) across ALL project types, plus soil-improvement and
- *  forage-improvement objectives. This is what lets the flow block light on the
- *  regenerative_farm waste-vector objective `rf-s6-enterprise-integration`,
- *  whose `rf-` id prefix the old substring gate missed. */
-const FLOW_TOOL_IDS: ReadonlySet<string> = new Set(['compost']);
+/** Act-tool ids whose presence on an objective surfaces the live closed-loop
+ *  material-flow block. Material flows are PROJECT-scoped, not objective-scoped, so
+ *  this is a heuristic about *where it is worth surfacing the project's flow count*.
+ *
+ *  Deliberately MAXIMALIST (operator decision 2026-06-02c): every act-tool that
+ *  represents a material SOURCE or SINK -- organic-matter/nutrient cycling, water
+ *  sources/sinks/buffers/conveyance, yield production, the livestock/manure
+ *  pathway, and the field-log tools that track material movement -- counts as a
+ *  flow signal. This favours discoverability of the closed-loop feature (the block
+ *  degrades gracefully to a quiet "No material flows recorded yet" hint) over a
+ *  tight signal; the accepted cost is that the block appears on most production /
+ *  water / integration objectives. `compost` remains the canonical structural
+ *  signal (s6 integration default across ALL project types, soil-improvement,
+ *  forage-improvement). */
+const FLOW_TOOL_IDS: ReadonlySet<string> = new Set([
+  // organic-matter / nutrient cycling
+  'compost',
+  'fertility-unit',
+  // water sources, sinks, buffers, conveyance
+  'watercourse',
+  'spring',
+  'storage',
+  'swale',
+  'sink',
+  'tanks',
+  'wells',
+  // yield sources (production -> harvest material)
+  'crops',
+  'orchards',
+  'beds',
+  // livestock / manure pathway
+  'paddocks',
+  'pasture',
+  'barns',
+  // field-log tools that explicitly track material movement
+  'harvest',
+  'livestock',
+]);
 
-/** Tight prose signal (focused question / title) for waste-vector / closed-loop
- *  objectives that carry neither a `resource-flow`-style id nor the compost tool.
- *  Kept narrow to avoid false positives on incidental "minimise waste" copy. */
+/** Prose signal (focused question / title) for waste-vector / closed-loop / water-
+ *  reuse objectives that lack a flow tool. Includes greywater / rainwater-harvest /
+ *  water-reuse terms (there is no dedicated greywater tool in the Act catalogue
+ *  yet). Terms stay scoped (e.g. "water re-use", not bare "reuse") to avoid false
+ *  positives on incidental copy. */
 const FLOW_PROSE_RE =
-  /waste-to-input|closed[- ]loop|material flow|feedback loop|nutrient cycl/i;
+  /waste-to-input|closed[- ]loop|material flow|feedback loop|nutrient cycl|grey[- ]?water|rainwater harvest|water re-?use|water recycl/i;
 
 /** Which objectives surface the live closed-loop flow block. Broadened from the
  *  original id-only substring gate (which missed the `rf-`-prefixed farm
@@ -62,8 +94,10 @@ const FLOW_PROSE_RE =
  *  project-scoped, not objective-scoped, so this stays a heuristic, but it now
  *  keys off the objective's resolved act-tools and prose rather than its id alone:
  *    1. id pattern (keeps homestead `hms-s2-resource-flows` lit);
- *    2. resolved act-tools include a material-cycling tool (`compost`);
- *    3. focused-question / title prose names a closed-loop / waste-vector concern.
+ *    2. resolved act-tools include any material source/sink tool (FLOW_TOOL_IDS,
+ *       the maximalist set: compost/water/yield/livestock/log tools);
+ *    3. focused-question / title prose names a closed-loop / waste-vector /
+ *       water-reuse concern (FLOW_PROSE_RE, incl. greywater).
  */
 function isResourceFlowObjective(
   objective: PlanStratumObjective,
