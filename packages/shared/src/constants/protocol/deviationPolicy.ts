@@ -35,17 +35,19 @@ export function temporalBucketKey(
 // ---------------------------------------------------------------------------
 
 /**
- * The 5 Tier-1 (Stratum-6) protocol templates hard-bound to the
- * s6-yield-flows objective. This is the single source of truth for the
- * "5 s6-token protocols" membership test.
+ * The 5 Tier-1 protocol templates hard-bound to the s6-yield-flows
+ * objective. This is the single source of truth for the "5 s6-bound
+ * protocols" membership test used by the web emission layer.
  *
  * T1.6 hard-codes these to s6+s7 in the web emission layer.
  * T2.2 uses `!S6_BOUND_TEMPLATE_IDS.has(id)` to fall back to the
- * FEEDS_TO_OBJECTIVE table for event-driven templates.
+ * FEEDS_TO_OBJECTIVE table for the templates NOT in this set.
  *
- * The OTHER 5 of the 10 STANDARD_PROTOCOL_TEMPLATES are event-driven and
- * routed via FEEDS_TO_OBJECTIVE in Tier 2; this set covers only the
- * threshold-type s6 protocols.
+ * The OTHER 5 of the 10 STANDARD_PROTOCOL_TEMPLATES (the cyclical- and
+ * judgment-type, trigger-on-event protocols) are NOT in this set; they WILL
+ * be routed via FEEDS_TO_OBJECTIVE in T2.1 (not yet implemented). Note: all 10
+ * templates share `tierAuthored: 'Stratum 6 - Integration'` in source - the
+ * Tier-1/Tier-2 split is a plan-phase concept, not a stratum distinction.
  *
  * Keep these ids in sync with
  * packages/shared/src/constants/protocol/standardTemplates.ts.
@@ -77,11 +79,12 @@ export const EXISTENTIAL_TEMPLATE_IDS: ReadonlySet<string> = new Set([
 
 /**
  * FlagDepth (rendering weight) for each S6-bound template.
- * FlagDepth = rendering weight, NOT protocol type.
- * All Tier-1 threshold protocols are classified 'threshold' (shallowest).
+ * FlagDepth = rendering weight, NOT protocol type (e.g.
+ * livestock-health-check-prompt is ProtocolType 'judgment' yet FlagDepth
+ * 'threshold'). All 5 S6_BOUND_TEMPLATE_IDS map to 'threshold' (shallowest).
  *
- * Tier 2 (T2.1) adds soil/water/zones entries for the event-driven
- * templates that are NOT in this map.
+ * Tier 2 (T2.1) adds soil/water/zones entries for the remaining templates
+ * that are NOT in this map.
  */
 export const TEMPLATE_DEPTH: Record<string, FlagDepth> = {
   'paddock-rotation-cover-trigger': 'threshold',
