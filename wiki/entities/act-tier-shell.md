@@ -892,6 +892,40 @@ amend/reset forbidden on this rebased branch, left for operator). Gap A now 141
 across the remaining primary types (agritourism, ecovillage, education,
 off_grid, wellness). Log: [[log/2026-06-03-olos-act-conservation-overrides]].
 
+## Objective->tool overrides: off_grid (2026-06-03)
+
+Seventh per-type catalogue wired (audit remediation R1/R3), after homestead,
+regen-farm, market-garden, orchard, livestock_operation and conservation. All
+**27 `ofg-*` off-grid objectives** carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE`
+entries; off_grid ships **no standalone secondary layer and no patches**, so
+this is a primary-only wiring (and a primary-only ratchet). **13 grounded**,
+concentrated in the S2/S3 site & systems surveys (water-sources-yield->
+spring/watercourse/catchment/wells, energy-generation-potential->sun-sector/
+wind-sector/watercourse/vegetation, access-road->roads/path/hazard-zone,
+fire-risk-evacuation->fire-sector/vegetation/path/hazard-zone) and the S5
+infrastructure block (water-system->wells/spring/tanks/water-lines,
+energy-system->sun-sector/power/buildings/tanks, shelter-thermal->dwellings/
+sun-sector/tanks, food-production->beds/orchards/paddocks/buildings,
+comms-emergency->buildings/power/note); **14 intentional `[]`** (s1 philosophy/
+redundancy, the whole s4 strategy/redundancy band with infra sited in s5, the
+s3 energy-demand calc, the s6 monitoring-protocol band, and the s7 phasing
+band). **Amanah:** every objective is life-safety resilience; no sales channel,
+advance purchase, or financing instrument -> clean throughout (no scopeNotes
+flag). Before this the off_grid objectives fell through
+`STRATUM_ACT_TOOLS_DEFAULT` (surveys & infrastructure surfaced the
+access-utilities set instead of source/structure/climate-sector/production
+families). **R3:** `actToolCoverage.test.ts` ratcheted with an off-grid
+assertion over `OFF_GRID_PRIMARY_OBJECTIVES`. Verified: shared `tsc` EXIT 0;
+audit Gap A **141->114**, Gap B 0, Gap C 74->85; bounded `--pool=forks`
+`actToolCoverage` 12/12, `objectiveObserveDomains` 8/8,
+`resolveProjectObjectives` 25/25. Commit `ee3af9b1`, not pushed (the code commit
+also swept in 3 unrelated pre-staged files -- `observe/lens` liveBundle.ts/test
++ types.ts -- from out-of-band work; the off_grid change is correct &
+self-contained, un-bundling needs amend/reset, forbidden on this rebased branch,
+left for operator; subsequent commits use `git commit -- <pathspec>`). Gap A now
+114 across the remaining primary types (agritourism, ecovillage, education,
+wellness). Log: [[log/2026-06-03-olos-act-offgrid-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel

@@ -117,7 +117,7 @@ The formal proof/verification layer (`olos_act_tasks` / `olos_proof_records` / `
 - ✅ `objectiveObserveDomains.test.ts` — pass.
 - ⚠️ `resolveProjectObjectives.test.ts` — 24/25; the 1 failure (`agritourism + residential = 54`, now 59) is **pre-existing and unrelated** — confirmed by re-running with the R1/R3 edits stashed. It is drift from the agritourism `AG-S4.8` membership/season-pass extension (commit `15680301`) whose count assertion was never updated. Flagged for a separate fix.
 
-> Remaining Gap A (141 across the other primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, market_garden, orchard, livestock_operation, and conservation are complete.
+> Remaining Gap A (114 across the other primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, market_garden, orchard, livestock_operation, conservation, and off_grid are complete.
 
 ### Regenerative farm — DONE (R1/R3, 2026-06-03)
 
@@ -180,3 +180,17 @@ Committed `7da9fe8a`.
 **Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 11/11 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
 
 Committed `923464a0` (code) + this docs commit.
+
+### Off-grid resilience — DONE (R1/R3, 2026-06-03)
+
+**R1 (off_grid).** All 27 `ofg-*` objectives now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries (off_grid ships no standalone secondary layer and no patches, so primary-only). 13 map to grounded tools, concentrated where the spatial work actually is — the **S2/S3 site & systems surveys** (water-sources-yield->spring/watercourse/catchment/wells, energy-generation-potential->sun-sector/wind-sector/watercourse/vegetation, access-road-emergency-route->roads/path/hazard-zone, fire-risk-evacuation->fire-sector/vegetation/path/hazard-zone, water-quality-treatment->spring/watercourse/wells, communications-connectivity->neighbour-pin, food-production-storage-conditions->frost-pocket/zone, plus site-selection-access->roads/parking) and the **S5 infrastructure design block** (water-system->wells/spring/tanks/water-lines, energy-system->sun-sector/power/buildings/tanks, shelter-thermal->dwellings/sun-sector/tanks, food-production->beds/orchards/paddocks/buildings, comms-emergency->buildings/power/note); 14 set to intentional gap-noted `[]` — the s1 philosophy/redundancy decisions (`ofg-s1-resilience-philosophy`, `ofg-s1-critical-systems-redundancy`), the entire **s4 strategy/redundancy band** (water/energy/food/comms/shelter — these define standards & redundancy, with the physical systems sited in s5), `ofg-s3-energy-demand-balance` (a generation-vs-demand calculation), the **s6 monitoring-protocol design** (systems-performance, emergency-preparedness, adaptive-management — thresholds/schedules attached to already-sited features), and the **s7 phasing band** (systems-establishment-sequence, resourcing-supply-chain, phased-habitation — sequencing/logistics/gate decisions). Before this the off_grid objectives fell through the coarse stratum default and surfaced the access-utilities set instead of the source/structure/climate-sector/production families.
+
+**Amanah.** Every off_grid objective is life-safety resilience (water, energy, shelter, food, communications, emergency response, habitation sequencing). The catalogue ships **no sales channel, advance purchase, or financing instrument** — `ofg-s7-resourcing-supply-chain` is materials logistics, not capital — so nothing engages riba or gharar. Clean throughout; no scopeNotes flag needed.
+
+**R3 (ratchet).** `actToolCoverage.test.ts` gains an "every off-grid objective has an explicit override entry" assertion (primary-only, like homestead / regen-farm / market-garden / conservation; intentional `[]` still satisfies it). 12/12.
+
+**Audit re-run after off_grid R1/R3:** 316 objectives — Gap A **141 → 114** (off_grid's 27 now covered), Gap B 0, Gap C 74 → 85 (72 intentional / 13 default-driven; +14 intentional = the off_grid decision/strategy/protocol objectives, −3 default-driven now explicitly wired).
+
+**Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 12/12 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
+
+Committed `ee3af9b1` (code) + this docs commit. **Note:** the code commit unintentionally swept in 3 unrelated files (`observe/lens/lensData/liveBundle.ts`, its test, and `observe/lens/types.ts`) that an out-of-band process had pre-staged in the index; `git commit` without a pathspec commits the whole index. The off_grid override change within it is correct and self-contained; the stray files' newer versions remain in the working tree. Left for the operator (un-bundling needs amend/reset, both forbidden on this rebased branch). Subsequent commits use `git commit -- <pathspec>` to prevent recurrence.
