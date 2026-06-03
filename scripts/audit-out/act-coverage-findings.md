@@ -117,7 +117,7 @@ The formal proof/verification layer (`olos_act_tasks` / `olos_proof_records` / `
 - ✅ `objectiveObserveDomains.test.ts` — pass.
 - ⚠️ `resolveProjectObjectives.test.ts` — 24/25; the 1 failure (`agritourism + residential = 54`, now 59) is **pre-existing and unrelated** — confirmed by re-running with the R1/R3 edits stashed. It is drift from the agritourism `AG-S4.8` membership/season-pass extension (commit `15680301`) whose count assertion was never updated. Flagged for a separate fix.
 
-> Remaining Gap A (219 across the other 10 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, and market_garden are complete.
+> Remaining Gap A (194 across the other 9 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, market_garden, and orchard are complete.
 
 ### Regenerative farm — DONE (R1/R3, 2026-06-03)
 
@@ -142,3 +142,15 @@ Committed `187c4f6f`.
 **Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 8/8 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
 
 Committed `3c340134`.
+
+### Orchard — DONE (R1/R3, 2026-06-03)
+
+**R1 (orchard).** All 30 orchard objectives now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries — the 25 `orch-*` primary objectives plus the 5 `orch-sec-*` standalone *additive* objectives (which surface when orchard is a secondary type, the same situation that forced the silvopasture-secondary overrides). 19 map to grounded tools (every id verified against a real checklist item + a mountable `ACT_TOOL_CATALOG` tool — e.g. frost-drainage->frost-pocket/drainage/sun-sector, planting-layout->orchards/zone/frost-pocket, guild-plan->orchards/vegetation, tree-protection->fencing/buffer-ring, phenological-monitoring->frost-pocket/harvest/transect); 11 set to intentional gap-noted `[]` (s1 species-philosophy / production-intent / provenance-sourcing, `orch-s4-species-mix` selection, `orch-s4-succession-management`, `orch-s6-adaptive-management`, `orch-s7-planting-establishment` sequencing, `orch-s7-succession-plan`, `orch-s7-financial-viability` ORCH-S7.6 Amanah-clean, `orch-sec-s4-species-pollination` selection, `orch-sec-s6-perennial-care` commitment). The 4 `ORCHARD_SECONDARY_PATCHES` inject into universal objectives (`s4-water-strategy`, `s5-soil-improvement`, `s2-ecology`, `s7-phase1`) that already carry universal overrides — no work needed. Before this the orchard objectives fell through the coarse stratum default with the familiar misfit (S3 rootzone/pest showed access-utilities, S4/S5 perennial design showed roads/fencing or the water-line set).
+
+**R3 (ratchet).** `actToolCoverage.test.ts` gains an "every orchard objective (primary + secondary) has an explicit override entry" assertion over the `ORCHARD_PRIMARY_OBJECTIVES` + `ORCHARD_SECONDARY_OBJECTIVES` union (mirrors the silvopasture assertion). 9/9.
+
+**Audit re-run after orchard R1/R3:** 316 objectives — Gap A **219 → 194** (the 25 orch-* primary enumerated by the audit; the 5 orch-sec-* additive are wired + ratcheted but not separately enumerated by the per-type audit walk), Gap B 0, Gap C 52 → 58 (36 intentional / 22 default-driven; +9 intentional = the orchard primary decision/financial objectives, −3 default-driven now explicitly wired).
+
+**Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 9/9 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
+
+Committed `da4a96f2`.

@@ -762,6 +762,36 @@ bounded `--pool=forks` `actToolCoverage` 8/8, `objectiveObserveDomains` 8/8,
 across the other 10 primary types (orchard next). Log:
 [[log/2026-06-03-olos-act-market-garden-overrides]].
 
+## Objective->tool overrides: orchard (2026-06-03)
+
+Fourth per-type catalogue wired after homestead, regen-farm and market_garden.
+All **30 orchard objectives** now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE`
+entries in `objectiveActTools.ts` — the **25 `orch-*`** primary plus the **5
+`orch-sec-*`** standalone additive objectives (which surface when orchard is a
+secondary type, the same situation that forced the silvopasture-secondary
+overrides): **19 grounded** (each id verified against a real checklist item + a
+mountable `ACT_TOOL_CATALOG` tool — e.g. frost-drainage->frost-pocket/drainage/
+sun-sector, planting-layout->orchards/zone/frost-pocket, guild-plan->orchards/
+vegetation, tree-protection->fencing/buffer-ring, phenological-monitoring->
+frost-pocket/harvest/transect, sec-climate-chill-fit->frost-pocket/sun-sector/
+hazard-zone), **11 intentional `[]`** (s1 species-philosophy/production-intent/
+provenance-sourcing, `orch-s4-species-mix` + `orch-s4-succession-management`,
+`orch-s6-adaptive-management`, s7 planting-establishment/succession-plan/
+financial-viability ORCH-S7.6 Amanah-clean, `orch-sec-s4-species-pollination` +
+`orch-sec-s6-perennial-care`). The 4 `ORCHARD_SECONDARY_PATCHES` inject into
+universal objectives (`s4-water-strategy`/`s5-soil-improvement`/`s2-ecology`/
+`s7-phase1`) already carrying universal overrides — no work. Before this the
+orchard objectives fell through `STRATUM_ACT_TOOLS_DEFAULT` with the familiar
+misfit (S3 rootzone/pest showed access-utilities, S4/S5 perennial design showed
+roads/fencing or the water-line set). **R3:** `actToolCoverage.test.ts`
+ratcheted with an orchard assertion over the primary + secondary union (mirrors
+silvopasture). Verified: shared `tsc` EXIT 0; audit Gap A **219->194** (25
+orch-* primary enumerated; the 5 orch-sec-* wired+ratcheted but not separately
+walked by the per-type audit), Gap B 0, Gap C 52->58; bounded `--pool=forks`
+`actToolCoverage` 9/9, `objectiveObserveDomains` 8/8, `resolveProjectObjectives`
+25/25. Commit `da4a96f2`, not pushed. Gap A now 194 across the other 9 primary
+types. Log: [[log/2026-06-03-olos-act-orchard-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
