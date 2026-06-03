@@ -608,6 +608,35 @@ catalogue floor and break five per-type resolution count tests). Commit
   per-type-resolved test. Injected/reverted a `team` fixture on "Baseline Test
   Homestead" while attempting verification.
 
+## Protocol-deviation Review flags: universal-objective re-target (2026-06-03)
+
+Tier 1 of the protocol-downstream-objective Review-flag feature closed at the
+T1.10 gate. A confirmed field protocol activation that **deviates** from the
+steward-authored `expectedRate` (`{count, per:'season'|'cycle'}`) raises a
+non-destructive amber **"Review"** flag on a downstream Plan objective. The
+store-free helper `v3/act/protocols/evaluateAndRaiseFlags.ts` (called from
+`ActTierExecutionPanel` after `handleRecord`) windows the confirmed firings, runs
+the pure `evaluateDeviation` policy, and raises a primary flag + a one-hop cascade.
+`ObjectiveColumn`/`ObjectiveCard` render an `objective-review-flag-<id>` chip from
+`useReviewFlagCountsByObjective`; the detail panel resolves/dismisses it.
+
+**Key finding (Gate 1E).** Emission originally targeted `s6-yield-flows` /
+`s7-phasing` -- the **legacy static skeleton** ids that render ONLY for null-type
+projects (Level-3 `useProjectObjectives` fallback). Every typed (wizard-created)
+project resolves from the **universal catalogues**, whose s6/s7 slots are
+`s6-monitoring` (U-S6.1) / `s7-phase1` (U-S7.1) in the same strata -- so the chip
+could never surface on a real project. Re-targeted to the universal ids (steward
+decision "map to universal"; the two taxonomies share no back-reference). This is
+the same two-taxonomy gotcha the as-built loop above sidesteps by forcing by
+domain. Accepted caveat: null-type/legacy projects no longer chip. Tier 2's
+pending `FEEDS_TO_OBJECTIVE` table carries the same hazard (flagged).
+
+58/58 Tier-1 review-flag tests + `tsc` 0; NOT browser-verified (preview dead,
+[[project-screenshot-hang]]). Commit `748a7eb9`, not pushed. **Stopped for steward
+review before Tier 2.** ADR
+[[decisions/2026-06-03-atlas-deviation-flag-universal-objective-retarget]]; Log:
+[[log/2026-06-03-atlas-deviation-flag-universal-objective-retarget]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
