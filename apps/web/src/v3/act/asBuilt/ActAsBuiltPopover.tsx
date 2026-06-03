@@ -38,8 +38,14 @@ import type { InlineFormPayload } from '../../plan/draw/inlineFormStore.js';
 import css from './ActAsBuiltPopover.module.css';
 
 interface Props {
-  map: MaplibreMap;
+  /** Required only for the floating variant (anchor->screen projection). The
+   *  panel variant renders in the right rail and has no map instance. */
+  map?: MaplibreMap;
   projectId: string | null;
+  /** 'floating' (default) anchors the card over the clicked feature; 'panel'
+   *  renders the same form inline in the right rail (no projection / no
+   *  click-outside / no hide-while-drawing). */
+  variant?: 'floating' | 'panel';
 }
 
 const POPOVER_WIDTH = 280;
@@ -71,7 +77,12 @@ function featureCentroid(
   return null;
 }
 
-export default function ActAsBuiltPopover({ map, projectId }: Props) {
+export default function ActAsBuiltPopover({
+  map,
+  projectId,
+  variant = 'floating',
+}: Props) {
+  const isFloating = variant === 'floating';
   const active = useActAsBuiltPopoverStore((s) => s.active);
   const close = useActAsBuiltPopoverStore((s) => s.close);
   // Slice 6 capture bridge: the map-mounted `ActAsBuiltDrawHandler` writes the
@@ -187,8 +198,9 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
   }, [active, schema]);
 
   // Track anchor -> screen coords; re-project on map move/zoom/resize.
+  // Floating-only: the panel variant has no map and renders in the rail.
   useEffect(() => {
-    if (!active) {
+    if (!isFloating || !map || !active) {
       setScreen(null);
       return;
     }
@@ -207,7 +219,7 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
       map.off('zoom', recalc);
       map.off('resize', recalc);
     };
-  }, [active, map]);
+  }, [isFloating, active, map]);
 
   // ESC: while redrawing, cancel the draw (keep the popover); otherwise close.
   useEffect(() => {
@@ -225,8 +237,10 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
 
   // Click-outside closes - but never while redrawing (the popover is hidden and
   // every map click is a draw vertex, so an outside click must not close it).
+  // Floating-only: the panel variant lives in the rail and closes via Cancel/
+  // Record (clearing the store's `active`), not by clicking elsewhere.
   useEffect(() => {
-    if (!active) return;
+    if (!isFloating || !active) return;
     const onDown = (e: MouseEvent) => {
       if (capture.drawing) return;
       const node = popoverRef.current;
@@ -238,11 +252,14 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     return () => document.removeEventListener('mousedown', onDown);
   }, [active, close, capture.drawing]);
 
-  if (!active || !resolved || !schema || !screen) return null;
-  // While the steward is drawing the as-built polygon, hide the popover so the
-  // map canvas is fully interactive; the map-mounted draw handler is armed and
-  // writes the polygon back to the store on completion (then disarms).
-  if (capture.drawing) return null;
+  if (!active || !resolved || !schema) return null;
+  // Floating needs a resolved screen anchor; the panel renders inline.
+  if (isFloating && !screen) return null;
+  // While the steward is drawing the as-built polygon, hide the floating popover
+  // so the map canvas is fully interactive; the map-mounted draw handler is
+  // armed and writes the polygon back to the store on completion (then disarms).
+  // The panel stays visible during the draw (it does not overlay the canvas).
+  if (isFloating && capture.drawing) return null;
 
   const initial = schema.initial;
   const hasChanges = schema.fields.some(
@@ -310,15 +327,17 @@ export default function ActAsBuiltPopover({ map, projectId }: Props) {
     close();
   };
 
+  const rootProps = isFloating
+    ? {
+        ref: popoverRef,
+        className: css.popover,
+        'data-flipped': screen!.flipped ? 'true' : 'false',
+        style: { left: screen!.x, top: screen!.y },
+      }
+    : { className: css.panel };
+
   return (
-    <div
-      ref={popoverRef}
-      className={css.popover}
-      data-flipped={screen.flipped ? 'true' : 'false'}
-      style={{ left: screen.x, top: screen.y }}
-      role="dialog"
-      aria-label="Record as-built change"
-    >
+    <div {...rootProps} role="dialog" aria-label="Record as-built change">
       <div className={css.header}>
         <span className={css.title}>Record as-built change</span>
         <span className={css.subtitle}>{resolved.name}</span>

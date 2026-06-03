@@ -22,6 +22,18 @@
   transform: translate(calc(-100% - 12px), -50%);
 }
 
+/* Panel variant: the same form rendered inline in the right rail (no floating
+ * position/transform/shadow). Fills the rail body and scrolls if tall. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--color-text);
+  font-size: 12px;
+}
+
 .header {
   display: flex;
   flex-direction: column;

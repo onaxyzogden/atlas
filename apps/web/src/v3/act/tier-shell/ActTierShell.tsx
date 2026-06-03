@@ -38,7 +38,6 @@ import {
 import {
   useProjectStore,
   MTC_SEED,
-  type ActShellMode,
 } from '../../../store/projectStore.js';
 import {
   selectFieldActionsForProject,
@@ -65,6 +64,7 @@ import ActStructureClickHandler from '../layers/ActStructureClickHandler.js';
 import ActFeatureClickHandler from '../layers/ActFeatureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActAsBuiltPopover from '../asBuilt/ActAsBuiltPopover.js';
+import { useActAsBuiltPopoverStore } from '../asBuilt/actAsBuiltPopoverStore.js';
 import ActAsBuiltDrawHandler from '../asBuilt/ActAsBuiltDrawHandler.js';
 import ActFlowConnectorPopover from '../asBuilt/ActFlowConnectorPopover.js';
 import { useActFlowPopoverStore } from '../asBuilt/actFlowPopoverStore.js';
@@ -72,7 +72,6 @@ import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
 import ActOpsDashboard from '../field-action/ActOpsDashboard.js';
-import ActShellToggle from '../field-action/ActShellToggle.js';
 import { seedActionsIfEmpty } from '../field-action/seedDemoActions.js';
 import type { ActModule } from '../types.js';
 import { QUICK_LOGS } from '../quickLogs.js';
@@ -112,12 +111,7 @@ const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
 
 type RightMode = 'dashboard' | 'detail';
 
-interface Props {
-  shellMode: ActShellMode;
-  onShellModeChange: (mode: ActShellMode) => void;
-}
-
-export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
+export default function ActTierShell() {
   const params = useParams({ strict: false }) as {
     projectId?: string;
     objectiveId?: string;
@@ -259,6 +253,10 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
   );
+  // When an as-built deviation is being recorded, the right rail swaps to the
+  // as-built form (panel variant) and hides the dashboard/objective toggle;
+  // closing/saving clears `active` and reverts the rail.
+  const asBuiltActive = useActAsBuiltPopoverStore((s) => s.active != null);
   const [activeModule, setActiveModule] = useState<ActModule | null>(null);
 
   // Form-arm state: which category's tabbed form popup is open (local UI state,
@@ -531,7 +529,6 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                     />
                     <SectorCompassOverlay projectId={id} map={map} />
                     <ActStructurePopover map={map} projectId={id} />
-                    <ActAsBuiltPopover map={map} projectId={id} />
                     <ActAsBuiltDrawHandler map={map} />
                     <ActFlowConnectorPopover projectId={id} />
                     <ActTierMapMarkers
@@ -568,54 +565,63 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                   </>
                 )}
               </DiagnoseMap>
-              <div className={styles.toggleFloat}>
-                <ActShellToggle mode={shellMode} onChange={onShellModeChange} />
-              </div>
             </div>
           }
           rightRail={
             <div className={styles.rightRail}>
-              <div
-                className={styles.rightToggle}
-                role="tablist"
-                aria-label="Right rail mode"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={rightMode === 'dashboard'}
-                  className={styles.rightToggleBtn}
-                  data-active={rightMode === 'dashboard'}
-                  onClick={() => setRightMode('dashboard')}
-                >
-                  <LayoutDashboard size={14} aria-hidden="true" />
-                  Dashboard
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={rightMode === 'detail'}
-                  className={styles.rightToggleBtn}
-                  data-active={rightMode === 'detail'}
-                  disabled={!objectiveId}
-                  onClick={() => objectiveId && setRightMode('detail')}
-                >
-                  <Target size={14} aria-hidden="true" />
-                  Objective
-                </button>
-              </div>
-              <div className={styles.rightBody}>
-                {rightMode === 'detail' && selectedObjective ? (
-                  <ActTierExecutionPanel
-                    projectId={id}
-                    tier={selectedObjectiveTier}
-                    objective={selectedObjective}
-                    status={selectedObjectiveStatus}
-                  />
-                ) : (
-                  <ActOpsDashboard projectId={id} />
-                )}
-              </div>
+              {asBuiltActive ? (
+                // While an as-built deviation is being recorded the rail is
+                // taken over by the as-built form (panel variant): the
+                // Dashboard/Objective toggle is hidden and reappears when the
+                // store's `active` clears (Record/Cancel).
+                <div className={styles.rightBody}>
+                  <ActAsBuiltPopover variant="panel" projectId={id} />
+                </div>
+              ) : (
+                <>
+                  <div
+                    className={styles.rightToggle}
+                    role="tablist"
+                    aria-label="Right rail mode"
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={rightMode === 'dashboard'}
+                      className={styles.rightToggleBtn}
+                      data-active={rightMode === 'dashboard'}
+                      onClick={() => setRightMode('dashboard')}
+                    >
+                      <LayoutDashboard size={14} aria-hidden="true" />
+                      Dashboard
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={rightMode === 'detail'}
+                      className={styles.rightToggleBtn}
+                      data-active={rightMode === 'detail'}
+                      disabled={!objectiveId}
+                      onClick={() => objectiveId && setRightMode('detail')}
+                    >
+                      <Target size={14} aria-hidden="true" />
+                      Objective
+                    </button>
+                  </div>
+                  <div className={styles.rightBody}>
+                    {rightMode === 'detail' && selectedObjective ? (
+                      <ActTierExecutionPanel
+                        projectId={id}
+                        tier={selectedObjectiveTier}
+                        objective={selectedObjective}
+                        status={selectedObjectiveStatus}
+                      />
+                    ) : (
+                      <ActOpsDashboard projectId={id} />
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           }
           bottomTray={
