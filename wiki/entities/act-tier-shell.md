@@ -363,6 +363,37 @@ objectives own the domain, so it works across project types -- the Slice-3
 reconciliation card must read by domain overlap, never a hardcoded id. tsc 0;
 42 tests green. Log: [[log/2026-06-01-atlas-act-asbuilt-deviation-slice1-2]].
 
+**As-built form moved into the right rail (2026-06-03, `ce1bcad5`).** The
+`ActAsBuiltPopover` no longer floats over the map. It gained a
+`variant?: 'floating' | 'panel'` prop (default `'floating'`) + optional `map`;
+the panel variant skips the anchor->screen projection, click-outside, and
+hide-while-drawing logic (the rail has no `map` instance) and renders with a new
+`.panel` CSS class. `ActTierShell` reads
+`useActAsBuiltPopoverStore((s) => s.active != null)` and, while a deviation is
+active, replaces the right-rail body with the panel form and **hides** the
+Dashboard/Objective toggle; clearing `active` (Record/Cancel) reverts the rail.
+The floating canvas mount was removed; `ActFeatureClickHandler`,
+`ActStructurePopover` (its "Record as-built change" hand-off still sets
+`active`), and `ActAsBuiltDrawHandler` (arms the on-map redraw) stay on the
+canvas. Log: [[log/2026-06-03-atlas-act-shell-toggle-removed-asbuilt-into-right-rail]].
+
+## Act shell toggle removed (2026-06-03)
+
+The floating `ActShellToggle` ("Tier shell / Field actions / Command centre")
+is **gone from every mounted Act layout** (`ce1bcad5`): the `styles.toggleFloat`
+block in `ActTierShell`, the toggle in `ActMapFirstLayout`, and the inline
+command-centre toggle in `ActLayout`, along with all the now-dead
+`shellMode` / `onShellModeChange` prop plumbing (`ActTierShell` and
+`ActMapFirstLayout` are now prop-less; `ActLayout` lost
+`handleActShellModeChange`). Per [[feedback-no-deletion]] the legacy layout
+components (`ActMapFirstLayout`, unmounted `ActFieldActionLayout`, the
+command-centre `StageShell` branch), `ActShellToggle.tsx` itself, and
+`getActShellMode` (still drives the `ActLayout` branch) all stay on disk. The
+toggle was the **only writer** of a non-`tier-shell` mode, so no project can
+newly enter a legacy mode via UI; a project already persisted in a legacy mode
+still resolves through the kept branches. Log:
+[[log/2026-06-03-atlas-act-shell-toggle-removed-asbuilt-into-right-rail]].
+
 ## Exec panel: scroll containment + Raise-follow-up-need (2026-06-01)
 
 Two right-rail `ActTierExecutionPanel` follow-ups
@@ -825,6 +856,41 @@ per-type audit), Gap B 0, Gap C 58->66; bounded `--pool=forks` `actToolCoverage`
 10/10, `objectiveObserveDomains` 8/8, `resolveProjectObjectives` 25/25. Commit
 `7da9fe8a`, not pushed. Gap A now 171 across the other 8 primary types. Log:
 [[log/2026-06-03-olos-act-livestock-overrides]].
+
+## Objective->tool overrides: conservation (2026-06-03)
+
+Sixth per-type catalogue wired (audit remediation R1/R3), after homestead,
+regen-farm, market-garden, orchard and livestock_operation. All **30 `con-*`
+conservation objectives** carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE`
+entries; conservation ships **no standalone secondary layer and no patches**,
+so this is a primary-only wiring (and a primary-only ratchet, like
+homestead/regen/market-garden). **19 grounded** (reusing the regen/silvopasture
+ecology vocabulary — e.g. baseline-condition->vegetation/zone/transect/
+wildlife-sector, degradation-history->erosion/soil/drainage/hazard-zone,
+water-regime-degradation->drainage/watercourse/sink/runoff-path,
+native-planting-plan->vegetation/zone/water-lines, water-regime-infrastructure->
+drainage/sink/swale/watercourse, fencing-exclusion->fencing/gates/wildlife-
+sector, ecological-monitoring->transect/wildlife-sector); **11 intentional `[]`**
+(s1 conservation-intent/intervention-philosophy/tenure-covenant,
+`con-s4-native-species-provenance` selection, `con-s4-pest-invasive-strategy`
+method decision, `con-s6-external-relations-compliance` reporting admin, and the
+whole s7 band — phase1-priorities, longterm-timeline, funding-resourcing,
+adaptive-management, volunteer-stewardship). **Amanah:** `con-s7-funding-
+resourcing` references carbon & biodiversity credits (environmental-market
+instruments, potential gharar) — encoded as catalogue content, routed to
+Scholar Council, maps to `[]` regardless; no break-even/advance-sale objective
+in the catalogue. Before this the conservation objectives fell through
+`STRATUM_ACT_TOOLS_DEFAULT` (S2/S3 ecological surveys showed access-utilities/
+water-line sets; S5 restoration design showed roads/fencing generically).
+**R3:** `actToolCoverage.test.ts` ratcheted with a conservation assertion over
+`CONSERVATION_PRIMARY_OBJECTIVES`. Verified: shared `tsc` EXIT 0; audit Gap A
+**171->141**, Gap B 0, Gap C 66->74; bounded `--pool=forks` `actToolCoverage`
+11/11, `objectiveObserveDomains` 8/8, `resolveProjectObjectives` 25/25. Commit
+`923464a0`, not pushed (code-commit subject carries a stray `@` artifact from
+accidental PowerShell here-string syntax in git-bash; tree/body/trailer correct;
+amend/reset forbidden on this rebased branch, left for operator). Gap A now 141
+across the remaining primary types (agritourism, ecovillage, education,
+off_grid, wellness). Log: [[log/2026-06-03-olos-act-conservation-overrides]].
 
 ## Notes
 

@@ -117,7 +117,7 @@ The formal proof/verification layer (`olos_act_tasks` / `olos_proof_records` / `
 - ✅ `objectiveObserveDomains.test.ts` — pass.
 - ⚠️ `resolveProjectObjectives.test.ts` — 24/25; the 1 failure (`agritourism + residential = 54`, now 59) is **pre-existing and unrelated** — confirmed by re-running with the R1/R3 edits stashed. It is drift from the agritourism `AG-S4.8` membership/season-pass extension (commit `15680301`) whose count assertion was never updated. Flagged for a separate fix.
 
-> Remaining Gap A (171 across the other 8 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, market_garden, orchard, and livestock_operation are complete.
+> Remaining Gap A (141 across the other primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, market_garden, orchard, livestock_operation, and conservation are complete.
 
 ### Regenerative farm — DONE (R1/R3, 2026-06-03)
 
@@ -166,3 +166,17 @@ Committed `da4a96f2`.
 **Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 10/10 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
 
 Committed `7da9fe8a`.
+
+### Conservation — DONE (R1/R3, 2026-06-03)
+
+**R1 (conservation).** All 30 `con-*` objectives now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries (conservation ships no standalone secondary layer, so this is primary-only). 19 map to grounded tools (every id verified against a real checklist item + a mountable `ACT_TOOL_CATALOG` tool, reusing the regen-farm / silvopasture ecology vocabulary — e.g. baseline-condition->vegetation/zone/transect/wildlife-sector, degradation-history->erosion/soil/drainage/hazard-zone, water-regime-degradation->drainage/watercourse/sink/runoff-path, native-planting-plan->vegetation/zone/water-lines, water-regime-infrastructure->drainage/sink/swale/watercourse, fencing-exclusion->fencing/gates/wildlife-sector, ecological-monitoring->transect/wildlife-sector); 11 set to intentional gap-noted `[]` — the three s1 objectives (`con-s1-conservation-intent` vision, `con-s1-intervention-philosophy`, `con-s1-tenure-covenant` legal), `con-s4-native-species-provenance` (species selection; spatial plan sited in s5), `con-s4-pest-invasive-strategy` (method/sequence decision; infrastructure sited in s5), `con-s6-external-relations-compliance` (reporting admin), and the whole s7 band (`con-s7-phase1-priorities` sequencing, `con-s7-longterm-timeline` planning, `con-s7-funding-resourcing` off-site funding, `con-s7-adaptive-management` review protocol, `con-s7-volunteer-stewardship` programme admin). Before this the conservation objectives fell through the coarse stratum default with the familiar misfit (S2/S3 ecological surveys showed access-utilities / the water-line set instead of the vegetation/wildlife-sector/erosion/fire-sector/transect ecology tools; S5 restoration design showed roads/fencing generically).
+
+**Amanah.** `con-s7-funding-resourcing` (c1/c3) references conservation grants, trusts, covenants and — flagged — **carbon credits & biodiversity credits**. These are environmental-market instruments with potential gharar in credit trading; they are encoded as catalogue content and **flagged for Scholar Council review**, not actioned here. The objective is an off-site funding decision and maps to `[]` regardless. No catalogue content was reworded or omitted. No break-even / capital-formation objective exists in the conservation catalogue.
+
+**R3 (ratchet).** `actToolCoverage.test.ts` gains an "every conservation objective has an explicit override entry" assertion (primary-only, like homestead / regen-farm / market-garden; intentional `[]` still satisfies it). 11/11.
+
+**Audit re-run after conservation R1/R3:** 316 objectives — Gap A **171 → 141** (conservation's 30 now covered), Gap B 0, Gap C 66 → 74 (58 intentional / 16 default-driven; +11 intentional = the conservation decision/financial/admin objectives, −3 default-driven now explicitly wired).
+
+**Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 11/11 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
+
+Committed `923464a0` (code) + this docs commit.
