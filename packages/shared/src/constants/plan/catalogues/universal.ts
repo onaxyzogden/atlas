@@ -567,6 +567,11 @@ export const UNIVERSAL_PLAN_OBJECTIVES: readonly PlanStratumObjective[] = [
     completionGate:
       'Spatial framework approved. All enterprise zones allocated without unresolved conflict.',
     actHandoff: 'Zone Allocation Framework',
+    // Surface the Zone & Circulation overview card (Z0-Z5 polygons + path
+    // frequency validation + "open the map to draw" prompt) in this objective's
+    // REFERENCE section, so the zones objective is no longer a dead-end and
+    // points the steward at the seed-from-map + trim-to-parcel drawing flow.
+    legacyCardSectionId: 'plan-zone-overview',
   }),
   // ---------------------------------------------------------------- Stratum 5
   obj({

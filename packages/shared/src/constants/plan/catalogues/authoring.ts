@@ -114,6 +114,14 @@ export interface ObjectiveInput {
    * for not-yet-encoded objectives; the helper defaults to `[]`.
    */
   decisionGroups?: DecisionGroup[];
+  /**
+   * Legacy module-card sectionId surfaced in the ObjectiveDetailPanel REFERENCE
+   * section (DetailsExpander). Catalogue objectives omit it by default (they
+   * lean on overlay bundles); set it when a specific legacy card is the right
+   * reference for the objective — e.g. `s4-zones` -> `plan-zone-overview` so the
+   * zones objective surfaces the Z0-Z5 overview + validation card.
+   */
+  legacyCardSectionId?: string;
 }
 
 /**
@@ -140,6 +148,9 @@ export function obj(input: ObjectiveInput): PlanStratumObjective {
     ...(input.sourceTypeId ? { sourceTypeId: input.sourceTypeId } : {}),
     ...(input.secondaryClass ? { secondaryClass: input.secondaryClass } : {}),
     ...(input.scopeNotes ? { scopeNotes: input.scopeNotes } : {}),
+    ...(input.legacyCardSectionId
+      ? { legacyCardSectionId: input.legacyCardSectionId }
+      : {}),
   };
 }
 

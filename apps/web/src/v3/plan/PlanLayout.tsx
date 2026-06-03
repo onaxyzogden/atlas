@@ -131,7 +131,10 @@ export default function PlanLayout() {
   // bottom-bar nav, or the brief transient before async navigation resolves)
   // routes to a different module and is ignored, falling back to the
   // whole-family highlight.
-  const search = useSearch({ strict: false }) as { section?: string };
+  const search = useSearch({ strict: false }) as {
+    section?: string;
+    openSlideUp?: string;
+  };
   const activeSectionId = search.section ?? null;
   const effectiveSectionId =
     activeSectionId && planSectionIdModule(activeSectionId) === validModule
@@ -313,6 +316,25 @@ export default function PlanLayout() {
   useEffect(() => {
     if (!slideUpOpen) clearDrilldownTarget();
   }, [slideUpOpen, clearDrilldownTarget]);
+
+  // Deep-link cold-open (e.g. Act → "Open guild builder in Plan"): a
+  // `?openSlideUp=1` flag on arrival opens the module slide-up on the
+  // `?section=` target (PlanModuleSlideUp lands on it via initialSectionId).
+  // The flag is a ONE-SHOT — consumed immediately by stripping it from the
+  // URL (section preserved) so it never re-opens the sheet on a later rail
+  // click, back/forward, or reload. Rail section clicks set `?section=`
+  // WITHOUT this flag, so they keep their slide-up-closed narrowing.
+  useEffect(() => {
+    if (!search.openSlideUp) return;
+    if (!params.projectId || validModule === null) return;
+    setSlideUpOpen(true);
+    navigate({
+      to: '/v3/project/$projectId/plan/$module',
+      params: { projectId: params.projectId, module: validModule },
+      search: activeSectionId ? { section: activeSectionId } : {},
+      replace: true,
+    });
+  }, [search.openSlideUp, params.projectId, validModule, activeSectionId, navigate]);
 
   const handleBoundaryDrawn = (polygon: GeoJSON.Polygon) => {
     updateProject(id, {
@@ -522,6 +544,7 @@ export default function PlanLayout() {
           open={slideUpOpen && validModule !== null}
           onClose={() => setSlideUpOpen(false)}
           project={project}
+          initialSectionId={effectiveSectionId ?? undefined}
           topBar={moduleBar}
           onSwitchModule={(mod) => {
             handleSelectModule(mod);

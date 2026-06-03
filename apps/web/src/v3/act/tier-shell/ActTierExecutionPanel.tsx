@@ -14,7 +14,8 @@
 //   - Photo counts / confirms / notes -> actEvidenceStore (projectId, objectiveId, descriptorId)
 
 import { useMemo, useState } from 'react';
-import { Camera, Check, ClipboardCheck, Plus } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
+import { Camera, Check, ClipboardCheck, Plus, Sprout } from 'lucide-react';
 import type {
   PlanStratum,
   PlanStratumObjective,
@@ -152,6 +153,13 @@ export default function ActTierExecutionPanel({
   // Observe substrate: completing an objective emits a manual observation.
   const recordDataPoint = useObserveDataPointStore((s) => s.recordDataPoint);
 
+  // Plan deep-link (Act "executes" what Plan "decides"): for plants-food
+  // objectives, surface the existing Plan multilayer Guild builder rather than
+  // re-implementing a guild designer in Act. Mirrors EditInPlanButton's
+  // navigate-to-Plan precedent. The `openSlideUp` flag is a one-shot consumed
+  // by PlanLayout so the module slide-up cold-opens directly on the guild card.
+  const navigate = useNavigate();
+
   // Raise-follow-up-need: opens the shared RaiseNeedForm in a modal and creates
   // a tracked ObservationNeed (surfaces in the Observe Command Centre + the
   // domain needs panels). Mirrors the Command Centre's manual-raise path.
@@ -168,9 +176,10 @@ export default function ActTierExecutionPanel({
   // active protocol library (same source as Plan) and, after a record, surface
   // the Trigger Recognition sheet for the highest-priority ACTIVE RESPOND
   // protocol whose feed maps to this objective's primary Observe domain.
-  const metadata = useProjectStore(
-    (s) => s.projects.find((p) => p.id === projectId)?.metadata,
+  const projectRecord = useProjectStore(
+    (s) => s.projects.find((p) => p.id === projectId),
   );
+  const metadata = projectRecord?.metadata;
   const typeRecord = metadata?.projectTypeRecord;
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
@@ -355,6 +364,7 @@ export default function ActTierExecutionPanel({
         activations: freshActivations,
         expectedRate,
         raiseFlag: useReviewFlagStore.getState().raiseFlag,
+        commencementDate: projectRecord?.commencementDate ?? null,
       });
     }
     setPendingTrigger(null);
@@ -494,6 +504,25 @@ export default function ActTierExecutionPanel({
       </div>
 
       <div className={styles.execBody}>
+      {domainId === 'plants-food' && (
+        <section className={styles.execSection}>
+          <h4 className={styles.execSectionTitle}>Plan reference</h4>
+          <button
+            type="button"
+            className={styles.linkBtn}
+            onClick={() =>
+              navigate({
+                to: '/v3/project/$projectId/plan/$module',
+                params: { projectId, module: 'plants-food' },
+                search: { section: 'plan-guild-builder', openSlideUp: '1' },
+              })
+            }
+          >
+            <Sprout size={13} aria-hidden="true" />
+            Open guild builder in Plan
+          </button>
+        </section>
+      )}
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>Checklist</h4>
         <div className={styles.execChecklist}>

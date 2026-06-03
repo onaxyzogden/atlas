@@ -35,6 +35,13 @@ export interface ModuleSlideUpProps {
   renderCard: (sectionId: string) => ReactNode;
   /** Aria-label for the dialog root. */
   ariaLabel?: string;
+  /**
+   * Optional sectionId to land on when the sheet opens (deep-link target),
+   * instead of the first card. Honoured only when it matches a card in
+   * `cards`; otherwise falls back to `cards[0]`. After open, ordinary tab
+   * clicks still switch the active card freely.
+   */
+  initialSectionId?: string;
   /** Extra class added to the sheet root. */
   sheetClassName?: string;
   /** Optional node rendered under the title (e.g. Plan view badge chip). */
@@ -55,6 +62,7 @@ export default function ModuleSlideUp({
   cards,
   renderCard,
   ariaLabel,
+  initialSectionId,
   sheetClassName,
   headerExtra,
   topBar,
@@ -62,19 +70,27 @@ export default function ModuleSlideUp({
   const sheetRef = useRef<HTMLElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
 
+  // Default landing card: the deep-link target when present in the list,
+  // else the first card. Recomputed when the card list or target changes.
+  const defaultSectionId =
+    (initialSectionId && cards.some((c) => c.sectionId === initialSectionId)
+      ? initialSectionId
+      : cards[0]?.sectionId) ?? null;
+
   const [activeSectionId, setActiveSectionId] = useState<string | null>(
-    cards[0]?.sectionId ?? null,
+    defaultSectionId,
   );
 
   // Reset active card whenever the card list identity changes (module switch)
-  // or when the sheet reopens — mirrors prior PlanModuleSlideUp behaviour.
+  // or when the sheet reopens — mirrors prior PlanModuleSlideUp behaviour,
+  // now honouring the deep-link target on (re)open.
   useEffect(() => {
-    setActiveSectionId(cards[0]?.sectionId ?? null);
-  }, [cards]);
+    setActiveSectionId(defaultSectionId);
+  }, [cards, defaultSectionId]);
   useEffect(() => {
     if (!open) return;
-    setActiveSectionId(cards[0]?.sectionId ?? null);
-  }, [open, cards]);
+    setActiveSectionId(defaultSectionId);
+  }, [open, cards, defaultSectionId]);
 
   useFocusTrap(sheetRef, open, { onEscape: onClose });
 
