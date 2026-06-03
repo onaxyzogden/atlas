@@ -1,0 +1,61 @@
+/*
+ * Compost workspace shell — ports the prototype's global <style> block, scoped
+ * to `.workspace` so the aggressive reset never leaks into the rest of the app.
+ * Colours mirror `model.ts` `C` (kept in sync by hand).
+ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+
+.workspace {
+  /* AppShell header is 48px; fill the rest of the viewport. */
+  height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: #0f0f0d;
+  font-family: 'DM Sans', 'system-ui', sans-serif;
+  color: #ede9e0;
+  overflow: hidden;
+}
+
+.workspace *,
+.workspace *::before,
+.workspace *::after {
+  box-sizing: border-box;
+}
+
+.workspace :where(h1, h2, h3, h4, p, figure) {
+  margin: 0;
+}
+
+.workspace button {
+  outline: none;
+}
+
+.workspace input:focus,
+.workspace textarea:focus {
+  border-color: #4a8fd4 !important;
+}
+
+.workspace input::placeholder,
+.workspace textarea::placeholder {
+  color: #4a4845;
+}
+
+.workspace ::-webkit-scrollbar {
+  width: 4px;
+}
+
+.workspace ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workspace ::-webkit-scrollbar-thumb {
+  background: #2a2a25;
+  border-radius: 2px;
+}
+
+/* Stage body — the flex row the active stage fills. */
+.body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}

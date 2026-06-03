@@ -46,6 +46,7 @@ import V3BuildPage from '../v3/pages/BuildPage.js';
 import V3OperatePage from '../v3/pages/OperatePage.js';
 import V3ReportPage from '../v3/pages/ReportPage.js';
 import V3ComponentsDebugPage from '../v3/pages/ComponentsDebugPage.js';
+import CompostWorkspacePage from '../compost/CompostWorkspacePage.js';
 import ObserveLensDashboard from '../v3/observe/lens/ObserveLensDashboard.js';
 import EthicsReferencePage from '../v3/pages/EthicsReferencePage.js';
 import ProtocolsDashboardPage from '../v3/protocols/ProtocolsDashboardPage.js';
@@ -244,6 +245,16 @@ const v3ComponentsDebugRoute = createRoute({
   getParentRoute: () => appShellRoute,
   path: '/v3/components',
   component: V3ComponentsDebugPage,
+});
+
+// ─── Compost — distinct lightweight vertical (org-scoped, not project-scoped) ─
+// Top-level under appShellRoute (auth-gated) rather than under
+// v3ProjectLayoutRoute: a compost pile is a batch, not a parcel — it has no
+// projectId and must not load the land-use project shell.
+const compostRoute = createRoute({
+  getParentRoute: () => appShellRoute,
+  path: '/compost',
+  component: CompostWorkspacePage,
 });
 
 // ─── Observe "observational lens" dashboard — chrome-free preview alias ────
@@ -931,6 +942,7 @@ const routeTree = rootRoute.addChildren([
     projectRoute,
     compareCandidatesRoute,
     v3ComponentsDebugRoute,
+    compostRoute,
     observeLensPrototypeRoute,
     v3ProjectsLandingRoute,
     v3PortfolioHomeRoute,
