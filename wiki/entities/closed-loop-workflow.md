@@ -67,8 +67,18 @@ that transitively imports the persist-backed store needs `@vitest-environment ha
   the same surface that A1 found unreachable through the strata IA via automation; relied
   on the unit suite (28/28) + web/shared tsc exit 0 + store read.
   [[log/2026-06-03-atlas-closed-loop-slice-a2]]
-- **A3 -- pending:** `flowMapGeometry.ts` + flow-map rendering upgrade
-  (width-by-volume, dash-by-status, orphan pulse, via waypoints).
+- **A3 -- shipped** (`99032df8`): `flowMapGeometry.ts` (pure `flowMagnitude` +
+  clamped `edgeWidth` ramp + `flowPolylinePoints` via-skip + `polylinePointsAttr` +
+  `dashForStatus`/`dashForFlow` re-export) + 12 tests; `ClosedLoopGraphCard` edges
+  now `<polyline>` with width-by-volume, dash-by-status, via-node waypoints, and a
+  CSS `@keyframes` orphan pulse ring (local `.module.css`, not SMIL);
+  `WasteVectorDashboardView` routes flows through `transformationNodeIds` into the
+  existing processor lane as per-segment curves with the shared width/dash/colour.
+  Live render-verify deferred -- the WasteVectorTool legacy slide-up host is the
+  same surface A1/A2 found unreachable through the strata IA via automation; relied
+  on the 40/40 unit suite + shared tsc exit 0 + web tsc clean for the touched files
+  (the only web tsc errors are the untracked foreign-WIP `src/compost/` vertical).
+  [[log/2026-06-03-atlas-closed-loop-slice-a3]]
 - **A4 -- pending:** `loopApprovalGate.ts` + `loopHandoffContract.ts`
   (`buildLoopActPayload`) + `ActHandoffPreviewPanel` + domain-guarded
   `PlanToActHandoff.onEmit` enrichment + "Loop / Handoff" tab.
