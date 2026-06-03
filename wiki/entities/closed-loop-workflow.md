@@ -79,9 +79,27 @@ that transitively imports the persist-backed store needs `@vitest-environment ha
   on the 40/40 unit suite + shared tsc exit 0 + web tsc clean for the touched files
   (the only web tsc errors are the untracked foreign-WIP `src/compost/` vertical).
   [[log/2026-06-03-atlas-closed-loop-slice-a3]]
-- **A4 -- pending:** `loopApprovalGate.ts` + `loopHandoffContract.ts`
-  (`buildLoopActPayload`) + `ActHandoffPreviewPanel` + domain-guarded
-  `PlanToActHandoff.onEmit` enrichment + "Loop / Handoff" tab.
+- **A4 -- shipped** (`627503e9`): `loopApprovalGate.ts` (pure
+  `canApproveLoop(validation, allowOrphanOutputs)` -> `{ ok, counts, reason }`;
+  blocking order empty -> dangling endpoints -> orphan fertility -> orphan outputs
+  with the `getAllowOrphanOutputs` escape hatch) + 6 tests; `loopHandoffContract.ts`
+  (pure `buildLoopActPayload(project, flows, infra, validation)` mapping the
+  MaterialFlow design onto the EXISTING `ActHandoffPackageSchema` -- throughput ->
+  materials (dominant unit kg/L/kWh per month), per-flow cadence -> monitoring,
+  closed flows -> success criteria, topology-ordered sequence with via waypoints +
+  cycle tolerance; returns `Partial<ActHandoffPackage>` + `LoopActSummary`, NO schema
+  change) + 7 tests; read-only `ActHandoffPreviewPanel` (verdict chip + counts + the
+  four payload lists); domain-guarded (`objective.domain === "soil"`) additive
+  enrichment of `PlanToActHandoff.onEmit` (validation read via a minimal `{ id }`
+  stub since the hook reads only `project.id`, keeping the call unconditional; all
+  other domains keep today's empty arrays -- single handoff path); a third
+  "Loop / Handoff" tab on `WasteVectorTool` (no new route). 53/53 closedLoop unit
+  suite green; shared tsc exit 0; web tsc clean for touched files (only the untracked
+  foreign-WIP `src/compost/` errors remain). Live render-verify deferred -- the
+  WasteVectorTool legacy slide-up host (and thus the new tab) is the same surface
+  A1/A2/A3 found unreachable through the strata IA via automation.
+  [[log/2026-06-03-atlas-closed-loop-slice-a4]]
+  **Phase A (Plan-side enrichment) is now complete.**
 - **Phase B (later):** animated approval-transition that generates Act routine
   artifacts onto `stewardshipRoutineStore` (+ execution/group stores).
 - **Phase C (later):** the dedicated three-panel Act "Resource Flows" command center,

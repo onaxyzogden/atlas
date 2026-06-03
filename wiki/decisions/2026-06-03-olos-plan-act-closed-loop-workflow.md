@@ -1,7 +1,7 @@
 # ADR -- Plan->Act closed-loop / waste-vector workflow (epic)
 
 **Date:** 2026-06-03
-**Status:** Accepted (epic in progress -- Phase A, Slice A0 shipped)
+**Status:** Accepted (epic in progress -- **Phase A COMPLETE** (A0-A4 shipped); Phases B/C pending)
 **Branch:** `feat/atlas-permaculture`
 **Context source:** operator-attached prototype `olos-waste-vector-v2.jsx`
 
@@ -70,9 +70,25 @@ Amanah gate: land-stewardship planning UI; no riba/gharar. Clean.
   pass-through migrate; new pure `flowStatusModel.ts`
   (resolveOperationalStatus / dashForStatus / dashForFlow / cadenceLabel /
   flowIsActiveInMonth) + 9 tests.
-- A1-A4: pending (loop design score; per-flow detail editor + integrity; flow-map
-  rendering upgrade; approval gate + handoff preview + trigger).
-- Phases B, C: scoped, re-detailed when Phase A completes.
+- **A1 (shipped, `55eeb943`):** `loopDesignScore.ts` (pure scorer + extracted
+  `efficiency()`) + read-only `LoopDesignScorePanel`; 10 tests.
+- **A2 (shipped, `37665eba`):** `loopIntegrity.ts` (5-check checklist) + 9 tests;
+  `FlowDetailPanel` (status/cadence/throughput/via/activeMonths editor);
+  `parsePositive` extracted to `flowFormUtils.ts`; selectable list rows.
+- **A3 (shipped, `99032df8`):** `flowMapGeometry.ts` (edgeWidth ramp + polyline +
+  dash re-export) + 12 tests; `ClosedLoopGraphCard` polyline edges with
+  width-by-volume / dash-by-status / via waypoints / CSS-keyframes orphan pulse;
+  `WasteVectorDashboardView` waypoint-keyed lane routing.
+- **A4 (shipped, `627503e9`):** `loopApprovalGate.ts` (`canApproveLoop`) + 6 tests;
+  `loopHandoffContract.ts` (`buildLoopActPayload` -> `Partial<ActHandoffPackage>` +
+  `LoopActSummary`, NO schema change) + 7 tests; read-only `ActHandoffPreviewPanel`;
+  domain-guarded (`soil`) additive `PlanToActHandoff.onEmit` enrichment; "Loop /
+  Handoff" tab on `WasteVectorTool`. **Phase A complete.**
+- **Phase A live-verify deferred (honest):** WasteVectorTool's legacy
+  `PlanModuleSlideUp` "soil" host is unreachable through the current strata IA via
+  preview automation; A1-A4 relied on the unit suites + clean typecheck. A separate
+  strata-IA surfacing task is needed to do the deferred live render-verify.
+- Phases B, C: scoped, re-detailed now that Phase A is complete.
 
 ## Links
 
