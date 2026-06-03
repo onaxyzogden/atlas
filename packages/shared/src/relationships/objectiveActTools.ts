@@ -334,6 +334,101 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // Husbandry & welfare framework: non-spatial. gap: all — health, breeding,
   // welfare, halal handling, records (decisions).
   'silv-sec-s4-husbandry-framework': [],
+
+  // ---------- HOMESTEAD (primary-only, 15 objectives) ----------
+  // Authored 2026-06-03 (Act-coverage audit remediation R1). Homestead is the
+  // active vertical-slice primary; before this every hms-* objective fell
+  // through to the coarse STRATUM_ACT_TOOLS_DEFAULT (e.g. animal-husbandry
+  // surfaced only water-lines/tanks; the s1 needs survey surfaced nothing).
+  // Every tool id below is grounded in a real hms-* checklist item AND a
+  // mountable ACT_TOOL_CATALOG tool; pure strategy / decision / financial
+  // objectives resolve to [] with a gap: note, mirroring s4-direction and
+  // silv-s7-financial-viability. Candidate mappings — operator-reviewable like
+  // the silvopasture set.
+
+  // S1 — household needs & self-sufficiency: needs inventory / targets /
+  // household agreement are text-decision; project-level vision capture is
+  // served by the universal s1-vision form arms also present on every
+  // homestead. gap: all.
+  'hms-s1-household-needs': [],
+  // S2 — household resource flows: c3 maps on-site organic outputs / greywater
+  // available for fertility cycling (source->sink flow). gap: c1/c2/c4/c5/c6
+  // consumption / waste / energy recording (no draw tool).
+  'hms-s2-resource-flows': ['flow-connector'],
+  // S2 — existing productive capacity: inventory existing plantings (vegetation
+  // + standing orchard trees), water storage tanks, fertility/compost infra,
+  // animal-infra fencing, soil condition. gap: c2 condition/yield (analysis).
+  'hms-s2-productive-capacity': [
+    'vegetation',
+    'orchards',
+    'tanks',
+    'compost',
+    'fencing',
+    'soil',
+  ],
+  // S2 — surrounding landscape context & vectors: neighbour land-use/practice
+  // pins, prevailing-wind drift sector, upstream watercourse, pest/weed
+  // pressure hazard zones. gap: c6 opportunities (recording).
+  'hms-s2-landscape-vectors': [
+    'neighbour-pin',
+    'wind-sector',
+    'watercourse',
+    'hazard-zone',
+  ],
+  // S3 — household water quality & potability: water-source field logs +
+  // rainwater catchment surfaces. gap: c1/c2/c3 lab tests, c5 seasonality,
+  // c6 potability status (analysis/recording).
+  'hms-s3-water-quality': ['water', 'catchment'],
+  // S4 — food production strategy: which foods / methods / targets / order are
+  // decisions; spatial layout is drawn under hms-s5-food-zones-layout. gap: all.
+  'hms-s4-food-production-strategy': [],
+  // S4 — whole-homestead fertility strategy: c1 composting approach (compost),
+  // c2 maps on-site organic inputs for cycling (flow). gap: c3 mulch, c4 animal
+  // integration, c5 cover crop, c6 input-reduction (decisions).
+  'hms-s4-fertility-strategy': ['compost', 'flow-connector'],
+  // S4 — energy & shelter resilience strategy: heating / power / threshold
+  // assessments and decisions; systems are designed under
+  // hms-s5-energy-shelter-systems. gap: all.
+  'hms-s4-energy-shelter-resilience': [],
+  // S5 — food production zones & garden layout: the core spatial design — beds
+  // (kitchen/annual/herb), crop areas, perennial orchards, production zones,
+  // protected-growing building, compost integration, mulch paths.
+  'hms-s5-food-zones-layout': [
+    'zone',
+    'beds',
+    'crops',
+    'orchards',
+    'buildings',
+    'compost',
+    'path',
+  ],
+  // S5 — energy & shelter systems: stove/shelter buildings, backup-power
+  // placement, woodshed/fuel-store barn. gap: c2 insulation spec (decision).
+  'hms-s5-energy-shelter-systems': ['buildings', 'power', 'barns'],
+  // S5 — animal husbandry infrastructure (conditional): housing barns, runs /
+  // grazing paddocks, predator-exclusion fencing, manure compost, stock-water
+  // reticulation + tanks.
+  'hms-s5-animal-husbandry': [
+    'barns',
+    'paddocks',
+    'fencing',
+    'compost',
+    'water-lines',
+    'tanks',
+  ],
+  // S6 — self-sufficiency feedback loop: designs the provision / gap tracking
+  // SYSTEM (record format, review rhythm) — non-spatial. gap: all.
+  'hms-s6-self-sufficiency-feedback': [],
+  // S7 — provision phasing: yield-speed / ecological-readiness sequencing
+  // decisions. gap: all.
+  'hms-s7-provision-phasing': [],
+  // S7 — household budget & input reduction: ordinary spend-baseline /
+  // reduction milestones (Amanah-clean, no financial product) — non-spatial.
+  // gap: all.
+  'hms-s7-budget-input-reduction': [],
+  // S7 — adaptive management protocol: review cycle / decision triggers /
+  // contingency — non-spatial. gap: all.
+  'hms-s7-adaptive-management': [],
 };
 
 /**

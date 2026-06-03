@@ -24,6 +24,7 @@ import {
   UNIVERSAL_PLAN_OBJECTIVES,
   SILVOPASTURE_PRIMARY_OBJECTIVES,
   SILVOPASTURE_SECONDARY_OBJECTIVES,
+  HOMESTEAD_PRIMARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -61,6 +62,19 @@ describe('Act tier-shell objective->tool coverage', () => {
     const missing = silvObjectives
       .filter((o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE))
       .map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every homestead objective has an explicit override entry', () => {
+    // Homestead is the active vertical-slice primary; its 15 hms-* objectives
+    // were wired explicitly on 2026-06-03 (audit remediation R1) so spatial
+    // objectives surface their own tools and decision/financial objectives
+    // resolve to an intentional [] rather than the coarse stratum default.
+    // An explicit [] still satisfies this ratchet (the id is present in the
+    // override map); only a brand-new hms-* objective with no entry trips it.
+    const missing = HOMESTEAD_PRIMARY_OBJECTIVES.filter(
+      (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
+    ).map((o) => o.id);
     expect(missing).toEqual([]);
   });
 
