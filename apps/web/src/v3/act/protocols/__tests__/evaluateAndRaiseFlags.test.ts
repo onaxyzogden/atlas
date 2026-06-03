@@ -72,9 +72,9 @@ describe('evaluateAndRaiseFlags', () => {
     expect(calls).toHaveLength(2);
     expect(calls[0]!.deviationSign).toBe('existential');
     expect(calls[1]!.deviationSign).toBe('existential');
-    expect(calls[0]!.objectiveId).toBe('s6-yield-flows');
-    expect(calls[1]!.objectiveId).toBe('s7-phasing');
-    expect(calls[1]!.reason).toMatch(/^downstream of s6-yield-flows:/);
+    expect(calls[0]!.objectiveId).toBe('s6-monitoring');
+    expect(calls[1]!.objectiveId).toBe('s7-phase1');
+    expect(calls[1]!.reason).toMatch(/^downstream of s6-monitoring:/);
   });
 
   // ---------------------------------------------------------------------------

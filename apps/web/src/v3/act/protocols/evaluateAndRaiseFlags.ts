@@ -2,8 +2,8 @@
 //
 // Orchestration helper (T1.6): on a confirmed activation, count activations
 // in the correct temporal window, run the pure deviation policy, and raise
-// flags on the primary s6-yield-flows objective PLUS one-hop cascade to
-// s7-phasing.
+// flags on the primary universal s6 objective (s6-monitoring) PLUS one-hop
+// cascade to the universal s7 phasing objective (s7-phase1).
 //
 // This module has NO store imports -- it receives the raiseFlag action and
 // the activations array as arguments, making it unit-testable without
@@ -24,8 +24,16 @@ import type { RaiseFlagInput } from '../../../store/reviewFlagStore.js';
 // Constants
 // ---------------------------------------------------------------------------
 
-const PRIMARY_OBJECTIVE_ID = 's6-yield-flows';
-const CASCADE_OBJECTIVE_ID = 's7-phasing';
+// Universal-taxonomy objective ids. Every typed (wizard-created) project
+// resolves its Plan objectives from the universal + per-type catalogues, whose
+// s6/s7 strata are s6-monitoring (U-S6.1) and s7-phase1 (U-S7.1). The legacy
+// static skeleton's s6-yield-flows / s7-phasing render ONLY for null-type
+// projects, so flags on those ids could never surface a chip on a real typed
+// project. Re-targeted to the universal ids at the T1.10 gate (steward
+// decision, 2026-06): the universal slots are present in EVERY typed project's
+// resolved set and sit in the same strata as the legacy targets.
+const PRIMARY_OBJECTIVE_ID = 's6-monitoring';
+const CASCADE_OBJECTIVE_ID = 's7-phase1';
 
 // ---------------------------------------------------------------------------
 // Public interface
