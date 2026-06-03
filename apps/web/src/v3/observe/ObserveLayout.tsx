@@ -32,7 +32,9 @@ import {
   useProjectStore,
   MTC_SEED,
   getObserveShellMode,
+  getObserveLensDataSource,
   type ObserveShellMode,
+  type ObserveLensDataSource,
 } from '../../store/projectStore.js';
 import { parcelAcreage } from '../../lib/geo.js';
 import { useHomesteadStore } from '../../store/homesteadStore.js';
@@ -83,6 +85,7 @@ import {
 import { observeSectionIdModule } from './observeSectionMap.js';
 import StageShell from '../_shell/StageShell.js';
 import ObserveShellToggle from './dashboard/ObserveShellToggle.js';
+import ObserveLensDataSourceToggle from './dashboard/ObserveLensDataSourceToggle.js';
 import ObserveDashboardLayout from './dashboard/ObserveDashboardLayout.js';
 import ObserveLensDashboard from './lens/ObserveLensDashboard.js';
 import type { SourceFilter } from './dashboard/domain/observationSource.js';
@@ -117,6 +120,10 @@ export default function ObserveLayout() {
   const handleObserveShellModeChange = (mode: ObserveShellMode) => {
     updateProject(projectRecord.id, { observeShellMode: mode });
   };
+  const observeLensDataSource = getObserveLensDataSource(projectRecord);
+  const handleObserveLensDataSourceChange = (source: ObserveLensDataSource) => {
+    updateProject(projectRecord.id, { observeLensDataSource: source });
+  };
 
   if (observeShellMode === 'module-bar') {
     // Full-bleed mount (NOT StageShell): the lens dashboard owns the whole
@@ -124,13 +131,21 @@ export default function ObserveLayout() {
     // mount. StageShell's grid/flex/padding context confined the zoom wrapper to
     // a sub-viewport box (gutters); the outlet is a positioned, full-size
     // ancestor, so `absolute; inset:0` fills it exactly. ObserveShellToggle
-    // floats above the lens (rendered last) as the escape hatch to the dashboard.
+    // floats above the lens (rendered last) as the escape hatch to the dashboard;
+    // ObserveLensDataSourceToggle stacks just below it to flip live/mock data.
     return (
       <div style={{ position: 'absolute', inset: 0 }}>
-        <ObserveLensDashboard />
+        <ObserveLensDashboard
+          projectId={projectRecord.id}
+          dataSource={observeLensDataSource}
+        />
         <ObserveShellToggle
           mode={observeShellMode}
           onChange={handleObserveShellModeChange}
+        />
+        <ObserveLensDataSourceToggle
+          source={observeLensDataSource}
+          onChange={handleObserveLensDataSourceChange}
         />
       </div>
     );

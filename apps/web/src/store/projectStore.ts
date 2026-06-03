@@ -128,6 +128,14 @@ export interface LocalProject {
    * `getObserveShellMode(project)` which applies the defaulting rules.
    */
   observeShellMode?: ObserveShellMode;
+  /**
+   * Which data source the `module-bar` Observe lens reads: `live` resolves
+   * the lens bundle from the project's real ObserveDataPoint store +
+   * domain snapshots; `mock` falls back to the static Millbrook fixtures
+   * (the escape hatch). Per-project so a steward can pin either source.
+   * Read via `getObserveLensDataSource(project)` which defaults to `live`.
+   */
+  observeLensDataSource?: ObserveLensDataSource;
 }
 
 /**
@@ -203,6 +211,29 @@ export function getObserveShellMode(
 ): ObserveShellMode {
   if (project.observeShellMode) return project.observeShellMode;
   return 'dashboard';
+}
+
+/**
+ * Which data source the `module-bar` Observe lens renders. `live` builds
+ * the lens bundle from the project's real ObserveDataPoint store + domain
+ * snapshots (the default for every project, builtin and user-created);
+ * `mock` is the escape hatch back to the static Millbrook fixtures. Both
+ * stay reachable per project via `ObserveLensDataSourceToggle`.
+ */
+export type ObserveLensDataSource = 'mock' | 'live';
+
+/**
+ * Canonical accessor for a project's Observe lens data source. Explicit
+ * per-project values win; everything else — including builtin samples
+ * (MTC, "351 House") — defaults to `live` so the lens reflects real
+ * captured observations out of the box. No persist backfill: an undefined
+ * value resolves to the live default here.
+ */
+export function getObserveLensDataSource(
+  project: Pick<LocalProject, 'observeLensDataSource'>,
+): ObserveLensDataSource {
+  if (project.observeLensDataSource) return project.observeLensDataSource;
+  return 'live';
 }
 
 /**
@@ -596,6 +627,10 @@ export const useProjectStore = create<ProjectState>()(
             // Same rationale — Observe shell mode is a per-steward
             // UI choice, not narrative content.
             'observeShellMode',
+            // Same rationale — Observe lens data source (live/mock) is a
+            // per-steward UI choice, settable on builtin samples (MTC) so
+            // the steward can flip the lens between live and fixtures.
+            'observeLensDataSource',
             // commencementDate is a steward-entered date, not narrative
             // content -- must be settable on builtin sample projects so the
             // establishment-dip re-frame works in preview/demo contexts.
@@ -1061,7 +1096,7 @@ export const useProjectStore = create<ProjectState>()(
     }),
     {
       name: 'ogden-projects',
-      version: 8,
+      version: 9,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version < 3) {
@@ -1141,6 +1176,14 @@ export const useProjectStore = create<ProjectState>()(
               metadata: { ...(meta ?? {}), projectTypeRecord: record },
             };
           });
+        }
+        if (version < 9) {
+          // No data transform — `observeLensDataSource` stays undefined on
+          // existing projects and resolves to the `live` default via
+          // `getObserveLensDataSource(project)`. Leaving the field absent
+          // means the module-bar Observe lens reads live project data out of
+          // the box; the steward opts back to `mock` per project via the
+          // ObserveLensDataSourceToggle.
         }
         return state;
       },

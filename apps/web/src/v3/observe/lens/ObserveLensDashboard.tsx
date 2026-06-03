@@ -24,10 +24,12 @@
 
 import { useState } from 'react';
 import type { ObserveLensId } from '@ogden/shared';
+import type { ObserveLensDataSource } from '../../../store/projectStore.js';
 import StageShell from '../../_shell/StageShell.js';
 import { C, F } from './tokens.js';
 import { LensDataProvider } from './lensData/LensDataContext.js';
 import { mockBundle } from './lensData/mockBundle.js';
+import { useLiveLensBundle } from './lensData/liveBundle.js';
 import type { MockObservation } from './types.js';
 import ObserveLensSpine from './ObserveLensSpine.js';
 import ObserveLensDetailRail from './ObserveLensDetailRail.js';
@@ -40,15 +42,34 @@ import {
 } from './components.js';
 import css from './ObserveLensDashboard.module.css';
 
-export default function ObserveLensDashboard() {
+interface Props {
+  /**
+   * The project whose live ObserveDataPoint store + domain snapshots feed
+   * the live bundle. Omitted on the chrome-free debug route
+   * (/v3/prototype/observe-lens), which has no project context and so
+   * always renders the mock fixtures.
+   */
+  projectId?: string;
+  /**
+   * Which source to render. Defaults to `live`; resolves to `mock` when no
+   * projectId is available (debug route) regardless of this value.
+   */
+  dataSource?: ObserveLensDataSource;
+}
+
+export default function ObserveLensDashboard({ projectId, dataSource = 'live' }: Props) {
   const [activeLens, setActiveLens] = useState<string>('all');
   const [selectedObs, setSelectedObs] = useState<MockObservation | null>(null);
   const [detailLens, setDetailLens] = useState<ObserveLensId | null>(null);
 
-  // Phase 2: still the mock bundle. Phase 5 swaps this for a live/mock choice
-  // driven by the per-project data-source toggle. Every lens component reads it
-  // through LensDataProvider/useLensData instead of importing mockData directly.
-  const bundle = mockBundle;
+  // Phase 5: resolve the bundle from the per-project data-source choice.
+  // useLiveLensBundle is a hook, so it is called unconditionally (rules of
+  // hooks); when the lens renders mock it builds over the empty projectId and
+  // the result is discarded. Every lens component reads the chosen bundle via
+  // LensDataProvider/useLensData rather than importing mockData directly.
+  const liveBundle = useLiveLensBundle(projectId ?? '');
+  const useMock = dataSource === 'mock' || !projectId;
+  const bundle = useMock ? mockBundle : liveBundle;
 
   const handleLensChange = (id: string) => {
     setActiveLens(id);
