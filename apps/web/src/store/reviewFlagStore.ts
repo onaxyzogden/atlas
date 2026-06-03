@@ -161,11 +161,10 @@ function bumpDepth(depth: FlagDepthKey): FlagDepthKey {
  *   per='cycle': dormant when currentBucket.cycleNumber > flagWindow.cycleNumber + 1.
  *     Adjacent cycle (cycleNumber + 1) is NOT dormant (pattern may still be live).
  *   per='season': prefer cycleNumber distance when both are present (seasons are
- *     cyclic; two identical season names from different years may be far apart).
- *     If cycleNumbers are present, use the same >+1 rule as 'cycle'.
- *     If cycleNumbers are absent, treat any different season as one window later --
- *     require the season to have appeared at least twice more to conclude dormancy
- *     (conservative: without cycleNumber we cannot reliably date the window).
+ *     cyclic; two identical season names from different years may be far apart),
+ *     using the same >+1 rule as 'cycle'. If either cycleNumber is absent we cannot
+ *     reliably date the window from season names alone, so we treat it as NOT
+ *     dormant (season-only buckets never auto-hide a flag).
  *   Either bucket missing required data => NOT dormant (never hide without data).
  *
  * @param flag         The flag to evaluate.
