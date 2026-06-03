@@ -466,5 +466,7 @@ describe('evaluateAndRaiseFlags', () => {
     expect(calls).toHaveLength(1);
     expect(calls[0]!.objectiveId).toBe('s3-soil');
     expect(calls[0]!.depth).toBe('soil');
+    // Event-driven path raises a plain flag -- never a cascade.
+    expect(calls.some((c) => /^downstream of/.test(c.reason))).toBe(false);
   });
 });

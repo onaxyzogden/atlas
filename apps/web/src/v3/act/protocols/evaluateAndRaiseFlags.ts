@@ -2,8 +2,8 @@
 //
 // Orchestration helper (T1.6): on a confirmed activation, count activations
 // in the correct temporal window, run the pure deviation policy, and raise
-// flags on the primary universal s6 objective (s6-monitoring) PLUS one-hop
-// cascade to the universal s7 phasing objective (s7-phase1).
+// the appropriate review flag(s). The objective(s) targeted depend on the
+// template -- see the "Emission routing (T2.2)" block below.
 //
 // This module has NO store imports -- it receives the raiseFlag action and
 // the activations array as arguments, making it unit-testable without
@@ -166,7 +166,8 @@ export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
     return;
   }
 
-  // 6. Build and raise two flags (primary + cascade).
+  // 6. Build and raise the flag(s): s6-bound -> primary + cascade (2 flags);
+  // event-driven -> one plain flag per mapped target objective (1 or 2 flags).
   // Guard: direction and deviationSign are always present when shouldFlag=true;
   // explicit undefined checks narrow both to their non-undefined types.
   if (result.direction === undefined || result.deviationSign === undefined) {
