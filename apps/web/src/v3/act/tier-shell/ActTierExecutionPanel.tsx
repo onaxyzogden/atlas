@@ -520,6 +520,7 @@ export default function ActTierExecutionPanel({
                   stratumId: objective.stratumId,
                   objectiveId: objective.id,
                 },
+                search: { expandRef: '1' },
               })
             }
           >

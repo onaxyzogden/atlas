@@ -496,7 +496,15 @@ const v3PlanCommandCentreRoute = createRoute({
 // the param is omitted (not `=design`) when the steward is in the default mode.
 // Kept on all three plan-shell routes so the mode survives stratum/objective
 // navigation.
-type PlanSearch = { highlightIncomplete?: 's1'; planMode?: 'protocol' };
+type PlanSearch = {
+  highlightIncomplete?: 's1';
+  planMode?: 'protocol';
+  // Deep-link intent flag: when an objective detail is reached from Act's
+  // "Open guild builder in Plan" affordance, expand the REFERENCE section on
+  // arrival so the steward lands directly on the Plan designer rather than a
+  // collapsed toggle. Allowlisted here so the strict validator preserves it.
+  expandRef?: '1';
+};
 
 const validatePlanSearch = (
   search: Record<string, unknown>,
@@ -507,6 +515,9 @@ const validatePlanSearch = (
   }
   if (search.planMode === 'protocol') {
     out.planMode = 'protocol';
+  }
+  if (search.expandRef === '1') {
+    out.expandRef = '1';
   }
   return out;
 };

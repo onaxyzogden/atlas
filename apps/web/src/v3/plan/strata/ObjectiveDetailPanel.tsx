@@ -9,6 +9,7 @@
 // key={objective.id} ... />` — clean reset, no useEffect.
 
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useSearch } from '@tanstack/react-router';
 import type {
   OverlayId,
   PlanStratum,
@@ -94,6 +95,14 @@ export default function ObjectiveDetailPanel({
   const [activeOverlayIds, setActiveOverlayIds] = useState<OverlayId[]>([
     ...objective.defaultOverlayBundle,
   ]);
+
+  // Deep-link intent (Act → "Open guild builder in Plan"): expand the
+  // REFERENCE section on arrival. Read loosely; the strict route validator
+  // drops `expandRef` on the next spine navigation, so it is one-shot — the
+  // panel remounts per objective (keyed by objective.id at the parent), so
+  // ordinary objective clicks land collapsed.
+  const search = useSearch({ strict: false }) as { expandRef?: '1' };
+  const expandReferenceOnMount = search.expandRef === '1';
 
   // §10.1 — approval overlay state. Shown when the S6 objective is complete and
   // the project has eligible animal enterprises.
@@ -415,6 +424,7 @@ export default function ObjectiveDetailPanel({
         <DetailsExpander
           projectId={projectId}
           legacyCardSectionId={objective.legacyCardSectionId}
+          defaultOpen={expandReferenceOnMount}
         />
       )}
 

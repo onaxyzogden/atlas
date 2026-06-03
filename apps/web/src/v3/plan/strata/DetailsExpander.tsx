@@ -67,13 +67,21 @@ const noop = () => {};
 interface Props {
   projectId: string;
   legacyCardSectionId: string;
+  /**
+   * When true, the section starts expanded (and pays its lazy chunk cost) on
+   * mount instead of waiting for a click. Used by the Act → Plan guild
+   * deep-link so the steward lands directly on the designer. Defaults to
+   * collapsed for ordinary navigation, preserving lazy-load-on-demand.
+   */
+  defaultOpen?: boolean;
 }
 
 export default function DetailsExpander({
   projectId,
   legacyCardSectionId,
+  defaultOpen = false,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   // Look up the LocalProject directly — legacy cards consume the local
   // shape, not the adapted v3 Project. Reading off the store here keeps
   // the parent ObjectiveDetailPanel free of the extra prop.
