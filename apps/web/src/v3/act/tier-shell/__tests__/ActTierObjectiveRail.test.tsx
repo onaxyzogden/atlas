@@ -15,6 +15,21 @@ import {
   findPlanStratumObjective,
   type PlanStratumObjective,
 } from '@ogden/shared';
+
+// Isolate the dedicated `flow-connector` flow tool: the real s5/s6 sets it joins
+// also contain water/compost tools that already light the block, so resolve a
+// sentinel objective to ONLY `flow-connector` to prove that id alone lights the
+// gate via FLOW_TOOL_IDS. Every other objective uses the real resolution.
+vi.mock('@ogden/shared', async (importActual) => {
+  const actual = await importActual<typeof import('@ogden/shared')>();
+  return {
+    ...actual,
+    getObjectiveActTools: (obj: PlanStratumObjective) =>
+      obj.id === 'test-flow-only'
+        ? ['flow-connector']
+        : actual.getObjectiveActTools(obj),
+  };
+});
 import { useProtocolStore } from '../../../../store/protocolStore.js';
 import { useClosedLoopStore } from '../../../../store/closedLoopStore.js';
 import ActTierObjectiveRail from '../ActTierObjectiveRail.js';
@@ -231,6 +246,39 @@ describe('ActTierObjectiveRail', () => {
     renderRail("objectives", 0, visionObjective.id, [visionObjective]);
     expect(screen.queryByText(/Material flows:/)).toBeNull();
     expect(screen.queryByText(/No material flows recorded yet/)).toBeNull();
+  });
+
+  it('dedicated tool: the flow-connector act-tool alone lights the flow block', () => {
+    // The sentinel objective resolves (via the partial mock) to ONLY
+    // `flow-connector` -- the dedicated greywater/closed-loop authoring tool now
+    // in FLOW_TOOL_IDS. Its id does not match the id pattern and the prose is
+    // neutral, so it lights PURELY because flow-connector is a recognised flow
+    // tool. This is the regression guard for the #49 FLOW_TOOL_IDS addition.
+    const flowToolObjective = {
+      ...OBJECTIVE,
+      id: 'test-flow-only',
+      stratumId: 's6-integration-design',
+      shortTitle: 'Closed-loop authoring',
+      title: 'Material loop capture',
+      focusedQuestion: 'Where does the loop get recorded on the ground?',
+    } as PlanStratumObjective;
+    useClosedLoopStore.setState({
+      materialFlows: [
+        {
+          id: 'fc1',
+          projectId: 'proj-1',
+          label: 'Kitchen greywater to orchard',
+          materialKind: 'greywater',
+          sourceId: 'feat-a',
+          sinkId: 'feat-b',
+          origin: 'list',
+          createdAt: '2026-06-02T00:00:00.000Z',
+        },
+      ],
+    });
+    renderRail('objectives', 0, flowToolObjective.id, [flowToolObjective]);
+    expect(screen.getByText(/Material flows: 1/)).toBeTruthy();
+    expect(screen.getByText(/1 closed-loop/)).toBeTruthy();
   });
 
   it('surfaces a live closed-loop flow count for resource-flow objectives', () => {

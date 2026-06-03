@@ -65,6 +65,8 @@ import ActFeatureClickHandler from '../layers/ActFeatureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActAsBuiltPopover from '../asBuilt/ActAsBuiltPopover.js';
 import ActAsBuiltDrawHandler from '../asBuilt/ActAsBuiltDrawHandler.js';
+import ActFlowConnectorPopover from '../asBuilt/ActFlowConnectorPopover.js';
+import { useActFlowPopoverStore } from '../asBuilt/actFlowPopoverStore.js';
 import ActDrawHost from '../draw/ActDrawHost.js';
 import ObserveDrawHost from '../../observe/components/draw/ObserveDrawHost.js';
 import PlanDrawHost from '../../plan/draw/PlanDrawHost.js';
@@ -382,6 +384,13 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
         });
         return;
       }
+      if (arm.kind === 'flow') {
+        // Non-spatial material-flow capture: open the Act-owned popover (renders
+        // through Modal; mounted once below). Records a source->sink flow into
+        // closedLoopStore with origin 'list'.
+        useActFlowPopoverStore.getState().openPopover();
+        return;
+      }
       // Field log (harvest / water / livestock) — route through the existing
       // QuickLog path so ActDrawHost handles the click-to-log interaction.
       // `arm` is hoisted to a const so the narrowing survives the closure.
@@ -445,6 +454,7 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
                     <ActStructurePopover map={map} projectId={id} />
                     <ActAsBuiltPopover map={map} projectId={id} />
                     <ActAsBuiltDrawHandler map={map} />
+                    <ActFlowConnectorPopover projectId={id} />
                     <ActTierMapMarkers
                       map={map}
                       positionByObjective={positionByObjective}

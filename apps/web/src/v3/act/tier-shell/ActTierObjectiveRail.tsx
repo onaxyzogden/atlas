@@ -78,6 +78,15 @@ const FLOW_TOOL_IDS: ReadonlySet<string> = new Set([
   // field-log tools that explicitly track material movement
   'harvest',
   'livestock',
+  // dedicated closed-loop / greywater flow-authoring tool (arm.kind 'flow';
+  // added 2026-06-02d). This is the SINGLE strongest flow signal: it is the only
+  // tool that actually authors a MaterialFlow into closedLoopStore (default
+  // materialKind 'greywater'), so its presence on an objective is a direct
+  // statement that a closed loop is recorded there - unlike the source/sink
+  // tools above, which only imply a flow. With a real authoring tool now wired,
+  // the maximalist source/sink set could be narrowed later; it is kept for now
+  // so the block stays discoverable on production / water / integration work.
+  'flow-connector',
 ]);
 
 /** Prose signal (focused question / title) for waste-vector / closed-loop / water-

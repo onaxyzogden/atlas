@@ -55,6 +55,7 @@ export const STRATUM_ACT_TOOLS_DEFAULT: Readonly<
     'compost',
     'harvest',
     'livestock',
+    'flow-connector',
   ],
   's7-phasing-resourcing': ['buildings', 'barns', 'tanks'],
 } as const;
@@ -164,6 +165,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
     'water-lines',
     'sink',
     'wells',
+    'flow-connector',
   ],
   // Soil improvement: compost, fertility units, monitoring baseline transect.
   // gap: c2/c3 application rates + machinery (decisions).

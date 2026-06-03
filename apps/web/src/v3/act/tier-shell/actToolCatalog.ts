@@ -52,6 +52,7 @@ import {
   Shuffle,
   Triangle,
   Spline,
+  Waypoints,
   Sun,
   Wind,
   Flame,
@@ -118,7 +119,11 @@ export const ACT_TOOL_CATEGORIES: readonly ActToolCategoryMeta[] = [
 export type ActToolArm =
   | { kind: 'map'; mapToolId: MapToolId }
   | { kind: 'log'; quickLogId: string }
-  | { kind: 'form'; formId: string; prompt: string; placeholder?: string };
+  | { kind: 'form'; formId: string; prompt: string; placeholder?: string }
+  // Opens the Act-owned <ActFlowConnectorPopover> (list-capture of a source->sink
+  // material flow into closedLoopStore). No spatial/draw arm: the popover renders
+  // through the reusable Modal, not a map host.
+  | { kind: 'flow' };
 
 export interface ActTool {
   id: string;
@@ -338,6 +343,15 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     icon: Droplets,
     category: 'water',
     arm: { kind: 'map', mapToolId: 'plan.water-management.sink' },
+  },
+  'flow-connector': {
+    id: 'flow-connector',
+    label: 'Material flow',
+    icon: Waypoints,
+    category: 'water',
+    // List-capture of a source->sink material flow (default greywater) into
+    // closedLoopStore via <ActFlowConnectorPopover>; no map tool is armed.
+    arm: { kind: 'flow' },
   },
 
   // ---- Soil ----

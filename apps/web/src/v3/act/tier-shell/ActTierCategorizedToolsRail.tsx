@@ -48,6 +48,11 @@ function isToolArmed(
   if (arm.kind === 'form') {
     return activeFormId === arm.formId;
   }
+  // kind === 'flow': the material-flow tool opens a Modal (no map/log arm), so it
+  // has no persistent "active" highlight state -- never report it active here.
+  if (arm.kind === 'flow') {
+    return false;
+  }
   // kind === 'log': check the toolId the QuickLog arms on the map.
   // Hoisted to a const so the discriminant narrowing survives into the
   // `.find` closure below (TS drops narrowing of a parameter property inside
