@@ -14,6 +14,7 @@ import HeaderStageSpine from '../v3/HeaderStageSpine.js';
 import HeaderStageSearch from '../v3/HeaderStageSearch.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
+import ApiReachabilityStatus from '../components/ApiReachabilityStatus.js';
 import styles from './AppShell.module.css';
 
 interface AppShellProps {
@@ -51,6 +52,11 @@ export default function AppShell({ children }: AppShellProps) {
 
         {/* Sync status (relocated from the Act in-page rails to global header) */}
         <ProofSyncIndicator />
+
+        {/* API reachability — non-blocking status chip (replaces the former
+            fixed full-width banner that occluded the header/toolbar). Visible
+            only on a problem; self-heal runs globally via ApiReachabilityWatcher. */}
+        <ApiReachabilityStatus />
 
         {/* Theme toggle */}
         <button

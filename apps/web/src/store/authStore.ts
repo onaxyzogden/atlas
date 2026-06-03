@@ -41,8 +41,9 @@ interface AuthState {
   /**
    * True when a stored token exists but `/auth/me` could NOT be verified on
    * boot for a transient reason (server down / still starting / dead origin) —
-   * the token is kept but `user` is null. Drives the ApiReachabilityBanner's
-   * boot-specific message + Retry. Cleared once the session verifies, or on
+   * the token is kept but `user` is null. Drives the ApiReachabilityStatus
+   * chip's boot-specific message + Retry (and the ApiReachabilityWatcher's
+   * self-heal). Cleared once the session verifies, or on
    * an explicit login/register/logout.
    */
   sessionUnverified: boolean;

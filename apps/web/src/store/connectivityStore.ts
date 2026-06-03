@@ -17,7 +17,8 @@ export interface ConnectivityState {
    * can be online (navigator.onLine === true) while the server is down, still
    * starting, or on a dead origin. Set false when a request fails with a
    * network-level rejection (NETWORK_ERROR / status 0), true on the next
-   * successful response. Drives the global ApiReachabilityBanner. Runtime-only
+   * successful response. Drives the global ApiReachabilityWatcher (self-heal)
+   * and the ApiReachabilityStatus header chip. Runtime-only
    * (never persisted; defaults true so a cold load assumes reachable).
    */
   apiReachable: boolean;

@@ -3,7 +3,7 @@
  *
  * Locks the `sessionUnverified` flag that initFromStorage() raises when a
  * stored token exists but `/auth/me` fails for a TRANSIENT (non-auth) reason —
- * the signal that drives the ApiReachabilityBanner's boot-specific message.
+ * the signal that drives the ApiReachabilityStatus chip's boot-specific message.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
