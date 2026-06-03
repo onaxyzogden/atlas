@@ -8,7 +8,7 @@
 // Reset is keyed to objective.id at the parent via `<ObjectiveDetailPanel
 // key={objective.id} ... />` — clean reset, no useEffect.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type {
   OverlayId,
   PlanStratum,
@@ -39,7 +39,25 @@ import ProtocolApprovalOverlay from './ProtocolApprovalOverlay.js';
 // (map body, reference placeholders) keep their existing CSS module, which
 // already resolves against the app's dark `--color-*` theme.
 import { C } from '../spine/tokens.js';
+import {
+  useReviewFlagsForObjective,
+  useReviewFlagStore,
+  isOpenReviewFlag,
+} from '../../../store/reviewFlagStore.js';
 import css from './ObjectiveDetailPanel.module.css';
+
+// T1.7 -- shared button style for the three review-flag action buttons.
+// Defined at module level so the object reference is stable across renders.
+const REVIEW_FLAG_BTN: CSSProperties = {
+  padding: '4px 10px',
+  borderRadius: 6,
+  fontSize: 12,
+  fontWeight: 600,
+  cursor: 'pointer',
+  background: 'transparent',
+  border: '1px solid rgba(232, 169, 88, 0.45)',
+  color: '#e8a958',
+};
 
 interface Props {
   projectId: string;
@@ -114,6 +132,18 @@ export default function ObjectiveDetailPanel({
   const confirmDecision = useCyclicalReviewStore((s) => s.confirmDecision);
   const acknowledgeRevise = useCyclicalReviewStore((s) => s.acknowledgeRevise);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // T1.7 -- downstream review flags for this objective.
+  const allReviewFlags = useReviewFlagsForObjective(projectId, objective.id);
+  // Open-predicate sourced from the store (isOpenReviewFlag) so this section
+  // and the card count-chip never disagree on what "open" means -- see T1.9.
+  const openReviewFlags = useMemo(
+    () => allReviewFlags.filter(isOpenReviewFlag),
+    [allReviewFlags],
+  );
+  const acknowledgeFlag = useReviewFlagStore((s) => s.acknowledgeFlag);
+  const resolveFlag = useReviewFlagStore((s) => s.resolveFlag);
+  const dismissFlag = useReviewFlagStore((s) => s.dismissFlag);
 
   // Start the 90-day clock the first time the objective reaches `complete`.
   // The store guards re-writes so re-renders from other state are no-ops.
@@ -198,6 +228,43 @@ export default function ObjectiveDetailPanel({
         projectId={projectId}
         objective={objective}
       />
+
+      {/* T1.7 -- downstream review flags raised by the deviation evaluation
+          engine (T1.6). Renders only when there are OPEN flags; resolved,
+          dismissed, or dormant flags are filtered out. Inline styles only
+          (ObjectiveDetailPanel.module.css is out of scope for T1.7). */}
+      {openReviewFlags.length > 0 && (
+        <section
+          aria-label="Downstream review flags"
+          data-testid="objective-review-flags"
+          style={{
+            margin: '8px 12px',
+            padding: '10px 12px',
+            borderRadius: 8,
+            border: '1px solid rgba(232, 169, 88, 0.45)',
+            background: 'rgba(232, 169, 88, 0.10)',
+          }}
+        >
+          <h3 style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: '#e8a958' }}>
+            Review flags
+          </h3>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {openReviewFlags.map((flag) => (
+              <li key={flag.id} data-testid={`review-flag-${flag.id}`} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: 13, lineHeight: 1.4, color: C.textPrimary }}>{flag.reason}</span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {/* Acknowledge stamps acknowledgedAt only; the flag stays OPEN
+                      (still visible here, still counted on the card) until the
+                      steward Resolves or Dismisses it. */}
+                  <button type="button" onClick={() => acknowledgeFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Acknowledge</button>
+                  <button type="button" onClick={() => resolveFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Resolve</button>
+                  <button type="button" onClick={() => dismissFlag(projectId, flag.id)} style={REVIEW_FLAG_BTN}>Dismiss</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {hasOverlays && (
         <>

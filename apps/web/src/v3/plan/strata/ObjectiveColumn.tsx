@@ -21,6 +21,7 @@ import {
   selectProjectReviewMap,
 } from '../../../store/cyclicalReviewStore.js';
 import { usePlanTensionBannerStore } from '../../../store/planTensionBannerStore.js';
+import { useReviewFlagCountsByObjective } from '../../../store/reviewFlagStore.js';
 import ObjectiveCard from './ObjectiveCard.js';
 import ParallelCallout from './ParallelCallout.js';
 import DesignTensionBanner from './DesignTensionBanner.js';
@@ -200,6 +201,10 @@ export default function ObjectiveColumn({
     }
     return counts;
   }, [projectId, observeByProject, divergedDataPointDomainCounts, objectives]);
+
+  // T1.7 -- OPEN review-flag counts per objective (amber chip on each card).
+  // The hook is already internally memoized + reactive; do NOT wrap in useMemo.
+  const reviewFlagByObjective = useReviewFlagCountsByObjective(projectId ?? null);
 
   // Plan Nav v1.1 §7 — per-card "review suggested" flag. Subscribes to this
   // project's cyclical-review map so a badge appears the moment a 90-day clock
@@ -398,6 +403,7 @@ export default function ObjectiveColumn({
                 isActive={obj.id === activeObjectiveId}
                 isHighlighting={highlightSet.has(obj.id)}
                 divergenceCount={divergenceByObjective[obj.id] ?? 0}
+                reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
                 reviewSuggested={reviewSuggestedByObjective[obj.id] ?? false}
                 onSelect={onSelectObjective}
                 onDivergenceClick={onObjectiveDivergenceClick}
@@ -420,6 +426,7 @@ export default function ObjectiveColumn({
                   status="deferred"
                   isActive={obj.id === activeObjectiveId}
                   divergenceCount={divergenceByObjective[obj.id] ?? 0}
+                  reviewFlagCount={reviewFlagByObjective[obj.id] ?? 0}
                   onSelect={onSelectObjective}
                   onRestore={onRestoreObjective}
                 />

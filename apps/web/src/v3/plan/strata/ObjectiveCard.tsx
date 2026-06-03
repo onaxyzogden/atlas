@@ -29,13 +29,20 @@ interface Props {
    */
   isHighlighting?: boolean;
   /**
-   * Slice 3.5 + 4.4 — count of divergence flags filed against this
-   * objective by Act (spec §6.4 "the parent objective surfaces a
+   * Slice 3.5 + 4.4 -- count of divergence flags filed against this
+   * objective by Act (spec section 6.4 "the parent objective surfaces a
    * divergence indicator"). Slice 4.4 widens the count to include
    * diverged ObserveDataPoints projected to the objective's mapped
    * domains. Rendered as an amber pill when > 0.
    */
   divergenceCount?: number;
+  /**
+   * T1.7 -- count of OPEN downstream review flags raised by the T1.6
+   * deviation evaluation engine for this objective. Rendered as a static
+   * amber chip when > 0 (passive indicator; resolution happens in the
+   * detail panel).
+   */
+  reviewFlagCount?: number;
   /**
    * Plan Nav v1.1 §7 — true when this objective's cyclical review is due
    * (90-day clock elapsed or a forced trigger). Surfaces a small blue
@@ -73,6 +80,7 @@ export default function ObjectiveCard({
   isActive,
   isHighlighting,
   divergenceCount = 0,
+  reviewFlagCount = 0,
   reviewSuggested = false,
   onSelect,
   onDivergenceClick,
@@ -149,6 +157,15 @@ export default function ObjectiveCard({
             {divergenceCount} divergence{divergenceCount === 1 ? '' : 's'}
           </button>
         )}
+        {reviewFlagCount > 0 ? (
+          <span
+            className={css.reviewFlagChip}
+            data-testid={`objective-review-flag-${objective.id}`}
+            title={`${reviewFlagCount} downstream review flag${reviewFlagCount === 1 ? '' : 's'}`}
+          >
+            Review
+          </span>
+        ) : null}
         {reviewSuggested && (
           <span className={css.reviewBadge} title="Review suggested">
             <RefreshCcw size={10} strokeWidth={2.5} aria-hidden="true" />

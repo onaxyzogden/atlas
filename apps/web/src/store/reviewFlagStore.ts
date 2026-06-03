@@ -108,9 +108,12 @@ export interface ReviewFlagState {
 
 /**
  * A flag is "open" (live for dedup and counting) when it has none of the
- * three closing stamps.
+ * three closing stamps. Exported as the SINGLE authority on "open" so read
+ * consumers (e.g. ObjectiveDetailPanel) derive the same set as the count hook
+ * -- if the open-predicate gains a condition (T1.9 dormancy), every consumer
+ * updates in lockstep instead of drifting from a hand-copied filter.
  */
-const isOpen = (f: ObjectiveReviewFlag): boolean =>
+export const isOpenReviewFlag = (f: ObjectiveReviewFlag): boolean =>
   !f.resolvedAt && !f.dismissedAt && !f.dormantSince;
 
 // ---------------------------------------------------------------------------
@@ -130,7 +133,7 @@ export const useReviewFlagStore = create<ReviewFlagState>()(
           // Find an open flag matching the dedup triple.
           const matchIdx = bucket.findIndex(
             (f) =>
-              isOpen(f) &&
+              isOpenReviewFlag(f) &&
               f.objectiveId === input.objectiveId &&
               f.sourceTemplateId === input.sourceTemplateId &&
               f.direction === input.direction,
@@ -318,7 +321,7 @@ export function useReviewFlagCountsByObjective(
     const flags = byProject[projectId] ?? [];
     const counts: Record<string, number> = {};
     for (const f of flags) {
-      if (!isOpen(f)) continue;
+      if (!isOpenReviewFlag(f)) continue;
       const prev = counts[f.objectiveId] ?? 0;
       counts[f.objectiveId] = prev + 1;
     }
