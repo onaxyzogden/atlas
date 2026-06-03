@@ -50,6 +50,8 @@ import SecondaryAddModal from './SecondaryAddModal.js';
 import SecondaryReopenModal from './SecondaryReopenModal.js';
 import SecondaryRemoveBlockedModal from './SecondaryRemoveBlockedModal.js';
 import ObserveGapBanner from './ObserveGapBanner.js';
+import CoOccurrenceVerdictBanner from './CoOccurrenceVerdictBanner.js';
+import { useCoOccurrenceClusters } from '../../../store/reviewFlagStore.js';
 import type { SecondaryAddPreview } from './useSecondaryAddPreview.js';
 import type { BlockingObjective } from './useSecondaryRemovePreview.js';
 import {
@@ -304,6 +306,25 @@ export default function PlanStratumShell() {
       to: '/v3/project/$projectId/plan/stratum/$stratumId/objective/$objectiveId',
       params: { projectId, stratumId, objectiveId },
     });
+  };
+
+  // Cross-protocol co-occurrence verdict (shell-level, cross-stratum). When >= 2
+  // distinct protocols each hold an OPEN review flag in the same season:cycle
+  // bucket, the cluster is a single root-cause-collapse signal -- surfaced once
+  // above the strata rather than as N separate single-flag chips.
+  //
+  // We intentionally do NOT pass a currentBucket here. Window-dormancy is keyed
+  // on cycleNumber, which is domain-scoped (getCurrentCycle needs a domainId);
+  // this shell is cross-stratum / cross-domain and has no single cycle to supply.
+  // A season-only bucket would be a verified no-op anyway -- isFlagDormantByWindow
+  // returns false whenever the current cycleNumber is absent -- so window-dormancy
+  // is left to the domain-scoped Act/Observe surfaces, and the shell shows every
+  // currently-open cluster.
+  const coOccurrenceClusters = useCoOccurrenceClusters(projectId || null);
+  const [coOccurrenceExpanded, setCoOccurrenceExpanded] = useState(false);
+  const handleCoOccurrenceSelectObjective = (objectiveId: string) => {
+    const obj = findPlanStratumObjectiveIn(objectives, objectiveId);
+    if (obj) navigateToObjective(obj.id, obj.stratumId);
   };
 
   // Phase B3 (Plan Navigation Spec v1.1 section 9) - mid-project secondary
@@ -689,6 +710,18 @@ export default function PlanStratumShell() {
             <ModeToggle mode={planMode} onChange={handlePlanModeChange} />
           </div>
         </div>
+
+        {/* Cross-protocol co-occurrence verdict (shell-level structural signal) */}
+        {coOccurrenceClusters.length > 0 && (
+          <div style={{ padding: '8px 12px 0' }}>
+            <CoOccurrenceVerdictBanner
+              clusters={coOccurrenceClusters}
+              expanded={coOccurrenceExpanded}
+              onToggle={() => setCoOccurrenceExpanded((v) => !v)}
+              onSelectObjective={handleCoOccurrenceSelectObjective}
+            />
+          </div>
+        )}
 
         {/* Observe-stage data-gap banner (transient, from a mid-project add) */}
         {observeGapCount > 0 && (
