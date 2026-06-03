@@ -302,6 +302,26 @@ closes, main-click still filters, no nested-button warning); `preview_screenshot
 hung ([[project-screenshot-hang]]) so proof is DOM/`getComputedStyle`.
 `DomainsView` et al. remain exported ([[feedback-no-deletion]]).
 
+**Update 2026-06-03, spine split -- top filter chips + bottom detail rail
+(`7725cf94`, [[log/2026-06-03-atlas-observe-spine-split-filter-chips-detail-rail]]):**
+the enriched spine's two jobs were split across two surfaces. `ObserveLensSpine`
+is now a **minimal filter-chip bar** (icon + label + freshness dot; `.tier`
+restyled as a `border-radius:999px` pill); it dropped `onOpenDetail` and all rich
+markup (`.tierWrap`/`.tierMeta`/`.tierDivergence`/`.tierSummary`/`.tierDetail` and
+the height-parity clone removed). The rich card content + slide-up trigger moved
+DOWN into a new **`ObserveLensDetailRail`** mounted in StageShell's `bottomTray`
+(`between-rails`), so it sits under the canvas between the full-height rails. The
+rail is **detail-only**: 6 cards (no "All lenses" -- filter reset stays in the top
+chip), each a single whole-card `<button>` carrying icon + dot + title + meta +
+`▲ Divergence` + clamped summary + a button-styled **"View all observations ->"**
+CTA (a tinted `.hint` pill, not a nested button). A whole-card click opens that
+lens's `DomainDetailSlideUp` via the already-mounted `setDetailLens` (the rail
+replaces the spine as the caller). StageShell unchanged (reused its existing
+`bottomTray`/`between-rails` slot). Verified live (`tsc` EXIT 0; 7 top chips, 6
+rail cards, `nestedButtons:0`, whole-card slide-up opens, console clean;
+screenshot captured this session). `DomainsView`/`DomainsRail`/`LensBar`/`TopBar`
+remain exported ([[feedback-no-deletion]]).
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
