@@ -360,6 +360,54 @@ proof. Explicit-path commits on `feat/atlas-permaculture`, not pushed.
 `DomainsView`/`DomainsRail`/`LensBar`/`TopBar` remain exported
 ([[feedback-no-deletion]]).
 
+## Lens wired onto live data + Live/Mock toggle (2026-06-03, `471452df`..`9aab6bb0`)
+
+The `module-bar` "observational lens" shell (`apps/web/src/v3/observe/lens/`) was
+100% Millbrook-fixture-backed; it now reads each project's live `ObserveDataPoint`
+substrate **by default**, with a per-project persisted Live/Mock toggle (mock =
+escape hatch). Full rationale:
+[[decisions/2026-06-03-atlas-observe-lens-live-data-toggle]]. Shape:
+
+- **Bundle indirection.** The dashboard resolves ONE `LensDataBundle`
+  (`lens/types.ts`) at the root and exposes it via `lens/lensData/LensDataContext`
+  (`LensDataProvider` / `useLensData()`); every lens component reads the bundle
+  through context instead of importing `mockData.ts`. `mockData.ts` is re-packed
+  unchanged into `lens/lensData/mockBundle.ts` (the `mock` source).
+- **Live builder.** `lens/lensData/liveBundle.ts` -- pure mappers
+  (`buildLiveLensBundle`, `computeDomainRollups`, `buildObservationPins`) + a thin
+  `useLiveLensBundle(projectId)` hook over `useObserveDataPointStore.byProject` +
+  `useProjectStore`. Aggregates per-lens count/freshness/divergence over
+  `OBSERVE_LENSES.domains` (same freshness logic as `useDomainSnapshot`), projects
+  active geometries into a padded `[0.08,0.92]` y-inverted bbox (no-geometry ->
+  deterministic index scatter), derives summary/keyData/planRevision, real cycle
+  window with NOMINAL phase bounds. Unit-tested (`__tests__/liveBundle.test.ts`,
+  16 tests over the real MTC seed, `happy-dom`).
+- **Honest degrade.** Seeded `measurementValue` is only `{ label, note }` (schema
+  `unknown`), so there is no live numeric series for the specialised viz (wind
+  rose / pH / infiltration / slope / capacity / consent) or cycle phase timing.
+  `types.ts` gained `NoSpecialisedData { type:'none' }` (new `Specialised` union
+  member; `DomainDetail.specialised` stays required); the live bundle emits it for
+  every lens and `components.tsx` renders an empty-viz note deferring to the
+  captured-point list. The `none` variant is the documented seam for future
+  numeric series.
+- **Per-project source.** `projectStore` gained `ObserveLensDataSource =
+  'mock'|'live'`, an `observeLensDataSource?` field, `getObserveLensDataSource`
+  (default **live**), a builtin-allowlist entry, and persist **version 8 -> 9**
+  (no-op migration; undefined resolves to live). New
+  `dashboard/ObserveLensDataSourceToggle.tsx` mirrors `ObserveShellToggle`
+  (Live/Mock, lucide `Radio`/`FlaskConical`), stacked below it (`top:56px`).
+  `ObserveLayout` threads `projectId` + `dataSource` into `ObserveLensDashboard`
+  and wires the toggle to `updateProject`; the chrome-free debug route
+  `/v3/prototype/observe-lens` (no `projectId`) is mock-forced.
+
+Verified live on `module-bar` (`tsc --noEmit` EXIT 0; `liveBundle` 16/16; MTC
+defaults to live "Moontrance Creek", toggle -> Mock restores Millbrook + persists
+across reload at version 9, debug route mock-forced). `preview_screenshot` hung
+([[project-screenshot-hang]]) -- disclosed, `preview_eval` DOM reads used as proof.
+Explicit-path commits on `feat/atlas-permaculture`, not pushed; Phase 3 files were
+absorbed into a foreign out-of-band commit ([[project-branch-rebase]]) so Phases
+4-5 stage+commit atomically.
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
