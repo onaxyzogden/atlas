@@ -27,6 +27,8 @@ import {
   HOMESTEAD_PRIMARY_OBJECTIVES,
   REGEN_FARM_PRIMARY_OBJECTIVES,
   MARKET_GARDEN_PRIMARY_OBJECTIVES,
+  ORCHARD_PRIMARY_OBJECTIVES,
+  ORCHARD_SECONDARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -106,6 +108,26 @@ describe('Act tier-shell objective->tool coverage', () => {
     const missing = MARKET_GARDEN_PRIMARY_OBJECTIVES.filter(
       (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
     ).map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every orchard objective (primary + secondary) has an explicit override entry', () => {
+    // Orchard is the fourth per-type catalogue wired (audit remediation R1,
+    // 2026-06-03). Covers BOTH the 25 orch-* primary objectives and the 5
+    // standalone orch-sec-* additive objectives (which surface when orchard is a
+    // secondary type — the same situation that forced the silvopasture-secondary
+    // overrides), mirroring the silvopasture assertion's primary+secondary union.
+    // (The 4 ORCHARD_SECONDARY_PATCHES inject into universal objectives that
+    // already carry overrides, so they need no entry here.) An intentional []
+    // (species / succession / financial / sequencing decisions) still satisfies
+    // the ratchet — only a brand-new un-wired orch-* / orch-sec-* trips it.
+    const orchardObjectives = [
+      ...ORCHARD_PRIMARY_OBJECTIVES,
+      ...ORCHARD_SECONDARY_OBJECTIVES,
+    ];
+    const missing = orchardObjectives
+      .filter((o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE))
+      .map((o) => o.id);
     expect(missing).toEqual([]);
   });
 

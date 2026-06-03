@@ -627,6 +627,130 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S7 — season start-up readiness: pre-season soil readiness check (soil). gap:
   // task / supply checklist (record / decision).
   'mgd-s7-season-startup-readiness': ['soil'],
+
+  // ---------- ORCHARD (25 primary + 5 secondary, 30 objectives) ----------
+  // Authored 2026-06-03 (Act-coverage audit remediation R1, fourth type). Before
+  // this every orch-* objective fell through to the coarse STRATUM_ACT_TOOLS_DEFAULT
+  // with the familiar misfit (S3 rootzone/pest showed access-utilities, S4/S5
+  // perennial design showed roads/fencing or the water-line set instead of
+  // orchard / vegetation / frost tools). Each tool id below is grounded in a real
+  // orch-* checklist item AND a mountable ACT_TOOL_CATALOG tool; pure selection /
+  // succession / financial / sequencing decisions resolve to [] with a gap: note.
+  // The 5 orch-sec-* objectives are standalone ADDITIVE objectives that surface
+  // when orchard is a SECONDARY type (same situation that forced silvopasture-
+  // secondary overrides), so they are wired here too. The 4 ORCHARD_SECONDARY_PATCHES
+  // inject items into universal objectives (s4-water-strategy / s5-soil-improvement /
+  // s2-ecology / s7-phase1) which already carry universal overrides — no work here.
+  // Candidate mappings — operator-reviewable.
+
+  // S1 — species & design philosophy: orchard archetype / ethos — a design
+  // decision. Project vision capture is the universal s1-vision form arms. gap: all.
+  'orch-s1-species-philosophy': [],
+  // S1 — production intent: scale / yield / market intent — a decision. gap: all.
+  'orch-s1-production-intent': [],
+  // S1 — provenance & sourcing: nursery / rootstock procurement strategy — an
+  // off-site sourcing decision. gap: all.
+  'orch-s1-provenance-sourcing': [],
+  // S2 — existing tree cover & canopy: map existing trees / canopy (vegetation),
+  // any existing orchard blocks (orchards). gap: condition assessment (record).
+  'orch-s2-tree-cover': ['vegetation', 'orchards'],
+  // S2 — frost & cold-air drainage: frost-pocket siting, cold-air drainage paths
+  // (drainage), aspect / solar exposure (sun-sector). gap: history (record).
+  'orch-s2-frost-drainage': ['frost-pocket', 'drainage', 'sun-sector'],
+  // S2 — landscape context: neighbour land-use + spray/drift risk pins, hazard
+  // sources, prevailing-wind exposure (wind), catchment context, wildlife
+  // corridors / pollinator habitat (wildlife). gap: opportunities (record).
+  'orch-s2-landscape-context': [
+    'neighbour-pin',
+    'hazard-zone',
+    'wind-sector',
+    'catchment',
+    'wildlife-sector',
+  ],
+  // S3 — root-zone depth & soil: soil sampling (soil), drainage / waterlogging
+  // constraints (drainage), depth / suitability transects (transect). gap:
+  // amendment needs (decision).
+  'orch-s3-rootzone-depth': ['soil', 'drainage', 'transect'],
+  // S3 — water availability: source mapping (watercourse / spring), catchment
+  // context, existing storage capacity. gap: licensing / demand calc (decisions).
+  'orch-s3-water-availability': ['watercourse', 'spring', 'catchment', 'storage'],
+  // S3 — pest & disease pressure: host / weed cover (vegetation), beneficial /
+  // predator presence (wildlife), landscape pressure sources (hazard), soil-borne
+  // pathogen sampling (soil). gap: pest inventory / history (record / decision).
+  'orch-s3-pest-disease-pressure': ['vegetation', 'wildlife-sector', 'hazard-zone', 'soil'],
+  // S4 — species & cultivar mix: selection / proportion decision; the spatial
+  // siting executes in S5 planting-layout. gap: all (selection).
+  'orch-s4-species-mix': [],
+  // S4 — water strategy: route supply lines (water-lines), size storage (storage).
+  // gap: scheduling / volumes (decision).
+  'orch-s4-water-strategy': ['water-lines', 'storage'],
+  // S4 — guild & companion planting strategy: understorey / support-species
+  // plantings (vegetation), beneficial / pollinator habitat (wildlife). gap:
+  // species selection (decision).
+  'orch-s4-guild-planting': ['vegetation', 'wildlife-sector'],
+  // S4 — succession & replacement management: temporal management decision
+  // (replanting cadence, generational succession) — non-spatial. gap: all.
+  'orch-s4-succession-management': [],
+  // S4 — pest & disease management strategy: habitat / insectary plantings
+  // (vegetation), beneficial habitat (wildlife). gap: spray / IPM protocol
+  // (decision).
+  'orch-s4-pest-disease-management': ['vegetation', 'wildlife-sector'],
+  // S5 — planting layout: lay out orchard blocks / rows (orchards), define
+  // blocks / management zones (zone), site away from frost pockets (frost-pocket).
+  // gap: spacing math (decision).
+  'orch-s5-planting-layout': ['orchards', 'zone', 'frost-pocket'],
+  // S5 — guild plan: place orchard guild blocks (orchards), understorey / support
+  // plantings (vegetation). Carries legacyCardSectionId 'plan-guild-builder'.
+  // gap: species list (decision).
+  'orch-s5-guild-plan': ['orchards', 'vegetation'],
+  // S5 — establishment irrigation: install supply lines (water-lines), holding
+  // tanks for establishment watering (tanks). gap: emitter spec (decision).
+  'orch-s5-establishment-irrigation': ['water-lines', 'tanks'],
+  // S5 — access & harvest infrastructure: harvest / service paths (path), access
+  // roads (roads), packing / storage structures (buildings). gap: equipment
+  // (decision).
+  'orch-s5-access-harvest': ['path', 'roads', 'buildings'],
+  // S5 — tree protection: deer / stock fencing (fencing), guard / shelter buffer
+  // rings (buffer-ring). gap: materials (decision).
+  'orch-s5-tree-protection': ['fencing', 'buffer-ring'],
+  // S6 — phenological monitoring: frost / bud-burst window tracking (frost-pocket),
+  // harvest logging (harvest), monitoring transects (transect). gap: schedule
+  // (decision).
+  'orch-s6-phenological-monitoring': ['frost-pocket', 'harvest', 'transect'],
+  // S6 — pest & disease monitoring: scouting transects (transect), beneficial /
+  // predator monitoring (wildlife). gap: thresholds (decision).
+  'orch-s6-pest-disease-monitoring': ['transect', 'wildlife-sector'],
+  // S6 — adaptive management: review cycle / decision triggers — non-spatial.
+  // gap: all.
+  'orch-s6-adaptive-management': [],
+  // S7 — planting & establishment sequencing: phasing / readiness gate — a
+  // sequencing decision. gap: all.
+  'orch-s7-planting-establishment': [],
+  // S7 — succession plan: long-term generational replanting plan — a planning
+  // decision. gap: all.
+  'orch-s7-succession-plan': [],
+  // S7 — financial viability: establishment-to-bearing cash-flow / break-even —
+  // financial, Amanah-clean (ORCH-S7.6, no riba / advance-sale). gap: all.
+  'orch-s7-financial-viability': [],
+
+  // --- orchard SECONDARY (additive, surface when orchard is a secondary type) ---
+  // S2 — climate & chill-hour fit: frost / chill window siting (frost-pocket),
+  // heat / solar exposure (sun-sector), climate-hazard exposure (hazard). gap:
+  // cultivar shortlisting (decision).
+  'orch-sec-s2-climate-chill-fit': ['frost-pocket', 'sun-sector', 'hazard-zone'],
+  // S4 — species & pollination partners: cultivar / rootstock / pollination-
+  // partner selection — a selection decision. gap: all.
+  'orch-sec-s4-species-pollination': [],
+  // S5 — guild layout: place multilayer guild blocks (orchards), support-species
+  // plantings (vegetation), guild management zones (zone). Carries
+  // legacyCardSectionId 'plan-guild-builder'. gap: light-budget math (decision).
+  'orch-sec-s5-guild-layout': ['orchards', 'vegetation', 'zone'],
+  // S6 — perennial care commitment: pruning / IPM regime + labour commitment —
+  // a management commitment / resourcing decision. gap: all.
+  'orch-sec-s6-perennial-care': [],
+  // S6 — harvest pathway: harvest logging (harvest), pack / storage / value-add
+  // structures (buildings). gap: destination / value-add channel (decision).
+  'orch-sec-s6-harvest-pathway': ['harvest', 'buildings'],
 };
 
 /**
