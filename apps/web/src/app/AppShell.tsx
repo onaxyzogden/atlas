@@ -6,13 +6,12 @@
 import { type ReactNode } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import CommandPalette from '../components/CommandPalette.js';
-import OfflineBanner from '../components/OfflineBanner.js';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.js';
 import useGlobalAnnotationUndo from '../v3/observe/hooks/useGlobalAnnotationUndo.js';
 import { useUIStore } from '../store/uiStore.js';
 import { useAuthStore } from '../store/authStore.js';
-import { FLAGS } from '@ogden/shared';
 import HeaderStageSpine from '../v3/HeaderStageSpine.js';
+import HeaderStageSearch from '../v3/HeaderStageSearch.js';
 import V3LevelNavBridge from '../v3/V3LevelNavBridge.js';
 import ProofSyncIndicator from '../components/ProofSyncIndicator.js';
 import styles from './AppShell.module.css';
@@ -23,7 +22,6 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isHome = pathname === '/home' || pathname === '/v3/project';
   const isProjectPage = pathname.startsWith('/project/');
   const { colorScheme, setColorScheme } = useUIStore();
   const { token, user, logout } = useAuthStore();
@@ -37,7 +35,6 @@ export default function AppShell({ children }: AppShellProps) {
       <a href="#main-content" className={styles.skipLink}>
         Skip to main content
       </a>
-      {FLAGS.OFFLINE_MODE && <OfflineBanner />}
       {!isProjectPage && <header className={styles.header}>
         <Link to="/v3/portfolio" className={styles.logo}>
           <span className={styles.logoMark}>OGDEN</span>
@@ -47,6 +44,10 @@ export default function AppShell({ children }: AppShellProps) {
         <div className={styles.headerCenter}>
           <HeaderStageSpine />
         </div>
+
+        {/* Stage search — locates objectives / tools / domains within the
+            currently selected stage (renders only on observe/plan/act). */}
+        <HeaderStageSearch />
 
         {/* Sync status (relocated from the Act in-page rails to global header) */}
         <ProofSyncIndicator />
@@ -91,14 +92,6 @@ export default function AppShell({ children }: AppShellProps) {
           </Link>
         )}
 
-        {/* Back to Portfolio (§6 — the multi-project Portfolio Home is the
-            forward "all projects" surface, replacing the legacy candidates
-            list at /v3/project). */}
-        {!isHome && pathname !== '/new' && (
-          <Link to="/v3/portfolio" aria-label="Back to portfolio" className={styles.backLink}>
-            Portfolio
-          </Link>
-        )}
       </header>}
 
       <main id="main-content" className={styles.main}>

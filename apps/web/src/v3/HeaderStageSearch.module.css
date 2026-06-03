@@ -1,0 +1,18 @@
+.root {
+  flex: 0 0 auto;
+  width: 220px;
+  max-width: 28vw;
+}
+
+/* Compact the shared Input to sit comfortably in the 48px header row. */
+.input {
+  height: 30px;
+  min-height: 30px;
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 768px) {
+  .root {
+    width: 150px;
+  }
+}
