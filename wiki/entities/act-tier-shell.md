@@ -98,8 +98,8 @@ show-everything tool strip with an objective-conditional, categorized rail
   [[log/2026-06-02-atlas-act-rail-flow-gate-maximalist]]) is an OR over three
   signals: the id pattern (`/resource-flow|waste|material-flow/`, matching homestead
   `hms-s2-resource-flows`); the resolved act-tools including ANY member of the
-  **maximalist material source/sink set** `FLOW_TOOL_IDS` (17 ids:
-  compost/fertility-unit; watercourse/spring/storage/swale/sink/tanks/wells;
+  **maximalist material source/sink set** `FLOW_TOOL_IDS` (18 ids:
+  flow-connector; compost/fertility-unit; watercourse/spring/storage/swale/sink/tanks/wells;
   crops/orchards/beds; paddocks/pasture/barns; harvest/livestock) -- so water,
   production, livestock and integration objectives all light, not just compost-
   bearing ones (deliberate operator choice favouring discoverability over signal
@@ -108,9 +108,19 @@ show-everything tool strip with an objective-conditional, categorized rail
   match (`waste-to-input|closed[- ]loop|material flow|feedback loop|nutrient cycl`
   plus `grey[- ]?water|rainwater harvest|water re-?use|water recycl` for greywater /
   water-reuse objectives that resolve to no flow tool). The gate stays a gate --
-  form-only objectives (e.g. `s1-vision`) stay dark. No dedicated greywater /
-  flow-connector Act tool exists yet; when one is added its id becomes the strongest
-  flow signal and should join `FLOW_TOOL_IDS`. New sibling stylesheet
+  form-only objectives (e.g. `s1-vision`) stay dark. The dedicated **`flow-connector`
+  Act tool** (label "Material flow", category Water & Hydrology, arm kind `flow`;
+  [[log/2026-06-02-atlas-act-flow-connector-tool]]) is now the single strongest flow
+  signal and the only Act tool that actually AUTHORS a flow: activating it opens an
+  Act-owned, Modal-based list-capture popover (`actFlowPopoverStore` +
+  `ActFlowConnectorPopover`) that appends a `MaterialFlow` (origin `list`, default
+  materialKind `greywater`) to `closedLoopStore` via `addMaterialFlow` -- mirroring
+  Plan's `WasteVectorListView` and reusing `useFlowEndpointOptions` +
+  `MATERIAL_KIND_CONFIG`; endpoints accept structured features or free text, with
+  closed-loop credit requiring both pinned. It is deliberately isolated from Plan's
+  `useInlineFormStore` host so it works on the tier-shell (which does not mount
+  `InlineFeaturePopover`), and is attached to `s6-integration-design` (default) and
+  `s5-water-infrastructure` (override) objectives. New sibling stylesheet
   `ActTierObjectiveRail.module.css` holds the objective-detail classes so
   `ActTierShell.module.css` (foreign WIP) stays untouched.
 - `ActTierMapMarkers.tsx` — per-objective markers (real geometry,
