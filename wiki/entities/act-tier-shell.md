@@ -668,6 +668,53 @@ cleared it; `preview_screenshot` hung so proof is the DOM/testid assertion
 ADR [[decisions/2026-06-03-atlas-deviation-flag-tier2-event-driven-routing]]; Log:
 [[log/2026-06-03-atlas-deviation-flag-tier2-event-driven-routing]].
 
+## Objective->tool coverage audit + homestead overrides (2026-06-03)
+
+A deterministic, read-only audit answered the standing operator question — *does
+every objective have an Act-stage tool to complete AND record completion of its
+task set?* NEW `scripts/audit-act-objective-coverage.ts` (`tsx`) drives the SAME
+`@ogden/shared` resolvers this surface uses (`resolveProjectObjectives`,
+`getObjectiveActTools`, `getObjectiveEvidence`, `getPrimaryDomainForObjective`)
+across all **14** types (13 primary + `residential` as a secondary layer) and
+emits a per-objective matrix to `scripts/audit-out/act-objective-coverage.md`;
+human-readable classification + remediation live in
+`scripts/audit-out/act-coverage-findings.md`.
+
+**Direct answer:** every objective is completable AND recordable today via this
+module's universal `ActTierExecutionPanel` (Checklist + always-present Evidence +
+the gated Record-observation button). The three gap classes are about
+*precision*, not availability:
+- **Gap A** — objective falls through the coarse `STRATUM_ACT_TOOLS_DEFAULT`
+  instead of a precise per-type override. `OBJECTIVE_ACT_TOOLS_OVERRIDE` only
+  keyed universal `s*` + `silv-*`, leaving the other 12 type catalogues coarse —
+  the same misalignment that forced the 2026-06-01 silvopasture overrides.
+- **Gap B = 0** — the Record button is NEVER structurally blocked by a null
+  primary Observe domain. No remediation needed.
+- **Gap C** — `[]` bottom-rail tools: 11 intentional (decision/strategy
+  objectives served by checklist + summary-note) + 30 accidental s1 vision
+  empties.
+
+**R1 (done).** 15 explicit `hms-*` `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries in
+`objectiveActTools.ts` — 8 spatial objectives grounded (each tool id verified
+against a real checklist item + a mountable `ACT_TOOL_CATALOG` tool), 7
+decision/financial objectives set to a gap-noted `[]` (also corrected 6 that had
+shown misaligned stratum-default tools, e.g. buildings/barns/tanks on a budget
+objective). **R3 (done):** `actToolCoverage.test.ts` ratcheted with a homestead
+assertion (every `hms-*` has an explicit override entry; `[]` satisfies it).
+**R2 DEFERRED:** form-arm tools for the 30 s1 empties are NOT fabricated — the
+existing form tools are hardwired to universal `s1-vision-c*` formIds/prompts and
+new per-type prompts would be invented operator-reviewed catalogue content; the
+universal `s1-vision` (with form arms) already resolves into every project.
+
+Audit re-run after R1: Gap A 271→256, Gap B 0, Gap C 41→47. Bounded
+`--pool=forks` ([[feedback-vitest-bounded-runs]]): `actToolCoverage` 6/6,
+`objectiveObserveDomains` green, `resolveProjectObjectives` 24/25 (the 1 failure
+proven pre-existing/unrelated — stale agritourism AG-S4.8 count assertion,
+`15680301`; flagged, not fixed). Commit `61a56ae6`, not pushed. The other 11
+primary types (256 Gap-A objectives) follow with the same grounded-candidate
+method. ADR [[decisions/2026-06-03-olos-act-objective-coverage-audit]]; Log:
+[[log/2026-06-03-olos-act-objective-coverage-audit]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
