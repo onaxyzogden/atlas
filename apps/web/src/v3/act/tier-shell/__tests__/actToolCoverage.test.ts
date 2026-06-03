@@ -31,6 +31,7 @@ import {
   ORCHARD_SECONDARY_OBJECTIVES,
   LIVESTOCK_PRIMARY_OBJECTIVES,
   LIVESTOCK_SECONDARY_OBJECTIVES,
+  CONSERVATION_PRIMARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -155,6 +156,27 @@ describe('Act tier-shell objective->tool coverage', () => {
     const missing = livestockObjectives
       .filter((o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE))
       .map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every conservation objective has an explicit override entry', () => {
+    // Conservation is the sixth per-type catalogue wired (audit remediation R1,
+    // 2026-06-03). It ships no standalone secondary layer, so this is a
+    // primary-only ratchet over the 30 con-* objectives (like homestead /
+    // regen-farm / market-garden). Before this its objectives fell through
+    // STRATUM_ACT_TOOLS_DEFAULT (S2/S3 ecological surveys surfaced
+    // access-utilities / the water-line set instead of vegetation /
+    // wildlife-sector / erosion / fire-sector / transect ecology tools; S5
+    // restoration design surfaced roads/fencing generically). Each is now
+    // explicit; an intentional [] (S1 vision / intervention-philosophy / tenure,
+    // S4 species-selection & pest-strategy decisions, S6 compliance admin, and
+    // the whole S7 sequencing / planning / funding / review / volunteer band,
+    // incl. the carbon/biodiversity-credit funding objective flagged for Scholar
+    // Council review) still satisfies the ratchet -- only a brand-new un-wired
+    // con-* trips it.
+    const missing = CONSERVATION_PRIMARY_OBJECTIVES.filter(
+      (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
+    ).map((o) => o.id);
     expect(missing).toEqual([]);
   });
 

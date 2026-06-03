@@ -874,6 +874,132 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // orchard / pasture (flow-connector), manure as compost substrate (compost),
   // dung distribution & graze/rest/exclusion zones (paddocks, zone).
   'lvs-sec-s6-nutrient-integration': ['flow-connector', 'compost', 'paddocks', 'zone'],
+
+  // --- conservation (primary) ---
+  // Sixth per-type catalogue. Before this the con-* objectives fell through
+  // STRATUM_ACT_TOOLS_DEFAULT: the S2/S3 ecological surveys (baseline condition,
+  // degradation, invasive distribution, hydrology, wildlife, fire) surfaced the
+  // coarse access-utilities / water-line sets instead of the vegetation /
+  // wildlife-sector / erosion / fire-sector / transect ecology tools, and the S5
+  // restoration design (planting, habitat, water-regime, fencing) surfaced
+  // roads/fencing generically. Reuses the regen-farm / silvopasture ecology
+  // vocabulary (vegetation, wildlife-sector, transect, erosion, fire-sector).
+  // S1 -- conservation intent & outcome targets: reference state / target species
+  // / habitat targets / timeframes -- a vision & target-setting decision. gap: all.
+  'con-s1-conservation-intent': [],
+  // S1 -- intervention philosophy & non-negotiables: passive vs active spectrum +
+  // acceptable / prohibited methods -- a philosophy decision. gap: all.
+  'con-s1-intervention-philosophy': [],
+  // S1 -- land tenure & conservation covenant: legal instrument / covenant
+  // selection -- an off-site legal decision. gap: all.
+  'con-s1-tenure-covenant': [],
+  // S2 -- baseline ecological condition: vegetation condition score (vegetation),
+  // map condition zones high/mod/poor/degraded (zone), repeatable diversity
+  // sampling (transect), function indicators birds/pollinators (wildlife-sector).
+  'con-s2-baseline-condition': ['vegetation', 'zone', 'transect', 'wildlife-sector'],
+  // S2 -- degradation history & causes: map legacy soil loss (erosion), compaction
+  // / nutrient loading (soil), drainage alterations (drainage), chemical-residue /
+  // contamination legacy (hazard-zone). gap: land-use-history research.
+  'con-s2-degradation-history': ['erosion', 'soil', 'drainage', 'hazard-zone'],
+  // S2 -- landscape ecological context: surrounding land use within 5km
+  // (neighbour-pin), wildlife corridors & pest pressure (wildlife-sector), native
+  // seed sources (vegetation), drinking-water catchment contamination (catchment).
+  'con-s2-landscape-context': ['neighbour-pin', 'wildlife-sector', 'vegetation', 'catchment'],
+  // S2 -- invasive species distribution: map invasive plants & weed fronts by zone
+  // (vegetation), invasive / feral animals (wildlife-sector), invasion vectors
+  // (hazard-zone). gap: priority ranking & control-window timing (decisions).
+  'con-s2-invasive-distribution': ['vegetation', 'wildlife-sector', 'hazard-zone'],
+  // S3 -- hydrology & water-regime degradation: map artificial drainage
+  // (drainage), watercourse modifications (watercourse), drained / lost wetlands
+  // (sink), diversion channels / altered flow paths (runoff-path).
+  'con-s3-water-regime-degradation': ['drainage', 'watercourse', 'sink', 'runoff-path'],
+  // S3 -- soil biology & seed bank: biological-activity & seed-bank / mycorrhizae
+  // sampling (soil), degraded-vs-reference variation sampling (transect). gap:
+  // passive-viability verdict (decision).
+  'con-s3-soil-biology-seedbank': ['soil', 'transect'],
+  // S3 -- wildlife presence, movement & habitat use: fauna survey + movement
+  // corridors / breeding habitat / missing elements (wildlife-sector), camera /
+  // call / transect survey method (transect).
+  'con-s3-wildlife-presence': ['wildlife-sector', 'transect'],
+  // S3 -- fire history & regime: map fuel load & fire risk by zone (fire-sector),
+  // fire-adapted vegetation communities (vegetation). gap: historical-frequency
+  // research & appropriate-regime verdict (decision).
+  'con-s3-fire-history': ['fire-sector', 'vegetation'],
+  // S4 -- restoration priority zones & sequence: rank zones by ecological leverage
+  // + delineate bridgehead zones (zone). gap: cause-before-symptom sequencing &
+  // resource allocation (decisions).
+  'con-s4-restoration-priority-zones': ['zone'],
+  // S4 -- native species selection & provenance: planting palette / provenance /
+  // seed sources / succession sequence -- a species-selection decision (the
+  // spatial planting plan is sited in s5). gap: all.
+  'con-s4-native-species-provenance': [],
+  // S4 -- pest & invasive species strategy: methods / prioritisation / sequence /
+  // triggers / control windows -- a strategy decision (control infrastructure is
+  // sited in s5). gap: all.
+  'con-s4-pest-invasive-strategy': [],
+  // S4 -- water regime restoration strategy: site drain-blocking locations
+  // (drainage), wetland reinstatement scope (sink), watercourse realignment /
+  // de-channelisation (watercourse). gap: consents (off-site).
+  'con-s4-water-regime-restoration': ['drainage', 'sink', 'watercourse'],
+  // S4 -- fire management strategy: identify fire-tool zones & exclusion zones
+  // (fire-sector), exclusion / protection delineation (zone). gap: burn frequency
+  // & permits (decisions / off-site).
+  'con-s4-fire-management-strategy': ['fire-sector', 'zone'],
+  // S5 -- native planting plan & revegetation: map planting zones by palette &
+  // succession stage (vegetation, zone), establishment-support irrigation
+  // (water-lines). gap: density specs (decision).
+  'con-s5-native-planting-plan': ['vegetation', 'zone', 'water-lines'],
+  // S5 -- pest & invasive control infrastructure: buffer treatment zones at
+  // boundaries / vectors (buffer-ring), trap / bait-station network areas (zone),
+  // access routes for checking & maintenance (path). gap: signage spec (decision).
+  'con-s5-pest-control-infrastructure': ['buffer-ring', 'zone', 'path'],
+  // S5 -- water regime restoration infrastructure: drain-blocking structures
+  // (drainage), wetland reinstatement earthworks bunding/grading (sink, swale),
+  // watercourse realignment / de-channelisation works (watercourse).
+  'con-s5-water-regime-infrastructure': ['drainage', 'sink', 'swale', 'watercourse'],
+  // S5 -- wildlife habitat infrastructure: place nest boxes / perches / refuge
+  // structures (wildlife-sector), corridor planting to connect habitat patches
+  // (vegetation).
+  'con-s5-wildlife-habitat-infrastructure': ['wildlife-sector', 'vegetation'],
+  // S5 -- fencing & exclusion: map stock / predator / boundary fencing (fencing),
+  // gate placement for management access (gates), wildlife crossing points
+  // (wildlife-sector).
+  'con-s5-fencing-exclusion': ['fencing', 'gates', 'wildlife-sector'],
+  // S6 -- ecological monitoring: lay out vegetation transects / quadrats / photo
+  // points (transect), fauna survey methods (wildlife-sector). gap: frequency /
+  // scoring / trigger thresholds (decisions).
+  'con-s6-ecological-monitoring': ['transect', 'wildlife-sector'],
+  // S6 -- pest & invasive monitoring: weed reinvasion mapping (vegetation), pest
+  // animal index method (wildlife-sector), reinvasion-mapping method (transect).
+  // gap: trigger thresholds & early-warning system (decisions).
+  'con-s6-pest-monitoring': ['vegetation', 'wildlife-sector', 'transect'],
+  // S6 -- fire management monitoring: fuel-load assessment by zone (fire-sector),
+  // post-fire vegetation-recovery transects (transect). gap: fire-weather
+  // thresholds & record-keeping (decisions).
+  'con-s6-fire-monitoring': ['fire-sector', 'transect'],
+  // S6 -- external relations & compliance: reporting schedules / consent-condition
+  // tracking / neighbour communication / complaints -- an admin & reporting
+  // protocol. gap: all.
+  'con-s6-external-relations-compliance': [],
+  // S7 -- phase 1 priorities: leverage ranking + cause-before-symptom sequencing
+  // confirmations + go/no-go criteria -- a sequencing decision. gap: all.
+  'con-s7-phase1-priorities': [],
+  // S7 -- long-term timeline & milestones: 5 / 10 / 25-year ecological milestone
+  // targets -- a long-term planning decision. gap: all.
+  'con-s7-longterm-timeline': [],
+  // S7 -- ongoing funding & stewardship resourcing: grants / carbon & biodiversity
+  // credits / volunteer programme / annual requirement -- an off-site funding
+  // decision. The carbon / biodiversity-credit surface (c3) is an environmental-
+  // market instrument flagged for Scholar Council review (potential gharar in
+  // credit trading); it is encoded as catalogue content, not actioned here, and
+  // maps to [] regardless. gap: all.
+  'con-s7-funding-resourcing': [],
+  // S7 -- adaptive management protocol: annual review / decision triggers /
+  // escalation / documentation -- a review-protocol decision. gap: all.
+  'con-s7-adaptive-management': [],
+  // S7 -- volunteer & community stewardship: programme structure / partnerships /
+  // citizen science / safety / liability -- a programme & admin decision. gap: all.
+  'con-s7-volunteer-stewardship': [],
 };
 
 /**
