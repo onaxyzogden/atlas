@@ -12,6 +12,7 @@ import { useState } from 'react';
 import type { LocalProject } from '../../store/projectStore.js';
 import WasteVectorListView from './WasteVectorListView.js';
 import WasteVectorDashboardView from './WasteVectorDashboardView.js';
+import LoopDesignScorePanel from './closedLoop/LoopDesignScorePanel.js';
 import shared from '../../v3/_shared/stageCard/stageCard.module.css';
 import styles from './WasteVectorTool.module.css';
 
@@ -36,6 +37,8 @@ export default function WasteVectorTool({ project }: Props) {
           coop → composter → orchard.
         </p>
       </header>
+
+      <LoopDesignScorePanel project={project} />
 
       <div className={styles.switcher} role="tablist" aria-label="Waste vector view">
         <button

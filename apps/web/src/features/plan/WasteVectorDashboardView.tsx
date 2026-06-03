@@ -37,6 +37,7 @@ import {
 } from '../../store/closedLoopStore.js';
 import { useFlowEndpointOptions } from './useFlowEndpointOptions.js';
 import { useClosedLoopValidation } from './useClosedLoopValidation.js';
+import { efficiency } from './closedLoop/loopDesignScore.js';
 import shared from '../../v3/_shared/stageCard/stageCard.module.css';
 import styles from './WasteVectorDashboardView.module.css';
 
@@ -50,13 +51,6 @@ interface Props {
 /** Fold an optional numeric field over a flow list, treating missing as 0. */
 function sum(fs: MaterialFlow[], pick: (f: MaterialFlow) => number | undefined): number {
   return fs.reduce((acc, f) => acc + (pick(f) ?? 0), 0);
-}
-
-/** Loop efficiency = share of flows with both endpoints pinned, as a 0–100 %. */
-function efficiency(fs: MaterialFlow[]): number {
-  if (fs.length === 0) return 0;
-  const closed = fs.filter((f) => f.sourceId && f.sinkId).length;
-  return Math.round((closed / fs.length) * 100);
 }
 
 /** Compact number format: integers get thousands separators; fractions ≤1 dp. */
