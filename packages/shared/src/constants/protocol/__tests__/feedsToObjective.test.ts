@@ -36,6 +36,24 @@ describe('FEEDS_TO_OBJECTIVE membership', () => {
   });
 });
 
+describe('FEEDS_TO_OBJECTIVE / TEMPLATE_DEPTH have no key drift', () => {
+  // Guards the two hand-maintained tables against silent mutual drift:
+  // a typo'd or stale/extra key in either record fails here (the forward
+  // membership test above only iterates the derived set, so it would miss
+  // an extra/wrong key).
+  const sorted = (xs: string[]): string[] => [...xs].sort();
+  const eventDrivenSorted = sorted(EVENT_DRIVEN_IDS);
+
+  it('FEEDS_TO_OBJECTIVE keys are exactly the event-driven template ids', () => {
+    expect(sorted(Object.keys(FEEDS_TO_OBJECTIVE))).toEqual(eventDrivenSorted);
+  });
+
+  it('TEMPLATE_DEPTH covers exactly all 10 standard templates (5 s6 + 5 event-driven)', () => {
+    const allTemplateIds = sorted(STANDARD_PROTOCOL_TEMPLATES.map((t) => t.id));
+    expect(sorted(Object.keys(TEMPLATE_DEPTH))).toEqual(allTemplateIds);
+  });
+});
+
 describe('FEEDS_TO_OBJECTIVE targets are real universal objectives', () => {
   it('every target id resolves via findUniversalObjective', () => {
     for (const [templateId, targets] of Object.entries(FEEDS_TO_OBJECTIVE)) {
