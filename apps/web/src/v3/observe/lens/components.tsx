@@ -979,8 +979,12 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
   // span (cx=80 centred in a 160-wide box) so it no longer reserves the right
   // half for the legend.
   const SPIRAL_VB_W = cx * 2; // 160 — centres the spiral (cx=80) in its own box
+  // Render the spiral 60% larger than its 160x140 viewBox (geometry unchanged —
+  // viewBox stays 0 0 160 140; only the rendered box grows). The rail column
+  // width still bounds the on-screen size when narrower than the scaled max.
+  const SPIRAL_SCALE = 1.6;
   const spiralDiagram = (
-    <svg width="100%" height={SVG_H} viewBox={`0 0 ${SPIRAL_VB_W} ${SVG_H}`} style={{ maxWidth: SPIRAL_VB_W }}>
+    <svg width="100%" height={SVG_H * SPIRAL_SCALE} viewBox={`0 0 ${SPIRAL_VB_W} ${SVG_H}`} style={{ maxWidth: SPIRAL_VB_W * SPIRAL_SCALE }}>
 
       <defs>
         <filter id="spglow">
@@ -1133,13 +1137,9 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
             <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>CYCLE {CYCLE.number}</span>
             <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>{CYCLE.name}</span>
           </div>
-          <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
-            {phases.map((ph) => (
-              <span key={ph.id} style={{ fontSize: 10, fontFamily: F.sans, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: ph.status === 'active' ? ph.color + '22' : 'transparent', border: `1px solid ${ph.status === 'active' ? ph.color + '55' : C.border}`, color: ph.status === 'active' ? ph.color : C.textTertiary }}>
-                {ph.label}{ph.status === 'active' ? ' ●' : ' ✓'}
-              </span>
-            ))}
-          </div>
+          {/* Plan/Act/Observe phase chips removed (2026-06-03) per operator: the
+              spiral already encodes phase position; the horizontal expanded panel
+              keeps its own chip row. */}
           <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Day {CYCLE.elapsed} / {CYCLE.totalDays}</span>
         </div>
 
