@@ -322,6 +322,44 @@ rail cards, `nestedButtons:0`, whole-card slide-up opens, console clean;
 screenshot captured this session). `DomainsView`/`DomainsRail`/`LensBar`/`TopBar`
 remain exported ([[feedback-no-deletion]]).
 
+**Update 2026-06-03, lens polish -- project type, cool palette, cycle-rail trim
+(`de054364`, `44f84255`):** four operator-driven UI tweaks on the `module-bar`
+lens, mock-backed, dashboard shell byte-untouched.
+
+- **Identity tile subtitle = project type(s).** `ObserveLensSpine` gained a
+  `projectType` prop (fed `PROJECT.type`, e.g. "Regen Farm + Silvopasture"); the
+  `.projectTileTypes` line now renders it in place of the static "Observe . Lens".
+- **De-browned palette.** The lens prototype's `tokens.ts` `C` grayscale ladder
+  (`bg`/`bg2`/`bg3`/`bg4`/`border`/`borderLight`) was retuned from the source
+  concept's WARM olive grays (`#0F0F0D`/`#161613`/`#2A2A25` ...) to the app's COOL
+  slate ladder (`bg2 == --color-surface #14191f`, `bg3 == --color-surface-alt`,
+  `bg4 == --color-surface-raised`, `border == --color-border #242f3d`), so the
+  Observe rails/cards stop reading brownish next to the cool app shell + the
+  spine/detail-rail (which use `var(--color-surface)`). This is a deliberate
+  reversal of the old tokens.ts "kept verbatim for pixel fidelity; reskin later"
+  note -- it cools the WHOLE lens surface (canvas + cards), not just the two rails
+  the operator flagged, for internal consistency. Accent hues
+  (blue/green/amber/...) and fonts unchanged. Live: both rails compute
+  `rgb(20,25,31)` (was warm `rgb(22,22,19)`).
+- **CycleTimelineBar vertical rail: drop phase chips.** The Plan/Act/Observe
+  chip row was removed from the vertical cycle header (the spiral already encodes
+  phase position). The `phases` array stays (the spiral consumes it); the
+  horizontal expanded panel keeps its own chip row (untouched).
+- **CycleTimelineBar: enlarge the cycle spiral 60%.** New `SPIRAL_SCALE = 1.6`
+  applied to the SVG's rendered box only (`height` 140->224, `maxWidth` 160->256);
+  the `0 0 160 140` viewBox geometry is unchanged so the spiral scales uniformly.
+  The ~240px rail column still bounds it (live rendered 232x224, was ~160x140).
+  `spiralDiagram` is shared with the horizontal expanded panel, so it scales there
+  too (not in the live route).
+
+Verified live on `module-bar` (`tsc --noEmit` EXIT 0 after both commits;
+`getBoundingClientRect`/`getComputedStyle` proof). `preview_screenshot` hung again
+([[project-screenshot-hang]]; the preview tab had also drifted to the `:3001` API
+origin and was re-navigated to `:5200`) -- disclosed, DOM measurements used as
+proof. Explicit-path commits on `feat/atlas-permaculture`, not pushed.
+`DomainsView`/`DomainsRail`/`LensBar`/`TopBar` remain exported
+([[feedback-no-deletion]]).
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
