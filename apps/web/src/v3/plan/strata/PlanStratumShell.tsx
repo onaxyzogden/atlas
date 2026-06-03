@@ -29,11 +29,14 @@ import {
   usePlanStratumProgressStore,
 } from '../../../store/planStratumStore.js';
 import { useProjectStore } from '../../../store/projectStore.js';
+import { useStageSearchStore } from '../../../store/stageSearchStore.js';
+import { resolvePlanSearchMatches } from '../../search/useStageSearchResults.js';
 import { useV3Project } from '../../data/useV3Project.js';
 import ModeToggle, { type SpinePlanMode } from '../spine/ModeToggle.js';
 import StratumSpine from './StratumSpine.js';
 import StratumLockedPopover from './StratumLockedPopover.js';
 import ObjectiveColumn from './ObjectiveColumn.js';
+import PlanSearchColumn from './PlanSearchColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import ProtocolColumn from './ProtocolColumn.js';
 import ProtocolDetailColumn from './ProtocolDetailColumn.js';
@@ -509,6 +512,24 @@ export default function PlanStratumShell() {
     navigateToObjective(obj.id, obj.stratumId);
   };
 
+  // Header Stage Search (Phase 2) — while a query is active, the centre column
+  // broadens to a flat, cross-stratum match list (PlanSearchColumn) IN PLACE of
+  // the active stratum's ObjectiveColumn. The query lives in the ephemeral
+  // stageSearchStore and is cleared on stage change by HeaderStageSearch; we
+  // only read it here. Selecting a result navigates to its objective and clears
+  // the query, dropping back to the normal stratum column.
+  const searchQuery = useStageSearchStore((s) => s.query);
+  const clearSearch = useStageSearchStore((s) => s.clear);
+  const searchActive = searchQuery.trim() !== '';
+  const planSearchMatches = useMemo(
+    () => (searchActive ? resolvePlanSearchMatches(objectives, searchQuery) : []),
+    [searchActive, objectives, searchQuery],
+  );
+  const handleSelectSearchResult = (obj: PlanStratumObjective) => {
+    clearSearch();
+    navigateToObjective(obj.id, obj.stratumId);
+  };
+
   // Plan Spine re-skin Phase 2 — flip the Design ⇄ Protocol mode by rewriting
   // only the `planMode` search param on the CURRENT path (`to: '.'`), preserving
   // the active stratum/objective segments. Design mode omits the param entirely
@@ -603,8 +624,7 @@ export default function PlanStratumShell() {
                 lineHeight: 1.45,
                 color: C.textSecondary,
                 textAlign: 'left',
-                textDecoration: 'underline dotted',
-                textUnderlineOffset: 3,
+                textDecoration: 'none',
                 cursor: 'pointer',
               }}
             >
@@ -749,6 +769,14 @@ export default function PlanStratumShell() {
           statusByTemplate={protocolLib.statusByTemplate}
           selectedIds={selectedProtocolIds}
           onToggle={toggleProtocol}
+        />
+      ) : searchActive ? (
+        <PlanSearchColumn
+          query={searchQuery}
+          matches={planSearchMatches}
+          objectiveStatuses={objectiveStatuses}
+          activeObjectiveId={activeObjectiveId}
+          onSelectObjective={handleSelectSearchResult}
         />
       ) : activeStratum ? (
         <ObjectiveColumn
