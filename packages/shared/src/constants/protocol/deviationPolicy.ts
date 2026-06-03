@@ -83,8 +83,10 @@ export const EXISTENTIAL_TEMPLATE_IDS: ReadonlySet<string> = new Set([
  * livestock-health-check-prompt is ProtocolType 'judgment' yet FlagDepth
  * 'threshold'). All 5 S6_BOUND_TEMPLATE_IDS map to 'threshold' (shallowest).
  *
- * Tier 2 (T2.1) adds soil/water/zones entries for the remaining templates
- * that are NOT in this map.
+ * Tier 2 (T2.1) added soil/water/zones entries for the 5 event-driven
+ * templates that are NOT in S6_BOUND_TEMPLATE_IDS. Their depths pair with
+ * the FEEDS_TO_OBJECTIVE targets in
+ * packages/shared/src/constants/protocol/feedsToObjective.ts.
  */
 export const TEMPLATE_DEPTH: Record<string, FlagDepth> = {
   'paddock-rotation-cover-trigger': 'threshold',
@@ -92,6 +94,12 @@ export const TEMPLATE_DEPTH: Record<string, FlagDepth> = {
   'rest-period-re-entry-gate': 'threshold',
   'livestock-health-check-prompt': 'threshold',
   'emergency-destocking': 'threshold',
+  // Event-driven (non-s6-bound) templates (T2.1):
+  'post-rotation-impact-assessment': 'soil',
+  'pre-rotation-paddock-assessment': 'threshold',
+  'water-trough-inspection': 'water',
+  'seasonal-stocking-rate-review': 'threshold',
+  'silvopasture-pest-diversion': 'zones',
 };
 
 // ---------------------------------------------------------------------------

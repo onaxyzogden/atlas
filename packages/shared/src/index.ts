@@ -179,6 +179,7 @@ export * from './constants/protocol/projectEnterprises.js';
 export * from './constants/protocol/protocolOutputs.js';
 export * from './constants/protocol/severityTierStyle.js';
 export * from './constants/protocol/deviationPolicy.js';
+export * from './constants/protocol/feedsToObjective.js';
 
 // Field action (OLOS Act Command Center Spec v1 — Phase 3)
 export * from './schemas/fieldAction/proofItem.schema.js';

@@ -160,7 +160,9 @@ describe('TEMPLATE_DEPTH', () => {
     }
   });
 
-  it('has exactly 5 entries (one per S6 bound template)', () => {
-    expect(Object.keys(TEMPLATE_DEPTH).length).toBe(5);
+  it('has exactly 10 entries (5 S6-bound + 5 event-driven, one per standard template)', () => {
+    // Tier 2 (T2.1) added soil/water/zones depths for the 5 event-driven
+    // templates; the map now covers all 10 STANDARD_PROTOCOL_TEMPLATES.
+    expect(Object.keys(TEMPLATE_DEPTH).length).toBe(10);
   });
 });
