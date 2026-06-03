@@ -54,21 +54,6 @@
   font-weight: var(--font-medium);
   color: var(--color-text);
 }
-.stagePct {
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  color: var(--color-text-subtle);
-}
-/* Completed stage (100% verified) — Bio-Conifer steward glow on the % chip:
- * transparent green tint + crisp lightened green text (doc "glow" technique),
- * independent of the active-stage accent so "done" reads at a glance. */
-.stage[data-complete='true'] .stagePct {
-  color: var(--color-stage-steward-glow-text);
-  background: var(--color-stage-steward-glow-bg);
-  padding: 1px 7px;
-  border-radius: var(--radius-full);
-}
-
 .connector {
   width: var(--space-6);
   height: 1px;

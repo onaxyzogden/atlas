@@ -37,10 +37,9 @@ export default function StageSpine({
       {STAGES.map((stage, i) => {
         const active = stage.id === activeStage;
         const Icon = stage.icon;
-        // Every segment shows its stage's real verified %.
-        const pct = progressByStage[stage.id].pct;
-        const complete = pct >= 100;
-        const readout = `${pct}%`;
+        // Completion still drives the segment's complete styling, but the
+        // numeric % is no longer surfaced in the pill (kept quiet per design).
+        const complete = progressByStage[stage.id].pct >= 100;
         return (
           <div key={stage.id} className={css.segment}>
             <button
@@ -56,7 +55,6 @@ export default function StageSpine({
                 <Icon size={16} strokeWidth={1.75} />
               </span>
               <span className={css.stageLabel}>{stage.label}</span>
-              <span className={css.stagePct}>{readout}</span>
             </button>
             {i < STAGES.length - 1 && <span className={css.connector} />}
           </div>

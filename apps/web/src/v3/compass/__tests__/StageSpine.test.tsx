@@ -67,7 +67,7 @@ const byStage = (
 afterEach(() => cleanup());
 
 describe('StageSpine', () => {
-  it('shows each stage’s own real % (no em dash)', () => {
+  it('renders no numeric % readout in any segment', () => {
     const { container } = render(
       <StageSpine
         activeStage="observe"
@@ -78,11 +78,11 @@ describe('StageSpine', () => {
     const observe = container.querySelector('[data-stage="observe"]');
     const plan = container.querySelector('[data-stage="plan"]');
     const act = container.querySelector('[data-stage="act"]');
-    // Every segment renders its own aggregate.
-    expect(observe?.textContent).toContain('37%');
-    expect(plan?.textContent).toContain('12%');
-    expect(act?.textContent).toContain('0%');
-    // The em-dash placeholder is gone everywhere.
+    // The percentage was removed from the pill — labels only, no % anywhere.
+    expect(observe?.textContent).not.toContain('%');
+    expect(plan?.textContent).not.toContain('%');
+    expect(act?.textContent).not.toContain('%');
+    // The em-dash placeholder remains gone everywhere too.
     expect(observe?.textContent).not.toContain('—');
     expect(plan?.textContent).not.toContain('—');
     expect(act?.textContent).not.toContain('—');
@@ -104,7 +104,7 @@ describe('StageSpine', () => {
     ).toBe('false');
   });
 
-  it('moves the active highlight to Plan while Observe keeps its %', () => {
+  it('moves the active highlight to Plan', () => {
     const { container } = render(
       <StageSpine
         activeStage="plan"
@@ -118,10 +118,6 @@ describe('StageSpine', () => {
     expect(
       container.querySelector('[data-stage="observe"]')?.getAttribute('data-active'),
     ).toBe('false');
-    // Observe still reports its real progress regardless of which stage is active.
-    expect(
-      container.querySelector('[data-stage="observe"]')?.textContent,
-    ).toContain('37%');
   });
 
   it('highlights nothing when activeStage is null (Report route)', () => {
