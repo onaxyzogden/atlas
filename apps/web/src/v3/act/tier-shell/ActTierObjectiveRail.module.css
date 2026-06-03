@@ -9,6 +9,36 @@
  * scope on the rail.
  */
 
+/* Deselect / back-to-stratum control at the top of the objective-detail header.
+ * Calls onSelectObjective(activeId), which the shell routes as a toggle-off. */
+.detailDeselect {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin: 0 0 8px;
+  padding: 3px 9px 3px 5px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
+  background: var(--color-surface-2, rgba(255, 255, 255, 0.05));
+  color: var(--color-text-secondary, #b9c2bd);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.detailDeselect:hover {
+  color: var(--color-text-primary, #e6ece8);
+  border-color: var(--color-border-strong, rgba(255, 255, 255, 0.18));
+}
+
+.detailDeselect:focus-visible {
+  outline: 2px solid var(--color-accent, #e6b34a);
+  outline-offset: 2px;
+}
+
 /* Focused-question lead-in under the objective title. */
 .detailQuestion {
   margin: 6px 0 0;

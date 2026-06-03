@@ -10,6 +10,7 @@
 // An aggregate amber badge on the Protocols segment flags triggered protocols.
 
 import { useMemo, useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import type {
   PlanStratum,
   PlanStratumObjective,
@@ -241,6 +242,20 @@ export default function ActTierObjectiveRail({
         <>
           {activeObjective ? (
             <div className={styles.railHeader}>
+              {/* Explicit deselect affordance. Re-selecting the active objective
+                  toggles it off in the shell (handleSelectObjective), so calling
+                  onSelectObjective with the active id returns the rail to the
+                  stratum dashboard - a discoverable alternative to re-clicking
+                  the card/pin. */}
+              <button
+                type="button"
+                className={detail.detailDeselect}
+                onClick={() => onSelectObjective(activeObjective.id)}
+                data-testid="act-rail-objective-deselect"
+              >
+                <ChevronLeft size={13} aria-hidden />
+                All objectives
+              </button>
               {/* Eyebrow keeps the stratum context even when the objective owns
                   the header body. */}
               <span className={styles.railEyebrow}>

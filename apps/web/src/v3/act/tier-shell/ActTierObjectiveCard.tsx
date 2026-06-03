@@ -52,6 +52,11 @@ export default function ActTierObjectiveCard({
       className={styles.objCard}
       role="button"
       tabIndex={0}
+      // Selection is a toggle: clicking the active card deselects it (the shell
+      // routes a re-select back to the stratum dashboard). aria-pressed exposes
+      // that toggle state so assistive tech announces selected/not-selected
+      // rather than a one-shot action.
+      aria-pressed={isActive}
       data-status={progress.state}
       data-active={isActive}
       onClick={onSelect}

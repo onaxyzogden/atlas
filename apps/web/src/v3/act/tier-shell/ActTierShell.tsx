@@ -331,10 +331,19 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
 
   const handleSelectObjective = useCallback(
     (nextObjectiveId: string) => {
+      // Re-selecting the already-active objective DESELECTS it (back to the
+      // stratum dashboard). Drives both the rail card and the map markers, so a
+      // second click/tap on either toggles the objective off. The rightMode
+      // effect (keyed on objectiveId) flips to 'dashboard' once the route
+      // clears, so no explicit setRightMode is needed on the deselect branch.
+      if (nextObjectiveId === objectiveId) {
+        goToObjective(null);
+        return;
+      }
       setRightMode('detail');
       goToObjective(nextObjectiveId);
     },
-    [goToObjective],
+    [goToObjective, objectiveId],
   );
 
   const handleFormSave = useCallback(

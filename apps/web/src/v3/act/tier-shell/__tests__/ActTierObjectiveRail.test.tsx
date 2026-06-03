@@ -9,12 +9,46 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import * as React from 'react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import {
   findPlanStratum,
   findPlanStratumObjective,
   type PlanStratumObjective,
 } from '@ogden/shared';
+
+// lucide-react forwardRef icons spread [undefined] into <svg> children when
+// childless, which React 18 + happy-dom reject on re-render. Replace every
+// component export with a clean <svg> stub (established pattern, mirrors
+// ActTierExecutionPanel.protocols.test). The deselect affordance renders a
+// ChevronLeft icon, so the objective-detail header needs this stub to mount.
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const stubbed: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(actual)) {
+    const isComponent =
+      (typeof value === 'object' &&
+        value !== null &&
+        '$$typeof' in (value as object)) ||
+      typeof value === 'function';
+    if (isComponent) {
+      const Stub = React.forwardRef<SVGSVGElement, Record<string, unknown>>(
+        function LucideStub(_props, ref) {
+          return React.createElement('svg', {
+            ref,
+            'data-lucide-icon': key,
+            'aria-hidden': 'true',
+          });
+        },
+      );
+      Stub.displayName = `LucideStub(${key})`;
+      stubbed[key] = Stub;
+    } else {
+      stubbed[key] = value;
+    }
+  }
+  return stubbed;
+});
 
 // Isolate the dedicated `flow-connector` flow tool: the real s5/s6 sets it joins
 // also contain water/compost tools that already light the block, so resolve a
@@ -52,6 +86,7 @@ function renderRail(
   triggeredCount = 0,
   activeObjectiveId: string | null = null,
   objectives: readonly PlanStratumObjective[] = [OBJECTIVE],
+  onSelectObjective: (objectiveId: string) => void = vi.fn(),
 ) {
   return render(
     <ActTierObjectiveRail
@@ -59,7 +94,7 @@ function renderRail(
       objectives={objectives}
       progressByObjective={PROGRESS}
       activeObjectiveId={activeObjectiveId}
-      onSelectObjective={vi.fn()}
+      onSelectObjective={onSelectObjective}
       mode={mode}
       onModeChange={vi.fn()}
       triggeredCount={triggeredCount}
@@ -117,6 +152,40 @@ describe('ActTierObjectiveRail', () => {
     expect(screen.getByText('Tools')).toBeTruthy();
     // The stratum summary is gone from the header (replaced by the objective).
     expect(screen.queryByText(STRATUM.summary)).toBeNull();
+  });
+
+  it('renders a deselect ("All objectives") affordance only when an objective is active', () => {
+    // No objective selected -> the header is the stratum dashboard, no deselect.
+    const { rerender } = renderRail('objectives', 0, null);
+    expect(screen.queryByTestId('act-rail-objective-deselect')).toBeNull();
+    // Select an objective -> the detail header gains the deselect control.
+    rerender(
+      <ActTierObjectiveRail
+        stratum={STRATUM}
+        objectives={[OBJECTIVE]}
+        progressByObjective={PROGRESS}
+        activeObjectiveId={OBJECTIVE.id}
+        onSelectObjective={vi.fn()}
+        mode="objectives"
+        onModeChange={vi.fn()}
+        triggeredCount={0}
+        projectId="proj-1"
+        primaryTypeId="silvopasture"
+        secondaryTypeIds={[]}
+      />,
+    );
+    expect(screen.getByTestId('act-rail-objective-deselect')).toBeTruthy();
+  });
+
+  it('clicking deselect calls onSelectObjective with the active id (toggles it off)', () => {
+    const onSelect = vi.fn();
+    renderRail('objectives', 0, OBJECTIVE.id, [OBJECTIVE], onSelect);
+    fireEvent.click(screen.getByTestId('act-rail-objective-deselect'));
+    // Re-selecting the active id is what the shell routes back to the stratum
+    // dashboard (handleSelectObjective toggle), so the rail hands back the
+    // ACTIVE id rather than null.
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith(OBJECTIVE.id);
   });
 
   it('broadened gate: flow block lights via the compost act-tool on a non-resource-flow id', () => {
