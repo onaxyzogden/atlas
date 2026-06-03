@@ -26,7 +26,8 @@ import { useState } from 'react';
 import type { ObserveLensId } from '@ogden/shared';
 import StageShell from '../../_shell/StageShell.js';
 import { C, F } from './tokens.js';
-import { PROJECT } from './mockData.js';
+import { LensDataProvider } from './lensData/LensDataContext.js';
+import { mockBundle } from './lensData/mockBundle.js';
 import type { MockObservation } from './types.js';
 import ObserveLensSpine from './ObserveLensSpine.js';
 import ObserveLensDetailRail from './ObserveLensDetailRail.js';
@@ -44,6 +45,11 @@ export default function ObserveLensDashboard() {
   const [selectedObs, setSelectedObs] = useState<MockObservation | null>(null);
   const [detailLens, setDetailLens] = useState<ObserveLensId | null>(null);
 
+  // Phase 2: still the mock bundle. Phase 5 swaps this for a live/mock choice
+  // driven by the per-project data-source toggle. Every lens component reads it
+  // through LensDataProvider/useLensData instead of importing mockData directly.
+  const bundle = mockBundle;
+
   const handleLensChange = (id: string) => {
     setActiveLens(id);
     setSelectedObs(null);
@@ -60,6 +66,9 @@ export default function ObserveLensDashboard() {
     // The internal TopBar was removed: it duplicated the global app-shell header
     // (OGDEN / Land OS + stage chips + Share/Present); TopBar stays exported in
     // components.tsx (no-deletion) for the chrome-free debug route's use.
+    // LensDataProvider feeds the resolved bundle to every lens component below
+    // (spine, rails, map, panel, slide-up) via useLensData — renders no DOM node.
+    <LensDataProvider bundle={bundle}>
     <div
       className={css.lensShell}
       style={{ color: C.textPrimary, fontFamily: F.sans }}
@@ -77,8 +86,8 @@ export default function ObserveLensDashboard() {
       <ObserveLensSpine
         activeLens={activeLens}
         onSelectLens={handleLensChange}
-        projectTitle={PROJECT.name}
-        projectType={PROJECT.type}
+        projectTitle={bundle.project.name}
+        projectType={bundle.project.type}
       />
 
       <div className={css.shellWrap}>
@@ -126,5 +135,6 @@ export default function ObserveLensDashboard() {
         <DomainDetailSlideUp lensId={detailLens} onClose={() => setDetailLens(null)} />
       )}
     </div>
+    </LensDataProvider>
   );
 }

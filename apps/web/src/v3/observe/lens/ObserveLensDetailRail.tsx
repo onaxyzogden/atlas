@@ -10,7 +10,7 @@
 // ObserveLensSpine chips; this rail is detail-only (no "All lenses" card).
 
 import type { ObserveLensId } from '@ogden/shared';
-import { DOMAIN_DETAIL, FRESHNESS, LENSES } from './mockData.js';
+import { useLensData } from './lensData/LensDataContext.js';
 import { C } from './tokens.js';
 import css from './ObserveLensDetailRail.module.css';
 
@@ -29,6 +29,7 @@ export default function ObserveLensDetailRail({
   onSelectLens,
   onOpenDetail,
 }: Props) {
+  const { lenses: LENSES, freshness: FRESHNESS, domainDetail: DOMAIN_DETAIL } = useLensData();
   return (
     <div className={css.rail} aria-label="Observe lens details">
       {LENSES.map((lens) => {

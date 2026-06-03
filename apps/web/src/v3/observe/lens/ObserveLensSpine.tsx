@@ -9,7 +9,7 @@
 // ObserveLensDetailRail; this top bar is filter-only. DomainsView/LensBar stay
 // defined-but-unused (no-deletion).
 
-import { FRESHNESS, LENSES } from './mockData.js';
+import { useLensData } from './lensData/LensDataContext.js';
 import css from './ObserveLensSpine.module.css';
 
 interface Props {
@@ -30,6 +30,7 @@ export default function ObserveLensSpine({
   projectTitle,
   projectType,
 }: Props) {
+  const { lenses: LENSES, freshness: FRESHNESS } = useLensData();
   const allActive = activeLens === 'all';
   return (
     <div className={css.spineRow}>

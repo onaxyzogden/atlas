@@ -3,20 +3,13 @@
 // Faithful JS→TS port of every presentational component in the observational-
 // lens Observe concept. Inline styles + the local C/F token palette are kept
 // verbatim for pixel fidelity (NOT reskinned to tokens.css). All data flows
-// from ./mockData; lens identity originates in @ogden/shared via LENSES.
+// from the resolved LensDataBundle via useLensData() (mock OR live); lens
+// identity originates in @ogden/shared via OBSERVE_LENSES.
 
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import type { ObserveLensId } from '@ogden/shared';
 import { C, F } from './tokens.js';
-import {
-  CYCLE,
-  DOMAIN_DETAIL,
-  FRESHNESS,
-  LENSES,
-  MOCK_OBSERVATIONS,
-  PROJECT,
-  TYPE_ICON,
-} from './mockData.js';
+import { useLensData } from './lensData/LensDataContext.js';
 import type {
   ClimateData,
   DataPoint,
@@ -32,6 +25,7 @@ import type {
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 export function FreshnessBadge({ freshness, compact }: { freshness: Freshness; compact?: boolean }) {
+  const { freshness: FRESHNESS } = useLensData();
   const cfg = FRESHNESS[freshness] || FRESHNESS.missing;
   return (
     <span style={{ fontSize: 11, fontWeight: 600, fontFamily: F.sans, color: cfg.color, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -52,6 +46,7 @@ export function PseudoMap({ activeLens, onObsClick, selectedObs }: {
   onObsClick: (obs: MockObservation) => void;
   selectedObs: MockObservation | null;
 }) {
+  const { lenses: LENSES, observations: MOCK_OBSERVATIONS, project: PROJECT } = useLensData();
   const lensById: Record<string, LensDisplay> = Object.fromEntries(LENSES.map((l) => [l.id, l]));
   const contours = [
     'M 60 380 Q 180 340 300 360 Q 420 380 520 350 Q 580 330 640 340',
@@ -114,6 +109,7 @@ export function PseudoMap({ activeLens, onObsClick, selectedObs }: {
 
 // ─── LENS BAR ─────────────────────────────────────────────────────────────────
 export function LensBar({ activeLens, onLensChange }: { activeLens: string; onLensChange: (id: string) => void }) {
+  const { lenses: LENSES, freshness: FRESHNESS } = useLensData();
   const items: Array<{ id: string; label: string; icon: string; color: string; freshness?: Freshness }> = [
     { id: 'all', label: 'All', icon: '⊕', color: C.textSecondary },
     ...LENSES,
@@ -147,6 +143,7 @@ export function IntelligencePanel({ activeLens, selectedObs, onOpenDetail, foote
   // list beneath Land Intelligence in one shared scroll (no separate rail).
   footer?: ReactNode;
 }) {
+  const { lenses: LENSES } = useLensData();
   const [view, setView] = useState<'summary' | 'temporal'>('summary');
   const lens = LENSES.find((l) => l.id === activeLens);
   return (
@@ -173,6 +170,7 @@ function SummaryView({ lens, activeLens, selectedObs, onOpenDetail }: {
   selectedObs: MockObservation | null;
   onOpenDetail: (lensId: ObserveLensId) => void;
 }) {
+  const { domainDetail: DOMAIN_DETAIL, project: PROJECT } = useLensData();
   const detail = DOMAIN_DETAIL[activeLens as ObserveLensId];
   return (
     <div>
@@ -249,6 +247,7 @@ export function DomainsView({ activeLens, onSelectLens, onOpenDetail, horizontal
   onOpenDetail: (lensId: ObserveLensId) => void;
   horizontal?: boolean;
 }) {
+  const { lenses: LENSES, domainDetail: DOMAIN_DETAIL } = useLensData();
   // Horizontal mode: lens cards laid out as a scroll-x row (the top-bar lens
   // selector). Vertical mode (default): the original stacked left-rail list.
   const outerStyle: CSSProperties = horizontal
@@ -338,6 +337,7 @@ function TemporalView({ lens, activeLens }: { lens?: LensDisplay; activeLens: st
 
 // ─── DOMAIN DETAIL SLIDE-UP ───────────────────────────────────────────────────
 export function DomainDetailSlideUp({ lensId, onClose }: { lensId: ObserveLensId; onClose: () => void }) {
+  const { domainDetail: DOMAIN_DETAIL, lenses: LENSES, typeIcon: TYPE_ICON } = useLensData();
   const detail = DOMAIN_DETAIL[lensId];
   const lens = LENSES.find((l) => l.id === lensId);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({ flood: true });
@@ -474,6 +474,7 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
   isExpanded: boolean;
   onToggle: () => void;
 }) {
+  const { typeIcon: TYPE_ICON } = useLensData();
   const isSuperseded = pt.isSuperseded;
   const isDivergence = pt.isDivergence;
   const rowColor = isDivergenceSection ? C.amber : lensColor;
@@ -606,6 +607,7 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
 
 // ─── DOMAIN MINI MAP ──────────────────────────────────────────────────────────
 function DomainMiniMap({ lensId, lens, focusId }: { lensId: ObserveLensId; lens: LensDisplay; focusId: string | null }) {
+  const { observations: MOCK_OBSERVATIONS } = useLensData();
   const waterPath = 'M 140 10 Q 155 55 165 95 Q 173 120 175 155 Q 176 180 170 210 Q 165 230 155 255';
   const contours = [
     'M 20 200 Q 90 175 150 185 Q 210 195 260 175 Q 290 163 310 168',
@@ -921,6 +923,7 @@ function InfrastructureEmptySpecialised({ data }: { data: InfraEmptyData }) {
 
 // ─── CYCLE SPIRAL BAR ─────────────────────────────────────────────────────────
 export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
+  const { cycle: CYCLE, lenses: LENSES } = useLensData();
   const [expanded, setExpanded] = useState(false);
   const reviewUrgent = CYCLE.nextReviewDays <= 14;
 
@@ -1265,6 +1268,7 @@ export function RecentObservationsStrip({ activeLens, selectedObs, onObsClick, v
   // default horizontal strip path (StageShell bottom tray) is byte-unchanged.
   vertical?: boolean;
 }) {
+  const { lenses: LENSES, observations: MOCK_OBSERVATIONS, typeIcon: TYPE_ICON } = useLensData();
   const lensById: Record<string, LensDisplay> = Object.fromEntries(LENSES.map((l) => [l.id, l]));
   const visible = (activeLens && activeLens !== 'all'
     ? MOCK_OBSERVATIONS.filter((o) => o.lens === activeLens)
@@ -1343,6 +1347,7 @@ export function RecentObservationsStrip({ activeLens, selectedObs, onObsClick, v
 
 // ─── TOPBAR ───────────────────────────────────────────────────────────────────
 export function TopBar() {
+  const { project: PROJECT } = useLensData();
   return (
     <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', background: C.bg2, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
