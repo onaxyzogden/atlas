@@ -115,6 +115,11 @@ export * from './schemas/olos/proofRecord.schema.js';
 export * from './schemas/olos/verificationRecord.schema.js';
 export * from './schemas/olos/escalationRecord.schema.js';
 export * from './schemas/olos/stewardshipRoutine.schema.js';
+// Thermophilic-composting vertical — a distinct lightweight batch instrument,
+// NOT part of the land-use project taxonomy.
+export * from './schemas/compost/compostSite.schema.js';
+export * from './schemas/compost/compostPile.schema.js';
+export * from './schemas/compost/compostReading.schema.js';
 export * from './constants/olos/overlays.js';
 export * from './constants/olos/stageBoundaries.js';
 export * from './constants/olos/objectives.js';
