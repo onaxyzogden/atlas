@@ -143,13 +143,26 @@ export interface InfraEmptyData {
   suggestedTasks: SuggestedTask[];
 }
 
+/**
+ * Graceful-degrade variant: there is no structured measurement payload to
+ * visualise. The live bundle emits this for every lens because seeded
+ * ObserveDataPoint.measurementValue is only { label, note } -- it carries no
+ * numeric series for the wind rose / pH bars / infiltration / slope / capacity
+ * / consent charts. The detail slide-up renders an honest empty-viz note and
+ * falls back to the captured data-point list. The mock bundle never uses it.
+ */
+export interface NoSpecialisedData {
+  type: 'none';
+}
+
 export type Specialised =
   | HydrologyData
   | SoilData
   | TopographyData
   | ClimateData
   | HumanData
-  | InfraEmptyData;
+  | InfraEmptyData
+  | NoSpecialisedData;
 
 /** Full per-lens detail (the slide-up payload). */
 export interface DomainDetail {

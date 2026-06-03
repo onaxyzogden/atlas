@@ -1000,6 +1000,127 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S7 -- volunteer & community stewardship: programme structure / partnerships /
   // citizen science / safety / liability -- a programme & admin decision. gap: all.
   'con-s7-volunteer-stewardship': [],
+
+  // --- off_grid (primary) ---
+  // Seventh per-type catalogue. Before this the ofg-* objectives fell through
+  // STRATUM_ACT_TOOLS_DEFAULT: the S2/S3 site & systems surveys (water sources,
+  // energy potential, access road, fire/evacuation, water quality, food
+  // conditions) and the S5 infrastructure design block (water / energy / shelter
+  // / food / comms systems) surfaced the coarse access-utilities set instead of
+  // the source / structure / climate-sector / production families this
+  // life-safety-systems catalogue calls for. The grounded acts concentrate in
+  // S2-S3 (surveys) and S5 (infrastructure); S1 philosophy/redundancy/site
+  // decisions, the S4 strategy/redundancy band, S6 monitoring-protocol design,
+  // and the S7 sequencing/logistics/habitation gates are decisions -> [].
+  // Amanah: every off_grid objective is life-safety resilience (water, energy,
+  // shelter, food, comms, emergency response); no sales channel, advance
+  // purchase, or financing instrument -> nothing engages riba or gharar.
+  // S1 -- resilience philosophy & independence targets: target-setting design
+  // gate against which all systems are sized -- a philosophy decision. gap: all.
+  'ofg-s1-resilience-philosophy': [],
+  // S1 -- critical systems & redundancy: criticality classification + redundancy
+  // / downtime requirements -- a classification decision. gap: all.
+  'ofg-s1-critical-systems-redundancy': [],
+  // S1 -- site selection & access strategy: assess access road quality &
+  // constraints (roads), materials-delivery / emergency-vehicle turning & load
+  // (parking). gap: legal access / easements / service-centre distance (research).
+  'ofg-s1-site-selection-access': ['roads', 'parking'],
+  // S2 -- water sources & year-round yield: map springs (spring), streams
+  // (watercourse), rainfall catchment area (catchment), bore / well yield test
+  // (wells). gap: per-person demand calc (analysis).
+  'ofg-s2-water-sources-yield': ['spring', 'watercourse', 'catchment', 'wells'],
+  // S2 -- energy generation potential: solar peak-sun / shading (sun-sector),
+  // wind (wind-sector), micro-hydro flow & head (watercourse), biomass / wood
+  // fuel capacity (vegetation). gap: demand & generation-gap calc (analysis).
+  'ofg-s2-energy-generation-potential': ['sun-sector', 'wind-sector', 'watercourse', 'vegetation'],
+  // S2 -- access road & emergency route: survey route surface & alternate route
+  // (roads, path), seasonal flooding / snow / fire-access closure points
+  // (hazard-zone). gap: bridge / culvert load rating (research).
+  'ofg-s2-access-road-emergency-route': ['roads', 'path', 'hazard-zone'],
+  // S2 -- fire risk & evacuation: fire risk & rating by zone (fire-sector), fuel
+  // load / vegetation type (vegetation), evacuation routes & passability (path),
+  // fire-prone-landscape proximity (hazard-zone). gap: response-time record.
+  'ofg-s2-fire-risk-evacuation': ['fire-sector', 'vegetation', 'path', 'hazard-zone'],
+  // S3 -- water quality & treatment: pin & annotate quality tests at each source
+  // -- springs (spring), streams (watercourse), bore / well (wells). gap:
+  // treatment-train selection (design, sited in s5).
+  'ofg-s3-water-quality-treatment': ['spring', 'watercourse', 'wells'],
+  // S3 -- energy demand vs. generation balance: critical / household demand,
+  // monthly mapping, worst-case gap, storage requirement -- a quantification /
+  // analysis objective; generation potential already mapped in s2. gap: all.
+  'ofg-s3-energy-demand-balance': [],
+  // S3 -- communications & emergency connectivity: pin nearest repeater /
+  // emergency-services / neighbour reference points (neighbour-pin). gap: signal
+  // coverage & technology-option assessment (invisible / decision).
+  'ofg-s3-communications-connectivity': ['neighbour-pin'],
+  // S3 -- food production potential & storage conditions: frost-free window
+  // (frost-pocket), production-potential zones (zone). gap: reserve-weeks target
+  // & preservation-capacity calc (analysis).
+  'ofg-s3-food-production-storage-conditions': ['frost-pocket', 'zone'],
+  // S4 -- water system strategy & redundancy: primary / backup source, storage
+  // days, treatment type, manual fallback -- a redundancy-strategy decision; the
+  // physical system is sited in s5. gap: all.
+  'ofg-s4-water-system-redundancy': [],
+  // S4 -- energy system strategy & redundancy: generation type, battery days,
+  // backup generator sizing, load management -- a sizing / redundancy decision;
+  // infrastructure sited in s5. gap: all.
+  'ofg-s4-energy-system-redundancy': [],
+  // S4 -- food security & storage strategy: reserve target, production targets,
+  // preservation approach, emergency resupply -- a strategy decision; production
+  // infrastructure sited in s5. gap: all.
+  'ofg-s4-food-security-storage': [],
+  // S4 -- emergency communications & response strategy: comms method, contact
+  // list, medical / fire protocols, resident training (HARD GATE) -- a protocol
+  // & training decision; comms infrastructure sited in s5. gap: all.
+  'ofg-s4-emergency-comms-response': [],
+  // S4 -- shelter resilience & thermal performance strategy: thermal standard,
+  // primary / backup heating, insulation, fuel reserve -- a performance-spec
+  // decision; shelter infrastructure sited in s5. gap: all.
+  'ofg-s4-shelter-thermal-performance': [],
+  // S5 -- water system infrastructure: bore pump / spring capture (wells,
+  // spring), rainwater tank array (tanks), pressurised distribution (water-lines).
+  // gap: manual-fill & local-repairability specs (spec detail).
+  'ofg-s5-water-system-infrastructure': ['wells', 'spring', 'tanks', 'water-lines'],
+  // S5 -- energy system infrastructure: solar array orientation / shading
+  // (sun-sector), inverter / charge-controller / critical-load circuit (power),
+  // battery & generator housing (buildings), generator fuel storage (tanks).
+  'ofg-s5-energy-system-infrastructure': ['sun-sector', 'power', 'buildings', 'tanks'],
+  // S5 -- shelter & thermal infrastructure: the dwelling envelope & insulation
+  // (dwellings), passive solar gain (sun-sector), heating fuel storage (tanks).
+  // gap: airtightness / thermal-bridging construction specs (spec detail).
+  'ofg-s5-shelter-thermal-infrastructure': ['dwellings', 'sun-sector', 'tanks'],
+  // S5 -- food production & storage infrastructure: garden beds (beds), orchard
+  // (orchards), animal infrastructure (paddocks), root cellar / cool room /
+  // preservation building (buildings). gap: inventory-tracking system (admin).
+  'ofg-s5-food-production-infrastructure': ['beds', 'orchards', 'paddocks', 'buildings'],
+  // S5 -- communications & emergency infrastructure: comms / first-aid / fire
+  // building (buildings), antenna & backup power supply (power), assembly point
+  // & signage (note). gap: PLB activation protocol (procedure).
+  'ofg-s5-communications-emergency-infrastructure': ['buildings', 'power', 'note'],
+  // S6 -- systems performance & redundancy monitoring: indicators (tank / battery
+  // / fuel / food-reserve), thresholds, frequency, log format -- a monitoring-
+  // protocol design attached to already-sited features. gap: all.
+  'ofg-s6-systems-performance-monitoring': [],
+  // S6 -- emergency preparedness & response monitoring: seasonal access / comms /
+  // contact / fire-risk re-assessment & drill schedules -- a scheduling protocol;
+  // the road & fire risk were mapped in s2. gap: all.
+  'ofg-s6-emergency-preparedness-monitoring': [],
+  // S6 -- adaptive management protocol: seasonal review, decision triggers,
+  // failure response, 3-year review (Principle 9 exception) -- a review-protocol
+  // decision. gap: all.
+  'ofg-s6-adaptive-management': [],
+  // S7 -- systems establishment sequence: install / commission order + per-system
+  // go/no-go hard gates (HARD GATE: no habitation before water / energy / shelter
+  // / comms pass) -- a sequencing decision. gap: all.
+  'ofg-s7-systems-establishment-sequence': [],
+  // S7 -- resourcing & supply chain: materials calendar, lead times, resupply
+  // schedule, minimum critical inventory -- a logistics / scheduling decision
+  // (Amanah-clean: no financing instrument). gap: all.
+  'ofg-s7-resourcing-supply-chain': [],
+  // S7 -- phased habitation: habitability thresholds (HARD GATE, independently
+  // verified), temporary living, cohort go/no-go, resident acceptance -- a
+  // sequencing / gate decision. gap: all.
+  'ofg-s7-phased-habitation': [],
 };
 
 /**

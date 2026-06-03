@@ -32,6 +32,7 @@ import {
   LIVESTOCK_PRIMARY_OBJECTIVES,
   LIVESTOCK_SECONDARY_OBJECTIVES,
   CONSERVATION_PRIMARY_OBJECTIVES,
+  OFF_GRID_PRIMARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -175,6 +176,26 @@ describe('Act tier-shell objective->tool coverage', () => {
     // Council review) still satisfies the ratchet -- only a brand-new un-wired
     // con-* trips it.
     const missing = CONSERVATION_PRIMARY_OBJECTIVES.filter(
+      (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
+    ).map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every off-grid objective has an explicit override entry', () => {
+    // Off-grid resilience is the seventh per-type catalogue wired (audit
+    // remediation R1, 2026-06-03). It ships no standalone secondary layer and no
+    // patches, so this is a primary-only ratchet over the 27 ofg-* objectives
+    // (like homestead / regen-farm / market-garden / conservation). Before this
+    // its objectives fell through STRATUM_ACT_TOOLS_DEFAULT (the S2/S3 site &
+    // systems surveys and the S5 water/energy/shelter/food/comms infrastructure
+    // block surfaced the coarse access-utilities set instead of the source /
+    // structure / climate-sector / production families). Each is now explicit;
+    // an intentional [] (S1 philosophy/redundancy decisions, the whole S4
+    // strategy/redundancy band, S6 monitoring-protocol design, and the S7
+    // sequencing/logistics/habitation-gate band -- all Amanah-clean life-safety
+    // decisions) still satisfies the ratchet -- only a brand-new un-wired ofg-*
+    // trips it.
+    const missing = OFF_GRID_PRIMARY_OBJECTIVES.filter(
       (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
     ).map((o) => o.id);
     expect(missing).toEqual([]);
