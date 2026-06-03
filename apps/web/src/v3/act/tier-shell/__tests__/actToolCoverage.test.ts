@@ -26,6 +26,7 @@ import {
   SILVOPASTURE_SECONDARY_OBJECTIVES,
   HOMESTEAD_PRIMARY_OBJECTIVES,
   REGEN_FARM_PRIMARY_OBJECTIVES,
+  MARKET_GARDEN_PRIMARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -88,6 +89,21 @@ describe('Act tier-shell objective->tool coverage', () => {
     // an intentional [] (decision/financial objectives) still satisfies the
     // ratchet — only a brand-new un-wired rf-* trips it.
     const missing = REGEN_FARM_PRIMARY_OBJECTIVES.filter(
+      (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
+    ).map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every market-garden objective has an explicit override entry', () => {
+    // Market garden is the third per-type catalogue wired (audit remediation R1,
+    // 2026-06-03) after homestead and regen-farm. Before this its 24 mgd-*
+    // objectives fell through to STRATUM_ACT_TOOLS_DEFAULT (S3 water/pest showed
+    // access-utilities; S4 strategy showed roads/fencing; S5 infrastructure
+    // showed the water-line set instead of bed/compost/wash-pack tools). Each is
+    // now explicit; an intentional [] (sales / financial / scheduling decisions,
+    // incl. the CSA-flagged s1 objectives) still satisfies the ratchet — only a
+    // brand-new un-wired mgd-* trips it.
+    const missing = MARKET_GARDEN_PRIMARY_OBJECTIVES.filter(
       (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
     ).map((o) => o.id);
     expect(missing).toEqual([]);

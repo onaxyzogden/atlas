@@ -519,6 +519,114 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // viability thresholds — financial, Amanah-clean (c5 confirms no capital
   // formation / investor-structure content; no riba / advance-sale). gap: all.
   'rf-s7-cash-flow': [],
+
+  // ---------- MARKET GARDEN (primary-only, 24 objectives) ----------
+  // Authored 2026-06-03 (Act-coverage audit remediation R1, third type). Before
+  // this every mgd-* objective fell through to the coarse STRATUM_ACT_TOOLS_DEFAULT
+  // with the same misfit class seen on regen-farm: S3 water-quality / pest showed
+  // the s3-systems access/utilities default, the S4 strategy objectives showed
+  // roads/gates/fencing, and the S5 infrastructure objectives showed the s5 water
+  // set rather than bed / compost / wash-pack tools. Each tool id below is grounded
+  // in a real mgd-* checklist item AND a mountable ACT_TOOL_CATALOG tool; pure
+  // decision / sales / financial / scheduling objectives resolve to [] with a gap:
+  // note. The CSA Amanah scopeNotes flags on the s1 sales/channel objectives are
+  // untouched — those objectives are off-site decisions and map to [] regardless.
+  // Candidate mappings — operator-reviewable.
+
+  // S1 — production targets & sales model: yield/revenue targets + sales-model
+  // choice (incl. CSA, Amanah-flagged in scopeNotes) — an off-site decision.
+  // Project-level vision capture is the universal s1-vision form arms. gap: all.
+  'mgd-s1-production-targets-sales': [],
+  // S1 — growing-system philosophy: no-dig / bio-intensive / scale ethos — a
+  // design-philosophy decision, non-spatial. gap: all.
+  'mgd-s1-growing-system-philosophy': [],
+  // S1 — market channels & customer base: channel mix + CSA membership model
+  // (Amanah-flagged) — an off-site market decision. gap: all.
+  'mgd-s1-market-channels': [],
+  // S2 — soil fertility & bed potential: soil sampling / fertility baseline
+  // (soil), drainage + workability constraints (drainage), bed-suitability
+  // sampling transects (transect). gap: aspect / history (record / decision).
+  'mgd-s2-soil-fertility-bed-potential': ['soil', 'drainage', 'transect'],
+  // S2 — water access & irrigation potential: watercourse + spring sources,
+  // catchment context, existing storage capacity, bore / well points. gap:
+  // licensing / quantity assessment (decisions).
+  'mgd-s2-water-access-irrigation': [
+    'watercourse',
+    'spring',
+    'catchment',
+    'storage',
+    'wells',
+  ],
+  // S2 — landscape vectors: neighbour land-use + spray/runoff risk pins, hazard
+  // sources, prevailing-wind exposure (wind), catchment runoff context. gap:
+  // opportunities (recording).
+  'mgd-s2-landscape-vectors': ['neighbour-pin', 'hazard-zone', 'wind-sector', 'catchment'],
+  // S3 — irrigation water quality & supply: source mapping (watercourse / spring)
+  // and water-quality / supply observation logging (water). gap: testing results
+  // (record / analysis).
+  'mgd-s3-irrigation-water-quality': ['watercourse', 'spring', 'water'],
+  // S3 — pest, disease & weed pressure: weed / volunteer cover by area
+  // (vegetation), beneficial / predator presence (wildlife), landscape pressure
+  // sources (hazard), soil-borne pathogen sampling (soil). gap: pest inventory /
+  // history (record / decision).
+  'mgd-s3-pest-disease-weed-pressure': ['vegetation', 'wildlife-sector', 'hazard-zone', 'soil'],
+  // S4 — crop rotation & bed layout: lay out growing beds (beds), assign crop
+  // families / rotation groups (crops), define rotation blocks / sections (zone).
+  // gap: rotation calendar logic (decision).
+  'mgd-s4-crop-rotation-bed-layout': ['beds', 'crops', 'zone'],
+  // S4 — irrigation strategy: route mains / drip / sprinkler lines (water-lines),
+  // define irrigation zones / blocks (zone). gap: scheduling logic (decision).
+  'mgd-s4-irrigation-strategy': ['water-lines', 'zone'],
+  // S4 — fertility strategy: compost production system (compost), amendment
+  // application units (fertility-unit), green-manure / cover-crop rotation
+  // (crops), on-site input cycling (flow). gap: input-reduction targets (decision).
+  'mgd-s4-fertility-strategy': ['compost', 'fertility-unit', 'crops', 'flow-connector'],
+  // S4 — IPM strategy: habitat / insectary plantings (vegetation), beneficial
+  // habitat zones (wildlife), perimeter buffer / barrier strips (buffer-ring).
+  // gap: thresholds / intervention ladder (decisions).
+  'mgd-s4-ipm-strategy': ['vegetation', 'wildlife-sector', 'buffer-ring'],
+  // S4 — post-harvest handling: site wash/pack + cold-storage structures
+  // (buildings / barns), water / tank requirements (tanks). gap: throughput /
+  // workflow design (decision).
+  'mgd-s4-post-harvest-handling': ['buildings', 'barns', 'tanks'],
+  // S5 — bed & growing infrastructure: build out beds (beds), assign crops
+  // (crops), pathways between beds (path), protected-cropping / cover plantings
+  // (vegetation), tunnels / greenhouse structures (buildings). gap: materials
+  // spec (decision).
+  'mgd-s5-bed-growing-infrastructure': ['beds', 'crops', 'path', 'vegetation', 'buildings'],
+  // S5 — irrigation system build: install supply lines (water-lines), commission
+  // irrigation zones (zone). gap: controller / scheduling (decision).
+  'mgd-s5-irrigation-system': ['water-lines', 'zone'],
+  // S5 — wash/pack & cold storage: build wash-pack + cold-store structures
+  // (buildings / barns), holding tanks (tanks). gap: equipment list (decision).
+  'mgd-s5-wash-pack-cold-storage': ['buildings', 'barns', 'tanks'],
+  // S5 — fertility & composting infrastructure: compost production bays
+  // (compost), amendment storage / application units (fertility-unit). gap:
+  // recipe / process spec (decision).
+  'mgd-s5-fertility-composting-infrastructure': ['compost', 'fertility-unit'],
+  // S5 — propagation & nursery: nursery / propagation structure (buildings),
+  // propagation beds / benches (beds). gap: schedule / inputs (decision).
+  'mgd-s5-propagation-nursery': ['buildings', 'beds'],
+  // S6 — crop & yield monitoring: log harvest records by bed / crop (harvest),
+  // monitoring transects / sampling (transect). gap: yield-analysis protocol
+  // (decision).
+  'mgd-s6-crop-yield-monitoring': ['harvest', 'transect'],
+  // S6 — sales & revenue tracking: revenue / margin tracking — financial,
+  // Amanah-clean (ordinary book-keeping, no financial product). gap: all.
+  'mgd-s6-sales-revenue-tracking': [],
+  // S6 — adaptive management: review cycle / decision triggers / contingency —
+  // non-spatial. gap: all.
+  'mgd-s6-adaptive-management': [],
+  // S7 — crop calendar: succession-planting sequences by crop (crops), frost /
+  // season window constraints (frost-pocket), expected harvest windows
+  // (harvest). gap: labour scheduling (decision).
+  'mgd-s7-crop-calendar': ['crops', 'frost-pocket', 'harvest'],
+  // S7 — financial viability: break-even / cash-flow budgeting — financial,
+  // Amanah-clean (MGD-S7.5, no riba / advance-sale). gap: all.
+  'mgd-s7-financial-viability': [],
+  // S7 — season start-up readiness: pre-season soil readiness check (soil). gap:
+  // task / supply checklist (record / decision).
+  'mgd-s7-season-startup-readiness': ['soil'],
 };
 
 /**
