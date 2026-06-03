@@ -20,6 +20,8 @@ import {
 } from '../../store/closedLoopStore.js';
 import { newAnnotationId } from '../../store/site-annotations.js';
 import { useFlowEndpointOptions } from './useFlowEndpointOptions.js';
+import { parsePositive } from './closedLoop/flowFormUtils.js';
+import FlowDetailPanel from './closedLoop/FlowDetailPanel.js';
 import styles from '../../v3/_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -32,17 +34,6 @@ const RESOURCE_TYPES: Array<{ value: MaterialKind; label: string }> = [
   { value: 'greywater',      label: 'Greywater' },
   { value: 'compost',        label: 'Compost' },
 ];
-
-/** Parse a form input to a positive number. Returns undefined for empty / NaN /
- *  zero / negative — that's the signal to omit the field from the persisted
- *  MaterialFlow so legacy flows and "I don't have a number yet" stay distinct. */
-function parsePositive(s: string): number | undefined {
-  const trimmed = s.trim();
-  if (!trimmed) return undefined;
-  const n = Number(trimmed);
-  if (!Number.isFinite(n) || n <= 0) return undefined;
-  return n;
-}
 
 /** First non-undefined throughput value with a label, for the list-row meta column. */
 function quantitySummary(v: MaterialFlow): string | null {
@@ -67,6 +58,12 @@ export default function WasteVectorListView({ project }: Props) {
   const [to, setTo] = useState('');
   const [label, setLabel] = useState('');
   const [resource, setResource] = useState<MaterialKind>('organic_matter');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const selectedFlow = useMemo(
+    () => vectors.find((v) => v.id === selectedId) ?? null,
+    [vectors, selectedId],
+  );
 
   // Optional quantity inputs — kept as strings so empty / partially-typed
   // values round-trip naturally; parsePositive() filters them on submit.
@@ -255,22 +252,55 @@ export default function WasteVectorListView({ project }: Props) {
           <ul className={styles.list}>
             {vectors.map((v) => {
               const qty = quantitySummary(v);
+              const isSelected = v.id === selectedId;
               return (
                 <li key={v.id} className={styles.listRow}>
-                  <div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(isSelected ? null : v.id)}
+                    aria-pressed={isSelected}
+                    style={{
+                      flex: 1,
+                      minWidth: 0,
+                      textAlign: 'left',
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      color: 'inherit',
+                      font: 'inherit',
+                    }}
+                  >
                     <strong>{v.label}</strong>
                     <div className={styles.listMeta}>
                       {featureLabel(v.sourceId ?? '')} → {featureLabel(v.sinkId ?? '')} · {v.materialKind}
                       {qty ? <> · <span style={{ fontVariantNumeric: 'tabular-nums' }}>{qty}</span></> : null}
                     </div>
-                  </div>
-                  <button type="button" className={styles.removeBtn} onClick={() => removeFlow(v.id)}>Remove</button>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => {
+                      if (selectedId === v.id) setSelectedId(null);
+                      removeFlow(v.id);
+                    }}
+                  >
+                    Remove
+                  </button>
                 </li>
               );
             })}
           </ul>
         )}
       </section>
+
+      {selectedFlow ? (
+        <FlowDetailPanel
+          project={project}
+          flow={selectedFlow}
+          onClose={() => setSelectedId(null)}
+        />
+      ) : null}
     </>
   );
 }
