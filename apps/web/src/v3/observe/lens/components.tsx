@@ -1217,6 +1217,96 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
   );
 }
 
+// ─── RECENT OBSERVATIONS STRIP (bottom tray) ──────────────────────────────────
+// Horizontal, scroll-x strip of the most-recent mock observations. Lives in the
+// StageShell bottom tray (between-rails). Filters by the active lens; clicking a
+// card selects the matching map pin via the SAME selectedObs/onObsClick thread
+// the PseudoMap uses (zero new state). Authored at natural Act-ladder sizes (no
+// zoom) so it needs no de-zoom rebake.
+
+// Parse a fuzzy age string ('12d', '8mo', '2d', ...) into hours, for a
+// most-recent-first sort. Unknown formats sort last.
+const AGE_UNIT_HOURS: Record<string, number> = { h: 1, d: 24, w: 168, mo: 730, y: 8760 };
+function ageToHours(age: string): number {
+  const m = /^(\d+(?:\.\d+)?)\s*(mo|[hdwy])$/i.exec(age.trim());
+  if (!m) return Number.MAX_SAFE_INTEGER;
+  const [, num, unit] = m;
+  if (!num || !unit) return Number.MAX_SAFE_INTEGER;
+  return parseFloat(num) * (AGE_UNIT_HOURS[unit.toLowerCase()] ?? 1);
+}
+
+export function RecentObservationsStrip({ activeLens, selectedObs, onObsClick }: {
+  activeLens: string;
+  selectedObs: MockObservation | null;
+  onObsClick: (obs: MockObservation) => void;
+}) {
+  const lensById: Record<string, LensDisplay> = Object.fromEntries(LENSES.map((l) => [l.id, l]));
+  const visible = (activeLens && activeLens !== 'all'
+    ? MOCK_OBSERVATIONS.filter((o) => o.lens === activeLens)
+    : [...MOCK_OBSERVATIONS]
+  ).slice().sort((a, b) => ageToHours(a.age) - ageToHours(b.age));
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px 6px', flexShrink: 0 }}>
+        <span style={{ fontSize: 10, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: F.sans }}>
+          Recent observations
+        </span>
+        <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>
+          {visible.length} {activeLens && activeLens !== 'all' ? `· ${lensById[activeLens]?.label ?? activeLens}` : 'all lenses'}
+        </span>
+      </div>
+      {visible.length === 0 ? (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '0 12px 10px', fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>
+          No observations recorded for this lens yet.
+        </div>
+      ) : (
+        <div style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'stretch', padding: '0 12px 10px', overflowX: 'auto', minWidth: 0 }}>
+          {visible.map((obs) => {
+            const lens = lensById[obs.lens];
+            const color = lens?.color || C.textSecondary;
+            const isSelected = selectedObs?.id === obs.id;
+            const isDivergence = obs.type === 'divergence';
+            const glyph = isDivergence ? '▲' : (TYPE_ICON[obs.type] || '·');
+            return (
+              <button
+                key={obs.id}
+                type="button"
+                onClick={() => onObsClick(obs)}
+                title={`${obs.label} · ${obs.type} · ${obs.age} ago`}
+                style={{
+                  flex: '0 0 auto', width: 168, minWidth: 168, display: 'flex', flexDirection: 'column', gap: 6,
+                  padding: '9px 11px', textAlign: 'left', cursor: 'pointer', fontFamily: F.sans,
+                  background: isSelected ? color + '14' : C.bg3,
+                  border: `1px solid ${isSelected ? color + '70' : C.border}`,
+                  borderRadius: 7, transition: 'border-color 0.15s, background 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  <span style={{
+                    width: 22, height: 22, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderRadius: 6, fontSize: 12, color: isDivergence ? C.amber : color,
+                    background: (isDivergence ? C.amber : color) + '18', border: `1px solid ${(isDivergence ? C.amber : color)}30`,
+                  }}>
+                    {glyph}
+                  </span>
+                  <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono, whiteSpace: 'nowrap' }}>{obs.age} ago</span>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: C.textPrimary, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                  {obs.label}
+                </span>
+                <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono, textTransform: 'capitalize', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {lens?.label ?? obs.lens} · {obs.type.replace('_', ' ')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── TOPBAR ───────────────────────────────────────────────────────────────────
 export function TopBar() {
   return (
