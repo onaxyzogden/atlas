@@ -284,6 +284,24 @@ still exported. Supersedes the fill-restructure ADR's mount (full-bleed
 ([[decisions/2026-06-02-atlas-observe-lens-act-template-reshape]];
 [[log/2026-06-02-atlas-observe-lens-act-template-reshape]]).
 
+**Update 2026-06-03, spine detail + slide-up trigger (`77a6c256`,
+[[log/2026-06-03-atlas-observe-spine-detail-slideup-restore]]):** the compact
+`ObserveLensSpine` tabs were enriched back toward the old `DomainsView` cards.
+Each lens tab now appends `· {lastObserved}` to its meta, shows a `▲ Divergence`
+badge (`C.amber`) when `lens.divergence`, and a 2-line-clamped `lens.summary`
+(70-char truncate). Detail-bearing lenses (`DOMAIN_DETAIL[lens.id]`) also render a
+SIBLING **"View all observations ->"** button (inside a new `.tierWrap` column
+beside the `role="tab"` filter button -- no nested `<button>`s) that opens the
+existing `DomainDetailSlideUp`. `ObserveLensSpine` gained `onOpenDetail`, wired in
+`ObserveLensDashboard` to the already-mounted `setDetailLens` (the spine is a
+second caller; the IntelligencePanel "Domain Detail ->" path stays, additive).
+CSS: `flex:1 1 0; min-width:116px` moved from `.tier` to `.tierWrap`; added
+`.tierDivergence`, `.tierSummary`, `.tierDetail`. Verified live on both mounts
+(`tsc` EXIT 0; 7 tabs, 6 detail buttons, Water divergence, slide-up opens + Back
+closes, main-click still filters, no nested-button warning); `preview_screenshot`
+hung ([[project-screenshot-hang]]) so proof is DOM/`getComputedStyle`.
+`DomainsView` et al. remain exported ([[feedback-no-deletion]]).
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
