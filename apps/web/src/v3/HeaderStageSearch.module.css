@@ -4,6 +4,11 @@
   max-width: 28vw;
 }
 
+/* Collapsed resting state: the root shrinks to wrap just the icon button. */
+.root[data-collapsed='true'] {
+  width: auto;
+}
+
 /* Compact the shared Input to sit comfortably in the 48px header row. */
 .input {
   height: 30px;
@@ -11,8 +16,39 @@
   font-size: var(--text-xs);
 }
 
+/* Icon-only trigger shown until the field is clicked. Sized to match the 30px
+   compact input so the header row height never shifts when it expands. */
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  background: transparent;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.iconButton:hover {
+  color: var(--color-text, #f2ede3);
+  border-color: var(--color-text-muted, rgba(242, 237, 227, 0.4));
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 1px;
+}
+
 @media (max-width: 768px) {
   .root {
     width: 150px;
+  }
+
+  .root[data-collapsed='true'] {
+    width: auto;
   }
 }
