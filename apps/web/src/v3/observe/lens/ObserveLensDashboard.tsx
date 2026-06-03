@@ -21,9 +21,8 @@ import type { MockObservation } from './types.js';
 import {
   CycleTimelineBar,
   DomainDetailSlideUp,
-  DomainsRail,
+  DomainsView,
   IntelligencePanel,
-  LensBar,
   PseudoMap,
   TopBar,
 } from './components.js';
@@ -46,11 +45,15 @@ export default function ObserveLensDashboard() {
   };
 
   return (
-    // Outer fills the host (StageShell canvas or the standalone route). The inner
-    // box is pre-sized to host/Z then `zoom: Z` scales it back to fill exactly —
-    // so the layout fits with no overflow while every length renders Z larger.
+    // Outer fills the host (full-bleed module-bar mount or the standalone route).
+    // The inner zoom box is sized 100%/100% so it fills the host exactly. In this
+    // Chromium engine `zoom` magnifies every internal length by Z but does NOT
+    // scale the percentage-sized box's own footprint, so the box stays edge-to-edge
+    // (no gutters) while the UI renders Z larger. (An earlier calc(100%/Z) counter-
+    // size assumed the older zoom-scales-the-box semantics and confined the UI to
+    // ~58% of the viewport; 100%/100% is correct for this engine.)
     <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: C.bg }}>
-      <div style={{ width: `calc(100% / ${Z})`, height: `calc(100% / ${Z})`, zoom: Z }}>
+      <div style={{ width: '100%', height: '100%', zoom: Z }}>
         <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: C.bg, color: C.textPrimary, fontFamily: F.sans, overflow: 'hidden' }}>
           <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
@@ -61,12 +64,16 @@ export default function ObserveLensDashboard() {
           `}</style>
 
           <TopBar />
-          <CycleTimelineBar />
-          <LensBar activeLens={activeLens} onLensChange={handleLensChange} />
 
-          {/* Main body: rail | map | intelligence */}
+          {/* Lens selector — horizontal top bar (the former left DomainsRail,
+              now the sole lens selector; the LensBar pill row was removed). */}
+          <div style={{ background: C.bg2, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+            <DomainsView horizontal activeLens={activeLens} onSelectLens={handleLensChange} onOpenDetail={setDetailLens} />
+          </div>
+
+          {/* Main body: cycle rail | map | intelligence */}
           <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden', minHeight: 0 }}>
-            <DomainsRail activeLens={activeLens} onSelectLens={handleLensChange} onOpenDetail={setDetailLens} />
+            <CycleTimelineBar vertical />
 
             <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
               <PseudoMap activeLens={activeLens} onObsClick={handleObsClick} selectedObs={selectedObs} />

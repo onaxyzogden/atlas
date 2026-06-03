@@ -119,24 +119,20 @@ export default function ObserveLayout() {
   };
 
   if (observeShellMode === 'module-bar') {
+    // Full-bleed mount (NOT StageShell): the lens dashboard owns the whole
+    // route outlet, mirroring the working standalone /v3/prototype/observe-lens
+    // mount. StageShell's grid/flex/padding context confined the zoom wrapper to
+    // a sub-viewport box (gutters); the outlet is a positioned, full-size
+    // ancestor, so `absolute; inset:0` fills it exactly. ObserveShellToggle
+    // floats above the lens (rendered last) as the escape hatch to the dashboard.
     return (
-      <StageShell
-        canvasLabel="Observe canvas"
-        leftRailLabel="Observe tools"
-        rightRailLabel="Observe checklist"
-        leftRail={null}
-        canvas={
-          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-            <ObserveShellToggle
-              mode={observeShellMode}
-              onChange={handleObserveShellModeChange}
-            />
-            <ObserveLensDashboard />
-          </div>
-        }
-        rightRail={null}
-        bottomTray={null}
-      />
+      <div style={{ position: 'absolute', inset: 0 }}>
+        <ObserveLensDashboard />
+        <ObserveShellToggle
+          mode={observeShellMode}
+          onChange={handleObserveShellModeChange}
+        />
+      </div>
     );
   }
 
