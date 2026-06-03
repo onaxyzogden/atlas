@@ -246,6 +246,22 @@ explicit-path commits on `feat/atlas-permaculture` (not pushed):
 `DomainsView` (with its `horizontal` prop), `LensBar`, and `DomainsRail` are now
 fully unused but retained ([[feedback-no-deletion]]).
 
+**Update 2026-06-03 ([[log/2026-06-03-atlas-observe-lens-right-rail-merge-self-railed]]):**
+the StageShell now uses **three** slots, not four. Recent Observations moved out
+of the `bottomTray` and into the right rail: `IntelligencePanel` gained an
+optional `footer` rendered inside its single scroll body, and
+`RecentObservationsStrip` gained a `vertical` mode (no bento card, `borderTop`
+divider, full-width card column). `ObserveLensDashboard` now passes the vertical
+strip as that footer and drops `bottomTray`, so Land Intelligence + Recent
+Observations share one scroll and the map canvas runs taller. Separately, the
+whole **Observe stage is now self-railed** -- `"observe"` was added to
+`SELF_RAILED_STAGES` in both `V3ProjectLayout.tsx` and `DecisionRail.tsx`, so the
+outer `LandOsShell` collapsible "Site Intelligence" rail
+(`ObserveSiteIntelligenceRail` / `SiteIntelligencePanel`) no longer mounts in any
+Observe mode; Observe is now a self-railed peer of Plan/Act. Those rail
+components stay exported (still used by the dashboard/legacy surfaces' own rails;
+[[feedback-no-deletion]]).
+
 **Verified live** (port 5200; `tsc --noEmit` EXIT 0 after every slice, filtered
 to `observe/lens`): both mounts render the identical reshaped component -- the
 chrome-free debug route `/v3/prototype/observe-lens` AND the `module-bar` project
