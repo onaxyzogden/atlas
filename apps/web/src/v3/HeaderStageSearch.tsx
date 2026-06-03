@@ -20,7 +20,7 @@ import {
 import css from './HeaderStageSearch.module.css';
 
 const PLACEHOLDER: Record<SearchableStage, string> = {
-  observe: 'Search modules, domains…',
+  observe: 'Search domains…',
   plan: 'Search objectives, domains…',
   act: 'Search tools, objectives…',
 };

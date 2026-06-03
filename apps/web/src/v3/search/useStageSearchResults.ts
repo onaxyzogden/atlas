@@ -162,3 +162,28 @@ export function resolveActSearchMatches(
   }
   return { objectives: objectiveMatches, tools: toolMatches };
 }
+
+// ---------------------------------------------------------------------------
+// Observe resolver (Phase 4) — the Observe dashboard's Unified Land State
+// surface already shows ALL 16 universal domains at once (the whole-stage view),
+// so a query NARROWS the grid in place rather than broadening it. Each domain is
+// matched on its human label, its purpose blurb, and its raw id; selecting a
+// surviving card reveals the domain-detail surface and clears the query. The
+// matcher takes the already-resolved snapshot fields (label/purpose) the surface
+// holds, so it needs no second data join.
+// ---------------------------------------------------------------------------
+
+/** True when a query matches an Observe domain by label, purpose, or id. Returns
+ *  false for an empty query so callers gate on a search being active first. */
+export function observeDomainMatchesQuery(
+  fields: { label: string; purpose: string; domainId: string },
+  rawQuery: string,
+): boolean {
+  const q = normalizeQuery(rawQuery);
+  if (!q) return false;
+  return (
+    fields.label.toLowerCase().includes(q) ||
+    fields.purpose.toLowerCase().includes(q) ||
+    fields.domainId.toLowerCase().includes(q)
+  );
+}
