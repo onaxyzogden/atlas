@@ -34,7 +34,7 @@ import type {
 export function FreshnessBadge({ freshness, compact }: { freshness: Freshness; compact?: boolean }) {
   const cfg = FRESHNESS[freshness] || FRESHNESS.missing;
   return (
-    <span style={{ fontSize: 9, fontWeight: 600, fontFamily: F.sans, color: cfg.color, display: 'flex', alignItems: 'center', gap: 4 }}>
+    <span style={{ fontSize: 11, fontWeight: 600, fontFamily: F.sans, color: cfg.color, display: 'flex', alignItems: 'center', gap: 4 }}>
       {cfg.dot && <span style={{ width: 5, height: 5, borderRadius: 3, background: cfg.color, display: 'inline-block' }} />}
       {!compact && cfg.label}
     </span>
@@ -97,15 +97,15 @@ export function PseudoMap({ activeLens, onObsClick, selectedObs }: {
       </svg>
       {selectedObs && (
         <div style={{ position: 'absolute', left: `calc(${selectedObs.x * 100}% + 14px)`, top: `calc(${selectedObs.y * 100}% - 20px)`, background: C.bg3, border: `1px solid ${C.borderLight}`, borderRadius: 8, padding: '8px 12px', maxWidth: 200, pointerEvents: 'none', zIndex: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}>
-          <div style={{ fontSize: 11, color: C.textPrimary, fontWeight: 600, fontFamily: F.sans }}>{selectedObs.label}</div>
-          <div style={{ fontSize: 10, color: C.textSecondary, marginTop: 3, fontFamily: F.mono }}>{selectedObs.type} · {selectedObs.age} ago</div>
+          <div style={{ fontSize: 13, color: C.textPrimary, fontWeight: 600, fontFamily: F.sans }}>{selectedObs.label}</div>
+          <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 3, fontFamily: F.mono }}>{selectedObs.type} · {selectedObs.age} ago</div>
         </div>
       )}
       <div style={{ position: 'absolute', bottom: 12, left: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 4, background: C.water }} /><span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>Water</span></div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><svg width="9" height="8"><polygon points="4.5,0 9,8 0,8" fill={C.amber} /></svg><span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>Divergence ▲</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 4, background: C.water }} /><span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Water</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><svg width="9" height="8"><polygon points="4.5,0 9,8 0,8" fill={C.amber} /></svg><span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Divergence ▲</span></div>
       </div>
-      <div style={{ position: 'absolute', top: 12, left: 12, background: C.bg3 + 'EE', border: `1px solid ${C.border}`, borderRadius: 6, padding: '4px 10px', fontSize: 9, color: C.textSecondary, fontFamily: F.mono, letterSpacing: '0.08em' }}>
+      <div style={{ position: 'absolute', top: 12, left: 12, background: C.bg3 + 'EE', border: `1px solid ${C.border}`, borderRadius: 6, padding: '4px 10px', fontSize: 11, color: C.textSecondary, fontFamily: F.mono, letterSpacing: '0.08em' }}>
         CYCLE {PROJECT.cycle}  ·  {PROJECT.totalDataPoints} DATA POINTS
       </div>
     </div>
@@ -125,11 +125,11 @@ export function LensBar({ activeLens, onLensChange }: { activeLens: string; onLe
         const fresh = l.freshness ? FRESHNESS[l.freshness] : null;
         const active = activeLens === l.id;
         return (
-          <button key={l.id} onClick={() => onLensChange(l.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 20, border: `1px solid ${active ? l.color : C.border}`, background: active ? l.color + '20' : 'transparent', color: active ? l.color : isEmpty ? C.textTertiary : C.textSecondary, fontSize: 11, fontWeight: active ? 600 : 400, fontFamily: F.sans, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.18s', opacity: isEmpty && !active ? 0.5 : 1 }}>
-            <span style={{ fontSize: 10 }}>{l.icon}</span>
+          <button key={l.id} onClick={() => onLensChange(l.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 20, border: `1px solid ${active ? l.color : C.border}`, background: active ? l.color + '20' : 'transparent', color: active ? l.color : isEmpty ? C.textTertiary : C.textSecondary, fontSize: 13, fontWeight: active ? 600 : 400, fontFamily: F.sans, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'all 0.18s', opacity: isEmpty && !active ? 0.5 : 1 }}>
+            <span style={{ fontSize: 12 }}>{l.icon}</span>
             {l.label}
             {fresh && !isEmpty && fresh.dot && l.freshness !== 'current' && <span style={{ width: 6, height: 6, borderRadius: 3, background: fresh.color, display: 'inline-block' }} />}
-            {isEmpty && <span style={{ fontSize: 8, color: C.textTertiary }}>—</span>}
+            {isEmpty && <span style={{ fontSize: 10, color: C.textTertiary }}>—</span>}
           </button>
         );
       })}
@@ -146,10 +146,10 @@ export function IntelligencePanel({ activeLens, selectedObs, onOpenDetail }: {
   const [view, setView] = useState<'summary' | 'temporal'>('summary');
   const lens = LENSES.find((l) => l.id === activeLens);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: C.bg2, borderLeft: `1px solid ${C.border}`, overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, overflow: 'hidden' }}>
       <div style={{ display: 'flex', borderBottom: `1px solid ${C.border}`, padding: '0 4px', flexShrink: 0 }}>
         {[{ id: 'summary', label: 'Land State' }, { id: 'temporal', label: 'Timeline' }].map((tab) => (
-          <button key={tab.id} onClick={() => setView(tab.id as 'summary' | 'temporal')} style={{ flex: 1, padding: '11px 4px', fontSize: 10, fontWeight: 600, fontFamily: F.sans, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'transparent', border: 'none', borderBottom: view === tab.id ? `2px solid ${C.textSecondary}` : '2px solid transparent', color: view === tab.id ? C.textPrimary : C.textTertiary, cursor: 'pointer', transition: 'all 0.15s' }}>
+          <button key={tab.id} onClick={() => setView(tab.id as 'summary' | 'temporal')} style={{ flex: 1, padding: '11px 4px', fontSize: 12, fontWeight: 600, fontFamily: F.sans, letterSpacing: '0.06em', textTransform: 'uppercase', background: 'transparent', border: 'none', borderBottom: view === tab.id ? `2px solid ${C.textSecondary}` : '2px solid transparent', color: view === tab.id ? C.textPrimary : C.textTertiary, cursor: 'pointer', transition: 'all 0.15s' }}>
             {tab.label}
           </button>
         ))}
@@ -173,36 +173,36 @@ function SummaryView({ lens, activeLens, selectedObs, onOpenDetail }: {
     <div>
       {PROJECT.planRevision.active && (
         <div style={{ margin: '12px 12px 0', background: C.amberDim, border: `1px solid ${C.amber}44`, borderRadius: 8, padding: '10px 12px' }}>
-          <div style={{ fontSize: 9, color: C.amber, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5, display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 11, color: C.amber, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 5, display: 'flex', justifyContent: 'space-between' }}>
             <span>⚠ Plan Review Required</span><span style={{ fontWeight: 400 }}>{PROJECT.planRevision.count} triggers</span>
           </div>
           {PROJECT.planRevision.triggers.map((t, i) => (
             <div key={i} style={{ marginBottom: i < PROJECT.planRevision.triggers.length - 1 ? 6 : 0 }}>
-              <div style={{ fontSize: 10, color: C.amber, fontWeight: 600 }}>{t.domain}</div>
-              <div style={{ fontSize: 10, color: C.textSecondary, marginTop: 1 }}>{t.detail}</div>
+              <div style={{ fontSize: 12, color: C.amber, fontWeight: 600 }}>{t.domain}</div>
+              <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 1 }}>{t.detail}</div>
             </div>
           ))}
-          <button style={{ marginTop: 8, width: '100%', padding: '6px 0', background: C.amber + '20', border: `1px solid ${C.amber}40`, borderRadius: 6, color: C.amber, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>Review in Plan →</button>
+          <button style={{ marginTop: 8, width: '100%', padding: '6px 0', background: C.amber + '20', border: `1px solid ${C.amber}40`, borderRadius: 6, color: C.amber, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>Review in Plan →</button>
         </div>
       )}
       <div style={{ padding: '12px 12px 0' }}>
-        <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Land State · {PROJECT.name}</div>
+        <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Land State · {PROJECT.name}</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 12 }}>
           {[{ label: 'Total observations', value: PROJECT.totalDataPoints, color: C.textPrimary }, { label: 'Domains current', value: PROJECT.domainsCurrentCount, color: C.green }, { label: 'Ageing / stale', value: PROJECT.domainsAgeingCount, color: C.amber }, { label: 'Not yet observed', value: PROJECT.domainsMissingCount, color: C.textTertiary }].map((stat) => (
             <div key={stat.label} style={{ background: C.bg3, borderRadius: 7, padding: '8px 10px', border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: stat.color, fontFamily: F.mono }}>{stat.value}</div>
-              <div style={{ fontSize: 9, color: C.textTertiary, marginTop: 2, fontFamily: F.sans }}>{stat.label}</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: stat.color, fontFamily: F.mono }}>{stat.value}</div>
+              <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 2, fontFamily: F.sans }}>{stat.label}</div>
             </div>
           ))}
         </div>
       </div>
       {selectedObs && (
         <div style={{ padding: '0 12px 12px' }}>
-          <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Selected Observation</div>
+          <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Selected Observation</div>
           <div style={{ background: C.bg3, borderRadius: 8, padding: '10px 12px', border: `1px solid ${C.borderLight}` }}>
-            <div style={{ fontSize: 12, color: C.textPrimary, fontWeight: 600, marginBottom: 4, fontFamily: F.sans }}>{selectedObs.label}</div>
-            <div style={{ display: 'flex', gap: 8 }}><span style={{ fontSize: 10, color: C.textSecondary, fontFamily: F.mono }}>{selectedObs.type}</span><span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>{selectedObs.age} ago</span></div>
-            {selectedObs.type === 'divergence' && <div style={{ marginTop: 8, padding: '5px 8px', background: C.amberDim, borderRadius: 5, fontSize: 9, color: C.amber }}>Unresolved divergence — review in Act</div>}
+            <div style={{ fontSize: 13, color: C.textPrimary, fontWeight: 600, marginBottom: 4, fontFamily: F.sans }}>{selectedObs.label}</div>
+            <div style={{ display: 'flex', gap: 8 }}><span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.mono }}>{selectedObs.type}</span><span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>{selectedObs.age} ago</span></div>
+            {selectedObs.type === 'divergence' && <div style={{ marginTop: 8, padding: '5px 8px', background: C.amberDim, borderRadius: 5, fontSize: 11, color: C.amber }}>Unresolved divergence — review in Act</div>}
           </div>
         </div>
       )}
@@ -210,24 +210,24 @@ function SummaryView({ lens, activeLens, selectedObs, onOpenDetail }: {
         <div style={{ padding: '0 12px 12px' }}>
           <div style={{ height: 1, background: C.border, marginBottom: 12 }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: lens.color, fontFamily: F.serif }}>{lens.label}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: lens.color, fontFamily: F.serif }}>{lens.label}</div>
             <FreshnessBadge freshness={lens.freshness} />
           </div>
-          {lens.summary ? <div style={{ fontSize: 11, color: C.textSecondary, lineHeight: 1.6, marginBottom: 12, fontFamily: F.sans }}>{lens.summary}</div> : <div style={{ textAlign: 'center', padding: '16px 0' }}><div style={{ fontSize: 24, color: C.textTertiary, marginBottom: 6, opacity: 0.4 }}>{lens.icon}</div><div style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans, lineHeight: 1.5 }}>Your land is ready to be read.</div></div>}
+          {lens.summary ? <div style={{ fontSize: 13, color: C.textSecondary, lineHeight: 1.6, marginBottom: 12, fontFamily: F.sans }}>{lens.summary}</div> : <div style={{ textAlign: 'center', padding: '16px 0' }}><div style={{ fontSize: 28, color: C.textTertiary, marginBottom: 6, opacity: 0.4 }}>{lens.icon}</div><div style={{ fontSize: 13, color: C.textTertiary, fontFamily: F.sans, lineHeight: 1.5 }}>Your land is ready to be read.</div></div>}
           {lens.keyData.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 10 }}>
               {lens.keyData.map((kd) => (
                 <div key={kd.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans }}>{kd.label}</span>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}><span style={{ fontSize: 10, color: C.textPrimary, fontFamily: F.mono, fontWeight: 600 }}>{kd.value}</span><ConfidenceDot level={kd.confidence} /></div>
+                  <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans }}>{kd.label}</span>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}><span style={{ fontSize: 12, color: C.textPrimary, fontFamily: F.mono, fontWeight: 600 }}>{kd.value}</span><ConfidenceDot level={kd.confidence} /></div>
                 </div>
               ))}
             </div>
           )}
-          {lens.divergence && <div style={{ marginBottom: 8, padding: '8px 10px', background: C.amberDim, borderRadius: 6, border: `1px solid ${C.amber}30` }}><div style={{ fontSize: 9, color: C.amber, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Unresolved Divergence</div><div style={{ fontSize: 10, color: C.textSecondary, marginTop: 3 }}>{lens.divergence.label}</div><div style={{ fontSize: 9, color: C.textTertiary, marginTop: 2, fontFamily: F.mono }}>{lens.divergence.age} ago</div></div>}
-          {lens.planTrigger && <div style={{ marginBottom: 8, padding: '8px 10px', background: C.goldDim, borderRadius: 6, border: `1px solid ${C.gold}30` }}><div style={{ fontSize: 9, color: C.gold, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Plan Trigger</div><div style={{ fontSize: 10, color: C.textSecondary, marginTop: 3 }}>{lens.planTrigger.label}</div></div>}
+          {lens.divergence && <div style={{ marginBottom: 8, padding: '8px 10px', background: C.amberDim, borderRadius: 6, border: `1px solid ${C.amber}30` }}><div style={{ fontSize: 11, color: C.amber, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Unresolved Divergence</div><div style={{ fontSize: 12, color: C.textSecondary, marginTop: 3 }}>{lens.divergence.label}</div><div style={{ fontSize: 11, color: C.textTertiary, marginTop: 2, fontFamily: F.mono }}>{lens.divergence.age} ago</div></div>}
+          {lens.planTrigger && <div style={{ marginBottom: 8, padding: '8px 10px', background: C.goldDim, borderRadius: 6, border: `1px solid ${C.gold}30` }}><div style={{ fontSize: 11, color: C.gold, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Plan Trigger</div><div style={{ fontSize: 12, color: C.textSecondary, marginTop: 3 }}>{lens.planTrigger.label}</div></div>}
           {detail && (
-            <button onClick={() => onOpenDetail(activeLens as ObserveLensId)} style={{ width: '100%', padding: '8px 0', background: lens.color + '18', border: `1px solid ${lens.color}40`, borderRadius: 7, color: lens.color, fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans, letterSpacing: '0.02em' }}>
+            <button onClick={() => onOpenDetail(activeLens as ObserveLensId)} style={{ width: '100%', padding: '8px 0', background: lens.color + '18', border: `1px solid ${lens.color}40`, borderRadius: 7, color: lens.color, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans, letterSpacing: '0.02em' }}>
               Domain Detail → All {lens.observations} observations
             </button>
           )}
@@ -252,7 +252,7 @@ export function DomainsView({ activeLens, onSelectLens, onOpenDetail, horizontal
   return (
     <div style={outerStyle}>
       {!horizontal && (
-        <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>6 Observational Lenses</div>
+        <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>6 Observational Lenses</div>
       )}
       {LENSES.map((lens) => {
         const isActive = activeLens === lens.id;
@@ -261,17 +261,17 @@ export function DomainsView({ activeLens, onSelectLens, onOpenDetail, horizontal
           <div key={lens.id} style={horizontal ? { width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column' } : { marginBottom: 6 }}>
             <div onClick={() => onSelectLens(isActive ? 'all' : lens.id)} style={{ padding: '10px 12px', background: isActive ? lens.color + '14' : C.bg3, border: `1px solid ${isActive ? lens.color + '50' : C.border}`, borderRadius: hasDetail ? '8px 8px 0 0' : 8, cursor: 'pointer', transition: 'all 0.15s' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 14, color: lens.color }}>{lens.icon}</span><span style={{ fontSize: 11, fontWeight: 600, color: C.textPrimary, fontFamily: F.sans }}>{lens.label}</span></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ fontSize: 16, color: lens.color }}>{lens.icon}</span><span style={{ fontSize: 13, fontWeight: 600, color: C.textPrimary, fontFamily: F.sans }}>{lens.label}</span></div>
                 <FreshnessBadge freshness={lens.freshness} compact />
               </div>
               <div style={{ marginTop: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>{lens.observations} obs{lens.lastObserved ? ` · ${lens.lastObserved}` : ''}</span>
-                {lens.divergence && <span style={{ fontSize: 9, color: C.amber }}>▲ Divergence</span>}
+                <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>{lens.observations} obs{lens.lastObserved ? ` · ${lens.lastObserved}` : ''}</span>
+                {lens.divergence && <span style={{ fontSize: 11, color: C.amber }}>▲ Divergence</span>}
               </div>
-              {lens.summary && <div style={{ marginTop: 4, fontSize: 10, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.5 }}>{lens.summary.length > 70 ? lens.summary.slice(0, 68) + '…' : lens.summary}</div>}
+              {lens.summary && <div style={{ marginTop: 4, fontSize: 12, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.5 }}>{lens.summary.length > 70 ? lens.summary.slice(0, 68) + '…' : lens.summary}</div>}
             </div>
             {hasDetail && (
-              <button onClick={() => onOpenDetail(lens.id)} style={{ width: '100%', padding: '6px 0', background: lens.color + '0A', border: `1px solid ${lens.color}30`, borderTop: 'none', borderRadius: '0 0 8px 8px', color: lens.color, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>
+              <button onClick={() => onOpenDetail(lens.id)} style={{ width: '100%', padding: '6px 0', background: lens.color + '0A', border: `1px solid ${lens.color}30`, borderTop: 'none', borderRadius: '0 0 8px 8px', color: lens.color, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans }}>
                 View all observations →
               </button>
             )}
@@ -302,7 +302,7 @@ function TemporalView({ lens, activeLens }: { lens?: LensDisplay; activeLens: st
     living: { metric: 'Soil pH', points: [{ cycle: 'Baseline', date: 'Mar 24', value: 5.2, location: 'Zone 1' }, { cycle: 'Baseline', date: 'Mar 24', value: 5.4, location: 'Zone 2' }, { cycle: 'Baseline', date: 'Mar 24', value: 6.1, location: 'Zone 3' }] },
   };
   const data = activeLens && activeLens !== 'all' ? TEMPORAL_DATA[activeLens] : null;
-  if (!data) return <div style={{ padding: '20px 16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: C.textTertiary, marginBottom: 8, fontFamily: F.sans }}>Select a lens to view its timeline</div><div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans }}>Timeline requires ≥ 2 observations at the same location across cycles.</div></div>;
+  if (!data) return <div style={{ padding: '20px 16px', textAlign: 'center' }}><div style={{ fontSize: 13, color: C.textTertiary, marginBottom: 8, fontFamily: F.sans }}>Select a lens to view its timeline</div><div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans }}>Timeline requires ≥ 2 observations at the same location across cycles.</div></div>;
   const values = data.points.map((p) => p.value), min = Math.min(...values) * 0.9, max = Math.max(...values) * 1.1, range = max - min;
   const chartH = 100, chartW = 240, pad = 16;
   const pts = data.points.map((p, i) => ({ ...p, px: pad + (i / (data.points.length - 1)) * (chartW - pad * 2), py: chartH - pad - ((p.value - min) / range) * (chartH - pad * 2) }));
@@ -311,8 +311,8 @@ function TemporalView({ lens, activeLens }: { lens?: LensDisplay; activeLens: st
   const areaD = first && last ? `${pathD} L ${last.px} ${chartH - pad} L ${first.px} ${chartH - pad} Z` : pathD;
   return (
     <div style={{ padding: '12px' }}>
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Timeline · {lens?.label}</div>
-      <div style={{ fontSize: 10, color: C.textSecondary, marginBottom: 10, fontFamily: F.sans }}>{data.metric}</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Timeline · {lens?.label}</div>
+      <div style={{ fontSize: 12, color: C.textSecondary, marginBottom: 10, fontFamily: F.sans }}>{data.metric}</div>
       <div style={{ background: C.bg3, borderRadius: 8, padding: '12px', border: `1px solid ${C.border}`, marginBottom: 10 }}>
         <svg viewBox={`0 0 ${chartW} ${chartH}`} width="100%" style={{ display: 'block' }}>
           <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={lens?.color || C.teal} stopOpacity="0.3" /><stop offset="100%" stopColor={lens?.color || C.teal} stopOpacity="0" /></linearGradient></defs>
@@ -323,8 +323,8 @@ function TemporalView({ lens, activeLens }: { lens?: LensDisplay; activeLens: st
       </div>
       {pts.map((p, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: `1px solid ${C.border}` }}>
-          <div><span style={{ fontSize: 10, color: C.textPrimary, fontFamily: F.mono, fontWeight: 600 }}>{p.value}</span><span style={{ fontSize: 9, color: C.textTertiary, marginLeft: 6, fontFamily: F.sans }}>{p.location}</span></div>
-          <div style={{ textAlign: 'right' }}><div style={{ fontSize: 9, color: C.textSecondary, fontFamily: F.mono }}>{p.date}</div><div style={{ fontSize: 8, color: C.textTertiary, fontFamily: F.sans }}>{p.cycle}</div></div>
+          <div><span style={{ fontSize: 12, color: C.textPrimary, fontFamily: F.mono, fontWeight: 600 }}>{p.value}</span><span style={{ fontSize: 11, color: C.textTertiary, marginLeft: 6, fontFamily: F.sans }}>{p.location}</span></div>
+          <div style={{ textAlign: 'right' }}><div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.mono }}>{p.date}</div><div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans }}>{p.cycle}</div></div>
         </div>
       ))}
     </div>
@@ -359,19 +359,19 @@ export function DomainDetailSlideUp({ lensId, onClose }: { lensId: ObserveLensId
       {/* ── Header ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', height: 52, flexShrink: 0, background: C.bg2, borderBottom: `1px solid ${C.border}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={onClose} style={{ background: C.bg3, border: `1px solid ${C.border}`, borderRadius: 6, padding: '4px 10px', color: C.textSecondary, fontSize: 11, cursor: 'pointer', fontFamily: F.sans }}>← Back</button>
+          <button onClick={onClose} style={{ background: C.bg3, border: `1px solid ${C.border}`, borderRadius: 6, padding: '4px 10px', color: C.textSecondary, fontSize: 13, cursor: 'pointer', fontFamily: F.sans }}>← Back</button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 16, color: lens.color }}>{lens.icon}</span>
+            <span style={{ fontSize: 18, color: lens.color }}>{lens.icon}</span>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: lens.color, fontFamily: F.serif }}>{detail.lensLabel}</div>
-              <div style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans }}>{detail.domains.join(' · ')}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: lens.color, fontFamily: F.serif }}>{detail.lensLabel}</div>
+              <div style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>{detail.domains.join(' · ')}</div>
             </div>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <FreshnessBadge freshness={detail.freshness} />
-          <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>{detail.totalPoints} data points</span>
-          <button style={{ padding: '4px 12px', borderRadius: 14, fontSize: 10, fontWeight: 600, background: C.bg3, border: `1px solid ${C.border}`, color: C.textSecondary, cursor: 'pointer', fontFamily: F.sans }}>View Timeline ↗</button>
+          <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>{detail.totalPoints} data points</span>
+          <button style={{ padding: '4px 12px', borderRadius: 14, fontSize: 12, fontWeight: 600, background: C.bg3, border: `1px solid ${C.border}`, color: C.textSecondary, cursor: 'pointer', fontFamily: F.sans }}>View Timeline ↗</button>
         </div>
       </div>
 
@@ -403,7 +403,7 @@ export function DomainDetailSlideUp({ lensId, onClose }: { lensId: ObserveLensId
           {/* Filter bar */}
           <div style={{ padding: '8px 14px', borderBottom: `1px solid ${C.border}`, display: 'flex', gap: 5, flexWrap: 'wrap', flexShrink: 0, background: C.bg2 }}>
             {['all', ...allTypes].map((t) => (
-              <button key={t} onClick={() => setActiveFilter(t)} style={{ padding: '3px 10px', borderRadius: 10, border: `1px solid ${t === activeFilter ? lens.color : C.border}`, background: t === activeFilter ? lens.color + '20' : 'transparent', color: t === activeFilter ? lens.color : C.textTertiary, fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans, textTransform: t === 'all' ? 'none' : 'capitalize' }}>
+              <button key={t} onClick={() => setActiveFilter(t)} style={{ padding: '3px 10px', borderRadius: 10, border: `1px solid ${t === activeFilter ? lens.color : C.border}`, background: t === activeFilter ? lens.color + '20' : 'transparent', color: t === activeFilter ? lens.color : C.textTertiary, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: F.sans, textTransform: t === 'all' ? 'none' : 'capitalize' }}>
                 {TYPE_ICON[t] || ''} {t === 'all' ? 'All types' : t.replace('_', ' ')}
               </button>
             ))}
@@ -420,17 +420,17 @@ export function DomainDetailSlideUp({ lensId, onClose }: { lensId: ObserveLensId
                   {/* Sub-domain header */}
                   <div onClick={() => toggleCollapsed(sd.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 14px', cursor: 'pointer', background: C.bg2, borderBottom: `1px solid ${C.border}`, position: 'sticky', top: 0, zIndex: 2 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <span style={{ fontSize: 12, color: lens.color, opacity: 0.7 }}>{sd.icon}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: C.textSecondary, fontFamily: F.sans }}>{sd.label}</span>
-                      <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>{sd.points.length} {sd.points.length === 1 ? 'point' : 'points'}</span>
+                      <span style={{ fontSize: 13, color: lens.color, opacity: 0.7 }}>{sd.icon}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: C.textSecondary, fontFamily: F.sans }}>{sd.label}</span>
+                      <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>{sd.points.length} {sd.points.length === 1 ? 'point' : 'points'}</span>
                     </div>
-                    <span style={{ fontSize: 9, color: C.textTertiary }}>{isCollapsed ? '▸' : '▾'}</span>
+                    <span style={{ fontSize: 11, color: C.textTertiary }}>{isCollapsed ? '▸' : '▾'}</span>
                   </div>
 
                   {/* Points */}
                   {!isCollapsed && filtered.length === 0 && sd.emptyNote && (
                     <div style={{ padding: '14px 16px', background: 'transparent' }}>
-                      <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans, lineHeight: 1.6, fontStyle: 'italic' }}>{sd.emptyNote}</div>
+                      <div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans, lineHeight: 1.6, fontStyle: 'italic' }}>{sd.emptyNote}</div>
                     </div>
                   )}
                   {!isCollapsed && filtered.map((pt) => (
@@ -444,9 +444,9 @@ export function DomainDetailSlideUp({ lensId, onClose }: { lensId: ObserveLensId
             {divergencePoints.length > 0 && (
               <div>
                 <div style={{ padding: '9px 14px', background: C.amberDim, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.amber}30`, display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ fontSize: 11, color: C.amber }}>▲</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: C.amber, fontFamily: F.sans }}>Divergence Records</span>
-                  <span style={{ fontSize: 9, color: C.amber + '99', fontFamily: F.mono }}>{divergencePoints.length} unresolved</span>
+                  <span style={{ fontSize: 13, color: C.amber }}>▲</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: C.amber, fontFamily: F.sans }}>Divergence Records</span>
+                  <span style={{ fontSize: 11, color: C.amber + '99', fontFamily: F.mono }}>{divergencePoints.length} unresolved</span>
                 </div>
                 {divergencePoints.map((pt) => (
                   <DataPointRow key={pt.id} pt={pt} lensColor={C.amber} isDivergenceSection isExpanded={expandedPoint === pt.id} onToggle={() => { togglePoint(pt.id); setMapFocusId(pt.id); }} />
@@ -478,30 +478,30 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
       {/* Row summary */}
       <div onClick={onToggle} style={{ padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         {/* Type icon */}
-        <div style={{ width: 24, height: 24, borderRadius: 5, flexShrink: 0, marginTop: 1, background: isDivergence ? C.amberDim : rowColor + '18', border: `1px solid ${isDivergence ? C.amber + '40' : rowColor + '30'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: isDivergence ? C.amber : rowColor }}>
+        <div style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0, marginTop: 1, background: isDivergence ? C.amberDim : rowColor + '18', border: `1px solid ${isDivergence ? C.amber + '40' : rowColor + '30'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: isDivergence ? C.amber : rowColor }}>
           {isDivergence ? '▲' : (TYPE_ICON[pt.type] || '·')}
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: isSuperseded ? C.textTertiary : C.textPrimary, fontFamily: F.sans, lineHeight: 1.3 }}>{pt.label}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: isSuperseded ? C.textTertiary : C.textPrimary, fontFamily: F.sans, lineHeight: 1.3 }}>{pt.label}</span>
             {isSuperseded && (
-              <span style={{ fontSize: 8, background: C.bg4, border: `1px solid ${C.border}`, borderRadius: 4, padding: '1px 5px', color: C.textTertiary, fontFamily: F.sans, fontWeight: 600 }}>SUPERSEDED</span>
+              <span style={{ fontSize: 10, background: C.bg4, border: `1px solid ${C.border}`, borderRadius: 4, padding: '1px 5px', color: C.textTertiary, fontFamily: F.sans, fontWeight: 600 }}>SUPERSEDED</span>
             )}
             {pt.supersedesId && (
-              <span style={{ fontSize: 8, background: C.greenDim, border: `1px solid ${C.green}30`, borderRadius: 4, padding: '1px 5px', color: C.green, fontFamily: F.sans, fontWeight: 600 }}>REPLACES EARLIER</span>
+              <span style={{ fontSize: 10, background: C.greenDim, border: `1px solid ${C.green}30`, borderRadius: 4, padding: '1px 5px', color: C.green, fontFamily: F.sans, fontWeight: 600 }}>REPLACES EARLIER</span>
             )}
           </div>
-          <div style={{ fontSize: 11, color: rowColor, fontFamily: F.mono, fontWeight: 600, marginBottom: 3 }}>{pt.value}</div>
+          <div style={{ fontSize: 13, color: rowColor, fontFamily: F.mono, fontWeight: 600, marginBottom: 3 }}>{pt.value}</div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans }}>{pt.location}</span>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>·</span>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>{pt.observedAt}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>{pt.location}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>·</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>{pt.observedAt}</span>
             <ConfidenceDot level={pt.confidence} />
           </div>
         </div>
 
-        <span style={{ fontSize: 10, color: C.textTertiary, flexShrink: 0, marginTop: 6 }}>{isExpanded ? '▲' : '▼'}</span>
+        <span style={{ fontSize: 12, color: C.textTertiary, flexShrink: 0, marginTop: 6 }}>{isExpanded ? '▲' : '▼'}</span>
       </div>
 
       {/* Expanded detail */}
@@ -510,26 +510,26 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
 
           {/* Proof record */}
           <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Proof Record</div>
+            <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>Proof Record</div>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
               {(pt.photos ?? 0) > 0 && (
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 8px', background: C.bg4, borderRadius: 5, border: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: 9, color: C.textSecondary }}>⊡ {pt.photos} photo{(pt.photos ?? 0) > 1 ? 's' : ''}</span>
+                  <span style={{ fontSize: 11, color: C.textSecondary }}>⊡ {pt.photos} photo{(pt.photos ?? 0) > 1 ? 's' : ''}</span>
                 </div>
               )}
               {(pt.gpsPoints ?? 0) > 0 && (
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 8px', background: C.bg4, borderRadius: 5, border: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: 9, color: C.textSecondary }}>• {pt.gpsPoints} GPS point{(pt.gpsPoints ?? 0) > 1 ? 's' : ''}</span>
+                  <span style={{ fontSize: 11, color: C.textSecondary }}>• {pt.gpsPoints} GPS point{(pt.gpsPoints ?? 0) > 1 ? 's' : ''}</span>
                 </div>
               )}
               {pt.measurements && (
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '3px 8px', background: C.bg4, borderRadius: 5, border: `1px solid ${C.border}` }}>
-                  <span style={{ fontSize: 9, color: C.textSecondary }}>⊞ {pt.measurements}</span>
+                  <span style={{ fontSize: 11, color: C.textSecondary }}>⊞ {pt.measurements}</span>
                 </div>
               )}
             </div>
             {pt.notes && (
-              <div style={{ fontSize: 10, color: C.textSecondary, lineHeight: 1.6, fontFamily: F.sans, fontStyle: 'italic', padding: '8px 10px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.6, fontFamily: F.sans, fontStyle: 'italic', padding: '8px 10px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.border}` }}>
                 "{pt.notes}"
               </div>
             )}
@@ -538,37 +538,37 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
           {/* Source + cycle */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 8 }}>
             <div style={{ background: C.bg4, borderRadius: 5, padding: '6px 8px', border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 8, color: C.textTertiary, fontFamily: F.sans, marginBottom: 2 }}>Source task</div>
-              <div style={{ fontSize: 9, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.sourceTask}</div>
+              <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans, marginBottom: 2 }}>Source task</div>
+              <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.sourceTask}</div>
             </div>
             <div style={{ background: C.bg4, borderRadius: 5, padding: '6px 8px', border: `1px solid ${C.border}` }}>
-              <div style={{ fontSize: 8, color: C.textTertiary, fontFamily: F.sans, marginBottom: 2 }}>Plan objective</div>
-              <div style={{ fontSize: 9, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.planObjective}</div>
+              <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans, marginBottom: 2 }}>Plan objective</div>
+              <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, lineHeight: 1.4 }}>{pt.planObjective}</div>
             </div>
           </div>
 
           {/* Timestamps + cycle */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>Observed: {pt.observedAt}</span>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>Recorded: {pt.recordedAt}</span>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>{pt.cycle}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Observed: {pt.observedAt}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Recorded: {pt.recordedAt}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>{pt.cycle}</span>
           </div>
 
           {/* Supersession notice */}
           {pt.isSuperseded && (
             <div style={{ padding: '6px 9px', background: C.bg4, borderRadius: 5, border: `1px solid ${C.border}`, marginBottom: 8 }}>
-              <div style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans }}>
+              <div style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>
                 Superseded by a later observation at the same location.
-                <button style={{ marginLeft: 8, fontSize: 9, color: C.blue, background: 'none', border: 'none', cursor: 'pointer', fontFamily: F.sans, padding: 0 }}>View superseding record →</button>
+                <button style={{ marginLeft: 8, fontSize: 11, color: C.blue, background: 'none', border: 'none', cursor: 'pointer', fontFamily: F.sans, padding: 0 }}>View superseding record →</button>
               </div>
-              <button style={{ marginTop: 5, fontSize: 9, color: C.textTertiary, background: 'none', border: `1px solid ${C.border}`, borderRadius: 4, padding: '2px 7px', cursor: 'pointer', fontFamily: F.sans }}>Mark as "not a replacement"</button>
+              <button style={{ marginTop: 5, fontSize: 11, color: C.textTertiary, background: 'none', border: `1px solid ${C.border}`, borderRadius: 4, padding: '2px 7px', cursor: 'pointer', fontFamily: F.sans }}>Mark as "not a replacement"</button>
             </div>
           )}
           {pt.supersedesId && (
             <div style={{ padding: '6px 9px', background: C.greenDim, borderRadius: 5, border: `1px solid ${C.green}20`, marginBottom: 8 }}>
-              <div style={{ fontSize: 9, color: C.green, fontFamily: F.sans }}>
+              <div style={{ fontSize: 11, color: C.green, fontFamily: F.sans }}>
                 Replaces an earlier observation.
-                <button style={{ marginLeft: 8, fontSize: 9, color: C.green, background: 'none', border: 'none', cursor: 'pointer', fontFamily: F.sans, padding: 0 }}>View superseded record →</button>
+                <button style={{ marginLeft: 8, fontSize: 11, color: C.green, background: 'none', border: 'none', cursor: 'pointer', fontFamily: F.sans, padding: 0 }}>View superseded record →</button>
               </div>
             </div>
           )}
@@ -576,9 +576,9 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
           {/* Divergence status */}
           {pt.isDivergence && (
             <div style={{ padding: '7px 10px', background: C.amberDim, borderRadius: 6, border: `1px solid ${C.amber}30` }}>
-              <div style={{ fontSize: 9, color: C.amber, fontWeight: 700, marginBottom: 2 }}>Unresolved divergence · {pt.divergenceAge} open</div>
-              <div style={{ fontSize: 9, color: C.textSecondary, fontFamily: F.sans, marginBottom: 6 }}>No Plan revision triggered yet. Review required before next Act cycle.</div>
-              <button style={{ fontSize: 9, color: C.amber, background: 'none', border: `1px solid ${C.amber}40`, borderRadius: 4, padding: '3px 8px', cursor: 'pointer', fontFamily: F.sans }}>Flag for Plan revision →</button>
+              <div style={{ fontSize: 11, color: C.amber, fontWeight: 700, marginBottom: 2 }}>Unresolved divergence · {pt.divergenceAge} open</div>
+              <div style={{ fontSize: 11, color: C.textSecondary, fontFamily: F.sans, marginBottom: 6 }}>No Plan revision triggered yet. Review required before next Act cycle.</div>
+              <button style={{ fontSize: 11, color: C.amber, background: 'none', border: `1px solid ${C.amber}40`, borderRadius: 4, padding: '3px 8px', cursor: 'pointer', fontFamily: F.sans }}>Flag for Plan revision →</button>
             </div>
           )}
 
@@ -586,13 +586,13 @@ function DataPointRow({ pt, lensColor, isDivergenceSection, isExpanded, onToggle
           {pt.tags && pt.tags.length > 0 && (
             <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               {pt.tags.map((tag) => (
-                <span key={tag} style={{ fontSize: 8, color: C.textTertiary, background: C.bg4, border: `1px solid ${C.border}`, borderRadius: 3, padding: '2px 5px', fontFamily: F.mono }}>{tag}</span>
+                <span key={tag} style={{ fontSize: 10, color: C.textTertiary, background: C.bg4, border: `1px solid ${C.border}`, borderRadius: 3, padding: '2px 5px', fontFamily: F.mono }}>{tag}</span>
               ))}
             </div>
           )}
 
           {/* View on map */}
-          <button style={{ marginTop: 10, fontSize: 9, color: lensColor, background: lensColor + '10', border: `1px solid ${lensColor}30`, borderRadius: 5, padding: '4px 10px', cursor: 'pointer', fontFamily: F.sans, fontWeight: 600 }}>⊹ View on map</button>
+          <button style={{ marginTop: 10, fontSize: 11, color: lensColor, background: lensColor + '10', border: `1px solid ${lensColor}30`, borderRadius: 5, padding: '4px 10px', cursor: 'pointer', fontFamily: F.sans, fontWeight: 600 }}>⊹ View on map</button>
         </div>
       )}
     </div>
@@ -709,30 +709,30 @@ function HydrologySpecialised({ data, color }: { data: HydrologyData; color: str
   const maxRate = Math.max(...data.infiltrationData.map((d) => d.rate));
   return (
     <div>
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Infiltration Rate Comparison</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Infiltration Rate Comparison</div>
       {data.infiltrationData.map((d) => (
         <div key={d.zone} style={{ marginBottom: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-            <span style={{ fontSize: 10, color: C.textSecondary, fontFamily: F.sans }}>{d.zone}</span>
-            <span style={{ fontSize: 10, color: color, fontFamily: F.mono, fontWeight: 600 }}>{d.rate} mm/hr</span>
+            <span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans }}>{d.zone}</span>
+            <span style={{ fontSize: 12, color: color, fontFamily: F.mono, fontWeight: 600 }}>{d.rate} mm/hr</span>
           </div>
           <div style={{ height: 6, background: C.bg4, borderRadius: 3, overflow: 'hidden' }}>
             <div style={{ height: '100%', borderRadius: 3, width: `${(d.rate / maxRate) * 100}%`, background: d.status === 'good' ? C.green : d.status === 'moderate' ? C.amber : C.red, transition: 'width 0.5s' }} />
           </div>
-          <div style={{ fontSize: 8, color: C.textTertiary, marginTop: 2, fontFamily: F.sans, textTransform: 'capitalize' }}>{d.status}</div>
+          <div style={{ fontSize: 10, color: C.textTertiary, marginTop: 2, fontFamily: F.sans, textTransform: 'capitalize' }}>{d.status}</div>
         </div>
       ))}
 
       <div style={{ height: 1, background: C.border, margin: '12px 0' }} />
 
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Water Source Inventory</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Water Source Inventory</div>
       {data.sources.map((s, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: `1px solid ${C.border}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            {s.divergence && <span style={{ fontSize: 9, color: C.amber }}>▲</span>}
+            {s.divergence && <span style={{ fontSize: 11, color: C.amber }}>▲</span>}
             <div>
-              <div style={{ fontSize: 10, color: s.divergence ? C.amber : C.textPrimary, fontFamily: F.sans, fontWeight: s.divergence ? 600 : 400 }}>{s.label}</div>
-              <div style={{ fontSize: 8, color: C.textTertiary, fontFamily: F.sans, textTransform: 'capitalize' }}>{s.type} · {s.status}</div>
+              <div style={{ fontSize: 12, color: s.divergence ? C.amber : C.textPrimary, fontFamily: F.sans, fontWeight: s.divergence ? 600 : 400 }}>{s.label}</div>
+              <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans, textTransform: 'capitalize' }}>{s.type} · {s.status}</div>
             </div>
           </div>
           <ConfidenceDot level={s.confidence} />
@@ -746,12 +746,12 @@ function HydrologySpecialised({ data, color }: { data: HydrologyData; color: str
 function SoilSpecialised({ data, color }: { data: SoilData; color: string }) {
   return (
     <div>
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Soil pH by Zone</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Soil pH by Zone</div>
       {data.phData.map((d) => (
         <div key={d.zone} style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-            <span style={{ fontSize: 10, color: C.textSecondary, fontFamily: F.sans }}>{d.zone}</span>
-            <span style={{ fontSize: 10, color: color, fontFamily: F.mono, fontWeight: 600 }}>pH {d.ph}</span>
+            <span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans }}>{d.zone}</span>
+            <span style={{ fontSize: 12, color: color, fontFamily: F.mono, fontWeight: 600 }}>pH {d.ph}</span>
           </div>
           {/* pH bar: 4.0 (acid) → 8.0 (alkaline), ideal 6.0–7.0 */}
           <div style={{ height: 8, background: C.bg4, borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
@@ -759,12 +759,12 @@ function SoilSpecialised({ data, color }: { data: SoilData; color: string }) {
             <div style={{ position: 'absolute', left: '50%', width: '25%', height: '100%', background: C.green + '20', borderLeft: `1px solid ${C.green}30`, borderRight: `1px solid ${C.green}30` }} />
             <div style={{ position: 'absolute', height: '100%', width: 6, borderRadius: 3, background: d.ph < 6 ? C.amber : d.ph > 7 ? C.blue : C.green, left: `${((d.ph - 4) / 4) * 100}%`, transform: 'translateX(-50%)' }} />
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 7, color: C.textTertiary, fontFamily: F.mono, marginTop: 2 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: C.textTertiary, fontFamily: F.mono, marginTop: 2 }}>
             <span>4.0 acid</span><span>ideal 6–7</span><span>8.0 alkaline</span>
           </div>
           <div style={{ marginTop: 4, display: 'flex', gap: 8 }}>
-            <span style={{ fontSize: 9, color: C.textTertiary }}>OM {d.om}%</span>
-            <span style={{ fontSize: 9, color: C.textTertiary }}>Compaction: {d.compaction}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary }}>OM {d.om}%</span>
+            <span style={{ fontSize: 11, color: C.textTertiary }}>Compaction: {d.compaction}</span>
           </div>
         </div>
       ))}
@@ -776,24 +776,24 @@ function SoilSpecialised({ data, color }: { data: SoilData; color: string }) {
 function TopographySpecialised({ data }: { data: TopographyData }) {
   return (
     <div>
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Elevation Zones</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Elevation Zones</div>
       {data.elevationZones.map((z, i) => (
         <div key={i} style={{ marginBottom: 8, padding: '8px 10px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.border}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 3 }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: z.color, fontFamily: F.sans }}>{z.label}</span>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>{z.area}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: z.color, fontFamily: F.sans }}>{z.label}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>{z.area}</span>
           </div>
-          <div style={{ fontSize: 9, color: C.textSecondary, marginBottom: 1 }}>{z.aspect}</div>
-          <div style={{ fontSize: 9, color: C.textTertiary, fontStyle: 'italic' }}>{z.use}</div>
+          <div style={{ fontSize: 11, color: C.textSecondary, marginBottom: 1 }}>{z.aspect}</div>
+          <div style={{ fontSize: 11, color: C.textTertiary, fontStyle: 'italic' }}>{z.use}</div>
         </div>
       ))}
       <div style={{ height: 1, background: C.border, margin: '12px 0' }} />
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Slope Breakdown</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Slope Breakdown</div>
       {data.slopeBreakdown.map((s, i) => (
         <div key={i} style={{ marginBottom: 8 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-            <span style={{ fontSize: 10, color: C.textSecondary, fontFamily: F.sans }}>{s.label}</span>
-            <span style={{ fontSize: 10, color: s.color, fontFamily: F.mono, fontWeight: 600 }}>{s.pct}%</span>
+            <span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans }}>{s.label}</span>
+            <span style={{ fontSize: 12, color: s.color, fontFamily: F.mono, fontWeight: 600 }}>{s.pct}%</span>
           </div>
           <div style={{ height: 5, background: C.bg4, borderRadius: 3, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${s.pct}%`, background: s.color, borderRadius: 3, transition: 'width 0.5s' }} />
@@ -813,7 +813,7 @@ function ClimateSpecialised({ data, color }: { data: ClimateData; color: string 
 
   return (
     <div>
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Wind Rose</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Wind Rose</div>
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
         <svg viewBox="0 0 160 160" width={150} height={150}>
           <circle cx={cx} cy={cy} r={r} fill="none" stroke={C.border} strokeWidth="0.5" />
@@ -842,14 +842,14 @@ function ClimateSpecialised({ data, color }: { data: ClimateData; color: string 
       </div>
 
       <div style={{ height: 1, background: C.border, margin: '8px 0 12px' }} />
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Microclimate Zones</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Microclimate Zones</div>
       {data.microclimates.map((m, i) => (
         <div key={i} style={{ marginBottom: 6, padding: '7px 9px', background: C.bg4, borderRadius: 6, border: `1px solid ${C.border}` }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
-            <span style={{ fontSize: 10, color: C.textPrimary, fontFamily: F.sans, fontWeight: 600 }}>{m.label}</span>
-            <span style={{ fontSize: 8, color: riskColor[m.risk] || C.textTertiary, fontFamily: F.mono }}>{m.size}</span>
+            <span style={{ fontSize: 12, color: C.textPrimary, fontFamily: F.sans, fontWeight: 600 }}>{m.label}</span>
+            <span style={{ fontSize: 10, color: riskColor[m.risk] || C.textTertiary, fontFamily: F.mono }}>{m.size}</span>
           </div>
-          <div style={{ fontSize: 9, color: C.textSecondary }}>{m.character}</div>
+          <div style={{ fontSize: 11, color: C.textSecondary }}>{m.character}</div>
         </div>
       ))}
     </div>
@@ -861,12 +861,12 @@ function HumanSpecialised({ data }: { data: HumanData }) {
   const statusColor: Record<string, string> = { pending: '#D4944A', outstanding: '#C45A4A', flagged: '#C45A4A', confirmed: '#5AAF72' };
   return (
     <div>
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Readiness Overview</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10 }}>Readiness Overview</div>
       {data.capacityBars.map((b, i) => (
         <div key={i} style={{ marginBottom: 9 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-            <span style={{ fontSize: 10, color: C.textSecondary, fontFamily: F.sans }}>{b.label}</span>
-            <span style={{ fontSize: 10, color: b.color, fontFamily: F.mono, fontWeight: 600 }}>{b.pct}%</span>
+            <span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans }}>{b.label}</span>
+            <span style={{ fontSize: 12, color: b.color, fontFamily: F.mono, fontWeight: 600 }}>{b.pct}%</span>
           </div>
           <div style={{ height: 6, background: C.bg4, borderRadius: 3, overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${b.pct}%`, background: b.color, borderRadius: 3, transition: 'width 0.5s' }} />
@@ -875,13 +875,13 @@ function HumanSpecialised({ data }: { data: HumanData }) {
       ))}
 
       <div style={{ height: 1, background: C.border, margin: '12px 0' }} />
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Consent & Compliance</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Consent & Compliance</div>
       {data.consentItems.map((item, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: `1px solid ${C.border}` }}>
-          <span style={{ fontSize: 10, color: C.textSecondary, fontFamily: F.sans, flex: 1, paddingRight: 8 }}>{item.label}</span>
+          <span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans, flex: 1, paddingRight: 8 }}>{item.label}</span>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: 9, color: statusColor[item.status] || C.textTertiary, fontWeight: 600, textTransform: 'capitalize' }}>{item.status}</div>
-            {item.weeks !== '—' && <div style={{ fontSize: 8, color: C.textTertiary, fontFamily: F.mono }}>{item.weeks}</div>}
+            <div style={{ fontSize: 11, color: statusColor[item.status] || C.textTertiary, fontWeight: 600, textTransform: 'capitalize' }}>{item.status}</div>
+            {item.weeks !== '—' && <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>{item.weeks}</div>}
           </div>
         </div>
       ))}
@@ -895,19 +895,19 @@ function InfrastructureEmptySpecialised({ data }: { data: InfraEmptyData }) {
   return (
     <div>
       <div style={{ textAlign: 'center', padding: '16px 0 14px' }}>
-        <div style={{ fontSize: 28, color: C.textTertiary, opacity: 0.25, marginBottom: 8 }}>◫</div>
-        <div style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans, lineHeight: 1.6, marginBottom: 4 }}>Your land is ready to be read.</div>
-        <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans, opacity: 0.7 }}>No infrastructure observations yet.</div>
+        <div style={{ fontSize: 32, color: C.textTertiary, opacity: 0.25, marginBottom: 8 }}>◫</div>
+        <div style={{ fontSize: 13, color: C.textTertiary, fontFamily: F.sans, lineHeight: 1.6, marginBottom: 4 }}>Your land is ready to be read.</div>
+        <div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans, opacity: 0.7 }}>No infrastructure observations yet.</div>
       </div>
       <div style={{ height: 1, background: C.border, margin: '8px 0 12px' }} />
-      <div style={{ fontSize: 9, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Suggested First Observations</div>
+      <div style={{ fontSize: 11, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Suggested First Observations</div>
       {data.suggestedTasks.map((t, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: `1px solid ${C.border}` }}>
           <div>
-            <div style={{ fontSize: 10, color: C.textSecondary, fontFamily: F.sans, marginBottom: 1 }}>{t.label}</div>
-            <div style={{ fontSize: 8, color: C.textTertiary, fontFamily: F.sans }}>{t.domain}</div>
+            <div style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans, marginBottom: 1 }}>{t.label}</div>
+            <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans }}>{t.domain}</div>
           </div>
-          <span style={{ fontSize: 8, color: priorityColor[t.priority], fontFamily: F.mono, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.priority}</span>
+          <span style={{ fontSize: 10, color: priorityColor[t.priority], fontFamily: F.mono, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t.priority}</span>
         </div>
       ))}
     </div>
@@ -970,7 +970,8 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
 
   // ── Full spiral diagram (reused by horizontal expanded panel + vertical rail) ──
   const spiralDiagram = (
-    <svg width={SVG_W} height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`}>
+    <svg width="100%" height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ maxWidth: SVG_W }}>
+
       <defs>
         <filter id="spglow">
           <feGaussianBlur stdDeviation="2.5" result="b" />
@@ -1068,36 +1069,36 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
     <>
       {/* Current phase call-out */}
       <div style={{ padding: '8px 12px', borderRadius: 7, background: C.green + '0F', border: `1px solid ${C.green}25`, marginBottom: 8 }}>
-        <div style={{ fontSize: 9, color: C.green, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3, fontFamily: F.sans }}>Now · Observe active</div>
-        <div style={{ fontSize: 11, color: C.textPrimary, fontFamily: F.sans, lineHeight: 1.5 }}>{CYCLE.elapsed} days in · {CYCLE.totalDays - CYCLE.elapsed} days remain before Cycle {CYCLE.number + 1} begins</div>
+        <div style={{ fontSize: 11, color: C.green, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3, fontFamily: F.sans }}>Now · Observe active</div>
+        <div style={{ fontSize: 13, color: C.textPrimary, fontFamily: F.sans, lineHeight: 1.5 }}>{CYCLE.elapsed} days in · {CYCLE.totalDays - CYCLE.elapsed} days remain before Cycle {CYCLE.number + 1} begins</div>
       </div>
 
       {/* Signals */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 6, background: reviewUrgent ? C.amberDim : C.bg3, border: `1px solid ${reviewUrgent ? C.amber + '40' : C.border}` }}>
-          <span style={{ fontSize: 14, color: reviewUrgent ? C.amber : C.textTertiary }}>◷</span>
+          <span style={{ fontSize: 16, color: reviewUrgent ? C.amber : C.textTertiary }}>◷</span>
           <div>
-            <div style={{ fontSize: 10, color: reviewUrgent ? C.amber : C.textSecondary, fontWeight: 600, fontFamily: F.sans }}>Plan review in {CYCLE.nextReviewDays} days</div>
-            <div style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans }}>Land evidence feeds next planning cycle</div>
+            <div style={{ fontSize: 12, color: reviewUrgent ? C.amber : C.textSecondary, fontWeight: 600, fontFamily: F.sans }}>Plan review in {CYCLE.nextReviewDays} days</div>
+            <div style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>Land evidence feeds next planning cycle</div>
           </div>
         </div>
 
         {CYCLE.staleDomains.map((d) => (
           <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 6, background: C.redDim, border: `1px solid ${C.red}30` }}>
-            <span style={{ fontSize: 14, color: C.red }}>○</span>
+            <span style={{ fontSize: 16, color: C.red }}>○</span>
             <div>
-              <div style={{ fontSize: 10, color: C.red, fontWeight: 600, fontFamily: F.sans }}>{d} — data gone stale</div>
-              <div style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans }}>Observations overdue · refresh before Plan review</div>
+              <div style={{ fontSize: 12, color: C.red, fontWeight: 600, fontFamily: F.sans }}>{d} — data gone stale</div>
+              <div style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>Observations overdue · refresh before Plan review</div>
             </div>
           </div>
         ))}
 
         {CYCLE.ageingDomains.map((d) => (
           <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 6, background: C.amberDim, border: `1px solid ${C.amber}30` }}>
-            <span style={{ fontSize: 14, color: C.amber }}>◑</span>
+            <span style={{ fontSize: 16, color: C.amber }}>◑</span>
             <div>
-              <div style={{ fontSize: 10, color: C.amber, fontWeight: 600, fontFamily: F.sans }}>{d} — ageing</div>
-              <div style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans }}>Within threshold · refresh recommended</div>
+              <div style={{ fontSize: 12, color: C.amber, fontWeight: 600, fontFamily: F.sans }}>{d} — ageing</div>
+              <div style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>Within threshold · refresh recommended</div>
             </div>
           </div>
         ))}
@@ -1107,22 +1108,25 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
 
   // ── Vertical sidebar mode (full, always-expanded) ──
   if (vertical) {
+    // Fills the StageShell left rail (width/height 100%) and draws its own bento
+    // card (surface + border + radius), mirroring Act's .railPanel. No fixed
+    // width / flexShrink / borderRight -- the rail grid owns the column width.
     return (
-      <div style={{ width: 260, flexShrink: 0, background: C.bg2, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+      <div style={{ width: '100%', height: '100%', background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
         {/* Cycle header */}
         <div style={{ padding: '12px 14px 10px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>CYCLE {CYCLE.number}</span>
-            <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans }}>{CYCLE.name}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>CYCLE {CYCLE.number}</span>
+            <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans }}>{CYCLE.name}</span>
           </div>
           <div style={{ display: 'flex', gap: 3, marginBottom: 8 }}>
             {phases.map((ph) => (
-              <span key={ph.id} style={{ fontSize: 8, fontFamily: F.sans, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: ph.status === 'active' ? ph.color + '22' : 'transparent', border: `1px solid ${ph.status === 'active' ? ph.color + '55' : C.border}`, color: ph.status === 'active' ? ph.color : C.textTertiary }}>
+              <span key={ph.id} style={{ fontSize: 10, fontFamily: F.sans, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: ph.status === 'active' ? ph.color + '22' : 'transparent', border: `1px solid ${ph.status === 'active' ? ph.color + '55' : C.border}`, color: ph.status === 'active' ? ph.color : C.textTertiary }}>
                 {ph.label}{ph.status === 'active' ? ' ●' : ' ✓'}
               </span>
             ))}
           </div>
-          <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>Day {CYCLE.elapsed} / {CYCLE.totalDays}</span>
+          <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Day {CYCLE.elapsed} / {CYCLE.totalDays}</span>
         </div>
 
         {/* Spiral */}
@@ -1174,28 +1178,28 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
         </svg>
 
         {/* Cycle label */}
-        <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono, marginRight: 4 }}>CYCLE {CYCLE.number}</span>
-        <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.sans, marginRight: 10 }}>{CYCLE.name}</span>
+        <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono, marginRight: 4 }}>CYCLE {CYCLE.number}</span>
+        <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.sans, marginRight: 10 }}>{CYCLE.name}</span>
 
         {/* Phase pills */}
         <div style={{ display: 'flex', gap: 3, marginRight: 10 }}>
           {phases.map((ph) => (
-            <span key={ph.id} style={{ fontSize: 8, fontFamily: F.sans, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: ph.status === 'active' ? ph.color + '22' : 'transparent', border: `1px solid ${ph.status === 'active' ? ph.color + '55' : C.border}`, color: ph.status === 'active' ? ph.color : C.textTertiary }}>
+            <span key={ph.id} style={{ fontSize: 10, fontFamily: F.sans, fontWeight: 600, padding: '1px 6px', borderRadius: 8, background: ph.status === 'active' ? ph.color + '22' : 'transparent', border: `1px solid ${ph.status === 'active' ? ph.color + '55' : C.border}`, color: ph.status === 'active' ? ph.color : C.textTertiary }}>
               {ph.label}{ph.status === 'active' ? ' ●' : ' ✓'}
             </span>
           ))}
         </div>
 
         {/* Day counter */}
-        <span style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono, marginRight: 'auto' }}>Day {CYCLE.elapsed} / {CYCLE.totalDays}</span>
+        <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono, marginRight: 'auto' }}>Day {CYCLE.elapsed} / {CYCLE.totalDays}</span>
 
         {/* Signals */}
         <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
           {CYCLE.staleDomains.length > 0 && (
-            <span style={{ fontSize: 8, color: C.red, fontFamily: F.sans, padding: '2px 7px', borderRadius: 8, background: C.redDim, border: `1px solid ${C.red}30` }}>{CYCLE.staleDomains.length} stale</span>
+            <span style={{ fontSize: 10, color: C.red, fontFamily: F.sans, padding: '2px 7px', borderRadius: 8, background: C.redDim, border: `1px solid ${C.red}30` }}>{CYCLE.staleDomains.length} stale</span>
           )}
-          <span style={{ fontSize: 8, fontFamily: F.mono, fontWeight: 700, padding: '2px 8px', borderRadius: 8, background: reviewUrgent ? C.amberDim : C.bg3, border: `1px solid ${reviewUrgent ? C.amber + '50' : C.border}`, color: reviewUrgent ? C.amber : C.textTertiary }}>{CYCLE.nextReviewDays}d to review</span>
-          <span style={{ fontSize: 9, color: C.textTertiary }}>{expanded ? '▲' : '▼'}</span>
+          <span style={{ fontSize: 10, fontFamily: F.mono, fontWeight: 700, padding: '2px 8px', borderRadius: 8, background: reviewUrgent ? C.amberDim : C.bg3, border: `1px solid ${reviewUrgent ? C.amber + '50' : C.border}`, color: reviewUrgent ? C.amber : C.textTertiary }}>{CYCLE.nextReviewDays}d to review</span>
+          <span style={{ fontSize: 11, color: C.textTertiary }}>{expanded ? '▲' : '▼'}</span>
         </div>
       </div>
 
@@ -1313,23 +1317,23 @@ export function TopBar() {
     <div style={{ height: 44, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', background: C.bg2, borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: C.textPrimary, letterSpacing: '0.06em', fontFamily: F.sans }}>OGDEN</span>
-          <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans }}>Land OS</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, letterSpacing: '0.06em', fontFamily: F.sans }}>OGDEN</span>
+          <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans }}>Land OS</span>
         </div>
         <div style={{ width: 1, height: 16, background: C.border }} />
         <div style={{ display: 'flex', gap: 3 }}>
           {[{ label: 'Observe', pct: 37, active: true, color: C.green }, { label: 'Plan', pct: 13, active: false, color: C.blue }, { label: 'Act', pct: 21, active: false, color: C.violet }].map((s) => (
             <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 16, background: s.active ? s.color + '20' : 'transparent', border: `1px solid ${s.active ? s.color + '60' : C.border}`, cursor: 'pointer' }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: s.active ? s.color : C.textTertiary, fontFamily: F.sans }}>{s.label}</span>
-              <span style={{ fontSize: 9, color: s.active ? s.color + 'CC' : C.textTertiary, fontFamily: F.mono }}>{s.pct}%</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: s.active ? s.color : C.textTertiary, fontFamily: F.sans }}>{s.label}</span>
+              <span style={{ fontSize: 11, color: s.active ? s.color + 'CC' : C.textTertiary, fontFamily: F.mono }}>{s.pct}%</span>
             </div>
           ))}
         </div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans }}>{PROJECT.name}</div>
-        <button style={{ padding: '4px 12px', borderRadius: 14, fontSize: 10, fontWeight: 600, background: C.bg3, border: `1px solid ${C.border}`, color: C.textSecondary, cursor: 'pointer', fontFamily: F.sans }}>Share ↗</button>
-        <button style={{ padding: '4px 12px', borderRadius: 14, fontSize: 10, fontWeight: 600, background: C.bg3, border: `1px solid ${C.border}`, color: C.textSecondary, cursor: 'pointer', fontFamily: F.sans }}>Present</button>
+        <div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.sans }}>{PROJECT.name}</div>
+        <button style={{ padding: '4px 12px', borderRadius: 14, fontSize: 12, fontWeight: 600, background: C.bg3, border: `1px solid ${C.border}`, color: C.textSecondary, cursor: 'pointer', fontFamily: F.sans }}>Share ↗</button>
+        <button style={{ padding: '4px 12px', borderRadius: 14, fontSize: 12, fontWeight: 600, background: C.bg3, border: `1px solid ${C.border}`, color: C.textSecondary, cursor: 'pointer', fontFamily: F.sans }}>Present</button>
       </div>
     </div>
   );
