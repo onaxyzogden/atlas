@@ -57,6 +57,21 @@ export default function ObserveLensSpine({
             <span className={css.tierTitle}>All lenses</span>
             <span className={css.tierMeta}>No filter</span>
           </button>
+          {/* Invisible clone of the lens tabs' detail button: same class, text
+              and width, so it wraps to the identical height at any viewport and
+              this tab stays exactly as tall as the lens tabs (no real "View all
+              observations" affordance on the All-lenses tab). */}
+          <span
+            className={css.tierDetail}
+            aria-hidden="true"
+            style={{
+              visibility: 'hidden',
+              border: '1px solid transparent',
+              borderTop: 'none',
+            }}
+          >
+            View all observations &rarr;
+          </span>
         </div>
 
         {LENSES.map((lens) => {

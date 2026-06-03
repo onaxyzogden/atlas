@@ -72,6 +72,9 @@
 
 .tier {
   width: 100%;
+  /* Grow to fill the wrap so every tab button is the same height (the spineRow
+     stretches all wraps to the tallest) and the detail button bottom-aligns. */
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -161,6 +164,8 @@
    connected to its squared bottom edge. Dynamic colour supplied inline. */
 .tierDetail {
   width: 100%;
+  box-sizing: border-box;
+  line-height: 1.2;
   padding: 6px 12px;
   border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
   font-family: inherit;
