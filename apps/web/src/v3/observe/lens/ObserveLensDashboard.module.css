@@ -1,0 +1,30 @@
+/* ObserveLensDashboard.module.css -- tier-shell wrapper for the Observe lens.
+ *
+ * Mirrors act/tier-shell/ActTierShell.module.css: an outer flex column that
+ * stacks the TopBar + lens spine (flex:0 0 auto) above a shellWrap that owns
+ * the remaining height and hosts the real StageShell. No CSS `zoom` -- the lens
+ * renders at Act's natural proportions.
+ */
+
+.lensShell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-bg, #0f0f0d);
+}
+
+.shellWrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* The bottom tray must never widen the center column -- let it scroll-x
+ * instead (mirrors Act's `.tierShell :global([data-stage-bottom])` guard). */
+.lensShell :global([data-stage-bottom]) {
+  min-width: 0;
+}
