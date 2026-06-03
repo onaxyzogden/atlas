@@ -1,12 +1,17 @@
 import { useState } from 'react';
 import { C, F, PLAN_RECIPE, fToC, type PlanObjective } from './model.js';
+import { useCompostStore } from './useCompostStore.js';
 
 // ─── PLAN STAGE ───────────────────────────────────────────────────────────────
 export default function PlanStage() {
-  const [selectedObj, setSelectedObj] = useState<PlanObjective | undefined>(PLAN_RECIPE.objectives[2]);
+  // The org-shared Plan payload from the server; PLAN_RECIPE is the offline
+  // fallback. `planRecipeFromPile` reproduces the exact PlanRecipe shape (incl.
+  // °F targets), so all the JSX below renders unchanged either way.
+  const pile = useCompostStore((s) => s.pile) ?? PLAN_RECIPE;
+  const [selectedObj, setSelectedObj] = useState<PlanObjective | undefined>(pile.objectives[2]);
   const [activeSection, setActiveSection] = useState<string>("objectives");
 
-  const dims = PLAN_RECIPE.dimensions;
+  const dims = pile.dimensions;
   const vol = dims.l * dims.w * dims.h;
 
   return (
@@ -20,9 +25,9 @@ export default function PlanStage() {
         <div style={{ padding: "14px 16px 10px", borderBottom: `1px solid ${C.border}` }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.amber, marginBottom: 2 }}>Plan</div>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, fontFamily: F.serif }}>
-            {PLAN_RECIPE.pileName}
+            {pile.pileName}
           </div>
-          <div style={{ fontSize: 10, color: C.textSecondary, marginTop: 2 }}>{PLAN_RECIPE.site}</div>
+          <div style={{ fontSize: 10, color: C.textSecondary, marginTop: 2 }}>{pile.site}</div>
         </div>
 
         {/* Section nav */}
@@ -46,9 +51,9 @@ export default function PlanStage() {
           {[
             { label: "Dimensions", value: `${dims.l}×${dims.w}×${dims.h} ft` },
             { label: "Volume", value: `${vol} cu ft`, good: vol >= 27 },
-            { label: "C:N Ratio", value: `${PLAN_RECIPE.cnRatio}:1`, good: true },
-            { label: "Target moisture", value: `${PLAN_RECIPE.targetMoisture}%`, good: true },
-            { label: "Target temp", value: `${fToC(PLAN_RECIPE.targetTempMin)}–${fToC(PLAN_RECIPE.targetTempMax)}°C`, good: true },
+            { label: "C:N Ratio", value: `${pile.cnRatio}:1`, good: true },
+            { label: "Target moisture", value: `${pile.targetMoisture}%`, good: true },
+            { label: "Target temp", value: `${fToC(pile.targetTempMin)}–${fToC(pile.targetTempMax)}°C`, good: true },
           ].map(v => (
             <div key={v.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
               <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans }}>{v.label}</span>
@@ -78,7 +83,7 @@ export default function PlanStage() {
               <div style={{ fontSize: 10, color: C.textTertiary, marginTop: 2 }}>5 objectives across 3 tiers</div>
             </div>
             <div style={{ flex: 1, overflowY: "auto", padding: "8px 8px" }}>
-              {PLAN_RECIPE.objectives.map(obj => {
+              {pile.objectives.map(obj => {
                 const isSel = selectedObj?.id === obj.id;
                 const statusColors: Record<string, string> = { complete: C.green, available: C.amber, locked: C.textTertiary };
                 const sc = statusColors[obj.status] ?? C.textTertiary;
@@ -124,7 +129,7 @@ export default function PlanStage() {
                 </div>
               </div>
 
-              {PLAN_RECIPE.layers.map((layer, i) => (
+              {pile.layers.map((layer, i) => (
                 <div key={layer.id} style={{
                   display: "flex", alignItems: "center", gap: 10,
                   padding: "8px 10px", marginBottom: 3, borderRadius: 7,
@@ -154,11 +159,11 @@ export default function PlanStage() {
             <div style={{ padding: "14px 14px 8px", borderBottom: `1px solid ${C.border}` }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: C.textPrimary }}>Build Checklist</div>
               <div style={{ fontSize: 10, color: C.textTertiary, marginTop: 2 }}>
-                {PLAN_RECIPE.checklist.filter(c => c.done).length} / {PLAN_RECIPE.checklist.length} complete
+                {pile.checklist.filter(c => c.done).length} / {pile.checklist.length} complete
               </div>
             </div>
             <div style={{ flex: 1, overflowY: "auto", padding: "10px 10px" }}>
-              {PLAN_RECIPE.checklist.map(item => (
+              {pile.checklist.map(item => (
                 <div key={item.id} style={{
                   display: "flex", alignItems: "flex-start", gap: 10,
                   padding: "9px 10px", marginBottom: 4, borderRadius: 7,

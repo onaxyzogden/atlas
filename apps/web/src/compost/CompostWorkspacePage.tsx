@@ -9,7 +9,7 @@
 
 import { useState } from 'react';
 import { C, F } from './model.js';
-import { useCompostStore } from './useCompostStore.js';
+import { useCompostHydration } from './useCompostHydration.js';
 import PlanStage from './PlanStage.js';
 import ActStage from './ActStage.js';
 import ObserveStage from './ObserveStage.js';
@@ -114,9 +114,10 @@ function TopBar({
 
 export default function CompostWorkspacePage() {
   const [stage, setStage] = useState<Stage>('plan');
-  // Touch the store so the slice rehydrates from localStorage on first mount,
-  // before Act/Observe read it. (Selecting `readings` is enough to subscribe.)
-  void useCompostStore((s) => s.readings.length);
+  // Wire the slice to the server: resolve-or-create the org's site/pile, seed
+  // the textbook readings on first load, and register the reconnect reflush.
+  // (Also subscribes the component to the store via the auth selector.)
+  useCompostHydration();
 
   return (
     <div className={styles.workspace}>

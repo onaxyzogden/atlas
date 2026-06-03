@@ -85,6 +85,10 @@ import type {
   PoiProjectFlow,
   CreatePoiFlowInput,
   UpdatePoiFlowInput,
+  CompostSite,
+  CompostPile,
+  CompostReading,
+  CompostReadingSource,
 } from '@ogden/shared';
 
 // ─── Base Fetch ──────────────────────────────────────────────────────────────
@@ -153,7 +157,7 @@ export function setApiClientErrorReporter(fn: ((r: ApiClientErrorReport) => void
 // (mirrors the reporter injection above) to drive the connectivity store's
 // `apiReachable` signal back to true once the server responds. A server that
 // recovers (restart) fires no browser `online` event, so an explicit success
-// signal is required for the API-unreachable banner to auto-clear.
+// signal is required for the API-unreachable status chip to auto-clear.
 let apiSuccessHandler: (() => void) | null = null;
 
 export function setApiSuccessHandler(fn: (() => void) | null) {
@@ -275,8 +279,9 @@ export const api = {
   // Lightweight, unauthenticated reachability ping. Hits the proxied
   // /api/v1/health route (the root /health is not under the web app's /api dev
   // proxy). A 2xx fires the apiClient success hook (→ apiReachable = true) on
-  // the authed path; ApiReachabilityBanner's no-token Retry also flips the flag
-  // directly off a resolved call, since the success hook is wired authed-only.
+  // the authed path; the shared attemptApiRecovery (apiRecovery.ts) no-token
+  // path also flips the flag directly off a resolved call, since the success
+  // hook is wired authed-only.
   health: () =>
     request<{ status: string; timestamp: string; version: string }>(
       'GET', '/api/v1/health',
@@ -1570,6 +1575,76 @@ export const api = {
           'DELETE',
           `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
         ),
+    },
+  },
+
+  // ── Compost vertical (org-scoped Site / Pile / Reading; /api/v1/compost) ──
+  // The thermophilic-composting vertical persists piles + readings to typed
+  // org-scoped tables (NOT project-scoped synced_records). Mirrors the
+  // organizations/olos groups; `request` injects the Bearer token and drives
+  // the connectivity store's apiReachable signal.
+  compost: {
+    sites: {
+      list: (orgId: string) =>
+        request<CompostSite[]>(
+          'GET',
+          `/api/v1/compost/sites?orgId=${encodeURIComponent(orgId)}`,
+        ),
+      create: (input: Omit<CompostSite, 'id' | 'ownerId'>) =>
+        request<CompostSite>('POST', '/api/v1/compost/sites', input),
+      get: (siteId: string) =>
+        request<CompostSite>('GET', `/api/v1/compost/sites/${siteId}`),
+      update: (
+        siteId: string,
+        patch: Partial<Omit<CompostSite, 'id' | 'orgId' | 'ownerId'>>,
+      ) => request<CompostSite>('PATCH', `/api/v1/compost/sites/${siteId}`, patch),
+      delete: (siteId: string) =>
+        request<void>('DELETE', `/api/v1/compost/sites/${siteId}`),
+    },
+
+    piles: {
+      list: (siteId: string) =>
+        request<CompostPile[]>('GET', `/api/v1/compost/sites/${siteId}/piles`),
+      create: (
+        siteId: string,
+        input: Omit<CompostPile, 'id' | 'siteId' | 'orgId' | 'ownerId'>,
+      ) => request<CompostPile>('POST', `/api/v1/compost/sites/${siteId}/piles`, input),
+      get: (pileId: string) =>
+        request<CompostPile>('GET', `/api/v1/compost/piles/${pileId}`),
+      update: (
+        pileId: string,
+        patch: Partial<Omit<CompostPile, 'id' | 'siteId' | 'orgId' | 'ownerId'>>,
+      ) => request<CompostPile>('PATCH', `/api/v1/compost/piles/${pileId}`, patch),
+      delete: (pileId: string) =>
+        request<void>('DELETE', `/api/v1/compost/piles/${pileId}`),
+    },
+
+    readings: {
+      list: (pileId: string, source?: CompostReadingSource) => {
+        const suffix = source ? `?source=${source}` : '';
+        return request<CompostReading[]>(
+          'GET',
+          `/api/v1/compost/piles/${pileId}/readings${suffix}`,
+        );
+      },
+      create: (
+        pileId: string,
+        input: Omit<CompostReading, 'id' | 'pileId' | 'recordedBy'>,
+      ) =>
+        request<CompostReading>(
+          'POST',
+          `/api/v1/compost/piles/${pileId}/readings`,
+          input,
+        ),
+      get: (readingId: string) =>
+        request<CompostReading>('GET', `/api/v1/compost/readings/${readingId}`),
+      update: (
+        readingId: string,
+        patch: Partial<Omit<CompostReading, 'id' | 'pileId' | 'recordedBy'>>,
+      ) =>
+        request<CompostReading>('PATCH', `/api/v1/compost/readings/${readingId}`, patch),
+      delete: (readingId: string) =>
+        request<void>('DELETE', `/api/v1/compost/readings/${readingId}`),
     },
   },
 };
