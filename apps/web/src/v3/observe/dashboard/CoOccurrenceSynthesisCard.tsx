@@ -1,8 +1,8 @@
 /**
- * CoOccurrenceSynthesisCard — read-only Observe synthesis surface that
+ * CoOccurrenceSynthesisCard -- read-only Observe synthesis surface that
  * mirrors the shipped Plan-view co-occurrence banner. Observe SYNTHESIZES,
  * it does not act: this card carries NO Acknowledge/Resolve/Dismiss
- * controls — only a single passive "Resolve in Plan" text pointer.
+ * controls -- only a single passive "Resolve in Plan" text pointer.
  *
  * Surfaces cross-protocol "structural verdict" clusters: groups of >=2
  * distinct review-flag templates that deviated together in the same
@@ -24,7 +24,7 @@ export default function CoOccurrenceSynthesisCard({ projectId }: Props) {
   // cross-domain 16-domain dashboard, so there is no single domainId from
   // which to derive a meaningful cycleNumber. A season-only bucket is a
   // verified no-op for the dormancy filter, so we pass no bucket at all.
-  // (Same decision as the already-shipped Plan shell — do NOT "add the
+  // (Same decision as the already-shipped Plan shell -- do NOT "add the
   // missing bucket" here.)
   const clusters: CoOccurrenceCluster[] = useCoOccurrenceClusters(projectId);
 
