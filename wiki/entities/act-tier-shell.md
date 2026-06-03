@@ -117,7 +117,12 @@ show-everything tool strip with an objective-conditional, categorized rail
   materialKind `greywater`) to `closedLoopStore` via `addMaterialFlow` -- mirroring
   Plan's `WasteVectorListView` and reusing `useFlowEndpointOptions` +
   `MATERIAL_KIND_CONFIG`; endpoints accept structured features or free text, with
-  closed-loop credit requiring both pinned. It is deliberately isolated from Plan's
+  closed-loop credit requiring both pinned. The popover now renders LIVE credit
+  guidance (`flowCreditStatus.ts` -- `earned` / `prompt` / `no-features`) that reflects
+  the current From/To selections at author time (positive green note when both are
+  pinned; the `no-features` state replaces "pin both" advice when the project has no
+  mapped features); guidance only -- it never gates Save
+  ([[log/2026-06-02-atlas-act-flow-connector-credit-guidance]]). It is deliberately isolated from Plan's
   `useInlineFormStore` host so it works on the tier-shell (which does not mount
   `InlineFeaturePopover`), and is attached to `s6-integration-design` (default) and
   `s5-water-infrastructure` (override) objectives. New sibling stylesheet
