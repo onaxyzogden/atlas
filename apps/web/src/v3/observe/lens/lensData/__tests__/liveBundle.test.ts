@@ -132,7 +132,7 @@ describe('buildLiveLensBundle -- project + cycle', () => {
     expect(pr.active).toBe(true);
     expect(pr.count).toBe(1);
     expect(pr.priority).toBe('high');
-    expect(pr.triggers[0].domain).toBe(UNIVERSAL_DOMAIN_LABELS['risk-compliance']);
+    expect(pr.triggers[0]!.domain).toBe(UNIVERSAL_DOMAIN_LABELS['risk-compliance']);
   });
 
   it('produces a nominal 3-phase cycle window', () => {
@@ -180,8 +180,8 @@ describe('buildLiveLensBundle -- domain detail degrade', () => {
       (s) => s.label === UNIVERSAL_DOMAIN_LABELS['risk-compliance'],
     )!;
     expect(riskSub.points).toHaveLength(1);
-    expect(riskSub.points[0].isDivergence).toBe(true);
-    expect(riskSub.points[0].divergenceStatus).toBe('Major constraint');
+    expect(riskSub.points[0]!.isDivergence).toBe(true);
+    expect(riskSub.points[0]!.divergenceStatus).toBe('Major constraint');
     // economics-capacity has no captures -> empty note.
     const econSub = human.subdomains.find(
       (s) => s.label === UNIVERSAL_DOMAIN_LABELS['economics-capacity'],
