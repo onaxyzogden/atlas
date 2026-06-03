@@ -1,8 +1,8 @@
 # ADR: Cross-protocol co-occurrence detection is a derived read-model over open review flags, surfaced on Plan + Observe
 
 **Date:** 2026-06-03
-**Status:** accepted (T1-T4 shipped; T5-T6 pending)
-**Branch:** `feat/atlas-permaculture` (commits `37ff5502`, `7e809728`, `f0cb88ce`, `0c85ceda`; **not pushed**)
+**Status:** accepted (T1-T6 complete; verified live via preview_eval)
+**Branch:** `feat/atlas-permaculture` (commits `37ff5502`, `7e809728`, `f0cb88ce`, `0c85ceda`, `b6336e2`, `5987bb1`; **not pushed**)
 
 ## Context
 
@@ -68,22 +68,33 @@ code so a later reader does not "add the missing bucket."
   `useReviewFlagCountsByObjective` exactly (stable `select(s => s.byProject)` +
   `useMemo` + module-level `EMPTY_CLUSTERS`), never an inline-filter selector.
 - The amber `#e8a958` token is reused from `DesignTensionBanner` -- no new palette.
-- **T4 caveat:** the planned full-shell mount test HANGS (the `PlanStratumShell`
-  router/store dependency surface is intractable to mock without the mount
-  stalling). A hanging test poisons CI, so it was NOT committed. T4 integration
-  rests on **web `tsc --noEmit` EXIT 0** (wiring is type-correct) + the committed
-  T3 component test + the deferred T6 live-preview gate. Recorded, not hidden.
-- **Pending:** T5 (Observe read-only card) and T6 (verification + `preview_eval`
-  gate, persist) remain. The feature is half-surfaced (Plan only) until T5 lands.
+- **T4 caveat (CLOSED by T6):** the planned full-shell mount test HANGS (the
+  `PlanStratumShell` router/store dependency surface is intractable to mock
+  without the mount stalling). A hanging test poisons CI, so it was NOT
+  committed; at the T4 commit the integration rested on web `tsc --noEmit`
+  EXIT 0 + the T3 component test. The T6 `preview_eval` gate then drove the real
+  shell in-browser and confirmed the banner mounts/expands/deep-links, closing
+  the gap empirically. Recorded, not hidden.
+- **T5/T6 complete:** the Observe read-only `CoOccurrenceSynthesisCard` shipped
+  (`b6336e2`; ASCII-comment fixup `5987bb1`) and the feature is now surfaced on
+  BOTH read surfaces. The T6 live preview gate (below) confirmed positive +
+  negative-control behaviour on both surfaces.
 
 ## Verification
 
-- T1 shared detection suite green; T2 hook + T3 banner suites green (bounded
-  `--pool=forks`); prior review-flag suites still green at their commits.
-- Web `tsc --noEmit` (8 GB heap) EXIT 0 after T4 -- zero errors in
-  `PlanStratumShell` or the co-occurrence files.
-- NOT browser-verified yet (T6 deferred). `preview_screenshot` unavailable on this
-  Windows setup; T6 will verify via `preview_eval` DOM (port 5200) and disclose.
+- Shared + web `tsc --noEmit` clean (web at 8 GB heap, EXIT 0) -- zero errors in
+  the co-occurrence files, `PlanStratumShell`, or `UnifiedLandStateSurface`.
+- Bounded `--pool=forks` sweep: 8 files / 56 tests green (four new co-occurrence
+  specs + prior review-flag / Objective suites) -- no regression.
+- **Live preview gate (T6), `preview_eval` DOM port 5200** (`preview_screenshot`
+  unavailable on this Windows setup -- DISCLOSED). For MTC (`projectId: 'mtc'`),
+  after backing up `localStorage['ogden-review-flags']`: a positive fixture (2
+  open flags, distinct templates, same `cycleNumber: 1`, one existential)
+  rendered the Plan `cooccurrence-banner` (expand -> ihsan summary, existential
+  row, 2 deep-links) AND the Observe `cooccurrence-synthesis-card` (0 buttons/
+  links = read-only confirmed live, existential flag, "Resolve in Plan" pointer);
+  a negative control (same template x2) rendered NEITHER surface. Original store
+  state + the Observe shell-toggle mode were restored afterward.
 
 Explicit-path commits; foreign working-tree WIP untouched
 ([[feedback-no-deletion]], [[feedback-commit-immediately-on-rebased-branches]]);

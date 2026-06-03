@@ -1,6 +1,6 @@
 # Design: Cross-protocol co-occurrence detection (root-cause-collapse verdict)
 
-**Status:** review (T1-T4 implemented; T5-T6 pending)
+**Status:** approved (T1-T6 complete; verified live via preview_eval)
 **Date:** 2026-06-03
 **Branch:** `feat/atlas-permaculture` (not pushed)
 **Parent:** `stages/design-protocol-downstream-objective-flags-review.md` (v4) names
@@ -113,25 +113,50 @@ container.
 | T1 shared detection + type (TDD) | DONE | `37ff5502` |
 | T2 `useCoOccurrenceClusters` hook (TDD) | DONE | `7e809728` |
 | T3 Plan-view banner component (TDD) | DONE | `f0cb88ce` |
-| T4 mount banner at Plan shell | DONE (caveat) | `0c85ceda` |
-| T5 Observe read-only synthesis card | PENDING | -- |
-| T6 verification + preview gate | PENDING | -- |
+| T4 mount banner at Plan shell | DONE (caveat closed by T6) | `0c85ceda` |
+| T5 Observe read-only synthesis card | DONE | `b6336e2`, `5987bb1` |
+| T6 verification + preview gate | DONE | docs-only (no code fix needed) |
 
-**T4 caveat (honest):** the planned full-shell mount test hangs -- the
-`PlanStratumShell` router/store dependency surface is intractable to mock without
-the mount stalling (the flagged feasibility risk materialized). The hanging test
-was NOT committed (a hanging test poisons CI). T4 integration rests on **web tsc
-EXIT 0** (the wiring is type-correct and compiles) + the committed T3 component
-test + the deferred T6 live-preview gate. Disclosed, not papered over.
+**T4 caveat (now CLOSED by the T6 live gate):** the planned full-shell mount
+test hangs -- the `PlanStratumShell` router/store dependency surface is
+intractable to mock without the mount stalling (the flagged feasibility risk
+materialized). The hanging test was NOT committed (a hanging test poisons CI), so
+at the T4 commit the integration rested on web tsc EXIT 0 + the T3 component test.
+The **T6 `preview_eval` gate then exercised the real shell in-browser** and
+confirmed the banner mounts, expands, deep-links, and renders the existential
+row -- empirically closing the gap the unit test could not cover. Disclosed, not
+papered over.
 
-## Verification to date
+## Verification (T6 complete)
 
-- T1 shared suite green; T2/T3 web suites green (bounded `--pool=forks`); all
-  prior review-flag suites still green at their commits.
-- Web `tsc --noEmit` (8 GB heap) EXIT 0 after T4 -- zero errors in
-  `PlanStratumShell` or the co-occurrence files.
-- NOT browser-verified yet (T6). `preview_screenshot` unavailable on this Windows
-  setup; the T6 gate will verify via `preview_eval` DOM (port 5200) and disclose.
+- Shared `tsc --noEmit` clean; web `tsc --noEmit` (8 GB heap) EXIT 0 -- zero
+  errors in the co-occurrence files, `PlanStratumShell`, or
+  `UnifiedLandStateSurface`.
+- Bounded `--pool=forks` sweep: 8 test files / 56 tests green -- the four new
+  co-occurrence specs (`coOccurrence`, `CoOccurrenceVerdictBanner`,
+  `reviewFlagStore.cooccurrence`, `CoOccurrenceSynthesisCard`) plus the prior
+  `reviewFlagStore` / `reviewFlagStore.dormancy` / `ObjectiveColumn` /
+  `ObjectiveDetailPanel` suites -- no regression.
+- **Live preview gate (`preview_eval` DOM, port 5200 -- `preview_screenshot`
+  unavailable on this Windows setup, DISCLOSED).** Backed up
+  `localStorage['ogden-review-flags']`, then for the MTC project (`projectId:
+  'mtc'`):
+  - **Positive** (two OPEN flags, distinct `sourceTemplateId`
+    [`paddock-rotation-cover-trigger` + `emergency-destocking`], same
+    `cycleNumber: 1`, one `existential`): Plan `/v3/project/mtc/plan` rendered
+    `cooccurrence-banner` ("1 structural verdict"); expanding showed the
+    "Structural design" theme, the ihsan summary prefix, the existential row
+    (`data-existential="true"`), and both deep-link buttons. Observe
+    `/v3/project/mtc/observe/dashboard` (Dashboard shell) rendered
+    `cooccurrence-synthesis-card` with the same cluster, ZERO buttons/links
+    (read-only invariant confirmed live), the existential flag, and the passive
+    "Resolve in Plan" pointer.
+  - **Negative control** (two OPEN flags, SAME `sourceTemplateId`, same cycle):
+    neither the Plan banner nor the Observe card rendered -- a single template
+    forms no cluster, as designed.
+  - **Cleanup:** restored the original `ogden-review-flags` value, removed the
+    temp backup key, and reset the Observe shell toggle to its prior
+    `module-bar` mode. App left as found.
 
 ## Deferred (explicit)
 
