@@ -36,9 +36,9 @@ vi.mock('../lib/apiClient.js', () => {
 import { api, ApiError } from '../lib/apiClient.js';
 import { useCompostStore } from './useCompostStore.js';
 import { useConnectivityStore } from './../store/connectivityStore.js';
-import { flushQueue } from './compostSync.js';
+import { flushQueue, hydrate } from './compostSync.js';
 import type { CompostOp } from './compostMapping.js';
-import type { Reading } from './model.js';
+import { READINGS, type Reading } from './model.js';
 
 const createReading = api.compost.readings.create as unknown as Mock;
 
@@ -127,6 +127,38 @@ describe('flushQueue — circuit breaker', () => {
 
     expect(useCompostStore.getState().queue).toHaveLength(0);
     expect(useConnectivityStore.getState().droppedStores).toContain(`compost:createReading:${tempId}`);
+  });
+});
+
+describe('hydrate — concurrent first-load coalescing (StrictMode guard)', () => {
+  it('creates exactly one site + pile and seeds once when invoked twice concurrently', async () => {
+    const sitesList = api.compost.sites.list as unknown as Mock;
+    const sitesCreate = api.compost.sites.create as unknown as Mock;
+    const pilesList = api.compost.piles.list as unknown as Mock;
+    const pilesCreate = api.compost.piles.create as unknown as Mock;
+    const readingsList = api.compost.readings.list as unknown as Mock;
+
+    // Fresh org: no site, no pile, no readings yet.
+    sitesList.mockResolvedValue({ data: [] });
+    sitesCreate.mockResolvedValue({ data: { id: 'site-1', orgId: 'o', name: 'Millbrook Farm' } });
+    pilesList.mockResolvedValue({ data: [] });
+    pilesCreate.mockResolvedValue({
+      data: {
+        id: 'pile-1', siteId: 'site-1', orgId: 'o', name: 'Pile 1', status: 'active',
+        recipeLayers: [], buildChecklist: [], objectives: [],
+      },
+    });
+    readingsList.mockResolvedValue({ data: [] });
+    createReading.mockResolvedValue({
+      data: { id: 'srv', pileId: 'pile-1', tempC: 60, turned: false, source: 'manual', capturedAt: '2026-03-04T12:00:00.000Z' },
+    });
+
+    // React 19 StrictMode double-invokes the mount effect → two overlapping calls.
+    await Promise.all([hydrate('o'), hydrate('o')]);
+
+    expect(sitesCreate).toHaveBeenCalledTimes(1); // not 2 — the race is coalesced
+    expect(pilesCreate).toHaveBeenCalledTimes(1);
+    expect(createReading).toHaveBeenCalledTimes(READINGS.length); // 35 seeded once
   });
 });
 

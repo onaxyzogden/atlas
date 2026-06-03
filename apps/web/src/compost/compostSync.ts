@@ -37,6 +37,15 @@ const STORE_TAG = 'compost';
 let flushing = false;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let reconnectUnsub: (() => void) | null = null;
+// In-flight hydration coalescing. React 19 StrictMode double-invokes the mount
+// effect (and useCompostHydration's cleanup can't cancel an async hydrate), so
+// two concurrent hydrate() calls would BOTH see an empty site list and BOTH
+// create a site/pile + re-seed — duplicating everything. Coalescing the
+// concurrent calls onto one promise (keyed by org) makes the first-load
+// resolve-or-create atomic per tab. (Cross-process first-load races between two
+// separate members remain a server-side idempotency follow-up.)
+let hydrating: Promise<void> | null = null;
+let hydratingOrg: string | null = null;
 
 /** Capped exponential backoff: min(1000 * 2^(n-1), 16000) ms. */
 function backoff(attempt: number): number {
@@ -176,6 +185,20 @@ export function scheduleFlush(): void {
  */
 export async function hydrate(orgId: string): Promise<void> {
   if (!orgId) return;
+  // Coalesce concurrent hydrations for the same org onto one in-flight promise
+  // (StrictMode double-mount guard — see `hydrating` declaration above). Once it
+  // settles the latch clears, so a genuine later remount re-fetches to pick up
+  // other members' readings.
+  if (hydrating && hydratingOrg === orgId) return hydrating;
+  hydrating = _hydrate(orgId).finally(() => {
+    hydrating = null;
+    hydratingOrg = null;
+  });
+  hydratingOrg = orgId;
+  return hydrating;
+}
+
+async function _hydrate(orgId: string): Promise<void> {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
     // Offline: keep the persisted cache, try to flush whatever is queued.
     void flushQueue();
