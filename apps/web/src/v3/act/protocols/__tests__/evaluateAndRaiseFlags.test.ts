@@ -275,4 +275,129 @@ describe('evaluateAndRaiseFlags', () => {
     // No confirmed activations -> empty confirmed set -> no flags.
     expect(calls).toHaveLength(0);
   });
+
+  // ---------------------------------------------------------------------------
+  // Tests 10-12 -- Establishment re-frame (T1.9)
+  // ---------------------------------------------------------------------------
+
+  it('10. commencementDate within 2 years -> flag reason prefixed with establishment annotation', () => {
+    // commencementDate 1 year ago (establishment window: effectiveYear <= 2)
+    const oneYearAgo = new Date(Date.now() - 365 * 24 * 3600 * 1000)
+      .toISOString()
+      .slice(0, 10); // YYYY-MM-DD
+
+    const activations: ProtocolActivation[] = [
+      makeActivation({
+        id: 'j1',
+        projectId: PROJECT,
+        templateId: 'paddock-rotation-cover-trigger',
+        confirmationStatus: 'confirmed',
+        activatedAt: '2024-06-01T10:00:00.000Z',
+        season: 'summer',
+      }),
+      makeActivation({
+        id: 'j2',
+        projectId: PROJECT,
+        templateId: 'paddock-rotation-cover-trigger',
+        confirmationStatus: 'confirmed',
+        activatedAt: '2024-06-02T10:00:00.000Z',
+        season: 'summer',
+      }),
+      makeActivation({
+        id: 'j3',
+        projectId: PROJECT,
+        templateId: 'paddock-rotation-cover-trigger',
+        confirmationStatus: 'confirmed',
+        activatedAt: '2024-06-03T10:00:00.000Z',
+        season: 'summer',
+      }),
+    ];
+
+    evaluateAndRaiseFlags({
+      projectId: PROJECT,
+      templateId: 'paddock-rotation-cover-trigger',
+      activations,
+      expectedRate: { count: 1, per: 'season' },
+      commencementDate: oneYearAgo,
+      raiseFlag,
+    });
+
+    expect(calls).toHaveLength(2);
+    const ESTABLISHMENT_PREFIX = '[Establishment - expected; interpret, don\'t conclude design failure] ';
+    // Primary flag reason starts with the prefix
+    expect(calls[0]!.reason).toMatch(new RegExp('^' + ESTABLISHMENT_PREFIX.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    // Cascade flag reason contains "downstream of" but also embeds the prefixed base reason
+    expect(calls[1]!.reason).toContain('[Establishment');
+  });
+
+  it('11. commencementDate absent -> NO establishment prefix on reason', () => {
+    const activations: ProtocolActivation[] = [
+      makeActivation({
+        id: 'k1',
+        projectId: PROJECT,
+        templateId: 'paddock-rotation-cover-trigger',
+        confirmationStatus: 'confirmed',
+        activatedAt: '2024-06-01T10:00:00.000Z',
+        season: 'summer',
+      }),
+      makeActivation({
+        id: 'k2',
+        projectId: PROJECT,
+        templateId: 'paddock-rotation-cover-trigger',
+        confirmationStatus: 'confirmed',
+        activatedAt: '2024-06-02T10:00:00.000Z',
+        season: 'summer',
+      }),
+    ];
+
+    evaluateAndRaiseFlags({
+      projectId: PROJECT,
+      templateId: 'paddock-rotation-cover-trigger',
+      activations,
+      expectedRate: { count: 1, per: 'season' },
+      commencementDate: undefined,
+      raiseFlag,
+    });
+
+    expect(calls).toHaveLength(2);
+    expect(calls[0]!.reason).not.toMatch(/^\[Establishment/);
+  });
+
+  it('12. commencementDate older than 2 years -> NO establishment prefix on reason', () => {
+    // commencementDate 3 years ago (outside establishment window)
+    const threeYearsAgo = new Date(Date.now() - 3 * 365.25 * 24 * 3600 * 1000)
+      .toISOString()
+      .slice(0, 10);
+
+    const activations: ProtocolActivation[] = [
+      makeActivation({
+        id: 'l1',
+        projectId: PROJECT,
+        templateId: 'paddock-rotation-cover-trigger',
+        confirmationStatus: 'confirmed',
+        activatedAt: '2024-06-01T10:00:00.000Z',
+        season: 'summer',
+      }),
+      makeActivation({
+        id: 'l2',
+        projectId: PROJECT,
+        templateId: 'paddock-rotation-cover-trigger',
+        confirmationStatus: 'confirmed',
+        activatedAt: '2024-06-02T10:00:00.000Z',
+        season: 'summer',
+      }),
+    ];
+
+    evaluateAndRaiseFlags({
+      projectId: PROJECT,
+      templateId: 'paddock-rotation-cover-trigger',
+      activations,
+      expectedRate: { count: 1, per: 'season' },
+      commencementDate: threeYearsAgo,
+      raiseFlag,
+    });
+
+    expect(calls).toHaveLength(2);
+    expect(calls[0]!.reason).not.toMatch(/^\[Establishment/);
+  });
 });

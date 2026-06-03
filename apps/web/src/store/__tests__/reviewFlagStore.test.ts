@@ -150,7 +150,10 @@ describe('reviewFlagStore - dedup (same objectiveId + sourceTemplateId + directi
     expect(flags?.[1]?.id).toBe('flag-2');
   });
 
-  it('adds a NEW row when the matching flag is dismissed (not open)', () => {
+  it('re-opens a dismissed flag (worsening) when new cumulative count > dismissedAtCount', () => {
+    // T1.9: dismissed-but-worsening replaces the old "adds a NEW row" behavior.
+    // FLAG_DEFAULTS.observedCount = 3; dismiss at 3; re-raise with count 3
+    // => cumulative 6 > 3 => re-open (1 flag, depth bumped), NOT a new row.
     const { raiseFlag, dismissFlag } = useReviewFlagStore.getState();
     raiseFlag({
       ...FLAG_DEFAULTS,
@@ -166,7 +169,9 @@ describe('reviewFlagStore - dedup (same objectiveId + sourceTemplateId + directi
     });
 
     const flags = useReviewFlagStore.getState().byProject['proj-1'];
-    expect(flags).toHaveLength(2);
+    // Re-opened in-place (not a new row) because cumulative (3+3=6) > dismissedAtCount (3).
+    expect(flags).toHaveLength(1);
+    expect(flags?.[0]?.dismissedAt).toBeUndefined();
   });
 
   it('adds a NEW row when the matching flag is dormant (not open)', () => {

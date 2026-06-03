@@ -44,6 +44,7 @@ import {
   useReviewFlagStore,
   isOpenReviewFlag,
 } from '../../../store/reviewFlagStore.js';
+import { useProtocolStore } from '../../../store/protocolStore.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 // T1.7 -- shared button style for the three review-flag action buttons.
@@ -144,6 +145,35 @@ export default function ObjectiveDetailPanel({
   const acknowledgeFlag = useReviewFlagStore((s) => s.acknowledgeFlag);
   const resolveFlag = useReviewFlagStore((s) => s.resolveFlag);
   const dismissFlag = useReviewFlagStore((s) => s.dismissFlag);
+
+  // T1.9 -- verify-loop copy: resolved flags that have a resolutionParameterDelta
+  // show a read-only section tracking post-resolution re-firings. Derive via
+  // stable-ref select + useMemo (no inline filter in selector).
+  const allActivations = useProtocolStore((s) => s.activations);
+  const verifyFlags = useMemo(
+    () =>
+      allReviewFlags.filter(
+        (f) => f.resolvedAt !== undefined && f.resolutionParameterDelta !== undefined,
+      ),
+    [allReviewFlags],
+  );
+  // For each verify flag, count activations confirmed AFTER resolvedAt.
+  const firingsSinceByFlagId = useMemo(() => {
+    const result: Record<string, number> = {};
+    for (const flag of verifyFlags) {
+      if (flag.resolvedAt === undefined) continue;
+      const resolvedMs = Date.parse(flag.resolvedAt);
+      const count = allActivations.filter(
+        (a) =>
+          a.projectId === projectId &&
+          a.templateId === flag.sourceTemplateId &&
+          a.confirmationStatus === 'confirmed' &&
+          Date.parse(a.activatedAt) > resolvedMs,
+      ).length;
+      result[flag.id] = count;
+    }
+    return result;
+  }, [allActivations, verifyFlags, projectId]);
 
   // Start the 90-day clock the first time the objective reaches `complete`.
   // The store guards re-writes so re-renders from other state are no-ops.
@@ -262,6 +292,40 @@ export default function ObjectiveDetailPanel({
                 </div>
               </li>
             ))}
+          </ul>
+        </section>
+      )}
+
+      {/* T1.9 -- verify-loop copy: resolved flags with a parameter delta.
+          Read-only; no action buttons. Shows post-resolution firing count vs
+          expected count plus a confound note about seasonal variation. */}
+      {verifyFlags.length > 0 && (
+        <section
+          aria-label="Verify resolved parameter changes"
+          data-testid="objective-verify-flags"
+          style={{
+            margin: '8px 12px',
+            padding: '10px 12px',
+            borderRadius: 8,
+            border: '1px solid rgba(100, 180, 130, 0.35)',
+            background: 'rgba(100, 180, 130, 0.07)',
+          }}
+        >
+          <h3 style={{ margin: '0 0 6px', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(100,200,140,0.9)' }}>
+            Verify parameter changes
+          </h3>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {verifyFlags.map((flag) => {
+              const delta = flag.resolutionParameterDelta;
+              if (delta === undefined) return null;
+              const firingsSince = firingsSinceByFlagId[flag.id] ?? 0;
+              const expected = flag.expectedRate?.count ?? 0;
+              return (
+                <li key={flag.id} data-testid={`verify-flag-${flag.id}`} style={{ fontSize: 13, lineHeight: 1.5, color: C.textPrimary }}>
+                  {`Since you changed ${delta.itemId} ${delta.from}->${delta.to}: fired ${firingsSince}x vs expected ${expected}x. Note: seasonal conditions also vary.`}
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}

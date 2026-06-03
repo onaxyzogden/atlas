@@ -97,6 +97,12 @@ export interface LocalProject {
    */
   startDate?: string | null;
   /**
+   * ISO YYYY-MM-DD. Date land establishment/planting began; drives the
+   * establishment-dip (years 1-2) re-frame on review flags. Distinct from
+   * startDate (Goal Compass scheduling anchor).
+   */
+  commencementDate?: string | null;
+  /**
    * Which Plan-stage shell the steward sees: the new 7-stratum spine
    * (OLOS Plan Navigation Spec v1) or the legacy module bar. Per-project
    * so legacy projects with `MTC_SEED` keep their module shape, while
@@ -590,6 +596,10 @@ export const useProjectStore = create<ProjectState>()(
             // Same rationale — Observe shell mode is a per-steward
             // UI choice, not narrative content.
             'observeShellMode',
+            // commencementDate is a steward-entered date, not narrative
+            // content -- must be settable on builtin sample projects so the
+            // establishment-dip re-frame works in preview/demo contexts.
+            'commencementDate',
           ];
           const filtered = Object.fromEntries(
             Object.entries(updates).filter(([k]) =>

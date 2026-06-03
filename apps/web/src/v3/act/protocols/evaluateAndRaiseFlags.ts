@@ -40,6 +40,18 @@ export interface EvaluateAndRaiseFlagsArgs {
   expectedRate?: ExpectedRate;
   /** The reviewFlagStore raiseFlag action (injected for testability). */
   raiseFlag: (input: RaiseFlagInput) => void;
+  /**
+   * ISO YYYY-MM-DD date when land establishment/planting began (from
+   * LocalProject.commencementDate). When present and the project is within the
+   * first 2 years of establishment (effectiveYear <= 2), the flag reason is
+   * prefixed with an establishment-dip annotation so the steward interprets
+   * the deviation in context rather than concluding a design failure.
+   * Computed at the caller (ActTierExecutionPanel) -- this module is store-free.
+   *
+   * establishment window: effectiveYear <= 2,
+   * per apps/api/.../soilRegeneration.ts stageFor
+   */
+  commencementDate?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -65,7 +77,7 @@ function buildReason(p: {
 // ---------------------------------------------------------------------------
 
 export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
-  const { projectId, templateId, activations, expectedRate, raiseFlag } = args;
+  const { projectId, templateId, activations, expectedRate, raiseFlag, commencementDate } = args;
 
   // 1. Tier-1 gate: only S6_BOUND_TEMPLATE_IDS are handled here.
   if (!S6_BOUND_TEMPLATE_IDS.has(templateId)) {
@@ -146,12 +158,37 @@ export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
   };
 
   const sourceActivationIds = windowed.map((a) => a.id);
-  const baseReason = buildReason({
+  const rawReason = buildReason({
     templateId,
     deviationSign,
     observedCount: result.observedCount,
     expectedRate,
   });
+
+  // Establishment re-frame (T1.9): if commencementDate is present and the
+  // project is within the first 2 years of establishment, prefix the reason
+  // with an annotation so the steward interprets the deviation in context.
+  // Never suppresses the flag -- the annotation is purely interpretive.
+  // establishment window: effectiveYear <= 2, per apps/api/.../soilRegeneration.ts stageFor
+  const ESTABLISHMENT_PREFIX =
+    "[Establishment - expected; interpret, don't conclude design failure] ";
+  let baseReason: string;
+  if (commencementDate != null && commencementDate.length > 0) {
+    const parsedMs = Date.parse(commencementDate);
+    if (!Number.isNaN(parsedMs)) {
+      const effectiveYear = Math.floor(
+        (Date.now() - parsedMs) / (365.25 * 24 * 3600 * 1000),
+      );
+      baseReason =
+        effectiveYear <= 2
+          ? ESTABLISHMENT_PREFIX + rawReason
+          : rawReason;
+    } else {
+      baseReason = rawReason;
+    }
+  } else {
+    baseReason = rawReason;
+  }
 
   const shared = {
     projectId,

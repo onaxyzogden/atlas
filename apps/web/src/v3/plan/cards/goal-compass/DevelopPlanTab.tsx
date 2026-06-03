@@ -28,6 +28,9 @@ export default function DevelopPlanTab({ project, onSwitchModule }: Props) {
   const projectStartDate = useProjectStore(
     (s) => s.projects.find((p) => p.id === project.id)?.startDate ?? null,
   );
+  const projectCommencementDate = useProjectStore(
+    (s) => s.projects.find((p) => p.id === project.id)?.commencementDate ?? null,
+  );
 
   const generatedPhases = useMemo(
     () => allPhases.filter((p) => p.projectId === project.id && p.generatedFromGoalCompass),
@@ -85,6 +88,17 @@ export default function DevelopPlanTab({ project, onSwitchModule }: Props) {
               value={projectStartDate ?? ''}
               onChange={(e) =>
                 updateProject(project.id, { startDate: e.target.value || null })
+              }
+            />
+          </div>
+          <div className={styles.field}>
+            <label htmlFor="gc-project-commencement-date">Establishment start (land)</label>
+            <input
+              id="gc-project-commencement-date"
+              type="date"
+              value={projectCommencementDate ?? ''}
+              onChange={(e) =>
+                updateProject(project.id, { commencementDate: e.target.value || null })
               }
             />
           </div>
