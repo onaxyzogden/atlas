@@ -60,6 +60,7 @@ import suggestionRoutes from './routes/suggestions/index.js';
 import regenerationEventRoutes from './routes/regeneration-events/index.js';
 import olosCatalogRoutes from './routes/olos/catalog.js';
 import olosRoutes from './routes/olos/index.js';
+import compostRoutes from './routes/compost/index.js';
 import soilRegenerationRoutes from './routes/soil-regeneration/index.js';
 import evidenceAuditRoutes from './routes/evidence-audit/index.js';
 import telemetryRoutes from './routes/telemetry/index.js';
@@ -235,6 +236,7 @@ export async function buildApp(opts: FastifyServerOptions = {}) {
   await app.register(regenerationEventRoutes, { prefix: '/api/v1/projects' });
   await app.register(olosCatalogRoutes,    { prefix: '/api/v1/olos' });
   await app.register(olosRoutes,           { prefix: '/api/v1/projects' });
+  await app.register(compostRoutes,        { prefix: '/api/v1/compost' });
   await app.register(soilRegenerationRoutes, { prefix: '/api/v1/soil-regeneration' });
   await app.register(evidenceAuditRoutes, { prefix: '/api/v1/projects' });
   await app.register(telemetryRoutes,     { prefix: '/api/v1/telemetry' });
