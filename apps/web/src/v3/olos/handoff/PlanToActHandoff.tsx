@@ -25,7 +25,21 @@ import {
   useActTaskStore,
   usePlanDecisionRecordStore,
 } from '../../../store/olos/index.js';
+import { useClosedLoopStore } from '../../../store/closedLoopStore.js';
+import {
+  useClosedLoopValidation,
+} from '../../../features/plan/useClosedLoopValidation.js';
+import type { LocalProject } from '../../../store/projectStore.js';
+import { buildLoopActPayload } from '../../../features/plan/closedLoop/loopHandoffContract.js';
 import css from './HandoffSection.module.css';
+
+/**
+ * Observe domain of the soil-fertility / closed-loop (waste-vector) objective.
+ * For this domain only, the handoff package is enriched with the loop payload
+ * (materials / monitoring / sequence) built from the project's MaterialFlow
+ * design; every other domain keeps today's empty arrays. Slice A4.
+ */
+const CLOSED_LOOP_DOMAIN = 'soil';
 
 interface Props {
   projectId: string;
@@ -47,6 +61,24 @@ export default function PlanToActHandoff({ projectId, objective }: Props) {
 
   const taskByProject = useActTaskStore((s) => s.byProject);
   const createTask = useActTaskStore((s) => s.createTask);
+
+  // Closed-loop enrichment inputs (Slice A4). Read unconditionally (Rules of
+  // Hooks); only consumed inside onEmit for the soil / closed-loop domain.
+  const allFlows = useClosedLoopStore((s) => s.materialFlows);
+  const allInfra = useClosedLoopStore((s) => s.fertilityInfra);
+  const loopFlows = useMemo(
+    () => allFlows.filter((f) => f.projectId === projectId),
+    [allFlows, projectId],
+  );
+  const loopInfra = useMemo(
+    () => allInfra.filter((i) => i.projectId === projectId),
+    [allInfra, projectId],
+  );
+  // useClosedLoopValidation reads only `.id` off the project, so a minimal stub
+  // is safe and keeps the hook call unconditional regardless of project load.
+  const loopValidation = useClosedLoopValidation({
+    id: projectId,
+  } as LocalProject);
 
   const packagesForDecision = useMemo(() => {
     if (!planRecord) return [];
@@ -70,15 +102,27 @@ export default function PlanToActHandoff({ projectId, objective }: Props) {
 
   const onEmit = () => {
     if (!planRecord || !actObjective || !approved) return;
+    // Closed-loop enrichment: only the soil / closed-loop domain maps the
+    // project's MaterialFlow design onto the handoff package. Every other
+    // domain keeps today's empty arrays (single handoff path, additive).
+    const loop =
+      objective.domain === CLOSED_LOOP_DOMAIN
+        ? buildLoopActPayload(
+            { id: projectId },
+            loopFlows,
+            loopInfra,
+            loopValidation,
+          ).payload
+        : null;
     const pkg = createPackage(projectId, {
       planDecisionRecordId: planRecord.id,
-      workScope: planRecord.selectedOption.label,
+      workScope: loop?.workScope ?? planRecord.selectedOption.label,
       prerequisites: [...planRecord.dependencies],
-      sequence: [],
-      materials: [],
-      successCriteria: [],
+      sequence: loop?.sequence ?? [],
+      materials: loop?.materials ?? [],
+      successCriteria: loop?.successCriteria ?? [],
       verificationRequirements: [],
-      monitoringRequirements: [],
+      monitoringRequirements: loop?.monitoringRequirements ?? [],
     });
     createTask(projectId, {
       objectiveId: actObjective.id,

@@ -13,6 +13,7 @@ import type { LocalProject } from '../../store/projectStore.js';
 import WasteVectorListView from './WasteVectorListView.js';
 import WasteVectorDashboardView from './WasteVectorDashboardView.js';
 import LoopDesignScorePanel from './closedLoop/LoopDesignScorePanel.js';
+import ActHandoffPreviewPanel from './closedLoop/ActHandoffPreviewPanel.js';
 import shared from '../../v3/_shared/stageCard/stageCard.module.css';
 import styles from './WasteVectorTool.module.css';
 
@@ -21,7 +22,7 @@ interface Props {
   onSwitchToMap: () => void;
 }
 
-type View = 'list' | 'dashboard';
+type View = 'list' | 'dashboard' | 'loop';
 
 export default function WasteVectorTool({ project }: Props) {
   const [view, setView] = useState<View>('list');
@@ -59,12 +60,23 @@ export default function WasteVectorTool({ project }: Props) {
         >
           Dashboard
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={view === 'loop'}
+          className={`${styles.switcherBtn} ${view === 'loop' ? styles.switcherBtnActive : ''}`}
+          onClick={() => setView('loop')}
+        >
+          Loop / Handoff
+        </button>
       </div>
 
       {view === 'list' ? (
         <WasteVectorListView project={project} />
-      ) : (
+      ) : view === 'dashboard' ? (
         <WasteVectorDashboardView project={project} onSwitchToList={() => setView('list')} />
+      ) : (
+        <ActHandoffPreviewPanel project={project} />
       )}
     </div>
   );
