@@ -38,6 +38,11 @@ import {
 import { useFlowEndpointOptions } from './useFlowEndpointOptions.js';
 import { useClosedLoopValidation } from './useClosedLoopValidation.js';
 import { efficiency } from './closedLoop/loopDesignScore.js';
+import {
+  edgeWidth,
+  flowMagnitude,
+  dashForFlow,
+} from './closedLoop/flowMapGeometry.js';
 import shared from '../../v3/_shared/stageCard/stageCard.module.css';
 import styles from './WasteVectorDashboardView.module.css';
 
@@ -252,22 +257,33 @@ export default function WasteVectorDashboardView({ project, onSwitchToList }: Pr
         });
 
     const keyOf = (id: string | null, label: string) => id ?? `txt:${label}`;
-    interface Edge { fromKey: string; toKey: string; kind: MaterialKind }
+    // Waypoint-keyed edges: source -> (via processors) -> sink. A flow's
+    // transformationNodeIds that map to a seeded processor node route the flow
+    // through the EXISTING processor lane (A3); via ids without a placed
+    // processor node are skipped so the flow degrades to a direct source -> sink
+    // edge (matching the spatial card's fallback).
+    interface Edge { keys: string[]; kind: MaterialKind; flow: MaterialFlow }
     const edges: Edge[] = [];
+    let maxMag = 0;
 
     for (const f of flows) {
+      const mag = flowMagnitude(f);
+      if (mag > maxMag) maxMag = mag;
       const srcLabel = resolveEndpoint(f.sourceId, f.sourceLabel, labelById);
       const dstLabel = resolveEndpoint(f.sinkId, f.sinkLabel, labelById);
       const srcKey = keyOf(f.sourceId, srcLabel);
       const dstKey = keyOf(f.sinkId, dstLabel);
       const srcIsProc = hasProc && f.sourceId != null && procIds.has(f.sourceId);
       const dstIsProc = hasProc && f.sinkId != null && procIds.has(f.sinkId);
+      const viaKeys = hasProc
+        ? (f.transformationNodeIds ?? []).filter((id) => procIds.has(id))
+        : [];
 
       if (!srcIsProc && !sources.has(srcKey))
         sources.set(srcKey, { id: srcKey, label: srcLabel, meta: '', x: 0, y: 0 });
       if (!dstIsProc && !dests.has(dstKey))
         dests.set(dstKey, { id: dstKey, label: dstLabel, meta: '', x: 0, y: 0 });
-      edges.push({ fromKey: srcKey, toKey: dstKey, kind: f.materialKind });
+      edges.push({ keys: [srcKey, ...viaKeys, dstKey], kind: f.materialKind, flow: f });
     }
 
     const place = (map: Map<string, FNode>, x: number): FNode[] => {
@@ -284,13 +300,24 @@ export default function WasteVectorDashboardView({ project, onSwitchToList }: Pr
 
     const pos = new Map<string, FNode>();
     for (const n of [...srcNodes, ...procNodes, ...dstNodes]) pos.set(n.id, n);
-    const renderEdges = edges
-      .filter((e) => pos.has(e.fromKey) && pos.has(e.toKey))
-      .map((e) => {
-        const a = pos.get(e.fromKey)!;
-        const b = pos.get(e.toKey)!;
-        return { d: curve(a.x + 56, a.y, b.x - 56, b.y), color: MATERIAL_KIND_CONFIG[e.kind].color };
-      });
+    // Each flow becomes one polyline split into curve segments between its placed
+    // waypoints; width ramps by throughput (shared edgeWidth) and the dash
+    // pattern reflects operational status (shared dashForFlow) -- identical to
+    // the spatial card so the two surfaces can never disagree visually.
+    const renderEdges = edges.flatMap((e, ei) => {
+      const placed = e.keys.filter((k) => pos.has(k));
+      if (placed.length < 2) return [];
+      const width = edgeWidth(flowMagnitude(e.flow), maxMag);
+      const dash = dashForFlow(e.flow);
+      const color = MATERIAL_KIND_CONFIG[e.kind].color;
+      const segs: { key: string; d: string; color: string; width: number; dash: string | undefined }[] = [];
+      for (let i = 0; i < placed.length - 1; i++) {
+        const a = pos.get(placed[i]!)!;
+        const b = pos.get(placed[i + 1]!)!;
+        segs.push({ key: `${ei}-${i}`, d: curve(a.x + 56, a.y, b.x - 56, b.y), color, width, dash });
+      }
+      return segs;
+    });
 
     const maxRows = Math.max(srcNodes.length, procNodes.length, dstNodes.length, 1);
     const height = Math.max(220, ROW_TOP + maxRows * ROW_GAP + 20);
@@ -411,13 +438,14 @@ export default function WasteVectorDashboardView({ project, onSwitchToList }: Pr
               )}
               <text x={flowGraph.hasProc ? COL_X.dest : COL_X.processor} y={20} className={styles.flowColHead} textAnchor="middle">Destinations (outputs)</text>
 
-              {/* Flow paths */}
-              {flowGraph.edges.map((e, i) => (
+              {/* Flow paths -- width by throughput, dash by operational status */}
+              {flowGraph.edges.map((e) => (
                 <path
-                  key={`f-${i}`}
+                  key={`f-${e.key}`}
                   d={e.d}
                   stroke={e.color}
-                  strokeWidth={1.6}
+                  strokeWidth={e.width}
+                  strokeDasharray={e.dash}
                   strokeOpacity={0.55}
                   fill="none"
                 />
