@@ -153,11 +153,13 @@ export default function ActTierExecutionPanel({
   // Observe substrate: completing an objective emits a manual observation.
   const recordDataPoint = useObserveDataPointStore((s) => s.recordDataPoint);
 
-  // Plan deep-link (Act "executes" what Plan "decides"): for plants-food
-  // objectives, surface the existing Plan multilayer Guild builder rather than
-  // re-implementing a guild designer in Act. Mirrors EditInPlanButton's
-  // navigate-to-Plan precedent. The `openSlideUp` flag is a one-shot consumed
-  // by PlanLayout so the module slide-up cold-opens directly on the guild card.
+  // Plan deep-link (Act "executes" what Plan "decides"): for the guild
+  // objective (legacyCardSectionId 'plan-guild-builder'), surface the existing
+  // Plan multilayer Guild designer rather than re-implementing one in Act.
+  // Navigates to the Plan stratum objective detail, whose REFERENCE section
+  // (DetailsExpander) hosts the GuildSpatialBuilderCard — the designer's only
+  // home in the forward stratum-spine IA. Mirrors PlanRevisionBanner's
+  // navigate-to-objective precedent.
   const navigate = useNavigate();
 
   // Raise-follow-up-need: opens the shared RaiseNeedForm in a modal and creates
@@ -504,7 +506,7 @@ export default function ActTierExecutionPanel({
       </div>
 
       <div className={styles.execBody}>
-      {domainId === 'plants-food' && (
+      {objective.legacyCardSectionId === 'plan-guild-builder' && (
         <section className={styles.execSection}>
           <h4 className={styles.execSectionTitle}>Plan reference</h4>
           <button
@@ -512,9 +514,12 @@ export default function ActTierExecutionPanel({
             className={styles.linkBtn}
             onClick={() =>
               navigate({
-                to: '/v3/project/$projectId/plan/$module',
-                params: { projectId, module: 'plants-food' },
-                search: { section: 'plan-guild-builder', openSlideUp: '1' },
+                to: '/v3/project/$projectId/plan/stratum/$stratumId/objective/$objectiveId',
+                params: {
+                  projectId,
+                  stratumId: objective.stratumId,
+                  objectiveId: objective.id,
+                },
               })
             }
           >

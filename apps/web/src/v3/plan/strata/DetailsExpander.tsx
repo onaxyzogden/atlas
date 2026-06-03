@@ -58,6 +58,9 @@ const ClosedLoopGraphCard = lazy(
 const PhasingMatrixCard = lazy(
   () => import('../../../features/plan/PhasingMatrixCard.js'),
 );
+const GuildSpatialBuilderCard = lazy(
+  () => import('../cards/plant-systems/GuildSpatialBuilderCard.js'),
+);
 
 const noop = () => {};
 
@@ -144,6 +147,7 @@ const LEGACY_CARD_LABELS: Readonly<Record<string, string>> = {
   'plan-water-network': 'water network',
   'plan-closed-loop-graph': 'closed-loop graph',
   'plan-phasing-matrix': 'phasing matrix',
+  'plan-guild-builder': 'guild builder',
 };
 
 function renderLegacyCard(
@@ -169,6 +173,8 @@ function renderLegacyCard(
       return <ClosedLoopGraphCard project={project} onSwitchToMap={noop} />;
     case 'plan-phasing-matrix':
       return <PhasingMatrixCard project={project} onSwitchToMap={noop} />;
+    case 'plan-guild-builder':
+      return <GuildSpatialBuilderCard project={project} onSwitchToMap={noop} />;
     default:
       return (
         <p className={css.placeholder}>

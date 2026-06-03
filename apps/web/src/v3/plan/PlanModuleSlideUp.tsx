@@ -216,15 +216,9 @@ interface Props {
   onSwitchModule?: (mod: PlanModule) => void;
   /** Rendered at the top of the sheet (above the module header) — the in-sheet ModuleBar. */
   topBar?: ReactNode;
-  /**
-   * Optional deep-link target sectionId to land on when the sheet opens
-   * (e.g. the Act → Plan guild-builder link lands on `plan-guild-builder`).
-   * Forwarded to the shared ModuleSlideUp; ignored when not in the module.
-   */
-  initialSectionId?: string;
 }
 
-export default function PlanModuleSlideUp({ module, open, onClose, project, onSwitchModule, topBar, initialSectionId }: Props) {
+export default function PlanModuleSlideUp({ module, open, onClose, project, onSwitchModule, topBar }: Props) {
   const cards = module ? MODULE_CARDS[module] : [];
   const label = module ? PLAN_MODULE_FULL_LABEL[module] : '';
 
@@ -271,7 +265,6 @@ export default function PlanModuleSlideUp({ module, open, onClose, project, onSw
         cards={cards}
         renderCard={renderCard}
         ariaLabel={module ? `${label} — plan tools` : undefined}
-        initialSectionId={initialSectionId}
         headerExtra={module ? <PlanViewBadge module={module} /> : null}
         topBar={topBar}
       />
