@@ -78,6 +78,7 @@ export default function ObserveLensDashboard() {
         activeLens={activeLens}
         onSelectLens={handleLensChange}
         projectTitle={PROJECT.name}
+        projectType={PROJECT.type}
       />
 
       <div className={css.shellWrap}>

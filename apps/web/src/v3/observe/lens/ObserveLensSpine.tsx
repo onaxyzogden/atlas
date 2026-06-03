@@ -19,12 +19,16 @@ interface Props {
   onSelectLens: (id: string) => void;
   /** Project name shown in the leading identity tile. */
   projectTitle: string;
+  /** Project site type(s), shown as the identity tile subtitle (e.g.
+   *  "Regen Farm + Silvopasture"). */
+  projectType: string;
 }
 
 export default function ObserveLensSpine({
   activeLens,
   onSelectLens,
   projectTitle,
+  projectType,
 }: Props) {
   const allActive = activeLens === 'all';
   return (
@@ -32,7 +36,7 @@ export default function ObserveLensSpine({
       {/* Project identity tile -- static, sticky-pinned, NOT a tab. */}
       <div className={css.projectTile}>
         <span className={css.projectTileTitle}>{projectTitle}</span>
-        <span className={css.projectTileTypes}>Observe &middot; Lens</span>
+        <span className={css.projectTileTypes}>{projectType}</span>
       </div>
       <div className={css.spine} role="tablist" aria-label="Observe lenses">
         {/* "All" chip -- clears the lens filter. */}

@@ -1,13 +1,18 @@
 // tokens.ts — Observe lens surface (mock-backed; not yet wired to live data)
 //
 // Self-contained colour + font tokens for the observational-lens Observe
-// concept. Kept verbatim from the source concept (olos_observe_dashboard.jsx)
-// for pixel fidelity. This prototype is intentionally NOT wired to the app's
-// tokens.css / tokens.ts — reskinning is a later integration decision.
+// concept. The grayscale ladder (bg/bg2/bg3/bg4/border/borderLight) was retuned
+// 2026-06-03 from the source concept's WARM olive grays (#0F0F0D / #161613 /
+// #2A2A25 ...) to the app's COOL slate ladder, so the Observe rails/cards stop
+// reading brownish next to the cool app shell and the spine/detail-rail (which
+// use var(--color-surface) = #14191f). Values mirror the app's dark-mode.css
+// surface ladder (bg2 == --color-surface, bg3 == --color-surface-alt, bg4 ==
+// --color-surface-raised, border == --color-border). Accent hues
+// (blue/green/amber/...) and fonts are unchanged.
 
 export const C = {
-  bg: '#0F0F0D', bg2: '#161613', bg3: '#1E1E1A', bg4: '#252520',
-  border: '#2A2A25', borderLight: '#353530',
+  bg: '#0B0D10', bg2: '#14191F', bg3: '#1A2027', bg4: '#1C232B',
+  border: '#242F3D', borderLight: '#33404E',
   textPrimary: '#EDE9E0', textSecondary: '#8A8680', textTertiary: '#4A4845',
   blue: '#4A8FD4', blueDim: '#1A2F45',
   green: '#5AAF72', greenDim: '#162A1C',
