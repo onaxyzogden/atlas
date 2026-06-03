@@ -196,3 +196,77 @@ export interface MockObservation {
   label: string;
   age: string;
 }
+
+// ── Resolved lens-data bundle ───────────────────────────────────────────────
+// A single render-ready bundle the dashboard resolves once (from mock fixtures
+// OR from live project stores) and exposes via LensDataContext. Both sources
+// conform to these shapes, so every lens component reads one typed surface
+// regardless of where the data came from. The mock fixtures in mockData.ts are
+// the canonical reference shapes; LensProject / LensCycle pin them so the live
+// builder must match.
+
+export interface PlanRevisionTrigger {
+  domain: string;
+  detail: string;
+  priority: string;
+}
+export interface LensProject {
+  name: string;
+  type: string;
+  cycle: number;
+  totalDataPoints: number;
+  domainsCurrentCount: number;
+  domainsAgeingCount: number;
+  domainsMissingCount: number;
+  planRevision: {
+    active: boolean;
+    priority: string;
+    count: number;
+    triggers: PlanRevisionTrigger[];
+  };
+}
+
+export interface LensCyclePhase {
+  id: string;
+  label: string;
+  color: string;
+  startPct: number;
+  endPct: number;
+  status: string;
+  days: number;
+}
+export interface LensCycleHistory {
+  number: number;
+  label: string;
+  endedDaysAgo: number;
+  dataPoints: number;
+}
+export interface LensCycle {
+  number: number;
+  name: string;
+  startDate: string;
+  totalDays: number;
+  elapsed: number;
+  nextReviewDays: number;
+  phases: LensCyclePhase[];
+  history: LensCycleHistory[];
+  staleDomains: string[];
+  ageingDomains: string[];
+}
+
+export interface FreshnessConfig {
+  color: string;
+  label: string;
+  dot: boolean;
+}
+
+/** The full set of data the lens surface renders, from either source. */
+export interface LensDataBundle {
+  project: LensProject;
+  lenses: LensDisplay[];
+  domainDetail: Partial<Record<ObserveLensId, DomainDetail>>;
+  observations: MockObservation[];
+  cycle: LensCycle;
+  freshness: Record<Freshness, FreshnessConfig>;
+  typeIcon: Record<string, string>;
+}
