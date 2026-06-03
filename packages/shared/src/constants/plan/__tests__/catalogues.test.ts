@@ -362,9 +362,27 @@ describe('catalogue conformance - agritourism primary resolution', () => {
     secondaryTypeIds: [],
   });
 
-  it('resolves to 48 objectives (19 universal + 29 primary)', () => {
-    expect(AGRITOURISM_PRIMARY_OBJECTIVES.length).toBe(29);
-    expect(objectives.length).toBe(48);
+  it('resolves to 53 objectives (19 universal + 34 primary)', () => {
+    expect(AGRITOURISM_PRIMARY_OBJECTIVES.length).toBe(34);
+    expect(objectives.length).toBe(53);
+  });
+
+  it('carries the 5 eco-resort / glamping extension objectives, each conditionally scoped', () => {
+    const extensionRefs = [
+      'AG-S3.7',
+      'AG-S4.9',
+      'AG-S5.9',
+      'AG-S5.10',
+      'AG-S7.8',
+    ];
+    const extension = AGRITOURISM_PRIMARY_OBJECTIVES.filter((o) =>
+      extensionRefs.includes(o.ref ?? ''),
+    );
+    expect(extension).toHaveLength(extensionRefs.length);
+    for (const o of extension) {
+      expect(typeof o.scopeNotes).toBe('string');
+      expect(o.scopeNotes && o.scopeNotes.length).toBeGreaterThan(0);
+    }
   });
 
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
