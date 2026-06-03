@@ -31,7 +31,8 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
-import type { ObjectiveReviewFlag } from '@ogden/shared';
+import type { CoOccurrenceCluster, ObjectiveReviewFlag } from '@ogden/shared';
+import { detectCoOccurrenceClusters } from '@ogden/shared';
 
 // ---------------------------------------------------------------------------
 // Input type
@@ -418,6 +419,7 @@ rehydrateWithLogging(useReviewFlagStore);
  */
 const EMPTY_FLAGS: ObjectiveReviewFlag[] = [];
 const EMPTY_COUNTS: Record<string, number> = {};
+const EMPTY_CLUSTERS: CoOccurrenceCluster[] = [];
 
 /**
  * useReviewFlagsForObjective -- reactive hook returning ALL flags for a
@@ -483,5 +485,39 @@ export function useReviewFlagCountsByObjective(
       counts[f.objectiveId] = prev + 1;
     }
     return counts;
+  }, [byProject, projectId, currentBucket]);
+}
+
+/**
+ * useCoOccurrenceClusters -- reactive hook returning the co-occurrence clusters
+ * for a project: groups of >=2 distinct review-flag templates that fired in the
+ * same season:cycle bucket. Open + non-dormant flags only; the clustering itself
+ * is delegated to the pure detectCoOccurrenceClusters helper in @ogden/shared.
+ *
+ * currentBucket (optional): same semantics as useReviewFlagCountsByObjective --
+ * when supplied, open flags whose firing pattern has not recurred in a later
+ * comparable window are excluded before clustering.
+ *
+ * Same Zustand-v5 anti-inline-filter warning as useReviewFlagCountsByObjective:
+ * select the stable byProject map and derive the result in useMemo. Never pass
+ * an inline-filter selector to useReviewFlagStore.
+ */
+export function useCoOccurrenceClusters(
+  projectId: string | null,
+  currentBucket?: FlagBucket,
+): CoOccurrenceCluster[] {
+  const byProject = useReviewFlagStore((s) => s.byProject);
+  return useMemo(() => {
+    if (!projectId) return EMPTY_CLUSTERS;
+    const flags = byProject[projectId] ?? EMPTY_FLAGS;
+    const openFlags = flags.filter((f) => {
+      if (!isOpenReviewFlag(f)) return false;
+      if (currentBucket !== undefined) {
+        const per = f.expectedRate?.per ?? 'season';
+        if (isFlagDormantByWindow(f, currentBucket, per)) return false;
+      }
+      return true;
+    });
+    return detectCoOccurrenceClusters(openFlags);
   }, [byProject, projectId, currentBucket]);
 }
