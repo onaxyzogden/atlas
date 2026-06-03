@@ -9,11 +9,12 @@
 // all rich display values are local mock fixtures (see ./mockData).
 //
 // LAYOUT: this is now composed on Atlas's real StageShell (between-rails),
-// mirroring act/tier-shell/ActTierShell — TopBar + an ActTierSpine-style lens
-// spine stacked above a StageShell whose four slots hold the cycle rail, map
-// canvas, intelligence rail, and a recent-observations tray. The old CSS `zoom`
-// box is gone; the UI renders at Act's natural proportions (see the de-zoom
-// rebake in ./components.tsx and the spine in ./ObserveLensSpine.tsx).
+// mirroring act/tier-shell/ActTierShell — an ActTierSpine-style lens spine
+// stacked above a StageShell whose four slots hold the cycle rail, map canvas,
+// intelligence rail, and a recent-observations tray. The internal TopBar was
+// dropped (it duplicated the global app-shell header). The old CSS `zoom` box
+// is gone; the UI renders at Act's natural proportions (see the de-zoom rebake
+// in ./components.tsx and the spine in ./ObserveLensSpine.tsx).
 
 import { useState } from 'react';
 import type { ObserveLensId } from '@ogden/shared';
@@ -28,7 +29,6 @@ import {
   IntelligencePanel,
   PseudoMap,
   RecentObservationsStrip,
-  TopBar,
 } from './components.js';
 import css from './ObserveLensDashboard.module.css';
 
@@ -48,8 +48,11 @@ export default function ObserveLensDashboard() {
 
   return (
     // .lensShell is position:relative so the absolute slide-up (a SIBLING below,
-    // NOT StageShell's `overlay` slot) covers TopBar + spine + shell — matching
+    // NOT StageShell's `overlay` slot) covers the spine + shell — matching
     // today's full-bleed slide-up and Act's sibling-modal pattern.
+    // The internal TopBar was removed: it duplicated the global app-shell header
+    // (OGDEN / Land OS + stage chips + Share/Present); TopBar stays exported in
+    // components.tsx (no-deletion) for the chrome-free debug route's use.
     <div
       className={css.lensShell}
       style={{ color: C.textPrimary, fontFamily: F.sans }}
@@ -61,8 +64,6 @@ export default function ObserveLensDashboard() {
         *::-webkit-scrollbar-thumb { background: ${C.border}; border-radius: 4px; }
         *::-webkit-scrollbar-thumb:hover { background: ${C.borderLight}; }
       `}</style>
-
-      <TopBar />
 
       {/* Lens selector — top spine (ActTierSpine-style); replaces the former
           horizontal DomainsView strip as the sole lens selector. */}
@@ -103,7 +104,7 @@ export default function ObserveLensDashboard() {
         />
       </div>
 
-      {/* Domain detail slide-up — sibling overlay (covers TopBar + spine). */}
+      {/* Domain detail slide-up — sibling overlay (covers spine + shell). */}
       {detailLens && (
         <DomainDetailSlideUp lensId={detailLens} onClose={() => setDetailLens(null)} />
       )}
