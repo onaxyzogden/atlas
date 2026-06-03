@@ -399,6 +399,20 @@ export function DomainDetailSlideUp({ lensId, onClose }: { lensId: ObserveLensId
             {detail.specialised.type === 'climate' && <ClimateSpecialised data={detail.specialised} color={lens.color} />}
             {detail.specialised.type === 'human' && <HumanSpecialised data={detail.specialised} />}
             {detail.specialised.type === 'infrastructure_empty' && <InfrastructureEmptySpecialised data={detail.specialised} />}
+            {/* Graceful degrade (live mode): no structured measurement series
+                exists for this lens (seeded captures carry only label + note),
+                so there is nothing to chart. The real captured observations
+                still render in the right-hand data-point list. */}
+            {detail.specialised.type === 'none' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 2px' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: C.textSecondary }}>
+                  No structured measurements yet
+                </span>
+                <span style={{ fontSize: 12, lineHeight: 1.5, color: C.textTertiary }}>
+                  This lens has no recorded measurement series to chart -- showing the captured observations on the right.
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
