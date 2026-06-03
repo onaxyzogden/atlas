@@ -150,7 +150,7 @@ export const PROJECT_TYPES: readonly ProjectTypeDef[] = [
     label: 'Livestock Operation',
     ordinal: 13,
     canBePrimary: true,
-    canBeSecondary: false,
+    canBeSecondary: true,
     description:
       'Standalone grazing and animal-husbandry enterprise centered on the herd: breeding, health, nutrition, and sale of animals and animal products.',
   },
@@ -161,7 +161,7 @@ export const PRIMARY_TYPES: readonly ProjectTypeDef[] = PROJECT_TYPES.filter(
   (t) => t.canBePrimary,
 );
 
-/** The 8 types offered in the compatible-secondary picker (ordinal order). */
+/** The 9 types offered in the compatible-secondary picker (ordinal order). */
 export const SECONDARY_TYPES: readonly ProjectTypeDef[] = PROJECT_TYPES.filter(
   (t) => t.canBeSecondary,
 );

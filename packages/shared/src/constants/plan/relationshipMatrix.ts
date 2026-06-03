@@ -26,7 +26,7 @@ export type RelationCell = 'M' | 'A' | 'X' | 'NA';
 /** The 13 types that can stand alone as a primary (everything but residential). */
 export type PrimaryTypeId = Exclude<ProjectTypeId, 'residential'>;
 
-/** The 8 types that can be layered as a secondary (the can-be-secondary set). */
+/** The 9 types that can be layered as a secondary (the can-be-secondary set). */
 export type SecondaryTypeId = Extract<
   ProjectTypeId,
   | 'market_garden'
@@ -37,6 +37,7 @@ export type SecondaryTypeId = Extract<
   | 'wellness'
   | 'nursery'
   | 'residential'
+  | 'livestock_operation'
 >;
 
 /** Primary ids in taxonomy ordinal order (matrix column order). */
@@ -66,11 +67,12 @@ export const SECONDARY_TYPE_IDS: readonly SecondaryTypeId[] = [
   'wellness',
   'nursery',
   'residential',
+  'livestock_operation',
 ];
 
 /**
  * Secondary (row) x Primary (column) relationship matrix. The strict Record
- * types require every one of the 8 rows to carry all 13 primary cells, so a
+ * types require every one of the 9 rows to carry all 13 primary cells, so a
  * missing or mistyped cell is a compile error.
  */
 export const RELATIONSHIP_MATRIX: Record<
@@ -197,6 +199,21 @@ export const RELATIONSHIP_MATRIX: Record<
     nursery: 'A',
     livestock_operation: 'A',
   },
+  livestock_operation: {
+    homestead: 'M',
+    regenerative_farm: 'M',
+    market_garden: 'M',
+    orchard_food_forest: 'M',
+    silvopasture: 'NA',
+    ecovillage: 'M',
+    agritourism: 'A',
+    education: 'A',
+    conservation: 'M',
+    off_grid: 'A',
+    wellness: 'X',
+    nursery: 'A',
+    livestock_operation: 'NA',
+  },
 };
 
 /**
@@ -216,8 +233,9 @@ export interface DesignTension {
   description: string;
 }
 
-/** The 12 named design tensions (spec section 5.3; tensions 11-12 added 2026-06-03
- * with the livestock_operation primary type, mirroring the silvopasture pairs). */
+/** The 13 named design tensions (spec section 5.3; tensions 11-12 added 2026-06-03
+ * with the livestock_operation primary type, mirroring the silvopasture pairs;
+ * tension-13 added 2026-06-03 with the livestock_operation secondary layer). */
 export const DESIGN_TENSIONS: readonly DesignTension[] = [
   {
     id: 'tension-1',
@@ -326,6 +344,15 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     resolutionStratumLabel: 'Stratum 5 - Access & Circulation, Design',
     description:
       'Contamination and damage risk. Animal movement near intensive crop beds creates pathogen, compaction, and browse risk. Requires strict spatial and temporal separation between the herd and the market-garden beds.',
+  },
+  {
+    id: 'tension-13',
+    typeA: 'livestock_operation',
+    typeB: 'conservation',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
+    description:
+      'Grazing-as-tool vs. habitat protection. Targeted/conservation grazing is a recognised restoration tool, but uncontrolled grazing pressure, compaction, and browse damage threaten sensitive habitat. Requires fencing, exclusion zones, and an explicit grazing-as-restoration prescription before Act. Advisory, not blocking. Resolution anchored to Stratum 4 Zone Allocation.',
   },
 ];
 

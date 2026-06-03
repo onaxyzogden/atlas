@@ -48,10 +48,14 @@
 // source: 'primary', sourceTypeId: 'livestock_operation' on every objective.
 // ASCII-only copy: em/en dashes -> " - "; curly quotes -> straight.
 
-import type { PlanStratumObjective } from '../../../schemas/plan/planStratumObjective.schema.js';
-import { ck, ckF, dg, obj } from './authoring.js';
+import type {
+  PatchRecord,
+  PlanStratumObjective,
+} from '../../../schemas/plan/planStratumObjective.schema.js';
+import { ck, ckF, dg, obj, patch } from './authoring.js';
 
 const PRIMARY = 'livestock_operation' as const;
+const SECONDARY = 'livestock_operation' as const;
 
 export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
   // ---------------------------------------------------------------- Stratum 1
@@ -1072,5 +1076,464 @@ export const LIVESTOCK_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
     actHandoff: 'Marketing & Sales-Channel Plan',
     scopeNotes:
       'Amanah Gate - flag, do not omit: meat-share / herd-share / CSA-style advance-subscription channels (c3) entail the advance sale of animals or yield the steward does not yet possess (bay` ma laysa `indak). The channel is surfaced, never silently dropped, but it is flagged for Scholar Council review before adoption, must not be presented as a default or recommended model, and no CSRA / salam advance-purchase framing is used. Permissible analogues without the flag: farmgate/spot sale of stock on hand, and processor/wholesale contracts settled on delivered animals.',
+  }),
+];
+
+// ===========================================================================
+// LIVESTOCK OPERATION SECONDARY LAYER
+//
+// livestock_operation as a SECONDARY: a standalone animal enterprise folded onto
+// a host primary (regenerative farm, orchard/food forest, homestead, ecovillage).
+// "Modifying" shape: 7 additive objectives PLUS PatchRecords that inject livestock
+// items into the shared universal water / soil / access objectives. Refs use the
+// LVS-S<stratum>.20+ band, collision-free against the primary layer (primary maxes
+// at S1.x / S3.x / S4.x lower numbers). Patch refs are LVS>U-S<n>.<n>; injected
+// checklist ids are <targetObjectiveId>-lvs-<n>; injected group ids <target>-dglvs<n>.
+//
+// Deliberately distinct from the silvopasture secondary: this is the herd-led
+// standalone enterprise (no tree-integration framing), and it foregrounds the two
+// things silvopasture does not - BIOSECURITY at the host interface (stock meeting
+// the host's crops / visitors / nursery stock / wildlife) and CLOSING THE
+// MANURE/NUTRIENT LOOP back into the host's production. A user may select BOTH the
+// silvopasture-secondary and the livestock-secondary on a third host; namespaced ids
+// (...-lvs-N vs ...-silv-N) prevent collision - content reads redundant, never breaks.
+//
+// Amanah Gate: production-integration only - the host primary owns marketing and
+// economics, so there is NO sales-channel objective and no advance-sale / herd-share
+// / CSA surface here (no bay` ma laysa `indak surface is introduced at all). Ordinary
+// halal animal husbandry. LVS-S6.20 carries the welfare/ihsan scopeNote and makes
+// humane + halal handling intent explicit. No riba/gharar/CSRA framing.
+//
+// source: 'secondary', sourceTypeId: 'livestock_operation', secondaryClass:
+// 'additive' on every additive objective. ASCII-only copy.
+// ===========================================================================
+
+export const LIVESTOCK_SECONDARY_OBJECTIVES: readonly PlanStratumObjective[] = [
+  // ---------------------------------------------------------------- Stratum 1
+  obj({
+    id: 'lvs-sec-s1-enterprise-intent',
+    stratumId: 's1-project-foundation',
+    ref: 'LVS-S1.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'A clear livestock enterprise intent & host-integration rationale',
+    shortTitle: 'Livestock enterprise intent & host-integration rationale',
+    focusedQuestion:
+      'Why is an animal enterprise being added to this host, what will it produce, and how does it fit the host land, labour, and goals?',
+    checklist: [
+      ck(
+        'lvs-sec-s1-enterprise-intent-c1',
+        'Define the enterprise intent - product (meat, milk, fibre, eggs), land-management service, or both',
+      ),
+      ck(
+        'lvs-sec-s1-enterprise-intent-c2',
+        'Identify candidate species and classes of stock - ruminants, poultry, pigs, mixed',
+      ),
+      ck(
+        'lvs-sec-s1-enterprise-intent-c3',
+        'Define how the herd relates to the host enterprise - complementary, supplementary, or competing for land and labour',
+      ),
+      ck(
+        'lvs-sec-s1-enterprise-intent-c4',
+        'Identify operator livestock experience and the daily labour available for stock care',
+      ),
+      ck(
+        'lvs-sec-s1-enterprise-intent-c5',
+        'Confirm enterprise intent is compatible with the host vision, scale, and stewardship capacity',
+      ),
+    ],
+    decisionGroups: [
+      dg('lvs-sec-s1-enterprise-intent-dg1', 'Intent & candidate species', ['lvs-sec-s1-enterprise-intent-c1', 'lvs-sec-s1-enterprise-intent-c2']),
+      dg('lvs-sec-s1-enterprise-intent-dg2', 'Host relationship & labour', ['lvs-sec-s1-enterprise-intent-c3', 'lvs-sec-s1-enterprise-intent-c4']),
+      dg('lvs-sec-s1-enterprise-intent-dg3', 'Compatibility', ['lvs-sec-s1-enterprise-intent-c5']),
+    ],
+    completionGate:
+      'Livestock enterprise intent and host-integration rationale defined. Candidate species, labour, and stewardship capacity confirmed.',
+    actHandoff: 'Livestock Enterprise Intent & Integration Brief',
+  }),
+  // ---------------------------------------------------------------- Stratum 3
+  obj({
+    id: 'lvs-sec-s3-carrying-capacity-fit',
+    stratumId: 's3-systems-reading',
+    ref: 'LVS-S3.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'A clear read of carrying-capacity fit on the host forage base',
+    shortTitle: 'Carrying-capacity fit on host forage',
+    focusedQuestion:
+      'Can the host existing land and forage carry this herd through the year - and at what conservative stocking rate?',
+    checklist: [
+      ck(
+        'lvs-sec-s3-carrying-capacity-fit-c1',
+        'Map the host grazeable forage by zone - pasture, crop residue, understorey, cover crops - composition and condition',
+      ),
+      ckF(
+        'lvs-sec-s3-carrying-capacity-fit-c2',
+        'Assess seasonal forage availability and identify the feed gaps across the year',
+        {
+          formulaId: 'carrying-capacity-seasonal',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Seasonal carrying capacity',
+        },
+      ),
+      ckF(
+        'lvs-sec-s3-carrying-capacity-fit-c3',
+        'Estimate baseline carrying capacity from the forage productivity of the host land',
+        {
+          formulaId: 'forage-carrying-capacity',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Baseline carrying capacity',
+        },
+      ),
+      ck(
+        'lvs-sec-s3-carrying-capacity-fit-c4',
+        'Identify how much host area is realistically available to stock without compromising the primary enterprise',
+      ),
+      ck(
+        'lvs-sec-s3-carrying-capacity-fit-c5',
+        'Assess weed and toxic-plant presence relevant to the candidate stock species',
+      ),
+    ],
+    decisionGroups: [
+      dg('lvs-sec-s3-carrying-capacity-fit-dg1', 'Forage mapping & seasonality', ['lvs-sec-s3-carrying-capacity-fit-c1', 'lvs-sec-s3-carrying-capacity-fit-c2'], ['Vegetation & Succession']),
+      dg('lvs-sec-s3-carrying-capacity-fit-dg2', 'Capacity & available area', ['lvs-sec-s3-carrying-capacity-fit-c3', 'lvs-sec-s3-carrying-capacity-fit-c4']),
+      dg('lvs-sec-s3-carrying-capacity-fit-dg3', 'Weed & toxic plants', ['lvs-sec-s3-carrying-capacity-fit-c5']),
+    ],
+    completionGate:
+      'Host forage mapped. Seasonal availability and feed gaps identified. Baseline carrying capacity estimated per zone.',
+    actHandoff: 'Carrying-Capacity Fit Survey',
+  }),
+  // ---------------------------------------------------------------- Stratum 4
+  obj({
+    id: 'lvs-sec-s4-species-stocking',
+    stratumId: 's4-foundation-decisions',
+    ref: 'LVS-S4.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'A sound species, stocking-rate & grazing-system decision',
+    shortTitle: 'Species, stocking rate & grazing system',
+    focusedQuestion:
+      'Which animals, at what stocking rate, moved under what grazing system - sized to the surveyed capacity?',
+    checklist: [
+      ck(
+        'lvs-sec-s4-species-stocking-c1',
+        'Confirm species and breed selection against the host climate, forage, and enterprise intent',
+      ),
+      ckF(
+        'lvs-sec-s4-species-stocking-c2',
+        'Set the stocking rate per area at the chosen rotation',
+        {
+          formulaId: 'paddock-stocking-density',
+          satisfiesWhenComputed: false,
+          resultLabel: 'Stocking rate',
+        },
+      ),
+      ck(
+        'lvs-sec-s4-species-stocking-c3',
+        'Define the grazing system - continuous, rotational, cell, or mob - and the rationale',
+      ),
+      ck(
+        'lvs-sec-s4-species-stocking-c4',
+        'Define graze-period and rest-period targets per season, tied to recovery indicators',
+      ),
+      ck(
+        'lvs-sec-s4-species-stocking-c5',
+        'Define the winter / dry-season feed budget and its contingency - carried fodder, supplementary feed, planned destocking, or agistment triggers',
+      ),
+      ck(
+        'lvs-sec-s4-species-stocking-c6',
+        'Confirm the stocking decision is consistent with the surveyed carrying capacity',
+      ),
+    ],
+    decisionGroups: [
+      dg('lvs-sec-s4-species-stocking-dg1', 'Species & stocking rate', ['lvs-sec-s4-species-stocking-c1', 'lvs-sec-s4-species-stocking-c2']),
+      dg('lvs-sec-s4-species-stocking-dg2', 'Grazing system & graze/rest', ['lvs-sec-s4-species-stocking-c3', 'lvs-sec-s4-species-stocking-c4'], ['Vegetation & Succession']),
+      dg('lvs-sec-s4-species-stocking-dg3', 'Feed budget & capacity fit', ['lvs-sec-s4-species-stocking-c5', 'lvs-sec-s4-species-stocking-c6']),
+    ],
+    completionGate:
+      'Species, stocking rate, and grazing system decided. Dry-season feed budget defined. Stocking consistent with the surveyed carrying capacity.',
+    actHandoff: 'Species, Stocking & Grazing-System Decision Brief',
+  }),
+  obj({
+    id: 'lvs-sec-s4-stock-infrastructure',
+    stratumId: 's4-foundation-decisions',
+    ref: 'LVS-S4.21',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'Ready core stock infrastructure & a livestock establishment gate',
+    shortTitle: 'Core stock infrastructure & establishment gate',
+    focusedQuestion:
+      'What containment, handling, and shelter must be in place - and proven ready - before any animal arrives on the host?',
+    checklist: [
+      ck(
+        'lvs-sec-s4-stock-infrastructure-c1',
+        'Design fencing - perimeter and subdivision, type per zone (permanent, electric, or hybrid) appropriate to the candidate species',
+      ),
+      ck(
+        'lvs-sec-s4-stock-infrastructure-c2',
+        'Design handling facilities - yards, race, and loading sized to species and scale for low-stress routine husbandry',
+      ),
+      ck(
+        'lvs-sec-s4-stock-infrastructure-c3',
+        'Design shelter - shade and weather refuge adequate to the stock and the host climate',
+      ),
+      ck(
+        'lvs-sec-s4-stock-infrastructure-c4',
+        'Confirm water reticulation is installed and proven to every grazing area (demand detail owned by the water-strategy patch)',
+      ),
+      ck(
+        'lvs-sec-s4-stock-infrastructure-c5',
+        'Define the establishment go/no-go - no livestock arrive before water, fencing, and handling each pass an independent readiness test',
+      ),
+    ],
+    decisionGroups: [
+      dg('lvs-sec-s4-stock-infrastructure-dg1', 'Fencing & handling', ['lvs-sec-s4-stock-infrastructure-c1', 'lvs-sec-s4-stock-infrastructure-c2'], ['Infrastructure & Access']),
+      dg('lvs-sec-s4-stock-infrastructure-dg2', 'Shelter & water readiness', ['lvs-sec-s4-stock-infrastructure-c3', 'lvs-sec-s4-stock-infrastructure-c4'], ['Infrastructure & Access']),
+      dg('lvs-sec-s4-stock-infrastructure-dg3', 'Establishment gate', ['lvs-sec-s4-stock-infrastructure-c5']),
+    ],
+    completionGate:
+      'Stock fencing, handling, and shelter designed and water reticulation confirmed. Hard gate set: no livestock arrive before water, fencing, and handling facilities each pass an independent go/no-go test.',
+    actHandoff: 'Core Stock Infrastructure & Establishment Gate Package',
+    scopeNotes:
+      'Welfare / ihsan hard gate: no livestock arrive on the host before water, fencing, and handling facilities all pass independent go/no-go readiness tests. Bringing animals onto land that cannot yet contain, water, or handle them safely is an avoidable welfare failure.',
+  }),
+  // ---------------------------------------------------------------- Stratum 5
+  obj({
+    id: 'lvs-sec-s5-integration-timing',
+    stratumId: 's5-system-design',
+    ref: 'LVS-S5.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'An animal-impact integration & stacking-timing design',
+    shortTitle: 'Animal-impact integration & stacking timing',
+    focusedQuestion:
+      'At which moments in the host production cycle are animals invited in - and how does each animal stack multiple functions rather than just graze?',
+    checklist: [
+      ck(
+        'lvs-sec-s5-integration-timing-c1',
+        'Map the animal-impact windows against the host production calendar - when stock are invited in (orchard floor post-harvest, market-garden beds between rotations, cover-crop termination) and when they are excluded (fruit set/drop, seedling establishment, food-safety pre-harvest intervals)',
+      ),
+      ck(
+        'lvs-sec-s5-integration-timing-c2',
+        'Define functional stacking per species - each animal performing more than grazing (poultry: eggs, tillage, pest control, manure; pigs: windfall and cleanup; geese: selective grazing; ruminants: mowing and fertility)',
+      ),
+      ck(
+        'lvs-sec-s5-integration-timing-c3',
+        'Define sequencing / leader-follower moves where multi-species - the spatial flow across the host',
+      ),
+      ckF(
+        'lvs-sec-s5-integration-timing-c4',
+        'Define the integration spatial footprint within the host layout - zones, laneways, and temporary vs permanent infrastructure',
+        {
+          formulaId: 'paddock-system-capacity',
+          satisfiesWhenComputed: false,
+          resultLabel: 'Paddock system capacity',
+        },
+      ),
+      ck(
+        'lvs-sec-s5-integration-timing-c5',
+        'Confirm the impact timing protects the host primary yield and is consistent with the grazing system and the host calendar',
+      ),
+    ],
+    decisionGroups: [
+      dg('lvs-sec-s5-integration-timing-dg1', 'Impact windows & exclusions', ['lvs-sec-s5-integration-timing-c1'], ['Vegetation & Succession']),
+      dg('lvs-sec-s5-integration-timing-dg2', 'Functional stacking & sequencing', ['lvs-sec-s5-integration-timing-c2', 'lvs-sec-s5-integration-timing-c3']),
+      dg('lvs-sec-s5-integration-timing-dg3', 'Footprint & yield protection', ['lvs-sec-s5-integration-timing-c4', 'lvs-sec-s5-integration-timing-c5'], ['Infrastructure & Access']),
+    ],
+    completionGate:
+      'Animal-impact windows, functional stacking, and sequencing designed. Spatial footprint set and confirmed to protect the host primary yield.',
+    actHandoff: 'Animal-Impact Integration & Stacking-Timing Design',
+  }),
+  // ---------------------------------------------------------------- Stratum 6
+  obj({
+    id: 'lvs-sec-s6-health-biosecurity',
+    stratumId: 's6-integration-design',
+    ref: 'LVS-S6.20',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'A sound animal-health, welfare & host-interface biosecurity framework',
+    shortTitle: 'Animal health, welfare & biosecurity',
+    focusedQuestion:
+      'How are the animals kept healthy and humanely handled - and how is disease and contamination kept from crossing between stock and the host crops, visitors, nursery stock, or wildlife?',
+    checklist: [
+      ck(
+        'lvs-sec-s6-health-biosecurity-c1',
+        'Define the animal health program - vaccination, parasite management, and the veterinary relationship',
+      ),
+      ck(
+        'lvs-sec-s6-health-biosecurity-c2',
+        'Define the daily welfare standard - feed, water, shade, low-stress handling - and humane and halal handling / slaughter-pathway intent where stock is raised for meat',
+      ),
+      ck(
+        'lvs-sec-s6-health-biosecurity-c3',
+        'Define biosecurity at the host interface - separating stock from food crops, nursery stock, and visitor areas; manure-pathogen and zoonosis controls',
+      ),
+      ck(
+        'lvs-sec-s6-health-biosecurity-c4',
+        'Define predator pressure and guardian strategy - guardian animals (dogs, geese, donkeys), night housing, and fencing appropriate to the host and candidate stock',
+      ),
+      ck(
+        'lvs-sec-s6-health-biosecurity-c5',
+        'Define wildlife and neighbouring-stock disease-vector controls and a quarantine protocol for incoming animals',
+      ),
+      ck(
+        'lvs-sec-s6-health-biosecurity-c6',
+        'Confirm regulatory compliance - animal-welfare legislation and any stock identification / movement requirements for the jurisdiction',
+      ),
+      ck(
+        'lvs-sec-s6-health-biosecurity-c7',
+        'Define record-keeping for stock numbers, health events, and movements',
+      ),
+    ],
+    decisionGroups: [
+      dg('lvs-sec-s6-health-biosecurity-dg1', 'Health & welfare', ['lvs-sec-s6-health-biosecurity-c1', 'lvs-sec-s6-health-biosecurity-c2']),
+      dg('lvs-sec-s6-health-biosecurity-dg2', 'Biosecurity & predator strategy', ['lvs-sec-s6-health-biosecurity-c3', 'lvs-sec-s6-health-biosecurity-c4']),
+      dg('lvs-sec-s6-health-biosecurity-dg3', 'Vectors, compliance & records', ['lvs-sec-s6-health-biosecurity-c5', 'lvs-sec-s6-health-biosecurity-c6', 'lvs-sec-s6-health-biosecurity-c7']),
+    ],
+    completionGate:
+      'Animal health, welfare, and host-interface biosecurity framework approved. Humane and halal handling intent defined. Predator strategy, regulatory compliance, and record-keeping established.',
+    actHandoff: 'Animal Health, Welfare & Biosecurity Framework Brief',
+    scopeNotes:
+      'Welfare / ihsan: the animals are kept to a defined daily welfare standard, with humane and halal handling and slaughter-pathway intent made explicit where stock is raised for meat.',
+  }),
+  obj({
+    id: 'lvs-sec-s6-nutrient-integration',
+    stratumId: 's6-integration-design',
+    ref: 'LVS-S6.21',
+    source: 'secondary',
+    sourceTypeId: SECONDARY,
+    secondaryClass: 'additive',
+    title: 'A closed-loop manure, nutrient-cycling & fertility integration',
+    shortTitle: 'Manure, nutrient cycling & closed-loop fertility',
+    focusedQuestion:
+      'How does animal impact become the host fertility engine - at the right ratio, without overloading, contaminating, or compacting?',
+    checklist: [
+      ck(
+        'lvs-sec-s6-nutrient-integration-c1',
+        'Map manure / nutrient flows from stock into the host crops, orchard floor, or pasture',
+      ),
+      ck(
+        'lvs-sec-s6-nutrient-integration-c2',
+        'Assess the livestock-to-land fertility balance - is the herd under-, at-, or over-stocked for closed-loop fertility (carrying enough animals to be self-sufficient in fertility without importing inputs)',
+      ),
+      ck(
+        'lvs-sec-s6-nutrient-integration-c3',
+        'Identify manure as a substrate for on-farm preparations / composting - e.g. quality compost, and for a biodynamic steward preparation-making such as horn-manure - fertility the host would otherwise buy in',
+      ),
+      ck(
+        'lvs-sec-s6-nutrient-integration-c4',
+        'Define safe manure handling - composting and withholding periods before food-crop contact (food-safety contamination guard)',
+      ),
+      ck(
+        'lvs-sec-s6-nutrient-integration-c5',
+        'Define the overgrazing / compaction guard on the host productive ground - graze/rest thresholds, exclusion zones, and nutrient-loading limits so density does not over-fertilise or pollute waterways',
+      ),
+      ck(
+        'lvs-sec-s6-nutrient-integration-c6',
+        'Confirm the nutrient-integration plan closes a fertility loop the host primary would otherwise have to source externally',
+      ),
+    ],
+    decisionGroups: [
+      dg('lvs-sec-s6-nutrient-integration-dg1', 'Nutrient flows & fertility balance', ['lvs-sec-s6-nutrient-integration-c1', 'lvs-sec-s6-nutrient-integration-c2'], ['Soil']),
+      dg('lvs-sec-s6-nutrient-integration-dg2', 'Prep substrate & safe handling', ['lvs-sec-s6-nutrient-integration-c3', 'lvs-sec-s6-nutrient-integration-c4'], ['Soil']),
+      dg('lvs-sec-s6-nutrient-integration-dg3', 'Overgrazing guard & loop closure', ['lvs-sec-s6-nutrient-integration-c5', 'lvs-sec-s6-nutrient-integration-c6']),
+    ],
+    completionGate:
+      'Manure and nutrient flows mapped and the livestock-to-land fertility balance assessed. Safe-handling, overgrazing, and nutrient-loading guards set. Fertility loop closed back into the host.',
+    actHandoff: 'Closed-Loop Nutrient & Fertility Integration Brief',
+  }),
+];
+
+// ---------------------------------------------------------------------------
+// LIVESTOCK SECONDARY PATCHES
+//
+// Inject livestock-specific items into the shared UNIVERSAL objectives so stock
+// demand is folded into the whole-of-site water / soil / access decisions. The
+// resolver looks targets up by id, concatenates gate amendments, and stamps each
+// injected item with expandedBySecondaryId at apply time. Item ids use the
+// ...-lvs-N suffix so they never collide with the silvopasture secondary's
+// ...-silv-N items on the same targets.
+// ---------------------------------------------------------------------------
+export const LIVESTOCK_SECONDARY_PATCHES: readonly PatchRecord[] = [
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's4-water-strategy',
+    ref: 'LVS>U-S4.2',
+    injectedItems: [
+      ckF(
+        's4-water-strategy-lvs-1',
+        'Add livestock drinking-water demand to the water balance - peak daily intake by species, class, and season',
+        {
+          formulaId: 'stock-water-demand',
+          satisfiesWhenComputed: true,
+          resultLabel: 'Stock-water demand vs supply',
+        },
+      ),
+      ck(
+        's4-water-strategy-lvs-2',
+        'Confirm reticulated supply reaches every grazing area through the dry season, at a water quality fit for stock and for the host irrigation',
+      ),
+      ck(
+        's4-water-strategy-lvs-3',
+        'Define riparian / waterway exclusion - keep stock out of the host clean waterways and dams to prevent pathogen and nutrient contamination',
+      ),
+    ],
+    injectedGroups: [
+      dg('s4-water-strategy-dglvs1', 'Livestock water demand & waterway protection', ['s4-water-strategy-lvs-1', 's4-water-strategy-lvs-2', 's4-water-strategy-lvs-3'], ['Water & Hydrology']),
+    ],
+    completionGateAmendment:
+      'Livestock water demand and quality are in the water balance, supply reaches all grazing areas, and waterways are protected from stock contamination.',
+    scopeNote:
+      'Livestock secondary: a standalone herd adds a continuous, area-distributed water demand and a waterway-contamination risk the base primary may not account for.',
+  }),
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's5-soil-improvement',
+    ref: 'LVS>U-S5.3',
+    injectedItems: [
+      ck(
+        's5-soil-improvement-lvs-1',
+        'Define grazing-impact monitoring - ground cover, compaction, and condition by zone',
+      ),
+      ck(
+        's5-soil-improvement-lvs-2',
+        'Define graze/rest thresholds and manure-loading limits that build soil without overgrazing or nutrient pollution',
+      ),
+    ],
+    injectedGroups: [
+      dg('s5-soil-improvement-dglvs1', 'Grazing impact & loading limits', ['s5-soil-improvement-lvs-1', 's5-soil-improvement-lvs-2'], ['Soil']),
+    ],
+    completionGateAmendment:
+      'Grazing-impact monitoring, graze/rest thresholds, and manure-loading limits protect and build the host soil.',
+    scopeNote:
+      'Livestock secondary: stock are both a soil-building tool and a compaction/overgrazing/nutrient-loading risk; the host soil strategy must govern grazing pressure.',
+  }),
+  patch({
+    secondaryTypeId: SECONDARY,
+    targetObjectiveId: 's5-access',
+    ref: 'LVS>U-S5.1',
+    injectedItems: [
+      ck(
+        's5-access-lvs-1',
+        'Design stock-movement laneways linking grazing areas to water, handling yards, and shelter',
+      ),
+      ck(
+        's5-access-lvs-2',
+        'Design gated crossings where stock laneways intersect vehicle access, crop areas, or waterways - minimise stress and cross-contamination points',
+      ),
+    ],
+    injectedGroups: [
+      dg('s5-access-dglvs1', 'Stock circulation & crossings', ['s5-access-lvs-1', 's5-access-lvs-2'], ['Infrastructure & Access']),
+    ],
+    completionGateAmendment:
+      'Stock-circulation laneways and gated crossings move livestock with minimal stress and no crop/visitor cross-contamination.',
+    scopeNote:
+      'Livestock secondary: a standalone herd requires a stock-circulation layer over the base access network, with gated crossings at every crop/visitor/waterway intersection.',
   }),
 ];
