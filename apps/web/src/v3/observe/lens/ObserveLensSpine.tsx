@@ -7,7 +7,9 @@
 // This replaces the rich horizontal DomainsView card strip as the lens
 // selector; DomainsView stays defined-but-unused (no-deletion).
 
-import { FRESHNESS, LENSES } from './mockData.js';
+import type { ObserveLensId } from '@ogden/shared';
+import { DOMAIN_DETAIL, FRESHNESS, LENSES } from './mockData.js';
+import { C } from './tokens.js';
 import css from './ObserveLensSpine.module.css';
 
 interface Props {
@@ -15,6 +17,9 @@ interface Props {
   activeLens: string;
   /** Select a lens (or 'all'). Re-selecting the active lens resets to 'all'. */
   onSelectLens: (id: string) => void;
+  /** Open the domain-detail slide-up for a lens (the "View all observations"
+   *  affordance). Threaded to the dashboard's `setDetailLens`. */
+  onOpenDetail: (lensId: ObserveLensId) => void;
   /** Project name shown in the leading identity tile. */
   projectTitle: string;
 }
@@ -22,6 +27,7 @@ interface Props {
 export default function ObserveLensSpine({
   activeLens,
   onSelectLens,
+  onOpenDetail,
   projectTitle,
 }: Props) {
   const allActive = activeLens === 'all';
@@ -33,58 +39,91 @@ export default function ObserveLensSpine({
         <span className={css.projectTileTypes}>Observe &middot; Lens</span>
       </div>
       <div className={css.spine} role="tablist" aria-label="Observe lenses">
-        {/* "All" tab -- clears the lens filter. */}
-        <button
-          type="button"
-          role="tab"
-          aria-selected={allActive}
-          className={css.tier}
-          data-active={allActive}
-          onClick={() => onSelectLens('all')}
-        >
-          <span className={css.tierTop}>
-            <span className={css.lensIcon} aria-hidden="true">
-              &#8853;
+        {/* "All" tab -- clears the lens filter. No detail/summary affordance. */}
+        <div className={css.tierWrap}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={allActive}
+            className={css.tier}
+            data-active={allActive}
+            onClick={() => onSelectLens('all')}
+          >
+            <span className={css.tierTop}>
+              <span className={css.lensIcon} aria-hidden="true">
+                &#8853;
+              </span>
             </span>
-          </span>
-          <span className={css.tierTitle}>All lenses</span>
-          <span className={css.tierMeta}>No filter</span>
-        </button>
+            <span className={css.tierTitle}>All lenses</span>
+            <span className={css.tierMeta}>No filter</span>
+          </button>
+        </div>
 
         {LENSES.map((lens) => {
           const isActive = activeLens === lens.id;
           const fresh = FRESHNESS[lens.freshness];
+          const hasDetail = Boolean(DOMAIN_DETAIL[lens.id]);
+          const summary =
+            lens.summary && lens.summary.length > 70
+              ? lens.summary.slice(0, 68) + '…'
+              : lens.summary;
           return (
-            <button
-              key={lens.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={css.tier}
-              data-active={isActive}
-              onClick={() => onSelectLens(isActive ? 'all' : lens.id)}
-            >
-              <span className={css.tierTop}>
-                <span
-                  className={css.lensIcon}
-                  style={{ color: lens.color }}
-                  aria-hidden="true"
-                >
-                  {lens.icon}
-                </span>
-                {fresh.dot && (
+            <div key={lens.id} className={css.tierWrap}>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={css.tier}
+                data-active={isActive}
+                // Square the bottom corners so the detail button below connects
+                // to the tab (mirrors the old DomainsView card pairing).
+                style={hasDetail ? { borderRadius: '8px 8px 0 0' } : undefined}
+                onClick={() => onSelectLens(isActive ? 'all' : lens.id)}
+              >
+                <span className={css.tierTop}>
                   <span
-                    className={css.tierDot}
-                    style={{ background: fresh.color }}
-                    title={fresh.label}
-                  />
+                    className={css.lensIcon}
+                    style={{ color: lens.color }}
+                    aria-hidden="true"
+                  >
+                    {lens.icon}
+                  </span>
+                  {fresh.dot && (
+                    <span
+                      className={css.tierDot}
+                      style={{ background: fresh.color }}
+                      title={fresh.label}
+                    />
+                  )}
+                </span>
+                <span className={css.tierTitle}>{lens.label}</span>
+                <span className={css.tierMeta}>
+                  {lens.observations} obs
+                  {lens.lastObserved ? ` · ${lens.lastObserved}` : ''}
+                </span>
+                {lens.divergence && (
+                  <span className={css.tierDivergence} style={{ color: C.amber }}>
+                    {'▲'} Divergence
+                  </span>
                 )}
-              </span>
-              <span className={css.tierTitle}>{lens.label}</span>
-              <span className={css.tierMeta}>
-                {lens.observations} obs
-              </span>
-            </button>
+                {summary && <span className={css.tierSummary}>{summary}</span>}
+              </button>
+              {hasDetail && (
+                <button
+                  type="button"
+                  className={css.tierDetail}
+                  style={{
+                    background: lens.color + '0A',
+                    border: `1px solid ${lens.color}30`,
+                    borderTop: 'none',
+                    color: lens.color,
+                  }}
+                  onClick={() => onOpenDetail(lens.id)}
+                >
+                  View all observations &rarr;
+                </button>
+              )}
+            </div>
           );
         })}
       </div>

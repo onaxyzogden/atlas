@@ -73,6 +73,7 @@ export default function ObserveLensDashboard() {
       <ObserveLensSpine
         activeLens={activeLens}
         onSelectLens={handleLensChange}
+        onOpenDetail={setDetailLens}
         projectTitle={PROJECT.name}
       />
 

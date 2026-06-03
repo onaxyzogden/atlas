@@ -61,9 +61,17 @@
   color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
 }
 
-.tier {
+/* Per-lens wrapper: owns the flex sizing so the tab button + the optional
+   "View all observations" detail button stack as one column. */
+.tierWrap {
   flex: 1 1 0;
   min-width: 116px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tier {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -130,4 +138,40 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+/* Divergence badge -- amber, supplied inline to match the old DomainsView card. */
+.tierDivergence {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+/* Lens summary snippet -- muted, clamped to two lines. */
+.tierSummary {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* "View all observations" detail trigger -- sibling of the filter button,
+   connected to its squared bottom edge. Dynamic colour supplied inline. */
+.tierDetail {
+  width: 100%;
+  padding: 6px 12px;
+  border-radius: 0 0 var(--radius-md, 8px) var(--radius-md, 8px);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.tierDetail:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
 }
