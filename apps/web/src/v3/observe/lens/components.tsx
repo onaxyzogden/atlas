@@ -5,7 +5,7 @@
 // verbatim for pixel fidelity (NOT reskinned to tokens.css). All data flows
 // from ./mockData; lens identity originates in @ogden/shared via LENSES.
 
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, type ReactNode } from 'react';
 import type { ObserveLensId } from '@ogden/shared';
 import { C, F } from './tokens.js';
 import {
@@ -138,10 +138,14 @@ export function LensBar({ activeLens, onLensChange }: { activeLens: string; onLe
 }
 
 // ─── INTELLIGENCE PANEL ───────────────────────────────────────────────────────
-export function IntelligencePanel({ activeLens, selectedObs, onOpenDetail }: {
+export function IntelligencePanel({ activeLens, selectedObs, onOpenDetail, footer }: {
   activeLens: string;
   selectedObs: MockObservation | null;
   onOpenDetail: (lensId: ObserveLensId) => void;
+  // Optional lens-level content rendered INSIDE the single scroll body, after
+  // the active view — lets the Observe dashboard stack the Recent Observations
+  // list beneath Land Intelligence in one shared scroll (no separate rail).
+  footer?: ReactNode;
 }) {
   const [view, setView] = useState<'summary' | 'temporal'>('summary');
   const lens = LENSES.find((l) => l.id === activeLens);
@@ -157,6 +161,7 @@ export function IntelligencePanel({ activeLens, selectedObs, onOpenDetail }: {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {view === 'summary' && <SummaryView lens={lens} activeLens={activeLens} selectedObs={selectedObs} onOpenDetail={onOpenDetail} />}
         {view === 'temporal' && <TemporalView lens={lens} activeLens={activeLens} />}
+        {footer}
       </div>
     </div>
   );
@@ -1250,10 +1255,15 @@ function ageToHours(age: string): number {
   return parseFloat(num) * (AGE_UNIT_HOURS[unit.toLowerCase()] ?? 1);
 }
 
-export function RecentObservationsStrip({ activeLens, selectedObs, onObsClick }: {
+export function RecentObservationsStrip({ activeLens, selectedObs, onObsClick, vertical = false }: {
   activeLens: string;
   selectedObs: MockObservation | null;
   onObsClick: (obs: MockObservation) => void;
+  // When true, render WITHOUT the outer bento card as a stacked section (header
+  // + vertical full-width card column) — used inside IntelligencePanel's scroll
+  // body so Recent Observations sits beneath Land Intelligence in one rail. The
+  // default horizontal strip path (StageShell bottom tray) is byte-unchanged.
+  vertical?: boolean;
 }) {
   const lensById: Record<string, LensDisplay> = Object.fromEntries(LENSES.map((l) => [l.id, l]));
   const visible = (activeLens && activeLens !== 'all'
@@ -1261,8 +1271,12 @@ export function RecentObservationsStrip({ activeLens, selectedObs, onObsClick }:
     : [...MOCK_OBSERVATIONS]
   ).slice().sort((a, b) => ageToHours(a.age) - ageToHours(b.age));
 
+  const outerStyle: CSSProperties = vertical
+    ? { display: 'flex', flexDirection: 'column', minWidth: 0, borderTop: `1px solid ${C.border}` }
+    : { display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, overflow: 'hidden' };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, overflow: 'hidden' }}>
+    <div style={outerStyle}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px 6px', flexShrink: 0 }}>
         <span style={{ fontSize: 10, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: F.sans }}>
           Recent observations
@@ -1276,7 +1290,9 @@ export function RecentObservationsStrip({ activeLens, selectedObs, onObsClick }:
           No observations recorded for this lens yet.
         </div>
       ) : (
-        <div style={{ flex: 1, display: 'flex', gap: 8, alignItems: 'stretch', padding: '0 12px 10px', overflowX: 'auto', minWidth: 0 }}>
+        <div style={vertical
+          ? { flex: 1, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch', padding: '0 12px 10px', minWidth: 0 }
+          : { flex: 1, display: 'flex', gap: 8, alignItems: 'stretch', padding: '0 12px 10px', overflowX: 'auto', minWidth: 0 }}>
           {visible.map((obs) => {
             const lens = lensById[obs.lens];
             const color = lens?.color || C.textSecondary;
@@ -1290,7 +1306,10 @@ export function RecentObservationsStrip({ activeLens, selectedObs, onObsClick }:
                 onClick={() => onObsClick(obs)}
                 title={`${obs.label} · ${obs.type} · ${obs.age} ago`}
                 style={{
-                  flex: '0 0 auto', width: 168, minWidth: 168, display: 'flex', flexDirection: 'column', gap: 6,
+                  ...(vertical
+                    ? { width: '100%' }
+                    : { flex: '0 0 auto', width: 168, minWidth: 168 }),
+                  display: 'flex', flexDirection: 'column', gap: 6,
                   padding: '9px 11px', textAlign: 'left', cursor: 'pointer', fontFamily: F.sans,
                   background: isSelected ? color + '14' : C.bg3,
                   border: `1px solid ${isSelected ? color + '70' : C.border}`,

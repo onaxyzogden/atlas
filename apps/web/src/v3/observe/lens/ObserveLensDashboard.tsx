@@ -10,11 +10,14 @@
 //
 // LAYOUT: this is now composed on Atlas's real StageShell (between-rails),
 // mirroring act/tier-shell/ActTierShell — an ActTierSpine-style lens spine
-// stacked above a StageShell whose four slots hold the cycle rail, map canvas,
-// intelligence rail, and a recent-observations tray. The internal TopBar was
-// dropped (it duplicated the global app-shell header). The old CSS `zoom` box
-// is gone; the UI renders at Act's natural proportions (see the de-zoom rebake
-// in ./components.tsx and the spine in ./ObserveLensSpine.tsx).
+// stacked above a StageShell whose three slots hold the cycle rail, map canvas,
+// and the land-intelligence rail. The right rail stacks Land Intelligence atop
+// a vertical Recent Observations list (one shared scroll, via IntelligencePanel's
+// `footer`), so the former StageShell bottom tray is gone and the canvas is
+// taller. The internal TopBar was dropped (it duplicated the global app-shell
+// header). The old CSS `zoom` box is gone; the UI renders at Act's natural
+// proportions (see the de-zoom rebake in ./components.tsx and the spine in
+// ./ObserveLensSpine.tsx).
 
 import { useState } from 'react';
 import type { ObserveLensId } from '@ogden/shared';
@@ -92,13 +95,14 @@ export default function ObserveLensDashboard() {
               activeLens={activeLens}
               selectedObs={selectedObs}
               onOpenDetail={setDetailLens}
-            />
-          }
-          bottomTray={
-            <RecentObservationsStrip
-              activeLens={activeLens}
-              selectedObs={selectedObs}
-              onObsClick={handleObsClick}
+              footer={
+                <RecentObservationsStrip
+                  vertical
+                  activeLens={activeLens}
+                  selectedObs={selectedObs}
+                  onObsClick={handleObsClick}
+                />
+              }
             />
           }
         />
