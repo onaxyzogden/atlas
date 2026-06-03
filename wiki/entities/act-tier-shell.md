@@ -637,6 +637,37 @@ review before Tier 2.** ADR
 [[decisions/2026-06-03-atlas-deviation-flag-universal-objective-retarget]]; Log:
 [[log/2026-06-03-atlas-deviation-flag-universal-objective-retarget]].
 
+## Protocol-deviation Review flags: Tier 2 event-driven routing (2026-06-03)
+
+Tier 2 closed: flagging now covers all **10** `STANDARD_PROTOCOL_TEMPLATES`, not
+just the 5 S6-bound ones. The other 5 are **event-driven** (cyclical/judgment) and
+route to the **deep** universal Plan objective their deviation contradicts via a
+new hand table `packages/shared/src/constants/protocol/feedsToObjective.ts`
+(`FEEDS_TO_OBJECTIVE`): post-rotation-impact->`[s3-soil]`,
+pre-rotation-paddock->`[s6-monitoring]`,
+water-trough-inspection->`[s5-water-infrastructure]`,
+seasonal-stocking-rate->`[s6-monitoring,s7-phase1]`,
+silvopasture-pest-diversion->`[s4-zones]`. `TEMPLATE_DEPTH` grew 5->10
+(soil/water/zones for deep-stratum events, threshold for the two yield-monitoring
+events).
+
+`evaluateAndRaiseFlags.ts` branches on `S6_BOUND_TEMPLATE_IDS.has(templateId)`:
+s6-bound keeps the primary+cascade emission; event-driven raises **one plain flag
+per mapped target** (no cascade, no `downstream of` prefix); an unmapped/custom
+template raises **nothing**. The caller (`resolveTrigger`) was already generic over
+`templateId`, so no caller change. Two drift-guard tests keep the two hand tables'
+key sets in lockstep with the template list.
+
+39/39 shared protocol specs + 61/61 web review-flag specs + `tsc` 0 (shared & web).
+**Browser-verified live on MTC** (closes the Tier-1 deferred check): the
+`s5-water-infrastructure` Plan S5 card mounts, an injected water-trough
+over-deviation flag surfaced the amber **Review** chip on it, and **Resolve**
+cleared it; `preview_screenshot` hung so proof is the DOM/testid assertion
+([[project-screenshot-hang]]). Commits `3b9b1b4a`+`cd3d7870` (T2.1),
+`fc6c6013`+`a981ef74` (T2.2), not pushed. **Feature complete (Tier 1 + Tier 2).**
+ADR [[decisions/2026-06-03-atlas-deviation-flag-tier2-event-driven-routing]]; Log:
+[[log/2026-06-03-atlas-deviation-flag-tier2-event-driven-routing]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
