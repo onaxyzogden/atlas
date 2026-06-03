@@ -117,7 +117,7 @@ The formal proof/verification layer (`olos_act_tasks` / `olos_proof_records` / `
 - ✅ `objectiveObserveDomains.test.ts` — pass.
 - ⚠️ `resolveProjectObjectives.test.ts` — 24/25; the 1 failure (`agritourism + residential = 54`, now 59) is **pre-existing and unrelated** — confirmed by re-running with the R1/R3 edits stashed. It is drift from the agritourism `AG-S4.8` membership/season-pass extension (commit `15680301`) whose count assertion was never updated. Flagged for a separate fix.
 
-> Remaining Gap A (243 across the other 11 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice) and regenerative_farm are complete.
+> Remaining Gap A (219 across the other 10 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, and market_garden are complete.
 
 ### Regenerative farm — DONE (R1/R3, 2026-06-03)
 
@@ -130,3 +130,15 @@ The formal proof/verification layer (`olos_act_tasks` / `olos_proof_records` / `
 **Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 7/7 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25** (the previously pre-existing agritourism count failure has since been resolved upstream; full suite now green). Shared `tsc --noEmit` EXIT 0.
 
 Committed `187c4f6f`.
+
+### Market garden — DONE (R1/R3, 2026-06-03)
+
+**R1 (market garden).** All 24 `mgd-*` objectives now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries: 18 spatial / field-log objectives mapped to grounded tools (every id verified against a real `mgd-*` checklist item + a mountable `ACT_TOOL_CATALOG` tool), 6 set to intentional gap-noted `[]` — the three s1 objectives (`mgd-s1-production-targets-sales`, `mgd-s1-growing-system-philosophy`, `mgd-s1-market-channels`; the first and third carry CSA Amanah scopeNotes flags, untouched, and are off-site decisions), `mgd-s6-sales-revenue-tracking` (financial, Amanah-clean), `mgd-s6-adaptive-management` (review protocol), and `mgd-s7-financial-viability` (break-even budgeting, MGD-S7.5, Amanah-clean). Before this the mgd objectives fell through to the coarse stratum default with the same misfit class as regen — S3 water/pest showed access-utilities, S4 strategy showed roads/fencing, S5 infrastructure showed the water-line set instead of bed/compost/wash-pack tools.
+
+**R3 (ratchet).** `actToolCoverage.test.ts` gains a "every market-garden objective has an explicit override entry" assertion (intentional `[]` still satisfies it). 8/8.
+
+**Audit re-run after market-garden R1/R3:** 316 objectives — Gap A **243 → 219** (market garden's 24 now covered), Gap B 0, Gap C 49 → 52 (27 intentional / 25 default-driven; +6 intentional = the mgd decision/financial objectives, −3 default-driven now explicitly wired).
+
+**Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 8/8 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
+
+Committed `3c340134`.

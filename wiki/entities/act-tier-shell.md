@@ -738,6 +738,30 @@ Commit `187c4f6f`, not pushed. Gap A now 243 across the other 11 primary types
 (market_garden / orchard next). Log:
 [[log/2026-06-03-olos-act-regen-farm-overrides]].
 
+## Objective->tool overrides: market_garden (2026-06-03)
+
+Third per-type catalogue wired after homestead and regen-farm. All **24 `mgd-*`**
+objectives now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries in
+`objectiveActTools.ts`: **18 spatial/field-log** grounded (each id verified
+against a real `mgd-*` checklist item + a mountable `ACT_TOOL_CATALOG` tool —
+e.g. water-access->watercourse/spring/catchment/storage/wells,
+crop-rotation-bed-layout->beds/crops/zone, fertility-strategy->compost/
+fertility-unit/crops/flow-connector, bed-infra->beds/crops/path/vegetation/
+buildings, wash-pack->buildings/barns/tanks, crop-calendar->crops/frost-pocket/
+harvest), **6 intentional `[]`** (s1 production-targets-sales / growing-system-
+philosophy / market-channels — first & third carry CSA Amanah scopeNotes flags,
+left verbatim, off-site decisions; s6 sales-revenue-tracking + adaptive-management;
+s7 financial-viability MGD-S7.5 break-even, Amanah-clean). Before this the 24
+fell through `STRATUM_ACT_TOOLS_DEFAULT` with the same misfit class as regen (S3
+water/pest showed access-utilities, S4 strategy showed roads/fencing, S5
+infrastructure showed the water-line set). **R3:** `actToolCoverage.test.ts`
+ratcheted with a market-garden assertion (intentional `[]` satisfies it).
+Verified: shared `tsc` EXIT 0; audit Gap A **243->219**, Gap B 0, Gap C 49->52;
+bounded `--pool=forks` `actToolCoverage` 8/8, `objectiveObserveDomains` 8/8,
+`resolveProjectObjectives` 25/25. Commit `3c340134`, not pushed. Gap A now 219
+across the other 10 primary types (orchard next). Log:
+[[log/2026-06-03-olos-act-market-garden-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
