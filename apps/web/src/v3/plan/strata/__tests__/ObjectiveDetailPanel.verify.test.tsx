@@ -105,6 +105,7 @@ vi.mock('../../../components/DiagnoseMap.js', () => ({ default: () => null }));
 vi.mock('../../../components/OperateMap.js', () => ({ default: () => null }));
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
+  useSearch: () => ({}),
   Link: ({ children }: { children: React.ReactNode }) => children,
 }));
 

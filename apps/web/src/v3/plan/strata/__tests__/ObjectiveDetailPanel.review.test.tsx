@@ -113,9 +113,11 @@ vi.mock('../../../components/DesignMap.js', () => ({ default: () => null }));
 vi.mock('../../../components/DiagnoseMap.js', () => ({ default: () => null }));
 vi.mock('../../../components/OperateMap.js', () => ({ default: () => null }));
 
-// LaunchActButton and DecisionChecklist call useNavigate.
+// LaunchActButton and DecisionChecklist call useNavigate; ObjectiveDetailPanel
+// reads useSearch for the ?expandRef deep-link.
 vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
+  useSearch: () => ({}),
   Link: ({ children }: { children: React.ReactNode }) => children,
 }));
 
