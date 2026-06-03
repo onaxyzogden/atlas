@@ -57,8 +57,16 @@ that transitively imports the persist-backed store needs `@vitest-environment ha
   dashboard dedupes onto the shared helper; 10 tests. Live render-verify deferred --
   the WasteVectorTool legacy slide-up host is not reachable through the current strata
   IA via automation. [[log/2026-06-03-atlas-closed-loop-slice-a1]]
-- **A2 -- pending:** `loopIntegrity.ts` + `FlowDetailPanel` (status/cadence/volume/via/
-  activeMonths editors); selectable list rows.
+- **A2 -- shipped** (`37665eba`): `loopIntegrity.ts` (pure five-check loop-integrity
+  checklist: sink / cadence / volume / via / activeMonths, ordered + completeCount) +
+  9 tests; `FlowDetailPanel` (operationalStatus + cadence selects, mass/volume inputs,
+  via-node multi-select from `useFlowEndpointOptions` filtered to `kind === "fertility"`,
+  activeMonths month grid; writes via `updateMaterialFlow`); `parsePositive` extracted to
+  shared `flowFormUtils.ts`; `WasteVectorListView` rows now selectable buttons that open
+  the panel. Live render-verify deferred -- the WasteVectorTool legacy slide-up host is
+  the same surface that A1 found unreachable through the strata IA via automation; relied
+  on the unit suite (28/28) + web/shared tsc exit 0 + store read.
+  [[log/2026-06-03-atlas-closed-loop-slice-a2]]
 - **A3 -- pending:** `flowMapGeometry.ts` + flow-map rendering upgrade
   (width-by-volume, dash-by-status, orphan pulse, via waypoints).
 - **A4 -- pending:** `loopApprovalGate.ts` + `loopHandoffContract.ts`
