@@ -29,6 +29,8 @@ import {
   MARKET_GARDEN_PRIMARY_OBJECTIVES,
   ORCHARD_PRIMARY_OBJECTIVES,
   ORCHARD_SECONDARY_OBJECTIVES,
+  LIVESTOCK_PRIMARY_OBJECTIVES,
+  LIVESTOCK_SECONDARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -126,6 +128,31 @@ describe('Act tier-shell objective->tool coverage', () => {
       ...ORCHARD_SECONDARY_OBJECTIVES,
     ];
     const missing = orchardObjectives
+      .filter((o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE))
+      .map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every livestock-operation objective (primary + secondary) has an explicit override entry', () => {
+    // Livestock operation is the fifth per-type catalogue wired (audit
+    // remediation R1, 2026-06-03). Covers BOTH the 23 lvs-* primary objectives
+    // and the 7 standalone lvs-sec-* additive objectives (which surface when
+    // livestock is a secondary type -- the same situation that forced the
+    // silvopasture-secondary overrides), mirroring the orchard / silvopasture
+    // assertions' primary+secondary union. (The 3 LIVESTOCK_SECONDARY_PATCHES
+    // inject into universal objectives that already carry overrides, so they need
+    // no entry here.) Before this its objectives fell through
+    // STRATUM_ACT_TOOLS_DEFAULT (S2/S3 forage & water surfaced access-utilities;
+    // S5 paddock / fencing / handling surfaced roads/fencing generically rather
+    // than the paddocks/gates/barns family). An intentional [] (vision / breed /
+    // stocking / grazing-method / financial / sequencing decisions, incl. the
+    // CSA-flagged s7 marketing objective) still satisfies the ratchet -- only a
+    // brand-new un-wired lvs-* / lvs-sec-* trips it.
+    const livestockObjectives = [
+      ...LIVESTOCK_PRIMARY_OBJECTIVES,
+      ...LIVESTOCK_SECONDARY_OBJECTIVES,
+    ];
+    const missing = livestockObjectives
       .filter((o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE))
       .map((o) => o.id);
     expect(missing).toEqual([]);

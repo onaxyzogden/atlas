@@ -751,6 +751,129 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S6 — harvest pathway: harvest logging (harvest), pack / storage / value-add
   // structures (buildings). gap: destination / value-add channel (decision).
   'orch-sec-s6-harvest-pathway': ['harvest', 'buildings'],
+
+  // --- livestock_operation (primary) ---
+  // Before this block the lvs-* objectives fell through STRATUM_ACT_TOOLS_DEFAULT
+  // with the familiar misfit: S2/S3 forage & water reading surfaced the coarse
+  // access-utilities / water-line sets instead of pasture / paddock / stock-water
+  // tools, and S5 paddock / fencing / handling design surfaced roads/fencing
+  // generically rather than the paddocks/gates/barns family. Mirrors the
+  // silvopasture livestock vocabulary (paddocks, pasture, fencing, gates, barns).
+  // S1 — enterprise vision: species / enterprise / production intent — a vision
+  // decision. gap: all.
+  'lvs-s1-enterprise-vision': [],
+  // S1 — production goals: scale / output / capacity targets — a targets
+  // decision. gap: all.
+  'lvs-s1-production-goals': [],
+  // S1 — welfare ethic: animal-welfare standard commitment — a values decision.
+  // gap: all.
+  'lvs-s1-welfare-ethic': [],
+  // S2 — forage base: map forage / pasture communities by zone (pasture),
+  // condition & weed/toxic species (vegetation), seasonal-availability sampling
+  // (transect).
+  'lvs-s2-forage-base': ['pasture', 'vegetation', 'transect'],
+  // S2 — stock-water sources: inventory natural & built sources — streams
+  // (watercourse), springs (spring), dams/ponds (storage), bores/wells (wells),
+  // rainwater tanks (tanks), existing reticulation (water-lines).
+  'lvs-s2-stock-water-sources': [
+    'watercourse',
+    'spring',
+    'storage',
+    'wells',
+    'tanks',
+    'water-lines',
+  ],
+  // S2 — existing infrastructure: inventory fencing (fencing), yards / sheds /
+  // shelters (barns, buildings), gateways (gates), laneways (path).
+  'lvs-s2-existing-infrastructure': ['fencing', 'barns', 'buildings', 'gates', 'path'],
+  // S3 — carrying capacity: forage dry-matter productivity per zone (pasture),
+  // seasonal-yield sampling (transect). gap: stocking-ceiling math (decision).
+  'lvs-s3-carrying-capacity': ['pasture', 'transect'],
+  // S3 — health baseline: regional disease / parasite pressure is desk research,
+  // but soil / forage mineral-status sampling that drives deficiency planning is
+  // a real sampling act (soil). gap: disease & vet-support survey (research).
+  'lvs-s3-health-baseline': ['soil'],
+  // S3 — predator & hazard risk: predator species by zone (wildlife), boundary /
+  // neighbour-stock incursion vectors (neighbour-pin), climate & fire hazards
+  // (hazard-zone, fire-sector).
+  'lvs-s3-predator-risk': ['wildlife-sector', 'hazard-zone', 'neighbour-pin', 'fire-sector'],
+  // S4 — species & breed: species / breed commitment — a selection decision.
+  // gap: all.
+  'lvs-s4-species-breed': [],
+  // S4 — stocking rate: stocking rate / herd structure — a formula-driven
+  // decision. gap: all.
+  'lvs-s4-stocking-rate': [],
+  // S4 — grazing system: continuous / rotational / cell grazing method — a
+  // method decision (the spatial layout is sited in s5). gap: all.
+  'lvs-s4-grazing-system': [],
+  // S4 — stock-water strategy: source development (wells), reticulation approach
+  // (water-lines), storage / header tanks (storage, tanks). gap: peak-demand math
+  // (decision).
+  'lvs-s4-stock-water-strategy': ['water-lines', 'storage', 'tanks', 'wells'],
+  // S5 — paddock layout: subdivide paddocks / cells (paddocks), gateways (gates),
+  // laneways (path), sacrifice / stand-off areas (zone).
+  'lvs-s5-paddock-layout': ['paddocks', 'gates', 'path', 'zone'],
+  // S5 — fencing & water: perimeter / subdivision fencing (fencing), reticulation
+  // pipe runs (water-lines), troughs / header tanks (tanks), storage (storage).
+  'lvs-s5-fencing-water': ['fencing', 'water-lines', 'tanks', 'storage'],
+  // S5 — handling & shelter: yards / race / crush (barns), shade / wet / wind
+  // shelter (buildings). gap: throughput design (decision).
+  'lvs-s5-handling-shelter': ['barns', 'buildings'],
+  // S5 — feed budget: month-by-month feed budget / conserved-feed & drought
+  // reserve — a budgeting decision. gap: all.
+  'lvs-s5-feed-budget': [],
+  // S6 — herd health: health calendar / breeding plan / records — a protocol
+  // decision. gap: all.
+  'lvs-s6-herd-health': [],
+  // S6 — nutrient cycling: dung distribution via grazing (paddocks), manure
+  // capture / composting (compost), pasture recovery & overseeding (pasture),
+  // nutrient-balance monitoring (transect), nutrient flow into cropping / orchard
+  // (flow-connector).
+  'lvs-s6-nutrient-cycling': ['paddocks', 'compost', 'pasture', 'transect', 'flow-connector'],
+  // S6 — biosecurity: predator-deterrent fencing & night housing (fencing,
+  // barns), boundary / shared-water / neighbour-stock controls (neighbour-pin).
+  'lvs-s6-biosecurity': ['fencing', 'barns', 'neighbour-pin'],
+  // S7 — herd build-up: sequence infrastructure before stock, phased build-up &
+  // go/no-go gates — a sequencing decision. gap: all.
+  'lvs-s7-herd-buildup': [],
+  // S7 — break-even: establishment-to-cashflow break-even — financial,
+  // Amanah-clean (ordinary break-even, no riba / advance-sale). gap: all.
+  'lvs-s7-break-even': [],
+  // S7 — marketing: products / processing / sales channels (incl. meat-share /
+  // herd-share / CSA advance-subscription surfaced in the catalogue with the
+  // bay-ma-laysa-indak Amanah scopeNotes flag, routed to Scholar Council) -- an
+  // off-site marketing decision. gap: all.
+  'lvs-s7-marketing': [],
+
+  // --- livestock_operation SECONDARY (additive, surface when livestock is a secondary type) ---
+  // The 3 LIVESTOCK_SECONDARY_PATCHES inject into universal objectives
+  // (s4-water-strategy, s5-soil-improvement, s5-access) that already carry
+  // overrides, so they need no entry here.
+  // S1 — enterprise intent: species / enterprise / host-relationship intent — a
+  // decision. gap: all.
+  'lvs-sec-s1-enterprise-intent': [],
+  // S3 — carrying-capacity fit: host grazeable forage by zone (pasture), weed /
+  // toxic-plant presence (vegetation), seasonal-availability sampling (transect),
+  // available-area delineation (zone).
+  'lvs-sec-s3-carrying-capacity-fit': ['pasture', 'vegetation', 'transect', 'zone'],
+  // S4 — species & stocking: species / stocking rate / grazing system & feed
+  // budget — a selection / decision set. gap: all.
+  'lvs-sec-s4-species-stocking': [],
+  // S4 — stock infrastructure: fencing (fencing), handling yards / loading
+  // (barns), shelter (buildings), reticulation confirmation (water-lines).
+  'lvs-sec-s4-stock-infrastructure': ['fencing', 'barns', 'buildings', 'water-lines'],
+  // S5 — integration timing: animal-impact sequencing & spatial flow — paddock /
+  // cell footprint (paddocks), impact-window zones (zone), leader-follower
+  // laneways (path).
+  'lvs-sec-s5-integration-timing': ['paddocks', 'zone', 'path'],
+  // S6 — health & biosecurity: predator-deterrent fencing & night housing
+  // (fencing, barns), host-interface separation / quarantine zones (zone),
+  // neighbour / shared-water vectors (neighbour-pin).
+  'lvs-sec-s6-health-biosecurity': ['fencing', 'barns', 'zone', 'neighbour-pin'],
+  // S6 — nutrient integration: map manure / nutrient flows into host crops /
+  // orchard / pasture (flow-connector), manure as compost substrate (compost),
+  // dung distribution & graze/rest/exclusion zones (paddocks, zone).
+  'lvs-sec-s6-nutrient-integration': ['flow-connector', 'compost', 'paddocks', 'zone'],
 };
 
 /**
