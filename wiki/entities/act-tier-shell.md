@@ -792,6 +792,40 @@ walked by the per-type audit), Gap B 0, Gap C 52->58; bounded `--pool=forks`
 25/25. Commit `da4a96f2`, not pushed. Gap A now 194 across the other 9 primary
 types. Log: [[log/2026-06-03-olos-act-orchard-overrides]].
 
+## Objective->tool overrides: livestock_operation (2026-06-03)
+
+Fifth per-type catalogue wired after homestead, regen-farm, market_garden and
+orchard. All **30 livestock_operation objectives** now carry explicit
+`OBJECTIVE_ACT_TOOLS_OVERRIDE` entries in `objectiveActTools.ts` — the **23
+`lvs-*`** primary plus the **7 `lvs-sec-*`** standalone additive objectives
+(which surface when livestock is a secondary type, the same situation that
+forced the silvopasture-secondary overrides): **17 grounded** (each id verified
+against a real checklist item + a mountable `ACT_TOOL_CATALOG` tool, reusing the
+silvopasture livestock vocabulary — e.g. forage-base->pasture/vegetation/
+transect, stock-water-sources->watercourse/spring/storage/wells/tanks/water-
+lines, paddock-layout->paddocks/gates/path/zone, fencing-water->fencing/water-
+lines/tanks/storage, nutrient-cycling->paddocks/compost/pasture/transect/flow-
+connector, sec-stock-infrastructure->fencing/barns/buildings/water-lines), **13
+intentional `[]`** (s1 enterprise-vision/production-goals/welfare-ethic, s4
+species-breed/stocking-rate/grazing-system, `lvs-s5-feed-budget`,
+`lvs-s6-herd-health`, `lvs-s7-herd-buildup` sequencing, `lvs-s7-break-even`
+Amanah-clean, `lvs-s7-marketing` off-site decision keeping its
+bay-ma-laysa-indak Amanah scopeNotes flag for the meat-share/herd-share/CSA
+surface, `lvs-sec-s1-enterprise-intent`, `lvs-sec-s4-species-stocking`). The 3
+`LIVESTOCK_SECONDARY_PATCHES` inject into universal objectives (`s4-water-
+strategy`/`s5-soil-improvement`/`s5-access`) already carrying universal
+overrides — no work. Before this the livestock objectives fell through
+`STRATUM_ACT_TOOLS_DEFAULT` with the familiar misfit (S2/S3 forage & water
+showed access-utilities, S5 paddock/fencing/handling showed roads/fencing
+generically). **R3:** `actToolCoverage.test.ts` ratcheted with a livestock
+assertion over the primary + secondary union (mirrors orchard/silvopasture).
+Verified: shared `tsc` EXIT 0; audit Gap A **194->171** (23 lvs-* primary
+enumerated; the 7 lvs-sec-* wired+ratcheted but not separately walked by the
+per-type audit), Gap B 0, Gap C 58->66; bounded `--pool=forks` `actToolCoverage`
+10/10, `objectiveObserveDomains` 8/8, `resolveProjectObjectives` 25/25. Commit
+`7da9fe8a`, not pushed. Gap A now 171 across the other 8 primary types. Log:
+[[log/2026-06-03-olos-act-livestock-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel

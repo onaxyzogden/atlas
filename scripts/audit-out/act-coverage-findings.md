@@ -117,7 +117,7 @@ The formal proof/verification layer (`olos_act_tasks` / `olos_proof_records` / `
 - ✅ `objectiveObserveDomains.test.ts` — pass.
 - ⚠️ `resolveProjectObjectives.test.ts` — 24/25; the 1 failure (`agritourism + residential = 54`, now 59) is **pre-existing and unrelated** — confirmed by re-running with the R1/R3 edits stashed. It is drift from the agritourism `AG-S4.8` membership/season-pass extension (commit `15680301`) whose count assertion was never updated. Flagged for a separate fix.
 
-> Remaining Gap A (194 across the other 9 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, market_garden, and orchard are complete.
+> Remaining Gap A (171 across the other 8 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice), regenerative_farm, market_garden, orchard, and livestock_operation are complete.
 
 ### Regenerative farm — DONE (R1/R3, 2026-06-03)
 
@@ -154,3 +154,15 @@ Committed `3c340134`.
 **Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 9/9 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
 
 Committed `da4a96f2`.
+
+### Livestock operation — DONE (R1/R3, 2026-06-03)
+
+**R1 (livestock).** All 30 livestock_operation objectives now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries — the 23 `lvs-*` primary objectives plus the 7 `lvs-sec-*` standalone *additive* objectives (which surface when livestock is a secondary type, the same situation that forced the silvopasture-secondary overrides). 17 map to grounded tools (every id verified against a real checklist item + a mountable `ACT_TOOL_CATALOG` tool, reusing the silvopasture livestock vocabulary — e.g. forage-base->pasture/vegetation/transect, stock-water-sources->watercourse/spring/storage/wells/tanks/water-lines, paddock-layout->paddocks/gates/path/zone, fencing-water->fencing/water-lines/tanks/storage, nutrient-cycling->paddocks/compost/pasture/transect/flow-connector); 13 set to intentional gap-noted `[]` (s1 enterprise-vision / production-goals / welfare-ethic, `lvs-s4-species-breed` / `lvs-s4-stocking-rate` / `lvs-s4-grazing-system` decisions, `lvs-s5-feed-budget` budgeting, `lvs-s6-herd-health` protocol, `lvs-s7-herd-buildup` sequencing, `lvs-s7-break-even` Amanah-clean break-even, `lvs-s7-marketing` off-site decision keeping its bay-ma-laysa-indak Amanah scopeNotes flag for the meat-share/herd-share/CSA surface, `lvs-sec-s1-enterprise-intent`, `lvs-sec-s4-species-stocking`). The 3 `LIVESTOCK_SECONDARY_PATCHES` inject into universal objectives (`s4-water-strategy`, `s5-soil-improvement`, `s5-access`) that already carry universal overrides — no work needed. Before this the livestock objectives fell through the coarse stratum default with the familiar misfit (S2/S3 forage & water showed access-utilities; S5 paddock/fencing/handling showed roads/fencing generically rather than the paddocks/gates/barns family).
+
+**R3 (ratchet).** `actToolCoverage.test.ts` gains an "every livestock-operation objective (primary + secondary) has an explicit override entry" assertion over the `LIVESTOCK_PRIMARY_OBJECTIVES` + `LIVESTOCK_SECONDARY_OBJECTIVES` union (mirrors the orchard/silvopasture assertions). 10/10.
+
+**Audit re-run after livestock R1/R3:** 316 objectives — Gap A **194 → 171** (the 23 lvs-* primary enumerated by the audit; the 7 lvs-sec-* additive are wired + ratcheted but not separately enumerated by the per-type audit walk), Gap B 0, Gap C 58 → 66 (47 intentional / 19 default-driven; +11 intentional = the livestock primary decision/financial objectives, −3 default-driven now explicitly wired).
+
+**Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 10/10 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25**. Shared `tsc --noEmit` EXIT 0.
+
+Committed `7da9fe8a`.
