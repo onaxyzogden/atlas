@@ -9,14 +9,19 @@
 // the activations array as arguments, making it unit-testable without
 // React or Zustand.
 //
-// Tier-1 gate: only S6_BOUND_TEMPLATE_IDS are handled here.
-// Tier 2 (non-s6 templates) is handled by T2.2 via FEEDS_TO_OBJECTIVE.
+// Emission routing (T2.2):
+//   - s6-bound (S6_BOUND_TEMPLATE_IDS) -> hard cascade: PRIMARY flag on
+//     s6-monitoring + one-hop CASCADE flag on s7-phase1.
+//   - non-s6, mapped in FEEDS_TO_OBJECTIVE -> one plain flag per mapped
+//     target objective (no cascade, no downstream-of prefix).
+//   - unmapped (neither s6-bound nor a FEEDS_TO_OBJECTIVE key) -> no flag.
 
 import type { ProtocolActivation, ExpectedRate } from '@ogden/shared';
 import {
   evaluateDeviation,
   S6_BOUND_TEMPLATE_IDS,
   TEMPLATE_DEPTH,
+  FEEDS_TO_OBJECTIVE,
 } from '@ogden/shared';
 import type { RaiseFlagInput } from '../../../store/reviewFlagStore.js';
 
@@ -87,9 +92,21 @@ function buildReason(p: {
 export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
   const { projectId, templateId, activations, expectedRate, raiseFlag, commencementDate } = args;
 
-  // 1. Tier-1 gate: only S6_BOUND_TEMPLATE_IDS are handled here.
-  if (!S6_BOUND_TEMPLATE_IDS.has(templateId)) {
-    return;
+  // 1. Resolve emission targets.
+  //   - s6-bound: dedicated primary + cascade emission (see step 6).
+  //   - non-s6: route to FEEDS_TO_OBJECTIVE targets; an unmapped/custom
+  //     template (no entry) raises nothing.
+  const isS6Bound = S6_BOUND_TEMPLATE_IDS.has(templateId);
+  let targetObjectiveIds: string[];
+  if (isS6Bound) {
+    targetObjectiveIds = [];
+  } else {
+    // noUncheckedIndexedAccess: the lookup is readonly string[] | undefined.
+    const mapped = FEEDS_TO_OBJECTIVE[templateId] ?? [];
+    if (mapped.length === 0) {
+      return;
+    }
+    targetObjectiveIds = [...mapped];
   }
 
   // 2. Confirmed set: filter to (project, template, confirmed).
@@ -210,19 +227,26 @@ export function evaluateAndRaiseFlags(args: EvaluateAndRaiseFlagsArgs): void {
     ...(expectedRate !== undefined ? { expectedRate } : {}),
   } as const;
 
-  // Primary flag
-  const primary: RaiseFlagInput = {
-    ...shared,
-    objectiveId: PRIMARY_OBJECTIVE_ID,
-    reason: baseReason,
-  };
-  raiseFlag(primary);
+  if (isS6Bound) {
+    // s6-bound: hard cascade -- primary on s6-monitoring + one hop to s7-phase1.
+    const primary: RaiseFlagInput = {
+      ...shared,
+      objectiveId: PRIMARY_OBJECTIVE_ID,
+      reason: baseReason,
+    };
+    raiseFlag(primary);
 
-  // Cascade flag (one hop: s7-phasing)
-  const cascade: RaiseFlagInput = {
-    ...shared,
-    objectiveId: CASCADE_OBJECTIVE_ID,
-    reason: `downstream of ${PRIMARY_OBJECTIVE_ID}: ${baseReason}`,
-  };
-  raiseFlag(cascade);
+    const cascade: RaiseFlagInput = {
+      ...shared,
+      objectiveId: CASCADE_OBJECTIVE_ID,
+      reason: `downstream of ${PRIMARY_OBJECTIVE_ID}: ${baseReason}`,
+    };
+    raiseFlag(cascade);
+  } else {
+    // event-driven: one plain flag per mapped target -- no cascade prefix,
+    // no transitive hop beyond the listed targets.
+    for (const objectiveId of targetObjectiveIds) {
+      raiseFlag({ ...shared, objectiveId, reason: baseReason });
+    }
+  }
 }

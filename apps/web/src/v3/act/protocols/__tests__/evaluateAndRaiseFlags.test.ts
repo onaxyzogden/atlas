@@ -176,18 +176,19 @@ describe('evaluateAndRaiseFlags', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Test 6 -- Non-s6-bound template (Tier-1 gate: no-op)
+  // Test 6 -- Unmapped/absent-from-table template (no-op)
   // ---------------------------------------------------------------------------
 
-  it('6. non-s6-bound template -> 0 flags (Tier-1 gate)', () => {
+  it('6. unmapped/absent-from-table template -> 0 flags', () => {
+    // Neither in S6_BOUND_TEMPLATE_IDS nor a key of FEEDS_TO_OBJECTIVE.
     const activations: ProtocolActivation[] = [
-      makeActivation({ id: 'f1', projectId: PROJECT, templateId: 'water-trough-inspection', confirmationStatus: 'confirmed', activatedAt: '2024-01-05T10:00:00.000Z' }),
-      makeActivation({ id: 'f2', projectId: PROJECT, templateId: 'water-trough-inspection', confirmationStatus: 'confirmed', activatedAt: '2024-01-06T10:00:00.000Z' }),
+      makeActivation({ id: 'f1', projectId: PROJECT, templateId: 'unmapped-custom-protocol', confirmationStatus: 'confirmed', activatedAt: '2024-01-05T10:00:00.000Z' }),
+      makeActivation({ id: 'f2', projectId: PROJECT, templateId: 'unmapped-custom-protocol', confirmationStatus: 'confirmed', activatedAt: '2024-01-06T10:00:00.000Z' }),
     ];
 
     evaluateAndRaiseFlags({
       projectId: PROJECT,
-      templateId: 'water-trough-inspection',
+      templateId: 'unmapped-custom-protocol',
       activations,
       expectedRate: { count: 1, per: 'season' },
       raiseFlag,
@@ -399,5 +400,71 @@ describe('evaluateAndRaiseFlags', () => {
 
     expect(calls).toHaveLength(2);
     expect(calls[0]!.reason).not.toMatch(/^\[Establishment/);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Tests 13-15 -- Event-driven templates routed via FEEDS_TO_OBJECTIVE (T2.2)
+  // ---------------------------------------------------------------------------
+
+  it('13. water-trough-inspection over-deviation -> 1 water-depth flag on s5-water-infrastructure, NO cascade', () => {
+    const activations: ProtocolActivation[] = [
+      makeActivation({ id: 'm1', projectId: PROJECT, templateId: 'water-trough-inspection', confirmationStatus: 'confirmed', activatedAt: '2024-01-05T10:00:00.000Z' }),
+      makeActivation({ id: 'm2', projectId: PROJECT, templateId: 'water-trough-inspection', confirmationStatus: 'confirmed', activatedAt: '2024-01-06T10:00:00.000Z' }),
+    ];
+
+    evaluateAndRaiseFlags({
+      projectId: PROJECT,
+      templateId: 'water-trough-inspection',
+      activations,
+      expectedRate: { count: 1, per: 'season' },
+      raiseFlag,
+    });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.objectiveId).toBe('s5-water-infrastructure');
+    expect(calls[0]!.depth).toBe('water');
+    expect(calls[0]!.deviationSign).toBe('over');
+    expect(calls.every((c) => !/^downstream of/.test(c.reason))).toBe(true);
+  });
+
+  it('14. seasonal-stocking-rate-review over-deviation -> exactly 2 flags on s6-monitoring + s7-phase1, both plain baseReason, depth threshold', () => {
+    const activations: ProtocolActivation[] = [
+      makeActivation({ id: 'n1', projectId: PROJECT, templateId: 'seasonal-stocking-rate-review', confirmationStatus: 'confirmed', activatedAt: '2024-01-05T10:00:00.000Z', season: 'summer' }),
+      makeActivation({ id: 'n2', projectId: PROJECT, templateId: 'seasonal-stocking-rate-review', confirmationStatus: 'confirmed', activatedAt: '2024-01-06T10:00:00.000Z', season: 'summer' }),
+      makeActivation({ id: 'n3', projectId: PROJECT, templateId: 'seasonal-stocking-rate-review', confirmationStatus: 'confirmed', activatedAt: '2024-01-07T10:00:00.000Z', season: 'summer' }),
+    ];
+
+    evaluateAndRaiseFlags({
+      projectId: PROJECT,
+      templateId: 'seasonal-stocking-rate-review',
+      activations,
+      expectedRate: { count: 1, per: 'season' },
+      raiseFlag,
+    });
+
+    expect(calls).toHaveLength(2);
+    const objectiveIds = new Set(calls.map((c) => c.objectiveId));
+    expect(objectiveIds).toEqual(new Set(['s6-monitoring', 's7-phase1']));
+    expect(calls.every((c) => !/^downstream of/.test(c.reason))).toBe(true);
+    expect(calls.every((c) => c.depth === 'threshold')).toBe(true);
+  });
+
+  it('15. post-rotation-impact-assessment over-deviation -> 1 soil-depth flag on s3-soil', () => {
+    const activations: ProtocolActivation[] = [
+      makeActivation({ id: 'o1', projectId: PROJECT, templateId: 'post-rotation-impact-assessment', confirmationStatus: 'confirmed', activatedAt: '2024-01-05T10:00:00.000Z' }),
+      makeActivation({ id: 'o2', projectId: PROJECT, templateId: 'post-rotation-impact-assessment', confirmationStatus: 'confirmed', activatedAt: '2024-01-06T10:00:00.000Z' }),
+    ];
+
+    evaluateAndRaiseFlags({
+      projectId: PROJECT,
+      templateId: 'post-rotation-impact-assessment',
+      activations,
+      expectedRate: { count: 1, per: 'season' },
+      raiseFlag,
+    });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.objectiveId).toBe('s3-soil');
+    expect(calls[0]!.depth).toBe('soil');
   });
 });
