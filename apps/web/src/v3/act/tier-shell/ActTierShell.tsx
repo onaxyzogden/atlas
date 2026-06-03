@@ -33,6 +33,7 @@ import {
   computeAllActStratumStates,
   computeAllObjectiveStatuses,
   getObjectiveActTools,
+  type PlanStratumObjective,
 } from '@ogden/shared';
 import {
   useProjectStore,
@@ -83,6 +84,7 @@ import { useEffectiveChecklistProgress } from '../../strata/useEffectiveChecklis
 import { computeObjectiveMarkerPositions } from './objectiveMarkerGeometry.js';
 import ActTierSpine from './ActTierSpine.js';
 import ActTierObjectiveRail from './ActTierObjectiveRail.js';
+import ActSearchRail from './ActSearchRail.js';
 import type { RailMode } from './ActRailModeToggle.js';
 import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
@@ -95,6 +97,9 @@ import {
   type ActTool,
 } from './actToolCatalog.js';
 import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
+import { useStageSearchStore } from '../../../store/stageSearchStore.js';
+import { resolveActSearchMatches } from '../../search/useStageSearchResults.js';
+import type { ActToolMatch } from '../../search/useStageSearchResults.js';
 import styles from './ActTierShell.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -353,7 +358,12 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
   );
 
   const handleActivateTool = useCallback(
-    (tool: ActTool) => {
+    // `formObjective` overrides which objective's sibling form-tools populate the
+    // tabbed popup. It defaults to the URL-selected objective for normal rail
+    // clicks; a search-result click passes the tool's OWNING objective so the
+    // form group is gathered correctly even before the navigation settles
+    // selectedObjective (which lags a tick behind the route change).
+    (tool: ActTool, formObjective?: PlanStratumObjective | null) => {
       const arm = tool.arm;
       if (arm.kind === 'map') {
         // Toggle: a second click on the already-armed tool disarms it.
@@ -371,9 +381,10 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
       if (arm.kind === 'form') {
         // Non-spatial checklist item: open ONE tabbed popup holding every
         // kind:'form' tool in this tool's category, focused on the clicked tab.
+        const ownerForForms = formObjective ?? selectedObjective;
         const formTools = (
-          selectedObjective
-            ? resolveActTools(getObjectiveActTools(selectedObjective))
+          ownerForForms
+            ? resolveActTools(getObjectiveActTools(ownerForForms))
             : []
         ).filter((t) => t.arm.kind === 'form' && t.category === tool.category);
         const cat = ACT_TOOL_CATEGORIES.find((c) => c.id === tool.category);
@@ -402,6 +413,52 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
     [setActiveModule, setActiveTool, selectedObjective],
   );
 
+  // ---- Header Stage Search (Act) ----------------------------------------
+  // While a query is active the left rail broadens to a cross-objective match
+  // list (tools across every objective + objectives by text). Selecting a result
+  // reveals it: switch the rendered stratum to the owning objective's, navigate
+  // to it, and (for a tool) arm the tool on that objective. The query is then
+  // cleared so the rail returns to the normal stratum view.
+  const searchQuery = useStageSearchStore((s) => s.query);
+  const clearSearch = useStageSearchStore((s) => s.clear);
+  const searchActive = searchQuery.trim() !== '';
+  const actSearch = useMemo(
+    () =>
+      searchActive
+        ? resolveActSearchMatches(objectives, searchQuery)
+        : { objectives: [], tools: [] },
+    [searchActive, objectives, searchQuery],
+  );
+
+  const revealObjective = useCallback(
+    (objective: PlanStratumObjective) => {
+      setSelectedStratumId(objective.stratumId);
+      setRightMode('detail');
+      goToObjective(objective.id);
+    },
+    [goToObjective],
+  );
+
+  const handleSelectSearchObjective = useCallback(
+    (objective: PlanStratumObjective) => {
+      revealObjective(objective);
+      clearSearch();
+    },
+    [revealObjective, clearSearch],
+  );
+
+  const handleSelectSearchTool = useCallback(
+    (match: ActToolMatch) => {
+      revealObjective(match.objective);
+      // Pass the owning objective explicitly: the route change above has not yet
+      // refreshed selectedObjective, so a form-arm would otherwise gather the
+      // wrong (stale) sibling-tool group.
+      handleActivateTool(match.tool, match.objective);
+      clearSearch();
+    },
+    [revealObjective, handleActivateTool, clearSearch],
+  );
+
   return (
     <div className={styles.tierShell}>
       <ActTierSpine
@@ -420,20 +477,32 @@ export default function ActTierShell({ shellMode, onShellModeChange }: Props) {
           leftRailLabel="Stratum objectives"
           rightRailLabel="Dashboard and objective detail"
           leftRail={
-            <ActTierObjectiveRail
-              stratum={selectedStratum}
-              objectives={stratumObjectives}
-              progressByObjective={checklistProgressByObjective}
-              activeObjectiveId={objectiveId}
-              onSelectObjective={handleSelectObjective}
-              mode={railMode}
-              onModeChange={setRailMode}
-              triggeredCount={triggeredCount}
-              triggeredIds={triggeredIds}
-              projectId={id}
-              primaryTypeId={primaryTypeId}
-              secondaryTypeIds={secondaryTypeIds}
-            />
+            searchActive ? (
+              <ActSearchRail
+                query={searchQuery}
+                toolMatches={actSearch.tools}
+                objectiveMatches={actSearch.objectives}
+                progressByObjective={checklistProgressByObjective}
+                activeObjectiveId={objectiveId}
+                onSelectTool={handleSelectSearchTool}
+                onSelectObjective={handleSelectSearchObjective}
+              />
+            ) : (
+              <ActTierObjectiveRail
+                stratum={selectedStratum}
+                objectives={stratumObjectives}
+                progressByObjective={checklistProgressByObjective}
+                activeObjectiveId={objectiveId}
+                onSelectObjective={handleSelectObjective}
+                mode={railMode}
+                onModeChange={setRailMode}
+                triggeredCount={triggeredCount}
+                triggeredIds={triggeredIds}
+                projectId={id}
+                primaryTypeId={primaryTypeId}
+                secondaryTypeIds={secondaryTypeIds}
+              />
+            )
           }
           canvas={
             <div style={{ position: 'relative', width: '100%', height: '100%' }}>

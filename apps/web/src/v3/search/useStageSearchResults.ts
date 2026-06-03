@@ -14,10 +14,16 @@
 // Observe (Phase 4) branches land in later slices.
 
 import {
+  getObjectiveActTools,
   getObjectiveObserveDomains,
   UNIVERSAL_DOMAIN_LABELS,
   type PlanStratumObjective,
 } from '@ogden/shared';
+import {
+  ACT_TOOL_CATEGORIES,
+  resolveActTools,
+  type ActTool,
+} from '../act/tier-shell/actToolCatalog.js';
 
 /** A single Plan objective that matched the query, with the reason it did. */
 export interface PlanObjectiveMatch {
@@ -74,4 +80,85 @@ export function resolvePlanSearchMatches(
     }
   }
   return matches;
+}
+
+// ---------------------------------------------------------------------------
+// Act resolver (Phase 3) — the Act tier-shell scopes its tools to the *selected*
+// objective (getObjectiveActTools), so a whole-stage tool search needs a reverse
+// map: walk every objective, resolve its act-tools, and key each tool back to an
+// owning objective so a selected tool can both navigate to that objective and
+// arm itself there. Objective text matches ride alongside so the steward can
+// search either a tool ("contour") or an objective ("water strategy").
+// ---------------------------------------------------------------------------
+
+/** Catalogue-id -> category label, built once from ACT_TOOL_CATEGORIES so a tool
+ *  can be matched on its human category name ("Water & Hydrology") as well. */
+const ACT_CATEGORY_LABELS: Readonly<Record<string, string>> = Object.fromEntries(
+  ACT_TOOL_CATEGORIES.map((c) => [c.id, c.label]),
+);
+
+/** A single Act tool that matched, plus the objective that exposes it (the one
+ *  selecting the result navigates to and arms the tool on). `categoryLabel` is
+ *  shown as the provenance hint beneath the result. */
+export interface ActToolMatch {
+  tool: ActTool;
+  objective: PlanStratumObjective;
+  categoryLabel: string;
+}
+
+/** Flat Act match set: objectives (by text) + tools (reverse-mapped, deduped). */
+export interface ActSearchResults {
+  objectives: PlanStratumObjective[];
+  tools: ActToolMatch[];
+}
+
+function objectiveTextMatches(
+  objective: PlanStratumObjective,
+  q: string,
+): boolean {
+  return [
+    objective.title,
+    objective.shortTitle ?? '',
+    objective.focusedQuestion,
+    objective.ref ?? '',
+  ]
+    .join(' ')
+    .toLowerCase()
+    .includes(q);
+}
+
+/**
+ * Resolve Act matches for a query across ALL objectives. Tools are deduped by
+ * catalogue id (a tool exposed by several objectives surfaces once, owned by the
+ * first objective that exposes it — any owner arms identically for map/log/flow
+ * arms, and a form arm gathers its sibling group from that owner). Returns empty
+ * arrays for an empty query so a non-empty result doubles as the active signal.
+ */
+export function resolveActSearchMatches(
+  objectives: readonly PlanStratumObjective[],
+  rawQuery: string,
+): ActSearchResults {
+  const q = normalizeQuery(rawQuery);
+  if (!q) return { objectives: [], tools: [] };
+
+  const objectiveMatches: PlanStratumObjective[] = [];
+  const toolMatches: ActToolMatch[] = [];
+  const seenTools = new Set<string>();
+
+  for (const objective of objectives) {
+    if (objectiveTextMatches(objective, q)) objectiveMatches.push(objective);
+
+    for (const tool of resolveActTools(getObjectiveActTools(objective))) {
+      if (seenTools.has(tool.id)) continue;
+      const categoryLabel = ACT_CATEGORY_LABELS[tool.category] ?? '';
+      const toolMatch =
+        tool.label.toLowerCase().includes(q) ||
+        categoryLabel.toLowerCase().includes(q);
+      if (toolMatch) {
+        seenTools.add(tool.id);
+        toolMatches.push({ tool, objective, categoryLabel });
+      }
+    }
+  }
+  return { objectives: objectiveMatches, tools: toolMatches };
 }
