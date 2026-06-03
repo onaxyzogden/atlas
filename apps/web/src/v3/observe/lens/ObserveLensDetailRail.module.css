@@ -113,7 +113,10 @@
    card is the button), so it carries no own click handler -- clicking it bubbles
    to the card and opens the slide-up. Lens colour is supplied inline. */
 .hint {
-  margin-top: 6px;
+  /* Push the CTA to the bottom of the (flex-column) card so it sits on a
+     consistent baseline regardless of how many lines the summary clamps to.
+     The card's `gap` still supplies minimum spacing above it. */
+  margin-top: auto;
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
