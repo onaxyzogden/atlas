@@ -91,6 +91,24 @@ export default function ProtocolApprovalOverlay({
   const records = useProtocolStore((s) => s.records);
   const activateProtocol = useProtocolStore((s) => s.activateProtocol);
   const deactivateProtocol = useProtocolStore((s) => s.deactivateProtocol);
+  const setExpectation = useProtocolStore((s) => s.setExpectation);
+
+  // ── Expected firing rate drafts ───────────────────────────────────────────
+  // Read stored expectations once at mount (getState is a snapshot read, not a
+  // subscription — re-opening the overlay is a fresh mount so re-opens always
+  // reflect the latest persisted value).
+  const [rateDrafts, setRateDrafts] = useState<
+    Record<string, { count: string; per: 'season' | 'cycle' }>
+  >(() => {
+    const stored =
+      useProtocolStore.getState().expectationsByProject[projectId] ?? {};
+    const init: Record<string, { count: string; per: 'season' | 'cycle' }> = {};
+    for (const t of templates) {
+      const r = stored[t.id];
+      init[t.id] = { count: r ? String(r.count) : '', per: r?.per ?? 'season' };
+    }
+    return init;
+  });
 
   // Decision state: initialized from protocolStore (already-activated templates
   // start as 'activated', everything else as 'pending'). Skipped is UI-only —
@@ -108,9 +126,23 @@ export default function ProtocolApprovalOverlay({
     },
   );
 
+  // ── Commit expected rate ──────────────────────────────────────────────────
+  // Persists the draft rate for a template IF the steward entered a valid
+  // non-empty count. A blank count means "no expectation set" — no-op.
+  const commitExpectation = (id: string) => {
+    const draft = rateDrafts[id];
+    if (!draft) return;
+    const trimmed = draft.count.trim();
+    if (trimmed === '') return;
+    const count = Number(trimmed);
+    if (!Number.isFinite(count) || count < 0) return;
+    setExpectation(projectId, id, { count, per: draft.per });
+  };
+
   // ── Handlers ─────────────────────────────────────────────────────────────
   const handleActivate = (id: string) => {
     activateProtocol(projectId, id);
+    commitExpectation(id);
     setDecisions((prev) => ({ ...prev, [id]: 'activated' }));
   };
 
@@ -141,6 +173,7 @@ export default function ProtocolApprovalOverlay({
       }
     }
     activateProtocol(projectId, id);
+    commitExpectation(id);
     setDecisions((prev) => ({ ...prev, [id]: 'activated' }));
   };
 
@@ -180,22 +213,135 @@ export default function ProtocolApprovalOverlay({
           boxShadow: '0 24px 80px rgba(0,0,0,0.6)',
         }}
       >
-        <ProtocolConfirmationFlow
-          templates={templates}
-          decisions={decisions}
-          outputs={outputs}
-          // editedValues and isEdited are the prototype's per-card in-memory
-          // draft mechanism. Here the single source of truth is the parameter
-          // store (written back in handleEditCommit), so there are no pending
-          // divergences to track — the "Edited" badge is correctly hidden.
-          editedValues={{}}
-          isEdited={() => false}
-          onActivate={handleActivate}
-          onSkip={handleSkip}
-          onUndo={handleUndo}
-          onEditCommit={handleEditCommit}
-          onClose={onClose}
-        />
+        {/* ── Expected firing rate panel ─────────────────────────────────── */}
+        <div
+          style={{
+            maxHeight: '38%',
+            overflowY: 'auto',
+            borderBottom: `1px solid ${C.border}`,
+            padding: '12px 16px',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: C.textTertiary,
+              marginBottom: 8,
+              fontFamily: 'var(--font-sans)',
+            }}
+          >
+            Expected firing rate (optional)
+          </div>
+          {templates.map((t, idx) => (
+            <div
+              key={t.id}
+              title={t.name}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 6,
+              }}
+            >
+              {/* Row index label — the full template name is in the title
+                  attribute and in the aria-labels on the inputs. We do not
+                  repeat the name as a visible text node here because the
+                  ProtocolConfirmationFlow renders each template name in its
+                  own card; a duplicate text node would break getByText
+                  uniqueness in tests. */}
+              <span
+                aria-hidden="true"
+                style={{
+                  fontSize: 11,
+                  color: C.textTertiary,
+                  fontFamily: 'var(--font-mono)',
+                  width: 20,
+                  textAlign: 'right',
+                  flexShrink: 0,
+                }}
+              >
+                {idx + 1}.
+              </span>
+              <input
+                data-testid={`expected-rate-count-${t.id}`}
+                type="text"
+                inputMode="decimal"
+                aria-label={`Expected firing rate count for ${t.name}`}
+                value={rateDrafts[t.id]?.count ?? ''}
+                onChange={(e) =>
+                  setRateDrafts((p) => ({
+                    ...p,
+                    [t.id]: {
+                      count: e.target.value,
+                      per: p[t.id]?.per ?? 'season',
+                    },
+                  }))
+                }
+                placeholder="e.g. 4"
+                style={{
+                  width: 56,
+                  background: C.bg2,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 6,
+                  color: C.textPrimary,
+                  fontSize: 12,
+                  padding: '3px 7px',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              />
+              <select
+                data-testid={`expected-rate-per-${t.id}`}
+                aria-label={`Expected firing rate unit for ${t.name}`}
+                value={rateDrafts[t.id]?.per ?? 'season'}
+                onChange={(e) =>
+                  setRateDrafts((p) => ({
+                    ...p,
+                    [t.id]: {
+                      count: p[t.id]?.count ?? '',
+                      per: e.target.value as 'season' | 'cycle',
+                    },
+                  }))
+                }
+                style={{
+                  background: C.bg2,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 6,
+                  color: C.textPrimary,
+                  fontSize: 12,
+                  padding: '3px 7px',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                <option value="season">per season</option>
+                <option value="cycle">per cycle</option>
+              </select>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Protocol confirmation flow (scrollable) ───────────────────── */}
+        <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <ProtocolConfirmationFlow
+            templates={templates}
+            decisions={decisions}
+            outputs={outputs}
+            // editedValues and isEdited are the prototype's per-card in-memory
+            // draft mechanism. Here the single source of truth is the parameter
+            // store (written back in handleEditCommit), so there are no pending
+            // divergences to track — the "Edited" badge is correctly hidden.
+            editedValues={{}}
+            isEdited={() => false}
+            onActivate={handleActivate}
+            onSkip={handleSkip}
+            onUndo={handleUndo}
+            onEditCommit={handleEditCommit}
+            onClose={onClose}
+          />
+        </div>
       </div>
     </div>
   );
