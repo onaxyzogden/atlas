@@ -385,6 +385,23 @@ describe('catalogue conformance - agritourism primary resolution', () => {
     }
   });
 
+  it('carries the Amanah membership / season-pass flag on the AG-S4.8 revenue model', () => {
+    // feedback_csa_in_catalogues: a season-pass / membership instrument is an
+    // advance-sale surface (bay` ma laysa `indak / gharar) that must be surfaced
+    // AND flagged + routed to Scholar Council, never silently omitted. AG-S7.8
+    // deferred it; AG-S4.8 now realises it as a membership benefit, not prepayment.
+    const revenue = AGRITOURISM_PRIMARY_OBJECTIVES.find(
+      (o) => o.id === 'ag-s4-revenue-model',
+    );
+    expect(revenue?.scopeNotes).toBeTruthy();
+    expect(revenue?.scopeNotes).toContain('Scholar Council');
+    expect(revenue?.scopeNotes).toContain('membership benefit');
+    const membershipItem = revenue?.checklist.find(
+      (i) => i.id === 'ag-s4-revenue-model-c8',
+    );
+    expect(membershipItem?.label.toLowerCase()).toContain('membership benefit');
+  });
+
   it('has globally unique checklist item ids (toProgressMap invariant)', () => {
     const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
     expect(new Set(itemIds).size).toBe(itemIds.length);

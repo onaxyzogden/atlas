@@ -37,6 +37,17 @@
 // sales surface; bookings remain the ratified service-reservation model. Hybrid-
 // sourced via docs/catalogues/eco-resort-glamping-agritourism-extension-draft.md.
 //
+// Membership / season-pass note (2026-06-03): AG-S4.8 (the revenue model) was
+// extended IN PLACE with 5 fiqh-gated checklist items (c7-c11) + 2 decision
+// groups + an Amanah scopeNote, realising the membership / season-pass
+// instrument AG-S7.8 deferred. Structured as a membership benefit (entitlement
+// of belonging, cancellable / refundable - not advance prepayment of undelivered
+// nights, which would be bay` ma laysa `indak / gharar), required to carry
+// genuine non-stay substance, bounded by AG-S3.7 carrying capacity, and routed
+// to Scholar Council review. No new objective / ref (count stays 34); operator-
+// ratified. Hybrid-sourced via
+// docs/catalogues/agritourism-membership-instrument-draft.md.
+//
 // Version note: the source file is named "...v1.1" but the document body states
 // "v1.0" throughout (Authored to Catalogue Authoring Standards v1.3). Encoded as
 // the v1.0 content the body specifies; the filename/body skew is flagged here.
@@ -938,6 +949,26 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-revenue-model-c6',
         'Confirm pricing is consistent with market comparables and service standard',
       ),
+      ck(
+        'ag-s4-revenue-model-c7',
+        'Decide whether a membership or season-pass tier is offered at all - default to none unless deliberately adopted; if none, c8-c11 are N/A',
+      ),
+      ck(
+        'ag-s4-revenue-model-c8',
+        'If adopted, structure it as a membership benefit - entitlement to access, priority booking, member rates, and belonging-benefits - with each actual stay still transacted as a separate per-stay service reservation (deposit + balance on a booked, deliverable stay) and the membership cancellable with pro-rata refund of unused access; the membership fee buys belonging and access terms, NOT a bundle of specific undelivered nights (avoids bay` ma laysa `indak / gharar)',
+      ),
+      ck(
+        'ag-s4-revenue-model-c9',
+        'Ensure member value is demonstrably non-stay-predominant - real belonging substance (community, seasonal / biodynamic events, bounded off-season access) beyond stay discounts - so the instrument is a membership in substance, not a nights-purchase in disguise; any member produce-share is treated as delivered-not-prepaid per the market-garden CSA guardrail (MGD-S1.4 / MGD-S1.6), not as an advance purchase',
+      ),
+      ck(
+        'ag-s4-revenue-model-c10',
+        'Bound member access, especially off-season, within the AG-S3.7 ecological carrying-capacity ceiling and its seasonal sensitivity windows; coordinate with AG-S7.8 so member presence supports off-season resilience without exceeding load limits; if member access extends beyond any hardened visitor precinct, AG-S3.7 must be in scope - the membership can pull it into scope',
+      ),
+      ck(
+        'ag-s4-revenue-model-c11',
+        'Route any membership / season-pass instrument to Scholar Council review before adoption; surface it explicitly, never as a default or recommended model; use no CSRA / salam advance-purchase framing',
+      ),
     ],
     decisionGroups: [
       dg('ag-s4-revenue-model-dg1', 'Pricing & booking terms', [
@@ -950,10 +981,21 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
         'ag-s4-revenue-model-c5',
         'ag-s4-revenue-model-c6',
       ]),
+      dg('ag-s4-revenue-model-dg3', 'Membership structure & fiqh routing (optional)', [
+        'ag-s4-revenue-model-c7',
+        'ag-s4-revenue-model-c8',
+        'ag-s4-revenue-model-c11',
+      ]),
+      dg('ag-s4-revenue-model-dg4', 'Membership substance & ecological bound', [
+        'ag-s4-revenue-model-c9',
+        'ag-s4-revenue-model-c10',
+      ]),
     ],
     completionGate:
-      'Booking, pricing, and revenue model approved. Break-even timeline and minimum occupancy confirmed.',
+      'Booking, pricing, and revenue model approved. Break-even timeline and minimum occupancy confirmed. Any contemplated membership / season-pass tier is membership-benefit-structured (not advance prepayment), carries genuine non-stay substance within AG-S3.7 limits, and is routed to Scholar Council review.',
     actHandoff: 'Booking, Pricing & Revenue Model Brief',
+    scopeNotes:
+      "Amanah flag - surface, do not omit: a season-pass / membership / advance multi-night package is a sales instrument that, if structured as prepayment for specific undelivered nights, is the advance sale of what the operator does not yet possess (bay` ma laysa `indak / gharar) - the structure that retired the MTC CSRA model. It is surfaced here, never silently dropped, but must be structured as a membership benefit (entitlement to access, priority, and belonging-benefits, not advance purchase), with each stay still transacted as a separate per-stay reservation and the membership cancellable with pro-rata refund of unused access (evidencing access, not purchase). The membership must carry genuine non-stay substance (community, seasonal events, bounded off-season access) so it is a membership in substance and not a nights-purchase in disguise; any member produce-share is treated as delivered-not-prepaid per the market-garden CSA guardrail (MGD-S1.4 / MGD-S1.6); and member access stays within the AG-S3.7 carrying-capacity limits (which the membership pulls into scope if access leaves a hardened precinct). It must not be presented as a default or recommended model, carries no CSRA / salam framing, and goes to Scholar Council review before adoption. Permissible without the flag: ordinary per-stay service reservation (deposit + balance on a booked, deliverable stay), already covered by c1-c2.",
   }),
   obj({
     id: 'ag-s4-biosecurity-zoning',
@@ -1858,6 +1900,6 @@ export const AGRITOURISM_PRIMARY_OBJECTIVES: readonly PlanStratumObjective[] = [
       'Seasonal resilience plan set. Off-season maintenance, staffing cycle, cash-flow buffering, and complementary uses defined within capacity and viability limits.',
     actHandoff: 'Seasonal-Occupancy Resilience & Off-Season Resourcing Plan',
     scopeNotes:
-      "Applies when occupancy is strongly seasonal (the eco-resort / glamping pattern); omit for steady year-round operations. This is operational planning, not a sales surface - it introduces no season-pass, advance multi-night package, or membership prepayment. Should the operator later want such an instrument, it must be encoded verbatim and carry an Amanah scopeNote (bay' ma laysa 'indak / gharar - no advance sale of undelivered nights) and go to Scholar Council review; it is not assumed here.",
+      "Applies when occupancy is strongly seasonal (the eco-resort / glamping pattern); omit for steady year-round operations. This is operational planning, not a sales surface - it introduces no season-pass, advance multi-night package, or membership prepayment. Should the operator later want such an instrument (now scoped at AG-S4.8), it must be encoded verbatim and carry an Amanah scopeNote (bay' ma laysa 'indak / gharar - no advance sale of undelivered nights) and go to Scholar Council review; it is not assumed here.",
   }),
 ];
