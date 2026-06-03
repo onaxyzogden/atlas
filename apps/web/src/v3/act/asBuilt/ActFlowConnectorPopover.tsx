@@ -32,6 +32,7 @@ import {
   type MaterialKind,
 } from '../../../store/closedLoopStore.js';
 import { useActFlowPopoverStore } from './actFlowPopoverStore.js';
+import { flowCreditState, FLOW_CREDIT_COPY } from './flowCreditStatus.js';
 import css from './ActFlowConnectorPopover.module.css';
 
 interface Props {
@@ -96,6 +97,16 @@ export default function ActFlowConnectorPopover({ projectId }: Props) {
     sourceFilled &&
     sinkFilled &&
     !sameStructured;
+
+  // Live closed-loop CREDIT guidance: an endpoint earns credit only when it is
+  // pinned to a structured feature (a real id, not blank and not the free-text
+  // sentinel). Guidance only - it never gates Save.
+  const isStructured = (sel: string) => sel !== '' && sel !== FREE;
+  const creditState = flowCreditState({
+    sourceStructured: isStructured(sourceSel),
+    sinkStructured: isStructured(sinkSel),
+    hasFeatureOptions: options.length > 0,
+  });
 
   const onSave = () => {
     if (!projectId || !canSave) return;
@@ -234,9 +245,11 @@ export default function ActFlowConnectorPopover({ projectId }: Props) {
           />
         </label>
 
-        <p className={css.note}>
-          Pin BOTH endpoints to mapped features to earn closed-loop credit;
-          free-text flows still count toward the material-flow total.
+        <p
+          className={creditState === 'earned' ? css.noteEarned : css.note}
+          data-credit={creditState}
+        >
+          {FLOW_CREDIT_COPY[creditState]}
         </p>
       </div>
     </Modal>

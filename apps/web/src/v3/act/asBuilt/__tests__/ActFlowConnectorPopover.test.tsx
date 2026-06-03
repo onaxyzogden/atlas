@@ -80,6 +80,37 @@ describe('ActFlowConnectorPopover', () => {
     expect(save.disabled).toBe(false);
   });
 
+  it('shows the no-features credit guidance when the project has no mapped features', () => {
+    // useFlowEndpointOptions resolves to [] with empty stores, so pinning is
+    // impossible -> the guidance must adapt rather than nag the steward to pin.
+    openPopover();
+    render(<ActFlowConnectorPopover projectId="p1" />);
+    expect(
+      screen.getByText(/No mapped features in this project yet/i),
+    ).toBeTruthy();
+    // The free-text / prompt copy and the earned copy must NOT show in this state.
+    expect(screen.queryByText(/Pin BOTH endpoints/i)).toBeNull();
+    expect(
+      screen.queryByText(/both endpoints are mapped features/i),
+    ).toBeNull();
+  });
+
+  it('keeps the flow non-earned (no closed-loop credit) when both endpoints are free text', () => {
+    openPopover();
+    render(<ActFlowConnectorPopover projectId="p1" />);
+    const [, from, to] = getSelects();
+    fireEvent.change(from, { target: { value: FREE } });
+    fireEvent.change(to, { target: { value: FREE } });
+    // No structured options exist, so even with both endpoints chosen (free text)
+    // the state stays no-features, never earned.
+    expect(
+      screen.queryByText(/both endpoints are mapped features/i),
+    ).toBeNull();
+    expect(
+      screen.getByText(/No mapped features in this project yet/i),
+    ).toBeTruthy();
+  });
+
   it('Save calls addMaterialFlow with origin list + greywater color + free-text endpoints', () => {
     const addSpy = vi.fn();
     useClosedLoopStore.setState({ addMaterialFlow: addSpy });

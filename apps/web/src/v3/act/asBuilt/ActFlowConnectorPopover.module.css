@@ -66,6 +66,18 @@
   line-height: 1.4;
 }
 
+/* Positive variant: shown when both endpoints are pinned to mapped features and
+   the flow will earn closed-loop credit. Same metrics as .note but a solid
+   (non-dimmed) green cue and not italic, so the "earned" state reads as a
+   confirmation rather than a hint. */
+.noteEarned {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: rgba(122, 176, 122, 0.95);
+}
+
 .btnRow {
   display: flex;
   gap: 8px;
