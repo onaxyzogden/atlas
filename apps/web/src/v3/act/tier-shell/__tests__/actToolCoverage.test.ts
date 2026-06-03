@@ -25,6 +25,7 @@ import {
   SILVOPASTURE_PRIMARY_OBJECTIVES,
   SILVOPASTURE_SECONDARY_OBJECTIVES,
   HOMESTEAD_PRIMARY_OBJECTIVES,
+  REGEN_FARM_PRIMARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -73,6 +74,20 @@ describe('Act tier-shell objective->tool coverage', () => {
     // An explicit [] still satisfies this ratchet (the id is present in the
     // override map); only a brand-new hms-* objective with no entry trips it.
     const missing = HOMESTEAD_PRIMARY_OBJECTIVES.filter(
+      (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
+    ).map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every regenerative-farm objective has an explicit override entry', () => {
+    // Regen farm is the second per-type catalogue wired (audit remediation R1,
+    // 2026-06-03) after homestead. Before this its 13 rf-* objectives fell
+    // through to STRATUM_ACT_TOOLS_DEFAULT with a severe misfit (S3 nutrient /
+    // pest showed access-utilities tools; S4 strategy showed roads/fencing; S5
+    // fertility / windbreaks showed the water-line set). Each is now explicit;
+    // an intentional [] (decision/financial objectives) still satisfies the
+    // ratchet — only a brand-new un-wired rf-* trips it.
+    const missing = REGEN_FARM_PRIMARY_OBJECTIVES.filter(
       (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
     ).map((o) => o.id);
     expect(missing).toEqual([]);

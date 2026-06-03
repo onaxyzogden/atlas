@@ -429,6 +429,96 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S7 — adaptive management protocol: review cycle / decision triggers /
   // contingency — non-spatial. gap: all.
   'hms-s7-adaptive-management': [],
+
+  // ---------- REGENERATIVE FARM (primary-only, 13 objectives) ----------
+  // Authored 2026-06-03 (Act-coverage audit remediation R1, second type). Before
+  // this every rf-* objective fell through to the coarse STRATUM_ACT_TOOLS_DEFAULT
+  // — and the misfit was severe: the S3 nutrient-cycling / pest objectives showed
+  // the s3-systems-reading access/utilities default (roads/power/gates/fencing),
+  // the S4 fertility / biodiversity STRATEGY objectives showed roads/gates/fencing,
+  // and the S5 fertility-system / windbreaks objectives showed the s5 water set
+  // (water-lines/tanks/wells). Each tool id below is grounded in a real rf-*
+  // checklist item AND a mountable ACT_TOOL_CATALOG tool; pure decision / strategy
+  // / financial objectives resolve to [] with a gap: note, mirroring the homestead
+  // and silvopasture sets. Candidate mappings — operator-reviewable.
+
+  // S1 — enterprise mix & priorities: enterprise inventory, priority tiers,
+  // interdependencies, sequencing, timelines, capacity fit — all decisions.
+  // Project-level vision capture is the universal s1-vision form arms. gap: all.
+  'rf-s1-enterprise-mix': [],
+  // S2 — land health & degradation: c1 map erosion (sheet/rill/gully), c2/c7
+  // compaction + soil loss/contamination sampling, c8 drainage problems
+  // (waterlogging/salt scald/hardpan), c3 weed burden by zone (vegetation cover).
+  // gap: c4 historical forensics, c5 landscape vectors (own objective below),
+  // c6 land-use history, c9 prioritisation (research / decision).
+  'rf-s2-land-health': ['erosion', 'soil', 'drainage', 'vegetation'],
+  // S2 — surrounding landscape context: c1/c2 neighbour land-use + spray/runoff
+  // risk pins, c5 landscape pest/weed pressure sources (hazard), c3 landscape
+  // catchment + watercourse context, c4 wildlife corridors. gap: c6 opportunities
+  // (recording).
+  'rf-s2-landscape-context': [
+    'neighbour-pin',
+    'hazard-zone',
+    'catchment',
+    'watercourse',
+    'wildlife-sector',
+  ],
+  // S3 — nutrient cycling & organic matter: c1/c5/c6 decomposer + OM variation +
+  // biological indicators (soil sampling), c4 existing composting / fertility
+  // infrastructure (compost + fertility-unit), c2 organic-matter inputs entering
+  // the system (source->sink flow). gap: c3 loss pathways (analysis).
+  'rf-s3-nutrient-cycling': ['soil', 'compost', 'fertility-unit', 'flow-connector'],
+  // S3 — pest, disease & weed pressure: c1 map weed species by zone (vegetation),
+  // c6 natural predator / beneficial presence (wildlife), c5 landscape pressure
+  // sources (hazard). gap: c2 pest inventory (no draw tool), c3 disease history,
+  // c4 ecological drivers, c7 prioritisation (record / decision).
+  'rf-s3-pest-pressure': ['vegetation', 'wildlife-sector', 'hazard-zone'],
+  // S4 — whole-farm fertility strategy: c2 design compost production system
+  // (compost), c1 map on-site organic inputs for closed-loop cycling (flow).
+  // Mirrors hms-s4-fertility-strategy. gap: c3 animal integration, c4 cover
+  // crops, c5 input-reduction targets, c6 monitoring (decisions).
+  'rf-s4-fertility-strategy': ['compost', 'flow-connector'],
+  // S4 — biodiversity & habitat infrastructure strategy: a SITING + commitment
+  // decision (design deferred to S5 per scopeNotes), and siting is spatial — c2
+  // native-habitat zones (wild margins / corridors / riparian), c3 raptor &
+  // predator habitat zones (wildlife), c4 minimum wild-zone commitments
+  // (buffer/zone). gap: c1 readiness goals, c5 indicator species, c6 invasive
+  // strategy (decisions).
+  'rf-s4-biodiversity-strategy': ['zone', 'wildlife-sector', 'vegetation', 'buffer-ring'],
+  // S5 — integrated fertility system: c1 compost production infrastructure
+  // (compost), c2 compost application by zone (fertility-unit), c3 animal
+  // integration rotation (paddocks), c4 cover-crop / green-manure rotation by
+  // field block (crops), c6 nutrient monitoring protocol (transect). gap: c5
+  // external-input substitution plan (decision).
+  'rf-s5-fertility-system': ['compost', 'fertility-unit', 'paddocks', 'crops', 'transect'],
+  // S5 — windbreaks, shelterbelts & plantings: c1 siting vs prevailing-wind
+  // sectors (wind), c2/c7 multi-strata planting structure + layout (vegetation),
+  // c4/c5 wildlife corridor connectivity + raptor habitat (wildlife), c6 wildfire
+  // mitigation green buffer + firebreak (fire + buffer). gap: c3 species
+  // selection, c8 coppicing / management (decisions).
+  'rf-s5-windbreaks': [
+    'vegetation',
+    'wind-sector',
+    'wildlife-sector',
+    'fire-sector',
+    'buffer-ring',
+  ],
+  // S6 — whole-farm biodiversity monitoring protocol: c2 design monitoring
+  // transects / sampling zones (transect). gap: c1 indicators, c3 frequency,
+  // c4 recording methods, c5 response triggers (decisions).
+  'rf-s6-biodiversity-monitoring': ['transect'],
+  // S6 — enterprise integration & feedback loops: the closed-loop core — c1/c2
+  // waste-to-input matrix + verified closed loop (flow-connector), c4 fertility
+  // transfer animal->crop zone (paddocks + crops). gap: c3 operational
+  // sequences, c5 decision triggers, c6 calendar, c7 records (decisions).
+  'rf-s6-enterprise-integration': ['flow-connector', 'paddocks', 'crops'],
+  // S7 — enterprise sequencing & phasing logic: launch order, enabling
+  // dependencies, revenue bridge, go/no-go — non-spatial decisions. gap: all.
+  'rf-s7-enterprise-sequencing': [],
+  // S7 — whole-farm cash flow staging: revenue / cost timeline, gap strategy,
+  // viability thresholds — financial, Amanah-clean (c5 confirms no capital
+  // formation / investor-structure content; no riba / advance-sale). gap: all.
+  'rf-s7-cash-flow': [],
 };
 
 /**
