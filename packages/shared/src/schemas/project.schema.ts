@@ -154,10 +154,11 @@ export const ProjectMetadata = z.object({
 }).passthrough();
 export type ProjectMetadata = z.infer<typeof ProjectMetadata>;
 
-// 13-type OLOS taxonomy (Project-Type + Secondary-Layer Spec v1.2) plus the
-// `moontrance` identity sentinel — kept so historical OGDEN-template projects
-// still validate, but never offered in the wizard (which reads PROJECT_TYPES).
-// The 13 catalogue ids live in ProjectTypeId (projectTypeTaxonomy.schema.ts);
+// 14-type OLOS taxonomy (Project-Type + Secondary-Layer Spec v1.2; livestock_operation
+// added 2026-06-03) plus the `moontrance` identity sentinel — kept so historical
+// OGDEN-template projects still validate, but never offered in the wizard (which
+// reads PROJECT_TYPES).
+// The 14 catalogue ids live in ProjectTypeId (projectTypeTaxonomy.schema.ts);
 // a sync test asserts ProjectType is the superset. Legacy values
 // (retreat_center / educational_farm / multi_enterprise) are backfilled by
 // migration 046 to agritourism / education / regenerative_farm respectively.
@@ -175,6 +176,7 @@ export const ProjectType = z.enum([
   'wellness',
   'nursery',
   'residential',
+  'livestock_operation',
   'moontrance',       // OGDEN identity template (sentinel; not in ProjectTypeId)
 ]);
 export type ProjectType = z.infer<typeof ProjectType>;

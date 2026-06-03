@@ -23,7 +23,7 @@ import type { PlanStratumId } from '../../schemas/plan/planStratumObjective.sche
 /** A single matrix cell. */
 export type RelationCell = 'M' | 'A' | 'X' | 'NA';
 
-/** The 12 types that can stand alone as a primary (everything but residential). */
+/** The 13 types that can stand alone as a primary (everything but residential). */
 export type PrimaryTypeId = Exclude<ProjectTypeId, 'residential'>;
 
 /** The 8 types that can be layered as a secondary (the can-be-secondary set). */
@@ -53,6 +53,7 @@ export const PRIMARY_TYPE_IDS: readonly PrimaryTypeId[] = [
   'off_grid',
   'wellness',
   'nursery',
+  'livestock_operation',
 ];
 
 /** Secondary ids in taxonomy ordinal order (matrix row order). */
@@ -69,7 +70,7 @@ export const SECONDARY_TYPE_IDS: readonly SecondaryTypeId[] = [
 
 /**
  * Secondary (row) x Primary (column) relationship matrix. The strict Record
- * types require every one of the 8 rows to carry all 12 primary cells, so a
+ * types require every one of the 8 rows to carry all 13 primary cells, so a
  * missing or mistyped cell is a compile error.
  */
 export const RELATIONSHIP_MATRIX: Record<
@@ -89,6 +90,7 @@ export const RELATIONSHIP_MATRIX: Record<
     off_grid: 'M',
     wellness: 'A',
     nursery: 'M',
+    livestock_operation: 'X',
   },
   orchard_food_forest: {
     homestead: 'M',
@@ -103,6 +105,7 @@ export const RELATIONSHIP_MATRIX: Record<
     off_grid: 'M',
     wellness: 'A',
     nursery: 'M',
+    livestock_operation: 'A',
   },
   silvopasture: {
     homestead: 'M',
@@ -117,6 +120,7 @@ export const RELATIONSHIP_MATRIX: Record<
     off_grid: 'M',
     wellness: 'X',
     nursery: 'A',
+    livestock_operation: 'M',
   },
   agritourism: {
     homestead: 'A',
@@ -131,6 +135,7 @@ export const RELATIONSHIP_MATRIX: Record<
     off_grid: 'X',
     wellness: 'A',
     nursery: 'A',
+    livestock_operation: 'A',
   },
   education: {
     homestead: 'A',
@@ -145,6 +150,7 @@ export const RELATIONSHIP_MATRIX: Record<
     off_grid: 'A',
     wellness: 'A',
     nursery: 'A',
+    livestock_operation: 'A',
   },
   wellness: {
     homestead: 'A',
@@ -159,6 +165,7 @@ export const RELATIONSHIP_MATRIX: Record<
     off_grid: 'A',
     wellness: 'NA',
     nursery: 'A',
+    livestock_operation: 'X',
   },
   nursery: {
     homestead: 'A',
@@ -173,6 +180,7 @@ export const RELATIONSHIP_MATRIX: Record<
     off_grid: 'A',
     wellness: 'A',
     nursery: 'NA',
+    livestock_operation: 'A',
   },
   residential: {
     homestead: 'NA',
@@ -187,6 +195,7 @@ export const RELATIONSHIP_MATRIX: Record<
     off_grid: 'NA',
     wellness: 'X',
     nursery: 'A',
+    livestock_operation: 'A',
   },
 };
 
@@ -207,7 +216,8 @@ export interface DesignTension {
   description: string;
 }
 
-/** The 10 named design tensions (spec section 5.3). */
+/** The 12 named design tensions (spec section 5.3; tensions 11-12 added 2026-06-03
+ * with the livestock_operation primary type, mirroring the silvopasture pairs). */
 export const DESIGN_TENSIONS: readonly DesignTension[] = [
   {
     id: 'tension-1',
@@ -298,6 +308,24 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
     resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
     description:
       'Private domestic life vs. therapeutic sanctuary zones. Household noise, activity, and domestic infrastructure conflict with the low-stimulation, privacy-graded environment required for a healing sanctuary. Requires hard spatial separation and acoustic buffering.',
+  },
+  {
+    id: 'tension-11',
+    typeA: 'livestock_operation',
+    typeB: 'wellness',
+    resolutionStratumId: 's4-foundation-decisions',
+    resolutionStratumLabel: 'Stratum 4 - Zone Allocation',
+    description:
+      'Sensory conflict. Animal noise, odour, and operational activity are incompatible with low-stimulation sanctuary zones unless sufficient distance and screening is designed in. Advisory, not blocking. Resolution anchored to Stratum 4 Zone Allocation.',
+  },
+  {
+    id: 'tension-12',
+    typeA: 'livestock_operation',
+    typeB: 'market_garden',
+    resolutionStratumId: 's5-system-design',
+    resolutionStratumLabel: 'Stratum 5 - Access & Circulation, Design',
+    description:
+      'Contamination and damage risk. Animal movement near intensive crop beds creates pathogen, compaction, and browse risk. Requires strict spatial and temporal separation between the herd and the market-garden beds.',
   },
 ];
 

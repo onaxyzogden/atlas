@@ -4,7 +4,7 @@ import { z } from 'zod';
  * Per-type objective-model taxonomy (OLOS Project-Type + Secondary-Layer
  * Spec v1.2).
  *
- * `ProjectTypeId` is the 13-value catalogue taxonomy — the real types a
+ * `ProjectTypeId` is the 14-value catalogue taxonomy — the real types a
  * steward can choose. It is intentionally SEPARATE from the broader
  * `ProjectType` Zod enum in project.schema.ts, which additionally carries the
  * `moontrance` identity sentinel (a historical OGDEN template, kept so legacy
@@ -28,6 +28,7 @@ export const PROJECT_TYPE_IDS = [
   'wellness',
   'nursery',
   'residential',
+  'livestock_operation',
 ] as const;
 
 export const ProjectTypeId = z.enum(PROJECT_TYPE_IDS);

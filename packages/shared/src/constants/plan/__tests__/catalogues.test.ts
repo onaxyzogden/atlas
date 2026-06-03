@@ -25,6 +25,7 @@ import {
   CONSERVATION_PRIMARY_OBJECTIVES,
   MARKET_GARDEN_PRIMARY_OBJECTIVES,
   OFF_GRID_PRIMARY_OBJECTIVES,
+  LIVESTOCK_PRIMARY_OBJECTIVES,
 } from '../catalogues/index.js';
 import {
   resolveProjectObjectives,
@@ -49,9 +50,10 @@ const ALL_AUTHORED: readonly PlanStratumObjective[] = [
   ...CONSERVATION_PRIMARY_OBJECTIVES,
   ...MARKET_GARDEN_PRIMARY_OBJECTIVES,
   ...OFF_GRID_PRIMARY_OBJECTIVES,
+  ...LIVESTOCK_PRIMARY_OBJECTIVES,
 ];
 
-const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH|NRS|HMS|EDU|CON|MGD|OFG)-S[1-7]\.\d+$/;
+const OBJECTIVE_REF = /^(U|RF|RES|EV|AG|WELL|SILV|ORCH|NRS|HMS|EDU|CON|MGD|OFG|LVS)-S[1-7]\.\d+$/;
 
 const PATCH_REF = /^(RES|SILV|ORCH)>(U|RF)-S[1-7]\.\d+$/;
 
@@ -224,6 +226,13 @@ describe('catalogue conformance - source/layer discipline', () => {
     for (const o of OFF_GRID_PRIMARY_OBJECTIVES) {
       expect(o.source, o.id).toBe('primary');
       expect(o.sourceTypeId, o.id).toBe('off_grid');
+    }
+  });
+
+  it('livestock primary objectives are source=primary, sourceTypeId=livestock_operation', () => {
+    for (const o of LIVESTOCK_PRIMARY_OBJECTIVES) {
+      expect(o.source, o.id).toBe('primary');
+      expect(o.sourceTypeId, o.id).toBe('livestock_operation');
     }
   });
 });
@@ -452,6 +461,64 @@ describe('catalogue conformance - silvopasture primary resolution', () => {
   it('every silvopasture primary ref is unique within the primary set', () => {
     const refs = SILVOPASTURE_PRIMARY_OBJECTIVES.map((o) => o.ref);
     expect(new Set(refs).size).toBe(refs.length);
+  });
+});
+
+describe('catalogue conformance - livestock primary resolution', () => {
+  const { objectives } = resolveProjectObjectives({
+    primaryTypeId: 'livestock_operation',
+    secondaryTypeIds: [],
+  });
+
+  it('resolves to 42 objectives (19 universal + 23 primary)', () => {
+    expect(LIVESTOCK_PRIMARY_OBJECTIVES.length).toBe(23);
+    expect(objectives.length).toBe(42);
+  });
+
+  it('has globally unique checklist item ids (toProgressMap invariant)', () => {
+    const itemIds = objectives.flatMap((o) => o.checklist.map((i) => i.id));
+    expect(new Set(itemIds).size).toBe(itemIds.length);
+    const objIds = objectives.map((o) => o.id);
+    expect(new Set(objIds).size).toBe(objIds.length);
+  });
+
+  it('every livestock primary ref is unique within the primary set', () => {
+    const refs = LIVESTOCK_PRIMARY_OBJECTIVES.map((o) => o.ref);
+    expect(new Set(refs).size).toBe(refs.length);
+  });
+
+  it('binds all six livestock/grazing formula ids across the catalogue', () => {
+    const bound = new Set(
+      LIVESTOCK_PRIMARY_OBJECTIVES.flatMap((o) =>
+        o.checklist
+          .map((i) => i.formulaBinding?.formulaId)
+          .filter((id): id is NonNullable<typeof id> => Boolean(id)),
+      ),
+    );
+    expect(bound).toEqual(
+      new Set([
+        'forage-carrying-capacity',
+        'carrying-capacity-seasonal',
+        'paddock-stocking-density',
+        'stock-water-demand',
+        'paddock-system-capacity',
+        'enterprise-break-even',
+      ]),
+    );
+  });
+
+  it('carries the Amanah advance-sale flag on the marketing objective scopeNotes', () => {
+    // feedback_csa_in_catalogues: meat/herd-share advance-subscription channels
+    // must be surfaced AND flagged (bay` ma laysa `indak), never silently omitted.
+    const marketing = LIVESTOCK_PRIMARY_OBJECTIVES.find(
+      (o) => o.id === 'lvs-s7-marketing',
+    );
+    expect(marketing?.scopeNotes).toBeTruthy();
+    expect(marketing?.scopeNotes).toContain('Scholar Council');
+    const channels = marketing?.checklist.find(
+      (i) => i.id === 'lvs-s7-marketing-c3',
+    );
+    expect(channels?.label.toLowerCase()).toContain('herd-share');
   });
 });
 

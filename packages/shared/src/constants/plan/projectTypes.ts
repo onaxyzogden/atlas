@@ -17,9 +17,12 @@ export interface ProjectTypeDef {
 }
 
 /**
- * The 13-type taxonomy. 12 types can stand alone as a primary; `residential`
+ * The 14-type taxonomy. 13 types can stand alone as a primary; `residential`
  * is a secondary-only live-in layer added onto a working-land primary. 8 types
- * can be layered as a secondary (the can-be-secondary set).
+ * can be layered as a secondary (the can-be-secondary set). `livestock_operation`
+ * (ordinal 13, added 2026-06-03) is a primary-only standalone grazing/animal
+ * husbandry type, distinct from `silvopasture` (integrated trees + forage +
+ * livestock).
  *
  * Labels and descriptions are ASCII-only (operator convention). The Zod
  * `ProjectType` enum (project.schema.ts) is the superset of these ids plus the
@@ -142,9 +145,18 @@ export const PROJECT_TYPES: readonly ProjectTypeDef[] = [
     description:
       'A live-in dwelling layer added onto a working-land primary.',
   },
+  {
+    id: 'livestock_operation',
+    label: 'Livestock Operation',
+    ordinal: 13,
+    canBePrimary: true,
+    canBeSecondary: false,
+    description:
+      'Standalone grazing and animal-husbandry enterprise centered on the herd: breeding, health, nutrition, and sale of animals and animal products.',
+  },
 ];
 
-/** The 12 types offered as a primary in the Step-2 grid (ordinal order). */
+/** The 13 types offered as a primary in the Step-2 grid (ordinal order). */
 export const PRIMARY_TYPES: readonly ProjectTypeDef[] = PROJECT_TYPES.filter(
   (t) => t.canBePrimary,
 );
