@@ -52,8 +52,11 @@ that transitively imports the persist-backed store needs `@vitest-environment ha
 - **A0 -- shipped** (`71336025`): 4 optional fields + enums + config maps + version
   2->3 pass-through migrate; `flowStatusModel.ts` + 9 tests.
   [[log/2026-06-03-atlas-closed-loop-slice-a0]]
-- **A1 -- pending:** `loopDesignScore.ts` + read-only `LoopDesignScorePanel` in
-  `WasteVectorTool`.
+- **A1 -- shipped** (`55eeb943`): `loopDesignScore.ts` (pure scorer + extracted
+  `efficiency()`) + read-only `LoopDesignScorePanel` mounted in `WasteVectorTool`;
+  dashboard dedupes onto the shared helper; 10 tests. Live render-verify deferred --
+  the WasteVectorTool legacy slide-up host is not reachable through the current strata
+  IA via automation. [[log/2026-06-03-atlas-closed-loop-slice-a1]]
 - **A2 -- pending:** `loopIntegrity.ts` + `FlowDetailPanel` (status/cadence/volume/via/
   activeMonths editors); selectable list rows.
 - **A3 -- pending:** `flowMapGeometry.ts` + flow-map rendering upgrade
