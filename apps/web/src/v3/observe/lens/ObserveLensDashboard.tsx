@@ -9,15 +9,18 @@
 // all rich display values are local mock fixtures (see ./mockData).
 //
 // LAYOUT: this is now composed on Atlas's real StageShell (between-rails),
-// mirroring act/tier-shell/ActTierShell — an ActTierSpine-style lens spine
-// stacked above a StageShell whose three slots hold the cycle rail, map canvas,
-// and the land-intelligence rail. The right rail stacks Land Intelligence atop
-// a vertical Recent Observations list (one shared scroll, via IntelligencePanel's
-// `footer`), so the former StageShell bottom tray is gone and the canvas is
-// taller. The internal TopBar was dropped (it duplicated the global app-shell
-// header). The old CSS `zoom` box is gone; the UI renders at Act's natural
-// proportions (see the de-zoom rebake in ./components.tsx and the spine in
-// ./ObserveLensSpine.tsx).
+// mirroring act/tier-shell/ActTierShell. The top ObserveLensSpine is now a
+// minimal filter-chip bar (icon + label + freshness dot, filter-only); the rich
+// per-lens cards (meta, divergence, summary) moved DOWN into ObserveLensDetailRail,
+// mounted in StageShell's `bottomTray` (between-rails) so it sits under the map
+// canvas between the full-height left/right rails. A whole-card click in that
+// rail opens the lens's DomainDetailSlideUp (each card carries a button-styled
+// "View all observations" CTA; filter reset lives in the top spine chips). The
+// right rail stacks Land Intelligence atop a vertical Recent
+// Observations list (one shared scroll, via IntelligencePanel's `footer`). The
+// internal TopBar was dropped (it duplicated the global app-shell header). The
+// old CSS `zoom` box is gone; the UI renders at Act's natural proportions (see
+// the de-zoom rebake in ./components.tsx and the spine in ./ObserveLensSpine.tsx).
 
 import { useState } from 'react';
 import type { ObserveLensId } from '@ogden/shared';
@@ -26,6 +29,7 @@ import { C, F } from './tokens.js';
 import { PROJECT } from './mockData.js';
 import type { MockObservation } from './types.js';
 import ObserveLensSpine from './ObserveLensSpine.js';
+import ObserveLensDetailRail from './ObserveLensDetailRail.js';
 import {
   CycleTimelineBar,
   DomainDetailSlideUp,
@@ -73,7 +77,6 @@ export default function ObserveLensDashboard() {
       <ObserveLensSpine
         activeLens={activeLens}
         onSelectLens={handleLensChange}
-        onOpenDetail={setDetailLens}
         projectTitle={PROJECT.name}
       />
 
@@ -104,6 +107,13 @@ export default function ObserveLensDashboard() {
                   onObsClick={handleObsClick}
                 />
               }
+            />
+          }
+          bottomTray={
+            <ObserveLensDetailRail
+              activeLens={activeLens}
+              onSelectLens={handleLensChange}
+              onOpenDetail={setDetailLens}
             />
           }
         />

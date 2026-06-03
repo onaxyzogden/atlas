@@ -1,0 +1,127 @@
+/*
+ * ObserveLensDetailRail.module.css -- horizontal rich-card rail for the Observe
+ * module-bar lens. Lives in StageShell's `bottomTray` slot (between-rails mode),
+ * so it sits under the map canvas, between the full-height left/right rails.
+ *
+ * Each card is a single button (whole-card trigger): clicking a detail-bearing
+ * lens opens its DomainDetailSlideUp. The rich card visuals (icon + freshness
+ * dot + title + meta + divergence + summary + a button-styled "View all
+ * observations" CTA) are lifted from the former ObserveLensSpine `.tier`. There
+ * is no "All lenses" card -- filter reset lives in the top spine chips. Tokens
+ * resolve from the app's tokens.css.
+ */
+
+.rail {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  flex: 0 0 auto;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.card {
+  flex: 1 1 0;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(242, 237, 227, 0.12));
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f2ede3);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.card:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 45%,
+    var(--color-border, rgba(242, 237, 227, 0.12))
+  );
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-gold-brand, #c4a265);
+  outline-offset: 2px;
+}
+
+.card[data-active='true'] {
+  border-color: var(--color-gold-brand, #c4a265);
+  background: color-mix(
+    in srgb,
+    var(--color-gold-brand, #c4a265) 8%,
+    var(--color-surface)
+  );
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.lensIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.meta {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+}
+
+/* Divergence badge -- amber, supplied inline to match the old card. */
+.divergence {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+/* Lens summary snippet -- muted, clamped to two lines. */
+.summary {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.65));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* "View all observations" CTA -- styled to read as a separate button (like the
+   former spine `.tierDetail`). It is a span, not a nested <button> (the whole
+   card is the button), so it carries no own click handler -- clicking it bubbles
+   to the card and opens the slide-up. Lens colour is supplied inline. */
+.hint {
+  margin-top: 6px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
