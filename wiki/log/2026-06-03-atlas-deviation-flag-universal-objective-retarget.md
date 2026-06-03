@@ -46,11 +46,14 @@ when Tier 2 is built. Raised to the steward, not yet changed.
 **58/58** across 7 files (evaluateAndRaiseFlags, ObjectiveColumn 3/3, ObjectiveCard
 4/4, ObjectiveDetailPanel.review 5/5 + verify 3/3, reviewFlagStore 18/18,
 reviewFlagStore.dormancy 13/13), bounded `pool:'forks'`
-([[feedback-vitest-bounded-runs]]); `@ogden/web` `tsc --noEmit` EXIT 0. **NOT
-browser-verified** -- preview server died (dead API; `preview_screenshot` hangs),
-not restarted; chip->detail->resolve loop verified via the authoritative
-`ObjectiveColumn.test.tsx` instead of a live screenshot, disclosed not claimed
-([[project-screenshot-hang]]).
+([[feedback-vitest-bounded-runs]]); `@ogden/web` `tsc --noEmit` EXIT 0. **Not
+browser-verified at the commit** -- preview server was down (dead API;
+`preview_screenshot` hangs); chip->detail->resolve loop verified via the
+authoritative `ObjectiveColumn.test.tsx` instead of a live screenshot, disclosed
+not claimed ([[project-screenshot-hang]]). **Follow-up (later 2026-06-03, Tier-2
+session):** browser-verified live on MTC -- injecting the exact s6-bound emission
+surfaced the amber Review chip on **both** `s6-monitoring` (S6) and `s7-phase1`
+(S7) cards; injected flags removed after. Closes the deferred visual check.
 
 Files: `apps/web/src/v3/act/protocols/evaluateAndRaiseFlags.ts`,
 `apps/web/src/v3/act/protocols/__tests__/evaluateAndRaiseFlags.test.ts`.

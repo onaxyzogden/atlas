@@ -93,12 +93,22 @@ rationale so the next reader does not "restore" the spec's literal ids.
   verify 3/3, reviewFlagStore 18/18, reviewFlagStore.dormancy 13/13), all under
   bounded `pool:'forks'` ([[feedback-vitest-bounded-runs]]).
 - `@ogden/web` `tsc --noEmit` (8 GB heap) EXIT 0.
-- **NOT browser-verified this session** -- the preview server died (dead API, no
-  `ANTHROPIC_API_KEY`; `preview_screenshot` hangs) and was not restarted. The
+- **Not browser-verified at the T1.10 commit** -- the preview server was down
+  (dead API, no `ANTHROPIC_API_KEY`; `preview_screenshot` hangs). The
   chip -> detail -> resolve loop was verified via the authoritative
   `ObjectiveColumn.test.tsx` component test rather than a live screenshot;
-  disclosed, not claimed ([[project-screenshot-hang]]). A live chip screenshot on
-  MTC remains the recommended next-session visual check.
+  disclosed, not claimed ([[project-screenshot-hang]]).
+- **Follow-up (2026-06-03, Tier-2 session) -- now browser-verified live on MTC.**
+  With servers restored, injecting the exact s6-bound emission through the
+  persisted `ogden-review-flags` store and reloading surfaced the amber **Review**
+  chip on **both** retarget targets on the typed MTC project: `s6-monitoring`
+  (primary, S6 Integration Design card) and `s7-phase1` (cascade, S7 Phasing
+  card), each `objective-review-flag-<id>` testid present with title
+  "1 downstream review flag". Injected flags removed afterward; store restored.
+  `preview_screenshot` still hangs on this setup, so the proof is the DOM/testid
+  assertion, not a pixel capture -- disclosed. This closes the deferred visual
+  check. (The Tier-2 event path was likewise verified on `s5-water-infrastructure`
+  -- see [[decisions/2026-06-03-atlas-deviation-flag-tier2-event-driven-routing]].)
 
 Explicit-path commit; foreign working-tree WIP untouched
 ([[feedback-no-deletion]], [[feedback-commit-immediately-on-rebased-branches]]);
