@@ -1,0 +1,91 @@
+/**
+ * CoOccurrenceSynthesisCard — amber, dark-surface synthesis treatment,
+ * mirroring the shipped Plan-view co-occurrence banner. Read-only: the
+ * "Resolve in Plan" pointer is a muted hint, not a CTA. No animation
+ * (reduced-motion safe by construction).
+ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, #e8a958 35%, transparent);
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
+  color: var(--color-text, #f2ede3);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #e8a958;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  background: color-mix(in srgb, #e8a958 22%, transparent);
+  color: var(--color-text, #f2ede3);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 96%, #ffffff);
+}
+
+.row[data-existential='true'] {
+  border-color: color-mix(in srgb, #e8a958 70%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, #e8a958 30%, transparent);
+}
+
+.theme {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text, #f2ede3);
+}
+
+.summary {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.objectives {
+  font-size: 11px;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.pointer {
+  align-self: flex-end;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
