@@ -924,7 +924,7 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
   // Current cycle = outer ring, arc drawn to elapsed position.
   // Observation points plotted as radial marks around the current ring.
 
-  const SVG_W = 260, SVG_H = 140;
+  const SVG_H = 140;
   const cx = 80, cy = 72;
 
   // Rings: baseline (inner), current (outer)
@@ -969,8 +969,13 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
   });
 
   // ── Full spiral diagram (reused by horizontal expanded panel + vertical rail) ──
+  // The legend is split out into its own DOM block (`spiralLegend`) so it can be
+  // stacked BENEATH the spiral; the SVG viewBox is cropped to the spiral's own
+  // span (cx=80 centred in a 160-wide box) so it no longer reserves the right
+  // half for the legend.
+  const SPIRAL_VB_W = cx * 2; // 160 — centres the spiral (cx=80) in its own box
   const spiralDiagram = (
-    <svg width="100%" height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ maxWidth: SVG_W }}>
+    <svg width="100%" height={SVG_H} viewBox={`0 0 ${SPIRAL_VB_W} ${SVG_H}`} style={{ maxWidth: SPIRAL_VB_W }}>
 
       <defs>
         <filter id="spglow">
@@ -1046,22 +1051,26 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
       {/* ── Centre label ── */}
       <text x={cx} y={cy - 5} textAnchor="middle" fontSize="9" fill={C.textPrimary} fontFamily={F.serif} fontWeight="600">Cycle {CYCLE.number}</text>
       <text x={cx} y={cy + 7} textAnchor="middle" fontSize="7" fill={C.textTertiary} fontFamily={F.mono}>Day {CYCLE.elapsed}</text>
-
-      {/* ── Legend ── */}
-      <g transform={`translate(${SVG_W - 80}, 12)`}>
-        {[
-          { color: C.green, label: 'Now' },
-          { color: C.amber, label: `Review · ${CYCLE.nextReviewDays}d` },
-          { color: C.red, label: 'Stale data' },
-          { color: C.textTertiary, label: 'Baseline' },
-        ].map((item, i) => (
-          <g key={i} transform={`translate(0, ${i * 16})`}>
-            <circle cx={4} cy={4} r={3} fill={item.color} opacity={item.color === C.textTertiary ? 0.3 : 0.8} />
-            <text x={11} y={8} fontSize="7" fill={C.textTertiary} fontFamily={F.sans}>{item.label}</text>
-          </g>
-        ))}
-      </g>
     </svg>
+  );
+
+  // ── Legend (DOM block, stacked beneath the spiral) ──
+  // Pulled out of the SVG so the spiral and its key sit vertically stacked
+  // (legend beneath) instead of side-by-side. Wraps to fit the narrow rail.
+  const spiralLegend = (
+    <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '4px 12px' }}>
+      {[
+        { color: C.green, label: 'Now' },
+        { color: C.amber, label: `Review · ${CYCLE.nextReviewDays}d` },
+        { color: C.red, label: 'Stale data' },
+        { color: C.textTertiary, label: 'Baseline' },
+      ].map((item, i) => (
+        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: item.color, opacity: item.color === C.textTertiary ? 0.3 : 0.8, flexShrink: 0 }} />
+          <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.sans }}>{item.label}</span>
+        </span>
+      ))}
+    </div>
   );
 
   // ── Now-callout + signal rows (reused by both layouts) ──
@@ -1129,9 +1138,10 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
           <span style={{ fontSize: 11, color: C.textTertiary, fontFamily: F.mono }}>Day {CYCLE.elapsed} / {CYCLE.totalDays}</span>
         </div>
 
-        {/* Spiral */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 4px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+        {/* Spiral + legend, vertically stacked (legend beneath) */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '12px 8px', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
           {spiralDiagram}
+          {spiralLegend}
         </div>
 
         {/* Callout + signals */}
@@ -1206,9 +1216,10 @@ export function CycleTimelineBar({ vertical = false }: { vertical?: boolean }) {
       {/* ── Expanded spiral panel ── */}
       {expanded && (
         <div style={{ display: 'flex', gap: 0, borderTop: `1px solid ${C.border}`, maxHeight: 180 }}>
-          {/* Left: full spiral diagram */}
-          <div style={{ width: SVG_W, flexShrink: 0, borderRight: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 4px' }}>
+          {/* Left: full spiral diagram + legend, stacked */}
+          <div style={{ width: SPIRAL_VB_W + 24, flexShrink: 0, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 8px' }}>
             {spiralDiagram}
+            {spiralLegend}
           </div>
 
           {/* Right: contextual text — one clear thing per row */}
