@@ -715,6 +715,29 @@ primary types (256 Gap-A objectives) follow with the same grounded-candidate
 method. ADR [[decisions/2026-06-03-olos-act-objective-coverage-audit]]; Log:
 [[log/2026-06-03-olos-act-objective-coverage-audit]].
 
+## Objective->tool overrides: regenerative_farm (2026-06-03)
+
+Second per-type catalogue wired after homestead. All **13 `rf-*`** objectives
+now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries in
+`objectiveActTools.ts`: **10 spatial** grounded (each id verified against a real
+`rf-*` checklist item + a mountable `ACT_TOOL_CATALOG` tool — e.g.
+land-health->erosion/soil/drainage/vegetation, nutrient-cycling->soil/compost/
+fertility-unit/flow-connector, fertility-system->compost/fertility-unit/paddocks/
+crops/transect, windbreaks->vegetation/wind-sector/wildlife-sector/fire-sector/
+buffer-ring), **3 intentional `[]`** (`rf-s1-enterprise-mix` decision,
+`rf-s7-enterprise-sequencing` decision, `rf-s7-cash-flow` financial — Amanah-clean
+per c5 "no capital formation or investor structure content"). Before this the 13
+fell through `STRATUM_ACT_TOOLS_DEFAULT` with a severe misfit (S3 nutrient/pest
+showed access-utilities, S4 strategy showed roads/fencing, S5 fertility/windbreaks
+showed the water-line set). **R3:** `actToolCoverage.test.ts` ratcheted with a
+regen-farm assertion (intentional `[]` satisfies it). Verified: shared `tsc` EXIT
+0; audit Gap A **256->243**, Gap B 0, Gap C 47->49; bounded `--pool=forks`
+`actToolCoverage` 7/7, `objectiveObserveDomains` 8/8, `resolveProjectObjectives`
+25/25 (the prior pre-existing agritourism count failure is no longer present).
+Commit `187c4f6f`, not pushed. Gap A now 243 across the other 11 primary types
+(market_garden / orchard next). Log:
+[[log/2026-06-03-olos-act-regen-farm-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel

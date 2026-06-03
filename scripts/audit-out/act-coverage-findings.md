@@ -117,4 +117,16 @@ The formal proof/verification layer (`olos_act_tasks` / `olos_proof_records` / `
 - ✅ `objectiveObserveDomains.test.ts` — pass.
 - ⚠️ `resolveProjectObjectives.test.ts` — 24/25; the 1 failure (`agritourism + residential = 54`, now 59) is **pre-existing and unrelated** — confirmed by re-running with the R1/R3 edits stashed. It is drift from the agritourism `AG-S4.8` membership/season-pass extension (commit `15680301`) whose count assertion was never updated. Flagged for a separate fix.
 
-> Remaining Gap A (256 across the other 11 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice) is complete.
+> Remaining Gap A (243 across the other 11 primary types) and R2 are **not yet implemented** — their tool mappings / form prompts are operator-reviewed catalogue content. Homestead (the active slice) and regenerative_farm are complete.
+
+### Regenerative farm — DONE (R1/R3, 2026-06-03)
+
+**R1 (regen farm).** All 13 `rf-*` objectives now carry explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries: 10 spatial objectives mapped to grounded tools (every id verified against a real `rf-*` checklist item + a mountable `ACT_TOOL_CATALOG` tool), 3 set to intentional gap-noted `[]` (`rf-s1-enterprise-mix` = enterprise-mix decision; `rf-s7-enterprise-sequencing` = sequencing decision; `rf-s7-cash-flow` = financial, Amanah-clean per c5 "no capital formation or investor structure content"). Before this the regen objectives fell through to the coarse stratum default with a severe misfit — S3 nutrient/pest showed access-utilities tools, S4 strategy showed roads/fencing, S5 fertility/windbreaks showed the water-line set.
+
+**R3 (ratchet).** `actToolCoverage.test.ts` gains a "every regenerative-farm objective has an explicit override entry" assertion (intentional `[]` still satisfies it). 7/7.
+
+**Audit re-run after regen R1/R3:** 316 objectives — Gap A **256 → 243** (regen's 13 now covered), Gap B 0, Gap C 47 → 49 (21 intentional / 28 default-driven; +3 = the regen decision/financial objectives consciously set to intentional `[]`).
+
+**Tests (bounded, `--pool=forks`, per-workspace):** ✅ `actToolCoverage.test.ts` 7/7 · ✅ `objectiveObserveDomains.test.ts` 8/8 · ✅ `resolveProjectObjectives.test.ts` **25/25** (the previously pre-existing agritourism count failure has since been resolved upstream; full suite now green). Shared `tsc --noEmit` EXIT 0.
+
+Committed `187c4f6f`.
