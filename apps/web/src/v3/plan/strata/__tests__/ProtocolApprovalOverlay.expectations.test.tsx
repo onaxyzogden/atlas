@@ -8,7 +8,9 @@
  *   2. Entering a rate and activating persists it to protocolStore.
  *   3. per: 'cycle' is captured correctly.
  *   4. Empty count does NOT persist an expectation.
- *   5. Re-opening pre-fills the stored value.
+ *   5. Count of 0 does NOT persist an expectation (count <= 0 rejected).
+ *   6. Re-opening pre-fills the stored value.
+ *   7. Edit-First ("Save & activate") also commits the rate (handleEditCommit).
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -173,6 +175,31 @@ describe('ProtocolApprovalOverlay — Expected firing rate', () => {
     ).toBeUndefined();
   });
 
+  it('count of 0 does NOT persist an expectation', () => {
+    render(
+      <ProtocolApprovalOverlay
+        projectId={PROJECT_ID}
+        objective={S6}
+        onClose={() => {}}
+      />,
+    );
+
+    const firstTemplate = SHEEP_BEEF_TEMPLATES[0]!;
+    const countInput = screen.getByTestId(
+      `expected-rate-count-${firstTemplate.id}`,
+    );
+    // 0 is rejected: "never fire" is not a meaningful expectation and would
+    // otherwise raise a permanent deviation flag on the first activation.
+    fireEvent.change(countInput, { target: { value: '0' } });
+
+    const activateButtons = screen.getAllByText('Activate');
+    fireEvent.click(activateButtons[0]!);
+
+    expect(
+      useProtocolStore.getState().expectationsByProject[PROJECT_ID]?.[firstTemplate.id],
+    ).toBeUndefined();
+  });
+
   it('re-opening pre-fills the stored value', () => {
     // Set a stored expectation BEFORE rendering
     useProtocolStore
@@ -200,5 +227,51 @@ describe('ProtocolApprovalOverlay — Expected firing rate', () => {
 
     expect(countInput.value).toBe('5');
     expect(perSelect.value).toBe('cycle');
+  });
+
+  it('Edit-First ("Save & activate") also commits the rate', () => {
+    render(
+      <ProtocolApprovalOverlay
+        projectId={PROJECT_ID}
+        objective={S6}
+        onClose={() => {}}
+      />,
+    );
+
+    // Author a rate on every template's count input so whichever card we edit
+    // has a draft to commit (the rate panel rows share testids with templates).
+    for (const t of SHEEP_BEEF_TEMPLATES) {
+      const countInput = screen.getByTestId(`expected-rate-count-${t.id}`);
+      const perSelect = screen.getByTestId(`expected-rate-per-${t.id}`);
+      fireEvent.change(countInput, { target: { value: '6' } });
+      fireEvent.change(perSelect, { target: { value: 'cycle' } });
+    }
+
+    // Open the first editable card's inline edit form.
+    const editFirstBtns = screen
+      .getAllByText('Edit First')
+      .filter((btn) => !(btn as HTMLButtonElement).disabled);
+    expect(editFirstBtns.length).toBeGreaterThan(0);
+    fireEvent.click(editFirstBtns[0]!);
+
+    // Tweak the most-recently-mounted textbox (an edit-form token input; the
+    // rate-count inputs render above the flow, so the edit input is last).
+    const inputs = screen.getAllByRole('textbox');
+    fireEvent.change(inputs[inputs.length - 1]!, { target: { value: '1500' } });
+
+    // Commit via the edit-mode "Save & activate" button -> handleEditCommit.
+    fireEvent.click(screen.getByText('Save & activate'));
+
+    // Find the template that actually got activated, then assert its rate was
+    // persisted by the same handleEditCommit path that wrote the parameter.
+    const activated = useProtocolStore
+      .getState()
+      .records.find((r) => r.projectId === PROJECT_ID && r.status === 'active');
+    expect(activated).toBeTruthy();
+    expect(
+      useProtocolStore.getState().expectationsByProject[PROJECT_ID]?.[
+        activated!.templateId
+      ],
+    ).toEqual({ count: 6, per: 'cycle' });
   });
 });

@@ -135,7 +135,11 @@ export default function ProtocolApprovalOverlay({
     const trimmed = draft.count.trim();
     if (trimmed === '') return;
     const count = Number(trimmed);
-    if (!Number.isFinite(count) || count < 0) return;
+    // Reject count <= 0: a zero/negative rate is not a meaningful expectation.
+    // Storing { count: 0 } would mean "never fire", which the deviation engine
+    // would treat as a permanent over-deviation on the first activation --
+    // indistinguishable from the steward simply leaving the field blank.
+    if (!Number.isFinite(count) || count <= 0) return;
     setExpectation(projectId, id, { count, per: draft.per });
   };
 
@@ -236,7 +240,7 @@ export default function ProtocolApprovalOverlay({
           >
             Expected firing rate (optional)
           </div>
-          {templates.map((t, idx) => (
+          {templates.map((t) => (
             <div
               key={t.id}
               title={t.name}
@@ -247,24 +251,25 @@ export default function ProtocolApprovalOverlay({
                 marginBottom: 6,
               }}
             >
-              {/* Row index label — the full template name is in the title
-                  attribute and in the aria-labels on the inputs. We do not
-                  repeat the name as a visible text node here because the
-                  ProtocolConfirmationFlow renders each template name in its
-                  own card; a duplicate text node would break getByText
-                  uniqueness in tests. */}
+              {/* Visible protocol name so the steward can tell which rate row
+                  maps to which protocol. Truncated with a CSS ellipsis for the
+                  compact strip; the full name is also in the row title and the
+                  input aria-labels. This same name is rendered on the
+                  ProtocolConfirmationFlow card below, so tests matching it use
+                  getAllByText (two legitimate occurrences). */}
               <span
-                aria-hidden="true"
                 style={{
                   fontSize: 11,
-                  color: C.textTertiary,
-                  fontFamily: 'var(--font-mono)',
-                  width: 20,
-                  textAlign: 'right',
-                  flexShrink: 0,
+                  color: C.textSecondary,
+                  fontFamily: 'var(--font-sans)',
+                  flex: 1,
+                  minWidth: 0,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
-                {idx + 1}.
+                {t.name}
               </span>
               <input
                 data-testid={`expected-rate-count-${t.id}`}
