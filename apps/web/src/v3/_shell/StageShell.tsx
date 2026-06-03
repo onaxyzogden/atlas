@@ -50,6 +50,16 @@ export interface StageShellProps {
    *   so the left/right rails run full height and the tray sits between them.
    */
   bottomPlacement?: 'full' | 'between-rails';
+  /**
+   * When true, the left rail track is widened to match the right rail track at
+   * every breakpoint (symmetric 260/240/220 columns) instead of the default
+   * asymmetric 240/260 tools-vs-guidance split. Opt-in and off by default, so
+   * every existing consumer keeps the canonical asymmetric grid; only callers
+   * that explicitly want balanced rails (e.g. the Observe lens dashboard, whose
+   * left = cycle timeline and right = land intelligence are peer surfaces, not
+   * a narrow tools rail) set it.
+   */
+  symmetricRails?: boolean;
 }
 
 export default function StageShell({
@@ -62,6 +72,7 @@ export default function StageShell({
   leftRailLabel = 'Stage tools',
   rightRailLabel = 'Stage guidance',
   bottomPlacement = 'full',
+  symmetricRails = false,
 }: StageShellProps) {
   const between = bottomPlacement === 'between-rails';
   const hasBottom = bottomTray !== undefined && bottomTray !== null;
@@ -77,7 +88,10 @@ export default function StageShell({
   );
 
   return (
-    <div className={`${css.layout} ${between ? css.layoutBetween : ''}`}>
+    <div
+      className={`${css.layout} ${between ? css.layoutBetween : ''}`}
+      data-rail-symmetry={symmetricRails ? '' : undefined}
+    >
       <div className={css.body}>
         {leftRail !== undefined && leftRail !== null && (
           <aside className={css.left} aria-label={leftRailLabel}>

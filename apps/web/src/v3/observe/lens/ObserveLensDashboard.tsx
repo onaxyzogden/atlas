@@ -84,6 +84,7 @@ export default function ObserveLensDashboard() {
       <div className={css.shellWrap}>
         <StageShell
           bottomPlacement="between-rails"
+          symmetricRails
           canvasLabel="Observe lens map"
           leftRailLabel="Cycle timeline"
           rightRailLabel="Land intelligence"

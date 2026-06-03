@@ -72,6 +72,20 @@
 }
 
 /*
+ * Symmetric-rails opt-in (StageShell `symmetricRails` prop). Widen the left
+ * track to match the right track so peer rails (e.g. the Observe lens
+ * dashboard's cycle timeline vs land intelligence) read as equal-width
+ * columns rather than a narrow tools rail beside a wider guidance rail. The
+ * data-attribute + `:has()` selector sits one step above the asymmetric base
+ * rule's specificity, so it wins without `!important`; the breakpoint variants
+ * below mirror the right track's responsive widths. Off by default — every
+ * other consumer keeps the canonical 240/260 split.
+ */
+.layout[data-rail-symmetry] .body:has(> .left):has(> .right) {
+  grid-template-columns: 260px minmax(0, 1fr) 260px;
+}
+
+/*
  * Both rails are flex containers so the inner bento panel stretches to fill
  * the rail height and handles its own internal scroll. Without this, the
  * outer aside's overflow clipping would cut off the panel's rounded bottom
@@ -134,6 +148,9 @@
   .body:not(:has(> .left)):has(> .right) {
     grid-template-columns: minmax(0, 1fr) 240px;
   }
+  .layout[data-rail-symmetry] .body:has(> .left):has(> .right) {
+    grid-template-columns: 240px minmax(0, 1fr) 240px;
+  }
 }
 
 @media (max-width: 1000px) {
@@ -147,6 +164,10 @@
   }
   .body:not(:has(> .left)):has(> .right) {
     grid-template-columns: minmax(0, 1fr) 220px;
+    gap: 6px;
+  }
+  .layout[data-rail-symmetry] .body:has(> .left):has(> .right) {
+    grid-template-columns: 220px minmax(0, 1fr) 220px;
     gap: 6px;
   }
 }
