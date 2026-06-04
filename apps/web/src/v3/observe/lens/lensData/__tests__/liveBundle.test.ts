@@ -48,14 +48,22 @@ const bundle = buildLiveLensBundle({
 const lensById = (id: ObserveLensId) => bundle.lenses.find((l) => l.id === id)!;
 
 describe('buildBuiltinObserveDataPoints (fixture sanity)', () => {
-  it('builds 10 active MTC points with no geometry', () => {
+  it('builds 10 active MTC points, each carrying seeded Point geometry', () => {
     expect(POINTS).toHaveLength(10);
     expect(POINTS.every((p) => !p.isSuperseded)).toBe(true);
-    expect(POINTS.every((p) => p.locationGeometry === null)).toBe(true);
+    // Each MTC seed row now carries a `location` -> Point geometry (Task 6),
+    // so the live map can place pins at true coordinates.
+    expect(POINTS.every((p) => p.locationGeometry?.type === 'Point')).toBe(true);
   });
 
-  it('resolves a null map when no boundary and no georeferenced point exist', () => {
-    expect(bundle.map).toBeNull();
+  it('resolves a live map payload from the seeded MTC point geometry', () => {
+    // This builder call passes no parcelBoundary/isDemoGeometry (the hook
+    // useLiveLensBundle supplies those); the map still resolves from the
+    // georeferenced points, with bbox derived from the markers.
+    expect(bundle.map).not.toBeNull();
+    expect(bundle.map!.markers).toHaveLength(10);
+    expect(bundle.map!.boundary).toBeNull();
+    expect(bundle.map!.demoGeometry).toBe(false);
   });
 });
 
