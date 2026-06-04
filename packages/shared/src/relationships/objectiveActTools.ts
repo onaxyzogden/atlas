@@ -1251,6 +1251,137 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // staffing cycle, cash-flow buffering -- operational planning (explicitly NOT a
   // sales surface per its scopeNote), no spatial act. gap: all.
   'ag-s7-seasonal-resilience': [],
+
+  // ----------------------------------------------------------------- ECOVILLAGE
+  // Intentional community / ecovillage primary type (31 ev-* objectives, primary-
+  // only -- no standalone secondary layer, no patches). Without these the
+  // ecovillage objectives fell through STRATUM_ACT_TOOLS_DEFAULT: the S2/S3 site
+  // & systems surveys surfaced the access-utilities set instead of source/
+  // structure/climate-sector/zoning families, and the S5 design block surfaced
+  // generic access tools instead of the structure/zoning/water families the
+  // cluster, communal-systems, sanitation, energy and food-zone checklists call
+  // for. Grounded-candidate method: every tool id maps to a real checklist item
+  // AND exists in ACT_TOOL_CATALOG. The whole S1 governance band, the social-
+  // fabric survey, the S4 strategy/financial band, the S6 monitoring band and the
+  // entire S7 phasing/financial/protocol band are decisions -> intentional [].
+  // Amanah: EV-S4.8 (financial contribution & shared economics) and EV-S7.5
+  // (communal financial plan & contribution schedule) are communal member cost-
+  // sharing among co-owners (member buy-in, levies, reserves) -- NOT advance sale
+  // of future yield -- encoded verbatim per the operator's 2026-05-29 "encode
+  // verbatim, no gating" authorisation; both map to [] (financial decisions, no
+  // act surface), so no act surface engages a contribution instrument. Clean.
+
+  // S1 -- legal entity, tenure & governance model: entity selection, tenure
+  // model, decision-making framework -- a legal/governance decision. gap: all.
+  'ev-s1-legal-governance': [],
+  // S1 -- communal vs. private provision balance: what is shared vs. private --
+  // a provision-policy decision, no spatial act. gap: all.
+  'ev-s1-provision-balance': [],
+  // S1 -- conflict resolution & community agreement framework: decision process,
+  // dispute pathway, exit, dissolution, sign-off -- a governance decision. gap: all.
+  'ev-s1-conflict-framework': [],
+
+  // S2 -- site carrying capacity for the population: resource-demand estimates
+  // (water/food/waste/energy, non-spatial) + c5 space assessment for housing
+  // clusters, communal buildings, food production and wild zones -> zone +
+  // buffer-ring (wild) + note. gap: the resource-demand calcs.
+  'ev-s2-carrying-capacity': ['zone', 'buffer-ring', 'note'],
+  // S2 -- land tenure & boundary conditions: shared boundaries (fencing), rights
+  // of way (path), access points (gates), tenancy/title/history (note).
+  'ev-s2-tenure-boundary': ['path', 'gates', 'fencing', 'note'],
+  // S2 -- surrounding landscape & vectors: neighbouring land use (neighbour-pin),
+  // spray/runoff (runoff-path), contamination/hazard (hazard-zone), drinking-water
+  // catchment risk (catchment), planning/dispute context (note). gap: planning admin.
+  'ev-s2-landscape-vectors': ['neighbour-pin', 'catchment', 'runoff-path', 'hazard-zone', 'note'],
+  // S2 -- community relationships & social fabric: founding-member relationships,
+  // cohesion, skills gaps, external networks -- a purely social survey. gap: all.
+  'ev-s2-social-fabric': [],
+
+  // S3 -- water yield vs. population demand: source yields & seasonal gap ->
+  // watercourse/spring/catchment, storage to bridge gaps, wells. gap: demand calc.
+  'ev-s3-water-yield': ['watercourse', 'spring', 'catchment', 'storage', 'wells'],
+  // S3 -- waste & nutrient cycling capacity: percolation/treatment (soil),
+  // composting (compost), treatment land area (zone), setback from water sources
+  // (watercourse). gap: volume estimates & regulation.
+  'ev-s3-waste-cycling': ['soil', 'compost', 'zone', 'watercourse'],
+  // S3 -- energy generation & distribution potential: solar/shading (sun-sector),
+  // wind (wind-sector), micro-hydro (watercourse), biomass/wood fuel (vegetation),
+  // distribution infra (power). gap: demand estimate.
+  'ev-s3-energy-potential': ['sun-sector', 'wind-sector', 'watercourse', 'vegetation', 'power'],
+  // S3 -- communal infrastructure condition: existing buildings (buildings/barns),
+  // roads & tracks (roads/path), utilities (power/water-lines). gap: condition admin.
+  'ev-s3-infra-condition': ['buildings', 'barns', 'roads', 'path', 'power', 'water-lines'],
+
+  // S4 -- phased settlement strategy: cohorts, habitability thresholds, go/no-go
+  // gates -- a phasing/sequencing decision (siting lives in S5). gap: all.
+  'ev-s4-settlement-strategy': [],
+  // S4 -- communal infrastructure strategy: infra list, priority, ownership,
+  // cost-sharing -- a strategy/governance decision (design lives in S5). gap: all.
+  'ev-s4-infra-strategy': [],
+  // S4 -- housing cluster & private zone framework: private-zone boundaries and
+  // shared transitional zones -> zone + buffer-ring (the framework's spatial core;
+  // physical layout is S5). gap: density standards & capacity confirmation.
+  'ev-s4-housing-cluster': ['zone', 'buffer-ring'],
+  // S4 -- community food system strategy: communal/individual/hybrid approach,
+  // allocation, distribution, governance -- a strategy decision (zones in S5). gap: all.
+  'ev-s4-food-system': [],
+  // S4 -- financial contribution & shared economics model: member buy-in, levies,
+  // fund governance, reserves -- a communal financial decision (Amanah note above);
+  // [] keeps the act surface clear of any contribution instrument. gap: all.
+  'ev-s4-financial-model': [],
+
+  // S5 -- housing clusters & private dwelling zones: dwelling layout (dwellings),
+  // private zones (zone), transitional spaces (buffer-ring), egress/access (path),
+  // fire egress & emergency access (fire-sector).
+  'ev-s5-cluster-layout': ['dwellings', 'zone', 'buffer-ring', 'path', 'fire-sector'],
+  // S5 -- communal infrastructure systems: kitchen/dining, meeting hall, workshop,
+  // laundry -- shared buildings (buildings/barns). gap: materials & financial fit.
+  'ev-s5-communal-systems': ['buildings', 'barns'],
+  // S5 -- communal sanitation & waste systems: treatment plant (tanks), grey-water
+  // network (water-lines), organic processing (compost), constructed wetland
+  // (swale), waste-sorting facility (buildings). gap: setbacks & compliance admin.
+  'ev-s5-sanitation-waste': ['tanks', 'water-lines', 'compost', 'swale', 'buildings'],
+  // S5 -- communal energy system: solar siting (sun-sector), generation/micro-grid
+  // (power), plant/battery housing (buildings), thermal storage (tanks). gap: metering.
+  'ev-s5-energy-system': ['sun-sector', 'power', 'buildings', 'tanks'],
+  // S5 -- community food production zones: communal beds (beds), crop areas
+  // (crops), orchard/food forest (orchards), irrigation (water-lines), storage/
+  // processing (buildings), individual plots (zone). gap: strategy-fit confirmation.
+  'ev-s5-food-zones': ['beds', 'crops', 'orchards', 'water-lines', 'buildings', 'zone'],
+
+  // S6 -- community health & social fabric monitor: social/financial indicators,
+  // check-ins, feedback, escalation -- a social monitoring protocol. gap: all.
+  'ev-s6-social-monitoring': [],
+  // S6 -- communal infrastructure maintenance protocol: schedule, responsibility,
+  // funding, inspection -- a maintenance protocol design, no spatial act. gap: all.
+  'ev-s6-maintenance-protocol': [],
+  // S6 -- communal coordination & household feedback protocols: energy/water
+  // cascades, harvest sharing, comms, triggers -- a protocol design. gap: all.
+  'ev-s6-coordination-feedback': [],
+  // S6 -- external relations & compliance monitor: neighbour rhythm, planning
+  // compliance, complaints, authority relationship -- a relations/admin protocol. gap: all.
+  'ev-s6-external-relations': [],
+
+  // S7 -- phased settlement implementation plan: cohort, habitability checklist,
+  // arrival criteria, enforcement -- a phasing decision, no spatial act. gap: all.
+  'ev-s7-settlement-plan': [],
+  // S7 -- communal financial plan & contribution schedule: capital requirement,
+  // contribution schedule, fund structure -- a communal financial decision (Amanah
+  // note above); [] keeps the act surface clear of a contribution instrument. gap: all.
+  'ev-s7-financial-plan': [],
+  // S7 -- enterprise sequencing & launch order: water-before-people, sanitation-
+  // before-food, go/no-go -- a sequencing decision, no spatial act. gap: all.
+  'ev-s7-launch-sequence': [],
+  // S7 -- membership onboarding & integration protocol: application, trial,
+  // membership criteria, orientation, mentorship -- an HR/protocol decision. gap: all.
+  'ev-s7-onboarding': [],
+  // S7 -- adaptive management protocol: annual review, triggers, documentation,
+  // 5-year review -- a review protocol, no spatial act. gap: all.
+  'ev-s7-adaptive-management': [],
+  // S7 -- member exit & land succession protocol: exit settlement, dwelling
+  // transfer, land reversion, dissolution, legal review -- a legal/financial
+  // protocol, no spatial act. gap: all.
+  'ev-s7-exit-succession': [],
 };
 
 /**

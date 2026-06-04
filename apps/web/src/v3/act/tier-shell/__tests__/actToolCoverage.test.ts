@@ -34,6 +34,7 @@ import {
   CONSERVATION_PRIMARY_OBJECTIVES,
   OFF_GRID_PRIMARY_OBJECTIVES,
   AGRITOURISM_PRIMARY_OBJECTIVES,
+  ECOVILLAGE_PRIMARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -219,6 +220,29 @@ describe('Act tier-shell objective->tool coverage', () => {
     // adaptive / seasonal-resilience band) still satisfies the ratchet -- only a
     // brand-new un-wired ag-* trips it.
     const missing = AGRITOURISM_PRIMARY_OBJECTIVES.filter(
+      (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
+    ).map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every ecovillage objective has an explicit override entry', () => {
+    // Ecovillage is the ninth per-type catalogue wired (audit remediation R1,
+    // 2026-06-03). It is primary-only (canBeSecondary: false) -- no standalone
+    // secondary layer and no patches -- so this is a primary-only ratchet over the
+    // 31 ev-* objectives. Before this its objectives fell through
+    // STRATUM_ACT_TOOLS_DEFAULT (the S2/S3 carrying-capacity / tenure / landscape /
+    // water-yield / waste / energy / infra-condition surveys and the S5 cluster /
+    // communal-systems / sanitation / energy / food-zone design block surfaced the
+    // coarse access-utilities set instead of the source / structure / climate-
+    // sector / zoning families). Each is now explicit; an intentional [] (the whole
+    // S1 governance band, the social-fabric survey, the S4 settlement / infra / food
+    // strategies and both financial objectives -- EV-S4.8 and EV-S7.5, communal
+    // member cost-sharing encoded verbatim per the operator's 2026-05-29 no-gating
+    // authorisation, mapped to [] so no act surface engages a contribution
+    // instrument -- the S6 monitoring band, and the whole S7 phasing / launch /
+    // onboarding / adaptive / exit band) still satisfies the ratchet -- only a
+    // brand-new un-wired ev-* trips it.
+    const missing = ECOVILLAGE_PRIMARY_OBJECTIVES.filter(
       (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
     ).map((o) => o.id);
     expect(missing).toEqual([]);
