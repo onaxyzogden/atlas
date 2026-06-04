@@ -119,6 +119,40 @@ the safety property that makes turning on the full-coverage path
 (`FLAGS.SYNC_STATE_BLOBS`) safe — a persistently-failing blob push now surfaces
 instead of vanishing.
 
+### Local-first hardening: durable cache + full real-time coverage (2026-06-04)
+
+Plan `the-goal-is-to-bright-blanket` reframed the target around the actual user:
+a small (2–6 person) **trusted field team that works land with often no
+connectivity at all** — full days offline are the *normal* case, not the
+exception. So the design target is "the field device is fully functional with no
+server in sight, for hours," with the network as a luxury that opportunistically
+reconciles. The eventual on-site **field-hub** (Docker stack on a site mini-PC for
+LAN sync) and a CRDT conflict model are noted as future directions — explicitly
+out of scope; this work hardened the device side first. The existing `rev`-based
+"steward picks keep-mine / keep-server" conflict model is kept (right-sized for a
+trusted team).
+
+- **Phase 1 (commit `0dae9cdf`) — durable offline cache.** Moved the
+  `SYNCED_STORES` set off `localStorage` (the ~5–10 MB origin cap silently fails
+  writes / evicts state after a heavy offline day) onto an **IndexedDB** persist
+  backend (`idbPersistStorage`, DB `ogden-state`), with a lazy one-time
+  `localStorage`→IndexedDB migration on first read and async-rehydration safety.
+- **Phase 2 (commits `d2fd8930`→`4d8f3b7a`) — full real-time + reconnect coverage
+  for the four typed-record Act stores.** These all flow through the single
+  generic `synced_records` PUT, each row carrying its own monotonic `rev` +
+  `updated_at`. Added a generic `record_upserted`/`record_deleted` WS event pair;
+  the server broadcasts author-excluded on the PUT; a single guarded client apply
+  `applyIncomingRecord` (shared by the live WS handler and the reconnect
+  delta-pull) owns per-record `rev` bookkeeping + three guards (rev/echo →
+  author never double-applies own echo; version-skew drop; init-clobber → pending
+  un-synced local push never overwritten) inside `setSyncGuard`; a new
+  `GET .../changed-since?since=<ISO>` endpoint + `pullActRecordDelta` lets an
+  all-day-offline device **pull** what teammates changed while it was gone
+  (broadcast alone only reaches peers connected at broadcast time), advancing the
+  `lastSyncedAt` watermark to the newest *server* `updated_at` (clock-skew-immune).
+  Gated behind `FEATURE_SYNC_STATE_BLOBS` (default OFF). See
+  [[decisions/2026-06-04-olos-local-first-record-broadcast-reconnect-delta]].
+
 ## Sync Strategy (Planned — full coverage deferred to backlog)
 Extending `syncService` from the 4 covered slices to the full ~70-store v3
 surface is the real long-term fix, deferred as a backlog item (too large to
