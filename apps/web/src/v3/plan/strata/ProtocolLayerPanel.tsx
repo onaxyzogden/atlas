@@ -11,11 +11,14 @@
 // columns share one source. This panel's output is byte-identical to before the
 // extraction — the Act rail and the ProtocolLayerPanel test prove parity.
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   type ProjectTypeId,
+  type StandardProtocolTemplate,
 } from '@ogden/shared';
-import { C, F } from '../spine/tokens.js';
+import { C, F, CA } from '../spine/tokens.js';
+import { useProtocolStore } from '../../../store/protocolStore.js';
+import ProtocolBulkConfirmOverlay from './ProtocolBulkConfirmOverlay.js';
 // Critical: pull the spine theme in with the component so the `--spine-*` tokens
 // the cards rely on resolve even when this panel mounts in an Act-only page that
 // never loads PlanStratumShell. CSS imports are bundler-deduped, so Plan is
@@ -48,6 +51,9 @@ interface Props {
   onSelectProtocol?: (templateId: string) => void;
   /** The currently-selected template id — drives the card's selected treatment. */
   selectedProtocolId?: string | null;
+  /** Act-only: enable the multi-select + "Activate all/selected" bulk toolbar.
+   *  Omitted/false (Plan rail + default Act rail) → byte-identical, no toolbar. */
+  bulkActivation?: boolean;
 }
 
 export default function ProtocolLayerPanel({
@@ -60,11 +66,13 @@ export default function ProtocolLayerPanel({
   activeStratumId = null,
   onSelectProtocol,
   selectedProtocolId = null,
+  bulkActivation = false,
 }: Props) {
   const { templates, groups, statusByTemplate, outputs } =
     useProtocolLibrary(projectId, primaryTypeId, secondaryTypeIds);
 
   const isAct = variant === 'act';
+  const bulkEnabled = isAct && bulkActivation;
   // Stratum scope (Act): narrow to the open stratum's group. Null (Plan) → all
   // groups, byte-identical to before. Counts below derive from the VISIBLE set so
   // the header total matches what renders.
@@ -89,6 +97,41 @@ export default function ProtocolLayerPanel({
     () => visibleTemplates.filter((t) => statusByTemplate[t.id] === 'active').length,
     [visibleTemplates, statusByTemplate],
   );
+
+  // ── Bulk activation (Act-only, opt-in) ────────────────────────────────────
+  const activateProtocols = useProtocolStore((s) => s.activateProtocols);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pending, setPending] = useState<readonly StandardProtocolTemplate[]>([]);
+  // Eligible = visible (stratum-scoped) templates not already active. Activating
+  // is idempotent and resumes suspended/triggered, so those are eligible too.
+  const eligibleTemplates = useMemo(
+    () => visibleTemplates.filter((t) => statusByTemplate[t.id] !== 'active'),
+    [visibleTemplates, statusByTemplate],
+  );
+  const eligibleIds = useMemo(
+    () => new Set(eligibleTemplates.map((t) => t.id)),
+    [eligibleTemplates],
+  );
+  const selectedEligibleCount = useMemo(
+    () => selectedIds.filter((id) => eligibleIds.has(id)).length,
+    [selectedIds, eligibleIds],
+  );
+  const toggleSelected = (id: string) =>
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  const beginBulk = (ids: readonly string[]) => {
+    const want = new Set(ids);
+    // Only eligible ids are activated; the overlay shows exactly that set.
+    setPending(eligibleTemplates.filter((t) => want.has(t.id)));
+    setConfirmOpen(true);
+  };
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds([]);
+  };
 
   return (
     <div
@@ -140,6 +183,84 @@ export default function ProtocolLayerPanel({
                 : ''}
           </span>
         </div>
+        {bulkEnabled && (
+          <div
+            data-testid="protocol-bulk-toolbar"
+            style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}
+          >
+            <button
+              type="button"
+              data-testid="protocol-bulk-select-toggle"
+              aria-pressed={selectMode}
+              onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 7,
+                border: `1px solid ${selectMode ? C.gold : C.border}`,
+                background: selectMode ? CA('gold', 0.12) : 'transparent',
+                color: selectMode ? C.gold : C.textSecondary,
+                fontSize: 12,
+                fontWeight: 600,
+                fontFamily: F.sans,
+                cursor: 'pointer',
+              }}
+            >
+              {selectMode ? 'Done' : 'Select'}
+            </button>
+            {selectMode && (
+              <>
+                <button
+                  type="button"
+                  data-testid="protocol-bulk-activate-all"
+                  disabled={eligibleTemplates.length === 0}
+                  onClick={() => beginBulk(eligibleTemplates.map((t) => t.id))}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 7,
+                    border: `1px solid ${C.border}`,
+                    background: 'transparent',
+                    color:
+                      eligibleTemplates.length === 0
+                        ? C.textTertiary
+                        : C.textPrimary,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    fontFamily: F.sans,
+                    cursor:
+                      eligibleTemplates.length === 0 ? 'default' : 'pointer',
+                  }}
+                >
+                  Activate all ({eligibleTemplates.length})
+                </button>
+                <button
+                  type="button"
+                  data-testid="protocol-bulk-activate-selected"
+                  disabled={selectedEligibleCount === 0}
+                  onClick={() => beginBulk(selectedIds)}
+                  style={{
+                    padding: '5px 12px',
+                    borderRadius: 7,
+                    border: `1px solid ${
+                      selectedEligibleCount === 0 ? C.border : C.green
+                    }`,
+                    background:
+                      selectedEligibleCount === 0
+                        ? 'transparent'
+                        : CA('green', 0.14),
+                    color:
+                      selectedEligibleCount === 0 ? C.textTertiary : C.green,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    fontFamily: F.sans,
+                    cursor: selectedEligibleCount === 0 ? 'default' : 'pointer',
+                  }}
+                >
+                  Activate selected ({selectedEligibleCount})
+                </button>
+              </>
+            )}
+          </div>
+        )}
         <div
           style={{
             fontSize: 19,
@@ -261,9 +382,17 @@ export default function ProtocolLayerPanel({
                     }
                     collapsed={isAct && !triggered}
                     onSelect={
-                      onSelectProtocol ? () => onSelectProtocol(t.id) : undefined
+                      bulkEnabled && selectMode
+                        ? () => toggleSelected(t.id)
+                        : onSelectProtocol
+                          ? () => onSelectProtocol(t.id)
+                          : undefined
                     }
-                    selected={t.id === selectedProtocolId}
+                    selected={
+                      bulkEnabled && selectMode
+                        ? selectedIds.includes(t.id)
+                        : t.id === selectedProtocolId
+                    }
                   />
                 );
               })}
@@ -271,6 +400,22 @@ export default function ProtocolLayerPanel({
           ))
         )}
       </div>
+
+      {confirmOpen && (
+        <ProtocolBulkConfirmOverlay
+          eligible={pending}
+          flagged={pending.filter((t) => Boolean(t.scopeNotes))}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={() => {
+            activateProtocols(
+              projectId,
+              pending.map((t) => t.id),
+            );
+            setConfirmOpen(false);
+            exitSelectMode();
+          }}
+        />
+      )}
     </div>
   );
 }

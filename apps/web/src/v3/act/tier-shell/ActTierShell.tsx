@@ -26,7 +26,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LayoutDashboard, Target, ShieldCheck } from 'lucide-react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { useTriggeredProtocols } from '../../../store/protocolStore.js';
 import {
   PLAN_STRATA,
@@ -139,6 +139,15 @@ export default function ActTierShell() {
   const id = params.projectId ?? 'mtc';
   const objectiveId = params.objectiveId ?? null;
   const navigate = useNavigate();
+  // Protocols-mode + protocol selection are URL-derived (deep-linkable, survive
+  // reload) — the ?mode / ?protocol search params on the stratum route. Read
+  // with strict:false so the bare/$objectiveId routes (which don't validate
+  // these keys) yield undefined and fall back to the defaults. Mirrors
+  // ObserveLayout's ?section URL-derived pattern.
+  const search = useSearch({ strict: false }) as {
+    mode?: 'objectives' | 'protocols';
+    protocol?: string;
+  };
 
   const projects = useProjectStore((s) => s.projects);
   const project = useMemo(
@@ -297,8 +306,11 @@ export default function ActTierShell() {
     secondaryTypeIds,
   );
 
-  // Left-rail view: design objectives (default) vs the standing-protocol library.
-  const [railMode, setRailMode] = useState<RailMode>('objectives');
+  // Left-rail view: design objectives (default) vs the standing-protocol
+  // library. URL-derived (?mode=protocols); absence = objectives. Single source
+  // of truth — no local state, so it survives reload and is deep-linkable.
+  const railMode: RailMode =
+    search.mode === 'protocols' ? 'protocols' : 'objectives';
   // The URL is the single source of truth for the rendered stratum (parity with
   // Plan's PlanStratumShell — see plan/stratum/$stratumId). Precedence: an
   // explicit ?$stratumId param (validated against the real strata) → the
@@ -319,11 +331,11 @@ export default function ActTierShell() {
     objectiveId ? 'detail' : 'dashboard',
   );
   // Protocols mode: the clicked protocol whose detail shows in the right rail
-  // (mirrors objective selection). Cleared on stratum change (a selection may
-  // belong to a now-hidden stratum) — see the effect below.
-  const [selectedProtocolId, setSelectedProtocolId] = useState<string | null>(
-    null,
-  );
+  // (mirrors objective selection). URL-derived (?protocol=<templateId>), so it
+  // survives reload and is deep-linkable. A stale id (protocol hidden by the
+  // current stratum) degrades to ActProtocolDetailPane's empty state; it is
+  // dropped from the URL on stratum switch (see goToStratum).
+  const selectedProtocolId: string | null = search.protocol ?? null;
   // When an as-built deviation is being recorded, the right rail swaps to the
   // as-built form (panel variant) and hides the dashboard/objective toggle;
   // closing/saving clears `active` and reverts the rail.
@@ -381,6 +393,12 @@ export default function ActTierShell() {
       navigate({
         to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
         params: { projectId: params.projectId, stratumId },
+        // navigate REPLACES search — carry mode forward (a stratum switch keeps
+        // the steward in Protocols mode) but DROP protocol (the selection may
+        // belong to the stratum we're leaving). Preserves Feature-1 hygiene.
+        search: (prev: { mode?: 'objectives' | 'protocols' }) => ({
+          mode: prev?.mode === 'protocols' ? ('protocols' as const) : undefined,
+        }),
       });
     },
     [navigate, params.projectId],
@@ -393,6 +411,9 @@ export default function ActTierShell() {
         navigate({
           to: '/v3/project/$projectId/act/tier-shell/$objectiveId',
           params: { projectId: params.projectId, objectiveId: nextObjectiveId },
+          // The objective route is objectives-mode; drop the protocols search
+          // params so a later return to a stratum starts clean.
+          search: {},
         });
       } else {
         // Deselect → return to the CURRENT stratum's dashboard (not the bare
@@ -429,33 +450,55 @@ export default function ActTierShell() {
 
   // Protocol card click → open its detail in the right rail. Re-clicking the
   // active protocol deselects it (back to the dashboard), mirroring objectives.
+  // URL-driven: writes ?mode=protocols&protocol=<id> on the current stratum
+  // route (toggle-off clears protocol). `replace` keeps selection churn out of
+  // history. The rightMode reconcile effect (keyed on railMode/selection) flips
+  // the rail to detail/dashboard once the derived selection updates.
   const handleSelectProtocol = useCallback(
     (templateId: string) => {
-      setSelectedProtocolId((prev) => {
-        if (prev === templateId) {
-          setRightMode('dashboard');
-          return null;
-        }
-        setRightMode('detail');
-        return templateId;
+      if (!params.projectId) return;
+      navigate({
+        to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+        params: { projectId: params.projectId, stratumId: selectedStratumId },
+        search: (prev: { protocol?: string }) => ({
+          mode: 'protocols' as const,
+          protocol: prev?.protocol === templateId ? undefined : templateId,
+        }),
+        replace: true,
       });
     },
-    [],
+    [navigate, params.projectId, selectedStratumId],
   );
 
-  // Stratum-change hygiene: a protocol selected under the prior stratum would be
-  // hidden by the stratum-scoped list, so clear it; if its detail was showing,
-  // drop the right rail back to the dashboard.
+  // Left-rail Objectives/Protocols toggle → write ?mode. Entering Protocols
+  // preserves any held ?protocol; leaving drops it (objectives-mode has no
+  // protocol selection). Routed onto the current stratum so mode is stratum-
+  // scoped and deep-linkable.
+  const handleRailModeChange = useCallback(
+    (next: RailMode) => {
+      if (!params.projectId) return;
+      navigate({
+        to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+        params: { projectId: params.projectId, stratumId: selectedStratumId },
+        search: (prev: { protocol?: string }) => ({
+          mode: next === 'protocols' ? ('protocols' as const) : undefined,
+          protocol: next === 'protocols' ? prev?.protocol : undefined,
+        }),
+        replace: true,
+      });
+    },
+    [navigate, params.projectId, selectedStratumId],
+  );
+
+  // Stratum-change hygiene: the protocol selection is URL-derived and dropped
+  // from the URL on a stratum switch (see goToStratum), so no setter is needed
+  // here. We only reconcile the right rail: in Protocols mode with no selection,
+  // a detail view has nothing to show — fall back to the dashboard.
   useEffect(() => {
-    setSelectedProtocolId((prev) => {
-      if (prev !== null) {
-        setRightMode((m) => (m === 'detail' ? 'dashboard' : m));
-      }
-      return null;
-    });
-    // Intentionally keyed on stratum only — see comment.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedStratumId]);
+    if (railMode === 'protocols' && !selectedProtocolId) {
+      setRightMode((m) => (m === 'detail' ? 'dashboard' : m));
+    }
+  }, [selectedStratumId, railMode, selectedProtocolId]);
 
   // Rail-mode-change hygiene: when entering Protocols mode show the selected
   // protocol's detail if one is held, else the dashboard; when entering
@@ -679,7 +722,7 @@ export default function ActTierShell() {
                 activeObjectiveId={objectiveId}
                 onSelectObjective={handleSelectObjective}
                 mode={railMode}
-                onModeChange={setRailMode}
+                onModeChange={handleRailModeChange}
                 triggeredCount={triggeredCount}
                 triggeredIds={triggeredIds}
                 projectId={id}
@@ -688,6 +731,7 @@ export default function ActTierShell() {
                 activeStratumId={selectedStratumId}
                 selectedProtocolId={selectedProtocolId}
                 onSelectProtocol={handleSelectProtocol}
+                bulkActivation
               />
             )
           }

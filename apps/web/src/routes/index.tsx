@@ -668,6 +668,18 @@ const v3ActTierShellStratumRoute = createRoute({
   getParentRoute: () => v3ProjectLayoutRoute,
   path: 'act/tier-shell/stratum/$stratumId',
   component: ActLayout,
+  // Protocols-mode + protocol selection ride the URL so they survive reload and
+  // are deep-linkable (parity with the ?taskId= pattern above). Default mode is
+  // ABSENCE (we never write ?mode=objectives) so Objectives URLs stay clean.
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { mode?: 'protocols'; protocol?: string } => ({
+    mode: search.mode === 'protocols' ? 'protocols' : undefined,
+    protocol:
+      typeof search.protocol === 'string' && search.protocol.length > 0
+        ? search.protocol
+        : undefined,
+  }),
 });
 // Act Command Centre — the aggregate "run the stage" surface the Act compass
 // center unlocks into. Static path resolves before the `act/$module` param.

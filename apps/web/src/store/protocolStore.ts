@@ -106,6 +106,17 @@ export interface ProtocolState {
   activateProtocol: (projectId: string, templateId: string) => void;
 
   /**
+   * Bulk variant of {@link activateProtocol}: activates many templates for one
+   * project in a single state commit (one re-render, not N). Each id is upserted
+   * to status 'active' with the same idempotent/reset semantics as the singular
+   * action. An empty list is a no-op.
+   */
+  activateProtocols: (
+    projectId: string,
+    templateIds: readonly string[],
+  ) => void;
+
+  /**
    * Remove the activated record for this (projectId, templateId) entirely —
    * the inverse of `activateProtocol`, used by the §10.1 confirmation flow's
    * Undo. Idempotent: a no-op when no matching record exists.
@@ -273,6 +284,21 @@ export const useProtocolStore = create<ProtocolState>()(
             deferredUntil: undefined,
           }),
         })),
+
+      activateProtocols: (projectId, templateIds) =>
+        set((s) => {
+          if (templateIds.length === 0) return {}; // no-op
+          // Fold upsert over the ids so only the FINAL records array reaches
+          // set() — subscribers render once for the whole batch.
+          let records = s.records;
+          for (const templateId of templateIds) {
+            records = upsert(records, projectId, templateId, {
+              status: 'active',
+              deferredUntil: undefined,
+            });
+          }
+          return { records };
+        }),
 
       deactivateProtocol: (projectId, templateId) =>
         set((s) => ({

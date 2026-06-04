@@ -149,6 +149,8 @@ interface Props {
   selectedProtocolId: string | null;
   /** Fired when a protocol card is clicked — opens the right-rail detail. */
   onSelectProtocol: (templateId: string) => void;
+  /** Act-only: enable the protocol bulk-activation toolbar in the panel. */
+  bulkActivation?: boolean;
 }
 
 export default function ActTierObjectiveRail({
@@ -167,6 +169,7 @@ export default function ActTierObjectiveRail({
   activeStratumId,
   selectedProtocolId,
   onSelectProtocol,
+  bulkActivation = false,
 }: Props) {
   const eyebrow = stratum ? `Stratum S${stratum.ordinal}` : 'Stratum';
 
@@ -248,6 +251,7 @@ export default function ActTierObjectiveRail({
             activeStratumId={activeStratumId}
             selectedProtocolId={selectedProtocolId}
             onSelectProtocol={onSelectProtocol}
+            bulkActivation={bulkActivation}
           />
         </div>
       ) : (
