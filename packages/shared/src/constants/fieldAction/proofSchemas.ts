@@ -18,7 +18,10 @@
 // spec asserting it parses against ProofSchemaSchema (the smoke test in
 // fieldActionStatus.test.ts walks the catalog and validates each row).
 
-import type { ProofSchema } from '../../schemas/fieldAction/proofSchema.schema.js';
+import type {
+  ProofSchema,
+  ProofSchemaSlot,
+} from '../../schemas/fieldAction/proofSchema.schema.js';
 
 export const FIELD_ACTION_PROOF_SCHEMAS: readonly ProofSchema[] = [
   {
@@ -351,4 +354,24 @@ export function requiredSlotsFor(id: string): readonly string[] {
   const schema = BY_ID.get(id);
   if (!schema) return [];
   return schema.slots.filter((s) => s.required).map((s) => s.id);
+}
+
+// Index of every slot that declares a measurementBinding, keyed by slotId.
+// A proof item carries only slotId (the projected ObserveDataPoint has no
+// proofSchemaId), so the Observe read-side resolves slotId -> slot here. slotId
+// is not globally unique across schemas, but slots carrying a binding are
+// authored with globally-unique ids; if two ever collide the later wins.
+const BOUND_SLOTS_BY_ID: Map<string, ProofSchemaSlot> = new Map();
+for (const schema of FIELD_ACTION_PROOF_SCHEMAS) {
+  for (const slot of schema.slots) {
+    if (slot.measurementBinding) BOUND_SLOTS_BY_ID.set(slot.id, slot);
+  }
+}
+
+/**
+ * Resolve a measurement-bound slot by slotId, for the Observe lens read-side
+ * builder. Returns undefined for ids that carry no binding (the common case).
+ */
+export function getMeasurementSlot(slotId: string): ProofSchemaSlot | undefined {
+  return BOUND_SLOTS_BY_ID.get(slotId);
 }

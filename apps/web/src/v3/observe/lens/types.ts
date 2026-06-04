@@ -74,8 +74,11 @@ export interface HydrologyData {
 export interface PhRow {
   zone: string;
   ph: number;
-  om: number;
-  compaction: string;
+  // Optional: a live capture may record pH alone. Organic-matter % and
+  // compaction are not always measured, so the renderer guards these spans
+  // (partial degrade). Mock fixtures supply both.
+  om?: number;
+  compaction?: string;
 }
 export interface SoilData {
   type: 'soil';

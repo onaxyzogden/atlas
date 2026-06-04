@@ -29,12 +29,14 @@ import {
   DOMAIN_TO_LENS,
   computeDomainFreshness,
   findProjectType,
+  getMeasurementSlot,
   type ObserveDataPoint,
   type ObserveStatusOutput,
   type ObserveDataPointSourceType,
   type ObserveFreshness,
   type UniversalDomain,
   type ObserveLensId,
+  type FieldActionProofItem,
 } from '@ogden/shared';
 import { format, formatDistanceStrict } from 'date-fns';
 import { useObserveDataPointStore } from '../../../../store/observeDataPointStore.js';
@@ -44,6 +46,10 @@ import {
   type LocalProject,
 } from '../../../../store/projectStore.js';
 import { FRESHNESS, TYPE_ICON } from '../mockData.js';
+import {
+  buildSpecialisedForLens,
+  type SlotResolver,
+} from './specialisedBuilders.js';
 import type {
   Confidence,
   DataPoint,
@@ -355,6 +361,13 @@ export interface LiveBundleInput {
   projectName: string;
   /** Resolved project-type label, e.g. "Regenerative Farm + Silvopasture". */
   projectTypeLabel: string;
+  /**
+   * Resolver from a proof item's slotId to its slot (carrying any
+   * measurementBinding), used to compile the specialised viz payloads. Defaults
+   * to a resolver that finds nothing -> every lens stays { type: 'none' }, which
+   * keeps callers/tests that pass no resolver behaving exactly as before.
+   */
+  getSlot?: SlotResolver;
 }
 
 const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
@@ -369,6 +382,7 @@ const NOMINAL_TOTAL_DAYS = 180;
  */
 export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
   const { points, nowMs, projectName, projectTypeLabel } = input;
+  const getSlot: SlotResolver = input.getSlot ?? (() => undefined);
   const activePoints = points.filter((p) => !p.isSuperseded);
   const rollups = computeDomainRollups(points, nowMs);
 
@@ -475,6 +489,14 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
       };
     });
 
+    // Compile the specialised viz payload from any measurement-bound proof
+    // items captured under this lens's active points. Emits the lens's real
+    // union member when >=1 bound capture exists, else the honest
+    // { type: 'none' } empty-state (same graceful degrade as before).
+    const lensProofItems: FieldActionProofItem[] = lensActive.flatMap(
+      (p) => p.proofItems ?? [],
+    );
+
     domainDetail[lens.id] = {
       lensLabel: lens.label,
       lensIcon: lens.icon,
@@ -484,8 +506,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
       freshness,
       lastObserved,
       subdomains,
-      // Degrade boundary: no live numeric series exists -> empty viz variant.
-      specialised: { type: 'none' },
+      specialised: buildSpecialisedForLens(lens.id, lensProofItems, getSlot),
     };
   }
 
@@ -626,7 +647,14 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
   const projectTypeLabel = resolveProjectTypeLabel(project);
 
   return useMemo(
-    () => buildLiveLensBundle({ points, nowMs, projectName, projectTypeLabel }),
+    () =>
+      buildLiveLensBundle({
+        points,
+        nowMs,
+        projectName,
+        projectTypeLabel,
+        getSlot: getMeasurementSlot,
+      }),
     [points, nowMs, projectName, projectTypeLabel],
   );
 }

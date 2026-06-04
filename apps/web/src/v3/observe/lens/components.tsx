@@ -783,10 +783,12 @@ function SoilSpecialised({ data, color }: { data: SoilData; color: string }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: C.textTertiary, fontFamily: F.mono, marginTop: 2 }}>
             <span>4.0 acid</span><span>ideal 6–7</span><span>8.0 alkaline</span>
           </div>
-          <div style={{ marginTop: 4, display: 'flex', gap: 8 }}>
-            <span style={{ fontSize: 11, color: C.textTertiary }}>OM {d.om}%</span>
-            <span style={{ fontSize: 11, color: C.textTertiary }}>Compaction: {d.compaction}</span>
-          </div>
+          {(d.om !== undefined || d.compaction !== undefined) && (
+            <div style={{ marginTop: 4, display: 'flex', gap: 8 }}>
+              {d.om !== undefined && <span style={{ fontSize: 11, color: C.textTertiary }}>OM {d.om}%</span>}
+              {d.compaction !== undefined && <span style={{ fontSize: 11, color: C.textTertiary }}>Compaction: {d.compaction}</span>}
+            </div>
+          )}
         </div>
       ))}
     </div>
