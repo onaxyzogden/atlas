@@ -144,3 +144,13 @@ Plan: `velvet-doodling-sun.md` (approved). Builds on
 [[decisions/2026-06-03-atlas-chronic-detection]] (slice #3).
 Log: [[log/2026-06-04-atlas-chronic-display-and-prune-ui]].
 Entities: [[entities/protocols-dashboard]], [[entities/observe-dashboard]].
+
+**Further amended by [[decisions/2026-06-05-atlas-observation-archive-not-erase]]**
+(2026-06-05): this slice's first deferred item ("configurable retention window") was
+re-scoped into a data-safety slice. Compaction now DEMOTES pruned rows to a recoverable
+`archivedRecords` cold tier instead of erasing them (a second amendment of the retention
+covenant that strengthens slice #2's "history is the asset"), and `PruneLedgerModal` is
+reframed accordingly: the misleading "12 cycles" copy now names "rotation cycles" (a
+`cycleNumber` axis separate from `season`), the `prune-understood` permanence checkbox is
+dropped (archiving is reversible -> single-click Compact), and a `prune-restore` affordance
+round-trips the cold tier.

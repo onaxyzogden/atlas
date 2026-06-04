@@ -138,3 +138,11 @@ are delivered there. Both chronic surfaces now group by common deviant (Plan cap
 + show-more; Observe renders full read-only), and a gated `PruneLedgerModal` in `PlanStratumShell`
 dry-runs via the pure `previewProjectPrune` (which `pruneProjectRecords` reuses, so they cannot
 drift) before confirming a chronic-safe compaction.
+
+**Retention covenant amended a SECOND time by
+[[decisions/2026-06-05-atlas-observation-archive-not-erase]]** (2026-06-05): the
+steward-erase introduced in decision #9 above becomes steward-*archive*. Compaction now
+DEMOTES pruned rows to a recoverable `archivedRecords` cold tier (dormant -- the detector
+still reads `records` only) instead of deleting them, so the amendment strengthens rather
+than weakens slice #2's unbounded-retention covenant: a long-period chronic that needs an
+old archived leg is now recoverable, not permanently lost.
