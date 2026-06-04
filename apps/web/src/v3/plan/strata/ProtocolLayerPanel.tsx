@@ -141,7 +141,7 @@ export default function ProtocolLayerPanel({
         </div>
       </div>
 
-      {/* Enterprise-scope note */}
+      {/* Resolved standing-protocol scope note */}
       <div
         style={{
           background: C.bg2,
@@ -164,8 +164,8 @@ export default function ProtocolLayerPanel({
         />
         <span style={{ fontSize: 12, color: C.textSecondary, fontFamily: F.sans }}>
           {templates.length > 0
-            ? 'Enterprise-filtered for livestock (no poultry — Pest Diversion hidden)'
-            : 'No livestock enterprise — no animal protocols apply'}
+            ? `Standing protocols resolved for this project's types — universal + per-type, grouped by stratum`
+            : 'No project type set — no standing protocols to resolve'}
         </span>
       </div>
 
@@ -182,12 +182,12 @@ export default function ProtocolLayerPanel({
               textAlign: 'center',
             }}
           >
-            No animal protocol templates — this project has no livestock enterprise.
+            No project type set — choose a primary type to see its standing protocols.
           </div>
         ) : (
           groups.map((g) => (
             <div key={g.tier} style={{ marginBottom: 18 }}>
-              {/* Tier section header — protocols grouped by real `tierAuthored`. */}
+              {/* Tier section header — protocols grouped by stratum (S1→S7). */}
               <div
                 style={{
                   display: 'flex',

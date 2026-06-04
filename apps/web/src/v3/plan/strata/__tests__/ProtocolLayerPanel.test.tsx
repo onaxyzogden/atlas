@@ -2,26 +2,31 @@
  * @vitest-environment happy-dom
  *
  * ProtocolLayerPanel — the live, store-backed Protocol Layer right pane (Plan
- * Spine re-skin Phase 2). These tests assert the three load-bearing wiring
- * decisions of the panel:
- *   1. It sources REAL shared templates via
- *      enterprisesForProjectTypes → templatesForEnterprises, enterprise-filtered:
- *      a livestock-implying project type surfaces the 9 sheep_beef standard
- *      templates and HIDES the poultry-only Silvopasture Pest Diversion.
- *   2. It groups by each template's real `tierAuthored` string.
+ * Spine re-skin Phase 2; resolver wiring 2026-06-04). These tests assert the
+ * load-bearing wiring decisions of the panel:
+ *   1. It sources the full RESOLVED standing-protocol set via
+ *      `resolveProjectProtocols` keyed off the project's primary/secondary types
+ *      (universal 22 + per-type deltas), NOT the legacy livestock-only
+ *      enterprise filter.
+ *   2. It groups by each protocol's `stratumId`, headed with the PLAN_STRATA
+ *      label (`S{ordinal} · {title}`), in resolver S1→S7 order.
  *   3. It overlays lifecycle status from `protocolStore.records` for the project
- *      (an activated template reads "Active"); a project with no livestock
- *      enterprise shows the empty state.
+ *      (an activated template reads "Active"); a project with no primary type
+ *      shows the empty state.
+ *   4. The verbatim Amanah scopeNotes caution surfaces on sales-channel
+ *      protocols (e.g. market_garden's `mg-market-channel-advance-sale`).
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
-import { templatesForEnterprises } from '@ogden/shared';
+import { resolveProjectProtocols } from '@ogden/shared';
 import { useProtocolStore } from '../../../../store/protocolStore.js';
 import ProtocolLayerPanel from '../ProtocolLayerPanel.js';
 
 const PROJECT_ID = 'proj-1';
-const SHEEP_BEEF_COUNT = templatesForEnterprises(['sheep_beef']).length; // 9
+const SILVOPASTURE_COUNT = resolveProjectProtocols({
+  primaryTypeId: 'silvopasture',
+}).protocols.length;
 
 beforeEach(() => {
   // Reset the persisted protocol store between tests so status overlays don't
@@ -30,7 +35,7 @@ beforeEach(() => {
 });
 
 describe('ProtocolLayerPanel', () => {
-  it('renders the real sheep_beef standard templates and hides poultry-only ones', () => {
+  it('renders the full resolved standing-protocol set for a typed project', () => {
     render(
       <ProtocolLayerPanel
         projectId={PROJECT_ID}
@@ -40,15 +45,16 @@ describe('ProtocolLayerPanel', () => {
     );
 
     const cards = screen.getAllByTestId('protocol-template-card');
-    expect(cards).toHaveLength(SHEEP_BEEF_COUNT);
-    expect(SHEEP_BEEF_COUNT).toBe(9);
+    expect(cards).toHaveLength(SILVOPASTURE_COUNT);
+    // universal baseline always present, plus the primary-type deltas.
+    expect(SILVOPASTURE_COUNT).toBeGreaterThan(22);
 
-    // A known sheep_beef template surfaces; the poultry-only one is hidden.
-    expect(screen.getByText('Paddock Rotation — Cover Trigger')).toBeTruthy();
-    expect(screen.queryByText('Silvopasture Pest Diversion')).toBeNull();
+    // A universal protocol AND a silvopasture-primary protocol both surface.
+    expect(screen.getByText('Vision Drift Check')).toBeTruthy();
+    expect(screen.getByText('Tree Browse Damage')).toBeTruthy();
   });
 
-  it('groups templates by their real tierAuthored string', () => {
+  it('groups protocols by stratum, S1→S7, with PLAN_STRATA labels', () => {
     render(
       <ProtocolLayerPanel
         projectId={PROJECT_ID}
@@ -57,17 +63,20 @@ describe('ProtocolLayerPanel', () => {
       />,
     );
 
-    // Every standard template is authored at Stratum 6 — Integration today, so
-    // there is exactly one tier group bearing that real string.
-    const headings = screen.getAllByTestId('protocol-tier-heading');
-    expect(headings).toHaveLength(1);
-    expect(headings[0]!.textContent).toBe('Stratum 6 — Integration');
+    const headings = screen
+      .getAllByTestId('protocol-tier-heading')
+      .map((el) => el.textContent);
+    // Universal protocols span all 7 strata, so multiple stratum groups appear,
+    // the first being S1 (resolver sorts by stratum ordinal).
+    expect(headings.length).toBeGreaterThan(1);
+    expect(headings[0]).toBe('S1 · Project Foundation');
+    expect(headings).toContain('S6 · Integration Design');
   });
 
   it('reflects protocolStore activation state on the matching template card', () => {
     useProtocolStore
       .getState()
-      .activateProtocol(PROJECT_ID, 'paddock-rotation-cover-trigger');
+      .activateProtocol(PROJECT_ID, 'silv-tree-browse-damage');
 
     render(
       <ProtocolLayerPanel
@@ -81,8 +90,7 @@ describe('ProtocolLayerPanel', () => {
       .getAllByTestId('protocol-template-card')
       .find(
         (el) =>
-          el.getAttribute('data-template-id') ===
-          'paddock-rotation-cover-trigger',
+          el.getAttribute('data-template-id') === 'silv-tree-browse-damage',
       );
     expect(activated).toBeTruthy();
     expect(activated!.getAttribute('data-protocol-status')).toBe('active');
@@ -94,8 +102,7 @@ describe('ProtocolLayerPanel', () => {
       .getAllByTestId('protocol-template-card')
       .find(
         (el) =>
-          el.getAttribute('data-template-id') ===
-          'rest-period-re-entry-gate',
+          el.getAttribute('data-template-id') === 'u-s1-vision-drift-check',
       );
     expect(other!.getAttribute('data-protocol-status')).toBe('none');
     expect(within(other!).queryByText('Standard template')).toBeNull();
@@ -104,7 +111,7 @@ describe('ProtocolLayerPanel', () => {
   it('ignores activation records belonging to a different project', () => {
     useProtocolStore
       .getState()
-      .activateProtocol('some-other-project', 'paddock-rotation-cover-trigger');
+      .activateProtocol('some-other-project', 'silv-tree-browse-damage');
 
     render(
       <ProtocolLayerPanel
@@ -118,13 +125,12 @@ describe('ProtocolLayerPanel', () => {
       .getAllByTestId('protocol-template-card')
       .find(
         (el) =>
-          el.getAttribute('data-template-id') ===
-          'paddock-rotation-cover-trigger',
+          el.getAttribute('data-template-id') === 'silv-tree-browse-damage',
       );
     expect(card!.getAttribute('data-protocol-status')).toBe('none');
   });
 
-  it('shows the empty state when the project has no livestock enterprise', () => {
+  it('shows the empty state when no primary type is set', () => {
     render(
       <ProtocolLayerPanel
         projectId={PROJECT_ID}
@@ -136,24 +142,32 @@ describe('ProtocolLayerPanel', () => {
     expect(screen.queryAllByTestId('protocol-template-card')).toHaveLength(0);
     expect(
       screen.getByText(
-        'No animal protocol templates — this project has no livestock enterprise.',
+        'No project type set — choose a primary type to see its standing protocols.',
       ),
     ).toBeTruthy();
   });
 
-  it('derives livestock enterprise from a secondary type layer', () => {
-    // Primary is non-livestock, but a livestock secondary still surfaces the
-    // sheep_beef templates (enterprisesForProjectTypes ORs primary + secondaries).
+  it('surfaces the verbatim Amanah caution on a sales-channel protocol', () => {
+    // market_garden's advance-sale review carries the bayʿ mā laysa ʿindak
+    // scopeNote; it must render verbatim, never stripped or reworded.
     render(
       <ProtocolLayerPanel
         projectId={PROJECT_ID}
         primaryTypeId="market_garden"
-        secondaryTypeIds={['homestead']}
+        secondaryTypeIds={[]}
       />,
     );
 
-    expect(screen.getAllByTestId('protocol-template-card')).toHaveLength(
-      SHEEP_BEEF_COUNT,
-    );
+    const card = screen
+      .getAllByTestId('protocol-template-card')
+      .find(
+        (el) =>
+          el.getAttribute('data-template-id') ===
+          'mg-market-channel-advance-sale',
+      );
+    expect(card).toBeTruthy();
+    expect(card!.getAttribute('data-has-scope-notes')).toBe('true');
+    const caution = within(card!).getByTestId('protocol-amanah-caution');
+    expect(caution.textContent).toMatch(/bay.* m.* laysa .*indak/i);
   });
 });

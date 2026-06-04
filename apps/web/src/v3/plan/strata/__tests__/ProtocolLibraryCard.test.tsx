@@ -15,13 +15,20 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, cleanup, within } from '@testing-library/react';
-import { templatesForEnterprises } from '@ogden/shared';
+import { templatesForEnterprises, resolveProjectProtocols } from '@ogden/shared';
 import ProtocolLibraryCard from '../ProtocolLibraryCard.js';
 
-// A real standard template — the same sheep_beef one the panel parity test uses.
+// A real standard template — a legacy sheep_beef one (no severityTier/scopeNotes,
+// so it exercises the resolveSeverityTier default + the no-caution path).
 const TEMPLATE = templatesForEnterprises(['sheep_beef']).find(
   (t) => t.id === 'paddock-rotation-cover-trigger',
 )!;
+
+// A resolved catalogue protocol carrying a verbatim Amanah scopeNote and an
+// explicit severityTier — the market_garden advance-sale review.
+const SCOPED_TEMPLATE = resolveProjectProtocols({
+  primaryTypeId: 'market_garden',
+}).protocols.find((t) => t.id === 'mg-market-channel-advance-sale')!;
 
 afterEach(() => cleanup());
 
@@ -101,6 +108,56 @@ describe('ProtocolLibraryCard emphasis + collapsed', () => {
     // Still addressable by the engine / tests.
     expect(card.getAttribute('data-template-id')).toBe(TEMPLATE.id);
     expect(card.getAttribute('data-protocol-status')).toBe('none');
+  });
+
+  it('renders a severity-tier badge (default RESPOND when none authored)', () => {
+    render(<ProtocolLibraryCard template={TEMPLATE} status={undefined} outputs={{}} />);
+
+    const card = screen.getByTestId('protocol-template-card');
+    // Legacy template authors no severityTier → resolveSeverityTier defaults RESPOND.
+    expect(card.getAttribute('data-severity')).toBe('respond');
+    const badge = screen.getByTestId('protocol-severity-badge');
+    expect(badge.textContent).toBe('Respond');
+  });
+
+  it('surfaces the verbatim Amanah caution and severity for a scoped protocol', () => {
+    render(
+      <ProtocolLibraryCard template={SCOPED_TEMPLATE} status={undefined} outputs={{}} />,
+    );
+
+    const card = screen.getByTestId('protocol-template-card');
+    expect(card.getAttribute('data-has-scope-notes')).toBe('true');
+    expect(card.getAttribute('data-severity')).toBe('respond');
+
+    const caution = screen.getByTestId('protocol-amanah-caution');
+    // Verbatim — the exact authored scopeNotes text, never reworded/truncated.
+    expect(caution.textContent).toContain('Amanah');
+    expect(caution.textContent).toContain(SCOPED_TEMPLATE.scopeNotes!);
+  });
+
+  it('omits the Amanah caution when the template has no scopeNotes', () => {
+    render(<ProtocolLibraryCard template={TEMPLATE} status={undefined} outputs={{}} />);
+
+    const card = screen.getByTestId('protocol-template-card');
+    expect(card.getAttribute('data-has-scope-notes')).toBe('false');
+    expect(screen.queryByTestId('protocol-amanah-caution')).toBeNull();
+  });
+
+  it('collapsed hides the Amanah caution along with the body', () => {
+    render(
+      <ProtocolLibraryCard
+        template={SCOPED_TEMPLATE}
+        status={undefined}
+        outputs={{}}
+        emphasis="dimmed"
+        collapsed
+      />,
+    );
+
+    // The caution lives inside the !collapsed body gate.
+    expect(screen.queryByTestId('protocol-amanah-caution')).toBeNull();
+    // The severity badge lives in the (always-rendered) header.
+    expect(screen.getByTestId('protocol-severity-badge')).toBeTruthy();
   });
 
   it('collapsed + triggered keeps the pill in the header even with the body gone', () => {

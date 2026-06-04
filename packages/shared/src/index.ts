@@ -146,6 +146,16 @@ export {
   type SecondaryResolutionFlag,
 } from './relationships/resolveProjectObjectives.js';
 export {
+  resolveProjectProtocols,
+  findProtocolIn,
+  type ResolveProjectProtocolsInput,
+  type ResolveProjectProtocolsDeps,
+  type ResolvedProjectProtocols,
+  type ResolveProtocolProvenance,
+  type SkippedProtocolPatch,
+  type SecondaryProtocolFlag,
+} from './relationships/resolveProjectProtocols.js';
+export {
   computeObjectivesDelta,
   type ObjectivesDelta,
   type InjectedItemDelta,

@@ -12,16 +12,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import {
-  templatesForEnterprises,
+  resolveProjectProtocols,
   type StandardProtocolTemplate,
 } from '@ogden/shared';
 import ProtocolColumn from '../ProtocolColumn.js';
 import { type ProtocolTierGroup } from '../useProtocolLibrary.js';
 
-const TEMPLATES: readonly StandardProtocolTemplate[] =
-  templatesForEnterprises(['sheep_beef']);
+// A realistic resolved set; the column is presentational and tier-agnostic, so
+// the fixture just needs a stratum-labelled group of real protocols.
+const TEMPLATES: readonly StandardProtocolTemplate[] = resolveProjectProtocols({
+  primaryTypeId: 'silvopasture',
+}).protocols.slice(0, 6);
 const GROUPS: ProtocolTierGroup[] = [
-  { tier: 'Stratum 6 — Integration', items: [...TEMPLATES] },
+  { tier: 'S1 · Project Foundation', items: [...TEMPLATES] },
 ];
 
 describe('ProtocolColumn', () => {

@@ -11,8 +11,8 @@
 
 import { useMemo } from 'react';
 import {
-  enterprisesForProjectTypes,
-  templatesForEnterprises,
+  resolveProjectProtocols,
+  PLAN_STRATA,
   buildProtocolOutputs,
   findPlanStratumObjective,
   type ProjectTypeId,
@@ -32,9 +32,9 @@ export interface ProtocolTierGroup {
 }
 
 export interface ProtocolLibrary {
-  /** Enterprise-filtered standard templates for this project's types. */
+  /** Full resolved standing-protocol set for this project's types (S1→S7). */
   templates: readonly StandardProtocolTemplate[];
-  /** Templates grouped by real `tierAuthored`, preserving catalogue order. */
+  /** Templates grouped by stratum (`stratumId`), preserving resolver S1→S7 order. */
   groups: ProtocolTierGroup[];
   /** templateId → lifecycle status, scoped to THIS project. */
   statusByTemplate: Record<string, RecordStatus>;
@@ -54,17 +54,17 @@ export function useProtocolLibrary(
   primaryTypeId: ProjectTypeId | null,
   secondaryTypeIds: readonly ProjectTypeId[],
 ): ProtocolLibrary {
-  // Enterprise-filtered standard templates (spec 4.3). Memoised on the
-  // project-type identity so the pure filter only re-runs when the project's
-  // types actually change. `secondaryKey` collapses the array to a stable
-  // primitive so a fresh `secondaryTypeIds` array reference per render does not
-  // recompute or, worse, churn downstream memos.
+  // Full resolved standing-protocol set (ADR 2026-06-03): universal (22) +
+  // primary-type deltas + each compatible secondary's additive/patch protocols,
+  // already sorted S1→S7 (stratum ordinal → source layer → authored order) by
+  // the pure resolver. Memoised on the project-type identity so it only re-runs
+  // when the project's types actually change. `secondaryKey` collapses the array
+  // to a stable primitive so a fresh `secondaryTypeIds` array reference per
+  // render does not recompute or, worse, churn downstream memos.
   const secondaryKey = secondaryTypeIds.join(',');
   const templates = useMemo<readonly StandardProtocolTemplate[]>(() => {
     if (!primaryTypeId) return [];
-    return templatesForEnterprises(
-      enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds),
-    );
+    return resolveProjectProtocols({ primaryTypeId, secondaryTypeIds }).protocols;
     // secondaryTypeIds is captured via secondaryKey (stable primitive).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primaryTypeId, secondaryKey]);
@@ -98,16 +98,22 @@ export function useProtocolLibrary(
     return map;
   }, [records, projectId]);
 
-  // Group by the template's real `tierAuthored` string, preserving first-seen
-  // (catalogue) order. No per-stratum invention: one group per distinct tier the
-  // catalogue actually authors.
+  // Group by the template's `stratumId`, preserving first-seen order — which is
+  // already S1→S7 because the resolver sorts by stratum ordinal. The heading is
+  // the PLAN_STRATA label (`S{ordinal} · {title}`, e.g. "S6 · Integration
+  // Design"). Catalogue protocols all set `stratumId`; any that omit it (defensive
+  // — e.g. a legacy enterprise template) fall back to one "Standing protocols"
+  // bucket rather than dropping out of the list.
   const groups = useMemo<ProtocolTierGroup[]>(() => {
+    const STRATUM_LABEL = new Map(
+      PLAN_STRATA.map((s) => [s.id, `S${s.ordinal} · ${s.title}`] as const),
+    );
+    const FALLBACK_TIER = 'Standing protocols';
     const order: string[] = [];
     const byTier = new Map<string, StandardProtocolTemplate[]>();
     for (const t of templates) {
-      // `tierAuthored` is optional in the schema; a template that omits it still
-      // groups under a sensible default rather than dropping out of the list.
-      const tier = t.tierAuthored ?? 'Standard protocols';
+      const tier =
+        (t.stratumId && STRATUM_LABEL.get(t.stratumId)) ?? FALLBACK_TIER;
       const bucket = byTier.get(tier);
       if (bucket) {
         bucket.push(t);

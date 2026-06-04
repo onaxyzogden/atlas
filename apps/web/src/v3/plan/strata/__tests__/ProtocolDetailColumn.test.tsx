@@ -12,13 +12,14 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import {
-  templatesForEnterprises,
+  resolveProjectProtocols,
   type StandardProtocolTemplate,
 } from '@ogden/shared';
 import ProtocolDetailColumn from '../ProtocolDetailColumn.js';
 
-const TEMPLATES: readonly StandardProtocolTemplate[] =
-  templatesForEnterprises(['sheep_beef']);
+const TEMPLATES: readonly StandardProtocolTemplate[] = resolveProjectProtocols({
+  primaryTypeId: 'silvopasture',
+}).protocols.slice(0, 6);
 
 describe('ProtocolDetailColumn', () => {
   it('shows the empty state when nothing is selected', () => {

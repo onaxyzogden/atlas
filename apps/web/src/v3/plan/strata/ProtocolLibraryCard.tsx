@@ -8,6 +8,8 @@
 
 import type { CSSProperties } from 'react';
 import {
+  resolveSeverityTier,
+  type SeverityTier,
   type StandardProtocolTemplate,
 } from '@ogden/shared';
 import { type ActivatedProtocolRecord } from '../../../store/protocolStore.js';
@@ -42,6 +44,18 @@ export function statusMeta(status: RecordStatus | undefined): {
  *  cards without hiding them ("emphasize, don't hide"). Object-literal key order
  *  matters for `triggered`: `borderLeft` follows `border` so it overrides the
  *  left edge. */
+/** Severity-tier badge label + accent colour. The badge is rendered as
+ *  coloured text + a 1px same-colour border over the card's bg2 wash — `stop`
+ *  uses C.red, which has NO parallel rgb-triplet (so CA() / a translucent fill
+ *  is unavailable); the solid-border treatment keeps every tier visually
+ *  consistent. `respond` is the canonical "produces work" default. */
+const SEVERITY_META: Record<SeverityTier, { label: string; color: string }> = {
+  stop: { label: 'Stop', color: C.red },
+  respond: { label: 'Respond', color: C.amber },
+  watch: { label: 'Watch', color: C.textTertiary },
+  abundance: { label: 'Abundance', color: C.teal },
+};
+
 const EMPHASIS_STYLE: Record<'normal' | 'triggered' | 'dimmed', CSSProperties> = {
   normal: { border: `1px solid ${C.border}`, background: C.bg2 },
   triggered: {
@@ -70,12 +84,16 @@ export default function ProtocolLibraryCard({
   collapsed?: boolean;
 }) {
   const meta = statusMeta(status);
+  const severity = resolveSeverityTier(template);
+  const severityMeta = SEVERITY_META[severity];
   return (
     <div
       data-testid="protocol-template-card"
       data-template-id={template.id}
       data-protocol-status={status ?? 'none'}
       data-emphasis={emphasis}
+      data-severity={severity}
+      data-has-scope-notes={template.scopeNotes ? 'true' : 'false'}
       style={{
         borderRadius: 10,
         marginBottom: 10,
@@ -130,7 +148,28 @@ export default function ProtocolLibraryCard({
               </span>
             )}
           </div>
-          <TypeBadge type={template.type} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+            <TypeBadge type={template.type} />
+            <span
+              data-testid="protocol-severity-badge"
+              style={{
+                flexShrink: 0,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: severityMeta.color,
+                background: C.bg2,
+                border: `1px solid ${severityMeta.color}`,
+                borderRadius: 10,
+                padding: '1px 8px',
+                fontFamily: F.sans,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {severityMeta.label}
+            </span>
+          </div>
         </div>
 
         {/* Body — IF/THEN + rationale. Act collapses non-triggered cards to
@@ -204,6 +243,49 @@ export default function ProtocolLibraryCard({
             >
               {template.rationale}
             </div>
+
+            {/* Amanah caution — verbatim scopeNotes (e.g. the bayʿ mā laysa
+                ʿindak warning on sales-channel/advance-commitment protocols).
+                Rendered exactly as authored; never truncated or reworded. */}
+            {template.scopeNotes && (
+              <div
+                data-testid="protocol-amanah-caution"
+                style={{
+                  marginTop: 10,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                  background: CA('gold', 0.08),
+                  border: `1px solid ${CA('gold', 0.4)}`,
+                  borderLeft: `3px solid ${C.gold}`,
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    color: C.gold,
+                    fontFamily: F.sans,
+                  }}
+                >
+                  Amanah
+                </span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: C.textSecondary,
+                    fontFamily: F.sans,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {template.scopeNotes}
+                </span>
+              </div>
+            )}
           </>
         )}
       </div>

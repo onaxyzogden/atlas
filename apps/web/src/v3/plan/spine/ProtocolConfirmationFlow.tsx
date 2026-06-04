@@ -160,7 +160,7 @@ function ConfirmationCard({
           >
             {[
               ['Type', TYPE_STYLE[template.type].label],
-              ['Enterprise scope', template.enterpriseScope.join(', ')],
+              ['Enterprise scope', (template.enterpriseScope ?? []).join(', ')],
               ['Feeds', template.feeds.join(', ') || '—'],
               ['Authored by', template.tierAuthored ?? '—'],
             ].map(([k, v]) => (
