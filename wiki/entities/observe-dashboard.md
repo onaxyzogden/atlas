@@ -461,6 +461,56 @@ pushed. **Deferred:** the scalar/`dimension` capture mode is carried-but-unconsu
 authoring bindings onto the REAL Act field-action schemas (beyond the demo
 `observe-measurement` catalog entry) is a future producer task.
 
+## Lens canvas renders a live MapLibre basemap + parcel + georeferenced pins (2026-06-04, `85bcd8b2`..`4debac08`)
+
+The `module-bar` lens canvas was a decorative `PseudoMap` SVG scattering pins at
+meaningless normalized `[0,1]` positions. It now renders a real **read-only MapLibre
+basemap** with the parcel boundary + observation points at true coordinates when geometry
+exists, falling back to `PseudoMap` otherwise. Full rationale:
+[[decisions/2026-06-04-atlas-observe-live-map]]. Shape:
+
+- **Typed map payload (`lens/types.ts`).** `BBox`,
+  `ObserveMapMarker { id, lng, lat, lens, type, label, age }`, and
+  `ObserveMapData { boundary, bbox, markers, demoGeometry }`, exposed as a nullable
+  `LensDataBundle.map`. Built ONCE by a pure
+  `buildObserveMap(points, parcelBoundary, nowMs, isDemoGeometry)` in `liveBundle.ts`
+  (markers from georeferenced active points, null-geometry dropped; bbox from boundary
+  else markers; **returns `null`** when neither boundary nor any georeferenced point
+  exists -- the fallback signal). Mock bundle leaves `map:null` (Millbrook stays on
+  PseudoMap). bbox hardened against non-finite coords + null GeoJSON features.
+- **`ObserveMap` (`lens/ObserveMap.tsx`, NEW, ~199 lines).** A self-contained read-only
+  MapLibre canvas (NOT a reuse of the heavy Plan/Act `MapCanvas`). Mount-only effect:
+  `maplibregl.Map` (`style: hasMapToken ? MAP_STYLES.hybrid : ESRI_WORLD_IMAGERY_STYLE`,
+  `bounds:bbox`, rotation disabled, `NavigationControl`); on `load` adds a `parcel`
+  GeoJSON source + `parcel-fill`/`parcel-line` layers + sets `ready`. `reposition()`
+  projects markers via `map.project()`; an SVG overlay (`pointerEvents:none`) renders the
+  EXISTING pin language via the shared `ObservationPin`, a selection callout, and a
+  `{demoGeometry && ...}` "SAMPLE LOCATION DATA" badge. Same `onObsClick`/`selectedObs`
+  contract as PseudoMap; owns no draw/edit state.
+- **`ObservationPin` extracted (`components.tsx`).** Exported pin component shared by both
+  `PseudoMap` and `ObserveMap`; markup byte-identical to the old inline pin EXCEPT
+  `pointerEvents:'auto'` on the `<g>`. PseudoMap unchanged, still exported
+  ([[feedback-no-deletion]]).
+- **Dashboard branch.** `ObserveLensDashboard` canvas slot =
+  `bundle.map ? <ObserveMap .../> : <PseudoMap .../>`.
+- **Seeded MTC demo geo.** `projectStore.ts` `MTC_PARCEL_BOUNDARY` (5-coord Polygon ~
+  `[-80.10,44.30]`, Ontario placeholder) on `MTC_SEED.parcelBoundaryGeojson` +
+  `hasParcelBoundary:true` + an idempotent `seedMtcDemo` backfill;
+  `builtinObserveDataPoints.ts` adds a `location` to all 10 MTC rows. The `demoGeometry`
+  flag drives the honesty badge -- MTC is sample data and says so.
+
+tsc EXIT 0; bounded `observeMap.test.ts` + rewritten `liveBundle.test.ts` -> 32/32. **The
+no-network preview sandbox cannot fetch the MapTiler/ESRI tiles**, so the basemap `load`
+never fires and pins (gated on `ready`) do not paint live -- an environment limitation,
+disclosed, not a code defect. DOM-proven: live MTC route renders `ObserveMap` (canvas +
+controls + overlay + badge -> `bundle.map` branch, `demoGeometry` flowing); mock/geometry-
+less route renders `PseudoMap` (no maplibre, no badge, 10 `ObservationPin` groups);
+markers proven by unit tests; `preview_screenshot` hung ([[project-screenshot-hang]]).
+Commits `85bcd8b2`/`1c72d8ea`/`6ad3df30`/`c16b165b`/`65650432`/`4e378eab`/`4debac08`; T5's
+canvas swap was absorbed into the foreign WIP `0276a484` (verified by diff, secured as an
+ancestor, re-apply if dropped); not pushed. `mockData.ts` intact; CSRA untouched
+([[fiqh-csra-erased-2026-05-04]]).
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
