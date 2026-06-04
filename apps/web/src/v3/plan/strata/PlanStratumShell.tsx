@@ -16,6 +16,7 @@ import {
   findPlanStratumObjectiveIn,
   findProjectType,
   getPrimaryDomainForObjective,
+  getTensionConcernObjectiveIds,
 } from '@ogden/shared';
 import type {
   PlanStratum,
@@ -247,14 +248,40 @@ export default function PlanStratumShell() {
     return () => window.clearTimeout(timer);
   }, [search?.highlightIncomplete]);
 
+  // Plan Nav v1.1 §8 — transient flash on the objective cards a design tension
+  // concerns, fired when the steward clicks a tension row in the banner. Reuses
+  // the same flash machinery as `highlightStratumId` (below), but holds an
+  // explicit id list (authored mapping resolved by getTensionConcernObjectiveIds)
+  // rather than a whole-stratum filter, so it pinpoints the conflicting cards.
+  const [tensionHighlightIds, setTensionHighlightIds] = useState<readonly string[]>(
+    [],
+  );
+  const tensionHighlightTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Clear any pending flash timer on unmount so it never fires into a
+    // torn-down component.
+    return () => {
+      if (tensionHighlightTimerRef.current !== null) {
+        window.clearTimeout(tensionHighlightTimerRef.current);
+      }
+    };
+  }, []);
+
   const highlightObjectiveIds = useMemo<readonly string[]>(() => {
-    if (!highlightStratumId) return [];
-    return objectives.filter(
-      (o) =>
-        o.stratumId === highlightStratumId &&
-        (objectiveStatuses[o.id] ?? 'locked') !== 'complete',
-    ).map((o) => o.id);
-  }, [highlightStratumId, objectives, objectiveStatuses]);
+    const ids = new Set<string>(tensionHighlightIds);
+    if (highlightStratumId) {
+      for (const o of objectives) {
+        if (
+          o.stratumId === highlightStratumId &&
+          (objectiveStatuses[o.id] ?? 'locked') !== 'complete'
+        ) {
+          ids.add(o.id);
+        }
+      }
+    }
+    return Array.from(ids);
+  }, [highlightStratumId, tensionHighlightIds, objectives, objectiveStatuses]);
 
   // Slice 1.10 — StratumUnlockCelebration. Watch stratum states and surface a
   // celebration the first time any stratum (other than S1, which has no
@@ -308,6 +335,28 @@ export default function PlanStratumShell() {
       to: '/v3/project/$projectId/plan/stratum/$stratumId/objective/$objectiveId',
       params: { projectId, stratumId, objectiveId },
     });
+  };
+
+  // Plan Nav v1.1 §8 — a tension banner row was clicked. Resolve the authored
+  // objective mapping against THIS project's objective set, flash those cards,
+  // and navigate to the stratum where the tension resolves so they are on
+  // screen. The flash set persists for HIGHLIGHT_DURATION_MS regardless of
+  // which stratum is open, so related ids living in a second stratum still
+  // light up if the steward navigates there within the window.
+  const handleSelectTension = (tensionId: string) => {
+    const tension = activeTensions.find((t) => t.id === tensionId);
+    if (!tension) return;
+    const ids = getTensionConcernObjectiveIds(tension, objectives);
+    if (tensionHighlightTimerRef.current !== null) {
+      window.clearTimeout(tensionHighlightTimerRef.current);
+    }
+    setTensionHighlightIds(ids);
+    tensionHighlightTimerRef.current = window.setTimeout(() => {
+      setTensionHighlightIds([]);
+      tensionHighlightTimerRef.current = null;
+    }, HIGHLIGHT_DURATION_MS);
+    const resolutionStratum = findPlanStratum(tension.resolutionStratumId);
+    if (resolutionStratum) navigateToStratum(resolutionStratum);
   };
 
   // Cross-protocol co-occurrence verdict (shell-level, cross-stratum). When >= 2
@@ -840,6 +889,7 @@ export default function PlanStratumShell() {
           projectId={projectId}
           tensions={activeTensions}
           activeStratumId={activeStratumId}
+          onSelectTension={handleSelectTension}
           onSelectObjective={handleSelectObjective}
           onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
           onRestoreObjective={(obj) => undeferObjective(projectId, obj.id)}

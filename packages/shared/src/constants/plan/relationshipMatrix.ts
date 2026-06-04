@@ -18,7 +18,10 @@
 // compatible at all (cell !== 'NA') and (b) the display hint.
 
 import type { ProjectTypeId } from '../../schemas/plan/projectTypeTaxonomy.schema.js';
-import type { PlanStratumId } from '../../schemas/plan/planStratumObjective.schema.js';
+import type {
+  PlanStratumId,
+  PlanStratumObjective,
+} from '../../schemas/plan/planStratumObjective.schema.js';
 
 /** A single matrix cell. */
 export type RelationCell = 'M' | 'A' | 'X' | 'NA';
@@ -231,6 +234,15 @@ export interface DesignTension {
   /** Human-facing stratum label transcribed from the spec (may name >1 stratum). */
   resolutionStratumLabel: string;
   description: string;
+  /**
+   * Objective ids this tension concerns, across BOTH type roles (a type's
+   * primary-role id and its secondary-role `*-sec-*` id are both listed where
+   * it has one), plus the universal anchor for the resolution stratum
+   * (`s4-zones` / `s5-access`). Authored domain content. Consumers resolve it
+   * with `getTensionConcernObjectiveIds`, which filters to the ids actually
+   * present in a given project's resolved set — so listing a superset is safe.
+   */
+  relatedObjectiveIds?: readonly string[];
 }
 
 /** The 13 named design tensions (spec section 5.3; tensions 11-12 added 2026-06-03
@@ -239,6 +251,14 @@ export interface DesignTension {
 export const DESIGN_TENSIONS: readonly DesignTension[] = [
   {
     id: 'tension-1',
+    relatedObjectiveIds: [
+      's4-zones',
+      'well-s4-privacy-zone-hierarchy',
+      'well-s4-sensory-design-standards',
+      'well-sec-s4-sensory-standards',
+      'ag-s4-circulation-strategy',
+      'ag-s4-biosecurity-zoning',
+    ],
     typeA: 'wellness',
     typeB: 'agritourism',
     resolutionStratumId: 's4-foundation-decisions',
@@ -248,6 +268,12 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-2',
+    relatedObjectiveIds: [
+      's4-zones',
+      'con-s4-restoration-priority-zones',
+      'mgd-s4-crop-rotation-bed-layout',
+      'mgd-s4-ipm-strategy',
+    ],
     typeA: 'conservation',
     typeB: 'market_garden',
     resolutionStratumId: 's4-foundation-decisions',
@@ -257,6 +283,15 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-3',
+    relatedObjectiveIds: [
+      's4-zones',
+      'con-s4-restoration-priority-zones',
+      'con-s5-fencing-exclusion',
+      'silv-s4-paddock-layout',
+      'silv-s5-fencing',
+      'silv-sec-s4-grazing-design',
+      'silv-sec-s4-stock-infrastructure',
+    ],
     typeA: 'conservation',
     typeB: 'silvopasture',
     resolutionStratumId: 's4-foundation-decisions',
@@ -266,6 +301,12 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-4',
+    relatedObjectiveIds: [
+      's5-access',
+      'edu-s4-teaching-zone-allocation',
+      'edu-s5-teaching-spaces',
+      'ofg-s4-emergency-comms-response',
+    ],
     typeA: 'off_grid',
     typeB: 'education',
     resolutionStratumId: 's5-system-design',
@@ -275,6 +316,12 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-5',
+    relatedObjectiveIds: [
+      's4-zones',
+      'ev-s4-settlement-strategy',
+      'ev-s4-housing-cluster',
+      'ag-s4-circulation-strategy',
+    ],
     typeA: 'ecovillage',
     typeB: 'agritourism',
     resolutionStratumId: 's4-foundation-decisions',
@@ -284,6 +331,14 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-6',
+    relatedObjectiveIds: [
+      's5-access',
+      'silv-s5-fencing',
+      'silv-s4-paddock-layout',
+      'silv-sec-s4-grazing-design',
+      'mgd-s4-crop-rotation-bed-layout',
+      'mgd-s5-bed-growing-infrastructure',
+    ],
     typeA: 'silvopasture',
     typeB: 'market_garden',
     resolutionStratumId: 's5-system-design',
@@ -293,6 +348,14 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-7',
+    relatedObjectiveIds: [
+      's4-zones',
+      'silv-s4-paddock-layout',
+      'silv-sec-s4-grazing-design',
+      'well-s4-sensory-design-standards',
+      'well-s4-privacy-zone-hierarchy',
+      'well-sec-s4-sensory-standards',
+    ],
     typeA: 'silvopasture',
     typeB: 'wellness',
     resolutionStratumId: 's4-foundation-decisions',
@@ -302,6 +365,12 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-8',
+    relatedObjectiveIds: [
+      's5-access',
+      'ag-s4-circulation-strategy',
+      'ag-s5-dispersed-siting',
+      'ofg-s4-emergency-comms-response',
+    ],
     typeA: 'off_grid',
     typeB: 'agritourism',
     resolutionStratumId: 's5-system-design',
@@ -311,6 +380,12 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-9',
+    relatedObjectiveIds: [
+      's4-zones',
+      'res-s4-living-zone',
+      'ag-s4-circulation-strategy',
+      'ag-s4-biosecurity-zoning',
+    ],
     typeA: 'residential',
     typeB: 'agritourism',
     resolutionStratumId: 's4-foundation-decisions',
@@ -320,6 +395,14 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-10',
+    // residential cannot be a primary, so wellness is always the primary in
+    // this pairing — only its primary-role ids are reachable (no `well-sec-*`).
+    relatedObjectiveIds: [
+      's4-zones',
+      'res-s4-living-zone',
+      'well-s4-privacy-zone-hierarchy',
+      'well-s4-sensory-design-standards',
+    ],
     typeA: 'residential',
     typeB: 'wellness',
     resolutionStratumId: 's4-foundation-decisions',
@@ -329,6 +412,15 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-11',
+    relatedObjectiveIds: [
+      's4-zones',
+      'lvs-s4-grazing-system',
+      'lvs-s4-stocking-rate',
+      'lvs-sec-s4-species-stocking',
+      'well-s4-sensory-design-standards',
+      'well-s4-privacy-zone-hierarchy',
+      'well-sec-s4-sensory-standards',
+    ],
     typeA: 'livestock_operation',
     typeB: 'wellness',
     resolutionStratumId: 's4-foundation-decisions',
@@ -338,6 +430,14 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-12',
+    relatedObjectiveIds: [
+      's5-access',
+      'lvs-s5-fencing-water',
+      'lvs-s4-grazing-system',
+      'lvs-sec-s4-stock-infrastructure',
+      'mgd-s4-crop-rotation-bed-layout',
+      'mgd-s5-bed-growing-infrastructure',
+    ],
     typeA: 'livestock_operation',
     typeB: 'market_garden',
     resolutionStratumId: 's5-system-design',
@@ -347,6 +447,14 @@ export const DESIGN_TENSIONS: readonly DesignTension[] = [
   },
   {
     id: 'tension-13',
+    relatedObjectiveIds: [
+      's4-zones',
+      'lvs-s4-grazing-system',
+      'lvs-s4-stocking-rate',
+      'lvs-sec-s4-species-stocking',
+      'con-s4-restoration-priority-zones',
+      'con-s5-fencing-exclusion',
+    ],
     typeA: 'livestock_operation',
     typeB: 'conservation',
     resolutionStratumId: 's4-foundation-decisions',
@@ -399,4 +507,36 @@ export function getActiveTensions(
 ): DesignTension[] {
   const present = new Set<ProjectTypeId>([primaryTypeId, ...secondaryTypeIds]);
   return DESIGN_TENSIONS.filter((t) => present.has(t.typeA) && present.has(t.typeB));
+}
+
+/**
+ * The objective ids a tension concerns, resolved against a project's actual
+ * objective set. Takes the authored `relatedObjectiveIds` (a role-agnostic
+ * superset that lists both a type's primary-role id and its `*-sec-*`
+ * secondary-role id where it has one) and filters to the ids actually present
+ * in `objectives` — so listing ids that aren't in a given project is harmless.
+ *
+ * Result is de-duped with first-seen order preserved. When a tension has no
+ * authored mapping, or none of its mapped ids are present, falls back to every
+ * objective at the tension's `resolutionStratumId` — so a tension always
+ * highlights something meaningful to the steward.
+ */
+export function getTensionConcernObjectiveIds(
+  tension: DesignTension,
+  objectives: readonly PlanStratumObjective[],
+): string[] {
+  const presentIds = new Set(objectives.map((o) => o.id));
+  const mapped: string[] = [];
+  const seen = new Set<string>();
+  for (const id of tension.relatedObjectiveIds ?? []) {
+    if (presentIds.has(id) && !seen.has(id)) {
+      seen.add(id);
+      mapped.push(id);
+    }
+  }
+  if (mapped.length > 0) return mapped;
+  // Fallback: every objective resolved at the tension's resolution stratum.
+  return objectives
+    .filter((o) => o.stratumId === tension.resolutionStratumId)
+    .map((o) => o.id);
 }

@@ -11,7 +11,12 @@
 // the source-tag / divergence palette — tensions are advisory friction, not
 // failure.
 
-import { AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight,
+  Crosshair,
+} from 'lucide-react';
 import type { DesignTension } from '@ogden/shared';
 import css from './DesignTensionBanner.module.css';
 
@@ -21,6 +26,13 @@ interface Props {
   /** Tensions resolved at the currently-open stratum — get a static ring. */
   highlightTensionIds?: readonly string[];
   onToggle: () => void;
+  /**
+   * When provided, each row becomes an accessible button that, on activation,
+   * asks the parent to navigate to the tension's resolution stratum and flash
+   * the objective cards it concerns. Omitted → rows render as static text
+   * (back-compat for non-interactive consumers / tests).
+   */
+  onSelectTension?: (tensionId: string) => void;
 }
 
 export default function DesignTensionBanner({
@@ -28,6 +40,7 @@ export default function DesignTensionBanner({
   expanded,
   highlightTensionIds,
   onToggle,
+  onSelectTension,
 }: Props) {
   if (tensions.length === 0) return null;
   const count = tensions.length;
@@ -58,18 +71,44 @@ export default function DesignTensionBanner({
 
       {expanded && (
         <ul className={css.list}>
-          {tensions.map((t) => (
-            <li
-              key={t.id}
-              className={css.row}
-              data-highlight={highlightSet.has(t.id) ? 'true' : undefined}
-            >
-              <p className={css.rowBody}>{t.description}</p>
-              <span className={css.resolvePill}>
-                Resolved at {t.resolutionStratumLabel}
-              </span>
-            </li>
-          ))}
+          {tensions.map((t) => {
+            const body = (
+              <>
+                <p className={css.rowBody}>{t.description}</p>
+                <span className={css.rowFooter}>
+                  <span className={css.resolvePill}>
+                    Resolved at {t.resolutionStratumLabel}
+                  </span>
+                  {onSelectTension && (
+                    <span className={css.affordance} aria-hidden>
+                      <Crosshair size={12} />
+                      Show in plan
+                    </span>
+                  )}
+                </span>
+              </>
+            );
+            return (
+              <li
+                key={t.id}
+                className={css.row}
+                data-highlight={highlightSet.has(t.id) ? 'true' : undefined}
+              >
+                {onSelectTension ? (
+                  <button
+                    type="button"
+                    className={css.rowButton}
+                    onClick={() => onSelectTension(t.id)}
+                    aria-label={`Show objectives for: ${t.description}`}
+                  >
+                    {body}
+                  </button>
+                ) : (
+                  body
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </aside>

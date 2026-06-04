@@ -68,6 +68,12 @@ interface Props {
    * transient auto-expand of the banner.
    */
   activeStratumId?: string | null;
+  /**
+   * Plan Nav v1.1 §8 — invoked when a tension banner row is clicked. The shell
+   * wires this to navigate to the tension's resolution stratum and flash the
+   * objective cards it concerns. Omitted → banner rows render as static text.
+   */
+  onSelectTension?: (tensionId: string) => void;
   onSelectObjective: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — invoked when the divergence pill on an objective card is
@@ -116,6 +122,7 @@ export default function ObjectiveColumn({
   projectId,
   tensions,
   activeStratumId,
+  onSelectTension,
   onSelectObjective,
   onObjectiveDivergenceClick,
   onRestoreObjective,
@@ -350,6 +357,7 @@ export default function ObjectiveColumn({
           expanded={tensionExpanded}
           highlightTensionIds={highlightTensionIds}
           onToggle={handleToggleTensions}
+          onSelectTension={onSelectTension}
         />
       )}
 
