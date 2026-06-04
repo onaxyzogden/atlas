@@ -1,4 +1,4 @@
-/**
+**
  * CompostWorkspacePage — the `/compost` route component.
  *
  * A distinct lightweight vertical: it reuses the OLOS Plan / Act / Observe
@@ -43,7 +43,7 @@ function StagePills({
               border: `1px solid ${isActive ? s.color : C.border}`,
               background: isActive ? `${s.color}22` : 'transparent',
               color: isActive ? s.color : C.textTertiary,
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: 700,
               cursor: 'pointer',
               fontFamily: F.sans,
@@ -82,7 +82,7 @@ function TopBar({
       <div style={{ display: 'flex', flexDirection: 'column', marginRight: 8 }}>
         <span
           style={{
-            fontSize: 10,
+            fontSize: 12,
             color: C.textTertiary,
             fontWeight: 700,
             letterSpacing: '0.12em',
@@ -93,7 +93,7 @@ function TopBar({
         </span>
         <span
           style={{
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: 700,
             color: C.textPrimary,
             marginTop: -1,
@@ -105,7 +105,7 @@ function TopBar({
       <div style={{ width: 1, height: 24, background: C.border }} />
       <StagePills active={stage} onChange={onStageChange} />
       <div style={{ flex: 1 }} />
-      <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>
+      <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>
         Thermophilic Compost · Cycle 1
       </span>
     </div>

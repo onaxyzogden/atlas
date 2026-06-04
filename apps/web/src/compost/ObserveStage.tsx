@@ -1,4 +1,4 @@
-import { useState } from 'react';
+mport { useState } from 'react';
 import {
   C,
   F,
@@ -62,17 +62,17 @@ export default function ObserveStage() {
             <line x1={pad.left} x2={pad.left + chartW} y1={yOf(t)} y2={yOf(t)}
               stroke={C.border} strokeWidth={0.5} strokeDasharray="3,3" />
             <text x={pad.left - 6} y={yOf(t) + 4} textAnchor="end"
-              fontSize={9} fill={C.textTertiary} fontFamily={F.mono}>{fToC(t)}</text>
+              fontSize={12} fill={C.textTertiary} fontFamily={F.mono}>{fToC(t)}</text>
           </g>
         ))}
 
         {/* Phase labels */}
-        <text x={pad.left + 5} y={yOf(155)} fontSize={9} fill={C.heat} opacity={0.7} fontFamily={F.sans} fontWeight={700}>Thermophilic</text>
-        <text x={pad.left + 5} y={yOf(95)} fontSize={9} fill={C.mesophilic} opacity={0.7} fontFamily={F.sans} fontWeight={700}>Mesophilic</text>
+        <text x={pad.left + 5} y={yOf(155)} fontSize={12} fill={C.heat} opacity={0.7} fontFamily={F.sans} fontWeight={700}>Thermophilic</text>
+        <text x={pad.left + 5} y={yOf(95)} fontSize={12} fill={C.mesophilic} opacity={0.7} fontFamily={F.sans} fontWeight={700}>Mesophilic</text>
 
         {/* Horizontal zone labels */}
-        <text x={pad.left + chartW - 4} y={yOf(131) - 3} textAnchor="end" fontSize={8} fill={C.heat} opacity={0.6} fontFamily={F.mono}>55°C pasteurisation</text>
-        <text x={pad.left + chartW - 4} y={yOf(113) - 3} textAnchor="end" fontSize={8} fill={C.mesophilic} opacity={0.6} fontFamily={F.mono}>45°C threshold</text>
+        <text x={pad.left + chartW - 4} y={yOf(131) - 3} textAnchor="end" fontSize={12} fill={C.heat} opacity={0.6} fontFamily={F.mono}>55°C pasteurisation</text>
+        <text x={pad.left + chartW - 4} y={yOf(113) - 3} textAnchor="end" fontSize={12} fill={C.mesophilic} opacity={0.6} fontFamily={F.mono}>45°C threshold</text>
 
         {/* Turning markers */}
         {turningDays.map((r) => (
@@ -80,7 +80,7 @@ export default function ObserveStage() {
             <line x1={xOf(r.day)} x2={xOf(r.day)} y1={pad.top} y2={pad.top + chartH}
               stroke={C.amber} strokeWidth={0.8} strokeDasharray="4,3" opacity={0.5} />
             <text x={xOf(r.day)} y={pad.top + chartH + 11} textAnchor="middle"
-              fontSize={8} fill={C.amber} fontFamily={F.mono}>↺</text>
+              fontSize={12} fill={C.amber} fontFamily={F.mono}>↺</text>
           </g>
         ))}
 
@@ -99,7 +99,7 @@ export default function ObserveStage() {
         {/* X-axis day labels */}
         {[0, 7, 14, 21, 28, 34].map((d) => (
           <text key={d} x={xOf(d)} y={pad.top + chartH + 18} textAnchor="middle"
-            fontSize={9} fill={C.textTertiary} fontFamily={F.mono}>D{d}</text>
+            fontSize={12} fill={C.textTertiary} fontFamily={F.mono}>D{d}</text>
         ))}
       </svg>
     );
@@ -110,25 +110,25 @@ export default function ObserveStage() {
     const phases = PHASE_COMPARISON;
     return (
       <div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: C.textPrimary, marginBottom: 14 }}>Phase Breakdown — Temporal View</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, marginBottom: 14 }}>Phase Breakdown — Temporal View</div>
         {phases.map((p) => (
           <div key={p.id} style={{ marginBottom: 12, padding: '14px 16px', background: C.bg3, borderRadius: 10, border: `1px solid ${C.border}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
               <div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: p.color, fontFamily: F.serif }}>{p.name}</span>
-                <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono, marginLeft: 10 }}>Days {p.days} · {p.readings} readings</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: p.color, fontFamily: F.serif }}>{p.name}</span>
+                <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono, marginLeft: 10 }}>Days {p.days} · {p.readings} readings</span>
               </div>
-              <span style={{ fontSize: 16, fontWeight: 700, color: p.color, fontFamily: F.mono }}>{fToCStr(p.peakTemp)}</span>
+              <span style={{ fontSize: 19, fontWeight: 700, color: p.color, fontFamily: F.mono }}>{fToCStr(p.peakTemp)}</span>
             </div>
-            <p style={{ fontSize: 11, color: C.textSecondary, lineHeight: 1.55, marginBottom: 8 }}>{p.desc}</p>
+            <p style={{ fontSize: 13, color: C.textSecondary, lineHeight: 1.55, marginBottom: 8 }}>{p.desc}</p>
             <div style={{ display: 'flex', gap: 16 }}>
               <div>
-                <span style={{ fontSize: 9, color: C.textTertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Peak temp</span>
-                <div style={{ fontSize: 12, fontWeight: 700, color: p.color, fontFamily: F.mono, marginTop: 1 }}>{fToCStr(p.peakTemp)}</div>
+                <span style={{ fontSize: 12, color: C.textTertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Peak temp</span>
+                <div style={{ fontSize: 14, fontWeight: 700, color: p.color, fontFamily: F.mono, marginTop: 1 }}>{fToCStr(p.peakTemp)}</div>
               </div>
               <div>
-                <span style={{ fontSize: 9, color: C.textTertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Avg moisture</span>
-                <div style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary, fontFamily: F.mono, marginTop: 1 }}>{p.avgMoisture}%</div>
+                <span style={{ fontSize: 12, color: C.textTertiary, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Avg moisture</span>
+                <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary, fontFamily: F.mono, marginTop: 1 }}>{p.avgMoisture}%</div>
               </div>
             </div>
           </div>
@@ -146,9 +146,9 @@ export default function ObserveStage() {
         display: 'flex', flexDirection: 'column',
       }}>
         <div style={{ padding: '14px 16px 10px', borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: C.blue, marginBottom: 2 }}>Observe</div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, fontFamily: F.serif }}>Compost Intelligence</div>
-          <div style={{ fontSize: 10, color: C.textSecondary, marginTop: 2 }}>Day {lastR.day} · {lastR.date}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.blue, marginBottom: 2 }}>Observe</div>
+          <div style={{ fontSize: 16, fontWeight: 700, color: C.textPrimary, fontFamily: F.serif }}>Compost Intelligence</div>
+          <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 2 }}>Day {lastR.day} · {lastR.date}</div>
         </div>
 
         <div style={{ padding: '8px 0' }}>
@@ -163,15 +163,15 @@ export default function ObserveStage() {
               border: 'none', borderLeft: `2px solid ${v.id === activeView ? C.blue : 'transparent'}`,
               cursor: 'pointer', transition: 'all 0.1s',
             }}>
-              <div style={{ fontSize: 12, fontWeight: v.id === activeView ? 600 : 400, color: v.id === activeView ? C.textPrimary : C.textSecondary, fontFamily: F.sans }}>{v.label}</div>
-              <div style={{ fontSize: 10, color: C.textTertiary, marginTop: 1 }}>{v.sub}</div>
+              <div style={{ fontSize: 14, fontWeight: v.id === activeView ? 600 : 400, color: v.id === activeView ? C.textPrimary : C.textSecondary, fontFamily: F.sans }}>{v.label}</div>
+              <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 1 }}>{v.sub}</div>
             </button>
           ))}
         </div>
 
         {/* Freshness model */}
         <div style={{ margin: '0 10px', padding: '10px 12px', background: C.bg3, borderRadius: 8, border: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 10, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Data Freshness</div>
+          <div style={{ fontSize: 12, color: C.textTertiary, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Data Freshness</div>
           {[
             { label: 'Temperature log', state: 'current', color: C.green },
             { label: 'Moisture estimate', state: 'current', color: C.green },
@@ -179,9 +179,9 @@ export default function ObserveStage() {
             { label: 'Germination test', state: 'missing', color: C.textTertiary },
           ].map((f) => (
             <div key={f.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-              <span style={{ fontSize: 10, color: C.textTertiary }}>{f.label}</span>
+              <span style={{ fontSize: 12, color: C.textTertiary }}>{f.label}</span>
               <span style={{
-                fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 6,
+                fontSize: 12, fontWeight: 700, padding: '1px 6px', borderRadius: 6,
                 background: f.state === 'current' ? C.greenDim : C.bg4,
                 color: f.color, textTransform: 'uppercase',
               }}>{f.state}</span>
@@ -191,7 +191,7 @@ export default function ObserveStage() {
 
         {/* Observe principle */}
         <div style={{ margin: '10px 10px 8px', padding: '10px 12px', background: C.bg3, borderRadius: 8, border: `1px solid ${C.blueDim}` }}>
-          <p style={{ fontSize: 10, color: C.textTertiary, lineHeight: 1.55, fontStyle: 'italic' }}>
+          <p style={{ fontSize: 12, color: C.textTertiary, lineHeight: 1.55, fontStyle: 'italic' }}>
             "Observe records reality — not what was intended, but what actually happened in the pile."
           </p>
         </div>
@@ -213,9 +213,9 @@ export default function ObserveStage() {
               padding: '12px 14px', background: C.bg3, borderRadius: 10,
               border: `1px solid ${C.border}`,
             }}>
-              <div style={{ fontSize: 9, color: C.textTertiary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{k.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: k.color, fontFamily: F.mono, lineHeight: 1 }}>{k.value}</div>
-              <div style={{ fontSize: 9, color: C.textTertiary, marginTop: 3 }}>{k.sub}</div>
+              <div style={{ fontSize: 12, color: C.textTertiary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>{k.label}</div>
+              <div style={{ fontSize: 26, fontWeight: 700, color: k.color, fontFamily: F.mono, lineHeight: 1 }}>{k.value}</div>
+              <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 3 }}>{k.sub}</div>
             </div>
           ))}
         </div>
@@ -263,18 +263,18 @@ export default function ObserveStage() {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 16 }}>{d.icon}</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>{d.domain}</span>
+                      <span style={{ fontSize: 19 }}>{d.icon}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>{d.domain}</span>
                     </div>
                     <span style={{
-                      fontSize: 9, fontWeight: 700, padding: '1px 7px', borderRadius: 6,
+                      fontSize: 12, fontWeight: 700, padding: '1px 7px', borderRadius: 6,
                       background: d.freshness === 'current' ? C.greenDim : C.bg4,
                       color: d.freshness === 'current' ? C.green : C.textTertiary,
                       textTransform: 'uppercase',
                     }}>{d.freshness}</span>
                   </div>
-                  <p style={{ fontSize: 11, color: C.textSecondary, lineHeight: 1.55, marginBottom: 6 }}>{d.summary}</p>
-                  <div style={{ fontSize: 9, color: C.textTertiary, fontFamily: F.mono }}>{d.observations}</div>
+                  <p style={{ fontSize: 13, color: C.textSecondary, lineHeight: 1.55, marginBottom: 6 }}>{d.summary}</p>
+                  <div style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>{d.observations}</div>
                 </div>
               ))}
             </div>
@@ -283,15 +283,15 @@ export default function ObserveStage() {
             <div style={{ padding: '14px 18px', background: daysAbove >= 3 ? C.greenDim : C.amberDim, borderRadius: 10, border: `1px solid ${daysAbove >= 3 ? C.green + '44' : C.amber + '44'}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: daysAbove >= 3 ? C.green : C.amber, marginBottom: 3 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: daysAbove >= 3 ? C.green : C.amber, marginBottom: 3 }}>
                     Pathogen Kill Status: {daysAbove >= 3 ? 'CONFIRMED' : 'INSUFFICIENT'}
                   </div>
-                  <div style={{ fontSize: 11, color: C.textSecondary }}>
+                  <div style={{ fontSize: 13, color: C.textSecondary }}>
                     {daysAbove} days recorded ≥ 55°C. USDA standard requires minimum 3 consecutive days above 55°C.
                     {daysAbove >= 3 ? ' Threshold exceeded — E. coli and Salmonella kill confirmed by evidence record.' : ' Additional days required before pathogen kill can be confirmed.'}
                   </div>
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 900, color: daysAbove >= 3 ? C.green : C.amber, fontFamily: F.mono, flexShrink: 0, marginLeft: 16 }}>{daysAbove}d</div>
+                <div style={{ fontSize: 34, fontWeight: 900, color: daysAbove >= 3 ? C.green : C.amber, fontFamily: F.mono, flexShrink: 0, marginLeft: 16 }}>{daysAbove}d</div>
               </div>
             </div>
           </div>
@@ -299,8 +299,8 @@ export default function ObserveStage() {
 
         {activeView === 'curve' && (
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, marginBottom: 4 }}>Temperature Curve — Domain Detail</div>
-            <div style={{ fontSize: 11, color: C.textSecondary, marginBottom: 16 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.textPrimary, marginBottom: 4 }}>Temperature Curve — Domain Detail</div>
+            <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 16 }}>
               Full 34-day thermal record. Turning events marked ↺ in amber. Phase bands shown.
             </div>
             <div style={{ background: C.bg3, borderRadius: 12, border: `1px solid ${C.border}`, padding: '16px 12px 8px', marginBottom: 16 }}>
@@ -316,21 +316,21 @@ export default function ObserveStage() {
               ].map((l) => (
                 <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ width: 12, height: 4, borderRadius: 2, background: l.color, opacity: l.opacity || 1 }} />
-                  <span style={{ fontSize: 10, color: C.textTertiary }}>{l.label}</span>
+                  <span style={{ fontSize: 12, color: C.textTertiary }}>{l.label}</span>
                 </div>
               ))}
             </div>
             {/* Notable events */}
-            <div style={{ fontSize: 11, fontWeight: 700, color: C.textPrimary, marginBottom: 10 }}>Notable Data Points</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, marginBottom: 10 }}>Notable Data Points</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
               {allReadings.filter((r) => r.proofPhoto || r.turned || r.note).slice(0, 9).map((r) => (
                 <div key={r.id} style={{ padding: '10px 12px', background: C.bg3, borderRadius: 8, border: `1px solid ${C.border}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span style={{ fontSize: 10, color: C.textTertiary, fontFamily: F.mono }}>Day {r.day} · {r.date}</span>
-                    {r.turned && <span style={{ fontSize: 9, color: C.amber, fontWeight: 700 }}>TURN</span>}
+                    <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>Day {r.day} · {r.date}</span>
+                    {r.turned && <span style={{ fontSize: 12, color: C.amber, fontWeight: 700 }}>TURN</span>}
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: getPhaseMeta(r.temp).color, fontFamily: F.mono, marginBottom: 3 }}>{fToCStr(r.temp)}</div>
-                  {r.note && <div style={{ fontSize: 10, color: C.textTertiary, lineHeight: 1.4 }}>{r.note.slice(0, 60)}{r.note.length > 60 ? '…' : ''}</div>}
+                  <div style={{ fontSize: 18, fontWeight: 700, color: getPhaseMeta(r.temp).color, fontFamily: F.mono, marginBottom: 3 }}>{fToCStr(r.temp)}</div>
+                  {r.note && <div style={{ fontSize: 12, color: C.textTertiary, lineHeight: 1.4 }}>{r.note.slice(0, 60)}{r.note.length > 60 ? '…' : ''}</div>}
                 </div>
               ))}
             </div>
