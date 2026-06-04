@@ -36,6 +36,8 @@ import {
   getPrimaryDomainForObjective,
   resolveSeverityTier,
   deriveClimateContext,
+  enterprisesForProjectTypes,
+  templatesForEnterprises,
 } from '@ogden/shared';
 import {
   usePlanStratumProgressStore,
@@ -205,11 +207,33 @@ export default function ActTierExecutionPanel({
   const typeRecord = metadata?.projectTypeRecord;
   const primaryTypeId = typeRecord?.primaryTypeId ?? null;
   const secondaryTypeIds = typeRecord?.secondaryTypeIds ?? [];
-  const { templates, statusByTemplate, outputs } = useProtocolLibrary(
+  // statusByTemplate (per-templateId lifecycle) + outputs (S6 token
+  // substitution) come from the shared library hook; both are independent of
+  // which template list is in hand.
+  const { statusByTemplate, outputs } = useProtocolLibrary(
     projectId,
     primaryTypeId,
     secondaryTypeIds,
   );
+
+  // Trigger Recognition candidates are the ENTERPRISE-scoped standard templates
+  // (the Act trigger feature's native source + FEEDS_TO_MODULE vocabulary).
+  // useProtocolLibrary.templates was repurposed to the per-type Plan catalogue
+  // (resolveProjectProtocols, 2026-06-04), which no longer carries the
+  // enterprise protocols (e.g. water-trough-inspection) nor their feed labels;
+  // sourcing triggers here keeps the Act path intact while leaving Plan
+  // Protocol Mode on its per-type catalogues. Memoised on the project-type
+  // identity via secondaryKey (stable primitive) so a fresh secondaryTypeIds
+  // array reference per render does not recompute.
+  const secondaryKey = secondaryTypeIds.join(',');
+  const triggerTemplates = useMemo<readonly StandardProtocolTemplate[]>(() => {
+    if (!primaryTypeId) return [];
+    return templatesForEnterprises(
+      enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds),
+    );
+    // secondaryTypeIds captured via secondaryKey (stable primitive).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [primaryTypeId, secondaryKey]);
   const recordActivation = useProtocolStore((s) => s.recordActivation);
   const markTriggered = useProtocolStore((s) => s.markTriggered);
   const [pendingTrigger, setPendingTrigger] =
@@ -382,7 +406,7 @@ export default function ActTierExecutionPanel({
   function pickTrigger(): StandardProtocolTemplate | null {
     if (domainId === null) return null;
     return (
-      templates.find((t) => {
+      triggerTemplates.find((t) => {
         if (statusByTemplate[t.id] !== 'active') return false;
         if (resolveSeverityTier(t) !== 'respond') return false;
         return t.feeds.some((f) => FEEDS_TO_MODULE[f] === domainId);
