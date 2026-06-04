@@ -9,8 +9,10 @@ import { describe, it, expect } from 'vitest';
 import type { SeasonName } from '../../../schemas/protocol/protocol.schema.js';
 import type { ObservationLogRecord } from '../../../schemas/protocol/observationLogRecord.schema.js';
 import { temporalBucketKey } from '../deviationPolicy.js';
+import type { ChronicVerdict } from '../chronicDetection.js';
 import {
   partitionExpiredRecords,
+  chronicProtectedRecordIds,
   OBSERVATION_LOG_RETENTION_CYCLES,
 } from '../observationLogRetention.js';
 
@@ -213,5 +215,115 @@ describe('partitionExpiredRecords', () => {
     const result = partitionExpiredRecords([a, b], 0, NONE);
     expect(result.kept).toEqual([]);
     expect(result.pruned).toEqual([a, b]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// chronicProtectedRecordIds (T3.6 -- pure verdict -> protected-id mapper).
+// ---------------------------------------------------------------------------
+
+/** Build a minimal ChronicVerdict carrying only the fields the mapper reads. */
+function makeVerdict(over: {
+  season?: SeasonName | undefined;
+  cycleNumbers: number[];
+  templatePair: [string, string];
+}): ChronicVerdict {
+  const season: SeasonName | undefined =
+    'season' in over ? over.season : 'spring';
+  const [a, b] = over.templatePair;
+  const seasonScope = season ?? 'unknown';
+  return {
+    signatureKey: `${seasonScope}:${a}+${b}`,
+    ...(season !== undefined ? { season } : {}),
+    templatePair: over.templatePair,
+    templateIds: [...over.templatePair],
+    objectiveIds: ['obj-a'],
+    cycleNumbers: over.cycleNumbers,
+    occurrenceCount: over.cycleNumbers.length,
+    consecutive: true,
+    spanCycles: over.cycleNumbers.length,
+    dominantDepth: 'threshold',
+    theme: 'theme',
+    containsExistential: false,
+    containsOpen: false,
+    weight: 1,
+    summary: 'summary',
+  } satisfies ChronicVerdict;
+}
+
+describe('chronicProtectedRecordIds', () => {
+  it('protects a record matching season + cycle membership + a templatePair leg', () => {
+    const rec = makeRecord({ season: 'spring', cycleNumber: 2 });
+    rec.sourceTemplateId = 'tmpl-A';
+    const verdict = makeVerdict({
+      season: 'spring',
+      cycleNumbers: [1, 2],
+      templatePair: ['tmpl-A', 'tmpl-B'],
+    });
+    const result = chronicProtectedRecordIds([rec], [verdict]);
+    expect(result.has(rec.id)).toBe(true);
+  });
+
+  it('does NOT protect a record whose season differs from the verdict', () => {
+    const rec = makeRecord({ season: 'autumn', cycleNumber: 2 });
+    rec.sourceTemplateId = 'tmpl-A';
+    const verdict = makeVerdict({
+      season: 'spring',
+      cycleNumbers: [1, 2],
+      templatePair: ['tmpl-A', 'tmpl-B'],
+    });
+    expect(chronicProtectedRecordIds([rec], [verdict]).has(rec.id)).toBe(false);
+  });
+
+  it('does NOT protect a record whose cycleNumber is not in cycleNumbers', () => {
+    const rec = makeRecord({ season: 'spring', cycleNumber: 9 });
+    rec.sourceTemplateId = 'tmpl-A';
+    const verdict = makeVerdict({
+      season: 'spring',
+      cycleNumbers: [1, 2],
+      templatePair: ['tmpl-A', 'tmpl-B'],
+    });
+    expect(chronicProtectedRecordIds([rec], [verdict]).has(rec.id)).toBe(false);
+  });
+
+  it('does NOT protect a third template C in the same bucket (not in the pair)', () => {
+    const rec = makeRecord({ season: 'spring', cycleNumber: 2 });
+    rec.sourceTemplateId = 'tmpl-C';
+    const verdict = makeVerdict({
+      season: 'spring',
+      cycleNumbers: [1, 2],
+      templatePair: ['tmpl-A', 'tmpl-B'],
+    });
+    expect(chronicProtectedRecordIds([rec], [verdict]).has(rec.id)).toBe(false);
+  });
+
+  it('does NOT protect an undated record (cycleNumber undefined)', () => {
+    const rec = makeRecord({ season: 'spring', cycleNumber: undefined });
+    rec.sourceTemplateId = 'tmpl-A';
+    const verdict = makeVerdict({
+      season: 'spring',
+      cycleNumbers: [1, 2],
+      templatePair: ['tmpl-A', 'tmpl-B'],
+    });
+    expect(chronicProtectedRecordIds([rec], [verdict]).has(rec.id)).toBe(false);
+  });
+
+  it('returns an empty set when there are no verdicts', () => {
+    const rec = makeRecord({ season: 'spring', cycleNumber: 2 });
+    rec.sourceTemplateId = 'tmpl-A';
+    expect(chronicProtectedRecordIds([rec], []).size).toBe(0);
+  });
+
+  it('matches the undated-season scope via (season ?? unknown) on both sides', () => {
+    // A dated record with no season and a verdict with no season both map to the
+    // 'unknown' scope key -> they CAN match.
+    const rec = makeRecord({ season: undefined, cycleNumber: 2 });
+    rec.sourceTemplateId = 'tmpl-A';
+    const verdict = makeVerdict({
+      season: undefined,
+      cycleNumbers: [1, 2],
+      templatePair: ['tmpl-A', 'tmpl-B'],
+    });
+    expect(chronicProtectedRecordIds([rec], [verdict]).has(rec.id)).toBe(true);
   });
 });

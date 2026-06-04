@@ -1,6 +1,7 @@
 // observationLogRetention.ts
 //
-// Pure, store-free retention-partition helper (T3.5).
+// Pure, store-free retention-partition helper (partitionExpiredRecords, T3.5)
+// plus the chronic-protection id mapper (chronicProtectedRecordIds, T3.6).
 //
 // Slice #2 (observationLogRecord.schema.ts) recorded an append-only ledger with
 // an UNBOUNDED-retention covenant: nothing was ever erased. Slice #3 amends that
@@ -23,9 +24,56 @@
 // zod. The CALLER owns protectedRecordIds derivation and persistence.
 
 import type { ObservationLogRecord } from '../../schemas/protocol/observationLogRecord.schema.js';
+import type { ChronicVerdict } from './chronicDetection.js';
 
 /** Default per-season recency window: keep the most-recent 12 distinct cycles. */
 export const OBSERVATION_LOG_RETENTION_CYCLES = 12;
+
+/**
+ * Pure mapper: derive the set of record ids that a retention sweep MUST protect
+ * because they still contribute to a detectable chronic verdict. The caller
+ * feeds the resulting set to partitionExpiredRecords as protectedRecordIds, so
+ * no leg of a still-chronic pair is erased even when one leg sits past the
+ * recency horizon.
+ *
+ * A record `r` is protected iff SOME verdict `v` matches on ALL of:
+ *  - season scope: (r.season ?? 'unknown') === (v.season ?? 'unknown'),
+ *  - cycle membership: r.cycleNumber is defined AND v.cycleNumbers includes it,
+ *  - template leg: v.templatePair includes r.sourceTemplateId.
+ *
+ * Undated records (cycleNumber === undefined) can never match (they carry no
+ * cycle) and are therefore never protected here -- they survive a sweep via the
+ * undated rule in partitionExpiredRecords, not via this set.
+ *
+ * Pure, deterministic, time-free: no Date, no Math.random, no store import.
+ */
+export function chronicProtectedRecordIds(
+  history: ObservationLogRecord[],
+  verdicts: ChronicVerdict[],
+): Set<string> {
+  const protectedIds = new Set<string>();
+  for (const record of history) {
+    if (record.cycleNumber === undefined) {
+      continue; // undated -- cannot match a verdict's cycle.
+    }
+    const recordSeason = record.season ?? 'unknown';
+    for (const verdict of verdicts) {
+      const verdictSeason = verdict.season ?? 'unknown';
+      if (recordSeason !== verdictSeason) {
+        continue;
+      }
+      if (!verdict.cycleNumbers.includes(record.cycleNumber)) {
+        continue;
+      }
+      if (!verdict.templatePair.includes(record.sourceTemplateId)) {
+        continue;
+      }
+      protectedIds.add(record.id);
+      break; // one matching verdict is enough.
+    }
+  }
+  return protectedIds;
+}
 
 /**
  * Partition closure-ledger records into { kept, pruned } for a steward-initiated

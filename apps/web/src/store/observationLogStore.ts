@@ -14,11 +14,28 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { ObservationLogRecord } from '@ogden/shared';
+import {
+  detectChronicVerdicts,
+  chronicProtectedRecordIds,
+  partitionExpiredRecords,
+  OBSERVATION_LOG_RETENTION_CYCLES,
+} from '@ogden/shared';
 
 interface ObservationLogState {
   records: ObservationLogRecord[];
   append: (r: ObservationLogRecord) => void;
   getProjectRecords: (projectId: string) => ObservationLogRecord[];
+  /**
+   * Steward-INITIATED, chronic-safe retention sweep for one project (T3.6). A
+   * deliberate amendment of slice #2's unbounded-retention covenant: it bounds
+   * ledger growth WITHOUT erasing an undated audit row or any record still
+   * contributing to a detectable chronic verdict. Returns the pruned rows so the
+   * action is observable. NEVER auto-triggered -- call explicitly only.
+   */
+  pruneProjectRecords: (
+    projectId: string,
+    keepWithinCycles?: number,
+  ) => ObservationLogRecord[];
 }
 
 export const useObservationLogStore = create<ObservationLogState>()(
@@ -28,6 +45,22 @@ export const useObservationLogStore = create<ObservationLogState>()(
       append: (r) => set((s) => ({ records: [...s.records, r] })),
       getProjectRecords: (projectId) =>
         get().records.filter((r) => r.projectId === projectId),
+      pruneProjectRecords: (projectId, keepWithinCycles) => {
+        const all = get().records;
+        const projectRecords = all.filter((r) => r.projectId === projectId);
+        const others = all.filter((r) => r.projectId !== projectId);
+        // Pruning reads ONLY the ledger (no live clusters) -- protect against the
+        // chronic verdicts still derivable from history alone.
+        const verdicts = detectChronicVerdicts([], projectRecords);
+        const protectedIds = chronicProtectedRecordIds(projectRecords, verdicts);
+        const { kept, pruned } = partitionExpiredRecords(
+          projectRecords,
+          keepWithinCycles ?? OBSERVATION_LOG_RETENTION_CYCLES,
+          protectedIds,
+        );
+        set({ records: [...others, ...kept] });
+        return pruned;
+      },
     }),
     {
       name: 'ogden-observation-log',
