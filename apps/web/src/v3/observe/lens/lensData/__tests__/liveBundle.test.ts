@@ -20,6 +20,7 @@ import { describe, it, expect } from 'vitest';
 import {
   UNIVERSAL_DOMAIN_LABELS,
   OBSERVE_LENS_IDS,
+  getMeasurementSlot,
   type ObserveLensId,
 } from '@ogden/shared';
 import {
@@ -41,6 +42,7 @@ const bundle = buildLiveLensBundle({
   nowMs: NOW_MS,
   projectName: 'Moontrance Creek',
   projectTypeLabel: 'Regenerative Farm + Silvopasture',
+  getSlot: getMeasurementSlot,
 });
 
 const lensById = (id: ObserveLensId) => bundle.lenses.find((l) => l.id === id)!;
@@ -165,12 +167,63 @@ describe('buildObservationPins', () => {
   });
 });
 
-describe('buildLiveLensBundle -- domain detail degrade', () => {
-  it('emits a detail entry per lens with the no-specialised variant', () => {
+describe('buildLiveLensBundle -- specialised from seed captures', () => {
+  it('lights up each lens with its real specialised member from MTC proofs', () => {
+    // The MTC seed carries measurement-bound proof captures on one domain per
+    // lens; with getMeasurementSlot resolving the bindings, every lens emits
+    // its real viz member rather than the { type: 'none' } degrade.
+    const expected: Record<ObserveLensId, string> = {
+      water: 'hydrology',
+      living: 'soil',
+      foundation: 'topography',
+      climate: 'climate',
+      human: 'human',
+      infrastructure: 'infrastructure_empty',
+    };
     for (const id of OBSERVE_LENS_IDS) {
       const detail = bundle.domainDetail[id];
       expect(detail).toBeDefined();
-      expect(detail!.specialised.type).toBe('none');
+      expect(detail!.specialised.type).toBe(expected[id]);
+    }
+  });
+
+  it('computes derived viz fields from the captured rows', () => {
+    const water = bundle.domainDetail['water']!.specialised;
+    if (water.type !== 'hydrology') throw new Error('expected hydrology');
+    expect(water.infiltrationData).toHaveLength(3);
+    expect(water.infiltrationData.map((r) => r.status)).toEqual([
+      'good',
+      'moderate',
+      'risk',
+    ]);
+    expect(water.sources).toHaveLength(2);
+
+    const foundation = bundle.domainDetail['foundation']!.specialised;
+    if (foundation.type !== 'topography') throw new Error('expected topography');
+    // slope area share 12000/11000/5000 -> 43/39/18 (rounded).
+    expect(foundation.slopeBreakdown.map((s) => s.pct)).toEqual([43, 39, 18]);
+
+    const climate = bundle.domainDetail['climate']!.specialised;
+    if (climate.type !== 'climate') throw new Error('expected climate');
+    expect(climate.windRose).toHaveLength(8); // all 8 compass petals
+    expect(climate.windRose.find((w) => w.dir === 'SW')!.freq).toBe(3);
+
+    const living = bundle.domainDetail['living']!.specialised;
+    if (living.type !== 'soil') throw new Error('expected soil');
+    // third pH row is pH-only (partial degrade).
+    expect(living.phData[2]!.om).toBeUndefined();
+  });
+
+  it('keeps the honest none degrade when no bound captures resolve', () => {
+    // Without the slot resolver, bindings never resolve -> every lens degrades.
+    const plain = buildLiveLensBundle({
+      points: POINTS,
+      nowMs: NOW_MS,
+      projectName: 'Moontrance Creek',
+      projectTypeLabel: 'Regenerative Farm + Silvopasture',
+    });
+    for (const id of OBSERVE_LENS_IDS) {
+      expect(plain.domainDetail[id]!.specialised.type).toBe('none');
     }
   });
 

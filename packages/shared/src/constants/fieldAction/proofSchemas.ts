@@ -338,6 +338,118 @@ export const FIELD_ACTION_PROOF_SCHEMAS: readonly ProofSchema[] = [
       },
     ],
   },
+  {
+    id: 'observe-measurement',
+    taskCategory: 'observe-measurement',
+    title: 'Observe measurement capture',
+    description:
+      'Structured field readings that feed the Observe-lens specialised charts. Each slot binds to one lens viz field; a capture carries the row in loggedResult.',
+    slots: [
+      {
+        id: 'obs-infiltration',
+        proofType: 'logged_result',
+        label: 'Infiltration test',
+        instruction: 'Log a zone plus its infiltration rate (mm/hr).',
+        required: false,
+        kind: 'infiltration',
+        measurementBinding: {
+          lens: 'water',
+          vizField: 'water.infiltrationData',
+        },
+      },
+      {
+        id: 'obs-water-source',
+        proofType: 'logged_result',
+        label: 'Water source',
+        instruction: 'Inventory one water source and its status.',
+        required: false,
+        measurementBinding: { lens: 'water', vizField: 'water.sources' },
+      },
+      {
+        id: 'obs-soil-ph',
+        proofType: 'logged_result',
+        label: 'Soil pH test',
+        instruction: 'Log a zone pH; add OM% and compaction if measured.',
+        required: false,
+        kind: 'jar-test',
+        measurementBinding: { lens: 'living', vizField: 'soil.phData' },
+      },
+      {
+        id: 'obs-elevation-zone',
+        proofType: 'logged_result',
+        label: 'Elevation zone',
+        instruction: 'Record a survey zone: area, aspect, intended use.',
+        required: false,
+        measurementBinding: {
+          lens: 'foundation',
+          vizField: 'topography.elevationZones',
+        },
+      },
+      {
+        id: 'obs-slope-band',
+        proofType: 'logged_result',
+        label: 'Slope band',
+        instruction: 'Record a slope band and its surveyed area.',
+        required: false,
+        measurementBinding: {
+          lens: 'foundation',
+          vizField: 'topography.slopeBreakdown',
+        },
+      },
+      {
+        id: 'obs-wind-obs',
+        proofType: 'logged_result',
+        label: 'Wind observation',
+        instruction: 'Log one wind direction and speed (m/s).',
+        required: false,
+        measurementBinding: { lens: 'climate', vizField: 'climate.windRose' },
+      },
+      {
+        id: 'obs-microclimate',
+        proofType: 'logged_result',
+        label: 'Microclimate',
+        instruction: 'Note a microclimate, its character, and risk.',
+        required: false,
+        measurementBinding: {
+          lens: 'climate',
+          vizField: 'climate.microclimates',
+        },
+      },
+      {
+        id: 'obs-capacity',
+        proofType: 'logged_result',
+        label: 'Capacity reading',
+        instruction: 'Log a readiness or capacity percent (0-100).',
+        required: false,
+        measurementBinding: {
+          lens: 'human',
+          vizField: 'human.capacityBars',
+        },
+      },
+      {
+        id: 'obs-consent',
+        proofType: 'logged_result',
+        label: 'Consent item',
+        instruction: 'Record a consent or permit item and its status.',
+        required: false,
+        measurementBinding: {
+          lens: 'human',
+          vizField: 'human.consentItems',
+        },
+      },
+      {
+        id: 'obs-suggested-task',
+        proofType: 'logged_result',
+        label: 'Suggested task',
+        instruction: 'Capture a follow-up task, its domain and priority.',
+        required: false,
+        measurementBinding: {
+          lens: 'infrastructure',
+          vizField: 'infrastructure.suggestedTasks',
+        },
+      },
+    ],
+  },
 ] as const;
 
 const BY_ID: Map<string, ProofSchema> = new Map(

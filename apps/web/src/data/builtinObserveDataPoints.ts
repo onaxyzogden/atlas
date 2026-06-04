@@ -30,6 +30,7 @@ import {
   type ObserveDataPoint,
   type ObserveStatusOutput,
   type UniversalDomain,
+  type FieldActionProofItem,
 } from '@ogden/shared';
 import { useObserveDataPointStore } from '../store/observeDataPointStore.js';
 
@@ -46,6 +47,22 @@ export interface ObserveSeedRow {
   note?: string;
   /** [lng, lat] if the observation has a location, else omitted. */
   location?: readonly [number, number];
+  /**
+   * Optional structured measurement captures attached to this data point.
+   * Each expands to a `logged_result` FieldActionProofItem whose `slotId`
+   * resolves (read-side) to a measurement-bound proof slot, feeding the
+   * Observe-lens specialised charts. Authoring shape only carries the
+   * variable parts; the builder fills id / proofType / capturedAt.
+   */
+  proofs?: readonly ObserveSeedProof[];
+}
+
+/** A single measurement capture for a seed row. `slotId` must name a slot
+ *  that declares a `measurementBinding` in the proof catalog; `loggedResult`
+ *  carries the row for that slot's bound vizField payload. */
+export interface ObserveSeedProof {
+  slotId: string;
+  loggedResult: Record<string, unknown>;
 }
 
 const CAPTURED_BY = 'builtin-seed';
@@ -79,6 +96,17 @@ export function buildBuiltinObserveDataPoints(
 ): ObserveDataPoint[] {
   const out: ObserveDataPoint[] = [];
   for (const row of rows) {
+    const capturedAt = normalizeCapturedAt(row.capturedAt);
+    const proofItems: FieldActionProofItem[] = (row.proofs ?? []).map(
+      (proof, i): FieldActionProofItem => ({
+        id: `seed:${row.key}:proof:${i}`,
+        slotId: proof.slotId,
+        proofType: 'logged_result',
+        capturedAt,
+        capturedBy: CAPTURED_BY,
+        loggedResult: proof.loggedResult,
+      }),
+    );
     const candidate = {
       id: `seed:${row.key}`,
       projectId,
@@ -95,8 +123,8 @@ export function buildBuiltinObserveDataPoints(
       supersededBy: null,
       statusOutput: row.statusOutput,
       measurementValue: row.note ? { label: row.label, note: row.note } : { label: row.label },
-      proofItems: [],
-      capturedAt: normalizeCapturedAt(row.capturedAt),
+      proofItems,
+      capturedAt,
       capturedBy: CAPTURED_BY,
     };
     const parsed = ObserveDataPointSchema.safeParse(candidate);
@@ -247,6 +275,13 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-02',
     label: 'Steward roster not yet confirmed',
     note: 'Decision-maker roster for the creek parcel still being recorded.',
+    proofs: [
+      { slotId: 'obs-capacity', loggedResult: { label: 'Steward availability', pct: 45 } },
+      { slotId: 'obs-capacity', loggedResult: { label: 'Equipment readiness', pct: 70 } },
+      { slotId: 'obs-capacity', loggedResult: { label: 'Budget secured', pct: 30 } },
+      { slotId: 'obs-consent', loggedResult: { label: 'Conservation authority permit', status: 'pending', weeks: '4-6 wks' } },
+      { slotId: 'obs-consent', loggedResult: { label: 'Neighbour access easement', status: 'outstanding', weeks: 'TBD' } },
+    ],
   },
   {
     key: 'mtc-ecology-hedgerow',
@@ -263,6 +298,30 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-14',
     label: 'Seasonal creek runs SW to NE',
     note: 'Flashy seasonal flow; SW inlet to NE outlet across the lower field.',
+    proofs: [
+      { slotId: 'obs-infiltration', loggedResult: { zone: 'Upper field', rate: 46 } },
+      { slotId: 'obs-infiltration', loggedResult: { zone: 'Mid slope', rate: 24 } },
+      { slotId: 'obs-infiltration', loggedResult: { zone: 'Creek flat', rate: 9 } },
+      {
+        slotId: 'obs-water-source',
+        loggedResult: {
+          label: 'Seasonal creek',
+          sourceType: 'surface',
+          status: 'Flashy seasonal flow',
+          confidence: 'medium',
+        },
+      },
+      {
+        slotId: 'obs-water-source',
+        loggedResult: {
+          label: 'Tile-drain outlet',
+          sourceType: 'drain',
+          status: 'Active in wet season',
+          confidence: 'high',
+          divergence: true,
+        },
+      },
+    ],
   },
   {
     key: 'mtc-soil-field',
@@ -271,6 +330,11 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-16',
     label: 'Tile-drained crop field — degraded topsoil',
     note: 'Decades of corn/soy rotation; texture sample pulled, structure poor.',
+    proofs: [
+      { slotId: 'obs-soil-ph', loggedResult: { zone: 'North block', ph: 6.1, om: 2.3, compaction: 'high' } },
+      { slotId: 'obs-soil-ph', loggedResult: { zone: 'Mid block', ph: 6.5, om: 3.0, compaction: 'moderate' } },
+      { slotId: 'obs-soil-ph', loggedResult: { zone: 'Creek edge', ph: 6.8 } },
+    ],
   },
   {
     key: 'mtc-topo',
@@ -279,6 +343,14 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-10',
     label: 'Gentle fall toward the creek corridor',
     note: 'Low-relief field grading to the seasonal watercourse on the NE edge.',
+    proofs: [
+      { slotId: 'obs-elevation-zone', loggedResult: { label: 'Upper terrace', areaM2: 14000, aspect: 'South-facing', use: 'Silvopasture rows' } },
+      { slotId: 'obs-elevation-zone', loggedResult: { label: 'Mid slope', areaM2: 9000, aspect: 'East-facing', use: 'Alley cropping' } },
+      { slotId: 'obs-elevation-zone', loggedResult: { label: 'Creek flat', areaM2: 5000, aspect: 'Level', use: 'Riparian buffer' } },
+      { slotId: 'obs-slope-band', loggedResult: { band: '0-5%', areaM2: 12000 } },
+      { slotId: 'obs-slope-band', loggedResult: { band: '5-10%', areaM2: 11000 } },
+      { slotId: 'obs-slope-band', loggedResult: { band: '10-15%', areaM2: 5000 } },
+    ],
   },
   {
     key: 'mtc-risk-setback',
@@ -295,6 +367,11 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-15',
     label: 'Culvert at the access-track creek crossing',
     note: 'Condition unverified; inspection scheduled before machinery moves.',
+    proofs: [
+      { slotId: 'obs-suggested-task', loggedResult: { label: 'Inspect culvert condition', domain: 'Access', priority: 'high' } },
+      { slotId: 'obs-suggested-task', loggedResult: { label: 'Map existing fence lines', domain: 'Infrastructure', priority: 'medium' } },
+      { slotId: 'obs-suggested-task', loggedResult: { label: 'Log farm water points', domain: 'Monitoring', priority: 'low' } },
+    ],
   },
   {
     key: 'mtc-climate-sectors',
@@ -303,6 +380,17 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-08',
     label: 'Prevailing wind + sun sectors logged',
     note: 'Sector read from the field centre informs windbreak placement.',
+    proofs: [
+      { slotId: 'obs-wind-obs', loggedResult: { dir: 'SW', speedMs: 6.4 } },
+      { slotId: 'obs-wind-obs', loggedResult: { dir: 'SW', speedMs: 5.8 } },
+      { slotId: 'obs-wind-obs', loggedResult: { dir: 'SW', speedMs: 7.1 } },
+      { slotId: 'obs-wind-obs', loggedResult: { dir: 'W', speedMs: 4.9 } },
+      { slotId: 'obs-wind-obs', loggedResult: { dir: 'W', speedMs: 5.5 } },
+      { slotId: 'obs-wind-obs', loggedResult: { dir: 'S', speedMs: 3.8 } },
+      { slotId: 'obs-wind-obs', loggedResult: { dir: 'NW', speedMs: 4.2 } },
+      { slotId: 'obs-microclimate', loggedResult: { label: 'Creek frost pocket', sizeHa: 0.6, character: 'Cold-air drainage at dawn', risk: 'high' } },
+      { slotId: 'obs-microclimate', loggedResult: { label: 'South terrace', sizeHa: 1.2, character: 'Warm, early-season bench', risk: 'low' } },
+    ],
   },
   {
     key: 'mtc-landbase',
