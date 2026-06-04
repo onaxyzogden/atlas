@@ -346,11 +346,20 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // silv-s7-financial-viability. Candidate mappings — operator-reviewable like
   // the silvopasture set.
 
-  // S1 — household needs & self-sufficiency: needs inventory / targets /
-  // household agreement are text-decision; project-level vision capture is
-  // served by the universal s1-vision form arms also present on every
-  // homestead. gap: all.
-  'hms-s1-household-needs': [],
+  // S1 — household needs & self-sufficiency. R2 (2026-06-03): wired one
+  // form-arm tool per checklist item (catalogue id == formId == item id), so
+  // each capture ticks its checklist item and the set opens as a tabbed modal,
+  // mirroring the universal s1-vision form arms. Was an intentional [] (text-
+  // decision); now a per-item capture surface.
+  'hms-s1-household-needs': [
+    'hms-s1-household-needs-c1',
+    'hms-s1-household-needs-c2',
+    'hms-s1-household-needs-c3',
+    'hms-s1-household-needs-c4',
+    'hms-s1-household-needs-c5',
+    'hms-s1-household-needs-c6',
+    'hms-s1-household-needs-c7',
+  ],
   // S2 — household resource flows: c3 maps on-site organic outputs / greywater
   // available for fertility cycling (source->sink flow). gap: c1/c2/c4/c5/c6
   // consumption / waste / energy recording (no draw tool).

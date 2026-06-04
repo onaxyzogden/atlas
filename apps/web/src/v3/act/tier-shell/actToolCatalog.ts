@@ -587,6 +587,68 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     category: 'field-logs',
     arm: { kind: 'log', quickLogId: 'animals-livestock' },
   },
+
+  // ---- Per-type s1 intent capture forms (R2) ----
+  // One form tool per checklist item on the per-type s1 vision/intent
+  // objectives (the same objective class the universal s1-vision form arms
+  // serve at project level). catalogue id == formId == checklist-item id, so
+  // saving each form ticks that exact checklist item (handleFormSave ->
+  // setItemComplete) and an objective's same-category form tools open as one
+  // tabbed modal -- identical UX to the universal s1-vision arms. `prompt`
+  // reuses the operator-authored checklist text (ASCII-normalised, imperative);
+  // `placeholder` is intentionally omitted (the checklist instruction is
+  // self-explanatory). All carry category: 'vision'. Authored 2026-06-03.
+
+  // -- homestead --
+  'hms-s1-household-needs-c1': {
+    id: 'hms-s1-household-needs-c1',
+    label: 'Household & ages',
+    icon: UserCheck,
+    category: 'vision',
+    arm: { kind: 'form', formId: 'hms-s1-household-needs-c1', prompt: 'Define household composition and age range of occupants' },
+  },
+  'hms-s1-household-needs-c2': {
+    id: 'hms-s1-household-needs-c2',
+    label: 'Food target',
+    icon: Sprout,
+    category: 'vision',
+    arm: { kind: 'form', formId: 'hms-s1-household-needs-c2', prompt: 'Define household food production target - subsistence, supplementary, or commercial' },
+  },
+  'hms-s1-household-needs-c3': {
+    id: 'hms-s1-household-needs-c3',
+    label: 'Enterprise scope',
+    icon: Target,
+    category: 'vision',
+    arm: { kind: 'form', formId: 'hms-s1-household-needs-c3', prompt: 'Define domestic enterprise scope, if any - produce for own use only or for sale' },
+  },
+  'hms-s1-household-needs-c4': {
+    id: 'hms-s1-household-needs-c4',
+    label: 'Labour available',
+    icon: HardHat,
+    category: 'vision',
+    arm: { kind: 'form', formId: 'hms-s1-household-needs-c4', prompt: 'Identify household labour available for land management and enterprise work' },
+  },
+  'hms-s1-household-needs-c5': {
+    id: 'hms-s1-household-needs-c5',
+    label: 'Accessibility',
+    icon: UserCheck,
+    category: 'vision',
+    arm: { kind: 'form', formId: 'hms-s1-household-needs-c5', prompt: 'Assess household accessibility requirements - mobility, health, age' },
+  },
+  'hms-s1-household-needs-c6': {
+    id: 'hms-s1-household-needs-c6',
+    label: 'Space requirements',
+    icon: Home,
+    category: 'vision',
+    arm: { kind: 'form', formId: 'hms-s1-household-needs-c6', prompt: 'Define household space requirements - dwelling footprint, gardens, outbuildings' },
+  },
+  'hms-s1-household-needs-c7': {
+    id: 'hms-s1-household-needs-c7',
+    label: 'Confirm agreed',
+    icon: UserCheck,
+    category: 'vision',
+    arm: { kind: 'form', formId: 'hms-s1-household-needs-c7', prompt: 'Confirm household needs assessment is agreed by all occupants before design begins' },
+  },
 };
 
 /** Resolve catalogue ids to ActTool objects, dropping any unknown id. */
