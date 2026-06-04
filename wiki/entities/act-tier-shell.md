@@ -1022,6 +1022,43 @@ rebased branch), left for the operator. Gap A now **49** across the remaining
 primary types (education, wellness). Log:
 [[log/2026-06-03-olos-act-ecovillage-overrides]].
 
+## Objective->tool overrides: education (2026-06-03)
+
+Tenth per-type catalogue wired (audit remediation R1/R3), after homestead,
+regen-farm, market-garden, orchard, livestock_operation, conservation, off_grid,
+agritourism and ecovillage. All **22 `edu-*` education objectives** carry
+explicit `OBJECTIVE_ACT_TOOLS_OVERRIDE` entries; education is **primary-only**
+(no standalone secondary layer, no patches), so this is a primary-only wiring
+(and a primary-only ratchet). **11 grounded**, concentrated in the S2/S3 site &
+demo surveys (teaching-infrastructure->buildings/zone/path/note, learning-
+potential->soil/watercourse/vegetation/crops/note, landscape-vectors->neighbour-
+pin/catchment/hazard-zone/note, learner-access-safety->path/hazard-zone/parking/
+fencing/buildings, demo-baseline->soil/crops/vegetation/water-lines) and the
+S4/S5 teaching-zone & demo-plot design block (teaching-zone-allocation->buildings/
+zone/path/beds, safety-risk-framework->hazard-zone/fencing/path, teaching-spaces->
+buildings/zone, demo-plots-signage->beds/crops/path/note, learner-amenity->
+buildings/water-lines/zone, food-kitchen->buildings/barns); **11 intentional
+`[]`** (the whole S1 decision band incl. the regulatory hard gate, the S4
+program-delivery and food-hospitality strategies, the S6 evaluation/compliance/
+adaptive monitors, the whole S7 launch/onboarding/financial band). **Amanah:**
+EDU-S7.6 (financial viability) is ordinary fee-for-service / break-even budgeting
+(course fees, grants) -- no riba, no gharar, no advance sale -- mapped to `[]`
+(financial decision), so no act surface engages a money instrument; the
+regulatory/safety/launch hard gates stay honoured at the catalogue layer, the two
+pure-decision gates map to `[]` and safety-risk-framework gets its spatial half;
+no fiqh re-encoded at the Act layer. Before this the education objectives fell
+through `STRATUM_ACT_TOOLS_DEFAULT` (surveys & design surfaced the access-
+utilities set instead of structure/zoning/survey/safety families). **R3:**
+`actToolCoverage.test.ts` ratcheted with an education assertion over
+`EDUCATION_PRIMARY_OBJECTIVES`. Verified: shared `tsc` EXIT 0; audit Gap A
+**49->27**, Gap B 0, Gap C 112->120 (116 intentional / 4 default-driven); bounded
+`--pool=forks` `actToolCoverage` 15/15, `objectiveObserveDomains` 8/8,
+`resolveProjectObjectives` 25/25. Clean commit `ac98a686` via
+`git commit -- <pathspec>`, not pushed; commit-message body states the correct
+**11 grounded / 11 []** split (the ecovillage `71c4671f` miscount lesson applied).
+Gap A now **27** across the last remaining primary type (wellness). Log:
+[[log/2026-06-03-olos-act-education-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
