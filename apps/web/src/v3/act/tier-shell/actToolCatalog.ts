@@ -649,6 +649,100 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     category: 'vision',
     arm: { kind: 'form', formId: 'hms-s1-household-needs-c7', prompt: 'Confirm household needs assessment is agreed by all occupants before design begins' },
   },
+
+  // -- silvopasture --
+  'silv-s1-enterprise-mix-c1': {
+    id: 'silv-s1-enterprise-mix-c1', label: 'Species & breeds', icon: Beef, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c1', prompt: 'Define species and breeds selected - cattle, sheep, goats, pigs, poultry, or combination' },
+  },
+  'silv-s1-enterprise-mix-c2': {
+    id: 'silv-s1-enterprise-mix-c2', label: 'Production intent', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c2', prompt: 'Define production intent per species - meat, milk, fibre, eggs, land improvement' },
+  },
+  'silv-s1-enterprise-mix-c3': {
+    id: 'silv-s1-enterprise-mix-c3', label: 'Herd-mix rationale', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c3', prompt: 'Define herd mix rationale - why these species, why these numbers' },
+  },
+  'silv-s1-enterprise-mix-c4': {
+    id: 'silv-s1-enterprise-mix-c4', label: 'Stocking density', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c4', prompt: 'Define stocking density - animals per hectare, carrying capacity assessment' },
+  },
+  'silv-s1-enterprise-mix-c5': {
+    id: 'silv-s1-enterprise-mix-c5', label: 'Mix compatibility', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c5', prompt: 'Confirm mix is compatible with land type, labour availability, and market' },
+  },
+  'silv-s1-enterprise-mix-c6': {
+    id: 'silv-s1-enterprise-mix-c6', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-enterprise-mix-c6', prompt: 'Confirm herd mix is agreed by all decision-makers' },
+  },
+  'silv-s1-land-improvement-philosophy-c1': {
+    id: 'silv-s1-land-improvement-philosophy-c1', label: 'Improvement ethos', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c1', prompt: 'Define the land-improvement philosophy - is grazing designed to improve soil, pasture productivity, ecological condition, or a combination' },
+  },
+  'silv-s1-land-improvement-philosophy-c2': {
+    id: 'silv-s1-land-improvement-philosophy-c2', label: 'Ecological outcomes', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c2', prompt: 'Identify ecological outcomes desired - plant species diversity, soil biology, water infiltration' },
+  },
+  'silv-s1-land-improvement-philosophy-c3': {
+    id: 'silv-s1-land-improvement-philosophy-c3', label: 'Grazing windows', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c3', prompt: 'Define grazing windows per zone - when animals are present, when land is rested' },
+  },
+  'silv-s1-land-improvement-philosophy-c4': {
+    id: 'silv-s1-land-improvement-philosophy-c4', label: 'Confirm rest', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c4', prompt: 'Confirm grazing windows support land-improvement goals and rest periods' },
+  },
+  'silv-s1-land-improvement-philosophy-c5': {
+    id: 'silv-s1-land-improvement-philosophy-c5', label: 'Align with intent', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c5', prompt: 'Align grazing philosophy with the primary silvopasture production intent' },
+  },
+  'silv-s1-land-improvement-philosophy-c6': {
+    id: 'silv-s1-land-improvement-philosophy-c6', label: 'Document gate', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-land-improvement-philosophy-c6', prompt: 'Document grazing philosophy as a gate on livestock management design' },
+  },
+  'silv-s1-animal-welfare-c1': {
+    id: 'silv-s1-animal-welfare-c1', label: 'Welfare ethos', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c1', prompt: 'Define the livestock welfare philosophy - what excellent care means for each species' },
+  },
+  'silv-s1-animal-welfare-c2': {
+    id: 'silv-s1-animal-welfare-c2', label: 'Non-negotiables', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c2', prompt: 'Identify welfare non-negotiables - breed selection, stocking density, access to feed/water/shelter' },
+  },
+  'silv-s1-animal-welfare-c3': {
+    id: 'silv-s1-animal-welfare-c3', label: 'Health protocols', icon: FlaskConical, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c3', prompt: 'Define health and vaccination protocols per species' },
+  },
+  'silv-s1-animal-welfare-c4': {
+    id: 'silv-s1-animal-welfare-c4', label: 'Handling & slaughter', icon: Beef, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c4', prompt: 'Define humane handling and slaughter intent - on-farm or licensed facility' },
+  },
+  'silv-s1-animal-welfare-c5': {
+    id: 'silv-s1-animal-welfare-c5', label: 'Welfare vs goals', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c5', prompt: 'Confirm welfare commitment is compatible with production goals' },
+  },
+  'silv-s1-animal-welfare-c6': {
+    id: 'silv-s1-animal-welfare-c6', label: 'Document gate', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-s1-animal-welfare-c6', prompt: 'Document welfare philosophy as a gate on all livestock management design' },
+  },
+  'silv-sec-s1-livestock-intent-c1': {
+    id: 'silv-sec-s1-livestock-intent-c1', label: 'Integration rationale', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-sec-s1-livestock-intent-c1', prompt: 'Define the integration rationale - grazing as a land-management tool, a production enterprise, or both' },
+  },
+  'silv-sec-s1-livestock-intent-c2': {
+    id: 'silv-sec-s1-livestock-intent-c2', label: 'Candidate species', icon: Beef, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-sec-s1-livestock-intent-c2', prompt: 'Identify candidate species and classes of stock under consideration - ruminants, poultry, mixed' },
+  },
+  'silv-sec-s1-livestock-intent-c3': {
+    id: 'silv-sec-s1-livestock-intent-c3', label: 'Relation to primary', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-sec-s1-livestock-intent-c3', prompt: 'Define how livestock relate to the primary enterprise - complementary, supplementary, or competing for land' },
+  },
+  'silv-sec-s1-livestock-intent-c4': {
+    id: 'silv-sec-s1-livestock-intent-c4', label: 'Experience & labour', icon: HardHat, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-sec-s1-livestock-intent-c4', prompt: 'Identify operator livestock experience and labour availability for daily stock care' },
+  },
+  'silv-sec-s1-livestock-intent-c5': {
+    id: 'silv-sec-s1-livestock-intent-c5', label: 'Confirm fit', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'silv-sec-s1-livestock-intent-c5', prompt: 'Confirm livestock intent is compatible with the primary enterprise vision and site scale' },
+  },
 };
 
 /** Resolve catalogue ids to ActTool objects, dropping any unknown id. */

@@ -198,9 +198,19 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // ---------- S1 — Project Foundation (all non-spatial) ----------
   // gap: all — enterprise mix, land-improvement philosophy, and welfare
   // standards are species / intent / target / standard decisions, no map draw.
-  'silv-s1-enterprise-mix': [],
-  'silv-s1-land-improvement-philosophy': [],
-  'silv-s1-animal-welfare': [],
+  'silv-s1-enterprise-mix': [
+    'silv-s1-enterprise-mix-c1', 'silv-s1-enterprise-mix-c2', 'silv-s1-enterprise-mix-c3',
+    'silv-s1-enterprise-mix-c4', 'silv-s1-enterprise-mix-c5', 'silv-s1-enterprise-mix-c6',
+  ],
+  'silv-s1-land-improvement-philosophy': [
+    'silv-s1-land-improvement-philosophy-c1', 'silv-s1-land-improvement-philosophy-c2',
+    'silv-s1-land-improvement-philosophy-c3', 'silv-s1-land-improvement-philosophy-c4',
+    'silv-s1-land-improvement-philosophy-c5', 'silv-s1-land-improvement-philosophy-c6',
+  ],
+  'silv-s1-animal-welfare': [
+    'silv-s1-animal-welfare-c1', 'silv-s1-animal-welfare-c2', 'silv-s1-animal-welfare-c3',
+    'silv-s1-animal-welfare-c4', 'silv-s1-animal-welfare-c5', 'silv-s1-animal-welfare-c6',
+  ],
 
   // ---------- S2 — Land Reading ----------
   // Pasture condition & forage species: map pasture communities + vegetation.
@@ -314,7 +324,11 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // ---------- Silvopasture SECONDARY (additive livestock layer) ----------
   // Livestock enterprise intent: rationale / species / labour decisions.
   // gap: all (non-spatial).
-  'silv-sec-s1-livestock-intent': [],
+  'silv-sec-s1-livestock-intent': [
+    'silv-sec-s1-livestock-intent-c1', 'silv-sec-s1-livestock-intent-c2',
+    'silv-sec-s1-livestock-intent-c3', 'silv-sec-s1-livestock-intent-c4',
+    'silv-sec-s1-livestock-intent-c5',
+  ],
   // Forage base & grazing capacity: map forage + baseline sampling. gap: c2
   // seasonality, c3 capacity (formula), c4 constraints, c5 weed/toxic.
   'silv-sec-s3-forage-survey': ['pasture', 'vegetation', 'transect'],
