@@ -106,3 +106,6 @@ ASCII-only copy. Follows the protocol-deviation flag line
 Design doc: `stages/design-protocol-cooccurrence-detection-review.md`.
 Log: [[log/2026-06-03-atlas-cooccurrence-detection-T1-T4]].
 Entities: [[entities/protocols-dashboard]], [[entities/observe-dashboard]].
+Followed by [[decisions/2026-06-03-atlas-observation-log]] (slice #2, the historical
+ledger) and [[decisions/2026-06-03-atlas-chronic-detection]] (slice #3, the chronic
+multi-cycle detector that unions this live model with that ledger).

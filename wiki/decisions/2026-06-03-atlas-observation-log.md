@@ -105,5 +105,9 @@ fetched + 0-behind before each commit; not pushed ([[project-branch-rebase]]);
 CSRA untouched ([[fiqh-csra-erased-2026-05-04]]); ASCII-only copy.
 Design doc: `stages/design-observation-log-review.md` (approved).
 Follows the co-occurrence line ([[decisions/2026-06-03-atlas-cooccurrence-detection]]).
+Consumed by [[decisions/2026-06-03-atlas-chronic-detection]] (slice #3): the chronic
+detector reads this ledger as the historical leg of its live+history union, and slice #3
+deliberately AMENDS this ADR's unbounded-retention covenant with a steward-initiated,
+chronic-safe `pruneProjectRecords` (no silent erasure; returns the pruned rows).
 Log: [[log/2026-06-03-atlas-observation-log]].
 Entities: [[entities/protocols-dashboard]], [[entities/observe-dashboard]].
