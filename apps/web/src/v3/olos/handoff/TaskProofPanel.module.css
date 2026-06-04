@@ -8,7 +8,7 @@
  *
  * Rather than hardcode one theme, every rule reads a panel-scoped --tpp-* token
  * resolved on .packet from a host-variable fallback chain:
- *   tier-shell tokens (--color-*) -> OLOS tokens (--bg-*/--text-*/--accent-*)
+ *   tier-shell tokens (--color-x) -> OLOS tokens (--bg-x, --text-x, --accent-x)
  *   -> an absolute dark-theme default. Each host therefore themes the panel by
  *   defining its own variables; neither palette is baked in here.
  */
