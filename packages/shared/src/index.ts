@@ -187,6 +187,7 @@ export * from './constants/protocol/severityTierStyle.js';
 export * from './constants/protocol/deviationPolicy.js';
 export * from './constants/protocol/feedsToObjective.js';
 export * from './constants/protocol/coOccurrence.js';
+export * from './constants/protocol/chronicDetection.js';
 
 // Field action (OLOS Act Command Center Spec v1 — Phase 3)
 export * from './schemas/fieldAction/proofItem.schema.js';
