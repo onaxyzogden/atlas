@@ -64,11 +64,24 @@ export interface SnapTargets {
   boundary?: GeoJSON.Polygon;
   structureCorners?: LngLat[];
   paddockCorners?: LngLat[];
+  /**
+   * Draw-time targets (consumed by `snapDrawPoint`, not the legacy `snapPoint`).
+   * `lines` = each fence/paddock/boundary ring as an ordered coord list; every
+   * adjacent pair is a snappable edge. `vertices` = all corners/endpoints of
+   * those targets, snapped to first (vertices beat edges within the radius).
+   */
+  lines?: LngLat[][];
+  vertices?: LngLat[];
 }
 
 export interface SnapResult {
   position: LngLat;
   snappedTo: "boundary" | "structure" | "paddock" | null;
+}
+
+export interface DrawSnapResult {
+  position: LngLat;
+  snappedTo: "vertex" | "line" | null;
 }
 
 export function snapPoint(
@@ -124,4 +137,50 @@ function nearestCorner(
   }
   if (bestLngLat && bestDist <= SNAP_RADIUS_PX) return bestLngLat;
   return null;
+}
+
+/**
+ * snapDrawPoint -- draw-time snap pass for live MapboxDraw sessions.
+ *
+ * Additive sibling of `snapPoint` (which serves toolbox placement and is left
+ * untouched). Given a click `raw`, snaps to the nearest `targets` feature within
+ * the same 8 px screen radius, in priority order:
+ *
+ *   1. Vertices (existing corners / endpoints) -- via `nearestCorner`.
+ *   2. Edges (nearest point along any segment of `lines`) -- via `snapToSegment`.
+ *
+ * Vertices win over edges when both are in range so drawing locks cleanly onto
+ * shared corners. Returns `{ position, snappedTo }`; `position` is `raw`
+ * unchanged when nothing is in range (`snappedTo: null`).
+ */
+export function snapDrawPoint(
+  map: maplibregl.Map,
+  raw: LngLat,
+  targets: SnapTargets,
+): DrawSnapResult {
+  const clickPx = project(map, raw);
+
+  // Priority 1 -- vertices (corners / endpoints)
+  const vertex = nearestCorner(map, clickPx, targets.vertices);
+  if (vertex) return { position: vertex, snappedTo: "vertex" };
+
+  // Priority 2 -- edges (nearest point on any line segment)
+  if (targets.lines && targets.lines.length > 0) {
+    let best: { snapped: LngLat; dist: number } | null = null;
+    for (const line of targets.lines) {
+      if (!line || line.length < 2) continue;
+      for (let i = 0; i < line.length - 1; i++) {
+        const a = line[i] as LngLat | undefined;
+        const b = line[i + 1] as LngLat | undefined;
+        if (!a || !b) continue;
+        const r = snapToSegment(map, clickPx, a, b);
+        if (r && (!best || r.dist < best.dist)) best = r;
+      }
+    }
+    if (best && best.dist <= SNAP_RADIUS_PX) {
+      return { position: best.snapped, snappedTo: "line" };
+    }
+  }
+
+  return { position: raw, snappedTo: null };
 }

@@ -24,6 +24,13 @@ import type { Map as MaplibreMap } from 'maplibre-gl';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import * as turf from '@turf/turf';
 import { MAPLIBRE_DRAW_STYLES } from './mapboxDrawStyles.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
+import {
+  SNAP_DRAW_LINE_STRING,
+  SNAP_DRAW_POLYGON,
+  snapDrawLineString,
+  snapDrawPolygon,
+} from './snapDrawModes.js';
 
 export type DrawMode = 'draw_point' | 'draw_line_string' | 'draw_polygon';
 
@@ -45,6 +52,19 @@ export interface UseMapboxDrawToolArgs<G extends DrawGeometry> {
    * `MAPLIBRE_DRAW_STYLES` default when unset.
    */
   previewColor?: string;
+  /**
+   * When true (and the mode is a line/polygon mode), draw with the snap-enabled
+   * custom modes (`snapDrawModes`) so clicked vertices snap to existing
+   * features. `draw_point` and `snap:false` (the default) keep the stock modes,
+   * leaving every existing caller byte-for-byte identical.
+   */
+  snap?: boolean;
+  /**
+   * Supplies the snap targets, evaluated once at mode start. Only consulted when
+   * `snap` is true. Returns existing vertices/edges (fences, paddocks, boundary,
+   * structures) to snap onto.
+   */
+  getSnapTargets?: () => SnapTargets;
 }
 
 export interface UseMapboxDrawToolReturn<G extends DrawGeometry> {
@@ -73,6 +93,8 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
   onComplete,
   enabled = true,
   previewColor,
+  snap = false,
+  getSnapTargets,
 }: UseMapboxDrawToolArgs<G>): UseMapboxDrawToolReturn<G> {
   const [geometry, setGeometry] = useState<G | null>(null);
   const [liveArea, setLiveArea] = useState<number | null>(null);
@@ -82,13 +104,37 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
   useEffect(() => {
     onCompleteRef.current = onComplete;
   }, [onComplete]);
+  // Stash latest getSnapTargets so target-source identity churn doesn't re-init
+  // the draw control mid-session.
+  const getSnapTargetsRef = useRef(getSnapTargets);
+  useEffect(() => {
+    getSnapTargetsRef.current = getSnapTargets;
+  }, [getSnapTargets]);
 
   useEffect(() => {
     if (!enabled) return;
+    // Snap is only meaningful for the line/polygon modes; point drops never
+    // snap. When armed, register the custom snap modes alongside the stock set.
+    const snapMode =
+      snap && mode === 'draw_line_string'
+        ? SNAP_DRAW_LINE_STRING
+        : snap && mode === 'draw_polygon'
+          ? SNAP_DRAW_POLYGON
+          : null;
     const draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {},
       styles: MAPLIBRE_DRAW_STYLES,
+      ...(snapMode
+        ? {
+            modes: {
+              ...(MapboxDraw as unknown as { modes: Record<string, unknown> })
+                .modes,
+              [SNAP_DRAW_LINE_STRING]: snapDrawLineString,
+              [SNAP_DRAW_POLYGON]: snapDrawPolygon,
+            },
+          }
+        : {}),
     });
     // Guard the map-touching setup. The wizard "Redo" affordance clears the
     // boundary, which makes DiagnoseMap tear down and recreate its map; this
@@ -100,8 +146,16 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
     try {
       map.addControl(draw);
       // MapboxDraw's `changeMode` is typed as a string-literal overload that
-      // doesn't include our union directly; cast through to satisfy.
-      (draw.changeMode as (m: string) => unknown)(mode);
+      // doesn't include our union directly; cast through to satisfy. When a
+      // snap mode is active, enter it with the snap targets captured now.
+      if (snapMode) {
+        const snapTargets = getSnapTargetsRef.current?.() ?? {};
+        (
+          draw.changeMode as (m: string, opts?: { snapTargets: SnapTargets }) => unknown
+        )(snapMode, { snapTargets });
+      } else {
+        (draw.changeMode as (m: string) => unknown)(mode);
+      }
 
       // Tint the in-progress polygon to the active tool's color. MapboxDraw
       // adds these layers via addControl above and mutates only its GeoJSON
@@ -247,7 +301,7 @@ export function useMapboxDrawTool<G extends DrawGeometry>({
         /* map already disposed */
       }
     };
-  }, [map, mode, enabled, previewColor]);
+  }, [map, mode, enabled, previewColor, snap]);
 
   return { geometry, liveArea, liveLength };
 }

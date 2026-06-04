@@ -160,10 +160,22 @@ export default function PlanDrawHost({
       tool = <FlowConnectorTool map={map} projectId={projectId} />;
       break;
     case 'plan.livestock.paddock':
-      tool = <PaddockTool map={map} projectId={projectId} />;
+      tool = (
+        <PaddockTool
+          map={map}
+          projectId={projectId}
+          parcelBoundary={parcelBoundary}
+        />
+      );
       break;
     case 'plan.livestock.fence-line':
-      tool = <FenceLineTool map={map} projectId={projectId} />;
+      tool = (
+        <FenceLineTool
+          map={map}
+          projectId={projectId}
+          parcelBoundary={parcelBoundary}
+        />
+      );
       break;
     case 'plan.structures-subsystems.structure':
       tool = <StructureTool map={map} projectId={projectId} />;
