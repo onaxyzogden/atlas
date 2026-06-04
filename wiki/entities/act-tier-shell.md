@@ -441,6 +441,19 @@ active. The HUD is reachable exactly when the compass is visible (matrix
 41 passed (incl. new store test), preview DOM proof of click -> swap + CRUD +
 Done revert. Log: [[log/2026-06-04-atlas-act-sector-compass-rail-editor]].
 
+**Follow-up (`9cafb5c3`):** richer per-row authoring in `SectorsEditorPanel`.
+Each editable sector row now shows (a) a **compact compass glyph** in a new
+leading "Dir" column, drawn from the row's own `bearingDeg/arcDeg/type` via a
+local 22px helper mirroring `SectorCompassDiagram`'s bearing->wedge math (the
+shared diagram file untouched), updating live as those fields change; and (b)
+an **editable notes field** (full-width sub-row) bound to the pre-existing
+`SectorArrow.notes` through `updateSector(id, { notes })` -- no schema/store
+change. Computed wind/solar rows stay read-only with a muted Dir cell and the
+divider `colSpan` bumped 5->6. Presentational only; one-file change verified by
+tsc (file clean), bounded vitest (36 passed), and preview DOM proof of the glyph
+live-update + notes round-trip + Done revert (map screenshot hung, known WebGL
+issue). Log: [[log/2026-06-04-atlas-sectors-editor-glyph-notes]].
+
 ## Exec panel: scroll containment + Raise-follow-up-need (2026-06-01)
 
 Two right-rail `ActTierExecutionPanel` follow-ups
