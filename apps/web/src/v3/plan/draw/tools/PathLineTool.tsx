@@ -12,6 +12,7 @@ import {
 } from '../../../../store/pathStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
+import { usePlanSnapTargets } from './usePlanSnapTargets.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -24,6 +25,7 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
+  parcelBoundary?: GeoJSON.Polygon;
 }
 
 const TYPE_OPTIONS: { value: PathType; label: string }[] = (
@@ -45,7 +47,8 @@ const ACCESSIBLE_OPTIONS = [
   { value: 'yes', label: 'Yes' },
 ];
 
-export default function PathLineTool({ map, projectId }: Props) {
+export default function PathLineTool({ map, projectId, parcelBoundary }: Props) {
+  const getSnapTargets = usePlanSnapTargets(projectId, parcelBoundary);
   const addPath = usePathStore((s) => s.addPath);
   const updatePath = usePathStore((s) => s.updatePath);
   const deletePath = usePathStore((s) => s.deletePath);
@@ -158,6 +161,8 @@ export default function PathLineTool({ map, projectId }: Props) {
     mode: 'draw_line_string',
     onComplete: handleComplete,
     enabled: dimMode === 'freehand',
+    snap: true,
+    getSnapTargets,
   });
 
   useDimensionDrawTool({
