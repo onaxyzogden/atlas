@@ -434,57 +434,36 @@ function ReadOnlyDecisionGroupCard({
             />
           ))}
 
-          <div
+          {/* Full-width action footer — flush to card edges, clipped by parent borderRadius+overflow:hidden. */}
+          <button
+            type="button"
+            data-testid="open-in-act-trigger"
+            onClick={() =>
+              navigate({
+                to: '/v3/project/$projectId/act/field-action/$objectiveId',
+                params: { projectId, objectiveId },
+              })
+            }
             style={{
-              padding: '10px 14px',
-              background: C.bg3,
+              width: '100%',
               display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: 0,
+              padding: '11px 14px',
+              border: 'none',
+              borderTop: `1px solid ${CA('blue', 0.25)}`,
+              background: CA('blue', 0.1),
+              fontSize: 11,
+              color: C.blue,
+              fontFamily: F.sans,
+              fontWeight: 600,
+              letterSpacing: '0.01em',
+              cursor: 'pointer',
             }}
           >
-            <span
-              style={{
-                fontSize: 10,
-                color: C.textTertiary,
-                fontFamily: F.sans,
-                fontStyle: 'italic',
-              }}
-            >
-              Full methodology available in Act
-            </span>
-            {/* Full-width bento CTA — the primary affordance to continue in Act. */}
-            <button
-              type="button"
-              data-testid="open-in-act-trigger"
-              onClick={() =>
-                navigate({
-                  to: '/v3/project/$projectId/act/field-action/$objectiveId',
-                  params: { projectId, objectiveId },
-                })
-              }
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                margin: 0,
-                padding: '10px 14px',
-                border: `1px solid ${CA('blue', 0.35)}`,
-                borderRadius: 8,
-                background: CA('blue', 0.1),
-                fontSize: 11,
-                color: C.blue,
-                fontFamily: F.sans,
-                fontWeight: 600,
-                letterSpacing: '0.01em',
-                cursor: 'pointer',
-              }}
-            >
-              Open in Act →
-            </button>
-          </div>
+            Open in Act →
+          </button>
         </div>
       ) : null}
 
