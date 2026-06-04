@@ -183,4 +183,148 @@ describe('ChronicVerdictBanner', () => {
     fireEvent.click(screen.getByRole('button', { expanded: false }));
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
+
+  // --- A2: group headers + cap + show-more --------------------------------
+
+  // Build a verdict pinned to a single objective id so the rendered row count
+  // can be measured by counting deep-link buttons (one link per row).
+  function makeSoloVerdict(
+    pair: [string, string],
+    objectiveId: string,
+    over?: Partial<ChronicVerdict>,
+  ): ChronicVerdict {
+    return makeVerdict({
+      signatureKey: `${over?.season ?? 'spring'}:${pair[0]}+${pair[1]}`,
+      templatePair: pair,
+      templateIds: pair,
+      objectiveIds: [objectiveId],
+      ...over,
+    });
+  }
+
+  function rowCount(container: HTMLElement): number {
+    return container.querySelectorAll(
+      '[data-testid^="chronic-objective-link-"]',
+    ).length;
+  }
+
+  it('expanded: renders a common-deviant group header over its rows', () => {
+    // Pairs a+b, b+c, b+d -> b is the common deviant -> anchor b, key spring::b.
+    render(
+      <ChronicVerdictBanner
+        {...BASE_PROPS}
+        expanded
+        verdicts={[
+          makeSoloVerdict(['a', 'b'], 'obj-1'),
+          makeSoloVerdict(['b', 'c'], 'obj-2'),
+          makeSoloVerdict(['b', 'd'], 'obj-3'),
+        ]}
+      />,
+    );
+
+    const header = screen.getByTestId('chronic-group-spring::b');
+    expect(header).not.toBeNull();
+    expect(header.textContent).toContain('b');
+
+    for (const id of ['obj-1', 'obj-2', 'obj-3']) {
+      expect(
+        screen.queryByTestId(`chronic-objective-link-${id}`),
+      ).not.toBeNull();
+    }
+  });
+
+  it('expanded: caps rows at 6 and shows a "Show 2 more" expander', () => {
+    const verdicts = Array.from({ length: 8 }, (_unused, i) =>
+      makeSoloVerdict([`p${i}`, `q${i}`], `obj-${i}`),
+    );
+    const { container } = render(
+      <ChronicVerdictBanner {...BASE_PROPS} expanded verdicts={verdicts} />,
+    );
+
+    expect(rowCount(container)).toBe(6);
+    const showMore = screen.getByTestId('chronic-show-more');
+    expect(showMore.textContent).toContain('Show 2 more');
+  });
+
+  it('expanded: clicking show-more reveals the rest and removes the expander', () => {
+    const verdicts = Array.from({ length: 8 }, (_unused, i) =>
+      makeSoloVerdict([`p${i}`, `q${i}`], `obj-${i}`),
+    );
+    const { container } = render(
+      <ChronicVerdictBanner {...BASE_PROPS} expanded verdicts={verdicts} />,
+    );
+
+    fireEvent.click(screen.getByTestId('chronic-show-more'));
+    expect(rowCount(container)).toBe(8);
+    expect(screen.queryByTestId('chronic-show-more')).toBeNull();
+  });
+
+  it('expanded: an existential verdict leading the input stays visible under the cap', () => {
+    const existential = makeSoloVerdict(['x', 'y'], 'obj-existential', {
+      containsExistential: true,
+    });
+    const rest = Array.from({ length: 7 }, (_unused, i) =>
+      makeSoloVerdict([`p${i}`, `q${i}`], `obj-${i}`),
+    );
+    const { container } = render(
+      <ChronicVerdictBanner
+        {...BASE_PROPS}
+        expanded
+        verdicts={[existential, ...rest]}
+      />,
+    );
+
+    const existentialRow = container.querySelector('[data-existential="true"]');
+    expect(existentialRow).not.toBeNull();
+  });
+
+  it('collapsing resets the show-all cap so re-expanding starts capped', () => {
+    const verdicts = Array.from({ length: 8 }, (_unused, i) =>
+      makeSoloVerdict([`p${i}`, `q${i}`], `obj-${i}`),
+    );
+    const { container, rerender } = render(
+      <ChronicVerdictBanner {...BASE_PROPS} expanded verdicts={verdicts} />,
+    );
+
+    // Reveal all rows: cap dropped, "Show more" gone.
+    fireEvent.click(screen.getByTestId('chronic-show-more'));
+    expect(rowCount(container)).toBe(8);
+    expect(screen.queryByTestId('chronic-show-more')).toBeNull();
+
+    // Collapse (parent owns `expanded`), then re-expand.
+    rerender(
+      <ChronicVerdictBanner
+        {...BASE_PROPS}
+        expanded={false}
+        verdicts={verdicts}
+      />,
+    );
+    rerender(
+      <ChronicVerdictBanner {...BASE_PROPS} expanded verdicts={verdicts} />,
+    );
+
+    // Back to capped: only 6 rows, and the "Show 2 more" expander returns.
+    expect(rowCount(container)).toBe(6);
+    const showMore = screen.getByTestId('chronic-show-more');
+    expect(showMore.textContent).toContain('Show 2 more');
+  });
+
+  it('expanded: deep-link still fires from a grouped row', () => {
+    const onSelectObjective = vi.fn();
+    render(
+      <ChronicVerdictBanner
+        {...BASE_PROPS}
+        expanded
+        onSelectObjective={onSelectObjective}
+        verdicts={[
+          makeSoloVerdict(['a', 'b'], 'obj-1'),
+          makeSoloVerdict(['b', 'c'], 'obj-2'),
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('chronic-objective-link-obj-2'));
+    expect(onSelectObjective).toHaveBeenCalledTimes(1);
+    expect(onSelectObjective).toHaveBeenCalledWith('obj-2');
+  });
 });

@@ -16,9 +16,18 @@
 // treatment matches the co-occurrence palette, weighted a touch heavier to
 // convey the chronic / structural tier.
 
+import { useState, useEffect } from 'react';
 import { Layers, ChevronDown, ChevronRight } from 'lucide-react';
 import type { ChronicVerdict } from '@ogden/shared';
+import {
+  groupChronicVerdicts,
+  capGroups,
+} from '../../chronic/groupChronicVerdicts.js';
 import css from './ChronicVerdictBanner.module.css';
+
+// Top-N cap on rendered chronic verdict ROWS before the "show more" expander
+// takes over. Group headers do not count toward the cap.
+const DEFAULT_CHRONIC_CAP = 6;
 
 interface Props {
   verdicts: ChronicVerdict[];
@@ -33,8 +42,23 @@ export default function ChronicVerdictBanner({
   onToggle,
   onSelectObjective,
 }: Props) {
+  const [showAll, setShowAll] = useState(false);
+
+  // Each fresh open of the banner should start capped. The steward could
+  // expand -> "Show all" -> collapse; without this reset, re-expanding would
+  // re-open fully expanded with the top-6 cap silently dropped.
+  useEffect(() => {
+    if (!expanded) setShowAll(false);
+  }, [expanded]);
+
   if (verdicts.length === 0) return null;
   const count = verdicts.length;
+
+  const groups = groupChronicVerdicts(verdicts);
+  const { visibleGroups, hiddenCount } = capGroups(
+    groups,
+    showAll ? Number.POSITIVE_INFINITY : DEFAULT_CHRONIC_CAP,
+  );
 
   return (
     <aside
@@ -60,38 +84,63 @@ export default function ChronicVerdictBanner({
       </button>
 
       {expanded && (
-        <ul className={css.list}>
-          {verdicts.map((verdict) => (
-            <li
-              key={verdict.signatureKey}
-              className={css.row}
-              data-existential={
-                verdict.containsExistential ? 'true' : undefined
-              }
-              data-open={verdict.containsOpen ? 'true' : undefined}
+        <>
+          <ul className={css.list}>
+            {visibleGroups.map((group) => (
+              <li key={group.key} className={css.groupBlock}>
+                <p
+                  className={css.groupHeader}
+                  data-testid={`chronic-group-${group.key}`}
+                >
+                  {group.season ?? 'unknown'} - common deviant{' '}
+                  {group.anchorTemplateId}
+                </p>
+                <ul className={css.groupRows}>
+                  {group.verdicts.map((verdict) => (
+                    <li
+                      key={verdict.signatureKey}
+                      className={css.row}
+                      data-existential={
+                        verdict.containsExistential ? 'true' : undefined
+                      }
+                      data-open={verdict.containsOpen ? 'true' : undefined}
+                    >
+                      <p className={css.themeHeading}>{verdict.theme}</p>
+                      <p className={css.rowBody}>{verdict.summary}</p>
+                      <p className={css.recurrence}>
+                        {verdict.occurrenceCount} cycles{' '}
+                        {verdict.consecutive ? 'consecutive' : 'recurring'}
+                      </p>
+                      <div className={css.linkRow}>
+                        {verdict.objectiveIds.map((objectiveId) => (
+                          <button
+                            key={objectiveId}
+                            type="button"
+                            className={css.objectiveLink}
+                            data-testid={`chronic-objective-link-${objectiveId}`}
+                            onClick={() => onSelectObjective(objectiveId)}
+                          >
+                            Review {objectiveId}
+                          </button>
+                        ))}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+          {hiddenCount > 0 && !showAll && (
+            <button
+              type="button"
+              data-testid="chronic-show-more"
+              className={css.showMore}
+              onClick={() => setShowAll(true)}
             >
-              <p className={css.themeHeading}>{verdict.theme}</p>
-              <p className={css.rowBody}>{verdict.summary}</p>
-              <p className={css.recurrence}>
-                {verdict.occurrenceCount} cycles{' '}
-                {verdict.consecutive ? 'consecutive' : 'recurring'}
-              </p>
-              <div className={css.linkRow}>
-                {verdict.objectiveIds.map((objectiveId) => (
-                  <button
-                    key={objectiveId}
-                    type="button"
-                    className={css.objectiveLink}
-                    data-testid={`chronic-objective-link-${objectiveId}`}
-                    onClick={() => onSelectObjective(objectiveId)}
-                  >
-                    Review {objectiveId}
-                  </button>
-                ))}
-              </div>
-            </li>
-          ))}
-        </ul>
+              Show {hiddenCount} more
+            </button>
+          )}
+        </>
       )}
     </aside>
   );
