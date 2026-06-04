@@ -72,6 +72,7 @@ The operator selected the `PseudoMap` background `<rect>` in
     activeLens: string;
     onObsClick: (obs: MockObservation) => void;
     selectedObs: MockObservation | null;
+    demoGeometry?: boolean;                    // true -> render "Sample location data" badge
   }
   ```
 - Initializes a `maplibregl.Map` using the shared style resolver from
@@ -112,7 +113,9 @@ field. `PseudoMap` stays exported and used (no-deletion). `activeLens`,
   - `boundary` = the project's `parcelBoundaryGeojson` (passed in);
   - `bbox` = computed from the boundary if present, else from the markers;
   - returns **null** when there is no boundary AND zero georeferenced points.
-- New type `ObserveMapData { boundary, bbox, markers }` and
+  - `demoGeometry` = true when the boundary/markers came from the builtin seed
+    (honest provenance flag; threads to the in-UI "Sample location data" badge).
+- New type `ObserveMapData { boundary, bbox, markers, demoGeometry }` and
   `ObserveMapMarker = MockObservation & { lng: number; lat: number }`
   in `types.ts`.
 - New optional field on `LensDataBundle`: `map?: ObserveMapData | null`.
@@ -163,6 +166,30 @@ slope shading, Zone 0-5 rings) from rework:
 
 These bind the implementation plan's per-point coordinate choices.
 
+### Demo-data honesty badge (in-UI)
+
+A map manufactures credibility: the instant pins sit on real satellite imagery,
+viewers read spatial patterns into them ("the divergences cluster in the SE!")
+that are pure artifacts of how the seed was scattered. Seeded geometry must not
+be mistaken for surveyed ground truth.
+
+- **Requirement.** When `ObserveMap` renders geometry that is seeded/demo (not
+  operator-captured), it shows a small, persistent "Sample location data" badge
+  (ribbon/chip in a map corner, lens-dark aesthetic, ASCII copy, non-interactive).
+- **Source of truth.** Drive the badge off an explicit, honest signal -- a
+  `demoGeometry: true` marker carried on `ObserveMapData` (set by `buildObserveMap`
+  when the boundary/points came from the builtin seed), NOT a guess from
+  `isBuiltin` alone. The flag is data-honesty metadata, not styling. (This mirrors
+  the grounding `{type:'none'}` honest-empty-state ethic: never fake precision we
+  do not have.)
+- **Forward path.** Once in-field GPS capture lands, captured points clear the
+  flag (or render with distinct provenance styling), so the badge disappears for
+  real data without further work. This keeps seeded and captured geometry visually
+  distinguishable -- the provenance distinction the later epics need.
+- **Scope note.** This is the one demo-honesty item that belongs in THIS slice
+  (cheap, and it prevents phantom spatial insights the moment the map ships).
+  Per-pin provenance styling and capture remain out of scope (below).
+
 ## Degrade & edge behavior
 
 - `map` null -> `PseudoMap` (current behavior; covers mock and geometry-less
@@ -182,7 +209,8 @@ These bind the implementation plan's per-point coordinate choices.
 - **Live preview** on `/v3/project/mtc/observe` (Live source): basemap tiles
   render, the MTC polygon draws, the 10 pins sit inside the parcel at plausible
   spots, clicking a pin selects it + opens the detail slide-up, and pan/zoom
-  keeps pins glued to their geography. Screenshot for proof; if
+  keeps pins glued to their geography, AND the "Sample location data" badge is
+  visible (seeded MTC geometry). Screenshot for proof; if
   `preview_screenshot` hangs (known transient) disclose and use `preview_eval`
   DOM/`map.project` reads.
 - **Regression:** mock/Millbrook mode still renders `PseudoMap`; `tsc --noEmit`
@@ -209,7 +237,8 @@ These bind the implementation plan's per-point coordinate choices.
 On `/v3/project/mtc/observe` (Live), the Observe canvas shows a real MapLibre
 basemap with the seeded MTC parcel boundary and all 10 observation pins at their
 true positions, with click-to-select + detail and pan/zoom-glued pins preserving
-the existing pin look. Geometry-less projects and mock mode keep `PseudoMap`.
+the existing pin look, and a "Sample location data" badge while the geometry is
+seeded/demo. Geometry-less projects and mock mode keep `PseudoMap`.
 `buildObserveMap` is pure + unit-tested; `tsc` and bounded tests green;
 `mockData.ts` and the `PseudoMap` export intact; live verified (screenshot or
 disclosed DOM proof). Each slice committed explicit-path on verify; branch NOT
