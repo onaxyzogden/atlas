@@ -129,7 +129,7 @@ function renderPlanCard(
     case 'plan-water-router':        return <WaterRouterCard project={project} onSwitchToMap={noop} />;
     case 'plan-zone-level':          return <ZoneLevelLayer project={project} onSwitchToMap={noop} />;
     case 'plan-path-frequency':      return <PathFrequencyEditor project={project} onSwitchToMap={noop} />;
-    case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={noop} />;
+    case 'plan-zone-overview':       return <ZoneCirculationOverviewCard project={project} onSwitchToMap={closeSlideUp} />;
     case 'plan-sector-overlay':      return <SectorOverlayCard project={project} onSwitchToMap={noop} />;
     case 'plan-social-nodes':        return <SocialNodesCard project={project} onSwitchToMap={noop} />;
     case 'plan-machinery-inventory':        return <MachineryInventoryCard projectId={project.id} />;

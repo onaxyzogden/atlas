@@ -20,11 +20,23 @@
  * bbox-overlap heuristic is still kept as a cheap pre-filter.
  */
 
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { booleanIntersects } from '@turf/turf';
+import * as turf from '@turf/turf';
+import { Scissors, Sprout, Eraser } from 'lucide-react';
 import type { LocalProject } from '../../../../store/projectStore.js';
 import { useZoneStore, type LandZone } from '../../../../store/zoneStore.js';
 import { usePathStore, type DesignPath } from '../../../../store/pathStore.js';
+import {
+  useMapToolStore,
+  type MapToolId,
+} from '../../../observe/components/measure/useMapToolStore.js';
+import {
+  parcelPolygon,
+  clip,
+  type PolyFeature,
+} from '../../engine/zoneGenerators/parcelGeometry.js';
+import { toast } from '../../../../components/Toast.js';
 import styles from '../../../_shared/stageCard/stageCard.module.css';
 
 interface Props {
@@ -104,6 +116,10 @@ function bboxesIntersect(a: BBox, b: BBox): boolean {
 export default function ZoneCirculationOverviewCard({ project, onSwitchToMap }: Props) {
   const allZones = useZoneStore((s) => s.zones);
   const allPaths = usePathStore((s) => s.paths);
+  const updateZone = useZoneStore((s) => s.updateZone);
+  const deleteZone = useZoneStore((s) => s.deleteZone);
+  const clearSeededZones = useZoneStore((s) => s.clearSeededZones);
+  const setActiveTool = useMapToolStore((s) => s.setActiveTool);
 
   const zones = useMemo(
     () => allZones.filter((z) => z.projectId === project.id),
@@ -113,6 +129,57 @@ export default function ZoneCirculationOverviewCard({ project, onSwitchToMap }: 
     () => allPaths.filter((p) => p.projectId === project.id),
     [allPaths, project.id],
   );
+
+  // Seeded zones for disabled-state logic and trim loop.
+  const seededZones = useMemo(
+    () => zones.filter((z) => z.seedProvenance === 'ring-seed'),
+    [zones],
+  );
+  const hasSeeded = seededZones.length > 0;
+  const hasParcel = !!project.parcelBoundaryGeojson;
+
+  const handleSeed = useCallback(() => {
+    setActiveTool('plan.zone-circulation.zone-seed-anchor' as MapToolId);
+    onSwitchToMap();
+  }, [setActiveTool, onSwitchToMap]);
+
+  const handleTrim = useCallback(() => {
+    const parcel = parcelPolygon(project.parcelBoundaryGeojson ?? null);
+    if (!parcel) {
+      toast.warning('Draw the parcel boundary first to trim against it.');
+      return;
+    }
+    let trimmed = 0;
+    let dropped = 0;
+    for (const z of seededZones) {
+      const zoneFeature = turf.feature(z.geometry) as PolyFeature;
+      const clipped = clip(zoneFeature, parcel);
+      if (!clipped) {
+        deleteZone(z.id);
+        dropped += 1;
+        continue;
+      }
+      updateZone(z.id, { geometry: clipped.geometry, areaM2: turf.area(clipped) });
+      trimmed += 1;
+    }
+    if (trimmed === 0 && dropped === 0) {
+      toast.info('No seeded zones to trim.');
+    } else {
+      toast.success(
+        `Trimmed ${trimmed} seeded zone(s) to the parcel` +
+          (dropped > 0 ? `; removed ${dropped} fully outside.` : '.'),
+      );
+    }
+  }, [project.parcelBoundaryGeojson, seededZones, updateZone, deleteZone]);
+
+  const handleClear = useCallback(() => {
+    const removed = clearSeededZones(project.id);
+    if (removed === 0) {
+      toast.info('No seeded zones to clear.');
+    } else {
+      toast.success(`Cleared ${removed} seeded zone(s).`);
+    }
+  }, [clearSeededZones, project.id]);
 
   // Compute mini-map bbox: union of boundary + all zones + all paths.
   const bbox = useMemo<BBox>(() => {
@@ -278,6 +345,66 @@ export default function ZoneCirculationOverviewCard({ project, onSwitchToMap }: 
           Permanence: subdivision/livestock comes later, not here).
         </p>
       </header>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Actions</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {(
+            [
+              {
+                label: 'Seed zones from rings',
+                Icon: Sprout,
+                onClick: handleSeed,
+                disabled: false,
+                title: 'Place a point on the map — Z0–Z5 Mollison rings seed around it',
+              },
+              {
+                label: 'Trim seeded to parcel',
+                Icon: Scissors,
+                onClick: handleTrim,
+                disabled: !hasParcel || !hasSeeded,
+                title: !hasParcel
+                  ? 'Draw a parcel boundary first'
+                  : !hasSeeded
+                    ? 'No ring-seeded zones to trim'
+                    : 'Clip seeded zones to the property boundary',
+              },
+              {
+                label: 'Clear seeded zones',
+                Icon: Eraser,
+                onClick: handleClear,
+                disabled: !hasSeeded,
+                title: !hasSeeded ? 'No ring-seeded zones' : 'Remove all ring-seeded draft zones',
+              },
+            ] as const
+          ).map(({ label, Icon, onClick, disabled, title }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={onClick}
+              disabled={disabled}
+              title={title}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                padding: '6px 12px',
+                background: 'rgba(180,200,240,0.10)',
+                border: '1px solid rgba(180,200,240,0.22)',
+                borderRadius: 6,
+                color: disabled ? 'rgba(200,210,230,0.35)' : 'rgba(220,230,245,0.9)',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                fontSize: 13,
+                fontWeight: 500,
+                textAlign: 'left',
+              }}
+            >
+              <Icon size={14} />
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Coverage</h2>
