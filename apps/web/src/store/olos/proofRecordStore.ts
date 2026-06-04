@@ -76,15 +76,24 @@ interface ProofRecordState {
   deleteProof: (projectId: string, proofId: string) => void;
 
   // ── Phase 2.4 API sync ─────────────────────────────────────────────
-  /** GET the proofs for a single task and merge into local state. Proofs
+  /** GET the proofs for a single task (addressed by serverId) and merge into
+   *  local state, normalising each record's projectId to the LOCAL id. Proofs
    *  are scoped under their task on the server, so there is no project-wide
    *  pull; the caller pulls each task's proofs as needed. */
-  pullForTask: (projectId: string, taskId: string) => Promise<void>;
-  /** POST (local id) or PATCH (UUID) the proof upstream. */
-  pushOne: (proof: ProofRecord) => Promise<ProofRecord | null>;
-  /** DELETE the proof on the server. */
+  pullForTask: (
+    projectId: string,
+    serverId: string,
+    taskId: string,
+  ) => Promise<void>;
+  /** POST (local id) or PATCH (UUID) the proof upstream, addressed by serverId. */
+  pushOne: (
+    proof: ProofRecord,
+    serverId: string,
+  ) => Promise<ProofRecord | null>;
+  /** DELETE the proof on the server (addressed by serverId). */
   pushDelete: (
     projectId: string,
+    serverId: string,
     taskId: string,
     proofId: string,
   ) => Promise<void>;
@@ -178,12 +187,14 @@ export const useProofRecordStore = create<ProofRecordState>()(
         getSyncState: (projectId) =>
           get().syncByProject[projectId] ?? initialSync(),
 
-        pullForTask: async (projectId, taskId) => {
+        pullForTask: async (projectId, serverId, taskId) => {
           set((s) => ({
             syncByProject: { ...s.syncByProject, [projectId]: startSync() },
           }));
           try {
-            const env = await api.olos.proofs.list(projectId, taskId);
+            // Addressed by serverId; the store is keyed by LOCAL projectId, so
+            // each server record's projectId is normalised back to local below.
+            const env = await api.olos.proofs.list(serverId, taskId);
             if (env.error) throw new Error(env.error.message);
             const records = env.data ?? [];
             set((s) => {
@@ -191,7 +202,7 @@ export const useProofRecordStore = create<ProofRecordState>()(
               for (const existing of Object.values(merged)) {
                 if (existing.taskId === taskId) delete merged[existing.id];
               }
-              for (const r of records) merged[r.id] = r;
+              for (const r of records) merged[r.id] = { ...r, projectId };
               return {
                 byProject: { ...s.byProject, [projectId]: merged },
                 syncByProject: {
@@ -211,7 +222,11 @@ export const useProofRecordStore = create<ProofRecordState>()(
           }
         },
 
-        pushOne: async (proof) => {
+        pushOne: async (proof, serverId) => {
+          // proof.projectId is the LOCAL id (the store is local-keyed); the API
+          // is addressed by serverId. Saved records are normalised back to the
+          // local id before being written to the store.
+          const localProjectId = proof.projectId;
           try {
             if (isLocalId(proof.id)) {
               const {
@@ -222,23 +237,25 @@ export const useProofRecordStore = create<ProofRecordState>()(
                 ...input
               } = proof;
               const env = await api.olos.proofs.create(
-                proof.projectId,
+                serverId,
                 proof.taskId,
                 input,
               );
               if (env.error) throw new Error(env.error.message);
               const saved = env.data;
               if (!saved) return null;
-              set((s) => ({
-                byProject: {
-                  ...s.byProject,
-                  [saved.projectId]: {
-                    ...(s.byProject[saved.projectId] ?? {}),
-                    [saved.id]: saved,
-                  },
-                },
-              }));
-              return saved;
+              const normalised = { ...saved, projectId: localProjectId };
+              set((s) => {
+                const project = { ...(s.byProject[localProjectId] ?? {}) };
+                // Drop the local-id draft so the created proof is not
+                // duplicated alongside its server copy.
+                delete project[proof.id];
+                project[saved.id] = normalised;
+                return {
+                  byProject: { ...s.byProject, [localProjectId]: project },
+                };
+              });
+              return normalised;
             }
             const {
               id: _id,
@@ -247,7 +264,7 @@ export const useProofRecordStore = create<ProofRecordState>()(
               ...patch
             } = proof;
             const env = await api.olos.proofs.update(
-              proof.projectId,
+              serverId,
               proof.taskId,
               proof.id,
               patch,
@@ -255,30 +272,31 @@ export const useProofRecordStore = create<ProofRecordState>()(
             if (env.error) throw new Error(env.error.message);
             const saved = env.data;
             if (!saved) return null;
+            const normalised = { ...saved, projectId: localProjectId };
             set((s) => ({
               byProject: {
                 ...s.byProject,
-                [saved.projectId]: {
-                  ...(s.byProject[saved.projectId] ?? {}),
-                  [saved.id]: saved,
+                [localProjectId]: {
+                  ...(s.byProject[localProjectId] ?? {}),
+                  [saved.id]: normalised,
                 },
               },
             }));
-            return saved;
+            return normalised;
           } catch (err) {
             set((s) => ({
               syncByProject: {
                 ...s.syncByProject,
-                [proof.projectId]: errorSync(err),
+                [localProjectId]: errorSync(err),
               },
             }));
             throw err;
           }
         },
 
-        pushDelete: async (projectId, taskId, proofId) => {
+        pushDelete: async (projectId, serverId, taskId, proofId) => {
           if (isLocalId(proofId)) return;
-          const env = await api.olos.proofs.delete(projectId, taskId, proofId);
+          const env = await api.olos.proofs.delete(serverId, taskId, proofId);
           if (env.error) throw new Error(env.error.message);
         },
       };
