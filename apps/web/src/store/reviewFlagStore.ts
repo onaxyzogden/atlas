@@ -32,7 +32,8 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
 import type { CoOccurrenceCluster, ObjectiveReviewFlag } from '@ogden/shared';
-import { detectCoOccurrenceClusters } from '@ogden/shared';
+import { buildObservationLogRecord, detectCoOccurrenceClusters } from '@ogden/shared';
+import { useObservationLogStore } from './observationLogStore.js';
 
 // ---------------------------------------------------------------------------
 // Input type
@@ -205,7 +206,7 @@ export function isFlagDormantByWindow(
 
 export const useReviewFlagStore = create<ReviewFlagState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       byProject: {},
 
       raiseFlag: (input) =>
@@ -365,7 +366,27 @@ export const useReviewFlagStore = create<ReviewFlagState>()(
           },
         })),
 
-      resolveFlag: (projectId, flagId, parameterDelta) =>
+      resolveFlag: (projectId, flagId, parameterDelta) => {
+        // One timestamp for both the ledger row's closedAt and the flag's
+        // resolvedAt, honoring buildObservationLogRecord's "same ISO stamp"
+        // contract. Emit before stamping; builder + append are pure and
+        // non-throwing, so the order is safe and atomic for the caller.
+        const now = new Date().toISOString();
+        const target = (get().byProject[projectId] ?? []).find(
+          (f) => f.id === flagId,
+        );
+        if (target) {
+          useObservationLogStore
+            .getState()
+            .append(
+              buildObservationLogRecord(
+                target,
+                'resolved',
+                now,
+                crypto.randomUUID(),
+              ),
+            );
+        }
         set((state) => ({
           byProject: {
             ...state.byProject,
@@ -373,7 +394,7 @@ export const useReviewFlagStore = create<ReviewFlagState>()(
               f.id === flagId
                 ? {
                     ...f,
-                    resolvedAt: new Date().toISOString(),
+                    resolvedAt: now,
                     ...(parameterDelta !== undefined
                       ? { resolutionParameterDelta: parameterDelta }
                       : {}),
@@ -381,9 +402,28 @@ export const useReviewFlagStore = create<ReviewFlagState>()(
                 : f,
             ),
           },
-        })),
+        }));
+      },
 
-      dismissFlag: (projectId, flagId) =>
+      dismissFlag: (projectId, flagId) => {
+        // One timestamp shared by the ledger row's closedAt and the flag's
+        // dismissedAt (see resolveFlag note on ordering + the stamp contract).
+        const now = new Date().toISOString();
+        const target = (get().byProject[projectId] ?? []).find(
+          (f) => f.id === flagId,
+        );
+        if (target) {
+          useObservationLogStore
+            .getState()
+            .append(
+              buildObservationLogRecord(
+                target,
+                'dismissed',
+                now,
+                crypto.randomUUID(),
+              ),
+            );
+        }
         set((state) => ({
           byProject: {
             ...state.byProject,
@@ -391,13 +431,14 @@ export const useReviewFlagStore = create<ReviewFlagState>()(
               f.id === flagId
                 ? {
                     ...f,
-                    dismissedAt: new Date().toISOString(),
+                    dismissedAt: now,
                     dismissedAtCount: f.observedCount,
                   }
                 : f,
             ),
           },
-        })),
+        }));
+      },
     }),
     {
       name: 'ogden-review-flags',
