@@ -297,6 +297,86 @@ describe('Act tier-shell objective->tool coverage', () => {
     expect(missing).toEqual([]);
   });
 
+  it('every s1 intent objective resolves to per-item form-arm capture tools (R2)', () => {
+    // R2 (2026-06-03): the per-type s1 vision/intent objectives were wired to
+    // per-checklist-item form-arm capture tools (catalogue id == formId ==
+    // checklist-item id) so saving a form ticks its own checklist box and
+    // advances the objective progress bar. Where R1 left these intent
+    // objectives as an intentional [] (relying on the universal s1-vision form
+    // arms), R2 gives each its OWN per-item forms. This ratchet locks that in:
+    // each listed intent objective must resolve to >= 1 tool and EVERY resolved
+    // tool must be a form arm. A regression back to [] (0 tools) or to a
+    // non-form tool trips it. 32 primary + 4 additive secondary = 36 objectives
+    // across the 12 permaculture project types.
+    const INTENT_OBJECTIVE_IDS = [
+      'hms-s1-household-needs',
+      'silv-s1-enterprise-mix',
+      'silv-s1-land-improvement-philosophy',
+      'silv-s1-animal-welfare',
+      'silv-sec-s1-livestock-intent',
+      'rf-s1-enterprise-mix',
+      'mgd-s1-production-targets-sales',
+      'mgd-s1-growing-system-philosophy',
+      'mgd-s1-market-channels',
+      'orch-s1-species-philosophy',
+      'orch-s1-production-intent',
+      'orch-s1-provenance-sourcing',
+      'lvs-s1-enterprise-vision',
+      'lvs-s1-production-goals',
+      'lvs-s1-welfare-ethic',
+      'lvs-sec-s1-enterprise-intent',
+      'con-s1-conservation-intent',
+      'con-s1-intervention-philosophy',
+      'con-s1-tenure-covenant',
+      'ofg-s1-resilience-philosophy',
+      'ofg-s1-critical-systems-redundancy',
+      'ag-s1-experience-vision',
+      'ag-s1-visitor-capacity',
+      'ag-s1-regulatory-framework',
+      'ev-s1-legal-governance',
+      'ev-s1-provision-balance',
+      'ev-s1-conflict-framework',
+      'edu-s1-mission-audience',
+      'edu-s1-curriculum-programs',
+      'edu-s1-regulatory-framework',
+      'well-s1-healing-philosophy',
+      'well-s1-guest-intake',
+      'well-s1-regulatory-standards',
+      'well-s1-privacy-policy',
+      'well-sec-s1-healing-philosophy',
+      'well-sec-s1-regulatory-standards',
+    ];
+    const objectivesById = new Map(
+      allCatalogueObjectives().map((o) => [o.id, o] as const),
+    );
+    const problems: string[] = [];
+    for (const id of INTENT_OBJECTIVE_IDS) {
+      const objective = objectivesById.get(id);
+      if (!objective) {
+        problems.push(`${id} -> not a real catalogue objective`);
+        continue;
+      }
+      const tools = getObjectiveActTools(objective);
+      if (tools.length === 0) {
+        problems.push(`${id} -> resolves to 0 tools (R2 regression)`);
+        continue;
+      }
+      for (const toolId of tools) {
+        const tool = ACT_TOOL_CATALOG[toolId];
+        if (!tool) {
+          problems.push(`${id} -> ${toolId} not in ACT_TOOL_CATALOG`);
+          continue;
+        }
+        if (tool.arm.kind !== 'form') {
+          problems.push(
+            `${id} -> ${toolId} arm is '${tool.arm.kind}', expected 'form'`,
+          );
+        }
+      }
+    }
+    expect(problems).toEqual([]);
+  });
+
   it('every catalogue id emitted for any objective resolves in ACT_TOOL_CATALOG', () => {
     // Sweep every encoded catalogue objective through the resolver (override or
     // stratum default) so a tool id that does not mount is caught regardless of
