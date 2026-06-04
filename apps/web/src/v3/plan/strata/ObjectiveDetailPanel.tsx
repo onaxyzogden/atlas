@@ -45,7 +45,10 @@ import {
   useReviewFlagStore,
   isOpenReviewFlag,
 } from '../../../store/reviewFlagStore.js';
-import { useProtocolStore } from '../../../store/protocolStore.js';
+import {
+  useProtocolStore,
+  useObjectiveInstantiated,
+} from '../../../store/protocolStore.js';
 import css from './ObjectiveDetailPanel.module.css';
 
 // T1.7 -- shared button style for the three review-flag action buttons.
@@ -120,6 +123,43 @@ export default function ObjectiveDetailPanel({
     if (!primaryTypeId) return false;
     return enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds).length > 0;
   }, [primaryTypeId, secondaryTypeIds]);
+
+  // §10.1 instantiation gate. An objective gates protocol instantiation when it
+  // carries a `parameterGroup` (steward-entered thresholds drive the protocol
+  // token values) AND the project has enterprises the legacy approval overlay
+  // can populate. This generalises the prior hard-coded `s6-integration-design`
+  // check to "any parameterGroup objective" per the confirmed Phase B contract;
+  // today only `s6-yield-flows` carries a parameterGroup, so behaviour is
+  // unchanged in practice while staying future-proof for new parameter groups.
+  const gatesProtocolInstantiation =
+    Boolean(objective.parameterGroup) && hasEligibleEnterprises;
+
+  // Surfaced-overlay trigger (human-in-the-loop, per the confirmed Q1 choice):
+  // when a gating objective transitions to `complete`, auto-open the approval
+  // overlay ONCE for steward review, then stamp the §10.1 marker. The marker
+  // gives exactly-once semantics — a steward who reviews and closes (or
+  // deactivates protocols) is never re-nagged on subsequent renders/completions.
+  // The manual "Approve & instantiate" button below bypasses the marker, so it
+  // remains the explicit re-instantiate affordance.
+  const markObjectiveInstantiated = useProtocolStore(
+    (s) => s.markObjectiveInstantiated,
+  );
+  const objectiveInstantiated = useObjectiveInstantiated(projectId, objective.id);
+  useEffect(() => {
+    if (!projectId) return;
+    if (status !== 'complete') return;
+    if (!gatesProtocolInstantiation) return;
+    if (objectiveInstantiated) return;
+    setApprovalOverlayOpen(true);
+    markObjectiveInstantiated(projectId, objective.id);
+  }, [
+    projectId,
+    objective.id,
+    status,
+    gatesProtocolInstantiation,
+    objectiveInstantiated,
+    markObjectiveInstantiated,
+  ]);
 
   // `completedItemIds` arrives as a prop (effective progress, computed once in
   // PlanStratumShell). Phase B made the Plan checklist read-only ("decisions are
@@ -375,15 +415,15 @@ export default function ObjectiveDetailPanel({
 
       <ParameterGroup projectId={projectId} objective={objective} />
 
-      {/* §10.1 — Approve & instantiate protocols button: shown when the S6
-          Integration objective is complete, has a parameter group, and the
-          project has eligible animal enterprises. Opens the confirmation flow
-          (ProtocolApprovalOverlay) which derives token values from the entered
-          thresholds and activates chosen protocols into protocolStore. */}
-      {objective.stratumId === 's6-integration-design' &&
-        Boolean(objective.parameterGroup) &&
-        status === 'complete' &&
-        hasEligibleEnterprises && (
+      {/* §10.1 — Approve & instantiate protocols button: shown when a gating
+          objective (carries a parameter group + the project has eligible
+          enterprises) is complete. The overlay auto-opens once on completion
+          (effect above); this button is the manual RE-instantiate affordance —
+          it bypasses the one-shot marker so the steward can re-open the
+          confirmation flow at will. Opens ProtocolApprovalOverlay, which derives
+          token values from the entered thresholds and activates chosen protocols
+          into protocolStore. */}
+      {gatesProtocolInstantiation && status === 'complete' && (
           <div
             style={{
               padding: '12px 20px 16px',

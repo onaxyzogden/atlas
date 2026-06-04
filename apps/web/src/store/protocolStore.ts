@@ -61,6 +61,29 @@ export interface ProtocolState {
   expectationsByProject: Record<string, Record<string, ExpectedRate>>;
 
   /**
+   * §10.1 instantiation marker. Keyed projectId -> objectiveIds whose protocol
+   * approval overlay has ALREADY been auto-surfaced on completion. Gives the
+   * trigger exactly-once-per-objective semantics: once an objective's overlay
+   * has surfaced, completing/re-rendering it never re-opens it (so a steward who
+   * dismissed or deactivated protocols is not nagged). The manual "Approve &
+   * instantiate" button bypasses this; `clearObjectiveInstantiation` resets it
+   * for an explicit re-instantiate.
+   */
+  instantiatedObjectiveIds: Record<string, string[]>;
+
+  /**
+   * Idempotently record that an objective's instantiation overlay has been
+   * surfaced. Adding an already-present (projectId, objectiveId) is a no-op.
+   */
+  markObjectiveInstantiated: (projectId: string, objectiveId: string) => void;
+
+  /**
+   * Clear the instantiation marker for one objective (manual re-instantiate).
+   * Idempotent: a no-op when the objective was never marked.
+   */
+  clearObjectiveInstantiation: (projectId: string, objectiveId: string) => void;
+
+  /**
    * Upsert the expected rate for a (projectId, templateId) pair. Immutable
    * nested spread: does not mutate sibling projects or templates.
    */
@@ -174,6 +197,31 @@ export const useProtocolStore = create<ProtocolState>()(
       records: [],
       activations: [],
       expectationsByProject: {},
+      instantiatedObjectiveIds: {},
+
+      markObjectiveInstantiated: (projectId, objectiveId) =>
+        set((s) => {
+          const existing = s.instantiatedObjectiveIds[projectId] ?? [];
+          if (existing.includes(objectiveId)) return {}; // idempotent no-op
+          return {
+            instantiatedObjectiveIds: {
+              ...s.instantiatedObjectiveIds,
+              [projectId]: [...existing, objectiveId],
+            },
+          };
+        }),
+
+      clearObjectiveInstantiation: (projectId, objectiveId) =>
+        set((s) => {
+          const existing = s.instantiatedObjectiveIds[projectId];
+          if (!existing || !existing.includes(objectiveId)) return {}; // no-op
+          return {
+            instantiatedObjectiveIds: {
+              ...s.instantiatedObjectiveIds,
+              [projectId]: existing.filter((id) => id !== objectiveId),
+            },
+          };
+        }),
 
       setExpectation: (projectId, templateId, rate) =>
         set((state) => ({
@@ -285,13 +333,16 @@ export const useProtocolStore = create<ProtocolState>()(
     }),
     {
       name: 'ogden-protocols',
-      version: 3,
+      version: 4,
       // v1 -> v2: gain the empty `activations` slice while preserving `records`.
       // v2 -> v3: gain the empty `expectationsByProject` slice while preserving
-      // both `records` and `activations`. Version-aware so prior users are not
-      // wiped. Persist re-merges the action functions after migrate runs, so
-      // migrate only needs to return the persisted data shape; cast through
-      // unknown (the store type includes actions this object intentionally omits).
+      // both `records` and `activations`.
+      // v3 -> v4: gain the empty `instantiatedObjectiveIds` slice (§10.1
+      // instantiation marker) while preserving all prior slices. All migrations
+      // are version-aware so prior users are not wiped. Persist re-merges the
+      // action functions after migrate runs, so migrate only needs to return the
+      // persisted data shape; cast through unknown (the store type includes
+      // actions this object intentionally omits).
       migrate: (persisted, fromVersion) => {
         const p = (persisted ?? {}) as Partial<ProtocolState>;
         if (fromVersion < 2) {
@@ -299,6 +350,7 @@ export const useProtocolStore = create<ProtocolState>()(
             records: p.records ?? [],
             activations: [],
             expectationsByProject: {},
+            instantiatedObjectiveIds: {},
           } as unknown as ProtocolState;
         }
         if (fromVersion < 3) {
@@ -306,6 +358,15 @@ export const useProtocolStore = create<ProtocolState>()(
             records: p.records ?? [],
             activations: p.activations ?? [],
             expectationsByProject: {},
+            instantiatedObjectiveIds: {},
+          } as unknown as ProtocolState;
+        }
+        if (fromVersion < 4) {
+          return {
+            records: p.records ?? [],
+            activations: p.activations ?? [],
+            expectationsByProject: p.expectationsByProject ?? {},
+            instantiatedObjectiveIds: {},
           } as unknown as ProtocolState;
         }
         return p as unknown as ProtocolState;
@@ -314,6 +375,7 @@ export const useProtocolStore = create<ProtocolState>()(
         records: state.records,
         activations: state.activations,
         expectationsByProject: state.expectationsByProject,
+        instantiatedObjectiveIds: state.instantiatedObjectiveIds,
       }),
     },
   ),
@@ -354,6 +416,34 @@ export function useTriggeredProtocols(
         (!r.deferredUntil || new Date(r.deferredUntil) <= now),
     );
   }, [records, projectId]);
+}
+
+/**
+ * Plain selector: has this objective's instantiation overlay already surfaced?
+ * Returns a boolean (referentially stable under Zustand v5 — no useMemo needed).
+ */
+export function selectObjectiveInstantiated(
+  state: ProtocolState,
+  projectId: string,
+  objectiveId: string,
+): boolean {
+  return (state.instantiatedObjectiveIds[projectId] ?? []).includes(objectiveId);
+}
+
+/**
+ * useObjectiveInstantiated — reactive hook for the §10.1 instantiation marker.
+ * Selects a single boolean, so it is safe to use directly (contrast the array
+ * selectors above which need useMemo to avoid a Zustand-v5 re-render loop).
+ */
+export function useObjectiveInstantiated(
+  projectId: string | null,
+  objectiveId: string | null,
+): boolean {
+  return useProtocolStore((s) =>
+    projectId && objectiveId
+      ? selectObjectiveInstantiated(s, projectId, objectiveId)
+      : false,
+  );
 }
 
 /** Stable empty result for activation consumers with no projectId. */
