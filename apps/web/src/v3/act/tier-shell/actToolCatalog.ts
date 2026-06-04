@@ -77,6 +77,8 @@ import {
   Lock,
   Layers,
   HelpCircle,
+  Scissors,
+  Eraser,
   type LucideIcon,
 } from 'lucide-react';
 import type { MapToolId } from '../../observe/components/measure/useMapToolStore.js';
@@ -123,7 +125,13 @@ export type ActToolArm =
   // Opens the Act-owned <ActFlowConnectorPopover> (list-capture of a source->sink
   // material flow into closedLoopStore). No spatial/draw arm: the popover renders
   // through the reusable Modal, not a map host.
-  | { kind: 'flow' };
+  | { kind: 'flow' }
+  // Imperative zone-seeding post-actions (trim the ring-seeded zones to the
+  // parcel polygon / clear them). No map tool and no form -- the rail dispatches
+  // these directly against useZoneStore in ActTierShell.handleActivateTool. The
+  // SEED step itself is a kind:'map' arm (it arms the zone-seed-anchor placement
+  // tool); only these two follow-up actions live here.
+  | { kind: 'zone-action'; action: 'trim' | 'clear' };
 
 export interface ActTool {
   id: string;
@@ -353,6 +361,17 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     // closedLoopStore via <ActFlowConnectorPopover>; no map tool is armed.
     arm: { kind: 'flow' },
   },
+  // Adopt an existing water body off the basemap into the water layer (dedup +
+  // inline edit). Reuses the Observe AdoptBasemapWaterTool, already dispatched
+  // by ObserveDrawHost (mounted on the Act canvas). Surfaced on water-reading
+  // objectives so the steward imports what is already on the ground.
+  'adopt-water': {
+    id: 'adopt-water',
+    label: 'Adopt water (from map)',
+    icon: MapIcon,
+    category: 'water',
+    arm: { kind: 'map', mapToolId: 'observe.earth-water-ecology.adopt-water' },
+  },
 
   // ---- Soil ----
   soil: {
@@ -487,6 +506,18 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     category: 'structures',
     arm: { kind: 'map', mapToolId: 'observe.built-environment.well' },
   },
+  // Adopt an existing building footprint off the basemap into the built-
+  // environment layer (dedup + inline edit). Reuses the Observe
+  // AdoptBasemapBuildingTool, already dispatched by ObserveDrawHost (mounted on
+  // the Act canvas). Surfaced on existing-infrastructure-reading objectives so
+  // the steward imports structures that are already on the ground.
+  'adopt-building': {
+    id: 'adopt-building',
+    label: 'Adopt building (from map)',
+    icon: MapIcon,
+    category: 'structures',
+    arm: { kind: 'map', mapToolId: 'observe.built-environment.adopt-basemap' },
+  },
 
   // ---- Production Systems ----
   crops: {
@@ -527,6 +558,32 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
   },
 
   // ---- Zones & Planning ----
+  // Seed-from-rings flow (the tool stewards asked to bring back): arm the
+  // ZoneSeedAnchorTool, click the home centre on the map, and full Mollison
+  // Z0-Z5 rings grow from there (PlanDrawHost dispatches this id on the Act
+  // canvas). The two follow-ups below trim those rings to the parcel boundary
+  // and clear them. See wiki/log/2026-06-04-atlas-act-zone-seeding-toolbar.
+  'zone-seed': {
+    id: 'zone-seed',
+    label: 'Seed zones from rings',
+    icon: Sprout,
+    category: 'zones-planning',
+    arm: { kind: 'map', mapToolId: 'plan.zone-circulation.zone-seed-anchor' },
+  },
+  'zone-trim': {
+    id: 'zone-trim',
+    label: 'Trim seeded to parcel',
+    icon: Scissors,
+    category: 'zones-planning',
+    arm: { kind: 'zone-action', action: 'trim' },
+  },
+  'zone-clear': {
+    id: 'zone-clear',
+    label: 'Clear seeded zones',
+    icon: Eraser,
+    category: 'zones-planning',
+    arm: { kind: 'zone-action', action: 'clear' },
+  },
   zone: {
     id: 'zone',
     label: 'Zones',

@@ -81,6 +81,18 @@ export const STRATUM_ACT_TOOLS_DEFAULT: Readonly<
 export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   Record<string, readonly string[]>
 > = {
+  // ---------- Adopt-from-map (existing-feature import) ----------
+  // 'adopt-building' / 'adopt-water' arm the Observe adopt tools (a building
+  // footprint / water body clicked off the basemap -> dedup against existing
+  // entities -> a state:'existing' record + inline edit form). They are wired
+  // as the FIRST entry of the S2/S3 *reading* objectives that inventory existing
+  // structures (-> adopt-building) or read existing surface water
+  // (-> adopt-water). Adopt is a reading activity, so it is intentionally NOT
+  // added to S4/S5 design/strategy objectives. Both ids resolve in the app-layer
+  // ACT_TOOL_CATALOG (guarded by actToolCoverage.test.ts) and dispatch through
+  // the already-mounted ObserveDrawHost in the Act tier-shell. See ADR
+  // wiki/decisions/2026-06-04-atlas-act-adopt-and-draw-snapping.
+
   // ---------- S1 — Project Foundation ----------
   // Vision/goals/capacity: all 7 items are text/decision capture, served by
   // form-arm tools that open a popup on click. No map-draw tool involved.
@@ -117,9 +129,10 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   ],
   // Existing ecology & habitat: vegetation communities, pasture/grassland,
   // wildlife corridors, water-dependent habitat. gap: c4 connectivity (analysis).
-  's2-ecology': ['vegetation', 'pasture', 'wildlife-sector', 'watercourse'],
+  's2-ecology': ['adopt-water', 'vegetation', 'pasture', 'wildlife-sector', 'watercourse'],
   // Existing infrastructure & access: full coverage of the 5 items.
   's2-infrastructure': [
+    'adopt-building',
     'roads',
     'buildings',
     'power',
@@ -132,6 +145,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // Water movement & hydrology: surface flows, drainage, catchment, springs,
   // runoff/infiltration. Full coverage.
   's3-hydrology': [
+    'adopt-water',
     'watercourse',
     'drainage',
     'catchment',
@@ -148,9 +162,12 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // Water strategy: source options + storage. gap: c1 demand, c3 supply choice,
   // c6 conservation/drought (decisions).
   's4-water-strategy': ['catchment', 'spring', 'storage', 'swale', 'tanks', 'wells'],
-  // Spatial framework & zones: zone polygons + buffer/transition rings.
+  // Spatial framework & zones: the seed-from-rings flow (place Z0 -> Mollison
+  // Z0-Z5 rings auto-grow -> trim to parcel / clear) then manual zone polygons
+  // + buffer/transition rings. 'zone-seed' arms the placement tool; 'zone-trim'
+  // / 'zone-clear' are imperative post-seed actions (see ACT_TOOL_CATALOG).
   // gap: c4 conflict resolution, c6 confirmation (decisions).
-  's4-zones': ['zone', 'buffer-ring'],
+  's4-zones': ['zone-seed', 'zone-trim', 'zone-clear', 'zone', 'buffer-ring'],
 
   // ---------- S5 — System Design ----------
   // Access & circulation: vehicle roads + pedestrian paths. gap: c4 movement
@@ -220,6 +237,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // Existing livestock infrastructure: inventory fencing/gates, supply lines,
   // laneways, shelters. gap: c2 yards, c3 troughs (no yard/trough draw tool).
   'silv-s2-livestock-infrastructure': [
+    'adopt-building',
     'fencing',
     'gates',
     'water-lines',
@@ -239,6 +257,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // Stock water availability: map all source yields. gap: c1 demand (formula),
   // c3 gap analysis, c4 distribution fit, c6 max stocking (analysis).
   'silv-s3-stock-water-availability': [
+    'adopt-water',
     'watercourse',
     'spring',
     'tanks',
@@ -382,6 +401,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // + standing orchard trees), water storage tanks, fertility/compost infra,
   // animal-infra fencing, soil condition. gap: c2 condition/yield (analysis).
   'hms-s2-productive-capacity': [
+    'adopt-building',
     'vegetation',
     'orchards',
     'tanks',
@@ -401,7 +421,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S3 — household water quality & potability: water-source field logs +
   // rainwater catchment surfaces. gap: c1/c2/c3 lab tests, c5 seasonality,
   // c6 potability status (analysis/recording).
-  'hms-s3-water-quality': ['water', 'catchment'],
+  'hms-s3-water-quality': ['adopt-water', 'water', 'catchment'],
   // S4 — food production strategy: which foods / methods / targets / order are
   // decisions; spatial layout is drawn under hms-s5-food-zones-layout. gap: all.
   'hms-s4-food-production-strategy': [],
@@ -576,6 +596,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // catchment context, existing storage capacity, bore / well points. gap:
   // licensing / quantity assessment (decisions).
   'mgd-s2-water-access-irrigation': [
+    'adopt-water',
     'watercourse',
     'spring',
     'catchment',
@@ -589,7 +610,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S3 — irrigation water quality & supply: source mapping (watercourse / spring)
   // and water-quality / supply observation logging (water). gap: testing results
   // (record / analysis).
-  'mgd-s3-irrigation-water-quality': ['watercourse', 'spring', 'water'],
+  'mgd-s3-irrigation-water-quality': ['adopt-water', 'watercourse', 'spring', 'water'],
   // S3 — pest, disease & weed pressure: weed / volunteer cover by area
   // (vegetation), beneficial / predator presence (wildlife), landscape pressure
   // sources (hazard), soil-borne pathogen sampling (soil). gap: pest inventory /
@@ -699,7 +720,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   'orch-s3-rootzone-depth': ['soil', 'drainage', 'transect'],
   // S3 — water availability: source mapping (watercourse / spring), catchment
   // context, existing storage capacity. gap: licensing / demand calc (decisions).
-  'orch-s3-water-availability': ['watercourse', 'spring', 'catchment', 'storage'],
+  'orch-s3-water-availability': ['adopt-water', 'watercourse', 'spring', 'catchment', 'storage'],
   // S3 — pest & disease pressure: host / weed cover (vegetation), beneficial /
   // predator presence (wildlife), landscape pressure sources (hazard), soil-borne
   // pathogen sampling (soil). gap: pest inventory / history (record / decision).
@@ -803,6 +824,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // (watercourse), springs (spring), dams/ponds (storage), bores/wells (wells),
   // rainwater tanks (tanks), existing reticulation (water-lines).
   'lvs-s2-stock-water-sources': [
+    'adopt-water',
     'watercourse',
     'spring',
     'storage',
@@ -812,7 +834,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   ],
   // S2 — existing infrastructure: inventory fencing (fencing), yards / sheds /
   // shelters (barns, buildings), gateways (gates), laneways (path).
-  'lvs-s2-existing-infrastructure': ['fencing', 'barns', 'buildings', 'gates', 'path'],
+  'lvs-s2-existing-infrastructure': ['adopt-building', 'fencing', 'barns', 'buildings', 'gates', 'path'],
   // S3 — carrying capacity: forage dry-matter productivity per zone (pasture),
   // seasonal-yield sampling (transect). gap: stocking-ceiling math (decision).
   'lvs-s3-carrying-capacity': ['pasture', 'transect'],
@@ -941,7 +963,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S3 -- hydrology & water-regime degradation: map artificial drainage
   // (drainage), watercourse modifications (watercourse), drained / lost wetlands
   // (sink), diversion channels / altered flow paths (runoff-path).
-  'con-s3-water-regime-degradation': ['drainage', 'watercourse', 'sink', 'runoff-path'],
+  'con-s3-water-regime-degradation': ['adopt-water', 'drainage', 'watercourse', 'sink', 'runoff-path'],
   // S3 -- soil biology & seed bank: biological-activity & seed-bank / mycorrhizae
   // sampling (soil), degraded-vs-reference variation sampling (transect). gap:
   // passive-viability verdict (decision).
@@ -1058,7 +1080,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S2 -- water sources & year-round yield: map springs (spring), streams
   // (watercourse), rainfall catchment area (catchment), bore / well yield test
   // (wells). gap: per-person demand calc (analysis).
-  'ofg-s2-water-sources-yield': ['spring', 'watercourse', 'catchment', 'wells'],
+  'ofg-s2-water-sources-yield': ['adopt-water', 'spring', 'watercourse', 'catchment', 'wells'],
   // S2 -- energy generation potential: solar peak-sun / shading (sun-sector),
   // wind (wind-sector), micro-hydro flow & head (watercourse), biomass / wood
   // fuel capacity (vegetation). gap: demand & generation-gap calc (analysis).
@@ -1074,7 +1096,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S3 -- water quality & treatment: pin & annotate quality tests at each source
   // -- springs (spring), streams (watercourse), bore / well (wells). gap:
   // treatment-train selection (design, sited in s5).
-  'ofg-s3-water-quality-treatment': ['spring', 'watercourse', 'wells'],
+  'ofg-s3-water-quality-treatment': ['adopt-water', 'spring', 'watercourse', 'wells'],
   // S3 -- energy demand vs. generation balance: critical / household demand,
   // monthly mapping, worst-case gap, storage requirement -- a quantification /
   // analysis objective; generation potential already mapped in s2. gap: all.
@@ -1184,7 +1206,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   'ag-s2-arrival-experience': ['roads', 'parking', 'gates', 'path', 'hazard-zone'],
   // S2 -- existing hospitality infra: inventory accommodation (rooms / cabins /
   // outbuildings), kitchen, bathrooms, gathering spaces. buildings/dwellings/barns.
-  'ag-s2-hospitality-infra': ['buildings', 'dwellings', 'barns'],
+  'ag-s2-hospitality-infra': ['adopt-building', 'buildings', 'dwellings', 'barns'],
   // S2 -- surrounding landscape & vectors: map land uses within 2km, drinking-
   // water catchment contamination, spray-drift / nuisance, visual / noise notes.
   'ag-s2-landscape-context': ['neighbour-pin', 'catchment', 'hazard-zone', 'note'],
@@ -1193,7 +1215,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   'ag-s2-seasonal-patterns': [],
   // S3 -- guest water & sanitation demand: source yield for combined farm+guest
   // demand, storage. source tools + storage (sanitation septic has no tool).
-  'ag-s3-water-sanitation-demand': ['spring', 'watercourse', 'wells', 'storage'],
+  'ag-s3-water-sanitation-demand': ['adopt-water', 'spring', 'watercourse', 'wells', 'storage'],
   // S3 -- noise / privacy / sensory environment: visual amenity & screening from
   // guest areas, odour-source drift relative to guest zones, recorded notes.
   'ag-s3-sensory-environment': ['note', 'vegetation', 'wind-sector'],
@@ -1202,7 +1224,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   'ag-s3-emergency-access': ['roads', 'path', 'fire-sector', 'hazard-zone'],
   // S3 -- existing food-production capacity: inventory gardens / orchards /
   // animals + storage infra feeding the guest dining vision.
-  'ag-s3-food-production-capacity': ['crops', 'orchards', 'beds', 'paddocks', 'buildings'],
+  'ag-s3-food-production-capacity': ['adopt-building', 'crops', 'orchards', 'beds', 'paddocks', 'buildings'],
   // S3 -- ecological carrying capacity under visitor pressure (eco-resort ext):
   // soil compaction, trail erosion, sensitive habitats / wildlife corridors to
   // exclude or buffer, protected vs sacrificial ground.
@@ -1331,7 +1353,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
 
   // S3 -- water yield vs. population demand: source yields & seasonal gap ->
   // watercourse/spring/catchment, storage to bridge gaps, wells. gap: demand calc.
-  'ev-s3-water-yield': ['watercourse', 'spring', 'catchment', 'storage', 'wells'],
+  'ev-s3-water-yield': ['adopt-water', 'watercourse', 'spring', 'catchment', 'storage', 'wells'],
   // S3 -- waste & nutrient cycling capacity: percolation/treatment (soil),
   // composting (compost), treatment land area (zone), setback from water sources
   // (watercourse). gap: volume estimates & regulation.
@@ -1342,7 +1364,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   'ev-s3-energy-potential': ['sun-sector', 'wind-sector', 'watercourse', 'vegetation', 'power'],
   // S3 -- communal infrastructure condition: existing buildings (buildings/barns),
   // roads & tracks (roads/path), utilities (power/water-lines). gap: condition admin.
-  'ev-s3-infra-condition': ['buildings', 'barns', 'roads', 'path', 'power', 'water-lines'],
+  'ev-s3-infra-condition': ['adopt-building', 'buildings', 'barns', 'roads', 'path', 'power', 'water-lines'],
 
   // S4 -- phased settlement strategy: cohorts, habitability thresholds, go/no-go
   // gates -- a phasing/sequencing decision (siting lives in S5). gap: all.
@@ -1441,11 +1463,11 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S2 -- teaching infrastructure & spaces: existing buildings usable for
   // teaching (buildings), space for outdoor classrooms/zones (zone), circulation
   // (path), condition notes (note). gap: condition admin.
-  'edu-s2-teaching-infrastructure': ['buildings', 'zone', 'path', 'note'],
+  'edu-s2-teaching-infrastructure': ['adopt-building', 'buildings', 'zone', 'path', 'note'],
   // S2 -- learning potential of the land: teachable features -- soils (soil),
   // water features (watercourse), habitat/planting (vegetation), demo crops
   // (crops), interpretive notes (note). gap: narrative framing.
-  'edu-s2-learning-potential': ['soil', 'watercourse', 'vegetation', 'crops', 'note'],
+  'edu-s2-learning-potential': ['adopt-water', 'soil', 'watercourse', 'vegetation', 'crops', 'note'],
   // S2 -- surrounding landscape & vectors: neighbouring use (neighbour-pin),
   // catchment context (catchment), hazards near learner areas (hazard-zone),
   // context notes (note). gap: planning admin.
@@ -1550,7 +1572,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S2 -- existing retreat & healing infrastructure: inventory therapeutic-reuse
   // spaces (buildings), existing accommodation (dwellings), condition/renovation
   // notes (note). gap: acoustic & light condition admin.
-  'well-s2-retreat-infrastructure': ['buildings', 'dwellings', 'note'],
+  'well-s2-retreat-infrastructure': ['adopt-building', 'buildings', 'dwellings', 'note'],
   // S2 -- surrounding landscape & vectors: surrounding land use within 2km
   // (neighbour-pin), drinking-water catchment contamination (catchment),
   // threats/developments (hazard-zone), visual vantage points (high-point),
@@ -1568,7 +1590,7 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S3 -- water features & hydrological potential: springs (spring), streams
   // (watercourse), ponds/wetlands (water), therapeutic/safety notes (note).
   // gap: flow-reliability & quality lab work.
-  'well-s3-water-features': ['spring', 'watercourse', 'water', 'note'],
+  'well-s3-water-features': ['adopt-water', 'spring', 'watercourse', 'water', 'note'],
   // S3 -- soil & plant ecology for healing gardens: existing therapeutic species
   // (vegetation), soil health in garden zones (soil), microclimate -- shade/
   // warmth (sun-sector) -- support-capacity notes (note). gap: species ID admin.
