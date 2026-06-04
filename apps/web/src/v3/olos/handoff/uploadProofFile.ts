@@ -9,6 +9,10 @@
 import { api } from '../../../lib/apiClient.js';
 
 export async function uploadProofFile(serverId: string, file: File): Promise<string> {
+  // Note: api.files.upload currently REJECTS (throws ApiError) on a non-2xx /
+  // error response, so that failure mode propagates out of this await directly.
+  // The env.error guard below is forward-defensive in case files.upload ever
+  // moves to the request()-style envelope contract used elsewhere in apiClient.
   const env = await api.files.upload(serverId, file);
   if (env.error) throw new Error(env.error.message);
   const url = env.data?.storageUrl;

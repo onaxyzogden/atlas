@@ -26,4 +26,10 @@ describe('uploadProofFile', () => {
     const file = new File([new Uint8Array([1])], 'x.jpg', { type: 'image/jpeg' });
     await expect(uploadProofFile('server-1', file)).rejects.toThrow('too big');
   });
+
+  it('throws when a successful envelope carries no storageUrl', async () => {
+    uploadMock.mockResolvedValue({ data: { id: 'f1', storageUrl: '' }, error: null });
+    const file = new File([new Uint8Array([1])], 'x.jpg', { type: 'image/jpeg' });
+    await expect(uploadProofFile('server-1', file)).rejects.toThrow('no storageUrl');
+  });
 });
