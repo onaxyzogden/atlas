@@ -189,6 +189,88 @@ describe('TaskProofPanel - verification (two-write)', () => {
     ).toBe('verified-complete');
   });
 
+  it('invokes onVerifiedPass with the verification after a successful pass', async () => {
+    const t = task();
+    useActTaskStore.setState({ byProject: { 'local-1': { 'uuid-task': t } } });
+    h.proofListResp = [proof()];
+    h.verifyCreateResp = {
+      id: 'uuid-verify',
+      projectId: 'srv-1',
+      taskId: 'uuid-task',
+      outcome: 'pass',
+      criteriaChecked: [],
+      requiredReworkIds: [],
+      proofRecordIds: ['uuid-proof'],
+      verifiedAt: '2026-01-01T00:00:00.000Z',
+    } as VerificationRecord;
+    h.taskUpdateResp = task({ status: 'verified-complete' });
+    const onVerifiedPass = vi.fn();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-rev"
+        myRole="reviewer"
+        onVerifiedPass={onVerifiedPass}
+      />,
+    );
+
+    await screen.findByText('Sign off');
+    fireEvent.click(screen.getByText('Sign off'));
+
+    await waitFor(() => expect(onVerifiedPass).toHaveBeenCalledTimes(1));
+    // Fired with the created verification (so the adapter can key Observe off it).
+    const passed = onVerifiedPass.mock.calls[0]?.[0];
+    expect(passed?.taskId).toBe('uuid-task');
+    expect(passed?.outcome).toBe('pass');
+  });
+
+  it('does NOT invoke onVerifiedPass on a needs-rework sign-off', async () => {
+    const t = task();
+    useActTaskStore.setState({ byProject: { 'local-1': { 'uuid-task': t } } });
+    h.proofListResp = [proof()];
+    h.verifyCreateResp = {
+      id: 'uuid-verify',
+      projectId: 'srv-1',
+      taskId: 'uuid-task',
+      outcome: 'needs-rework',
+      criteriaChecked: [],
+      requiredReworkIds: [],
+      proofRecordIds: ['uuid-proof'],
+      verifiedAt: '2026-01-01T00:00:00.000Z',
+    } as VerificationRecord;
+    h.taskUpdateResp = task({ status: 'needs-rework' });
+    const onVerifiedPass = vi.fn();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-rev"
+        myRole="reviewer"
+        onVerifiedPass={onVerifiedPass}
+      />,
+    );
+
+    await screen.findByText('Sign off');
+    fireEvent.change(screen.getByLabelText('Verification outcome'), {
+      target: { value: 'needs-rework' },
+    });
+    fireEvent.click(screen.getByText('Sign off'));
+
+    await waitFor(() =>
+      expect(
+        useActTaskStore.getState().getTask('local-1', 'uuid-task')?.status,
+      ).toBe('needs-rework'),
+    );
+    expect(onVerifiedPass).not.toHaveBeenCalled();
+  });
+
   it('reviewer needs-rework transitions the task to needs-rework', async () => {
     const t = task();
     useActTaskStore.setState({ byProject: { 'local-1': { 'uuid-task': t } } });

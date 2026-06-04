@@ -29,6 +29,7 @@ import {
   type ProjectRole,
   type ProofType,
   type VerificationOutcome as VerificationOutcomeType,
+  type VerificationRecord,
 } from '@ogden/shared';
 import {
   useProofRecordStore,
@@ -36,7 +37,7 @@ import {
   useActTaskStore,
 } from '../../../store/olos/index.js';
 import { useTaskProofSync } from '../../../hooks/useTaskProofSync.js';
-import css from './HandoffSection.module.css';
+import css from './TaskProofPanel.module.css';
 
 interface Props {
   projectId: string;
@@ -45,6 +46,14 @@ interface Props {
   members: ProjectMemberRecord[];
   currentUserId?: string;
   myRole?: ProjectRole;
+  /**
+   * Fired after a successful PASS sign-off (verification pushed + task
+   * transitioned). Optional side channel: the tier-shell adapter uses it to
+   * project the pass back into Observe as a `task_verification` ObserveDataPoint
+   * (it has the PlanStratumObjective in hand). Not invoked on needs-rework, and
+   * the OLOS-workspace usage leaves it unset (it lacks the objective to key on).
+   */
+  onVerifiedPass?: (verification: VerificationRecord) => void;
 }
 
 const PROOF_TYPE_OPTIONS: ProofType[] = [
@@ -74,6 +83,7 @@ export default function TaskProofPanel({
   members,
   currentUserId,
   myRole,
+  onVerifiedPass,
 }: Props) {
   // Pull this task's proofs + verifications on mount. No-op offline.
   useTaskProofSync(projectId, serverId, task.id);
@@ -182,6 +192,7 @@ export default function TaskProofPanel({
       setTaskStatus(projectId, task.id, nextStatus);
       const updated = getTask(projectId, task.id);
       if (updated) await pushTask(updated, serverId);
+      if (outcome === 'pass') onVerifiedPass?.(verification);
       setVerifyNotes('');
     } finally {
       setBusy(false);
