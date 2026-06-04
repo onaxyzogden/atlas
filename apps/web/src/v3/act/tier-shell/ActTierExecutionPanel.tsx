@@ -28,6 +28,8 @@ import type {
   Season,
   ProjectMemberRecord,
   ProjectRole,
+  ActTask,
+  VerificationRecord,
 } from '@ogden/shared';
 import {
   getObjectiveEvidence,
@@ -68,6 +70,9 @@ import {
 import { useObservationNeeds } from '../../observation-needs/useObservationNeeds.js';
 import type { ObserveModule } from '../../observe/types.js';
 import { useObserveCycleStore } from '../../../store/observeCycleStore.js';
+import { isOlosFormalProofEnabled } from '../../../config/olosFlags.js';
+import TaskProofPanel from '../../olos/handoff/TaskProofPanel.js';
+import { useActObjectiveTaskBridge } from './useActObjectiveTaskBridge.js';
 import styles from './ActTierExecutionPanel.module.css';
 
 // Stable empty fallback so the completedIds selector never returns a new
@@ -120,8 +125,9 @@ interface Props {
   status: PlanStratumObjectiveStatus;
   // Formal OLOS proof/verification wiring (flag-gated), threaded from
   // ActTierShell. Optional so the panel renders identically when unprovided
-  // (offline / flag-off). Consumed in P1.5 — declared here so the threading
-  // from ActTierShell typechecks in isolation.
+  // (offline / flag-off): with no serverId the bridge reports 'offline' and the
+  // gated Verification section never mounts, leaving the lightweight
+  // "Record observation" path as the sole completion surface.
   serverId?: string;
   members?: ProjectMemberRecord[];
   currentUserId?: string;
@@ -133,6 +139,10 @@ export default function ActTierExecutionPanel({
   tier,
   objective,
   status,
+  serverId,
+  members,
+  currentUserId,
+  myRole,
 }: Props) {
   // -------------------------------------------------------------------------
   // Checklist -- wired to planStratumStore (shared with Plan stage).
@@ -253,6 +263,51 @@ export default function ActTierExecutionPanel({
     [evidence, capture],
   );
   const ready = checklistReady && evidenceReady && domainId !== null;
+
+  // -------------------------------------------------------------------------
+  // Formal proof/verification bridge (flag-gated, P1.5).
+  // -------------------------------------------------------------------------
+  // Read-only domain-seam bridge from this PlanStratumObjective to the formal
+  // ActTask(s) seeded by an approved Plan->Act handoff for the same Observe
+  // domain. The hook resolves the universal Act catalogue objective id and
+  // filters actTaskStore by it (never id-equality on sourceObjectiveId, which
+  // lives in a different id space). Offline (no serverId) => status 'offline'
+  // and nothing below mounts.
+  const formalEnabled = isOlosFormalProofEnabled();
+  const bridge = useActObjectiveTaskBridge(projectId, serverId, objective);
+
+  // On a formal PASS, project the verification back into Observe as a
+  // task_verification ObserveDataPoint. Emitted ONLY here (tier-shell), where
+  // the PlanStratumObjective is in hand, so domainId + sourceObjectiveId match
+  // the lightweight path exactly and slot into the existing dashboard/rollup
+  // with no id-space guessing. needs-rework fires nothing (TaskProofPanel only
+  // invokes onVerifiedPass on pass).
+  const emitTaskVerification = (
+    task: ActTask,
+    verification: VerificationRecord,
+  ) => {
+    if (domainId === null) return;
+    const point: ObserveDataPoint = {
+      id: crypto.randomUUID(),
+      projectId,
+      domainId,
+      sourceType: 'task_verification',
+      sourceActionId: task.id,
+      sourceFeedEntryId: null,
+      sourceObjectiveId: objective.id,
+      sourceFeatureRef: null,
+      locationGeometry: null,
+      cycleId: 0,
+      isSuperseded: false,
+      supersededBy: null,
+      statusOutput: 'clear',
+      measurementValue: { label: objective.title, note: verification.notes ?? null },
+      proofItems: [],
+      capturedAt: new Date().toISOString(),
+      capturedBy: 'act-tier-formal',
+    };
+    recordDataPoint(point);
+  };
 
   // Repeat recordings are allowed: the activity feed below is the persistent
   // history, so the Record button stays armed and a new row is the confirmation
@@ -573,6 +628,33 @@ export default function ActTierExecutionPanel({
         <h4 className={styles.execSectionTitle}>Evidence</h4>
         {evidence.map(renderEvidenceCard)}
       </section>
+
+      {formalEnabled && (bridge.status === 'ready' || bridge.status === 'no-task') && (
+        <section className={styles.execSection}>
+          <h4 className={styles.execSectionTitle}>Verification</h4>
+          {bridge.status === 'no-task' ? (
+            <p className={styles.execEmpty}>
+              No formal task yet. A verification task appears here once this
+              objective&apos;s domain has an approved Plan-to-Act handoff.
+            </p>
+          ) : (
+            bridge.tasks.map((task) => (
+              <TaskProofPanel
+                key={task.id}
+                projectId={projectId}
+                task={task}
+                serverId={serverId}
+                members={members ?? []}
+                currentUserId={currentUserId}
+                myRole={myRole}
+                onVerifiedPass={(verification) =>
+                  emitTaskVerification(task, verification)
+                }
+              />
+            ))
+          )}
+        </section>
+      )}
 
       <section className={styles.execSection}>
         <h4 className={styles.execSectionTitle}>This need&apos;s activity</h4>
