@@ -468,7 +468,8 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S1 — enterprise mix & priorities: enterprise inventory, priority tiers,
   // interdependencies, sequencing, timelines, capacity fit — all decisions.
   // Project-level vision capture is the universal s1-vision form arms. gap: all.
-  'rf-s1-enterprise-mix': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'rf-s1-enterprise-mix': ['rf-s1-enterprise-mix-c1', 'rf-s1-enterprise-mix-c2', 'rf-s1-enterprise-mix-c3', 'rf-s1-enterprise-mix-c4', 'rf-s1-enterprise-mix-c5', 'rf-s1-enterprise-mix-c6', 'rf-s1-enterprise-mix-c7', 'rf-s1-enterprise-mix-c8'],
   // S2 — land health & degradation: c1 map erosion (sheet/rill/gully), c2/c7
   // compaction + soil loss/contamination sampling, c8 drainage problems
   // (waterlogging/salt scald/hardpan), c3 weed burden by zone (vegetation cover).
@@ -559,13 +560,14 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // S1 — production targets & sales model: yield/revenue targets + sales-model
   // choice (incl. CSA, Amanah-flagged in scopeNotes) — an off-site decision.
   // Project-level vision capture is the universal s1-vision form arms. gap: all.
-  'mgd-s1-production-targets-sales': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'mgd-s1-production-targets-sales': ['mgd-s1-production-targets-sales-c1', 'mgd-s1-production-targets-sales-c2', 'mgd-s1-production-targets-sales-c3', 'mgd-s1-production-targets-sales-c4', 'mgd-s1-production-targets-sales-c5', 'mgd-s1-production-targets-sales-c6'],
   // S1 — growing-system philosophy: no-dig / bio-intensive / scale ethos — a
   // design-philosophy decision, non-spatial. gap: all.
-  'mgd-s1-growing-system-philosophy': [],
+  'mgd-s1-growing-system-philosophy': ['mgd-s1-growing-system-philosophy-c1', 'mgd-s1-growing-system-philosophy-c2', 'mgd-s1-growing-system-philosophy-c3', 'mgd-s1-growing-system-philosophy-c4', 'mgd-s1-growing-system-philosophy-c5', 'mgd-s1-growing-system-philosophy-c6'],
   // S1 — market channels & customer base: channel mix + CSA membership model
   // (Amanah-flagged) — an off-site market decision. gap: all.
-  'mgd-s1-market-channels': [],
+  'mgd-s1-market-channels': ['mgd-s1-market-channels-c1', 'mgd-s1-market-channels-c2', 'mgd-s1-market-channels-c3', 'mgd-s1-market-channels-c4', 'mgd-s1-market-channels-c5', 'mgd-s1-market-channels-c6'],
   // S2 — soil fertility & bed potential: soil sampling / fertility baseline
   // (soil), drainage + workability constraints (drainage), bed-suitability
   // sampling transects (transect). gap: aspect / history (record / decision).
@@ -668,12 +670,13 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
 
   // S1 — species & design philosophy: orchard archetype / ethos — a design
   // decision. Project vision capture is the universal s1-vision form arms. gap: all.
-  'orch-s1-species-philosophy': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'orch-s1-species-philosophy': ['orch-s1-species-philosophy-c1', 'orch-s1-species-philosophy-c2', 'orch-s1-species-philosophy-c3', 'orch-s1-species-philosophy-c4', 'orch-s1-species-philosophy-c5', 'orch-s1-species-philosophy-c6'],
   // S1 — production intent: scale / yield / market intent — a decision. gap: all.
-  'orch-s1-production-intent': [],
+  'orch-s1-production-intent': ['orch-s1-production-intent-c1', 'orch-s1-production-intent-c2', 'orch-s1-production-intent-c3', 'orch-s1-production-intent-c4', 'orch-s1-production-intent-c5', 'orch-s1-production-intent-c6'],
   // S1 — provenance & sourcing: nursery / rootstock procurement strategy — an
   // off-site sourcing decision. gap: all.
-  'orch-s1-provenance-sourcing': [],
+  'orch-s1-provenance-sourcing': ['orch-s1-provenance-sourcing-c1', 'orch-s1-provenance-sourcing-c2', 'orch-s1-provenance-sourcing-c3', 'orch-s1-provenance-sourcing-c4', 'orch-s1-provenance-sourcing-c5', 'orch-s1-provenance-sourcing-c6'],
   // S2 — existing tree cover & canopy: map existing trees / canopy (vegetation),
   // any existing orchard blocks (orchards). gap: condition assessment (record).
   'orch-s2-tree-cover': ['vegetation', 'orchards'],

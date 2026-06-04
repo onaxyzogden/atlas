@@ -743,6 +743,188 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     id: 'silv-sec-s1-livestock-intent-c5', label: 'Confirm fit', icon: HelpCircle, category: 'vision',
     arm: { kind: 'form', formId: 'silv-sec-s1-livestock-intent-c5', prompt: 'Confirm livestock intent is compatible with the primary enterprise vision and site scale' },
   },
+
+  // -- regenerative farm --
+  'rf-s1-enterprise-mix-c1': {
+    id: 'rf-s1-enterprise-mix-c1', label: 'Market channel', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c1', prompt: 'Define primary market channel - wholesale, direct-to-consumer, mixed' },
+  },
+  'rf-s1-enterprise-mix-c2': {
+    id: 'rf-s1-enterprise-mix-c2', label: 'Enterprise mix', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c2', prompt: 'Define crop and livestock enterprise mix - vegetables, grains, animals, value-added products' },
+  },
+  'rf-s1-enterprise-mix-c3': {
+    id: 'rf-s1-enterprise-mix-c3', label: 'Targets & calendar', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c3', prompt: 'Define production targets and seasonal calendar for each enterprise' },
+  },
+  'rf-s1-enterprise-mix-c4': {
+    id: 'rf-s1-enterprise-mix-c4', label: 'Customer demand', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c4', prompt: 'Identify customer base and demand level for each product' },
+  },
+  'rf-s1-enterprise-mix-c5': {
+    id: 'rf-s1-enterprise-mix-c5', label: 'Capacity check', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c5', prompt: 'Confirm mix is achievable within site soil, water, and labour capacity' },
+  },
+  'rf-s1-enterprise-mix-c6': {
+    id: 'rf-s1-enterprise-mix-c6', label: 'Regen alignment', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c6', prompt: 'Confirm mix aligns with regenerative principles and ecological vision' },
+  },
+  'rf-s1-enterprise-mix-c7': {
+    id: 'rf-s1-enterprise-mix-c7', label: 'Change process', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c7', prompt: 'Define decision-making process for adding or removing enterprises' },
+  },
+  'rf-s1-enterprise-mix-c8': {
+    id: 'rf-s1-enterprise-mix-c8', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'rf-s1-enterprise-mix-c8', prompt: 'Confirm enterprise mix is agreed by all operators' },
+  },
+
+  // -- market garden --
+  'mgd-s1-production-targets-sales-c1': {
+    id: 'mgd-s1-production-targets-sales-c1', label: 'Harvest value', icon: Wallet, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c1', prompt: 'Define target total annual harvest value in dollars or kg' },
+  },
+  'mgd-s1-production-targets-sales-c2': {
+    id: 'mgd-s1-production-targets-sales-c2', label: 'Market channel', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c2', prompt: 'Define primary market channel - farmers market, wholesale, CSA, online, restaurant supply, or hybrid' },
+  },
+  'mgd-s1-production-targets-sales-c3': {
+    id: 'mgd-s1-production-targets-sales-c3', label: 'Customer base', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c3', prompt: 'Define customer base for each channel - volume and growth trajectory' },
+  },
+  'mgd-s1-production-targets-sales-c4': {
+    id: 'mgd-s1-production-targets-sales-c4', label: 'Capacity check', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c4', prompt: 'Confirm targets are achievable within site soil, water, and labour capacity' },
+  },
+  'mgd-s1-production-targets-sales-c5': {
+    id: 'mgd-s1-production-targets-sales-c5', label: 'Pricing & margin', icon: Wallet, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c5', prompt: 'Define pricing strategy and profit margin targets' },
+  },
+  'mgd-s1-production-targets-sales-c6': {
+    id: 'mgd-s1-production-targets-sales-c6', label: 'Ramp realism', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-production-targets-sales-c6', prompt: 'Confirm targets are realistic for Year 1 ramp-up and Years 2-3 stabilisation' },
+  },
+  'mgd-s1-growing-system-philosophy-c1': {
+    id: 'mgd-s1-growing-system-philosophy-c1', label: 'Growing ethos', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c1', prompt: 'Define the core growing philosophy - organic, regenerative, integrated pest management, biodynamic, or hybrid' },
+  },
+  'mgd-s1-growing-system-philosophy-c2': {
+    id: 'mgd-s1-growing-system-philosophy-c2', label: 'Soil targets', icon: FlaskConical, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c2', prompt: 'Define soil health targets - fertility building, microbial life, water retention' },
+  },
+  'mgd-s1-growing-system-philosophy-c3': {
+    id: 'mgd-s1-growing-system-philosophy-c3', label: 'Pest approach', icon: Bird, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c3', prompt: 'Define pest and disease management approach - companion planting, mechanical, biological, acceptable chemical inputs' },
+  },
+  'mgd-s1-growing-system-philosophy-c4': {
+    id: 'mgd-s1-growing-system-philosophy-c4', label: 'Rotation', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c4', prompt: 'Define crop rotation and succession strategy' },
+  },
+  'mgd-s1-growing-system-philosophy-c5': {
+    id: 'mgd-s1-growing-system-philosophy-c5', label: 'Variety policy', icon: Sprout, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c5', prompt: 'Define variety selection and saving philosophy - hybrid, heirloom, productivity vs. resilience' },
+  },
+  'mgd-s1-growing-system-philosophy-c6': {
+    id: 'mgd-s1-growing-system-philosophy-c6', label: 'Feasibility', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-growing-system-philosophy-c6', prompt: 'Confirm philosophy is achievable within operator knowledge and site conditions' },
+  },
+  'mgd-s1-market-channels-c1': {
+    id: 'mgd-s1-market-channels-c1', label: 'Food safety', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c1', prompt: 'Identify food safety compliance requirements for each channel - farmers market, wholesale, direct-to-consumer, processing' },
+  },
+  'mgd-s1-market-channels-c2': {
+    id: 'mgd-s1-market-channels-c2', label: 'Labelling & cert', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c2', prompt: 'Identify labelling, certification, and traceability requirements' },
+  },
+  'mgd-s1-market-channels-c3': {
+    id: 'mgd-s1-market-channels-c3', label: 'Packaging & cold', icon: Container, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c3', prompt: 'Define packaging and cold-chain requirements by product type' },
+  },
+  'mgd-s1-market-channels-c4': {
+    id: 'mgd-s1-market-channels-c4', label: 'Regulatory risk', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c4', prompt: 'Assess regulatory risk per channel - highest to lowest compliance burden' },
+  },
+  'mgd-s1-market-channels-c5': {
+    id: 'mgd-s1-market-channels-c5', label: 'Compliance cal', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c5', prompt: 'Define compliance calendar - inspection schedules, certification renewals' },
+  },
+  'mgd-s1-market-channels-c6': {
+    id: 'mgd-s1-market-channels-c6', label: 'Reg advice', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'mgd-s1-market-channels-c6', prompt: 'Obtain regulatory advice on chosen channels before first sale' },
+  },
+
+  // -- orchard --
+  'orch-s1-species-philosophy-c1': {
+    id: 'orch-s1-species-philosophy-c1', label: 'Species ethos', icon: TreeDeciduous, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c1', prompt: 'Define the core species philosophy - heritage, climate-adapted, productivity focus, or conservation focus' },
+  },
+  'orch-s1-species-philosophy-c2': {
+    id: 'orch-s1-species-philosophy-c2', label: 'Candidate species', icon: TreeDeciduous, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c2', prompt: 'Identify candidate species suited to site climate, soil, water - prioritise local provenance where possible' },
+  },
+  'orch-s1-species-philosophy-c3': {
+    id: 'orch-s1-species-philosophy-c3', label: 'Disease pressure', icon: Bird, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c3', prompt: 'Define disease and pest pressure per species - resistance requirements' },
+  },
+  'orch-s1-species-philosophy-c4': {
+    id: 'orch-s1-species-philosophy-c4', label: 'Portfolio', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c4', prompt: 'Define the productive portfolio - monoculture, polyculture, or agroforestry integration' },
+  },
+  'orch-s1-species-philosophy-c5': {
+    id: 'orch-s1-species-philosophy-c5', label: 'Climate fit', icon: Sun, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c5', prompt: 'Confirm species choice is compatible with climate projections for the orchard lifespan - 50+ years' },
+  },
+  'orch-s1-species-philosophy-c6': {
+    id: 'orch-s1-species-philosophy-c6', label: 'Feasibility', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-species-philosophy-c6', prompt: 'Confirm choices are achievable within operator knowledge and site scale' },
+  },
+  'orch-s1-production-intent-c1': {
+    id: 'orch-s1-production-intent-c1', label: 'Production intent', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-production-intent-c1', prompt: 'Define primary production intent - subsistence, local market, wholesale, or on-farm value-added processing' },
+  },
+  'orch-s1-production-intent-c2': {
+    id: 'orch-s1-production-intent-c2', label: 'Target yield', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-production-intent-c2', prompt: 'Define target annual yield per hectare for primary species' },
+  },
+  'orch-s1-production-intent-c3': {
+    id: 'orch-s1-production-intent-c3', label: 'Harvest timing', icon: Wheat, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-production-intent-c3', prompt: 'Define harvest timing and season - early, main, or extended season species' },
+  },
+  'orch-s1-production-intent-c4': {
+    id: 'orch-s1-production-intent-c4', label: 'Processing', icon: Container, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-production-intent-c4', prompt: 'Define processing and preservation approach - fresh, dried, fermented, pressed, frozen' },
+  },
+  'orch-s1-production-intent-c5': {
+    id: 'orch-s1-production-intent-c5', label: 'Storage needs', icon: Container, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-production-intent-c5', prompt: 'Identify storage requirements - cool storage, temperature and humidity control' },
+  },
+  'orch-s1-production-intent-c6': {
+    id: 'orch-s1-production-intent-c6', label: 'Labour match', icon: HardHat, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-production-intent-c6', prompt: 'Confirm production intent and processing plan are matched to labour availability' },
+  },
+  'orch-s1-provenance-sourcing-c1': {
+    id: 'orch-s1-provenance-sourcing-c1', label: 'Provenance', icon: MapPin, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c1', prompt: 'Define provenance preference - local, regional, certified, heirloom, conservation priority' },
+  },
+  'orch-s1-provenance-sourcing-c2': {
+    id: 'orch-s1-provenance-sourcing-c2', label: 'Nursery suppliers', icon: Building2, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c2', prompt: 'Identify potential nursery suppliers - local, mail-order, specialty conservation' },
+  },
+  'orch-s1-provenance-sourcing-c3': {
+    id: 'orch-s1-provenance-sourcing-c3', label: 'Tree size', icon: TreeDeciduous, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c3', prompt: 'Define tree size at planting - bare-root, small pot, large specimen' },
+  },
+  'orch-s1-provenance-sourcing-c4': {
+    id: 'orch-s1-provenance-sourcing-c4', label: 'Establishment', icon: Fence, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c4', prompt: 'Define establishment support requirements - guards, mulch, staking, irrigation' },
+  },
+  'orch-s1-provenance-sourcing-c5': {
+    id: 'orch-s1-provenance-sourcing-c5', label: 'Availability', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c5', prompt: 'Confirm tree availability aligns with planting timeline and budget' },
+  },
+  'orch-s1-provenance-sourcing-c6': {
+    id: 'orch-s1-provenance-sourcing-c6', label: 'Quality standards', icon: FlaskConical, category: 'vision',
+    arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c6', prompt: 'Define quality standards for received stock - health assessment, rejection criteria' },
+  },
 };
 
 /** Resolve catalogue ids to ActTool objects, dropping any unknown id. */
