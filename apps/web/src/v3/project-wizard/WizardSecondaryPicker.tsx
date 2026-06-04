@@ -80,13 +80,14 @@ export default function WizardSecondaryPicker({
           <button
             type="button"
             key={type.id}
-            className={styles.chip}
+            className={styles.card}
             data-selected={selected ? 'true' : 'false'}
             aria-pressed={selected}
             onClick={() => onToggle(type.id)}
           >
-            <span className={styles.chipLabel}>{type.label}</span>
-            <span className={styles.chipHint}>{RELATION_HINT[relation]}</span>
+            <span className={styles.cardLabel}>{type.label}</span>
+            <span className={styles.cardDesc}>{type.description}</span>
+            <span className={styles.cardHint}>{RELATION_HINT[relation]}</span>
           </button>
         );
       })}
