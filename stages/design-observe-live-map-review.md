@@ -141,6 +141,28 @@ field. `PseudoMap` stays exported and used (no-deletion). `activeLens`,
   vision/people near a central homestead; access near the east entrance). Exact
   per-point coordinates are fixed in the implementation plan.
 
+### Seed constraints (forward-compat with later sector/slope/zone overlays)
+
+These are not cosmetic; they protect the v2 overlays (sector wedges, keyline /
+slope shading, Zone 0-5 rings) from rework:
+
+- **Full coordinate precision.** Store lng/lat at >=6 decimal places
+  (~0.11 m at this latitude). Farm-scale observation is sub-meter; truncating now
+  would corrupt the future in-field GPS-capture pipeline and any contour math.
+- **Sanely oriented polygon.** Draw the parcel with its long axis along a
+  plausible contour / the creek line (a gentle NW-SE lie of the land), NOT an
+  arbitrary axis-aligned rectangle, so slope/keyline and sector overlays read
+  correctly when added.
+- **True-north discipline.** Coordinates are true-north WGS84 lng/lat; do not bake
+  in any map-rotation offset. The wind-rose sector overlay (v2) will orient to
+  true north off these coordinates, so the seed must be honest to it.
+- **Domain-plausible placement.** Water/risk points sit on the low (downhill)
+  creek edge; topography on the high ground; this keeps the demo coherent once
+  slope shading is layered on. Placement need not be surveyed-accurate (it is
+  declared demo data) but must not contradict the slope/water story.
+
+These bind the implementation plan's per-point coordinate choices.
+
 ## Degrade & edge behavior
 
 - `map` null -> `PseudoMap` (current behavior; covers mock and geometry-less
