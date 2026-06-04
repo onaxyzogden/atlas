@@ -49,6 +49,10 @@ const ParamsResolveConflict = z.object({
   projectId: z.string().uuid(),
   syncLogId: z.string().uuid(),
 });
+const ChangedSinceQuery = z.object({
+  // ISO-8601 with offset; absent → full snapshot (handled at the call site).
+  since: z.string().datetime({ offset: true }).optional(),
+});
 
 function parseRow(row: Record<string, unknown>) {
   // `rev` is BIGINT; postgres.js returns it as a string to avoid precision
@@ -239,7 +243,66 @@ export default async function actRecordRoutes(fastify: FastifyInstance) {
         };
       }
 
-      return { data: parseRow(row), meta: undefined, error: null };
+      const saved = parseRow(row);
+
+      // Broadcast the live upsert to other connected project members (author
+      // excluded — they already applied it locally and would otherwise
+      // re-enqueue an echo). Receivers look the store up by `storeKey` in the
+      // client SYNCED_STORES registry and drop the message if `rev` is not
+      // newer than what they hold. Carries the SyncedRecordEventPayload shape.
+      fastify.wsBroadcast(
+        projectId,
+        {
+          type: 'record_upserted',
+          payload: {
+            storeKey: saved.storeKey,
+            projectId: saved.projectId,
+            recordId: saved.recordId,
+            rev: saved.rev,
+            schemaVersion: saved.schemaVersion,
+            payload: (saved.payload ?? null) as Record<string, unknown> | null,
+          } as unknown as Record<string, unknown>,
+          userId: req.userId,
+          userName: null,
+          timestamp: new Date().toISOString(),
+        },
+        req.userId,
+      );
+
+      return { data: saved, meta: undefined, error: null };
+    },
+  );
+
+  // GET /project/:projectId/changed-since?since=<ISO> — every record in the
+  // project whose updated_at is strictly after `since`, across all store_keys,
+  // ordered oldest-first. This is the reconnect delta-pull source (Phase 2
+  // Problem B): a device offline for hours learns what teammates changed while
+  // it was gone — live WS broadcasts only reach currently-connected peers, so
+  // broadcast alone never covers the all-day-offline case. Apply-only on the
+  // client (server-wins by rev); 409s only ever arise on that device's own
+  // queued PUSH, never here. Static `changed-since` out-prioritises the
+  // `:storeKey` param route and no Act store is named "changed-since". Any role
+  // may read (same as the per-store list and conflicts routes).
+  fastify.get<{ Params: { projectId: string }; Querystring: { since?: string } }>(
+    '/project/:projectId/changed-since',
+    { preHandler: [authenticate, resolveProjectRole] },
+    async (req) => {
+      const { projectId } = ParamsProjectIdConflicts.parse(req.params);
+      // Default to the epoch when `since` is absent/blank → a full snapshot.
+      const since = ChangedSinceQuery.parse(req.query).since ?? '1970-01-01T00:00:00.000Z';
+      const rows = await db`
+        SELECT project_id, store_key, record_id, payload, schema_version,
+               rev, observed_at, source_type, cycle_id, task_type,
+               updated_by, updated_at
+        FROM synced_records
+        WHERE project_id = ${projectId} AND updated_at > ${since}
+        ORDER BY updated_at ASC
+      `;
+      return {
+        data: rows.map(parseRow),
+        meta: { total: rows.length },
+        error: null,
+      };
     },
   );
 

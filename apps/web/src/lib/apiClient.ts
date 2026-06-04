@@ -601,6 +601,17 @@ export const api = {
         input,
       ),
 
+    // Reconnect delta-pull (Phase 2 Problem B): every record in the project
+    // changed since `sinceISO` (omit for a full snapshot), across all stores,
+    // oldest-first. Apply-only on the client (server-wins by rev).
+    changedSince: (projectServerId: string, sinceISO?: string) =>
+      request<SyncedRecord[]>(
+        'GET',
+        `/api/v1/act-records/project/${projectServerId}/changed-since${
+          sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+        }`,
+      ),
+
     // ADR 7 Phase 4 — conflict resolution surface.
     // `listConflicts` returns every open (escalated) conflict for the project;
     // `resolveConflict` closes one by the steward's Keep-mine/Keep-server choice.
