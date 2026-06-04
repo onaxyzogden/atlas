@@ -33,6 +33,7 @@ import {
   LIVESTOCK_SECONDARY_OBJECTIVES,
   CONSERVATION_PRIMARY_OBJECTIVES,
   OFF_GRID_PRIMARY_OBJECTIVES,
+  AGRITOURISM_PRIMARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -196,6 +197,28 @@ describe('Act tier-shell objective->tool coverage', () => {
     // decisions) still satisfies the ratchet -- only a brand-new un-wired ofg-*
     // trips it.
     const missing = OFF_GRID_PRIMARY_OBJECTIVES.filter(
+      (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
+    ).map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every agritourism objective has an explicit override entry', () => {
+    // Agritourism is the eighth per-type catalogue wired (audit remediation R1,
+    // 2026-06-03). It ships no standalone secondary layer and no patches, so this
+    // is a primary-only ratchet over the 34 ag-* objectives (29 v1.0 + 5
+    // eco-resort / glamping extension added out-of-band). Before this its
+    // objectives fell through STRATUM_ACT_TOOLS_DEFAULT (the S2/S3 arrival /
+    // hospitality / sensory / emergency / carrying-capacity surveys and the S5
+    // accommodation / dining / sanitation / dispersed-siting / servicing design
+    // block surfaced the coarse access-utilities set instead of the access /
+    // structure / climate-sector / zoning families). Each is now explicit; an
+    // intentional [] (S1 vision / capacity / regulatory, S2 seasonal pattern, the
+    // S4 service / food strategy & the revenue-model objective whose membership /
+    // season-pass Amanah scopeNote routes to Scholar Council, the S6 feedback /
+    // compliance / load monitors, and the whole S7 staffing / booking / launch /
+    // adaptive / seasonal-resilience band) still satisfies the ratchet -- only a
+    // brand-new un-wired ag-* trips it.
+    const missing = AGRITOURISM_PRIMARY_OBJECTIVES.filter(
       (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
     ).map((o) => o.id);
     expect(missing).toEqual([]);

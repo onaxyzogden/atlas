@@ -1121,6 +1121,136 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // verified), temporary living, cohort go/no-go, resident acceptance -- a
   // sequencing / gate decision. gap: all.
   'ofg-s7-phased-habitation': [],
+
+  // ----------------------------------------------------------- AGRITOURISM (34)
+  // Eighth per-type catalogue wired (audit remediation R1), after off_grid.
+  // 34 ag-* primary objectives (29 v1.0 + 5 eco-resort / glamping extension
+  // committed out-of-band 2026-06-03: AG-S3.7, AG-S4.9, AG-S5.9, AG-S5.10,
+  // AG-S7.8). No standalone secondary layer, no patches -> primary-only wiring.
+  // Before this the objectives fell through STRATUM_ACT_TOOLS_DEFAULT: the S2/S3
+  // arrival / hospitality / sensory / emergency / carrying-capacity surveys and
+  // the S5 accommodation / dining / sanitation / dispersed-siting / servicing
+  // design block surfaced the coarse access-utilities set instead of the access
+  // (roads/parking/gates/path), structure (buildings/dwellings/barns/tanks),
+  // climate-sector (fire/wind-sector/hazard-zone) and zoning (zone/buffer-ring/
+  // fencing) families the checklists call for. Grounded-candidate method: every
+  // id maps to a real checklist item AND exists in ACT_TOOL_CATALOG; pure
+  // decision / financial / scheduling / protocol objectives get an intentional [].
+  // Amanah: AG-S4.8 (revenue model) carries the membership / season-pass Amanah
+  // scopeNote (bay` ma laysa `indak / gharar -- membership-benefit-not-advance-
+  // purchase, routed to Scholar Council) IN THE CATALOGUE; the Act layer maps it
+  // to [] so NO act surface engages the sales instrument -- the correct outcome,
+  // mirroring market_garden's CSA-flagged s1 and livestock's CSA-flagged s7.
+  // 19 tool-bearing + 15 intentional [] = 34.
+  //
+  // S1 -- vision / capacity / regulatory: experience proposition, guest-capacity
+  // numbers, permits & licensing -- foundation decisions, no spatial act. gap: all.
+  'ag-s1-experience-vision': [],
+  'ag-s1-visitor-capacity': [],
+  'ag-s1-regulatory-framework': [],
+  // S2 -- arrival experience: road quality / signage, parking, entry gate &
+  // driveway, arrival-route safety hazards. roads/parking/gates/path + hazard-zone.
+  'ag-s2-arrival-experience': ['roads', 'parking', 'gates', 'path', 'hazard-zone'],
+  // S2 -- existing hospitality infra: inventory accommodation (rooms / cabins /
+  // outbuildings), kitchen, bathrooms, gathering spaces. buildings/dwellings/barns.
+  'ag-s2-hospitality-infra': ['buildings', 'dwellings', 'barns'],
+  // S2 -- surrounding landscape & vectors: map land uses within 2km, drinking-
+  // water catchment contamination, spray-drift / nuisance, visual / noise notes.
+  'ag-s2-landscape-context': ['neighbour-pin', 'catchment', 'hazard-zone', 'note'],
+  // S2 -- seasonal operational patterns: peak / off-peak season, farm-guest
+  // calendar conflicts -- a scheduling read, no spatial act. gap: all.
+  'ag-s2-seasonal-patterns': [],
+  // S3 -- guest water & sanitation demand: source yield for combined farm+guest
+  // demand, storage. source tools + storage (sanitation septic has no tool).
+  'ag-s3-water-sanitation-demand': ['spring', 'watercourse', 'wells', 'storage'],
+  // S3 -- noise / privacy / sensory environment: visual amenity & screening from
+  // guest areas, odour-source drift relative to guest zones, recorded notes.
+  'ag-s3-sensory-environment': ['note', 'vegetation', 'wind-sector'],
+  // S3 -- emergency access & safety: emergency-vehicle & evacuation routes, fire
+  // risk, terrain / machinery / animal hazards. roads/path + fire-sector/hazard-zone.
+  'ag-s3-emergency-access': ['roads', 'path', 'fire-sector', 'hazard-zone'],
+  // S3 -- existing food-production capacity: inventory gardens / orchards /
+  // animals + storage infra feeding the guest dining vision.
+  'ag-s3-food-production-capacity': ['crops', 'orchards', 'beds', 'paddocks', 'buildings'],
+  // S3 -- ecological carrying capacity under visitor pressure (eco-resort ext):
+  // soil compaction, trail erosion, sensitive habitats / wildlife corridors to
+  // exclude or buffer, protected vs sacrificial ground.
+  'ag-s3-ecological-carrying-capacity': ['soil', 'erosion', 'wildlife-sector', 'buffer-ring', 'zone'],
+  // S4 -- guest zones & circulation strategy: accessible zones, circulation
+  // route, hard boundaries between guests and farm operations.
+  'ag-s4-circulation-strategy': ['zone', 'path', 'buffer-ring', 'fencing'],
+  // S4 -- hospitality service model: accommodation / dining / programming offer
+  // & service standards -- a service-design decision, no spatial act. gap: all.
+  'ag-s4-service-model': [],
+  // S4 -- farm-to-guest food strategy: enterprise-to-menu mapping, sourcing &
+  // preparation -- a strategy decision (production sited in S3.6 survey). gap: all.
+  'ag-s4-food-strategy': [],
+  // S4 -- safety, emergency & compliance framework: fire-evacuation plan, hazard-
+  // identification map. fire-sector/hazard-zone/path (food-safety / liability admin
+  // have no spatial act).
+  'ag-s4-safety-compliance': ['fire-sector', 'hazard-zone', 'path'],
+  // S4 -- booking, pricing & revenue model: pricing / booking terms / viability +
+  // the membership / season-pass instrument (c7-c11). A financial / sales decision
+  // -> []; the Amanah membership flag lives in the catalogue scopeNote (bay` ma
+  // laysa `indak / gharar, Scholar Council), and mapping to [] keeps any act
+  // surface clear of the sales instrument. gap: all (intentional, Amanah-aware).
+  'ag-s4-revenue-model': [],
+  // S4 -- guest-to-production biosecurity & buffers (eco-resort ext): buffer
+  // distances / physical separation, arrival-hygiene crossing points, contamination-
+  // pathway zoning. buffer-ring/fencing/gates/zone.
+  'ag-s4-biosecurity-zoning': ['buffer-ring', 'fencing', 'gates', 'zone'],
+  // S5 -- guest accommodation & retreat infra: accommodation layout (rooms /
+  // cabins / glamping). dwellings/buildings.
+  'ag-s5-accommodation': ['dwellings', 'buildings'],
+  // S5 -- guest dining & food-service infra: farm kitchen, dining area, cool room
+  // / dry store. buildings/barns.
+  'ag-s5-dining-infra': ['buildings', 'barns'],
+  // S5 -- guest programming & activity infra: tour route & walking trails,
+  // workshop / demonstration & outdoor event spaces. path/buildings/zone.
+  'ag-s5-programming-infra': ['path', 'buildings', 'zone'],
+  // S5 -- guest bathroom & sanitation infra: bathroom layout, hot-water system,
+  // waste reticulation. buildings/tanks/water-lines.
+  'ag-s5-sanitation-infra': ['buildings', 'tanks', 'water-lines'],
+  // S5 -- visitor safety & emergency infra: evacuation route marking, fire
+  // equipment, emergency-vehicle access points, hazard signage.
+  'ag-s5-safety-infra': ['path', 'fire-sector', 'roads', 'hazard-zone'],
+  // S5 -- dispersed low-impact siting & landscape integration (eco-resort ext):
+  // locate units against the carrying-capacity map, inter-unit spacing, low-impact
+  // foot-path access. dwellings/zone/path/buffer-ring.
+  'ag-s5-dispersed-siting': ['dwellings', 'zone', 'path', 'buffer-ring'],
+  // S5 -- decentralised servicing & dark-sky / quiet (eco-resort ext): point-of-
+  // use rainwater capture & reticulation, off-grid power. tanks/water-lines/
+  // catchment/power.
+  'ag-s5-decentralised-servicing': ['tanks', 'water-lines', 'catchment', 'power'],
+  // S6 -- visitor experience feedback & quality monitor: survey / satisfaction /
+  // repeat-visit metrics -- a monitoring-protocol design, no field act. gap: all.
+  'ag-s6-experience-feedback': [],
+  // S6 -- external relations & compliance monitor: compliance calendar, neighbour
+  // & complaint relations -- an admin protocol, no spatial act. gap: all.
+  'ag-s6-compliance-monitoring': [],
+  // S6 -- farm-to-guest integration loop: track farm produce used in guest dining
+  // each season -> a harvest field log.
+  'ag-s6-food-integration': ['harvest'],
+  // S6 -- capacity & operational load monitor: actual-vs-intended guest numbers,
+  // infrastructure-load & staff-workload indicators, threshold triggers -- a
+  // monitoring-protocol design, no field act. gap: all.
+  'ag-s6-load-monitoring': [],
+  // S7 -- hospitality staffing & training: roles, certifications, recruitment
+  // timeline -- an HR decision, no spatial act. gap: all.
+  'ag-s7-staffing-training': [],
+  // S7 -- booking system & reservation infra: platform / payment / confirmation
+  // process -- a systems decision, no spatial act. gap: all.
+  'ag-s7-booking-system': [],
+  // S7 -- phased launch & financial viability: soft-launch hard gate, revenue
+  // ramp, go/no-go -- a phasing / financial decision, no spatial act. gap: all.
+  'ag-s7-phased-launch': [],
+  // S7 -- adaptive management protocol: annual review, decision triggers,
+  // documentation -- a review protocol, no spatial act. gap: all.
+  'ag-s7-adaptive-management': [],
+  // S7 -- seasonal-occupancy resilience (eco-resort ext): off-season maintenance,
+  // staffing cycle, cash-flow buffering -- operational planning (explicitly NOT a
+  // sales surface per its scopeNote), no spatial act. gap: all.
+  'ag-s7-seasonal-resilience': [],
 };
 
 /**
