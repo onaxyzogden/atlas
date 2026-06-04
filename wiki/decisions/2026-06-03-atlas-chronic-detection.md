@@ -130,3 +130,11 @@ Plan: `velvet-doodling-sun.md` (approved). Builds on
 [[decisions/2026-06-03-atlas-observation-log]] (slice #2).
 Log: [[log/2026-06-03-atlas-chronic-detection]].
 Entities: [[entities/protocols-dashboard]], [[entities/observe-dashboard]].
+
+**Superseded-in-part by slice #4** [[decisions/2026-06-04-atlas-chronic-display-and-prune-ui]]
+(2026-06-04): the two follow-ups this ADR deferred -- (1) display grouping/capping of the
+per-pair verdict fan-out, and (2) a steward-facing UI for the headless `pruneProjectRecords` --
+are delivered there. Both chronic surfaces now group by common deviant (Plan caps interactively
++ show-more; Observe renders full read-only), and a gated `PruneLedgerModal` in `PlanStratumShell`
+dry-runs via the pure `previewProjectPrune` (which `pruneProjectRecords` reuses, so they cannot
+drift) before confirming a chronic-safe compaction.
