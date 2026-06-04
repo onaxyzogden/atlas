@@ -23,6 +23,7 @@ import { useDomainSnapshots } from './useDomainSnapshot.js';
 import LandStateSummary from './LandStateSummary.js';
 import DomainStatusCard from './DomainStatusCard.js';
 import PlanRevisionBanner from './revision/PlanRevisionBanner.js';
+import ChronicSynthesisCard from './ChronicSynthesisCard.js';
 import CoOccurrenceSynthesisCard from './CoOccurrenceSynthesisCard.js';
 import PresentationModeOverlay from './presentation/PresentationModeOverlay.js';
 import PresentationShareDialog from './presentation/PresentationShareDialog.js';
@@ -71,6 +72,7 @@ export default function UnifiedLandStateSurface({ projectId }: Props) {
     <div className={css.surface}>
       <div className={css.header}>
         <PlanRevisionBanner projectId={projectId} />
+        <ChronicSynthesisCard projectId={projectId} />
         <CoOccurrenceSynthesisCard projectId={projectId} />
         <div className={css.toolbar}>
           <button
