@@ -12,7 +12,7 @@
  * mirroring the Observe detail table.
  */
 
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Compass } from 'lucide-react';
 import {
   useExternalForcesStore,
@@ -88,6 +88,97 @@ const computedRowStyle: React.CSSProperties = {
   color: 'rgba(232,220,200,0.55)',
 };
 
+const dirCellStyle: React.CSSProperties = {
+  width: 26,
+  textAlign: 'center',
+  verticalAlign: 'middle',
+};
+
+const computedDirCellStyle: React.CSSProperties = {
+  ...dirCellStyle,
+  opacity: 0.5,
+};
+
+const notesInputStyle: React.CSSProperties = {
+  ...cellControlStyle,
+  width: '100%',
+  fontStyle: 'italic',
+};
+
+// Per-type wedge tint (kept in sync with SectorCompassDiagram's MANUAL_COLORS).
+const SECTOR_COLORS: Record<SectorTypeKey, string> = {
+  sun_summer: '#c4a265',
+  sun_winter: '#b87a3f',
+  wind_prevailing: '#5b7a8a',
+  wind_storm: '#3a5a6a',
+  fire: '#c45a3a',
+  noise: '#7a6a9a',
+  wildlife: '#6a9a6a',
+  view: '#4a8a7a',
+};
+
+// Compact compass glyph mirroring SectorCompassDiagram's bearing->wedge math at
+// a 22px scale (north up, 0deg = N clockwise). Self-contained so the shared
+// diagram file stays untouched.
+const GLYPH = 22;
+const GLYPH_C = GLYPH / 2;
+const GLYPH_R = 9;
+
+function glyphXY(bearingDeg: number, r: number): [number, number] {
+  const rad = ((bearingDeg - 90) * Math.PI) / 180;
+  return [GLYPH_C + r * Math.cos(rad), GLYPH_C + r * Math.sin(rad)];
+}
+
+function glyphWedgePath(bearingDeg: number, arcDeg: number): string {
+  let sweep = Math.max(1, Math.min(360, arcDeg)) % 360;
+  if (sweep === 0) sweep = 359.99;
+  const start = bearingDeg - sweep / 2;
+  const large = sweep > 180 ? 1 : 0;
+  const [x1, y1] = glyphXY(start, GLYPH_R);
+  const [x2, y2] = glyphXY(start + sweep, GLYPH_R);
+  return [`M ${GLYPH_C} ${GLYPH_C}`, `L ${x1} ${y1}`, `A ${GLYPH_R} ${GLYPH_R} 0 ${large} 1 ${x2} ${y2}`, 'Z'].join(' ');
+}
+
+function SectorArcGlyph({
+  bearingDeg,
+  arcDeg,
+  type,
+}: {
+  bearingDeg: number;
+  arcDeg: number;
+  type: SectorTypeKey;
+}) {
+  return (
+    <svg
+      width={GLYPH}
+      height={GLYPH}
+      viewBox={`0 0 ${GLYPH} ${GLYPH}`}
+      role="img"
+      aria-label={`Faces ${Math.round(bearingDeg)} degrees, ${Math.round(arcDeg)} degree arc`}
+      style={{ display: 'block', margin: '0 auto' }}
+    >
+      <circle
+        cx={GLYPH_C}
+        cy={GLYPH_C}
+        r={GLYPH_R}
+        fill="rgba(0,0,0,0.25)"
+        stroke="rgba(255,255,255,0.15)"
+        strokeWidth={0.75}
+      />
+      <path d={glyphWedgePath(bearingDeg, arcDeg)} fill={SECTOR_COLORS[type] ?? '#888'} opacity={0.85} />
+      {/* gold north tick */}
+      <line
+        x1={GLYPH_C}
+        y1={GLYPH_C - GLYPH_R}
+        x2={GLYPH_C}
+        y2={GLYPH_C - GLYPH_R + 3}
+        stroke="rgba(212,175,95,0.9)"
+        strokeWidth={1.25}
+      />
+    </svg>
+  );
+}
+
 interface Props {
   projectId: string;
 }
@@ -146,6 +237,7 @@ export default function SectorsEditorPanel({ projectId }: Props) {
         <table className={card.table}>
           <thead>
             <tr>
+              <th aria-label="Direction" />
               <th>Bearing</th>
               <th>Sector</th>
               <th>Arc</th>
@@ -157,7 +249,11 @@ export default function SectorsEditorPanel({ projectId }: Props) {
             {sectors.map((s) => {
               const intensity = s.intensity ?? 'low';
               return (
-                <tr key={s.id}>
+                <Fragment key={s.id}>
+                <tr>
+                  <td style={dirCellStyle}>
+                    <SectorArcGlyph bearingDeg={s.bearingDeg} arcDeg={s.arcDeg} type={s.type} />
+                  </td>
                   <td>
                     <input
                       type="number"
@@ -230,17 +326,34 @@ export default function SectorsEditorPanel({ projectId }: Props) {
                     </button>
                   </td>
                 </tr>
+                <tr>
+                  <td />
+                  <td colSpan={5}>
+                    <input
+                      type="text"
+                      value={s.notes ?? ''}
+                      aria-label="Sector notes"
+                      placeholder="Notes — e.g. screen this edge with a hedge"
+                      style={notesInputStyle}
+                      onChange={(e) =>
+                        updateSector(s.id, { notes: e.target.value || undefined })
+                      }
+                    />
+                  </td>
+                </tr>
+                </Fragment>
               );
             })}
             {computedRows.length > 0 ? (
               <>
                 <tr>
-                  <td colSpan={5} style={computedDividerStyle}>
+                  <td colSpan={6} style={computedDividerStyle}>
                     Computed climate layers · auto-derived, read-only
                   </td>
                 </tr>
                 {computedRows.map((row) => (
                   <tr key={row.id} style={computedRowStyle}>
+                    <td style={computedDirCellStyle}>{'—'}</td>
                     <td>{row.bearing}</td>
                     <td>{row.label}</td>
                     <td>{'—'}</td>
