@@ -26,6 +26,16 @@ interface ObservationLogState {
   append: (r: ObservationLogRecord) => void;
   getProjectRecords: (projectId: string) => ObservationLogRecord[];
   /**
+   * Read-only DRY-RUN of pruneProjectRecords for one project: returns the same
+   * { kept, pruned } partition the prune would apply, WITHOUT mutating state (no
+   * set()). pruneProjectRecords composes on top of this so preview and actual
+   * prune can never drift. Pure read of the ledger.
+   */
+  previewProjectPrune: (
+    projectId: string,
+    keepWithinCycles?: number,
+  ) => { kept: ObservationLogRecord[]; pruned: ObservationLogRecord[] };
+  /**
    * Steward-INITIATED, chronic-safe retention sweep for one project (T3.6). A
    * deliberate amendment of slice #2's unbounded-retention covenant: it bounds
    * ledger growth WITHOUT erasing an undated audit row or any record still
@@ -45,19 +55,29 @@ export const useObservationLogStore = create<ObservationLogState>()(
       append: (r) => set((s) => ({ records: [...s.records, r] })),
       getProjectRecords: (projectId) =>
         get().records.filter((r) => r.projectId === projectId),
-      pruneProjectRecords: (projectId, keepWithinCycles) => {
-        const all = get().records;
-        const projectRecords = all.filter((r) => r.projectId === projectId);
-        const others = all.filter((r) => r.projectId !== projectId);
+      previewProjectPrune: (projectId, keepWithinCycles) => {
+        const projectRecords = get().records.filter(
+          (r) => r.projectId === projectId,
+        );
         // Pruning reads ONLY the ledger (no live clusters) -- protect against the
         // chronic verdicts still derivable from history alone.
         const verdicts = detectChronicVerdicts([], projectRecords);
         const protectedIds = chronicProtectedRecordIds(projectRecords, verdicts);
-        const { kept, pruned } = partitionExpiredRecords(
+        return partitionExpiredRecords(
           projectRecords,
           keepWithinCycles ?? OBSERVATION_LOG_RETENTION_CYCLES,
           protectedIds,
         );
+      },
+      pruneProjectRecords: (projectId, keepWithinCycles) => {
+        const { kept, pruned } = get().previewProjectPrune(
+          projectId,
+          keepWithinCycles,
+        );
+        // Safe to re-read here: previewProjectPrune never calls set(), so this
+        // get() observes the same state the preview did (no stale read between
+        // the two calls). Keep previewProjectPrune pure to preserve this.
+        const others = get().records.filter((r) => r.projectId !== projectId);
         set({ records: [...others, ...kept] });
         return pruned;
       },

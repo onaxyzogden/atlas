@@ -170,3 +170,112 @@ describe('pruneProjectRecords', () => {
     ]);
   });
 });
+
+describe('previewProjectPrune', () => {
+  it('returns the same partition the prune would apply WITHOUT mutating state', () => {
+    // spring cycles 1..5, distinct templates so no chronic pair forms.
+    const records = [1, 2, 3, 4, 5].map((cycleNumber) =>
+      makeRecord({ id: `c${cycleNumber}`, season: 'spring', cycleNumber }),
+    );
+    useObservationLogStore.setState({ records });
+
+    const before = useObservationLogStore.getState().records;
+    const beforeIds = before.map((r) => r.id).sort();
+
+    // Preview FIRST -- must not mutate.
+    const preview = useObservationLogStore
+      .getState()
+      .previewProjectPrune('mtc', 2);
+
+    // top-2 distinct cycles [4,5] kept => prune c1,c2,c3.
+    expect(preview.pruned.map((r) => r.id).sort()).toEqual(['c1', 'c2', 'c3']);
+    expect(preview.kept.map((r) => r.id).sort()).toEqual(['c4', 'c5']);
+
+    // No mutation: same id set, same length.
+    const after = useObservationLogStore.getState().records;
+    expect(after.map((r) => r.id).sort()).toEqual(beforeIds);
+    expect(after.length).toBe(before.length);
+    // Stronger: the records array is referentially identical (preview never
+    // rebuilt it) -- proves no set() of any kind occurred.
+    expect(after).toBe(before);
+  });
+
+  it('preview pruned ids equal the subsequent real prune pruned ids (drift guard)', () => {
+    const records = [1, 2, 3, 4, 5].map((cycleNumber) =>
+      makeRecord({ id: `c${cycleNumber}`, season: 'spring', cycleNumber }),
+    );
+    useObservationLogStore.setState({ records });
+
+    const previewPrunedIds = useObservationLogStore
+      .getState()
+      .previewProjectPrune('mtc', 2)
+      .pruned.map((r) => r.id)
+      .sort();
+    // Preview must not have mutated -- so the real prune sees the same ledger.
+    const realPrunedIds = useObservationLogStore
+      .getState()
+      .pruneProjectRecords('mtc', 2)
+      .map((r) => r.id)
+      .sort();
+
+    expect(previewPrunedIds).toEqual(realPrunedIds);
+  });
+
+  it('returns pruned: [] when everything is within-window or undated, no mutation', () => {
+    const undated = makeRecord({ id: 'audit', cycleNumber: undefined });
+    const recent = [8, 9].map((cycleNumber) =>
+      makeRecord({ id: `c${cycleNumber}`, season: 'spring', cycleNumber }),
+    );
+    useObservationLogStore.setState({ records: [undated, ...recent] });
+
+    const before = useObservationLogStore.getState().records;
+    const preview = useObservationLogStore
+      .getState()
+      .previewProjectPrune('mtc', 2);
+
+    expect(preview.pruned).toEqual([]);
+    // State unchanged.
+    const after = useObservationLogStore.getState().records;
+    expect(after.map((r) => r.id).sort()).toEqual(
+      before.map((r) => r.id).sort(),
+    );
+    expect(after.length).toBe(before.length);
+  });
+
+  it('excludes chronic-protected legs from preview pruned and does not mutate', () => {
+    // {A,B} co-deviate spring cycles 1 & 2 -> chronic verdict. Padding 3..6.
+    const chronic: ObservationLogRecord[] = [
+      makeRecord({ id: 's1-A', season: 'spring', cycleNumber: 1, sourceTemplateId: 'A' }),
+      makeRecord({ id: 's1-B', season: 'spring', cycleNumber: 1, sourceTemplateId: 'B' }),
+      makeRecord({ id: 's2-A', season: 'spring', cycleNumber: 2, sourceTemplateId: 'A' }),
+      makeRecord({ id: 's2-B', season: 'spring', cycleNumber: 2, sourceTemplateId: 'B' }),
+    ];
+    const padding = [3, 4, 5, 6].map((cycleNumber) =>
+      makeRecord({ id: `pad-${cycleNumber}`, season: 'spring', cycleNumber, sourceTemplateId: 'P' }),
+    );
+    useObservationLogStore.setState({ records: [...chronic, ...padding] });
+
+    const before = useObservationLogStore.getState().records;
+    const preview = useObservationLogStore
+      .getState()
+      .previewProjectPrune('mtc', 2);
+
+    const prunedIds = new Set(preview.pruned.map((r) => r.id));
+    // Chronic legs are NOT pruned.
+    expect(prunedIds.has('s1-A')).toBe(false);
+    expect(prunedIds.has('s1-B')).toBe(false);
+    expect(prunedIds.has('s2-A')).toBe(false);
+    expect(prunedIds.has('s2-B')).toBe(false);
+    // An unprotected padding leg outside [5,6] IS pruned.
+    expect(prunedIds.has('pad-3')).toBe(true);
+
+    // Chronic legs remain in state (no mutation).
+    const after = useObservationLogStore.getState().records;
+    const afterIds = new Set(after.map((r) => r.id));
+    expect(afterIds.has('s1-A')).toBe(true);
+    expect(afterIds.has('s1-B')).toBe(true);
+    expect(afterIds.has('s2-A')).toBe(true);
+    expect(afterIds.has('s2-B')).toBe(true);
+    expect(after.length).toBe(before.length);
+  });
+});
