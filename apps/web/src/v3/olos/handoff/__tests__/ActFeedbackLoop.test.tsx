@@ -97,7 +97,9 @@ beforeEach(() => {
       member('u-me', 'team_member', 'Me'),
     ],
     myRole: null,
-    myRoles: {},
+    // Role is resolved project-scoped from myRoles[serverId] (see ActFeedbackLoop),
+    // not from the legacy global myRole. Tests address serverId 'srv-1'.
+    myRoles: { 'srv-1': 'owner' },
     isLoading: false,
   });
   useAuthStore.setState({
@@ -137,6 +139,8 @@ describe('ActFeedbackLoop - assignment', () => {
     });
     useMemberStore.setState((s) => ({
       members: [...s.members, member('u-viewer', 'viewer', 'V')],
+      // Current user is a viewer on srv-1: role resolves viewer -> no picker.
+      myRoles: { 'srv-1': 'viewer' },
     }));
     render(<ActFeedbackLoop projectId="local-1" objective={OBJ} serverId="srv-1" />);
     expect(screen.queryByLabelText('Assign Mulch the swale')).toBeNull();
