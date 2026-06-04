@@ -56,6 +56,8 @@ export default function ActFeedbackLoop({
 
   const members = useMemberStore((s) => s.members);
   const fetchMembers = useMemberStore((s) => s.fetchMembers);
+  const myRoles = useMemberStore((s) => s.myRoles);
+  const fetchMyRoles = useMemberStore((s) => s.fetchMyRoles);
   const currentUserId = useAuthStore((s) => s.user?.id);
 
   // Pull this project's tasks on mount so assignments made elsewhere are
@@ -66,6 +68,15 @@ export default function ActFeedbackLoop({
   useEffect(() => {
     if (serverId && members.length === 0) void fetchMembers(serverId);
   }, [serverId, members.length, fetchMembers]);
+
+  // Load the project-scoped role map so role resolution is correct. The global
+  // `members` array is shared across projects and is pre-seeded with a
+  // synthetic demo roster by the builtin sample, so deriving role from it
+  // returns the wrong project's role -- or undefined for the authenticated
+  // user. myRoles is keyed by serverId.
+  useEffect(() => {
+    if (serverId) void fetchMyRoles();
+  }, [serverId, fetchMyRoles]);
 
   const tasks = useMemo(
     () =>
@@ -82,10 +93,7 @@ export default function ActFeedbackLoop({
     [escalationByProject, projectId, objective.id],
   );
 
-  const myRole = useMemo(
-    () => members.find((m) => m.userId === currentUserId)?.role,
-    [members, currentUserId],
-  );
+  const myRole = serverId ? myRoles[serverId] : undefined;
   // Mirrors the API PATCH gate requireRole('owner','designer'): show the picker
   // only to roles that satisfy either, and only on synced projects.
   const canAssign =

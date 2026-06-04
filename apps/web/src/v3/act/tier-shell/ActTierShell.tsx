@@ -146,6 +146,8 @@ export default function ActTierShell() {
   const serverId = project.serverId;
   const members = useMemberStore((s) => s.members);
   const fetchMembers = useMemberStore((s) => s.fetchMembers);
+  const myRoles = useMemberStore((s) => s.myRoles);
+  const fetchMyRoles = useMemberStore((s) => s.fetchMyRoles);
   const currentUserId = useAuthStore((s) => s.user?.id);
   // Pull this project's ActTasks on mount so the bridge hook can distinguish
   // 'no-task' from 'ready'. No-op for local-only projects.
@@ -153,10 +155,17 @@ export default function ActTierShell() {
   useEffect(() => {
     if (serverId && members.length === 0) void fetchMembers(serverId);
   }, [serverId, members.length, fetchMembers]);
-  const myRole = useMemo(
-    () => members.find((m) => m.userId === currentUserId)?.role,
-    [members, currentUserId],
-  );
+  // Resolve the current user's role from the project-scoped myRoles map, not
+  // the global `members` array: that array is a single roster shared across
+  // projects (and is pre-seeded with a synthetic demo roster by the builtin
+  // sample), so deriving role from it returns the wrong project's role -- or
+  // undefined for the authenticated user, silently hiding the formal
+  // capture/verify controls. myRoles is keyed by serverId. See
+  // wiki/decisions/2026-06-04-olos-proof-verification-fork.md.
+  useEffect(() => {
+    if (serverId) void fetchMyRoles();
+  }, [serverId, fetchMyRoles]);
+  const myRole = serverId ? myRoles[serverId] : undefined;
 
   // extractBoundaryGeometry can yield a Polygon OR a MultiPolygon (older/
   // alternate persistence paths). Do NOT cast it to Polygon: a MultiPolygon
