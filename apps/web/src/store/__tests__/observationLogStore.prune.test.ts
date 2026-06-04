@@ -8,6 +8,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useObservationLogStore } from '../observationLogStore.js';
 import type { ObservationLogRecord } from '@ogden/shared';
+import { detectChronicVerdicts } from '@ogden/shared';
 
 let seq = 0;
 
@@ -42,7 +43,7 @@ const makeRecord = (
 
 beforeEach(() => {
   seq = 0;
-  useObservationLogStore.setState({ records: [] });
+  useObservationLogStore.setState({ records: [], archivedRecords: [] });
 });
 
 describe('pruneProjectRecords', () => {
@@ -277,5 +278,105 @@ describe('previewProjectPrune', () => {
     expect(afterIds.has('s2-A')).toBe(true);
     expect(afterIds.has('s2-B')).toBe(true);
     expect(after.length).toBe(before.length);
+  });
+});
+
+describe('archive disposition + restore', () => {
+  it('moves pruned rows into archivedRecords instead of erasing them', () => {
+    const records = [1, 2, 3, 4, 5].map((cycleNumber) =>
+      makeRecord({ id: `c${cycleNumber}`, season: 'spring', cycleNumber }),
+    );
+    useObservationLogStore.setState({ records, archivedRecords: [] });
+
+    const pruned = useObservationLogStore
+      .getState()
+      .pruneProjectRecords('mtc', 2);
+
+    // Active set shrank to the top-2 window.
+    expect(
+      useObservationLogStore.getState().records.map((r) => r.id).sort(),
+    ).toEqual(['c4', 'c5']);
+    // The pruned rows are now in the archive, not gone.
+    expect(pruned.map((r) => r.id).sort()).toEqual(['c1', 'c2', 'c3']);
+    expect(
+      useObservationLogStore.getState().archivedRecords.map((r) => r.id).sort(),
+    ).toEqual(['c1', 'c2', 'c3']);
+  });
+
+  it('restoreArchivedRecords round-trips the project archive back into the active set', () => {
+    const records = [1, 2, 3, 4, 5].map((cycleNumber) =>
+      makeRecord({ id: `c${cycleNumber}`, season: 'spring', cycleNumber }),
+    );
+    useObservationLogStore.setState({ records, archivedRecords: [] });
+    useObservationLogStore.getState().pruneProjectRecords('mtc', 2);
+
+    const restored = useObservationLogStore
+      .getState()
+      .restoreArchivedRecords('mtc');
+
+    expect(restored.map((r) => r.id).sort()).toEqual(['c1', 'c2', 'c3']);
+    expect(useObservationLogStore.getState().archivedRecords).toEqual([]);
+    expect(
+      useObservationLogStore.getState().records.map((r) => r.id).sort(),
+    ).toEqual(['c1', 'c2', 'c3', 'c4', 'c5']);
+  });
+
+  it('restoreArchivedRecords only moves the named project, returns [] when none', () => {
+    const mine = makeRecord({ id: 'm', projectId: 'mtc', cycleNumber: 1 });
+    const theirs = makeRecord({ id: 'o', projectId: 'other', cycleNumber: 1 });
+    useObservationLogStore.setState({
+      records: [],
+      archivedRecords: [mine, theirs],
+    });
+
+    const restored = useObservationLogStore
+      .getState()
+      .restoreArchivedRecords('mtc');
+
+    expect(restored.map((r) => r.id)).toEqual(['m']);
+    expect(
+      useObservationLogStore.getState().archivedRecords.map((r) => r.id),
+    ).toEqual(['o']);
+    expect(useObservationLogStore.getState().records.map((r) => r.id)).toEqual([
+      'm',
+    ]);
+    // Nothing to restore for a project with no archive.
+    expect(useObservationLogStore.getState().restoreArchivedRecords('mtc')).toEqual(
+      [],
+    );
+  });
+
+  it('detectChronicVerdicts ignores archived rows (archive is dormant)', () => {
+    // {A,B} co-deviate spring cycles 1&2 -> a genuine chronic verdict IF active.
+    const chronic = [
+      makeRecord({ id: 's1-A', season: 'spring', cycleNumber: 1, sourceTemplateId: 'A' }),
+      makeRecord({ id: 's1-B', season: 'spring', cycleNumber: 1, sourceTemplateId: 'B' }),
+      makeRecord({ id: 's2-A', season: 'spring', cycleNumber: 2, sourceTemplateId: 'A' }),
+      makeRecord({ id: 's2-B', season: 'spring', cycleNumber: 2, sourceTemplateId: 'B' }),
+    ];
+    // Control: the fixture really is chronic when fed to the detector directly.
+    expect(detectChronicVerdicts([], chronic).length).toBeGreaterThan(0);
+
+    // A non-chronic active record (single template, no co-deviating pair) lives
+    // in the ACTIVE set alongside the chronic pair sitting in the archive.
+    const activeNonChronic = makeRecord({
+      id: 'active-solo',
+      season: 'spring',
+      cycleNumber: 3,
+      sourceTemplateId: 'C',
+    });
+    useObservationLogStore.setState({
+      records: [activeNonChronic],
+      archivedRecords: chronic,
+    });
+
+    // The detector reads the ACTIVE records only; the archived chronic pair is
+    // dormant, so no verdict surfaces despite a real chronic pattern in the cold
+    // tier. (Would fail if detection ever leaked into archivedRecords.)
+    const verdicts = detectChronicVerdicts(
+      [],
+      useObservationLogStore.getState().records,
+    );
+    expect(verdicts).toEqual([]);
   });
 });

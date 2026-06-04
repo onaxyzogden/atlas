@@ -5,9 +5,10 @@
 // persisted. NO update/remove -- retention is unbounded and orphans are by
 // design (the history is the asset; mirrors the proofEvent audit covenant).
 //
-// Persist key: 'ogden-observation-log', version 1. Registered in syncManifest
+// Persist key: 'ogden-observation-log', version 2. Registered in syncManifest
 // as projectId-tagged. Written to ONLY by reviewFlagStore's resolve/dismiss
 // closures; read by the (later) chronic co-occurrence detector.
+// v1->v2: archivedRecords cold tier added (archive-not-erase covenant).
 
 import { useMemo } from 'react';
 import { create } from 'zustand';
@@ -23,6 +24,10 @@ import {
 
 interface ObservationLogState {
   records: ObservationLogRecord[];
+  /** Recoverable cold tier: rows demoted by a compaction. The chronic detector
+   *  never reads this (it reads `records`), so archived rows are dormant until
+   *  restored. Slice-2 covenant strengthened: memory is demoted, never erased. */
+  archivedRecords: ObservationLogRecord[];
   append: (r: ObservationLogRecord) => void;
   getProjectRecords: (projectId: string) => ObservationLogRecord[];
   /**
@@ -41,17 +46,31 @@ interface ObservationLogState {
    * ledger growth WITHOUT erasing an undated audit row or any record still
    * contributing to a detectable chronic verdict. Returns the pruned rows so the
    * action is observable. NEVER auto-triggered -- call explicitly only.
+   * Archive-not-erase: pruned rows are DEMOTED to archivedRecords, not dropped.
    */
   pruneProjectRecords: (
     projectId: string,
     keepWithinCycles?: number,
   ) => ObservationLogRecord[];
+  /**
+   * Un-archive: move every archived row for one project back into the active
+   * `records` set. Returns the restored rows (observable). The reverse of the
+   * archive step performed by pruneProjectRecords.
+   */
+  restoreArchivedRecords: (projectId: string) => ObservationLogRecord[];
 }
+
+// Partialize shape used by persist v2 (matches migrate return type).
+type PersistedShape = {
+  records: ObservationLogRecord[];
+  archivedRecords: ObservationLogRecord[];
+};
 
 export const useObservationLogStore = create<ObservationLogState>()(
   persist(
     (set, get) => ({
       records: [],
+      archivedRecords: [],
       append: (r) => set((s) => ({ records: [...s.records, r] })),
       getProjectRecords: (projectId) =>
         get().records.filter((r) => r.projectId === projectId),
@@ -74,18 +93,59 @@ export const useObservationLogStore = create<ObservationLogState>()(
           projectId,
           keepWithinCycles,
         );
-        // Safe to re-read here: previewProjectPrune never calls set(), so this
-        // get() observes the same state the preview did (no stale read between
-        // the two calls). Keep previewProjectPrune pure to preserve this.
-        const others = get().records.filter((r) => r.projectId !== projectId);
-        set({ records: [...others, ...kept] });
+        // previewProjectPrune is pure (no set), so { kept, pruned } reflect
+        // current state. Apply via the functional set form (matches append) so
+        // the records/archivedRecords reads cannot observe stale state.
+        // Archive-not-erase: pruned rows are DEMOTED to the recoverable cold
+        // tier, not dropped. The active ledger shrinks; nothing leaves the store.
+        set((s) => ({
+          records: [
+            ...s.records.filter((r) => r.projectId !== projectId),
+            ...kept,
+          ],
+          archivedRecords: [...s.archivedRecords, ...pruned],
+        }));
         return pruned;
+      },
+      restoreArchivedRecords: (projectId) => {
+        const restored = get().archivedRecords.filter(
+          (r) => r.projectId === projectId,
+        );
+        if (restored.length === 0) {
+          return [];
+        }
+        set((s) => ({
+          records: [...s.records, ...restored],
+          archivedRecords: s.archivedRecords.filter(
+            (r) => r.projectId !== projectId,
+          ),
+        }));
+        return restored;
       },
     }),
     {
       name: 'ogden-observation-log',
-      version: 1,
-      partialize: (state) => ({ records: state.records }),
+      version: 2,
+      partialize: (state): PersistedShape => ({
+        records: state.records,
+        archivedRecords: state.archivedRecords,
+      }),
+      // v1 -> v2: persisted v1 state had no archive. Seed an empty archive and
+      // preserve the existing records (no row is lost or moved). Version-gated so
+      // a future v3 adds its own branch above this without re-running v1->v2.
+      migrate: (persisted, version): PersistedShape => {
+        const prev = (persisted ?? {}) as Partial<PersistedShape>;
+        if (version < 2) {
+          return {
+            records: prev.records ?? [],
+            archivedRecords: [],
+          };
+        }
+        return {
+          records: prev.records ?? [],
+          archivedRecords: prev.archivedRecords ?? [],
+        };
+      },
     },
   ),
 );
@@ -108,4 +168,19 @@ export function useObservationLog(
     if (!projectId) return EMPTY_RECORDS;
     return records.filter((r) => r.projectId === projectId);
   }, [records, projectId]);
+}
+
+/**
+ * Zustand-v5-safe read hook for the archive cold tier. Mirrors useObservationLog
+ * exactly: stable whole-array select on archivedRecords, then useMemo slice by
+ * projectId. NEVER an inline-filter selector.
+ */
+export function useArchivedLog(
+  projectId: string | null,
+): ReadonlyArray<ObservationLogRecord> {
+  const archived = useObservationLogStore((s) => s.archivedRecords);
+  return useMemo(() => {
+    if (!projectId) return EMPTY_RECORDS;
+    return archived.filter((r) => r.projectId === projectId);
+  }, [archived, projectId]);
 }
