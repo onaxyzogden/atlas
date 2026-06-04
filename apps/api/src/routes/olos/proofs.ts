@@ -14,6 +14,7 @@ import {
   ProofType,
   ProofGeotagSchema,
   ProofVerificationStatus,
+  ProofDetailsSchema,
 } from '@ogden/shared';
 import { NotFoundError } from '../../lib/errors.js';
 import { logActivity } from '../../lib/activityLog.js';
@@ -31,6 +32,7 @@ const ProofCreateInput = z.object({
   measurementValue: z.number().nullish(),
   measurementUnit: z.string().nullish(),
   geotag: ProofGeotagSchema.nullish(),
+  details: ProofDetailsSchema.nullish(),
   capturedAt: z.string().datetime().optional(),
   verificationStatus: ProofVerificationStatus.default('pending'),
 });
@@ -51,6 +53,7 @@ function mapRow(row: Row) {
       row.measurement_value === null ? null : Number(row.measurement_value),
     measurementUnit: (row.measurement_unit ?? null) as string | null,
     geotag: (row.geotag ?? null) as unknown,
+    details: (row.details ?? null) as unknown,
     capturedAt: (row.captured_at as Date).toISOString(),
     submittedBy: (row.submitted_by ?? null) as string | null,
     verificationStatus: row.verification_status as string,
@@ -124,7 +127,7 @@ export default async function olosProofRoutes(fastify: FastifyInstance) {
           project_id, task_id,
           proof_type, file_uri, note,
           measurement_value, measurement_unit,
-          geotag, captured_at,
+          geotag, details, captured_at,
           submitted_by, verification_status
         ) VALUES (
           ${req.projectId},
@@ -135,6 +138,7 @@ export default async function olosProofRoutes(fastify: FastifyInstance) {
           ${body.measurementValue ?? null},
           ${body.measurementUnit ?? null},
           ${body.geotag ? db.json(body.geotag as never) : null},
+          ${body.details ? db.json(body.details as never) : null},
           ${body.capturedAt ?? new Date().toISOString()},
           ${req.userId},
           ${body.verificationStatus}
@@ -209,6 +213,7 @@ export default async function olosProofRoutes(fastify: FastifyInstance) {
           measurement_value   = ${body.measurementValue === undefined ? db`measurement_value` : body.measurementValue ?? null},
           measurement_unit    = ${body.measurementUnit === undefined ? db`measurement_unit` : body.measurementUnit ?? null},
           geotag              = ${body.geotag === undefined ? db`geotag` : body.geotag === null ? null : db.json(body.geotag as never)},
+          details             = ${body.details === undefined ? db`details` : body.details === null ? null : db.json(body.details as never)},
           captured_at         = COALESCE(${body.capturedAt ?? null}, captured_at),
           verification_status = COALESCE(${body.verificationStatus ?? null}, verification_status),
           updated_at          = now()
