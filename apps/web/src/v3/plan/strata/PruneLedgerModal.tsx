@@ -37,7 +37,11 @@ export default function PruneLedgerModal({ projectId, onClose }: Props) {
   const archived = useArchivedLog(projectId);
 
   // Pure dry-run, recomputed whenever the project's active records change (after
-  // an archive or a restore). previewProjectPrune never mutates.
+  // an archive or a restore). previewProjectPrune never mutates. The getState()
+  // snapshot is consistent with the `records` dependency here because the
+  // observation store is never mutated inside a startTransition boundary -- every
+  // archive/restore is a synchronous click handler, so the snapshot read and the
+  // subscribed `records` slice always reflect the same store version.
   const removable = useMemo(
     () =>
       useObservationLogStore.getState().previewProjectPrune(projectId).pruned

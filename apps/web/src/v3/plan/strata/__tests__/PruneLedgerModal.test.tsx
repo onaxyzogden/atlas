@@ -146,10 +146,10 @@ describe('PruneLedgerModal', () => {
     render(<PruneLedgerModal projectId="mtc" onClose={vi.fn()} />);
 
     expect(screen.getByTestId('prune-nothing')).toBeTruthy();
-    const confirm = screen.queryByTestId('prune-confirm') as
-      | HTMLButtonElement
-      | null;
-    expect(confirm === null || confirm.disabled === true).toBe(true);
+    // The modal renders no Compact button at all when nothing is removable (the
+    // JSX gates on `removable > 0`), so assert outright absence -- a disabled
+    // button would be a regression this stricter check would catch.
+    expect(screen.queryByTestId('prune-confirm')).toBeNull();
   });
 
   it('calls onClose from the close button', () => {
