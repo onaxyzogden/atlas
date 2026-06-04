@@ -603,6 +603,7 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
     lenses,
     domainDetail,
     observations: buildObservationPins(activePoints, nowMs),
+    map: null,
     cycle,
     freshness: FRESHNESS,
     typeIcon: TYPE_ICON,

@@ -21,6 +21,7 @@ export const mockBundle: LensDataBundle = {
   lenses: LENSES,
   domainDetail: DOMAIN_DETAIL,
   observations: MOCK_OBSERVATIONS,
+  map: null,
   cycle: CYCLE,
   freshness: FRESHNESS,
   typeIcon: TYPE_ICON,

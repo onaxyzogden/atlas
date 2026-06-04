@@ -213,6 +213,29 @@ export interface MockObservation {
   age: string;
 }
 
+// -- Live-map payload (real MapLibre canvas) ---------------------------------
+// Geographic bounding box as [minLng, minLat, maxLng, maxLat] (a maplibre-gl
+// LngLatBoundsLike). Produced by buildObserveMap from the parcel boundary, or
+// from the markers when no boundary exists.
+export type BBox = [number, number, number, number];
+
+/** An observation pin carrying its true geographic position. */
+export type ObserveMapMarker = MockObservation & { lng: number; lat: number };
+
+/**
+ * Render-ready payload for the real Observe map. Null on the bundle means "no
+ * geometry to map" -> the dashboard renders PseudoMap instead. `demoGeometry`
+ * is true when the boundary/markers came from a builtin seed (drives the
+ * "Sample location data" badge -- honest provenance, never mistaken for
+ * surveyed ground truth).
+ */
+export interface ObserveMapData {
+  boundary: GeoJSON.FeatureCollection | null;
+  bbox: BBox;
+  markers: ObserveMapMarker[];
+  demoGeometry: boolean;
+}
+
 // ── Resolved lens-data bundle ───────────────────────────────────────────────
 // A single render-ready bundle the dashboard resolves once (from mock fixtures
 // OR from live project stores) and exposes via LensDataContext. Both sources
@@ -282,6 +305,8 @@ export interface LensDataBundle {
   lenses: LensDisplay[];
   domainDetail: Partial<Record<ObserveLensId, DomainDetail>>;
   observations: MockObservation[];
+  /** Real-map payload; null = no geometry, render PseudoMap. */
+  map: ObserveMapData | null;
   cycle: LensCycle;
   freshness: Record<Freshness, FreshnessConfig>;
   typeIcon: Record<string, string>;
