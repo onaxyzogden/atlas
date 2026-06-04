@@ -53,6 +53,10 @@ describe('buildBuiltinObserveDataPoints (fixture sanity)', () => {
     expect(POINTS.every((p) => !p.isSuperseded)).toBe(true);
     expect(POINTS.every((p) => p.locationGeometry === null)).toBe(true);
   });
+
+  it('resolves a null map when no boundary and no georeferenced point exist', () => {
+    expect(bundle.map).toBeNull();
+  });
 });
 
 describe('computeDomainRollups', () => {

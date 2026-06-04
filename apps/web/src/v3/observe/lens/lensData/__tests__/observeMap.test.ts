@@ -80,7 +80,7 @@ describe('buildObserveMap', () => {
     ];
     const res = buildObserveMap(points, BOUNDARY, NOW, false)!;
     expect(res.markers).toHaveLength(1);
-    const m = res.markers[0];
+    const m = res.markers[0]!;
     expect(m.id).toBe('geo-soil');
     expect(m.lng).toBeCloseTo(-80.1015, 6);
     expect(m.lat).toBeCloseTo(44.2992, 6);

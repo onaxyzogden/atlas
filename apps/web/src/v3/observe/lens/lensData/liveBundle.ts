@@ -345,8 +345,8 @@ function bboxFromBoundary(fc: GeoJSON.FeatureCollection | null): BBox | null {
     if (!Array.isArray(node)) return;
     if (
       node.length >= 2 &&
-      typeof node[0] === 'number' &&
-      typeof node[1] === 'number'
+      Number.isFinite(node[0]) &&
+      Number.isFinite(node[1])
     ) {
       const lng = node[0] as number;
       const lat = node[1] as number;
@@ -360,6 +360,7 @@ function bboxFromBoundary(fc: GeoJSON.FeatureCollection | null): BBox | null {
     for (const child of node) visit(child);
   };
   for (const f of fc.features) {
+    if (!f) continue;
     const geom = f.geometry as { coordinates?: unknown } | null;
     if (geom && 'coordinates' in geom) visit(geom.coordinates);
   }
@@ -372,13 +373,16 @@ function bboxFromMarkers(markers: readonly ObserveMapMarker[]): BBox | null {
   let minLat = Infinity;
   let maxLng = -Infinity;
   let maxLat = -Infinity;
+  let found = false;
   for (const m of markers) {
+    if (!Number.isFinite(m.lng) || !Number.isFinite(m.lat)) continue;
+    found = true;
     if (m.lng < minLng) minLng = m.lng;
     if (m.lng > maxLng) maxLng = m.lng;
     if (m.lat < minLat) minLat = m.lat;
     if (m.lat > maxLat) maxLat = m.lat;
   }
-  return [minLng, minLat, maxLng, maxLat];
+  return found ? [minLng, minLat, maxLng, maxLat] : null;
 }
 
 /**
