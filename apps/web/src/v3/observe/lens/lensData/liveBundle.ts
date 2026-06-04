@@ -51,6 +51,7 @@ import {
   type SlotResolver,
 } from './specialisedBuilders.js';
 import type {
+  BBox,
   Confidence,
   DataPoint,
   DomainDetail,
@@ -62,6 +63,8 @@ import type {
   LensDisplay,
   LensProject,
   MockObservation,
+  ObserveMapData,
+  ObserveMapMarker,
   PlanRevisionTrigger,
   Subdomain,
 } from '../types.js';
@@ -327,6 +330,87 @@ export function buildObservationPins(
   });
 }
 
+// -- live-map payload --------------------------------------------------------
+
+// Recursively visit every [lng, lat] pair in a GeoJSON FeatureCollection and
+// fold it into a bbox. Returns null if no numeric coordinate pair was found.
+function bboxFromBoundary(fc: GeoJSON.FeatureCollection | null): BBox | null {
+  if (!fc) return null;
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+  let found = false;
+  const visit = (node: unknown): void => {
+    if (!Array.isArray(node)) return;
+    if (
+      node.length >= 2 &&
+      typeof node[0] === 'number' &&
+      typeof node[1] === 'number'
+    ) {
+      const lng = node[0] as number;
+      const lat = node[1] as number;
+      found = true;
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+      return;
+    }
+    for (const child of node) visit(child);
+  };
+  for (const f of fc.features) {
+    const geom = f.geometry as { coordinates?: unknown } | null;
+    if (geom && 'coordinates' in geom) visit(geom.coordinates);
+  }
+  return found ? [minLng, minLat, maxLng, maxLat] : null;
+}
+
+function bboxFromMarkers(markers: readonly ObserveMapMarker[]): BBox | null {
+  if (markers.length === 0) return null;
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+  for (const m of markers) {
+    if (m.lng < minLng) minLng = m.lng;
+    if (m.lng > maxLng) maxLng = m.lng;
+    if (m.lat < minLat) minLat = m.lat;
+    if (m.lat > maxLat) maxLat = m.lat;
+  }
+  return [minLng, minLat, maxLng, maxLat];
+}
+
+/**
+ * Build the real-map payload from a project's active points + parcel boundary.
+ * Markers are the observation pins (same id/lens/type/label/age as the
+ * PseudoMap pins) that carry a Point geometry, tagged with lng/lat. bbox comes
+ * from the boundary when present, else from the markers. Returns null when
+ * there is NO boundary AND zero georeferenced points (-> dashboard renders
+ * PseudoMap). `demoGeometry` flags seeded/builtin geometry for the in-UI badge.
+ */
+export function buildObserveMap(
+  activePoints: readonly ObserveDataPoint[],
+  parcelBoundary: GeoJSON.FeatureCollection | null,
+  nowMs: number,
+  demoGeometry: boolean,
+): ObserveMapData | null {
+  const coordById = new Map<string, [number, number]>();
+  for (const p of activePoints) {
+    const c = coordsOf(p);
+    if (c) coordById.set(p.id, c);
+  }
+  const markers: ObserveMapMarker[] = [];
+  for (const pin of buildObservationPins(activePoints, nowMs)) {
+    const c = coordById.get(pin.id);
+    if (!c) continue;
+    markers.push({ ...pin, lng: c[0], lat: c[1] });
+  }
+  const bbox = bboxFromBoundary(parcelBoundary) ?? bboxFromMarkers(markers);
+  if (!bbox) return null;
+  return { boundary: parcelBoundary, bbox, markers, demoGeometry };
+}
+
 // ── data-point row mapping ────────────────────────────────────────────────────
 
 function toDataPoint(p: ObserveDataPoint): DataPoint {
@@ -368,6 +452,10 @@ export interface LiveBundleInput {
    * keeps callers/tests that pass no resolver behaving exactly as before.
    */
   getSlot?: SlotResolver;
+  /** Project parcel boundary (GeoJSON FeatureCollection) for the real map. */
+  parcelBoundary?: GeoJSON.FeatureCollection | null;
+  /** True when boundary/points came from a builtin seed (drives the badge). */
+  isDemoGeometry?: boolean;
 }
 
 const NOMINAL_PHASE_BOUNDS: ReadonlyArray<Omit<LensCyclePhase, 'status'>> = [
@@ -603,7 +691,12 @@ export function buildLiveLensBundle(input: LiveBundleInput): LensDataBundle {
     lenses,
     domainDetail,
     observations: buildObservationPins(activePoints, nowMs),
-    map: null,
+    map: buildObserveMap(
+      activePoints,
+      input.parcelBoundary ?? null,
+      nowMs,
+      input.isDemoGeometry ?? false,
+    ),
     cycle,
     freshness: FRESHNESS,
     typeIcon: TYPE_ICON,
@@ -646,6 +739,8 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
   const points = byProject[projectId] ?? [];
   const projectName = project?.name ?? 'Project';
   const projectTypeLabel = resolveProjectTypeLabel(project);
+  const parcelBoundary = project?.parcelBoundaryGeojson ?? null;
+  const isDemoGeometry = project?.isBuiltin ?? false;
 
   return useMemo(
     () =>
@@ -655,7 +750,9 @@ export function useLiveLensBundle(projectId: string): LensDataBundle {
         projectName,
         projectTypeLabel,
         getSlot: getMeasurementSlot,
+        parcelBoundary,
+        isDemoGeometry,
       }),
-    [points, nowMs, projectName, projectTypeLabel],
+    [points, nowMs, projectName, projectTypeLabel, parcelBoundary, isDemoGeometry],
   );
 }
