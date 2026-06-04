@@ -385,6 +385,36 @@ describe('TaskProofPanel - per-type affordances', () => {
     expect(h.proofCreateCalls[0]?.input.fileUri).toBe('https://bucket/p.jpg');
   });
 
+  it('surfaces an error and creates no proof when the photo upload fails', async () => {
+    uploadProofFileMock.mockRejectedValue(new Error('upload rejected'));
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'photo' },
+    });
+    const file = new File(['x'], 'p.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('Proof photo'), {
+      target: { files: [file] },
+    });
+    fireEvent.click(screen.getByText('Capture proof'));
+
+    await waitFor(() =>
+      expect(screen.getByText('upload rejected')).not.toBeNull(),
+    );
+    expect(h.proofCreateCalls).toHaveLength(0);
+  });
+
   it('still renders the generic note+URI fallback for a deferred type (document)', () => {
     const t = task();
 

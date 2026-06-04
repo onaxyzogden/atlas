@@ -143,10 +143,12 @@ export default function TaskProofPanel({
   );
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [captureError, setCaptureError] = useState<string | null>(null);
 
   const onCapture = async () => {
     if (!serverId || busy) return;
     setBusy(true);
+    setCaptureError(null);
     try {
       let resolvedFileUri = fileUri.trim() || undefined;
       let details: ProofDetails | undefined;
@@ -181,6 +183,10 @@ export default function TaskProofPanel({
       setMeasurementUnit('');
       setInspectionItems([]);
       setPhotoFile(null);
+    } catch (err) {
+      // Surface capture failures (e.g. a rejected photo upload) instead of
+      // letting the promise reject unhandled; no proof is created on this path.
+      setCaptureError(err instanceof Error ? err.message : 'Capture failed');
     } finally {
       setBusy(false);
     }
@@ -406,6 +412,11 @@ export default function TaskProofPanel({
             >
               Capture proof
             </button>
+            {captureError ? (
+              <span className={css.chip} role="alert">
+                {captureError}
+              </span>
+            ) : null}
           </div>
         </div>
       ) : null}
