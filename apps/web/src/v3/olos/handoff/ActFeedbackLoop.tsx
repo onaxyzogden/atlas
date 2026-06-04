@@ -28,6 +28,8 @@ import {
 import { useMemberStore } from '../../../store/memberStore.js';
 import { useAuthStore } from '../../../store/authStore.js';
 import { useActTaskSync } from '../../../hooks/useActTaskSync.js';
+import { isOlosFormalProofEnabled } from '../../../config/olosFlags.js';
+import TaskProofPanel from './TaskProofPanel';
 import css from './HandoffSection.module.css';
 
 interface Props {
@@ -90,6 +92,12 @@ export default function ActFeedbackLoop({
     !!serverId &&
     !!myRole &&
     (roleSatisfies(myRole, 'owner') || roleSatisfies(myRole, 'designer'));
+
+  // Formal OLOS proof/verification surface is flag-gated (off by default); the
+  // lightweight ObserveDataPoint completion path stays live until the
+  // multi-session replacement migration. See
+  // wiki/decisions/2026-06-04-olos-proof-verification-fork.md.
+  const formalProofEnabled = isOlosFormalProofEnabled();
 
   const onAssign = (taskId: string, userId: string) => {
     if (!serverId) return;
@@ -166,6 +174,16 @@ export default function ActFeedbackLoop({
                     <span className={css.taskStatus}>
                       {assignee?.displayName ?? assignee?.email ?? 'Assigned'}
                     </span>
+                  ) : null}
+                  {formalProofEnabled ? (
+                    <TaskProofPanel
+                      projectId={projectId}
+                      task={t}
+                      serverId={serverId}
+                      members={members}
+                      currentUserId={currentUserId}
+                      myRole={myRole}
+                    />
                   ) : null}
                 </li>
               );

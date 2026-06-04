@@ -32,6 +32,9 @@ vi.mock('../../../../lib/apiClient.js', () => ({
           },
         ),
       },
+      // Present so the flag-on render's TaskProofSync pull resolves cleanly.
+      proofs: { list: vi.fn(async () => ({ data: [], error: null })) },
+      verifications: { list: vi.fn(async () => ({ data: [], error: null })) },
     },
     members: { list: vi.fn(async () => ({ data: [], error: null })) },
   },
@@ -137,5 +140,18 @@ describe('ActFeedbackLoop - assignment', () => {
     }));
     render(<ActFeedbackLoop projectId="local-1" objective={OBJ} serverId="srv-1" />);
     expect(screen.queryByLabelText('Assign Mulch the swale')).toBeNull();
+  });
+});
+
+describe('ActFeedbackLoop - formal proof flag', () => {
+  it('does not mount the proof/verification panel when the flag is off (default)', () => {
+    render(<ActFeedbackLoop projectId="local-1" objective={OBJ} serverId="srv-1" />);
+    expect(screen.queryByText('Proof and verification')).toBeNull();
+  });
+
+  it('mounts the proof/verification panel per task when the flag is on', async () => {
+    localStorage.setItem('ogden-flag-olos-formal-proof', 'true');
+    render(<ActFeedbackLoop projectId="local-1" objective={OBJ} serverId="srv-1" />);
+    expect(await screen.findByText('Proof and verification')).toBeTruthy();
   });
 });
