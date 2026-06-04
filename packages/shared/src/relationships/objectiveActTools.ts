@@ -787,13 +787,14 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // silvopasture livestock vocabulary (paddocks, pasture, fencing, gates, barns).
   // S1 — enterprise vision: species / enterprise / production intent — a vision
   // decision. gap: all.
-  'lvs-s1-enterprise-vision': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'lvs-s1-enterprise-vision': ['lvs-s1-enterprise-vision-c1', 'lvs-s1-enterprise-vision-c2', 'lvs-s1-enterprise-vision-c3', 'lvs-s1-enterprise-vision-c4', 'lvs-s1-enterprise-vision-c5', 'lvs-s1-enterprise-vision-c6'],
   // S1 — production goals: scale / output / capacity targets — a targets
   // decision. gap: all.
-  'lvs-s1-production-goals': [],
+  'lvs-s1-production-goals': ['lvs-s1-production-goals-c1', 'lvs-s1-production-goals-c2', 'lvs-s1-production-goals-c3', 'lvs-s1-production-goals-c4', 'lvs-s1-production-goals-c5', 'lvs-s1-production-goals-c6'],
   // S1 — welfare ethic: animal-welfare standard commitment — a values decision.
   // gap: all.
-  'lvs-s1-welfare-ethic': [],
+  'lvs-s1-welfare-ethic': ['lvs-s1-welfare-ethic-c1', 'lvs-s1-welfare-ethic-c2', 'lvs-s1-welfare-ethic-c3', 'lvs-s1-welfare-ethic-c4', 'lvs-s1-welfare-ethic-c5', 'lvs-s1-welfare-ethic-c6'],
   // S2 — forage base: map forage / pasture communities by zone (pasture),
   // condition & weed/toxic species (vegetation), seasonal-availability sampling
   // (transect).
@@ -877,7 +878,8 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // overrides, so they need no entry here.
   // S1 — enterprise intent: species / enterprise / host-relationship intent — a
   // decision. gap: all.
-  'lvs-sec-s1-enterprise-intent': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'lvs-sec-s1-enterprise-intent': ['lvs-sec-s1-enterprise-intent-c1', 'lvs-sec-s1-enterprise-intent-c2', 'lvs-sec-s1-enterprise-intent-c3', 'lvs-sec-s1-enterprise-intent-c4', 'lvs-sec-s1-enterprise-intent-c5'],
   // S3 — carrying-capacity fit: host grazeable forage by zone (pasture), weed /
   // toxic-plant presence (vegetation), seasonal-availability sampling (transect),
   // available-area delineation (zone).
@@ -912,13 +914,14 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // vocabulary (vegetation, wildlife-sector, transect, erosion, fire-sector).
   // S1 -- conservation intent & outcome targets: reference state / target species
   // / habitat targets / timeframes -- a vision & target-setting decision. gap: all.
-  'con-s1-conservation-intent': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'con-s1-conservation-intent': ['con-s1-conservation-intent-c1', 'con-s1-conservation-intent-c2', 'con-s1-conservation-intent-c3', 'con-s1-conservation-intent-c4', 'con-s1-conservation-intent-c5', 'con-s1-conservation-intent-c6'],
   // S1 -- intervention philosophy & non-negotiables: passive vs active spectrum +
   // acceptable / prohibited methods -- a philosophy decision. gap: all.
-  'con-s1-intervention-philosophy': [],
+  'con-s1-intervention-philosophy': ['con-s1-intervention-philosophy-c1', 'con-s1-intervention-philosophy-c2', 'con-s1-intervention-philosophy-c3', 'con-s1-intervention-philosophy-c4', 'con-s1-intervention-philosophy-c5'],
   // S1 -- land tenure & conservation covenant: legal instrument / covenant
   // selection -- an off-site legal decision. gap: all.
-  'con-s1-tenure-covenant': [],
+  'con-s1-tenure-covenant': ['con-s1-tenure-covenant-c1', 'con-s1-tenure-covenant-c2', 'con-s1-tenure-covenant-c3', 'con-s1-tenure-covenant-c4', 'con-s1-tenure-covenant-c5', 'con-s1-tenure-covenant-c6'],
   // S2 -- baseline ecological condition: vegetation condition score (vegetation),
   // map condition zones high/mod/poor/degraded (zone), repeatable diversity
   // sampling (transect), function indicators birds/pollinators (wildlife-sector).
@@ -1043,10 +1046,11 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // purchase, or financing instrument -> nothing engages riba or gharar.
   // S1 -- resilience philosophy & independence targets: target-setting design
   // gate against which all systems are sized -- a philosophy decision. gap: all.
-  'ofg-s1-resilience-philosophy': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'ofg-s1-resilience-philosophy': ['ofg-s1-resilience-philosophy-c1', 'ofg-s1-resilience-philosophy-c2', 'ofg-s1-resilience-philosophy-c3', 'ofg-s1-resilience-philosophy-c4', 'ofg-s1-resilience-philosophy-c5'],
   // S1 -- critical systems & redundancy: criticality classification + redundancy
   // / downtime requirements -- a classification decision. gap: all.
-  'ofg-s1-critical-systems-redundancy': [],
+  'ofg-s1-critical-systems-redundancy': ['ofg-s1-critical-systems-redundancy-c1', 'ofg-s1-critical-systems-redundancy-c2', 'ofg-s1-critical-systems-redundancy-c3', 'ofg-s1-critical-systems-redundancy-c4', 'ofg-s1-critical-systems-redundancy-c5'],
   // S1 -- site selection & access strategy: assess access road quality &
   // constraints (roads), materials-delivery / emergency-vehicle turning & load
   // (parking). gap: legal access / easements / service-centre distance (research).
@@ -1171,9 +1175,10 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   //
   // S1 -- vision / capacity / regulatory: experience proposition, guest-capacity
   // numbers, permits & licensing -- foundation decisions, no spatial act. gap: all.
-  'ag-s1-experience-vision': [],
-  'ag-s1-visitor-capacity': [],
-  'ag-s1-regulatory-framework': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'ag-s1-experience-vision': ['ag-s1-experience-vision-c1', 'ag-s1-experience-vision-c2', 'ag-s1-experience-vision-c3', 'ag-s1-experience-vision-c4', 'ag-s1-experience-vision-c5', 'ag-s1-experience-vision-c6'],
+  'ag-s1-visitor-capacity': ['ag-s1-visitor-capacity-c1', 'ag-s1-visitor-capacity-c2', 'ag-s1-visitor-capacity-c3', 'ag-s1-visitor-capacity-c4', 'ag-s1-visitor-capacity-c5'],
+  'ag-s1-regulatory-framework': ['ag-s1-regulatory-framework-c1', 'ag-s1-regulatory-framework-c2', 'ag-s1-regulatory-framework-c3', 'ag-s1-regulatory-framework-c4', 'ag-s1-regulatory-framework-c5', 'ag-s1-regulatory-framework-c6', 'ag-s1-regulatory-framework-c7'],
   // S2 -- arrival experience: road quality / signage, parking, entry gate &
   // driveway, arrival-route safety hazards. roads/parking/gates/path + hazard-zone.
   'ag-s2-arrival-experience': ['roads', 'parking', 'gates', 'path', 'hazard-zone'],
@@ -1299,13 +1304,14 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
 
   // S1 -- legal entity, tenure & governance model: entity selection, tenure
   // model, decision-making framework -- a legal/governance decision. gap: all.
-  'ev-s1-legal-governance': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'ev-s1-legal-governance': ['ev-s1-legal-governance-c1', 'ev-s1-legal-governance-c2', 'ev-s1-legal-governance-c3', 'ev-s1-legal-governance-c4', 'ev-s1-legal-governance-c5', 'ev-s1-legal-governance-c6', 'ev-s1-legal-governance-c7'],
   // S1 -- communal vs. private provision balance: what is shared vs. private --
   // a provision-policy decision, no spatial act. gap: all.
-  'ev-s1-provision-balance': [],
+  'ev-s1-provision-balance': ['ev-s1-provision-balance-c1', 'ev-s1-provision-balance-c2', 'ev-s1-provision-balance-c3', 'ev-s1-provision-balance-c4', 'ev-s1-provision-balance-c5', 'ev-s1-provision-balance-c6'],
   // S1 -- conflict resolution & community agreement framework: decision process,
   // dispute pathway, exit, dissolution, sign-off -- a governance decision. gap: all.
-  'ev-s1-conflict-framework': [],
+  'ev-s1-conflict-framework': ['ev-s1-conflict-framework-c1', 'ev-s1-conflict-framework-c2', 'ev-s1-conflict-framework-c3', 'ev-s1-conflict-framework-c4', 'ev-s1-conflict-framework-c5', 'ev-s1-conflict-framework-c6', 'ev-s1-conflict-framework-c7'],
 
   // S2 -- site carrying capacity for the population: resource-demand estimates
   // (water/food/waste/energy, non-spatial) + c5 space assessment for housing
@@ -1423,13 +1429,14 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
 
   // S1 -- mission & target audience: who is served, learning outcomes, scope --
   // a mission/audience decision, no spatial act. gap: all.
-  'edu-s1-mission-audience': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'edu-s1-mission-audience': ['edu-s1-mission-audience-c1', 'edu-s1-mission-audience-c2', 'edu-s1-mission-audience-c3', 'edu-s1-mission-audience-c4', 'edu-s1-mission-audience-c5'],
   // S1 -- curriculum & program design: course structure, formats, progression --
   // a curriculum decision. gap: all.
-  'edu-s1-curriculum-programs': [],
+  'edu-s1-curriculum-programs': ['edu-s1-curriculum-programs-c1', 'edu-s1-curriculum-programs-c2', 'edu-s1-curriculum-programs-c3', 'edu-s1-curriculum-programs-c4', 'edu-s1-curriculum-programs-c5', 'edu-s1-curriculum-programs-c6'],
   // S1 -- regulatory framework (HARD GATE): permits, insurance, safeguarding,
   // accreditation -- a regulatory/compliance decision, no spatial act. gap: all.
-  'edu-s1-regulatory-framework': [],
+  'edu-s1-regulatory-framework': ['edu-s1-regulatory-framework-c1', 'edu-s1-regulatory-framework-c2', 'edu-s1-regulatory-framework-c3', 'edu-s1-regulatory-framework-c4', 'edu-s1-regulatory-framework-c5', 'edu-s1-regulatory-framework-c6'],
 
   // S2 -- teaching infrastructure & spaces: existing buildings usable for
   // teaching (buildings), space for outdoor classrooms/zones (zone), circulation
@@ -1524,16 +1531,17 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
 
   // S1 -- healing philosophy & therapeutic intent: what the sanctuary is for and
   // the non-negotiable conditions -- a philosophy/design-gate decision. gap: all.
-  'well-s1-healing-philosophy': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'well-s1-healing-philosophy': ['well-s1-healing-philosophy-c1', 'well-s1-healing-philosophy-c2', 'well-s1-healing-philosophy-c3', 'well-s1-healing-philosophy-c4', 'well-s1-healing-philosophy-c5', 'well-s1-healing-philosophy-c6'],
   // S1 -- guest intake & suitability framework: target profile, welcomed vs
   // referral conditions, intake process -- an intake-policy decision. gap: all.
-  'well-s1-guest-intake': [],
+  'well-s1-guest-intake': ['well-s1-guest-intake-c1', 'well-s1-guest-intake-c2', 'well-s1-guest-intake-c3', 'well-s1-guest-intake-c4', 'well-s1-guest-intake-c5', 'well-s1-guest-intake-c6'],
   // S1 -- regulatory & professional standards (HARD GATE): qualifications,
   // insurance, scope of practice, licensing -- a regulatory decision. gap: all.
-  'well-s1-regulatory-standards': [],
+  'well-s1-regulatory-standards': ['well-s1-regulatory-standards-c1', 'well-s1-regulatory-standards-c2', 'well-s1-regulatory-standards-c3', 'well-s1-regulatory-standards-c4', 'well-s1-regulatory-standards-c5', 'well-s1-regulatory-standards-c6', 'well-s1-regulatory-standards-c7'],
   // S1 -- privacy & confidentiality policy: data, disclosure, consent, legal
   // review -- a policy decision, no spatial act. gap: all.
-  'well-s1-privacy-policy': [],
+  'well-s1-privacy-policy': ['well-s1-privacy-policy-c1', 'well-s1-privacy-policy-c2', 'well-s1-privacy-policy-c3', 'well-s1-privacy-policy-c4', 'well-s1-privacy-policy-c5', 'well-s1-privacy-policy-c6'],
 
   // S2 -- sensory environment (noise/light/smell): record ambient noise by zone
   // (zone), map noise sources -- roads (roads), neighbours (neighbour-pin) --
@@ -1628,10 +1636,11 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // carries the spatial survey & design work, so every overlay objective is []) ---
   // S1 -- healing philosophy overlay intent: overlay philosophy & host
   // reconciliation -- a philosophy decision. gap: all.
-  'well-sec-s1-healing-philosophy': [],
+  // R2: per-checklist-item s1 intent capture forms.
+  'well-sec-s1-healing-philosophy': ['well-sec-s1-healing-philosophy-c1', 'well-sec-s1-healing-philosophy-c2', 'well-sec-s1-healing-philosophy-c3', 'well-sec-s1-healing-philosophy-c4', 'well-sec-s1-healing-philosophy-c5'],
   // S1 -- therapeutic regulatory & professional standards overlay (HARD GATE):
   // qualifications, insurance, licensing -- a regulatory decision. gap: all.
-  'well-sec-s1-regulatory-standards': [],
+  'well-sec-s1-regulatory-standards': ['well-sec-s1-regulatory-standards-c1', 'well-sec-s1-regulatory-standards-c2', 'well-sec-s1-regulatory-standards-c3', 'well-sec-s1-regulatory-standards-c4', 'well-sec-s1-regulatory-standards-c5'],
   // S4 -- sensory & low-stimulation standards for therapeutic zones: noise/light/
   // scent thresholds + host-buffering -- a standards decision. gap: all.
   'well-sec-s4-sensory-standards': [],

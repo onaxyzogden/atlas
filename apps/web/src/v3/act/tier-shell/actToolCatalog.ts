@@ -925,6 +925,580 @@ export const ACT_TOOL_CATALOG: Record<string, ActTool> = {
     id: 'orch-s1-provenance-sourcing-c6', label: 'Quality standards', icon: FlaskConical, category: 'vision',
     arm: { kind: 'form', formId: 'orch-s1-provenance-sourcing-c6', prompt: 'Define quality standards for received stock - health assessment, rejection criteria' },
   },
+
+  // -- livestock --
+  'lvs-s1-enterprise-vision-c1': {
+    id: 'lvs-s1-enterprise-vision-c1', label: 'Enterprise type', icon: Beef, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c1', prompt: 'Define the enterprise type(s) - breeding herd/flock, grow-out/finishing, dairy, fibre, dual-purpose, or mixed' },
+  },
+  'lvs-s1-enterprise-vision-c2': {
+    id: 'lvs-s1-enterprise-vision-c2', label: 'Species & breeds', icon: Beef, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c2', prompt: 'Define species and candidate breeds - cattle, sheep, goats, pigs, poultry, or combination' },
+  },
+  'lvs-s1-enterprise-vision-c3': {
+    id: 'lvs-s1-enterprise-vision-c3', label: 'Production intent', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c3', prompt: 'Define production intent per species - meat, milk, eggs, fibre, breeding stock, land improvement' },
+  },
+  'lvs-s1-enterprise-vision-c4': {
+    id: 'lvs-s1-enterprise-vision-c4', label: 'Integration logic', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c4', prompt: 'Define the integration logic between species if multi-species - leader-follower grazing, niche separation' },
+  },
+  'lvs-s1-enterprise-vision-c5': {
+    id: 'lvs-s1-enterprise-vision-c5', label: 'Steward fit', icon: HardHat, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c5', prompt: 'Confirm the enterprise vision fits the steward experience and available labour' },
+  },
+  'lvs-s1-enterprise-vision-c6': {
+    id: 'lvs-s1-enterprise-vision-c6', label: 'Climate & feed', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-enterprise-vision-c6', prompt: 'Confirm the vision is consistent with the site climate and feed base' },
+  },
+  'lvs-s1-production-goals-c1': {
+    id: 'lvs-s1-production-goals-c1', label: 'Production targets', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c1', prompt: 'Define measurable production targets - head sold/yr, kg liveweight, litres, dozen eggs, breeding replacements' },
+  },
+  'lvs-s1-production-goals-c2': {
+    id: 'lvs-s1-production-goals-c2', label: 'Herd size', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c2', prompt: 'Define the target full-establishment herd/flock size' },
+  },
+  'lvs-s1-production-goals-c3': {
+    id: 'lvs-s1-production-goals-c3', label: 'Establishment horizon', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c3', prompt: 'Define the establishment horizon - how many seasons to reach full scale' },
+  },
+  'lvs-s1-production-goals-c4': {
+    id: 'lvs-s1-production-goals-c4', label: 'Stockmanship', icon: HardHat, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c4', prompt: 'Assess steward stockmanship capacity - daily check, handling, calving/lambing, health intervention skill' },
+  },
+  'lvs-s1-production-goals-c5': {
+    id: 'lvs-s1-production-goals-c5', label: 'Budget envelope', icon: Wallet, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c5', prompt: 'Confirm capital and operating budget envelope is realistic for the scale' },
+  },
+  'lvs-s1-production-goals-c6': {
+    id: 'lvs-s1-production-goals-c6', label: 'Continuity cover', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-production-goals-c6', prompt: 'Confirm a continuity / absence-cover plan exists - animals need daily care' },
+  },
+  'lvs-s1-welfare-ethic-c1': {
+    id: 'lvs-s1-welfare-ethic-c1', label: 'Space & density', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c1', prompt: 'Define minimum space and stocking-density standards per species' },
+  },
+  'lvs-s1-welfare-ethic-c2': {
+    id: 'lvs-s1-welfare-ethic-c2', label: 'Shelter standards', icon: Home, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c2', prompt: 'Define shelter standards per species - shade, wind protection, wet-weather and extreme-heat/cold refuge' },
+  },
+  'lvs-s1-welfare-ethic-c3': {
+    id: 'lvs-s1-welfare-ethic-c3', label: 'Feed & water', icon: Droplet, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c3', prompt: 'Define constant access to feed and clean water as a standing requirement' },
+  },
+  'lvs-s1-welfare-ethic-c4': {
+    id: 'lvs-s1-welfare-ethic-c4', label: 'Handling norms', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c4', prompt: 'Define a low-stress handling commitment and handling-frequency norms' },
+  },
+  'lvs-s1-welfare-ethic-c5': {
+    id: 'lvs-s1-welfare-ethic-c5', label: 'Health & EOL', icon: FlaskConical, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c5', prompt: 'Define a humane health-intervention and end-of-life / emergency-euthanasia protocol' },
+  },
+  'lvs-s1-welfare-ethic-c6': {
+    id: 'lvs-s1-welfare-ethic-c6', label: 'Welfare compliance', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-s1-welfare-ethic-c6', prompt: 'Confirm standards meet or exceed applicable animal-welfare legislation' },
+  },
+  'lvs-sec-s1-enterprise-intent-c1': {
+    id: 'lvs-sec-s1-enterprise-intent-c1', label: 'Enterprise intent', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c1', prompt: 'Define the enterprise intent - product (meat, milk, fibre, eggs), land-management service, or both' },
+  },
+  'lvs-sec-s1-enterprise-intent-c2': {
+    id: 'lvs-sec-s1-enterprise-intent-c2', label: 'Candidate species', icon: Beef, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c2', prompt: 'Identify candidate species and classes of stock - ruminants, poultry, pigs, mixed' },
+  },
+  'lvs-sec-s1-enterprise-intent-c3': {
+    id: 'lvs-sec-s1-enterprise-intent-c3', label: 'Host relationship', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c3', prompt: 'Define how the herd relates to the host enterprise - complementary, supplementary, or competing for land and labour' },
+  },
+  'lvs-sec-s1-enterprise-intent-c4': {
+    id: 'lvs-sec-s1-enterprise-intent-c4', label: 'Experience & labour', icon: HardHat, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c4', prompt: 'Identify operator livestock experience and the daily labour available for stock care' },
+  },
+  'lvs-sec-s1-enterprise-intent-c5': {
+    id: 'lvs-sec-s1-enterprise-intent-c5', label: 'Compatibility', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'lvs-sec-s1-enterprise-intent-c5', prompt: 'Confirm enterprise intent is compatible with the host vision, scale, and stewardship capacity' },
+  },
+
+  // -- conservation --
+  'con-s1-conservation-intent-c1': {
+    id: 'con-s1-conservation-intent-c1', label: 'Reference state', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c1', prompt: 'Define reference ecological state - historical condition this site is being restored toward' },
+  },
+  'con-s1-conservation-intent-c2': {
+    id: 'con-s1-conservation-intent-c2', label: 'Target species', icon: Bird, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c2', prompt: 'Identify target species - flora and fauna that define ecological success' },
+  },
+  'con-s1-conservation-intent-c3': {
+    id: 'con-s1-conservation-intent-c3', label: 'Habitat types', icon: TreeDeciduous, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c3', prompt: 'Define target habitat types and their spatial extent' },
+  },
+  'con-s1-conservation-intent-c4': {
+    id: 'con-s1-conservation-intent-c4', label: 'Outcome targets', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c4', prompt: 'Set measurable ecological outcome targets with timeframes - 5, 10, 25 years' },
+  },
+  'con-s1-conservation-intent-c5': {
+    id: 'con-s1-conservation-intent-c5', label: 'Min viable state', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c5', prompt: 'Define minimum acceptable ecological state for Phase 1' },
+  },
+  'con-s1-conservation-intent-c6': {
+    id: 'con-s1-conservation-intent-c6', label: 'Feasibility', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-conservation-intent-c6', prompt: 'Confirm targets are achievable given site conditions and landscape context' },
+  },
+  'con-s1-intervention-philosophy-c1': {
+    id: 'con-s1-intervention-philosophy-c1', label: 'Intervention ethos', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c1', prompt: 'Define intervention philosophy - passive rewilding, assisted natural regeneration, active restoration, or hybrid' },
+  },
+  'con-s1-intervention-philosophy-c2': {
+    id: 'con-s1-intervention-philosophy-c2', label: 'Acceptable methods', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c2', prompt: 'List acceptable intervention methods - planting, earthworks, pest control, fire' },
+  },
+  'con-s1-intervention-philosophy-c3': {
+    id: 'con-s1-intervention-philosophy-c3', label: 'Prohibited methods', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c3', prompt: 'List prohibited methods that conflict with the philosophy' },
+  },
+  'con-s1-intervention-philosophy-c4': {
+    id: 'con-s1-intervention-philosophy-c4', label: 'Decision threshold', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c4', prompt: 'Define decision-making threshold - what evidence triggers active intervention vs. allowing natural recovery' },
+  },
+  'con-s1-intervention-philosophy-c5': {
+    id: 'con-s1-intervention-philosophy-c5', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-intervention-philosophy-c5', prompt: 'Confirm intervention philosophy is agreed by all parties with decision-making authority' },
+  },
+  'con-s1-tenure-covenant-c1': {
+    id: 'con-s1-tenure-covenant-c1', label: 'Instruments', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c1', prompt: 'Evaluate applicable conservation instruments - covenants, reserve declarations, easements, carbon credits' },
+  },
+  'con-s1-tenure-covenant-c2': {
+    id: 'con-s1-tenure-covenant-c2', label: 'Implications', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c2', prompt: 'Assess implications of each instrument for management flexibility' },
+  },
+  'con-s1-tenure-covenant-c3': {
+    id: 'con-s1-tenure-covenant-c3', label: 'Covenant strategy', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c3', prompt: 'Define covenant strategy - which instrument best matches conservation intent' },
+  },
+  'con-s1-tenure-covenant-c4': {
+    id: 'con-s1-tenure-covenant-c4', label: 'Provider', icon: Building2, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c4', prompt: 'Identify covenant provider or registering body' },
+  },
+  'con-s1-tenure-covenant-c5': {
+    id: 'con-s1-tenure-covenant-c5', label: 'Legal advice', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c5', prompt: 'Obtain legal advice before executing any covenant or carbon agreement' },
+  },
+  'con-s1-tenure-covenant-c6': {
+    id: 'con-s1-tenure-covenant-c6', label: 'Conflict check', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'con-s1-tenure-covenant-c6', prompt: 'Confirm covenant terms do not conflict with planned interventions' },
+  },
+
+  // -- off-grid --
+  'ofg-s1-resilience-philosophy-c1': {
+    id: 'ofg-s1-resilience-philosophy-c1', label: 'Independence target', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c1', prompt: 'Define independence target per critical system - water, energy, food, communications, shelter' },
+  },
+  'ofg-s1-resilience-philosophy-c2': {
+    id: 'ofg-s1-resilience-philosophy-c2', label: 'Backup & grid', icon: Zap, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c2', prompt: 'Define acceptable backup or grid connection where full independence is not the target' },
+  },
+  'ofg-s1-resilience-philosophy-c3': {
+    id: 'ofg-s1-resilience-philosophy-c3', label: 'Worst-case span', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c3', prompt: 'Define worst-case scenario resilience requirement - how long must all systems operate without resupply' },
+  },
+  'ofg-s1-resilience-philosophy-c4': {
+    id: 'ofg-s1-resilience-philosophy-c4', label: 'Feasibility', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c4', prompt: 'Confirm independence targets are achievable against site potential' },
+  },
+  'ofg-s1-resilience-philosophy-c5': {
+    id: 'ofg-s1-resilience-philosophy-c5', label: 'Design constraint', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-resilience-philosophy-c5', prompt: 'Document targets as design constraints - all Tier 3-4 systems sized against them' },
+  },
+  'ofg-s1-critical-systems-redundancy-c1': {
+    id: 'ofg-s1-critical-systems-redundancy-c1', label: 'Criticality tiers', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c1', prompt: 'Classify all systems by criticality - life-safety, essential, convenience' },
+  },
+  'ofg-s1-critical-systems-redundancy-c2': {
+    id: 'ofg-s1-critical-systems-redundancy-c2', label: 'Redundancy spec', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c2', prompt: 'Define redundancy requirement for each life-safety system - dual source, backup storage, manual fallback' },
+  },
+  'ofg-s1-critical-systems-redundancy-c3': {
+    id: 'ofg-s1-critical-systems-redundancy-c3', label: 'Min viable op', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c3', prompt: 'Define minimum viable operation standard for each critical system during failure' },
+  },
+  'ofg-s1-critical-systems-redundancy-c4': {
+    id: 'ofg-s1-critical-systems-redundancy-c4', label: 'Max downtime', icon: AlertTriangle, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c4', prompt: 'Define maximum acceptable downtime per system before life-safety threshold is breached' },
+  },
+  'ofg-s1-critical-systems-redundancy-c5': {
+    id: 'ofg-s1-critical-systems-redundancy-c5', label: 'Feasibility', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'ofg-s1-critical-systems-redundancy-c5', prompt: 'Confirm redundancy requirements are achievable on this site' },
+  },
+
+  // -- agritourism --
+  'ag-s1-experience-vision-c1': {
+    id: 'ag-s1-experience-vision-c1', label: 'Experience core', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c1', prompt: 'Define the core guest experience in plain language - what makes this farm distinct' },
+  },
+  'ag-s1-experience-vision-c2': {
+    id: 'ag-s1-experience-vision-c2', label: 'Visitor types', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c2', prompt: 'Identify visitor types - day visitors, overnight guests, retreat participants, school groups' },
+  },
+  'ag-s1-experience-vision-c3': {
+    id: 'ag-s1-experience-vision-c3', label: 'Commercial offer', icon: Wallet, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c3', prompt: 'Define the commercial proposition - what is offered and at what price point' },
+  },
+  'ag-s1-experience-vision-c4': {
+    id: 'ag-s1-experience-vision-c4', label: 'Hospitality identity', icon: Home, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c4', prompt: "Define the farm's hospitality identity - authentic farm stay, luxury retreat, educational experience" },
+  },
+  'ag-s1-experience-vision-c5': {
+    id: 'ag-s1-experience-vision-c5', label: 'Capacity check', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c5', prompt: 'Confirm the commercial model is achievable within steward capacity' },
+  },
+  'ag-s1-experience-vision-c6': {
+    id: 'ag-s1-experience-vision-c6', label: 'Non-negotiables', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-experience-vision-c6', prompt: 'Record what will never be compromised for commercial gain' },
+  },
+  'ag-s1-visitor-capacity-c1': {
+    id: 'ag-s1-visitor-capacity-c1', label: 'Max capacity', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c1', prompt: 'Define maximum simultaneous guest capacity - accommodation, dining, programming' },
+  },
+  'ag-s1-visitor-capacity-c2': {
+    id: 'ag-s1-visitor-capacity-c2', label: 'Visit limits', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c2', prompt: 'Define visit type limits - maximum day visitors, overnight guests, event attendees' },
+  },
+  'ag-s1-visitor-capacity-c3': {
+    id: 'ag-s1-visitor-capacity-c3', label: 'Op boundaries', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c3', prompt: 'Define operational boundaries - what farm activities are incompatible with guest presence' },
+  },
+  'ag-s1-visitor-capacity-c4': {
+    id: 'ag-s1-visitor-capacity-c4', label: 'Seasonal variation', icon: Sun, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c4', prompt: 'Define seasonal capacity variation - peak and off-peak limits' },
+  },
+  'ag-s1-visitor-capacity-c5': {
+    id: 'ag-s1-visitor-capacity-c5', label: 'Consistency check', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-visitor-capacity-c5', prompt: 'Confirm capacity is consistent with regulatory requirements and infrastructure potential' },
+  },
+  'ag-s1-regulatory-framework-c1': {
+    id: 'ag-s1-regulatory-framework-c1', label: 'Food permits', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c1', prompt: 'Identify food service permit requirements - preparation, service, storage' },
+  },
+  'ag-s1-regulatory-framework-c2': {
+    id: 'ag-s1-regulatory-framework-c2', label: 'Accom licensing', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c2', prompt: 'Identify accommodation licensing requirements for intended accommodation type' },
+  },
+  'ag-s1-regulatory-framework-c3': {
+    id: 'ag-s1-regulatory-framework-c3', label: 'Liability insurance', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c3', prompt: 'Define public liability insurance requirements and coverage' },
+  },
+  'ag-s1-regulatory-framework-c4': {
+    id: 'ag-s1-regulatory-framework-c4', label: 'Health & safety', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c4', prompt: 'Identify health and safety compliance requirements for public access' },
+  },
+  'ag-s1-regulatory-framework-c5': {
+    id: 'ag-s1-regulatory-framework-c5', label: 'Resource consent', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c5', prompt: 'Identify any resource consent requirements for visitor infrastructure' },
+  },
+  'ag-s1-regulatory-framework-c6': {
+    id: 'ag-s1-regulatory-framework-c6', label: 'Compliance cal', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c6', prompt: 'Define compliance calendar - renewal dates and ongoing obligations' },
+  },
+  'ag-s1-regulatory-framework-c7': {
+    id: 'ag-s1-regulatory-framework-c7', label: 'Legal advice', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'ag-s1-regulatory-framework-c7', prompt: 'Obtain legal or compliance advice before any guest-facing infrastructure is built' },
+  },
+
+  // -- ecovillage --
+  'ev-s1-legal-governance-c1': {
+    id: 'ev-s1-legal-governance-c1', label: 'Entity options', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-legal-governance-c1', prompt: 'Evaluate legal entity options - land trust, co-operative, company, charitable trust, incorporated society' },
+  },
+  'ev-s1-legal-governance-c2': {
+    id: 'ev-s1-legal-governance-c2', label: 'Entity choice', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-legal-governance-c2', prompt: 'Select legal entity and document rationale' },
+  },
+  'ev-s1-legal-governance-c3': {
+    id: 'ev-s1-legal-governance-c3', label: 'Tenure model', icon: MapPin, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-legal-governance-c3', prompt: 'Define land tenure model - collective ownership, leasehold, equity shares, or hybrid' },
+  },
+  'ev-s1-legal-governance-c4': {
+    id: 'ev-s1-legal-governance-c4', label: 'Decision model', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-legal-governance-c4', prompt: 'Define decision-making framework - consensus, sociocracy, majority vote, or hybrid' },
+  },
+  'ev-s1-legal-governance-c5': {
+    id: 'ev-s1-legal-governance-c5', label: 'Financial gov', icon: Wallet, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-legal-governance-c5', prompt: 'Define financial governance - how community funds are held, authorised, and reported' },
+  },
+  'ev-s1-legal-governance-c6': {
+    id: 'ev-s1-legal-governance-c6', label: 'Membership terms', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-legal-governance-c6', prompt: 'Establish membership rights and obligations in the governance model' },
+  },
+  'ev-s1-legal-governance-c7': {
+    id: 'ev-s1-legal-governance-c7', label: 'Legal advice', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-legal-governance-c7', prompt: 'Obtain legal advice on chosen structure before finalising' },
+  },
+  'ev-s1-provision-balance-c1': {
+    id: 'ev-s1-provision-balance-c1', label: 'Communal infra', icon: Building2, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-provision-balance-c1', prompt: 'Define communal infrastructure commitments - water, energy, sanitation, shared buildings' },
+  },
+  'ev-s1-provision-balance-c2': {
+    id: 'ev-s1-provision-balance-c2', label: 'Food system', icon: Sprout, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-provision-balance-c2', prompt: 'Define food system approach - communal production, individual plots, or hybrid' },
+  },
+  'ev-s1-provision-balance-c3': {
+    id: 'ev-s1-provision-balance-c3', label: 'Financial sharing', icon: Wallet, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-provision-balance-c3', prompt: 'Define financial sharing model - communal fund contributions, shared cost pools' },
+  },
+  'ev-s1-provision-balance-c4': {
+    id: 'ev-s1-provision-balance-c4', label: 'Household rights', icon: Home, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-provision-balance-c4', prompt: 'Define private household entitlements - space, resources, privacy' },
+  },
+  'ev-s1-provision-balance-c5': {
+    id: 'ev-s1-provision-balance-c5', label: 'Balance conflicts', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-provision-balance-c5', prompt: 'Resolve conflicts between communal efficiency and household autonomy' },
+  },
+  'ev-s1-provision-balance-c6': {
+    id: 'ev-s1-provision-balance-c6', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-provision-balance-c6', prompt: 'Confirm provision balance is agreed by all founding members' },
+  },
+  'ev-s1-conflict-framework-c1': {
+    id: 'ev-s1-conflict-framework-c1', label: 'Decision process', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-conflict-framework-c1', prompt: 'Define formal decision-making process with clear steps and quorum requirements' },
+  },
+  'ev-s1-conflict-framework-c2': {
+    id: 'ev-s1-conflict-framework-c2', label: 'Dispute pathway', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-conflict-framework-c2', prompt: 'Define dispute resolution pathway - informal, mediation, formal arbitration' },
+  },
+  'ev-s1-conflict-framework-c3': {
+    id: 'ev-s1-conflict-framework-c3', label: 'Community accord', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-conflict-framework-c3', prompt: 'Establish community agreements on behaviour, noise, visitors, and shared space use' },
+  },
+  'ev-s1-conflict-framework-c4': {
+    id: 'ev-s1-conflict-framework-c4', label: 'Exit process', icon: DoorOpen, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-conflict-framework-c4', prompt: 'Define member exit process - notice period, financial settlement, dwelling transition' },
+  },
+  'ev-s1-conflict-framework-c5': {
+    id: 'ev-s1-conflict-framework-c5', label: 'Dissolution', icon: AlertTriangle, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-conflict-framework-c5', prompt: 'Define community dissolution protocol - how assets are distributed if the community ends' },
+  },
+  'ev-s1-conflict-framework-c6': {
+    id: 'ev-s1-conflict-framework-c6', label: 'Review cadence', icon: Recycle, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-conflict-framework-c6', prompt: 'Establish regular community review process - frequency, format, decision record-keeping' },
+  },
+  'ev-s1-conflict-framework-c7': {
+    id: 'ev-s1-conflict-framework-c7', label: 'Sign-off', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'ev-s1-conflict-framework-c7', prompt: 'Obtain all founding member signatures on community agreement framework before Act begins' },
+  },
+
+  // -- education --
+  'edu-s1-mission-audience-c1': {
+    id: 'edu-s1-mission-audience-c1', label: 'Mission', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c1', prompt: 'Define primary educational mission in plain language' },
+  },
+  'edu-s1-mission-audience-c2': {
+    id: 'edu-s1-mission-audience-c2', label: 'Audience', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c2', prompt: 'Identify primary audience - school groups, farmers, general public, practitioners, children' },
+  },
+  'edu-s1-mission-audience-c3': {
+    id: 'edu-s1-mission-audience-c3', label: 'Learning outcomes', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c3', prompt: 'Define learning outcomes per program type' },
+  },
+  'edu-s1-mission-audience-c4': {
+    id: 'edu-s1-mission-audience-c4', label: 'Unique value', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c4', prompt: 'Define what this site teaches that cannot be taught in a classroom' },
+  },
+  'edu-s1-mission-audience-c5': {
+    id: 'edu-s1-mission-audience-c5', label: 'Capacity check', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-mission-audience-c5', prompt: 'Confirm mission is achievable within steward knowledge and site capacity' },
+  },
+  'edu-s1-curriculum-programs-c1': {
+    id: 'edu-s1-curriculum-programs-c1', label: 'Program types', icon: Layers, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c1', prompt: 'Define program types - day workshops, half-day tours, school excursions, multi-day residencies, online hybrid' },
+  },
+  'edu-s1-curriculum-programs-c2': {
+    id: 'edu-s1-curriculum-programs-c2', label: 'Curriculum themes', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c2', prompt: 'Define curriculum themes per program type - soil, food systems, ecology, permaculture design' },
+  },
+  'edu-s1-curriculum-programs-c3': {
+    id: 'edu-s1-curriculum-programs-c3', label: 'Group size', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c3', prompt: 'Define maximum group size per program type' },
+  },
+  'edu-s1-curriculum-programs-c4': {
+    id: 'edu-s1-curriculum-programs-c4', label: 'Program calendar', icon: Sun, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c4', prompt: 'Define annual program calendar - frequency, seasonality' },
+  },
+  'edu-s1-curriculum-programs-c5': {
+    id: 'edu-s1-curriculum-programs-c5', label: 'Mission fit', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c5', prompt: 'Confirm curriculum framework is consistent with educational mission' },
+  },
+  'edu-s1-curriculum-programs-c6': {
+    id: 'edu-s1-curriculum-programs-c6', label: 'Review process', icon: Recycle, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-curriculum-programs-c6', prompt: 'Define curriculum development and review process' },
+  },
+  'edu-s1-regulatory-framework-c1': {
+    id: 'edu-s1-regulatory-framework-c1', label: 'Liability insurance', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c1', prompt: 'Identify public access and liability insurance requirements' },
+  },
+  'edu-s1-regulatory-framework-c2': {
+    id: 'edu-s1-regulatory-framework-c2', label: 'Child safety', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c2', prompt: 'Identify working with children or vulnerable persons requirements if applicable' },
+  },
+  'edu-s1-regulatory-framework-c3': {
+    id: 'edu-s1-regulatory-framework-c3', label: 'Food permits', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c3', prompt: 'Identify food handling permits if meals or food tasting is offered' },
+  },
+  'edu-s1-regulatory-framework-c4': {
+    id: 'edu-s1-regulatory-framework-c4', label: 'Building permits', icon: Building2, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c4', prompt: 'Identify building permits for teaching structures' },
+  },
+  'edu-s1-regulatory-framework-c5': {
+    id: 'edu-s1-regulatory-framework-c5', label: 'Accreditation', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c5', prompt: 'Define any accreditation intent - RTO, CPD provider, curriculum alignment' },
+  },
+  'edu-s1-regulatory-framework-c6': {
+    id: 'edu-s1-regulatory-framework-c6', label: 'Compliance cal', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'edu-s1-regulatory-framework-c6', prompt: 'Define compliance calendar - renewal dates and ongoing obligations' },
+  },
+
+  // -- wellness --
+  'well-s1-healing-philosophy-c1': {
+    id: 'well-s1-healing-philosophy-c1', label: 'Healing ethos', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c1', prompt: 'Define the healing philosophy in plain language - what this sanctuary believes about healing' },
+  },
+  'well-s1-healing-philosophy-c2': {
+    id: 'well-s1-healing-philosophy-c2', label: 'Modalities', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c2', prompt: 'Identify primary therapeutic modalities offered - somatic, contemplative, nature-based, integrative' },
+  },
+  'well-s1-healing-philosophy-c3': {
+    id: 'well-s1-healing-philosophy-c3', label: 'Therapeutic intent', icon: Target, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c3', prompt: 'Define the therapeutic intent - restoration, recovery, deepening, retreat' },
+  },
+  'well-s1-healing-philosophy-c4': {
+    id: 'well-s1-healing-philosophy-c4', label: 'Environment musts', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c4', prompt: 'Establish which environmental conditions are non-negotiable for this philosophy - silence thresholds, light quality, privacy levels' },
+  },
+  'well-s1-healing-philosophy-c5': {
+    id: 'well-s1-healing-philosophy-c5', label: 'Confirm agreed', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c5', prompt: 'Confirm healing philosophy is agreed by all founding practitioners' },
+  },
+  'well-s1-healing-philosophy-c6': {
+    id: 'well-s1-healing-philosophy-c6', label: 'Design constraint', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-healing-philosophy-c6', prompt: 'Document philosophy as a design constraint - all Tier 3-4 decisions evaluated against it' },
+  },
+  'well-s1-guest-intake-c1': {
+    id: 'well-s1-guest-intake-c1', label: 'Guest profile', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-guest-intake-c1', prompt: 'Define target guest profile - who this sanctuary serves' },
+  },
+  'well-s1-guest-intake-c2': {
+    id: 'well-s1-guest-intake-c2', label: 'Welcomed', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-guest-intake-c2', prompt: 'Define conditions actively welcomed - burnout, grief, stress, life transition' },
+  },
+  'well-s1-guest-intake-c3': {
+    id: 'well-s1-guest-intake-c3', label: 'Assess first', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-guest-intake-c3', prompt: 'Define conditions requiring practitioner assessment before admission' },
+  },
+  'well-s1-guest-intake-c4': {
+    id: 'well-s1-guest-intake-c4', label: 'Out of scope', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-guest-intake-c4', prompt: 'Define conditions outside scope - those requiring clinical referral only' },
+  },
+  'well-s1-guest-intake-c5': {
+    id: 'well-s1-guest-intake-c5', label: 'Intake process', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-guest-intake-c5', prompt: 'Define intake process - how guest suitability is assessed' },
+  },
+  'well-s1-guest-intake-c6': {
+    id: 'well-s1-guest-intake-c6', label: 'Scope fit', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-guest-intake-c6', prompt: 'Confirm intake framework is consistent with practitioner scope of practice' },
+  },
+  'well-s1-regulatory-standards-c1': {
+    id: 'well-s1-regulatory-standards-c1', label: 'Qualifications', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c1', prompt: 'Define required practitioner qualifications for each modality offered' },
+  },
+  'well-s1-regulatory-standards-c2': {
+    id: 'well-s1-regulatory-standards-c2', label: 'Registration', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c2', prompt: 'Define professional registration and insurance requirements' },
+  },
+  'well-s1-regulatory-standards-c3': {
+    id: 'well-s1-regulatory-standards-c3', label: 'Scope bounds', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c3', prompt: 'Define scope of practice boundaries for each modality - what is and is not offered' },
+  },
+  'well-s1-regulatory-standards-c4': {
+    id: 'well-s1-regulatory-standards-c4', label: 'Health & safety', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c4', prompt: 'Identify health and safety compliance requirements for therapeutic services' },
+  },
+  'well-s1-regulatory-standards-c5': {
+    id: 'well-s1-regulatory-standards-c5', label: 'Licensing', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c5', prompt: 'Identify food service and accommodation licensing requirements' },
+  },
+  'well-s1-regulatory-standards-c6': {
+    id: 'well-s1-regulatory-standards-c6', label: 'Compliance cal', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c6', prompt: 'Define compliance calendar - renewal dates, CPD requirements, audit obligations' },
+  },
+  'well-s1-regulatory-standards-c7': {
+    id: 'well-s1-regulatory-standards-c7', label: 'Legal advice', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-regulatory-standards-c7', prompt: 'Obtain legal or professional advice before any therapeutic service is offered' },
+  },
+  'well-s1-privacy-policy-c1': {
+    id: 'well-s1-privacy-policy-c1', label: 'Data collected', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c1', prompt: 'Define what guest information is collected and why' },
+  },
+  'well-s1-privacy-policy-c2': {
+    id: 'well-s1-privacy-policy-c2', label: 'Data handling', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c2', prompt: 'Define data storage, access, and retention policy' },
+  },
+  'well-s1-privacy-policy-c3': {
+    id: 'well-s1-privacy-policy-c3', label: 'Confidentiality', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c3', prompt: 'Define confidentiality obligations for all practitioners and staff' },
+  },
+  'well-s1-privacy-policy-c4': {
+    id: 'well-s1-privacy-policy-c4', label: 'Disclosure', icon: AlertTriangle, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c4', prompt: 'Define disclosure protocol - what triggers a mandatory disclosure and to whom' },
+  },
+  'well-s1-privacy-policy-c5': {
+    id: 'well-s1-privacy-policy-c5', label: 'Consent', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c5', prompt: 'Define guest consent process for any information sharing' },
+  },
+  'well-s1-privacy-policy-c6': {
+    id: 'well-s1-privacy-policy-c6', label: 'Legal advice', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'well-s1-privacy-policy-c6', prompt: 'Obtain legal advice on privacy obligations for therapeutic services in this jurisdiction' },
+  },
+  'well-sec-s1-healing-philosophy-c1': {
+    id: 'well-sec-s1-healing-philosophy-c1', label: 'Healing ethos', icon: FileText, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c1', prompt: 'Define the healing philosophy this wellness layer brings to the host project - what it believes about healing' },
+  },
+  'well-sec-s1-healing-philosophy-c2': {
+    id: 'well-sec-s1-healing-philosophy-c2', label: 'Modalities', icon: Leaf, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c2', prompt: 'Identify the therapeutic modalities the layer offers alongside the primary land use' },
+  },
+  'well-sec-s1-healing-philosophy-c3': {
+    id: 'well-sec-s1-healing-philosophy-c3', label: 'Host compatibility', icon: Shuffle, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c3', prompt: 'Define which host activities and conditions are compatible with therapeutic guest presence' },
+  },
+  'well-sec-s1-healing-philosophy-c4': {
+    id: 'well-sec-s1-healing-philosophy-c4', label: 'Environment musts', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c4', prompt: 'Establish the non-negotiable environmental conditions the healing layer requires - silence, light, privacy' },
+  },
+  'well-sec-s1-healing-philosophy-c5': {
+    id: 'well-sec-s1-healing-philosophy-c5', label: 'Supports primary', icon: HelpCircle, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-healing-philosophy-c5', prompt: 'Confirm the healing overlay supports rather than competes with the primary land purpose' },
+  },
+  'well-sec-s1-regulatory-standards-c1': {
+    id: 'well-sec-s1-regulatory-standards-c1', label: 'Qualifications', icon: UserCheck, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c1', prompt: 'Identify required practitioner qualifications and registrations for each modality offered' },
+  },
+  'well-sec-s1-regulatory-standards-c2': {
+    id: 'well-sec-s1-regulatory-standards-c2', label: 'Insurance & scope', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c2', prompt: 'Define professional insurance and scope-of-practice requirements for the therapeutic layer' },
+  },
+  'well-sec-s1-regulatory-standards-c3': {
+    id: 'well-sec-s1-regulatory-standards-c3', label: 'Compliance obligations', icon: ShieldAlert, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c3', prompt: 'Identify therapeutic-service health, safety, and licensing obligations beyond the primary use' },
+  },
+  'well-sec-s1-regulatory-standards-c4': {
+    id: 'well-sec-s1-regulatory-standards-c4', label: 'Compliance cal', icon: Ruler, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c4', prompt: 'Define the compliance calendar for the therapeutic layer - renewals, CPD, audits' },
+  },
+  'well-sec-s1-regulatory-standards-c5': {
+    id: 'well-sec-s1-regulatory-standards-c5', label: 'Gate before service', icon: Lock, category: 'vision',
+    arm: { kind: 'form', formId: 'well-sec-s1-regulatory-standards-c5', prompt: 'Confirm no therapeutic service is offered until all qualifications and insurance are in place' },
+  },
 };
 
 /** Resolve catalogue ids to ActTool objects, dropping any unknown id. */
