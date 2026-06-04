@@ -311,3 +311,102 @@ describe('DecisionChecklist - "Open in Act" deep link', () => {
     });
   });
 });
+
+describe('DecisionChecklist - expand / collapse all', () => {
+  const objective = mkObjective({
+    checklist: [
+      ck('c1', 'Map surface flows'),
+      ck('c2', 'Identify catchment'),
+      ck('c3', 'Locate springs'),
+      ck('c4', 'Assess drainage'),
+    ],
+    decisionGroups: [
+      dg('obj-1-dg1', 'Surface flows & catchment', ['c1', 'c2']),
+      dg('obj-1-dg2', 'Springs & drainage', ['c3', 'c4']),
+    ],
+  });
+
+  it('opens every group body with one click and flips the label', () => {
+    render(
+      <DecisionChecklist
+        projectId="proj-test"
+        objective={objective}
+        status="active"
+        completedItemIds={[]}
+      />,
+    );
+    const g1 = screen.getByTestId('plan-decision-group-obj-1-dg1');
+    const g2 = screen.getByTestId('plan-decision-group-obj-1-dg2');
+    // Collapsed by default.
+    expect(within(g1).queryByText('Map surface flows')).toBeNull();
+    expect(within(g2).queryByText('Locate springs')).toBeNull();
+
+    const toggle = screen.getByRole('button', {
+      name: /expand all decision groups/i,
+    });
+    fireEvent.click(toggle);
+
+    expect(within(g1).getByText('Map surface flows')).toBeTruthy();
+    expect(within(g2).getByText('Locate springs')).toBeTruthy();
+    // Label flipped to collapse.
+    expect(
+      screen.getByRole('button', { name: /collapse all decision groups/i }),
+    ).toBeTruthy();
+  });
+
+  it('collapses every group when toggled again', () => {
+    render(
+      <DecisionChecklist
+        projectId="proj-test"
+        objective={objective}
+        status="active"
+        completedItemIds={[]}
+      />,
+    );
+    const g1 = screen.getByTestId('plan-decision-group-obj-1-dg1');
+    const g2 = screen.getByTestId('plan-decision-group-obj-1-dg2');
+    fireEvent.click(
+      screen.getByRole('button', { name: /expand all decision groups/i }),
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: /collapse all decision groups/i }),
+    );
+    expect(within(g1).queryByText('Map surface flows')).toBeNull();
+    expect(within(g2).queryByText('Locate springs')).toBeNull();
+  });
+
+  it('still toggles a single group independently (no all-state)', () => {
+    render(
+      <DecisionChecklist
+        projectId="proj-test"
+        objective={objective}
+        status="active"
+        completedItemIds={[]}
+      />,
+    );
+    const g1 = screen.getByTestId('plan-decision-group-obj-1-dg1');
+    const g2 = screen.getByTestId('plan-decision-group-obj-1-dg2');
+    expand(g1, 'Surface flows & catchment');
+    expect(within(g1).getByText('Map surface flows')).toBeTruthy();
+    expect(within(g2).queryByText('Locate springs')).toBeNull();
+    // Not all expanded, so the control still offers "Expand all".
+    expect(
+      screen.getByRole('button', { name: /expand all decision groups/i }),
+    ).toBeTruthy();
+  });
+
+  it('omits the toggle when the objective has no expandable groups', () => {
+    const empty = mkObjective({ checklist: [], decisionGroups: [] });
+    render(
+      <DecisionChecklist
+        projectId="proj-test"
+        objective={empty}
+        status="active"
+        completedItemIds={[]}
+      />,
+    );
+    expect(
+      screen.queryByRole('button', { name: /expand all decision groups/i }),
+    ).toBeNull();
+  });
+});
