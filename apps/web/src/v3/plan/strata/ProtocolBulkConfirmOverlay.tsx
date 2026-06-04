@@ -1,12 +1,15 @@
 // ProtocolBulkConfirmOverlay.tsx
 //
-// Confirmation modal for the Act tier-shell BULK protocol activation
-// ("Activate all" / "Activate selected"). Per the operator decision
-// (wiki/decisions/2026-06-04-...), bulk activation INCLUDES Amanah-flagged
-// protocols (those carrying a `scopeNotes` caution — e.g. the bayʿ mā laysa
-// ʿindak warning on advance-sale / sales-channel protocols) but surfaces each
-// flagged protocol's scopeNotes VERBATIM here, requiring an explicit Confirm
-// before committing. Nothing is reworded or truncated.
+// Confirmation modal for the Act tier-shell BULK protocol actions
+// ("Apply to all" / "Apply to selected" for Activate / Suspend / Deactivate).
+// Per the operator decisions (wiki/decisions/2026-06-04-...), ALL three bulk
+// actions confirm here, but the Amanah review block surfaces for ACTIVATE
+// ONLY: activation INCLUDES Amanah-flagged protocols (those carrying a
+// `scopeNotes` caution — e.g. the bayʿ mā laysa ʿindak warning on advance-sale
+// / sales-channel protocols) and shows each flagged protocol's scopeNotes
+// VERBATIM before committing (nothing reworded or truncated). Suspending or
+// deactivating a protocol is the SAFE direction (disengaging), so it carries
+// no fiqh risk and omits the Amanah block.
 //
 // Pure presentational: the caller owns the store mutation (onConfirm). The
 // overlay reuses ProtocolApprovalOverlay's shell shape (fixed backdrop,
@@ -15,27 +18,73 @@
 import type { StandardProtocolTemplate } from '@ogden/shared';
 import { C, F, CA } from '../spine/tokens.js';
 
+export type BulkAction = 'activate' | 'suspend' | 'deactivate';
+
 interface Props {
-  /** Every template that will be activated (eligible ∩ chosen). */
+  /** Every template the action will apply to (eligible ∩ chosen). */
   eligible: readonly StandardProtocolTemplate[];
   /** Subset of `eligible` carrying an Amanah caution (scopeNotes truthy). */
   flagged: readonly StandardProtocolTemplate[];
+  /** The bulk action being confirmed. Default 'activate' (Amanah block shows
+   *  for activate only). */
+  action?: BulkAction;
   onConfirm: () => void;
   onCancel: () => void;
 }
 
+/** Per-verb copy + confirm-button styling. `CA` has no `red` triplet, so the
+ *  destructive deactivate confirm uses a red border+text on a transparent fill
+ *  (clear "danger" treatment, no tint). */
+const ACTION_META: Record<
+  BulkAction,
+  {
+    verb: string;
+    subtitle: string;
+    border: string;
+    background: string;
+    color: string;
+  }
+> = {
+  activate: {
+    verb: 'Activate',
+    subtitle: 'These standing protocols will be marked active for this project.',
+    border: C.green,
+    background: CA('green', 0.16),
+    color: C.green,
+  },
+  suspend: {
+    verb: 'Suspend',
+    subtitle:
+      'These protocols will be suspended — still tracked, but not triggered.',
+    border: C.amber,
+    background: CA('amber', 0.14),
+    color: C.amber,
+  },
+  deactivate: {
+    verb: 'Deactivate',
+    subtitle:
+      'These protocols will be removed from this project — they will no longer be tracked.',
+    border: C.red,
+    background: 'transparent',
+    color: C.red,
+  },
+};
+
 export default function ProtocolBulkConfirmOverlay({
   eligible,
   flagged,
+  action = 'activate',
   onConfirm,
   onCancel,
 }: Props) {
   const count = eligible.length;
+  const meta = ACTION_META[action];
+  const showAmanah = action === 'activate' && flagged.length > 0;
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Confirm bulk protocol activation"
+      aria-label={`Confirm bulk protocol ${action}`}
       data-testid="protocol-bulk-confirm-overlay"
       style={{
         position: 'fixed',
@@ -80,7 +129,7 @@ export default function ProtocolBulkConfirmOverlay({
               fontFamily: F.sans,
             }}
           >
-            Activate {count} protocol{count !== 1 ? 's' : ''}?
+            {meta.verb} {count} protocol{count !== 1 ? 's' : ''}?
           </div>
           <div
             style={{
@@ -90,12 +139,14 @@ export default function ProtocolBulkConfirmOverlay({
               marginTop: 4,
             }}
           >
-            These standing protocols will be marked active for this project.
+            {meta.subtitle}
           </div>
         </div>
 
-        {/* Amanah review — verbatim scopeNotes for any flagged protocol */}
-        {flagged.length > 0 && (
+        {/* Amanah review — verbatim scopeNotes for any flagged protocol.
+            Activate only: suspend/deactivate disengage a protocol (safe
+            direction) and carry no fiqh risk. */}
+        {showAmanah && (
           <div
             data-testid="protocol-bulk-amanah"
             style={{
@@ -195,16 +246,16 @@ export default function ProtocolBulkConfirmOverlay({
             style={{
               padding: '8px 16px',
               borderRadius: 8,
-              border: `1px solid ${C.green}`,
-              background: CA('green', 0.16),
-              color: C.green,
+              border: `1px solid ${meta.border}`,
+              background: meta.background,
+              color: meta.color,
               fontSize: 13,
               fontWeight: 700,
               fontFamily: F.sans,
               cursor: 'pointer',
             }}
           >
-            Activate {count}
+            {meta.verb} {count}
           </button>
         </div>
       </div>

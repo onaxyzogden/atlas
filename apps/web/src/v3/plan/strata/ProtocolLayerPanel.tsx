@@ -18,7 +18,9 @@ import {
 } from '@ogden/shared';
 import { C, F, CA } from '../spine/tokens.js';
 import { useProtocolStore } from '../../../store/protocolStore.js';
-import ProtocolBulkConfirmOverlay from './ProtocolBulkConfirmOverlay.js';
+import ProtocolBulkConfirmOverlay, {
+  type BulkAction,
+} from './ProtocolBulkConfirmOverlay.js';
 // Critical: pull the spine theme in with the component so the `--spine-*` tokens
 // the cards rely on resolve even when this panel mounts in an Act-only page that
 // never loads PlanStratumShell. CSS imports are bundler-deduped, so Plan is
@@ -31,6 +33,16 @@ import { useProtocolLibrary, filterProtocolGroups } from './useProtocolLibrary.j
 /** Stable empty default for `triggeredIds` so the useMemo(Set) identity is stable
  *  across renders when no triggered ids are supplied (Plan / default Act). */
 const EMPTY_IDS: readonly string[] = [];
+
+/** Verb-selector buttons for the bulk toolbar. The active verb's accent tints
+ *  its toggle (and is echoed by the confirm overlay). `CA` has no `red` triplet,
+ *  so deactivate uses the flat `C.red` accent. */
+const BULK_VERBS: readonly { key: BulkAction; label: string; accent: string }[] =
+  [
+    { key: 'activate', label: 'Activate', accent: C.green },
+    { key: 'suspend', label: 'Suspend', accent: C.amber },
+    { key: 'deactivate', label: 'Deactivate', accent: C.red },
+  ];
 
 interface Props {
   projectId: string;
@@ -98,17 +110,32 @@ export default function ProtocolLayerPanel({
     [visibleTemplates, statusByTemplate],
   );
 
-  // ── Bulk activation (Act-only, opt-in) ────────────────────────────────────
+  // ── Bulk actions (Act-only, opt-in) ───────────────────────────────────────
   const activateProtocols = useProtocolStore((s) => s.activateProtocols);
+  const suspendProtocols = useProtocolStore((s) => s.suspendProtocols);
+  const deactivateProtocols = useProtocolStore((s) => s.deactivateProtocols);
   const [selectMode, setSelectMode] = useState(false);
+  const [bulkAction, setBulkAction] = useState<BulkAction>('activate');
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pending, setPending] = useState<readonly StandardProtocolTemplate[]>([]);
-  // Eligible = visible (stratum-scoped) templates not already active. Activating
-  // is idempotent and resumes suspended/triggered, so those are eligible too.
+  // Eligible set depends on the chosen verb (all over the visible, stratum-scoped
+  // templates):
+  //  • activate   — not already active (undefined/suspended/triggered). Activate
+  //                 is idempotent and resumes suspended/triggered.
+  //  • suspend    — an existing record that is active or triggered (suspending a
+  //                 suspended one, or an unactivated one, is a no-op).
+  //  • deactivate — any existing record (removing an unactivated one is a no-op).
   const eligibleTemplates = useMemo(
-    () => visibleTemplates.filter((t) => statusByTemplate[t.id] !== 'active'),
-    [visibleTemplates, statusByTemplate],
+    () =>
+      visibleTemplates.filter((t) => {
+        const status = statusByTemplate[t.id];
+        if (bulkAction === 'activate') return status !== 'active';
+        if (bulkAction === 'suspend')
+          return status === 'active' || status === 'triggered';
+        return status !== undefined; // deactivate
+      }),
+    [visibleTemplates, statusByTemplate, bulkAction],
   );
   const eligibleIds = useMemo(
     () => new Set(eligibleTemplates.map((t) => t.id)),
@@ -209,9 +236,43 @@ export default function ProtocolLayerPanel({
             </button>
             {selectMode && (
               <>
+                {/* Verb selector — picks the bulk action; "Apply" buttons
+                    below compute their counts against this verb's eligibility. */}
+                <div
+                  data-testid="protocol-bulk-verb-group"
+                  role="group"
+                  aria-label="Bulk action"
+                  style={{ display: 'inline-flex', gap: 4 }}
+                >
+                  {BULK_VERBS.map(({ key, label, accent }) => {
+                    const active = bulkAction === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        data-testid={`protocol-bulk-verb-${key}`}
+                        aria-pressed={active}
+                        onClick={() => setBulkAction(key)}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: 7,
+                          border: `1px solid ${active ? accent : C.border}`,
+                          background: active ? CA('border', 0.4) : 'transparent',
+                          color: active ? accent : C.textSecondary,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          fontFamily: F.sans,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
                 <button
                   type="button"
-                  data-testid="protocol-bulk-activate-all"
+                  data-testid="protocol-bulk-apply-all"
                   disabled={eligibleTemplates.length === 0}
                   onClick={() => beginBulk(eligibleTemplates.map((t) => t.id))}
                   style={{
@@ -230,11 +291,11 @@ export default function ProtocolLayerPanel({
                       eligibleTemplates.length === 0 ? 'default' : 'pointer',
                   }}
                 >
-                  Activate all ({eligibleTemplates.length})
+                  Apply to all ({eligibleTemplates.length})
                 </button>
                 <button
                   type="button"
-                  data-testid="protocol-bulk-activate-selected"
+                  data-testid="protocol-bulk-apply-selected"
                   disabled={selectedEligibleCount === 0}
                   onClick={() => beginBulk(selectedIds)}
                   style={{
@@ -255,7 +316,7 @@ export default function ProtocolLayerPanel({
                     cursor: selectedEligibleCount === 0 ? 'default' : 'pointer',
                   }}
                 >
-                  Activate selected ({selectedEligibleCount})
+                  Apply to selected ({selectedEligibleCount})
                 </button>
               </>
             )}
@@ -405,12 +466,14 @@ export default function ProtocolLayerPanel({
         <ProtocolBulkConfirmOverlay
           eligible={pending}
           flagged={pending.filter((t) => Boolean(t.scopeNotes))}
+          action={bulkAction}
           onCancel={() => setConfirmOpen(false)}
           onConfirm={() => {
-            activateProtocols(
-              projectId,
-              pending.map((t) => t.id),
-            );
+            const ids = pending.map((t) => t.id);
+            if (bulkAction === 'activate') activateProtocols(projectId, ids);
+            else if (bulkAction === 'suspend')
+              suspendProtocols(projectId, ids);
+            else deactivateProtocols(projectId, ids);
             setConfirmOpen(false);
             exitSelectMode();
           }}

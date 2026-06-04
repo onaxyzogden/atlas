@@ -123,6 +123,28 @@ export interface ProtocolState {
    */
   deactivateProtocol: (projectId: string, templateId: string) => void;
 
+  /**
+   * Bulk variant of {@link deactivateProtocol}: removes every matching record
+   * for one project in a single state commit (one re-render, not N). Ids with
+   * no record are skipped (no-op). An empty list is a no-op.
+   */
+  deactivateProtocols: (
+    projectId: string,
+    templateIds: readonly string[],
+  ) => void;
+
+  /**
+   * Bulk variant of {@link suspendProtocol}: flips every matching EXISTING
+   * record to status 'suspended' in a single state commit (one re-render, not
+   * N). Like the singular action this only mutates records that already exist —
+   * an id with no record is a no-op (no record is created). An empty list is a
+   * no-op.
+   */
+  suspendProtocols: (
+    projectId: string,
+    templateIds: readonly string[],
+  ) => void;
+
   /** Mark a protocol as triggered (condition has fired). */
   markTriggered: (projectId: string, templateId: string) => void;
 
@@ -307,6 +329,33 @@ export const useProtocolStore = create<ProtocolState>()(
               !(r.projectId === projectId && r.templateId === templateId),
           ),
         })),
+
+      deactivateProtocols: (projectId, templateIds) =>
+        set((s) => {
+          if (templateIds.length === 0) return {}; // no-op
+          const ids = new Set(templateIds);
+          // Single filter pass → subscribers render once for the whole batch.
+          return {
+            records: s.records.filter(
+              (r) => !(r.projectId === projectId && ids.has(r.templateId)),
+            ),
+          };
+        }),
+
+      suspendProtocols: (projectId, templateIds) =>
+        set((s) => {
+          if (templateIds.length === 0) return {}; // no-op
+          const ids = new Set(templateIds);
+          // Map only existing records (no upsert) — suspending an id with no
+          // record is a no-op, matching the singular suspendProtocol.
+          return {
+            records: s.records.map((r) =>
+              r.projectId === projectId && ids.has(r.templateId)
+                ? { ...r, status: 'suspended' as const }
+                : r,
+            ),
+          };
+        }),
 
       markTriggered: (projectId, templateId) =>
         set((s) => ({

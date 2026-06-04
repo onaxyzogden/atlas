@@ -1,17 +1,20 @@
 /**
  * @vitest-environment happy-dom
  *
- * ProtocolLayerPanel — ACT bulk-activation toolbar (`bulkActivation` opt-in).
- * The default Act rail (no `bulkActivation`) is covered by the sibling
- * ProtocolLayerPanel.act.test.tsx and must stay green — proof the toolbar is
- * strictly additive. This suite proves:
+ * ProtocolLayerPanel — ACT bulk toolbar (`bulkActivation` opt-in), now a verb
+ * selector [Activate · Suspend · Deactivate] + "Apply to all (N)" / "Apply to
+ * selected (M)". The default Act rail (no `bulkActivation`) is covered by the
+ * sibling ProtocolLayerPanel.act.test.tsx and must stay green — proof the toolbar
+ * is strictly additive. This suite proves:
  *   1. Without `bulkActivation`, no toolbar renders (additive guard).
- *   2. The "Select" toggle reveals "Activate all (N)" + "Activate selected (M)".
+ *   2. The "Select" toggle reveals the verb group + "Apply to all/selected".
  *   3. In select-mode a card click toggles selection (data-selected) and does
  *      NOT fire onSelectProtocol (single-select is suppressed).
- *   4. "Activate selected" reflects the chosen subset and is disabled at 0.
- *   5. "Activate all" → confirm overlay → Confirm bulk-activates the eligible
- *      set into protocolStore (records become active).
+ *   4. "Apply to selected" reflects the chosen subset and is disabled at 0.
+ *   5. Activate verb: "Apply to all" → confirm → eligible set becomes active.
+ *   6. Suspend verb: eligibility recomputes (active/triggered only); Apply →
+ *      confirm (no Amanah) → records become 'suspended'.
+ *   7. Deactivate verb: Apply selected → confirm → matching records removed.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -60,7 +63,13 @@ function cardById(id: string) {
     .find((el) => el.getAttribute('data-template-id') === id)!;
 }
 
-describe('ProtocolLayerPanel (Act bulk activation)', () => {
+function activeRecords() {
+  return useProtocolStore
+    .getState()
+    .records.filter((r) => r.projectId === PROJECT_ID && r.status === 'active');
+}
+
+describe('ProtocolLayerPanel (Act bulk toolbar)', () => {
   it('renders no bulk toolbar when bulkActivation is omitted', () => {
     render(
       <ProtocolLayerPanel
@@ -74,22 +83,29 @@ describe('ProtocolLayerPanel (Act bulk activation)', () => {
     expect(screen.queryByTestId('protocol-bulk-toolbar')).toBeNull();
   });
 
-  it('Select toggle reveals "Activate all (N)" and "Activate selected (M)"', () => {
+  it('Select toggle reveals the verb group + "Apply to all/selected"', () => {
     renderBulk();
-    // Toolbar present but the activate buttons are hidden until select-mode.
+    // Toolbar present but the verb group + apply buttons hidden until select-mode.
     expect(screen.getByTestId('protocol-bulk-toolbar')).toBeTruthy();
-    expect(screen.queryByTestId('protocol-bulk-activate-all')).toBeNull();
+    expect(screen.queryByTestId('protocol-bulk-apply-all')).toBeNull();
 
     fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
 
+    // Verb group present, defaulting to Activate (aria-pressed).
+    expect(screen.getByTestId('protocol-bulk-verb-activate')).toBeTruthy();
     expect(
-      screen.getByTestId('protocol-bulk-activate-all').textContent,
-    ).toContain(`Activate all (${S6_COUNT})`);
-    // Nothing selected yet → "Activate selected (0)", disabled.
+      screen
+        .getByTestId('protocol-bulk-verb-activate')
+        .getAttribute('aria-pressed'),
+    ).toBe('true');
+    expect(
+      screen.getByTestId('protocol-bulk-apply-all').textContent,
+    ).toContain(`Apply to all (${S6_COUNT})`);
+    // Nothing selected yet → "Apply to selected (0)", disabled.
     const sel = screen.getByTestId(
-      'protocol-bulk-activate-selected',
+      'protocol-bulk-apply-selected',
     ) as HTMLButtonElement;
-    expect(sel.textContent).toContain('Activate selected (0)');
+    expect(sel.textContent).toContain('Apply to selected (0)');
     expect(sel.disabled).toBe(true);
   });
 
@@ -102,11 +118,11 @@ describe('ProtocolLayerPanel (Act bulk activation)', () => {
     expect(cardById(ID_A).getAttribute('data-selected')).toBe('true');
     expect(onSelect).not.toHaveBeenCalled();
 
-    // "Activate selected" now reflects the one chosen card.
+    // "Apply to selected" now reflects the one chosen card.
     const sel = screen.getByTestId(
-      'protocol-bulk-activate-selected',
+      'protocol-bulk-apply-selected',
     ) as HTMLButtonElement;
-    expect(sel.textContent).toContain('Activate selected (1)');
+    expect(sel.textContent).toContain('Apply to selected (1)');
     expect(sel.disabled).toBe(false);
 
     // Toggling off clears it.
@@ -114,40 +130,82 @@ describe('ProtocolLayerPanel (Act bulk activation)', () => {
     expect(cardById(ID_A).getAttribute('data-selected')).toBe('false');
   });
 
-  it('"Activate selected" → confirm overlay → Confirm activates only the chosen subset', () => {
+  it('Activate verb: "Apply to selected" → confirm → only the chosen subset active', () => {
     renderBulk();
     fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
     fireEvent.click(cardById(ID_A));
     fireEvent.click(cardById(ID_B));
-    fireEvent.click(screen.getByTestId('protocol-bulk-activate-selected'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-apply-selected'));
 
-    // Overlay appears listing the pending set.
+    // Overlay appears; activate surfaces no Amanah for these (clean) protocols.
     expect(screen.getByTestId('protocol-bulk-confirm-overlay')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('protocol-bulk-confirm'));
+
+    expect(activeRecords().map((r) => r.templateId).sort()).toEqual(
+      [ID_A, ID_B].sort(),
+    );
+  });
+
+  it('Activate verb: "Apply to all" activates the whole eligible stratum set', () => {
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-apply-all'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-confirm'));
+    expect(activeRecords()).toHaveLength(S6_COUNT);
+  });
+
+  it('Cancel on the overlay mutates nothing', () => {
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-apply-all'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-cancel'));
+    expect(useProtocolStore.getState().records).toHaveLength(0);
+  });
+
+  it('Suspend verb: eligibility = active records only; Apply → suspended (no Amanah)', () => {
+    // Seed two active records so suspend has eligible targets.
+    useProtocolStore.getState().activateProtocols(PROJECT_ID, [ID_A, ID_B]);
+    renderBulk();
+    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-verb-suspend'));
+
+    // Only the 2 active records are eligible for suspension (not the full S6 set).
+    expect(
+      screen.getByTestId('protocol-bulk-apply-all').textContent,
+    ).toContain('Apply to all (2)');
+
+    fireEvent.click(screen.getByTestId('protocol-bulk-apply-all'));
+    // Suspend carries no fiqh risk → no Amanah block.
+    expect(screen.getByTestId('protocol-bulk-confirm-overlay')).toBeTruthy();
+    expect(screen.queryByTestId('protocol-bulk-amanah')).toBeNull();
     fireEvent.click(screen.getByTestId('protocol-bulk-confirm'));
 
     const recs = useProtocolStore
       .getState()
-      .records.filter((r) => r.projectId === PROJECT_ID && r.status === 'active');
-    expect(recs.map((r) => r.templateId).sort()).toEqual([ID_A, ID_B].sort());
+      .records.filter((r) => r.projectId === PROJECT_ID);
+    expect(recs).toHaveLength(2);
+    expect(recs.every((r) => r.status === 'suspended')).toBe(true);
   });
 
-  it('"Activate all" activates the whole eligible stratum set on Confirm', () => {
+  it('Deactivate verb: Apply selected → confirm (no Amanah) → records removed', () => {
+    useProtocolStore.getState().activateProtocols(PROJECT_ID, [ID_A, ID_B]);
     renderBulk();
     fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
-    fireEvent.click(screen.getByTestId('protocol-bulk-activate-all'));
+    fireEvent.click(screen.getByTestId('protocol-bulk-verb-deactivate'));
+
+    // Both existing records are eligible for deactivation.
+    expect(
+      screen.getByTestId('protocol-bulk-apply-all').textContent,
+    ).toContain('Apply to all (2)');
+
+    fireEvent.click(cardById(ID_A));
+    fireEvent.click(screen.getByTestId('protocol-bulk-apply-selected'));
+    expect(screen.queryByTestId('protocol-bulk-amanah')).toBeNull();
     fireEvent.click(screen.getByTestId('protocol-bulk-confirm'));
 
-    const active = useProtocolStore
+    const recs = useProtocolStore
       .getState()
-      .records.filter((r) => r.projectId === PROJECT_ID && r.status === 'active');
-    expect(active).toHaveLength(S6_COUNT);
-  });
-
-  it('Cancel on the overlay activates nothing', () => {
-    renderBulk();
-    fireEvent.click(screen.getByTestId('protocol-bulk-select-toggle'));
-    fireEvent.click(screen.getByTestId('protocol-bulk-activate-all'));
-    fireEvent.click(screen.getByTestId('protocol-bulk-cancel'));
-    expect(useProtocolStore.getState().records).toHaveLength(0);
+      .records.filter((r) => r.projectId === PROJECT_ID);
+    expect(recs.map((r) => r.templateId)).toEqual([ID_B]);
   });
 });

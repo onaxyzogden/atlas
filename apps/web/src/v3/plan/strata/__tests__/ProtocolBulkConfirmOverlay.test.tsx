@@ -67,4 +67,56 @@ describe('ProtocolBulkConfirmOverlay', () => {
     expect(screen.queryByTestId('protocol-bulk-amanah')).toBeNull();
     expect(screen.getByTestId('protocol-bulk-confirm')).toBeTruthy();
   });
+
+  // Suspend / deactivate disengage a protocol (the safe direction) and carry no
+  // fiqh risk, so the Amanah review block is omitted even when flagged protocols
+  // are in the set. Activate (default) surfaces it — covered above.
+  it('omits the Amanah section for suspend even when flagged is non-empty', () => {
+    render(
+      <ProtocolBulkConfirmOverlay
+        eligible={[FLAGGED, CLEAN]}
+        flagged={[FLAGGED]}
+        action="suspend"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId('protocol-bulk-amanah')).toBeNull();
+    // Verb-specific copy on the confirm button.
+    expect(screen.getByTestId('protocol-bulk-confirm').textContent).toContain(
+      'Suspend',
+    );
+  });
+
+  it('omits the Amanah section for deactivate even when flagged is non-empty', () => {
+    render(
+      <ProtocolBulkConfirmOverlay
+        eligible={[FLAGGED, CLEAN]}
+        flagged={[FLAGGED]}
+        action="deactivate"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId('protocol-bulk-amanah')).toBeNull();
+    expect(screen.getByTestId('protocol-bulk-confirm').textContent).toContain(
+      'Deactivate',
+    );
+  });
+
+  it('renders the Amanah section for explicit activate action', () => {
+    render(
+      <ProtocolBulkConfirmOverlay
+        eligible={[FLAGGED, CLEAN]}
+        flagged={[FLAGGED]}
+        action="activate"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('protocol-bulk-amanah')).toBeTruthy();
+    expect(screen.getByTestId('protocol-bulk-confirm').textContent).toContain(
+      'Activate',
+    );
+  });
 });
