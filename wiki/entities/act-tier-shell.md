@@ -394,6 +394,53 @@ newly enter a legacy mode via UI; a project already persisted in a legacy mode
 still resolves through the kept branches. Log:
 [[log/2026-06-03-atlas-act-shell-toggle-removed-asbuilt-into-right-rail]].
 
+## Floating MapToolbar restored (2026-06-04)
+
+After the toggle removal made `ActTierShell` the only reachable Act layout, the
+Act map had **no** floating control bar -- `MapToolbar` (the docked basemap +
+measurement bar Plan/Observe carry) was mounted only in the legacy
+command-centre `ActLayout` branch. It is now mounted on the tier-shell canvas
+(`011d4037`): one import + one element inside the `DiagnoseMap`
+`{({ map }) => ...}` closure, just after `BaseMapCard` --
+`<MapToolbar map={map} projectId={params.projectId ?? null}
+boundary={safeBoundary ?? null} showBoundary={false} />`. `showBoundary={false}`
+suppresses the draw/import-boundary buttons, so the bar exposes only Basemap +
+Measure distance/elevation/area + Return-to-property -- Act executes against
+existing features, it does not author geometry. No new component, no
+`MapToolbar` prop change, no CSS (`.dock` floats it bottom-left). Log:
+[[log/2026-06-04-atlas-act-floating-maptoolbar-restored]].
+
+## SectorCompass HUD -> right-rail sectors editor (2026-06-04)
+
+The floating `SectorCompassOverlay` HUD on the Act map became a **click target**
+that takes the right rail over with a full-CRUD sectors editor -- a third
+rail-takeover alongside the as-built popover (`d914473c`). New
+`apps/web/src/v3/act/sectors/`:
+
+- `actSectorsEditorStore.ts` -- a tiny `active`/`open`/`close` singleton (the
+  as-built store template minus payload/capture) tracking whether the rail is
+  taken over.
+- `SectorsEditorPanel.tsx` + `.module.css` -- rail-width editor that **reuses
+  the shared sectors data layer** (`useExternalForcesStore` add/update/remove +
+  `newAnnotationId('sec')` + `computedSectorRows`). Manual sectors are editable
+  (bearing / type / arc / intensity / add / remove); the auto-derived wind/solar
+  "computed climate layers" are listed read-only, mirroring the Observe
+  `SectorCompassDetail`. A **Done** button calls `close()`. No new persistence --
+  edits write to the same store the compass reads, so the HUD updates live.
+
+Wiring: `SectorCompassOverlay` gained an **opt-in** `onOpenEditor?: () => void`
+prop; when supplied the card renders as a `<button aria-label="Edit sectors">`,
+else it stays the read-only Observe HUD (the overlay never imports an Act store
+-- decoupled by callback). `ActTierShell` reads `sectorsEditorActive`, passes an
+opener that first `close()`s any as-built session (the two takeovers are
+mutually exclusive), and adds a third rail branch
+(`asBuiltActive ? ... : sectorsEditorActive ? <SectorsEditorPanel> : normal`) --
+as-built keeps precedence; the Dashboard/Objective toggle hides while either is
+active. The HUD is reachable exactly when the compass is visible (matrix
+`sectors` toggle on + a centroid or >=1 sector). Verified tsc 0, bounded vitest
+41 passed (incl. new store test), preview DOM proof of click -> swap + CRUD +
+Done revert. Log: [[log/2026-06-04-atlas-act-sector-compass-rail-editor]].
+
 ## Exec panel: scroll containment + Raise-follow-up-need (2026-06-01)
 
 Two right-rail `ActTierExecutionPanel` follow-ups
