@@ -26,6 +26,8 @@ import type {
   ConfirmationStatus,
   SeasonName,
   Season,
+  ProjectMemberRecord,
+  ProjectRole,
 } from '@ogden/shared';
 import {
   getObjectiveEvidence,
@@ -116,6 +118,14 @@ interface Props {
   tier: PlanStratum | undefined;
   objective: PlanStratumObjective;
   status: PlanStratumObjectiveStatus;
+  // Formal OLOS proof/verification wiring (flag-gated), threaded from
+  // ActTierShell. Optional so the panel renders identically when unprovided
+  // (offline / flag-off). Consumed in P1.5 — declared here so the threading
+  // from ActTierShell typechecks in isolation.
+  serverId?: string;
+  members?: ProjectMemberRecord[];
+  currentUserId?: string;
+  myRole?: ProjectRole;
 }
 
 export default function ActTierExecutionPanel({

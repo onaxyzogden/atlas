@@ -98,6 +98,9 @@ import {
 } from './actToolCatalog.js';
 import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
 import { useStageSearchStore } from '../../../store/stageSearchStore.js';
+import { useMemberStore } from '../../../store/memberStore.js';
+import { useAuthStore } from '../../../store/authStore.js';
+import { useActTaskSync } from '../../../hooks/useActTaskSync.js';
 import { resolveActSearchMatches } from '../../search/useStageSearchResults.js';
 import type { ActToolMatch } from '../../search/useStageSearchResults.js';
 import { resolveActStratumId } from './resolveActStratumId.js';
@@ -130,6 +133,27 @@ export default function ActTierShell() {
   const project = useMemo(
     () => projects.find((p) => p.id === id || p.serverId === id) ?? MTC_SEED,
     [projects, id],
+  );
+
+  // Formal OLOS proof/verification path (flag-gated, off by default) addresses
+  // the API by serverId and mirrors the assignment-substrate RBAC, so it needs
+  // the member roster + the caller's role. Resolved here once and threaded into
+  // ActTierExecutionPanel; the lightweight ObserveDataPoint completion path is
+  // unaffected and remains the offline fallback (no serverId => no formal path).
+  // See wiki/decisions/2026-06-04-olos-proof-verification-fork.md.
+  const serverId = project.serverId;
+  const members = useMemberStore((s) => s.members);
+  const fetchMembers = useMemberStore((s) => s.fetchMembers);
+  const currentUserId = useAuthStore((s) => s.user?.id);
+  // Pull this project's ActTasks on mount so the bridge hook can distinguish
+  // 'no-task' from 'ready'. No-op for local-only projects.
+  useActTaskSync(id, serverId);
+  useEffect(() => {
+    if (serverId && members.length === 0) void fetchMembers(serverId);
+  }, [serverId, members.length, fetchMembers]);
+  const myRole = useMemo(
+    () => members.find((m) => m.userId === currentUserId)?.role,
+    [members, currentUserId],
   );
 
   // extractBoundaryGeometry can yield a Polygon OR a MultiPolygon (older/
@@ -655,6 +679,10 @@ export default function ActTierShell() {
                         tier={selectedObjectiveTier}
                         objective={selectedObjective}
                         status={selectedObjectiveStatus}
+                        serverId={serverId}
+                        members={members}
+                        currentUserId={currentUserId}
+                        myRole={myRole}
                       />
                     ) : (
                       <ActOpsDashboard projectId={id} />
