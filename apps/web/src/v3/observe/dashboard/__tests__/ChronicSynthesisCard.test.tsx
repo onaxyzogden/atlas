@@ -98,4 +98,83 @@ describe('ChronicSynthesisCard', () => {
       .closest('[data-testid="chronic-row"]');
     expect(plainRow?.getAttribute('data-existential')).toBe('false');
   });
+
+  // A3 -- group headers + full read-only render.
+
+  // A common-deviant fan in one season: pairs [a,b], [b,c], [b,d] all spring ->
+  // anchor 'b' (highest season-frequency), single group key 'spring::b'.
+  const FAN_AB = makeVerdict({
+    signatureKey: 'spring:a+b',
+    season: 'spring',
+    templatePair: ['a', 'b'],
+    templateIds: ['a', 'b'],
+    theme: 'Fan AB',
+    containsExistential: false,
+  });
+  const FAN_BC = makeVerdict({
+    signatureKey: 'spring:b+c',
+    season: 'spring',
+    templatePair: ['b', 'c'],
+    templateIds: ['b', 'c'],
+    theme: 'Fan BC',
+    containsExistential: false,
+  });
+  const FAN_BD = makeVerdict({
+    signatureKey: 'spring:b+d',
+    season: 'spring',
+    templatePair: ['b', 'd'],
+    templateIds: ['b', 'd'],
+    theme: 'Fan BD',
+    containsExistential: false,
+  });
+
+  it('renders a common-deviant group header for a season fan', () => {
+    mockUseChronicVerdicts.mockReturnValue([FAN_AB, FAN_BC, FAN_BD]);
+    render(<ChronicSynthesisCard projectId="p1" />);
+
+    const header = screen.getByTestId('chronic-group-spring::b');
+    expect(header).toBeTruthy();
+    expect(header.textContent).toContain('common deviant b');
+    expect(screen.getAllByTestId('chronic-row')).toHaveLength(3);
+  });
+
+  it('renders ALL rows with no cap on the read-only surface', () => {
+    const eight = Array.from({ length: 8 }, (_, i) =>
+      makeVerdict({
+        signatureKey: `spring:k${i}+m${i}`,
+        season: 'spring',
+        templatePair: [`k${i}`, `m${i}`],
+        templateIds: [`k${i}`, `m${i}`],
+        theme: `Verdict ${i}`,
+        containsExistential: false,
+      }),
+    );
+    mockUseChronicVerdicts.mockReturnValue(eight);
+    render(<ChronicSynthesisCard projectId="p1" />);
+
+    expect(screen.getAllByTestId('chronic-row')).toHaveLength(8);
+  });
+
+  it('stays read-only with group headers present', () => {
+    mockUseChronicVerdicts.mockReturnValue([FAN_AB, FAN_BC, FAN_BD]);
+    const { container } = render(<ChronicSynthesisCard projectId="p1" />);
+
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(container.querySelector('button')).toBeNull();
+    expect(container.querySelector('[role="button"]')).toBeNull();
+
+    const header = screen.getByTestId('chronic-group-spring::b');
+    expect(header.tagName).toBe('DIV');
+  });
+
+  it('keeps existential rows marked in the grouped layout', () => {
+    // VERDICT_B is autumn/existential; group it alongside a spring fan.
+    mockUseChronicVerdicts.mockReturnValue([FAN_AB, VERDICT_B]);
+    render(<ChronicSynthesisCard projectId="p1" />);
+
+    const existentialRow = screen
+      .getByText('Structural design')
+      .closest('[data-existential]');
+    expect(existentialRow?.getAttribute('data-existential')).toBe('true');
+  });
 });

@@ -14,6 +14,7 @@
 
 import type { ChronicVerdict } from '@ogden/shared';
 import { useChronicVerdicts } from '../../../store/chronicVerdicts.js';
+import { groupChronicVerdicts } from '../../chronic/groupChronicVerdicts.js';
 import css from './ChronicSynthesisCard.module.css';
 
 interface Props {
@@ -35,6 +36,10 @@ export default function ChronicSynthesisCard({ projectId }: Props) {
 
   if (verdicts.length === 0) return null;
 
+  // Group by (season, common-deviant anchor). Read-only synthesis surface:
+  // render ALL groups and ALL their verdicts -- NO cap, NO show-more.
+  const groups = groupChronicVerdicts(verdicts);
+
   return (
     <section
       className={css.card}
@@ -50,20 +55,34 @@ export default function ChronicSynthesisCard({ projectId }: Props) {
         structural, not noise.
       </p>
       <div className={css.rows}>
-        {verdicts.map((verdict) => (
-          <div
-            key={verdict.signatureKey}
-            className={css.row}
-            data-testid="chronic-row"
-            data-existential={verdict.containsExistential ? 'true' : 'false'}
-            data-open={verdict.containsOpen ? 'true' : 'false'}
-          >
-            <div className={css.theme}>{verdict.theme}</div>
-            <p className={css.summary}>{verdict.summary}</p>
-            <div className={css.objectives}>
-              Objectives: {verdict.objectiveIds.join(', ')}
+        {groups.map((group) => (
+          <div key={group.key} className={css.groupBlock}>
+            <div
+              className={css.groupHeader}
+              data-testid={`chronic-group-${group.key}`}
+            >
+              {`${group.season ?? 'unknown'} - common deviant ${group.anchorTemplateId}`}
             </div>
-            <div className={css.recurrence}>{recurrenceDetail(verdict)}</div>
+            {group.verdicts.map((verdict) => (
+              <div
+                key={verdict.signatureKey}
+                className={css.row}
+                data-testid="chronic-row"
+                data-existential={
+                  verdict.containsExistential ? 'true' : 'false'
+                }
+                data-open={verdict.containsOpen ? 'true' : 'false'}
+              >
+                <div className={css.theme}>{verdict.theme}</div>
+                <p className={css.summary}>{verdict.summary}</p>
+                <div className={css.objectives}>
+                  Objectives: {verdict.objectiveIds.join(', ')}
+                </div>
+                <div className={css.recurrence}>
+                  {recurrenceDetail(verdict)}
+                </div>
+              </div>
+            ))}
           </div>
         ))}
       </div>
