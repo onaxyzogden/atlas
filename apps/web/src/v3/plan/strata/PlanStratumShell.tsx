@@ -43,7 +43,7 @@ import PlanSearchColumn from './PlanSearchColumn.js';
 import ObjectiveDetailPanel from './ObjectiveDetailPanel.js';
 import ProtocolColumn from './ProtocolColumn.js';
 import ProtocolDetailColumn from './ProtocolDetailColumn.js';
-import { useProtocolLibrary } from './useProtocolLibrary.js';
+import { useProtocolLibrary, filterProtocolGroups } from './useProtocolLibrary.js';
 import { useProjectObjectives } from './useProjectObjectives.js';
 import { planHeaderProjectTypeLabel } from './planHeaderLabel.js';
 import StratumUnlockCelebration from './StratumUnlockCelebration.js';
@@ -477,6 +477,31 @@ export default function PlanStratumShell() {
       protocolLib.templates.filter((t) => selectedProtocolIds.includes(t.id)),
     [protocolLib.templates, selectedProtocolIds],
   );
+
+  // Protocol Mode is navigated BY stratum (route `…/plan/stratum/$stratumId`),
+  // so show only the open stratum's protocols rather than all 7 at once. The
+  // route param and `protocol.stratumId` share the `PlanStratumId` format, so
+  // the match is exact; a null `activeStratumId` (no open stratum) shows all.
+  const stratumProtocolGroups = useMemo(
+    () => filterProtocolGroups(protocolLib.groups, activeStratumId),
+    [protocolLib.groups, activeStratumId],
+  );
+  // Tensions reconciled AT the open stratum get highlighted in the banner
+  // ("this stratum reconciles these"); the rest are still listed for context.
+  const protocolHighlightTensionIds = useMemo(
+    () =>
+      activeStratumId
+        ? activeTensions
+            .filter((t) => t.resolutionStratumId === activeStratumId)
+            .map((t) => t.id)
+        : [],
+    [activeTensions, activeStratumId],
+  );
+  // Selection hygiene: when the open stratum changes, clear protocol selections
+  // so the detail stack never orphans to a now-hidden stratum's protocols.
+  useEffect(() => {
+    setSelectedProtocolIds([]);
+  }, [activeStratumId]);
 
   const [primarySetOpen, setPrimarySetOpen] = useState(false);
   const [primaryChangeOpen, setPrimaryChangeOpen] = useState(false);
@@ -912,10 +937,12 @@ export default function PlanStratumShell() {
            mounts only when a stratum is open) ── */}
       {planMode === 'protocol' ? (
         <ProtocolColumn
-          groups={protocolLib.groups}
+          groups={stratumProtocolGroups}
           statusByTemplate={protocolLib.statusByTemplate}
           selectedIds={selectedProtocolIds}
           onToggle={toggleProtocol}
+          tensions={activeTensions}
+          highlightTensionIds={protocolHighlightTensionIds}
         />
       ) : searchActive ? (
         <PlanSearchColumn

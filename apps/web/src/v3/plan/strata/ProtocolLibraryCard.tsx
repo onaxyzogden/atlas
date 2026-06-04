@@ -16,8 +16,18 @@ import { type ActivatedProtocolRecord } from '../../../store/protocolStore.js';
 import { C, F, CA } from '../spine/tokens.js';
 import { TypeBadge } from '../spine/protocolTypeStyle.js';
 import AutoFilledCondition from '../spine/AutoFilledCondition.js';
+import { getProtocolSourceTag, type SourceTagKind } from './sourceTag.js';
 
 export type RecordStatus = ActivatedProtocolRecord['status'];
+
+/** Source-attribution badge accent, mirroring ObjectiveCard.module.css `.sourceTag`:
+ *  universal = blue (info), primary = green, secondary = amber. All three have an
+ *  rgb triplet for CA(), so the translucent-fill treatment is available. */
+const SOURCE_META: Record<SourceTagKind, string> = {
+  universal: C.blue,
+  primary: C.green,
+  secondary: C.amber,
+};
 
 /** Lifecycle label + accent for a template, from its protocolStore record (if any). */
 export function statusMeta(status: RecordStatus | undefined): {
@@ -86,6 +96,8 @@ export default function ProtocolLibraryCard({
   const meta = statusMeta(status);
   const severity = resolveSeverityTier(template);
   const severityMeta = SEVERITY_META[severity];
+  const sourceTag = getProtocolSourceTag(template);
+  const sourceColor = SOURCE_META[sourceTag.kind];
   return (
     <div
       data-testid="protocol-template-card"
@@ -168,6 +180,33 @@ export default function ProtocolLibraryCard({
               }}
             >
               {severityMeta.label}
+            </span>
+            <span
+              data-testid="protocol-source-badge"
+              data-source={sourceTag.kind}
+              style={{
+                flexShrink: 0,
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: sourceColor,
+                background: CA(
+                  sourceTag.kind === 'universal'
+                    ? 'blue'
+                    : sourceTag.kind === 'primary'
+                      ? 'green'
+                      : 'amber',
+                  0.14,
+                ),
+                border: `1px solid ${sourceColor}`,
+                borderRadius: 10,
+                padding: '1px 8px',
+                fontFamily: F.sans,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {sourceTag.label}
             </span>
           </div>
         </div>

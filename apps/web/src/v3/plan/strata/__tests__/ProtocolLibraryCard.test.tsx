@@ -176,3 +176,36 @@ describe('ProtocolLibraryCard emphasis + collapsed', () => {
     expect(screen.queryByText('IF')).toBeNull();
   });
 });
+
+describe('ProtocolLibraryCard source attribution', () => {
+  // A universal protocol (no `source` stamped, or source==='universal') from the
+  // resolved homestead set.
+  const UNIVERSAL = resolveProjectProtocols({ primaryTypeId: 'homestead' })
+    .protocols.find((t) => (t.source ?? 'universal') === 'universal')!;
+
+  // A secondary protocol the resolver attributed to the silvopasture layer when
+  // silvopasture is added as a secondary type to a homestead project.
+  const SECONDARY = resolveProjectProtocols({
+    primaryTypeId: 'homestead',
+    secondaryTypeIds: ['silvopasture'],
+  }).protocols.find(
+    (t) => t.source === 'secondary' && t.sourceTypeId === 'silvopasture',
+  );
+
+  it('renders a "Universal" source badge for a universal protocol', () => {
+    render(<ProtocolLibraryCard template={UNIVERSAL} status={undefined} outputs={{}} />);
+    const badge = screen.getByTestId('protocol-source-badge');
+    expect(badge.getAttribute('data-source')).toBe('universal');
+    expect(badge.textContent).toBe('Universal');
+  });
+
+  it('renders a "Secondary - <type>" source badge for a secondary protocol', () => {
+    // Guard: the homestead+silvopasture pairing must yield at least one secondary
+    // protocol, else this assertion is vacuous. Fail loudly if the catalogue changes.
+    expect(SECONDARY).toBeTruthy();
+    render(<ProtocolLibraryCard template={SECONDARY!} status={undefined} outputs={{}} />);
+    const badge = screen.getByTestId('protocol-source-badge');
+    expect(badge.getAttribute('data-source')).toBe('secondary');
+    expect(badge.textContent).toBe('Secondary - Silvopasture');
+  });
+});

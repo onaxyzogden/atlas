@@ -28,7 +28,29 @@ import { type RecordStatus } from './ProtocolLibraryCard.js';
 /** One tier-grouped bucket of templates, in catalogue (first-seen) order. */
 export interface ProtocolTierGroup {
   tier: string;
+  /**
+   * The `PlanStratumId` this group corresponds to (e.g. `s6-integration-design`),
+   * or `undefined` for the defensive "Standing protocols" fallback bucket. Typed
+   * off the template's own field so no separate `PlanStratumId` import is needed.
+   * Lets the Plan surface filter to the currently-open stratum; the Act-rail
+   * `ProtocolLayerPanel` simply ignores it.
+   */
+  stratumId: StandardProtocolTemplate['stratumId'];
   items: StandardProtocolTemplate[];
+}
+
+/**
+ * Pure helper: narrow a list of tier groups to just the one matching the
+ * currently-open stratum. Returns all groups when `activeStratumId` is null
+ * (e.g. the Act-rail panel, which has no single open stratum). Unit-testable
+ * without rendering.
+ */
+export function filterProtocolGroups(
+  groups: readonly ProtocolTierGroup[],
+  activeStratumId: string | null,
+): ProtocolTierGroup[] {
+  if (!activeStratumId) return [...groups];
+  return groups.filter((g) => g.stratumId === activeStratumId);
 }
 
 export interface ProtocolLibrary {
@@ -110,19 +132,28 @@ export function useProtocolLibrary(
     );
     const FALLBACK_TIER = 'Standing protocols';
     const order: string[] = [];
-    const byTier = new Map<string, StandardProtocolTemplate[]>();
+    const byTier = new Map<
+      string,
+      { stratumId: StandardProtocolTemplate['stratumId']; items: StandardProtocolTemplate[] }
+    >();
     for (const t of templates) {
       const tier =
         (t.stratumId && STRATUM_LABEL.get(t.stratumId)) ?? FALLBACK_TIER;
       const bucket = byTier.get(tier);
       if (bucket) {
-        bucket.push(t);
+        bucket.items.push(t);
       } else {
-        byTier.set(tier, [t]);
+        // The bucket's stratumId is taken from its first template; all templates
+        // sharing a PLAN_STRATA label share the same stratumId by construction
+        // (the fallback bucket carries `undefined`).
+        byTier.set(tier, { stratumId: t.stratumId, items: [t] });
         order.push(tier);
       }
     }
-    return order.map((tier) => ({ tier, items: byTier.get(tier)! }));
+    return order.map((tier) => {
+      const bucket = byTier.get(tier)!;
+      return { tier, stratumId: bucket.stratumId, items: bucket.items };
+    });
   }, [templates]);
 
   const activeCount = useMemo(

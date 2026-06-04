@@ -9,7 +9,7 @@
 // Pure + presentational — no React, no store. Styling lives in the consuming
 // component's .module.css via the returned `kind` (data attribute).
 
-import type { PlanStratumObjective } from '@ogden/shared';
+import type { PlanStratumObjective, StandardProtocolTemplate } from '@ogden/shared';
 import { findProjectType } from '@ogden/shared';
 
 export type SourceTagKind = 'universal' | 'primary' | 'secondary';
@@ -33,6 +33,31 @@ export function getSourceTag(objective: PlanStratumObjective): SourceTag {
         ? findProjectType(objective.sourceTypeId)?.label
         : undefined) ??
       objective.sourceTypeId ??
+      'Secondary type';
+    return { kind, label: `Secondary - ${typeLabel}` };
+  }
+
+  return { kind, label: kind === 'primary' ? 'Primary' : 'Universal' };
+}
+
+/**
+ * Sibling of {@link getSourceTag} for protocol templates. Protocols carry the
+ * same `source`/`sourceTypeId` provenance the resolver stamps when it merges
+ * universal + per-type catalogues, so the attribution mirrors objectives:
+ * unset `source` reads as universal, secondary protocols are labelled with the
+ * contributing type name (e.g. "Secondary - Silvopasture").
+ */
+export function getProtocolSourceTag(
+  template: StandardProtocolTemplate,
+): SourceTag {
+  const kind: SourceTagKind = template.source ?? 'universal';
+
+  if (kind === 'secondary') {
+    const typeLabel =
+      (template.sourceTypeId
+        ? findProjectType(template.sourceTypeId)?.label
+        : undefined) ??
+      template.sourceTypeId ??
       'Secondary type';
     return { kind, label: `Secondary - ${typeLabel}` };
   }

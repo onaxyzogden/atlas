@@ -8,6 +8,8 @@
 // and screen-reader-addressable. Selected rows take the gold accent that the
 // ObjectiveCard active state uses (C.gold border + translucent gold wash).
 
+import { useState } from 'react';
+import { type DesignTension } from '@ogden/shared';
 import { type ProtocolTierGroup } from './useProtocolLibrary.js';
 import {
   type RecordStatus,
@@ -15,6 +17,7 @@ import {
 } from './ProtocolLibraryCard.js';
 import { C, F, CA } from '../spine/tokens.js';
 import { TypeBadge } from '../spine/protocolTypeStyle.js';
+import DesignTensionBanner from './DesignTensionBanner.js';
 
 interface Props {
   /** Tier-grouped templates, in catalogue order (from useProtocolLibrary). */
@@ -25,6 +28,15 @@ interface Props {
   selectedIds: readonly string[];
   /** Toggle a template into / out of the selection. */
   onToggle: (templateId: string) => void;
+  /**
+   * Secondary-type design conflicts for this project (from the resolver's
+   * `activeTensions`). When present, a read-only DesignTensionBanner surfaces
+   * them above the list — "surface conflicts," not navigation, so no
+   * onSelectTension/tensionStrataHints are wired here.
+   */
+  tensions?: readonly DesignTension[];
+  /** Tension ids reconciled at the currently-open stratum (ring-highlighted). */
+  highlightTensionIds?: readonly string[];
 }
 
 export default function ProtocolColumn({
@@ -32,9 +44,16 @@ export default function ProtocolColumn({
   statusByTemplate,
   selectedIds,
   onToggle,
+  tensions,
+  highlightTensionIds,
 }: Props) {
   const templateCount = groups.reduce((n, g) => n + g.items.length, 0);
   const selected = new Set(selectedIds);
+  const tensionList = tensions ?? [];
+  // Read-only banner: local collapse state, default expanded so conflicts are
+  // visible on entry. (No per-project persistence — this surface only displays
+  // conflicts; reconciliation happens in Design mode, which owns the store pref.)
+  const [tensionExpanded, setTensionExpanded] = useState(true);
 
   return (
     <section
@@ -52,6 +71,18 @@ export default function ProtocolColumn({
         padding: '14px 12px',
       }}
     >
+      {/* Secondary-type design conflicts (read-only) — surfaced above the list
+          so the steward sees them in context. Reconciliation is done in Design
+          mode; here the banner is informational. */}
+      {tensionList.length > 0 && (
+        <DesignTensionBanner
+          tensions={tensionList}
+          expanded={tensionExpanded}
+          highlightTensionIds={highlightTensionIds}
+          onToggle={() => setTensionExpanded((v) => !v)}
+        />
+      )}
+
       {/* Eyebrow + count */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span
