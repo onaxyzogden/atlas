@@ -51,7 +51,9 @@ import SecondaryReopenModal from './SecondaryReopenModal.js';
 import SecondaryRemoveBlockedModal from './SecondaryRemoveBlockedModal.js';
 import ObserveGapBanner from './ObserveGapBanner.js';
 import CoOccurrenceVerdictBanner from './CoOccurrenceVerdictBanner.js';
+import ChronicVerdictBanner from './ChronicVerdictBanner.js';
 import { useCoOccurrenceClusters } from '../../../store/reviewFlagStore.js';
+import { useChronicVerdicts } from '../../../store/chronicVerdicts.js';
 import type { SecondaryAddPreview } from './useSecondaryAddPreview.js';
 import type { BlockingObjective } from './useSecondaryRemovePreview.js';
 import {
@@ -322,6 +324,11 @@ export default function PlanStratumShell() {
   // currently-open cluster.
   const coOccurrenceClusters = useCoOccurrenceClusters(projectId || null);
   const [coOccurrenceExpanded, setCoOccurrenceExpanded] = useState(false);
+  // Slice #3 (chronic): heavier/structural tier mounted ABOVE the single-cycle
+  // co-occurrence banner. Same projectId/no-currentBucket contract as the
+  // co-occurrence hook above (cross-stratum shell has no single cycle to supply).
+  const chronicVerdicts = useChronicVerdicts(projectId || null);
+  const [chronicExpanded, setChronicExpanded] = useState(false);
   const handleCoOccurrenceSelectObjective = (objectiveId: string) => {
     const obj = findPlanStratumObjectiveIn(objectives, objectiveId);
     if (obj) navigateToObjective(obj.id, obj.stratumId);
@@ -710,6 +717,18 @@ export default function PlanStratumShell() {
             <ModeToggle mode={planMode} onChange={handlePlanModeChange} />
           </div>
         </div>
+
+        {/* Chronic structural verdict (heavier tier -- recurs across cycles) */}
+        {chronicVerdicts.length > 0 && (
+          <div style={{ padding: '8px 12px 0' }}>
+            <ChronicVerdictBanner
+              verdicts={chronicVerdicts}
+              expanded={chronicExpanded}
+              onToggle={() => setChronicExpanded((v) => !v)}
+              onSelectObjective={handleCoOccurrenceSelectObjective}
+            />
+          </div>
+        )}
 
         {/* Cross-protocol co-occurrence verdict (shell-level structural signal) */}
         {coOccurrenceClusters.length > 0 && (

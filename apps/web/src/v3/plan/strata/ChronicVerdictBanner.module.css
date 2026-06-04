@@ -1,0 +1,146 @@
+/*
+ * ChronicVerdictBanner -- collapsible CHRONIC structural-verdict list at the
+ * top of the Plan objective column. Heavier/structural tier sibling of
+ * CoOccurrenceVerdictBanner: same amber/gold escalation vocabulary, weighted a
+ * touch heavier (stronger border + a static gold ring on the surface) to convey
+ * "redesign, not retune". Existential-bearing verdicts get an even stronger
+ * static amber ring -- no animation, so it is inherently safe under
+ * prefers-reduced-motion.
+ */
+
+.banner {
+  margin: 0 0 4px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid color-mix(in srgb, #e8a958 55%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 90%, #ffffff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #e8a958 18%, transparent);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: var(--color-text, #f2ede3);
+  transition: background 120ms ease;
+}
+
+.header:hover {
+  background: color-mix(in srgb, #e8a958 12%, transparent);
+}
+
+.header:focus-visible {
+  outline: 2px solid #e8a958;
+  outline-offset: -2px;
+}
+
+.iconWrap {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full, 999px);
+  background: color-mix(in srgb, #e8a958 32%, transparent);
+  color: #e8a958;
+}
+
+.headerText {
+  flex: 1 1 auto;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.7));
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid color-mix(in srgb, #e8a958 30%, transparent);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 78%, #ffffff);
+}
+
+.row[data-existential='true'] {
+  border-color: color-mix(in srgb, #e8a958 75%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, #e8a958 35%, transparent);
+}
+
+.themeHeading {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text, #f2ede3);
+}
+
+.rowBody {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
+}
+
+.recurrence {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #e8a958;
+}
+
+.linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.objectiveLink {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid color-mix(in srgb, #e8a958 40%, transparent);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, #e8a958 20%, transparent);
+  color: #e8a958;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.objectiveLink:hover {
+  background: color-mix(in srgb, #e8a958 30%, transparent);
+}
+
+.objectiveLink:focus-visible {
+  outline: 2px solid #e8a958;
+  outline-offset: 2px;
+}
