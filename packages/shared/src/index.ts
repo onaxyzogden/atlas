@@ -206,6 +206,7 @@ export {
 
 // OLOS Observe Dashboard (Phase 4)
 export * from './schemas/observe/dataPoint.schema.js';
+export * from './schemas/observe/lensMeasurement.schema.js';
 export * from './schemas/observe/supersession.schema.js';
 export * from './schemas/observe/cycle.schema.js';
 export * from './schemas/observe/presentationShare.schema.js';

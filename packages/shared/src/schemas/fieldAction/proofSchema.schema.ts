@@ -16,6 +16,7 @@
 
 import { z } from 'zod';
 import { FieldActionProofType } from './proofItem.schema.js';
+import { MeasurementBindingSchema } from '../observe/lensMeasurement.schema.js';
 
 /**
  * One required (or optional) evidence slot inside a ProofSchema.
@@ -36,6 +37,15 @@ export const ProofSchemaSlotSchema = z.object({
   kind: z.string().optional(),
   /** Required unit for measurement slots (e.g. 'm', 'cm', 'pH', 'head'). */
   measurementUnit: z.string().optional(),
+  /**
+   * Design-time declaration that captures filling this slot feed a specific
+   * Observe-lens specialised visualization. Lives on the SLOT (static) rather
+   * than the proof item (per-capture) because slotId is not globally unique and
+   * the projected ObserveDataPoint carries no proofSchemaId -- the read-side
+   * builder resolves slotId -> slot -> binding to route the capture
+   * deterministically (see schemas/observe/lensMeasurement.schema.ts).
+   */
+  measurementBinding: MeasurementBindingSchema.optional(),
 });
 export type ProofSchemaSlot = z.infer<typeof ProofSchemaSlotSchema>;
 
