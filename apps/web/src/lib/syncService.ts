@@ -1747,6 +1747,151 @@ export async function hydrateActRecords(
 }
 
 /**
+ * Apply ONE incoming server record into its live store, owning the per-record
+ * rev bookkeeping so both callers (the live WS `record_upserted` handler and
+ * the reconnect delta-pull) stay thin. Server-wins by rev: a message whose
+ * `rev` is not strictly newer than the rev we already hold is dropped — this is
+ * what makes the author's own broadcast echo and any out-of-order delivery a
+ * no-op. Honours the same two guards as `hydrateActRecords`:
+ *  - version-skew: a record saved by a newer client is skipped, never downcast;
+ *  - §6 init-clobber: a record with a pending un-synced local push is never
+ *    overwritten — its own queued push reconciles (or surfaces a 409).
+ * Applies inside the `isSyncing` guard (save/restore, so it nests safely inside
+ * a delta-pull's own window) so `subscribeTypedRecords` does not re-enqueue an
+ * echo. Returns true iff the record was applied. `descriptors` is injectable
+ * for tests; production passes `SYNCED_STORES`.
+ */
+export async function applyIncomingRecord(
+  storeKey: string,
+  projectLocalId: string,
+  recordId: string,
+  rev: number,
+  schemaVersion: number,
+  payload: unknown,
+  descriptors: SyncedStoreDescriptor[] = SYNCED_STORES,
+): Promise<boolean> {
+  const d = descriptors.find(
+    (x) => x.storeKey === storeKey && x.classification === 'typed-record',
+  );
+  if (!d || !d.store || !d.applyRecordForProject) return false;
+
+  // Stale / echo: drop anything not strictly newer than what we already hold.
+  if (rev <= getRecordBaseRev(storeKey, projectLocalId, recordId)) return false;
+
+  // Version-skew guard: never downcast a record a newer client wrote.
+  const localVersion = d.schemaVersion ?? 1;
+  if (schemaVersion > localVersion) {
+    if (!blobVersionSkewWarned) {
+      blobVersionSkewWarned = true;
+      toast.warning(
+        'Some synced data was saved by a newer version of Atlas. ' +
+          'Update Atlas to restore it.',
+      );
+    }
+    console.warn(
+      `[SYNC] incoming record "${storeKey}/${recordId}" schemaVersion ` +
+        `${schemaVersion} > local ${localVersion}; dropped (version-skew guard)`,
+    );
+    return false;
+  }
+
+  // §6 init-clobber guard: a pending un-synced local edit must not be
+  // overwritten by the server copy; its queued push reconciles (or 409s).
+  const pending = await pendingLocalIds('typed-record');
+  if (pending.has(recordLocalId(storeKey, projectLocalId, recordId))) {
+    console.warn(
+      `[SYNC] incoming record "${storeKey}/${recordId}" has a pending ` +
+        `un-synced local edit; not applied (its queued push will reconcile)`,
+    );
+    return false;
+  }
+
+  const handle = d.store as unknown as {
+    getState: () => unknown;
+    setState: (p: unknown) => void;
+  };
+  // Synchronous guard window — no `await` between save and restore.
+  const wasSyncing = isSyncing;
+  isSyncing = true;
+  try {
+    d.applyRecordForProject(handle, projectLocalId, recordId, payload);
+    recordBaseRev.set(recordLocalId(storeKey, projectLocalId, recordId), rev);
+  } catch (err) {
+    console.warn(
+      `[SYNC] incoming record "${storeKey}/${recordId}" apply failed:`,
+      err,
+    );
+    return false;
+  } finally {
+    isSyncing = wasSyncing;
+  }
+  return true;
+}
+
+/**
+ * Reconnect delta-pull (Phase 2 Problem B): fetch every record changed on the
+ * server since the device's `lastSyncedAt` watermark and apply it locally. Live
+ * WS broadcasts only reach currently-connected peers, so a device offline for
+ * hours would never learn what teammates changed without this catch-up pull.
+ * Apply-only (server-wins by rev via `applyIncomingRecord`); a 409 can only
+ * arise on THIS device's own queued PUSH (handled in `executeTypedRecordOp`),
+ * never here. Pulls for one project (the active/owned one). On success advances
+ * the watermark to the newest server `updatedAt` seen — server-clock, so the
+ * `changed_at > since` contract is immune to client/server clock skew; when no
+ * rows changed the watermark is left untouched. Returns the count applied.
+ */
+export async function pullActRecordDelta(project: LocalProject): Promise<number> {
+  if (!project.serverId) return 0;
+  const conn = useConnectivityStore.getState();
+  const since = conn.lastSyncedAt ?? undefined;
+  let rows: SyncedRecord[];
+  try {
+    const res = await api.actRecords.changedSince(project.serverId, since);
+    rows = (res.data ?? []) as SyncedRecord[];
+  } catch (err) {
+    console.warn(`[SYNC] delta-pull failed for "${project.name}":`, err);
+    return 0;
+  }
+  let applied = 0;
+  let newestUpdatedAt = since ?? '';
+  for (const row of rows) {
+    const ok = await applyIncomingRecord(
+      row.storeKey,
+      project.id,
+      row.recordId,
+      row.rev,
+      row.schemaVersion,
+      row.payload,
+    );
+    if (ok) applied += 1;
+    if (row.updatedAt > newestUpdatedAt) newestUpdatedAt = row.updatedAt;
+  }
+  // Advance the watermark only when rows came back, using the server clock.
+  if (rows.length > 0 && newestUpdatedAt) conn.setLastSyncedAt(newestUpdatedAt);
+  if (applied > 0) {
+    console.info(
+      `[SYNC] delta-pull applied ${applied}/${rows.length} record(s) for "${project.name}"`,
+    );
+  }
+  return applied;
+}
+
+/**
+ * Thin wrapper for the WS reconnect path: resolve a local project id to its
+ * project and run the delta-pull, gated on record sync being enabled. Keeps the
+ * FLAGS gate and project lookup in syncService so `wsService` stays thin.
+ */
+export async function pullActRecordDeltaForProject(
+  projectLocalId: string,
+): Promise<void> {
+  if (!FLAGS.SYNC_STATE_BLOBS) return;
+  const project = useProjectStore
+    .getState()
+    .projects.find((p) => p.id === projectLocalId);
+  if (project?.serverId) await pullActRecordDelta(project);
+}
+
+/**
  * Enqueue one `versioned-blob` store's active-project slice. Resolves the
  * active project at enqueue time; skips silently when there is no active
  * project or it has no serverId yet (a later store edit re-enqueues once the
@@ -2213,6 +2358,22 @@ export async function executeQueuedOp(op: QueuedOperation): Promise<void> {
 async function onOnline() {
   console.info('[SYNC] Network restored, flushing queue...');
   const conn = useConnectivityStore.getState();
+
+  // Catch-up delta-pull FIRST, using the existing watermark — an all-day-offline
+  // device must learn what teammates changed even when it has nothing of its own
+  // to push (so this runs BEFORE the no-pending early-return below). Gated on
+  // record sync being enabled, matching the typed-record subscriptions/hydrate.
+  if (FLAGS.SYNC_STATE_BLOBS) {
+    const active = getActiveProject();
+    if (active?.serverId) {
+      try {
+        await pullActRecordDelta(active);
+      } catch (err) {
+        console.warn('[SYNC] delta-pull on reconnect failed:', err);
+      }
+    }
+  }
+
   const count = await syncQueue.getPendingCount();
   if (count === 0) return;
 

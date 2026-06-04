@@ -6,8 +6,12 @@
  * heartbeat keep-alive, and event dispatch to Zustand stores.
  */
 
-import type { WsEvent, DesignFeatureSummary } from '@ogden/shared';
-import { setSyncGuard } from './syncService.js';
+import type { WsEvent, DesignFeatureSummary, SyncedRecordEventPayload } from '@ogden/shared';
+import {
+  setSyncGuard,
+  applyIncomingRecord,
+  pullActRecordDeltaForProject,
+} from './syncService.js';
 import { designFeatureToZone, designFeatureToStructure } from './featureMapping.js';
 import { useZoneStore } from '../store/zoneStore.js';
 import {
@@ -36,6 +40,10 @@ let reconnectDelay = RECONNECT_BASE_MS;
 let currentProjectServerId: string | null = null;
 let currentToken: string | null = null;
 let intentionalClose = false;
+// True once this project's socket has opened at least once — distinguishes the
+// first connect (initialSync already hydrated) from a re-open after a drop,
+// which must reconcile what changed while the socket was down.
+let hasConnectedThisSession = false;
 
 // Typing throttle
 let lastTypingSent = 0;
@@ -78,6 +86,12 @@ function dispatchEvent(event: WsEvent) {
       break;
     case 'comment_deleted':
       handleCommentDeleted(event);
+      break;
+    case 'record_upserted':
+      handleRecordUpserted(event);
+      break;
+    case 'record_deleted':
+      handleRecordDeleted(event);
       break;
     case 'layer_complete':
       handleLayerComplete(event);
@@ -240,6 +254,45 @@ async function handleCommentDeleted(event: WsEvent) {
   }
 }
 
+/**
+ * Live apply of a teammate's typed-record Act edit (`record_upserted`). The
+ * payload carries the SERVER project id; resolve it to the local project, then
+ * hand off to `applyIncomingRecord`, which owns every guard (rev/stale-drop,
+ * version-skew, pending-local init-clobber) and the `isSyncing` window so the
+ * write-through subscription never re-enqueues an echo. The author is excluded
+ * server-side, so this only ever runs on peers. Fire-and-forget — the dispatch
+ * switch is synchronous; failures are swallowed inside applyIncomingRecord.
+ */
+function handleRecordUpserted(event: WsEvent) {
+  const payload = event.payload as unknown as SyncedRecordEventPayload;
+  if (!payload?.storeKey || !payload.recordId) return;
+  const projectLocalId = getProjectLocalId(payload.projectId);
+  if (!projectLocalId) return;
+  void applyIncomingRecord(
+    payload.storeKey,
+    projectLocalId,
+    payload.recordId,
+    payload.rev,
+    payload.schemaVersion,
+    payload.payload,
+  );
+}
+
+/**
+ * `record_deleted` is reserved on the wire for forward-compatibility, but the
+ * typed-record transport is upsert-only this phase (synced_records has no
+ * per-record delete and the registry has no remove hook), so no producer emits
+ * it yet. Log and skip rather than guess at a removal — a record deleted on
+ * another device is reconciled in a later phase, never silently mis-applied.
+ */
+function handleRecordDeleted(event: WsEvent) {
+  const payload = event.payload as unknown as SyncedRecordEventPayload;
+  console.debug(
+    `[WS] record_deleted received for "${payload?.storeKey}/${payload?.recordId}" ` +
+      `— per-record delete is not applied this phase (upsert-only wire)`,
+  );
+}
+
 function handleLayerComplete(event: WsEvent) {
   // Mark layers stale — the dashboard/map will re-fetch on next access
   // For now, log it. The siteDataStore can be triggered to re-fetch.
@@ -336,6 +389,13 @@ async function reconcileOnReconnect() {
   } finally {
     setSyncGuard(false);
   }
+
+  // Catch up on typed-record Act edits teammates made while the socket was
+  // down — live broadcasts only reach connected peers, so the reconnect must
+  // delta-pull. Own `isSyncing` window inside applyIncomingRecord; gated on
+  // record sync being enabled. Outside the guard above so its rev/clobber
+  // guards see the real pending-queue state.
+  await pullActRecordDeltaForProject(projectLocalId);
 }
 
 // ─── Core Connection ─────────────────────────────────────────────────────────
@@ -353,6 +413,15 @@ function connectWs(projectServerId: string, token: string) {
   ws.onopen = () => {
     console.info(`[WS] Connected to project ${projectServerId}`);
     reconnectDelay = RECONNECT_BASE_MS; // Reset backoff
+
+    // On a RE-open (the socket dropped and came back), reconcile what changed
+    // while we were disconnected — features, comments, and the typed-record
+    // Act delta-pull. Skipped on the first open of the session: initialSync
+    // already hydrated, and live events cover everything from here on.
+    if (hasConnectedThisSession) {
+      void reconcileOnReconnect();
+    }
+    hasConnectedThisSession = true;
 
     // Start heartbeat
     stopHeartbeat();
@@ -412,6 +481,7 @@ export const wsService = {
     currentProjectServerId = projectServerId;
     currentToken = token;
     reconnectDelay = RECONNECT_BASE_MS;
+    hasConnectedThisSession = false;
 
     usePresenceStore.getState().clear();
     connectWs(projectServerId, token);
