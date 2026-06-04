@@ -1,6 +1,6 @@
 # Design: Observation Log (flag-closure ledger -- substrate for chronic co-occurrence detection)
 
-**Status:** review
+**Status:** approved
 **Date:** 2026-06-03
 **Branch:** `feat/atlas-permaculture` (not pushed)
 **Parent / north star:** `stages/design-protocol-cooccurrence-detection-review.md` (T1-T6
@@ -185,3 +185,39 @@ exactly one record (resolve+dismiss only; dormancy/re-open excluded); a Zustand-
 (foreign errors excepted); all new specs green (bounded forks); verified via
 `preview_eval` (disclosed); ProtocolConfirmationFlow + spine untouched; no deletions;
 ASCII-only; not pushed unless asked.
+
+## Implementation outcome (as-built, 2026-06-03 -> approved)
+
+Shipped exactly as specced, with one mechanical naming deviation made for a hard
+constraint:
+
+- **Naming: `ObservationRecord` -> `ObservationLogRecord`.** The barrel
+  (`packages/shared/src/index.ts`) already exports an unrelated
+  `schemas/olos/observationRecord.schema.ts` whose `ObservationRecord` is the Observe
+  objective's output type. Reusing that name produced a `TS2308` duplicate-export
+  collision in the barrel. Resolved by namespacing this slice's concept:
+  `ObservationLogRecord` / `ObservationLogRecordSchema` / `buildObservationLogRecord` /
+  file `schemas/protocol/observationLogRecord.schema.ts` (kept `ObservationCloseKind`).
+  No semantic change -- same fields, same builder contract.
+- **Same-instant stamp made explicit.** `resolveFlag`/`dismissFlag` hoist a single
+  `const now = new Date().toISOString()` shared by the ledger row's `closedAt` and the
+  flag's `resolvedAt`/`dismissedAt`, honoring the builder's documented "same ISO
+  instant" contract (a code-quality review caught an earlier double-`Date.now()`).
+- **`acknowledgeFlag` emits nothing** (negative test added); dormancy / re-open paths
+  untouched, as specced.
+- **Verification:** shared tsc + web tsc exit 0; specs green (bounded forks) --
+  `observationLogRecord` 4/4, `observationLogStore` 5/5, `reviewFlagStore` 41/41 (incl.
+  6 emission tests). Preview gate run in the live runtime (port 5200): seeded an open
+  MTC flag, called `resolveFlag` through the real store modules, asserted exactly one
+  record with `closeKind:'resolved'` + `bucketKey:'spring:1'` and `closedAt ===
+  flag.resolvedAt`, then restored all state + both localStorage keys.
+  `preview_screenshot` is unavailable on this Windows setup -- verified via
+  `preview_eval` runtime exercise, disclosed.
+- **Recorded foreign exception:** the `syncManifest` coverage guard
+  (`apps/web/src/lib/__tests__/syncManifest.test.ts`) is red on four pre-existing
+  UNregistered stores (`ogden-act-evidence`, `ogden-plan-tension-banner`,
+  `ogden-protocols`, `ogden-review-flags`) -- confirmed already failing at commit
+  `706f44b1` (before this slice). This slice's `ogden-observation-log` IS correctly
+  classified; the guard failure is not a regression from this work.
+- **Commits (feat/atlas-permaculture, not pushed):** `5bd16828` (shared schema +
+  builder), `66b881f1` (store + sync registration), `ae4286d9` (emission wiring).
