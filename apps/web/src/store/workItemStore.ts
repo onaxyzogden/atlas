@@ -17,6 +17,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { WorkItem, MaterialLine, CostRange } from '@ogden/shared';
 import { runWorkItemMigration } from './workItemStore.migration';
 
@@ -668,6 +669,13 @@ export const useWorkItemStore = create<WorkItemState>()(
     }),
     {
       name: 'ogden-work-items',
+      // Durable IndexedDB backend (Phase 1). Work items are the highest-volume
+      // Act record on a long offline day — exactly the data that would hit the
+      // ~5–10 MB localStorage origin cap. Hydration is now async (see
+      // indexedDBStorage.ts); the one-time legacy supersede below MUST run
+      // post-hydration, hence the onHydrated hook rather than a synchronous
+      // getState() call.
+      storage: idbPersistStorage,
       version: 1,
       partialize: (state) => ({
         items: state.items,
@@ -677,7 +685,12 @@ export const useWorkItemStore = create<WorkItemState>()(
   ),
 );
 
-// Hydrate from localStorage (Zustand v5), then run the one-time idempotent
-// legacy supersede so the spine is authoritative on first read.
-rehydrateWithLogging(useWorkItemStore);
-useWorkItemStore.getState().ensureMigrated();
+// Hydrate (async under IndexedDB), then run the one-time idempotent legacy
+// supersede so the spine is authoritative on first read. ensureMigrated must
+// observe hydrated state, so it runs in onHydrated (fires after hydration
+// settles for both sync and async backends) — NOT a synchronous getState(),
+// which under async IDB would migrate empty pre-hydration state. Idempotent:
+// onRehydrateStorage can fire on more than one pass.
+rehydrateWithLogging(useWorkItemStore, {
+  onHydrated: () => useWorkItemStore.getState().ensureMigrated(),
+});
