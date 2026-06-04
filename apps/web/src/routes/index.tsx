@@ -658,6 +658,17 @@ const v3ActTierShellObjectiveRoute = createRoute({
     taskId: typeof search.taskId === 'string' ? search.taskId : undefined,
   }),
 });
+// Stratum-bearing tier shell — URL-param parity with Plan's
+// plan/stratum/$stratumId. Lets a stage-switch into Act preserve the stratum the
+// steward was viewing in Plan (and makes the Act stratum deep-linkable). The
+// `act/tier-shell/stratum/...` static prefix resolves BEFORE `act/$module`;
+// objective deep-links keep riding act/tier-shell/$objectiveId (an objective
+// implies its own stratum). Mounts ActLayout, which branches into ActTierShell.
+const v3ActTierShellStratumRoute = createRoute({
+  getParentRoute: () => v3ProjectLayoutRoute,
+  path: 'act/tier-shell/stratum/$stratumId',
+  component: ActLayout,
+});
 // Act Command Centre — the aggregate "run the stage" surface the Act compass
 // center unlocks into. Static path resolves before the `act/$module` param.
 const v3ActCommandCentreRoute = createRoute({
@@ -982,6 +993,7 @@ const routeTree = rootRoute.addChildren([
       v3ActTierPrototypeRoute,
       v3ActTierShellRoute,
       v3ActTierShellObjectiveRoute,
+      v3ActTierShellStratumRoute,
       v3ActFieldActionRoute,
       v3ActFieldActionObjectiveRoute,
       v3ActRoute,

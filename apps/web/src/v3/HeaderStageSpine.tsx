@@ -29,6 +29,10 @@ import type { Stage } from './compass/compassTypes.js';
 const ROUTE_RE =
   /^\/v3\/project\/([^/]+)\/(observe|plan|act|report)(?:\/|$)/;
 
+// Capture the stratum id when the steward is on a Plan stratum route
+// (plan/stratum/$stratumId[/objective/...]) so switching to Act can preserve it.
+const PLAN_STRATUM_RE = /^\/v3\/project\/[^/]+\/plan\/stratum\/([^/]+)/;
+
 /** observe section → Observe active; report → none highlighted. */
 function sectionToStage(section: string): Stage | null {
   switch (section) {
@@ -99,6 +103,19 @@ export default function HeaderStageSpine() {
         navigate({
           to: '/v3/project/$projectId/act/command-centre',
           params: { projectId },
+        });
+        return;
+      }
+      // Preserve the stratum the steward was viewing in Plan: forward its id to
+      // the stratum-bearing Act route. Coming from anywhere else (Observe, a
+      // Plan command-centre/module route, a cold link) → bare /act, which lands
+      // ActTierShell on its S1 fallback. ActTierShell validates the id, so a
+      // stale segment degrades to S1 rather than erroring.
+      const planStratumId = PLAN_STRATUM_RE.exec(pathname)?.[1];
+      if (planStratumId) {
+        navigate({
+          to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+          params: { projectId, stratumId: planStratumId },
         });
       } else {
         navigate({

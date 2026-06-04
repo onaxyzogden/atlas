@@ -100,6 +100,7 @@ import { useActEvidenceStore } from '../../../store/actEvidenceStore.js';
 import { useStageSearchStore } from '../../../store/stageSearchStore.js';
 import { resolveActSearchMatches } from '../../search/useStageSearchResults.js';
 import type { ActToolMatch } from '../../search/useStageSearchResults.js';
+import { resolveActStratumId } from './resolveActStratumId.js';
 import styles from './ActTierShell.module.css';
 
 const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
@@ -107,8 +108,11 @@ const FALLBACK_CENTROID: [number, number] = [-78.2, 44.5];
 // new object literal, which would trigger an infinite React re-render loop
 // under Zustand v5 (getSnapshot result must be referentially stable).
 const EMPTY_FORMS: Readonly<Record<string, string>> = Object.freeze({});
-const DEFAULT_STRATUM_ID = 's2-land-reading';
 const STRATUM_IDS = PLAN_STRATA.map((s) => s.id);
+// S1 is the canonical cold-entry fallback. PLAN_STRATA is non-empty, but
+// noUncheckedIndexedAccess types [0] as possibly-undefined — guard with the
+// known S1 id literal so the derived stratum id stays a plain string.
+const S1_STRATUM_ID = PLAN_STRATA[0]?.id ?? 's1-project-foundation';
 
 type RightMode = 'dashboard' | 'detail';
 
@@ -116,6 +120,7 @@ export default function ActTierShell() {
   const params = useParams({ strict: false }) as {
     projectId?: string;
     objectiveId?: string;
+    stratumId?: string;
   };
   const id = params.projectId ?? 'mtc';
   const objectiveId = params.objectiveId ?? null;
@@ -250,7 +255,22 @@ export default function ActTierShell() {
 
   // Left-rail view: design objectives (default) vs the standing-protocol library.
   const [railMode, setRailMode] = useState<RailMode>('objectives');
-  const [selectedStratumId, setSelectedStratumId] = useState(DEFAULT_STRATUM_ID);
+  // The URL is the single source of truth for the rendered stratum (parity with
+  // Plan's PlanStratumShell — see plan/stratum/$stratumId). Precedence: an
+  // explicit ?$stratumId param (validated against the real strata) → the
+  // selected objective's owning stratum → S1. No local state: switching stratum
+  // navigates, so the stratum survives a Plan→Act stage switch and is
+  // deep-linkable, instead of resetting to a hardcoded default on every mount.
+  const selectedStratumId = useMemo(
+    () =>
+      resolveActStratumId({
+        paramStratumId: params.stratumId,
+        validStratumIds: STRATUM_IDS,
+        objectiveStratumId: selectedObjective?.stratumId,
+        fallbackStratumId: S1_STRATUM_ID,
+      }),
+    [params.stratumId, selectedObjective],
+  );
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
   );
@@ -302,6 +322,19 @@ export default function ActTierShell() {
     [stratumObjectives, actions],
   );
 
+  // Navigate to a stratum's dashboard. The stratum now lives in the URL, so this
+  // both switches the rendered stratum AND clears any selected objective.
+  const goToStratum = useCallback(
+    (stratumId: string) => {
+      if (!params.projectId) return;
+      navigate({
+        to: '/v3/project/$projectId/act/tier-shell/stratum/$stratumId',
+        params: { projectId: params.projectId, stratumId },
+      });
+    },
+    [navigate, params.projectId],
+  );
+
   const goToObjective = useCallback(
     (nextObjectiveId: string | null) => {
       if (!params.projectId) return;
@@ -311,21 +344,19 @@ export default function ActTierShell() {
           params: { projectId: params.projectId, objectiveId: nextObjectiveId },
         });
       } else {
-        navigate({
-          to: '/v3/project/$projectId/act/tier-shell',
-          params: { projectId: params.projectId },
-        });
+        // Deselect → return to the CURRENT stratum's dashboard (not the bare
+        // tier-shell, which would re-derive S1 and silently lose the stratum).
+        goToStratum(selectedStratumId);
       }
     },
-    [navigate, params.projectId],
+    [navigate, params.projectId, goToStratum, selectedStratumId],
   );
 
   const handleSelectStratum = useCallback(
     (stratumId: string) => {
-      setSelectedStratumId(stratumId);
-      goToObjective(null);
+      goToStratum(stratumId);
     },
-    [goToObjective],
+    [goToStratum],
   );
 
   const handleSelectObjective = useCallback(
@@ -440,7 +471,9 @@ export default function ActTierShell() {
 
   const revealObjective = useCallback(
     (objective: PlanStratumObjective) => {
-      setSelectedStratumId(objective.stratumId);
+      // The rendered stratum now derives from the selected objective's
+      // stratumId (see selectedStratumId), so navigating to the objective is
+      // enough — no separate stratum state to set.
       setRightMode('detail');
       goToObjective(objective.id);
     },
