@@ -24,7 +24,7 @@ import {
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useFlowEndpointOptions } from '../../../../features/plan/useFlowEndpointOptions.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
-import { usePlanSnapTargets } from './usePlanSnapTargets.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -37,15 +37,14 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
-  parcelBoundary?: GeoJSON.Polygon;
+  getSnapTargets?: () => SnapTargets;
 }
 
 const KIND_OPTIONS: { value: MaterialKind; label: string }[] = (
   Object.keys(MATERIAL_KIND_CONFIG) as MaterialKind[]
 ).map((k) => ({ value: k, label: MATERIAL_KIND_CONFIG[k].label }));
 
-export default function FlowConnectorTool({ map, projectId, parcelBoundary }: Props) {
-  const getSnapTargets = usePlanSnapTargets(projectId, parcelBoundary);
+export default function FlowConnectorTool({ map, projectId, getSnapTargets }: Props) {
   const addFlow = useClosedLoopStore((s) => s.addMaterialFlow);
   const updateFlow = useClosedLoopStore((s) => s.updateMaterialFlow);
   const removeFlow = useClosedLoopStore((s) => s.removeMaterialFlow);

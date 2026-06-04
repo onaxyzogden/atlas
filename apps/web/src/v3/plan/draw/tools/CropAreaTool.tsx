@@ -27,7 +27,7 @@ import {
 } from '../../../../store/cropStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
-import { usePlanSnapTargets } from './usePlanSnapTargets.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
@@ -41,7 +41,7 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
-  parcelBoundary?: GeoJSON.Polygon;
+  getSnapTargets?: () => SnapTargets;
 }
 
 const TYPE_OPTIONS: { value: CropAreaType; label: string }[] = [
@@ -84,8 +84,7 @@ const IRRIGATION_OPTIONS = [
   { value: 'none',      label: 'None' },
 ];
 
-export default function CropAreaTool({ map, projectId, parcelBoundary }: Props) {
-  const getSnapTargets = usePlanSnapTargets(projectId, parcelBoundary);
+export default function CropAreaTool({ map, projectId, getSnapTargets }: Props) {
   const addCropArea = useCropStore((s) => s.addCropArea);
   const updateCropArea = useCropStore((s) => s.updateCropArea);
   const deleteCropArea = useCropStore((s) => s.deleteCropArea);

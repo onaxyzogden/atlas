@@ -29,7 +29,7 @@ import {
 } from '../../../../store/livestockStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
-import { usePlanSnapTargets } from './usePlanSnapTargets.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
@@ -43,7 +43,7 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
-  parcelBoundary?: GeoJSON.Polygon;
+  getSnapTargets?: () => SnapTargets;
 }
 
 const SPECIES_OPTIONS: { value: LivestockSpecies; label: string }[] = [
@@ -88,8 +88,7 @@ const SPECIES_COLOR: Record<LivestockSpecies, string> = {
   bees:        '#d4b94a',
 };
 
-export default function PaddockTool({ map, projectId, parcelBoundary }: Props) {
-  const getSnapTargets = usePlanSnapTargets(projectId, parcelBoundary);
+export default function PaddockTool({ map, projectId, getSnapTargets }: Props) {
   const addPaddock = useLivestockStore((s) => s.addPaddock);
   const updatePaddock = useLivestockStore((s) => s.updatePaddock);
   const deletePaddock = useLivestockStore((s) => s.deletePaddock);

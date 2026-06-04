@@ -15,7 +15,7 @@ import {
 } from '../../../../store/utilityRunStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
-import { usePlanSnapTargets } from './usePlanSnapTargets.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
 import { useEnterpriseFieldSpec } from '../useEnterpriseFieldSpec.js';
@@ -28,15 +28,14 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
-  parcelBoundary?: GeoJSON.Polygon;
+  getSnapTargets?: () => SnapTargets;
 }
 
 const KIND_OPTIONS: { value: UtilityRunKind; label: string }[] = (
   Object.keys(UTILITY_RUN_CONFIG) as UtilityRunKind[]
 ).map((k) => ({ value: k, label: UTILITY_RUN_CONFIG[k].label }));
 
-export default function UtilityRunTool({ map, projectId, parcelBoundary }: Props) {
-  const getSnapTargets = usePlanSnapTargets(projectId, parcelBoundary);
+export default function UtilityRunTool({ map, projectId, getSnapTargets }: Props) {
   const addRun = useUtilityRunStore((s) => s.addRun);
   const updateRun = useUtilityRunStore((s) => s.updateRun);
   const deleteRun = useUtilityRunStore((s) => s.deleteRun);

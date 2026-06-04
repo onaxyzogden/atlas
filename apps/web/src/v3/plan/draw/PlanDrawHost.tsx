@@ -135,7 +135,7 @@ export default function PlanDrawHost({
         <WaterCatchmentTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -147,7 +147,7 @@ export default function PlanDrawHost({
         <WaterSwaleTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -159,7 +159,7 @@ export default function PlanDrawHost({
         <ZonePolygonTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -171,7 +171,7 @@ export default function PlanDrawHost({
         <PathLineTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -183,7 +183,7 @@ export default function PlanDrawHost({
         <CropAreaTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -198,7 +198,7 @@ export default function PlanDrawHost({
         <FlowConnectorTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -207,7 +207,7 @@ export default function PlanDrawHost({
         <PaddockTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -216,7 +216,7 @@ export default function PlanDrawHost({
         <FenceLineTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -228,7 +228,7 @@ export default function PlanDrawHost({
         <UtilityRunTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;
@@ -243,7 +243,7 @@ export default function PlanDrawHost({
         <MonitoringTransectTool
           map={map}
           projectId={projectId}
-          parcelBoundary={parcelBoundary}
+          getSnapTargets={getSnapTargets}
         />
       );
       break;

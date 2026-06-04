@@ -14,7 +14,7 @@ import {
 } from '../../../../store/waterSystemsStore.js';
 import { newAnnotationId } from '../../../../store/site-annotations.js';
 import { useMapboxDrawTool } from '../../../observe/components/draw/useMapboxDrawTool.js';
-import { usePlanSnapTargets } from './usePlanSnapTargets.js';
+import type { SnapTargets } from '../../../lib/snapPoint.js';
 import DrawAreaReadout from '../../../observe/components/draw/DrawAreaReadout.js';
 import { useInlineFormStore } from '../inlineFormStore.js';
 import { usePhaseFieldSpec } from '../usePhaseFieldSpec.js';
@@ -28,15 +28,14 @@ import css from '../../../observe/components/draw/ObserveDrawHost.module.css';
 interface Props {
   map: MaplibreMap;
   projectId: string;
-  parcelBoundary?: GeoJSON.Polygon;
+  getSnapTargets?: () => SnapTargets;
 }
 
 const SURFACE_OPTIONS: { value: CatchmentSurface; label: string }[] = (
   Object.keys(SURFACE_LABEL) as CatchmentSurface[]
 ).map((k) => ({ value: k, label: SURFACE_LABEL[k] }));
 
-export default function WaterCatchmentTool({ map, projectId, parcelBoundary }: Props) {
-  const getSnapTargets = usePlanSnapTargets(projectId, parcelBoundary);
+export default function WaterCatchmentTool({ map, projectId, getSnapTargets }: Props) {
   const addWaterNode = useWaterSystemsStore((s) => s.addWaterNode);
   const updateWaterNode = useWaterSystemsStore((s) => s.updateWaterNode);
   const removeWaterNode = useWaterSystemsStore((s) => s.removeWaterNode);
