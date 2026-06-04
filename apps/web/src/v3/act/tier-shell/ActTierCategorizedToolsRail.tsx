@@ -53,6 +53,11 @@ function isToolArmed(
   if (arm.kind === 'flow') {
     return false;
   }
+  // kind === 'zone-action': imperative trim/clear that runs once on click with
+  // no persistent armed state -- never report active.
+  if (arm.kind === 'zone-action') {
+    return false;
+  }
   // kind === 'log': check the toolId the QuickLog arms on the map.
   // Hoisted to a const so the discriminant narrowing survives into the
   // `.find` closure below (TS drops narrowing of a parameter property inside
