@@ -1105,6 +1105,54 @@ objective (it remains only as a safety net the ratchet would also catch). R2
 (form-arm tools) stays deferred. Log:
 [[log/2026-06-03-olos-act-wellness-overrides]].
 
+## R2: per-item s1 intent capture forms (2026-06-03)
+
+Closes the R2 arm that the R1 entries above left "deferred". The per-type s1
+vision/intent objectives were the last objectives lacking an Act tool to
+**complete and record** their task: R1 had set them to an intentional `[]`
+(relying on the universal `s1-vision` form arms for project-level capture). R2
+gives each its OWN per-checklist-item capture forms.
+
+**Convention (per-checklist-item, full integration):** `catalogue id == formId
+== real checklist-item id` (e.g. `hms-s1-household-needs-c1`). The form pipeline
+is fully generic -- `ActTierShell.handleFormSave(formId, text)` persists via
+`saveVisionForm` AND calls `setItemComplete(projectId, objectiveId, formId)`;
+because the formId IS the checklist-item id, **saving a form ticks that checklist
+box and advances the objective progress bar**. `VisionFormModal` renders
+generically from each entry's `prompt`; no modal/store edits were needed. Adding
+a catalog `{kind:'form', formId, prompt}` entry + listing its id in the override
+map is sufficient.
+
+**Scope:** **222 form tools** across **36 s1 intent objectives** (32 primary + 4
+additive secondary) spanning all 12 permaculture types. Each objective's override
+flipped from `[]` to its per-item form-id array. Prompts are the **verbatim**
+checklist-item text from each type catalogue (ASCII-normalized; the lone
+apostrophe `ag-s1-experience-vision-c4` "farm's" uses a double-quoted string).
+Icons reuse the already-imported lucide set (no import churn).
+
+**Amanah / verbatim flags:** `con-s1-tenure-covenant` keeps "carbon credits" /
+"carbon agreement" verbatim in its prompts (no silent omission/rewording); the
+Amanah scope flags live on the objective content, not the form tool. All 36
+objectives are land-stewardship / production / governance / compliance intent
+capture -- clean.
+
+**R3 (R2 ratchet):** `actToolCoverage.test.ts` gains `every s1 intent objective
+resolves to per-item form-arm capture tools (R2)` -- asserts each of the 36
+objectives resolves to >= 1 tool AND every tool is a form arm. A regression back
+to `[]` or a non-form tool trips it.
+
+**Verified:** shared `tsc` EXIT 0; `actToolCoverage` **17/17** (forks, 20s),
+incl. the new ratchet and the all-id resolution sweep over the 222 new ids; audit
+**Gap A 0 / Gap B 0 / Gap C 130->98** (all intentional, 0 default-driven -- the
+32 primary intent objectives left the empty set; the 4 additive secondaries wire
+correctly but sit outside the primary-objective Gap C universe). Commits
+(not pushed): `426952b1` (regen_farm+market_garden+orchard), `090a778a`
+(livestock+conservation+off_grid+agritourism+ecovillage+education+wellness),
+`b52a5cab` (ratchet), after `ec71a9ad` (homestead) + `7e077900` (silvopasture)
+earlier in the session. **This completes the standing Act-coverage task:** every
+objective across all types now has an Act tool to complete/record its work.
+Log: [[log/2026-06-03-olos-act-r2-s1-intent-capture-forms]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
