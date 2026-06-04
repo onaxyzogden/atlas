@@ -976,6 +976,52 @@ out-of-band working-tree changes), not pushed. Gap A now **80** across the
 remaining primary types (ecovillage, education, wellness). Log:
 [[log/2026-06-03-olos-act-agritourism-overrides]].
 
+## Objective->tool overrides: ecovillage (2026-06-03)
+
+Ninth per-type catalogue wired (audit remediation R1/R3), after homestead,
+regen-farm, market-garden, orchard, livestock_operation, conservation, off_grid
+and agritourism. All **31 `ev-*` ecovillage objectives** carry explicit
+`OBJECTIVE_ACT_TOOLS_OVERRIDE` entries; ecovillage is **primary-only**
+(`canBeSecondary: false`, no standalone secondary layer, no patches), so this is
+a primary-only wiring (and a primary-only ratchet). **Count is 31 not 29** -- the
+catalogue header's "29" is a stale pre-v1.2 summary; per-tier sub-headers and
+v1.2 totals yield 31 (v1.2 appended EV-S7.9 adaptive-management). **13 grounded**,
+concentrated in the S2/S3 site & systems surveys (carrying-capacity->zone/
+buffer-ring/note, tenure-boundary->path/gates/fencing/note, landscape-vectors->
+neighbour-pin/catchment/runoff-path/hazard-zone/note, water-yield->watercourse/
+spring/catchment/storage/wells, waste-cycling->soil/compost/zone/watercourse,
+energy-potential->sun-sector/wind-sector/watercourse/vegetation/power,
+infra-condition->buildings/barns/roads/path/power/water-lines) and the S5 design
+block (cluster-layout->dwellings/zone/buffer-ring/path/fire-sector,
+communal-systems->buildings/barns, sanitation-waste->tanks/water-lines/compost/
+swale/buildings, energy-system->sun-sector/power/buildings/tanks, food-zones->
+beds/crops/orchards/water-lines/buildings/zone), plus the S4 housing-cluster
+zoning framework->zone/buffer-ring; **18 intentional `[]`** (the whole S1
+governance band -- legal/tenure/governance, provision-balance, conflict-framework
+-- the S2 social-fabric survey, the S4 settlement/infra/food strategies and both
+financial objectives, the S6 monitoring band, the whole S7 phasing/launch/
+onboarding/adaptive/exit band). **Amanah:** EV-S4.8 (financial contribution &
+shared economics) and EV-S7.5 (communal financial plan & contribution schedule)
+are communal member cost-sharing among co-owners (member buy-in, levies,
+reserves) -- NOT advance sale of future yield -- encoded verbatim per the
+operator's 2026-05-29 no-gating authorisation; both map to `[]` (financial
+decisions), so no act surface engages a contribution instrument; no fiqh
+re-encoded at the Act layer. Before this the ecovillage objectives fell through
+`STRATUM_ACT_TOOLS_DEFAULT` (surveys & design surfaced the access-utilities set
+instead of source/structure/climate-sector/zoning families). **R3:**
+`actToolCoverage.test.ts` ratcheted with an ecovillage assertion over
+`ECOVILLAGE_PRIMARY_OBJECTIVES`. Verified: shared `tsc` EXIT 0; audit Gap A
+**80->49**, Gap B 0, Gap C 97->112 (105 intentional / 7 default-driven); bounded
+`--pool=forks` `actToolCoverage` 14/14, `objectiveObserveDomains` 8/8,
+`resolveProjectObjectives` 25/25. Clean commit `71c4671f` via
+`git commit -- <pathspec>`, not pushed. **Blemish:** the code commit's message
+body miscounts the split as "19 grounded / 12 []"; the authoritative split is
+**13 grounded / 18 []** (audit +18 intentional delta) -- code/tests/audit
+correct, only the message prose wrong; a fix needs `--amend` (forbidden on this
+rebased branch), left for the operator. Gap A now **49** across the remaining
+primary types (education, wellness). Log:
+[[log/2026-06-03-olos-act-ecovillage-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
