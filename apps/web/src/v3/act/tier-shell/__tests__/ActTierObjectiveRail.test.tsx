@@ -87,6 +87,9 @@ function renderRail(
   activeObjectiveId: string | null = null,
   objectives: readonly PlanStratumObjective[] = [OBJECTIVE],
   onSelectObjective: (objectiveId: string) => void = vi.fn(),
+  onSelectProtocol: (templateId: string) => void = vi.fn(),
+  activeStratumId: string | null = 's6-integration-design',
+  selectedProtocolId: string | null = null,
 ) {
   return render(
     <ActTierObjectiveRail
@@ -101,6 +104,9 @@ function renderRail(
       projectId="proj-1"
       primaryTypeId="silvopasture"
       secondaryTypeIds={[]}
+      activeStratumId={activeStratumId}
+      selectedProtocolId={selectedProtocolId}
+      onSelectProtocol={onSelectProtocol}
     />,
   );
 }
@@ -172,6 +178,9 @@ describe('ActTierObjectiveRail', () => {
         projectId="proj-1"
         primaryTypeId="silvopasture"
         secondaryTypeIds={[]}
+        activeStratumId={null}
+        selectedProtocolId={null}
+        onSelectProtocol={vi.fn()}
       />,
     );
     expect(screen.getByTestId('act-rail-objective-deselect')).toBeTruthy();
@@ -394,5 +403,54 @@ describe('ActTierObjectiveRail', () => {
     // Two flows in proj-1 (f3 belongs to another project); one is closed-loop.
     expect(screen.getByText(/Material flows: 2/)).toBeTruthy();
     expect(screen.getByText(/1 closed-loop/)).toBeTruthy();
+  });
+});
+
+describe('ActTierObjectiveRail (protocols mode threads stratum scope + selection)', () => {
+  // Both silvopasture-primary S6 protocols; tree-browse precedes establishment
+  // in authored order.
+  const OTHER_PROTOCOL_ID = 'silv-tree-browse-damage';
+
+  it('scopes the panel to activeStratumId — only the S6 tier group renders', () => {
+    renderRail('protocols', 0, null, [OBJECTIVE], vi.fn(), vi.fn(), 's6-integration-design');
+    const headings = screen
+      .getAllByTestId('protocol-tier-heading')
+      .map((el) => el.textContent);
+    expect(headings).toEqual(['S6 · Integration Design']);
+  });
+
+  it('threads onSelectProtocol — clicking a card calls back with the template id', () => {
+    const onSelectProtocol = vi.fn();
+    renderRail(
+      'protocols',
+      0,
+      null,
+      [OBJECTIVE],
+      vi.fn(),
+      onSelectProtocol,
+      's6-integration-design',
+    );
+    const card = screen
+      .getAllByTestId('protocol-template-card')
+      .find((el) => el.getAttribute('data-template-id') === OTHER_PROTOCOL_ID)!;
+    fireEvent.click(card);
+    expect(onSelectProtocol).toHaveBeenCalledWith(OTHER_PROTOCOL_ID);
+  });
+
+  it('threads selectedProtocolId — the matching card carries data-selected="true"', () => {
+    renderRail(
+      'protocols',
+      0,
+      null,
+      [OBJECTIVE],
+      vi.fn(),
+      vi.fn(),
+      's6-integration-design',
+      OTHER_PROTOCOL_ID,
+    );
+    const card = screen
+      .getAllByTestId('protocol-template-card')
+      .find((el) => el.getAttribute('data-template-id') === OTHER_PROTOCOL_ID)!;
+    expect(card.getAttribute('data-selected')).toBe('true');
   });
 });

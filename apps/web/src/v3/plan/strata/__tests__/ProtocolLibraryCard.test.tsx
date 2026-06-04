@@ -13,8 +13,8 @@
  *      preserving data-template-id / data-protocol-status (still addressable).
  */
 
-import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import { templatesForEnterprises, resolveProjectProtocols } from '@ogden/shared';
 import ProtocolLibraryCard from '../ProtocolLibraryCard.js';
 
@@ -207,5 +207,61 @@ describe('ProtocolLibraryCard source attribution', () => {
     const badge = screen.getByTestId('protocol-source-badge');
     expect(badge.getAttribute('data-source')).toBe('secondary');
     expect(badge.textContent).toBe('Secondary - Silvopasture');
+  });
+});
+
+describe('ProtocolLibraryCard onSelect (Act clickable cards)', () => {
+  it('is inert (no button role / data-selected) when onSelect is omitted', () => {
+    render(<ProtocolLibraryCard template={TEMPLATE} status={undefined} outputs={{}} />);
+    const card = screen.getByTestId('protocol-template-card');
+    expect(card.getAttribute('role')).toBeNull();
+    expect(card.getAttribute('data-selected')).toBeNull();
+  });
+
+  it('becomes a button and fires onSelect on click and Enter/Space', () => {
+    const onSelect = vi.fn();
+    render(
+      <ProtocolLibraryCard
+        template={TEMPLATE}
+        status={undefined}
+        outputs={{}}
+        onSelect={onSelect}
+      />,
+    );
+    const card = screen.getByTestId('protocol-template-card');
+    expect(card.getAttribute('role')).toBe('button');
+    expect(card.getAttribute('tabindex')).toBe('0');
+
+    fireEvent.click(card);
+    fireEvent.keyDown(card, { key: 'Enter' });
+    fireEvent.keyDown(card, { key: ' ' });
+    expect(onSelect).toHaveBeenCalledTimes(3);
+  });
+
+  it('reflects the selected flag via data-selected', () => {
+    const { rerender } = render(
+      <ProtocolLibraryCard
+        template={TEMPLATE}
+        status={undefined}
+        outputs={{}}
+        onSelect={vi.fn()}
+        selected={false}
+      />,
+    );
+    expect(
+      screen.getByTestId('protocol-template-card').getAttribute('data-selected'),
+    ).toBe('false');
+    rerender(
+      <ProtocolLibraryCard
+        template={TEMPLATE}
+        status={undefined}
+        outputs={{}}
+        onSelect={vi.fn()}
+        selected
+      />,
+    );
+    expect(
+      screen.getByTestId('protocol-template-card').getAttribute('data-selected'),
+    ).toBe('true');
   });
 });

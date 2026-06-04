@@ -15,8 +15,8 @@
  *   5. Grouping stays by stratum (no separate triggered super-section).
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import { resolveProjectProtocols } from '@ogden/shared';
 import { useProtocolStore } from '../../../../store/protocolStore.js';
 import ProtocolLayerPanel from '../ProtocolLayerPanel.js';
@@ -114,5 +114,58 @@ describe('ProtocolLayerPanel (Act variant)', () => {
     expect(headings.length).toBeGreaterThan(1);
     expect(headings).toContain('S6 · Integration Design');
     expect(headings.some((h) => /triggered/i.test(h ?? ''))).toBe(false);
+  });
+});
+
+describe('ProtocolLayerPanel (Act stratum scope + clickable cards)', () => {
+  it('renders only the active stratum group when activeStratumId is set', () => {
+    render(
+      <ProtocolLayerPanel
+        projectId={PROJECT_ID}
+        primaryTypeId="silvopasture"
+        secondaryTypeIds={[]}
+        variant="act"
+        activeStratumId="s6-integration-design"
+      />,
+    );
+    const headings = screen
+      .getAllByTestId('protocol-tier-heading')
+      .map((el) => el.textContent);
+    // Strictly scoped — exactly the S6 group, no other strata leak through.
+    expect(headings).toEqual(['S6 · Integration Design']);
+    // The S6-authored silvopasture protocols are present; a non-S6 universal one is not.
+    expect(cardById(TRIGGERED_ID)).toBeTruthy();
+  });
+
+  it('fires onSelectProtocol with the template id when a card is clicked', () => {
+    const onSelect = vi.fn();
+    render(
+      <ProtocolLayerPanel
+        projectId={PROJECT_ID}
+        primaryTypeId="silvopasture"
+        secondaryTypeIds={[]}
+        variant="act"
+        activeStratumId="s6-integration-design"
+        onSelectProtocol={onSelect}
+      />,
+    );
+    fireEvent.click(cardById(OTHER_ID)!);
+    expect(onSelect).toHaveBeenCalledWith(OTHER_ID);
+  });
+
+  it('marks the selected card with data-selected="true"', () => {
+    render(
+      <ProtocolLayerPanel
+        projectId={PROJECT_ID}
+        primaryTypeId="silvopasture"
+        secondaryTypeIds={[]}
+        variant="act"
+        activeStratumId="s6-integration-design"
+        onSelectProtocol={vi.fn()}
+        selectedProtocolId={OTHER_ID}
+      />,
+    );
+    expect(cardById(OTHER_ID)!.getAttribute('data-selected')).toBe('true');
+    expect(cardById(TRIGGERED_ID)!.getAttribute('data-selected')).toBe('false');
   });
 });

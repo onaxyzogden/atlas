@@ -83,6 +83,8 @@ export default function ProtocolLibraryCard({
   outputs,
   emphasis = 'normal',
   collapsed = false,
+  onSelect,
+  selected = false,
 }: {
   template: StandardProtocolTemplate;
   status: RecordStatus | undefined;
@@ -92,12 +94,18 @@ export default function ProtocolLibraryCard({
   emphasis?: 'normal' | 'triggered' | 'dimmed';
   /** Act collapses non-triggered cards to header + footer (omits IF/THEN + rationale). */
   collapsed?: boolean;
+  /** When set, the card becomes a button (click + Enter/Space) firing this — used by
+   *  the Act rail to drive the right-rail detail pane. Omitted = inert (Plan/library). */
+  onSelect?: () => void;
+  /** Selected treatment (blue accent border) — only meaningful with `onSelect`. */
+  selected?: boolean;
 }) {
   const meta = statusMeta(status);
   const severity = resolveSeverityTier(template);
   const severityMeta = SEVERITY_META[severity];
   const sourceTag = getProtocolSourceTag(template);
   const sourceColor = SOURCE_META[sourceTag.kind];
+  const interactive = Boolean(onSelect);
   return (
     <div
       data-testid="protocol-template-card"
@@ -106,11 +114,29 @@ export default function ProtocolLibraryCard({
       data-emphasis={emphasis}
       data-severity={severity}
       data-has-scope-notes={template.scopeNotes ? 'true' : 'false'}
+      data-selected={interactive ? String(selected) : undefined}
+      role={interactive ? 'button' : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      onClick={onSelect}
+      onKeyDown={
+        interactive
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect?.();
+              }
+            }
+          : undefined
+      }
       style={{
         borderRadius: 10,
         marginBottom: 10,
         overflow: 'hidden',
         ...EMPHASIS_STYLE[emphasis],
+        ...(interactive ? { cursor: 'pointer' } : null),
+        ...(interactive && selected
+          ? { border: `1px solid ${C.blue}`, boxShadow: `0 0 0 1px ${C.blue}` }
+          : null),
       }}
     >
       {/* Header: name (+ triggered pill) + type badge */}

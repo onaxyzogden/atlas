@@ -25,7 +25,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { LayoutDashboard, Target } from 'lucide-react';
+import { LayoutDashboard, Target, ShieldCheck } from 'lucide-react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useTriggeredProtocols } from '../../../store/protocolStore.js';
 import {
@@ -44,6 +44,14 @@ import {
   useFieldActionStore,
 } from '../../../store/fieldActionStore.js';
 import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
+import { useZoneStore } from '../../../store/zoneStore.js';
+import { toast } from '../../../components/Toast.js';
+import * as turf from '@turf/turf';
+import {
+  parcelPolygon,
+  clip,
+  type PolyFeature,
+} from '../../plan/engine/zoneGenerators/parcelGeometry.js';
 import { useMapToolStore } from '../../observe/components/measure/useMapToolStore.js';
 import {
   extractBoundaryGeometry,
@@ -92,6 +100,7 @@ import ActTierMapMarkers from './ActTierMapMarkers.js';
 import ProtocolMapMarkers from './ProtocolMapMarkers.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
+import ActProtocolDetailPane from './ActProtocolDetailPane.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
 import {
   ACT_TOOL_CATEGORIES,
@@ -309,6 +318,12 @@ export default function ActTierShell() {
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
   );
+  // Protocols mode: the clicked protocol whose detail shows in the right rail
+  // (mirrors objective selection). Cleared on stratum change (a selection may
+  // belong to a now-hidden stratum) — see the effect below.
+  const [selectedProtocolId, setSelectedProtocolId] = useState<string | null>(
+    null,
+  );
   // When an as-built deviation is being recorded, the right rail swaps to the
   // as-built form (panel variant) and hides the dashboard/objective toggle;
   // closing/saving clears `active` and reverts the rail.
@@ -412,6 +427,48 @@ export default function ActTierShell() {
     [goToObjective, objectiveId],
   );
 
+  // Protocol card click → open its detail in the right rail. Re-clicking the
+  // active protocol deselects it (back to the dashboard), mirroring objectives.
+  const handleSelectProtocol = useCallback(
+    (templateId: string) => {
+      setSelectedProtocolId((prev) => {
+        if (prev === templateId) {
+          setRightMode('dashboard');
+          return null;
+        }
+        setRightMode('detail');
+        return templateId;
+      });
+    },
+    [],
+  );
+
+  // Stratum-change hygiene: a protocol selected under the prior stratum would be
+  // hidden by the stratum-scoped list, so clear it; if its detail was showing,
+  // drop the right rail back to the dashboard.
+  useEffect(() => {
+    setSelectedProtocolId((prev) => {
+      if (prev !== null) {
+        setRightMode((m) => (m === 'detail' ? 'dashboard' : m));
+      }
+      return null;
+    });
+    // Intentionally keyed on stratum only — see comment.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStratumId]);
+
+  // Rail-mode-change hygiene: when entering Protocols mode show the selected
+  // protocol's detail if one is held, else the dashboard; when entering
+  // Objectives mode the objectiveId effect already drives rightMode.
+  useEffect(() => {
+    if (railMode === 'protocols') {
+      setRightMode(selectedProtocolId ? 'detail' : 'dashboard');
+    } else {
+      setRightMode(objectiveId ? 'detail' : 'dashboard');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [railMode]);
+
   const handleFormSave = useCallback(
     (formId: string, text: string) => {
       useActEvidenceStore.getState().saveVisionForm(id, formId, text);
@@ -477,6 +534,55 @@ export default function ActTierShell() {
         useActFlowPopoverStore.getState().openPopover();
         return;
       }
+      if (arm.kind === 'zone-action') {
+        // Imperative post-seed actions on the ring-seeded zones. Read the stores
+        // imperatively (no reactive subscription needed); feedback is toast-only,
+        // mirroring the Plan ZoneCirculationOverviewCard actions.
+        const zoneState = useZoneStore.getState();
+        if (arm.action === 'clear') {
+          const removed = zoneState.clearSeededZones(id);
+          if (removed === 0) toast.info('No seeded zones to clear.');
+          else toast.success(`Cleared ${removed} seeded zone(s).`);
+          return;
+        }
+        // trim: clip every ring-seeded zone to the parcel polygon; drop any that
+        // fall fully outside.
+        const project = useProjectStore
+          .getState()
+          .projects.find((p) => p.id === id);
+        const parcel = parcelPolygon(project?.parcelBoundaryGeojson ?? null);
+        if (!parcel) {
+          toast.warning('Draw the parcel boundary first to trim against it.');
+          return;
+        }
+        const seeded = zoneState.zones.filter(
+          (z) => z.projectId === id && z.seedProvenance === 'ring-seed',
+        );
+        let trimmed = 0;
+        let dropped = 0;
+        for (const z of seeded) {
+          const clipped = clip(turf.feature(z.geometry) as PolyFeature, parcel);
+          if (!clipped) {
+            zoneState.deleteZone(z.id);
+            dropped += 1;
+            continue;
+          }
+          zoneState.updateZone(z.id, {
+            geometry: clipped.geometry,
+            areaM2: turf.area(clipped),
+          });
+          trimmed += 1;
+        }
+        if (trimmed === 0 && dropped === 0) {
+          toast.info('No seeded zones to trim.');
+        } else {
+          toast.success(
+            `Trimmed ${trimmed} seeded zone(s) to the parcel` +
+              (dropped > 0 ? `; removed ${dropped} fully outside.` : '.'),
+          );
+        }
+        return;
+      }
       // Field log (harvest / water / livestock) — route through the existing
       // QuickLog path so ActDrawHost handles the click-to-log interaction.
       // `arm` is hoisted to a const so the narrowing survives the closure.
@@ -485,7 +591,7 @@ export default function ActTierShell() {
       setActiveModule(log.module);
       if (log.toolId) setActiveTool(log.toolId);
     },
-    [setActiveModule, setActiveTool, selectedObjective],
+    [setActiveModule, setActiveTool, selectedObjective, id],
   );
 
   // ---- Header Stage Search (Act) ----------------------------------------
@@ -579,6 +685,9 @@ export default function ActTierShell() {
                 projectId={id}
                 primaryTypeId={primaryTypeId}
                 secondaryTypeIds={secondaryTypeIds}
+                activeStratumId={selectedStratumId}
+                selectedProtocolId={selectedProtocolId}
+                onSelectProtocol={handleSelectProtocol}
               />
             )
           }
@@ -689,21 +798,50 @@ export default function ActTierShell() {
                       <LayoutDashboard size={14} aria-hidden="true" />
                       Dashboard
                     </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={rightMode === 'detail'}
-                      className={styles.rightToggleBtn}
-                      data-active={rightMode === 'detail'}
-                      disabled={!objectiveId}
-                      onClick={() => objectiveId && setRightMode('detail')}
-                    >
-                      <Target size={14} aria-hidden="true" />
-                      Objective
-                    </button>
+                    {railMode === 'protocols' ? (
+                      // Contextual second tab: in Protocols mode the right rail's
+                      // detail slot holds the selected protocol, so the tab reads
+                      // "Protocols" and gates on a protocol selection.
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={rightMode === 'detail'}
+                        className={styles.rightToggleBtn}
+                        data-active={rightMode === 'detail'}
+                        disabled={!selectedProtocolId}
+                        onClick={() =>
+                          selectedProtocolId && setRightMode('detail')
+                        }
+                      >
+                        <ShieldCheck size={14} aria-hidden="true" />
+                        Protocols
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={rightMode === 'detail'}
+                        className={styles.rightToggleBtn}
+                        data-active={rightMode === 'detail'}
+                        disabled={!objectiveId}
+                        onClick={() => objectiveId && setRightMode('detail')}
+                      >
+                        <Target size={14} aria-hidden="true" />
+                        Objective
+                      </button>
+                    )}
                   </div>
                   <div className={styles.rightBody}>
-                    {rightMode === 'detail' && selectedObjective ? (
+                    {rightMode === 'detail' &&
+                    railMode === 'protocols' &&
+                    selectedProtocolId ? (
+                      <ActProtocolDetailPane
+                        projectId={id}
+                        primaryTypeId={primaryTypeId}
+                        secondaryTypeIds={secondaryTypeIds}
+                        templateId={selectedProtocolId}
+                      />
+                    ) : rightMode === 'detail' && selectedObjective ? (
                       <ActTierExecutionPanel
                         projectId={id}
                         tier={selectedObjectiveTier}

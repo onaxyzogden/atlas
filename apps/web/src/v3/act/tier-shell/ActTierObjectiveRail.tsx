@@ -143,6 +143,12 @@ interface Props {
   projectId: string;
   primaryTypeId: ProjectTypeId | null;
   secondaryTypeIds: readonly ProjectTypeId[];
+  /** Active stratum — scopes the protocol list to this stratum's group (Act). */
+  activeStratumId: string | null;
+  /** Currently-selected protocol template id (drives the right-rail detail). */
+  selectedProtocolId: string | null;
+  /** Fired when a protocol card is clicked — opens the right-rail detail. */
+  onSelectProtocol: (templateId: string) => void;
 }
 
 export default function ActTierObjectiveRail({
@@ -158,6 +164,9 @@ export default function ActTierObjectiveRail({
   projectId,
   primaryTypeId,
   secondaryTypeIds,
+  activeStratumId,
+  selectedProtocolId,
+  onSelectProtocol,
 }: Props) {
   const eyebrow = stratum ? `Stratum S${stratum.ordinal}` : 'Stratum';
 
@@ -236,6 +245,9 @@ export default function ActTierObjectiveRail({
             projectId={projectId}
             primaryTypeId={primaryTypeId}
             secondaryTypeIds={secondaryTypeIds}
+            activeStratumId={activeStratumId}
+            selectedProtocolId={selectedProtocolId}
+            onSelectProtocol={onSelectProtocol}
           />
         </div>
       ) : (

@@ -23,7 +23,7 @@ import { C, F } from '../spine/tokens.js';
 // activates these vars.
 import '../spine/spine-theme.css';
 import ProtocolLibraryCard from './ProtocolLibraryCard.js';
-import { useProtocolLibrary } from './useProtocolLibrary.js';
+import { useProtocolLibrary, filterProtocolGroups } from './useProtocolLibrary.js';
 
 /** Stable empty default for `triggeredIds` so the useMemo(Set) identity is stable
  *  across renders when no triggered ids are supplied (Plan / default Act). */
@@ -41,6 +41,13 @@ interface Props {
   triggeredIds?: readonly string[];
   /** Round + clip the panel as a framed bento (used by the Act rail). */
   framed?: boolean;
+  /** When set (Act), narrow the rendered groups to just this stratum via
+   *  `filterProtocolGroups`. Omitted/null (Plan rail) renders all S1→S7 groups. */
+  activeStratumId?: string | null;
+  /** When set, cards become clickable and fire this with the template id (Act detail). */
+  onSelectProtocol?: (templateId: string) => void;
+  /** The currently-selected template id — drives the card's selected treatment. */
+  selectedProtocolId?: string | null;
 }
 
 export default function ProtocolLayerPanel({
@@ -50,11 +57,25 @@ export default function ProtocolLayerPanel({
   variant = 'plan',
   triggeredIds = EMPTY_IDS,
   framed = false,
+  activeStratumId = null,
+  onSelectProtocol,
+  selectedProtocolId = null,
 }: Props) {
-  const { templates, groups, statusByTemplate, outputs, activeCount } =
+  const { templates, groups, statusByTemplate, outputs } =
     useProtocolLibrary(projectId, primaryTypeId, secondaryTypeIds);
 
   const isAct = variant === 'act';
+  // Stratum scope (Act): narrow to the open stratum's group. Null (Plan) → all
+  // groups, byte-identical to before. Counts below derive from the VISIBLE set so
+  // the header total matches what renders.
+  const visibleGroups = useMemo(
+    () => filterProtocolGroups(groups, activeStratumId),
+    [groups, activeStratumId],
+  );
+  const visibleTemplates = useMemo(
+    () => visibleGroups.flatMap((g) => g.items),
+    [visibleGroups],
+  );
   // Presentational only: the panel never calls useTriggeredProtocols, so mounting
   // it in Plan never starts the Act evaluation engine. Triggered state is pushed
   // in via `triggeredIds` (plus any store status already resolved to 'triggered').
@@ -62,8 +83,12 @@ export default function ProtocolLayerPanel({
   const isTriggered = (id: string) =>
     triggeredSet.has(id) || statusByTemplate[id] === 'triggered';
   const triggeredCount = isAct
-    ? templates.filter((t) => isTriggered(t.id)).length
+    ? visibleTemplates.filter((t) => isTriggered(t.id)).length
     : 0;
+  const activeCount = useMemo(
+    () => visibleTemplates.filter((t) => statusByTemplate[t.id] === 'active').length,
+    [visibleTemplates, statusByTemplate],
+  );
 
   return (
     <div
@@ -105,7 +130,7 @@ export default function ProtocolLayerPanel({
             Protocol Layer
           </span>
           <span style={{ fontSize: 12, color: C.textTertiary, fontFamily: F.mono }}>
-            {templates.length} template{templates.length !== 1 ? 's' : ''}
+            {visibleTemplates.length} template{visibleTemplates.length !== 1 ? 's' : ''}
             {isAct
               ? triggeredCount > 0
                 ? ` · ${triggeredCount} triggered`
@@ -185,7 +210,7 @@ export default function ProtocolLayerPanel({
             No project type set — choose a primary type to see its standing protocols.
           </div>
         ) : (
-          groups.map((g) => (
+          visibleGroups.map((g) => (
             <div key={g.tier} style={{ marginBottom: 18 }}>
               {/* Tier section header — protocols grouped by stratum (S1→S7). */}
               <div
@@ -235,6 +260,10 @@ export default function ProtocolLayerPanel({
                       !isAct ? 'normal' : triggered ? 'triggered' : 'dimmed'
                     }
                     collapsed={isAct && !triggered}
+                    onSelect={
+                      onSelectProtocol ? () => onSelectProtocol(t.id) : undefined
+                    }
+                    selected={t.id === selectedProtocolId}
                   />
                 );
               })}
