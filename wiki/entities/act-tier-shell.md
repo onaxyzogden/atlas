@@ -1059,6 +1059,52 @@ utilities set instead of structure/zoning/survey/safety families). **R3:**
 Gap A now **27** across the last remaining primary type (wellness). Log:
 [[log/2026-06-03-olos-act-education-overrides]].
 
+## Objective->tool overrides: wellness (2026-06-03) -- Gap A CLOSED
+
+Eleventh -- and final primary -- per-type catalogue wired (audit remediation
+R1/R3), after homestead, regen-farm, market-garden, orchard,
+livestock_operation, conservation, off_grid, agritourism, ecovillage and
+education. All **32 wellness objectives** carry explicit
+`OBJECTIVE_ACT_TOOLS_OVERRIDE` entries -- **27 `well-*` primary + 5 `well-sec-*`
+secondary**; wellness ships a standalone **additive secondary overlay layer**
+(no patches), so this is a primary+secondary wiring (and a primary+secondary
+union ratchet, like silvopasture/orchard). **13 grounded** (all primary),
+concentrated in the S2/S3 surveys (sensory-environment->zone/roads/neighbour-
+pin/note, retreat-infrastructure->buildings/dwellings/note, landscape-context->
+neighbour-pin/catchment/hazard-zone/high-point/note, privacy-gradient->buffer-
+ring/vegetation/neighbour-pin/watercourse/note, acoustic-conditions->zone/roads/
+neighbour-pin/note, water-features->spring/watercourse/water/note, healing-
+garden-ecology->vegetation/soil/sun-sector/note) and the S5 design block
+(treatment-spaces->buildings/zone, healing-garden-design->beds/vegetation/
+watercourse/path/zone, guest-accommodation->dwellings/zone, privacy-screening->
+buffer-ring/vegetation/fencing, dining-nourishment->buildings/barns), plus the
+S4 privacy-zone-hierarchy zoning framework->zone/buffer-ring; **19 intentional
+`[]`** (the whole S1 decision band incl. the regulatory hard gate, the S4
+standards/program/healing-garden-strategy/safeguarding decisions, the S6
+monitoring band, the whole S7 launch/onboarding/adaptive band, and every one of
+the 5 `well-sec-*` overlays -- all philosophy/regulatory/standards/program/
+safeguarding decisions the host primary's spatial work already serves).
+**Amanah:** wellness is therapeutic land stewardship (guest healing, sensory
+design, safeguarding, practitioner standards); no sales channel, advance
+purchase, or financing instrument (WELL-S7.6 reviews "financial data" but
+defines no money instrument; no fee/booking objective exists) -- clean
+throughout, no fiqh re-encoded at the Act layer. Before this the wellness
+objectives fell through `STRATUM_ACT_TOOLS_DEFAULT` (surveys & design surfaced
+the access-utilities set instead of structure/zoning/survey/screening families).
+**R3:** `actToolCoverage.test.ts` ratcheted with a wellness assertion over the
+`WELLNESS_PRIMARY_OBJECTIVES` + `WELLNESS_SECONDARY_OBJECTIVES` union. Verified:
+shared `tsc` EXIT 0; audit **Gap A 27->0** (every objective across all 14 types
+now explicitly wired), Gap B 0, Gap C 120->130 (130 intentional / 0
+default-driven); bounded `--pool=forks` `actToolCoverage` 16/16,
+`objectiveObserveDomains` 8/8, `resolveProjectObjectives` 25/25. Clean commit
+`1c737085` via `git commit -- <pathspec>`, not pushed; commit-message body states
+the correct **13 grounded / 19 []** split. **This closes Gap A:** R1 is complete
+across the universal layer, all 11 primary types and every secondary layer; the
+coarse `STRATUM_ACT_TOOLS_DEFAULT` is no longer reached by any catalogue
+objective (it remains only as a safety net the ratchet would also catch). R2
+(form-arm tools) stays deferred. Log:
+[[log/2026-06-03-olos-act-wellness-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
