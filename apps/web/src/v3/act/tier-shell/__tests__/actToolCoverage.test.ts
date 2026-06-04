@@ -36,6 +36,8 @@ import {
   AGRITOURISM_PRIMARY_OBJECTIVES,
   ECOVILLAGE_PRIMARY_OBJECTIVES,
   EDUCATION_PRIMARY_OBJECTIVES,
+  WELLNESS_PRIMARY_OBJECTIVES,
+  WELLNESS_SECONDARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -266,6 +268,32 @@ describe('Act tier-shell objective->tool coverage', () => {
     const missing = EDUCATION_PRIMARY_OBJECTIVES.filter(
       (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
     ).map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every wellness objective has an explicit override entry', () => {
+    // Wellness is the eleventh -- and final primary -- per-type catalogue wired
+    // (audit remediation R1, 2026-06-03). It ships a standalone secondary overlay
+    // layer (5 additive well-sec-* objectives, no patches), so this ratchet covers
+    // the primary + secondary union (like silvopasture / orchard). Before this its
+    // objectives fell through STRATUM_ACT_TOOLS_DEFAULT (the S2/S3 sensory /
+    // infrastructure / landscape / privacy / acoustic / water / garden surveys and
+    // the S5 treatment / garden / accommodation / screening / dining design block
+    // surfaced the coarse access-utilities set instead of the structure / zoning /
+    // survey / screening families). Each is now explicit; an intentional [] (the
+    // whole S1 decision band incl. the regulatory hard gate, the S4
+    // standards/program/strategy/safeguarding decisions, the S6 monitoring band,
+    // the whole S7 launch/onboarding/adaptive band, and every well-sec-* overlay
+    // -- philosophy/regulatory/standards/program/safeguarding decisions the host
+    // primary's spatial work already serves) still satisfies the ratchet -- only a
+    // brand-new un-wired well-* or well-sec-* trips it.
+    const wellnessObjectives = [
+      ...WELLNESS_PRIMARY_OBJECTIVES,
+      ...WELLNESS_SECONDARY_OBJECTIVES,
+    ];
+    const missing = wellnessObjectives
+      .filter((o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE))
+      .map((o) => o.id);
     expect(missing).toEqual([]);
   });
 

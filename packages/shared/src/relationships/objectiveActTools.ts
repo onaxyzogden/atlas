@@ -1475,6 +1475,146 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // fees, grants) -- a financial decision, clean (no riba/gharar; see Amanah
   // note above). gap: all.
   'edu-s7-financial-viability': [],
+
+  // === WELLNESS (27 well-* primary + 5 well-sec-* secondary objectives) ===
+  // Before this, wellness objectives fell through STRATUM_ACT_TOOLS_DEFAULT and
+  // surfaced the access-utilities set for the S2/S3 sensory / infrastructure /
+  // landscape / privacy / acoustic / water / garden surveys and generic access
+  // tools for the S5 treatment / garden / accommodation / screening / dining
+  // design block, instead of the structure (buildings/dwellings/barns), zoning
+  // (zone/buffer-ring), survey (soil/vegetation/spring/watercourse) and screening
+  // (vegetation/fencing) families the checklists call for. Wellness ships a
+  // standalone secondary overlay layer (5 additive well-sec-* objectives, no
+  // patches); those overlays are all philosophy / regulatory / standards /
+  // program / safeguarding decisions (the host primary already carries the
+  // spatial survey & design work), so every secondary objective is an intentional
+  // []. Amanah: wellness is therapeutic land stewardship -- guest healing,
+  // sensory design, safeguarding, practitioner standards. There is no sales
+  // channel, advance purchase, or financing instrument: WELL-S7.6
+  // adaptive-management reviews "financial data" but defines no money instrument,
+  // and there is no fee/booking objective in the catalogue. Clean throughout; no
+  // fiqh re-encoded at the Act layer.
+  // 13 tool-bearing / 14 intentional [] (primary); all 5 secondary [].
+
+  // S1 -- healing philosophy & therapeutic intent: what the sanctuary is for and
+  // the non-negotiable conditions -- a philosophy/design-gate decision. gap: all.
+  'well-s1-healing-philosophy': [],
+  // S1 -- guest intake & suitability framework: target profile, welcomed vs
+  // referral conditions, intake process -- an intake-policy decision. gap: all.
+  'well-s1-guest-intake': [],
+  // S1 -- regulatory & professional standards (HARD GATE): qualifications,
+  // insurance, scope of practice, licensing -- a regulatory decision. gap: all.
+  'well-s1-regulatory-standards': [],
+  // S1 -- privacy & confidentiality policy: data, disclosure, consent, legal
+  // review -- a policy decision, no spatial act. gap: all.
+  'well-s1-privacy-policy': [],
+
+  // S2 -- sensory environment (noise/light/smell): record ambient noise by zone
+  // (zone), map noise sources -- roads (roads), neighbours (neighbour-pin) --
+  // light/olfactory notes (note). gap: decibel metering & light-pollution admin.
+  'well-s2-sensory-environment': ['zone', 'roads', 'neighbour-pin', 'note'],
+  // S2 -- existing retreat & healing infrastructure: inventory therapeutic-reuse
+  // spaces (buildings), existing accommodation (dwellings), condition/renovation
+  // notes (note). gap: acoustic & light condition admin.
+  'well-s2-retreat-infrastructure': ['buildings', 'dwellings', 'note'],
+  // S2 -- surrounding landscape & vectors: surrounding land use within 2km
+  // (neighbour-pin), drinking-water catchment contamination (catchment),
+  // threats/developments (hazard-zone), visual vantage points (high-point),
+  // context notes (note). gap: visual-quality narrative.
+  'well-s2-landscape-context': ['neighbour-pin', 'catchment', 'hazard-zone', 'high-point', 'note'],
+  // S2 -- privacy gradient: buffer distances from boundaries (buffer-ring),
+  // natural privacy assets -- dense vegetation (vegetation), water features
+  // (watercourse) -- sightlines from neighbours (neighbour-pin), gaps (note).
+  'well-s2-privacy-gradient': ['buffer-ring', 'vegetation', 'neighbour-pin', 'watercourse', 'note'],
+
+  // S3 -- acoustic conditions & noise sources: acoustic survey by zone (zone),
+  // sources -- roads (roads), neighbours (neighbour-pin) -- transmission/threshold
+  // gap (note). gap: decibel metering.
+  'well-s3-acoustic-conditions': ['zone', 'roads', 'neighbour-pin', 'note'],
+  // S3 -- water features & hydrological potential: springs (spring), streams
+  // (watercourse), ponds/wetlands (water), therapeutic/safety notes (note).
+  // gap: flow-reliability & quality lab work.
+  'well-s3-water-features': ['spring', 'watercourse', 'water', 'note'],
+  // S3 -- soil & plant ecology for healing gardens: existing therapeutic species
+  // (vegetation), soil health in garden zones (soil), microclimate -- shade/
+  // warmth (sun-sector) -- support-capacity notes (note). gap: species ID admin.
+  'well-s3-healing-garden-ecology': ['vegetation', 'soil', 'sun-sector', 'note'],
+
+  // S4 -- sensory design philosophy & low-stimulation standards: noise/light/
+  // scent/visual thresholds as a design gate -- a standards decision. gap: all.
+  'well-s4-sensory-design-standards': [],
+  // S4 -- therapeutic program & practitioner framework: modalities, qualifications,
+  // ratios, session design -- a program/practitioner decision. gap: all.
+  'well-s4-therapeutic-program': [],
+  // S4 -- privacy gradient & zone hierarchy: define privacy tier per zone (zone)
+  // and physical separation / buffers between tiers (buffer-ring). gap: access-
+  // control policy & transition narrative.
+  'well-s4-privacy-zone-hierarchy': ['zone', 'buffer-ring'],
+  // S4 -- healing garden & therapeutic landscape strategy: planting palette,
+  // water-feature strategy, sensory-walk approach, seasonal calendar -- a strategy
+  // decision (physical design lives in S5). gap: all.
+  'well-s4-healing-garden-strategy': [],
+  // S4 -- guest wellbeing safeguarding protocol (HARD GATE): crisis, trauma,
+  // referral, emergency -- a protocol decision, no spatial act. gap: all.
+  'well-s4-safeguarding-protocol': [],
+
+  // S5 -- treatment, therapy & meditation spaces: treatment rooms / meditation
+  // hall builds (buildings), outdoor treatment/meditation spaces (zone). gap:
+  // acoustic-performance specs & interior fit-out.
+  'well-s5-treatment-spaces': ['buildings', 'zone'],
+  // S5 -- healing garden & sensory landscape: therapeutic planting zones (beds),
+  // species layering (vegetation), water features -- ponds/channels (watercourse)
+  // -- sensory-walk & path surfaces (path), garden zones (zone). gap: seating spec.
+  'well-s5-healing-garden-design': ['beds', 'vegetation', 'watercourse', 'path', 'zone'],
+  // S5 -- guest accommodation & retreat spaces: accommodation unit placement
+  // (dwellings), private outdoor space per unit (zone). gap: acoustic-construction
+  // & material specs.
+  'well-s5-guest-accommodation': ['dwellings', 'zone'],
+  // S5 -- privacy screening & acoustic buffering: boundary & internal screening
+  // planting (vegetation), buffers between zones (buffer-ring), acoustic-barrier
+  // material (fencing). gap: earth-bunding earthworks & barrier performance specs.
+  'well-s5-privacy-screening': ['buffer-ring', 'vegetation', 'fencing'],
+  // S5 -- dining & nourishment infrastructure: kitchen / dining building
+  // (buildings), food storage (barns). gap: equipment & nourishment-philosophy.
+  'well-s5-dining-nourishment': ['buildings', 'barns'],
+
+  // S6 -- guest wellbeing & outcome monitor: outcome indicators, feedback,
+  // practitioner review -- a monitoring protocol, no spatial act. gap: all.
+  'well-s6-outcome-monitoring': [],
+  // S6 -- sensory environment monitor: periodic acoustic/light/olfactory
+  // measurement & breach protocol -- a monitoring protocol design. gap: all.
+  'well-s6-sensory-monitoring': [],
+  // S6 -- external relations & compliance monitor: compliance calendar, audits,
+  // neighbour relations -- an admin/compliance protocol. gap: all.
+  'well-s6-external-relations': [],
+
+  // S7 -- therapeutic program launch (HARD GATE): soft-launch sequencing & pass/
+  // fail review gate -- a phasing decision. gap: all.
+  'well-s7-program-launch': [],
+  // S7 -- practitioner onboarding & supervision: induction, supervision,
+  // performance, wellbeing -- an HR protocol. gap: all.
+  'well-s7-practitioner-onboarding': [],
+  // S7 -- adaptive management protocol: annual/3-year review, triggers,
+  // escalation, documentation -- a review protocol. gap: all.
+  'well-s7-adaptive-management': [],
+
+  // --- WELLNESS SECONDARY (additive overlay, all decisions -- the host primary
+  // carries the spatial survey & design work, so every overlay objective is []) ---
+  // S1 -- healing philosophy overlay intent: overlay philosophy & host
+  // reconciliation -- a philosophy decision. gap: all.
+  'well-sec-s1-healing-philosophy': [],
+  // S1 -- therapeutic regulatory & professional standards overlay (HARD GATE):
+  // qualifications, insurance, licensing -- a regulatory decision. gap: all.
+  'well-sec-s1-regulatory-standards': [],
+  // S4 -- sensory & low-stimulation standards for therapeutic zones: noise/light/
+  // scent thresholds + host-buffering -- a standards decision. gap: all.
+  'well-sec-s4-sensory-standards': [],
+  // S4 -- therapeutic program & practitioner framework overlay: modalities,
+  // ratios, scheduling around the host use -- a program decision. gap: all.
+  'well-sec-s4-therapeutic-program': [],
+  // S4 -- guest wellbeing safeguarding protocol overlay: crisis, referral,
+  // incident, training -- a protocol decision. gap: all.
+  'well-sec-s4-safeguarding': [],
 };
 
 /**
