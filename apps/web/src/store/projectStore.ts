@@ -1234,6 +1234,30 @@ useProjectStore.persist.onFinishHydration(() => {
 // by `'mtc'` so `updateProject('mtc', …)` writes route through the
 // builtin allowlist (parcel boundary + metadata) instead of silently
 // dropping. Idempotent.
+// Plausible Ontario placeholder parcel for the Moontrance Creek demo (~40 ha
+// near Mulmur/Creemore, CA/ON). Long axis runs NW-SE along the lie of the
+// land; the seasonal creek follows the low NE edge. Full 6-dp precision,
+// true-north WGS84 -- swappable for surveyed coordinates later. DEMO DATA.
+const MTC_PARCEL_BOUNDARY: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { name: 'Moontrance Creek (demo parcel)' },
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[
+          [-80.105900, 44.303500],
+          [-80.097200, 44.301800],
+          [-80.095800, 44.296500],
+          [-80.104500, 44.298200],
+          [-80.105900, 44.303500],
+        ]],
+      },
+    },
+  ],
+};
+
 export const MTC_SEED: LocalProject = {
   id: 'mtc',
   name: 'Moontrance Creek',
@@ -1247,11 +1271,11 @@ export const MTC_SEED: LocalProject = {
   parcelId: null,
   acreage: null,
   dataCompletenessScore: null,
-  hasParcelBoundary: false,
+  hasParcelBoundary: true,
   isBuiltin: true,
   createdAt: '2026-05-13T00:00:00.000Z',
   updatedAt: '2026-05-13T00:00:00.000Z',
-  parcelBoundaryGeojson: null,
+  parcelBoundaryGeojson: MTC_PARCEL_BOUNDARY,
   ownerNotes: null,
   zoningNotes: null,
   accessNotes: null,
@@ -1266,6 +1290,17 @@ function seedMtcDemo(): void {
   if (!existing) {
     useProjectStore.setState((state) => ({
       projects: [...state.projects, MTC_SEED],
+    }));
+  } else if (!existing.parcelBoundaryGeojson) {
+    // Backfill the demo boundary onto a row persisted before it existed.
+    // Idempotent: only patches when the boundary is still absent, so a user
+    // who later draws their own boundary is never overwritten.
+    useProjectStore.setState((state) => ({
+      projects: state.projects.map((p) =>
+        p.id === 'mtc'
+          ? { ...p, parcelBoundaryGeojson: MTC_PARCEL_BOUNDARY, hasParcelBoundary: true }
+          : p,
+      ),
     }));
   }
   // Seed MTC's curated Act content at hydrate time so View B is populated the

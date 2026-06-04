@@ -267,6 +267,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-01',
     label: 'Moontrance Creek silvopasture vision',
     note: 'Convert a tile-drained cash-crop field to creek-edge silvopasture.',
+    location: [-80.100800, 44.300000],
   },
   {
     key: 'mtc-people',
@@ -275,6 +276,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-02',
     label: 'Steward roster not yet confirmed',
     note: 'Decision-maker roster for the creek parcel still being recorded.',
+    location: [-80.100200, 44.299600],
     proofs: [
       { slotId: 'obs-capacity', loggedResult: { label: 'Steward availability', pct: 45 } },
       { slotId: 'obs-capacity', loggedResult: { label: 'Equipment readiness', pct: 70 } },
@@ -290,6 +292,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-12',
     label: 'Remnant hedgerow — east boundary',
     note: 'Mixed remnant hedgerow; head-start for a future shelterbelt.',
+    location: [-80.096900, 44.299400],
   },
   {
     key: 'mtc-hydrology-creek',
@@ -298,6 +301,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-14',
     label: 'Seasonal creek runs SW to NE',
     note: 'Flashy seasonal flow; SW inlet to NE outlet across the lower field.',
+    location: [-80.098800, 44.301200],
     proofs: [
       { slotId: 'obs-infiltration', loggedResult: { zone: 'Upper field', rate: 46 } },
       { slotId: 'obs-infiltration', loggedResult: { zone: 'Mid slope', rate: 24 } },
@@ -330,6 +334,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-16',
     label: 'Tile-drained crop field — degraded topsoil',
     note: 'Decades of corn/soy rotation; texture sample pulled, structure poor.',
+    location: [-80.101500, 44.299200],
     proofs: [
       { slotId: 'obs-soil-ph', loggedResult: { zone: 'North block', ph: 6.1, om: 2.3, compaction: 'high' } },
       { slotId: 'obs-soil-ph', loggedResult: { zone: 'Mid block', ph: 6.5, om: 3.0, compaction: 'moderate' } },
@@ -343,6 +348,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-10',
     label: 'Gentle fall toward the creek corridor',
     note: 'Low-relief field grading to the seasonal watercourse on the NE edge.',
+    location: [-80.103200, 44.298700],
     proofs: [
       { slotId: 'obs-elevation-zone', loggedResult: { label: 'Upper terrace', areaM2: 14000, aspect: 'South-facing', use: 'Silvopasture rows' } },
       { slotId: 'obs-elevation-zone', loggedResult: { label: 'Mid slope', areaM2: 9000, aspect: 'East-facing', use: 'Alley cropping' } },
@@ -359,6 +365,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-18',
     label: '30 m watercourse setback applies',
     note: 'Mapped watercourse setback constrains earthworks near the creek.',
+    location: [-80.098400, 44.300800],
   },
   {
     key: 'mtc-access',
@@ -367,6 +374,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-15',
     label: 'Culvert at the access-track creek crossing',
     note: 'Condition unverified; inspection scheduled before machinery moves.',
+    location: [-80.097700, 44.300100],
     proofs: [
       { slotId: 'obs-suggested-task', loggedResult: { label: 'Inspect culvert condition', domain: 'Access', priority: 'high' } },
       { slotId: 'obs-suggested-task', loggedResult: { label: 'Map existing fence lines', domain: 'Infrastructure', priority: 'medium' } },
@@ -380,6 +388,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-08',
     label: 'Prevailing wind + sun sectors logged',
     note: 'Sector read from the field centre informs windbreak placement.',
+    location: [-80.100500, 44.299900],
     proofs: [
       { slotId: 'obs-wind-obs', loggedResult: { dir: 'SW', speedMs: 6.4 } },
       { slotId: 'obs-wind-obs', loggedResult: { dir: 'SW', speedMs: 5.8 } },
@@ -399,6 +408,7 @@ export const MTC_OBSERVE_BUNDLE: readonly ObserveSeedRow[] = [
     capturedAt: '2026-05-20',
     label: 'Land reading in progress',
     note: 'Baseline climate/landform/water/soil/ecology read still underway.',
+    location: [-80.101000, 44.300300],
   },
 ];
 
