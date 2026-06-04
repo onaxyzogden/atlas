@@ -408,6 +408,59 @@ Explicit-path commits on `feat/atlas-permaculture`, not pushed; Phase 3 files we
 absorbed into a foreign out-of-band commit ([[project-branch-rebase]]) so Phases
 4-5 stage+commit atomically.
 
+## Specialised viz read live numbers via typed proof-slot bindings (2026-06-03, `db806872`,`7d1c910c`)
+
+The `{ type:'none' }` degrade above is now a real read-side compiler: all SIX
+specialised charts render live numbers, sourced from proof items already captured
+in Act (`FieldActionProofItem.loggedResult`) -- no new capture UI. Full rationale:
+[[decisions/2026-06-03-atlas-observe-lens-measurement-bindings]]. Shape:
+
+- **Typed binding (producer, `@ogden/shared`).** NEW
+  `schemas/observe/lensMeasurement.schema.ts` -- `MeasurementVizField` is a closed
+  10-member enum keyed 1:1 to the viz arrays (`water.infiltrationData`,
+  `water.sources`, `soil.phData`, `topography.elevationZones`,
+  `topography.slopeBreakdown`, `climate.windRose`, `climate.microclimates`,
+  `human.capacityBars`, `human.consentItems`, `infrastructure.suggestedTasks`),
+  each with a Zod payload schema (`VIZ_FIELD_PAYLOAD`) + safe-read
+  `parseLensMeasurement`. `ProofSchemaSlotSchema` gains an optional
+  `measurementBinding {lens,vizField,zoneKey?,dimension?,order?}` (no migration --
+  passthrough). `constants/fieldAction/proofSchemas.ts` adds `getMeasurementSlot`
+  (over `BOUND_SLOTS_BY_ID`) + a NEW `observe-measurement` catalog entry (ten
+  `logged_result` slots, one per vizField). Why typed not string-matched: a
+  projected proof item lacks the slot label, `slotId` is not globally unique, and
+  the rich rows need structured/directional fields a scalar cannot carry.
+- **Read-side compiler (consumer, `apps/web`).** NEW pure store-free
+  `lens/lensData/specialisedBuilders.ts` -- `SlotResolver` injected;
+  `collectByVizField` groups a lens's proof items by resolved vizField;
+  `parseRows<T>` flat-maps each row's `loggedResult` through the payload schema
+  (Zod `.filter` does not narrow -> flatMap + inline ternary). Per-viz builders
+  compute presentation read-side: infiltration min-max x + good/moderate/risk
+  band, slope pct = areaM2/total, wind 8-bin compass histogram (freq=count,
+  speed=mean m/s -> km/h), capacity threshold colour, conditional pH
+  om/compaction. `buildSpecialisedForLens(lensId, proofItems, getSlot)` -> real
+  union member when >=1 bound row resolves, else the honest `{ type:'none' }`
+  (partial rows allowed). Wired in `liveBundle.ts` (`LiveBundleInput.getSlot?`
+  defaulting to a no-op resolver; the hook passes `getMeasurementSlot`).
+- **Partial-degrade guards.** `types.ts` relaxes `PhRow.om?`/`compaction?`;
+  `components.tsx` guards the `SoilSpecialised` OM/compaction spans so a pH-only
+  row renders honestly. Mock payloads supply every field -> mock byte-unaffected.
+- **Seed.** `builtinObserveDataPoints.ts` gains optional `proofs?` on
+  `ObserveSeedRow`, threaded into real `FieldActionProofItem`s; MTC authors
+  captures for one domain per lens (infiltration 46/24/9, slope
+  12000/11000/5000 -> 43/39/18, wind SW/W/S/NW, capacity 45/70/30, partial pH).
+
+Verified: `tsc` EXIT 0; bounded `specialisedBuilders.test.ts` + rewritten
+`liveBundle.test.ts` green; live `preview_eval` on `/v3/project/mtc/observe`
+(Live) shows all six real charts -- Water (infiltration + sources), Climate (wind
+rose 8 petals + microclimates), Living (pH bars incl. Creek-edge partial),
+Foundation (elevation zones + slope 43/39/18%), Human (capacity 45/70/30 +
+consent), Infrastructure (suggested tasks HIGH/MEDIUM/LOW). `preview_screenshot`
+hung ([[project-screenshot-hang]]) -- disclosed, DOM-proof. Commits P2 `db806872`,
+P3 `7d1c910c` (P4 folded into P2), explicit-path, foreign WIP untouched, not
+pushed. **Deferred:** the scalar/`dimension` capture mode is carried-but-unconsumed;
+authoring bindings onto the REAL Act field-action schemas (beyond the demo
+`observe-measurement` catalog entry) is a future producer task.
+
 ## Notes
 
 - `ObserveDataPoint` carries `sourceObjectiveId` (nullable FK, persist v2) -- the
