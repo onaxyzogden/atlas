@@ -926,6 +926,56 @@ left for operator; subsequent commits use `git commit -- <pathspec>`). Gap A now
 114 across the remaining primary types (agritourism, ecovillage, education,
 wellness). Log: [[log/2026-06-03-olos-act-offgrid-overrides]].
 
+## Objective->tool overrides: agritourism (2026-06-03)
+
+Eighth per-type catalogue wired (audit remediation R1/R3), after homestead,
+regen-farm, market-garden, orchard, livestock_operation, conservation and
+off_grid. All **34 `ag-*` agritourism objectives** carry explicit
+`OBJECTIVE_ACT_TOOLS_OVERRIDE` entries; agritourism ships **no standalone
+secondary layer and no patches**, so this is a primary-only wiring (and a
+primary-only ratchet). **Count is 34 not 29** -- the eco-resort / glamping
+extension grew the catalogue out-of-band (commits `89541b55`+`15680301`:
+AG-S3.7, AG-S4.9, AG-S5.9, AG-S5.10, AG-S7.8); the ratchet reads
+`AGRITOURISM_PRIMARY_OBJECTIVES` live, so the grown set was covered
+automatically. **19 grounded**, concentrated in the S2/S3 surveys
+(arrival-experience->roads/parking/gates/path/hazard-zone, hospitality-infra->
+buildings/dwellings/barns, landscape-context->neighbour-pin/catchment/
+hazard-zone/note, water-sanitation-demand->spring/watercourse/wells/storage,
+sensory-environment->note/vegetation/wind-sector, emergency-access->roads/path/
+fire-sector/hazard-zone, food-production-capacity->crops/orchards/beds/paddocks/
+buildings, ecological-carrying-capacity->soil/erosion/wildlife-sector/
+buffer-ring/zone) and the S4 zoning + S5 design block (circulation->zone/path/
+buffer-ring/fencing, safety-compliance->fire-sector/hazard-zone/path,
+biosecurity-zoning->buffer-ring/fencing/gates/zone, accommodation->dwellings/
+buildings, dining-infra->buildings/barns, programming-infra->path/buildings/
+zone, sanitation-infra->buildings/tanks/water-lines, safety-infra->path/
+fire-sector/roads/hazard-zone, dispersed-siting->dwellings/zone/path/
+buffer-ring, decentralised-servicing->tanks/water-lines/catchment/power), plus
+food-integration->harvest; **15 intentional `[]`** (s1 vision/capacity/
+regulatory, s2 seasonal-patterns, s4 service-model/food-strategy/revenue-model,
+s6 experience-feedback/compliance-monitoring/load-monitoring, the whole s7
+staffing/booking/phased-launch/adaptive/seasonal-resilience band). **Amanah:**
+AG-S4.8 (revenue model) carries the membership / season-pass Amanah scopeNote in
+the **catalogue** (*bay` ma laysa `indak* / gharar -- membership-benefit-not-
+advance-purchase, cancellable/pro-rata-refundable, genuine non-stay substance,
+bounded by the AG-S3.7 carrying-capacity ceiling, routed to Scholar Council);
+the Act layer maps AG-S4.8 to `[]` so **no act surface engages the sales
+instrument** -- mirroring market_garden's CSA-flagged s1 (MGD-S1.4/S1.6) and
+livestock's CSA-flagged s7 (LVS-S7.7); no fiqh re-encoded at the Act layer.
+AG-S7.8 is explicitly operational planning, not a sales surface, also `[]`.
+Before this the agritourism objectives fell through `STRATUM_ACT_TOOLS_DEFAULT`
+(surveys & design surfaced the access-utilities set instead of access/structure/
+climate-sector/zoning families). **R3:** `actToolCoverage.test.ts` ratcheted
+with an agritourism assertion over `AGRITOURISM_PRIMARY_OBJECTIVES`. Verified:
+shared `tsc` EXIT 0; audit Gap A **114->80**, Gap B 0, Gap C 85->97 (87
+intentional / 10 default-driven); bounded `--pool=forks` `actToolCoverage`
+13/13, `objectiveObserveDomains` 8/8, `resolveProjectObjectives` 25/25. Clean
+commit `a1f9b042` via `git commit -- <pathspec>` (the off_grid `ee3af9b1`
+index-pollution lesson -- captured exactly the 3 intended files despite heavy
+out-of-band working-tree changes), not pushed. Gap A now **80** across the
+remaining primary types (ecovillage, education, wellness). Log:
+[[log/2026-06-03-olos-act-agritourism-overrides]].
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
