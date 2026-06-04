@@ -102,3 +102,126 @@ No covenant content is re-encoded at this layer.
 
 Builds on the assignment-substrate sync precedent
 ([[decisions]], `docs/superpowers/plans/2026-05-29-atlas-assignment-substrate.md`).
+
+---
+
+## Phase 1 — unify Act completion onto one surface (2026-06-04)
+
+**Status:** implemented (behind `OLOS_FORMAL_PROOF_ENABLED`, still default-off).
+
+The kickoff slice (above) wired the formal path but mounted it **only in
+`ActFeedbackLoop`** inside the OLOS ObjectiveWorkspace — a different surface
+from where stewards actually complete work (the Act **tier-shell** right rail,
+`ActTierExecutionPanel`). Phase 1 surfaces the formal panel inside the tier-shell
+completion surface so the two completion models converge on one place, additive
+and behind the same default-off flag. The lightweight `ObserveDataPoint`
+"Record observation" path is **kept as the permanent offline fallback**, not
+removed.
+
+### The obstacle: two id spaces
+
+The two completion models live in different route trees with **non-matching
+identifier spaces**:
+
+| | Lightweight (live, default) | Formal (flag-gated) |
+|---|---|---|
+| Unit of work | `PlanStratumObjective` (per-project) | `ActTask` (`olos_act_tasks`) |
+| Objective id | `ObserveDataPoint.sourceObjectiveId` = `PlanStratumObjective.id` | `ActTask.objectiveId` = **universal catalogue** Act objective id (`${domain}--act`) |
+| Existence | every stratum objective | sparse — only after an approved Plan→Act handoff |
+
+### The domain-bridge contract
+
+The seam between them is the **domain**, never id-equality:
+
+```
+getPrimaryDomainForObjective(planStratumObjective)
+  → getObjective('act', domain)?.id            // universal Act catalogue id
+  → actTaskStore.listForObjective(projectId, thatId)
+```
+
+- **Pure core:** `resolveActObjectiveId(objective): string | null`
+  (`packages/shared/src/relationships/actObjectiveTaskBridge.ts`) — objective →
+  domain → universal Act catalogue objective id (null when the domain or its Act
+  objective is absent).
+- **Store-aware hook:** `useActObjectiveTaskBridge(projectId, serverId, objective)`
+  (`apps/web/src/v3/act/tier-shell/`) returns
+  `{ status: 'offline' | 'no-domain' | 'no-task' | 'ready', actObjectiveId, tasks }`.
+  **Read-only** — it never writes a store and never seeds a task.
+
+**Never** match `ObserveDataPoint.sourceObjectiveId` against `ActTask.objectiveId`;
+they are different id spaces and would silently mis-link.
+
+### No auto-seed
+
+When synced but no handoff-seeded `ActTask` exists for the domain, the tier-shell
+surfaces a **"No formal task yet" hint** and does nothing else. Auto-seeding is
+forbidden: tier-shell objectives carry no `ActHandoffPackage`, and
+`ActTaskSchema` requires `handoffPackageId` (min 1) — fabricating one would
+pollute the assignment list with a synthetic package. The bridge stays
+read-only; tasks arrive only via an approved Plan→Act handoff.
+
+### Tier-shell-only `task_verification` emission
+
+On a formal **PASS** sign-off, the tier-shell adapter emits a
+`task_verification` `ObserveDataPoint` so the formal completion still lands in
+the existing Observe dashboard / rollup / Plan reconciliation:
+
+```
+recordDataPoint({
+  domainId: getPrimaryDomainForObjective(objective),  // same key as lightweight
+  sourceType: 'task_verification',
+  sourceActionId: task.id,                             // the verified ActTask
+  sourceObjectiveId: objective.id,                     // PlanStratumObjective id space
+  statusOutput: 'clear',
+  measurementValue: { label: objective.title, note: verification.notes ?? null },
+  capturedBy: 'act-tier-formal',
+  // remaining fields → schema defaults
+})
+```
+
+This is emitted **only from the tier-shell**, where the `PlanStratumObjective`
+is in hand so `domainId` + `sourceObjectiveId` match the lightweight path
+exactly. The OLOS-workspace `ActFeedbackLoop` mount leaves `onVerifiedPass`
+unset — it lacks the objective and would mis-key Observe. `needs-rework` emits
+nothing. The mechanism is a new optional `onVerifiedPass?(verification)` callback
+on `TaskProofPanel`, fired inside `onSignOff` after the two-write succeeds and
+only when `outcome === 'pass'`.
+
+### Restyle
+
+`TaskProofPanel` moved from the shared `HandoffSection.module.css` to a dedicated
+`TaskProofPanel.module.css`. Every rule reads a panel-scoped `--tpp-*` token
+resolved on `.packet` from a host-variable fallback chain (tier-shell `--color-*`
+→ OLOS `--bg-*`/`--text-*`/`--accent-*` → dark default), so the panel inherits
+its host palette (warm/gold in the tier-shell, cool/blue in OLOS) instead of
+hardcoding one theme.
+
+### Invariants
+
+- **Flag-off byte-identical.** All new tier-shell JSX is gated on
+  `isOlosFormalProofEnabled()`; the bridge hook is pure-read (no DOM, no writes),
+  so a flag-off render is unchanged.
+- **Offline = lightweight.** No `serverId` ⇒ bridge `'offline'` ⇒ the formal
+  section never mounts; "Record observation" is the sole completion path.
+- **No schema change, no new API, no auto-seed, no route change.** Reuses
+  `actTaskStore` / `proofRecordStore` / `verificationRecordStore` and the existing
+  proofs/verifications/tasks APIs and hooks as-is.
+
+### Files
+
+- `packages/shared/src/relationships/actObjectiveTaskBridge.ts` (+ index export)
+- `apps/web/src/v3/act/tier-shell/useActObjectiveTaskBridge.ts`
+- `apps/web/src/v3/act/tier-shell/ActTierShell.tsx` (serverId/member/role
+  resolution + `useActTaskSync`, threaded as optional props)
+- `apps/web/src/v3/act/tier-shell/ActTierExecutionPanel.tsx` (flag-gated
+  "Verification" section + `task_verification` emission)
+- `apps/web/src/v3/olos/handoff/TaskProofPanel.tsx` (`onVerifiedPass` +
+  module swap) + `TaskProofPanel.module.css`
+- Tests beside each surface (bridge core, bridge hook, panel callback, formal
+  section + emission).
+
+### Still deferred (later phases)
+
+Retiring `recordDataPoint` for completion, flipping the flag default, per-type
+capture affordances, `task_verification` emission from the OLOS-workspace mount,
+and a live e2e smoke against native pg 5432.
