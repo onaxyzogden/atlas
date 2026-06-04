@@ -53,7 +53,9 @@ export type ProofInspectionItem = z.infer<typeof ProofInspectionItemSchema>;
 export const ProofDetailsSchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('inspection'),
-    items: z.array(ProofInspectionItemSchema),
+    // At least one checklist item: an empty inspection is benign but meaningless,
+    // so it is rejected at the schema boundary rather than stored as evidence.
+    items: z.array(ProofInspectionItemSchema).min(1),
   }),
   // RESERVED (not implemented in Phase 2 - add additively):
   //   z.object({ kind: z.literal('signature'), signerName, attestation, signedAt }),

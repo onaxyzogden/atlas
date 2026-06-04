@@ -38,6 +38,12 @@ describe('ProofDetails', () => {
     expect(ProofDetailsSchema.safeParse(bad).success).toBe(false);
   });
 
+  it('rejects an inspection with an empty items array', () => {
+    const empty = { kind: 'inspection', items: [] };
+    expect(ProofDetailsSchema.safeParse(empty).success).toBe(false);
+    expect(parseProofDetails(empty)).toBeNull();
+  });
+
   it('ProofRecord parses WITH details', () => {
     const rec = {
       ...base,

@@ -145,8 +145,14 @@ export default function TaskProofPanel({
   const [busy, setBusy] = useState(false);
   const [captureError, setCaptureError] = useState<string | null>(null);
 
+  // An inspection proof needs at least one checklist item; an empty inspection
+  // is benign but meaningless and is rejected at the schema boundary, so block
+  // it here too rather than attempt a doomed capture.
+  const emptyInspection =
+    proofType === 'inspection' && inspectionItems.length === 0;
+
   const onCapture = async () => {
-    if (!serverId || busy) return;
+    if (!serverId || busy || emptyInspection) return;
     setBusy(true);
     setCaptureError(null);
     try {
@@ -408,10 +414,15 @@ export default function TaskProofPanel({
               type="button"
               className={css.btnPrimary}
               onClick={() => void onCapture()}
-              disabled={busy}
+              disabled={busy || emptyInspection}
             >
               Capture proof
             </button>
+            {emptyInspection ? (
+              <span className={css.chip}>
+                Add at least one checklist item
+              </span>
+            ) : null}
             {captureError ? (
               <span className={css.chip} role="alert">
                 {captureError}

@@ -354,6 +354,33 @@ describe('TaskProofPanel - per-type affordances', () => {
     });
   });
 
+  it('blocks capturing an inspection proof with no checklist items', async () => {
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'inspection' },
+    });
+    // No "Add check" clicked: the items array is empty.
+    const captureBtn = screen.getByText('Capture proof') as HTMLButtonElement;
+    expect(captureBtn.disabled).toBe(true);
+    expect(screen.getByText('Add at least one checklist item')).not.toBeNull();
+
+    fireEvent.click(captureBtn);
+    // The guard short-circuits onCapture, so no proof is created.
+    expect(h.proofCreateCalls).toHaveLength(0);
+  });
+
   it('captures a photo proof by uploading the picked file into fileUri', async () => {
     uploadProofFileMock.mockResolvedValue('https://bucket/p.jpg');
     h.proofCreateResp = proof({ id: 'uuid-new', proofType: 'photo' });
