@@ -1,0 +1,11 @@
+
+> @ogden/web@0.1.0 typecheck C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\apps\web
+> node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit
+
+src/store/__tests__/projectStore.secondaryReopen.test.ts(44,37): error TS2352: Conversion of type '{ primaryTypeId: "regenerative_farm"; secondaryTypeIds: never[]; }' to type '{ primaryTypeId: "homestead" | "regenerative_farm" | "market_garden" | "orchard_food_forest" | "silvopasture" | "ecovillage" | "agritourism" | "education" | "conservation" | "off_grid" | "wellness" | "nursery" | "residential"; secondaryTypeIds: ("homestead" | ... 11 more ... | "residential")[]; tensionAcknowledgemen...' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ primaryTypeId: "regenerative_farm"; secondaryTypeIds: never[]; }' is missing the following properties from type '{ primaryTypeId: "homestead" | "regenerative_farm" | "market_garden" | "orchard_food_forest" | "silvopasture" | "ecovillage" | "agritourism" | "education" | "conservation" | "off_grid" | "wellness" | "nursery" | "residential"; secondaryTypeIds: ("homestead" | ... 11 more ... | "residential")[]; tensionAcknowledgemen...': tensionAcknowledgements, versionHistory, reopeningAcknowledgements
+src/store/__tests__/projectStore.secondaryReopen.test.ts(50,5): error TS2322: Type '"farm"' is not assignable to type '"homestead" | "regenerative_farm" | "market_garden" | "orchard_food_forest" | "silvopasture" | "ecovillage" | "agritourism" | "education" | "conservation" | "off_grid" | "wellness" | "nursery" | "residential" | "moontrance" | undefined'.
+C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\apps\web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @ogden/web@0.1.0 typecheck: `node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit`
+Exit status 2
+WEB_TSC_EXIT=2

@@ -1,0 +1,10 @@
+src/routes/act-records/index.ts(295,29): error TS2349: This expression is not callable.
+  Type 'TransactionSql<{}>' has no call signatures.
+src/routes/act-records/index.ts(308,35): error TS2349: This expression is not callable.
+  Type 'TransactionSql<{}>' has no call signatures.
+src/routes/act-records/index.ts(332,35): error TS2349: This expression is not callable.
+  Type 'TransactionSql<{}>' has no call signatures.
+src/routes/act-records/index.ts(353,15): error TS2349: This expression is not callable.
+  Type 'TransactionSql<{}>' has no call signatures.
+src/routes/act-records/index.ts(360,15): error TS2349: This expression is not callable.
+  Type 'TransactionSql<{}>' has no call signatures.

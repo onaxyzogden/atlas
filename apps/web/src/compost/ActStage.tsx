@@ -1,4 +1,4 @@
-/ ─── ACT STAGE ────────────────────────────────────────────────────────────────
+// ─── ACT STAGE ────────────────────────────────────────────────────────────────
 import { useState } from 'react';
 import { C, F, ACT_TASKS, getPhaseMeta, fToCStr, daysAbovePasteurisation, type ActTask } from './model.js';
 import { useCompostStore } from './useCompostStore.js';

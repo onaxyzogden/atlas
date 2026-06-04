@@ -32,7 +32,7 @@ function objective(
 }
 
 describe('resolveActObjectiveId', () => {
-  it('resolves via a per-objective override domain to that domain’s catalogue Act objective', () => {
+  it('resolves via a per-objective override domain to the catalogue Act objective for that domain', () => {
     // s1-vision overrides to ['vision-intent']; primary domain => vision-intent.
     const obj = objective({ id: 's1-vision', stratumId: 's1-project-foundation' });
     expect(OBJECTIVE_OBSERVE_DOMAINS_OVERRIDE['s1-vision']).toEqual([

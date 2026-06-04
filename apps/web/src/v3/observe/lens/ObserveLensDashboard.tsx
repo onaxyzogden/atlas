@@ -40,6 +40,7 @@ import {
   PseudoMap,
   RecentObservationsStrip,
 } from './components.js';
+import ObserveMap from './ObserveMap.js';
 import css from './ObserveLensDashboard.module.css';
 
 interface Props {
@@ -120,11 +121,23 @@ export default function ObserveLensDashboard({ projectId, dataSource = 'live' }:
           rightRailLabel="Land intelligence"
           leftRail={<CycleTimelineBar vertical />}
           canvas={
-            <PseudoMap
-              activeLens={activeLens}
-              onObsClick={handleObsClick}
-              selectedObs={selectedObs}
-            />
+            bundle.map ? (
+              <ObserveMap
+                boundary={bundle.map.boundary}
+                bbox={bundle.map.bbox}
+                markers={bundle.map.markers}
+                activeLens={activeLens}
+                onObsClick={handleObsClick}
+                selectedObs={selectedObs}
+                demoGeometry={bundle.map.demoGeometry}
+              />
+            ) : (
+              <PseudoMap
+                activeLens={activeLens}
+                onObsClick={handleObsClick}
+                selectedObs={selectedObs}
+              />
+            )
           }
           rightRail={
             <IntelligencePanel

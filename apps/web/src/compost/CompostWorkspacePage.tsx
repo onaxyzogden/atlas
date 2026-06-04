@@ -1,4 +1,4 @@
-**
+/**
  * CompostWorkspacePage — the `/compost` route component.
  *
  * A distinct lightweight vertical: it reuses the OLOS Plan / Act / Observe

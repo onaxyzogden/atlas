@@ -1,9 +1,8 @@
 /** @vitest-environment happy-dom */
 //
-// B2 specs for PruneLedgerModal: a steward-facing gated confirm dialog that
-// dry-runs a chronic-safe ledger compaction (via previewProjectPrune) and, only
-// after an explicit "I understand" tick, executes it (via pruneProjectRecords).
-// Seeds the observation-log store directly with setState; resets between tests.
+// B2 specs for PruneLedgerModal: a steward-facing single-click confirm dialog
+// that archive-not-erases one project's observation ledger. Seeds the
+// observation-log store directly with setState; resets between tests.
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -70,7 +69,7 @@ const withinWindowLedger = (): ObservationLogRecord[] =>
 
 beforeEach(() => {
   seq = 0;
-  useObservationLogStore.setState({ records: [] });
+  useObservationLogStore.setState({ records: [], archivedRecords: [] });
 });
 
 describe('PruneLedgerModal', () => {
@@ -82,47 +81,64 @@ describe('PruneLedgerModal', () => {
     );
   });
 
-  it('keeps confirm disabled until the understood gate is checked', () => {
+  it('names the rotation-cycle retention unit in the always-kept copy', () => {
+    useObservationLogStore.setState({ records: overWindowLedger() });
+    render(<PruneLedgerModal projectId="mtc" onClose={vi.fn()} />);
+    expect(screen.getByTestId('prune-ledger-card').textContent).toContain(
+      'rotation cycles within each season',
+    );
+  });
+
+  it('enables confirm immediately when something is removable (no checkbox gate)', () => {
     useObservationLogStore.setState({ records: overWindowLedger() });
     render(<PruneLedgerModal projectId="mtc" onClose={vi.fn()} />);
 
+    expect(screen.queryByTestId('prune-understood')).toBeNull();
     const confirm = screen.getByTestId('prune-confirm') as HTMLButtonElement;
-    expect(confirm.disabled).toBe(true);
-
-    fireEvent.click(screen.getByTestId('prune-understood'));
     expect(confirm.disabled).toBe(false);
   });
 
-  it('prunes on confirm, shows the result, and shrinks the ledger', () => {
+  it('archives on confirm, shows the archived result, and shrinks the active ledger', () => {
     useObservationLogStore.setState({ records: overWindowLedger() });
     render(<PruneLedgerModal projectId="mtc" onClose={vi.fn()} />);
 
-    fireEvent.click(screen.getByTestId('prune-understood'));
     fireEvent.click(screen.getByTestId('prune-confirm'));
 
     expect(screen.getByTestId('prune-result').textContent).toContain(
-      'Removed 3 records.',
+      'Archived 3 records.',
     );
     expect(useObservationLogStore.getState().records.length).toBe(12);
-    // The pending-action summary ("removes X of Y") is gone once the prune
-    // lands, so no stale/contradictory count is left on screen.
+    expect(useObservationLogStore.getState().archivedRecords.length).toBe(3);
     expect(screen.getByTestId('prune-ledger-card').textContent).not.toContain(
-      'Compacting removes',
+      'Compacting archives',
     );
   });
 
-  it('swaps to a Done button that calls onClose after a successful prune', () => {
+  it('swaps to a Done button that calls onClose after a successful archive', () => {
     useObservationLogStore.setState({ records: overWindowLedger() });
     const onClose = vi.fn();
     render(<PruneLedgerModal projectId="mtc" onClose={onClose} />);
 
-    fireEvent.click(screen.getByTestId('prune-understood'));
     fireEvent.click(screen.getByTestId('prune-confirm'));
 
-    // Confirm is gone; Done is present and closes the modal.
     expect(screen.queryByTestId('prune-confirm')).toBeNull();
     fireEvent.click(screen.getByTestId('prune-done'));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a Restore affordance once rows are archived and round-trips them', () => {
+    useObservationLogStore.setState({ records: overWindowLedger() });
+    render(<PruneLedgerModal projectId="mtc" onClose={vi.fn()} />);
+
+    expect(screen.queryByTestId('prune-restore')).toBeNull();
+
+    fireEvent.click(screen.getByTestId('prune-confirm'));
+    const restore = screen.getByTestId('prune-restore');
+    expect(restore.textContent).toContain('3');
+
+    fireEvent.click(restore);
+    expect(useObservationLogStore.getState().records.length).toBe(15);
+    expect(useObservationLogStore.getState().archivedRecords.length).toBe(0);
   });
 
   it('shows nothing-to-compact copy and no enabled confirm when within retention', () => {

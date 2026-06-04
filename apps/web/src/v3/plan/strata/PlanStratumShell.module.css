@@ -5,7 +5,7 @@
   padding: 24px 32px 32px;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg, #1f1d1a);
+  background: var(--color-bg, #14191f);
   color: var(--color-text, #f2ede3);
 }
 
@@ -43,9 +43,9 @@
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid var(--color-border-subtle, rgba(242, 237, 227, 0.18));
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 88%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 88%, #ffffff);
   color: var(--color-text-muted, rgba(242, 237, 227, 0.82));
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;

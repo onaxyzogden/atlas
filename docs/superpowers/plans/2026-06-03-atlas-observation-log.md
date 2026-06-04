@@ -12,7 +12,7 @@
 
 **Goal:** Build an append-only ledger of flag-closure facts so a future detector can reconstruct which protocol-signatures co-deviated in past cycles.
 
-**Architecture:** A persisted `ObservationRecord` (zod, validated) is appended inside `reviewFlagStore.resolveFlag`/`dismissFlag` -- the only steward-closure chokepoints -- via a pure `buildObservationRecord` helper in `@ogden/shared`. Storage is `observationLogStore`, a structural twin of `proofEventStore` (flat array, append-only, projectId-tagged). Cluster semantics are NOT in the log; they stay derived in the (separate, later) chronic detector. Headless slice: schema + emission + read seam + tests, no UI.
+**Architecture:** A persisted `ObservationLogRecord` (zod, validated) is appended inside `reviewFlagStore.resolveFlag`/`dismissFlag` -- the only steward-closure chokepoints -- via a pure `buildObservationLogRecord` helper in `@ogden/shared`. Storage is `observationLogStore`, a structural twin of `proofEventStore` (flat array, append-only, projectId-tagged). Cluster semantics are NOT in the log; they stay derived in the (separate, later) chronic detector. Headless slice: schema + emission + read seam + tests, no UI.
 
 **Tech Stack:** TypeScript (strict), zod, Zustand 5 (`persist`), Vitest (`--pool=forks`), pnpm via corepack.
 
@@ -37,8 +37,8 @@
 
 | File | Responsibility |
 |---|---|
-| `packages/shared/src/schemas/protocol/observationRecord.schema.ts` (create) | `ObservationRecordSchema` (zod) + `ObservationRecord` type + pure `buildObservationRecord`. |
-| `packages/shared/src/schemas/protocol/__tests__/observationRecord.schema.test.ts` (create) | Builder field-mapping + schema validation tests. |
+| `packages/shared/src/schemas/protocol/observationLogRecord.schema.ts` (create) | `ObservationLogRecordSchema` (zod) + `ObservationLogRecord` type + pure `buildObservationLogRecord`. |
+| `packages/shared/src/schemas/protocol/__tests__/observationLogRecord.schema.test.ts` (create) | Builder field-mapping + schema validation tests. |
 | `packages/shared/src/index.ts` (modify, ~L181) | Barrel export the new schema. |
 | `apps/web/src/store/observationLogStore.ts` (create) | Append-only store (twin of proofEventStore) + `useObservationLog` hook. |
 | `apps/web/src/store/__tests__/observationLogStore.test.ts` (create) | Store append/filter + hook stability tests. |
@@ -48,22 +48,24 @@
 
 ---
 
-## Task T1 -- Shared: `ObservationRecord` schema + `buildObservationRecord` (TDD)
+> **NAMING NOTE (resolved collision):** A pre-existing `schemas/olos/observationRecord.schema.ts` already exports `ObservationRecord`/`ObservationRecordSchema` (the Observe-objective output -- a different concept) through the barrel. To avoid a TS2308 ambiguity this feature's row type is named **`ObservationLogRecord`** (schema `ObservationLogRecordSchema`, builder `buildObservationLogRecord`, file `observationLogRecord.schema.ts`). The closure-kind enum stays `ObservationCloseKind` (no collision).
+
+## Task T1 -- Shared: `ObservationLogRecord` schema + `buildObservationLogRecord` (TDD)
 
 **Files:**
-- Create: `packages/shared/src/schemas/protocol/observationRecord.schema.ts`
-- Create: `packages/shared/src/schemas/protocol/__tests__/observationRecord.schema.test.ts`
+- Create: `packages/shared/src/schemas/protocol/observationLogRecord.schema.ts`
+- Create: `packages/shared/src/schemas/protocol/__tests__/observationLogRecord.schema.test.ts`
 - Modify: `packages/shared/src/index.ts` (~L181)
 
 - [ ] **Step 1: Write the failing test**
 
 ```ts
-// observationRecord.schema.test.ts
+// observationLogRecord.schema.test.ts
 import { describe, it, expect } from 'vitest';
 import {
-  ObservationRecordSchema,
-  buildObservationRecord,
-} from '../observationRecord.schema.js';
+  ObservationLogRecordSchema,
+  buildObservationLogRecord,
+} from '../observationLogRecord.schema.js';
 import type { ObjectiveReviewFlag } from '../reviewFlag.schema.js';
 
 const baseFlag: ObjectiveReviewFlag = {
@@ -81,9 +83,9 @@ const baseFlag: ObjectiveReviewFlag = {
   raisedAt: '2026-03-01T00:00:00.000Z',
 };
 
-describe('buildObservationRecord', () => {
+describe('buildObservationLogRecord', () => {
   it('maps every field from the flag and stamps closure', () => {
-    const rec = buildObservationRecord(
+    const rec = buildObservationLogRecord(
       baseFlag,
       'resolved',
       '2026-04-01T00:00:00.000Z',
@@ -107,7 +109,7 @@ describe('buildObservationRecord', () => {
   });
 
   it('handles an empty window (bucketKey unknown:0, season/cycleNumber omitted)', () => {
-    const rec = buildObservationRecord(
+    const rec = buildObservationLogRecord(
       { ...baseFlag, window: {} },
       'dismissed',
       '2026-04-02T00:00:00.000Z',
@@ -120,13 +122,13 @@ describe('buildObservationRecord', () => {
   });
 
   it('produces a value the schema accepts', () => {
-    const rec = buildObservationRecord(baseFlag, 'resolved', '2026-04-01T00:00:00.000Z', 'rec-3');
-    expect(ObservationRecordSchema.safeParse(rec).success).toBe(true);
+    const rec = buildObservationLogRecord(baseFlag, 'resolved', '2026-04-01T00:00:00.000Z', 'rec-3');
+    expect(ObservationLogRecordSchema.safeParse(rec).success).toBe(true);
   });
 
   it('rejects a record missing a required field', () => {
     const bad = { id: 'x' };
-    expect(ObservationRecordSchema.safeParse(bad).success).toBe(false);
+    expect(ObservationLogRecordSchema.safeParse(bad).success).toBe(false);
   });
 });
 ```
@@ -134,14 +136,14 @@ describe('buildObservationRecord', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `corepack pnpm --filter @ogden/shared exec vitest run --pool=forks observationRecord`
-Expected: FAIL -- cannot resolve `../observationRecord.schema.js`.
+Expected: FAIL -- cannot resolve `../observationLogRecord.schema.js`.
 
 - [ ] **Step 3: Write the implementation**
 
 ```ts
-// observationRecord.schema.ts
+// observationLogRecord.schema.ts
 //
-// ObservationRecord: an immutable, append-only ledger row written each time a
+// ObservationLogRecord: an immutable, append-only ledger row written each time a
 // steward CLOSES an ObjectiveReviewFlag (resolve or dismiss). It is the
 // historical substrate the (separate, later) chronic co-occurrence detector
 // reads to reconstruct which protocol-signatures co-deviated across cycles.
@@ -162,7 +164,7 @@ import { temporalBucketKey } from '../../constants/protocol/deviationPolicy.js';
 export const ObservationCloseKind = z.enum(['resolved', 'dismissed']);
 export type ObservationCloseKind = z.infer<typeof ObservationCloseKind>;
 
-export const ObservationRecordSchema = z.object({
+export const ObservationLogRecordSchema = z.object({
   /** Stable unique id, one per CLOSURE event (caller-generated). */
   id: z.string(),
   /** The project this closure belongs to. */
@@ -190,7 +192,7 @@ export const ObservationRecordSchema = z.object({
   /** Whether the closure was a resolve or a dismiss. */
   closeKind: ObservationCloseKind,
 });
-export type ObservationRecord = z.infer<typeof ObservationRecordSchema>;
+export type ObservationLogRecord = z.infer<typeof ObservationLogRecordSchema>;
 
 /**
  * Pure builder: derive a closure record from the flag being closed. Store-free
@@ -198,12 +200,12 @@ export type ObservationRecord = z.infer<typeof ObservationRecordSchema>;
  * caller supplies closedAt (the same ISO stamp written to the flag) and a
  * unique id (crypto.randomUUID() at the call site).
  */
-export function buildObservationRecord(
+export function buildObservationLogRecord(
   flag: ObjectiveReviewFlag,
   closeKind: ObservationCloseKind,
   closedAt: string,
   id: string,
-): ObservationRecord {
+): ObservationLogRecord {
   const season = flag.window.season;
   const cycleNumber = flag.window.cycleNumber;
   return {
@@ -230,7 +232,7 @@ In `packages/shared/src/index.ts`, immediately after the line
 `export * from './schemas/protocol/reviewFlag.schema.js';` (~L181), add:
 
 ```ts
-export * from './schemas/protocol/observationRecord.schema.js';
+export * from './schemas/protocol/observationLogRecord.schema.js';
 ```
 
 - [ ] **Step 5: Run tests + shared tsc**
@@ -244,9 +246,9 @@ Expected: EXIT 0 (no errors in the new file).
 
 ```
 git fetch ; (confirm 0 behind)
-git status -s -- packages/shared/src/schemas/protocol/observationRecord.schema.ts packages/shared/src/schemas/protocol/__tests__/observationRecord.schema.test.ts packages/shared/src/index.ts
-git add -- packages/shared/src/schemas/protocol/observationRecord.schema.ts packages/shared/src/schemas/protocol/__tests__/observationRecord.schema.test.ts packages/shared/src/index.ts
-git commit -m "feat(shared): add ObservationRecord schema + buildObservationRecord"
+git status -s -- packages/shared/src/schemas/protocol/observationLogRecord.schema.ts packages/shared/src/schemas/protocol/__tests__/observationLogRecord.schema.test.ts packages/shared/src/index.ts
+git add -- packages/shared/src/schemas/protocol/observationLogRecord.schema.ts packages/shared/src/schemas/protocol/__tests__/observationLogRecord.schema.test.ts packages/shared/src/index.ts
+git commit -m "feat(shared): add ObservationLogRecord schema + buildObservationLogRecord"
 ```
 
 **Gate T1:** shared tsc clean; T1 specs green; existing shared specs unaffected.
@@ -270,9 +272,9 @@ import {
   useObservationLogStore,
   useObservationLog,
 } from '../observationLogStore.js';
-import type { ObservationRecord } from '@ogden/shared';
+import type { ObservationLogRecord } from '@ogden/shared';
 
-const rec = (over: Partial<ObservationRecord> = {}): ObservationRecord => ({
+const rec = (over: Partial<ObservationLogRecord> = {}): ObservationLogRecord => ({
   id: 'rec-1',
   projectId: 'mtc',
   flagId: 'flag-1',
@@ -338,7 +340,7 @@ Expected: FAIL -- cannot resolve `../observationLogStore.js`.
 ```ts
 // observationLogStore.ts
 //
-// observationLogStore -- append-only ledger of flag-closure ObservationRecords.
+// observationLogStore -- append-only ledger of flag-closure ObservationLogRecords.
 // Structural twin of proofEventStore: flat array, add-only, projectId-tagged,
 // persisted. NO update/remove -- retention is unbounded and orphans are by
 // design (the history is the asset; mirrors the proofEvent audit covenant).
@@ -351,12 +353,12 @@ import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
-import type { ObservationRecord } from '@ogden/shared';
+import type { ObservationLogRecord } from '@ogden/shared';
 
 interface ObservationLogState {
-  records: ObservationRecord[];
-  append: (r: ObservationRecord) => void;
-  getProjectRecords: (projectId: string) => ObservationRecord[];
+  records: ObservationLogRecord[];
+  append: (r: ObservationLogRecord) => void;
+  getProjectRecords: (projectId: string) => ObservationLogRecord[];
 }
 
 export const useObservationLogStore = create<ObservationLogState>()(
@@ -378,7 +380,7 @@ export const useObservationLogStore = create<ObservationLogState>()(
 rehydrateWithLogging(useObservationLogStore);
 
 /** Stable empty result for null projectId / no matches (referential stability). */
-const EMPTY_RECORDS: ReadonlyArray<ObservationRecord> = [];
+const EMPTY_RECORDS: ReadonlyArray<ObservationLogRecord> = [];
 
 /**
  * Zustand-v5-safe read hook: stable select of the whole array, then derive the
@@ -387,7 +389,7 @@ const EMPTY_RECORDS: ReadonlyArray<ObservationRecord> = [];
  */
 export function useObservationLog(
   projectId: string | null,
-): ReadonlyArray<ObservationRecord> {
+): ReadonlyArray<ObservationLogRecord> {
   const records = useObservationLogStore((s) => s.records);
   return useMemo(() => {
     if (!projectId) return EMPTY_RECORDS;
@@ -509,11 +511,11 @@ Expected: FAIL -- 0 records appended (no emission wired yet).
 Near the existing `@ogden/shared` import block, add:
 
 ```ts
-import { buildObservationRecord } from '@ogden/shared';
+import { buildObservationLogRecord } from '@ogden/shared';
 import { useObservationLogStore } from './observationLogStore.js';
 ```
 
-(`observationLogStore` imports only the `ObservationRecord` TYPE from `@ogden/shared` and never imports `reviewFlagStore`, so there is no import cycle.)
+(`observationLogStore` imports only the `ObservationLogRecord` TYPE from `@ogden/shared` and never imports `reviewFlagStore`, so there is no import cycle.)
 
 - [ ] **Step 4: Emit inside `resolveFlag`**
 
@@ -528,7 +530,7 @@ Replace the `resolveFlag` action body (currently `set((state) => ({ ... }))` at 
           useObservationLogStore
             .getState()
             .append(
-              buildObservationRecord(
+              buildObservationLogRecord(
                 target,
                 'resolved',
                 new Date().toISOString(),
@@ -570,7 +572,7 @@ Replace the `dismissFlag` action body (~L386-400) similarly:
           useObservationLogStore
             .getState()
             .append(
-              buildObservationRecord(
+              buildObservationLogRecord(
                 target,
                 'dismissed',
                 new Date().toISOString(),
@@ -660,7 +662,7 @@ Expected: all green -- new specs (`observationRecord`, `observationLogStore`, `r
 
 ## Definition of Done
 
-A zod `ObservationRecord` + pure `buildObservationRecord` ship in `@ogden/shared`; an append-only `observationLogStore` (twin of `proofEventStore`, registered in `syncManifest`) persists records under `ogden-observation-log`; `reviewFlagStore.resolveFlag`/`dismissFlag` each append exactly one record (resolve+dismiss only; dormancy/reopen excluded); a Zustand-v5-safe `useObservationLog(projectId)` exposes per-project rows; shared + web tsc clean (foreign excepted); all new specs green (bounded forks); verified via `preview_eval` (disclosed); spine + ProtocolConfirmationFlow untouched; no deletions; ASCII-only; not pushed unless asked.
+A zod `ObservationLogRecord` + pure `buildObservationLogRecord` ship in `@ogden/shared`; an append-only `observationLogStore` (twin of `proofEventStore`, registered in `syncManifest`) persists records under `ogden-observation-log`; `reviewFlagStore.resolveFlag`/`dismissFlag` each append exactly one record (resolve+dismiss only; dormancy/reopen excluded); a Zustand-v5-safe `useObservationLog(projectId)` exposes per-project rows; shared + web tsc clean (foreign excepted); all new specs green (bounded forks); verified via `preview_eval` (disclosed); spine + ProtocolConfirmationFlow untouched; no deletions; ASCII-only; not pushed unless asked.
 
 ## Deferred (explicit, later slices)
 

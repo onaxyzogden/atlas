@@ -17,6 +17,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // Forks (not the default `threads` pool) are force-killed by tinypool on
+    // teardown. happy-dom can leave a pending OS handle, and the `threads` pool
+    // waits for it indefinitely on Windows → `vitest run` never exits and
+    // becomes a multi-day zombie. Forks + a bounded teardown guarantee exit.
+    pool: 'forks',
+    teardownTimeout: 10_000,
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     // Inline zustand so its bare `react` import is rewritten by the
     // resolve.alias below (externalized deps bypass the alias and pull

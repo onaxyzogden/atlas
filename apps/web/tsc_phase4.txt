@@ -1,0 +1,6 @@
+src/features/project/wizard/StepBoundary.tsx(365,7): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+src/v3/observe/components/layers/ObserveAnnotationLayers.tsx(248,9): error TS2741: Property 'waterRouter' is missing in type '{ sectors: boolean; topography: boolean; zones: boolean; water: boolean; builtEnvironment: boolean; scheduledMoves: boolean; }' but required in type 'Record<"zones" | "sectors" | "topography" | "builtEnvironment" | "water" | "scheduledMoves" | "waterRouter", boolean>'.
+src/v3/plan/impact/__tests__/planImpactFlag.test.ts(143,12): error TS18048: 'flag' is possibly 'undefined'.
+src/v3/plan/layers/__tests__/HostUnionContextMenu.test.tsx(58,36): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number | bigint'.
+  Type 'undefined' is not assignable to type 'number | bigint'.
+src/v3/plan/layers/__tests__/HostUnionDrilldownCard.test.tsx(25,36): error TS2322: Type '"understory"' is not assignable to type 'GuildLayer'.

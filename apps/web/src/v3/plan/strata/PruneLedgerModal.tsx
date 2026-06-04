@@ -1,9 +1,12 @@
-// PruneLedgerModal - steward-facing gated confirm dialog that compacts one
-// project's observation ledger. It dry-runs a chronic-safe retention sweep
-// (previewProjectPrune, pure) on open, surfaces what WILL be removed and what is
-// always kept, then -- only after an explicit "I understand" tick -- executes
-// the real prune (pruneProjectRecords). Both prune methods use the store
-// default keepWithinCycles (OBSERVATION_LOG_RETENTION_CYCLES = 12).
+// PruneLedgerModal - steward-facing single-click confirm dialog that compacts
+// one project's observation ledger using archive-not-erase semantics. It
+// dry-runs a chronic-safe retention sweep (previewProjectPrune, pure) and
+// surfaces what WILL be archived and what is always kept. A single Compact
+// ledger click executes the archive (pruneProjectRecords) -- no permanent-
+// removal gate or "I understand" checkbox, because no data is destroyed.
+// Archived rows appear in the cold tier (archivedRecords) and can be restored
+// in one click via the Restore affordance that appears after a successful
+// compaction. Reversible: the steward can undo the compaction in-session.
 //
 // Owns no retention logic of its own: the store is the single source of truth
 // for the partition, so the preview shown here is exactly what the confirm will
@@ -14,8 +17,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Archive, X } from 'lucide-react';
 import {
   useObservationLog,
+  useArchivedLog,
   useObservationLogStore,
 } from '../../../store/observationLogStore.js';
+import { OBSERVATION_LOG_RETENTION_CYCLES } from '@ogden/shared';
 import shell from './SecondaryAddModal.module.css';
 import own from './PruneLedgerModal.module.css';
 
@@ -27,21 +32,23 @@ interface Props {
 export default function PruneLedgerModal({ projectId, onClose }: Props) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  const total = useObservationLog(projectId).length;
+  const records = useObservationLog(projectId);
+  const total = records.length;
+  const archived = useArchivedLog(projectId);
 
-  // Pure dry-run computed once on open (memoized on projectId). No mutation.
+  // Pure dry-run, recomputed whenever the project's active records change (after
+  // an archive or a restore). previewProjectPrune never mutates.
   const removable = useMemo(
     () =>
       useObservationLogStore.getState().previewProjectPrune(projectId).pruned
         .length,
-    [projectId],
+    [projectId, records],
   );
   const retained = total - removable;
 
-  const [understood, setUnderstood] = useState(false);
   const [result, setResult] = useState<number | null>(null);
 
-  const canConfirm = understood && removable > 0 && result === null;
+  const canConfirm = removable > 0 && result === null;
 
   useEffect(() => {
     closeButtonRef.current?.focus();
@@ -85,11 +92,19 @@ export default function PruneLedgerModal({ projectId, onClose }: Props) {
         <h2 className={shell.title} id="prune-ledger-title">
           Compact observation ledger
         </h2>
+
         {result === null && (
-          <p className={shell.copy}>
-            Compacting removes {removable} of {total} records. {retained} are
-            kept.
-          </p>
+          <>
+            <p className={shell.copy}>
+              Compacting archives {removable} of {total} records. {retained} are
+              kept.
+            </p>
+            <p className={shell.copy}>
+              Compaction keeps every undated and chronic-linked record, plus the{' '}
+              {OBSERVATION_LOG_RETENTION_CYCLES} most recent rotation cycles in
+              each season; older rotations are moved to the archive.
+            </p>
+          </>
         )}
 
         <div className={shell.consequences}>
@@ -100,7 +115,8 @@ export default function PruneLedgerModal({ projectId, onClose }: Props) {
               Records still contributing to a chronic verdict
             </li>
             <li className={shell.consequence}>
-              The most recent 12 cycles in each season
+              The most recent {OBSERVATION_LOG_RETENTION_CYCLES} rotation cycles
+              within each season
             </li>
           </ul>
         </div>
@@ -111,27 +127,26 @@ export default function PruneLedgerModal({ projectId, onClose }: Props) {
           </p>
         )}
 
-        {removable > 0 && result === null && (
-          <div className={own.gates}>
-            <label className={own.gateRow}>
-              <input
-                type="checkbox"
-                checked={understood}
-                onChange={(e) => setUnderstood(e.target.checked)}
-                data-testid="prune-understood"
-              />
-              <span>
-                I understand this permanently removes {removable} outdated
-                records.
-              </span>
-            </label>
-          </div>
-        )}
-
         {result !== null && (
           <p className={own.resultLine} data-testid="prune-result">
-            Removed {result} records.
+            Archived {result} records.
           </p>
+        )}
+
+        {archived.length > 0 && (
+          <button
+            type="button"
+            className={shell.secondary}
+            data-testid="prune-restore"
+            onClick={() => {
+              useObservationLogStore
+                .getState()
+                .restoreArchivedRecords(projectId);
+              setResult(null);
+            }}
+          >
+            Restore archived ({archived.length})
+          </button>
         )}
 
         <div className={shell.actions}>

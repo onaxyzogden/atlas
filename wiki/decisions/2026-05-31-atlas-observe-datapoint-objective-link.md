@@ -122,4 +122,18 @@ rejected alternative. This ADR records the reversal and the resulting build.
   `observe/dashboard/observationDisplay.ts` and shared with the Act panel. This
   closes the third named deferred item -- **all named deferrals from this ADR are
   now resolved.** See [[log/2026-05-31-atlas-observe-from-act-filter-objective-rollup]].
+- **Resolved follow-up (`7ecf69f3`):** the rollup -> Domain Detail navigation loop
+  is now closed. Each `ObjectiveRollupCard` carries a dedicated "View in Domain
+  Detail" link that navigates to the objective's primary-domain Domain Detail
+  (Surface 2) with the source filter pre-set to "From Act" via a typed `?source=`
+  search param. A route-level `validateSearch` narrows the param to the
+  `SourceFilter` union and it threads `ObserveLayout -> ObserveDashboardLayout ->
+  DomainDetailLayout -> DomainObservationList` (whose `useState` seeds from it;
+  composite list key `${domainId}:${initialSourceFilter}` re-applies the pre-filter
+  on re-entry while manual chip changes still override). This makes the steward
+  land on exactly the Act-emitted observations the rollup card summarized. The
+  companion `observationDisplay` de-dup in `ActTierExecutionPanel.tsx` (deferred in
+  the rollup log as tangled with foreign WIP) was resolved separately -- it landed
+  via the out-of-band rebase `0e028508`, foreign refactor left untouched. See
+  [[log/2026-05-31-atlas-observe-rollup-deep-link]].
 - ASCII-only copy; CSRA model untouched ([[fiqh-csra-erased-2026-05-04]]).

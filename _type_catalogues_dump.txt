@@ -1,0 +1,2447 @@
+==== C:\Users\MY OWN AXIS\Downloads\OLOS_Project_Type_Templates_Developer_Spec.docx ====
+
+OLOS Project Type Templates Developer Specification
+
+OLOS Project Type Templates
+
+Developer specification for Stage Zero configuration, domain priorities, map overlays, starter objectives, and stage handoffs
+
+Core Product Rule
+
+Project Type Templates are Stage Zero presets. They do not replace Observe, Plan, or Act. They configure which domains, overlays, questions, objectives, warnings, dashboards, and handoff packages OLOS should emphasize for a particular land-based project.
+
+1. Purpose
+
+This document defines reusable project type templates for OLOS. When a user chooses a land-based project type in Stage Zero, the selected template should preload a guided workflow across Observe, Plan, and Act. The goal is to prevent the user from seeing every possible domain and overlay at once while still preserving the universal OLOS architecture.
+
+A project type template should behave like a configuration layer: it weights domains, chooses default overlays, asks relevant setup questions, loads starter objectives, checks for red flags, and shapes dashboards. Users should still be able to customize, combine, or override templates.
+
+2. How Templates Fit the OLOS Architecture
+
+Layer
+
+Role in OLOS
+
+Stage Zero
+
+Defines the project type, intent, constraints, non-negotiables, expected outputs, and initial feasibility questions.
+
+Project Type Template
+
+Preloads the domain priority model, relevant overlays, starter objectives, dashboards, and risk checks.
+
+Stages
+
+Observe gathers evidence, Plan makes decisions, and Act executes, verifies, maintains, and feeds learning back into the system.
+
+Domains
+
+Universal areas of land intelligence that remain consistent across project types.
+
+Objectives
+
+Focused pieces of work inside a domain. Objectives determine the checklist and map view state.
+
+Overlays
+
+Map lenses loaded only when useful for the selected domain + objective.
+
+Handoffs
+
+Structured outputs passed from Stage Zero to Observe, Observe to Plan, and Plan to Act.
+
+
+
+Developer Implementation Note
+
+The template should not hard-code a single path. It should create a recommended path with editable defaults. A user may start with Homestead, add a Market Garden component, then later activate Agritourism or Education objectives.
+
+3. Template Object Schema
+
+Field
+
+Purpose
+
+template_id
+
+Stable machine-readable ID such as PT-HOMESTEAD or PT-REGEN-FARM.
+
+name
+
+Human-readable template name.
+
+summary
+
+One-paragraph explanation of what this template is for.
+
+best_fit
+
+The user/project scenario this template serves best.
+
+success_outcome
+
+The default definition of success for this project type.
+
+stage_zero_questions
+
+Multiple-choice and short-answer questions asked before Observe begins.
+
+primary_domains
+
+Domains that should appear prominently in navigation and dashboards.
+
+supporting_domains
+
+Domains that remain available but are not emphasized by default.
+
+default_overlays
+
+Map overlays loaded frequently for this project type.
+
+observe_objectives
+
+Starter objectives for evidence gathering.
+
+plan_objectives
+
+Starter objectives for decisions, design, sequencing, and approval.
+
+act_objectives
+
+Starter objectives for assignment, execution, verification, maintenance, and feedback.
+
+red_flags
+
+Constraint checks that may require investigation, redesign, or rejection.
+
+dashboard_widgets
+
+Recommended command-center cards, progress trackers, and summary panels.
+
+handoff_requirements
+
+Minimum data required before progressing from one stage to the next.
+
+4. Universal Domains Available to Every Template
+
+Domain
+
+Scope
+
+Vision & Project Intent
+
+Purpose, outcomes, non-negotiables, project type, constraints, success definition.
+
+Land Base & Legal Context
+
+Boundaries, parcel data, easements, setbacks, zoning-sensitive features, protected areas.
+
+Climate & Microclimate
+
+Sun, wind, frost, rainfall, seasonal extremes, microclimate pockets.
+
+Topography & Landform
+
+Slope, aspect, ridges, valleys, contours, erosion channels, buildable flats.
+
+Hydrology & Water
+
+Water movement, storage, supply, drainage, runoff, wet/dry areas, wells, ponds.
+
+Soil & Subsurface
+
+Texture, structure, biology, compaction, contamination, drainage, infiltration.
+
+Ecology & Biodiversity
+
+Habitat, wildlife, plant communities, invasives, corridors, sensitive areas.
+
+Plants, Crops & Food Systems
+
+Annuals, perennials, orchards, food forests, crops, harvest systems.
+
+Animals, Livestock & Wildlife Interaction
+
+Livestock, wildlife, grazing, predator pressure, movement, shelters, biosecurity.
+
+Built Infrastructure
+
+Buildings, shelters, utilities, fences, greenhouses, storage, wash/processing areas.
+
+Access, Circulation & Logistics
+
+Roads, paths, gates, parking, equipment routes, visitor flow, emergency access.
+
+Energy, Materials & Resource Flows
+
+Power, fuel, compost, manure, mulch, feed, waste, greywater, storage.
+
+People, Roles & Governance
+
+Users, residents, stewards, decision rights, responsibilities, permissions, conflict paths.
+
+Economics & Capacity
+
+Budget, labour, equipment, revenue, maintenance burden, operational feasibility.
+
+Risk, Compliance & Suitability
+
+Permits, hazards, legal restrictions, contamination, insurance, project-killing constraints.
+
+Monitoring, Records & Feedback
+
+Photos, logs, tests, observations, proof, seasonal records, performance feedback.
+
+5. Universal Overlays Available to Every Template
+
+Overlay
+
+Purpose
+
+Zones
+
+Frequency of human attention and maintenance: Zone 0 through Zone 5.
+
+Sectors
+
+Incoming external forces: sun, wind, storms, wildlife, noise, fire, smoke, views, neighbours.
+
+Contours / Landform
+
+Slope, elevation, ridges, valleys, steepness, access limitations.
+
+Water Flow
+
+Runoff, wet areas, dry areas, flood paths, wells, ponds, water infrastructure.
+
+Soil Conditions
+
+Soil type, compaction, infiltration, erosion, fertility, contamination, biology.
+
+Ecology / Habitat
+
+Plant communities, wildlife corridors, pollinators, invasive pressure, sensitive areas.
+
+Access / Movement
+
+Roads, footpaths, equipment routes, animal lanes, gates, visitor circulation.
+
+Infrastructure / Utilities
+
+Structures, fences, utilities, service points, storage, power, water lines.
+
+Suitability
+
+Suitable, conditional, restricted, avoid, restoration-only, unknown.
+
+Risk / Compliance
+
+Zoning, setbacks, hazards, permits, protected features, legal restrictions.
+
+Timeline / Phasing
+
+Existing condition, Year 0, Year 1, Year 3, full vision, stewardship rhythm.
+
+Stewardship Intensity
+
+Daily, weekly, monthly, seasonal, annual, passive, unknown.
+
+Monitoring / Records
+
+Observation points, photo stations, tests, logs, proof, issue history.
+
+Roles / Responsibility
+
+Ownership, steward assignment, approval authority, maintenance responsibility.
+
+6. Stage Zero Question Bank
+
+These are the base questions OLOS can use to identify the best project template and configure it. The UI should avoid asking all questions at once. Ask only the questions needed to classify the project, then branch into project-specific questions.
+
+Question Area
+
+Suggested Answer Options
+
+Project purpose
+
+Homestead; regenerative farm; market garden; orchard/food forest; silvopasture/livestock; intentional community; agritourism/retreat; education/demo site; conservation/rewilding; off-grid resilience; wellness sanctuary; nursery/propagation.
+
+Production intensity
+
+Personal use; household surplus; part-time income; full commercial; community-supported; educational/demo only.
+
+Human presence
+
+No residence; seasonal stay; one household; multiple households; visitors/guests; full community residency.
+
+Public access
+
+Private only; invited volunteers; workshops; paid guests; public events; mixed access.
+
+Animal involvement
+
+None; wildlife only; poultry/bees; small livestock; grazing livestock; mixed-species livestock.
+
+Food system emphasis
+
+Kitchen garden; market crops; orchard; food forest; pasture/livestock; medicinal/herbal; nursery; mixed food system.
+
+Infrastructure level
+
+Minimal; temporary; basic utilities; production infrastructure; guest/resident infrastructure; fully developed campus.
+
+Water dependence
+
+Rain-fed only; seasonal irrigation; year-round irrigation; livestock water; guest/residential water; pond/wetland systems.
+
+Governance complexity
+
+Single owner; family; small partner group; staff/volunteers; members; residents; board/nonprofit.
+
+Revenue model
+
+None/personal; farm products; CSA/memberships; lodging; events; workshops; grants/donations; mixed enterprise.
+
+Time horizon
+
+Immediate use; 1-year MVP; 3-year establishment; 7-year buildout; multi-generational vision.
+
+Stewardship capacity
+
+Solo low-time; solo full-time; family team; volunteer-supported; staff-supported; community-supported.
+
+7. Project Type Template Catalogue
+
+Template
+
+Best For
+
+Primary UI Emphasis
+
+Homestead / Family Land
+
+Household-scale resilience and food security.
+
+Daily zones, water, food, animals, shelter, maintenance capacity.
+
+Regenerative Farm / Multi-Enterprise
+
+Commercial or semi-commercial regenerative production.
+
+Soil, water, enterprises, access, livestock/crops, budget, monitoring.
+
+Market Garden / Intensive Crop
+
+High-intensity crop blocks and harvest flow.
+
+Soil, irrigation, bed layout, access, labour, harvest records.
+
+Orchard / Food Forest / Perennial Agroforestry
+
+Long-term perennial systems.
+
+Microclimate, water, soil, species suitability, phasing, survival tracking.
+
+Silvopasture / Livestock Land Management
+
+Animal-integrated land stewardship.
+
+Paddocks, water, forage, animal welfare, fencing, recovery.
+
+Intentional Community / Ecovillage
+
+Multi-person land settlement and shared systems.
+
+Governance, housing legality, shared infrastructure, access, capacity.
+
+Agritourism / Retreat / Experience Destination
+
+Hosting guests, stays, workshops, and events.
+
+Guest flow, safety, capacity, facilities, legal/insurance checks.
+
+Education / Demonstration Land
+
+Workshops, training, demonstrations, and learning pathways.
+
+Curriculum-feature matrix, visitor-safe access, demo health, records.
+
+Conservation / Rewilding / Habitat Restoration
+
+Ecological protection and restoration.
+
+Habitat, hydrology, invasive pressure, monitoring, disturbance control.
+
+Off-Grid Resilience / Remote Settlement
+
+Self-reliant shelter, water, energy, food, and access.
+
+Critical systems, seasonal access, safety, water/energy sizing.
+
+Wellness / Healing Sanctuary
+
+Peaceful nature-based restoration and retreat spaces.
+
+Sensory sectors, privacy, guest safety, quiet zones, host responsibilities.
+
+Nursery / Propagation / Plant Production
+
+Plant starts, trees, perennials, seedlings, restoration stock.
+
+Watering, inventory, propagation workflow, protected growing areas.
+
+8. Detailed Project Type Templates
+
+1. Homestead / Family Land Template
+
+For a household-scale land project focused on food security, simple infrastructure, daily living, resilience, and manageable stewardship rather than maximum commercial production.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-HOMESTEAD
+
+Best fit
+
+One household or family stewarding land for personal food, animals, shelter, water, energy, and long-term resilience.
+
+Default success outcome
+
+A realistic household land plan with safe access, water, food systems, basic infrastructure, and maintenance rhythms sized to the household capacity.
+
+Primary domains
+
+Vision & Project Intent; Land Base & Legal Context; Hydrology & Water; Soil & Subsurface; Plants, Crops & Food Systems; Animals, Livestock & Wildlife; Built Infrastructure; Energy, Materials & Resource Flows; Economics & Capacity; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Climate & Microclimate; Topography & Landform; Ecology & Biodiversity; Access, Circulation & Logistics; People, Roles & Governance; Risk, Compliance & Suitability.
+
+Default overlays
+
+Zones; Water Flow; Soil Conditions; Access / Movement; Infrastructure / Utilities; Suitability; Timeline / Phasing; Stewardship Intensity; Risk / Compliance.
+
+Stage Zero questions to ask
+
+Primary household goals; desired food self-reliance percentage; animals desired; residence status; off-grid intensity; available weekly labour; budget range; tolerance for temporary infrastructure; public/guest access level.
+
+Observe starter objectives
+
+Verify dwelling/legal constraints; map water access and runoff; document existing food-growing areas; assess soil near daily-use zones; map current access, storage, and utility points; document animal/wildlife pressure.
+
+Plan starter objectives
+
+Choose Zone 0/1/2 layout; select first-year garden and animal areas; decide water storage/irrigation approach; phase infrastructure by budget and labour; set maintenance schedule.
+
+Act starter objectives
+
+Assign setup tasks for access, water, garden, animal shelter, compost, storage, and safety; verify completion with photos, receipts, and recurring checklists.
+
+Red-flag / disqualifier checks
+
+No legal dwelling path; unreliable water; severe access limitations; animal bylaws blocking desired livestock; excessive maintenance burden for available labour; flood/fire/contamination issues near living areas.
+
+Recommended dashboard widgets
+
+Homestead readiness score; household stewardship load; water/food/infrastructure dashboard; weekly chore rhythm; first-year buildout checklist.
+
+Developer notes
+
+Default to small, practical bundles. The system should prevent overbuilding and compare every proposed feature against household labour capacity.
+
+
+
+2. Regenerative Farm / Multi-Enterprise Template
+
+For a working farm that combines soil regeneration, food production, livestock or crops, revenue, infrastructure, monitoring, and staged implementation.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-REGEN-FARM
+
+Best fit
+
+Commercial or semi-commercial farms with multiple enterprises such as pasture-raised poultry, market garden, grazing, orchards, compost, education, or CSA.
+
+Default success outcome
+
+A sequenced farm development plan that matches land capability, soil/water realities, enterprise economics, labour capacity, and ecological regeneration targets.
+
+Primary domains
+
+Hydrology & Water; Soil & Subsurface; Ecology & Biodiversity; Plants, Crops & Food Systems; Animals, Livestock & Wildlife; Access, Circulation & Logistics; Built Infrastructure; Economics & Capacity; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Vision & Project Intent; Land Base & Legal Context; Climate & Microclimate; Topography & Landform; Energy, Materials & Resource Flows; People, Roles & Governance; Risk, Compliance & Suitability.
+
+Default overlays
+
+Zones; Sectors; Contours / Landform; Water Flow; Soil Conditions; Ecology / Habitat; Access / Movement; Infrastructure / Utilities; Suitability; Timeline / Phasing; Stewardship Intensity; Monitoring / Records.
+
+Stage Zero questions to ask
+
+Enterprise mix; commercial intensity; livestock species; crop systems; processing/wash/packing needs; market channels; labour model; equipment access; water demand; soil regeneration goals; certification/compliance needs.
+
+Observe starter objectives
+
+Map hydrology and slope; complete soil baseline; identify production-suitable areas; document existing infrastructure and access; map livestock/wildlife pressure; record current budgets, labour, and equipment.
+
+Plan starter objectives
+
+Select enterprise zones; phase water, fencing, access, soil improvement, crop/livestock layout, and wash/packing infrastructure; build enterprise budgets and capacity checks.
+
+Act starter objectives
+
+Launch enterprise work packages; assign rotations, planting, infrastructure builds, procurement, maintenance, monitoring, and harvest records.
+
+Red-flag / disqualifier checks
+
+Water demand exceeds supply; poor access for equipment/markets; zoning blocks commercial farm activity; high maintenance intensity with low labour; soil remediation too costly; no proof path for claimed regenerative outcomes.
+
+Recommended dashboard widgets
+
+Enterprise map; soil/water improvement tracker; rotation calendar; budget vs capacity dashboard; production records; proof-of-regeneration log.
+
+Developer notes
+
+This is one of the highest-complexity templates. The UI should rely heavily on phasing and capacity gates before allowing a full buildout plan.
+
+
+
+3. Market Garden / Intensive Crop Template
+
+For high-intensity vegetable, herb, flower, or small-scale crop production where access, water, soil, workflow, harvest, and revenue discipline matter.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-MARKET-GARDEN
+
+Best fit
+
+Small acreage or concentrated growing areas supplying farmers markets, CSA, restaurants, farm stands, or household surplus sales.
+
+Default success outcome
+
+A compact production layout with strong soil, reliable water, efficient access, practical crop blocks, harvest flow, and realistic labour/cash planning.
+
+Primary domains
+
+Soil & Subsurface; Hydrology & Water; Climate & Microclimate; Plants, Crops & Food Systems; Access, Circulation & Logistics; Built Infrastructure; Economics & Capacity; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Vision & Project Intent; Land Base & Legal Context; Topography & Landform; Ecology & Biodiversity; Energy, Materials & Resource Flows; Risk, Compliance & Suitability; People, Roles & Governance.
+
+Default overlays
+
+Zones; Sectors; Water Flow; Soil Conditions; Access / Movement; Infrastructure / Utilities; Suitability; Timeline / Phasing; Stewardship Intensity; Monitoring / Records.
+
+Stage Zero questions to ask
+
+Crop types; production area target; irrigation needs; season extension; sales channels; wash/pack/storage needs; weekly labour; equipment style; organic/regenerative claims; crop planning sophistication.
+
+Observe starter objectives
+
+Assess soil and compaction; map sun/shade and wind exposure; locate water sources; document access from beds to wash/pack/storage; identify slope, wetness, and contamination risks.
+
+Plan starter objectives
+
+Choose production blocks; decide bed orientation; design irrigation and paths; locate wash/pack and compost; phase tunnels/greenhouses; set crop rotation and record structure.
+
+Act starter objectives
+
+Create bed prep tasks; install irrigation; build compost/material stations; assign planting, maintenance, harvest, washing, delivery, and record-keeping tasks.
+
+Red-flag / disqualifier checks
+
+Insufficient water; shade/frost limitations; poor vehicle access; no wash/pack compliance path; soil contamination; unrealistic crop diversity for available labour.
+
+Recommended dashboard widgets
+
+Crop block map; irrigation checklist; weekly planting/harvest calendar; labour forecast; gross margin by crop block; soil amendment log.
+
+Developer notes
+
+Default map should stay tight around active production areas. Avoid loading whole-property complexity unless selected by the user.
+
+
+
+4. Orchard / Food Forest / Perennial Agroforestry Template
+
+For perennial plant systems where long-term placement, succession, water, microclimate, species compatibility, and maintenance over time are central.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-FOOD-FOREST
+
+Best fit
+
+Orchards, edible forest gardens, windbreaks, shelterbelts, alley cropping, medicinal perennial systems, or demonstration food forests.
+
+Default success outcome
+
+A phased perennial layout matched to soil, water, microclimate, access, stewardship capacity, and long-term establishment needs.
+
+Primary domains
+
+Climate & Microclimate; Topography & Landform; Hydrology & Water; Soil & Subsurface; Ecology & Biodiversity; Plants, Crops & Food Systems; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Vision & Project Intent; Land Base & Legal Context; Animals, Livestock & Wildlife; Access, Circulation & Logistics; Energy, Materials & Resource Flows; Economics & Capacity; Risk, Compliance & Suitability.
+
+Default overlays
+
+Zones; Sectors; Contours / Landform; Water Flow; Soil Conditions; Ecology / Habitat; Suitability; Timeline / Phasing; Stewardship Intensity; Monitoring / Records.
+
+Stage Zero questions to ask
+
+Primary outputs; species preferences; orchard vs food forest structure; water availability; wildlife pressure; maintenance capacity; establishment timeline; propagation strategy; harvest/use model.
+
+Observe starter objectives
+
+Map sun, wind, frost, slope, water movement, soil quality, existing trees, wildlife browsing, invasive pressure, and access for establishment and harvest.
+
+Plan starter objectives
+
+Select perennial zones; choose species/guilds; phase canopy/shrub/herbaceous layers; design irrigation/mulch/protection; plan wildlife protection and maintenance intervals.
+
+Act starter objectives
+
+Assign planting, protection, watering, mulching, pruning, replacement, and monitoring tasks; verify survival and establishment through seasonal records.
+
+Red-flag / disqualifier checks
+
+Severe deer/browse pressure without protection; frost pockets for sensitive species; water access mismatch; poor soil or drainage; too many species before maintenance system exists.
+
+Recommended dashboard widgets
+
+Species suitability matrix; guild builder; planting phasing timeline; survival tracker; seasonal maintenance checklist; browse pressure map.
+
+Developer notes
+
+The template must emphasize time. Perennial systems need Year 0/1/3/full-vision phasing and should distinguish establishment care from mature stewardship.
+
+
+
+5. Silvopasture / Livestock Land Management Template
+
+For projects where animals are ecological tools and production enterprises, requiring fencing, water, forage, shelter, movement, predator risk, and soil recovery logic.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-SILVOPASTURE
+
+Best fit
+
+Rotational grazing, poultry tractors, sheep/goats/cattle, pig systems, browsing systems, pasture restoration, or tree-pasture integration.
+
+Default success outcome
+
+A livestock movement and stewardship plan that protects animal welfare, improves land condition, respects carrying capacity, and makes daily execution practical.
+
+Primary domains
+
+Animals, Livestock & Wildlife; Hydrology & Water; Soil & Subsurface; Ecology & Biodiversity; Plants, Crops & Food Systems; Access, Circulation & Logistics; Built Infrastructure; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Vision & Project Intent; Land Base & Legal Context; Climate & Microclimate; Topography & Landform; Energy, Materials & Resource Flows; People, Roles & Governance; Economics & Capacity; Risk, Compliance & Suitability.
+
+Default overlays
+
+Zones; Contours / Landform; Water Flow; Soil Conditions; Ecology / Habitat; Access / Movement; Infrastructure / Utilities; Suitability; Risk / Compliance; Timeline / Phasing; Stewardship Intensity; Monitoring / Records; Roles / Responsibility.
+
+Stage Zero questions to ask
+
+Species; herd/flock size; purpose; feed strategy; pasture quality; water plan; shelter needs; predator risk; winter system; fencing budget; rotation frequency; animal welfare standards.
+
+Observe starter objectives
+
+Map pasture/forage condition; water points; shade/shelter; slopes/wet areas; predator pressure; fences/gates; soil compaction; wildlife corridors; access for daily care.
+
+Plan starter objectives
+
+Design paddocks, lanes, water distribution, shelters, handling areas, winter sacrifice areas, rest periods, and monitoring triggers.
+
+Act starter objectives
+
+Assign rotations, daily checks, water/fence maintenance, moving shelters, health checks, manure distribution monitoring, and rest/recovery verification.
+
+Red-flag / disqualifier checks
+
+No reliable water; predator pressure unmanaged; stocking density beyond carrying capacity; poor winter plan; wet soils prone to pugging; animal bylaws or neighbour conflict.
+
+Recommended dashboard widgets
+
+Rotation planner; paddock recovery tracker; water/fence status board; animal welfare checklist; carrying capacity warning; predator risk map.
+
+Developer notes
+
+Treat animals as moving forces. Every task should connect location, timing, responsible steward, and welfare verification.
+
+
+
+6. Intentional Community / Ecovillage Template
+
+For multi-person or multi-household land projects where governance, housing, shared infrastructure, food systems, roles, access, and conflict pathways are central.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-INTENTIONAL-COMMUNITY
+
+Best fit
+
+Ecovillages, land trusts, cohousing-style rural projects, faith/community land projects, multi-family homesteads, or shared regenerative settlements.
+
+Default success outcome
+
+A staged community land plan that aligns vision, legal constraints, governance, housing, shared infrastructure, food systems, labour, and financial capacity.
+
+Primary domains
+
+Vision & Project Intent; Land Base & Legal Context; People, Roles & Governance; Built Infrastructure; Access, Circulation & Logistics; Hydrology & Water; Energy, Materials & Resource Flows; Economics & Capacity; Risk, Compliance & Suitability.
+
+Supporting domains
+
+Climate & Microclimate; Topography & Landform; Soil & Subsurface; Ecology & Biodiversity; Plants, Crops & Food Systems; Animals, Livestock & Wildlife; Monitoring, Records & Feedback.
+
+Default overlays
+
+Zones; Sectors; Access / Movement; Infrastructure / Utilities; Suitability; Risk / Compliance; Timeline / Phasing; Stewardship Intensity; Monitoring / Records; Roles / Responsibility.
+
+Stage Zero questions to ask
+
+Number of households; legal ownership model; residency model; shared facilities; food production goals; public access; governance model; conflict process; budget/funding; utilities; privacy vs communal life.
+
+Observe starter objectives
+
+Document legal housing constraints; existing structures/utilities; access and parking; water/waste capacity; shared/private areas; current decision structure; ecological constraints.
+
+Plan starter objectives
+
+Design community zones, shared facilities, housing phases, governance workflows, food/land systems, access/visitor flow, privacy buffers, and operating budgets.
+
+Act starter objectives
+
+Assign work packages for infrastructure, governance setup, communications, maintenance, safety, community onboarding, and recurring stewardship roles.
+
+Red-flag / disqualifier checks
+
+Zoning blocks intended occupancy; unclear ownership/decision rights; water/septic limits; no conflict pathway; unaffordable infrastructure; too much shared responsibility without governance.
+
+Recommended dashboard widgets
+
+Community readiness score; housing/legal constraints map; governance responsibility board; shared infrastructure phasing; labour contribution tracker; conflict/escalation pathway.
+
+Developer notes
+
+This template should surface legal/governance questions early. The land design cannot outrun the human structure.
+
+
+
+7. Agritourism / Retreat / Experience Destination Template
+
+For land projects that host visitors, guests, workshops, stays, retreats, farm experiences, or immersive nature-based programming.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-AGRITOURISM-RETREAT
+
+Best fit
+
+Farm stays, retreats, wellness weekends, educational experiences, camping/glamping, wedding/event land uses, public tours, or destination farms.
+
+Default success outcome
+
+A visitor-safe, legally viable, experience-rich land plan with clear circulation, guest zones, risk controls, infrastructure, staffing, and operational rhythms.
+
+Primary domains
+
+Vision & Project Intent; Land Base & Legal Context; Access, Circulation & Logistics; Built Infrastructure; Risk, Compliance & Suitability; People, Roles & Governance; Economics & Capacity; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Climate & Microclimate; Topography & Landform; Hydrology & Water; Soil & Subsurface; Ecology & Biodiversity; Plants, Crops & Food Systems; Animals, Livestock & Wildlife; Energy, Materials & Resource Flows.
+
+Default overlays
+
+Zones; Sectors; Access / Movement; Infrastructure / Utilities; Suitability; Risk / Compliance; Timeline / Phasing; Stewardship Intensity; Monitoring / Records; Roles / Responsibility.
+
+Stage Zero questions to ask
+
+Guest type; access level; overnight stays; event size; washroom/septic needs; food service; parking; insurance; emergency access; staff/host model; visitor boundaries; seasonal schedule.
+
+Observe starter objectives
+
+Map guest access, parking, paths, hazards, views, noise, privacy, washroom/water capacity, existing structures, emergency routes, and sensitive ecological areas.
+
+Plan starter objectives
+
+Design guest journey, arrival sequence, visitor zones, safety boundaries, facilities, event/stay capacity, signage, staff roles, and seasonal experience calendar.
+
+Act starter objectives
+
+Assign setup and operating tasks for guest areas, signage, parking, cleaning, safety checks, host responsibilities, event prep, and post-visit feedback.
+
+Red-flag / disqualifier checks
+
+No emergency access; insufficient washroom/septic capacity; insurance/zoning mismatch; unsafe water/hazards; neighbour conflict; guest flow crossing dangerous farm operations.
+
+Recommended dashboard widgets
+
+Guest journey map; capacity calculator; risk checklist; event/stay setup board; cleaning/turnover checklist; visitor feedback log.
+
+Developer notes
+
+The default map should separate steward-only, guest-safe, and restricted zones. Visitor experience depends on boundaries as much as beauty.
+
+
+
+8. Education / Demonstration Land Template
+
+For sites designed to teach, demonstrate, host workshops, train stewards, or show regenerative methods through visible, interpretable systems.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-EDUCATION-DEMO
+
+Best fit
+
+Permaculture demo sites, farm schools, soil biology education hubs, workshop campuses, school gardens, nonprofit land education projects.
+
+Default success outcome
+
+A land-based learning environment where demonstration systems are safe, legible, accessible, maintained, and connected to curriculum or workshop objectives.
+
+Primary domains
+
+Vision & Project Intent; Plants, Crops & Food Systems; Soil & Subsurface; Hydrology & Water; Ecology & Biodiversity; Access, Circulation & Logistics; Built Infrastructure; People, Roles & Governance; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Land Base & Legal Context; Climate & Microclimate; Topography & Landform; Animals, Livestock & Wildlife; Energy, Materials & Resource Flows; Economics & Capacity; Risk, Compliance & Suitability.
+
+Default overlays
+
+Zones; Sectors; Soil Conditions; Water Flow; Ecology / Habitat; Access / Movement; Infrastructure / Utilities; Suitability; Timeline / Phasing; Stewardship Intensity; Monitoring / Records; Roles / Responsibility.
+
+Stage Zero questions to ask
+
+Audience; curriculum goals; workshop frequency; demonstration systems; visitor access; safety needs; signage/interpretation; student group size; staff/volunteer roles; proof/learning outcomes.
+
+Observe starter objectives
+
+Document existing teachable systems; map safe access and gathering areas; record soil/water/ecology baselines; identify hazards; document facilities and demonstration visibility.
+
+Plan starter objectives
+
+Select demo zones; design learning path; align features to curriculum; decide signage/data displays; phase systems by teaching value and maintenance capacity.
+
+Act starter objectives
+
+Assign workshop setup, demonstration maintenance, signage installation, data collection, safety checks, student flow, and post-session records.
+
+Red-flag / disqualifier checks
+
+Unsafe visitor circulation; no shelter/washroom access; too many demo systems for maintenance capacity; unclear curriculum; teaching areas conflict with active farm hazards.
+
+Recommended dashboard widgets
+
+Learning path map; curriculum-feature matrix; workshop readiness checklist; demo-system health board; student/visitor feedback log.
+
+Developer notes
+
+Every designed element should have a learning purpose and a maintenance owner. Do not let demo features become abandoned props.
+
+
+
+9. Conservation / Rewilding / Habitat Restoration Template
+
+For projects where the primary goal is ecological protection, biodiversity, habitat recovery, low-disturbance access, and long-term monitoring.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-CONSERVATION-RESTORATION
+
+Best fit
+
+Rewilding, riparian restoration, habitat corridors, invasive control, wetland/forest protection, pollinator restoration, conservation land stewardship.
+
+Default success outcome
+
+A restoration plan that protects sensitive areas, identifies ecological priorities, limits disturbance, sequences interventions, and tracks ecological change over time.
+
+Primary domains
+
+Ecology & Biodiversity; Hydrology & Water; Soil & Subsurface; Climate & Microclimate; Topography & Landform; Risk, Compliance & Suitability; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Vision & Project Intent; Land Base & Legal Context; Plants, Crops & Food Systems; Animals, Livestock & Wildlife; Access, Circulation & Logistics; People, Roles & Governance; Economics & Capacity.
+
+Default overlays
+
+Sectors; Contours / Landform; Water Flow; Soil Conditions; Ecology / Habitat; Access / Movement; Suitability; Risk / Compliance; Timeline / Phasing; Stewardship Intensity; Monitoring / Records.
+
+Stage Zero questions to ask
+
+Restoration goal; target habitat; protected features; public access; intervention level; invasive pressure; monitoring capacity; partners/agencies; grant/reporting requirements; long-term stewardship owner.
+
+Observe starter objectives
+
+Map habitats, sensitive areas, hydrology, soil disturbance, invasive species, wildlife corridors, erosion, access impacts, and existing ecological indicators.
+
+Plan starter objectives
+
+Prioritize restoration zones; decide access restrictions; design invasive control/restoration sequence; set monitoring points; phase interventions by ecological sensitivity.
+
+Act starter objectives
+
+Assign restoration tasks, access control, planting/removal, erosion repair, monitoring, photo points, and reporting responsibilities.
+
+Red-flag / disqualifier checks
+
+Protected areas requiring permits; interventions harming sensitive habitat; invasive control beyond capacity; uncontrolled public access; no monitoring protocol; restoration goals not measurable.
+
+Recommended dashboard widgets
+
+Habitat quality map; restoration priority board; invasive species tracker; monitoring protocol; access impact log; ecological trend dashboard.
+
+Developer notes
+
+Default to restraint. The system should not assume that more intervention is better; sometimes the correct task is protect and monitor.
+
+
+
+10. Off-Grid Resilience / Remote Settlement Template
+
+For land projects focused on self-reliance, remote living, water, energy, shelter, food security, access, emergency readiness, and low-dependency systems.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-OFFGRID-RESILIENCE
+
+Best fit
+
+Remote homesteads, off-grid cabins, resilience retreats, family preparedness land, self-reliant settlements, low-infrastructure land starts.
+
+Default success outcome
+
+A practical resilience plan that proves water, shelter, access, energy, food, waste, safety, and maintenance are achievable before lifestyle assumptions harden.
+
+Primary domains
+
+Hydrology & Water; Built Infrastructure; Energy, Materials & Resource Flows; Access, Circulation & Logistics; Risk, Compliance & Suitability; Economics & Capacity; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Vision & Project Intent; Land Base & Legal Context; Climate & Microclimate; Topography & Landform; Soil & Subsurface; Plants, Crops & Food Systems; Animals, Livestock & Wildlife; People, Roles & Governance.
+
+Default overlays
+
+Zones; Sectors; Contours / Landform; Water Flow; Access / Movement; Infrastructure / Utilities; Suitability; Risk / Compliance; Timeline / Phasing; Stewardship Intensity; Monitoring / Records.
+
+Stage Zero questions to ask
+
+Occupancy pattern; climate seasonality; water source; energy target; heating/cooling; food goals; emergency access; communication; waste/septic; budget; skill level; isolation tolerance.
+
+Observe starter objectives
+
+Verify access in all seasons; map water, slopes, hazards, timber/fuel, sun/wind, existing structures, soil for food production, and emergency constraints.
+
+Plan starter objectives
+
+Sequence access, shelter, water, energy, waste, food, storage, communication, and safety systems; size systems to actual labour and budget.
+
+Act starter objectives
+
+Assign work packages for driveway/trails, water setup, shelter, energy, waste, storage, food systems, emergency supplies, and maintenance checks.
+
+Red-flag / disqualifier checks
+
+No reliable water; winter access failure; legal restriction on dwelling; unrealistic energy demand; no waste solution; fire/flood hazard; medical/emergency isolation risk.
+
+Recommended dashboard widgets
+
+Resilience readiness score; critical systems dashboard; seasonal access checklist; energy/water sizing board; emergency readiness tracker.
+
+Developer notes
+
+The template should prioritize survival basics before lifestyle aesthetics. Access, water, heat, and waste come before gardens and beautiful renderings.
+
+
+
+11. Wellness / Healing Sanctuary Template
+
+For land projects centered around calm, beauty, retreat, healing, spiritual practice, nature connection, food, privacy, and carefully managed guest experience.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-WELLNESS-SANCTUARY
+
+Best fit
+
+Healing gardens, spiritual retreats, nature therapy spaces, small wellness centers, private sanctuary land, restorative farm stays.
+
+Default success outcome
+
+A peaceful and safe land experience with appropriate privacy, access, water, shelter, sensory design, ecological care, and operating boundaries.
+
+Primary domains
+
+Vision & Project Intent; Climate & Microclimate; Ecology & Biodiversity; Access, Circulation & Logistics; Built Infrastructure; People, Roles & Governance; Risk, Compliance & Suitability; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Land Base & Legal Context; Topography & Landform; Hydrology & Water; Soil & Subsurface; Plants, Crops & Food Systems; Animals, Livestock & Wildlife; Energy, Materials & Resource Flows; Economics & Capacity.
+
+Default overlays
+
+Zones; Sectors; Ecology / Habitat; Access / Movement; Infrastructure / Utilities; Suitability; Risk / Compliance; Timeline / Phasing; Stewardship Intensity; Monitoring / Records; Roles / Responsibility.
+
+Stage Zero questions to ask
+
+Type of sanctuary; public/private access; guest capacity; overnight use; privacy needs; sensory priorities; food/animal involvement; safety boundaries; hosting model; seasonal use; revenue model.
+
+Observe starter objectives
+
+Map peaceful areas, noise/views/privacy sectors, access routes, hazards, ecological sensitivity, water/washroom capacity, existing shelters, and visitor-safe spaces.
+
+Plan starter objectives
+
+Design quiet zones, guest paths, gathering areas, privacy buffers, food/medicine gardens, water/rest areas, safety boundaries, and host responsibilities.
+
+Act starter objectives
+
+Assign setup tasks for paths, signage, shelters, gardens, cleaning, safety checks, guest prep, maintenance, and feedback collection.
+
+Red-flag / disqualifier checks
+
+Noise/road exposure impossible to mitigate; unsafe visitor areas; zoning/insurance mismatch; poor washroom/water capacity; privacy conflicts; high emotional promise without operational support.
+
+Recommended dashboard widgets
+
+Sanctuary experience map; guest safety checklist; sensory sector map; privacy buffer planner; hosting rhythm board.
+
+Developer notes
+
+The UI should support sensory and experiential mapping, but still require risk, compliance, and maintenance realism.
+
+
+
+12. Nursery / Propagation / Plant Production Template
+
+For land projects focused on producing seedlings, trees, perennials, composts, starts, or plant materials for sale, restoration, farm use, or community distribution.
+
+Field
+
+Template Specification
+
+Template ID
+
+PT-NURSERY-PROPAGATION
+
+Best fit
+
+Tree nurseries, perennial propagation, vegetable starts, medicinal plant propagation, restoration plant production, community plant hubs.
+
+Default success outcome
+
+A propagation layout with reliable water, protected growing spaces, workflow, storage, fertility, records, plant health monitoring, and distribution logistics.
+
+Primary domains
+
+Plants, Crops & Food Systems; Hydrology & Water; Soil & Subsurface; Climate & Microclimate; Built Infrastructure; Access, Circulation & Logistics; Energy, Materials & Resource Flows; Monitoring, Records & Feedback.
+
+Supporting domains
+
+Vision & Project Intent; Land Base & Legal Context; Ecology & Biodiversity; Economics & Capacity; Risk, Compliance & Suitability; People, Roles & Governance.
+
+Default overlays
+
+Zones; Sectors; Water Flow; Soil Conditions; Access / Movement; Infrastructure / Utilities; Suitability; Timeline / Phasing; Stewardship Intensity; Monitoring / Records.
+
+Stage Zero questions to ask
+
+Plant types; scale; greenhouse/tunnel needs; irrigation; propagation materials; sales/distribution model; labour; plant health controls; storage; seasonality; certification requirements.
+
+Observe starter objectives
+
+Map protected microclimates, water access, existing nursery infrastructure, soil/media storage, work areas, shade/wind exposure, delivery access, and pest/disease risks.
+
+Plan starter objectives
+
+Choose propagation zones; design water, benches, hardening-off, media storage, workflow, inventory records, and distribution routes; phase infrastructure.
+
+Act starter objectives
+
+Assign propagation, watering, potting, labeling, inventory, pest monitoring, order fulfillment, cleaning, and seasonal reset tasks.
+
+Red-flag / disqualifier checks
+
+Unreliable water; poor temperature control; workflow too spread out; no inventory system; contamination/pest pressure; sales volume exceeds labour capacity.
+
+Recommended dashboard widgets
+
+Propagation workflow map; inventory board; watering schedule; plant health log; order/distribution tracker; greenhouse capacity planner.
+
+Developer notes
+
+This template should strongly connect map objects to inventory records and recurring care schedules.
+
+
+
+9. Template Combination Logic
+
+Many real projects are hybrids. OLOS should allow one primary template and optional secondary templates. The primary template defines the main dashboard and default workflow. Secondary templates add objective packs, overlays, and red-flag checks without replacing the main project logic.
+
+Hybrid Scenario
+
+Recommended Template Setup
+
+Family homestead with egg sales
+
+Primary: Homestead. Secondary: Silvopasture / Livestock. Optional: Regenerative Farm if revenue becomes serious.
+
+Ecovillage with food forest and retreats
+
+Primary: Intentional Community. Secondary: Food Forest and Agritourism / Retreat.
+
+Regenerative farm with workshops
+
+Primary: Regenerative Farm. Secondary: Education / Demonstration Land.
+
+Conservation land with occasional tours
+
+Primary: Conservation / Restoration. Secondary: Education / Demonstration or Agritourism if visitor access is paid/structured.
+
+Remote off-grid land with animals
+
+Primary: Off-Grid Resilience. Secondary: Homestead and Silvopasture / Livestock.
+
+Wellness retreat with gardens and lodging
+
+Primary: Wellness Sanctuary or Agritourism depending on revenue focus. Secondary: Homestead, Food Forest, or Market Garden as needed.
+
+10. Template Routing Rules
+
+Rule
+
+Developer Behavior
+
+Primary purpose wins
+
+Choose the template based on the main outcome, not the prettiest feature. A farm with guest tours is still a farm if production is the main purpose.
+
+Revenue increases compliance emphasis
+
+If paid guests, food sales, lodging, or public events are selected, increase Risk / Compliance, Economics & Capacity, and People / Governance visibility.
+
+Residency increases legal and infrastructure checks
+
+If people will live on site, prioritize Land Base & Legal Context, Built Infrastructure, Water, Waste, Access, and Risk / Compliance.
+
+Animals increase daily stewardship intensity
+
+If livestock are selected, preload daily/weekly animal care, water, fencing, shelter, predator, welfare, and rotation checks.
+
+Public access changes the map
+
+If visitors are allowed, separate public, steward-only, restricted, emergency, and service routes.
+
+Remote land changes the critical path
+
+If off-grid or remote, access, water, heat, energy, waste, communication, and emergency readiness must appear before optional amenities.
+
+Ecological sensitivity restricts action
+
+If sensitive habitat, wetland, protected features, or restoration-only zones exist, Act should require approval before physical intervention.
+
+11. Minimum Handoff Requirements
+
+Handoff
+
+Minimum Required Output
+
+Stage Zero to Observe
+
+Selected primary template, optional secondary templates, project intent, non-negotiables, basic constraints, known disqualifiers, and initial domain priority list.
+
+Observe to Plan
+
+Evidence-backed domain status, map annotations, photos/tests/docs, unknowns, red flags, suitability notes, and investigation requirements.
+
+Plan to Act
+
+Approved work packages with scope, location, prerequisites, responsible roles, timing, materials, proof requirements, risk notes, and completion criteria.
+
+Act to Observe / Plan Feedback
+
+Completion proof, field changes, blockers, maintenance needs, monitoring results, lessons learned, and any recommended redesign or re-observation.
+
+12. Acceptance Criteria for Developer Implementation
+
+A user can select one primary project type and optional secondary project types during Stage Zero.
+
+Selecting a template changes domain priority, default overlays, starter objectives, red-flag checks, and dashboard widgets.
+
+Templates never remove universal domains; they only change emphasis and defaults.
+
+The map view loads overlays based on selected domain + objective, then modified by project type context.
+
+Each template creates at least one starter objective in Observe, Plan, and Act.
+
+Each starter objective includes checklist items, default overlays, evidence/proof fields, and completion criteria.
+
+Hybrid templates do not duplicate objectives; they merge objective packs and warn when capacity exceeds available labour/budget.
+
+Templates can be edited, disabled, or reweighted by the user or administrator.
+
+Every template includes risk/compliance checks appropriate to its use case.
+
+Every template feeds a clean handoff into the next stage rather than trapping information inside a static setup form.
+
+Final Product Principle
+
+Project type templates should make OLOS feel like it understands the user’s land-based goal from the beginning. The user should not have to assemble the entire operating system manually. The template should load the right starting path, then let the land evidence refine the path over time.
+
+Prepared for OLOS product development
+
+==== C:\Users\MY OWN AXIS\Downloads\OLOS_Project_Type_Secondary_Layer_Spec_v1.2.docx ====
+
+OLOS  —  Project Type & Secondary Layer System  —  UX Specification v1.1
+
+OLOS
+
+Project Type & Secondary Layer System
+
+UX & Data Architecture Specification — v1.1
+
+Document type
+
+UX & Data Architecture Specification
+
+Version
+
+v1.2 — Residential / Live-In Stewardship secondary added
+
+Status
+
+Ready for implementation
+
+Changes from v1.1
+
+Project type 13 added: Residential / Live-In Stewardship (Secondary-only). Relationship matrix updated with new row. Two new design tensions added: Residential + Agritourism, Residential + Wellness. Secondary classification: Modifying on Regen Farm, Agritourism, Wellness; Additive on all others; N/A on Homestead, Ecovillage, Off-Grid.
+
+Depends on
+
+OLOS Plan Navigation Spec v1.0
+
+Next document
+
+OLOS Project Creation Wizard Spec
+
+
+
+1. Purpose & architectural context
+
+OLOS organises land stewardship work around a universal 7-tier Plan stage. The tier structure is fixed — it reflects the epistemic dependency chain of regenerative land design. What varies by project is which objectives are loaded within each tier.
+
+
+
+The Project Type & Secondary Layer system is the configuration mechanism that determines which objectives populate the universal tier structure for a given project. It operates on three layers: a universal objective set present for every project regardless of type; a primary-type objective set that anchors the project's core logic; and secondary objective sets that expand the project via additive or modifying behaviour.
+
+
+
+Architectural principle  The tier structure encodes how land design must proceed. Project type encodes what kind of land project is being designed. These are separate concerns and must remain so in the data model.
+
+
+
+2. Project type catalogue
+
+OLOS supports twelve project types. Each type has an axis classification that determines where it differentiates most strongly across the Observe → Plan → Act pipeline.
+
+
+
+No.
+
+Project Type
+
+Axis
+
+Role
+
+Scope
+
+1
+
+Homestead / Family Land
+
+Use-defined
+
+Primary
+
+Family-scale food, shelter, resilience, gardens, animals, long-term stewardship
+
+2
+
+Regenerative Farm / Multi-Enterprise
+
+Use-defined
+
+Primary
+
+Mixed-enterprise farming. Breadth comes from secondaries selected, not from special template behaviour
+
+3
+
+Market Garden / Intensive Crop Production
+
+Use-defined
+
+Primary or Secondary
+
+Vegetable production, crop beds, tunnels, wash/pack, irrigation, fertility, sales systems
+
+4
+
+Orchard / Food Forest / Perennial Agroforestry
+
+Ecology-defined
+
+Primary or Secondary
+
+Tree crops, guilds, perennial systems, understory planting, succession, harvesting paths
+
+5
+
+Silvopasture / Livestock Land Management
+
+Ecology-defined
+
+Primary or Secondary
+
+Animals, paddocks, rotational grazing, shelters, water systems, fencing, forage, animal impact
+
+6
+
+Intentional Community / Ecovillage
+
+Experience-defined
+
+Primary
+
+Shared land, housing clusters, governance, communal infrastructure, food systems, phased settlement
+
+7
+
+Agritourism / Retreat / Experience Destination
+
+Experience-defined
+
+Primary or Secondary
+
+Guest experiences, trails, cabins/yurts, retreat spaces, farm tours, education, hospitality, visitor flow
+
+8
+
+Education / Demonstration Land
+
+Experience-defined
+
+Primary or Secondary
+
+Workshops, field learning, demonstration plots, tours, signage, curriculum, public-facing teaching
+
+9
+
+Conservation / Rewilding / Habitat Restoration
+
+Ecology-defined
+
+Primary
+
+Habitat repair, wildlife corridors, native planting, erosion repair, invasive management, low-intervention stewardship
+
+10
+
+Off-Grid Resilience / Remote Settlement
+
+Use-defined
+
+Primary
+
+Water, energy, shelter, access, food security, storage, fire risk, redundancy, remote-living systems
+
+11
+
+Wellness / Healing Sanctuary
+
+Experience-defined
+
+Primary or Secondary
+
+Quiet retreat, healing gardens, contemplative trails, privacy gradients, water features, sensory design
+
+12
+
+Nursery / Propagation / Plant Production
+
+Use-defined
+
+Primary or Secondary
+
+Plant propagation, seedling sales, mother plants, compost/fertility, greenhouse systems, irrigation
+
+13
+
+Residential / Live-In Stewardship
+
+Use-defined
+
+Secondary only
+
+On-site dwelling, household provision, domestic water, shelter resilience, private living zone, domestic infrastructure. Cannot be primary — requires a land use purpose as the primary type.
+
+
+
+Note  Regenerative Farm / Multi-Enterprise carries no special parent template behaviour. It behaves identically to all other primary types. Its breadth is determined entirely by which secondaries are selected.
+
+
+
+
+
+
+3. Primary / secondary layer architecture
+
+3.1 Primary type
+
+The primary type defines the core purpose of the land project. It anchors the objective structure across all tiers and sets the dominant design logic. Exactly one primary type is permitted per project.
+
+
+
+3.2 Secondary types
+
+Secondary types layer additional objectives and, where applicable, expanded scope onto the primary structure. Zero or more secondaries may be selected. There is no enforced upper limit — the design tension detection system (Section 6) provides practical guidance on combinations requiring careful resolution.
+
+
+
+3.3 Project recipe examples
+
+
+
+Project
+
+Primary
+
+Secondaries
+
+System behaviour
+
+Ecovillage with food forest and retreats
+
+Intentional Community / Ecovillage
+
+Orchard / Food Forest + Agritourism / Retreat
+
+Governance + privacy logic anchors all tiers. Food Forest is additive on Ecovillage (Tier 4–5 objectives). Agritourism is additive and triggers design tension #5 warning.
+
+Family homestead with egg sales
+
+Homestead / Family Land
+
+Silvopasture / Livestock
+
+Homestead logic anchors all tiers. Silvopasture is modifying: expands water strategy scope (Tier 3) and Tier 5 animal integration objectives.
+
+Regenerative farm with workshops and lodging
+
+Regenerative Farm / Multi-Enterprise
+
+Education / Demonstration + Agritourism / Retreat
+
+Farm anchors Tiers 0–4. Both secondaries are additive. No design tension flagged.
+
+Market garden with conservation margins
+
+Market Garden / Intensive Crop Production
+
+Conservation / Rewilding
+
+Market garden is primary. Conservation triggers design tension #2: intervention philosophy conflict. OLOS surfaces spatial separation requirement.
+
+
+
+
+
+
+4. Universal objective set
+
+Sixteen objectives are universal — present in every OLOS project regardless of primary or secondary type selection. They cannot be removed by project type configuration. They represent the irreducible minimum of what every regenerative land project must decide before Act begins.
+
+
+
+Architectural principle  Universal objectives ensure no project can reach Act without having resolved the foundational design questions that all land work depends on. They are not defaults that can be toggled off — they are structural requirements.
+
+
+
+Tier
+
+Tier Name
+
+Universal Objective
+
+Rationale
+
+0
+
+Project Foundation
+
+Define vision, goals & stewardship capacity
+
+Anchors every project to human intention and resource reality. No land design proceeds without a stated purpose.
+
+0
+
+Project Foundation
+
+Establish site boundaries & legal constraints
+
+Every project operates within a spatial and legal frame. Required before any survey or design work.
+
+0
+
+Project Foundation
+
+Map stakeholders & community relationships
+
+Every project has people around it: neighbours, family, shared boundaries, local authority, Indigenous title. Skipping this produces expensive surprises in Tier 4 and Tier 6. Parallelisable with boundaries objective.
+
+1
+
+Land Reading
+
+Survey terrain & topography
+
+Slope, aspect, and elevation affect every land decision without exception.
+
+1
+
+Land Reading
+
+Survey climate & sectors
+
+Sun, wind, frost, and rainfall patterns apply to every project type.
+
+1
+
+Land Reading
+
+Survey existing ecology & habitat
+
+Baseline ecology is required even for high-intervention projects. Parallelisable with all other Tier 1 surveys.
+
+1
+
+Land Reading
+
+Survey existing infrastructure & access
+
+Every project has an existing access and infrastructure context that constrains all design.
+
+2
+
+Systems Reading
+
+Survey water movement & hydrology
+
+Water is foundational to every land system. Requires terrain survey complete.
+
+2
+
+Systems Reading
+
+Survey soil conditions & subsurface
+
+Soil health and subsurface constraints affect every land use without exception.
+
+3
+
+Foundation Decisions
+
+Confirm project direction & feasibility
+
+Decision checkpoint: validates or revises the Tier 0 vision against all survey findings before design begins.
+
+3
+
+Foundation Decisions
+
+Define water strategy
+
+Water decisions gate all downstream design. Universal across all project types; completion output absorbs type-specific variation.
+
+3
+
+Foundation Decisions
+
+Define spatial framework & zones
+
+Every project requires a spatial allocation decision before Tier 4 design begins. Objective title and checklist adapt by type (e.g. 'Habitat & Intervention Zone Mapping' for Conservation).
+
+4
+
+Design
+
+Design access & circulation
+
+Every project moves people, materials, and/or animals. No exceptions.
+
+4
+
+Design
+
+Design water harvesting & storage infrastructure
+
+Universal; valid completion outputs include 'mains supply confirmed — harvesting not required' for projects without on-site collection needs.
+
+4
+
+Design
+
+Design soil improvement strategy
+
+Every project manages fertility, even minimally. Low-intervention projects produce a 'minimal intervention confirmed' output.
+
+5
+
+Integration
+
+Design monitoring & observation system
+
+Every project needs a defined feedback mechanism connecting Act completion back to Observe. The bridge between implementation and learning.
+
+6
+
+Phasing & Resourcing
+
+Define Phase 1 implementation plan
+
+Every project requires a scoped first action phase before Act begins.
+
+6
+
+Phasing & Resourcing
+
+Define resource & capacity plan
+
+Every project operates within labour, budget, and skill constraints that must be explicitly recorded.
+
+6
+
+Phasing & Resourcing
+
+Define risk & contingency register
+
+Every project requires a named first-cycle risk register before Act begins. Without it, the Phase 1 plan is incomplete.
+
+
+
+Tier 0 parallelism note
+
+Within Tier 0, the Establish boundaries objective and the Map stakeholders objective are parallelisable. Both require the vision objective to be complete first. Neither can proceed without it. Both must be complete before Tier 1 unlocks.
+
+
+
+Completion output flexibility
+
+Universal objectives accommodate project-type variation through their completion outputs, not through separate objective instances. Examples: Zone Allocation accepts 'Habitat & Intervention Zone Mapping' as a valid output for Conservation projects. Water Harvesting Infrastructure accepts 'Mains supply confirmed — harvesting not required' as a valid output. Soil Improvement accepts 'Minimal intervention confirmed' for Conservation and Rewilding projects. The objective is universal; the checklist depth and valid outputs adapt by type.
+
+
+
+
+
+
+5. Secondary type classification
+
+5.1 Additive vs. modifying
+
+Not all secondaries behave the same way. The system distinguishes two secondary behaviour types. This distinction determines whether a secondary appends new objectives only, or also reaches into existing primary objectives and expands their scope via patch records (see Section 7).
+
+
+
+Secondary type
+
+Behaviour
+
+Examples
+
+Additive
+
+Adds new objectives in Tiers 4–6 without changing existing primary objectives
+
+Education, Agritourism, Wellness (most combinations)
+
+Modifying
+
+Expands the depth or scope of existing primary objectives in addition to adding new ones. Classification is a property of the secondary–primary relationship, not of the secondary type alone — the same secondary may be additive on one primary and modifying on another.
+
+Silvopasture on Homestead (modifying); Silvopasture on Ecovillage (additive)
+
+
+
+Critical implementation note  Secondary classification is a property of the secondary–primary relationship, not of the secondary type alone. The same secondary may be modifying on one primary and additive on another. The relationship matrix in Section 5.3 is the canonical reference.
+
+
+
+5.2 Classification key
+
+
+
+Symbol
+
+Classification
+
+Meaning
+
+M
+
+Modifying
+
+Secondary expands scope of existing primary objectives via patch records, in addition to adding new objectives
+
+A
+
+Additive
+
+Secondary appends new objectives only. No existing objective is modified.
+
+X
+
+Design Tension
+
+Combination is possible but carries a known spatial or philosophical conflict. Warning surfaced at project creation and at the resolution tier.
+
+—
+
+Same type
+
+Secondary and primary are the same project type. Not applicable.
+
+
+
+5.3 Relationship matrix
+
+This matrix is the canonical source of truth for secondary classification. Evaluate every secondary addition against this table to determine behaviour type and tension status.
+
+
+
+Secondary \ Primary
+
+Homestead
+
+Regen Farm
+
+Mkt Garden
+
+Orchard
+
+Silvopasture
+
+Ecovillage
+
+Agritourism
+
+Education
+
+Conservation
+
+Off-Grid
+
+Wellness
+
+Nursery
+
+Market Garden
+
+M
+
+M
+
+—
+
+A
+
+A
+
+A
+
+A
+
+A
+
+X
+
+M
+
+A
+
+M
+
+Orchard / Food Forest
+
+M
+
+M
+
+M
+
+—
+
+M
+
+A
+
+A
+
+A
+
+A
+
+M
+
+A
+
+M
+
+Silvopasture
+
+M
+
+M
+
+X
+
+M
+
+—
+
+A
+
+A
+
+A
+
+X
+
+M
+
+X
+
+A
+
+Agritourism
+
+A
+
+A
+
+A
+
+A
+
+A
+
+X
+
+—
+
+A
+
+A
+
+X
+
+A
+
+A
+
+Education
+
+A
+
+A
+
+A
+
+A
+
+A
+
+A
+
+A
+
+—
+
+A
+
+A
+
+A
+
+A
+
+Wellness
+
+A
+
+A
+
+A
+
+A
+
+X
+
+A
+
+A
+
+A
+
+A
+
+A
+
+—
+
+A
+
+Nursery
+
+A
+
+M
+
+M
+
+A
+
+A
+
+A
+
+A
+
+A
+
+M
+
+A
+
+A
+
+—
+
+Residential / Live-In
+
+—
+
+M
+
+A
+
+A
+
+A
+
+—
+
+X
+
+A
+
+A
+
+—
+
+X
+
+A
+
+
+
+Matrix patterns
+
+Modifying secondaries cluster around Regenerative Farm, Market Garden, and Off-Grid — the use-defined types with the deepest operational infrastructure.
+
+Education is universally additive. It never modifies a primary — it always appends curriculum, demonstration, and signage objectives on top.
+
+Silvopasture is the most tensioned secondary — three X combinations. Animals create genuine conflict with intensive crops, conservation ecology, and low-stimulation sanctuaries.
+
+Agritourism has one tension (Ecovillage) and is additive on all other primaries. Visitor experience layers sit on top of any land use without restructuring it.
+
+
+
+
+
+
+6. Design tension detection
+
+Ten project type combinations carry known spatial or philosophical conflicts. OLOS surfaces these as named design tension warnings at two points: at project creation when the combination is first selected, and as a contextual reminder at the specific Plan tier where the tension must be resolved.
+
+
+
+Tensions are advisory — they do not block project creation or secondary addition. The steward must actively acknowledge each warning before proceeding. Acknowledgements are recorded in the project type version history.
+
+
+
+#
+
+Type A
+
+Type B
+
+Tension description
+
+Resolution tier
+
+1
+
+Wellness / Healing Sanctuary
+
+Agritourism / Retreat
+
+Quiet vs. visitor traffic. Sanctuary design requires low-stimulation, privacy-graded zones. High-traffic guest programs conflict unless spatially separated. Advisory, not blocking — the steward may be designing a quiet retreat, not a high-traffic operation. Resolution anchored to Tier 3 Zone Allocation.
+
+Tier 3 — Zone Allocation
+
+2
+
+Conservation / Rewilding
+
+Market Garden / Intensive Crop Production
+
+Intervention philosophy conflict. High-input annual production contradicts minimal-intervention habitat logic. Requires hard spatial boundaries between production and restoration zones.
+
+Tier 3 — Zone Allocation
+
+3
+
+Conservation / Rewilding
+
+Silvopasture / Livestock
+
+Animal impact vs. habitat recovery. Grazing pressure, compaction, and browse damage threaten sensitive restoration areas. Requires fencing, exclusion zones, and corridor design before Act.
+
+Tier 3 — Zone Allocation, Tier 5
+
+4
+
+Off-Grid Resilience
+
+Education / Demonstration Land
+
+Access conflict. Remote settlement design minimises and controls site access. Education requires regular, safe, predictable public access. Driveway, parking, and security design must reconcile both.
+
+Tier 4 — Access & Circulation
+
+5
+
+Intentional Community / Ecovillage
+
+Agritourism / Retreat
+
+Governance and privacy conflict. Resident consent, community agreements, and private living zones may directly conflict with open visitor access. Requires explicit visitor policy before Zone Allocation.
+
+Tier 3 — Zone Allocation
+
+6
+
+Silvopasture / Livestock
+
+Market Garden / Intensive Crop Production
+
+Contamination and damage risk. Animal movement near intensive crop beds creates pathogen, compaction, and browse risk. Requires strict spatial and temporal separation.
+
+Tier 4 — Access & Circulation, Design
+
+7
+
+Silvopasture / Livestock
+
+Wellness / Healing Sanctuary
+
+Sensory conflict. Animal noise, odour, and operational activity are incompatible with low-stimulation sanctuary zones unless sufficient distance and screening is designed in.
+
+Tier 3 — Zone Allocation
+
+8
+
+Off-Grid Resilience
+
+Agritourism / Retreat
+
+Access conflict. Remote settlement deliberately limits visitor access for security and privacy. Agritourism requires regular, predictable, open public access. Driveway, security, and visitor management design must reconcile both.
+
+Tier 4 — Access & Circulation
+
+9
+
+Residential / Live-In Stewardship
+
+Agritourism / Retreat
+
+Private residence vs. visitor access conflict. The steward's home is on the same land guests are visiting. Private living zones, family security, and household routines must be explicitly separated from visitor circulation before Zone Allocation.
+
+Tier 3 — Zone Allocation
+
+10
+
+Residential / Live-In Stewardship
+
+Wellness / Healing Sanctuary
+
+Private domestic life vs. therapeutic sanctuary zones. Household noise, activity, and domestic infrastructure conflict with the low-stimulation, privacy-graded environment required for a healing sanctuary. Requires hard spatial separation and acoustic buffering.
+
+Tier 3 — Zone Allocation
+
+
+
+6.1 Tension warning behaviour
+
+Warning text names the specific conflict in plain language — not a generic alert.
+
+Steward must actively acknowledge ('Understood — continue') before the project is saved or the secondary is added.
+
+Acknowledgement is recorded: tension ID, timestamp, actor.
+
+At the resolution tier, the tension is surfaced again as a contextual reminder in the objective detail panel. This is a reminder only — no second acknowledgement gate.
+
+All 8 tensions are unconditional. The system surfaces them regardless of the steward's intended implementation approach. Resolution is the steward's responsibility in Zone Allocation or the relevant design tier.
+
+
+
+
+
+
+7. Modifying secondary mechanism
+
+7.1 The patching model
+
+When a modifying secondary is applied to a project, it expands existing primary objectives by injecting additional checklist items into them. This is the patch record model. It keeps the objective unified — the steward works one checklist, not two — while ensuring the expanded scope is explicitly represented and traceable to its source.
+
+
+
+7.2 Patch record structure
+
+Each modifying secondary carries one or more patch records. Each patch record targets a single objective and defines the injection precisely.
+
+
+
+Field
+
+Purpose
+
+target_objective_id
+
+References the existing objective that receives the patch
+
+inject_after_item_id
+
+Placement anchor within the target checklist. Null = append after last native item
+
+items[]
+
+The checklist items being injected. Each item carries: id, text, is_methodology boolean, feeds_into string
+
+source_secondary_id
+
+Tags each injected item to its originating secondary. Required for removal tracking and UI labelling
+
+scope_note
+
+Plain-language description of what the secondary adds to this objective. Displayed in the objective detail panel as: 'Scope expanded by: [Secondary name]'
+
+completion_gate_amendment
+
+Optional. Updated completion gate text for when the secondary changes what 'done' means for the objective. Example: water strategy completion gate expands from 'water strategy approved' to 'water strategy approved including stock water system' when Silvopasture is added
+
+
+
+7.3 Conflict resolution — multiple secondaries patching the same objective
+
+When two or more secondaries both carry patch records targeting the same objective, their injections are applied in the order the secondaries were added to the project. Injected items from each secondary append after the last native item (or after the previous secondary's injections if multiple). Each injected item retains its source_secondary_id tag regardless of ordering.
+
+
+
+7.4 Reopening completed objectives
+
+If a secondary is added after an objective has been marked complete, and that secondary's patch records inject items into that objective, the objective reverts to active status. Completed checklist items remain checked. Only the newly injected items appear as outstanding.
+
+
+
+UX requirement  This reopening must never be silent. A named modal alert is required — never a badge or a silent state change. The alert must name the secondary being added, list each affected objective, state how many new checklist items have been added, and provide a direct link to each affected objective. The steward actively acknowledges before continuing.
+
+
+
+7.5 Completion gate amendments
+
+Some modifying secondaries change not just what work is required, but what 'done' means for the objective. When a patch record carries a completion_gate_amendment field, the target objective's completion gate text is updated to the amended version. The previous gate text is preserved in the objective's version history. Both texts are shown in the detail panel: current gate (active) and previous gate (greyed, with amendment source noted).
+
+
+
+7.6 Scope note display
+
+The objective detail panel must display a scope note for any objective that has been expanded by one or more modifying secondaries. Format: 'Scope expanded by: [Secondary name 1], [Secondary name 2]'. This is shown below the objective description and above the checklist. It links directly to the secondary's project recipe entry.
+
+
+
+
+
+
+8. Mid-project secondary addition
+
+8.1 Design rationale
+
+Land projects reveal themselves over time. Blocking secondary addition at project creation fights the actual rhythm of land stewardship. OLOS must accommodate evolving project scope without requiring a project restart.
+
+
+
+8.2 Delta computation protocol
+
+
+
+Step
+
+Behaviour
+
+1. Audit completed work
+
+Identify all objectives already complete or active. These are never re-gated.
+
+2. Compute delta objectives
+
+Identify objectives the new secondary introduces that do not already exist in the project.
+
+3. Insert delta at correct tier
+
+New objectives are placed in the appropriate tier per the universal tier structure. No new tiers are created.
+
+4. Apply patch records
+
+If the secondary is modifying on this primary, apply all patch records to their target objectives. If any target is complete, trigger the reopening alert.
+
+5. Flag Observe gaps
+
+If the secondary requires Observe data not yet collected, surface a named gap notification. Never fail silently.
+
+6. Flag design tensions
+
+If the secondary creates a tension with the existing primary or any active secondary, surface the tension warning immediately.
+
+
+
+8.3 Secondary removal
+
+Removing a secondary mid-project is permitted only if none of its delta objectives are active or complete. If any delta objective has been started or finished, removal is blocked. The UI must name which objective(s) are preventing removal and offer the option to mark them as Deferred instead.
+
+
+
+8.4 Version history
+
+Every change to the project type configuration — initial selection, secondary addition, secondary removal, tension acknowledgement, reopening acknowledgement — is recorded as an append-only versioned entry with action type, timestamp, and actor. This record is never overwritten.
+
+
+
+9. Data model requirements
+
+9.1 Project type record
+
+project_id — foreign key to project
+
+primary_type_id — reference to project type catalogue (exactly one)
+
+secondary_type_ids — array of references to project type catalogue (zero or more)
+
+created_at — timestamp of initial selection
+
+version_history — append-only array of change events (see 8.4)
+
+tension_acknowledgements — array of { tension_id, acknowledged_at, acknowledged_by }
+
+reopening_acknowledgements — array of { secondary_id, affected_objective_ids[], acknowledged_at, acknowledged_by }
+
+
+
+9.2 Objective record (relevant fields)
+
+objective_id
+
+tier — integer 0–6
+
+source — enum: universal | primary | secondary
+
+source_type_id — null if universal; references project type catalogue if primary or secondary
+
+secondary_class — null if not a secondary objective; enum: additive | modifying
+
+patch_records[] — array of patch records this objective carries when acting as a modifying secondary source
+
+injected_items[] — checklist items injected from secondary patch records, each tagged with source_secondary_id
+
+completion_gate — current gate text (amended if a patch record has updated it)
+
+completion_gate_history[] — previous gate versions with amendment source and timestamp
+
+prerequisite_objective_ids — array; used for dependency-gated sequencing
+
+status — computed: locked | available | active | complete
+
+
+
+9.3 Deduplication rule
+
+If a secondary objective would duplicate an objective already loaded by the primary (matched on objective_id), the secondary version is not loaded. Modifying secondaries expand existing objectives via patch records — they do not create duplicate objectives.
+
+
+
+
+
+
+10. Developer acceptance criteria
+
+
+
+Criterion
+
+Requirement
+
+Project creation — type selection
+
+Exactly one primary type can be selected. Zero to N secondary types can be selected. Saving with no primary is blocked.
+
+Design tension detection
+
+If a selected combination matches a known tension pair, a named warning is surfaced before the project is saved. The steward must actively acknowledge before proceeding. Acknowledgement is recorded with timestamp.
+
+Tension reminder at resolution tier
+
+Each tension is surfaced again as a contextual reminder at the specific Plan tier where it resolves (per the tension register). This is a reminder, not a repeated acknowledgement gate.
+
+Objective loading
+
+On project creation: all universal objectives + primary-type objectives + delta objectives from each secondary, deduplicated. No objective appears twice.
+
+Secondary classification
+
+Modifying secondaries must update scope or checklist content of affected primary objectives via patch records. Classification is evaluated per primary–secondary pair, not per secondary type alone.
+
+Sparse tiers
+
+A project type may produce zero type-specific objectives in one or more tiers. Sparse tiers are valid. The UI renders them with an explanatory note, not as errors. Universal objectives ensure no tier is ever completely empty.
+
+Mid-project secondary addition
+
+Runs delta computation. Only new objectives inserted. Completed work is not re-gated silently. If patch records reopen a completed objective, a named modal alert is shown listing each affected objective with a direct link.
+
+Reopening alert
+
+The alert text must name the secondary being added, the number of objectives affected, and link directly to each. The steward actively acknowledges before continuing. The alert is never a badge or silent state change.
+
+Completion gate amendments
+
+If a patch record carries a completion_gate_amendment, the target objective's completion gate is updated to the amended text. The previous gate text is preserved in version history.
+
+Secondary removal
+
+Removing a secondary hides its delta objectives only if none have been started. If any delta objective is active or complete, removal is blocked with an explanation naming the blocking objectives.
+
+Project type record
+
+All changes — initial selection, secondary addition, removal, tension acknowledgements, reopening acknowledgements — are persisted as append-only versioned entries with timestamp and actor. Never overwritten.
+
+
+
+11. Out of scope for this document
+
+
+
+Topic
+
+Notes
+
+Per-type objective catalogue
+
+Each project type's complete objective list across all 7 tiers, beyond the universal set, is authored in subsequent per-type specification documents.
+
+Project Creation Wizard UI
+
+Step-by-step wizard flow, input validation, and onboarding screens are covered in the Project Creation Wizard spec.
+
+Universal objective checklist content
+
+Checklist items, completion gates, and Act handoff packages for each universal objective are authored in stage-specific specs.
+
+Map view internals
+
+Overlay rendering, drawing tools, and layer controls are covered in the Map View spec.
+
+Sub-project C (Economics)
+
+Capital formation, financing, and yield structures. Scholar Council gated. Separate covenant process.
+
+
+
+OLOS Project Type & Secondary Layer System — UX Specification v1.1
+
+Ready for implementation
+
+		OLOS — Confidential		Page
+

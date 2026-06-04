@@ -1,0 +1,49 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/MY OWN AXIS/Documents/MAQASID OS - V2.1/atlas/apps/web[39m
+
+ [32m✓[39m src/store/__tests__/projectStore.secondaryReopen.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+[90mstderr[2m | Fetch.onError (file:\C:\Users\MY%20OWN%20AXIS\Documents\MAQASID%20OS%20-%20V2.1\atlas\node_modules\happy-dom\lib\fetch\Fetch.js:539:41)
+[22m[39mAggregateError: 
+[90m    at internalConnectMultiple (node:net:1142:49)[39m
+[90m    at afterConnectMultiple (node:net:1723:7)[39m {
+  code: [32m'ECONNREFUSED'[39m,
+  [errors]: [
+    Error: connect ECONNREFUSED ::1:3000
+    [90m    at createConnectionError (node:net:1686:14)[39m
+    [90m    at afterConnectMultiple (node:net:1716:16)[39m {
+      errno: [33m-4078[39m,
+      code: [32m'ECONNREFUSED'[39m,
+      syscall: [32m'connect'[39m,
+      address: [32m'::1'[39m,
+      port: [33m3000[39m
+    },
+    Error: connect ECONNREFUSED 127.0.0.1:3000
+    [90m    at createConnectionError (node:net:1686:14)[39m
+    [90m    at afterConnectMultiple (node:net:1716:16)[39m {
+      errno: [33m-4078[39m,
+      code: [32m'ECONNREFUSED'[39m,
+      syscall: [32m'connect'[39m,
+      address: [32m'127.0.0.1'[39m,
+      port: [33m3000[39m
+    }
+  ]
+}
+
+[90mstderr[2m | hydrateBuiltins (C:\Users\MY OWN AXIS\Documents\MAQASID OS - V2.1\atlas\apps\web\src\store\projectStore.ts:1151:13)
+[22m[39m[OGDEN] Failed to fetch builtin samples — using local fallback: DOMException [NetworkError]: Failed to execute "fetch()" on "Window" with URL "http://localhost:3000/api/v1/projects/builtins": 
+    at Fetch.onError (file:///C:/Users/MY%20OWN%20AXIS/Documents/MAQASID%20OS%20-%20V2.1/atlas/node_modules/[4mhappy-dom[24m/lib/fetch/Fetch.js:540:21)
+[90m    at ClientRequest.emit (node:events:508:28)[39m
+[90m    at emitErrorEvent (node:_http_client:108:11)[39m
+[90m    at Socket.socketErrorListener (node:_http_client:575:5)[39m
+[90m    at Socket.emit (node:events:508:28)[39m
+[90m    at emitErrorNT (node:internal/streams/destroy:170:8)[39m
+[90m    at emitErrorCloseNT (node:internal/streams/destroy:129:3)[39m
+[90m    at processTicksAndRejections (node:internal/process/task_queues:90:21)[39m
+
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 18:34:58
+[2m   Duration [22m 3.66s[2m (transform 1.38s, setup 0ms, collect 2.51s, tests 11ms, environment 660ms, prepare 141ms)[22m
+
+B4_REOPEN_EXIT=0

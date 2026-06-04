@@ -1,4 +1,4 @@
-mport { useState } from 'react';
+import { useState } from 'react';
 import { C, F, PLAN_RECIPE, fToC, type PlanObjective } from './model.js';
 import { useCompostStore } from './useCompostStore.js';
 

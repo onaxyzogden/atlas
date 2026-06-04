@@ -1,0 +1,49 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/Users/MY OWN AXIS/Documents/MAQASID OS - V2.1/atlas/packages/shared[39m
+
+ [32m✓[39m src/tests/operatingHealth.test.ts [2m([22m[2m13 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/relationships/__tests__/urgencyScore.test.ts [2m([22m[2m34 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+ [32m✓[39m src/tests/fieldActionStatus.test.ts [2m([22m[2m52 tests[22m[2m)[22m[90m 27[2mms[22m[39m
+ [32m✓[39m src/tests/demand.test.ts [2m([22m[2m38 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+ [32m✓[39m src/evidence/__tests__/selectors.test.ts [2m([22m[2m36 tests[22m[2m)[22m[90m 23[2mms[22m[39m
+ [32m✓[39m src/tests/corridorLCP.test.ts [2m([22m[2m20 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/tests/olos.test.ts [2m([22m[2m34 tests[22m[2m)[22m[90m 62[2mms[22m[39m
+ [32m✓[39m src/relationships/__tests__/projectRoleCapabilities.test.ts [2m([22m[2m63 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m src/tests/tierObjectiveStatus.test.ts [2m([22m[2m25 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+ [32m✓[39m src/relationships/__tests__/resolveProjectObjectives.test.ts [2m([22m[2m25 tests[22m[2m)[22m[90m 23[2mms[22m[39m
+ [32m✓[39m src/tests/relationships.test.ts [2m([22m[2m23 tests[22m[2m)[22m[90m 33[2mms[22m[39m
+ [32m✓[39m src/tests/readinessGate.test.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/constants/plan/__tests__/catalogues.test.ts [2m([22m[2m22 tests[22m[2m)[22m[90m 63[2mms[22m[39m
+ [32m✓[39m src/constants/plan/__tests__/remapSlug.test.ts [2m([22m[2m20 tests[22m[2m)[22m[90m 37[2mms[22m[39m
+ [32m✓[39m src/tests/resourcingConflicts.test.ts [2m([22m[2m13 tests[22m[2m)[22m[90m 35[2mms[22m[39m
+ [32m✓[39m src/tests/workItemGraph.test.ts [2m([22m[2m17 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m src/relationships/__tests__/supersession.test.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+ [32m✓[39m src/tests/caseTransform.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/tests/fieldProof.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m src/tests/budgetVariance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m src/tests/schemas.test.ts [2m([22m[2m39 tests[22m[2m)[22m[90m 30[2mms[22m[39m
+ [32m✓[39m src/tests/universalDomain.test.ts [2m([22m[2m27 tests[22m[2m)[22m[90m 26[2mms[22m[39m
+ [32m✓[39m src/tests/fuzzyMCDM.test.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+ [32m✓[39m src/fieldVerification/__tests__/computeFieldVerification.test.ts [2m([22m[2m15 tests[22m[2m)[22m[90m 18[2mms[22m[39m
+ [32m✓[39m src/relationships/__tests__/revisionPriority.test.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/relationships/__tests__/observeFreshness.test.ts [2m([22m[2m14 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/tests/fieldAction.schema.test.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/relationships/__tests__/objectiveObserveDomains.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m src/evidence/__tests__/hostCanopyUnion.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+ [32m✓[39m src/tests/pollinatorHabitatState.test.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/tests/geojsonGeometry.test.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m src/tests/vegetationPatch.schema.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/tests/projectState.schema.test.ts [2m([22m[2m7 tests[22m[2m)[22m[90m 12[2mms[22m[39m
+ [32m✓[39m src/tests/successionMilestone.schema.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m src/succession/__tests__/growthCurves.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 8[2mms[22m[39m
+ [32m✓[39m src/schemas/__tests__/clientErrorTelemetry.schema.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 21[2mms[22m[39m
+ [32m✓[39m src/relationships/__tests__/observeRevisionTrigger.test.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/tests/statusGate.test.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/evidence/__tests__/hashInputs.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 48[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m39 passed[39m[22m[90m (39)[39m
+[2m      Tests [22m [1m[32m717 passed[39m[22m[90m (717)[39m
+[2m   Start at [22m 03:59:18
+[2m   Duration [22m 5.87s[2m (transform 6.52s, setup 0ms, collect 12.43s, tests 766ms, environment 12ms, prepare 9.93s)[22m
+
+VITEST_EXIT=0

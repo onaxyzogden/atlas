@@ -16,6 +16,8 @@ import { api } from '../../lib/apiClient.js';
 import { computeTransitionBudget } from '../financial/engine/transitionBudget.js';
 import { naturalCapitalAppreciationByYear } from '../financial/somAppreciation.js';
 import JCurveChart from '../financial/JCurveChart.js';
+import ZoneSomSidebar from '../financial/ZoneSomSidebar.js';
+import { useZoneStore } from '../../store/zoneStore.js';
 import p from '../../styles/panel.module.css';
 import s from './EconomicsPanel.module.css';
 import OperatingRunwayCard from './OperatingRunwayCard.js';
@@ -93,6 +95,18 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
       acres: project.acreage,
     });
   }, [somQuery.data, project.acreage]);
+
+  // K.4 — per-zone SOM sidebar descriptors. Subscribe to `zones` raw and
+  // derive in useMemo (getProjectZones allocates a fresh array each call →
+  // infinite loop if used as a selector). See zustand-selector-stability ADR.
+  const allZones = useZoneStore((st) => st.zones);
+  const zoneSomDescriptors = useMemo(
+    () =>
+      allZones
+        .filter((z) => z.projectId === project.id)
+        .map((z) => ({ id: z.id, label: z.name })),
+    [allZones, project.id],
+  );
 
   if (!model) {
     return (
@@ -313,10 +327,15 @@ export default function EconomicsPanel({ project }: EconomicsPanelProps) {
           {/* D.4 — J-curve: transition-stage cumulative cashflow + optional
               natural-capital appreciation overlay. Covenant-safe: appreciation
               of stewarded land value, not investor yield. */}
-          <JCurveChart
-            transitionYears={transitionYears}
-            naturalCapitalAppreciationByYear={natCap}
-          />
+          <div className={s.jcurveRow}>
+            <div className={s.jcurveMain}>
+              <JCurveChart
+                transitionYears={transitionYears}
+                naturalCapitalAppreciationByYear={natCap}
+              />
+            </div>
+            <ZoneSomSidebar projectId={project.id} zones={zoneSomDescriptors} />
+          </div>
 
           {/* Scenario comparison */}
           <SectionLabel>Scenario Comparison (est.)</SectionLabel>

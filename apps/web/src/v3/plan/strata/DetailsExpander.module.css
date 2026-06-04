@@ -42,7 +42,7 @@
 }
 
 .eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -50,7 +50,7 @@
 }
 
 .headerHint {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.02em;
   color: var(--color-text-muted, rgba(242, 237, 227, 0.6));
@@ -61,7 +61,7 @@
   padding: 12px;
   border: 1px dashed var(--color-border, rgba(242, 237, 227, 0.18));
   border-radius: var(--radius-md, 8px);
-  background: color-mix(in srgb, var(--color-bg, #1f1d1a) 92%, #ffffff);
+  background: color-mix(in srgb, var(--color-bg, #14191f) 92%, #ffffff);
   /* Embedded legacy cards expect roughly full-width room. Scroll if a card
    * is too tall — keeps the stratum shell layout predictable. */
   max-height: 520px;

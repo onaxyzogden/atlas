@@ -1,0 +1,210 @@
+OLOS
+Project Creation Wizard
+UX Specification — v1.0
+
+[TABLE]
+Field | Value
+Document type | UX Specification
+Status | Ready for implementation
+Covers | Three-step project creation wizard: site, vision, team. Spatial-first. Seeds Tier 0 Plan objectives on completion.
+Companion documents | OLOS Plan Stage Navigation UX Spec v1.0; OLOS Project Home UX Spec v1.0
+Does not cover | Authentication, billing, organisation admin, subsequent Tier 0 completion in Plan
+[/TABLE]
+
+1. Context & design principles
+1.1 What the wizard must accomplish
+The wizard has one job: get the steward from blank account to a project that feels real and specific in a single session. It does this by anchoring the project in space first — the map and site boundary — then layering in identity and capacity, then team.
+On wizard completion, the steward lands on Per-Project Home with:
+A named project with a site boundary on the map
+Tier 0 objectives partially or fully seeded from wizard inputs
+A clear ‘next up’ prompt pointing into Plan
+At least one team member invited (optional but encouraged)
+
+[TABLE]
+The failure modes to avoid / Too long: a 12-step form exhausts the steward before they see any value. Too short: a blank Plan stage with no spatial anchor creates no momentum and gets abandoned. The wizard must be exactly three steps, map-first, with non-critical fields skippable and completable later in Plan.
+[/TABLE]
+
+1.2 Design principles
+Spatial first — the map is the first thing the steward sees, not a form
+Three steps maximum — Step 1: Site, Step 2: Vision & Capacity, Step 3: Team
+Skip-forward, complete-later — every field except site boundary and project name is skippable. Skipped fields become open Tier 0 checklist items in Plan.
+No dead ends — the steward can always go back, and can always skip forward to complete the wizard
+Momentum on exit — the completion screen must feel like arrival, not the end of a form
+Mobile-capable — a steward standing on their land should be able to create a project from their phone
+1.3 Relationship to Tier 0
+The wizard seeds Tier 0 Plan objectives but does not replace them. Wizard inputs are written directly into the relevant Tier 0 checklist items as pre-filled evidence. The steward can review and complete them fully in Plan at any time.
+
+[TABLE]
+Wizard input | Tier 0 objective seeded
+Site boundary polygon | Establish site boundaries & legal constraints — boundary checklist item marked complete
+Project name and location | Establish site boundaries — project record created, address logged
+Vision statement | Define vision, goals & stewardship capacity — vision checklist item pre-filled
+Stewardship capacity (labour, budget, timeline) | Define vision, goals & stewardship capacity — capacity checklist items pre-filled
+Legal constraints noted | Establish site boundaries & legal constraints — constraints checklist item pre-filled
+Team members invited | Define vision, goals & stewardship capacity — stewards checklist item pre-filled
+Skipped fields | Relevant checklist items remain open in Plan, surfaced as ‘incomplete’ in the Tier 0 objective
+[/TABLE]
+
+2. Step 1 — Site
+Required fields: project name, site boundary. All other fields skippable.
+2.1 Purpose
+Step 1 anchors the project in space. The boundary polygon is the spatial reference for every overlay, observation, and map interaction in the system. It must be created before anything else.
+2.2 Layout
+Step 1 is map-dominant. The map fills the right two-thirds of the screen on desktop and tablet. The left panel holds the minimal form. On mobile the map fills the full screen with a bottom sheet for form fields.
+
+[TABLE]
+Zone | Content
+Left panel / bottom sheet | Step indicator (1 of 3), step title, project name field, address search field, brief instruction text, and navigation controls (Back disabled, Next/Skip)
+Map (right two-thirds / full screen mobile) | Full basemap. Drawing tool active by default. Polygon draw mode pre-selected. Address search result highlighted if used.
+Drawing toolbar (floating, map) | Three tools: polygon draw (default active), rectangle draw (quick alternative), and upload boundary file (accepts GeoJSON, KML, Shapefile). No other tools.
+Boundary confirmation strip (appears after polygon closed) | Shows: area in hectares/acres, perimeter in km/miles, and a ‘Looks right’ / ‘Redraw’ choice.
+[/TABLE]
+
+2.3 Site boundary capture
+The site boundary is the only required field beyond project name. The steward has three capture methods:
+Draw polygon — tap/click to place vertices on the map. Close by tapping the first vertex or double-tapping the last. Default method.
+Draw rectangle — tap/click two opposing corners. For roughly rectangular sites, faster than polygon.
+Upload file — accepts GeoJSON, KML, or Shapefile. The uploaded boundary renders on the map for confirmation before saving.
+On mobile, draw polygon places a vertex at the device’s current GPS location with a single tap. A ‘Walk the boundary’ mode is available: tapping ‘Start walk’ begins a GPS trace. The steward walks the perimeter; tapping ‘Close boundary’ connects the last point to the first and creates the polygon. This is the most natural capture method for a steward standing on their land.
+
+[TABLE]
+Walk the boundary mode / This is the single most important feature in the entire wizard for field adoption. A steward who can create their project by literally walking their fence line while their phone traces the boundary will feel the system is native to how they work. It is the spatial-first principle made tangible.
+[/TABLE]
+
+2.4 Form fields
+
+[TABLE]
+Field | Required? | Notes
+Project name | Yes | Free text, max 80 characters. Pre-populated with address suburb if address search was used.
+Address / location search | No — skippable | Geocoder search that centres the map. Does not set the boundary — drawing does. If skipped, address is inferred from boundary centroid after completion.
+Legal constraints (brief) | No — skippable | A short free-text field: ‘Any known zoning, easements, or permits to note?’ If filled, pre-populates the legal constraints checklist item in Tier 0. If skipped, that checklist item remains open.
+Site area (auto-calculated) | N/A | Calculated from the boundary polygon and displayed read-only below the boundary confirmation strip. Not editable directly — redraw the boundary to change it.
+[/TABLE]
+
+2.5 Step 1 completion
+Step 1 is complete when: project name is filled and a site boundary polygon exists. The ‘Next’ button activates. The steward taps Next to advance to Step 2.
+At this point the project record is created in the database. The boundary and name are saved immediately — not held until wizard completion. If the steward abandons the wizard after Step 1, the project exists as a draft with boundary and name only. Drafts appear in Portfolio Home with a ‘Finish setup’ prompt.
+3. Step 2 — Vision & Capacity
+All fields skippable. Skipped fields become open checklist items in Tier 0.
+3.1 Purpose
+Step 2 seeds the ‘Define vision, goals & stewardship capacity’ Tier 0 objective. It asks the minimum questions needed to give the system enough context to make Plan’s early objectives meaningful.
+
+[TABLE]
+Why capacity matters as much as vision / A vision statement without capacity data produces Plan objectives that are technically correct but operationally impossible. A steward with 4 hours per week and no equipment should not receive the same default Tier 1 survey recommendations as a full-time team. Capacity shapes what ‘next up’ means throughout the entire system.
+[/TABLE]
+
+3.2 Layout
+Step 2 is form-dominant. The map is still visible but reduced to a thumbnail showing the boundary from Step 1 — a spatial reminder, not an interactive surface. All interaction is in the left/centre panel.
+3.3 Fields
+
+[TABLE]
+Field | Type | Required? | Tier 0 checklist item seeded
+Vision statement | Long text (max 500 chars). Prompt: ‘In a sentence or two, what are you trying to create on this land?’ | No | Document long-term vision — pre-filled with wizard input
+Primary land use goals | Multi-select chips. Options: Food production, Ecological restoration, Grazing & livestock, Timber & carbon, Water management, Recreation & retreat, Education, Combination. Select up to 3. | No | Document long-term vision — goals pre-filled
+Available labour | Single select: Just me, Me + family/volunteers, Small paid team (2–5), Larger team (6+) | No | Record available labour, budget, and equipment — pre-filled
+Rough annual budget for land work | Single select ranges: Under $5k, $5k–$20k, $20k–$100k, $100k+, Prefer not to say | No | Record available labour, budget, and equipment — pre-filled
+Timeline horizon | Single select: 1–2 years, 3–5 years, 10+ years, Ongoing stewardship (no end date) | No | Record available labour, budget, and equipment — pre-filled
+Hard constraints | Short text. Prompt: ‘Anything that limits what’s possible? (health, access, finances, tenure)’ | No | Note hard constraints — pre-filled
+[/TABLE]
+
+Budget ranges are intentionally broad. The goal is to give the system enough signal to calibrate Plan recommendations — not to collect financial data. Exact figures are never required.
+3.4 Skip behaviour
+A ‘Skip this step’ link is always visible at the bottom of Step 2. Tapping it advances to Step 3 with all Tier 0 capacity checklist items left open. The Next Up card on Project Home will surface these as the first recommended actions after wizard completion.
+Individual fields within Step 2 can also be left blank. Only filled fields seed their respective checklist items.
+4. Step 3 — Team
+Entirely skippable. Team can be added at any time from project settings.
+4.1 Purpose
+Step 3 invites the first team members. It is the lightest step in the wizard. Its value is seeding the ‘Identify key decision-makers and stewards’ Tier 0 checklist item and ensuring the project isn’t siloed in a single account from day one.
+4.2 Layout
+Step 3 is minimal. The map thumbnail from Step 2 remains visible. The panel shows:
+A brief framing statement: ‘Who else works on this land?’
+An email invite field with role selector (Team member, Contractor, Landowner / reviewer)
+An ‘Add another’ link to add more invitees in the same step
+A list of pending invitees added in this step (name/email + role, with a remove control)
+A prominent ‘Skip for now’ link
+4.3 Invite behaviour
+Invites are queued and sent on wizard completion, not immediately. This prevents partial invites if the steward abandons the wizard.
+Invitees receive an email with a project-specific link. They create an account (or log in) and land on their role-appropriate Project Home view.
+The primary steward can add, modify, or revoke team members at any time from project settings after wizard completion.
+Contractor invites in the wizard create a scope with all current Act tasks assigned. Scope can be refined in Act after wizard completion.
+5. Completion screen
+5.1 Purpose
+The completion screen is the moment the project becomes real to the steward. It must feel like arrival — spatial, specific, and forward-looking. Not a confirmation page.
+5.2 Layout
+The completion screen is full-screen map showing the site boundary with the project name overlaid. Below the map or in an overlay panel:
+
+[TABLE]
+Element | Content
+Project name and area | Large display of project name and calculated site area
+Tier 0 status summary | A compact two-line summary: ‘X of Y setup steps complete. Y remaining.’ with a link to view them in Plan.
+Next up prompt | At wizard completion the project is partially initialised and the general Project Home Next Up logic does not apply. The prompt at this specific moment uses dedicated first-entry logic: (1) If the site boundary checklist item is the only Tier 0 item complete, show: ‘Your site is set up. Next: complete your vision and capacity in Plan’ linking to the Vision & Capacity Tier 0 objective. (2) If vision and capacity fields were also filled in Step 2, show: ‘Tier 0 is underway. Next: establish your legal constraints’ linking to the Site Boundaries & Legal Constraints Tier 0 objective. (3) If all Tier 0 items are seeded and none skipped, show: ‘Setup complete. Start your first land survey’ linking to Tier 1 in Plan. This first-entry logic is used only once — on the completion screen. All subsequent Next Up behaviour follows the standard Project Home logic.
+Primary CTA | ‘Go to my project’ — navigates to Per-Project Home
+Secondary action | ‘Continue setup in Plan’ — navigates directly to Plan Tier 0 with incomplete objectives highlighted
+[/TABLE]
+
+5.3 What is never on the completion screen
+Checklists, forms, or further data entry
+Generic ‘congratulations’ copy
+Upsell prompts or feature tours
+Progress bars or completion percentages
+
+[TABLE]
+The completion screen is not the end of onboarding / It is the beginning of the project. The steward’s next action is more important than any summary of what just happened. The map showing their land, the project name, and a single clear next action is everything the screen needs.
+[/TABLE]
+
+6. Draft project recovery
+6.1 Abandoned wizard recovery
+If a steward creates a site boundary and name in Step 1 but abandons the wizard before completion, a draft project record exists. On their next login:
+Portfolio Home shows the draft project with a distinct ‘Finish setup’ badge
+Tapping the draft card resumes the wizard at the last incomplete step
+Drafts are retained for 30 days. After 30 days without activity they are flagged for deletion with a 7-day warning email before permanent removal.
+6.2 Draft vs active project
+
+[TABLE]
+State | Definition | Portfolio Home treatment
+Draft | Wizard not completed. Boundary and name exist but Tier 0 has not been seeded. | Card shown with amber ‘Finish setup’ badge. Not counted in active project metrics.
+Active | Wizard completed. Project is fully initialised with seeded Tier 0 objectives. | Standard project card with urgency scoring.
+[/TABLE]
+
+7. Developer acceptance criteria
+7.1 Step 1 — Site
+Map loads centred on device location or last-used location. If neither is available, defaults to a world view.
+Polygon draw mode is active by default on Step 1 load. No tool selection required from the steward.
+Walk the boundary mode captures GPS trace on mobile. Closing the polygon saves it to the project record immediately.
+Boundary confirmation strip shows area and perimeter within 2 seconds of polygon close.
+Upload accepts GeoJSON, KML, and Shapefile. Invalid files show an inline error with accepted format guidance. File size limit: 10MB.
+Project record created in database on Step 1 completion (Next tap). Not held until wizard end.
+Next button disabled until project name is filled and a boundary polygon exists.
+7.2 Step 2 — Vision & Capacity
+All fields are optional. Next button is always enabled in Step 2.
+Filled fields write directly to the corresponding Tier 0 checklist item as pre-filled evidence on wizard completion.
+Skipped fields leave their corresponding Tier 0 checklist items open and unfilled.
+Budget and labour selectors are single-select only. Timeline is single-select only. Land use goals are multi-select with a maximum of 3.
+7.3 Step 3 — Team
+Invites are queued, not sent, until wizard completion.
+If wizard is abandoned after Step 3, queued invites are discarded.
+Duplicate email addresses in the invite list are flagged inline with a warning — not silently deduped.
+Role selector defaults to ‘Team member’. All three roles available: Team member, Contractor, Landowner / reviewer.
+7.4 Completion screen
+Full-screen map renders with site boundary and project name within 3 seconds of wizard completion.
+Tier 0 status summary reflects actual seeded state — counts match filled vs skipped fields from Steps 1 and 2.
+Next up prompt uses the same selection logic as Project Home Next Up card (section 3.3 of Project Home spec).
+‘Go to my project’ navigates to Per-Project Home. ‘Continue setup in Plan’ navigates to Plan Tier 0 with incomplete objectives highlighted.
+7.5 Draft recovery
+Draft projects appear in Portfolio Home with ‘Finish setup’ badge. They are ordered separately from active projects — always at the end of the list regardless of urgency.
+Resuming a draft resumes at the last incomplete step with all previously entered data intact.
+30-day draft expiry enforced. Warning email sent at day 23. Deletion at day 30.
+8. Out of scope
+
+[TABLE]
+Topic | Notes
+Authentication & account creation | The wizard assumes an authenticated session. Account creation flow is a separate spec.
+Billing & subscription | Plan tier limits and payment are outside this spec.
+Organisation admin — project templates | Organisations may want to seed new projects from a template (pre-filled vision, standard team structure). Deferred.
+Importing from existing systems | Migrating data from spreadsheets, other land management tools, or GIS exports into a new project is deferred.
+Tier 0 completion in Plan | The wizard seeds Tier 0 but does not complete it. Full Tier 0 completion is governed by the Plan Stage Navigation spec.
+Advanced boundary tools | Cadastral parcel auto-detection, satellite imagery boundary tracing, and drone-captured boundary import are deferred.
+[/TABLE]
+
+OLOS Project Creation Wizard — UX Specification v1.0
+Ready for implementation

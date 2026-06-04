@@ -1,78 +1,79 @@
-# Graph Report - .  (2026-05-16)
+# Graph Report - .  (2026-05-25)
 
 ## Corpus Check
-- Large corpus: 2583 files · ~10,095,742 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- 1768 files · ~99,999 words
+- Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 7642 nodes · 8182 edges · 1880 communities detected
-- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 452 edges (avg confidence: 0.78)
+- 9688 nodes · 10085 edges · 2491 communities detected
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 452 edges (avg confidence: 0.78)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Climate & Layer Data Fetching|Climate & Layer Data Fetching]]
-- [[_COMMUNITY_Cesium KTX2 Transcoder (vendor)|Cesium KTX2 Transcoder (vendor)]]
-- [[_COMMUNITY_Atlas Panel & Section UI|Atlas Panel & Section UI]]
-- [[_COMMUNITY_Cesium Engine Chunk (vendor)|Cesium Engine Chunk (vendor)]]
+- [[_COMMUNITY_Layer Fetchers & Data Adapters|Layer Fetchers & Data Adapters]]
+- [[_COMMUNITY_Vendored Bundle (transcoder)|Vendored Bundle (transcoder)]]
+- [[_COMMUNITY_Atlas AI Panel|Atlas AI Panel]]
+- [[_COMMUNITY_Vendored Bundle (BXMEEOCS)|Vendored Bundle (BXMEEOCS)]]
 - [[_COMMUNITY_External Data Sources & Licensing|External Data Sources & Licensing]]
-- [[_COMMUNITY_Scoring & Pipeline Architecture Notes|Scoring & Pipeline Architecture Notes]]
-- [[_COMMUNITY_Plan & Act Mobility ADRs|Plan & Act Mobility ADRs]]
-- [[_COMMUNITY_Cesium Cartesian Math (vendor)|Cesium Cartesian Math (vendor)]]
-- [[_COMMUNITY_Stage IA Restructure ADRs|Stage IA Restructure ADRs]]
-- [[_COMMUNITY_v3 Derivations & KPI Formatters|v3 Derivations & KPI Formatters]]
-- [[_COMMUNITY_Cesium Cartographic Math (vendor)|Cesium Cartographic Math (vendor)]]
-- [[_COMMUNITY_Deep Technical Audit Findings|Deep Technical Audit Findings]]
-- [[_COMMUNITY_Cesium Zip Web Worker (vendor)|Cesium Zip Web Worker (vendor)]]
-- [[_COMMUNITY_Cesium Engine Chunk 2 (vendor)|Cesium Engine Chunk 2 (vendor)]]
-- [[_COMMUNITY_Design System & Accessibility|Design System & Accessibility]]
-- [[_COMMUNITY_Atlas v3 Concept-Polish ADRs|Atlas v3 Concept-Polish ADRs]]
-- [[_COMMUNITY_Platform Spec & Architecture Overview|Platform Spec & Architecture Overview]]
-- [[_COMMUNITY_Cesium Color Math (vendor)|Cesium Color Math (vendor)]]
-- [[_COMMUNITY_Built-Environment Store Selectors|Built-Environment Store Selectors]]
-- [[_COMMUNITY_Shared Scoring Engine|Shared Scoring Engine]]
-- [[_COMMUNITY_Cesium Engine Chunk 3 (vendor)|Cesium Engine Chunk 3 (vendor)]]
-- [[_COMMUNITY_ObservePlan Vision Imagery|Observe/Plan Vision Imagery]]
-- [[_COMMUNITY_Cesium I3S Decoder (vendor)|Cesium I3S Decoder (vendor)]]
-- [[_COMMUNITY_Cesium Engine Chunk 4 (vendor)|Cesium Engine Chunk 4 (vendor)]]
-- [[_COMMUNITY_Offline Sync Service|Offline Sync Service]]
-- [[_COMMUNITY_Inline Feature-Edit Schemas|Inline Feature-Edit Schemas]]
-- [[_COMMUNITY_Planting Tool Dashboard|Planting Tool Dashboard]]
-- [[_COMMUNITY_Atlas README & Stack Overview|Atlas README & Stack Overview]]
-- [[_COMMUNITY_Cesium Engine Chunk 5 (vendor)|Cesium Engine Chunk 5 (vendor)]]
-- [[_COMMUNITY_Design Intelligence Engine|Design Intelligence Engine]]
-- [[_COMMUNITY_Data Pipeline Orchestrator|Data Pipeline Orchestrator]]
-- [[_COMMUNITY_Plan Dashboard Imagery|Plan Dashboard Imagery]]
-- [[_COMMUNITY_Cesium WASM Chunk (vendor)|Cesium WASM Chunk (vendor)]]
-- [[_COMMUNITY_NOAA Climate Adapter|NOAA Climate Adapter]]
-- [[_COMMUNITY_Livestock Rotation Schedule UI|Livestock Rotation Schedule UI]]
-- [[_COMMUNITY_Design Rules Engine|Design Rules Engine]]
-- [[_COMMUNITY_Annotation Export (GeoJSONKMLCSV)|Annotation Export (GeoJSON/KML/CSV)]]
-- [[_COMMUNITY_Cesium Polyline Geometry (vendor)|Cesium Polyline Geometry (vendor)]]
-- [[_COMMUNITY_SSURGO Soil Adapter|SSURGO Soil Adapter]]
-- [[_COMMUNITY_Observe Dashboard Page|Observe Dashboard Page]]
-- [[_COMMUNITY_Livestock Analysis Engine|Livestock Analysis Engine]]
-- [[_COMMUNITY_Recent ObservePlan ADRs (May)|Recent Observe/Plan ADRs (May)]]
-- [[_COMMUNITY_WebSocket Sync Service|WebSocket Sync Service]]
-- [[_COMMUNITY_Ecological Corridor LCP|Ecological Corridor LCP]]
-- [[_COMMUNITY_AI Outputs & Pollinator ADRs|AI Outputs & Pollinator ADRs]]
-- [[_COMMUNITY_GAEZ Raster Service|GAEZ Raster Service]]
-- [[_COMMUNITY_Built-Environment Store V2|Built-Environment Store V2]]
-- [[_COMMUNITY_Soil & Zoning Scoring ADRs|Soil & Zoning Scoring ADRs]]
-- [[_COMMUNITY_Built-Environment Export ADRs|Built-Environment Export ADRs]]
-- [[_COMMUNITY_Claude AI Client|Claude AI Client]]
-- [[_COMMUNITY_NWIFEMA Flood Adapter|NWI/FEMA Flood Adapter]]
-- [[_COMMUNITY_OMAFRA CanSIS Soil Adapter|OMAFRA CanSIS Soil Adapter]]
-- [[_COMMUNITY_EcoCrop CSV Parser|EcoCrop CSV Parser]]
-- [[_COMMUNITY_Earth-Water-Ecology Page|Earth-Water-Ecology Page]]
-- [[_COMMUNITY_Built-Environment Store V1|Built-Environment Store V1]]
-- [[_COMMUNITY_Observe Reskin & Export ADRs|Observe Reskin & Export ADRs]]
+- [[_COMMUNITY_Atlas v3.1 Backlog & Architecture Notes|Atlas v3.1 Backlog & Architecture Notes]]
+- [[_COMMUNITY_Module-Affinity & Act-Log|Module-Affinity & Act-Log]]
+- [[_COMMUNITY_Vendored Bundle (FFBVWF2L)|Vendored Bundle (FFBVWF2L)]]
+- [[_COMMUNITY_Selector Derivations|Selector Derivations]]
+- [[_COMMUNITY_ADRs Cost & Needs Datasets|ADRs: Cost & Needs Datasets]]
+- [[_COMMUNITY_Sync Service & Array Diffing|Sync Service & Array Diffing]]
+- [[_COMMUNITY_Vendored Bundle (QKUIYMGC)|Vendored Bundle (QKUIYMGC)]]
+- [[_COMMUNITY_Animal Units & Technical Audit|Animal Units & Technical Audit]]
+- [[_COMMUNITY_Zip Web Worker|Zip Web Worker]]
+- [[_COMMUNITY_Vendored Bundle (BYLCY7GP)|Vendored Bundle (BYLCY7GP)]]
+- [[_COMMUNITY_ADRs Accessibility & Design Tokens|ADRs: Accessibility & Design Tokens]]
+- [[_COMMUNITY_Atlas v3 Concept Polish & Chrome|Atlas v3 Concept Polish & Chrome]]
+- [[_COMMUNITY_ADRs Workflow Spec & Vegetation|ADRs: Workflow Spec & Vegetation]]
+- [[_COMMUNITY_Vendored Bundle (23ZQ2IVV)|Vendored Bundle (23ZQ2IVV)]]
+- [[_COMMUNITY_Built Environment Selectors|Built Environment Selectors]]
+- [[_COMMUNITY_Agricultural Suitability Math|Agricultural Suitability Math]]
+- [[_COMMUNITY_Vendored Bundle (2EQO3Q56)|Vendored Bundle (2EQO3Q56)]]
+- [[_COMMUNITY_OBSERVE Callouts & Permanence|OBSERVE Callouts & Permanence]]
+- [[_COMMUNITY_Inline Edit Schemas|Inline Edit Schemas]]
+- [[_COMMUNITY_PlanDataLayers|PlanDataLayers]]
+- [[_COMMUNITY_Community 25|Community 25]]
+- [[_COMMUNITY_Community 26|Community 26]]
+- [[_COMMUNITY_Community 27|Community 27]]
+- [[_COMMUNITY_Community 28|Community 28]]
+- [[_COMMUNITY_Community 29|Community 29]]
+- [[_COMMUNITY_Community 30|Community 30]]
+- [[_COMMUNITY_Community 31|Community 31]]
+- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
+- [[_COMMUNITY_Community 34|Community 34]]
+- [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 36|Community 36]]
+- [[_COMMUNITY_Community 37|Community 37]]
+- [[_COMMUNITY_Community 38|Community 38]]
+- [[_COMMUNITY_Community 39|Community 39]]
+- [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 41|Community 41]]
+- [[_COMMUNITY_Community 42|Community 42]]
+- [[_COMMUNITY_Community 43|Community 43]]
+- [[_COMMUNITY_Community 44|Community 44]]
+- [[_COMMUNITY_Community 45|Community 45]]
+- [[_COMMUNITY_Community 46|Community 46]]
+- [[_COMMUNITY_Community 47|Community 47]]
+- [[_COMMUNITY_Community 48|Community 48]]
+- [[_COMMUNITY_Community 49|Community 49]]
+- [[_COMMUNITY_Community 50|Community 50]]
+- [[_COMMUNITY_Community 51|Community 51]]
+- [[_COMMUNITY_Community 52|Community 52]]
+- [[_COMMUNITY_Community 53|Community 53]]
+- [[_COMMUNITY_Community 54|Community 54]]
+- [[_COMMUNITY_Community 55|Community 55]]
 - [[_COMMUNITY_Community 56|Community 56]]
 - [[_COMMUNITY_Community 57|Community 57]]
 - [[_COMMUNITY_Community 58|Community 58]]
 - [[_COMMUNITY_Community 59|Community 59]]
-- [[_COMMUNITY_Cesium GEE Decoder (vendor)|Cesium GEE Decoder (vendor)]]
-- [[_COMMUNITY_Storage Provider|Storage Provider]]
-- [[_COMMUNITY_Earth-Water KPI Derivations|Earth-Water KPI Derivations]]
-- [[_COMMUNITY_Built-Environment Projection|Built-Environment Projection]]
+- [[_COMMUNITY_Community 60|Community 60]]
+- [[_COMMUNITY_Community 61|Community 61]]
+- [[_COMMUNITY_Community 62|Community 62]]
+- [[_COMMUNITY_Community 63|Community 63]]
 - [[_COMMUNITY_Community 64|Community 64]]
 - [[_COMMUNITY_Community 65|Community 65]]
 - [[_COMMUNITY_Community 66|Community 66]]
@@ -1889,6 +1890,617 @@
 - [[_COMMUNITY_Community 1877|Community 1877]]
 - [[_COMMUNITY_Community 1878|Community 1878]]
 - [[_COMMUNITY_Community 1879|Community 1879]]
+- [[_COMMUNITY_Community 1880|Community 1880]]
+- [[_COMMUNITY_Community 1881|Community 1881]]
+- [[_COMMUNITY_Community 1882|Community 1882]]
+- [[_COMMUNITY_Community 1883|Community 1883]]
+- [[_COMMUNITY_Community 1884|Community 1884]]
+- [[_COMMUNITY_Community 1885|Community 1885]]
+- [[_COMMUNITY_Community 1886|Community 1886]]
+- [[_COMMUNITY_Community 1887|Community 1887]]
+- [[_COMMUNITY_Community 1888|Community 1888]]
+- [[_COMMUNITY_Community 1889|Community 1889]]
+- [[_COMMUNITY_Community 1890|Community 1890]]
+- [[_COMMUNITY_Community 1891|Community 1891]]
+- [[_COMMUNITY_Community 1892|Community 1892]]
+- [[_COMMUNITY_Community 1893|Community 1893]]
+- [[_COMMUNITY_Community 1894|Community 1894]]
+- [[_COMMUNITY_Community 1895|Community 1895]]
+- [[_COMMUNITY_Community 1896|Community 1896]]
+- [[_COMMUNITY_Community 1897|Community 1897]]
+- [[_COMMUNITY_Community 1898|Community 1898]]
+- [[_COMMUNITY_Community 1899|Community 1899]]
+- [[_COMMUNITY_Community 1900|Community 1900]]
+- [[_COMMUNITY_Community 1901|Community 1901]]
+- [[_COMMUNITY_Community 1902|Community 1902]]
+- [[_COMMUNITY_Community 1903|Community 1903]]
+- [[_COMMUNITY_Community 1904|Community 1904]]
+- [[_COMMUNITY_Community 1905|Community 1905]]
+- [[_COMMUNITY_Community 1906|Community 1906]]
+- [[_COMMUNITY_Community 1907|Community 1907]]
+- [[_COMMUNITY_Community 1908|Community 1908]]
+- [[_COMMUNITY_Community 1909|Community 1909]]
+- [[_COMMUNITY_Community 1910|Community 1910]]
+- [[_COMMUNITY_Community 1911|Community 1911]]
+- [[_COMMUNITY_Community 1912|Community 1912]]
+- [[_COMMUNITY_Community 1913|Community 1913]]
+- [[_COMMUNITY_Community 1914|Community 1914]]
+- [[_COMMUNITY_Community 1915|Community 1915]]
+- [[_COMMUNITY_Community 1916|Community 1916]]
+- [[_COMMUNITY_Community 1917|Community 1917]]
+- [[_COMMUNITY_Community 1918|Community 1918]]
+- [[_COMMUNITY_Community 1919|Community 1919]]
+- [[_COMMUNITY_Community 1920|Community 1920]]
+- [[_COMMUNITY_Community 1921|Community 1921]]
+- [[_COMMUNITY_Community 1922|Community 1922]]
+- [[_COMMUNITY_Community 1923|Community 1923]]
+- [[_COMMUNITY_Community 1924|Community 1924]]
+- [[_COMMUNITY_Community 1925|Community 1925]]
+- [[_COMMUNITY_Community 1926|Community 1926]]
+- [[_COMMUNITY_Community 1927|Community 1927]]
+- [[_COMMUNITY_Community 1928|Community 1928]]
+- [[_COMMUNITY_Community 1929|Community 1929]]
+- [[_COMMUNITY_Community 1930|Community 1930]]
+- [[_COMMUNITY_Community 1931|Community 1931]]
+- [[_COMMUNITY_Community 1932|Community 1932]]
+- [[_COMMUNITY_Community 1933|Community 1933]]
+- [[_COMMUNITY_Community 1934|Community 1934]]
+- [[_COMMUNITY_Community 1935|Community 1935]]
+- [[_COMMUNITY_Community 1936|Community 1936]]
+- [[_COMMUNITY_Community 1937|Community 1937]]
+- [[_COMMUNITY_Community 1938|Community 1938]]
+- [[_COMMUNITY_Community 1939|Community 1939]]
+- [[_COMMUNITY_Community 1940|Community 1940]]
+- [[_COMMUNITY_Community 1941|Community 1941]]
+- [[_COMMUNITY_Community 1942|Community 1942]]
+- [[_COMMUNITY_Community 1943|Community 1943]]
+- [[_COMMUNITY_Community 1944|Community 1944]]
+- [[_COMMUNITY_Community 1945|Community 1945]]
+- [[_COMMUNITY_Community 1946|Community 1946]]
+- [[_COMMUNITY_Community 1947|Community 1947]]
+- [[_COMMUNITY_Community 1948|Community 1948]]
+- [[_COMMUNITY_Community 1949|Community 1949]]
+- [[_COMMUNITY_Community 1950|Community 1950]]
+- [[_COMMUNITY_Community 1951|Community 1951]]
+- [[_COMMUNITY_Community 1952|Community 1952]]
+- [[_COMMUNITY_Community 1953|Community 1953]]
+- [[_COMMUNITY_Community 1954|Community 1954]]
+- [[_COMMUNITY_Community 1955|Community 1955]]
+- [[_COMMUNITY_Community 1956|Community 1956]]
+- [[_COMMUNITY_Community 1957|Community 1957]]
+- [[_COMMUNITY_Community 1958|Community 1958]]
+- [[_COMMUNITY_Community 1959|Community 1959]]
+- [[_COMMUNITY_Community 1960|Community 1960]]
+- [[_COMMUNITY_Community 1961|Community 1961]]
+- [[_COMMUNITY_Community 1962|Community 1962]]
+- [[_COMMUNITY_Community 1963|Community 1963]]
+- [[_COMMUNITY_Community 1964|Community 1964]]
+- [[_COMMUNITY_Community 1965|Community 1965]]
+- [[_COMMUNITY_Community 1966|Community 1966]]
+- [[_COMMUNITY_Community 1967|Community 1967]]
+- [[_COMMUNITY_Community 1968|Community 1968]]
+- [[_COMMUNITY_Community 1969|Community 1969]]
+- [[_COMMUNITY_Community 1970|Community 1970]]
+- [[_COMMUNITY_Community 1971|Community 1971]]
+- [[_COMMUNITY_Community 1972|Community 1972]]
+- [[_COMMUNITY_Community 1973|Community 1973]]
+- [[_COMMUNITY_Community 1974|Community 1974]]
+- [[_COMMUNITY_Community 1975|Community 1975]]
+- [[_COMMUNITY_Community 1976|Community 1976]]
+- [[_COMMUNITY_Community 1977|Community 1977]]
+- [[_COMMUNITY_Community 1978|Community 1978]]
+- [[_COMMUNITY_Community 1979|Community 1979]]
+- [[_COMMUNITY_Community 1980|Community 1980]]
+- [[_COMMUNITY_Community 1981|Community 1981]]
+- [[_COMMUNITY_Community 1982|Community 1982]]
+- [[_COMMUNITY_Community 1983|Community 1983]]
+- [[_COMMUNITY_Community 1984|Community 1984]]
+- [[_COMMUNITY_Community 1985|Community 1985]]
+- [[_COMMUNITY_Community 1986|Community 1986]]
+- [[_COMMUNITY_Community 1987|Community 1987]]
+- [[_COMMUNITY_Community 1988|Community 1988]]
+- [[_COMMUNITY_Community 1989|Community 1989]]
+- [[_COMMUNITY_Community 1990|Community 1990]]
+- [[_COMMUNITY_Community 1991|Community 1991]]
+- [[_COMMUNITY_Community 1992|Community 1992]]
+- [[_COMMUNITY_Community 1993|Community 1993]]
+- [[_COMMUNITY_Community 1994|Community 1994]]
+- [[_COMMUNITY_Community 1995|Community 1995]]
+- [[_COMMUNITY_Community 1996|Community 1996]]
+- [[_COMMUNITY_Community 1997|Community 1997]]
+- [[_COMMUNITY_Community 1998|Community 1998]]
+- [[_COMMUNITY_Community 1999|Community 1999]]
+- [[_COMMUNITY_Community 2000|Community 2000]]
+- [[_COMMUNITY_Community 2001|Community 2001]]
+- [[_COMMUNITY_Community 2002|Community 2002]]
+- [[_COMMUNITY_Community 2003|Community 2003]]
+- [[_COMMUNITY_Community 2004|Community 2004]]
+- [[_COMMUNITY_Community 2005|Community 2005]]
+- [[_COMMUNITY_Community 2006|Community 2006]]
+- [[_COMMUNITY_Community 2007|Community 2007]]
+- [[_COMMUNITY_Community 2008|Community 2008]]
+- [[_COMMUNITY_Community 2009|Community 2009]]
+- [[_COMMUNITY_Community 2010|Community 2010]]
+- [[_COMMUNITY_Community 2011|Community 2011]]
+- [[_COMMUNITY_Community 2012|Community 2012]]
+- [[_COMMUNITY_Community 2013|Community 2013]]
+- [[_COMMUNITY_Community 2014|Community 2014]]
+- [[_COMMUNITY_Community 2015|Community 2015]]
+- [[_COMMUNITY_Community 2016|Community 2016]]
+- [[_COMMUNITY_Community 2017|Community 2017]]
+- [[_COMMUNITY_Community 2018|Community 2018]]
+- [[_COMMUNITY_Community 2019|Community 2019]]
+- [[_COMMUNITY_Community 2020|Community 2020]]
+- [[_COMMUNITY_Community 2021|Community 2021]]
+- [[_COMMUNITY_Community 2022|Community 2022]]
+- [[_COMMUNITY_Community 2023|Community 2023]]
+- [[_COMMUNITY_Community 2024|Community 2024]]
+- [[_COMMUNITY_Community 2025|Community 2025]]
+- [[_COMMUNITY_Community 2026|Community 2026]]
+- [[_COMMUNITY_Community 2027|Community 2027]]
+- [[_COMMUNITY_Community 2028|Community 2028]]
+- [[_COMMUNITY_Community 2029|Community 2029]]
+- [[_COMMUNITY_Community 2030|Community 2030]]
+- [[_COMMUNITY_Community 2031|Community 2031]]
+- [[_COMMUNITY_Community 2032|Community 2032]]
+- [[_COMMUNITY_Community 2033|Community 2033]]
+- [[_COMMUNITY_Community 2034|Community 2034]]
+- [[_COMMUNITY_Community 2035|Community 2035]]
+- [[_COMMUNITY_Community 2036|Community 2036]]
+- [[_COMMUNITY_Community 2037|Community 2037]]
+- [[_COMMUNITY_Community 2038|Community 2038]]
+- [[_COMMUNITY_Community 2039|Community 2039]]
+- [[_COMMUNITY_Community 2040|Community 2040]]
+- [[_COMMUNITY_Community 2041|Community 2041]]
+- [[_COMMUNITY_Community 2042|Community 2042]]
+- [[_COMMUNITY_Community 2043|Community 2043]]
+- [[_COMMUNITY_Community 2044|Community 2044]]
+- [[_COMMUNITY_Community 2045|Community 2045]]
+- [[_COMMUNITY_Community 2046|Community 2046]]
+- [[_COMMUNITY_Community 2047|Community 2047]]
+- [[_COMMUNITY_Community 2048|Community 2048]]
+- [[_COMMUNITY_Community 2049|Community 2049]]
+- [[_COMMUNITY_Community 2050|Community 2050]]
+- [[_COMMUNITY_Community 2051|Community 2051]]
+- [[_COMMUNITY_Community 2052|Community 2052]]
+- [[_COMMUNITY_Community 2053|Community 2053]]
+- [[_COMMUNITY_Community 2054|Community 2054]]
+- [[_COMMUNITY_Community 2055|Community 2055]]
+- [[_COMMUNITY_Community 2056|Community 2056]]
+- [[_COMMUNITY_Community 2057|Community 2057]]
+- [[_COMMUNITY_Community 2058|Community 2058]]
+- [[_COMMUNITY_Community 2059|Community 2059]]
+- [[_COMMUNITY_Community 2060|Community 2060]]
+- [[_COMMUNITY_Community 2061|Community 2061]]
+- [[_COMMUNITY_Community 2062|Community 2062]]
+- [[_COMMUNITY_Community 2063|Community 2063]]
+- [[_COMMUNITY_Community 2064|Community 2064]]
+- [[_COMMUNITY_Community 2065|Community 2065]]
+- [[_COMMUNITY_Community 2066|Community 2066]]
+- [[_COMMUNITY_Community 2067|Community 2067]]
+- [[_COMMUNITY_Community 2068|Community 2068]]
+- [[_COMMUNITY_Community 2069|Community 2069]]
+- [[_COMMUNITY_Community 2070|Community 2070]]
+- [[_COMMUNITY_Community 2071|Community 2071]]
+- [[_COMMUNITY_Community 2072|Community 2072]]
+- [[_COMMUNITY_Community 2073|Community 2073]]
+- [[_COMMUNITY_Community 2074|Community 2074]]
+- [[_COMMUNITY_Community 2075|Community 2075]]
+- [[_COMMUNITY_Community 2076|Community 2076]]
+- [[_COMMUNITY_Community 2077|Community 2077]]
+- [[_COMMUNITY_Community 2078|Community 2078]]
+- [[_COMMUNITY_Community 2079|Community 2079]]
+- [[_COMMUNITY_Community 2080|Community 2080]]
+- [[_COMMUNITY_Community 2081|Community 2081]]
+- [[_COMMUNITY_Community 2082|Community 2082]]
+- [[_COMMUNITY_Community 2083|Community 2083]]
+- [[_COMMUNITY_Community 2084|Community 2084]]
+- [[_COMMUNITY_Community 2085|Community 2085]]
+- [[_COMMUNITY_Community 2086|Community 2086]]
+- [[_COMMUNITY_Community 2087|Community 2087]]
+- [[_COMMUNITY_Community 2088|Community 2088]]
+- [[_COMMUNITY_Community 2089|Community 2089]]
+- [[_COMMUNITY_Community 2090|Community 2090]]
+- [[_COMMUNITY_Community 2091|Community 2091]]
+- [[_COMMUNITY_Community 2092|Community 2092]]
+- [[_COMMUNITY_Community 2093|Community 2093]]
+- [[_COMMUNITY_Community 2094|Community 2094]]
+- [[_COMMUNITY_Community 2095|Community 2095]]
+- [[_COMMUNITY_Community 2096|Community 2096]]
+- [[_COMMUNITY_Community 2097|Community 2097]]
+- [[_COMMUNITY_Community 2098|Community 2098]]
+- [[_COMMUNITY_Community 2099|Community 2099]]
+- [[_COMMUNITY_Community 2100|Community 2100]]
+- [[_COMMUNITY_Community 2101|Community 2101]]
+- [[_COMMUNITY_Community 2102|Community 2102]]
+- [[_COMMUNITY_Community 2103|Community 2103]]
+- [[_COMMUNITY_Community 2104|Community 2104]]
+- [[_COMMUNITY_Community 2105|Community 2105]]
+- [[_COMMUNITY_Community 2106|Community 2106]]
+- [[_COMMUNITY_Community 2107|Community 2107]]
+- [[_COMMUNITY_Community 2108|Community 2108]]
+- [[_COMMUNITY_Community 2109|Community 2109]]
+- [[_COMMUNITY_Community 2110|Community 2110]]
+- [[_COMMUNITY_Community 2111|Community 2111]]
+- [[_COMMUNITY_Community 2112|Community 2112]]
+- [[_COMMUNITY_Community 2113|Community 2113]]
+- [[_COMMUNITY_Community 2114|Community 2114]]
+- [[_COMMUNITY_Community 2115|Community 2115]]
+- [[_COMMUNITY_Community 2116|Community 2116]]
+- [[_COMMUNITY_Community 2117|Community 2117]]
+- [[_COMMUNITY_Community 2118|Community 2118]]
+- [[_COMMUNITY_Community 2119|Community 2119]]
+- [[_COMMUNITY_Community 2120|Community 2120]]
+- [[_COMMUNITY_Community 2121|Community 2121]]
+- [[_COMMUNITY_Community 2122|Community 2122]]
+- [[_COMMUNITY_Community 2123|Community 2123]]
+- [[_COMMUNITY_Community 2124|Community 2124]]
+- [[_COMMUNITY_Community 2125|Community 2125]]
+- [[_COMMUNITY_Community 2126|Community 2126]]
+- [[_COMMUNITY_Community 2127|Community 2127]]
+- [[_COMMUNITY_Community 2128|Community 2128]]
+- [[_COMMUNITY_Community 2129|Community 2129]]
+- [[_COMMUNITY_Community 2130|Community 2130]]
+- [[_COMMUNITY_Community 2131|Community 2131]]
+- [[_COMMUNITY_Community 2132|Community 2132]]
+- [[_COMMUNITY_Community 2133|Community 2133]]
+- [[_COMMUNITY_Community 2134|Community 2134]]
+- [[_COMMUNITY_Community 2135|Community 2135]]
+- [[_COMMUNITY_Community 2136|Community 2136]]
+- [[_COMMUNITY_Community 2137|Community 2137]]
+- [[_COMMUNITY_Community 2138|Community 2138]]
+- [[_COMMUNITY_Community 2139|Community 2139]]
+- [[_COMMUNITY_Community 2140|Community 2140]]
+- [[_COMMUNITY_Community 2141|Community 2141]]
+- [[_COMMUNITY_Community 2142|Community 2142]]
+- [[_COMMUNITY_Community 2143|Community 2143]]
+- [[_COMMUNITY_Community 2144|Community 2144]]
+- [[_COMMUNITY_Community 2145|Community 2145]]
+- [[_COMMUNITY_Community 2146|Community 2146]]
+- [[_COMMUNITY_Community 2147|Community 2147]]
+- [[_COMMUNITY_Community 2148|Community 2148]]
+- [[_COMMUNITY_Community 2149|Community 2149]]
+- [[_COMMUNITY_Community 2150|Community 2150]]
+- [[_COMMUNITY_Community 2151|Community 2151]]
+- [[_COMMUNITY_Community 2152|Community 2152]]
+- [[_COMMUNITY_Community 2153|Community 2153]]
+- [[_COMMUNITY_Community 2154|Community 2154]]
+- [[_COMMUNITY_Community 2155|Community 2155]]
+- [[_COMMUNITY_Community 2156|Community 2156]]
+- [[_COMMUNITY_Community 2157|Community 2157]]
+- [[_COMMUNITY_Community 2158|Community 2158]]
+- [[_COMMUNITY_Community 2159|Community 2159]]
+- [[_COMMUNITY_Community 2160|Community 2160]]
+- [[_COMMUNITY_Community 2161|Community 2161]]
+- [[_COMMUNITY_Community 2162|Community 2162]]
+- [[_COMMUNITY_Community 2163|Community 2163]]
+- [[_COMMUNITY_Community 2164|Community 2164]]
+- [[_COMMUNITY_Community 2165|Community 2165]]
+- [[_COMMUNITY_Community 2166|Community 2166]]
+- [[_COMMUNITY_Community 2167|Community 2167]]
+- [[_COMMUNITY_Community 2168|Community 2168]]
+- [[_COMMUNITY_Community 2169|Community 2169]]
+- [[_COMMUNITY_Community 2170|Community 2170]]
+- [[_COMMUNITY_Community 2171|Community 2171]]
+- [[_COMMUNITY_Community 2172|Community 2172]]
+- [[_COMMUNITY_Community 2173|Community 2173]]
+- [[_COMMUNITY_Community 2174|Community 2174]]
+- [[_COMMUNITY_Community 2175|Community 2175]]
+- [[_COMMUNITY_Community 2176|Community 2176]]
+- [[_COMMUNITY_Community 2177|Community 2177]]
+- [[_COMMUNITY_Community 2178|Community 2178]]
+- [[_COMMUNITY_Community 2179|Community 2179]]
+- [[_COMMUNITY_Community 2180|Community 2180]]
+- [[_COMMUNITY_Community 2181|Community 2181]]
+- [[_COMMUNITY_Community 2182|Community 2182]]
+- [[_COMMUNITY_Community 2183|Community 2183]]
+- [[_COMMUNITY_Community 2184|Community 2184]]
+- [[_COMMUNITY_Community 2185|Community 2185]]
+- [[_COMMUNITY_Community 2186|Community 2186]]
+- [[_COMMUNITY_Community 2187|Community 2187]]
+- [[_COMMUNITY_Community 2188|Community 2188]]
+- [[_COMMUNITY_Community 2189|Community 2189]]
+- [[_COMMUNITY_Community 2190|Community 2190]]
+- [[_COMMUNITY_Community 2191|Community 2191]]
+- [[_COMMUNITY_Community 2192|Community 2192]]
+- [[_COMMUNITY_Community 2193|Community 2193]]
+- [[_COMMUNITY_Community 2194|Community 2194]]
+- [[_COMMUNITY_Community 2195|Community 2195]]
+- [[_COMMUNITY_Community 2196|Community 2196]]
+- [[_COMMUNITY_Community 2197|Community 2197]]
+- [[_COMMUNITY_Community 2198|Community 2198]]
+- [[_COMMUNITY_Community 2199|Community 2199]]
+- [[_COMMUNITY_Community 2200|Community 2200]]
+- [[_COMMUNITY_Community 2201|Community 2201]]
+- [[_COMMUNITY_Community 2202|Community 2202]]
+- [[_COMMUNITY_Community 2203|Community 2203]]
+- [[_COMMUNITY_Community 2204|Community 2204]]
+- [[_COMMUNITY_Community 2205|Community 2205]]
+- [[_COMMUNITY_Community 2206|Community 2206]]
+- [[_COMMUNITY_Community 2207|Community 2207]]
+- [[_COMMUNITY_Community 2208|Community 2208]]
+- [[_COMMUNITY_Community 2209|Community 2209]]
+- [[_COMMUNITY_Community 2210|Community 2210]]
+- [[_COMMUNITY_Community 2211|Community 2211]]
+- [[_COMMUNITY_Community 2212|Community 2212]]
+- [[_COMMUNITY_Community 2213|Community 2213]]
+- [[_COMMUNITY_Community 2214|Community 2214]]
+- [[_COMMUNITY_Community 2215|Community 2215]]
+- [[_COMMUNITY_Community 2216|Community 2216]]
+- [[_COMMUNITY_Community 2217|Community 2217]]
+- [[_COMMUNITY_Community 2218|Community 2218]]
+- [[_COMMUNITY_Community 2219|Community 2219]]
+- [[_COMMUNITY_Community 2220|Community 2220]]
+- [[_COMMUNITY_Community 2221|Community 2221]]
+- [[_COMMUNITY_Community 2222|Community 2222]]
+- [[_COMMUNITY_Community 2223|Community 2223]]
+- [[_COMMUNITY_Community 2224|Community 2224]]
+- [[_COMMUNITY_Community 2225|Community 2225]]
+- [[_COMMUNITY_Community 2226|Community 2226]]
+- [[_COMMUNITY_Community 2227|Community 2227]]
+- [[_COMMUNITY_Community 2228|Community 2228]]
+- [[_COMMUNITY_Community 2229|Community 2229]]
+- [[_COMMUNITY_Community 2230|Community 2230]]
+- [[_COMMUNITY_Community 2231|Community 2231]]
+- [[_COMMUNITY_Community 2232|Community 2232]]
+- [[_COMMUNITY_Community 2233|Community 2233]]
+- [[_COMMUNITY_Community 2234|Community 2234]]
+- [[_COMMUNITY_Community 2235|Community 2235]]
+- [[_COMMUNITY_Community 2236|Community 2236]]
+- [[_COMMUNITY_Community 2237|Community 2237]]
+- [[_COMMUNITY_Community 2238|Community 2238]]
+- [[_COMMUNITY_Community 2239|Community 2239]]
+- [[_COMMUNITY_Community 2240|Community 2240]]
+- [[_COMMUNITY_Community 2241|Community 2241]]
+- [[_COMMUNITY_Community 2242|Community 2242]]
+- [[_COMMUNITY_Community 2243|Community 2243]]
+- [[_COMMUNITY_Community 2244|Community 2244]]
+- [[_COMMUNITY_Community 2245|Community 2245]]
+- [[_COMMUNITY_Community 2246|Community 2246]]
+- [[_COMMUNITY_Community 2247|Community 2247]]
+- [[_COMMUNITY_Community 2248|Community 2248]]
+- [[_COMMUNITY_Community 2249|Community 2249]]
+- [[_COMMUNITY_Community 2250|Community 2250]]
+- [[_COMMUNITY_Community 2251|Community 2251]]
+- [[_COMMUNITY_Community 2252|Community 2252]]
+- [[_COMMUNITY_Community 2253|Community 2253]]
+- [[_COMMUNITY_Community 2254|Community 2254]]
+- [[_COMMUNITY_Community 2255|Community 2255]]
+- [[_COMMUNITY_Community 2256|Community 2256]]
+- [[_COMMUNITY_Community 2257|Community 2257]]
+- [[_COMMUNITY_Community 2258|Community 2258]]
+- [[_COMMUNITY_Community 2259|Community 2259]]
+- [[_COMMUNITY_Community 2260|Community 2260]]
+- [[_COMMUNITY_Community 2261|Community 2261]]
+- [[_COMMUNITY_Community 2262|Community 2262]]
+- [[_COMMUNITY_Community 2263|Community 2263]]
+- [[_COMMUNITY_Community 2264|Community 2264]]
+- [[_COMMUNITY_Community 2265|Community 2265]]
+- [[_COMMUNITY_Community 2266|Community 2266]]
+- [[_COMMUNITY_Community 2267|Community 2267]]
+- [[_COMMUNITY_Community 2268|Community 2268]]
+- [[_COMMUNITY_Community 2269|Community 2269]]
+- [[_COMMUNITY_Community 2270|Community 2270]]
+- [[_COMMUNITY_Community 2271|Community 2271]]
+- [[_COMMUNITY_Community 2272|Community 2272]]
+- [[_COMMUNITY_Community 2273|Community 2273]]
+- [[_COMMUNITY_Community 2274|Community 2274]]
+- [[_COMMUNITY_Community 2275|Community 2275]]
+- [[_COMMUNITY_Community 2276|Community 2276]]
+- [[_COMMUNITY_Community 2277|Community 2277]]
+- [[_COMMUNITY_Community 2278|Community 2278]]
+- [[_COMMUNITY_Community 2279|Community 2279]]
+- [[_COMMUNITY_Community 2280|Community 2280]]
+- [[_COMMUNITY_Community 2281|Community 2281]]
+- [[_COMMUNITY_Community 2282|Community 2282]]
+- [[_COMMUNITY_Community 2283|Community 2283]]
+- [[_COMMUNITY_Community 2284|Community 2284]]
+- [[_COMMUNITY_Community 2285|Community 2285]]
+- [[_COMMUNITY_Community 2286|Community 2286]]
+- [[_COMMUNITY_Community 2287|Community 2287]]
+- [[_COMMUNITY_Community 2288|Community 2288]]
+- [[_COMMUNITY_Community 2289|Community 2289]]
+- [[_COMMUNITY_Community 2290|Community 2290]]
+- [[_COMMUNITY_Community 2291|Community 2291]]
+- [[_COMMUNITY_Community 2292|Community 2292]]
+- [[_COMMUNITY_Community 2293|Community 2293]]
+- [[_COMMUNITY_Community 2294|Community 2294]]
+- [[_COMMUNITY_Community 2295|Community 2295]]
+- [[_COMMUNITY_Community 2296|Community 2296]]
+- [[_COMMUNITY_Community 2297|Community 2297]]
+- [[_COMMUNITY_Community 2298|Community 2298]]
+- [[_COMMUNITY_Community 2299|Community 2299]]
+- [[_COMMUNITY_Community 2300|Community 2300]]
+- [[_COMMUNITY_Community 2301|Community 2301]]
+- [[_COMMUNITY_Community 2302|Community 2302]]
+- [[_COMMUNITY_Community 2303|Community 2303]]
+- [[_COMMUNITY_Community 2304|Community 2304]]
+- [[_COMMUNITY_Community 2305|Community 2305]]
+- [[_COMMUNITY_Community 2306|Community 2306]]
+- [[_COMMUNITY_Community 2307|Community 2307]]
+- [[_COMMUNITY_Community 2308|Community 2308]]
+- [[_COMMUNITY_Community 2309|Community 2309]]
+- [[_COMMUNITY_Community 2310|Community 2310]]
+- [[_COMMUNITY_Community 2311|Community 2311]]
+- [[_COMMUNITY_Community 2312|Community 2312]]
+- [[_COMMUNITY_Community 2313|Community 2313]]
+- [[_COMMUNITY_Community 2314|Community 2314]]
+- [[_COMMUNITY_Community 2315|Community 2315]]
+- [[_COMMUNITY_Community 2316|Community 2316]]
+- [[_COMMUNITY_Community 2317|Community 2317]]
+- [[_COMMUNITY_Community 2318|Community 2318]]
+- [[_COMMUNITY_Community 2319|Community 2319]]
+- [[_COMMUNITY_Community 2320|Community 2320]]
+- [[_COMMUNITY_Community 2321|Community 2321]]
+- [[_COMMUNITY_Community 2322|Community 2322]]
+- [[_COMMUNITY_Community 2323|Community 2323]]
+- [[_COMMUNITY_Community 2324|Community 2324]]
+- [[_COMMUNITY_Community 2325|Community 2325]]
+- [[_COMMUNITY_Community 2326|Community 2326]]
+- [[_COMMUNITY_Community 2327|Community 2327]]
+- [[_COMMUNITY_Community 2328|Community 2328]]
+- [[_COMMUNITY_Community 2329|Community 2329]]
+- [[_COMMUNITY_Community 2330|Community 2330]]
+- [[_COMMUNITY_Community 2331|Community 2331]]
+- [[_COMMUNITY_Community 2332|Community 2332]]
+- [[_COMMUNITY_Community 2333|Community 2333]]
+- [[_COMMUNITY_Community 2334|Community 2334]]
+- [[_COMMUNITY_Community 2335|Community 2335]]
+- [[_COMMUNITY_Community 2336|Community 2336]]
+- [[_COMMUNITY_Community 2337|Community 2337]]
+- [[_COMMUNITY_Community 2338|Community 2338]]
+- [[_COMMUNITY_Community 2339|Community 2339]]
+- [[_COMMUNITY_Community 2340|Community 2340]]
+- [[_COMMUNITY_Community 2341|Community 2341]]
+- [[_COMMUNITY_Community 2342|Community 2342]]
+- [[_COMMUNITY_Community 2343|Community 2343]]
+- [[_COMMUNITY_Community 2344|Community 2344]]
+- [[_COMMUNITY_Community 2345|Community 2345]]
+- [[_COMMUNITY_Community 2346|Community 2346]]
+- [[_COMMUNITY_Community 2347|Community 2347]]
+- [[_COMMUNITY_Community 2348|Community 2348]]
+- [[_COMMUNITY_Community 2349|Community 2349]]
+- [[_COMMUNITY_Community 2350|Community 2350]]
+- [[_COMMUNITY_Community 2351|Community 2351]]
+- [[_COMMUNITY_Community 2352|Community 2352]]
+- [[_COMMUNITY_Community 2353|Community 2353]]
+- [[_COMMUNITY_Community 2354|Community 2354]]
+- [[_COMMUNITY_Community 2355|Community 2355]]
+- [[_COMMUNITY_Community 2356|Community 2356]]
+- [[_COMMUNITY_Community 2357|Community 2357]]
+- [[_COMMUNITY_Community 2358|Community 2358]]
+- [[_COMMUNITY_Community 2359|Community 2359]]
+- [[_COMMUNITY_Community 2360|Community 2360]]
+- [[_COMMUNITY_Community 2361|Community 2361]]
+- [[_COMMUNITY_Community 2362|Community 2362]]
+- [[_COMMUNITY_Community 2363|Community 2363]]
+- [[_COMMUNITY_Community 2364|Community 2364]]
+- [[_COMMUNITY_Community 2365|Community 2365]]
+- [[_COMMUNITY_Community 2366|Community 2366]]
+- [[_COMMUNITY_Community 2367|Community 2367]]
+- [[_COMMUNITY_Community 2368|Community 2368]]
+- [[_COMMUNITY_Community 2369|Community 2369]]
+- [[_COMMUNITY_Community 2370|Community 2370]]
+- [[_COMMUNITY_Community 2371|Community 2371]]
+- [[_COMMUNITY_Community 2372|Community 2372]]
+- [[_COMMUNITY_Community 2373|Community 2373]]
+- [[_COMMUNITY_Community 2374|Community 2374]]
+- [[_COMMUNITY_Community 2375|Community 2375]]
+- [[_COMMUNITY_Community 2376|Community 2376]]
+- [[_COMMUNITY_Community 2377|Community 2377]]
+- [[_COMMUNITY_Community 2378|Community 2378]]
+- [[_COMMUNITY_Community 2379|Community 2379]]
+- [[_COMMUNITY_Community 2380|Community 2380]]
+- [[_COMMUNITY_Community 2381|Community 2381]]
+- [[_COMMUNITY_Community 2382|Community 2382]]
+- [[_COMMUNITY_Community 2383|Community 2383]]
+- [[_COMMUNITY_Community 2384|Community 2384]]
+- [[_COMMUNITY_Community 2385|Community 2385]]
+- [[_COMMUNITY_Community 2386|Community 2386]]
+- [[_COMMUNITY_Community 2387|Community 2387]]
+- [[_COMMUNITY_Community 2388|Community 2388]]
+- [[_COMMUNITY_Community 2389|Community 2389]]
+- [[_COMMUNITY_Community 2390|Community 2390]]
+- [[_COMMUNITY_Community 2391|Community 2391]]
+- [[_COMMUNITY_Community 2392|Community 2392]]
+- [[_COMMUNITY_Community 2393|Community 2393]]
+- [[_COMMUNITY_Community 2394|Community 2394]]
+- [[_COMMUNITY_Community 2395|Community 2395]]
+- [[_COMMUNITY_Community 2396|Community 2396]]
+- [[_COMMUNITY_Community 2397|Community 2397]]
+- [[_COMMUNITY_Community 2398|Community 2398]]
+- [[_COMMUNITY_Community 2399|Community 2399]]
+- [[_COMMUNITY_Community 2400|Community 2400]]
+- [[_COMMUNITY_Community 2401|Community 2401]]
+- [[_COMMUNITY_Community 2402|Community 2402]]
+- [[_COMMUNITY_Community 2403|Community 2403]]
+- [[_COMMUNITY_Community 2404|Community 2404]]
+- [[_COMMUNITY_Community 2405|Community 2405]]
+- [[_COMMUNITY_Community 2406|Community 2406]]
+- [[_COMMUNITY_Community 2407|Community 2407]]
+- [[_COMMUNITY_Community 2408|Community 2408]]
+- [[_COMMUNITY_Community 2409|Community 2409]]
+- [[_COMMUNITY_Community 2410|Community 2410]]
+- [[_COMMUNITY_Community 2411|Community 2411]]
+- [[_COMMUNITY_Community 2412|Community 2412]]
+- [[_COMMUNITY_Community 2413|Community 2413]]
+- [[_COMMUNITY_Community 2414|Community 2414]]
+- [[_COMMUNITY_Community 2415|Community 2415]]
+- [[_COMMUNITY_Community 2416|Community 2416]]
+- [[_COMMUNITY_Community 2417|Community 2417]]
+- [[_COMMUNITY_Community 2418|Community 2418]]
+- [[_COMMUNITY_Community 2419|Community 2419]]
+- [[_COMMUNITY_Community 2420|Community 2420]]
+- [[_COMMUNITY_Community 2421|Community 2421]]
+- [[_COMMUNITY_Community 2422|Community 2422]]
+- [[_COMMUNITY_Community 2423|Community 2423]]
+- [[_COMMUNITY_Community 2424|Community 2424]]
+- [[_COMMUNITY_Community 2425|Community 2425]]
+- [[_COMMUNITY_Community 2426|Community 2426]]
+- [[_COMMUNITY_Community 2427|Community 2427]]
+- [[_COMMUNITY_Community 2428|Community 2428]]
+- [[_COMMUNITY_Community 2429|Community 2429]]
+- [[_COMMUNITY_Community 2430|Community 2430]]
+- [[_COMMUNITY_Community 2431|Community 2431]]
+- [[_COMMUNITY_Community 2432|Community 2432]]
+- [[_COMMUNITY_Community 2433|Community 2433]]
+- [[_COMMUNITY_Community 2434|Community 2434]]
+- [[_COMMUNITY_Community 2435|Community 2435]]
+- [[_COMMUNITY_Community 2436|Community 2436]]
+- [[_COMMUNITY_Community 2437|Community 2437]]
+- [[_COMMUNITY_Community 2438|Community 2438]]
+- [[_COMMUNITY_Community 2439|Community 2439]]
+- [[_COMMUNITY_Community 2440|Community 2440]]
+- [[_COMMUNITY_Community 2441|Community 2441]]
+- [[_COMMUNITY_Community 2442|Community 2442]]
+- [[_COMMUNITY_Community 2443|Community 2443]]
+- [[_COMMUNITY_Community 2444|Community 2444]]
+- [[_COMMUNITY_Community 2445|Community 2445]]
+- [[_COMMUNITY_Community 2446|Community 2446]]
+- [[_COMMUNITY_Community 2447|Community 2447]]
+- [[_COMMUNITY_Community 2448|Community 2448]]
+- [[_COMMUNITY_Community 2449|Community 2449]]
+- [[_COMMUNITY_Community 2450|Community 2450]]
+- [[_COMMUNITY_Community 2451|Community 2451]]
+- [[_COMMUNITY_Community 2452|Community 2452]]
+- [[_COMMUNITY_Community 2453|Community 2453]]
+- [[_COMMUNITY_Community 2454|Community 2454]]
+- [[_COMMUNITY_Community 2455|Community 2455]]
+- [[_COMMUNITY_Community 2456|Community 2456]]
+- [[_COMMUNITY_Community 2457|Community 2457]]
+- [[_COMMUNITY_Community 2458|Community 2458]]
+- [[_COMMUNITY_Community 2459|Community 2459]]
+- [[_COMMUNITY_Community 2460|Community 2460]]
+- [[_COMMUNITY_Community 2461|Community 2461]]
+- [[_COMMUNITY_Community 2462|Community 2462]]
+- [[_COMMUNITY_Community 2463|Community 2463]]
+- [[_COMMUNITY_Community 2464|Community 2464]]
+- [[_COMMUNITY_Community 2465|Community 2465]]
+- [[_COMMUNITY_Community 2466|Community 2466]]
+- [[_COMMUNITY_Community 2467|Community 2467]]
+- [[_COMMUNITY_Community 2468|Community 2468]]
+- [[_COMMUNITY_Community 2469|Community 2469]]
+- [[_COMMUNITY_Community 2470|Community 2470]]
+- [[_COMMUNITY_Community 2471|Community 2471]]
+- [[_COMMUNITY_Community 2472|Community 2472]]
+- [[_COMMUNITY_Community 2473|Community 2473]]
+- [[_COMMUNITY_Community 2474|Community 2474]]
+- [[_COMMUNITY_Community 2475|Community 2475]]
+- [[_COMMUNITY_Community 2476|Community 2476]]
+- [[_COMMUNITY_Community 2477|Community 2477]]
+- [[_COMMUNITY_Community 2478|Community 2478]]
+- [[_COMMUNITY_Community 2479|Community 2479]]
+- [[_COMMUNITY_Community 2480|Community 2480]]
+- [[_COMMUNITY_Community 2481|Community 2481]]
+- [[_COMMUNITY_Community 2482|Community 2482]]
+- [[_COMMUNITY_Community 2483|Community 2483]]
+- [[_COMMUNITY_Community 2484|Community 2484]]
+- [[_COMMUNITY_Community 2485|Community 2485]]
+- [[_COMMUNITY_Community 2486|Community 2486]]
+- [[_COMMUNITY_Community 2487|Community 2487]]
+- [[_COMMUNITY_Community 2488|Community 2488]]
+- [[_COMMUNITY_Community 2489|Community 2489]]
+- [[_COMMUNITY_Community 2490|Community 2490]]
 
 ## Keystone Nodes (most connected - your core abstractions)
 1. `fetchWithRetry()` - 65 edges
@@ -2015,19 +2627,19 @@
 
 ## Communities
 
-### Community 0 - "Climate & Layer Data Fetching"
+### Community 0 - "Layer Fetchers & Data Adapters"
 Cohesion: 0.03
 Nodes (141): aafcCodeToDistribution(), acisComputeFirstFrost(), acisComputeLastFrost(), acisGrowingSeasonDays(), acisHardinessZone(), acisParseValue(), apiRowToMockLayer(), bboxOfFeatureCollection() (+133 more)
 
-### Community 1 - "Cesium KTX2 Transcoder (vendor)"
+### Community 1 - "Vendored Bundle (transcoder)"
 Cohesion: 0.05
 Nodes (90): __(), a_(), ae(), an(), ar(), B_(), Be(), bn() (+82 more)
 
-### Community 2 - "Atlas Panel & Section UI"
+### Community 2 - "Atlas AI Panel"
 Cohesion: 0.02
 Nodes (3): panel.module.css .container (shared panel scroll container), buildRecommendationText(), humanize()
 
-### Community 3 - "Cesium Engine Chunk (vendor)"
+### Community 3 - "Vendored Bundle (BXMEEOCS)"
 Cohesion: 0.04
 Nodes (48): a(), b(), c(), d(), E(), en(), eo(), Er() (+40 more)
 
@@ -2035,1669 +2647,1669 @@ Nodes (48): a(), b(), c(), d(), E(), en(), eo(), Er() (+40 more)
 Cohesion: 0.03
 Nodes (78): ESA WorldCover land-cover fallback, External Data Sources — Phase 8 Reference, Global groundwater/ESG sources scoping ADR, IGRAC GGIS CC-BY vs CC-BY-NC license contradiction, Raster pollinator-corridor scoping ADR, Theobald human-modification friction gradient, WDPA CC-BY-NC redistribution constraint, Feature Manifest (30-section surface) (+70 more)
 
-### Community 5 - "Scoring & Pipeline Architecture Notes"
+### Community 5 - "Atlas v3.1 Backlog & Architecture Notes"
 Cohesion: 0.04
 Nodes (69): AI narratives require provenance + confidence markers (Section 0d guardrail), features/assessment/ legacy canonical UI (SiteAssessmentPanel), Atlas v3.1 Backlog, Build order is a graph problem — topological sort, not a list (rationale), Shared CartographicDetail across Topography + Sectors (intentional trade), packages/shared/src/scoring/computeScores.ts (10 scored labels, parity-tested), Corridor LCP impedance vocabulary (Circuitscape/Omniscape/Theobald 2013 defaults), Data Completeness Score (+61 more)
 
-### Community 6 - "Plan & Act Mobility ADRs"
+### Community 6 - "Module-Affinity & Act-Log"
 Cohesion: 0.04
 Nodes (55): projectTypeModuleAffinity.ts v1 hand-authored table, Act-affinity v1 — sanity review against representative steward days, 2026-05-10 Act-affinity telemetry pipeline (follow-up), Act Log livestock move wiring + Plan feature edit/move mobility, LivestockMoveTool.tsx (paddock point-in-polygon hit-test), livestockMoveLogStore (LivestockMoveEvent records), 2026-05-09 atlas-plan-project-type-checklist (cross-check chip work), Act Operations Hub — Project-type-aware ranking (+47 more)
 
-### Community 7 - "Cesium Cartesian Math (vendor)"
+### Community 7 - "Vendored Bundle (FFBVWF2L)"
 Cohesion: 0.06
 Nodes (32): abs(), add(), angleBetween(), clone(), De(), distance(), distanceSquared(), dot() (+24 more)
 
-### Community 8 - "Stage IA Restructure ADRs"
+### Community 8 - "Selector Derivations"
+Cohesion: 0.06
+Nodes (32): aspectDegrees(), builtEnvironmentKpis(), climateKpis(), dominantKind(), featureCounts(), fmtDays(), fmtDeg(), fmtDelta() (+24 more)
+
+### Community 9 - "ADRs: Cost & Needs Datasets"
 Cohesion: 0.05
 Nodes (53): ADR: Regional cost dataset, ADR: Needs & Yields dependency graph, integrationScore (Ecological Integration axis), packages/shared/src/relationships module, ADR: Temporal slider for succession & maturity modelling, packages/shared/src/succession module, ADR: ACT Stage IA Restructure (Act Hub + 13 surfaces), ActHub (features/act/ActHub.tsx) (+45 more)
 
-### Community 9 - "v3 Derivations & KPI Formatters"
-Cohesion: 0.06
-Nodes (31): aspectDegrees(), builtEnvironmentKpis(), climateKpis(), dominantKind(), featureCounts(), fmtDays(), fmtDeg(), fmtDelta() (+23 more)
+### Community 10 - "Sync Service & Array Diffing"
+Cohesion: 0.07
+Nodes (31): applyServerAcreage(), enqueueVersionedBlob(), executeQueuedOp(), executeStateBlobOp(), getBlobBaseRev(), getBlobBaseRevForTest(), getProjectServerId(), hydrateProjectStateBlobs() (+23 more)
 
-### Community 10 - "Cesium Cartographic Math (vendor)"
+### Community 11 - "Vendored Bundle (QKUIYMGC)"
 Cohesion: 0.07
 Nodes (29): _(), abs(), add(), angleBetween(), clone(), cross(), distance(), distanceSquared() (+21 more)
 
-### Community 11 - "Deep Technical Audit Findings"
+### Community 12 - "Animal Units & Technical Audit"
 Cohesion: 0.09
 Nodes (47): Animal Units quick-stat (AU_FACTORS, Manitoba Schedule A), OGDEN Atlas Deep Technical Audit (2026-04-21), ClaudeClient (Anthropic Messages, fetch-based), Country INTL type extension + NasaPower registry, Sprint BZ/CA/CB/CC/CD GAEZ track, NwisGroundwaterAdapter + PgmnGroundwaterAdapter, layerFetcher loose return-type contract (LayerSummary union), Per-submodule toolbars + livestock/forestry domain split (+39 more)
 
-### Community 12 - "Cesium Zip Web Worker (vendor)"
+### Community 13 - "Zip Web Worker"
 Cohesion: 0.07
 Nodes (29): $(), Ae(), be(), C(), Ce(), D(), $e, et (+21 more)
 
-### Community 13 - "Cesium Engine Chunk 2 (vendor)"
+### Community 14 - "Vendored Bundle (BYLCY7GP)"
 Cohesion: 0.1
 Nodes (34): A(), b(), Be(), cc(), d(), E(), F(), fc() (+26 more)
 
-### Community 14 - "Design System & Accessibility"
+### Community 15 - "ADRs: Accessibility & Design Tokens"
 Cohesion: 0.07
 Nodes (43): Atlas/OLOS Accessibility Audit (WCAG 2.1 AA), ADR 2026-04-23 DelayedTooltip primitive, ADR 2026-04-24 MapControlPopover + mapZIndex, ADR 2026-04-23 OKLCH token migration, Separate Confidence (provenance) from Quality (semantic status), DelayedTooltip primitive (title= is anti-pattern), OGDEN Atlas Design System Master File, <div onClick> -> <button> keyboard-operable triage (12 files) (+35 more)
 
-### Community 15 - "Atlas v3 Concept-Polish ADRs"
+### Community 16 - "Atlas v3 Concept Polish & Chrome"
 Cohesion: 0.06
 Nodes (42): v3/styles/chrome.css (.eyebrow utility), ADR: Atlas v3 concept-polish pass — scholar-reconciled, LifecycleProgressRing.tsx, Permaculture Scholar (NotebookLM 5aa3dcf3), Rationale: take structural concept ideas, reject tech-glossy chrome; biophilic identity, Sparkline.tsx primitive (closes UX Scholar §5 P1), UI/UX Design Scholar audit (ui-ux-scholar-audit.md), ADR: Atlas v3.0 — Mock-first Lifecycle Shell (+34 more)
 
-### Community 16 - "Platform Spec & Architecture Overview"
+### Community 17 - "ADRs: Workflow Spec & Vegetation"
 Cohesion: 0.09
 Nodes (40): ADR: OLOS/Atlas Workflow-Spec Reconciliation + MVP Delta, ADR: Vegetation Patch unification — one Observe object + resolver bridge, ADR: WS5 Part 2 (Tokenized Public Report Share) + WS4b (Maintenance Schedule Rollup), ADR: Zone-generator seam + ring-seeded editable zones, ADR: Intervention catalog explicit project-type tagging + 6-archetype parity, ADR: Click-to-anchor ring seeding + seeded-zone management, API Backend (Fastify), capital_partner_summary covenant framing (not 'investor') (+32 more)
 
-### Community 17 - "Cesium Color Math (vendor)"
+### Community 18 - "Vendored Bundle (23ZQ2IVV)"
 Cohesion: 0.07
 Nodes (16): abs(), add(), clone(), distance(), distanceSquared(), lerp(), magnitude(), magnitudeSquared() (+8 more)
 
-### Community 18 - "Built-Environment Store Selectors"
+### Community 19 - "Built Environment Selectors"
 Cohesion: 0.07
 Nodes (11): addDesignElement(), addDesignElements(), addStructure(), buildProposedFromStructure(), excludeDrafts(), findDesignElementGlobal(), getDesignElementsForProject(), isStructureClassKind() (+3 more)
 
-### Community 19 - "Shared Scoring Engine"
+### Community 20 - "Agricultural Suitability Math"
 Cohesion: 0.26
 Nodes (32): buildResult(), clamp(), comp(), computeAgriculturalSuitability(), computeAssessmentScores(), computeBuildability(), computeCanadaSoilCapability(), computeCommunitySuitability() (+24 more)
 
-### Community 20 - "Cesium Engine Chunk 3 (vendor)"
+### Community 21 - "Vendored Bundle (2EQO3Q56)"
 Cohesion: 0.12
 Nodes (27): Ae(), at(), c(), ce(), de(), Ee(), Ft(), ge() (+19 more)
 
-### Community 21 - "Observe/Plan Vision Imagery"
+### Community 22 - "OBSERVE Callouts & Permanence"
 Cohesion: 0.09
 Nodes (31): OBSERVE action callout — Field Tip (boot print), OBSERVE action callout — Seedling in soil, Annuals Permanence Layer Descriptor (dynamic fast-changing elements), Steward capacity orbit diagram (skill constellation around leaf core), Climate Permanence Layer Descriptor (enduring natural framework), Hazard hotspots risk map, Seasonal hazard intensity timeline, Golden-hour valley landscape hero (+23 more)
 
-### Community 22 - "Cesium I3S Decoder (vendor)"
+### Community 23 - "Inline Edit Schemas"
+Cohesion: 0.08
+Nodes (8): buildCropEditSchema(), buildGuildEditSchema(), buildHabitatFeatureEditSchema(), buildPaddockEditSchema(), formatPaddockStockingRecommendation(), habitatKindAcceptsHost(), listHabitatHostCandidates(), silvopastureField()
+
+### Community 24 - "PlanDataLayers"
+Cohesion: 0.09
+Nodes (18): apply(), asPolygon(), buildPolyEditSchema(), clearPress(), enterpriseColorExpr(), hitTestTopHost(), onClick(), onContextMenu() (+10 more)
+
+### Community 25 - "Community 25"
 Cohesion: 0.21
 Nodes (25): At(), bt(), Ct(), Et(), Ft(), Gt(), H(), Ht() (+17 more)
 
-### Community 23 - "Cesium Engine Chunk 4 (vendor)"
+### Community 26 - "Community 26"
 Cohesion: 0.19
 Nodes (22): a(), B(), c(), D(), E(), f(), g(), h() (+14 more)
 
-### Community 24 - "Offline Sync Service"
-Cohesion: 0.12
-Nodes (12): applyServerAcreage(), executeQueuedOp(), getProjectServerId(), initialSync(), mergeDesignFeatures(), syncProjectBoundary(), syncProjectCreate(), syncProjectUpdate() (+4 more)
+### Community 27 - "Community 27"
+Cohesion: 0.11
+Nodes (10): addPlan(), computeRestPairs(), daysBetween(), emptyQuickDraft(), newMoveId(), openLogForm(), openScheduleForm(), planToWorkItem() (+2 more)
 
-### Community 25 - "Inline Feature-Edit Schemas"
-Cohesion: 0.09
-Nodes (5): buildCropEditSchema(), buildGuildEditSchema(), buildPaddockEditSchema(), formatPaddockStockingRecommendation(), silvopastureField()
-
-### Community 26 - "Planting Tool Dashboard"
+### Community 28 - "Community 28"
 Cohesion: 0.14
 Nodes (16): bandLabel(), buildAccessChecks(), buildOrchardSafety(), buildProximityChecks(), compostStatus(), derivePlantingVerdict(), distanceMetres(), harvestStatus() (+8 more)
 
-### Community 27 - "Atlas README & Stack Overview"
+### Community 29 - "Community 29"
 Cohesion: 0.1
 Nodes (23): Anti-Patterns Checklist, Color Palette (Earth Green + Harvest Gold), Community/Forum Landing Page Pattern, Component Specs (Buttons, Cards, Inputs, Modals), Atlas Design System Master, Organic Biophilic Style, Page-Level Override Logic, Typography (Fira Code + Fira Sans) (+15 more)
 
-### Community 28 - "Cesium Engine Chunk 5 (vendor)"
+### Community 30 - "Community 30"
 Cohesion: 0.28
 Nodes (22): Bt(), Gt(), Ht(), It(), jt(), K(), kt(), lt() (+14 more)
 
-### Community 29 - "Design Intelligence Engine"
+### Community 31 - "Community 31"
 Cohesion: 0.19
 Nodes (22): angleDiff(), classifyDrainage(), computeCompostSiting(), computeDesignIntelligence(), computeFireRisk(), computeFootprintOptimization(), computePassiveSolarOrientation(), computePondVolumeEstimate() (+14 more)
 
-### Community 30 - "Data Pipeline Orchestrator"
+### Community 32 - "Community 32"
 Cohesion: 0.11
 Nodes (3): DataPipelineOrchestrator, ManualFlagAdapter, resolveAdapter()
 
-### Community 31 - "Plan Dashboard Imagery"
+### Community 33 - "Community 33"
 Cohesion: 0.13
 Nodes (21): Plan Dashboard — Aerial Terraced Landscape Map, Strategic Map Dashboard Card with Legend Panel, Topographic Site Elevation Map (plan m1 cartographic), Plan Dashboard — Sun Path / Solar Aspect Cross-Section Chart, Plan Dashboard — Forest Strata / Vertical Vegetation Layering, PLAN M3 Zones & Circulation Hero, Swale Long Section & Profile Chart, Permanence Scale & Map Symbol Legend Strip (+13 more)
 
-### Community 32 - "Cesium WASM Chunk (vendor)"
+### Community 34 - "Community 34"
 Cohesion: 0.18
 Nodes (17): A(), b(), c(), d(), data(), __destroy_into_raw(), free(), g() (+9 more)
 
-### Community 33 - "NOAA Climate Adapter"
+### Community 35 - "Community 35"
 Cohesion: 0.16
 Nodes (10): buildLatitudeFallback(), computeFirstFrostDate(), computeFreezeThaw(), computeGrowingSeasonDays(), computeHardinessZone(), computeKoppen(), computeLastFrostDate(), extractCentroid() (+2 more)
 
-### Community 34 - "Livestock Rotation Schedule UI"
-Cohesion: 0.12
-Nodes (7): computeRestPairs(), daysBetween(), emptyQuickDraft(), newMoveId(), openLogForm(), openScheduleForm(), saveForm()
-
-### Community 35 - "Design Rules Engine"
+### Community 36 - "Community 36"
 Cohesion: 0.23
 Nodes (19): approxDistanceM(), checkAccessRequirements(), checkBoundarySetbacks(), checkDrainageViolations(), checkFloodZoneViolations(), checkFlowAccumulationViolations(), checkFrostPocketViolations(), checkGuestCirculationViolations() (+11 more)
 
-### Community 36 - "Annotation Export (GeoJSON/KML/CSV)"
+### Community 37 - "Community 37"
 Cohesion: 0.19
 Nodes (14): coordPair(), csvSection(), escapeXml(), geometriesFor(), geomsToWkt(), geomToKml(), geomToWkt(), placemarkXml() (+6 more)
 
-### Community 37 - "Cesium Polyline Geometry (vendor)"
+### Community 38 - "Community 38"
 Cohesion: 0.22
 Nodes (13): be(), et(), ie(), ne(), Ot(), Qn(), R(), Rn() (+5 more)
 
-### Community 38 - "SSURGO Soil Adapter"
+### Community 39 - "Community 39"
 Cohesion: 0.2
 Nodes (12): boundaryToWkt(), buildSoilHealthSummary(), computeFertilityIndex(), computeSalinizationRisk(), computeWeightedAverages(), deriveTextureClass(), determineConfidence(), mapDrainageToTier3() (+4 more)
 
-### Community 39 - "Observe Dashboard Page"
+### Community 40 - "Community 40"
 Cohesion: 0.12
 Nodes (3): DashboardCards(), deriveEweScores(), scoreBand()
 
-### Community 40 - "Livestock Analysis Engine"
+### Community 41 - "Community 41"
 Cohesion: 0.16
 Nodes (11): computeGuestSafetyConflicts(), computeInventorySummary(), computePaddockPerimeter(), computePredatorRisk(), computeRecoveryStatus(), computeRotationSchedule(), computeShelterAccess(), computeSpeciesConflicts() (+3 more)
 
-### Community 41 - "Recent Observe/Plan ADRs (May)"
+### Community 42 - "Community 42"
+Cohesion: 0.2
+Nodes (14): connectWs(), dispatchEvent(), getProjectLocalId(), getWsBaseUrl(), handleCommentAdded(), handleCommentDeleted(), handleCommentResolved(), handleExportReady() (+6 more)
+
+### Community 43 - "Community 43"
 Cohesion: 0.13
 Nodes (18): ADR 2026-05-13: Adopt-from-map v2 — basemap-hide pipeline + ObserveLayout projectId normalisation, adoptedBasemapBuildings.ts — property-filter basemap-building hide sync, ADR 2026-05-14: Observe-driven auto-design pipeline, canAdvanceToReadyForReview — single pure status-gate validator, ADR 2026-05-13: Cancel discards provisional entity on V1 Observe draw tools, ADR 2026-05-15: Drawn-polygon color by type — preview tint + VegetationPatch by ground cover, FIELD_REMOVERS — kind-keyed exhaustive discard dispatch table, ADR 2026-05-14: Freehand / Dimensions toggle across Plan + Observe annotation tools (+10 more)
 
-### Community 42 - "WebSocket Sync Service"
-Cohesion: 0.21
-Nodes (13): connectWs(), dispatchEvent(), getProjectLocalId(), getWsBaseUrl(), handleCommentAdded(), handleCommentDeleted(), handleCommentResolved(), handleExportReady() (+5 more)
+### Community 44 - "Community 44"
+Cohesion: 0.27
+Nodes (16): arithmeticCentroid(), bearingDeg(), bufferRingInwardM(), haversineDistanceM(), interpolateAlongLine(), lineLengthM(), metresPerDegLat(), metresPerDegLon() (+8 more)
 
-### Community 43 - "Ecological Corridor LCP"
+### Community 45 - "Community 45"
+Cohesion: 0.21
+Nodes (13): computeCarbonSequestration(), computeDisturbedLand(), computeInterventionRecommendations(), computeInterventionSuitability(), computeRestorationPriority(), drainageScore(), projectSomTrajectory(), projectSomTrajectoryWithZones() (+5 more)
+
+### Community 46 - "Community 46"
 Cohesion: 0.24
 Nodes (11): computeCorridor(), dijkstraLCP(), frictionForCell(), frictionForIntervention(), gridDims(), MinHeap, normalizeCoverClass(), pickCorridorAnchors() (+3 more)
 
-### Community 44 - "AI Outputs & Pollinator ADRs"
+### Community 47 - "Community 47"
 Cohesion: 0.15
 Nodes (17): ClaudeClient.ts (generateSiteNarrative / generateDesignRecommendation), ADR: AI outputs persistence + narrative pipeline wiring, GET /api/v1/projects/:id/ai-outputs route, narrativeQueue + startNarrativeWorker + handleTier3Completion, Rationale: server-side invocation, durable storage, no browser API key, ai_outputs table (migration 010), ADR: Pollinator ecoregion adapter + patch-graph corridor layer, pollinatorHabitat.ts heuristic upgrade (connectivityBand) (+9 more)
 
-### Community 45 - "GAEZ Raster Service"
+### Community 48 - "Community 48"
+Cohesion: 0.24
+Nodes (16): addDaysISO(), buildNurseryBatches(), buildPaddocks(), buildRotationCells(), customisePhases(), findTarget(), paddockId(), rectAreaM2() (+8 more)
+
+### Community 49 - "Community 49"
+Cohesion: 0.26
+Nodes (5): AnalysisGuardrails, buildEnrichmentUserMessage(), callAnthropic(), ClaudeClient, parseStructuredResponse()
+
+### Community 50 - "Community 50"
 Cohesion: 0.17
 Nodes (3): computeSummary(), GaezRasterService, initGaezService()
 
-### Community 46 - "Built-Environment Store V2"
+### Community 51 - "Community 51"
 Cohesion: 0.27
 Nodes (11): migrateDesignElement(), migrateLegacyToV2(), migrateObserveBuilding(), migrateObserveGate(), migrateObserveLine(), migrateObserveSeptic(), migrateObserveWell(), migratePlanStructure() (+3 more)
 
-### Community 47 - "Soil & Zoning Scoring ADRs"
+### Community 52 - "Community 52"
+Cohesion: 0.24
+Nodes (14): earthwaterKpis(), ecologyCounts(), ecologyDetailKpis(), getCriticalHabitatLayer(), getSoilsLayer(), getWatershedLayer(), getWetlandsLayer(), hydrologyKpis() (+6 more)
+
+### Community 53 - "Community 53"
 Cohesion: 0.17
 Nodes (16): ADR: fuzzyMCDM lifted to @ogden/shared/scoring, packages/shared/src/scoring/fuzzyMCDM.ts (identity lift + shim), Rationale: additive opt-in, zero-risk for 20+ callers, server-side fuzzy emitter, computeAssessmentScores opts scoringMode crisp|fuzzy, OntarioMunicipalAdapter.ts (three-source parallel merge), ADR: Southern Ontario municipal zoning registry, Rationale: curated registry gives investment-grade confidence vs brittle web-crawl, MUNICIPAL_ZONING_REGISTRY (8 verified ArcGIS endpoints) (+8 more)
 
-### Community 48 - "Built-Environment Export ADRs"
+### Community 54 - "Community 54"
 Cohesion: 0.13
 Nodes (16): Rationale: wire against V1 reader shape (survives pending V2 unification), Rationale: descriptive vs prescriptive split duplicates schema, starves Observe of 3D/edit, Built Environment Export (8th Observe export), Unify Observe + Plan Built Environment behind builtEnvironmentStoreV2, Earth · Water · Ecology Report export (5th Observe export), Rationale: densest surface validates 4-file recipe lock (rule of three), Rationale: GLB/Cesium blocked on assets — pitch-driven extrusions are cheap, Rationale: last unshipped Observe module — close the visible rail asymmetry (+8 more)
 
-### Community 49 - "Claude AI Client"
-Cohesion: 0.27
-Nodes (5): AnalysisGuardrails, buildEnrichmentUserMessage(), callAnthropic(), ClaudeClient, parseStructuredResponse()
-
-### Community 50 - "NWI/FEMA Flood Adapter"
+### Community 55 - "Community 55"
 Cohesion: 0.23
 Nodes (10): buildUnavailableResult(), describeFloodZone(), extractCentroid(), isEmergent(), isForested(), isSfha(), NwiFemaAdapter, nwiSystemName() (+2 more)
 
-### Community 51 - "OMAFRA CanSIS Soil Adapter"
+### Community 56 - "Community 56"
 Cohesion: 0.26
 Nodes (10): deriveHydrologicGroup(), estimateFromLatitude(), extractCentroid(), formatFarmlandClass(), mapDrainageToTier3(), normalizeTexture(), OmafraCanSisAdapter, parseLioAttributes() (+2 more)
 
-### Community 52 - "EcoCrop CSV Parser"
+### Community 57 - "Community 57"
 Cohesion: 0.13
 Nodes (1): Parse EcoCrop_DB.csv into a compact JSON for the Atlas frontend.
 
-### Community 53 - "Earth-Water-Ecology Page"
+### Community 58 - "Community 58"
 Cohesion: 0.17
 Nodes (5): KpiStrip(), omBand(), phBand(), scoreNote(), SoilDiagnosticsCard()
 
-### Community 54 - "Built-Environment Store V1"
+### Community 59 - "Community 59"
 Cohesion: 0.3
 Nodes (14): asLineString(), asPolygon(), createWithExplicitId(), pointPosition(), projectBuilding(), projectBuriedUtility(), projectDriveway(), projectFence() (+6 more)
 
-### Community 55 - "Observe Reskin & Export ADRs"
+### Community 60 - "Community 60"
 Cohesion: 0.18
 Nodes (15): ADR: Observe-port styling (OLOS stylesheet port), ADR: Observe always-inert CTA audit, ADR: Sectors, Microclimates & Zones Export + EWE inert-CTA sweep, ADR: Atlas SWOT Export Pipeline, ADR: Atlas Topography Report Export, ADR: Built Environment tool rail unification (Observe + Plan), ADR: deck.gl ScenegraphLayer migration + 3D feature coverage, ADR: Observe full reskin onto shared stageCard primitives (+7 more)
 
-### Community 56 - "Community 56"
+### Community 61 - "Community 61"
+Cohesion: 0.25
+Nodes (12): beaconFlush(), cancelIdle(), cap(), ensureUnloadHook(), flush(), getSessionId(), isAuthError(), readAppVersion() (+4 more)
+
+### Community 62 - "Community 62"
 Cohesion: 0.23
 Nodes (10): buildQueryUrl(), buildWhereClause(), downloadFile(), downloadWithRetry(), enumerateTargets(), main(), parseArgs(), resolveTargets() (+2 more)
 
-### Community 57 - "Community 57"
+### Community 63 - "Community 63"
 Cohesion: 0.26
 Nodes (10): buildGeoResult(), dmsToDecimal(), extractExifGeotag(), findExifSegment(), parseGeoFile(), parseGeoJSON(), parseKML(), parseKMZ() (+2 more)
 
-### Community 58 - "Community 58"
+### Community 64 - "Community 64"
 Cohesion: 0.2
 Nodes (8): J(), K(), L(), N(), P(), Q(), X(), Y()
 
-### Community 59 - "Community 59"
+### Community 65 - "Community 65"
 Cohesion: 0.15
 Nodes (2): gt(), St()
 
-### Community 60 - "Cesium GEE Decoder (vendor)"
+### Community 66 - "Community 66"
 Cohesion: 0.19
 Nodes (6): Di(), Ii(), mi(), pe(), Si(), vi()
 
-### Community 61 - "Storage Provider"
+### Community 67 - "Community 67"
 Cohesion: 0.16
 Nodes (2): LocalStorageProvider, S3StorageProvider
 
-### Community 62 - "Earth-Water KPI Derivations"
-Cohesion: 0.29
-Nodes (13): earthwaterKpis(), ecologyCounts(), ecologyDetailKpis(), getCriticalHabitatLayer(), getSoilsLayer(), getWatershedLayer(), getWetlandsLayer(), hydrologyKpis() (+5 more)
+### Community 68 - "Community 68"
+Cohesion: 0.25
+Nodes (11): buildParcelBox(), computeWaterRows(), describeWaterElement(), estimateElevationM(), geometryCentroid(), gravityHeadLostM(), mPerDeg(), ringCentroid() (+3 more)
 
-### Community 63 - "Built-Environment Projection"
+### Community 69 - "Community 69"
 Cohesion: 0.18
 Nodes (5): polygonCentroid(), projectToGates(), projectToStructures(), projectToWells(), tupleFromPoint()
 
-### Community 64 - "Community 64"
+### Community 70 - "Community 70"
+Cohesion: 0.32
+Nodes (11): computeFitGate(), gradeAccessMarket(), gradeDealBreakers(), gradeEcological(), gradeEcologyHazards(), gradeFinancial(), gradeGis(), gradeHumanNeighbour() (+3 more)
+
+### Community 71 - "Community 71"
 Cohesion: 0.31
 Nodes (12): computeCompleteness(), computeScenarioId(), extractEmissions(), faoCropToCanonical(), faoInputToCanonical(), faoWaterToCanonical(), fetchAllFeatures(), fetchDistinctScenarioTriples() (+4 more)
 
-### Community 65 - "Community 65"
+### Community 72 - "Community 72"
+Cohesion: 0.15
+Nodes (1): parseRow()
+
+### Community 73 - "Community 73"
 Cohesion: 0.26
 Nodes (8): AafcLandCoverAdapter, aafcSystem(), buildDistribution(), buildLatitudeFallback(), extractCentroid(), isAgricultural(), isNatural(), queryAafcPoint()
 
-### Community 66 - "Community 66"
+### Community 74 - "Community 74"
 Cohesion: 0.28
 Nodes (8): buildRegionalEstimate(), ConservationAuthorityAdapter, estimateFloodRisk(), extractCentroid(), queryLioLayer(), queryLioRegulated(), queryLioWetlands(), resolveCAName()
 
-### Community 67 - "Community 67"
+### Community 75 - "Community 75"
 Cohesion: 0.21
 Nodes (2): initSoilGridsService(), SoilGridsRasterService
 
-### Community 68 - "Community 68"
+### Community 76 - "Community 76"
 Cohesion: 0.24
 Nodes (7): candidateMunicipalities(), extractCentroid(), fetchAafcCli(), fetchLioPlanning(), fetchMunicipalZoning(), inferZoningDetails(), OntarioMunicipalAdapter
 
-### Community 69 - "Community 69"
-Cohesion: 0.15
-Nodes (0): 
-
-### Community 70 - "Community 70"
-Cohesion: 0.15
-Nodes (0): 
-
-### Community 71 - "Community 71"
-Cohesion: 0.19
-Nodes (4): aspectBearing(), slopeBand(), TerrainMetrics(), tpiLabel()
-
-### Community 72 - "Community 72"
-Cohesion: 0.22
-Nodes (7): encodeHostId(), pickPointMembers(), pickPolygonMembers(), pointInHost(), polygonOverlapsHost(), resolveMembers(), resolveSilvopastureHosts()
-
-### Community 73 - "Community 73"
-Cohesion: 0.17
-Nodes (13): Split confidence from interpretation badges, Hierarchy: Summary-Diagnostics-Evidence-Derived, ScoresAndFlagsSection.tsx, Site Intelligence Panel UX Refit Plan, 5-stage workflow sidebar taxonomy, Data-vs-meaning three-layer design rule, Decision Triad cards (Risks/Opportunities/Limitations), Design system rules (contrast tiers, spacing) (+5 more)
-
-### Community 74 - "Community 74"
-Cohesion: 0.27
-Nodes (9): baseLayout(), esc(), fmtDate(), fmtDollars(), fmtRange(), notAvailable(), scoreColor(), scoreGauge() (+1 more)
-
-### Community 75 - "Community 75"
-Cohesion: 0.26
-Nodes (6): buildUnavailableResult(), extractCentroid(), inferZoningDetails(), queryCountyEndpoint(), resolveCountyFips(), UsCountyGisAdapter
-
-### Community 76 - "Community 76"
-Cohesion: 0.29
-Nodes (8): computeCarbonSequestration(), computeDisturbedLand(), computeInterventionRecommendations(), computeInterventionSuitability(), computeRestorationPriority(), drainageScore(), selectBestCarbonIntervention(), textureToSoilGroup()
-
 ### Community 77 - "Community 77"
-Cohesion: 0.17
+Cohesion: 0.15
 Nodes (0): 
 
 ### Community 78 - "Community 78"
-Cohesion: 0.27
-Nodes (6): buildLatitudeFallback(), EcccClimateAdapter, extractCentroid(), parseNum(), parseStr(), queryEcccNormals()
+Cohesion: 0.15
+Nodes (0): 
 
 ### Community 79 - "Community 79"
-Cohesion: 0.27
-Nodes (7): aspectAtCell(), aspectToCardinal(), boundaryToBbox(), classifyRuggedness(), computeElevationSummary(), slopeAtCell(), UsgsElevationAdapter
+Cohesion: 0.19
+Nodes (4): aspectBearing(), slopeBand(), TerrainMetrics(), tpiLabel()
 
 ### Community 80 - "Community 80"
-Cohesion: 0.17
-Nodes (0): 
+Cohesion: 0.22
+Nodes (7): encodeHostId(), pickPointMembers(), pickPolygonMembers(), pointInHost(), polygonOverlapsHost(), resolveMembers(), resolveSilvopastureHosts()
 
 ### Community 81 - "Community 81"
 Cohesion: 0.17
-Nodes (0): 
+Nodes (13): Split confidence from interpretation badges, Hierarchy: Summary-Diagnostics-Evidence-Derived, ScoresAndFlagsSection.tsx, Site Intelligence Panel UX Refit Plan, 5-stage workflow sidebar taxonomy, Data-vs-meaning three-layer design rule, Decision Triad cards (Risks/Opportunities/Limitations), Design system rules (contrast tiers, spacing) (+5 more)
 
 ### Community 82 - "Community 82"
-Cohesion: 0.17
-Nodes (0): 
+Cohesion: 0.27
+Nodes (9): baseLayout(), esc(), fmtDate(), fmtDollars(), fmtRange(), notAvailable(), scoreColor(), scoreGauge() (+1 more)
 
 ### Community 83 - "Community 83"
-Cohesion: 0.27
-Nodes (7): runCascadeScenario(), runFireScenario(), runWaterScenario(), toneFromDays(), toneFromMinutes(), toneFromSourceCount(), worseTone()
+Cohesion: 0.26
+Nodes (6): buildUnavailableResult(), extractCentroid(), inferZoningDetails(), queryCountyEndpoint(), resolveCountyFips(), UsCountyGisAdapter
 
 ### Community 84 - "Community 84"
 Cohesion: 0.17
 Nodes (0): 
 
 ### Community 85 - "Community 85"
-Cohesion: 0.17
-Nodes (0): 
+Cohesion: 0.27
+Nodes (6): buildLatitudeFallback(), EcccClimateAdapter, extractCentroid(), parseNum(), parseStr(), queryEcccNormals()
 
 ### Community 86 - "Community 86"
 Cohesion: 0.27
-Nodes (12): ADR 2026-05-07 Atlas Act stage page (StageShell sibling), ADR 2026-05-07 AnnotationDragHandler crash fix + stage rail refactor + map/data, ADR 2026-05-07 Atlas OBSERVE touch-first drag + batch edit + per-store undo specs, ADR 2026-05-06 Atlas OBSERVE edit/delete loop + boundary persistence, ADR 2026-05-07 Atlas OBSERVE v3 Modules 1-6 functionalization, ADR 2026-05-06 Atlas Observe Phase B port + wholesale-scoped styling, ADR 2026-05-06 Atlas OBSERVE selection floater + drag + vertex edit + zundo, ADR 2026-05-07 Atlas Observe site intelligence JSON template import (+4 more)
+Nodes (7): aspectAtCell(), aspectToCardinal(), boundaryToBbox(), classifyRuggedness(), computeElevationSummary(), slopeAtCell(), UsgsElevationAdapter
 
 ### Community 87 - "Community 87"
+Cohesion: 0.17
+Nodes (0): 
+
+### Community 88 - "Community 88"
+Cohesion: 0.17
+Nodes (0): 
+
+### Community 89 - "Community 89"
+Cohesion: 0.17
+Nodes (0): 
+
+### Community 90 - "Community 90"
+Cohesion: 0.27
+Nodes (7): runCascadeScenario(), runFireScenario(), runWaterScenario(), toneFromDays(), toneFromMinutes(), toneFromSourceCount(), worseTone()
+
+### Community 91 - "Community 91"
+Cohesion: 0.17
+Nodes (0): 
+
+### Community 92 - "Community 92"
+Cohesion: 0.17
+Nodes (0): 
+
+### Community 93 - "Community 93"
+Cohesion: 0.17
+Nodes (0): 
+
+### Community 94 - "Community 94"
+Cohesion: 0.27
+Nodes (12): ADR 2026-05-07 Atlas Act stage page (StageShell sibling), ADR 2026-05-07 AnnotationDragHandler crash fix + stage rail refactor + map/data, ADR 2026-05-07 Atlas OBSERVE touch-first drag + batch edit + per-store undo specs, ADR 2026-05-06 Atlas OBSERVE edit/delete loop + boundary persistence, ADR 2026-05-07 Atlas OBSERVE v3 Modules 1-6 functionalization, ADR 2026-05-06 Atlas Observe Phase B port + wholesale-scoped styling, ADR 2026-05-06 Atlas OBSERVE selection floater + drag + vertex edit + zundo, ADR 2026-05-07 Atlas Observe site intelligence JSON template import (+4 more)
+
+### Community 95 - "Community 95"
 Cohesion: 0.18
 Nodes (12): AppShell two symmetric sidebar slots + CollapsiblePane, Land Brief — map-workspace shell with structured sidebars + collapsible panes, Permaculture Zone editing + Plan/Act module bar & bento parity, PermacultureZoneTool upsert + draggable ring markers, Prior ADR: Atlas Act stage page (proven URL-routing pattern), ADR: Plan stage migrated to URL-driven module routing for Observe/Plan/Act parity, SELF_RAILED_STAGES policy (Plan owns its right rail), Atlas — Canonical StageShell template for all lifecycle stages (+4 more)
 
-### Community 88 - "Community 88"
+### Community 96 - "Community 96"
 Cohesion: 0.21
 Nodes (12): Act Livestock LivestockMoveCard (unified two-kind log), Act Maintain MaintenanceLogCard structure-source surfacing, Act-stage structure popover (read-only inspector + log-action handoff), Act structure-anchored yield card (StructureYieldCard), Rationale: cheesecake-farm trap, agritourism out-of-scope, static-polygon limitation (Newman), Rationale: one unified card (no event-shape asymmetry between kinds), LivestockMoveEvent v3 (from/to fields) + rotation-card rest variance, Rationale: v2 had no origin field — true plan-vs-actual rest analysis impossible (+4 more)
 
-### Community 89 - "Community 89"
+### Community 97 - "Community 97"
 Cohesion: 0.21
 Nodes (12): Field Tip action icon — boot tread in oval frame, on-the-ground guidance affordance, Seedling action icon — sprout in soil, plant/grow CTA affordance, Steward Survey Capacity Orbit — radial skill selector with central plant node and orbiting capability icons (build, map, forestry, planting), Hero landscape illustration — golden-hour valley with river, terraced hills and forested slopes; Observe dashboard banner/hero visual, Climate module illustration — sun, clouds, rain, wind, water droplet; weather/climate data domain, Earth & Water module illustration — soil profile with roots, water droplet, plant, butterfly; soil/hydrology/biodiversity domain, Human module illustration — two field workers with clipboard checklist beside plant; human/stewardship domain, Average Monthly Climate chart — combo bar/line graph plotting max & min temperature (line series, deg C) against monthly precipitation (bar series, mm) across Jan-Dec; macroclimate dashboard widget (+4 more)
 
-### Community 90 - "Community 90"
+### Community 98 - "Community 98"
+Cohesion: 0.3
+Nodes (10): clamp01_100(), commonName(), computeSilvopastureIntegration(), computeSilvopastureIntegrationPct(), hostCanopyUnion(), hostPolygonAreaM2(), isFodder(), scoreCanopy() (+2 more)
+
+### Community 99 - "Community 99"
+Cohesion: 0.32
+Nodes (9): averageRing(), builtToRow(), centroidOf(), designToRow(), formatAcres(), formatArea(), formatLength(), pluralSuffix() (+1 more)
+
+### Community 100 - "Community 100"
 Cohesion: 0.31
 Nodes (5): deriveFlowDirection(), extractCentroid(), extractHucFields(), NhdAdapter, queryWbdLayer()
 
-### Community 91 - "Community 91"
+### Community 101 - "Community 101"
 Cohesion: 0.29
 Nodes (6): buildEstimate(), estimateStreamOrder(), extractCentroid(), findClosestFeature(), OhnAdapter, queryOhn()
 
-### Community 92 - "Community 92"
+### Community 102 - "Community 102"
 Cohesion: 0.29
 Nodes (8): Bt(), Jt(), Ot(), qt(), Ut(), X(), Yt(), zt()
 
-### Community 93 - "Community 93"
+### Community 103 - "Community 103"
 Cohesion: 0.33
 Nodes (8): ee(), Gt(), ht(), It(), le(), te(), ut(), Xt()
 
-### Community 94 - "Community 94"
+### Community 104 - "Community 104"
 Cohesion: 0.25
 Nodes (5): ae(), fe(), le(), R(), re()
 
-### Community 95 - "Community 95"
+### Community 105 - "Community 105"
 Cohesion: 0.33
 Nodes (9): drainageToCode(), ecToSalinityCode(), findAgroforestryCompanions(), matchCropsToSite(), rangeScore(), rangesOverlap(), scoreCrop(), suitabilityClass() (+1 more)
 
-### Community 96 - "Community 96"
+### Community 106 - "Community 106"
 Cohesion: 0.27
 Nodes (7): makeCrop(), makeLine(), makePaddock(), makePath(), makePolygon(), makeStructure(), makeZone()
 
-### Community 97 - "Community 97"
+### Community 107 - "Community 107"
 Cohesion: 0.18
 Nodes (5): AppError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError
 
-### Community 98 - "Community 98"
+### Community 108 - "Community 108"
 Cohesion: 0.27
 Nodes (5): extractCentroid(), lioFetch(), parseWells(), PgmnGroundwaterAdapter, tryLioLayers()
 
-### Community 99 - "Community 99"
+### Community 109 - "Community 109"
 Cohesion: 0.18
 Nodes (0): 
 
-### Community 100 - "Community 100"
+### Community 110 - "Community 110"
 Cohesion: 0.18
 Nodes (0): 
 
-### Community 101 - "Community 101"
+### Community 111 - "Community 111"
 Cohesion: 0.18
 Nodes (0): 
 
-### Community 102 - "Community 102"
+### Community 112 - "Community 112"
 Cohesion: 0.31
 Nodes (7): analyze(), distMeters(), distPointToLine(), lineLengthM(), metersPerDegree(), polygonCentroid(), polygonPerimeterM()
 
-### Community 103 - "Community 103"
+### Community 113 - "Community 113"
 Cohesion: 0.36
 Nodes (7): analyze(), bendDeg(), distMeters(), distPointToLine(), metersPerDegree(), polygonAreaM2(), segAngle()
 
-### Community 104 - "Community 104"
+### Community 114 - "Community 114"
 Cohesion: 0.27
 Nodes (6): analyze(), distMeters(), distPointToLine(), metersPerDegree(), sampleLine(), structureCentroid()
 
-### Community 105 - "Community 105"
+### Community 115 - "Community 115"
 Cohesion: 0.36
 Nodes (10): fileToDataUri(), fmtKb(), handleClearAll(), handleFile(), handleRemove(), onStorage(), readBoard(), storageKey() (+2 more)
 
-### Community 106 - "Community 106"
+### Community 116 - "Community 116"
 Cohesion: 0.2
 Nodes (2): addAllLayers(), tryAdd()
 
-### Community 107 - "Community 107"
+### Community 117 - "Community 117"
 Cohesion: 0.29
 Nodes (7): computePlantingWindows(), filterSuitableSpecies(), formatMonthDay(), normalizeDrainage(), parseFrostDay(), parseFrostMonth(), validatePlacement()
 
-### Community 108 - "Community 108"
+### Community 118 - "Community 118"
 Cohesion: 0.2
 Nodes (2): applyBuiltinsToStore(), hydrateBuiltins()
 
-### Community 109 - "Community 109"
+### Community 119 - "Community 119"
 Cohesion: 0.35
 Nodes (9): adaptScoredResultsToV3(), avgScore(), buildScore(), byLabel(), placeholderScore(), singleScore(), tierOf(), valueLabel() (+1 more)
 
-### Community 110 - "Community 110"
-Cohesion: 0.25
-Nodes (7): buildParcelBox(), estimateElevationM(), geometryCentroid(), gravityHeadLostM(), mPerDeg(), ringCentroid(), uphillT()
-
-### Community 111 - "Community 111"
+### Community 120 - "Community 120"
 Cohesion: 0.31
 Nodes (8): calcCost(), calcLabor(), contributionValue(), flatCriteria(), interventionAdvancesGoals(), resolveAcreage(), runSequencingEngine(), topoOrder()
 
-### Community 112 - "Community 112"
+### Community 121 - "Community 121"
+Cohesion: 0.22
+Nodes (3): isDone(), isOverdue(), onToggle()
+
+### Community 122 - "Community 122"
+Cohesion: 0.4
+Nodes (10): addDaysISO(), computeMoveCalendar(), computeRestCompliance(), computeRestCompliancePct(), daysBetweenISO(), groupedCells(), honoredRestDays(), monthOfISO() (+2 more)
+
+### Community 123 - "Community 123"
+Cohesion: 0.33
+Nodes (8): applyBundle(), buildBundle(), collectBundleEntries(), getStorage(), hasExportedBundle(), isPortableKey(), markBundleExported(), parseBundle()
+
+### Community 124 - "Community 124"
+Cohesion: 0.35
+Nodes (9): beaconFlush(), cancelIdle(), ensureUnloadHook(), flush(), getSessionId(), newId(), recordShowcaseEvent(), scheduleFlush() (+1 more)
+
+### Community 125 - "Community 125"
 Cohesion: 0.29
 Nodes (4): buildLatitudeFallback(), extractCentroid(), NlcdAdapter, nlcdSystem()
 
-### Community 113 - "Community 113"
+### Community 126 - "Community 126"
 Cohesion: 0.22
 Nodes (2): Ct(), yt()
 
-### Community 114 - "Community 114"
+### Community 127 - "Community 127"
 Cohesion: 0.33
 Nodes (5): b(), J(), K(), Q(), Z()
 
-### Community 115 - "Community 115"
+### Community 128 - "Community 128"
 Cohesion: 0.33
 Nodes (6): Bt(), Dt(), jt(), Ot(), vt(), zt()
 
-### Community 116 - "Community 116"
+### Community 129 - "Community 129"
 Cohesion: 0.33
 Nodes (7): computeAllCosts(), computeCropCosts(), computeFencingCosts(), computePathCosts(), computeStructureCosts(), computeUtilityCosts(), computeZoneCosts()
 
-### Community 117 - "Community 117"
+### Community 130 - "Community 130"
 Cohesion: 0.31
 Nodes (5): extractCentroid(), haversineKm(), nwisFetch(), NwisGroundwaterAdapter, parseWells()
 
-### Community 118 - "Community 118"
+### Community 131 - "Community 131"
 Cohesion: 0.33
 Nodes (6): assignClassesToCells(), assignConnectivityRoles(), buildGrid(), classifyHabitat(), computeCorridorReadiness(), PollinatorOpportunityProcessor
 
-### Community 119 - "Community 119"
+### Community 132 - "Community 132"
 Cohesion: 0.33
 Nodes (5): estimateAreaHa(), lowerConfidence(), parseLandCoverZones(), parseSoilZones(), SoilRegenerationProcessor
 
-### Community 120 - "Community 120"
+### Community 133 - "Community 133"
 Cohesion: 0.2
 Nodes (0): 
 
-### Community 121 - "Community 121"
+### Community 134 - "Community 134"
 Cohesion: 0.2
 Nodes (0): 
 
-### Community 122 - "Community 122"
+### Community 135 - "Community 135"
 Cohesion: 0.24
 Nodes (3): commit(), emptyDraft(), newId()
 
-### Community 123 - "Community 123"
+### Community 136 - "Community 136"
 Cohesion: 0.2
 Nodes (0): 
 
-### Community 124 - "Community 124"
+### Community 137 - "Community 137"
 Cohesion: 0.2
 Nodes (0): 
 
-### Community 125 - "Community 125"
+### Community 138 - "Community 138"
 Cohesion: 0.24
 Nodes (3): runScenario(), toneFromRatio(), worseTone()
 
-### Community 126 - "Community 126"
+### Community 139 - "Community 139"
 Cohesion: 0.33
 Nodes (6): cancelIdle(), ensureUnloadHook(), flush(), getSessionId(), recordInteraction(), scheduleFlush()
 
-### Community 127 - "Community 127"
+### Community 140 - "Community 140"
+Cohesion: 0.24
+Nodes (4): ApiError, reportApiFailure(), reportApiSuccess(), request()
+
+### Community 141 - "Community 141"
 Cohesion: 0.22
 Nodes (2): getLayer(), getLayerSummary()
 
-### Community 128 - "Community 128"
+### Community 142 - "Community 142"
 Cohesion: 0.38
 Nodes (6): anchorFor(), startHarvestLog(), startLivestockMoveLog(), startMaintenanceLog(), startScheduledLivestockMove(), todayIso()
 
-### Community 129 - "Community 129"
+### Community 143 - "Community 143"
+Cohesion: 0.27
+Nodes (5): designElementGeometryType(), isPolygonSelection(), onDelete(), onEditVertices(), removeOne()
+
+### Community 144 - "Community 144"
+Cohesion: 0.29
+Nodes (5): describeZone(), polsbyPopper(), polygonAreaM2(), polygonPerimeterM(), tierFor()
+
+### Community 145 - "Community 145"
 Cohesion: 0.4
 Nodes (9): addDays(), isoDate(), makeTask(), normalizeSpeciesKey(), parseIso(), rebaseToYear(), resolvePhenology(), schedulePlantingFromAreas() (+1 more)
 
-### Community 130 - "Community 130"
+### Community 146 - "Community 146"
 Cohesion: 0.31
 Nodes (9): classes_in_file(), extract_css_classes(), extract_string_slices_dropping_template_exprs(), main(), Map every observe-port.css class to its real consumer .tsx files.  Tightened aud, Whitespace-split classname text into bare identifier tokens., Inside a className={...} or clsx(...) expression, pull every     quoted-string s, scan() (+1 more)
 
-### Community 131 - "Community 131"
+### Community 147 - "Community 147"
 Cohesion: 0.27
 Nodes (10): ADAPTER_REGISTRY relaxed to Partial<Record<Country,AdapterConfig>>, Country enum extended to ['US','CA','INTL'], ADR: Country INTL bucket + NasaPowerAdapter registration, Migration 011: country CHECK + character(2)->text widening, NasaPowerAdapter (climate.INTL), Rationale: CHECK over ENUM (atomic, reversible); third country routes to real climate, ADR: Project-intake map centering & coordinate persistence, centerLat/centerLng on ProjectMetadata jsonb (no migration) (+2 more)
 
-### Community 132 - "Community 132"
+### Community 148 - "Community 148"
 Cohesion: 0.24
 Nodes (10): Cinematic regenerative landscape vision concept at dusk, Topography dashboard with elevation cross-section profile, Aerial hero of meandering river through golden terrain, Site elevation profile with check dams/swales, Main terrain map with layers & slope legend, Regional map: Treaty 19 lands, Haudenosaunee territory, Sixteen Mile Creek, Stylized site hydrology map with water feature markers, Slope analysis heatmap on 3D terrain mesh (+2 more)
 
-### Community 133 - "Community 133"
+### Community 149 - "Community 149"
+Cohesion: 0.2
+Nodes (0): 
+
+### Community 150 - "Community 150"
+Cohesion: 0.24
+Nodes (3): mapPhaseTasks(), nowIso(), phaseTaskToWorkItem()
+
+### Community 151 - "Community 151"
+Cohesion: 0.24
+Nodes (4): handlePointerMove(), handlePointerUp(), isDrag(), svgToMetres()
+
+### Community 152 - "Community 152"
 Cohesion: 0.31
 Nodes (4): ce(), je(), pe(), v()
 
-### Community 134 - "Community 134"
+### Community 153 - "Community 153"
 Cohesion: 0.28
 Nodes (3): Lt(), Tt(), vt()
 
-### Community 135 - "Community 135"
+### Community 154 - "Community 154"
 Cohesion: 0.44
 Nodes (8): D(), H(), k(), m(), O(), w(), y(), z()
 
-### Community 136 - "Community 136"
+### Community 155 - "Community 155"
 Cohesion: 0.47
 Nodes (8): F(), g(), k(), O(), p(), S(), U(), z()
 
-### Community 137 - "Community 137"
+### Community 156 - "Community 156"
 Cohesion: 0.36
 Nodes (1): PdfExportService
 
-### Community 138 - "Community 138"
+### Community 157 - "Community 157"
 Cohesion: 0.36
 Nodes (5): estimateGridSize(), lowestConfidence(), MicroclimateProcessor, reconstructClassGridFromGeojson(), reconstructProbGridFromGeojson()
 
-### Community 139 - "Community 139"
-Cohesion: 0.22
-Nodes (0): 
-
-### Community 140 - "Community 140"
-Cohesion: 0.22
-Nodes (0): 
-
-### Community 141 - "Community 141"
-Cohesion: 0.42
-Nodes (8): deriveWheelPalette(), hexFromOklch(), hexToRgb(), linearToSrgb(), oklabToOklch(), oklabToRgb(), rgbToOklab(), srgbToLinear()
-
-### Community 142 - "Community 142"
-Cohesion: 0.42
-Nodes (8): seedBuiltinObserveData(), seedEcology(), seedHazardsAndSectors(), seedRegional(), seedSoilSamples(), seedSwot(), seedTopography(), seedVision()
-
-### Community 143 - "Community 143"
-Cohesion: 0.36
-Nodes (5): loadFeedback(), onStorage(), resetAll(), saveFeedback(), storageKey()
-
-### Community 144 - "Community 144"
-Cohesion: 0.22
-Nodes (0): 
-
-### Community 145 - "Community 145"
-Cohesion: 0.33
-Nodes (5): clamp(), dmdY(), modulate(), proteinY(), tdnY()
-
-### Community 146 - "Community 146"
-Cohesion: 0.22
-Nodes (0): 
-
-### Community 147 - "Community 147"
-Cohesion: 0.22
-Nodes (1): MemoryStorage
-
-### Community 148 - "Community 148"
-Cohesion: 0.25
-Nodes (2): onDownload(), triggerDownload()
-
-### Community 149 - "Community 149"
-Cohesion: 0.28
-Nodes (4): lineLengthM(), polygonAreaM2(), writeLineString(), writePolygon()
-
-### Community 150 - "Community 150"
-Cohesion: 0.22
-Nodes (0): 
-
-### Community 151 - "Community 151"
-Cohesion: 0.22
-Nodes (0): 
-
-### Community 152 - "Community 152"
-Cohesion: 0.28
-Nodes (3): handleCloseChange(), handleMediumChange(), validatePair()
-
-### Community 153 - "Community 153"
-Cohesion: 0.25
-Nodes (0): 
-
-### Community 154 - "Community 154"
-Cohesion: 0.25
-Nodes (1): mapRow()
-
-### Community 155 - "Community 155"
-Cohesion: 0.54
-Nodes (7): fetchOnce(), fetchOpenMeteoForecast(), numOrNull(), parseCurrent(), parseDaily(), parseHourly(), strOrNull()
-
-### Community 156 - "Community 156"
-Cohesion: 0.25
-Nodes (0): 
-
-### Community 157 - "Community 157"
-Cohesion: 0.25
-Nodes (0): 
-
 ### Community 158 - "Community 158"
-Cohesion: 0.25
+Cohesion: 0.22
 Nodes (0): 
 
 ### Community 159 - "Community 159"
-Cohesion: 0.32
-Nodes (3): deriveSignals(), formatDayLabel(), formatHourLabel()
-
-### Community 160 - "Community 160"
-Cohesion: 0.39
-Nodes (5): paddockMetrics(), polygonPerimeter(), ringsPerimeter(), rollupGroup(), safePolygonPerimeter()
-
-### Community 161 - "Community 161"
-Cohesion: 0.25
+Cohesion: 0.22
 Nodes (0): 
 
+### Community 160 - "Community 160"
+Cohesion: 0.42
+Nodes (8): deriveWheelPalette(), hexFromOklch(), hexToRgb(), linearToSrgb(), oklabToOklch(), oklabToRgb(), rgbToOklab(), srgbToLinear()
+
+### Community 161 - "Community 161"
+Cohesion: 0.42
+Nodes (8): seedBuiltinObserveData(), seedEcology(), seedHazardsAndSectors(), seedRegional(), seedSoilSamples(), seedSwot(), seedTopography(), seedVision()
+
 ### Community 162 - "Community 162"
-Cohesion: 0.39
-Nodes (4): centroidOf(), classifyZone(), findOverlappingPaddock(), metresBetween()
+Cohesion: 0.36
+Nodes (5): loadFeedback(), onStorage(), resetAll(), saveFeedback(), storageKey()
 
 ### Community 163 - "Community 163"
-Cohesion: 0.32
-Nodes (3): distanceM(), nearestStructureDist(), nearestUtilityDist()
+Cohesion: 0.22
+Nodes (0): 
 
 ### Community 164 - "Community 164"
-Cohesion: 0.43
-Nodes (5): cancelIdle(), flush(), getSessionId(), recordObserveInteraction(), scheduleFlush()
+Cohesion: 0.33
+Nodes (5): clamp(), dmdY(), modulate(), proteinY(), tdnY()
 
 ### Community 165 - "Community 165"
-Cohesion: 0.36
-Nodes (4): idbDelete(), idbList(), idbPut(), openDB()
+Cohesion: 0.22
+Nodes (0): 
 
 ### Community 166 - "Community 166"
-Cohesion: 0.25
+Cohesion: 0.22
 Nodes (0): 
 
 ### Community 167 - "Community 167"
-Cohesion: 0.46
-Nodes (7): bearingLabel(), compassKpis(), dominantWindDir(), highestIntensity(), sectorCounts(), sectorsKpis(), zoneCounts()
+Cohesion: 0.22
+Nodes (0): 
 
 ### Community 168 - "Community 168"
-Cohesion: 0.36
-Nodes (5): designElementGeometryType(), isPolygonSelection(), onDelete(), onEditVertices(), removeOne()
+Cohesion: 0.22
+Nodes (1): MemoryStorage
 
 ### Community 169 - "Community 169"
 Cohesion: 0.25
-Nodes (0): 
+Nodes (2): onDownload(), triggerDownload()
 
 ### Community 170 - "Community 170"
-Cohesion: 0.36
-Nodes (4): classifyAridity(), classifyLGP(), computeHydrologyMetrics(), computeLGPDays()
+Cohesion: 0.28
+Nodes (4): lineLengthM(), polygonAreaM2(), writeLineString(), writePolygon()
 
 ### Community 171 - "Community 171"
-Cohesion: 0.36
-Nodes (7): find_block_end(), main(), Strip dead shell/rail CSS rules from atlas-ui/src/styles.css.  A 'rule' is a b, Given index of '{', return index just after matching '}'., Walk top-level rules; drop dead ones; recurse into @media., scrub(), selector_is_dead()
+Cohesion: 0.39
+Nodes (7): bearingLabel(), compassKpis(), dominantWindDir(), highestIntensity(), sectorCounts(), sectorsKpis(), zoneCounts()
 
 ### Community 172 - "Community 172"
-Cohesion: 0.36
-Nodes (8): apps/atlas-ui Archived workspace, ADR 2026-05-10-atlas-ui-archived, Rationale: archive stranded prototype, not promote/merge, OLOS Implementation Batches, OLOS Review-First Component Map, Crop Asset Policy (real DOM vs source-derived crops), Route Build Order (dependency order), OLOS Full Reference Screen Inventory (112 images)
+Cohesion: 0.22
+Nodes (1): makeZone()
 
 ### Community 173 - "Community 173"
-Cohesion: 0.25
-Nodes (8): Canonical 5-value succession scale, Approach C — VegetationPatch object + resolver bridge, Vegetation Patch Unification Design, Disjoint-store vegetation descriptors problem, EcologyZone-to-VegetationPatch one-time migration, Observe/Plan separation (ADR 2026-04-30), VegetationPatch data model (vegetationStore), vegetationResolver + manual override
-
-### Community 174 - "Community 174"
-Cohesion: 0.29
-Nodes (8): Generated-draft layer + DraftReviewBar (Accept/Discard), generateLivestockPlan pure function, Goal Compass auto-scheduler (scheduleTasksToCalendar), nearestWaterSource water-snap rule (200m bands), PaddockCellDesignCard coherence auditor, Polygon-Intent Auto-Generated Livestock Sub-Features MVP, subdivideStrips Turf strip-subdivision algorithm, Voisin paddock-count derivation
-
-### Community 175 - "Community 175"
-Cohesion: 0.36
-Nodes (8): ADR: Demand coefficient tables (water + electricity), scoring/hydrologyMetrics.ts (sumSiteDemand wiring), packages/shared/src/demand/ (structure/utility/crop/rollup), Rationale: single source of truth replaces magic numbers; additive override-respecting rollup, ADR: Demand model round 2 — overrides, occupancy, livestock, climate, livestockDemand.ts (FAO/USDA NRCS coefficients), petClimateMultiplier (FAO-56 ET0, clamped [0.7,1.5]), Rationale: close six round-1 deferrals; override outranks occupant scaling
-
-### Community 176 - "Community 176"
-Cohesion: 0.29
-Nodes (8): ADR 2026-05-07 Atlas Plan Module 6 Cross-section KEEP_ATLAS, ADR 2026-05-07 Atlas Plan Module 1 Dynamic Layering BUILD_FRESH, ADR 2026-05-07 Atlas Plan 8-module Permaculture Scholar iteration (index), ADR 2026-05-07 Atlas Plan Module 7 Phasing & Budgeting KEEP_ATLAS, ADR 2026-05-07 Atlas Plan Module 7 Scale-of-Permanence enhancement, ADR 2026-05-07 Atlas Plan Module 4 Plants BUILD_FRESH, ADR 2026-05-07 Atlas Plan Module 8 Principle Verification KEEP_ATLAS, ADR 2026-05-07 Atlas Plan Module 8 Three-Ethics rollup enhancement
-
-### Community 177 - "Community 177"
-Cohesion: 0.33
-Nodes (2): ToastContainer(), ToastItem()
-
-### Community 178 - "Community 178"
-Cohesion: 0.48
-Nodes (5): convertToCog(), main(), needsConversion(), parseArgs(), parseName()
-
-### Community 179 - "Community 179"
-Cohesion: 0.38
-Nodes (2): extractCentroid(), NasaPowerAdapter
-
-### Community 180 - "Community 180"
-Cohesion: 0.43
-Nodes (1): NrcanHrdemAdapter
-
-### Community 181 - "Community 181"
-Cohesion: 0.38
-Nodes (3): computeAspectGrid(), computeMoistureZones(), computeSunTraps()
-
-### Community 182 - "Community 182"
-Cohesion: 0.29
+Cohesion: 0.22
 Nodes (0): 
 
+### Community 174 - "Community 174"
+Cohesion: 0.28
+Nodes (3): handleCloseChange(), handleMediumChange(), validatePair()
+
+### Community 175 - "Community 175"
+Cohesion: 0.25
+Nodes (2): projectRow(), squareBoundaryGeoJSON()
+
+### Community 176 - "Community 176"
+Cohesion: 0.22
+Nodes (0): 
+
+### Community 177 - "Community 177"
+Cohesion: 0.31
+Nodes (4): defaultWindowFor(), formatMonthRange(), isValidMonth(), lastMonthOfSeasons()
+
+### Community 178 - "Community 178"
+Cohesion: 0.36
+Nodes (6): buildDecisionFromFlag(), buildSupersedingDraft(), emptyPlanDecision(), emptyScenarioOption(), newId(), now()
+
+### Community 179 - "Community 179"
+Cohesion: 0.53
+Nodes (8): buildVariant(), generateVariants(), longestSegmentIndex(), meterFrame(), polsbyPopper(), polygonAreaM2(), polygonPerimeterM(), ringCentroid()
+
+### Community 180 - "Community 180"
+Cohesion: 0.22
+Nodes (0): 
+
+### Community 181 - "Community 181"
+Cohesion: 0.25
+Nodes (0): 
+
+### Community 182 - "Community 182"
+Cohesion: 0.25
+Nodes (1): mapRow()
+
 ### Community 183 - "Community 183"
-Cohesion: 0.52
-Nodes (6): E(), k(), N(), X(), Y(), Z()
+Cohesion: 0.54
+Nodes (7): fetchOnce(), fetchOpenMeteoForecast(), numOrNull(), parseCurrent(), parseDaily(), parseHourly(), strOrNull()
 
 ### Community 184 - "Community 184"
-Cohesion: 0.43
-Nodes (4): at(), dt(), ft(), Pt()
+Cohesion: 0.25
+Nodes (0): 
 
 ### Community 185 - "Community 185"
-Cohesion: 0.57
-Nodes (6): buildFlagContext(), enrichAssessmentFlags(), generateDesignRecommendation(), generateSiteNarrative(), parseStructuredResponse(), validateGuardrails()
+Cohesion: 0.25
+Nodes (0): 
 
 ### Community 186 - "Community 186"
-Cohesion: 0.48
-Nodes (5): clampScore(), layerRowsToMockLayers(), maybeWriteAssessmentIfTier3Complete(), rollupConfidence(), writeCanonicalAssessment()
+Cohesion: 0.25
+Nodes (0): 
 
 ### Community 187 - "Community 187"
-Cohesion: 0.52
-Nodes (6): bearingToCompass(), binHourlyToFrequencies(), fetchOnce(), fetchOpenMeteoWind(), mostRecentCompleteYears(), normalizeBearing()
+Cohesion: 0.32
+Nodes (3): deriveSignals(), formatDayLabel(), formatHourLabel()
 
 ### Community 188 - "Community 188"
-Cohesion: 0.38
-Nodes (2): lowerConfidence(), WatershedRefinementProcessor
+Cohesion: 0.39
+Nodes (5): paddockMetrics(), polygonPerimeter(), ringsPerimeter(), rollupGroup(), safePolygonPerimeter()
 
 ### Community 189 - "Community 189"
-Cohesion: 0.29
+Cohesion: 0.25
 Nodes (0): 
 
 ### Community 190 - "Community 190"
-Cohesion: 0.29
-Nodes (0): 
+Cohesion: 0.39
+Nodes (4): centroidOf(), classifyZone(), findOverlappingPaddock(), metresBetween()
 
 ### Community 191 - "Community 191"
-Cohesion: 0.33
-Nodes (2): nearestPathDistanceM(), pointToSegmentMeters()
+Cohesion: 0.32
+Nodes (3): distanceM(), nearestStructureDist(), nearestUtilityDist()
 
 ### Community 192 - "Community 192"
-Cohesion: 0.29
-Nodes (0): 
+Cohesion: 0.43
+Nodes (5): cancelIdle(), flush(), getSessionId(), recordObserveInteraction(), scheduleFlush()
 
 ### Community 193 - "Community 193"
-Cohesion: 0.38
-Nodes (3): area(), buildEducationFacts(), buildHospitalityFacts()
+Cohesion: 0.36
+Nodes (4): idbDelete(), idbList(), idbPut(), openDB()
 
 ### Community 194 - "Community 194"
-Cohesion: 0.33
-Nodes (2): handleResetAll(), saveOverrides()
+Cohesion: 0.25
+Nodes (0): 
 
 ### Community 195 - "Community 195"
-Cohesion: 0.38
-Nodes (3): formatBreakEven(), formatPerturbed(), formatUsdK()
+Cohesion: 0.32
+Nodes (3): onCancel(), onDown(), onKey()
 
 ### Community 196 - "Community 196"
-Cohesion: 0.57
-Nodes (6): buildOverlay(), distMeters(), metersPerDegree(), minDistanceToPath(), polygonCentroid(), sampleLine()
+Cohesion: 0.25
+Nodes (0): 
 
 ### Community 197 - "Community 197"
-Cohesion: 0.33
-Nodes (2): deckStatus(), SlideExportPreviewCard()
+Cohesion: 0.36
+Nodes (4): classifyAridity(), classifyLGP(), computeHydrologyMetrics(), computeLGPDays()
 
 ### Community 198 - "Community 198"
-Cohesion: 0.43
-Nodes (4): buildReport(), formatDate(), formatDistanceM(), formatDuration()
+Cohesion: 0.36
+Nodes (7): find_block_end(), main(), Strip dead shell/rail CSS rules from atlas-ui/src/styles.css.  A 'rule' is a b, Given index of '{', return index just after matching '}'., Walk top-level rules; drop dead ones; recurse into @media., scrub(), selector_is_dead()
 
 ### Community 199 - "Community 199"
-Cohesion: 0.29
-Nodes (0): 
+Cohesion: 0.36
+Nodes (8): apps/atlas-ui Archived workspace, ADR 2026-05-10-atlas-ui-archived, Rationale: archive stranded prototype, not promote/merge, OLOS Implementation Batches, OLOS Review-First Component Map, Crop Asset Policy (real DOM vs source-derived crops), Route Build Order (dependency order), OLOS Full Reference Screen Inventory (112 images)
 
 ### Community 200 - "Community 200"
-Cohesion: 0.29
-Nodes (0): 
+Cohesion: 0.25
+Nodes (8): Canonical 5-value succession scale, Approach C — VegetationPatch object + resolver bridge, Vegetation Patch Unification Design, Disjoint-store vegetation descriptors problem, EcologyZone-to-VegetationPatch one-time migration, Observe/Plan separation (ADR 2026-04-30), VegetationPatch data model (vegetationStore), vegetationResolver + manual override
 
 ### Community 201 - "Community 201"
 Cohesion: 0.29
-Nodes (0): 
+Nodes (8): Generated-draft layer + DraftReviewBar (Accept/Discard), generateLivestockPlan pure function, Goal Compass auto-scheduler (scheduleTasksToCalendar), nearestWaterSource water-snap rule (200m bands), PaddockCellDesignCard coherence auditor, Polygon-Intent Auto-Generated Livestock Sub-Features MVP, subdivideStrips Turf strip-subdivision algorithm, Voisin paddock-count derivation
 
 ### Community 202 - "Community 202"
-Cohesion: 0.29
-Nodes (0): 
+Cohesion: 0.36
+Nodes (8): ADR: Demand coefficient tables (water + electricity), scoring/hydrologyMetrics.ts (sumSiteDemand wiring), packages/shared/src/demand/ (structure/utility/crop/rollup), Rationale: single source of truth replaces magic numbers; additive override-respecting rollup, ADR: Demand model round 2 — overrides, occupancy, livestock, climate, livestockDemand.ts (FAO/USDA NRCS coefficients), petClimateMultiplier (FAO-56 ET0, clamped [0.7,1.5]), Rationale: close six round-1 deferrals; override outranks occupant scaling
 
 ### Community 203 - "Community 203"
-Cohesion: 0.57
-Nodes (6): extractKMLCoords(), extractKMLFromZip(), parseGeoFile(), parseGeoJSON(), parseKML(), parseKMZ()
+Cohesion: 0.29
+Nodes (8): ADR 2026-05-07 Atlas Plan Module 6 Cross-section KEEP_ATLAS, ADR 2026-05-07 Atlas Plan Module 1 Dynamic Layering BUILD_FRESH, ADR 2026-05-07 Atlas Plan 8-module Permaculture Scholar iteration (index), ADR 2026-05-07 Atlas Plan Module 7 Phasing & Budgeting KEEP_ATLAS, ADR 2026-05-07 Atlas Plan Module 7 Scale-of-Permanence enhancement, ADR 2026-05-07 Atlas Plan Module 4 Plants BUILD_FRESH, ADR 2026-05-07 Atlas Plan Module 8 Principle Verification KEEP_ATLAS, ADR 2026-05-07 Atlas Plan Module 8 Three-Ethics rollup enhancement
 
 ### Community 204 - "Community 204"
-Cohesion: 0.29
-Nodes (0): 
+Cohesion: 0.46
+Nodes (7): countMatches(), isAgentRole(), parseHandoff(), resolveRole(), roleSystemAddendum(), routeIntent(), runAgent()
 
 ### Community 205 - "Community 205"
-Cohesion: 0.43
-Nodes (4): buildFeatureCollection(), reversed(), ringCoordinates(), ringFeature()
+Cohesion: 0.39
+Nodes (6): deriveZonesFromFeatures(), fmtArea(), isImageDataUrl(), renderLegend(), renderMapImage(), renderMasterPlan()
 
 ### Community 206 - "Community 206"
-Cohesion: 0.43
-Nodes (4): buildSvgString(), loadOne(), svgToDataUrl(), tryRegisterMissingObserveIcon()
+Cohesion: 0.36
+Nodes (5): isImageDataUrl(), renderLegend(), renderMapImage(), renderPlantingPlan(), scheduleTable()
 
 ### Community 207 - "Community 207"
-Cohesion: 0.38
-Nodes (3): applyTemplate(), buildLayerResult(), stripHints()
+Cohesion: 0.32
+Nodes (4): guildOf(), m(), noCenter(), scoreFor()
 
 ### Community 208 - "Community 208"
-Cohesion: 0.33
-Nodes (2): stampHexFill(), validatePlacement()
+Cohesion: 0.39
+Nodes (5): habitatFeatureProvenanceId(), isHabitatFeatureKind(), phaseToDesignLayer(), pushHabitatFeaturesToSpine(), seedHabitatFeatureWorkItems()
 
 ### Community 209 - "Community 209"
-Cohesion: 0.48
-Nodes (5): describeZone(), polsbyPopper(), polygonAreaM2(), polygonPerimeterM(), tierFor()
+Cohesion: 0.46
+Nodes (7): pushRotationSequenceToSpine(), resolvePhaseId(), rotationFollowerProvenanceId(), rotationMoveProvenanceId(), seedRotationSequenceDependencies(), seedRotationSequenceWorkItems(), withCycleIndex()
 
 ### Community 210 - "Community 210"
-Cohesion: 0.33
-Nodes (2): pointInPolygon(), pointInRing()
+Cohesion: 0.39
+Nodes (5): agroforestryProvenanceId(), geometryMatchesKind(), isAgroforestryKind(), pushAgroforestryToSpine(), seedAgroforestryWorkItems()
 
 ### Community 211 - "Community 211"
-Cohesion: 0.38
-Nodes (3): onCancel(), onDown(), onKey()
+Cohesion: 0.29
+Nodes (2): meanCenter(), raiseManual()
 
 ### Community 212 - "Community 212"
-Cohesion: 0.43
-Nodes (4): asEntityType(), integrationScoreFromEdges(), orphanOutputs(), unmetInputs()
+Cohesion: 0.29
+Nodes (2): buildRaisedNeed(), minimalCapturePackage()
 
 ### Community 213 - "Community 213"
-Cohesion: 0.29
-Nodes (7): Atlas CSRA / investor-language erasure, Rationale: bayʿ mā laysa ʿindak — no sale of what one does not possess, Rationale: stewards expect machinery records to follow them across devices, Plan Machinery inventory server persistence, Rationale: equipment sizing constrains access/structures (Mollison ch.13, Holmgren P9), Permitted post-2026-05-04 capital-partner vocabulary, Machinery as a first-class Plan module (Yeomans rank 6)
+Cohesion: 0.43
+Nodes (6): computeOpportunities(), distanceM(), intersectionId(), pointInPolygon(), pointInRing(), segmentIntersect()
 
 ### Community 214 - "Community 214"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.43
+Nodes (6): cell(), emptyBudget(), emptyGraph(), emptyProof(), emptyResourcing(), input()
 
 ### Community 215 - "Community 215"
-Cohesion: 0.47
-Nodes (3): binaryMaskToGeoJSON(), classifiedGridToGeoJSON(), probabilityGridToGeoJSON()
+Cohesion: 0.33
+Nodes (2): ToastContainer(), ToastItem()
 
 ### Community 216 - "Community 216"
-Cohesion: 0.4
-Nodes (2): ct(), st()
+Cohesion: 0.48
+Nodes (5): convertToCog(), main(), needsConversion(), parseArgs(), parseName()
 
 ### Community 217 - "Community 217"
-Cohesion: 0.6
-Nodes (5): computeMissionScore(), scoreCommunity(), scoreEcological(), scoreFinancial(), scoreSpiritual()
+Cohesion: 0.38
+Nodes (2): extractCentroid(), NasaPowerAdapter
 
 ### Community 218 - "Community 218"
-Cohesion: 0.47
-Nodes (3): computeRevenueStreams(), getEnterpriseStartYear(), parseMinYearFromPhases()
+Cohesion: 0.43
+Nodes (1): NrcanHrdemAdapter
 
 ### Community 219 - "Community 219"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.38
+Nodes (3): computeAspectGrid(), computeMoistureZones(), computeSunTraps()
 
 ### Community 220 - "Community 220"
-Cohesion: 0.4
-Nodes (2): computeGerminationCalendar(), parseFrostMonth()
+Cohesion: 0.29
+Nodes (0): 
 
 ### Community 221 - "Community 221"
-Cohesion: 0.47
-Nodes (3): computeSolarTimes(), fromJulianDate(), toJulianDate()
+Cohesion: 0.52
+Nodes (6): E(), k(), N(), X(), Y(), Z()
 
 ### Community 222 - "Community 222"
-Cohesion: 0.4
-Nodes (2): detectZoneConflicts(), formatAreaShort()
+Cohesion: 0.43
+Nodes (4): at(), dt(), ft(), Pt()
 
 ### Community 223 - "Community 223"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.57
+Nodes (6): buildFlagContext(), enrichAssessmentFlags(), generateDesignRecommendation(), generateSiteNarrative(), parseStructuredResponse(), validateGuardrails()
 
 ### Community 224 - "Community 224"
-Cohesion: 0.4
-Nodes (2): severity(), str()
+Cohesion: 0.48
+Nodes (5): clampScore(), layerRowsToMockLayers(), maybeWriteAssessmentIfTier3Complete(), rollupConfidence(), writeCanonicalAssessment()
 
 ### Community 225 - "Community 225"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.52
+Nodes (6): bearingToCompass(), binHourlyToFrequencies(), fetchOnce(), fetchOpenMeteoWind(), mostRecentCompleteYears(), normalizeBearing()
 
 ### Community 226 - "Community 226"
-Cohesion: 0.67
-Nodes (5): forecastCacheKey(), getCachedForecast(), quantize(), setCachedForecast(), withTimeout()
+Cohesion: 0.38
+Nodes (2): lowerConfidence(), WatershedRefinementProcessor
 
 ### Community 227 - "Community 227"
-Cohesion: 0.67
-Nodes (5): getCachedWindRose(), quantize(), setCachedWindRose(), windRoseCacheKey(), withTimeout()
-
-### Community 228 - "Community 228"
-Cohesion: 0.53
-Nodes (4): avgOf(), omTone(), phTone(), renderEarthWaterEcologyReport()
-
-### Community 229 - "Community 229"
-Cohesion: 0.4
-Nodes (2): fmtArea(), renderSectorsZonesReport()
-
-### Community 230 - "Community 230"
-Cohesion: 0.6
-Nodes (5): findCogUrl(), getCgvd2013ToNavd88Offset(), read3dep(), readElevationGrid(), readNrcanHrdem()
-
-### Community 231 - "Community 231"
-Cohesion: 0.33
+Cohesion: 0.29
 Nodes (0): 
 
+### Community 228 - "Community 228"
+Cohesion: 0.29
+Nodes (0): 
+
+### Community 229 - "Community 229"
+Cohesion: 0.33
+Nodes (2): nearestPathDistanceM(), pointToSegmentMeters()
+
+### Community 230 - "Community 230"
+Cohesion: 0.29
+Nodes (0): 
+
+### Community 231 - "Community 231"
+Cohesion: 0.38
+Nodes (3): area(), buildEducationFacts(), buildHospitalityFacts()
+
 ### Community 232 - "Community 232"
-Cohesion: 0.4
-Nodes (2): handleSegClick(), safeSet()
+Cohesion: 0.33
+Nodes (2): handleResetAll(), saveOverrides()
 
 ### Community 233 - "Community 233"
-Cohesion: 0.4
-Nodes (2): analyzeWind(), dominantDirection()
+Cohesion: 0.38
+Nodes (3): formatBreakEven(), formatPerturbed(), formatUsdK()
 
 ### Community 234 - "Community 234"
-Cohesion: 0.47
-Nodes (3): findEntry(), findSpecies(), hasLayering()
+Cohesion: 0.57
+Nodes (6): buildOverlay(), distMeters(), metersPerDegree(), minDistanceToPath(), polygonCentroid(), sampleLine()
 
 ### Community 235 - "Community 235"
-Cohesion: 0.67
-Nodes (5): haversineMLocal(), lineLengthM(), makeSquarePolygon(), offsetToLngLat(), seedFertilitySample()
+Cohesion: 0.33
+Nodes (2): deckStatus(), SlideExportPreviewCard()
 
 ### Community 236 - "Community 236"
-Cohesion: 0.53
-Nodes (4): analyzeWayfinding(), distMeters(), metersPerDegree(), sampleLine()
+Cohesion: 0.43
+Nodes (4): buildReport(), formatDate(), formatDistanceM(), formatDuration()
 
 ### Community 237 - "Community 237"
-Cohesion: 0.47
-Nodes (3): commit(), emptyDraft(), newId()
+Cohesion: 0.29
+Nodes (0): 
 
 ### Community 238 - "Community 238"
-Cohesion: 0.33
+Cohesion: 0.29
 Nodes (0): 
 
 ### Community 239 - "Community 239"
-Cohesion: 0.4
-Nodes (2): buildRow(), classify()
+Cohesion: 0.29
+Nodes (0): 
 
 ### Community 240 - "Community 240"
-Cohesion: 0.47
-Nodes (3): avgCanopySpreadFromSpecies(), buildScenario(), maturityFactor()
+Cohesion: 0.29
+Nodes (0): 
 
 ### Community 241 - "Community 241"
-Cohesion: 0.47
-Nodes (3): blendVector(), buildAreaStrip(), shiftSouth()
+Cohesion: 0.38
+Nodes (3): haversineKm(), haversineM(), toRad()
 
 ### Community 242 - "Community 242"
-Cohesion: 0.4
-Nodes (2): buildGrid(), emptyGrid()
+Cohesion: 0.57
+Nodes (6): extractKMLCoords(), extractKMLFromZip(), parseGeoFile(), parseGeoJSON(), parseKML(), parseKMZ()
 
 ### Community 243 - "Community 243"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.43
+Nodes (4): buildFeatureCollection(), reversed(), ringCoordinates(), ringFeature()
 
 ### Community 244 - "Community 244"
-Cohesion: 0.4
-Nodes (2): formatType(), reasonFor()
+Cohesion: 0.48
+Nodes (5): adaptLocalProjectToV3(), deriveScoresFromSiteData(), firstPolygon(), metadataCenter(), unitOf()
 
 ### Community 245 - "Community 245"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.43
+Nodes (4): buildSvgString(), loadOne(), svgToDataUrl(), tryRegisterMissingObserveIcon()
 
 ### Community 246 - "Community 246"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.38
+Nodes (3): applyTemplate(), buildLayerResult(), stripHints()
 
 ### Community 247 - "Community 247"
-Cohesion: 0.47
-Nodes (3): formatCapital(), renderFeasibilityBriefMarkdown(), renderTriageBlock()
+Cohesion: 0.29
+Nodes (0): 
 
 ### Community 248 - "Community 248"
-Cohesion: 0.47
-Nodes (3): loadLeanToggle(), loadOverrides(), onStorage()
+Cohesion: 0.33
+Nodes (2): stampHexFill(), validatePlacement()
 
 ### Community 249 - "Community 249"
 Cohesion: 0.33
-Nodes (0): 
+Nodes (2): catchmentYieldM3(), computeFlow()
 
 ### Community 250 - "Community 250"
-Cohesion: 0.4
-Nodes (2): distanceToBoundaryM(), pointToSegmentMeters()
+Cohesion: 0.52
+Nodes (6): addDays(), diffDays(), isMaintenancePhaseId(), isoDate(), scheduleTasksToCalendar(), seasonWindowDates()
 
 ### Community 251 - "Community 251"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.43
+Nodes (4): asEntityType(), integrationScoreFromEdges(), orphanOutputs(), unmetInputs()
 
 ### Community 252 - "Community 252"
-Cohesion: 0.6
-Nodes (5): evaluatePaddockWelfare(), nearestStructureOfTypes(), paddockPassesWelfare(), welfareSummaryForProject(), worstWelfareBand()
+Cohesion: 0.29
+Nodes (7): Atlas CSRA / investor-language erasure, Rationale: bayʿ mā laysa ʿindak — no sale of what one does not possess, Rationale: stewards expect machinery records to follow them across devices, Plan Machinery inventory server persistence, Rationale: equipment sizing constrains access/structures (Mollison ch.13, Holmgren P9), Permitted post-2026-05-04 capital-partner vocabulary, Machinery as a first-class Plan module (Yeomans rank 6)
 
 ### Community 253 - "Community 253"
-Cohesion: 0.4
-Nodes (2): formatTooltip(), suitabilityClassLabel()
+Cohesion: 0.48
+Nodes (6): isImageDataUrl(), renderBaseMapSheet(), renderLegend(), renderMapImage(), renderSheet(), renderZoneMapSheet()
 
 ### Community 254 - "Community 254"
-Cohesion: 0.4
-Nodes (2): commitContact(), newId()
+Cohesion: 0.33
+Nodes (2): seedOrganization(), seedProject()
 
 ### Community 255 - "Community 255"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.52
+Nodes (6): buildNurseryBatches(), customisePhases(), findTarget(), seedApricotLane(), seedNursery(), setSiteProfileToCanon()
 
 ### Community 256 - "Community 256"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.48
+Nodes (5): pushCoverCropPlanToSpine(), resolvePhaseId(), seedCoverCropCosts(), seedCoverCropResources(), seedCoverCropWorkItems()
 
 ### Community 257 - "Community 257"
-Cohesion: 0.33
+Cohesion: 0.29
 Nodes (0): 
 
 ### Community 258 - "Community 258"
-Cohesion: 0.33
+Cohesion: 0.29
 Nodes (0): 
 
 ### Community 259 - "Community 259"
-Cohesion: 0.47
-Nodes (4): boundaryCentroid(), handleSave(), handleUseBoundary(), parseNumber()
+Cohesion: 0.29
+Nodes (0): 
 
 ### Community 260 - "Community 260"
-Cohesion: 0.47
-Nodes (3): readState(), storageKey(), writeState()
+Cohesion: 0.33
+Nodes (2): move(), pair()
 
 ### Community 261 - "Community 261"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.48
+Nodes (6): findWaterPolygonLayerIds(), findWaterwayLineLayerIds(), inferWaterbodyKind(), inferWatercourseKind(), layersByVectorSourceLayer(), readClass()
 
 ### Community 262 - "Community 262"
-Cohesion: 0.47
-Nodes (3): distanceM(), nearestStructure(), nearestUtility()
+Cohesion: 0.43
+Nodes (4): isTreePlantingKind(), pushTreePlantingsToSpine(), seedTreePlantingWorkItems(), treePlantingProvenanceId()
 
 ### Community 263 - "Community 263"
-Cohesion: 0.67
-Nodes (5): approxDistanceM(), evaluateRules(), lineCrossesPolygon(), pointInPolygon(), polygonCentroid()
+Cohesion: 0.29
+Nodes (1): FakeXHR
 
 ### Community 264 - "Community 264"
-Cohesion: 0.4
-Nodes (2): itemToCreateInput(), itemToUpdateInput()
+Cohesion: 0.43
+Nodes (4): evaluateAct(), evaluateModule(), evaluateObserve(), evaluatePlan()
 
 ### Community 265 - "Community 265"
-Cohesion: 0.6
-Nodes (5): buildTileUrl(), fetchWithConcurrency(), lat2tile(), lng2tile(), precacheProjectTiles()
+Cohesion: 0.29
+Nodes (0): 
 
 ### Community 266 - "Community 266"
-Cohesion: 0.47
-Nodes (3): computeWindSectors(), isValidFrequency(), resolveFrequencies()
+Cohesion: 0.48
+Nodes (5): checkGuild(), footprintRadiusM(), labelFor(), pairKey(), resolveCompanion()
 
 ### Community 267 - "Community 267"
+Cohesion: 0.48
+Nodes (5): convertScheduledTasksToWorkItems(), pushGoalCompassToSpine(), seedGoalCompassCosts(), seedGoalCompassDependencies(), seedGoalCompassResources()
+
+### Community 268 - "Community 268"
+Cohesion: 0.38
+Nodes (3): addOption(), patchOption(), setOptions()
+
+### Community 269 - "Community 269"
+Cohesion: 0.62
+Nodes (6): addRange(), analyzeBudget(), budgetDrift(), cell(), effectivePlanned(), varianceBands()
+
+### Community 270 - "Community 270"
+Cohesion: 0.48
+Nodes (5): analyzeResourcing(), assigneeWeeklyLoad(), effectiveEquipment(), equipmentConflicts(), isoWeekKey()
+
+### Community 271 - "Community 271"
+Cohesion: 0.52
+Nodes (6): analyzeWorkItemGraph(), buildEffectiveGraph(), detectCycle(), effectiveDependencies(), itemDuration(), topoOrder()
+
+### Community 272 - "Community 272"
+Cohesion: 0.52
+Nodes (6): ensureDistExists(), killPreview(), main(), prerenderRoute(), spawnPreview(), waitForPreview()
+
+### Community 273 - "Community 273"
 Cohesion: 0.33
 Nodes (0): 
 
-### Community 268 - "Community 268"
-Cohesion: 0.53
-Nodes (4): diffAndDispatch(), dropProject(), getDebouncer(), scheduleSiteDataFetch()
-
-### Community 269 - "Community 269"
-Cohesion: 0.4
-Nodes (2): mockLayersIncomplete(), mockLayersWithOverrides()
-
-### Community 270 - "Community 270"
-Cohesion: 0.53
-Nodes (4): buildOriginOptions(), encodeOriginValue(), originDisclosureField(), sameRef()
-
-### Community 271 - "Community 271"
-Cohesion: 0.53
-Nodes (4): ensure(), ensureAndMaybeFit(), polygonBounds(), ready()
-
-### Community 272 - "Community 272"
-Cohesion: 0.53
-Nodes (4): adaptLocalProjectToV3(), deriveScoresFromSiteData(), firstPolygon(), unitOf()
-
-### Community 273 - "Community 273"
-Cohesion: 0.4
-Nodes (2): acreageHectares(), matchAcreage()
-
 ### Community 274 - "Community 274"
-Cohesion: 0.53
-Nodes (4): actionIcon(), buildProjectReportMarkdown(), downloadProjectReport(), severityIcon()
+Cohesion: 0.47
+Nodes (3): binaryMaskToGeoJSON(), classifiedGridToGeoJSON(), probabilityGridToGeoJSON()
 
 ### Community 275 - "Community 275"
-Cohesion: 0.47
-Nodes (3): paddockToFlag(), paddockTone(), polygonCentroid()
+Cohesion: 0.4
+Nodes (2): ct(), st()
 
 ### Community 276 - "Community 276"
-Cohesion: 0.8
-Nodes (5): nearestCorner(), project(), pxDist(), snapPoint(), snapToSegment()
+Cohesion: 0.6
+Nodes (5): computeMissionScore(), scoreCommunity(), scoreEcological(), scoreFinancial(), scoreSpiritual()
 
 ### Community 277 - "Community 277"
-Cohesion: 0.4
-Nodes (2): sampleProfile(), slopePct()
+Cohesion: 0.47
+Nodes (3): computeRevenueStreams(), getEnterpriseStartYear(), parseMinYearFromPhases()
 
 ### Community 278 - "Community 278"
 Cohesion: 0.33
 Nodes (0): 
 
 ### Community 279 - "Community 279"
-Cohesion: 0.33
-Nodes (0): 
+Cohesion: 0.4
+Nodes (2): computeGerminationCalendar(), parseFrostMonth()
 
 ### Community 280 - "Community 280"
-Cohesion: 0.53
-Nodes (4): expandBBox(), lineBBox(), polygonBBox(), ringBBox()
+Cohesion: 0.47
+Nodes (3): computeSolarTimes(), fromJulianDate(), toJulianDate()
 
 ### Community 281 - "Community 281"
-Cohesion: 0.53
-Nodes (4): formatArea(), guideAreaM2(), zoneGuideLabel(), zoneSizeStatus()
+Cohesion: 0.4
+Nodes (2): detectZoneConflicts(), formatAreaShort()
 
 ### Community 282 - "Community 282"
 Cohesion: 0.33
 Nodes (0): 
 
 ### Community 283 - "Community 283"
-Cohesion: 0.6
-Nodes (5): deriveCurrentLandCover(), dominant(), overlapArea(), resolveZoneVegetation(), safeArea()
+Cohesion: 0.4
+Nodes (2): severity(), str()
 
 ### Community 284 - "Community 284"
-Cohesion: 0.6
-Nodes (5): addDays(), diffDays(), isoDate(), scheduleTasksToCalendar(), seasonWindowDates()
-
-### Community 285 - "Community 285"
-Cohesion: 0.6
-Nodes (4): findDesignElement(), isPlanKind(), readPolygon(), writePolygon()
-
-### Community 286 - "Community 286"
-Cohesion: 0.47
-Nodes (3): getFeature(), isFeatureVisible(), phaseAtMost()
-
-### Community 287 - "Community 287"
-Cohesion: 0.47
-Nodes (3): clamp(), computeSunPath(), computeSunPathForSeason()
-
-### Community 288 - "Community 288"
-Cohesion: 0.73
-Nodes (5): footprintM2(), getStructureKwhPerDay(), getStructureWaterGalPerDay(), occupantsMultiplier(), storiesMultiplier()
-
-### Community 289 - "Community 289"
-Cohesion: 0.4
-Nodes (2): haversineKm(), lookupEcoregion()
-
-### Community 290 - "Community 290"
-Cohesion: 0.6
-Nodes (5): canopyBandFor(), computePollinatorHabitat(), connectivityBandFor(), hasRiparianBuffer(), recommendCategories()
-
-### Community 291 - "Community 291"
 Cohesion: 0.33
 Nodes (0): 
 
-### Community 292 - "Community 292"
+### Community 285 - "Community 285"
+Cohesion: 0.67
+Nodes (5): forecastCacheKey(), getCachedForecast(), quantize(), setCachedForecast(), withTimeout()
+
+### Community 286 - "Community 286"
+Cohesion: 0.67
+Nodes (5): getCachedWindRose(), quantize(), setCachedWindRose(), windRoseCacheKey(), withTimeout()
+
+### Community 287 - "Community 287"
 Cohesion: 0.53
-Nodes (5): computeAhpWeights(), computeFuzzyFAOMembership(), defaultAtlasWeights(), factorMembership(), trapezoid()
+Nodes (4): avgOf(), omTone(), phTone(), renderEarthWaterEcologyReport()
+
+### Community 288 - "Community 288"
+Cohesion: 0.4
+Nodes (2): fmtArea(), renderSectorsZonesReport()
+
+### Community 289 - "Community 289"
+Cohesion: 0.6
+Nodes (5): findCogUrl(), getCgvd2013ToNavd88Offset(), read3dep(), readElevationGrid(), readNrcanHrdem()
+
+### Community 290 - "Community 290"
+Cohesion: 0.33
+Nodes (0): 
+
+### Community 291 - "Community 291"
+Cohesion: 0.4
+Nodes (2): handleSegClick(), safeSet()
+
+### Community 292 - "Community 292"
+Cohesion: 0.4
+Nodes (2): analyzeWind(), dominantDirection()
 
 ### Community 293 - "Community 293"
-Cohesion: 0.53
-Nodes (5): extract_consumer_classes(), extract_css_classes(), group_by_prefix(), main(), Audit observe-port.css for unused selectors.  Extracts every class name defined
+Cohesion: 0.47
+Nodes (3): findEntry(), findSpecies(), hasLayering()
 
 ### Community 294 - "Community 294"
-Cohesion: 0.4
-Nodes (6): ADR: Zustand Selector Discipline (Atlas Web), Hoist-then-useMemo required pattern; no getter-in-selector, Rationale: Zustand v5 Object.is equality; getter couples result identity to source array, ADR: Zustand selector stability — subscribe raw, derive in useMemo, Stable subscription + derived view via useMemo, Rationale: useSyncExternalStore Object.is; fresh array literal = infinite re-render loop
+Cohesion: 0.67
+Nodes (5): haversineMLocal(), lineLengthM(), makeSquarePolygon(), offsetToLngLat(), seedFertilitySample()
 
 ### Community 295 - "Community 295"
-Cohesion: 0.33
-Nodes (6): Act-affinity telemetry durable read/write pipeline, Plan rail Project-Type Template Checklist card, Plan toolbar project-type coverage closeout (Tiers A/B/C), Rationale: project-type concerns are cross-module, in-Plan picker decouples intake, Rationale: no honest v2 affinity ranking without instrumented behaviour, Rationale: one-click artifact path for every spatially-answerable prompt
+Cohesion: 0.53
+Nodes (4): analyzeWayfinding(), distMeters(), metersPerDegree(), sampleLine()
 
 ### Community 296 - "Community 296"
-Cohesion: 0.4
-Nodes (6): ADR 2026-05-14: BE category flatten in Observe & Plan rails, ADR 2026-05-14: Observe slide-up Plan/Act-parity hero headers, ADR 2026-05-15: ModuleBar in open slide-up + Vision-first plan view order, ADR 2026-05-13: Tree spacing snap — cursor canopy ring + placement validation, ADR 2026-05-14: Plan year scrubber subsumes Year 1 / Year 5 view tabs, ADR 2026-05-13: Plan temporal slider (succession & maturity) v1
+Cohesion: 0.47
+Nodes (3): commit(), emptyDraft(), newId()
 
 ### Community 297 - "Community 297"
-Cohesion: 0.4
-Nodes (6): Terrain Cross-Section Tool (A→B Transect Profile), Hydrology & Water-Flow Analysis Map, Seasonal Sun-Path Arc Chart (Jun/Sep/Dec/Mar), Site Observations Map (species/observation pins), Species Observation Cards (flora/fauna with status), Transect Line Selector Mini-Map (A→B over contours)
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 298 - "Community 298"
-Cohesion: 0.67
-Nodes (6): ACT Module 3 — Ecological Monitoring & Yield Dashboard (full-screen analytics view: biological health gauges, succession progress, spatial map, yield trends, observation feed), ACT Module 3 — Harvest Log screen (yield-by-crop breakdown, monthly yield trend bar chart, quality index donut, recent harvests table, harvest calendar heatmap), ACT Module 3 — Ongoing SWOT screen (strengths/weaknesses/opportunities/threats summary tiles, filterable observation data table, recent updates and priority focus side panels), ACT Module 3 — Ecological Monitoring & Yield landing/overview card (KPI summary tiles, yield trend sparkline, top crops list, next harvest window, navigation buttons to SWOT/Harvest/Succession), ACT Module 3 — Succession Tracker screen (multi-stage planting succession pipeline columns, species rotation list, vegetation/ecological summary side panels, action items), ACT Module 4 — Community Events screen (event schedule list, featured upcoming event card, RSVP/volunteer KPI tiles, registration zones, attendance trend chart, reminders panel)
+Cohesion: 0.4
+Nodes (2): buildRow(), classify()
 
 ### Community 299 - "Community 299"
 Cohesion: 0.47
-Nodes (6): OLOS ACT Module 4 — Social Permaculture Dashboard, OLOS ACT Module 4 — Network CRM Screen, OLOS ACT Module 4 — Social Permaculture Module Card, OLOS ACT Module 5 — Appropriate-Tech Log Screen, OLOS ACT Stage — Act Implement/Maintain/Monitor Dashboard, OLOS ACT Module 5 — Disaster Preparedness Screen
+Nodes (3): avgCanopySpreadFromSpecies(), buildScenario(), maturityFactor()
 
 ### Community 300 - "Community 300"
-Cohesion: 0.4
-Nodes (6): ACT stage homepage — implement/maintain/monitor overview with 5 module cards and stage dashboard launcher, ACT M5 — Hazard Action Plans dashboard (hazard register, mitigation/recovery actions, preparedness score), ACT M5 — Disaster Preparedness module summary card (hazard plan & appropriate-tech progress, readiness score), OBSERVE M1 — Cross-section tool: terrain profile analysis with elevation chart, section metrics, simulation controls, OBSERVE M1 — Human Context dashboard: steward survey, indigenous/regional context, vision detail, context synthesis, OBSERVE M1 — Human Context module summary card (vision pages, milestones, regional context, steward identity)
+Cohesion: 0.47
+Nodes (3): blendVector(), buildAreaStrip(), shiftSouth()
 
 ### Community 301 - "Community 301"
 Cohesion: 0.4
-Nodes (6): OLOS Observe M3 Terrain Detail Analysis Page, OLOS Observe M2 Macroclimate & Hazards Dashboard, OLOS Observe M2 Hazards Log Detail Page, OLOS Observe M2 Macroclimate & Hazards Landing Card, OLOS Observe M2 Solar & Climate Detail Page, OLOS Observe M3 Topography & Base Map Landing Card
+Nodes (2): buildGrid(), emptyGrid()
 
 ### Community 302 - "Community 302"
-Cohesion: 0.6
-Nodes (6): OBSERVE M3 — Topography & Base Map screen (dark dashboard: mean slope/elevation/aspect metric tiles, terrain detail panel, cross-section tool charts, recommended next actions sidebar), OBSERVE M4 — Ecological detail screen (habitat map & observation zones, species observations, seasonal monitoring calendar, indicator species, ecological insights sidebar), OBSERVE M4 — Hydrology detail screen (site hydrology map, hydrology profile chart, infiltration & runoff gauge, water balance, watershed summary, risk map, design recommendations sidebar), OBSERVE M4 — Jar / Perc / Roof diagnostics screen (jar soil test result visual, percolation/infiltration gauge, roof catchment analysis, assumptions & inputs, recommended next actions, summary & guidance sidebar), OBSERVE M4 — Earth, Water & Ecology Diagnostics module overview card (intro hero, soil/biodiversity/water-security score badges, why-it-matters & insight callouts, links to Hydrology / Ecological / Jar-Perc-Roof detail), OBSERVE M5 — Cartographic detail screen (toggleable map layers panel: sectors/microclimates/zones/circulation/structures/contour/vegetation/water, large annotated site cartograph with numbered zones, detected patterns & recommended next actions sidebar)
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 303 - "Community 303"
-Cohesion: 0.47
-Nodes (6): OLOS Observe M5 Dashboard — Module 5 overview with synthesis, sector compass and cartographic detail panels plus siting implications, OLOS Observe M5 Page Card — Sectors, Microclimates & Zones intro card with metrics and entry tiles, OLOS Observe M5 Sector Compass — full dashboard with radial sector compass, site map, observations and recommended interventions, OLOS Observe M6 Page Card — SWOT Synthesis intro card with strengths/weaknesses/opportunities/threats counts and entry tiles, OLOS Observe M6 SWOT Dashboard — SWOT Synthesis overview with quadrant counts, journal/diagnosis panels and design implications, OLOS Observe M6 SWOT Journal — tabular SWOT entry log with filters, categories, pagination and emerging-patterns sidebar
+Cohesion: 0.4
+Nodes (2): formatType(), reasonFor()
 
 ### Community 304 - "Community 304"
-Cohesion: 0.53
-Nodes (6): PLAN Module 1 — Dynamic Layering & Permanence (Page Card), PLAN Module 1 — Permanence Scales detail dashboard, PLAN Module 2 — Water Management dashboard (variant 2, dark), PLAN Module 2 — Water Management dashboard, PLAN Module 2 — Hydrology Detail dashboard, PLAN Module 2 — Water Management (Page Card)
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 305 - "Community 305"
-Cohesion: 0.53
-Nodes (6): PLAN M2 — Runoff Calculator, PLAN M2 — Storage Placement, PLAN M2 — Swale / Drain Tool, PLAN M3 — Zone & Circulation Dashboard, PLAN M3 — Paddock Design, PLAN M3 — Zone & Circulation Page Card
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 306 - "Community 306"
 Cohesion: 0.47
-Nodes (6): PLAN M3 — Path Frequency Analysis, PLAN M3 — Zone Level Layer (Zone & Circulation), PLAN M4 — Canopy Simulator, PLAN M4 — Plant Systems & Polyculture Dashboard, PLAN M4 — Guild Builder (Forest Garden Guild), PLAN M4 — Plant Systems & Polyculture Page Card
+Nodes (3): formatCapital(), renderFeasibilityBriefMarkdown(), renderTriageBlock()
 
 ### Community 307 - "Community 307"
 Cohesion: 0.47
-Nodes (6): PLAN M4 Plant Database, PLAN M4 Planting Tool, PLAN M5 Soil Fertility Dashboard (variant 2), PLAN M5 Soil Fertility Dashboard, PLAN M5 Module Page Card, PLAN M5 Soil Fertility Designer
+Nodes (3): loadLeanToggle(), loadOverrides(), onStorage()
 
 ### Community 308 - "Community 308"
-Cohesion: 0.47
-Nodes (6): PLAN M5 — Waste-to-Resource Vectors, PLAN M6 — Cross-section Tool, PLAN M6 — Cross-section & Solar Geometry Dashboard (variant 2, glow), PLAN M6 — Cross-section & Solar Geometry Dashboard (variant 3, dark), PLAN M6 — Cross-section & Solar Geometry Dashboard (stage-gate), PLAN M6 — Cross-section & Solar Geometry Page Card
+Cohesion: 0.53
+Nodes (4): adjustSource(), applyCostRangeMultiplier(), applyMultiplier(), getCostBenchmarks()
 
 ### Community 309 - "Community 309"
-Cohesion: 0.4
-Nodes (6): PLAN M6 — Cross-section & Solar Geometry intro card, PLAN M6 — Solar overlay analysis workspace, PLAN M6 — Vertical editor (cross-section profile, dark variant), PLAN M6 — Vertical editor (full element-placement editor), PLAN M7 — 5-year phasing matrix, PLAN M7 — Phasing & Budgeting dashboard
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 310 - "Community 310"
-Cohesion: 0.47
-Nodes (6): PLAN Module 7 — Phasing & Budgeting Page Card, PLAN Module 7 — Seasonal Tasks, PLAN Module 7 — Timeline / Phasing, PLAN Module 8 — Holmgren Checklist, PLAN Module 8 — Holmgren Principle Verification (variant 2), PLAN Module 8 — Holmgren Principle Verification
+Cohesion: 0.4
+Nodes (2): distanceToBoundaryM(), pointToSegmentMeters()
 
 ### Community 311 - "Community 311"
-Cohesion: 0.47
-Nodes (6): OBSERVE Stage Dashboard — read the land before designing, OBSERVE Module 1 — Indigenous & Regional Context (Human Context), OBSERVE Module 1 — Steward Survey (Human Context), PLAN Stage Homepage — design from patterns to details, PLAN Module 8 — Holmgren Principle Verification Page Card, PLAN Stage Overview Page Card — 8-module Trunk & Synthesis dashboard
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 312 - "Community 312"
-Cohesion: 0.4
-Nodes (6): Terrain Cross-Section Elevation Profile A to B, Site Hydrology Water-Flow Contour Map, Seasonal Sun-Path Comparison Chart, Site Context Mini Locator Map, Site Field Observations Pin Map, Transect Line Plan-View Map A to B
+Cohesion: 0.6
+Nodes (5): evaluatePaddockWelfare(), nearestStructureOfTypes(), paddockPassesWelfare(), welfareSummaryForProject(), worstWelfareBand()
 
 ### Community 313 - "Community 313"
-Cohesion: 0.33
-Nodes (6): Habitat map with annotated ecological zones (woodland edge, riparian corridor, meadow, wet area, planted zone), Ecological relationship web diagram linking plants, pollinators, birds, insects, fungi, amphibians, Seasonal ecology calendar ridgeline chart (wildflowers, bird breeding, pollinator peak, frog activity), Seedling sprouting from mossy soil photographic callout banner, Species strip cards (Coastal Tea-tree, Eastern Spinebill, Honey Bee, Marsh Frog) with native/introduced tags, Species observation thumbnails (Robin, Kangaroo Grass, Marsh Frog, Red Gum)
+Cohesion: 0.4
+Nodes (2): formatTooltip(), suitabilityClassLabel()
 
 ### Community 314 - "Community 314"
 Cohesion: 0.4
-Nodes (6): Hero image: golden-hour valley with river, terraced hills and forest, Average Monthly Climate chart (temp max/min line + precipitation bars), Sector/zone analysis map: concentric zones with wind & sun direction arrows (N-E-S-W), Site map thumbnail: aerial view of forested land parcel with river bend, Sun path arc diagram for summer solstice (hourly sun positions E-S-W), Topography map: 3D elevation relief with contour lines (green-to-red elevation gradient)
+Nodes (2): commitContact(), newId()
 
 ### Community 315 - "Community 315"
-Cohesion: 0.47
-Nodes (6): PLAN M2 Water dashboard: bottom landscape scene, PLAN M2 Water dashboard: hero banner scene, PLAN M2 Water dashboard: hydrology module card, Permanence Scale: Structure layer card, Permanence Scale: Trees layer card, Permanence Scale: Water layer card
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 316 - "Community 316"
-Cohesion: 0.4
-Nodes (6): Groundwater Infiltration Cross-Section, Hydrology Watershed Hero Scene, Infiltration Depth Soil Cross-Section, Runoff Subcatchment Dashboard Card, Water Storage Capacity Dashboard Card, Swale Network Planning Dashboard Card
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 317 - "Community 317"
-Cohesion: 0.47
-Nodes (6): Runoff Catchments Hero Map (Aerial Watershed Delineation), Storm Hydrograph: Baseline vs With-Interventions Discharge Curve, Monthly Runoff Volume Bar Chart (Baseline vs Intervention by Month), Selected Storage Sites Map (Numbered Priority-Ranked Site Markers), Water Storage Pond Site Photo (High-Priority Vegetated Catchment Pond), Water Storage Planning Map (Full Layer Panel + Legend + Site Network)
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 318 - "Community 318"
-Cohesion: 0.47
-Nodes (6): Solar & Climate detail hero banner: cinematic mountain valley at golden hour with sun rays through clouds; headline about climate resilience and an 'open climate sources' CTA button, Observe module icon: Sectors compass — a radial diagram with cardinal points (N/S/E/W) and quadrant glyphs (tree, sun, water drop, wind) representing site sector/aspect analysis, Observe module icon: SWOT analysis — a notebook with a 2x2 grid (S/W/O/T quadrants) and pen, representing strengths/weaknesses/opportunities/threats site assessment, Observe module icon: Topography — concentric contour-line landform with a winding watercourse, representing elevation/terrain analysis of a site, Monthly climate overview chart: combined precipitation (mm) bars with avg high/low temperature (°C) line series across 12 months, summarizing seasonal climate normals for a site, Solar path / sun-angle diagram: dome plot of sun elevation arcs for solstice and equinox dates (Jun, Mar/Sep, Dec) with N/S/E orientation and altitude degree markers
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 319 - "Community 319"
-Cohesion: 0.4
-Nodes (6): PLAN action callout — seedling sprouting from soil, PLAN hero — aerial regenerative landscape at golden hour with overlay icons, PLAN module card — Cross-Section / Solar arc radial diagram, PLAN module card — Dynamic Layering vertical vegetation strata, PLAN module card — Holmgren principles shield/leaf verification emblem, PLAN module card — Phasing / Budget Gantt schedule chart
+Cohesion: 0.47
+Nodes (4): boundaryCentroid(), handleSave(), handleUseBoundary(), parseNumber()
 
 ### Community 320 - "Community 320"
-Cohesion: 0.4
-Nodes (6): OBSERVE sector compass: site sun/wind/views diagram, PLAN module card: Plant / Polyculture, PLAN module card: Soil regeneration cycle, PLAN module card: Water management droplet, PLAN module card: Zone concentric rings, OBSERVE placements strip: 6 sector-derived recommendations
+Cohesion: 0.47
+Nodes (3): readState(), storageKey(), writeState()
 
 ### Community 321 - "Community 321"
-Cohesion: 0.53
-Nodes (6): Sectors dashboard cartographic preview map with energy flows and zones, Solar-climate detail hero: sunbeams over mountain valley, Monthly climate overview combo chart: precipitation bars + avg high/low temperature, Sector compass radial diagram of site forces (sun, wind, fire, water, noise, views), Sectors, Microclimates & Zones stage hero banner, Sector compass site-context overlay map
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 322 - "Community 322"
-Cohesion: 0.4
-Nodes (6): Vision concept aerial site map with numbered annotation pins for zones (orchard, food forest, water, homestead), Topography analytics dashboard: KPI stats, elevation cross-section profile chart, terrain analysis and radial chart panels, Cinematic 3D terrain hero render with topographic contour overlay on hillshaded landscape, 2x3 photographic permaculture vision moodboard (greenhouse, gathering, crops, garden path, chickens, stream), Terrain slope heatmap with topographic contours over parcel boundary (green-to-red slope severity gradient), Map viewer with Layers control panel (Slope/Contours/Hillshade/Aspect/Elevation/Parcel toggles) and slope-percentage legend
+Cohesion: 0.47
+Nodes (3): distanceM(), nearestStructure(), nearestUtility()
 
 ### Community 323 - "Community 323"
-Cohesion: 0.47
-Nodes (6): Solar Overlay Analysis Screen — 3D Terrain Sun-Path Dashboard, Cross-Section Tool — Terrain Elevation Transect Dashboard, Phasing & Budgeting Dashboard — Implementation Timeline & Budget Analytics, Observe Stage 1 Gateway — Scenic-Hero Module Hub (Roots & Diagnosis), Act Stage 3 Gateway — Scenic-Hero Module Hub (Fruit & Stewardship), Act Stage 3 Dashboard — Dense Operational Module Data View
+Cohesion: 0.67
+Nodes (5): approxDistanceM(), evaluateRules(), lineCrossesPolygon(), pointInPolygon(), polygonCentroid()
 
 ### Community 324 - "Community 324"
-Cohesion: 0.53
-Nodes (6): Act / Implement Dashboard — overview header with KPI summary tiles and same 5-panel module grid plus footer rows for recommended actions, recent activity, upcoming events, ACT Stage Dashboard (Stewardship variant) — 5-panel grid: Phased Implementation & Budgeting, Maintenance & Operations, Ecological Monitoring & Yield, Social Permaculture, Disaster Preparedness with progress rings, 5-Year Build Gantt — Module 1 timeline view with phased task bars across 5 years plus budget overview, labor overview, milestones and blockers panels, Budget Actuals — Module 1 financial tracking screen: total spent KPIs, spend by category/phase charts, donut breakdown, burn-down line chart and notes, Phased Implementation & Budgeting Module Card — entry/summary card with implementation readiness gauge, phase progress, labor & spend KPIs and nav buttons to Gantt, Budget actuals, Pilot plots, Phased Implementation & Budgeting (PIB) — Module 1 detail dashboard with readiness rings and three sub-panels: 5-year build Gantt, budget spends, pilot plots
+Cohesion: 0.4
+Nodes (2): itemToCreateInput(), itemToUpdateInput()
 
 ### Community 325 - "Community 325"
-Cohesion: 0.47
-Nodes (6): OLOS ACT M1 — Pilot Plots dashboard (Stage 3, Module 1: Fruit & Stewardship; aerial site map, plot inventory table, yield/output metric cards, growing-zone detail panel with charts), OLOS ACT M2 — Maintenance & Operations overview dashboard (recurring tasks, irrigation, waste routing; three module panels with KPI gauges, upcoming tasks, recent activity, alerts), OLOS ACT M2 — Irrigation Manager screen (irrigation-zone map, quick-action panel, system status, valve groups, today's activities, soil moisture & water-efficiency charts), OLOS ACT M2 — Maintenance Schedule screen (weekly calendar of recurring maintenance tasks, completion KPIs, care logs, scheduling templates panel), OLOS ACT M2 — Module 2 landing page card (Maintenance & Operations hero card with metric tiles and three sub-module entry links: maintenance schedule, irrigation manager, waste routing checklist), OLOS ACT M2 — Waste Routing Checklist screen (waste-stream routing list, source-to-destination flow mappings, capture/diversion KPIs, contamination alerts panel)
+Cohesion: 0.6
+Nodes (5): buildTileUrl(), fetchWithConcurrency(), lat2tile(), lng2tile(), precacheProjectTiles()
 
 ### Community 326 - "Community 326"
-Cohesion: 0.4
-Nodes (1): parseRow()
+Cohesion: 0.47
+Nodes (3): computeWindSectors(), isValidFrequency(), resolveFrequencies()
 
 ### Community 327 - "Community 327"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
 ### Community 328 - "Community 328"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
 ### Community 329 - "Community 329"
-Cohesion: 0.5
-Nodes (2): ae(), V()
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 330 - "Community 330"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (4): diffAndDispatch(), dropProject(), getDebouncer(), scheduleSiteDataFetch()
 
 ### Community 331 - "Community 331"
-Cohesion: 0.5
-Nodes (2): X(), Y()
+Cohesion: 0.4
+Nodes (2): mockLayersIncomplete(), mockLayersWithOverrides()
 
 ### Community 332 - "Community 332"
-Cohesion: 0.7
-Nodes (4): Ct(), Pt(), Rt(), Tt()
+Cohesion: 0.53
+Nodes (4): buildOriginOptions(), encodeOriginValue(), originDisclosureField(), sameRef()
 
 ### Community 333 - "Community 333"
-Cohesion: 0.6
-Nodes (3): at(), ft(), ut()
+Cohesion: 0.53
+Nodes (4): ensure(), ensureAndMaybeFit(), polygonBounds(), ready()
 
 ### Community 334 - "Community 334"
-Cohesion: 0.7
-Nodes (4): ee(), gt(), re(), tt()
+Cohesion: 0.4
+Nodes (2): acreageHectares(), matchAcreage()
 
 ### Community 335 - "Community 335"
-Cohesion: 0.7
-Nodes (4): J(), K(), Q(), qt()
+Cohesion: 0.53
+Nodes (4): actionIcon(), buildProjectReportMarkdown(), downloadProjectReport(), severityIcon()
 
 ### Community 336 - "Community 336"
-Cohesion: 0.5
-Nodes (2): je(), Oe()
+Cohesion: 0.47
+Nodes (3): paddockToFlag(), paddockTone(), polygonCentroid()
 
 ### Community 337 - "Community 337"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.8
+Nodes (5): nearestCorner(), project(), pxDist(), snapPoint(), snapToSegment()
 
 ### Community 338 - "Community 338"
-Cohesion: 0.7
-Nodes (4): buildPhaseYearMap(), computeCashflow(), distributeCostAcrossYears(), parseTimeframe()
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 339 - "Community 339"
-Cohesion: 0.5
-Nodes (2): makeRamp(), stopsToSwatches()
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 340 - "Community 340"
-Cohesion: 0.5
-Nodes (2): classifyZoning(), estimateTypicalSetbacks()
+Cohesion: 0.4
+Nodes (2): sampleProfile(), slopePct()
 
 ### Community 341 - "Community 341"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
 ### Community 342 - "Community 342"
-Cohesion: 0.8
-Nodes (4): die(), main(), toPascal(), writeNew()
-
-### Community 343 - "Community 343"
-Cohesion: 0.5
-Nodes (1): TerrainAnalysisProcessor
-
-### Community 344 - "Community 344"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
+### Community 343 - "Community 343"
+Cohesion: 0.53
+Nodes (4): expandBBox(), lineBBox(), polygonBBox(), ringBBox()
+
+### Community 344 - "Community 344"
+Cohesion: 0.53
+Nodes (4): formatArea(), guideAreaM2(), zoneGuideLabel(), zoneSizeStatus()
+
 ### Community 345 - "Community 345"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
 ### Community 346 - "Community 346"
-Cohesion: 0.5
-Nodes (2): BuiltinProjectProvider(), deriveProjectBanner()
+Cohesion: 0.6
+Nodes (5): deriveCurrentLandCover(), dominant(), overlapArea(), resolveZoneVegetation(), safeArea()
 
 ### Community 347 - "Community 347"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.6
+Nodes (4): findDesignElement(), isPlanKind(), readPolygon(), writePolygon()
 
 ### Community 348 - "Community 348"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (2): getBuiltEnvironmentKind(), isGeometryValidForKind()
 
 ### Community 349 - "Community 349"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (3): getFeature(), isFeatureVisible(), phaseAtMost()
 
 ### Community 350 - "Community 350"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (3): clamp(), computeSunPath(), computeSunPathForSeason()
 
 ### Community 351 - "Community 351"
-Cohesion: 0.6
-Nodes (3): TabsList(), TabsPanel(), useTabsContext()
+Cohesion: 0.73
+Nodes (5): footprintM2(), getStructureKwhPerDay(), getStructureWaterGalPerDay(), occupantsMultiplier(), storiesMultiplier()
 
 ### Community 352 - "Community 352"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (2): haversineKm(), lookupEcoregion()
 
 ### Community 353 - "Community 353"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.6
+Nodes (5): canopyBandFor(), computePollinatorHabitat(), connectivityBandFor(), hasRiparianBuffer(), recommendCategories()
 
 ### Community 354 - "Community 354"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
 ### Community 355 - "Community 355"
-Cohesion: 0.6
-Nodes (3): commit(), emptyDraft(), newId()
+Cohesion: 0.53
+Nodes (5): computeAhpWeights(), computeFuzzyFAOMembership(), defaultAtlasWeights(), factorMembership(), trapezoid()
 
 ### Community 356 - "Community 356"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (5): extract_consumer_classes(), extract_css_classes(), group_by_prefix(), main(), Audit observe-port.css for unused selectors.  Extracts every class name defined
 
 ### Community 357 - "Community 357"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (6): ADR: Zustand Selector Discipline (Atlas Web), Hoist-then-useMemo required pattern; no getter-in-selector, Rationale: Zustand v5 Object.is equality; getter couples result identity to source array, ADR: Zustand selector stability — subscribe raw, derive in useMemo, Stable subscription + derived view via useMemo, Rationale: useSyncExternalStore Object.is; fresh array literal = infinite re-render loop
 
 ### Community 358 - "Community 358"
-Cohesion: 0.6
-Nodes (3): commit(), emptyDraft(), newId()
+Cohesion: 0.33
+Nodes (6): Act-affinity telemetry durable read/write pipeline, Plan rail Project-Type Template Checklist card, Plan toolbar project-type coverage closeout (Tiers A/B/C), Rationale: project-type concerns are cross-module, in-Plan picker decouples intake, Rationale: no honest v2 affinity ranking without instrumented behaviour, Rationale: one-click artifact path for every spatially-answerable prompt
 
 ### Community 359 - "Community 359"
-Cohesion: 0.6
-Nodes (3): commit(), emptyDraft(), newId()
+Cohesion: 0.4
+Nodes (6): ADR 2026-05-14: BE category flatten in Observe & Plan rails, ADR 2026-05-14: Observe slide-up Plan/Act-parity hero headers, ADR 2026-05-15: ModuleBar in open slide-up + Vision-first plan view order, ADR 2026-05-13: Tree spacing snap — cursor canopy ring + placement validation, ADR 2026-05-14: Plan year scrubber subsumes Year 1 / Year 5 view tabs, ADR 2026-05-13: Plan temporal slider (succession & maturity) v1
 
 ### Community 360 - "Community 360"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (6): Terrain Cross-Section Tool (A→B Transect Profile), Hydrology & Water-Flow Analysis Map, Seasonal Sun-Path Arc Chart (Jun/Sep/Dec/Mar), Site Observations Map (species/observation pins), Species Observation Cards (flora/fauna with status), Transect Line Selector Mini-Map (A→B over contours)
 
 ### Community 361 - "Community 361"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.67
+Nodes (6): ACT Module 3 — Ecological Monitoring & Yield Dashboard (full-screen analytics view: biological health gauges, succession progress, spatial map, yield trends, observation feed), ACT Module 3 — Harvest Log screen (yield-by-crop breakdown, monthly yield trend bar chart, quality index donut, recent harvests table, harvest calendar heatmap), ACT Module 3 — Ongoing SWOT screen (strengths/weaknesses/opportunities/threats summary tiles, filterable observation data table, recent updates and priority focus side panels), ACT Module 3 — Ecological Monitoring & Yield landing/overview card (KPI summary tiles, yield trend sparkline, top crops list, next harvest window, navigation buttons to SWOT/Harvest/Succession), ACT Module 3 — Succession Tracker screen (multi-stage planting succession pipeline columns, species rotation list, vegetation/ecological summary side panels, action items), ACT Module 4 — Community Events screen (event schedule list, featured upcoming event card, RSVP/volunteer KPI tiles, registration zones, attendance trend chart, reminders panel)
 
 ### Community 362 - "Community 362"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (6): OLOS ACT Module 4 — Social Permaculture Dashboard, OLOS ACT Module 4 — Network CRM Screen, OLOS ACT Module 4 — Social Permaculture Module Card, OLOS ACT Module 5 — Appropriate-Tech Log Screen, OLOS ACT Stage — Act Implement/Maintain/Monitor Dashboard, OLOS ACT Module 5 — Disaster Preparedness Screen
 
 ### Community 363 - "Community 363"
-Cohesion: 0.7
-Nodes (4): daysSince(), formatRelative(), hoursAgo(), TeamActivityDigestCard()
+Cohesion: 0.4
+Nodes (6): ACT stage homepage — implement/maintain/monitor overview with 5 module cards and stage dashboard launcher, ACT M5 — Hazard Action Plans dashboard (hazard register, mitigation/recovery actions, preparedness score), ACT M5 — Disaster Preparedness module summary card (hazard plan & appropriate-tech progress, readiness score), OBSERVE M1 — Cross-section tool: terrain profile analysis with elevation chart, section metrics, simulation controls, OBSERVE M1 — Human Context dashboard: steward survey, indigenous/regional context, vision detail, context synthesis, OBSERVE M1 — Human Context module summary card (vision pages, milestones, regional context, steward identity)
 
 ### Community 364 - "Community 364"
-Cohesion: 0.5
-Nodes (2): matchSpeciesString(), matchTargetSpecies()
+Cohesion: 0.4
+Nodes (6): OLOS Observe M3 Terrain Detail Analysis Page, OLOS Observe M2 Macroclimate & Hazards Dashboard, OLOS Observe M2 Hazards Log Detail Page, OLOS Observe M2 Macroclimate & Hazards Landing Card, OLOS Observe M2 Solar & Climate Detail Page, OLOS Observe M3 Topography & Base Map Landing Card
 
 ### Community 365 - "Community 365"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.6
+Nodes (6): OBSERVE M3 — Topography & Base Map screen (dark dashboard: mean slope/elevation/aspect metric tiles, terrain detail panel, cross-section tool charts, recommended next actions sidebar), OBSERVE M4 — Ecological detail screen (habitat map & observation zones, species observations, seasonal monitoring calendar, indicator species, ecological insights sidebar), OBSERVE M4 — Hydrology detail screen (site hydrology map, hydrology profile chart, infiltration & runoff gauge, water balance, watershed summary, risk map, design recommendations sidebar), OBSERVE M4 — Jar / Perc / Roof diagnostics screen (jar soil test result visual, percolation/infiltration gauge, roof catchment analysis, assumptions & inputs, recommended next actions, summary & guidance sidebar), OBSERVE M4 — Earth, Water & Ecology Diagnostics module overview card (intro hero, soil/biodiversity/water-security score badges, why-it-matters & insight callouts, links to Hydrology / Ecological / Jar-Perc-Roof detail), OBSERVE M5 — Cartographic detail screen (toggleable map layers panel: sectors/microclimates/zones/circulation/structures/contour/vegetation/water, large annotated site cartograph with numbered zones, detected patterns & recommended next actions sidebar)
 
 ### Community 366 - "Community 366"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (6): OLOS Observe M5 Dashboard — Module 5 overview with synthesis, sector compass and cartographic detail panels plus siting implications, OLOS Observe M5 Page Card — Sectors, Microclimates & Zones intro card with metrics and entry tiles, OLOS Observe M5 Sector Compass — full dashboard with radial sector compass, site map, observations and recommended interventions, OLOS Observe M6 Page Card — SWOT Synthesis intro card with strengths/weaknesses/opportunities/threats counts and entry tiles, OLOS Observe M6 SWOT Dashboard — SWOT Synthesis overview with quadrant counts, journal/diagnosis panels and design implications, OLOS Observe M6 SWOT Journal — tabular SWOT entry log with filters, categories, pagination and emerging-patterns sidebar
 
 ### Community 367 - "Community 367"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (6): PLAN Module 1 — Dynamic Layering & Permanence (Page Card), PLAN Module 1 — Permanence Scales detail dashboard, PLAN Module 2 — Water Management dashboard (variant 2, dark), PLAN Module 2 — Water Management dashboard, PLAN Module 2 — Hydrology Detail dashboard, PLAN Module 2 — Water Management (Page Card)
 
 ### Community 368 - "Community 368"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (6): PLAN M2 — Runoff Calculator, PLAN M2 — Storage Placement, PLAN M2 — Swale / Drain Tool, PLAN M3 — Zone & Circulation Dashboard, PLAN M3 — Paddock Design, PLAN M3 — Zone & Circulation Page Card
 
 ### Community 369 - "Community 369"
-Cohesion: 0.5
-Nodes (2): diameterAt(), evaluateCluster()
+Cohesion: 0.47
+Nodes (6): PLAN M3 — Path Frequency Analysis, PLAN M3 — Zone Level Layer (Zone & Circulation), PLAN M4 — Canopy Simulator, PLAN M4 — Plant Systems & Polyculture Dashboard, PLAN M4 — Guild Builder (Forest Garden Guild), PLAN M4 — Plant Systems & Polyculture Page Card
 
 ### Community 370 - "Community 370"
-Cohesion: 0.5
-Nodes (2): computeWaterGalYr(), computeWaterLitersYr()
+Cohesion: 0.47
+Nodes (6): PLAN M4 Plant Database, PLAN M4 Planting Tool, PLAN M5 Soil Fertility Dashboard (variant 2), PLAN M5 Soil Fertility Dashboard, PLAN M5 Module Page Card, PLAN M5 Soil Fertility Designer
 
 ### Community 371 - "Community 371"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (6): PLAN M5 — Waste-to-Resource Vectors, PLAN M6 — Cross-section Tool, PLAN M6 — Cross-section & Solar Geometry Dashboard (variant 2, glow), PLAN M6 — Cross-section & Solar Geometry Dashboard (variant 3, dark), PLAN M6 — Cross-section & Solar Geometry Dashboard (stage-gate), PLAN M6 — Cross-section & Solar Geometry Page Card
 
 ### Community 372 - "Community 372"
-Cohesion: 0.7
-Nodes (4): flipMonthForHemisphere(), if(), suitabilityFor(), suitabilityScore()
+Cohesion: 0.4
+Nodes (6): PLAN M6 — Cross-section & Solar Geometry intro card, PLAN M6 — Solar overlay analysis workspace, PLAN M6 — Vertical editor (cross-section profile, dark variant), PLAN M6 — Vertical editor (full element-placement editor), PLAN M7 — 5-year phasing matrix, PLAN M7 — Phasing & Budgeting dashboard
 
 ### Community 373 - "Community 373"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (6): PLAN Module 7 — Phasing & Budgeting Page Card, PLAN Module 7 — Seasonal Tasks, PLAN Module 7 — Timeline / Phasing, PLAN Module 8 — Holmgren Checklist, PLAN Module 8 — Holmgren Principle Verification (variant 2), PLAN Module 8 — Holmgren Principle Verification
 
 ### Community 374 - "Community 374"
-Cohesion: 0.5
-Nodes (2): handler(), loadOverrides()
+Cohesion: 0.47
+Nodes (6): OBSERVE Stage Dashboard — read the land before designing, OBSERVE Module 1 — Indigenous & Regional Context (Human Context), OBSERVE Module 1 — Steward Survey (Human Context), PLAN Stage Homepage — design from patterns to details, PLAN Module 8 — Holmgren Principle Verification Page Card, PLAN Stage Overview Page Card — 8-module Trunk & Synthesis dashboard
 
 ### Community 375 - "Community 375"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (6): Terrain Cross-Section Elevation Profile A to B, Site Hydrology Water-Flow Contour Map, Seasonal Sun-Path Comparison Chart, Site Context Mini Locator Map, Site Field Observations Pin Map, Transect Line Plan-View Map A to B
 
 ### Community 376 - "Community 376"
-Cohesion: 0.8
-Nodes (4): loadObserved(), onStorage(), saveObserved(), storageKey()
+Cohesion: 0.33
+Nodes (6): Habitat map with annotated ecological zones (woodland edge, riparian corridor, meadow, wet area, planted zone), Ecological relationship web diagram linking plants, pollinators, birds, insects, fungi, amphibians, Seasonal ecology calendar ridgeline chart (wildflowers, bird breeding, pollinator peak, frog activity), Seedling sprouting from mossy soil photographic callout banner, Species strip cards (Coastal Tea-tree, Eastern Spinebill, Honey Bee, Marsh Frog) with native/introduced tags, Species observation thumbnails (Robin, Kangaroo Grass, Marsh Frog, Red Gum)
 
 ### Community 377 - "Community 377"
-Cohesion: 0.7
-Nodes (4): adjustSource(), applyCostRangeMultiplier(), applyMultiplier(), getCostBenchmarks()
+Cohesion: 0.4
+Nodes (6): Hero image: golden-hour valley with river, terraced hills and forest, Average Monthly Climate chart (temp max/min line + precipitation bars), Sector/zone analysis map: concentric zones with wind & sun direction arrows (N-E-S-W), Site map thumbnail: aerial view of forested land parcel with river bend, Sun path arc diagram for summer solstice (hourly sun positions E-S-W), Topography map: 3D elevation relief with contour lines (green-to-red elevation gradient)
 
 ### Community 378 - "Community 378"
-Cohesion: 0.5
-Nodes (2): distanceToZoneEdgeM(), pointToSegmentMeters()
+Cohesion: 0.47
+Nodes (6): PLAN M2 Water dashboard: bottom landscape scene, PLAN M2 Water dashboard: hero banner scene, PLAN M2 Water dashboard: hydrology module card, Permanence Scale: Structure layer card, Permanence Scale: Trees layer card, Permanence Scale: Water layer card
 
 ### Community 379 - "Community 379"
-Cohesion: 0.5
-Nodes (2): axisDetail(), fmtDistance()
+Cohesion: 0.4
+Nodes (6): Groundwater Infiltration Cross-Section, Hydrology Watershed Hero Scene, Infiltration Depth Soil Cross-Section, Runoff Subcatchment Dashboard Card, Water Storage Capacity Dashboard Card, Swale Network Planning Dashboard Card
 
 ### Community 380 - "Community 380"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (6): Runoff Catchments Hero Map (Aerial Watershed Delineation), Storm Hydrograph: Baseline vs With-Interventions Discharge Curve, Monthly Runoff Volume Bar Chart (Baseline vs Intervention by Month), Selected Storage Sites Map (Numbered Priority-Ranked Site Markers), Water Storage Pond Site Photo (High-Priority Vegetated Catchment Pond), Water Storage Planning Map (Full Layer Panel + Legend + Site Network)
 
 ### Community 381 - "Community 381"
-Cohesion: 0.5
-Nodes (2): compassToBearing(), wedgeFeature()
+Cohesion: 0.47
+Nodes (6): Solar & Climate detail hero banner: cinematic mountain valley at golden hour with sun rays through clouds; headline about climate resilience and an 'open climate sources' CTA button, Observe module icon: Sectors compass — a radial diagram with cardinal points (N/S/E/W) and quadrant glyphs (tree, sun, water drop, wind) representing site sector/aspect analysis, Observe module icon: SWOT analysis — a notebook with a 2x2 grid (S/W/O/T quadrants) and pen, representing strengths/weaknesses/opportunities/threats site assessment, Observe module icon: Topography — concentric contour-line landform with a winding watercourse, representing elevation/terrain analysis of a site, Monthly climate overview chart: combined precipitation (mm) bars with avg high/low temperature (°C) line series across 12 months, summarizing seasonal climate normals for a site, Solar path / sun-angle diagram: dome plot of sun elevation arcs for solstice and equinox dates (Jun, Mar/Sep, Dec) with N/S/E orientation and altitude degree markers
 
 ### Community 382 - "Community 382"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (6): PLAN action callout — seedling sprouting from soil, PLAN hero — aerial regenerative landscape at golden hour with overlay icons, PLAN module card — Cross-Section / Solar arc radial diagram, PLAN module card — Dynamic Layering vertical vegetation strata, PLAN module card — Holmgren principles shield/leaf verification emblem, PLAN module card — Phasing / Budget Gantt schedule chart
 
 ### Community 383 - "Community 383"
-Cohesion: 0.5
-Nodes (2): sampleElevation(), syntheticProfile()
+Cohesion: 0.4
+Nodes (6): OBSERVE sector compass: site sun/wind/views diagram, PLAN module card: Plant / Polyculture, PLAN module card: Soil regeneration cycle, PLAN module card: Water management droplet, PLAN module card: Zone concentric rings, OBSERVE placements strip: 6 sector-derived recommendations
 
 ### Community 384 - "Community 384"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (6): Sectors dashboard cartographic preview map with energy flows and zones, Solar-climate detail hero: sunbeams over mountain valley, Monthly climate overview combo chart: precipitation bars + avg high/low temperature, Sector compass radial diagram of site forces (sun, wind, fire, water, noise, views), Sectors, Microclimates & Zones stage hero banner, Sector compass site-context overlay map
 
 ### Community 385 - "Community 385"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (6): Vision concept aerial site map with numbered annotation pins for zones (orchard, food forest, water, homestead), Topography analytics dashboard: KPI stats, elevation cross-section profile chart, terrain analysis and radial chart panels, Cinematic 3D terrain hero render with topographic contour overlay on hillshaded landscape, 2x3 photographic permaculture vision moodboard (greenhouse, gathering, crops, garden path, chickens, stream), Terrain slope heatmap with topographic contours over parcel boundary (green-to-red slope severity gradient), Map viewer with Layers control panel (Slope/Contours/Hillshade/Aspect/Elevation/Parcel toggles) and slope-percentage legend
 
 ### Community 386 - "Community 386"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (6): Solar Overlay Analysis Screen — 3D Terrain Sun-Path Dashboard, Cross-Section Tool — Terrain Elevation Transect Dashboard, Phasing & Budgeting Dashboard — Implementation Timeline & Budget Analytics, Observe Stage 1 Gateway — Scenic-Hero Module Hub (Roots & Diagnosis), Act Stage 3 Gateway — Scenic-Hero Module Hub (Fruit & Stewardship), Act Stage 3 Dashboard — Dense Operational Module Data View
 
 ### Community 387 - "Community 387"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (6): Act / Implement Dashboard — overview header with KPI summary tiles and same 5-panel module grid plus footer rows for recommended actions, recent activity, upcoming events, ACT Stage Dashboard (Stewardship variant) — 5-panel grid: Phased Implementation & Budgeting, Maintenance & Operations, Ecological Monitoring & Yield, Social Permaculture, Disaster Preparedness with progress rings, 5-Year Build Gantt — Module 1 timeline view with phased task bars across 5 years plus budget overview, labor overview, milestones and blockers panels, Budget Actuals — Module 1 financial tracking screen: total spent KPIs, spend by category/phase charts, donut breakdown, burn-down line chart and notes, Phased Implementation & Budgeting Module Card — entry/summary card with implementation readiness gauge, phase progress, labor & spend KPIs and nav buttons to Gantt, Budget actuals, Pilot plots, Phased Implementation & Budgeting (PIB) — Module 1 detail dashboard with readiness rings and three sub-panels: 5-year build Gantt, budget spends, pilot plots
 
 ### Community 388 - "Community 388"
-Cohesion: 0.6
-Nodes (3): fieldObsTier(), legalTier(), wordCount()
+Cohesion: 0.47
+Nodes (6): OLOS ACT M1 — Pilot Plots dashboard (Stage 3, Module 1: Fruit & Stewardship; aerial site map, plot inventory table, yield/output metric cards, growing-zone detail panel with charts), OLOS ACT M2 — Maintenance & Operations overview dashboard (recurring tasks, irrigation, waste routing; three module panels with KPI gauges, upcoming tasks, recent activity, alerts), OLOS ACT M2 — Irrigation Manager screen (irrigation-zone map, quick-action panel, system status, valve groups, today's activities, soil moisture & water-efficiency charts), OLOS ACT M2 — Maintenance Schedule screen (weekly calendar of recurring maintenance tasks, completion KPIs, care logs, scheduling templates panel), OLOS ACT M2 — Module 2 landing page card (Maintenance & Operations hero card with metric tiles and three sub-module entry links: maintenance schedule, irrigation manager, waste routing checklist), OLOS ACT M2 — Waste Routing Checklist screen (waste-stream routing list, source-to-destination flow mappings, capture/diversion KPIs, contamination alerts panel)
 
 ### Community 389 - "Community 389"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
 ### Community 390 - "Community 390"
-Cohesion: 0.5
-Nodes (2): tierFor(), wordCount()
+Cohesion: 0.67
+Nodes (5): buildPaddocks(), buildRotationCells(), paddockId(), rect(), seedMtcRotationFixture()
 
 ### Community 391 - "Community 391"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (4): buildPaddocks(), buildRotationCells(), paddockId(), rect()
 
 ### Community 392 - "Community 392"
-Cohesion: 0.5
-Nodes (2): tierFor(), wordCount()
+Cohesion: 0.6
+Nodes (5): computeBeneficialHabitatPct(), computeBeneficialHabitatReport(), hasTag(), safeLineLengthM(), safePolygonAreaM2()
 
 ### Community 393 - "Community 393"
-Cohesion: 0.7
-Nodes (4): handlePaste(), isLatValid(), isLngValid(), parsePastedCoords()
+Cohesion: 0.6
+Nodes (5): addCostRange(), computeStewardshipProgramsCashflow(), emptyBand(), emptySubtotal(), scaleBand()
 
 ### Community 394 - "Community 394"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (3): computeVerdict(), parseLocalDate(), yearsBetween()
 
 ### Community 395 - "Community 395"
-Cohesion: 0.4
+Cohesion: 0.33
 Nodes (0): 
 
 ### Community 396 - "Community 396"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (4): baseInput(), cleanSiteProfile(), cleanTrueNorth(), facet()
 
 ### Community 397 - "Community 397"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.47
+Nodes (3): newId(), onAdd(), todayISO()
 
 ### Community 398 - "Community 398"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.53
+Nodes (4): buildWorkPackageFromDecision(), emptyPlanWorkPackage(), newId(), now()
 
 ### Community 399 - "Community 399"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.67
+Nodes (5): aggregateProgress(), facetAnswered(), gradeCount(), ratio(), segmentProgress()
 
 ### Community 400 - "Community 400"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.6
+Nodes (5): analyzeFieldProof(), classifyProof(), daysApart(), routeProofTarget(), suggestProofMatches()
 
 ### Community 401 - "Community 401"
 Cohesion: 0.6
-Nodes (3): aspectFavorable(), buildCandidates(), classifyTier()
+Nodes (5): capture(), ensureDevServerUp(), main(), pngToWebp(), safeId()
 
 ### Community 402 - "Community 402"
-Cohesion: 0.5
-Nodes (2): bearingDelta(), prevalenceFor()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 403 - "Community 403"
 Cohesion: 0.4
 Nodes (0): 
 
 ### Community 404 - "Community 404"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.5
+Nodes (2): ae(), V()
 
 ### Community 405 - "Community 405"
 Cohesion: 0.4
-Nodes (1): ApiError
-
-### Community 406 - "Community 406"
-Cohesion: 0.4
 Nodes (0): 
 
+### Community 406 - "Community 406"
+Cohesion: 0.5
+Nodes (2): X(), Y()
+
 ### Community 407 - "Community 407"
-Cohesion: 0.6
-Nodes (3): haversineKm(), haversineM(), toRad()
+Cohesion: 0.7
+Nodes (4): Ct(), Pt(), Rt(), Tt()
 
 ### Community 408 - "Community 408"
 Cohesion: 0.6
-Nodes (3): computeQibla(), toDeg(), toRad()
+Nodes (3): at(), ft(), ut()
 
 ### Community 409 - "Community 409"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): ee(), gt(), re(), tt()
 
 ### Community 410 - "Community 410"
-Cohesion: 0.6
-Nodes (4): azimuthToBearing(), computeSolarSectors(), keyDates(), solarWedge()
+Cohesion: 0.7
+Nodes (4): J(), K(), Q(), qt()
 
 ### Community 411 - "Community 411"
-Cohesion: 0.8
-Nodes (4): fullKey(), getCached(), setCached(), storage()
+Cohesion: 0.5
+Nodes (2): je(), Oe()
 
 ### Community 412 - "Community 412"
 Cohesion: 0.4
 Nodes (0): 
 
 ### Community 413 - "Community 413"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): buildPhaseYearMap(), computeCashflow(), distributeCostAcrossYears(), parseTimeframe()
 
 ### Community 414 - "Community 414"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.5
+Nodes (2): makeRamp(), stopsToSwatches()
 
 ### Community 415 - "Community 415"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): buildEsvNarrative(), computeEcosystemValuation(), selectEcosystemValuationFromLayers()
 
 ### Community 416 - "Community 416"
 Cohesion: 0.5
-Nodes (2): nextUnfulfilledPlan(), plansByPaddock()
+Nodes (2): classifyZoning(), estimateTypicalSetbacks()
 
 ### Community 417 - "Community 417"
-Cohesion: 0.5
-Nodes (2): migrateLegacyBlob(), seed()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 418 - "Community 418"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.8
+Nodes (4): die(), main(), toPascal(), writeNew()
 
 ### Community 419 - "Community 419"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.5
+Nodes (1): TerrainAnalysisProcessor
 
 ### Community 420 - "Community 420"
-Cohesion: 0.8
-Nodes (4): entityAnchor(), openBeInlineEditById(), openBeInlineEditByObserveKind(), pickBuilder()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 421 - "Community 421"
 Cohesion: 0.4
@@ -3705,15 +4317,15 @@ Nodes (0):
 
 ### Community 422 - "Community 422"
 Cohesion: 0.5
-Nodes (2): escapeHtml(), popupHtml()
+Nodes (2): BuiltinProjectProvider(), deriveProjectBanner()
 
 ### Community 423 - "Community 423"
-Cohesion: 0.7
-Nodes (4): buildProveBriefMarkdown(), downloadProveBrief(), ruleIcon(), severityIcon()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 424 - "Community 424"
-Cohesion: 0.7
-Nodes (4): buildDrop(), id(), polygonAreaM2(), squarePolygon()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 425 - "Community 425"
 Cohesion: 0.4
@@ -3721,7 +4333,7 @@ Nodes (0):
 
 ### Community 426 - "Community 426"
 Cohesion: 0.5
-Nodes (2): onPick(), triggerDownload()
+Nodes (2): componentDidCatch(), reportBoundaryError()
 
 ### Community 427 - "Community 427"
 Cohesion: 0.4
@@ -3732,16 +4344,16 @@ Cohesion: 0.4
 Nodes (0): 
 
 ### Community 429 - "Community 429"
-Cohesion: 0.4
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): TabsList(), TabsPanel(), useTabsContext()
 
 ### Community 430 - "Community 430"
 Cohesion: 0.4
 Nodes (0): 
 
 ### Community 431 - "Community 431"
-Cohesion: 0.6
-Nodes (3): onChange(), onRender(), pickLargestPolygon()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 432 - "Community 432"
 Cohesion: 0.4
@@ -3749,31 +4361,31 @@ Nodes (0):
 
 ### Community 433 - "Community 433"
 Cohesion: 0.6
-Nodes (3): flashToast(), onPublishShare(), onUnpublishShare()
+Nodes (3): commit(), emptyDraft(), newId()
 
 ### Community 434 - "Community 434"
 Cohesion: 0.4
 Nodes (0): 
 
 ### Community 435 - "Community 435"
-Cohesion: 0.6
-Nodes (3): detectNoiseSectorHits(), elementCentroid(), wedgePolygon()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 436 - "Community 436"
-Cohesion: 0.5
-Nodes (2): fmtDelta(), fmtUSD()
+Cohesion: 0.6
+Nodes (3): commit(), emptyDraft(), newId()
 
 ### Community 437 - "Community 437"
-Cohesion: 0.7
-Nodes (4): hardinessOverlap(), precipMatch(), scoreSiteMatch(), slopeMatch()
+Cohesion: 0.6
+Nodes (3): commit(), newId(), nowIso()
 
 ### Community 438 - "Community 438"
-Cohesion: 0.5
-Nodes (2): findOverlaps(), radiusM()
+Cohesion: 0.6
+Nodes (3): commit(), emptyDraft(), newId()
 
 ### Community 439 - "Community 439"
-Cohesion: 0.5
-Nodes (2): catchmentYieldM3(), computeFlow()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 440 - "Community 440"
 Cohesion: 0.4
@@ -3785,11 +4397,11 @@ Nodes (0):
 
 ### Community 442 - "Community 442"
 Cohesion: 0.7
-Nodes (4): isBarrenCompactedCover(), resolveSpecCategory(), resolveZoneSpecCategory(), zoneRequiresRegeneration()
+Nodes (4): daysSince(), formatRelative(), hoursAgo(), TeamActivityDigestCard()
 
 ### Community 443 - "Community 443"
 Cohesion: 0.5
-Nodes (2): makeZone(), squarePoly()
+Nodes (2): matchSpeciesString(), matchTargetSpecies()
 
 ### Community 444 - "Community 444"
 Cohesion: 0.4
@@ -3800,540 +4412,540 @@ Cohesion: 0.4
 Nodes (0): 
 
 ### Community 446 - "Community 446"
-Cohesion: 0.6
-Nodes (3): azimuthRadToBearingDeg(), buildArc(), noonPoint()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 447 - "Community 447"
-Cohesion: 0.6
-Nodes (3): checkUtilityConflicts(), intersectsUtility(), narrowBuriedUtilityKind()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 448 - "Community 448"
 Cohesion: 0.5
-Nodes (2): getBuiltEnvironmentKind(), isGeometryValidForKind()
+Nodes (2): diameterAt(), evaluateCluster()
 
 ### Community 449 - "Community 449"
-Cohesion: 0.6
-Nodes (4): camelToSnake(), snakeToCamel(), toCamelCase(), toSnakeCase()
+Cohesion: 0.5
+Nodes (2): computeWaterGalYr(), computeWaterLitersYr()
 
 ### Community 450 - "Community 450"
-Cohesion: 0.6
-Nodes (3): buildContext(), evaluateAssessmentRules(), evaluateRule()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 451 - "Community 451"
-Cohesion: 0.8
-Nodes (4): canopyAtAge(), canopyFromCurve(), matureCanopyM(), resolveGrowthCurve()
+Cohesion: 0.7
+Nodes (4): flipMonthForHemisphere(), if(), suitabilityFor(), suitabilityScore()
 
 ### Community 452 - "Community 452"
-Cohesion: 0.6
-Nodes (5): regionalCosts/CA_ONTARIO.ts (OMAFRA, OSCIA, NRCan sourced), CostSource block (citation|null, year, confidence, note), ADR: Regional cost dataset 'cite or declare placeholder', Rationale: every number cites a source or is flagged placeholder; financial engine stays computable, regionalCosts/US_MIDWEST.ts (NRCS EQIP, USDA NASS, NREL sourced)
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 453 - "Community 453"
-Cohesion: 0.6
-Nodes (5): SiteAssessmentPanel.tsx three-state wiring, Rationale: server-authoritative score, parity Δ=0.000, local fallback for new projects, AssessmentResponse schema, useAssessment(projectId) hook (NOT_READY swallow), ADR: Site assessment panel wiring server-primary local-fallback
+Cohesion: 0.5
+Nodes (2): handler(), loadOverrides()
 
 ### Community 454 - "Community 454"
-Cohesion: 0.67
-Nodes (2): colorRow(), toggleOverlay()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 455 - "Community 455"
-Cohesion: 0.83
-Nodes (2): projectClimate(), shiftDate()
+Cohesion: 0.8
+Nodes (4): loadObserved(), onStorage(), saveObserved(), storageKey()
 
 ### Community 456 - "Community 456"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): distanceToZoneEdgeM(), pointToSegmentMeters()
 
 ### Community 457 - "Community 457"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): axisDetail(), fmtDistance()
 
 ### Community 458 - "Community 458"
-Cohesion: 0.83
-Nodes (3): fetchNasaPowerSummary(), fetchOnce(), pickAnnual()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 459 - "Community 459"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): compassToBearing(), wedgeFeature()
 
 ### Community 460 - "Community 460"
-Cohesion: 0.67
-Nodes (2): makeNlcdResponse(), mockAllSamples()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 461 - "Community 461"
-Cohesion: 0.83
-Nodes (3): makeAssessment(), makeDataBag(), makeProject()
+Cohesion: 0.5
+Nodes (2): sampleElevation(), syntheticProfile()
 
 ### Community 462 - "Community 462"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 463 - "Community 463"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 464 - "Community 464"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 465 - "Community 465"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 466 - "Community 466"
-Cohesion: 0.83
-Nodes (3): $(), U(), W()
-
-### Community 467 - "Community 467"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
+### Community 467 - "Community 467"
+Cohesion: 0.6
+Nodes (3): fieldObsTier(), legalTier(), wordCount()
+
 ### Community 468 - "Community 468"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 469 - "Community 469"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): tierFor(), wordCount()
 
 ### Community 470 - "Community 470"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 471 - "Community 471"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): tierFor(), wordCount()
 
 ### Community 472 - "Community 472"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): handlePaste(), isLatValid(), isLngValid(), parsePastedCoords()
 
 ### Community 473 - "Community 473"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 474 - "Community 474"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 475 - "Community 475"
-Cohesion: 0.83
-Nodes (3): buildAdvisory(), computeClimateProjections(), findRegion()
-
-### Community 476 - "Community 476"
-Cohesion: 0.67
-Nodes (2): findCompanions(), normalize()
-
-### Community 477 - "Community 477"
-Cohesion: 0.67
-Nodes (2): buildEsvNarrative(), computeEcosystemValuation()
-
-### Community 478 - "Community 478"
-Cohesion: 0.67
-Nodes (2): computeGeothermalPotential(), soilConductivityFromTexture()
-
-### Community 479 - "Community 479"
-Cohesion: 0.5
-Nodes (4): GAEZ Futures Inventory, GAEZ Smoke Test, Ingest GAEZ Script Docs, SoilGrids README
-
-### Community 480 - "Community 480"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
+### Community 476 - "Community 476"
+Cohesion: 0.4
+Nodes (0): 
+
+### Community 477 - "Community 477"
+Cohesion: 0.4
+Nodes (0): 
+
+### Community 478 - "Community 478"
+Cohesion: 0.4
+Nodes (0): 
+
+### Community 479 - "Community 479"
+Cohesion: 0.4
+Nodes (0): 
+
+### Community 480 - "Community 480"
+Cohesion: 0.6
+Nodes (3): aspectFavorable(), buildCandidates(), classifyTier()
+
 ### Community 481 - "Community 481"
-Cohesion: 0.83
-Nodes (3): fmtArea(), fmtLength(), renderBuiltEnvironmentReport()
+Cohesion: 0.5
+Nodes (2): bearingDelta(), prevalenceFor()
 
 ### Community 482 - "Community 482"
-Cohesion: 0.83
-Nodes (3): chips(), healthTone(), renderHumanContextReport()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 483 - "Community 483"
-Cohesion: 0.83
-Nodes (3): pickNum(), pickStr(), renderMacroclimateReport()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 484 - "Community 484"
-Cohesion: 0.67
-Nodes (2): quadrantCard(), renderSwotDiagnosisReport()
+Cohesion: 0.6
+Nodes (3): computeQibla(), toDeg(), toRad()
 
 ### Community 485 - "Community 485"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 486 - "Community 486"
-Cohesion: 0.67
-Nodes (2): renderTopographyReport(), severityForSlope()
+Cohesion: 0.6
+Nodes (4): azimuthToBearing(), computeSolarSectors(), keyDates(), solarWedge()
 
 ### Community 487 - "Community 487"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.8
+Nodes (4): fullKey(), getCached(), setCached(), storage()
 
 ### Community 488 - "Community 488"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 489 - "Community 489"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 490 - "Community 490"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 491 - "Community 491"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): nextUnfulfilledPlan(), plansByPaddock()
 
 ### Community 492 - "Community 492"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): migrateLegacyBlob(), seed()
 
 ### Community 493 - "Community 493"
-Cohesion: 0.67
-Nodes (2): handleSegClick(), safeSet()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 494 - "Community 494"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 495 - "Community 495"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.8
+Nodes (4): entityAnchor(), openBeInlineEditById(), openBeInlineEditByObserveKind(), pickBuilder()
 
 ### Community 496 - "Community 496"
-Cohesion: 0.5
-Nodes (1): Sparkline()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 497 - "Community 497"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): escapeHtml(), popupHtml()
 
 ### Community 498 - "Community 498"
-Cohesion: 0.67
-Nodes (2): rowFor(), sampleAlong()
+Cohesion: 0.7
+Nodes (4): buildProveBriefMarkdown(), downloadProveBrief(), ruleIcon(), severityIcon()
 
 ### Community 499 - "Community 499"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): buildDrop(), id(), polygonAreaM2(), squarePolygon()
 
 ### Community 500 - "Community 500"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 501 - "Community 501"
-Cohesion: 0.67
-Nodes (2): commit(), newId()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 502 - "Community 502"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): onPick(), triggerDownload()
 
 ### Community 503 - "Community 503"
-Cohesion: 0.67
-Nodes (2): buildWhyHere(), fmtSlope()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 504 - "Community 504"
-Cohesion: 0.83
-Nodes (3): buildNarrative(), distanceMetres(), pluralise()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 505 - "Community 505"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 506 - "Community 506"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 507 - "Community 507"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): onChange(), onRender(), pickLargestPolygon()
 
 ### Community 508 - "Community 508"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 509 - "Community 509"
-Cohesion: 0.67
-Nodes (2): fmtCurrency(), fmtRange()
+Cohesion: 0.6
+Nodes (3): flashToast(), onPublishShare(), onUnpublishShare()
 
 ### Community 510 - "Community 510"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 511 - "Community 511"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): detectNoiseSectorHits(), elementCentroid(), wedgePolygon()
 
 ### Community 512 - "Community 512"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): fmtDelta(), fmtUSD()
 
 ### Community 513 - "Community 513"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): hardinessOverlap(), precipMatch(), scoreSiteMatch(), slopeMatch()
 
 ### Community 514 - "Community 514"
-Cohesion: 0.67
-Nodes (2): deriveTone(), pivot()
+Cohesion: 0.5
+Nodes (2): findOverlaps(), radiusM()
 
 ### Community 515 - "Community 515"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 516 - "Community 516"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 517 - "Community 517"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): isBarrenCompactedCover(), resolveSpecCategory(), resolveZoneSpecCategory(), zoneRequiresRegeneration()
 
 ### Community 518 - "Community 518"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 519 - "Community 519"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): makeZone(), squarePoly()
 
 ### Community 520 - "Community 520"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 521 - "Community 521"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 522 - "Community 522"
-Cohesion: 0.67
-Nodes (2): paddockCentroid(), rowFor()
+Cohesion: 0.6
+Nodes (3): azimuthRadToBearingDeg(), buildArc(), noonPoint()
 
 ### Community 523 - "Community 523"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): checkUtilityConflicts(), intersectsUtility(), narrowBuriedUtilityKind()
 
 ### Community 524 - "Community 524"
-Cohesion: 0.67
-Nodes (2): distanceM(), nearestWaterSource()
+Cohesion: 0.6
+Nodes (4): camelToSnake(), snakeToCamel(), toCamelCase(), toSnakeCase()
 
 ### Community 525 - "Community 525"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): buildContext(), evaluateAssessmentRules(), evaluateRule()
 
 ### Community 526 - "Community 526"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.8
+Nodes (4): canopyAtAge(), canopyFromCurve(), matureCanopyM(), resolveGrowthCurve()
 
 ### Community 527 - "Community 527"
-Cohesion: 0.67
-Nodes (2): sync(), tileUrl()
+Cohesion: 0.6
+Nodes (5): regionalCosts/CA_ONTARIO.ts (OMAFRA, OSCIA, NRCan sourced), CostSource block (citation|null, year, confidence, note), ADR: Regional cost dataset 'cite or declare placeholder', Rationale: every number cites a source or is flagged placeholder; financial engine stays computable, regionalCosts/US_MIDWEST.ts (NRCS EQIP, USDA NASS, NREL sourced)
 
 ### Community 528 - "Community 528"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (5): SiteAssessmentPanel.tsx three-state wiring, Rationale: server-authoritative score, parity Δ=0.000, local fallback for new projects, AssessmentResponse schema, useAssessment(projectId) hook (NOT_READY swallow), ADR: Site assessment panel wiring server-primary local-fallback
 
 ### Community 529 - "Community 529"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.4
+Nodes (1): authRoutes()
 
 ### Community 530 - "Community 530"
-Cohesion: 0.67
-Nodes (2): polar(), wedgePath()
+Cohesion: 0.5
+Nodes (2): instantiateFromSnapshot(), replayDeepSnapshot()
 
 ### Community 531 - "Community 531"
-Cohesion: 0.67
-Nodes (2): commit(), newTaskId()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 532 - "Community 532"
-Cohesion: 0.67
-Nodes (2): daysAgo(), formatRelative()
+Cohesion: 0.6
+Nodes (3): dockerAvailable(), setup(), writeSentinel()
 
 ### Community 533 - "Community 533"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 534 - "Community 534"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): band(), usd()
 
 ### Community 535 - "Community 535"
-Cohesion: 0.67
-Nodes (2): covenantTier(), wordCount()
+Cohesion: 0.5
+Nodes (2): assignRingPositions(), ringRadiusForLayer()
 
 ### Community 536 - "Community 536"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): safeLineLengthM(), safePolygonAreaM2(), selectHabitatCommitments(), selectPlacedHabitatCommitments()
 
 ### Community 537 - "Community 537"
-Cohesion: 0.67
-Nodes (2): buildMetadata(), handleCreate()
+Cohesion: 0.7
+Nodes (4): lineElement(), nextId(), pointElement(), polygonElement()
 
 ### Community 538 - "Community 538"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 539 - "Community 539"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): clampMonth(), inferCoverCropDates(), pad2()
 
 ### Community 540 - "Community 540"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): computeCoverCropEconomics(), effectiveLaborHrsPerAcre(), effectiveSeedCostPerAcre(), windowEconomics()
 
 ### Community 541 - "Community 541"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 542 - "Community 542"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 543 - "Community 543"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): computeTransitionBudget(), computeTransitionBudgetFromInputs()
 
 ### Community 544 - "Community 544"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): clamp(), seasonalRestMultiplier(), shiftSouthern()
 
 ### Community 545 - "Community 545"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): addDaysISO(), computeAllFollowerMoves(), computeFollowerMoves(), computeFollowerTiers()
 
 ### Community 546 - "Community 546"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): findBlockingRegenerationPlan(), geometryContains(), pointInRing()
 
 ### Community 547 - "Community 547"
-Cohesion: 0.67
-Nodes (2): classify(), matchKeyword()
+Cohesion: 0.7
+Nodes (4): computeRotationCalendar(), mobGrazedPaddocks(), rollupStatus(), syntheticPlan()
 
 ### Community 548 - "Community 548"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): cell(), mk(), paddock(), plan()
 
 ### Community 549 - "Community 549"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 550 - "Community 550"
-Cohesion: 0.67
-Nodes (2): fmtK(), formatKRange()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 551 - "Community 551"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 552 - "Community 552"
-Cohesion: 0.67
-Nodes (2): distanceToFeature(), distanceToNearest()
+Cohesion: 0.5
+Nodes (2): commit(), parsePositive()
 
 ### Community 553 - "Community 553"
-Cohesion: 0.67
-Nodes (2): quantize(), useForecast()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 554 - "Community 554"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 555 - "Community 555"
-Cohesion: 0.67
-Nodes (2): tier3Layer(), withTier3()
+Cohesion: 0.5
+Nodes (2): orchard(), silvopasture()
 
 ### Community 556 - "Community 556"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 557 - "Community 557"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 558 - "Community 558"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): escapeHtml(), popupHtml()
 
 ### Community 559 - "Community 559"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): dayLabel(), groupByDay()
 
 ### Community 560 - "Community 560"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): isVerified(), objectiveProgress(), resolveNodeStates()
 
 ### Community 561 - "Community 561"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): buildCollections(), readinessState(), ringCentroid()
 
 ### Community 562 - "Community 562"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): handleSelectModule(), handleSelectSection(), navigateModuleSection()
 
 ### Community 563 - "Community 563"
-Cohesion: 0.67
-Nodes (2): CreateFieldTaskDialog(), defaultDueDate()
+Cohesion: 0.4
+Nodes (0): 
 
 ### Community 564 - "Community 564"
-Cohesion: 0.67
-Nodes (2): handleHeaderClick(), stageIsActive()
+Cohesion: 0.6
+Nodes (3): buildLegend(), buildMapSheetPayload(), buildPlantingPlanPayload()
 
 ### Community 565 - "Community 565"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): handleSelectModule(), handleSelectSection(), navigateModuleSection()
 
 ### Community 566 - "Community 566"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.6
+Nodes (3): checkGuild(), labelFor(), resolveProfile()
 
 ### Community 567 - "Community 567"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): newElementId(), placeSocialElement()
 
 ### Community 568 - "Community 568"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 569 - "Community 569"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (2): dayLabel(), groupByDay()
 
 ### Community 570 - "Community 570"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 571 - "Community 571"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 572 - "Community 572"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 573 - "Community 573"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 574 - "Community 574"
-Cohesion: 0.67
-Nodes (2): buildTemplate(), defaultSummary()
+Cohesion: 0.6
+Nodes (3): emptyPlanVersion(), newId(), now()
 
 ### Community 575 - "Community 575"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 576 - "Community 576"
-Cohesion: 0.5
+Cohesion: 0.4
 Nodes (0): 
 
 ### Community 577 - "Community 577"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.7
+Nodes (4): collectPolygons(), extractPolygonalGeometry(), isObject(), isPositionRing()
 
 ### Community 578 - "Community 578"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.67
+Nodes (2): colorRow(), toggleOverlay()
 
 ### Community 579 - "Community 579"
 Cohesion: 0.83
-Nodes (3): journalMetrics(), swotCounts(), swotKpis()
+Nodes (2): projectClimate(), shiftDate()
 
 ### Community 580 - "Community 580"
 Cohesion: 0.5
@@ -4344,20 +4956,20 @@ Cohesion: 0.5
 Nodes (0): 
 
 ### Community 582 - "Community 582"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): fetchNasaPowerSummary(), fetchOnce(), pickAnnual()
 
 ### Community 583 - "Community 583"
-Cohesion: 0.83
-Nodes (3): angleDelta(), arcDegFromPointer(), bearingFromPoints()
-
-### Community 584 - "Community 584"
 Cohesion: 0.5
 Nodes (0): 
 
-### Community 585 - "Community 585"
+### Community 584 - "Community 584"
 Cohesion: 0.67
-Nodes (2): onFixOnMap(), polygonCentroid()
+Nodes (2): makeNlcdResponse(), mockAllSamples()
+
+### Community 585 - "Community 585"
+Cohesion: 0.83
+Nodes (3): makeAssessment(), makeDataBag(), makeProject()
 
 ### Community 586 - "Community 586"
 Cohesion: 0.5
@@ -4372,20 +4984,20 @@ Cohesion: 0.5
 Nodes (0): 
 
 ### Community 589 - "Community 589"
-Cohesion: 0.67
-Nodes (2): generate(), handleRegenerate()
-
-### Community 590 - "Community 590"
 Cohesion: 0.5
 Nodes (0): 
+
+### Community 590 - "Community 590"
+Cohesion: 0.83
+Nodes (3): $(), U(), W()
 
 ### Community 591 - "Community 591"
 Cohesion: 0.5
 Nodes (0): 
 
 ### Community 592 - "Community 592"
-Cohesion: 0.67
-Nodes (2): angleAt(), pointAt()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 593 - "Community 593"
 Cohesion: 0.5
@@ -4408,836 +5020,836 @@ Cohesion: 0.5
 Nodes (0): 
 
 ### Community 598 - "Community 598"
-Cohesion: 0.83
-Nodes (3): defaultCategoryForZ(), handleComplete(), optionsForZ()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 599 - "Community 599"
 Cohesion: 0.83
-Nodes (3): computeMaintenanceSchedule(), emptyRollup(), resolveSeason()
+Nodes (3): buildAdvisory(), computeClimateProjections(), findRegion()
 
 ### Community 600 - "Community 600"
 Cohesion: 0.67
-Nodes (2): computeRegenerationForcing(), detectBarrenZones()
+Nodes (2): findCompanions(), normalize()
 
 ### Community 601 - "Community 601"
 Cohesion: 0.67
-Nodes (2): contributionAtYear(), maturityAtYear()
+Nodes (2): computeGeothermalPotential(), soilConductivityFromTexture()
 
 ### Community 602 - "Community 602"
-Cohesion: 0.5
-Nodes (0): 
+Cohesion: 0.67
+Nodes (2): openDB(), tx()
 
 ### Community 603 - "Community 603"
-Cohesion: 0.83
-Nodes (3): canRun(), generate(), resolveAnchor()
+Cohesion: 0.5
+Nodes (4): GAEZ Futures Inventory, GAEZ Smoke Test, Ingest GAEZ Script Docs, SoilGrids README
 
 ### Community 604 - "Community 604"
-Cohesion: 0.83
-Nodes (3): makePatch(), makeZone(), square()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 605 - "Community 605"
 Cohesion: 0.83
-Nodes (3): makePatch(), makeZone(), square()
+Nodes (3): fmtArea(), fmtLength(), renderBuiltEnvironmentReport()
 
 ### Community 606 - "Community 606"
-Cohesion: 0.67
-Nodes (2): clamp01(), computeCellComfort()
+Cohesion: 0.83
+Nodes (3): missionRadar(), renderCapitalPartnerSummary(), renderJCurveSvg()
 
 ### Community 607 - "Community 607"
 Cohesion: 0.83
-Nodes (3): buildWindbreakLines(), describeWindwardEdge(), parseWindDirection()
+Nodes (3): chips(), healthTone(), renderHumanContextReport()
 
 ### Community 608 - "Community 608"
-Cohesion: 0.67
-Nodes (2): getCropAreaDemandGalPerM2Yr(), getCropAreaWaterGalYr()
+Cohesion: 0.83
+Nodes (3): pickNum(), pickStr(), renderMacroclimateReport()
 
 ### Community 609 - "Community 609"
-Cohesion: 0.83
-Nodes (3): normalizeSummary(), toNum(), toStr()
+Cohesion: 0.67
+Nodes (2): quadrantCard(), renderSwotDiagnosisReport()
 
 ### Community 610 - "Community 610"
-Cohesion: 0.83
-Nodes (3): blaneyCriddleAnnualMm(), computePet(), penmanMonteithAnnualMm()
-
-### Community 611 - "Community 611"
 Cohesion: 0.5
 Nodes (0): 
+
+### Community 611 - "Community 611"
+Cohesion: 0.67
+Nodes (2): renderTopographyReport(), severityForSlope()
 
 ### Community 612 - "Community 612"
 Cohesion: 0.5
-Nodes (4): ADR: Feature-edit popover docked at a fixed right-edge position, ADR: Selection floaters share one stacking container instead of colliding, floaterStackRoot.ts (body-level singleton stack container), InlineFeaturePopover (shared schema-driven mini-form)
+Nodes (0): 
 
 ### Community 613 - "Community 613"
-Cohesion: 0.67
-Nodes (4): ADR: apps/atlas-ui prototype lift + typed builtin-sample adapter, apps/atlas-ui builtin-sample.js view-model adapter, ADR: M6 SWOT Conform JSX to OGDEN reference, M6 SWOT pages (SwotDashboard/Journal/DiagnosisReport)
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 614 - "Community 614"
 Cohesion: 0.5
-Nodes (4): Rationale: zundo records one entry per mousemove (30–60 per drag), Rationale: applying a whole template is one-click, doesn't need ring canvas, Plan guild template picker on popover + slide-up, Plan-stage drag-time undo coalescing — one entry per drag
+Nodes (0): 
 
 ### Community 615 - "Community 615"
-Cohesion: 0.67
-Nodes (4): ADR: Act livestock move card, ADR: Livestock move event v3 schema, ADR: Linked rotate_through exit/entry pair objects, ADR: Cross-stage Plan-map overlay for scheduled livestock moves
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 616 - "Community 616"
 Cohesion: 0.67
-Nodes (4): Human Context Dashboard — hero landscape banner (cinematic forested river valley at golden hour, dashboard header backdrop), Human Context Dashboard — regional snapshot legend (satellite map with Treaty 19 (1818) lands, Haudenosaunee territory, Sixteen Mile Creek corridor overlays), Indigenous Regional Context — hero terrain banner with 'Cultural strengths identified' status chip over river valley aerial, Indigenous Regional Context — regional map panel showing Treaty 19 (1818) lands boundary, Haudenosaunee territory, and Sixteen Mile Creek corridor on satellite terrain
+Nodes (2): handleSegClick(), safeSet()
 
 ### Community 617 - "Community 617"
-Cohesion: 0.83
-Nodes (4): Percolation rate gauge (24 mm/hr), Rooftop rainwater capture diagram (runoff arrows), Seasonal water capture bar chart (winter peak ~32,400 L), Recommended storage callout (8,000-10,000 L, ~75-90% annual capture)
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 618 - "Community 618"
 Cohesion: 0.5
-Nodes (4): Elevation distribution histogram (bell curve peaking ~255m), Elevation profile cross-section (A→B, ridge high point 258m), Solar path altitude-angle diagram (solstice/equinox sun arcs), Wind rose polar chart (prevailing direction & speed bins)
+Nodes (0): 
 
 ### Community 619 - "Community 619"
-Cohesion: 0.67
-Nodes (4): Terrain Detail Elevation Histogram — distribution of site elevations, peak ~255m, range 240-265m, Terrain Detail Elevation Profile — A-to-B cross-section, 253m start, 258m ridge high point, 242m end over ~400m distance, Terrain Detail Main Map — site boundary with elevation heatmap and contour lines, layers panel and legend controls, Wind Rose Chart — Solar/Climate Detail: prevailing wind W/SW (250 deg), 10-18 km/h most common, speed-binned polar plot
+Cohesion: 0.5
+Nodes (1): Sparkline()
 
 ### Community 620 - "Community 620"
-Cohesion: 0.67
-Nodes (1): SimpleBarChart()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 621 - "Community 621"
 Cohesion: 0.67
-Nodes (1): handlePrint()
+Nodes (2): rowFor(), sampleAlong()
 
 ### Community 622 - "Community 622"
-Cohesion: 0.67
-Nodes (1): formatDuration()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 623 - "Community 623"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 624 - "Community 624"
-Cohesion: 0.67
-Nodes (1): sendMessage()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 625 - "Community 625"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): buildWhyHere(), fmtSlope()
 
 ### Community 626 - "Community 626"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): buildNarrative(), distanceMetres(), pluralise()
 
 ### Community 627 - "Community 627"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 628 - "Community 628"
-Cohesion: 1.0
-Nodes (2): computeCutFill(), pointInPolygon()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 629 - "Community 629"
-Cohesion: 1.0
-Nodes (2): computeErosionHazard(), estimateRFactor()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 630 - "Community 630"
-Cohesion: 1.0
-Nodes (2): fetcher(), row()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 631 - "Community 631"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): fmtCurrency(), fmtRange()
 
 ### Community 632 - "Community 632"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 633 - "Community 633"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 634 - "Community 634"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 635 - "Community 635"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 636 - "Community 636"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): deriveTone(), pivot()
 
 ### Community 637 - "Community 637"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 638 - "Community 638"
-Cohesion: 1.0
-Nodes (2): b(), w()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 639 - "Community 639"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 640 - "Community 640"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 641 - "Community 641"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 642 - "Community 642"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 643 - "Community 643"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 644 - "Community 644"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): paddockCentroid(), rowFor()
 
 ### Community 645 - "Community 645"
-Cohesion: 1.0
-Nodes (2): b(), h()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 646 - "Community 646"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 647 - "Community 647"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): distanceM(), nearestWaterSource()
 
 ### Community 648 - "Community 648"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 649 - "Community 649"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 650 - "Community 650"
-Cohesion: 1.0
-Nodes (2): V(), z()
+Cohesion: 0.67
+Nodes (2): sync(), tileUrl()
 
 ### Community 651 - "Community 651"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 652 - "Community 652"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 653 - "Community 653"
-Cohesion: 1.0
-Nodes (2): c(), m()
+Cohesion: 0.67
+Nodes (2): polar(), wedgePath()
 
 ### Community 654 - "Community 654"
-Cohesion: 1.0
-Nodes (2): l(), u()
+Cohesion: 0.67
+Nodes (2): commit(), newTaskId()
 
 ### Community 655 - "Community 655"
-Cohesion: 1.0
-Nodes (2): h(), k()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 656 - "Community 656"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): daysAgo(), formatRelative()
 
 ### Community 657 - "Community 657"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 658 - "Community 658"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 659 - "Community 659"
-Cohesion: 1.0
-Nodes (2): classifyBiome(), estimateCanopyHeight()
+Cohesion: 0.67
+Nodes (2): covenantTier(), wordCount()
 
 ### Community 660 - "Community 660"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 661 - "Community 661"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): buildMetadata(), handleCreate()
 
 ### Community 662 - "Community 662"
-Cohesion: 1.0
-Nodes (2): openDB(), tx()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 663 - "Community 663"
-Cohesion: 1.0
-Nodes (2): fullScores(), scoredResult()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 664 - "Community 664"
-Cohesion: 0.67
-Nodes (3): GAEZ RCP Reconnaissance Decision, GAEZ Self-Hosting Decision, SoilGrids Self-Hosting Decision
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 665 - "Community 665"
-Cohesion: 1.0
-Nodes (2): banner(), main()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 666 - "Community 666"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 667 - "Community 667"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 668 - "Community 668"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 669 - "Community 669"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 670 - "Community 670"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 671 - "Community 671"
-Cohesion: 1.0
-Nodes (2): missionRadar(), renderCapitalPartnerSummary()
+Cohesion: 0.67
+Nodes (2): classify(), matchKeyword()
 
 ### Community 672 - "Community 672"
-Cohesion: 1.0
-Nodes (2): computeComfortExposure(), pickDominantBand()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 673 - "Community 673"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 674 - "Community 674"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): fmtK(), formatKRange()
 
 ### Community 675 - "Community 675"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 676 - "Community 676"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): distanceToFeature(), distanceToNearest()
 
 ### Community 677 - "Community 677"
-Cohesion: 1.0
-Nodes (2): isTodoDone(), todoProgress()
+Cohesion: 0.67
+Nodes (2): quantize(), useForecast()
 
 ### Community 678 - "Community 678"
-Cohesion: 0.67
-Nodes (1): useFocusTrap()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 679 - "Community 679"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): tier3Layer(), withTier3()
 
 ### Community 680 - "Community 680"
-Cohesion: 0.67
-Nodes (1): useMaplibre()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 681 - "Community 681"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 682 - "Community 682"
-Cohesion: 1.0
-Nodes (2): annularSector(), polar()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 683 - "Community 683"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 684 - "Community 684"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 685 - "Community 685"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 686 - "Community 686"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 687 - "Community 687"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): CreateFieldTaskDialog(), defaultDueDate()
 
 ### Community 688 - "Community 688"
-Cohesion: 1.0
-Nodes (2): findGuildPreset(), resolveValidPresets()
+Cohesion: 0.67
+Nodes (2): handleHeaderClick(), stageIsActive()
 
 ### Community 689 - "Community 689"
-Cohesion: 1.0
-Nodes (2): commit(), newId()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 690 - "Community 690"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 691 - "Community 691"
-Cohesion: 1.0
-Nodes (2): commit(), newId()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 692 - "Community 692"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 693 - "Community 693"
-Cohesion: 1.0
-Nodes (2): commit(), newId()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 694 - "Community 694"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 695 - "Community 695"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 696 - "Community 696"
-Cohesion: 1.0
-Nodes (2): has(), synthesizeFindings()
+Cohesion: 0.67
+Nodes (2): buildTemplate(), defaultSummary()
 
 ### Community 697 - "Community 697"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 698 - "Community 698"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 699 - "Community 699"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 700 - "Community 700"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): journalMetrics(), swotCounts(), swotKpis()
 
 ### Community 701 - "Community 701"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 702 - "Community 702"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 703 - "Community 703"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): angleDelta(), arcDegFromPointer(), bearingFromPoints()
 
 ### Community 704 - "Community 704"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 705 - "Community 705"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): onFixOnMap(), polygonCentroid()
 
 ### Community 706 - "Community 706"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 707 - "Community 707"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 708 - "Community 708"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 709 - "Community 709"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): generate(), handleRegenerate()
 
 ### Community 710 - "Community 710"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 711 - "Community 711"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): angleAt(), pointAt()
 
 ### Community 712 - "Community 712"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 713 - "Community 713"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 714 - "Community 714"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 715 - "Community 715"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 716 - "Community 716"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 717 - "Community 717"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): defaultCategoryForZ(), handleComplete(), optionsForZ()
 
 ### Community 718 - "Community 718"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): computeMaintenanceSchedule(), emptyRollup(), resolveSeason()
 
 ### Community 719 - "Community 719"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): computeRegenerationForcing(), detectBarrenZones()
 
 ### Community 720 - "Community 720"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): contributionAtYear(), maturityAtYear()
 
 ### Community 721 - "Community 721"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 722 - "Community 722"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): canRun(), generate(), resolveAnchor()
 
 ### Community 723 - "Community 723"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): makePatch(), makeZone(), square()
 
 ### Community 724 - "Community 724"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): makePatch(), makeZone(), square()
 
 ### Community 725 - "Community 725"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): clamp01(), computeCellComfort()
 
 ### Community 726 - "Community 726"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): buildWindbreakLines(), describeWindwardEdge(), parseWindDirection()
 
 ### Community 727 - "Community 727"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): getCropAreaDemandGalPerM2Yr(), getCropAreaWaterGalYr()
 
 ### Community 728 - "Community 728"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): normalizeSummary(), toNum(), toStr()
 
 ### Community 729 - "Community 729"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): blaneyCriddleAnnualMm(), computePet(), penmanMonteithAnnualMm()
 
 ### Community 730 - "Community 730"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 731 - "Community 731"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.5
+Nodes (4): ADR: Feature-edit popover docked at a fixed right-edge position, ADR: Selection floaters share one stacking container instead of colliding, floaterStackRoot.ts (body-level singleton stack container), InlineFeaturePopover (shared schema-driven mini-form)
 
 ### Community 732 - "Community 732"
-Cohesion: 1.0
-Nodes (2): patch(), toggleFeature()
+Cohesion: 0.67
+Nodes (4): ADR: apps/atlas-ui prototype lift + typed builtin-sample adapter, apps/atlas-ui builtin-sample.js view-model adapter, ADR: M6 SWOT Conform JSX to OGDEN reference, M6 SWOT pages (SwotDashboard/Journal/DiagnosisReport)
 
 ### Community 733 - "Community 733"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.5
+Nodes (4): Rationale: zundo records one entry per mousemove (30–60 per drag), Rationale: applying a whole template is one-click, doesn't need ring canvas, Plan guild template picker on popover + slide-up, Plan-stage drag-time undo coalescing — one entry per drag
 
 ### Community 734 - "Community 734"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (4): ADR: Act livestock move card, ADR: Livestock move event v3 schema, ADR: Linked rotate_through exit/entry pair objects, ADR: Cross-stage Plan-map overlay for scheduled livestock moves
 
 ### Community 735 - "Community 735"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (4): Human Context Dashboard — hero landscape banner (cinematic forested river valley at golden hour, dashboard header backdrop), Human Context Dashboard — regional snapshot legend (satellite map with Treaty 19 (1818) lands, Haudenosaunee territory, Sixteen Mile Creek corridor overlays), Indigenous Regional Context — hero terrain banner with 'Cultural strengths identified' status chip over river valley aerial, Indigenous Regional Context — regional map panel showing Treaty 19 (1818) lands boundary, Haudenosaunee territory, and Sixteen Mile Creek corridor on satellite terrain
 
 ### Community 736 - "Community 736"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (4): Percolation rate gauge (24 mm/hr), Rooftop rainwater capture diagram (runoff arrows), Seasonal water capture bar chart (winter peak ~32,400 L), Recommended storage callout (8,000-10,000 L, ~75-90% annual capture)
 
 ### Community 737 - "Community 737"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.5
+Nodes (4): Elevation distribution histogram (bell curve peaking ~255m), Elevation profile cross-section (A→B, ridge high point 258m), Solar path altitude-angle diagram (solstice/equinox sun arcs), Wind rose polar chart (prevailing direction & speed bins)
 
 ### Community 738 - "Community 738"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (4): Terrain Detail Elevation Histogram — distribution of site elevations, peak ~255m, range 240-265m, Terrain Detail Elevation Profile — A-to-B cross-section, 253m start, 258m ridge high point, 242m end over ~400m distance, Terrain Detail Main Map — site boundary with elevation heatmap and contour lines, layers panel and legend controls, Wind Rose Chart — Solar/Climate Detail: prevailing wind W/SW (250 deg), 10-18 km/h most common, speed-binned polar plot
 
 ### Community 739 - "Community 739"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): migrateCli(), runMigrations()
 
 ### Community 740 - "Community 740"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): metresEastOf(), metresNorthOf(), squareParcel()
 
 ### Community 741 - "Community 741"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): pointAt(), swale()
 
 ### Community 742 - "Community 742"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): makeBag(), makeProject()
 
 ### Community 743 - "Community 743"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 744 - "Community 744"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 745 - "Community 745"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 746 - "Community 746"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): isHabitatFeatureKind(), isTreePlantingKind(), seedHabitatFeatureDependencies()
 
 ### Community 747 - "Community 747"
-Cohesion: 1.0
-Nodes (2): buildAudit(), tierFromScore()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 748 - "Community 748"
-Cohesion: 1.0
-Nodes (2): useIsMobile(), useMediaQuery()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 749 - "Community 749"
-Cohesion: 1.0
-Nodes (2): openDB(), tx()
+Cohesion: 0.83
+Nodes (3): parseCoverCropProvenance(), parsePlantingCalendarProvenance(), seedCoverCropDependencies()
 
 ### Community 750 - "Community 750"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): fmtHrs(), fmtUSD()
 
 ### Community 751 - "Community 751"
-Cohesion: 1.0
-Nodes (2): getEffectiveAnchor(), polygonCentroid()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 752 - "Community 752"
-Cohesion: 1.0
-Nodes (2): polygonCentroid(), useAllPlacedEntities()
+Cohesion: 0.83
+Nodes (3): clamp01to100(), computeLivingRootsCoveragePct(), computeLivingRootsReport()
 
 ### Community 753 - "Community 753"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 754 - "Community 754"
-Cohesion: 1.0
-Nodes (2): anchorCacheKey(), quantizeAnchor()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 755 - "Community 755"
-Cohesion: 1.0
-Nodes (2): computeConcentricZones(), isAscendingPositive()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 756 - "Community 756"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 757 - "Community 757"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 758 - "Community 758"
-Cohesion: 1.0
-Nodes (2): getBuildTaskOverride(), key()
+Cohesion: 0.83
+Nodes (3): auLoad(), computeRotationCarryingCapacity(), statusFor()
 
 ### Community 759 - "Community 759"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): buildRotationMoveKit(), paddockAnimalUnits(), round2()
 
 ### Community 760 - "Community 760"
-Cohesion: 1.0
-Nodes (2): dedupe(), keyOf()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 761 - "Community 761"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 762 - "Community 762"
-Cohesion: 1.0
-Nodes (2): setupUndoCoordinator(), wireStore()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 763 - "Community 763"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 764 - "Community 764"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 765 - "Community 765"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 766 - "Community 766"
-Cohesion: 0.67
-Nodes (1): FakeApiError
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 767 - "Community 767"
-Cohesion: 1.0
-Nodes (2): assertSourceShape(), auditAllRows()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 768 - "Community 768"
-Cohesion: 1.0
-Nodes (2): parseV3Route(), V3LevelNavBridge()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 769 - "Community 769"
-Cohesion: 1.0
-Nodes (2): activeFromPath(), V3ProjectLayout()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 770 - "Community 770"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 771 - "Community 771"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 772 - "Community 772"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 773 - "Community 773"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 774 - "Community 774"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 775 - "Community 775"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 776 - "Community 776"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 777 - "Community 777"
-Cohesion: 1.0
-Nodes (2): ObservedStamp(), relativePhrase()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 778 - "Community 778"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 779 - "Community 779"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.5
+Nodes (1): input()
 
 ### Community 780 - "Community 780"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 781 - "Community 781"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 782 - "Community 782"
-Cohesion: 1.0
-Nodes (2): DesignSoilsOverlay(), pickSoils()
+Cohesion: 0.83
+Nodes (3): captureMapImage(), downscale(), nextRenderedCanvas()
 
 ### Community 783 - "Community 783"
-Cohesion: 1.0
-Nodes (2): DesignWetlandsOverlay(), pickWetlands()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 784 - "Community 784"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 785 - "Community 785"
-Cohesion: 1.0
-Nodes (2): downloadDiagnoseBrief(), renderDiagnoseBriefMarkdown()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 786 - "Community 786"
-Cohesion: 1.0
-Nodes (2): getFloaterStackRoot(), syncStackBottom()
+Cohesion: 0.67
+Nodes (2): derivePlanConflicts(), observationPostdatesDecision()
 
 ### Community 787 - "Community 787"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): usePlanDecisionCounts(), usePlanDecisions()
 
 ### Community 788 - "Community 788"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 789 - "Community 789"
-Cohesion: 1.0
-Nodes (2): moduleForSection(), ObserveHero()
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 790 - "Community 790"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 791 - "Community 791"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): derivePlanImpactFlags(), isFlaggedImpact()
 
 ### Community 792 - "Community 792"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 793 - "Community 793"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 794 - "Community 794"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 795 - "Community 795"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 796 - "Community 796"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): useActivePlanVersion(), usePlanVersionCounts(), usePlanVersions()
 
 ### Community 797 - "Community 797"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 798 - "Community 798"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): usePlanWorkPackageCounts(), usePlanWorkPackages()
 
 ### Community 799 - "Community 799"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 800 - "Community 800"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 801 - "Community 801"
-Cohesion: 0.67
+Cohesion: 0.5
 Nodes (0): 
 
 ### Community 802 - "Community 802"
-Cohesion: 1.0
-Nodes (2): bearingToXY(), wedgePath()
+Cohesion: 0.83
+Nodes (3): canonicalize(), hashInputs(), stableStringify()
 
 ### Community 803 - "Community 803"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): aggregateByLayer(), decayWeight(), levelFromWeight()
 
 ### Community 804 - "Community 804"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (2): isByProjectModuleBlob(), migrateByProjectModuleKeys()
 
 ### Community 805 - "Community 805"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 0.83
+Nodes (3): buildSnapshot(), main(), postgresAdapter()
 
 ### Community 806 - "Community 806"
 Cohesion: 0.67
@@ -5245,15 +5857,15 @@ Nodes (0):
 
 ### Community 807 - "Community 807"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (1): SimpleBarChart()
 
 ### Community 808 - "Community 808"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (1): handlePrint()
 
 ### Community 809 - "Community 809"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (1): formatDuration()
 
 ### Community 810 - "Community 810"
 Cohesion: 0.67
@@ -5261,31 +5873,31 @@ Nodes (0):
 
 ### Community 811 - "Community 811"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (1): sendMessage()
 
 ### Community 812 - "Community 812"
 Cohesion: 0.67
 Nodes (0): 
 
 ### Community 813 - "Community 813"
-Cohesion: 1.0
-Nodes (2): sha256Hex(), validateCustomGlb()
-
-### Community 814 - "Community 814"
-Cohesion: 1.0
-Nodes (2): MapCursorHost(), useMapCursor()
-
-### Community 815 - "Community 815"
-Cohesion: 1.0
-Nodes (2): toolIdToElementKind(), useActiveElementKind()
-
-### Community 816 - "Community 816"
 Cohesion: 0.67
 Nodes (0): 
 
-### Community 817 - "Community 817"
+### Community 814 - "Community 814"
 Cohesion: 1.0
-Nodes (2): nextColor(), onAdd()
+Nodes (2): computeCutFill(), pointInPolygon()
+
+### Community 815 - "Community 815"
+Cohesion: 1.0
+Nodes (2): computeErosionHazard(), estimateRFactor()
+
+### Community 816 - "Community 816"
+Cohesion: 1.0
+Nodes (2): fetcher(), row()
+
+### Community 817 - "Community 817"
+Cohesion: 0.67
+Nodes (0): 
 
 ### Community 818 - "Community 818"
 Cohesion: 0.67
@@ -5308,12 +5920,12 @@ Cohesion: 0.67
 Nodes (0): 
 
 ### Community 823 - "Community 823"
-Cohesion: 1.0
-Nodes (2): lightByLayer(), maturityFactor()
-
-### Community 824 - "Community 824"
 Cohesion: 0.67
 Nodes (0): 
+
+### Community 824 - "Community 824"
+Cohesion: 1.0
+Nodes (2): b(), w()
 
 ### Community 825 - "Community 825"
 Cohesion: 0.67
@@ -5332,16 +5944,16 @@ Cohesion: 0.67
 Nodes (0): 
 
 ### Community 829 - "Community 829"
-Cohesion: 1.0
-Nodes (2): useCappedProjectSlice(), usePrincipleEvidenceVisibleIds()
-
-### Community 830 - "Community 830"
-Cohesion: 1.0
-Nodes (2): deriveHeritageHints(), polygonSeverity()
-
-### Community 831 - "Community 831"
 Cohesion: 0.67
 Nodes (0): 
+
+### Community 830 - "Community 830"
+Cohesion: 0.67
+Nodes (0): 
+
+### Community 831 - "Community 831"
+Cohesion: 1.0
+Nodes (2): b(), h()
 
 ### Community 832 - "Community 832"
 Cohesion: 0.67
@@ -5356,12 +5968,12 @@ Cohesion: 0.67
 Nodes (0): 
 
 ### Community 835 - "Community 835"
-Cohesion: 1.0
-Nodes (2): emptyFacet(), emptySiteProfile()
-
-### Community 836 - "Community 836"
 Cohesion: 0.67
 Nodes (0): 
+
+### Community 836 - "Community 836"
+Cohesion: 1.0
+Nodes (2): V(), z()
 
 ### Community 837 - "Community 837"
 Cohesion: 0.67
@@ -5372,52 +5984,52 @@ Cohesion: 0.67
 Nodes (0): 
 
 ### Community 839 - "Community 839"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 1.0
+Nodes (2): c(), m()
 
 ### Community 840 - "Community 840"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 1.0
+Nodes (2): l(), u()
 
 ### Community 841 - "Community 841"
+Cohesion: 1.0
+Nodes (2): h(), k()
+
+### Community 842 - "Community 842"
 Cohesion: 0.67
 Nodes (0): 
 
-### Community 842 - "Community 842"
-Cohesion: 1.0
-Nodes (2): cyrb53(), seedRng()
-
 ### Community 843 - "Community 843"
-Cohesion: 1.0
-Nodes (2): allocateZones(), scoreZone()
+Cohesion: 0.67
+Nodes (0): 
 
 ### Community 844 - "Community 844"
 Cohesion: 0.67
 Nodes (0): 
 
 ### Community 845 - "Community 845"
-Cohesion: 0.67
-Nodes (0): 
+Cohesion: 1.0
+Nodes (2): classifyBiome(), estimateCanopyHeight()
 
 ### Community 846 - "Community 846"
 Cohesion: 0.67
 Nodes (0): 
 
 ### Community 847 - "Community 847"
-Cohesion: 1.0
-Nodes (2): getZoneGenerator(), runZoneGenerator()
-
-### Community 848 - "Community 848"
-Cohesion: 1.0
-Nodes (2): ctx(), parcelFC()
-
-### Community 849 - "Community 849"
 Cohesion: 0.67
 Nodes (0): 
 
+### Community 848 - "Community 848"
+Cohesion: 1.0
+Nodes (2): fullScores(), scoredResult()
+
+### Community 849 - "Community 849"
+Cohesion: 0.67
+Nodes (3): GAEZ RCP Reconnaissance Decision, GAEZ Self-Hosting Decision, SoilGrids Self-Hosting Decision
+
 ### Community 850 - "Community 850"
 Cohesion: 1.0
-Nodes (2): asPlanProjectTypeKey(), useEffectivePlanProjectType()
+Nodes (2): banner(), main()
 
 ### Community 851 - "Community 851"
 Cohesion: 0.67
@@ -5432,20 +6044,20 @@ Cohesion: 0.67
 Nodes (0): 
 
 ### Community 854 - "Community 854"
-Cohesion: 1.0
-Nodes (2): computeAnnualExposure(), computeCellExposure()
+Cohesion: 0.67
+Nodes (0): 
 
 ### Community 855 - "Community 855"
 Cohesion: 1.0
-Nodes (2): buildComfortSummary(), classifyMonthComfort()
+Nodes (2): computeComfortExposure(), pickDominantBand()
 
 ### Community 856 - "Community 856"
-Cohesion: 1.0
-Nodes (2): getPaddockWaterGalPerDay(), totalHead()
+Cohesion: 0.67
+Nodes (0): 
 
 ### Community 857 - "Community 857"
-Cohesion: 1.0
-Nodes (2): classifyZoneHabitat(), matchWeightTable()
+Cohesion: 0.67
+Nodes (0): 
 
 ### Community 858 - "Community 858"
 Cohesion: 0.67
@@ -5457,1259 +6069,1259 @@ Nodes (0):
 
 ### Community 860 - "Community 860"
 Cohesion: 0.67
-Nodes (3): Section 24: Mobile, Fieldwork & Site Visit Tools, Slug choice rationale: mobile-fieldwork (avoid touching legacy mobile/ + fieldwork/), Section 0g system-wide sync layer (shared offline primitive)
-
-### Community 861 - "Community 861"
-Cohesion: 0.67
-Nodes (3): ADR: Atlas Wind-Prevailing Sector Overlay, computeWindSectors (lib/sectors/wind.ts), matrixTogglesStore (v4 to v5, wind key)
-
-### Community 862 - "Community 862"
-Cohesion: 1.0
 Nodes (0): 
 
-### Community 863 - "Community 863"
+### Community 861 - "Community 861"
 Cohesion: 1.0
+Nodes (2): isTodoDone(), todoProgress()
+
+### Community 862 - "Community 862"
+Cohesion: 0.67
+Nodes (1): useFocusTrap()
+
+### Community 863 - "Community 863"
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 864 - "Community 864"
-Cohesion: 1.0
-Nodes (0): 
+Cohesion: 0.67
+Nodes (1): useMaplibre()
 
 ### Community 865 - "Community 865"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 866 - "Community 866"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 867 - "Community 867"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): annularSector(), polar()
 
 ### Community 868 - "Community 868"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 869 - "Community 869"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 870 - "Community 870"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 871 - "Community 871"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 872 - "Community 872"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 873 - "Community 873"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): findGuildPreset(), resolveValidPresets()
 
 ### Community 874 - "Community 874"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): commit(), newId()
 
 ### Community 875 - "Community 875"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 876 - "Community 876"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): commit(), newId()
 
 ### Community 877 - "Community 877"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 878 - "Community 878"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): commit(), newId()
 
 ### Community 879 - "Community 879"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 880 - "Community 880"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 881 - "Community 881"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): has(), synthesizeFindings()
 
 ### Community 882 - "Community 882"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 883 - "Community 883"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 884 - "Community 884"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 885 - "Community 885"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 886 - "Community 886"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 887 - "Community 887"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 888 - "Community 888"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 889 - "Community 889"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 890 - "Community 890"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 891 - "Community 891"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 892 - "Community 892"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 893 - "Community 893"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 894 - "Community 894"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 895 - "Community 895"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 896 - "Community 896"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 897 - "Community 897"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 898 - "Community 898"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 899 - "Community 899"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 900 - "Community 900"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 901 - "Community 901"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 902 - "Community 902"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 903 - "Community 903"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 904 - "Community 904"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 905 - "Community 905"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 906 - "Community 906"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 907 - "Community 907"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 908 - "Community 908"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 909 - "Community 909"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 910 - "Community 910"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 911 - "Community 911"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 912 - "Community 912"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 913 - "Community 913"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 914 - "Community 914"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 915 - "Community 915"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 916 - "Community 916"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 917 - "Community 917"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 918 - "Community 918"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 919 - "Community 919"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): patch(), toggleFeature()
 
 ### Community 920 - "Community 920"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 921 - "Community 921"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 922 - "Community 922"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 923 - "Community 923"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 924 - "Community 924"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 925 - "Community 925"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 926 - "Community 926"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 927 - "Community 927"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 928 - "Community 928"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 929 - "Community 929"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 930 - "Community 930"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 931 - "Community 931"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 932 - "Community 932"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 933 - "Community 933"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): buildAudit(), tierFromScore()
 
 ### Community 934 - "Community 934"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): useIsMobile(), useMediaQuery()
 
 ### Community 935 - "Community 935"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): openDB(), tx()
 
 ### Community 936 - "Community 936"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 937 - "Community 937"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): getEffectiveAnchor(), polygonCentroid()
 
 ### Community 938 - "Community 938"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): polygonCentroid(), useAllPlacedEntities()
 
 ### Community 939 - "Community 939"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 940 - "Community 940"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): anchorCacheKey(), quantizeAnchor()
 
 ### Community 941 - "Community 941"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): computeConcentricZones(), isAscendingPositive()
 
 ### Community 942 - "Community 942"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 943 - "Community 943"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 944 - "Community 944"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): getBuildTaskOverride(), key()
 
 ### Community 945 - "Community 945"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 946 - "Community 946"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): dedupe(), keyOf()
 
 ### Community 947 - "Community 947"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 948 - "Community 948"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): setupUndoCoordinator(), wireStore()
 
 ### Community 949 - "Community 949"
-Cohesion: 1.0
-Nodes (2): Atlas Deep Audit, Atlas Deep Audit 2026-04-19
+Cohesion: 0.67
+Nodes (0): 
 
 ### Community 950 - "Community 950"
-Cohesion: 1.0
-Nodes (2): Atlas Status Report, Graph Report
+Cohesion: 0.67
+Nodes (0): 
 
 ### Community 951 - "Community 951"
-Cohesion: 1.0
-Nodes (2): Infrastructure Deploy Guide, Local Verification
+Cohesion: 0.67
+Nodes (1): FakeApiError
 
 ### Community 952 - "Community 952"
 Cohesion: 1.0
-Nodes (2): Financial Model, Scoring Engine
+Nodes (2): assertSourceShape(), auditAllRows()
 
 ### Community 953 - "Community 953"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): parseV3Route(), V3LevelNavBridge()
 
 ### Community 954 - "Community 954"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): activeFromPath(), V3ProjectLayout()
 
 ### Community 955 - "Community 955"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 956 - "Community 956"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 957 - "Community 957"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 958 - "Community 958"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 959 - "Community 959"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 960 - "Community 960"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 961 - "Community 961"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 962 - "Community 962"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 963 - "Community 963"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ObservedStamp(), relativePhrase()
 
 ### Community 964 - "Community 964"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 965 - "Community 965"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 966 - "Community 966"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 967 - "Community 967"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 968 - "Community 968"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): DesignSoilsOverlay(), pickSoils()
 
 ### Community 969 - "Community 969"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): DesignWetlandsOverlay(), pickWetlands()
 
 ### Community 970 - "Community 970"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 971 - "Community 971"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): downloadDiagnoseBrief(), renderDiagnoseBriefMarkdown()
 
 ### Community 972 - "Community 972"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): getFloaterStackRoot(), syncStackBottom()
 
 ### Community 973 - "Community 973"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 974 - "Community 974"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 975 - "Community 975"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): moduleForSection(), ObserveHero()
 
 ### Community 976 - "Community 976"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 977 - "Community 977"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 978 - "Community 978"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 979 - "Community 979"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 980 - "Community 980"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 981 - "Community 981"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 982 - "Community 982"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 983 - "Community 983"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 984 - "Community 984"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 985 - "Community 985"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 986 - "Community 986"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 987 - "Community 987"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 988 - "Community 988"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 989 - "Community 989"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 990 - "Community 990"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 991 - "Community 991"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 992 - "Community 992"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): bearingToXY(), wedgePath()
 
 ### Community 993 - "Community 993"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 994 - "Community 994"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 995 - "Community 995"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 996 - "Community 996"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 997 - "Community 997"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 998 - "Community 998"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 999 - "Community 999"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1000 - "Community 1000"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1001 - "Community 1001"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1002 - "Community 1002"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): sha256Hex(), validateCustomGlb()
 
 ### Community 1003 - "Community 1003"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): MapCursorHost(), useMapCursor()
 
 ### Community 1004 - "Community 1004"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): toolIdToElementKind(), useActiveElementKind()
 
 ### Community 1005 - "Community 1005"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1006 - "Community 1006"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): nextColor(), onAdd()
 
 ### Community 1007 - "Community 1007"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1008 - "Community 1008"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1009 - "Community 1009"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1010 - "Community 1010"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1011 - "Community 1011"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1012 - "Community 1012"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): lightByLayer(), maturityFactor()
 
 ### Community 1013 - "Community 1013"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1014 - "Community 1014"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1015 - "Community 1015"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1016 - "Community 1016"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1017 - "Community 1017"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1018 - "Community 1018"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): useCappedProjectSlice(), usePrincipleEvidenceVisibleIds()
 
 ### Community 1019 - "Community 1019"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): deriveHeritageHints(), polygonSeverity()
 
 ### Community 1020 - "Community 1020"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1021 - "Community 1021"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1022 - "Community 1022"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1023 - "Community 1023"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): emptyFacet(), emptySiteProfile()
 
 ### Community 1024 - "Community 1024"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): getGoalTreeTemplate(), resolveTemplateKey()
 
 ### Community 1025 - "Community 1025"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1026 - "Community 1026"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1027 - "Community 1027"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1028 - "Community 1028"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1029 - "Community 1029"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1030 - "Community 1030"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1031 - "Community 1031"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): cyrb53(), seedRng()
 
 ### Community 1032 - "Community 1032"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): allocateZones(), scoreZone()
 
 ### Community 1033 - "Community 1033"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1034 - "Community 1034"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1035 - "Community 1035"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1036 - "Community 1036"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): getZoneGenerator(), runZoneGenerator()
 
 ### Community 1037 - "Community 1037"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ctx(), parcelFC()
 
 ### Community 1038 - "Community 1038"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1039 - "Community 1039"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): asPlanProjectTypeKey(), useEffectivePlanProjectType()
 
 ### Community 1040 - "Community 1040"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1041 - "Community 1041"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1042 - "Community 1042"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1043 - "Community 1043"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): computeAnnualExposure(), computeCellExposure()
 
 ### Community 1044 - "Community 1044"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): buildComfortSummary(), classifyMonthComfort()
 
 ### Community 1045 - "Community 1045"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): getPaddockWaterGalPerDay(), totalHead()
 
 ### Community 1046 - "Community 1046"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): classifyZoneHabitat(), matchWeightTable()
 
 ### Community 1047 - "Community 1047"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1048 - "Community 1048"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1049 - "Community 1049"
-Cohesion: 1.0
-Nodes (0): 
+Cohesion: 0.67
+Nodes (3): Section 24: Mobile, Fieldwork & Site Visit Tools, Slug choice rationale: mobile-fieldwork (avoid touching legacy mobile/ + fieldwork/), Section 0g system-wide sync layer (shared offline primitive)
 
 ### Community 1050 - "Community 1050"
-Cohesion: 1.0
-Nodes (0): 
+Cohesion: 0.67
+Nodes (3): ADR: Atlas Wind-Prevailing Sector Overlay, computeWindSectors (lib/sectors/wind.ts), matrixTogglesStore (v4 to v5, wind key)
 
 ### Community 1051 - "Community 1051"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): main(), parseArgs()
 
 ### Community 1052 - "Community 1052"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): isKnownPanelKey(), replayEvidenceAuditSince()
 
 ### Community 1053 - "Community 1053"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): emptySummary(), generateDesignMap()
 
 ### Community 1054 - "Community 1054"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): clipLineToRing(), generateOrchardOnContour()
 
 ### Community 1055 - "Community 1055"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1056 - "Community 1056"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1057 - "Community 1057"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1058 - "Community 1058"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1059 - "Community 1059"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1060 - "Community 1060"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1061 - "Community 1061"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): makeBag(), makeProject()
 
 ### Community 1062 - "Community 1062"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1063 - "Community 1063"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ensureDevServerUp(), main()
 
 ### Community 1064 - "Community 1064"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): bootAuth(), bootAuthedShell()
 
 ### Community 1065 - "Community 1065"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1066 - "Community 1066"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1067 - "Community 1067"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1068 - "Community 1068"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): handleAdd(), now()
 
 ### Community 1069 - "Community 1069"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): reset(), wi()
 
 ### Community 1070 - "Community 1070"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1071 - "Community 1071"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1072 - "Community 1072"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1073 - "Community 1073"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): computeHabitatFeatureProgramEconomics(), emptyBand()
 
 ### Community 1074 - "Community 1074"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1075 - "Community 1075"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1076 - "Community 1076"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1077 - "Community 1077"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): MonthBandPicker(), monthsInRange()
 
 ### Community 1078 - "Community 1078"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1079 - "Community 1079"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1080 - "Community 1080"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1081 - "Community 1081"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1082 - "Community 1082"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): fixture(), ty()
 
 ### Community 1083 - "Community 1083"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1084 - "Community 1084"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1085 - "Community 1085"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1086 - "Community 1086"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1087 - "Community 1087"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1088 - "Community 1088"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1089 - "Community 1089"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): paddock(), seedDrift()
 
 ### Community 1090 - "Community 1090"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1091 - "Community 1091"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1092 - "Community 1092"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1093 - "Community 1093"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1094 - "Community 1094"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1095 - "Community 1095"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1096 - "Community 1096"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): SampleEntryForm(), today()
 
 ### Community 1097 - "Community 1097"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1098 - "Community 1098"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1099 - "Community 1099"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): computeAgroforestryProgramEconomics(), emptyBand()
 
 ### Community 1100 - "Community 1100"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): computeTreePlantingProgramEconomics(), emptyBand()
 
 ### Community 1101 - "Community 1101"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1102 - "Community 1102"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1103 - "Community 1103"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1104 - "Community 1104"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): allPersistedOgdenKeys(), extractPersistKeys()
 
 ### Community 1105 - "Community 1105"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1106 - "Community 1106"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): handleSubmit(), readSessionId()
 
 ### Community 1107 - "Community 1107"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1108 - "Community 1108"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1109 - "Community 1109"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1110 - "Community 1110"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1111 - "Community 1111"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1112 - "Community 1112"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1113 - "Community 1113"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1114 - "Community 1114"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1115 - "Community 1115"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1116 - "Community 1116"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1117 - "Community 1117"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1118 - "Community 1118"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1119 - "Community 1119"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1120 - "Community 1120"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): HeaderStageSpine(), sectionToStage()
 
 ### Community 1121 - "Community 1121"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1122 - "Community 1122"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1123 - "Community 1123"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1124 - "Community 1124"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1125 - "Community 1125"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): byStage(), progress()
 
 ### Community 1126 - "Community 1126"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1127 - "Community 1127"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1128 - "Community 1128"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1129 - "Community 1129"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): useObservationNeed(), useObservationNeeds()
 
 ### Community 1130 - "Community 1130"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1131 - "Community 1131"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1132 - "Community 1132"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): onPick(), readFileAsDataUrl()
 
 ### Community 1133 - "Community 1133"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1134 - "Community 1134"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1135 - "Community 1135"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1136 - "Community 1136"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1137 - "Community 1137"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1138 - "Community 1138"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): clampYear(), seedFromGuilds()
 
 ### Community 1139 - "Community 1139"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1140 - "Community 1140"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1141 - "Community 1141"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1142 - "Community 1142"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1143 - "Community 1143"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1144 - "Community 1144"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ConflictCard(), formatRecordedAt()
 
 ### Community 1145 - "Community 1145"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): usePlanConflictCounts(), usePlanConflicts()
 
 ### Community 1146 - "Community 1146"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1147 - "Community 1147"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1148 - "Community 1148"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1149 - "Community 1149"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1150 - "Community 1150"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1151 - "Community 1151"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): FlagCard(), formatRecordedAt()
 
 ### Community 1152 - "Community 1152"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): usePlanImpactFlagCounts(), usePlanImpactFlags()
 
 ### Community 1153 - "Community 1153"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1154 - "Community 1154"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1155 - "Community 1155"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1156 - "Community 1156"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1157 - "Community 1157"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1158 - "Community 1158"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): snapshot(), version()
 
 ### Community 1159 - "Community 1159"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1160 - "Community 1160"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1161 - "Community 1161"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): deriveActivatedModules(), selectedIdsForPath()
 
 ### Community 1162 - "Community 1162"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1163 - "Community 1163"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1164 - "Community 1164"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1165 - "Community 1165"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): assertExhaustive(), selectEvidenceFor()
 
 ### Community 1166 - "Community 1166"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): confidenceFromRatio(), selectHostCanopyUnionEvidence()
 
 ### Community 1167 - "Community 1167"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): selectVerdictEvidence(), verdictLabel()
 
 ### Community 1168 - "Community 1168"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): computeOperatingHealth(), isOverdue()
 
 ### Community 1169 - "Community 1169"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): evaluateRegenerationReadiness(), successionMeets()
 
 ### Community 1170 - "Community 1170"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1171 - "Community 1171"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1172 - "Community 1172"
-Cohesion: 1.0
+Cohesion: 0.67
 Nodes (0): 
 
 ### Community 1173 - "Community 1173"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): day(), wi()
 
 ### Community 1174 - "Community 1174"
 Cohesion: 1.0
@@ -7057,19 +7669,19 @@ Nodes (0):
 
 ### Community 1260 - "Community 1260"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): Atlas Deep Audit, Atlas Deep Audit 2026-04-19
 
 ### Community 1261 - "Community 1261"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): Atlas Status Report, Graph Report
 
 ### Community 1262 - "Community 1262"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): Infrastructure Deploy Guide, Local Verification
 
 ### Community 1263 - "Community 1263"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): Financial Model, Scoring Engine
 
 ### Community 1264 - "Community 1264"
 Cohesion: 1.0
@@ -7417,39 +8029,39 @@ Nodes (0):
 
 ### Community 1350 - "Community 1350"
 Cohesion: 1.0
-Nodes (2): ADR 2026-05-06 Observe port styling, Wholesale observe-port.css retired for per-component CSS Modules
+Nodes (0): 
 
 ### Community 1351 - "Community 1351"
 Cohesion: 1.0
-Nodes (2): ADR: Adopt-from-map geometry-keyed selection; drop per-building basemap hide, pickClickedPolygon (tile-batched MultiPolygon sub-polygon picker)
+Nodes (0): 
 
 ### Community 1352 - "Community 1352"
 Cohesion: 1.0
-Nodes (2): ADR 2026-05-04 atlas-ui grid-alignment audit (deferred scope), ADR 2026-05-04 atlas-ui MILOS UI/UX lift (Phases 1-4)
+Nodes (0): 
 
 ### Community 1353 - "Community 1353"
-Cohesion: 2.0
-Nodes (2): ADR: Plan-stage earthwork utility-conflict veto, ADR: Continuous point placement for Plan-stage trees / shrubs
+Cohesion: 1.0
+Nodes (0): 
 
 ### Community 1354 - "Community 1354"
 Cohesion: 1.0
-Nodes (2): ADR: Plan Module 6 Livestock — Farm-Scholar verdict, ADR: Module 7 Broiler Product Map (post-farm-gate value chain)
+Nodes (0): 
 
 ### Community 1355 - "Community 1355"
 Cohesion: 1.0
-Nodes (2): ADR 2026-05-15: Offline tile-precache repointed to Esri World Imagery, ADR 2026-05-15: Satellite basemap → Esri World Imagery (MapTiler retained as Hybrid fallback)
+Nodes (0): 
 
 ### Community 1356 - "Community 1356"
 Cohesion: 1.0
-Nodes (2): Macroclimate Dashboard — hazard hotspots contour map (climate risk density with High/Moderate/Low legend over watershed shape), Macroclimate Dashboard — hazard risk matrix (Likelihood vs Severity heatmap grid plotting 3 ranked climate hazards)
+Nodes (0): 
 
 ### Community 1357 - "Community 1357"
 Cohesion: 1.0
-Nodes (2): Hazard hotspots contour map (High/Moderate/Low blobs), Hazard risk matrix (likelihood x severity, 3 plotted hazards)
+Nodes (0): 
 
 ### Community 1358 - "Community 1358"
 Cohesion: 1.0
-Nodes (1): ADR: Stocking-input canonical per-paddock pastureQuality (Path B)
+Nodes (0): 
 
 ### Community 1359 - "Community 1359"
 Cohesion: 1.0
@@ -7917,35 +8529,35 @@ Nodes (0):
 
 ### Community 1475 - "Community 1475"
 Cohesion: 1.0
-Nodes (1): Atlas README
+Nodes (0): 
 
 ### Community 1476 - "Community 1476"
 Cohesion: 1.0
-Nodes (1): OGDEN Atlas Global Completeness Gap Analysis
+Nodes (0): 
 
 ### Community 1477 - "Community 1477"
 Cohesion: 1.0
-Nodes (1): Windows Dev Notes
+Nodes (0): 
 
 ### Community 1478 - "Community 1478"
 Cohesion: 1.0
-Nodes (1): Wiki Schema
+Nodes (0): 
 
 ### Community 1479 - "Community 1479"
 Cohesion: 1.0
-Nodes (1): Design System
+Nodes (0): 
 
 ### Community 1480 - "Community 1480"
 Cohesion: 1.0
-Nodes (1): Local-First Architecture
+Nodes (0): 
 
 ### Community 1481 - "Community 1481"
 Cohesion: 1.0
-Nodes (1): Dashboard Sidebar Groups Decision
+Nodes (0): 
 
 ### Community 1482 - "Community 1482"
 Cohesion: 1.0
-Nodes (1): PDF Export Architecture Decision
+Nodes (0): 
 
 ### Community 1483 - "Community 1483"
 Cohesion: 1.0
@@ -8593,35 +9205,35 @@ Nodes (0):
 
 ### Community 1644 - "Community 1644"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ADR 2026-05-06 Observe port styling, Wholesale observe-port.css retired for per-component CSS Modules
 
 ### Community 1645 - "Community 1645"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ADR: Adopt-from-map geometry-keyed selection; drop per-building basemap hide, pickClickedPolygon (tile-batched MultiPolygon sub-polygon picker)
 
 ### Community 1646 - "Community 1646"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ADR 2026-05-04 atlas-ui grid-alignment audit (deferred scope), ADR 2026-05-04 atlas-ui MILOS UI/UX lift (Phases 1-4)
 
 ### Community 1647 - "Community 1647"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ADR: Plan Module 6 Livestock — Farm-Scholar verdict, ADR: Module 7 Broiler Product Map (post-farm-gate value chain)
 
 ### Community 1648 - "Community 1648"
-Cohesion: 1.0
-Nodes (0): 
+Cohesion: 2.0
+Nodes (2): ADR: Plan-stage earthwork utility-conflict veto, ADR: Continuous point placement for Plan-stage trees / shrubs
 
 ### Community 1649 - "Community 1649"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): ADR 2026-05-15: Offline tile-precache repointed to Esri World Imagery, ADR 2026-05-15: Satellite basemap → Esri World Imagery (MapTiler retained as Hybrid fallback)
 
 ### Community 1650 - "Community 1650"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): Macroclimate Dashboard — hazard hotspots contour map (climate risk density with High/Moderate/Low legend over watershed shape), Macroclimate Dashboard — hazard risk matrix (Likelihood vs Severity heatmap grid plotting 3 ranked climate hazards)
 
 ### Community 1651 - "Community 1651"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): Hazard hotspots contour map (High/Moderate/Low blobs), Hazard risk matrix (likelihood x severity, 3 plotted hazards)
 
 ### Community 1652 - "Community 1652"
 Cohesion: 1.0
@@ -9365,7 +9977,7 @@ Nodes (0):
 
 ### Community 1837 - "Community 1837"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (1): ADR: Stocking-input canonical per-paddock pastureQuality (Path B)
 
 ### Community 1838 - "Community 1838"
 Cohesion: 1.0
@@ -9525,2070 +10137,5112 @@ Nodes (0):
 
 ### Community 1877 - "Community 1877"
 Cohesion: 1.0
-Nodes (1): Flow accumulation by area donut chart
+Nodes (0): 
 
 ### Community 1878 - "Community 1878"
 Cohesion: 1.0
-Nodes (1): Jar soil texture test showing stratified sediment layers
+Nodes (0): 
 
 ### Community 1879 - "Community 1879"
 Cohesion: 1.0
+Nodes (0): 
+
+### Community 1880 - "Community 1880"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1881 - "Community 1881"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1882 - "Community 1882"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1883 - "Community 1883"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1884 - "Community 1884"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1885 - "Community 1885"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1886 - "Community 1886"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1887 - "Community 1887"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1888 - "Community 1888"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1889 - "Community 1889"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1890 - "Community 1890"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1891 - "Community 1891"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1892 - "Community 1892"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1893 - "Community 1893"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1894 - "Community 1894"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1895 - "Community 1895"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1896 - "Community 1896"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1897 - "Community 1897"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1898 - "Community 1898"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1899 - "Community 1899"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1900 - "Community 1900"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1901 - "Community 1901"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1902 - "Community 1902"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1903 - "Community 1903"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1904 - "Community 1904"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1905 - "Community 1905"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1906 - "Community 1906"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1907 - "Community 1907"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1908 - "Community 1908"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1909 - "Community 1909"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1910 - "Community 1910"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1911 - "Community 1911"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1912 - "Community 1912"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1913 - "Community 1913"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1914 - "Community 1914"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1915 - "Community 1915"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1916 - "Community 1916"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1917 - "Community 1917"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1918 - "Community 1918"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1919 - "Community 1919"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1920 - "Community 1920"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1921 - "Community 1921"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1922 - "Community 1922"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1923 - "Community 1923"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1924 - "Community 1924"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1925 - "Community 1925"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1926 - "Community 1926"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1927 - "Community 1927"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1928 - "Community 1928"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1929 - "Community 1929"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1930 - "Community 1930"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1931 - "Community 1931"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1932 - "Community 1932"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1933 - "Community 1933"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1934 - "Community 1934"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1935 - "Community 1935"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1936 - "Community 1936"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1937 - "Community 1937"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1938 - "Community 1938"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1939 - "Community 1939"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1940 - "Community 1940"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1941 - "Community 1941"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1942 - "Community 1942"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1943 - "Community 1943"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1944 - "Community 1944"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1945 - "Community 1945"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1946 - "Community 1946"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1947 - "Community 1947"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1948 - "Community 1948"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1949 - "Community 1949"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1950 - "Community 1950"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1951 - "Community 1951"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1952 - "Community 1952"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1953 - "Community 1953"
+Cohesion: 1.0
+Nodes (1): Atlas README
+
+### Community 1954 - "Community 1954"
+Cohesion: 1.0
+Nodes (1): OGDEN Atlas Global Completeness Gap Analysis
+
+### Community 1955 - "Community 1955"
+Cohesion: 1.0
+Nodes (1): Windows Dev Notes
+
+### Community 1956 - "Community 1956"
+Cohesion: 1.0
+Nodes (1): Wiki Schema
+
+### Community 1957 - "Community 1957"
+Cohesion: 1.0
+Nodes (1): Design System
+
+### Community 1958 - "Community 1958"
+Cohesion: 1.0
+Nodes (1): Local-First Architecture
+
+### Community 1959 - "Community 1959"
+Cohesion: 1.0
+Nodes (1): Dashboard Sidebar Groups Decision
+
+### Community 1960 - "Community 1960"
+Cohesion: 1.0
+Nodes (1): PDF Export Architecture Decision
+
+### Community 1961 - "Community 1961"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1962 - "Community 1962"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1963 - "Community 1963"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1964 - "Community 1964"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1965 - "Community 1965"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1966 - "Community 1966"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1967 - "Community 1967"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1968 - "Community 1968"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1969 - "Community 1969"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1970 - "Community 1970"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1971 - "Community 1971"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1972 - "Community 1972"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1973 - "Community 1973"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1974 - "Community 1974"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1975 - "Community 1975"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1976 - "Community 1976"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1977 - "Community 1977"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1978 - "Community 1978"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1979 - "Community 1979"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1980 - "Community 1980"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1981 - "Community 1981"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1982 - "Community 1982"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1983 - "Community 1983"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1984 - "Community 1984"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1985 - "Community 1985"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1986 - "Community 1986"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1987 - "Community 1987"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1988 - "Community 1988"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1989 - "Community 1989"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1990 - "Community 1990"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1991 - "Community 1991"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1992 - "Community 1992"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1993 - "Community 1993"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1994 - "Community 1994"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1995 - "Community 1995"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1996 - "Community 1996"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1997 - "Community 1997"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1998 - "Community 1998"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 1999 - "Community 1999"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2000 - "Community 2000"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2001 - "Community 2001"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2002 - "Community 2002"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2003 - "Community 2003"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2004 - "Community 2004"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2005 - "Community 2005"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2006 - "Community 2006"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2007 - "Community 2007"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2008 - "Community 2008"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2009 - "Community 2009"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2010 - "Community 2010"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2011 - "Community 2011"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2012 - "Community 2012"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2013 - "Community 2013"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2014 - "Community 2014"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2015 - "Community 2015"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2016 - "Community 2016"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2017 - "Community 2017"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2018 - "Community 2018"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2019 - "Community 2019"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2020 - "Community 2020"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2021 - "Community 2021"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2022 - "Community 2022"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2023 - "Community 2023"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2024 - "Community 2024"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2025 - "Community 2025"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2026 - "Community 2026"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2027 - "Community 2027"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2028 - "Community 2028"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2029 - "Community 2029"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2030 - "Community 2030"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2031 - "Community 2031"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2032 - "Community 2032"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2033 - "Community 2033"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2034 - "Community 2034"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2035 - "Community 2035"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2036 - "Community 2036"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2037 - "Community 2037"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2038 - "Community 2038"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2039 - "Community 2039"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2040 - "Community 2040"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2041 - "Community 2041"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2042 - "Community 2042"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2043 - "Community 2043"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2044 - "Community 2044"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2045 - "Community 2045"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2046 - "Community 2046"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2047 - "Community 2047"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2048 - "Community 2048"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2049 - "Community 2049"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2050 - "Community 2050"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2051 - "Community 2051"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2052 - "Community 2052"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2053 - "Community 2053"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2054 - "Community 2054"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2055 - "Community 2055"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2056 - "Community 2056"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2057 - "Community 2057"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2058 - "Community 2058"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2059 - "Community 2059"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2060 - "Community 2060"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2061 - "Community 2061"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2062 - "Community 2062"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2063 - "Community 2063"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2064 - "Community 2064"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2065 - "Community 2065"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2066 - "Community 2066"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2067 - "Community 2067"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2068 - "Community 2068"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2069 - "Community 2069"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2070 - "Community 2070"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2071 - "Community 2071"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2072 - "Community 2072"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2073 - "Community 2073"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2074 - "Community 2074"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2075 - "Community 2075"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2076 - "Community 2076"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2077 - "Community 2077"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2078 - "Community 2078"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2079 - "Community 2079"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2080 - "Community 2080"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2081 - "Community 2081"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2082 - "Community 2082"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2083 - "Community 2083"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2084 - "Community 2084"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2085 - "Community 2085"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2086 - "Community 2086"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2087 - "Community 2087"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2088 - "Community 2088"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2089 - "Community 2089"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2090 - "Community 2090"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2091 - "Community 2091"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2092 - "Community 2092"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2093 - "Community 2093"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2094 - "Community 2094"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2095 - "Community 2095"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2096 - "Community 2096"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2097 - "Community 2097"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2098 - "Community 2098"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2099 - "Community 2099"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2100 - "Community 2100"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2101 - "Community 2101"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2102 - "Community 2102"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2103 - "Community 2103"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2104 - "Community 2104"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2105 - "Community 2105"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2106 - "Community 2106"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2107 - "Community 2107"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2108 - "Community 2108"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2109 - "Community 2109"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2110 - "Community 2110"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2111 - "Community 2111"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2112 - "Community 2112"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2113 - "Community 2113"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2114 - "Community 2114"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2115 - "Community 2115"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2116 - "Community 2116"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2117 - "Community 2117"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2118 - "Community 2118"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2119 - "Community 2119"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2120 - "Community 2120"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2121 - "Community 2121"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2122 - "Community 2122"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2123 - "Community 2123"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2124 - "Community 2124"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2125 - "Community 2125"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2126 - "Community 2126"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2127 - "Community 2127"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2128 - "Community 2128"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2129 - "Community 2129"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2130 - "Community 2130"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2131 - "Community 2131"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2132 - "Community 2132"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2133 - "Community 2133"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2134 - "Community 2134"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2135 - "Community 2135"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2136 - "Community 2136"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2137 - "Community 2137"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2138 - "Community 2138"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2139 - "Community 2139"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2140 - "Community 2140"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2141 - "Community 2141"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2142 - "Community 2142"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2143 - "Community 2143"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2144 - "Community 2144"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2145 - "Community 2145"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2146 - "Community 2146"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2147 - "Community 2147"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2148 - "Community 2148"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2149 - "Community 2149"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2150 - "Community 2150"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2151 - "Community 2151"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2152 - "Community 2152"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2153 - "Community 2153"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2154 - "Community 2154"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2155 - "Community 2155"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2156 - "Community 2156"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2157 - "Community 2157"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2158 - "Community 2158"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2159 - "Community 2159"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2160 - "Community 2160"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2161 - "Community 2161"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2162 - "Community 2162"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2163 - "Community 2163"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2164 - "Community 2164"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2165 - "Community 2165"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2166 - "Community 2166"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2167 - "Community 2167"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2168 - "Community 2168"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2169 - "Community 2169"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2170 - "Community 2170"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2171 - "Community 2171"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2172 - "Community 2172"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2173 - "Community 2173"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2174 - "Community 2174"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2175 - "Community 2175"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2176 - "Community 2176"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2177 - "Community 2177"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2178 - "Community 2178"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2179 - "Community 2179"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2180 - "Community 2180"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2181 - "Community 2181"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2182 - "Community 2182"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2183 - "Community 2183"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2184 - "Community 2184"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2185 - "Community 2185"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2186 - "Community 2186"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2187 - "Community 2187"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2188 - "Community 2188"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2189 - "Community 2189"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2190 - "Community 2190"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2191 - "Community 2191"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2192 - "Community 2192"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2193 - "Community 2193"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2194 - "Community 2194"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2195 - "Community 2195"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2196 - "Community 2196"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2197 - "Community 2197"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2198 - "Community 2198"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2199 - "Community 2199"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2200 - "Community 2200"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2201 - "Community 2201"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2202 - "Community 2202"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2203 - "Community 2203"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2204 - "Community 2204"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2205 - "Community 2205"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2206 - "Community 2206"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2207 - "Community 2207"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2208 - "Community 2208"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2209 - "Community 2209"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2210 - "Community 2210"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2211 - "Community 2211"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2212 - "Community 2212"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2213 - "Community 2213"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2214 - "Community 2214"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2215 - "Community 2215"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2216 - "Community 2216"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2217 - "Community 2217"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2218 - "Community 2218"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2219 - "Community 2219"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2220 - "Community 2220"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2221 - "Community 2221"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2222 - "Community 2222"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2223 - "Community 2223"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2224 - "Community 2224"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2225 - "Community 2225"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2226 - "Community 2226"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2227 - "Community 2227"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2228 - "Community 2228"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2229 - "Community 2229"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2230 - "Community 2230"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2231 - "Community 2231"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2232 - "Community 2232"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2233 - "Community 2233"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2234 - "Community 2234"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2235 - "Community 2235"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2236 - "Community 2236"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2237 - "Community 2237"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2238 - "Community 2238"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2239 - "Community 2239"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2240 - "Community 2240"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2241 - "Community 2241"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2242 - "Community 2242"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2243 - "Community 2243"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2244 - "Community 2244"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2245 - "Community 2245"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2246 - "Community 2246"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2247 - "Community 2247"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2248 - "Community 2248"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2249 - "Community 2249"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2250 - "Community 2250"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2251 - "Community 2251"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2252 - "Community 2252"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2253 - "Community 2253"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2254 - "Community 2254"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2255 - "Community 2255"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2256 - "Community 2256"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2257 - "Community 2257"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2258 - "Community 2258"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2259 - "Community 2259"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2260 - "Community 2260"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2261 - "Community 2261"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2262 - "Community 2262"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2263 - "Community 2263"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2264 - "Community 2264"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2265 - "Community 2265"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2266 - "Community 2266"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2267 - "Community 2267"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2268 - "Community 2268"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2269 - "Community 2269"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2270 - "Community 2270"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2271 - "Community 2271"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2272 - "Community 2272"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2273 - "Community 2273"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2274 - "Community 2274"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2275 - "Community 2275"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2276 - "Community 2276"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2277 - "Community 2277"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2278 - "Community 2278"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2279 - "Community 2279"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2280 - "Community 2280"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2281 - "Community 2281"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2282 - "Community 2282"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2283 - "Community 2283"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2284 - "Community 2284"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2285 - "Community 2285"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2286 - "Community 2286"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2287 - "Community 2287"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2288 - "Community 2288"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2289 - "Community 2289"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2290 - "Community 2290"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2291 - "Community 2291"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2292 - "Community 2292"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2293 - "Community 2293"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2294 - "Community 2294"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2295 - "Community 2295"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2296 - "Community 2296"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2297 - "Community 2297"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2298 - "Community 2298"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2299 - "Community 2299"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2300 - "Community 2300"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2301 - "Community 2301"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2302 - "Community 2302"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2303 - "Community 2303"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2304 - "Community 2304"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2305 - "Community 2305"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2306 - "Community 2306"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2307 - "Community 2307"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2308 - "Community 2308"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2309 - "Community 2309"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2310 - "Community 2310"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2311 - "Community 2311"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2312 - "Community 2312"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2313 - "Community 2313"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2314 - "Community 2314"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2315 - "Community 2315"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2316 - "Community 2316"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2317 - "Community 2317"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2318 - "Community 2318"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2319 - "Community 2319"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2320 - "Community 2320"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2321 - "Community 2321"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2322 - "Community 2322"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2323 - "Community 2323"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2324 - "Community 2324"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2325 - "Community 2325"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2326 - "Community 2326"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2327 - "Community 2327"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2328 - "Community 2328"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2329 - "Community 2329"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2330 - "Community 2330"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2331 - "Community 2331"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2332 - "Community 2332"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2333 - "Community 2333"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2334 - "Community 2334"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2335 - "Community 2335"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2336 - "Community 2336"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2337 - "Community 2337"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2338 - "Community 2338"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2339 - "Community 2339"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2340 - "Community 2340"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2341 - "Community 2341"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2342 - "Community 2342"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2343 - "Community 2343"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2344 - "Community 2344"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2345 - "Community 2345"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2346 - "Community 2346"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2347 - "Community 2347"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2348 - "Community 2348"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2349 - "Community 2349"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2350 - "Community 2350"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2351 - "Community 2351"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2352 - "Community 2352"
+Cohesion: 1.0
+Nodes (1): Flow accumulation by area donut chart
+
+### Community 2353 - "Community 2353"
+Cohesion: 1.0
+Nodes (1): Jar soil texture test showing stratified sediment layers
+
+### Community 2354 - "Community 2354"
+Cohesion: 1.0
 Nodes (1): OBSERVE Vision Moodboard Grid
+
+### Community 2355 - "Community 2355"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2356 - "Community 2356"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2357 - "Community 2357"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2358 - "Community 2358"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2359 - "Community 2359"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2360 - "Community 2360"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2361 - "Community 2361"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2362 - "Community 2362"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2363 - "Community 2363"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2364 - "Community 2364"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2365 - "Community 2365"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2366 - "Community 2366"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2367 - "Community 2367"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2368 - "Community 2368"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2369 - "Community 2369"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2370 - "Community 2370"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2371 - "Community 2371"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2372 - "Community 2372"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2373 - "Community 2373"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2374 - "Community 2374"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2375 - "Community 2375"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2376 - "Community 2376"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2377 - "Community 2377"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2378 - "Community 2378"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2379 - "Community 2379"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2380 - "Community 2380"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2381 - "Community 2381"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2382 - "Community 2382"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2383 - "Community 2383"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2384 - "Community 2384"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2385 - "Community 2385"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2386 - "Community 2386"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2387 - "Community 2387"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2388 - "Community 2388"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2389 - "Community 2389"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2390 - "Community 2390"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2391 - "Community 2391"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2392 - "Community 2392"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2393 - "Community 2393"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2394 - "Community 2394"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2395 - "Community 2395"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2396 - "Community 2396"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2397 - "Community 2397"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2398 - "Community 2398"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2399 - "Community 2399"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2400 - "Community 2400"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2401 - "Community 2401"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2402 - "Community 2402"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2403 - "Community 2403"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2404 - "Community 2404"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2405 - "Community 2405"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2406 - "Community 2406"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2407 - "Community 2407"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2408 - "Community 2408"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2409 - "Community 2409"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2410 - "Community 2410"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2411 - "Community 2411"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2412 - "Community 2412"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2413 - "Community 2413"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2414 - "Community 2414"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2415 - "Community 2415"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2416 - "Community 2416"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2417 - "Community 2417"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2418 - "Community 2418"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2419 - "Community 2419"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2420 - "Community 2420"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2421 - "Community 2421"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2422 - "Community 2422"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2423 - "Community 2423"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2424 - "Community 2424"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2425 - "Community 2425"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2426 - "Community 2426"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2427 - "Community 2427"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2428 - "Community 2428"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2429 - "Community 2429"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2430 - "Community 2430"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2431 - "Community 2431"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2432 - "Community 2432"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2433 - "Community 2433"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2434 - "Community 2434"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2435 - "Community 2435"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2436 - "Community 2436"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2437 - "Community 2437"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2438 - "Community 2438"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2439 - "Community 2439"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2440 - "Community 2440"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2441 - "Community 2441"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2442 - "Community 2442"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2443 - "Community 2443"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2444 - "Community 2444"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2445 - "Community 2445"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2446 - "Community 2446"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2447 - "Community 2447"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2448 - "Community 2448"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2449 - "Community 2449"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2450 - "Community 2450"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2451 - "Community 2451"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2452 - "Community 2452"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2453 - "Community 2453"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2454 - "Community 2454"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2455 - "Community 2455"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2456 - "Community 2456"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2457 - "Community 2457"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2458 - "Community 2458"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2459 - "Community 2459"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2460 - "Community 2460"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2461 - "Community 2461"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2462 - "Community 2462"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2463 - "Community 2463"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2464 - "Community 2464"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2465 - "Community 2465"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2466 - "Community 2466"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2467 - "Community 2467"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2468 - "Community 2468"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2469 - "Community 2469"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2470 - "Community 2470"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2471 - "Community 2471"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2472 - "Community 2472"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2473 - "Community 2473"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2474 - "Community 2474"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2475 - "Community 2475"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2476 - "Community 2476"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2477 - "Community 2477"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2478 - "Community 2478"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2479 - "Community 2479"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2480 - "Community 2480"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2481 - "Community 2481"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2482 - "Community 2482"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2483 - "Community 2483"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2484 - "Community 2484"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2485 - "Community 2485"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2486 - "Community 2486"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2487 - "Community 2487"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2488 - "Community 2488"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2489 - "Community 2489"
+Cohesion: 1.0
+Nodes (0): 
+
+### Community 2490 - "Community 2490"
+Cohesion: 1.0
+Nodes (0): 
 
 ## Knowledge Gaps
 - **347 isolated node(s):** `Phase 2: Design Atlas`, `Phase 3: Collaboration + AI`, `Phase 4: Public + Portal`, `Adapter Registry (dataSources.ts)`, `MapboxGL JS v3 + Deck.gl Map Engine` (+342 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 862`** (2 nodes): `useMapbox.ts`, `useMapbox()`
+- **Thin community `Community 1174`** (2 nodes): `useMapbox.ts`, `useMapbox()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 863`** (2 nodes): `enumerate-gaez-futures.test.ts`, `buildFullFeatureSet()`
+- **Thin community `Community 1175`** (2 nodes): `enumerate-gaez-futures.test.ts`, `buildFullFeatureSet()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 864`** (2 nodes): `migrate.ts`, `migrate()`
+- **Thin community `Community 1176`** (2 nodes): `logActivity()`, `activityLog.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 865`** (2 nodes): `logActivity()`, `activityLog.ts`
+- **Thin community `Community 1177`** (2 nodes): `index.ts`, `activityRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 866`** (2 nodes): `index.ts`, `activityRoutes()`
+- **Thin community `Community 1178`** (2 nodes): `index.ts`, `commentRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 867`** (2 nodes): `index.ts`, `commentRoutes()`
+- **Thin community `Community 1179`** (2 nodes): `index.ts`, `exportRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 868`** (2 nodes): `index.ts`, `exportRoutes()`
+- **Thin community `Community 1180`** (2 nodes): `index.ts`, `fileRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 869`** (2 nodes): `index.ts`, `fileRoutes()`
+- **Thin community `Community 1181`** (2 nodes): `index.ts`, `gaezRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 870`** (2 nodes): `index.ts`, `gaezRoutes()`
+- **Thin community `Community 1182`** (2 nodes): `index.ts`, `memberRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 871`** (2 nodes): `index.ts`, `memberRoutes()`
+- **Thin community `Community 1183`** (2 nodes): `index.ts`, `organizationRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 872`** (2 nodes): `index.ts`, `organizationRoutes()`
+- **Thin community `Community 1184`** (2 nodes): `index.ts`, `soilgridsRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 873`** (2 nodes): `index.ts`, `soilgridsRoutes()`
+- **Thin community `Community 1185`** (2 nodes): `index.ts`, `suggestionRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 874`** (2 nodes): `index.ts`, `suggestionRoutes()`
+- **Thin community `Community 1186`** (2 nodes): `index.ts`, `wsRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 875`** (2 nodes): `index.ts`, `wsRoutes()`
+- **Thin community `Community 1187`** (2 nodes): `GaezRasterService.test.ts`, `writeManifest()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 876`** (2 nodes): `GaezRasterService.test.ts`, `writeManifest()`
+- **Thin community `Community 1188`** (2 nodes): `designBrief.ts`, `renderDesignBrief()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 877`** (2 nodes): `designBrief.ts`, `renderDesignBrief()`
+- **Thin community `Community 1189`** (2 nodes): `scenarioComparison.ts`, `renderScenarioComparison()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 878`** (2 nodes): `scenarioComparison.ts`, `renderScenarioComparison()`
+- **Thin community `Community 1190`** (2 nodes): `siteAssessment.ts`, `renderSiteAssessment()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 879`** (2 nodes): `siteAssessment.ts`, `renderSiteAssessment()`
+- **Thin community `Community 1191`** (2 nodes): `coldAirDrainage.ts`, `computeColdAirDrainage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 880`** (2 nodes): `coldAirDrainage.ts`, `computeColdAirDrainage()`
+- **Thin community `Community 1192`** (2 nodes): `curvature.ts`, `computeCurvature()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 881`** (2 nodes): `curvature.ts`, `computeCurvature()`
+- **Thin community `Community 1193`** (2 nodes): `frostPocket.ts`, `computeFrostPocketProbability()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 882`** (2 nodes): `frostPocket.ts`, `computeFrostPocketProbability()`
+- **Thin community `Community 1194`** (2 nodes): `tpi.ts`, `computeTPI()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 883`** (2 nodes): `tpi.ts`, `computeTPI()`
+- **Thin community `Community 1195`** (2 nodes): `tri.ts`, `computeTRI()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 884`** (2 nodes): `tri.ts`, `computeTRI()`
+- **Thin community `Community 1196`** (2 nodes): `twi.ts`, `computeTWI()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 885`** (2 nodes): `twi.ts`, `computeTWI()`
+- **Thin community `Community 1197`** (2 nodes): `viewshed.ts`, `computeViewshed()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 886`** (2 nodes): `viewshed.ts`, `computeViewshed()`
+- **Thin community `Community 1198`** (2 nodes): `makeAafcResponse()`, `AafcLandCoverAdapter.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 887`** (2 nodes): `makeAafcResponse()`, `AafcLandCoverAdapter.test.ts`
+- **Thin community `Community 1199`** (2 nodes): `ClaudeClient.test.ts`, `anthropicResponse()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 888`** (2 nodes): `ClaudeClient.test.ts`, `anthropicResponse()`
+- **Thin community `Community 1200`** (2 nodes): `ConservationAuthorityAdapter.test.ts`, `mockBothLayers()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 889`** (2 nodes): `ConservationAuthorityAdapter.test.ts`, `mockBothLayers()`
+- **Thin community `Community 1201`** (2 nodes): `gaezRoutes.test.ts`, `authHeader()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 890`** (2 nodes): `gaezRoutes.test.ts`, `authHeader()`
+- **Thin community `Community 1202`** (2 nodes): `NasaPowerAdapter.test.ts`, `mockNasaSuccess()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 891`** (2 nodes): `NasaPowerAdapter.test.ts`, `mockNasaSuccess()`
+- **Thin community `Community 1203`** (2 nodes): `NhdAdapter.test.ts`, `mockAllLayers()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 892`** (2 nodes): `NhdAdapter.test.ts`, `mockAllLayers()`
+- **Thin community `Community 1204`** (2 nodes): `NrcanHrdemAdapter.test.ts`, `makeGrid()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 893`** (2 nodes): `NrcanHrdemAdapter.test.ts`, `makeGrid()`
+- **Thin community `Community 1205`** (2 nodes): `NwiFemaAdapter.test.ts`, `mockBothSources()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 894`** (2 nodes): `NwiFemaAdapter.test.ts`, `mockBothSources()`
+- **Thin community `Community 1206`** (2 nodes): `SiteAssessmentWriter.test.ts`, `row()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 895`** (2 nodes): `SiteAssessmentWriter.test.ts`, `row()`
+- **Thin community `Community 1207`** (2 nodes): `smoke.test.ts`, `projectRow()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 896`** (2 nodes): `smoke.test.ts`, `projectRow()`
+- **Thin community `Community 1208`** (2 nodes): `UsCountyGisAdapter.test.ts`, `mockFccThenCounty()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 897`** (2 nodes): `UsCountyGisAdapter.test.ts`, `mockFccThenCounty()`
+- **Thin community `Community 1209`** (2 nodes): `chunk-5TJMAQVL.js`, `o()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 898`** (2 nodes): `chunk-5TJMAQVL.js`, `o()`
+- **Thin community `Community 1210`** (2 nodes): `chunk-7TVGLKQF.js`, `t()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 899`** (2 nodes): `chunk-7TVGLKQF.js`, `t()`
+- **Thin community `Community 1211`** (2 nodes): `chunk-E7KYDCM5.js`, `x()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 900`** (2 nodes): `chunk-E7KYDCM5.js`, `x()`
+- **Thin community `Community 1212`** (2 nodes): `chunk-EDVBB7SS.js`, `t()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 901`** (2 nodes): `chunk-EDVBB7SS.js`, `t()`
+- **Thin community `Community 1213`** (2 nodes): `chunk-EQ4YRVWL.js`, `n()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 902`** (2 nodes): `chunk-EQ4YRVWL.js`, `n()`
+- **Thin community `Community 1214`** (2 nodes): `chunk-F6PRE7D6.js`, `x()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 903`** (2 nodes): `chunk-F6PRE7D6.js`, `x()`
+- **Thin community `Community 1215`** (2 nodes): `chunk-ILRYTWTP.js`, `x()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 904`** (2 nodes): `chunk-ILRYTWTP.js`, `x()`
+- **Thin community `Community 1216`** (2 nodes): `chunk-IX4VMHEV.js`, `s()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 905`** (2 nodes): `chunk-IX4VMHEV.js`, `s()`
+- **Thin community `Community 1217`** (2 nodes): `chunk-LI2ZSORM.js`, `W()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 906`** (2 nodes): `chunk-LI2ZSORM.js`, `W()`
+- **Thin community `Community 1218`** (2 nodes): `chunk-M4HLDBCG.js`, `f()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 907`** (2 nodes): `chunk-M4HLDBCG.js`, `f()`
+- **Thin community `Community 1219`** (2 nodes): `chunk-MJHHSGEH.js`, `f()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 908`** (2 nodes): `chunk-MJHHSGEH.js`, `f()`
+- **Thin community `Community 1220`** (2 nodes): `chunk-OCWJRAXS.js`, `D()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 909`** (2 nodes): `chunk-OCWJRAXS.js`, `D()`
+- **Thin community `Community 1221`** (2 nodes): `chunk-OIRKANTH.js`, `n()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 910`** (2 nodes): `chunk-OIRKANTH.js`, `n()`
+- **Thin community `Community 1222`** (2 nodes): `chunk-OIT7J4IC.js`, `v()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 911`** (2 nodes): `chunk-OIT7J4IC.js`, `v()`
+- **Thin community `Community 1223`** (2 nodes): `chunk-OLZ3FYUM.js`, `z()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 912`** (2 nodes): `chunk-OLZ3FYUM.js`, `z()`
+- **Thin community `Community 1224`** (2 nodes): `chunk-Q5BPHJQF.js`, `r()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 913`** (2 nodes): `chunk-Q5BPHJQF.js`, `r()`
+- **Thin community `Community 1225`** (2 nodes): `chunk-SLT4J352.js`, `O()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 914`** (2 nodes): `chunk-SLT4J352.js`, `O()`
+- **Thin community `Community 1226`** (2 nodes): `chunk-TJ4XLGBQ.js`, `e()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 915`** (2 nodes): `chunk-TJ4XLGBQ.js`, `e()`
+- **Thin community `Community 1227`** (2 nodes): `chunk-UBOGZS7F.js`, `d()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 916`** (2 nodes): `chunk-UBOGZS7F.js`, `d()`
+- **Thin community `Community 1228`** (2 nodes): `combineGeometry.js`, `n()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 917`** (2 nodes): `combineGeometry.js`, `n()`
+- **Thin community `Community 1229`** (2 nodes): `createBoxGeometry.js`, `i()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 918`** (2 nodes): `createBoxGeometry.js`, `i()`
+- **Thin community `Community 1230`** (2 nodes): `createCylinderGeometry.js`, `i()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 919`** (2 nodes): `createCylinderGeometry.js`, `i()`
+- **Thin community `Community 1231`** (2 nodes): `createEllipseGeometry.js`, `a()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 920`** (2 nodes): `createEllipseGeometry.js`, `a()`
+- **Thin community `Community 1232`** (2 nodes): `createEllipseOutlineGeometry.js`, `a()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 921`** (2 nodes): `createEllipseOutlineGeometry.js`, `a()`
+- **Thin community `Community 1233`** (2 nodes): `createEllipsoidGeometry.js`, `i()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 922`** (2 nodes): `createEllipsoidGeometry.js`, `i()`
+- **Thin community `Community 1234`** (2 nodes): `createEllipsoidOutlineGeometry.js`, `u()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 923`** (2 nodes): `createEllipsoidOutlineGeometry.js`, `u()`
+- **Thin community `Community 1235`** (2 nodes): `createFrustumGeometry.js`, `i()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 924`** (2 nodes): `createFrustumGeometry.js`, `i()`
+- **Thin community `Community 1236`** (2 nodes): `createVerticesFromCesium3DTilesTerrain.js`, `a()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 925`** (2 nodes): `createVerticesFromCesium3DTilesTerrain.js`, `a()`
+- **Thin community `Community 1237`** (2 nodes): `createVerticesFromHeightmap.js`, `yr()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 926`** (2 nodes): `createVerticesFromHeightmap.js`, `yr()`
+- **Thin community `Community 1238`** (2 nodes): `upsampleVerticesFromCesium3DTilesTerrain.js`, `h()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 927`** (2 nodes): `upsampleVerticesFromCesium3DTilesTerrain.js`, `h()`
+- **Thin community `Community 1239`** (2 nodes): `TypingIndicator.tsx`, `TypingIndicator()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 928`** (2 nodes): `TypingIndicator.tsx`, `TypingIndicator()`
+- **Thin community `Community 1240`** (2 nodes): `GaezSection.tsx`, `suitabilityColor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 929`** (2 nodes): `GaezSection.tsx`, `suitabilityColor()`
+- **Thin community `Community 1241`** (2 nodes): `BuildOrderLogic.tsx`, `BuildOrderLogic()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 930`** (2 nodes): `BuildOrderLogic.tsx`, `BuildOrderLogic()`
+- **Thin community `Community 1242`** (2 nodes): `SlopeWarnings.tsx`, `SlopeWarnings()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 931`** (2 nodes): `SlopeWarnings.tsx`, `SlopeWarnings()`
+- **Thin community `Community 1243`** (2 nodes): `MapLayersDashboard.tsx`, `MapLayersDashboard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 932`** (2 nodes): `MapLayersDashboard.tsx`, `MapLayersDashboard()`
+- **Thin community `Community 1244`** (2 nodes): `FieldNoteExport.tsx`, `handlePrint()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 933`** (2 nodes): `FieldNoteExport.tsx`, `handlePrint()`
+- **Thin community `Community 1245`** (2 nodes): `breakEvenEngine.ts`, `computeBreakEven()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 934`** (2 nodes): `breakEvenEngine.ts`, `computeBreakEven()`
+- **Thin community `Community 1246`** (2 nodes): `revenueDatabase.ts`, `getRevenueBenchmarks()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 935`** (2 nodes): `revenueDatabase.ts`, `getRevenueBenchmarks()`
+- **Thin community `Community 1247`** (2 nodes): `MoontranceSpiritual.tsx`, `MoontranceSpiritual()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 936`** (2 nodes): `MoontranceSpiritual.tsx`, `MoontranceSpiritual()`
+- **Thin community `Community 1248`** (2 nodes): `QiblaDisplay.tsx`, `QiblaDisplay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 937`** (2 nodes): `QiblaDisplay.tsx`, `QiblaDisplay()`
+- **Thin community `Community 1249`** (2 nodes): `InfrastructurePhasing.tsx`, `InfrastructurePhasing()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 938`** (2 nodes): `InfrastructurePhasing.tsx`, `InfrastructurePhasing()`
+- **Thin community `Community 1250`** (2 nodes): `SolarPlacement.tsx`, `SolarPlacement()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 939`** (2 nodes): `SolarPlacement.tsx`, `SolarPlacement()`
+- **Thin community `Community 1251`** (2 nodes): `WaterSystemPlanning.tsx`, `WaterSystemPlanning()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 940`** (2 nodes): `WaterSystemPlanning.tsx`, `WaterSystemPlanning()`
+- **Thin community `Community 1252`** (2 nodes): `useOfflineGate.ts`, `useOfflineGate()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 941`** (2 nodes): `useOfflineGate.ts`, `useOfflineGate()`
+- **Thin community `Community 1253`** (2 nodes): `useProjectRole.ts`, `useProjectRole()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 942`** (2 nodes): `useProjectRole.ts`, `useProjectRole()`
+- **Thin community `Community 1254`** (2 nodes): `useProjectWebSocket.ts`, `useProjectWebSocket()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 943`** (2 nodes): `useProjectWebSocket.ts`, `useProjectWebSocket()`
+- **Thin community `Community 1255`** (2 nodes): `debounce.ts`, `debounce()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 944`** (2 nodes): `debounce.ts`, `debounce()`
+- **Thin community `Community 1256`** (2 nodes): `waterRightsRegistry.ts`, `getDoctrineSummary()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 945`** (2 nodes): `waterRightsRegistry.ts`, `getDoctrineSummary()`
+- **Thin community `Community 1257`** (2 nodes): `scenarioStore.ts`, `migrateScenarioV1()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 946`** (2 nodes): `scenarioStore.ts`, `migrateScenarioV1()`
+- **Thin community `Community 1258`** (2 nodes): `useSiteIntelligenceMetrics.test.ts`, `mkProject()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 947`** (2 nodes): `useSiteIntelligenceMetrics.test.ts`, `mkProject()`
+- **Thin community `Community 1259`** (2 nodes): `missionScoring.test.ts`, `mockBreakEven()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 948`** (2 nodes): `missionScoring.test.ts`, `mockBreakEven()`
+- **Thin community `Community 1260`** (2 nodes): `Atlas Deep Audit`, `Atlas Deep Audit 2026-04-19`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 949`** (2 nodes): `Atlas Deep Audit`, `Atlas Deep Audit 2026-04-19`
+- **Thin community `Community 1261`** (2 nodes): `Atlas Status Report`, `Graph Report`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 950`** (2 nodes): `Atlas Status Report`, `Graph Report`
+- **Thin community `Community 1262`** (2 nodes): `Infrastructure Deploy Guide`, `Local Verification`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 951`** (2 nodes): `Infrastructure Deploy Guide`, `Local Verification`
+- **Thin community `Community 1263`** (2 nodes): `Financial Model`, `Scoring Engine`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 952`** (2 nodes): `Financial Model`, `Scoring Engine`
+- **Thin community `Community 1264`** (2 nodes): `buildApp()`, `app.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 953`** (2 nodes): `buildApp()`, `app.ts`
+- **Thin community `Community 1265`** (2 nodes): `config.ts`, `loadConfig()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 954`** (2 nodes): `config.ts`, `loadConfig()`
+- **Thin community `Community 1266`** (2 nodes): `index.ts`, `access_circulationRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 955`** (2 nodes): `index.ts`, `access_circulationRoutes()`
+- **Thin community `Community 1267`** (2 nodes): `index.ts`, `admin_governanceRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 956`** (2 nodes): `index.ts`, `admin_governanceRoutes()`
+- **Thin community `Community 1268`** (2 nodes): `index.ts`, `aiRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 957`** (2 nodes): `index.ts`, `aiRoutes()`
+- **Thin community `Community 1269`** (2 nodes): `index.ts`, `ai_design_supportRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 958`** (2 nodes): `index.ts`, `ai_design_supportRoutes()`
+- **Thin community `Community 1270`** (2 nodes): `index.ts`, `climate_analysisRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 959`** (2 nodes): `index.ts`, `climate_analysisRoutes()`
+- **Thin community `Community 1271`** (2 nodes): `index.ts`, `collaboration_reviewRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 960`** (2 nodes): `index.ts`, `collaboration_reviewRoutes()`
+- **Thin community `Community 1272`** (2 nodes): `index.ts`, `crops_agroforestryRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 961`** (2 nodes): `index.ts`, `crops_agroforestryRoutes()`
+- **Thin community `Community 1273`** (2 nodes): `index.ts`, `decision_feasibilityRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 962`** (2 nodes): `index.ts`, `decision_feasibilityRoutes()`
+- **Thin community `Community 1274`** (2 nodes): `index.ts`, `design_rulesRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 963`** (2 nodes): `index.ts`, `design_rulesRoutes()`
+- **Thin community `Community 1275`** (2 nodes): `index.ts`, `economic_modelingRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 964`** (2 nodes): `index.ts`, `economic_modelingRoutes()`
+- **Thin community `Community 1276`** (2 nodes): `index.ts`, `education_interpretiveRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 965`** (2 nodes): `index.ts`, `education_interpretiveRoutes()`
+- **Thin community `Community 1277`** (2 nodes): `index.ts`, `future_geospatialRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 966`** (2 nodes): `index.ts`, `future_geospatialRoutes()`
+- **Thin community `Community 1278`** (2 nodes): `index.ts`, `livestock_systemsRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 967`** (2 nodes): `index.ts`, `livestock_systemsRoutes()`
+- **Thin community `Community 1279`** (2 nodes): `index.ts`, `mobile_fieldworkRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 968`** (2 nodes): `index.ts`, `mobile_fieldworkRoutes()`
+- **Thin community `Community 1280`** (2 nodes): `index.ts`, `moontrance_identityRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 969`** (2 nodes): `index.ts`, `moontrance_identityRoutes()`
+- **Thin community `Community 1281`** (2 nodes): `index.ts`, `moontrance_visionRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 970`** (2 nodes): `index.ts`, `moontrance_visionRoutes()`
+- **Thin community `Community 1282`** (2 nodes): `public.ts`, `publicPortalRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 971`** (2 nodes): `public.ts`, `publicPortalRoutes()`
+- **Thin community `Community 1283`** (2 nodes): `index.ts`, `projectRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 972`** (2 nodes): `index.ts`, `projectRoutes()`
+- **Thin community `Community 1284`** (2 nodes): `index.ts`, `reporting_exportRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 973`** (2 nodes): `index.ts`, `reporting_exportRoutes()`
+- **Thin community `Community 1285`** (2 nodes): `index.ts`, `reusable_frameworksRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 974`** (2 nodes): `index.ts`, `reusable_frameworksRoutes()`
+- **Thin community `Community 1286`** (2 nodes): `index.ts`, `simulation_scenariosRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 975`** (2 nodes): `index.ts`, `simulation_scenariosRoutes()`
+- **Thin community `Community 1287`** (2 nodes): `index.ts`, `site_assessmentRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 976`** (2 nodes): `index.ts`, `site_assessmentRoutes()`
+- **Thin community `Community 1288`** (2 nodes): `index.ts`, `site_data_layersRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 977`** (2 nodes): `index.ts`, `site_data_layersRoutes()`
+- **Thin community `Community 1289`** (2 nodes): `index.ts`, `soil_ecologyRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 978`** (2 nodes): `index.ts`, `soil_ecologyRoutes()`
+- **Thin community `Community 1290`** (2 nodes): `index.ts`, `structures_buildingsRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 979`** (2 nodes): `index.ts`, `structures_buildingsRoutes()`
+- **Thin community `Community 1291`** (2 nodes): `index.ts`, `telemetryRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 980`** (2 nodes): `index.ts`, `telemetryRoutes()`
+- **Thin community `Community 1292`** (2 nodes): `index.ts`, `timeline_phasingRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 981`** (2 nodes): `index.ts`, `templateRoutes()`
+- **Thin community `Community 1293`** (2 nodes): `index.ts`, `utilities_energyRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 982`** (2 nodes): `index.ts`, `timeline_phasingRoutes()`
+- **Thin community `Community 1294`** (2 nodes): `index.ts`, `zoning_allocationRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 983`** (2 nodes): `index.ts`, `utilities_energyRoutes()`
+- **Thin community `Community 1295`** (2 nodes): `educationalBooklet.ts`, `renderEducationalBooklet()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 984`** (2 nodes): `index.ts`, `zoning_allocationRoutes()`
+- **Thin community `Community 1296`** (2 nodes): `swotSynthesis.ts`, `renderSwotSynthesis()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 985`** (2 nodes): `educationalBooklet.ts`, `renderEducationalBooklet()`
+- **Thin community `Community 1297`** (2 nodes): `SolarExposureService.ts`, `computeSolarExposure()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 986`** (2 nodes): `swotSynthesis.ts`, `renderSwotSynthesis()`
+- **Thin community `Community 1298`** (2 nodes): `forecastCache.test.ts`, `makeStubRedis()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 987`** (2 nodes): `SolarExposureService.ts`, `computeSolarExposure()`
+- **Thin community `Community 1299`** (2 nodes): `NwisGroundwaterAdapter.test.ts`, `mockNwisSuccess()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 988`** (2 nodes): `forecastCache.test.ts`, `makeStubRedis()`
+- **Thin community `Community 1300`** (2 nodes): `openMeteoForecastFetch.test.ts`, `buildForecastPayload()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 989`** (2 nodes): `NwisGroundwaterAdapter.test.ts`, `mockNwisSuccess()`
+- **Thin community `Community 1301`** (2 nodes): `openMeteoWindFetch.test.ts`, `buildHourlyPayload()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 990`** (2 nodes): `openMeteoForecastFetch.test.ts`, `buildForecastPayload()`
+- **Thin community `Community 1302`** (2 nodes): `windRoseCache.test.ts`, `makeStubRedis()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 991`** (2 nodes): `openMeteoWindFetch.test.ts`, `buildHourlyPayload()`
+- **Thin community `Community 1303`** (2 nodes): `ActionCard()`, `ActionCard.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 992`** (2 nodes): `telemetry.test.ts`, `sampleEvent()`
+- **Thin community `Community 1304`** (2 nodes): `BreadcrumbBar.jsx`, `BreadcrumbBar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 993`** (2 nodes): `windRoseCache.test.ts`, `makeStubRedis()`
+- **Thin community `Community 1305`** (2 nodes): `ChipList.jsx`, `ChipList()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 994`** (2 nodes): `ActionCard()`, `ActionCard.jsx`
+- **Thin community `Community 1306`** (2 nodes): `CollapsiblePane.jsx`, `CollapsiblePane()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 995`** (2 nodes): `BreadcrumbBar.jsx`, `BreadcrumbBar()`
+- **Thin community `Community 1307`** (2 nodes): `CroppedArt.jsx`, `CroppedArt()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 996`** (2 nodes): `ChipList.jsx`, `ChipList()`
+- **Thin community `Community 1308`** (2 nodes): `DataTable.jsx`, `DataTable()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 997`** (2 nodes): `CollapsiblePane.jsx`, `CollapsiblePane()`
+- **Thin community `Community 1309`** (2 nodes): `DesignElementsPanel.jsx`, `DesignElementsPanel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 998`** (2 nodes): `CroppedArt.jsx`, `CroppedArt()`
+- **Thin community `Community 1310`** (2 nodes): `InsightSidebar.jsx`, `InsightSidebar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 999`** (2 nodes): `DataTable.jsx`, `DataTable()`
+- **Thin community `Community 1311`** (2 nodes): `LandBriefStageNavigator.jsx`, `LandBriefStageNavigator()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1000`** (2 nodes): `DesignElementsPanel.jsx`, `DesignElementsPanel()`
+- **Thin community `Community 1312`** (2 nodes): `MapToolbar.jsx`, `MapToolbar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1001`** (2 nodes): `InsightSidebar.jsx`, `InsightSidebar()`
+- **Thin community `Community 1313`** (2 nodes): `MiniMap.jsx`, `MiniMap()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1002`** (2 nodes): `LandBriefStageNavigator.jsx`, `LandBriefStageNavigator()`
+- **Thin community `Community 1314`** (2 nodes): `ModuleCard.jsx`, `ModuleCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1003`** (2 nodes): `MapToolbar.jsx`, `MapToolbar()`
+- **Thin community `Community 1315`** (2 nodes): `ModuleKpiStrip.jsx`, `ModuleKpiStrip()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1004`** (2 nodes): `MiniMap.jsx`, `MiniMap()`
+- **Thin community `Community 1316`** (2 nodes): `ModuleSummaryCard.jsx`, `ModuleSummaryCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1005`** (2 nodes): `ModuleCard.jsx`, `ModuleCard()`
+- **Thin community `Community 1317`** (2 nodes): `ModuleTodoRail.jsx`, `ModuleTodoRail()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1006`** (2 nodes): `ModuleKpiStrip.jsx`, `ModuleKpiStrip()`
+- **Thin community `Community 1318`** (2 nodes): `NextStepsPanel.jsx`, `NextStepsPanel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1007`** (2 nodes): `ModuleSummaryCard.jsx`, `ModuleSummaryCard()`
+- **Thin community `Community 1319`** (2 nodes): `ProgressRing.jsx`, `ProgressRing()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1008`** (2 nodes): `ModuleTodoRail.jsx`, `ModuleTodoRail()`
+- **Thin community `Community 1320`** (2 nodes): `ProjectDataStatus.jsx`, `ProjectDataStatus()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1009`** (2 nodes): `NextStepsPanel.jsx`, `NextStepsPanel()`
+- **Thin community `Community 1321`** (2 nodes): `ProjectOverviewCard.jsx`, `ProjectOverviewCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1010`** (2 nodes): `ProgressRing.jsx`, `ProgressRing()`
+- **Thin community `Community 1322`** (2 nodes): `QaOverlay.jsx`, `QaOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1011`** (2 nodes): `ProjectDataStatus.jsx`, `ProjectDataStatus()`
+- **Thin community `Community 1323`** (2 nodes): `SearchPalette.jsx`, `SearchPalette()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1012`** (2 nodes): `ProjectOverviewCard.jsx`, `ProjectOverviewCard()`
+- **Thin community `Community 1324`** (2 nodes): `SlideUpPane.jsx`, `SlideUpPane()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1013`** (2 nodes): `QaOverlay.jsx`, `QaOverlay()`
+- **Thin community `Community 1325`** (2 nodes): `SurfaceCard.jsx`, `SurfaceCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1014`** (2 nodes): `SearchPalette.jsx`, `SearchPalette()`
+- **Thin community `Community 1326`** (2 nodes): `TopStageBar.jsx`, `TopStageBar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1015`** (2 nodes): `SlideUpPane.jsx`, `SlideUpPane()`
+- **Thin community `Community 1327`** (2 nodes): `EmptyState.jsx`, `EmptyState()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1016`** (2 nodes): `SurfaceCard.jsx`, `SurfaceCard()`
+- **Thin community `Community 1328`** (2 nodes): `Modal.jsx`, `Modal()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1017`** (2 nodes): `TopStageBar.jsx`, `TopStageBar()`
+- **Thin community `Community 1329`** (2 nodes): `Skeleton.jsx`, `Skeleton()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1018`** (2 nodes): `EmptyState.jsx`, `EmptyState()`
+- **Thin community `Community 1330`** (2 nodes): `Tooltip.jsx`, `Tooltip()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1019`** (2 nodes): `Modal.jsx`, `Modal()`
+- **Thin community `Community 1331`** (2 nodes): `landBriefTools.js`, `drawModeForTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1020`** (2 nodes): `Skeleton.jsx`, `Skeleton()`
+- **Thin community `Community 1332`** (2 nodes): `useKeyboard.js`, `useKeyboard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1021`** (2 nodes): `Tooltip.jsx`, `Tooltip()`
+- **Thin community `Community 1333`** (2 nodes): `useReducedMotion.js`, `useReducedMotion()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1022`** (2 nodes): `landBriefTools.js`, `drawModeForTool()`
+- **Thin community `Community 1334`** (2 nodes): `DevPrimitivesPage.jsx`, `DevPrimitivesPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1023`** (2 nodes): `useKeyboard.js`, `useKeyboard()`
+- **Thin community `Community 1335`** (2 nodes): `CommandPalette.tsx`, `handleKey()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1024`** (2 nodes): `useReducedMotion.js`, `useReducedMotion()`
+- **Thin community `Community 1336`** (2 nodes): `BlockingIssueCard.tsx`, `BlockingIssueCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1025`** (2 nodes): `DevPrimitivesPage.jsx`, `DevPrimitivesPage()`
+- **Thin community `Community 1337`** (2 nodes): `VerdictCard.tsx`, `VerdictCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1026`** (2 nodes): `vite.config.ts`, `manualChunks()`
+- **Thin community `Community 1338`** (2 nodes): `OPAComparisonWheel.tsx`, `OPAComparisonWheel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1027`** (2 nodes): `CommandPalette.tsx`, `handleKey()`
+- **Thin community `Community 1339`** (2 nodes): `stageProgress.ts`, `computeStageProgress()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1028`** (2 nodes): `BlockingIssueCard.tsx`, `BlockingIssueCard()`
+- **Thin community `Community 1340`** (2 nodes): `SynthesisSummarySection.tsx`, `computeLimitations()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1029`** (2 nodes): `VerdictCard.tsx`, `VerdictCard()`
+- **Thin community `Community 1341`** (2 nodes): `Button.tsx`, `LoadingSpinner()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1030`** (2 nodes): `OPAComparisonWheel.tsx`, `OPAComparisonWheel()`
+- **Thin community `Community 1342`** (2 nodes): `MapControlPopover.tsx`, `MapControlPopover()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1031`** (2 nodes): `stageProgress.ts`, `computeStageProgress()`
+- **Thin community `Community 1343`** (2 nodes): `RailPanelShell.tsx`, `RailPanelShell()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1032`** (2 nodes): `SynthesisSummarySection.tsx`, `computeLimitations()`
+- **Thin community `Community 1344`** (2 nodes): `Spinner.tsx`, `Spinner()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1033`** (2 nodes): `Button.tsx`, `LoadingSpinner()`
+- **Thin community `Community 1345`** (2 nodes): `Stack.tsx`, `Stack()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1034`** (2 nodes): `MapControlPopover.tsx`, `MapControlPopover()`
+- **Thin community `Community 1346`** (2 nodes): `StepIndicator.tsx`, `isClickable()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1035`** (2 nodes): `RailPanelShell.tsx`, `RailPanelShell()`
+- **Thin community `Community 1347`** (2 nodes): `plantCatalogAliases.ts`, `resolveSpeciesId()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1036`** (2 nodes): `Spinner.tsx`, `Spinner()`
+- **Thin community `Community 1348`** (2 nodes): `AccessCirculationPage()`, `AccessCirculationPage.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1037`** (2 nodes): `Stack.tsx`, `Stack()`
+- **Thin community `Community 1349`** (2 nodes): `fmt()`, `ActHub.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1038`** (2 nodes): `StepIndicator.tsx`, `isClickable()`
+- **Thin community `Community 1350`** (2 nodes): `BuildGanttCard.tsx`, `parseTimeframe()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1039`** (2 nodes): `plantCatalogAliases.ts`, `resolveSpeciesId()`
+- **Thin community `Community 1351`** (2 nodes): `IrrigationManagerCard.tsx`, `daysSince()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1040`** (2 nodes): `AccessCirculationPage()`, `AccessCirculationPage.tsx`
+- **Thin community `Community 1352`** (2 nodes): `WasteRoutingChecklistCard.tsx`, `logRun()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1041`** (2 nodes): `fmt()`, `ActHub.tsx`
+- **Thin community `Community 1353`** (2 nodes): `AdminGovernancePage()`, `AdminGovernancePage.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1042`** (2 nodes): `BuildGanttCard.tsx`, `parseTimeframe()`
+- **Thin community `Community 1354`** (2 nodes): `ColdChainCoverageCard.tsx`, `ColdChainCoverageCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1043`** (2 nodes): `IrrigationManagerCard.tsx`, `daysSince()`
+- **Thin community `Community 1355`** (2 nodes): `SlaughterThroughputCard.tsx`, `SlaughterThroughputCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1044`** (2 nodes): `WasteRoutingChecklistCard.tsx`, `logRun()`
+- **Thin community `Community 1356`** (2 nodes): `SilvopastureMemberOutline.tsx`, `SilvopastureMemberOutline()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1045`** (2 nodes): `AdminGovernancePage()`, `AdminGovernancePage.tsx`
+- **Thin community `Community 1357`** (2 nodes): `ContextBuilder.ts`, `buildProjectContext()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1046`** (2 nodes): `ColdChainCoverageCard.tsx`, `ColdChainCoverageCard()`
+- **Thin community `Community 1358`** (2 nodes): `AiDesignSupportPage()`, `AiDesignSupportPage.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1047`** (2 nodes): `SlaughterThroughputCard.tsx`, `SlaughterThroughputCard()`
+- **Thin community `Community 1359`** (2 nodes): `DesignBriefPitchCard.tsx`, `fmtPct()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1048`** (2 nodes): `SilvopastureMemberOutline.tsx`, `SilvopastureMemberOutline()`
+- **Thin community `Community 1360`** (2 nodes): `EcologicalRiskWarningsCard.tsx`, `parsePct()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1049`** (2 nodes): `ContextBuilder.ts`, `buildProjectContext()`
+- **Thin community `Community 1361`** (2 nodes): `PhasedBuildStrategyCard.tsx`, `parseNum()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1050`** (2 nodes): `AiDesignSupportPage()`, `AiDesignSupportPage.tsx`
+- **Thin community `Community 1362`** (2 nodes): `ConfidenceIndicator.tsx`, `ConfidenceIndicator()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1051`** (2 nodes): `DesignBriefPitchCard.tsx`, `fmtPct()`
+- **Thin community `Community 1363`** (2 nodes): `ClimateAnalysisPage.tsx`, `ClimateAnalysisPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1052`** (2 nodes): `EcologicalRiskWarningsCard.tsx`, `parsePct()`
+- **Thin community `Community 1364`** (2 nodes): `CollaborationReviewPage.tsx`, `CollaborationReviewPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1053`** (2 nodes): `PhasedBuildStrategyCard.tsx`, `parseNum()`
+- **Thin community `Community 1365`** (2 nodes): `ClimateAttributionChip.tsx`, `ClimateAttributionChip()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1054`** (2 nodes): `ConfidenceIndicator.tsx`, `ConfidenceIndicator()`
+- **Thin community `Community 1366`** (2 nodes): `marketGardenBundles.ts`, `computeMarketGardenGeometry()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1055`** (2 nodes): `ClimateAnalysisPage.tsx`, `ClimateAnalysisPage()`
+- **Thin community `Community 1367`** (2 nodes): `TreeSpacingCalculatorCard.tsx`, `classifyRow()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1056`** (2 nodes): `CollaborationReviewPage.tsx`, `CollaborationReviewPage()`
+- **Thin community `Community 1368`** (2 nodes): `useClimateMultiplier.ts`, `useClimateMultiplier()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1057`** (2 nodes): `ClimateAttributionChip.tsx`, `ClimateAttributionChip()`
+- **Thin community `Community 1369`** (2 nodes): `CropsAgroforestryPage.tsx`, `CropsAgroforestryPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1058`** (2 nodes): `marketGardenBundles.ts`, `computeMarketGardenGeometry()`
+- **Thin community `Community 1370`** (2 nodes): `CriticalConstraintAlert.tsx`, `CriticalConstraintAlert()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1059`** (2 nodes): `TreeSpacingCalculatorCard.tsx`, `classifyRow()`
+- **Thin community `Community 1371`** (2 nodes): `DashboardRouter.tsx`, `PanelShell()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1060`** (2 nodes): `useClimateMultiplier.ts`, `useClimateMultiplier()`
+- **Thin community `Community 1372`** (2 nodes): `DashboardView.tsx`, `DashboardView()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1061`** (2 nodes): `CropsAgroforestryPage.tsx`, `CropsAgroforestryPage()`
+- **Thin community `Community 1373`** (2 nodes): `LandVerdictCard.tsx`, `bandFor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1062`** (2 nodes): `CriticalConstraintAlert.tsx`, `CriticalConstraintAlert()`
+- **Thin community `Community 1374`** (2 nodes): `MetricCard.tsx`, `MetricCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1063`** (2 nodes): `DashboardRouter.tsx`, `PanelShell()`
+- **Thin community `Community 1375`** (2 nodes): `BiomassDashboard.tsx`, `num()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1064`** (2 nodes): `DashboardView.tsx`, `DashboardView()`
+- **Thin community `Community 1376`** (2 nodes): `CartographicStylePresetsCard.tsx`, `activate()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1065`** (2 nodes): `DecisionTriad.tsx`, `recommendedAction()`
+- **Thin community `Community 1377`** (2 nodes): `DashboardPlaceholder.tsx`, `DashboardPlaceholder()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1066`** (2 nodes): `LandVerdictCard.tsx`, `bandFor()`
+- **Thin community `Community 1378`** (2 nodes): `PhasingDashboard.tsx`, `formatCurrency()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1067`** (2 nodes): `MetricCard.tsx`, `MetricCard()`
+- **Thin community `Community 1379`** (2 nodes): `StewardshipDashboard.tsx`, `scoreQuality()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1068`** (2 nodes): `BiomassDashboard.tsx`, `num()`
+- **Thin community `Community 1380`** (2 nodes): `WorkflowWheelDashboard.tsx`, `WorkflowWheelDashboard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1069`** (2 nodes): `CartographicStylePresetsCard.tsx`, `activate()`
+- **Thin community `Community 1381`** (2 nodes): `BestUseSummaryCard.tsx`, `BestUseSummaryCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1070`** (2 nodes): `DashboardPlaceholder.tsx`, `DashboardPlaceholder()`
+- **Thin community `Community 1382`** (2 nodes): `BlockingIssuesStrip.tsx`, `BlockingIssuesStrip()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1071`** (2 nodes): `PhasingDashboard.tsx`, `formatCurrency()`
+- **Thin community `Community 1383`** (2 nodes): `useTriageItems.ts`, `useTriageItems()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1072`** (2 nodes): `StewardshipDashboard.tsx`, `scoreQuality()`
+- **Thin community `Community 1384`** (2 nodes): `DecisionFeasibilityPage.tsx`, `DecisionFeasibilityPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1073`** (2 nodes): `WorkflowWheelDashboard.tsx`, `WorkflowWheelDashboard()`
+- **Thin community `Community 1385`** (2 nodes): `DesignRulesPage.tsx`, `DesignRulesPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1074`** (2 nodes): `BestUseSummaryCard.tsx`, `BestUseSummaryCard()`
+- **Thin community `Community 1386`** (2 nodes): `EconomicModelingPage.tsx`, `EconomicModelingPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1075`** (2 nodes): `BlockingIssuesStrip.tsx`, `BlockingIssuesStrip()`
+- **Thin community `Community 1387`** (2 nodes): `WalkingTourScriptCard.tsx`, `handleCopy()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1076`** (2 nodes): `useTriageItems.ts`, `useTriageItems()`
+- **Thin community `Community 1388`** (2 nodes): `EducationInterpretivePage.tsx`, `EducationInterpretivePage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1077`** (2 nodes): `DecisionFeasibilityPage.tsx`, `DecisionFeasibilityPage()`
+- **Thin community `Community 1389`** (2 nodes): `FieldworkPanel.tsx`, `handleAddFromMap()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1078`** (2 nodes): `DesignRulesPage.tsx`, `DesignRulesPage()`
+- **Thin community `Community 1390`** (2 nodes): `OfflineSyncStatusCard.tsx`, `formatRelative()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1079`** (2 nodes): `EconomicModelingPage.tsx`, `EconomicModelingPage()`
+- **Thin community `Community 1391`** (2 nodes): `types.ts`, `costRange()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1080`** (2 nodes): `WalkingTourScriptCard.tsx`, `handleCopy()`
+- **Thin community `Community 1392`** (2 nodes): `CA_ONTARIO.ts`, `fallback()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1081`** (2 nodes): `EducationInterpretivePage.tsx`, `EducationInterpretivePage()`
+- **Thin community `Community 1393`** (2 nodes): `FutureGeospatialPage.tsx`, `FutureGeospatialPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1082`** (2 nodes): `FieldworkPanel.tsx`, `handleAddFromMap()`
+- **Thin community `Community 1394`** (2 nodes): `lifecycle.ts`, `deriveActiveBanner()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1083`** (2 nodes): `OfflineSyncStatusCard.tsx`, `formatRelative()`
+- **Thin community `Community 1395`** (2 nodes): `LandingPage.tsx`, `LandingPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1084`** (2 nodes): `types.ts`, `costRange()`
+- **Thin community `Community 1396`** (2 nodes): `HeroBoxBreak.tsx`, `HeroBoxBreak()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1085`** (2 nodes): `CA_ONTARIO.ts`, `fallback()`
+- **Thin community `Community 1397`** (2 nodes): `HeroMapCanvas.tsx`, `HeroMapCanvas()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1086`** (2 nodes): `FutureGeospatialPage.tsx`, `FutureGeospatialPage()`
+- **Thin community `Community 1398`** (2 nodes): `HeroSiteCard.tsx`, `HeroSiteCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1087`** (2 nodes): `lifecycle.ts`, `deriveActiveBanner()`
+- **Thin community `Community 1399`** (2 nodes): `LandingFooter.tsx`, `LandingFooter()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1088`** (2 nodes): `LandingPage.tsx`, `LandingPage()`
+- **Thin community `Community 1400`** (2 nodes): `LandingNav.tsx`, `onScroll()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1089`** (2 nodes): `HeroBoxBreak.tsx`, `HeroBoxBreak()`
+- **Thin community `Community 1401`** (2 nodes): `PathToExcellenceCTA.tsx`, `PathToExcellenceCTA()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1090`** (2 nodes): `HeroMapCanvas.tsx`, `HeroMapCanvas()`
+- **Thin community `Community 1402`** (2 nodes): `PillarsBento.tsx`, `PillarsBento()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1091`** (2 nodes): `HeroSiteCard.tsx`, `HeroSiteCard()`
+- **Thin community `Community 1403`** (2 nodes): `buildCandidates()`, `AnimalTractorZonesCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1092`** (2 nodes): `LandingFooter.tsx`, `LandingFooter()`
+- **Thin community `Community 1404`** (2 nodes): `MultiSpeciesPlannerCard.tsx`, `MultiSpeciesPlannerCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1093`** (2 nodes): `LandingNav.tsx`, `onScroll()`
+- **Thin community `Community 1405`** (2 nodes): `LivestockSystemsPage.tsx`, `LivestockSystemsPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1094`** (2 nodes): `PathToExcellenceCTA.tsx`, `PathToExcellenceCTA()`
+- **Thin community `Community 1406`** (2 nodes): `domainMapping.ts`, `getDomainContext()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1095`** (2 nodes): `PillarsBento.tsx`, `PillarsBento()`
+- **Thin community `Community 1407`** (2 nodes): `MapLoadingIndicator.tsx`, `MapLoadingIndicator()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1096`** (2 nodes): `buildCandidates()`, `AnimalTractorZonesCard.tsx`
+- **Thin community `Community 1408`** (2 nodes): `MeasureTools.tsx`, `onClick()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1097`** (2 nodes): `LivestockLandFitCard.tsx`, `computeFit()`
+- **Thin community `Community 1409`** (2 nodes): `useRelationshipsSync.ts`, `useRelationshipsSync()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1098`** (2 nodes): `MultiSpeciesPlannerCard.tsx`, `MultiSpeciesPlannerCard()`
+- **Thin community `Community 1410`** (2 nodes): `ViewModeSwitcher.tsx`, `handleSelect()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1099`** (2 nodes): `speciesData.ts`, `computeAnimalUnits()`
+- **Thin community `Community 1411`** (2 nodes): `MobileFieldworkPage.tsx`, `MobileFieldworkPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1100`** (2 nodes): `LivestockSystemsPage.tsx`, `LivestockSystemsPage()`
+- **Thin community `Community 1412`** (2 nodes): `MoontranceIdentityPage.tsx`, `MoontranceIdentityPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1101`** (2 nodes): `domainMapping.ts`, `getDomainContext()`
+- **Thin community `Community 1413`** (2 nodes): `MoontranceVisionPage.tsx`, `MoontranceVisionPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1102`** (2 nodes): `MapLoadingIndicator.tsx`, `MapLoadingIndicator()`
+- **Thin community `Community 1414`** (2 nodes): `FoodChainCard.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1103`** (2 nodes): `MeasureTools.tsx`, `onClick()`
+- **Thin community `Community 1415`** (2 nodes): `HazardsLogCard.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1104`** (2 nodes): `useRelationshipsSync.ts`, `useRelationshipsSync()`
+- **Thin community `Community 1416`** (2 nodes): `SwotJournalCard.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1105`** (2 nodes): `ViewModeSwitcher.tsx`, `handleSelect()`
+- **Thin community `Community 1417`** (2 nodes): `TimelineYearModeCard.tsx`, `parseUpperYear()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1106`** (2 nodes): `MobileFieldworkPage.tsx`, `MobileFieldworkPage()`
+- **Thin community `Community 1418`** (2 nodes): `CanopySimulatorCard.tsx`, `CanopySimulatorCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1107`** (2 nodes): `MoontranceIdentityPage.tsx`, `MoontranceIdentityPage()`
+- **Thin community `Community 1419`** (2 nodes): `LaborBudgetSummaryCard.tsx`, `' '()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1108`** (2 nodes): `MoontranceVisionPage.tsx`, `MoontranceVisionPage()`
+- **Thin community `Community 1420`** (2 nodes): `PhasingMatrixCard.tsx`, `setCap()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1109`** (2 nodes): `FoodChainCard.tsx`, `commit()`
+- **Thin community `Community 1421`** (2 nodes): `PlanHub.tsx`, `fmtCount()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1110`** (2 nodes): `HazardsLogCard.tsx`, `commit()`
+- **Thin community `Community 1422`** (2 nodes): `RunoffCalculatorCard.tsx`, `RunoffCalculatorCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1111`** (2 nodes): `StewardSurveyCard.tsx`, `StewardSurveyCard()`
+- **Thin community `Community 1423`** (2 nodes): `SoilFertilityDesignerCard.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1112`** (2 nodes): `SwotJournalCard.tsx`, `commit()`
+- **Thin community `Community 1424`** (2 nodes): `StorageInfraTool.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1113`** (2 nodes): `TimelineYearModeCard.tsx`, `parseUpperYear()`
+- **Thin community `Community 1425`** (2 nodes): `SwaleDrainTool.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1114`** (2 nodes): `CanopySimulatorCard.tsx`, `CanopySimulatorCard()`
+- **Thin community `Community 1426`** (2 nodes): `ZoneLevelLayer.tsx`, `setLevel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1115`** (2 nodes): `LaborBudgetSummaryCard.tsx`, `' '()`
+- **Thin community `Community 1427`** (2 nodes): `plantPhenologyData.ts`, `getAnnualPhenology()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1116`** (2 nodes): `PhasingMatrixCard.tsx`, `setCap()`
+- **Thin community `Community 1428`** (2 nodes): `PortalShareSnapshotCard.tsx`, `handleCopyPayload()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1117`** (2 nodes): `PlanHub.tsx`, `fmtCount()`
+- **Thin community `Community 1429`** (2 nodes): `PublicMaskingPreviewCard.tsx`, `clip()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1118`** (2 nodes): `RunoffCalculatorCard.tsx`, `RunoffCalculatorCard()`
+- **Thin community `Community 1430`** (2 nodes): `ShareLinkReadinessCard.tsx`, `handleCopy()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1119`** (2 nodes): `SoilFertilityDesignerCard.tsx`, `commit()`
+- **Thin community `Community 1431`** (2 nodes): `StakeholderReviewModeCard.tsx`, `handleCopyEmail()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1120`** (2 nodes): `StorageInfraTool.tsx`, `commit()`
+- **Thin community `Community 1432`** (2 nodes): `HeroSection.tsx`, `HeroSection()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1121`** (2 nodes): `SwaleDrainTool.tsx`, `commit()`
+- **Thin community `Community 1433`** (2 nodes): `SupportCTA.tsx`, `handleSubmit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1122`** (2 nodes): `ZoneLevelLayer.tsx`, `setLevel()`
+- **Thin community `Community 1434`** (2 nodes): `ProjectEditor.tsx`, `handleSave()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1123`** (2 nodes): `plantPhenologyData.ts`, `getAnnualPhenology()`
+- **Thin community `Community 1435`** (2 nodes): `VersionHistory.tsx`, `handleRestore()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1124`** (2 nodes): `PortalShareSnapshotCard.tsx`, `handleCopyPayload()`
+- **Thin community `Community 1436`** (2 nodes): `StepBasicInfo.tsx`, `handleInstantiate()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1125`** (2 nodes): `PublicMaskingPreviewCard.tsx`, `clip()`
+- **Thin community `Community 1437`** (2 nodes): `useRegenerationEvents.ts`, `useRegenerationEventsForProject()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1126`** (2 nodes): `ShareLinkReadinessCard.tsx`, `handleCopy()`
+- **Thin community `Community 1438`** (2 nodes): `ReportingExportPage.tsx`, `ReportingExportPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1127`** (2 nodes): `StakeholderReviewModeCard.tsx`, `handleCopyEmail()`
+- **Thin community `Community 1439`** (2 nodes): `ReusableFrameworksPage.tsx`, `ReusableFrameworksPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1128`** (2 nodes): `HeroSection.tsx`, `HeroSection()`
+- **Thin community `Community 1440`** (2 nodes): `ConflictDensityRollupCard.tsx`, `severityScore()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1129`** (2 nodes): `SupportCTA.tsx`, `handleSubmit()`
+- **Thin community `Community 1441`** (2 nodes): `RulesLayerOverviewCard.tsx`, `toneFor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1130`** (2 nodes): `ProjectEditor.tsx`, `handleSave()`
+- **Thin community `Community 1442`** (2 nodes): `SitingRuleFamilyCoverageCard.tsx`, `tierFor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1131`** (2 nodes): `VersionHistory.tsx`, `handleRestore()`
+- **Thin community `Community 1443`** (2 nodes): `SimulationScenariosPage.tsx`, `SimulationScenariosPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1132`** (2 nodes): `StepBasicInfo.tsx`, `handleInstantiate()`
+- **Thin community `Community 1444`** (2 nodes): `SiteAssessmentPage.tsx`, `SiteAssessmentPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1133`** (2 nodes): `useRegenerationEvents.ts`, `useRegenerationEventsForProject()`
+- **Thin community `Community 1445`** (2 nodes): `SoilEcologyPage.tsx`, `SoilEcologyPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1134`** (2 nodes): `ReportingExportPage.tsx`, `ReportingExportPage()`
+- **Thin community `Community 1446`** (2 nodes): `GatheringRetreatCard.tsx`, `GatheringRetreatCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1135`** (2 nodes): `ReusableFrameworksPage.tsx`, `ReusableFrameworksPage()`
+- **Thin community `Community 1447`** (2 nodes): `PermitReadinessCard.tsx`, `evaluateGate()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1136`** (2 nodes): `ConflictDensityRollupCard.tsx`, `severityScore()`
+- **Thin community `Community 1448`** (2 nodes): `SupportInfrastructureCard.tsx`, `fmtUsd()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1137`** (2 nodes): `RulesLayerOverviewCard.tsx`, `toneFor()`
+- **Thin community `Community 1449`** (2 nodes): `StructuresBuildingsPage.tsx`, `StructuresBuildingsPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1138`** (2 nodes): `SitingRuleFamilyCoverageCard.tsx`, `tierFor()`
+- **Thin community `Community 1450`** (2 nodes): `ThreatsAndLeverageCard.tsx`, `pct()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1139`** (2 nodes): `SimulationScenariosPage.tsx`, `SimulationScenariosPage()`
+- **Thin community `Community 1451`** (2 nodes): `TimelinePhasingPage.tsx`, `TimelinePhasingPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1140`** (2 nodes): `SiteAssessmentPage.tsx`, `SiteAssessmentPage()`
+- **Thin community `Community 1452`** (2 nodes): `UtilitiesEnergyPage.tsx`, `UtilitiesEnergyPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1141`** (2 nodes): `SoilEcologyPage.tsx`, `SoilEcologyPage()`
+- **Thin community `Community 1453`** (2 nodes): `PrivacyCohortPlanningCard.tsx`, `matchesIntent()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1142`** (2 nodes): `GatheringRetreatCard.tsx`, `GatheringRetreatCard()`
+- **Thin community `Community 1454`** (2 nodes): `ProgramCoverageCard.tsx`, `formatArea()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1143`** (2 nodes): `PermitReadinessCard.tsx`, `evaluateGate()`
+- **Thin community `Community 1455`** (2 nodes): `ZoningAllocationPage.tsx`, `ZoningAllocationPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1144`** (2 nodes): `SupportInfrastructureCard.tsx`, `fmtUsd()`
+- **Thin community `Community 1456`** (2 nodes): `useKeyboardShortcuts.ts`, `useKeyboardShortcuts()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1145`** (2 nodes): `StructuresBuildingsPage.tsx`, `StructuresBuildingsPage()`
+- **Thin community `Community 1457`** (2 nodes): `useServerAiOutputs.ts`, `useServerAiOutputs()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1146`** (2 nodes): `ThreatsAndLeverageCard.tsx`, `pct()`
+- **Thin community `Community 1458`** (2 nodes): `useSiteIntelligenceMetrics.ts`, `useSiteIntelligenceMetrics()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1147`** (2 nodes): `TimelinePhasingPage.tsx`, `TimelinePhasingPage()`
+- **Thin community `Community 1459`** (2 nodes): `types.ts`, `weatherCodeMeta()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1148`** (2 nodes): `UtilitiesEnergyPage.tsx`, `UtilitiesEnergyPage()`
+- **Thin community `Community 1460`** (2 nodes): `solar.test.ts`, `abs()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1149`** (2 nodes): `PrivacyCohortPlanningCard.tsx`, `matchesIntent()`
+- **Thin community `Community 1461`** (2 nodes): `CyclePage.tsx`, `CyclePage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1150`** (2 nodes): `ProgramCoverageCard.tsx`, `formatArea()`
+- **Thin community `Community 1462`** (2 nodes): `index.tsx`, `isAuthenticated()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1151`** (2 nodes): `ZoningAllocationPage.tsx`, `ZoningAllocationPage()`
+- **Thin community `Community 1463`** (2 nodes): `cascadeDelete.ts`, `cascadeDeleteProject()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1152`** (2 nodes): `useKeyboardShortcuts.ts`, `useKeyboardShortcuts()`
+- **Thin community `Community 1464`** (2 nodes): `commentStore.ts`, `fromRecord()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1153`** (2 nodes): `useServerAiOutputs.ts`, `useServerAiOutputs()`
+- **Thin community `Community 1465`** (2 nodes): `goalTreeStore.ts`, `cloneTemplate()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1154`** (2 nodes): `useSiteIntelligenceMetrics.ts`, `useSiteIntelligenceMetrics()`
+- **Thin community `Community 1466`** (2 nodes): `hazardsStore.ts`, `makeHazardId()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1155`** (2 nodes): `types.ts`, `weatherCodeMeta()`
+- **Thin community `Community 1467`** (2 nodes): `machineryInventoryStore.ts`, `newMachineryId()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1156`** (2 nodes): `solar.test.ts`, `abs()`
+- **Thin community `Community 1468`** (2 nodes): `planSelectionStore.ts`, `sameItem()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1157`** (2 nodes): `CyclePage.tsx`, `CyclePage()`
+- **Thin community `Community 1469`** (2 nodes): `portalStore.ts`, `debouncedSave()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1158`** (2 nodes): `index.tsx`, `isAuthenticated()`
+- **Thin community `Community 1470`** (2 nodes): `regenerationEventStore.ts`, `useRegenerationEvents()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1159`** (2 nodes): `cascadeDelete.ts`, `cascadeDeleteProject()`
+- **Thin community `Community 1471`** (2 nodes): `relationshipsStore.ts`, `edgeKey()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1160`** (2 nodes): `commentStore.ts`, `fromRecord()`
+- **Thin community `Community 1472`** (2 nodes): `site-annotations.ts`, `newAnnotationId()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1161`** (2 nodes): `goalTreeStore.ts`, `cloneTemplate()`
+- **Thin community `Community 1473`** (2 nodes): `soilTestStore.ts`, `newSoilTestId()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1162`** (2 nodes): `hazardsStore.ts`, `makeHazardId()`
+- **Thin community `Community 1474`** (2 nodes): `zoneStore.ts`, `defaultCategoryForZ()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1163`** (2 nodes): `machineryInventoryStore.ts`, `newMachineryId()`
+- **Thin community `Community 1475`** (2 nodes): `temporal-undo.test.ts`, `clearTemporal()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1164`** (2 nodes): `planSelectionStore.ts`, `sameItem()`
+- **Thin community `Community 1476`** (2 nodes): `zoneStore.clearSeeded.test.ts`, `zone()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1165`** (2 nodes): `portalStore.ts`, `debouncedSave()`
+- **Thin community `Community 1477`** (2 nodes): `breakEvenEngine.test.ts`, `buildBreakEven()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1166`** (2 nodes): `regenerationEventStore.ts`, `useRegenerationEvents()`
+- **Thin community `Community 1478`** (2 nodes): `cashflowEngine.test.ts`, `buildCashflow()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1167`** (2 nodes): `relationshipsStore.ts`, `edgeKey()`
+- **Thin community `Community 1479`** (2 nodes): `integration.test.ts`, `runFullPipeline()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1168`** (2 nodes): `site-annotations.ts`, `newAnnotationId()`
+- **Thin community `Community 1480`** (2 nodes): `ActChecklistAside()`, `ActChecklistAside.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1169`** (2 nodes): `soilTestStore.ts`, `newSoilTestId()`
+- **Thin community `Community 1481`** (2 nodes): `ActModuleBar()`, `ActModuleBar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1170`** (2 nodes): `zoneStore.ts`, `defaultCategoryForZ()`
+- **Thin community `Community 1482`** (2 nodes): `handleClick()`, `ActTools.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1171`** (2 nodes): `temporal-undo.test.ts`, `clearTemporal()`
+- **Thin community `Community 1483`** (2 nodes): `types.ts`, `isActModule()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1172`** (2 nodes): `zoneStore.clearSeeded.test.ts`, `zone()`
+- **Thin community `Community 1484`** (2 nodes): `projectTypeModuleAffinity.ts`, `getModuleAffinityRank()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1173`** (2 nodes): `breakEvenEngine.test.ts`, `buildBreakEven()`
+- **Thin community `Community 1485`** (2 nodes): `structureActions.ts`, `getActionsForType()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1174`** (2 nodes): `cashflowEngine.test.ts`, `buildCashflow()`
+- **Thin community `Community 1486`** (2 nodes): `ActDrawHost()`, `ActDrawHost.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1175`** (2 nodes): `integration.test.ts`, `runFullPipeline()`
+- **Thin community `Community 1487`** (2 nodes): `ActDataLayers()`, `ActDataLayers.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1176`** (2 nodes): `ActChecklistAside()`, `ActChecklistAside.tsx`
+- **Thin community `Community 1488`** (2 nodes): `ActStructureClickHandler()`, `ActStructureClickHandler.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1177`** (2 nodes): `ActModuleBar()`, `ActModuleBar.tsx`
+- **Thin community `Community 1489`** (2 nodes): `push()`, `AlertsPanel.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1178`** (2 nodes): `handleClick()`, `ActTools.tsx`
+- **Thin community `Community 1490`** (2 nodes): `QuickActions.tsx`, `QuickActions()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1179`** (2 nodes): `types.ts`, `isActModule()`
+- **Thin community `Community 1491`** (2 nodes): `SharedVertexEditHandler.tsx`, `SharedVertexEditHandler()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1180`** (2 nodes): `projectTypeModuleAffinity.ts`, `getModuleAffinityRank()`
+- **Thin community `Community 1492`** (2 nodes): `AdoptedBuildingsSync()`, `AdoptedBuildingsSync.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1181`** (2 nodes): `structureActions.ts`, `getActionsForType()`
+- **Thin community `Community 1493`** (2 nodes): `Terrain3DController.tsx`, `Terrain3DController()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1182`** (2 nodes): `ActDrawHost()`, `ActDrawHost.tsx`
+- **Thin community `Community 1494`** (2 nodes): `BlockerCard.tsx`, `BlockerCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1183`** (2 nodes): `ActDataLayers()`, `ActDataLayers.tsx`
+- **Thin community `Community 1495`** (2 nodes): `CandidateDetailDrawer.tsx`, `handleOpen()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1184`** (2 nodes): `ActStructureClickHandler()`, `ActStructureClickHandler.tsx`
+- **Thin community `Community 1496`** (2 nodes): `CompareTray.tsx`, `CompareTray()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1185`** (2 nodes): `ActOpsAside()`, `ActOpsAside.tsx`
+- **Thin community `Community 1497`** (2 nodes): `DiagnoseCategoryDrawer.tsx`, `onKey()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1186`** (2 nodes): `push()`, `AlertsPanel.tsx`
+- **Thin community `Community 1498`** (2 nodes): `FiltersBar.tsx`, `FiltersBar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1187`** (2 nodes): `QuickActions.tsx`, `QuickActions()`
+- **Thin community `Community 1499`** (2 nodes): `InsightPanel.tsx`, `InsightPanel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1188`** (2 nodes): `SharedVertexEditHandler.tsx`, `SharedVertexEditHandler()`
+- **Thin community `Community 1500`** (2 nodes): `LifecycleProgressRing.tsx`, `LifecycleProgressRing()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1189`** (2 nodes): `AdoptedBuildingsSync()`, `AdoptedBuildingsSync.tsx`
+- **Thin community `Community 1501`** (2 nodes): `PageHeader.tsx`, `PageHeader()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1190`** (2 nodes): `Terrain3DController.tsx`, `Terrain3DController()`
+- **Thin community `Community 1502`** (2 nodes): `ScoreBar.tsx`, `tone()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1191`** (2 nodes): `BlockerCard.tsx`, `BlockerCard()`
+- **Thin community `Community 1503`** (2 nodes): `SpotlightPulse.tsx`, `SpotlightPulse()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1192`** (2 nodes): `CandidateDetailDrawer.tsx`, `handleOpen()`
+- **Thin community `Community 1504`** (2 nodes): `TopographyOverlay.tsx`, `TopographyOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1193`** (2 nodes): `CompareTray.tsx`, `CompareTray()`
+- **Thin community `Community 1505`** (2 nodes): `WaterOverlay.tsx`, `WaterOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1194`** (2 nodes): `DiagnoseCategoryDrawer.tsx`, `onKey()`
+- **Thin community `Community 1506`** (2 nodes): `DesignContoursOverlay.tsx`, `DesignContoursOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1195`** (2 nodes): `FiltersBar.tsx`, `FiltersBar()`
+- **Thin community `Community 1507`** (2 nodes): `DesignHydrologyOverlay.tsx`, `DesignHydrologyOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1196`** (2 nodes): `InsightPanel.tsx`, `InsightPanel()`
+- **Thin community `Community 1508`** (2 nodes): `DesignPlacementsOverlay.tsx`, `DesignPlacementsOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1197`** (2 nodes): `LifecycleProgressRing.tsx`, `LifecycleProgressRing()`
+- **Thin community `Community 1509`** (2 nodes): `DesignPropertyOverlay.tsx`, `DesignPropertyOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1198`** (2 nodes): `PageHeader.tsx`, `PageHeader()`
+- **Thin community `Community 1510`** (2 nodes): `DiscoverRail.tsx`, `scoreToneClass()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1199`** (2 nodes): `ScoreBar.tsx`, `tone()`
+- **Thin community `Community 1511`** (2 nodes): `HomeRail.tsx`, `readinessLabel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1200`** (2 nodes): `SpotlightPulse.tsx`, `SpotlightPulse()`
+- **Thin community `Community 1512`** (2 nodes): `OperateRail.tsx`, `priorityRank()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1201`** (2 nodes): `TopographyOverlay.tsx`, `TopographyOverlay()`
+- **Thin community `Community 1513`** (2 nodes): `ReportRail.tsx`, `ReportRail()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1202`** (2 nodes): `WaterOverlay.tsx`, `WaterOverlay()`
+- **Thin community `Community 1514`** (2 nodes): `useV3Project.ts`, `useV3Project()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1203`** (2 nodes): `DesignContoursOverlay.tsx`, `DesignContoursOverlay()`
+- **Thin community `Community 1515`** (2 nodes): `useWindClimatology.ts`, `useWindClimatology()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1204`** (2 nodes): `DesignHydrologyOverlay.tsx`, `DesignHydrologyOverlay()`
+- **Thin community `Community 1516`** (2 nodes): `exportDiagnoseBrief.test.ts`, `stripFooterDate()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1205`** (2 nodes): `DesignPlacementsOverlay.tsx`, `DesignPlacementsOverlay()`
+- **Thin community `Community 1517`** (2 nodes): `types.ts`, `isObserveModule()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1206`** (2 nodes): `DesignPropertyOverlay.tsx`, `DesignPropertyOverlay()`
+- **Thin community `Community 1518`** (2 nodes): `ObserveChecklistAside.tsx`, `ObserveGuidanceCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1207`** (2 nodes): `DiscoverRail.tsx`, `scoreToneClass()`
+- **Thin community `Community 1519`** (2 nodes): `ObserveDeepLinkFocus.tsx`, `ObserveDeepLinkFocus()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1208`** (2 nodes): `HomeRail.tsx`, `readinessLabel()`
+- **Thin community `Community 1520`** (2 nodes): `SectorRadiusControl.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1209`** (2 nodes): `OperateRail.tsx`, `priorityRank()`
+- **Thin community `Community 1521`** (2 nodes): `place()`, `AccessRoadTool.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1210`** (2 nodes): `ReportRail.tsx`, `ReportRail()`
+- **Thin community `Community 1522`** (2 nodes): `AnnotationVertexEditHandler()`, `AnnotationVertexEditHandler.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1211`** (2 nodes): `useV3Project.ts`, `useV3Project()`
+- **Thin community `Community 1523`** (2 nodes): `BeV2ExistingTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1212`** (2 nodes): `useWindClimatology.ts`, `useWindClimatology()`
+- **Thin community `Community 1524`** (2 nodes): `BuildingTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1213`** (2 nodes): `exportDiagnoseBrief.test.ts`, `stripFooterDate()`
+- **Thin community `Community 1525`** (2 nodes): `BuriedUtilityTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1214`** (2 nodes): `ObserveLayout.tsx`, `handleSelectModule()`
+- **Thin community `Community 1526`** (2 nodes): `ContourLineTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1215`** (2 nodes): `types.ts`, `isObserveModule()`
+- **Thin community `Community 1527`** (2 nodes): `ConventionalCropTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1216`** (2 nodes): `ObserveChecklistAside.tsx`, `ObserveGuidanceCard()`
+- **Thin community `Community 1528`** (2 nodes): `DrainageLineTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1217`** (2 nodes): `ObserveDeepLinkFocus.tsx`, `ObserveDeepLinkFocus()`
+- **Thin community `Community 1529`** (2 nodes): `ExistingDrivewayTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1218`** (2 nodes): `SectorRadiusControl.tsx`, `commit()`
+- **Thin community `Community 1530`** (2 nodes): `FenceTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1219`** (2 nodes): `place()`, `AccessRoadTool.tsx`
+- **Thin community `Community 1531`** (2 nodes): `FrostPocketTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1220`** (2 nodes): `AnnotationVertexEditHandler()`, `AnnotationVertexEditHandler.tsx`
+- **Thin community `Community 1532`** (2 nodes): `GateTool.tsx`, `GateTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1221`** (2 nodes): `BeV2ExistingTool.tsx`, `place()`
+- **Thin community `Community 1533`** (2 nodes): `HazardZoneTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1222`** (2 nodes): `BuildingTool.tsx`, `place()`
+- **Thin community `Community 1534`** (2 nodes): `HighPointTool.tsx`, `HighPointTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1223`** (2 nodes): `BuriedUtilityTool.tsx`, `place()`
+- **Thin community `Community 1535`** (2 nodes): `HouseholdPinTool.tsx`, `HouseholdPinTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1224`** (2 nodes): `ContourLineTool.tsx`, `place()`
+- **Thin community `Community 1536`** (2 nodes): `NeighbourPinTool.tsx`, `NeighbourPinTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1225`** (2 nodes): `ConventionalCropTool.tsx`, `place()`
+- **Thin community `Community 1537`** (2 nodes): `ObserveDrawHost.tsx`, `ObserveDrawHost()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1226`** (2 nodes): `DrainageLineTool.tsx`, `place()`
+- **Thin community `Community 1538`** (2 nodes): `PowerLineTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1227`** (2 nodes): `ExistingDrivewayTool.tsx`, `place()`
+- **Thin community `Community 1539`** (2 nodes): `SepticTool.tsx`, `SepticTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1228`** (2 nodes): `FenceTool.tsx`, `place()`
+- **Thin community `Community 1540`** (2 nodes): `SoilSampleTool.tsx`, `SoilSampleTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1229`** (2 nodes): `FrostPocketTool.tsx`, `place()`
+- **Thin community `Community 1541`** (2 nodes): `SwotTagTool.tsx`, `SwotTagTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1230`** (2 nodes): `GateTool.tsx`, `GateTool()`
+- **Thin community `Community 1542`** (2 nodes): `useMapboxDrawTool.ts`, `useMapboxDrawTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1231`** (2 nodes): `HazardZoneTool.tsx`, `place()`
+- **Thin community `Community 1543`** (2 nodes): `VegetationTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1232`** (2 nodes): `HighPointTool.tsx`, `HighPointTool()`
+- **Thin community `Community 1544`** (2 nodes): `WatercourseTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1233`** (2 nodes): `HouseholdPinTool.tsx`, `HouseholdPinTool()`
+- **Thin community `Community 1545`** (2 nodes): `WellTool.tsx`, `WellTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1234`** (2 nodes): `NeighbourPinTool.tsx`, `NeighbourPinTool()`
+- **Thin community `Community 1546`** (2 nodes): `fieldRemovers.test.ts`, `inject()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1235`** (2 nodes): `ObserveDrawHost.tsx`, `ObserveDrawHost()`
+- **Thin community `Community 1547`** (2 nodes): `AreaTool.tsx`, `onChange()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1236`** (2 nodes): `PastureTool.tsx`, `PastureTool()`
+- **Thin community `Community 1548`** (2 nodes): `DistanceTool.tsx`, `onChange()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1237`** (2 nodes): `PowerLineTool.tsx`, `place()`
+- **Thin community `Community 1549`** (2 nodes): `sectorRadius.ts`, `getSectorRadiusM()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1238`** (2 nodes): `SepticTool.tsx`, `SepticTool()`
+- **Thin community `Community 1550`** (2 nodes): `reset()`, `annotationExport.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1239`** (2 nodes): `SoilSampleTool.tsx`, `SoilSampleTool()`
+- **Thin community `Community 1551`** (2 nodes): `derivations.test.ts`, `ent()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1240`** (2 nodes): `SwotTagTool.tsx`, `SwotTagTool()`
+- **Thin community `Community 1552`** (2 nodes): `HydrologyDetail.tsx`, `Ring()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1241`** (2 nodes): `useMapboxDrawTool.ts`, `useMapboxDrawTool()`
+- **Thin community `Community 1553`** (2 nodes): `JarPercRoofDetail.tsx`, `Ring()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1242`** (2 nodes): `VegetationTool.tsx`, `place()`
+- **Thin community `Community 1554`** (2 nodes): `PercGauge.tsx`, `PercGauge()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1243`** (2 nodes): `WatercourseTool.tsx`, `place()`
+- **Thin community `Community 1555`** (2 nodes): `SeasonalEcologyStrip.tsx`, `SeasonalEcologyStrip()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1244`** (2 nodes): `WellTool.tsx`, `WellTool()`
+- **Thin community `Community 1556`** (2 nodes): `SoilProfileBar.tsx`, `SoilProfileBar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1245`** (2 nodes): `fieldRemovers.test.ts`, `inject()`
+- **Thin community `Community 1557`** (2 nodes): `SpeciesObservationList.tsx`, `SpeciesObservationList()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1246`** (2 nodes): `AreaTool.tsx`, `onChange()`
+- **Thin community `Community 1558`** (2 nodes): `WaterBalanceBar.tsx`, `WaterBalanceBar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1247`** (2 nodes): `DistanceTool.tsx`, `onChange()`
+- **Thin community `Community 1559`** (2 nodes): `CapacityOrbit.tsx`, `CapacityOrbit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1248`** (2 nodes): `sectorRadius.ts`, `getSectorRadiusM()`
+- **Thin community `Community 1560`** (2 nodes): `IndigenousRegionalContextDetail.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1249`** (2 nodes): `reset()`, `annotationExport.test.ts`
+- **Thin community `Community 1561`** (2 nodes): `HazardHotspotsMap.tsx`, `HazardHotspotsMap()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1250`** (2 nodes): `derivations.test.ts`, `ent()`
+- **Thin community `Community 1562`** (2 nodes): `derivations.test.ts`, `makeEntry()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1251`** (2 nodes): `EcologicalDetail.tsx`, `Ring()`
+- **Thin community `Community 1563`** (2 nodes): `AspectCompass.tsx`, `AspectCompass()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1252`** (2 nodes): `HydrologyDetail.tsx`, `Ring()`
+- **Thin community `Community 1564`** (2 nodes): `ElevationHistogram.tsx`, `ElevationHistogram()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1253`** (2 nodes): `JarPercRoofDetail.tsx`, `Ring()`
+- **Thin community `Community 1565`** (2 nodes): `SlopeLegendStrip.tsx`, `SlopeLegendStrip()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1254`** (2 nodes): `PercGauge.tsx`, `PercGauge()`
+- **Thin community `Community 1566`** (2 nodes): `TerrainDetail.tsx`, `toggle()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1255`** (2 nodes): `SeasonalEcologyStrip.tsx`, `SeasonalEcologyStrip()`
+- **Thin community `Community 1567`** (2 nodes): `ObserveRail.tsx`, `ObserveRail()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1256`** (2 nodes): `SoilProfileBar.tsx`, `SoilProfileBar()`
+- **Thin community `Community 1568`** (2 nodes): `ProjectsLandingPage.tsx`, `async()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1257`** (2 nodes): `SpeciesObservationList.tsx`, `SpeciesObservationList()`
+- **Thin community `Community 1569`** (2 nodes): `StagePagePlaceholder.tsx`, `StagePagePlaceholder()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1258`** (2 nodes): `WaterBalanceBar.tsx`, `WaterBalanceBar()`
+- **Thin community `Community 1570`** (2 nodes): `PlanModuleBar.tsx`, `PlanModuleBar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1259`** (2 nodes): `CapacityOrbit.tsx`, `CapacityOrbit()`
+- **Thin community `Community 1571`** (2 nodes): `PlanViewBadge.tsx`, `PlanViewBadge()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1260`** (2 nodes): `HumanContextDashboard.tsx`, `HumanContextDashboard()`
+- **Thin community `Community 1572`** (2 nodes): `usePhaseCappedEntities.ts`, `usePhaseCappedEntities()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1261`** (2 nodes): `IndigenousRegionalContextDetail.tsx`, `commit()`
+- **Thin community `Community 1573`** (2 nodes): `usePhaseStoreCappedEntities.ts`, `usePhaseStoreCappedEntities()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1262`** (2 nodes): `HazardHotspotsMap.tsx`, `HazardHotspotsMap()`
+- **Thin community `Community 1574`** (2 nodes): `V3PlanPage.tsx`, `noop()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1263`** (2 nodes): `SectorCompassDetail.tsx`, `Ring()`
+- **Thin community `Community 1575`** (2 nodes): `DesignElementPalette.tsx`, `DesignElementPalette()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1264`** (2 nodes): `derivations.test.ts`, `makeEntry()`
+- **Thin community `Community 1576`** (2 nodes): `elementCatalog.ts`, `findElementSpec()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1265`** (2 nodes): `AspectCompass.tsx`, `AspectCompass()`
+- **Thin community `Community 1577`** (2 nodes): `StampModePicker.tsx`, `toolIdToKind()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1266`** (2 nodes): `ElevationHistogram.tsx`, `ElevationHistogram()`
+- **Thin community `Community 1578`** (2 nodes): `useContinuousPointDrawTool.ts`, `useContinuousPointDrawTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1267`** (2 nodes): `SlopeLegendStrip.tsx`, `SlopeLegendStrip()`
+- **Thin community `Community 1579`** (2 nodes): `DesignElementLayers.tsx`, `DesignElementLayers()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1268`** (2 nodes): `TerrainDetail.tsx`, `toggle()`
+- **Thin community `Community 1580`** (2 nodes): `DevelopPlanTab.tsx`, `handleReschedule()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1269`** (2 nodes): `ObserveRail.tsx`, `ObserveRail()`
+- **Thin community `Community 1581`** (2 nodes): `SiteProfileTab.tsx`, `handlePrefillAll()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1270`** (2 nodes): `StagePagePlaceholder.tsx`, `StagePagePlaceholder()`
+- **Thin community `Community 1582`** (2 nodes): `MaintenanceScheduleCard.tsx`, `fmtUSD()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1271`** (2 nodes): `PlanModuleBar.tsx`, `PlanModuleBar()`
+- **Thin community `Community 1583`** (2 nodes): `handleGenerate()`, `AnnualPlantingCalendarCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1272`** (2 nodes): `PlanModuleSlideUp.tsx`, `renderPlanCard()`
+- **Thin community `Community 1584`** (2 nodes): `temporalCoherenceMath.test.ts`, `apple()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1273`** (2 nodes): `PlanTools.tsx`, `PlanTools()`
+- **Thin community `Community 1585`** (2 nodes): `ClosedLoopGraphCard.tsx`, `polygonCentroid()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1274`** (2 nodes): `PlanViewBadge.tsx`, `PlanViewBadge()`
+- **Thin community `Community 1586`** (2 nodes): `WaterCatchmentsCard.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1275`** (2 nodes): `usePhaseCappedEntities.ts`, `usePhaseCappedEntities()`
+- **Thin community `Community 1587`** (2 nodes): `WaterStorageCard.tsx`, `commit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1276`** (2 nodes): `usePhaseStoreCappedEntities.ts`, `usePhaseStoreCappedEntities()`
+- **Thin community `Community 1588`** (2 nodes): `planModuleArtifactPresence.ts`, `usePlanModuleArtifactPresence()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1277`** (2 nodes): `V3PlanPage.tsx`, `noop()`
+- **Thin community `Community 1589`** (2 nodes): `regenerationPathway.ts`, `buildRegenerationPathway()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1278`** (2 nodes): `DesignElementPalette.tsx`, `DesignElementPalette()`
+- **Thin community `Community 1590`** (2 nodes): `index.ts`, `getIntervention()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1279`** (2 nodes): `elementCatalog.ts`, `findElementSpec()`
+- **Thin community `Community 1591`** (2 nodes): `PlanDrawHost.tsx`, `PlanDrawHost()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1280`** (2 nodes): `StampModePicker.tsx`, `toolIdToKind()`
+- **Thin community `Community 1592`** (2 nodes): `PlanStampToast.tsx`, `PlanStampToast()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1281`** (2 nodes): `useContinuousPointDrawTool.ts`, `useContinuousPointDrawTool()`
+- **Thin community `Community 1593`** (2 nodes): `useEnterpriseFieldSpec.ts`, `useEnterpriseFieldSpec()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1282`** (2 nodes): `DesignElementLayers.tsx`, `DesignElementLayers()`
+- **Thin community `Community 1594`** (2 nodes): `usePhaseFieldSpec.ts`, `usePhaseFieldSpec()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1283`** (2 nodes): `DevelopPlanTab.tsx`, `handleReschedule()`
+- **Thin community `Community 1595`** (2 nodes): `bufferGeometry.ts`, `bufferGeometry()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1284`** (2 nodes): `SiteProfileTab.tsx`, `handlePrefillAll()`
+- **Thin community `Community 1596`** (2 nodes): `ColdChainUnitTool.tsx`, `ColdChainUnitTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1285`** (2 nodes): `MaintenanceScheduleCard.tsx`, `fmtUSD()`
+- **Thin community `Community 1597`** (2 nodes): `CropAreaTool.tsx`, `handleComplete()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1286`** (2 nodes): `handleGenerate()`, `AnnualPlantingCalendarCard.tsx`
+- **Thin community `Community 1598`** (2 nodes): `EcologicalNoteTool.tsx`, `EcologicalNoteTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1287`** (2 nodes): `temporalCoherenceMath.test.ts`, `apple()`
+- **Thin community `Community 1599`** (2 nodes): `FenceLineTool.tsx`, `handleComplete()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1288`** (2 nodes): `ClosedLoopGraphCard.tsx`, `polygonCentroid()`
+- **Thin community `Community 1600`** (2 nodes): `FertilityInfraTool.tsx`, `FertilityInfraTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1289`** (2 nodes): `WaterCatchmentsCard.tsx`, `commit()`
+- **Thin community `Community 1601`** (2 nodes): `GuildTool.tsx`, `GuildTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1290`** (2 nodes): `WaterStorageCard.tsx`, `commit()`
+- **Thin community `Community 1602`** (2 nodes): `MarketNodeTool.tsx`, `MarketNodeTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1291`** (2 nodes): `goalTreeTemplates.ts`, `getGoalTreeTemplate()`
+- **Thin community `Community 1603`** (2 nodes): `MonitoringTransectTool.tsx`, `handleComplete()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1292`** (2 nodes): `planModuleArtifactPresence.ts`, `usePlanModuleArtifactPresence()`
+- **Thin community `Community 1604`** (2 nodes): `PaddockTool.tsx`, `handleComplete()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1293`** (2 nodes): `regenerationPathway.ts`, `buildRegenerationPathway()`
+- **Thin community `Community 1605`** (2 nodes): `PathLineTool.tsx`, `PathLineTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1294`** (2 nodes): `index.ts`, `getIntervention()`
+- **Thin community `Community 1606`** (2 nodes): `SlaughterPointTool.tsx`, `SlaughterPointTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1295`** (2 nodes): `PlanDrawHost.tsx`, `PlanDrawHost()`
+- **Thin community `Community 1607`** (2 nodes): `UtilityRunTool.tsx`, `handleComplete()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1296`** (2 nodes): `PlanStampToast.tsx`, `PlanStampToast()`
+- **Thin community `Community 1608`** (2 nodes): `WaterCatchmentTool.tsx`, `handleComplete()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1297`** (2 nodes): `useEnterpriseFieldSpec.ts`, `useEnterpriseFieldSpec()`
+- **Thin community `Community 1609`** (2 nodes): `WaterSinkTool.tsx`, `WaterSinkTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1298`** (2 nodes): `usePhaseFieldSpec.ts`, `usePhaseFieldSpec()`
+- **Thin community `Community 1610`** (2 nodes): `WaterStorageTool.tsx`, `WaterStorageTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1299`** (2 nodes): `bufferGeometry.ts`, `bufferGeometry()`
+- **Thin community `Community 1611`** (2 nodes): `WaterSwaleTool.tsx`, `WaterSwaleTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1300`** (2 nodes): `ColdChainUnitTool.tsx`, `ColdChainUnitTool()`
+- **Thin community `Community 1612`** (2 nodes): `ZoneSeedAnchorTool.tsx`, `ZoneSeedAnchorTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1301`** (2 nodes): `CropAreaTool.tsx`, `handleComplete()`
+- **Thin community `Community 1613`** (2 nodes): `zoneSizeGuide.test.ts`, `target()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1302`** (2 nodes): `EcologicalNoteTool.tsx`, `EcologicalNoteTool()`
+- **Thin community `Community 1614`** (2 nodes): `commitDrafts.ts`, `commitDrafts()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1303`** (2 nodes): `FenceLineTool.tsx`, `handleComplete()`
+- **Thin community `Community 1615`** (2 nodes): `runAutoDesign.ts`, `runAutoDesign()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1304`** (2 nodes): `FertilityInfraTool.tsx`, `FertilityInfraTool()`
+- **Thin community `Community 1616`** (2 nodes): `stampGeometry.ts`, `stampGeometry()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1305`** (2 nodes): `FlowConnectorTool.tsx`, `handleComplete()`
+- **Thin community `Community 1617`** (2 nodes): `bboxRect.ts`, `bboxRect()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1306`** (2 nodes): `GuildTool.tsx`, `GuildTool()`
+- **Thin community `Community 1618`** (2 nodes): `centroidPoint.ts`, `centroidPoint()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1307`** (2 nodes): `MarketNodeTool.tsx`, `MarketNodeTool()`
+- **Thin community `Community 1619`** (2 nodes): `contourLine.ts`, `contourLine()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1308`** (2 nodes): `MonitoringTransectTool.tsx`, `handleComplete()`
+- **Thin community `Community 1620`** (2 nodes): `edgeLine.ts`, `edgeLine()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1309`** (2 nodes): `PaddockTool.tsx`, `handleComplete()`
+- **Thin community `Community 1621`** (2 nodes): `fillPolygon.ts`, `fillPolygon()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1310`** (2 nodes): `PathLineTool.tsx`, `PathLineTool()`
+- **Thin community `Community 1622`** (2 nodes): `lowPointFill.ts`, `lowPointFill()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1311`** (2 nodes): `SlaughterPointTool.tsx`, `SlaughterPointTool()`
+- **Thin community `Community 1623`** (2 nodes): `stripSubdivide.ts`, `stripSubdivide()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1312`** (2 nodes): `UtilityRunTool.tsx`, `handleComplete()`
+- **Thin community `Community 1624`** (2 nodes): `stampers.test.ts`, `within()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1313`** (2 nodes): `WaterCatchmentTool.tsx`, `handleComplete()`
+- **Thin community `Community 1625`** (2 nodes): `zoneAllocator.test.ts`, `ivn()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1314`** (2 nodes): `WaterSinkTool.tsx`, `WaterSinkTool()`
+- **Thin community `Community 1626`** (2 nodes): `impactPreview.ts`, `computeImpactPreview()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1315`** (2 nodes): `WaterStorageTool.tsx`, `WaterStorageTool()`
+- **Thin community `Community 1627`** (2 nodes): `parcelGeometry.test.ts`, `square()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1316`** (2 nodes): `WaterSwaleTool.tsx`, `WaterSwaleTool()`
+- **Thin community `Community 1628`** (2 nodes): `useModuleProjectTypeReferences.ts`, `useModuleProjectTypeReferences()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1317`** (2 nodes): `ZoneSeedAnchorTool.tsx`, `ZoneSeedAnchorTool()`
+- **Thin community `Community 1629`** (2 nodes): `dragUndo.ts`, `beginDragUndoWindow()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1318`** (2 nodes): `zoneSizeGuide.test.ts`, `target()`
+- **Thin community `Community 1630`** (2 nodes): `PlanContoursOverlay.tsx`, `PlanContoursOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1319`** (2 nodes): `commitDrafts.ts`, `commitDrafts()`
+- **Thin community `Community 1631`** (2 nodes): `PlanZoneRingsOverlay.tsx`, `PlanZoneRingsOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1320`** (2 nodes): `runAutoDesign.ts`, `runAutoDesign()`
+- **Thin community `Community 1632`** (2 nodes): `translateGeometry.ts`, `translateByDelta()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1321`** (2 nodes): `stampGeometry.ts`, `stampGeometry()`
+- **Thin community `Community 1633`** (2 nodes): `zoneRingConstants.ts`, `ringCircle()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1322`** (2 nodes): `bboxRect.ts`, `bboxRect()`
+- **Thin community `Community 1634`** (2 nodes): `GuidanceCard.tsx`, `GuidanceCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1323`** (2 nodes): `centroidPoint.ts`, `centroidPoint()`
+- **Thin community `Community 1635`** (2 nodes): `useAutoScrollToActiveModule.ts`, `useAutoScrollToActiveModule()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1324`** (2 nodes): `contourLine.ts`, `contourLine()`
+- **Thin community `Community 1636`** (2 nodes): `ModuleBar.tsx`, `handleTileClick()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1325`** (2 nodes): `edgeLine.ts`, `edgeLine()`
+- **Thin community `Community 1637`** (2 nodes): `ModuleSlideUp.tsx`, `showDivider()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1326`** (2 nodes): `fillPolygon.ts`, `fillPolygon()`
+- **Thin community `Community 1638`** (2 nodes): `rollup.ts`, `sumSiteDemand()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1327`** (2 nodes): `lowPointFill.ts`, `lowPointFill()`
+- **Thin community `Community 1639`** (2 nodes): `utilityDemand.ts`, `getUtilityKwhPerDay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1328`** (2 nodes): `stripSubdivide.ts`, `stripSubdivide()`
+- **Thin community `Community 1640`** (2 nodes): `statusGate.ts`, `canAdvanceToReadyForReview()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1329`** (2 nodes): `runAutoDesign.test.ts`, `buildInput()`
+- **Thin community `Community 1641`** (2 nodes): `api.schema.ts`, `ApiResponse()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1330`** (2 nodes): `stampers.test.ts`, `within()`
+- **Thin community `Community 1642`** (2 nodes): `sectionResponse.ts`, `sectionResponse()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1331`** (2 nodes): `zoneAllocator.test.ts`, `ivn()`
+- **Thin community `Community 1643`** (2 nodes): `uniformFriction()`, `corridorLCP.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1332`** (2 nodes): `impactPreview.ts`, `computeImpactPreview()`
+- **Thin community `Community 1644`** (2 nodes): `ADR 2026-05-06 Observe port styling`, `Wholesale observe-port.css retired for per-component CSS Modules`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1333`** (2 nodes): `parcelGeometry.test.ts`, `square()`
+- **Thin community `Community 1645`** (2 nodes): `ADR: Adopt-from-map geometry-keyed selection; drop per-building basemap hide`, `pickClickedPolygon (tile-batched MultiPolygon sub-polygon picker)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1334`** (2 nodes): `useModuleProjectTypeReferences.ts`, `useModuleProjectTypeReferences()`
+- **Thin community `Community 1646`** (2 nodes): `ADR 2026-05-04 atlas-ui grid-alignment audit (deferred scope)`, `ADR 2026-05-04 atlas-ui MILOS UI/UX lift (Phases 1-4)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1335`** (2 nodes): `dragUndo.ts`, `beginDragUndoWindow()`
+- **Thin community `Community 1647`** (2 nodes): `ADR: Plan Module 6 Livestock — Farm-Scholar verdict`, `ADR: Module 7 Broiler Product Map (post-farm-gate value chain)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1336`** (2 nodes): `PlanContoursOverlay.tsx`, `PlanContoursOverlay()`
+- **Thin community `Community 1648`** (2 nodes): `ADR: Plan-stage earthwork utility-conflict veto`, `ADR: Continuous point placement for Plan-stage trees / shrubs`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1337`** (2 nodes): `PlanZoneRingsOverlay.tsx`, `PlanZoneRingsOverlay()`
+- **Thin community `Community 1649`** (2 nodes): `ADR 2026-05-15: Offline tile-precache repointed to Esri World Imagery`, `ADR 2026-05-15: Satellite basemap → Esri World Imagery (MapTiler retained as Hybrid fallback)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1338`** (2 nodes): `translateGeometry.ts`, `translateByDelta()`
+- **Thin community `Community 1650`** (2 nodes): `Macroclimate Dashboard — hazard hotspots contour map (climate risk density with High/Moderate/Low legend over watershed shape)`, `Macroclimate Dashboard — hazard risk matrix (Likelihood vs Severity heatmap grid plotting 3 ranked climate hazards)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1339`** (2 nodes): `zoneRingConstants.ts`, `ringCircle()`
+- **Thin community `Community 1651`** (2 nodes): `Hazard hotspots contour map (High/Moderate/Low blobs)`, `Hazard risk matrix (likelihood x severity, 3 plotted hazards)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1340`** (2 nodes): `GuidanceCard.tsx`, `GuidanceCard()`
+- **Thin community `Community 1652`** (2 nodes): `index.ts`, `evidenceAuditRoutes()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1341`** (2 nodes): `useAutoScrollToActiveModule.ts`, `useAutoScrollToActiveModule()`
+- **Thin community `Community 1653`** (2 nodes): `habitatCorridors.ts`, `generateHabitatCorridors()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1342`** (2 nodes): `ModuleBar.tsx`, `handleTileClick()`
+- **Thin community `Community 1654`** (2 nodes): `keylineSwales.ts`, `generateKeylineSwales()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1343`** (2 nodes): `ModuleSlideUp.tsx`, `showDivider()`
+- **Thin community `Community 1655`** (2 nodes): `paddockGrid.ts`, `generatePaddockGrid()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1344`** (2 nodes): `rollup.ts`, `sumSiteDemand()`
+- **Thin community `Community 1656`** (2 nodes): `paddockGrid.test.ts`, `squareParcel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1345`** (2 nodes): `utilityDemand.ts`, `getUtilityKwhPerDay()`
+- **Thin community `Community 1657`** (2 nodes): `projectState.test.ts`, `blobRow()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1346`** (2 nodes): `statusGate.ts`, `canAdvanceToReadyForReview()`
+- **Thin community `Community 1658`** (2 nodes): `builtins-project-type.pgtest.ts`, `seedBuiltin()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1347`** (2 nodes): `api.schema.ts`, `ApiResponse()`
+- **Thin community `Community 1659`** (2 nodes): `replay-evidence-audit.pgtest.ts`, `seedAuditRows()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1348`** (2 nodes): `sectionResponse.ts`, `sectionResponse()`
+- **Thin community `Community 1660`** (2 nodes): `site-assessment-writer.pgtest.ts`, `clampScore()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1349`** (2 nodes): `uniformFriction()`, `corridorLCP.test.ts`
+- **Thin community `Community 1661`** (2 nodes): `telemetry-act-interactions.pgtest.ts`, `mk()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1350`** (2 nodes): `ADR 2026-05-06 Observe port styling`, `Wholesale observe-port.css retired for per-component CSS Modules`
+- **Thin community `Community 1662`** (2 nodes): `telemetry-client-errors.pgtest.ts`, `mk()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1351`** (2 nodes): `ADR: Adopt-from-map geometry-keyed selection; drop per-building basemap hide`, `pickClickedPolygon (tile-batched MultiPolygon sub-polygon picker)`
+- **Thin community `Community 1663`** (2 nodes): `ApiReachabilityBanner()`, `ApiReachabilityBanner.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1352`** (2 nodes): `ADR 2026-05-04 atlas-ui grid-alignment audit (deferred scope)`, `ADR 2026-05-04 atlas-ui MILOS UI/UX lift (Phases 1-4)`
+- **Thin community `Community 1664`** (2 nodes): `OfflineBanner.tsx`, `OfflineBanner()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1353`** (2 nodes): `ADR: Plan-stage earthwork utility-conflict veto`, `ADR: Continuous point placement for Plan-stage trees / shrubs`
+- **Thin community `Community 1665`** (2 nodes): `SessionExpiredBanner.tsx`, `SessionExpiredBanner()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1354`** (2 nodes): `ADR: Plan Module 6 Livestock — Farm-Scholar verdict`, `ADR: Module 7 Broiler Product Map (post-farm-gate value chain)`
+- **Thin community `Community 1666`** (2 nodes): `ZoneSomSparkline.tsx`, `ZoneSomSparkline()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1355`** (2 nodes): `ADR 2026-05-15: Offline tile-precache repointed to Esri World Imagery`, `ADR 2026-05-15: Satellite basemap → Esri World Imagery (MapTiler retained as Hybrid fallback)`
+- **Thin community `Community 1667`** (2 nodes): `ZoneSomSparkline.test.tsx`, `row()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1356`** (2 nodes): `Macroclimate Dashboard — hazard hotspots contour map (climate risk density with High/Moderate/Low legend over watershed shape)`, `Macroclimate Dashboard — hazard risk matrix (Likelihood vs Severity heatmap grid plotting 3 ranked climate hazards)`
+- **Thin community `Community 1668`** (2 nodes): `CitationSection.tsx`, `CitationSection()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1357`** (2 nodes): `Hazard hotspots contour map (High/Moderate/Low blobs)`, `Hazard risk matrix (likelihood x severity, 3 plotted hazards)`
+- **Thin community `Community 1669`** (2 nodes): `DetailsDrawer.tsx`, `handler()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1358`** (1 nodes): `ADR: Stocking-input canonical per-paddock pastureQuality (Path B)`
+- **Thin community `Community 1670`** (2 nodes): `EvidenceSection.tsx`, `EvidenceSection()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1359`** (1 nodes): `redis.ts`
+- **Thin community `Community 1671`** (2 nodes): `RegenerationGateBanner.tsx`, `RegenerationGateBanner()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1360`** (1 nodes): `TerrainAnalysisFlags.tsx`
+- **Thin community `Community 1672`** (2 nodes): `ConfirmDestructiveDialog.tsx`, `handleConfirm()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1361`** (1 nodes): `ProgressBar.tsx`
+- **Thin community `Community 1673`** (2 nodes): `okHealth()`, `ApiReachabilityBanner.test.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1362`** (1 nodes): `AdvancedEducationPanel.tsx`
+- **Thin community `Community 1674`** (2 nodes): `ErrorBoundary.telemetry.test.tsx`, `flushAsync()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1363`** (1 nodes): `FieldNotes.tsx`
+- **Thin community `Community 1675`** (2 nodes): `seedGoalCompassPlan.ts`, `seedGoalCompassPlan()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1364`** (1 nodes): `MissionOverlay.tsx`
+- **Thin community `Community 1676`** (2 nodes): `seedMtcObserveBaseline.ts`, `seedMtcObserveBaseline()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1365`** (1 nodes): `SitingRules.ts`
+- **Thin community `Community 1677`** (2 nodes): `FieldProofPanel.tsx`, `submit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1366`** (1 nodes): `computeScores.ts`
+- **Thin community `Community 1678`** (2 nodes): `OperatingDashboardCard.tsx`, `OperatingDashboardCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1367`** (1 nodes): `hydrologyMetrics.ts`
+- **Thin community `Community 1679`** (2 nodes): `OperatingDashboardCard.test.tsx`, `wi()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1368`** (1 nodes): `mapbox.ts`
+- **Thin community `Community 1680`** (2 nodes): `livestockBrowseToxicity.ts`, `toxicityForGuild()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1369`** (1 nodes): `assessmentRules.ts`
+- **Thin community `Community 1681`** (2 nodes): `SilvopastureIntegrationCard.tsx`, `Head()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1370`** (1 nodes): `ruleEngine.ts`
+- **Thin community `Community 1682`** (2 nodes): `guildMemberPositions.test.ts`, `m()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1371`** (1 nodes): `scenarioStore.ts`
+- **Thin community `Community 1683`** (2 nodes): `livestockBrowseToxicity.test.ts`, `member()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1372`** (1 nodes): `vitest.config.ts`
+- **Thin community `Community 1684`** (2 nodes): `FieldVerificationBadge.tsx`, `formatLastObs()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1373`** (1 nodes): `block-navigation.js`
+- **Thin community `Community 1685`** (2 nodes): `BeneficialHabitatCard.tsx`, `pillClassFor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1374`** (1 nodes): `prettify.js`
+- **Thin community `Community 1686`** (2 nodes): `CoverCropPopoverEditor.tsx`, `speciesLabel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1375`** (1 nodes): `sorter.js`
+- **Thin community `Community 1687`** (2 nodes): `coverCropDateInference.test.ts`, `now()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1376`** (1 nodes): `convert-gaez-to-cog.test.ts`
+- **Thin community `Community 1688`** (2 nodes): `CoverCropPlannerCard.test.tsx`, `area()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1377`** (1 nodes): `index.ts`
+- **Thin community `Community 1689`** (2 nodes): `coverCropPlannerMath.test.ts`, `W()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1378`** (1 nodes): `redis.ts`
+- **Thin community `Community 1690`** (2 nodes): `CoverCropPopoverEditor.test.tsx`, `area()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1379`** (1 nodes): `websocket.ts`
+- **Thin community `Community 1691`** (2 nodes): `somAppreciation.ts`, `naturalCapitalAppreciationByYear()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1380`** (1 nodes): `activity.test.ts`
+- **Thin community `Community 1692`** (2 nodes): `livestockRevenue.ts`, `buildLivestockRevenueStream()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1381`** (1 nodes): `assessment.test.ts`
+- **Thin community `Community 1693`** (2 nodes): `regionLocality.ts`, `deriveCostRegion()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1382`** (1 nodes): `auth.test.ts`
+- **Thin community `Community 1694`** (2 nodes): `livestockRevenue.test.ts`, `paddock()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1383`** (1 nodes): `boundary.test.ts`
+- **Thin community `Community 1695`** (2 nodes): `somAppreciation.test.ts`, `row()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1384`** (1 nodes): `comments.test.ts`
+- **Thin community `Community 1696`** (2 nodes): `rotationAdherence.ts`, `computeRotationAdherence()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1385`** (1 nodes): `EcccClimateAdapter.test.ts`
+- **Thin community `Community 1697`** (2 nodes): `RotationAdherenceActionsCard.tsx`, `EditorFor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1386`** (1 nodes): `exports.test.ts`
+- **Thin community `Community 1698`** (2 nodes): `RotationSequenceCard.tsx`, `date()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1387`** (1 nodes): `layers.test.ts`
+- **Thin community `Community 1699`** (2 nodes): `OvergrazedEditor.tsx`, `OvergrazedEditor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1388`** (1 nodes): `members.test.ts`
+- **Thin community `Community 1700`** (2 nodes): `RestEditor.tsx`, `RestEditor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1389`** (1 nodes): `OhnAdapter.test.ts`
+- **Thin community `Community 1701`** (2 nodes): `UnplannedPaddockEditor.tsx`, `UnplannedPaddockEditor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1390`** (1 nodes): `organizations.test.ts`
+- **Thin community `Community 1702`** (2 nodes): `editors.test.tsx`, `seedCell()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1391`** (1 nodes): `projects.test.ts`
+- **Thin community `Community 1703`** (2 nodes): `forageSeasonMath.test.ts`, `fc()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1392`** (1 nodes): `soilgridsRoutes.test.ts`
+- **Thin community `Community 1704`** (2 nodes): `polyfaceFollowerMath.test.ts`, `lead()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1393`** (1 nodes): `suggestions.test.ts`
+- **Thin community `Community 1705`** (2 nodes): `rotationMoveMaterials.test.ts`, `paddock()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1394`** (1 nodes): `shapefile.d.ts`
+- **Thin community `Community 1706`** (2 nodes): `HabitatAllocationCard.tsx`, `HabitatAllocationCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1395`** (1 nodes): `block-navigation.js`
+- **Thin community `Community 1707`** (2 nodes): `useFlowEndpointOptions.ts`, `useFlowEndpointOptions()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1396`** (1 nodes): `prettify.js`
+- **Thin community `Community 1708`** (2 nodes): `zone()`, `allocate.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1397`** (1 nodes): `sorter.js`
+- **Thin community `Community 1709`** (2 nodes): `TrajectoryChart.tsx`, `parseLocalDate()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1398`** (1 nodes): `chunk-6BD4U3VO.js`
+- **Thin community `Community 1710`** (2 nodes): `biodiversity.aggregate.test.ts`, `ev()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1399`** (1 nodes): `chunk-BTSYJ5XU.js`
+- **Thin community `Community 1711`** (2 nodes): `useFlowEndpointOptions.test.ts`, `byKind()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1400`** (1 nodes): `chunk-CUUSNIVQ.js`
+- **Thin community `Community 1712`** (2 nodes): `useNow.ts`, `useNow()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1401`** (1 nodes): `chunk-EFBN7QNX.js`
+- **Thin community `Community 1713`** (2 nodes): `globalErrorHandlers.ts`, `installGlobalErrorHandlers()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1402`** (1 nodes): `chunk-ICALLYLG.js`
+- **Thin community `Community 1714`** (2 nodes): `auditEmit.ts`, `emitEvidenceAudit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1403`** (1 nodes): `chunk-W37FE5GR.js`
+- **Thin community `Community 1715`** (2 nodes): `useFieldVerification.ts`, `useFieldVerification()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1404`** (1 nodes): `chunk-WBOV35NL.js`
+- **Thin community `Community 1716`** (2 nodes): `permacultureLabels.ts`, `zoneDisplayLabel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1405`** (1 nodes): `chunk-XUSCFAVF.js`
+- **Thin community `Community 1717`** (2 nodes): `blobSync.test.ts`, `makeSpy()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1406`** (1 nodes): `createTaskProcessorWorker.js`
+- **Thin community `Community 1718`** (2 nodes): `featureMappingPath.test.ts`, `makePath()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1407`** (1 nodes): `transferTypedArrayTest.js`
+- **Thin community `Community 1719`** (2 nodes): `featureMappingUtility.test.ts`, `makeUtility()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1408`** (1 nodes): `OfflineBanner.tsx`
+- **Thin community `Community 1720`** (2 nodes): `globalErrorHandlers.test.ts`, `dispatchRejection()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1409`** (1 nodes): `RoleBadge.tsx`
+- **Thin community `Community 1721`** (2 nodes): `projectBundle.test.ts`, `seedProjectState()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1410`** (1 nodes): `AhpWeightsSection.tsx`
+- **Thin community `Community 1722`** (2 nodes): `syncServiceBlob.test.ts`, `blobOp()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1411`** (1 nodes): `AssessmentScoresSection.tsx`
+- **Thin community `Community 1723`** (2 nodes): `syncServiceBlobLoop.test.ts`, `fakeDesc()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1412`** (1 nodes): `CanopyStructureSection.tsx`
+- **Thin community `Community 1724`** (2 nodes): `syncServiceCircuitBreaker.test.ts`, `op()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1413`** (1 nodes): `ClimateProjectionsSection.tsx`
+- **Thin community `Community 1725`** (2 nodes): `syncServiceConflict.test.ts`, `blobOp()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1414`** (1 nodes): `CommunitySection.tsx`
+- **Thin community `Community 1726`** (2 nodes): `ArchivePage.tsx`, `async()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1415`** (1 nodes): `ConstraintsSection.tsx`
+- **Thin community `Community 1727`** (2 nodes): `RegisterPage.tsx`, `handleSubmit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1416`** (1 nodes): `DataLayersSection.tsx`
+- **Thin community `Community 1728`** (2 nodes): `ContactCTA.tsx`, `ContactCTA()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1417`** (1 nodes): `DesignIntelligenceSection.tsx`
+- **Thin community `Community 1729`** (2 nodes): `SceneEngine.tsx`, `SceneEngine()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1418`** (1 nodes): `EcosystemServicesSection.tsx`
+- **Thin community `Community 1730`** (2 nodes): `ShowcaseMap.tsx`, `ShowcaseMap()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1419`** (1 nodes): `EnergyIntelligenceSection.tsx`
+- **Thin community `Community 1731`** (2 nodes): `sceneManifest.ts`, `scenesForTier()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1420`** (1 nodes): `EnvironmentalRiskSection.tsx`
+- **Thin community `Community 1732`** (2 nodes): `sharedSceneFrontmatter.ts`, `getSharedSceneMapState()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1421`** (1 nodes): `FuzzyFaoSection.tsx`
+- **Thin community `Community 1733`** (2 nodes): `snapshot.ts`, `loadSnapshot()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1422`** (1 nodes): `GroundwaterSection.tsx`
+- **Thin community `Community 1734`** (2 nodes): `showcase._capture.tsx`, `readSceneFromQuery()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1423`** (1 nodes): `HydrologyExtensionsSection.tsx`
+- **Thin community `Community 1735`** (2 nodes): `snapshot.test.ts`, `fakeFetch()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1424`** (1 nodes): `HydrologyIntelligenceSection.tsx`
+- **Thin community `Community 1736`** (2 nodes): `authStore.ts`, `authErrorMessage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1425`** (1 nodes): `InfrastructureAccessSection.tsx`
+- **Thin community `Community 1737`** (2 nodes): `compostCycleStore.ts`, `listFor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1426`** (1 nodes): `LandUseHistorySection.tsx`
+- **Thin community `Community 1738`** (2 nodes): `cropStore.ts`, `migrateCropStore()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1427`** (1 nodes): `OpportunitiesSection.tsx`
+- **Thin community `Community 1739`** (2 nodes): `persistRehydrate.ts`, `rehydrateWithLogging()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1428`** (1 nodes): `RegionalSpeciesSection.tsx`
+- **Thin community `Community 1740`** (2 nodes): `planConflictReviewStore.ts`, `now()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1429`** (1 nodes): `RegulatoryHeritageSection.tsx`
+- **Thin community `Community 1741`** (2 nodes): `planDecisionStore.ts`, `now()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1430`** (1 nodes): `SiteContextSection.tsx`
+- **Thin community `Community 1742`** (2 nodes): `planImpactReviewStore.ts`, `now()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1431`** (1 nodes): `SiteSummaryNarrativeSection.tsx`
+- **Thin community `Community 1743`** (2 nodes): `planVersionStore.ts`, `now()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1432`** (1 nodes): `WaterQualitySection.tsx`
+- **Thin community `Community 1744`** (2 nodes): `planWorkPackageStore.ts`, `now()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1433`** (1 nodes): `ComplexityScore.tsx`
+- **Thin community `Community 1745`** (2 nodes): `successionPathStore.ts`, `pathFor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1434`** (1 nodes): `FeatureAssignment.tsx`
+- **Thin community `Community 1746`** (2 nodes): `workItemBudgetStore.ts`, `now()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1435`** (1 nodes): `PhaseTimeline.tsx`
+- **Thin community `Community 1747`** (2 nodes): `workItemStore.ts`, `now()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1436`** (1 nodes): `ecocropSubset.ts`
+- **Thin community `Community 1748`** (2 nodes): `closedLoopStore.test.ts`, `reset()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1437`** (1 nodes): `AccessAnalysisCard.tsx`
+- **Thin community `Community 1749`** (2 nodes): `cropStore.migrate.test.ts`, `area()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1438`** (1 nodes): `AnimalCorridors.tsx`
+- **Thin community `Community 1750`** (2 nodes): `objectiveSummaryStore.test.ts`, `reset()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1439`** (1 nodes): `ArrivalSequence.tsx`
+- **Thin community `Community 1751`** (2 nodes): `regenerationPlanStore.test.ts`, `tquery()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1440`** (1 nodes): `RouteConflicts.tsx`
+- **Thin community `Community 1752`** (2 nodes): `successionPathStore.test.ts`, `reset()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1441`** (1 nodes): `TerrainAnalysisFlags.tsx`
+- **Thin community `Community 1753`** (2 nodes): `ActCommandCentrePage()`, `ActCommandCentrePage.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1442`** (1 nodes): `ProgressBar.tsx`
+- **Thin community `Community 1754`** (2 nodes): `ActMapLegend()`, `ActMapLegend.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1443`** (1 nodes): `AdvancedEducationPanel.tsx`
+- **Thin community `Community 1755`** (2 nodes): `ActMapSidebar()`, `ActMapSidebar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1444`** (1 nodes): `SiteChecklist.tsx`
+- **Thin community `Community 1756`** (2 nodes): `ActModuleTabs()`, `ActModuleTabs.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1445`** (1 nodes): `index.ts`
+- **Thin community `Community 1757`** (2 nodes): `itemWith()`, `actWorkItemModule.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1446`** (1 nodes): `canopyLayerData.ts`
+- **Thin community `Community 1758`** (2 nodes): `actWorkItemModule()`, `actWorkItemModule.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1447`** (1 nodes): `FieldNotes.tsx`
+- **Thin community `Community 1759`** (2 nodes): `OpenWorkItemsPanel.tsx`, `metaLine()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1448`** (1 nodes): `propagationData.ts`
+- **Thin community `Community 1760`** (2 nodes): `ActObjectiveCompletePrompt()`, `ActObjectiveCompletePrompt.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1449`** (1 nodes): `MissionOverlay.tsx`
+- **Thin community `Community 1761`** (2 nodes): `ActStageCompassPage()`, `ActStageCompassPage.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1450`** (1 nodes): `SitingRules.ts`
+- **Thin community `Community 1762`** (2 nodes): `useActProgress.ts`, `useActProgress()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1451`** (1 nodes): `QuietZonePlanning.tsx`
+- **Thin community `Community 1763`** (2 nodes): `EvidenceLibraryPanel.tsx`, `EvidenceLibraryPanel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1452`** (1 nodes): `SignsInCreation.tsx`
+- **Thin community `Community 1764`** (2 nodes): `GapsPanel.tsx`, `GapsPanel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1453`** (1 nodes): `SolarEvents.tsx`
+- **Thin community `Community 1765`** (2 nodes): `ObserveMapLegend.tsx`, `ObserveMapLegend()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1454`** (1 nodes): `OffGridReadiness.tsx`
+- **Thin community `Community 1766`** (2 nodes): `ObserveMapSidebar.tsx`, `ObserveMapSidebar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1455`** (1 nodes): `VisionPanel.tsx`
+- **Thin community `Community 1767`** (2 nodes): `ObserveModuleTabs.tsx`, `ObserveModuleTabs()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1456`** (1 nodes): `ZoneAutoSuggest.tsx`
+- **Thin community `Community 1768`** (2 nodes): `useEvidenceCounts.ts`, `useEvidenceCounts()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1457`** (1 nodes): `ZoneConflictDetector.tsx`
+- **Thin community `Community 1769`** (2 nodes): `CommandCentreMapLegend.tsx`, `CommandCentreMapLegend()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1458`** (1 nodes): `ZoneSizingCalculator.tsx`
+- **Thin community `Community 1770`** (2 nodes): `CommandCentreMapSidebar.tsx`, `CommandCentreMapSidebar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1459`** (1 nodes): `computeScores.ts`
+- **Thin community `Community 1771`** (2 nodes): `CommandCentreModuleTabs.tsx`, `CommandCentreModuleTabs()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1460`** (1 nodes): `hydrologyMetrics.ts`
+- **Thin community `Community 1772`** (2 nodes): `CommandCentreShell.tsx`, `CommandCentreShell()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1461`** (1 nodes): `petModel.ts`
+- **Thin community `Community 1773`** (2 nodes): `ObserveCompassWheel.tsx`, `cssAttrEscape()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1462`** (1 nodes): `index.ts`
+- **Thin community `Community 1774`** (2 nodes): `ObserveObjectiveCompletePrompt.tsx`, `ObserveObjectiveCompletePrompt()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1463`** (1 nodes): `connectivityStore.ts`
+- **Thin community `Community 1775`** (2 nodes): `SelectedObjectivePanel.tsx`, `openOnMap()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1464`** (1 nodes): `memberStore.ts`
+- **Thin community `Community 1776`** (2 nodes): `StageCompassPage.tsx`, `StageCompassPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1465`** (1 nodes): `presenceStore.ts`
+- **Thin community `Community 1777`** (2 nodes): `StageCompassView.tsx`, `StageCompassView()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1466`** (1 nodes): `layerFetcher.test.ts`
+- **Thin community `Community 1778`** (2 nodes): `seedObservationNeeds.ts`, `seedObservationNeedsForProject()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1467`** (1 nodes): `petModel.test.ts`
+- **Thin community `Community 1779`** (2 nodes): `observeGoalAffinity.ts`, `getObserveModulesForGoal()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1468`** (1 nodes): `costEngine.test.ts`
+- **Thin community `Community 1780`** (2 nodes): `observeSectionMap.ts`, `observeSectionIdModule()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1469`** (1 nodes): `enterpriseDetector.test.ts`
+- **Thin community `Community 1781`** (2 nodes): `CaptureAnnotationAutoCapture.tsx`, `CaptureAnnotationAutoCapture()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1470`** (1 nodes): `revenueEngine.test.ts`
+- **Thin community `Community 1782`** (2 nodes): `CaptureBanner.tsx`, `CaptureBanner()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1471`** (1 nodes): `mapbox-gl.d.ts`
+- **Thin community `Community 1783`** (2 nodes): `CaptureMapFocus.tsx`, `CaptureMapFocus()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1472`** (1 nodes): `block-navigation.js`
+- **Thin community `Community 1784`** (2 nodes): `RaiseNeedForm.tsx`, `submit()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1473`** (1 nodes): `prettify.js`
+- **Thin community `Community 1785`** (2 nodes): `ErosionFlagTool.tsx`, `ErosionFlagTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1474`** (1 nodes): `sorter.js`
+- **Thin community `Community 1786`** (2 nodes): `RunoffPathTool.tsx`, `place()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1475`** (1 nodes): `Atlas README`
+- **Thin community `Community 1787`** (2 nodes): `SectorCompassOverlay.tsx`, `sync()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1476`** (1 nodes): `OGDEN Atlas Global Completeness Gap Analysis`
+- **Thin community `Community 1788`** (2 nodes): `ObserveModuleBar.test.tsx`, `renderBar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1477`** (1 nodes): `Windows Dev Notes`
+- **Thin community `Community 1789`** (2 nodes): `useObserveProgress.ts`, `useObserveProgress()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1478`** (1 nodes): `Wiki Schema`
+- **Thin community `Community 1790`** (2 nodes): `planSectionMap.ts`, `planSectionIdModule()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1479`** (1 nodes): `Design System`
+- **Thin community `Community 1791`** (2 nodes): `useMapSheetExport.ts`, `useMapSheetExport()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1480`** (1 nodes): `Local-First Architecture`
+- **Thin community `Community 1792`** (2 nodes): `mapCursorIntentStore.ts`, `setCursorIntent()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1481`** (1 nodes): `Dashboard Sidebar Groups Decision`
+- **Thin community `Community 1793`** (2 nodes): `GoalCompassSequenceCard.tsx`, `fmtUSD()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1482`** (1 nodes): `PDF Export Architecture Decision`
+- **Thin community `Community 1794`** (2 nodes): `materialSubstitutionMath.test.ts`, `item()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1483`** (1 nodes): `inspect-hrdem-cog.ts`
+- **Thin community `Community 1795`** (2 nodes): `EdgeConnectivityCard.test.tsx`, `orchard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1484`** (1 nodes): `migrate.js`
+- **Thin community `Community 1796`** (2 nodes): `guildIntegrityMath.test.ts`, `guild()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1485`** (1 nodes): `retrigger-tier3-terrain.ts`
+- **Thin community `Community 1797`** (2 nodes): `soilFoodWebMath.test.ts`, `guild()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1486`** (1 nodes): `rewrite-assessment.ts`
+- **Thin community `Community 1798`** (2 nodes): `SubsystemsOverviewCard.tsx`, `fmtM()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1487`** (1 nodes): `auth.ts`
+- **Thin community `Community 1799`** (2 nodes): `waterFlowPath.ts`, `computeFlowPath()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1488`** (1 nodes): `database.ts`
+- **Thin community `Community 1800`** (2 nodes): `PlanMapLegend.tsx`, `PlanMapLegend()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1489`** (1 nodes): `rbac.ts`
+- **Thin community `Community 1801`** (2 nodes): `PlanMapSidebar.tsx`, `PlanMapSidebar()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1490`** (1 nodes): `index.ts`
+- **Thin community `Community 1802`** (2 nodes): `PlanModuleReadinessPanel.tsx`, `PlanModuleReadinessPanel()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1491`** (1 nodes): `aiOutputs.test.ts`
+- **Thin community `Community 1803`** (2 nodes): `PlanModuleTabs.tsx`, `PlanModuleTabs()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1492`** (1 nodes): `NasaPowerIntlRouting.test.ts`
+- **Thin community `Community 1804`** (2 nodes): `PlanObjectiveCompletePrompt.tsx`, `PlanObjectiveCompletePrompt()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1493`** (1 nodes): `portal.test.ts`
+- **Thin community `Community 1805`** (2 nodes): `PlanStageCompassPage.tsx`, `PlanStageCompassPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1494`** (1 nodes): `relationships.test.ts`
+- **Thin community `Community 1806`** (2 nodes): `UtilityPointTool.tsx`, `UtilityPointTool()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1495`** (1 nodes): `SsurgoAdapter.test.ts`
+- **Thin community `Community 1807`** (2 nodes): `goalCompassSequenceLayout.ts`, `buildSequenceLayout()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1496`** (1 nodes): `bcryptjs.d.ts`
+- **Thin community `Community 1808`** (2 nodes): `seedGoalCompassCosts.test.ts`, `gc()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1497`** (1 nodes): `vite.config.js`
+- **Thin community `Community 1809`** (2 nodes): `seedGoalCompassResources.test.ts`, `gc()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1498`** (1 nodes): `script-static.js`
+- **Thin community `Community 1810`** (2 nodes): `PlanWaterRouterOverlay.tsx`, `PlanWaterRouterOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1499`** (1 nodes): `icons.js`
+- **Thin community `Community 1811`** (2 nodes): `buildLineFeatureEditSchema.test.ts`, `lineEl()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1500`** (1 nodes): `main.jsx`
+- **Thin community `Community 1812`** (2 nodes): `usePlanProgress.ts`, `usePlanProgress()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1501`** (1 nodes): `screenCatalog.generated.js`
+- **Thin community `Community 1813`** (2 nodes): `VisionActivationStrip.tsx`, `VisionActivationStrip()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1502`** (1 nodes): `screenCatalog.js`
+- **Thin community `Community 1814`** (2 nodes): `VisionProfileSidebar.tsx`, `labelsFor()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1503`** (1 nodes): `index.js`
+- **Thin community `Community 1815`** (2 nodes): `TrueNorthCompassPage.tsx`, `TrueNorthCompassPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1504`** (1 nodes): `Button.jsx`
+- **Thin community `Community 1816`** (2 nodes): `TrueNorthCompassWheel.tsx`, `cssAttrEscape()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1505`** (1 nodes): `IconButton.jsx`
+- **Thin community `Community 1817`** (2 nodes): `trueNorthConfig.ts`, `segmentById()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1506`** (1 nodes): `index.js`
+- **Thin community `Community 1818`** (2 nodes): `useTrueNorthData.ts`, `useTrueNorthData()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1507`** (1 nodes): `TextInput.jsx`
+- **Thin community `Community 1819`** (2 nodes): `trueNorthTypes.ts`, `emptyTrueNorthProfile()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1508`** (1 nodes): `builtin-sample.js`
+- **Thin community `Community 1820`** (2 nodes): `FitGatePage.tsx`, `FitGatePage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1509`** (1 nodes): `navConfig.js`
+- **Thin community `Community 1821`** (2 nodes): `useFitGate.ts`, `useFitGate()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1510`** (1 nodes): `mapStyles.js`
+- **Thin community `Community 1822`** (2 nodes): `SegmentIntakePanel.tsx`, `renderForm()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1511`** (1 nodes): `index.jsx`
+- **Thin community `Community 1823`** (2 nodes): `Ring.tsx`, `Ring()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1512`** (1 nodes): `vitest.config.ts`
+- **Thin community `Community 1824`** (2 nodes): `selectCapitalPartnerEvidence()`, `capitalPartner.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1513`** (1 nodes): `main.tsx`
+- **Thin community `Community 1825`** (2 nodes): `siteNarrative.ts`, `selectSiteNarrativeEvidence()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1514`** (1 nodes): `App.tsx`
+- **Thin community `Community 1826`** (2 nodes): `threeEthics.ts`, `selectThreeEthicsEvidence()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1515`** (1 nodes): `AppShell.tsx`
+- **Thin community `Community 1827`** (2 nodes): `triad.ts`, `selectTriadEvidence()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1516`** (1 nodes): `ProjectTabBar.tsx`
+- **Thin community `Community 1828`** (2 nodes): `waterRouter.ts`, `selectWaterRouterEvidence()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1517`** (1 nodes): `SidebarBottomControls.tsx`
+- **Thin community `Community 1829`** (2 nodes): `waterStorage.ts`, `selectWaterStorageEvidence()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1518`** (1 nodes): `SlideUpPanel.tsx`
+- **Thin community `Community 1830`** (2 nodes): `entry()`, `hostCanopyUnion.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1519`** (1 nodes): `index.ts`
+- **Thin community `Community 1831`** (2 nodes): `selectors.test.ts`, `sampleFlag()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1520`** (1 nodes): `index.ts`
+- **Thin community `Community 1832`** (2 nodes): `yearsBefore()`, `computeFieldVerification.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1521`** (1 nodes): `ScoreMetric.tsx`
+- **Thin community `Community 1833`** (2 nodes): `mapLegacyModuleId()`, `moduleDomainMap.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1522`** (1 nodes): `index.ts`
+- **Thin community `Community 1834`** (2 nodes): `wi()`, `fieldProof.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1523`** (1 nodes): `LevelNavigatorBar.tsx`
+- **Thin community `Community 1835`** (2 nodes): `readinessGate.test.ts`, `baseInput()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1524`** (1 nodes): `StickyMiniScore.tsx`
+- **Thin community `Community 1836`** (2 nodes): `universalDomain.test.ts`, `mergeFn()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1525`** (1 nodes): `stageModules.ts`
+- **Thin community `Community 1837`** (1 nodes): `ADR: Stocking-input canonical per-paddock pastureQuality (Path B)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1526`** (1 nodes): `Badge.tsx`
+- **Thin community `Community 1838`** (1 nodes): `redis.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1527`** (1 nodes): `Card.tsx`
+- **Thin community `Community 1839`** (1 nodes): `TerrainAnalysisFlags.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1528`** (1 nodes): `DashboardSectionSkeleton.tsx`
+- **Thin community `Community 1840`** (1 nodes): `ProgressBar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1529`** (1 nodes): `EmptyState.tsx`
+- **Thin community `Community 1841`** (1 nodes): `AdvancedEducationPanel.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1530`** (1 nodes): `FormField.tsx`
+- **Thin community `Community 1842`** (1 nodes): `FieldNotes.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1531`** (1 nodes): `GroupingToggle.tsx`
+- **Thin community `Community 1843`** (1 nodes): `MissionOverlay.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1532`** (1 nodes): `index.ts`
+- **Thin community `Community 1844`** (1 nodes): `SitingRules.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1533`** (1 nodes): `Input.tsx`
+- **Thin community `Community 1845`** (1 nodes): `computeScores.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1534`** (1 nodes): `Modal.tsx`
+- **Thin community `Community 1846`** (1 nodes): `hydrologyMetrics.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1535`** (1 nodes): `PanelLoader.tsx`
+- **Thin community `Community 1847`** (1 nodes): `mapbox.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1536`** (1 nodes): `Skeleton.tsx`
+- **Thin community `Community 1848`** (1 nodes): `assessmentRules.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1537`** (1 nodes): `Toggle.tsx`
+- **Thin community `Community 1849`** (1 nodes): `ruleEngine.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1538`** (1 nodes): `holmgrenPrinciples.ts`
+- **Thin community `Community 1850`** (1 nodes): `scenarioStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1539`** (1 nodes): `scoreComponentMeta.ts`
+- **Thin community `Community 1851`** (1 nodes): `vitest.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1540`** (1 nodes): `guildPresets.test.ts`
+- **Thin community `Community 1852`** (1 nodes): `block-navigation.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1541`** (1 nodes): `plantCatalog.test.ts`
+- **Thin community `Community 1853`** (1 nodes): `prettify.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1542`** (1 nodes): `index.ts`
+- **Thin community `Community 1854`** (1 nodes): `sorter.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1543`** (1 nodes): `index.ts`
+- **Thin community `Community 1855`** (1 nodes): `convert-gaez-to-cog.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1544`** (1 nodes): `index.ts`
+- **Thin community `Community 1856`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1545`** (1 nodes): `MarketDistributionCard.tsx`
+- **Thin community `Community 1857`** (1 nodes): `redis.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1546`** (1 nodes): `SilvopastureHostsCard.tsx`
+- **Thin community `Community 1858`** (1 nodes): `websocket.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1547`** (1 nodes): `SilvopasturePopover.tsx`
+- **Thin community `Community 1859`** (1 nodes): `activity.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1548`** (1 nodes): `AlternativeLayoutRationaleCard.tsx`
+- **Thin community `Community 1860`** (1 nodes): `assessment.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1549`** (1 nodes): `AssumptionGapDetectorCard.tsx`
+- **Thin community `Community 1861`** (1 nodes): `auth.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1550`** (1 nodes): `EducationalExplainerCard.tsx`
+- **Thin community `Community 1862`** (1 nodes): `boundary.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1551`** (1 nodes): `index.ts`
+- **Thin community `Community 1863`** (1 nodes): `comments.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1552`** (1 nodes): `NeedsSiteVisitCard.tsx`
+- **Thin community `Community 1864`** (1 nodes): `EcccClimateAdapter.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1553`** (1 nodes): `DataCompletenessCard.tsx`
+- **Thin community `Community 1865`** (1 nodes): `exports.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1554`** (1 nodes): `DataCompletenessWidget.tsx`
+- **Thin community `Community 1866`** (1 nodes): `layers.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1555`** (1 nodes): `index.ts`
+- **Thin community `Community 1867`** (1 nodes): `members.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1556`** (1 nodes): `index.ts`
+- **Thin community `Community 1868`** (1 nodes): `OhnAdapter.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1557`** (1 nodes): `RolesAccessMatrixCard.tsx`
+- **Thin community `Community 1869`** (1 nodes): `organizations.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1558`** (1 nodes): `index.ts`
+- **Thin community `Community 1870`** (1 nodes): `projects.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1559`** (1 nodes): `index.ts`
+- **Thin community `Community 1871`** (1 nodes): `soilgridsRoutes.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1560`** (1 nodes): `DashboardMetrics.tsx`
+- **Thin community `Community 1872`** (1 nodes): `suggestions.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1561`** (1 nodes): `DashboardSidebar.tsx`
+- **Thin community `Community 1873`** (1 nodes): `shapefile.d.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1562`** (1 nodes): `NextBestActionsPanel.tsx`
+- **Thin community `Community 1874`** (1 nodes): `block-navigation.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1563`** (1 nodes): `CarbonDiagnosticDashboard.tsx`
+- **Thin community `Community 1875`** (1 nodes): `prettify.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1564`** (1 nodes): `CartographicDashboard.tsx`
+- **Thin community `Community 1876`** (1 nodes): `sorter.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1565`** (1 nodes): `CollaborationDashboard.tsx`
+- **Thin community `Community 1877`** (1 nodes): `chunk-6BD4U3VO.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1566`** (1 nodes): `EnergyDashboard.tsx`
+- **Thin community `Community 1878`** (1 nodes): `chunk-BTSYJ5XU.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1567`** (1 nodes): `FieldworkDashboard.tsx`
+- **Thin community `Community 1879`** (1 nodes): `chunk-CUUSNIVQ.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1568`** (1 nodes): `ForestHubDashboard.tsx`
+- **Thin community `Community 1880`** (1 nodes): `chunk-EFBN7QNX.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1569`** (1 nodes): `NurseryLedgerDashboard.tsx`
+- **Thin community `Community 1881`** (1 nodes): `chunk-ICALLYLG.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1570`** (1 nodes): `PaddockDesignDashboard.tsx`
+- **Thin community `Community 1882`** (1 nodes): `chunk-W37FE5GR.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1571`** (1 nodes): `TemplatesDashboard.tsx`
+- **Thin community `Community 1883`** (1 nodes): `chunk-WBOV35NL.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1572`** (1 nodes): `VersionHistoryDashboard.tsx`
+- **Thin community `Community 1884`** (1 nodes): `chunk-XUSCFAVF.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1573`** (1 nodes): `ZoningDashboard.tsx`
+- **Thin community `Community 1885`** (1 nodes): `createTaskProcessorWorker.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1574`** (1 nodes): `CapitalIntensityCard.tsx`
+- **Thin community `Community 1886`** (1 nodes): `transferTypedArrayTest.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1575`** (1 nodes): `DomainFeasibilityCard.tsx`
+- **Thin community `Community 1887`** (1 nodes): `RoleBadge.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1576`** (1 nodes): `FeasibilityCommandCenter.tsx`
+- **Thin community `Community 1888`** (1 nodes): `AhpWeightsSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1577`** (1 nodes): `VisionFitAnalysisCard.tsx`
+- **Thin community `Community 1889`** (1 nodes): `AssessmentScoresSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1578`** (1 nodes): `WhatMustBeSolvedFirstCard.tsx`
+- **Thin community `Community 1890`** (1 nodes): `CanopyStructureSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1579`** (1 nodes): `index.ts`
+- **Thin community `Community 1891`** (1 nodes): `ClimateProjectionsSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1580`** (1 nodes): `index.ts`
+- **Thin community `Community 1892`** (1 nodes): `CommunitySection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1581`** (1 nodes): `index.ts`
+- **Thin community `Community 1893`** (1 nodes): `ConstraintsSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1582`** (1 nodes): `SignsInCreationPanel.tsx`
+- **Thin community `Community 1894`** (1 nodes): `DataLayersSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1583`** (1 nodes): `index.ts`
+- **Thin community `Community 1895`** (1 nodes): `DesignIntelligenceSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1584`** (1 nodes): `US_MIDWEST.ts`
+- **Thin community `Community 1896`** (1 nodes): `EcosystemServicesSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1585`** (1 nodes): `index.ts`
+- **Thin community `Community 1897`** (1 nodes): `EnergyIntelligenceSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1586`** (1 nodes): `HydrologyPanel.tsx`
+- **Thin community `Community 1898`** (1 nodes): `EnvironmentalRiskSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1587`** (1 nodes): `index.ts`
+- **Thin community `Community 1899`** (1 nodes): `FuzzyFaoSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1588`** (1 nodes): `index.ts`
+- **Thin community `Community 1900`** (1 nodes): `GroundwaterSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1589`** (1 nodes): `constants.ts`
+- **Thin community `Community 1901`** (1 nodes): `HydrologyExtensionsSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1590`** (1 nodes): `LivestockWelfarePhasingCard.tsx`
+- **Thin community `Community 1902`** (1 nodes): `HydrologyIntelligenceSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1591`** (1 nodes): `waterSource.test.ts`
+- **Thin community `Community 1903`** (1 nodes): `InfrastructureAccessSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1592`** (1 nodes): `index.ts`
+- **Thin community `Community 1904`** (1 nodes): `LandUseHistorySection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1593`** (1 nodes): `DomainFloatingToolbar.tsx`
+- **Thin community `Community 1905`** (1 nodes): `OpportunitiesSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1594`** (1 nodes): `MapStyleSwitcher.tsx`
+- **Thin community `Community 1906`** (1 nodes): `RegionalSpeciesSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1595`** (1 nodes): `RelationshipsRail.tsx`
+- **Thin community `Community 1907`** (1 nodes): `RegulatoryHeritageSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1596`** (1 nodes): `TerrainControls.tsx`
+- **Thin community `Community 1908`** (1 nodes): `SiteContextSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1597`** (1 nodes): `GPSTracker.tsx`
+- **Thin community `Community 1909`** (1 nodes): `SiteSummaryNarrativeSection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1598`** (1 nodes): `index.ts`
+- **Thin community `Community 1910`** (1 nodes): `WaterQualitySection.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1599`** (1 nodes): `index.ts`
+- **Thin community `Community 1911`** (1 nodes): `ComplexityScore.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1600`** (1 nodes): `index.ts`
+- **Thin community `Community 1912`** (1 nodes): `FeatureAssignment.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1601`** (1 nodes): `index.ts`
+- **Thin community `Community 1913`** (1 nodes): `PhaseTimeline.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1602`** (1 nodes): `PhaseLoadDistributionCard.tsx`
+- **Thin community `Community 1914`** (1 nodes): `ecocropSubset.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1603`** (1 nodes): `index.ts`
+- **Thin community `Community 1915`** (1 nodes): `AccessAnalysisCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1604`** (1 nodes): `PathFrequencyEditor.tsx`
+- **Thin community `Community 1916`** (1 nodes): `AnimalCorridors.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1605`** (1 nodes): `PermanenceScalesCard.tsx`
+- **Thin community `Community 1917`** (1 nodes): `ArrivalSequence.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1606`** (1 nodes): `PublicPortalShell.tsx`
+- **Thin community `Community 1918`** (1 nodes): `RouteConflicts.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1607`** (1 nodes): `ServiceStewardshipFramingCard.tsx`
+- **Thin community `Community 1919`** (1 nodes): `TerrainAnalysisFlags.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1608`** (1 nodes): `InteractiveMapView.tsx`
+- **Thin community `Community 1920`** (1 nodes): `ProgressBar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1609`** (1 nodes): `NarrativeSections.tsx`
+- **Thin community `Community 1921`** (1 nodes): `AdvancedEducationPanel.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1610`** (1 nodes): `StageRevealStory.tsx`
+- **Thin community `Community 1922`** (1 nodes): `SiteChecklist.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1611`** (1 nodes): `ProjectDashboard.tsx`
+- **Thin community `Community 1923`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1612`** (1 nodes): `StepBoundary.tsx`
+- **Thin community `Community 1924`** (1 nodes): `canopyLayerData.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1613`** (1 nodes): `types.ts`
+- **Thin community `Community 1925`** (1 nodes): `FieldNotes.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1614`** (1 nodes): `WizardNav.tsx`
+- **Thin community `Community 1926`** (1 nodes): `propagationData.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1615`** (1 nodes): `RegulatoryRiskNotesCard.tsx`
+- **Thin community `Community 1927`** (1 nodes): `MissionOverlay.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1616`** (1 nodes): `index.ts`
+- **Thin community `Community 1928`** (1 nodes): `SitingRules.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1617`** (1 nodes): `index.ts`
+- **Thin community `Community 1929`** (1 nodes): `QuietZonePlanning.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1618`** (1 nodes): `AccessEfficiencyCard.tsx`
+- **Thin community `Community 1930`** (1 nodes): `SignsInCreation.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1619`** (1 nodes): `SafetyBufferRulesCard.tsx`
+- **Thin community `Community 1931`** (1 nodes): `SolarEvents.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1620`** (1 nodes): `index.ts`
+- **Thin community `Community 1932`** (1 nodes): `OffGridReadiness.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1621`** (1 nodes): `index.ts`
+- **Thin community `Community 1933`** (1 nodes): `VisionPanel.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1622`** (1 nodes): `index.ts`
+- **Thin community `Community 1934`** (1 nodes): `ZoneAutoSuggest.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1623`** (1 nodes): `index.ts`
+- **Thin community `Community 1935`** (1 nodes): `ZoneConflictDetector.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1624`** (1 nodes): `BuildOrderCard.tsx`
+- **Thin community `Community 1936`** (1 nodes): `ZoneSizingCalculator.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1625`** (1 nodes): `StructureArchetypeAuditCard.tsx`
+- **Thin community `Community 1937`** (1 nodes): `computeScores.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1626`** (1 nodes): `index.ts`
+- **Thin community `Community 1938`** (1 nodes): `hydrologyMetrics.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1627`** (1 nodes): `ExtractedPatternsCard.tsx`
+- **Thin community `Community 1939`** (1 nodes): `petModel.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1628`** (1 nodes): `TemplateMarketplace.tsx`
+- **Thin community `Community 1940`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1629`** (1 nodes): `index.ts`
+- **Thin community `Community 1941`** (1 nodes): `connectivityStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1630`** (1 nodes): `index.ts`
+- **Thin community `Community 1942`** (1 nodes): `memberStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1631`** (1 nodes): `CarbonByLandUseCard.tsx`
+- **Thin community `Community 1943`** (1 nodes): `presenceStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1632`** (1 nodes): `ServiceExpansionPreservationCard.tsx`
+- **Thin community `Community 1944`** (1 nodes): `layerFetcher.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1633`** (1 nodes): `ZoneAllocationSummaryReportCard.tsx`
+- **Thin community `Community 1945`** (1 nodes): `petModel.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1634`** (1 nodes): `ZoneEcologyRollup.tsx`
+- **Thin community `Community 1946`** (1 nodes): `costEngine.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1635`** (1 nodes): `ZoneSeasonalityRollup.tsx`
+- **Thin community `Community 1947`** (1 nodes): `enterpriseDetector.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1636`** (1 nodes): `ZoneSiteSuitabilityCard.tsx`
+- **Thin community `Community 1948`** (1 nodes): `revenueEngine.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1637`** (1 nodes): `index.ts`
+- **Thin community `Community 1949`** (1 nodes): `mapbox-gl.d.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1638`** (1 nodes): `SectionScaffold.tsx`
+- **Thin community `Community 1950`** (1 nodes): `block-navigation.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1639`** (1 nodes): `fuzzyMCDM.ts`
+- **Thin community `Community 1951`** (1 nodes): `prettify.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1640`** (1 nodes): `effectiveAnchor.test.ts`
+- **Thin community `Community 1952`** (1 nodes): `sorter.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1641`** (1 nodes): `types.ts`
+- **Thin community `Community 1953`** (1 nodes): `Atlas README`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1642`** (1 nodes): `helpers.test.ts`
+- **Thin community `Community 1954`** (1 nodes): `OGDEN Atlas Global Completeness Gap Analysis`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1643`** (1 nodes): `types.ts`
+- **Thin community `Community 1955`** (1 nodes): `Windows Dev Notes`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1644`** (1 nodes): `concentric.test.ts`
+- **Thin community `Community 1956`** (1 nodes): `Wiki Schema`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1645`** (1 nodes): `geo.test.ts`
+- **Thin community `Community 1957`** (1 nodes): `Design System`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1646`** (1 nodes): `tilePrecache.test.ts`
+- **Thin community `Community 1958`** (1 nodes): `Local-First Architecture`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1647`** (1 nodes): `ReportSharePage.tsx`
+- **Thin community `Community 1959`** (1 nodes): `Dashboard Sidebar Groups Decision`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1648`** (1 nodes): `actHowChecksStore.ts`
+- **Thin community `Community 1960`** (1 nodes): `PDF Export Architecture Decision`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1649`** (1 nodes): `actStructurePopoverStore.ts`
+- **Thin community `Community 1961`** (1 nodes): `inspect-hrdem-cog.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1650`** (1 nodes): `actualsStore.ts`
+- **Thin community `Community 1962`** (1 nodes): `migrate.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1651`** (1 nodes): `agribusinessStore.ts`
+- **Thin community `Community 1963`** (1 nodes): `retrigger-tier3-terrain.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1652`** (1 nodes): `annotationDetailStore.ts`
+- **Thin community `Community 1964`** (1 nodes): `rewrite-assessment.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1653`** (1 nodes): `annotationFormStore.ts`
+- **Thin community `Community 1965`** (1 nodes): `auth.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1654`** (1 nodes): `appropriateTechStore.ts`
+- **Thin community `Community 1966`** (1 nodes): `database.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1655`** (1 nodes): `authStore.ts`
+- **Thin community `Community 1967`** (1 nodes): `rbac.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1656`** (1 nodes): `closedLoopStore.ts`
+- **Thin community `Community 1968`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1657`** (1 nodes): `communityEventStore.ts`
+- **Thin community `Community 1969`** (1 nodes): `aiOutputs.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1658`** (1 nodes): `compostInventoryStore.ts`
+- **Thin community `Community 1970`** (1 nodes): `NasaPowerIntlRouting.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1659`** (1 nodes): `conventionalCropStore.ts`
+- **Thin community `Community 1971`** (1 nodes): `portal.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1660`** (1 nodes): `cropStore.ts`
+- **Thin community `Community 1972`** (1 nodes): `relationships.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1661`** (1 nodes): `customDrawSelectionStore.ts`
+- **Thin community `Community 1973`** (1 nodes): `SsurgoAdapter.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1662`** (1 nodes): `designElementsStore.ts`
+- **Thin community `Community 1974`** (1 nodes): `bcryptjs.d.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1663`** (1 nodes): `ecologicalNoteStore.ts`
+- **Thin community `Community 1975`** (1 nodes): `vite.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1664`** (1 nodes): `ecologyStore.ts`
+- **Thin community `Community 1976`** (1 nodes): `script-static.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1665`** (1 nodes): `enterpriseStore.ts`
+- **Thin community `Community 1977`** (1 nodes): `icons.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1666`** (1 nodes): `externalForcesStore.ts`
+- **Thin community `Community 1978`** (1 nodes): `main.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1667`** (1 nodes): `fieldTaskStore.ts`
+- **Thin community `Community 1979`** (1 nodes): `screenCatalog.generated.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1668`** (1 nodes): `fieldworkStore.ts`
+- **Thin community `Community 1980`** (1 nodes): `screenCatalog.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1669`** (1 nodes): `financialStore.ts`
+- **Thin community `Community 1981`** (1 nodes): `index.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1670`** (1 nodes): `flowConnectorStore.ts`
+- **Thin community `Community 1982`** (1 nodes): `Button.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1671`** (1 nodes): `generatorDraftStore.ts`
+- **Thin community `Community 1983`** (1 nodes): `IconButton.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1672`** (1 nodes): `harvestLogStore.ts`
+- **Thin community `Community 1984`** (1 nodes): `index.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1673`** (1 nodes): `homesteadStore.ts`
+- **Thin community `Community 1985`** (1 nodes): `TextInput.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1674`** (1 nodes): `humanContextStore.ts`
+- **Thin community `Community 1986`** (1 nodes): `builtin-sample.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1675`** (1 nodes): `landDesignStore.ts`
+- **Thin community `Community 1987`** (1 nodes): `navConfig.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1676`** (1 nodes): `layeringLensStore.ts`
+- **Thin community `Community 1988`** (1 nodes): `mapStyles.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1677`** (1 nodes): `livestockStore.ts`
+- **Thin community `Community 1989`** (1 nodes): `index.jsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1678`** (1 nodes): `maintenanceLogStore.ts`
+- **Thin community `Community 1990`** (1 nodes): `vitest.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1679`** (1 nodes): `maintenanceStore.ts`
+- **Thin community `Community 1991`** (1 nodes): `main.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1680`** (1 nodes): `mapFocusStore.ts`
+- **Thin community `Community 1992`** (1 nodes): `App.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1681`** (1 nodes): `mapStore.ts`
+- **Thin community `Community 1993`** (1 nodes): `AppShell.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1682`** (1 nodes): `matrixTogglesStore.ts`
+- **Thin community `Community 1994`** (1 nodes): `ProjectTabBar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1683`** (1 nodes): `monitoringTransectStore.ts`
+- **Thin community `Community 1995`** (1 nodes): `SidebarBottomControls.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1684`** (1 nodes): `networkStore.ts`
+- **Thin community `Community 1996`** (1 nodes): `SlideUpPanel.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1685`** (1 nodes): `nurseryStore.ts`
+- **Thin community `Community 1997`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1686`** (1 nodes): `observeHowChecksStore.ts`
+- **Thin community `Community 1998`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1687`** (1 nodes): `pastureStore.ts`
+- **Thin community `Community 1999`** (1 nodes): `ScoreMetric.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1688`** (1 nodes): `pathStore.ts`
+- **Thin community `Community 2000`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1689`** (1 nodes): `phaseStore.ts`
+- **Thin community `Community 2001`** (1 nodes): `LevelNavigatorBar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1690`** (1 nodes): `pilotPlotStore.ts`
+- **Thin community `Community 2002`** (1 nodes): `StickyMiniScore.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1691`** (1 nodes): `planHowChecksStore.ts`
+- **Thin community `Community 2003`** (1 nodes): `stageModules.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1692`** (1 nodes): `planProjectTypeChecklistStore.ts`
+- **Thin community `Community 2004`** (1 nodes): `Badge.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1693`** (1 nodes): `planVertexEditStore.ts`
+- **Thin community `Community 2005`** (1 nodes): `Card.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1694`** (1 nodes): `polycultureStore.ts`
+- **Thin community `Community 2006`** (1 nodes): `DashboardSectionSkeleton.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1695`** (1 nodes): `principleCheckStore.ts`
+- **Thin community `Community 2007`** (1 nodes): `EmptyState.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1696`** (1 nodes): `sectorStore.ts`
+- **Thin community `Community 2008`** (1 nodes): `FormField.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1697`** (1 nodes): `setbackStore.ts`
+- **Thin community `Community 2009`** (1 nodes): `GroupingToggle.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1698`** (1 nodes): `siteProfileStore.ts`
+- **Thin community `Community 2010`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1699`** (1 nodes): `sitingWeightStore.ts`
+- **Thin community `Community 2011`** (1 nodes): `Input.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1700`** (1 nodes): `soilSampleStore.ts`
+- **Thin community `Community 2012`** (1 nodes): `Modal.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1701`** (1 nodes): `structurePlacementStore.ts`
+- **Thin community `Community 2013`** (1 nodes): `PanelLoader.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1702`** (1 nodes): `successionStore.ts`
+- **Thin community `Community 2014`** (1 nodes): `Skeleton.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1703`** (1 nodes): `swotStore.ts`
+- **Thin community `Community 2015`** (1 nodes): `Toggle.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1704`** (1 nodes): `templateStore.ts`
+- **Thin community `Community 2016`** (1 nodes): `holmgrenPrinciples.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1705`** (1 nodes): `topographyStore.ts`
+- **Thin community `Community 2017`** (1 nodes): `scoreComponentMeta.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1706`** (1 nodes): `utilityRunStore.ts`
+- **Thin community `Community 2018`** (1 nodes): `guildPresets.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1707`** (1 nodes): `utilityStore.ts`
+- **Thin community `Community 2019`** (1 nodes): `plantCatalog.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1708`** (1 nodes): `versionStore.ts`
+- **Thin community `Community 2020`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1709`** (1 nodes): `visionStore.ts`
+- **Thin community `Community 2021`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1710`** (1 nodes): `waterSystemsStore.ts`
+- **Thin community `Community 2022`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1711`** (1 nodes): `wheelHoverStore.ts`
+- **Thin community `Community 2023`** (1 nodes): `MarketDistributionCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1712`** (1 nodes): `agribusinessStore.test.ts`
+- **Thin community `Community 2024`** (1 nodes): `SilvopastureHostsCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1713`** (1 nodes): `relationshipsStore.test.ts`
+- **Thin community `Community 2025`** (1 nodes): `SilvopasturePopover.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1714`** (1 nodes): `spatialSampling.test.ts`
+- **Thin community `Community 2026`** (1 nodes): `AlternativeLayoutRationaleCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1715`** (1 nodes): `syncService.test.ts`
+- **Thin community `Community 2027`** (1 nodes): `AssumptionGapDetectorCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1716`** (1 nodes): `uiStoreMigrate.test.ts`
+- **Thin community `Community 2028`** (1 nodes): `EducationalExplainerCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1717`** (1 nodes): `ogden-ui-components.d.ts`
+- **Thin community `Community 2029`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1718`** (1 nodes): `types.ts`
+- **Thin community `Community 2030`** (1 nodes): `NeedsSiteVisitCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1719`** (1 nodes): `UpcomingEvents.tsx`
+- **Thin community `Community 2031`** (1 nodes): `DataCompletenessCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1720`** (1 nodes): `WeatherStrip.tsx`
+- **Thin community `Community 2032`** (1 nodes): `DataCompletenessWidget.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1721`** (1 nodes): `index.ts`
+- **Thin community `Community 2033`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1722`** (1 nodes): `beSchemaRegistry.ts`
+- **Thin community `Community 2034`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1723`** (1 nodes): `ActionList.tsx`
+- **Thin community `Community 2035`** (1 nodes): `RolesAccessMatrixCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1724`** (1 nodes): `ActivityList.tsx`
+- **Thin community `Community 2036`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1725`** (1 nodes): `BestUsesTable.tsx`
+- **Thin community `Community 2037`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1726`** (1 nodes): `CategoryCard.tsx`
+- **Thin community `Community 2038`** (1 nodes): `DashboardMetrics.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1727`** (1 nodes): `DecisionRail.tsx`
+- **Thin community `Community 2039`** (1 nodes): `DashboardSidebar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1728`** (1 nodes): `DesignRulesGrid.tsx`
+- **Thin community `Community 2040`** (1 nodes): `NextBestActionsPanel.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1729`** (1 nodes): `HomeHero.tsx`
+- **Thin community `Community 2041`** (1 nodes): `CarbonDiagnosticDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1730`** (1 nodes): `MetricCard.tsx`
+- **Thin community `Community 2042`** (1 nodes): `CartographicDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1731`** (1 nodes): `StageHero.tsx`
+- **Thin community `Community 2043`** (1 nodes): `CollaborationDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1732`** (1 nodes): `BuildRail.tsx`
+- **Thin community `Community 2044`** (1 nodes): `EnergyDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1733`** (1 nodes): `DesignRail.tsx`
+- **Thin community `Community 2045`** (1 nodes): `FieldworkDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1734`** (1 nodes): `DiagnoseRail.tsx`
+- **Thin community `Community 2046`** (1 nodes): `ForestHubDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1735`** (1 nodes): `DiagnoseCategoryDrawer.test.tsx`
+- **Thin community `Community 2047`** (1 nodes): `NurseryLedgerDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1736`** (1 nodes): `V3LifecycleSidebar.test.tsx`
+- **Thin community `Community 2048`** (1 nodes): `PaddockDesignDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1737`** (1 nodes): `discoverStore.ts`
+- **Thin community `Community 2049`** (1 nodes): `TemplatesDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1738`** (1 nodes): `mockCandidates.ts`
+- **Thin community `Community 2050`** (1 nodes): `VersionHistoryDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1739`** (1 nodes): `mockProject.ts`
+- **Thin community `Community 2051`** (1 nodes): `ZoningDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1740`** (1 nodes): `ObserveReadyCue.tsx`
+- **Thin community `Community 2052`** (1 nodes): `CapitalIntensityCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1741`** (1 nodes): `mapboxDrawStyles.ts`
+- **Thin community `Community 2053`** (1 nodes): `DomainFeasibilityCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1742`** (1 nodes): `useMapToolStore.ts`
+- **Thin community `Community 2054`** (1 nodes): `FeasibilityCommandCenter.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1743`** (1 nodes): `siteIntelTemplate.schema.ts`
+- **Thin community `Community 2055`** (1 nodes): `VisionFitAnalysisCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1744`** (1 nodes): `BuiltEnvironmentPanel.tsx`
+- **Thin community `Community 2056`** (1 nodes): `WhatMustBeSolvedFirstCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1745`** (1 nodes): `EarthWaterEcologyPanel.tsx`
+- **Thin community `Community 2057`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1746`** (1 nodes): `HumanContextPanel.tsx`
+- **Thin community `Community 2058`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1747`** (1 nodes): `MacroclimateHazardsPanel.tsx`
+- **Thin community `Community 2059`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1748`** (1 nodes): `SectorsZonesPanel.tsx`
+- **Thin community `Community 2060`** (1 nodes): `SignsInCreationPanel.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1749`** (1 nodes): `SwotSynthesisPanel.tsx`
+- **Thin community `Community 2061`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1750`** (1 nodes): `TopographyPanel.tsx`
+- **Thin community `Community 2062`** (1 nodes): `US_MIDWEST.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1751`** (1 nodes): `types.ts`
+- **Thin community `Community 2063`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1752`** (1 nodes): `WaterSystemsSnapshot.tsx`
+- **Thin community `Community 2064`** (1 nodes): `HydrologyPanel.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1753`** (1 nodes): `derivations.test.ts`
+- **Thin community `Community 2065`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1754`** (1 nodes): `HazardRiskMatrix.tsx`
+- **Thin community `Community 2066`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1755`** (1 nodes): `SolarClimateDetail.tsx`
+- **Thin community `Community 2067`** (1 nodes): `constants.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1756`** (1 nodes): `CartographicDetail.tsx`
+- **Thin community `Community 2068`** (1 nodes): `LivestockWelfarePhasingCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1757`** (1 nodes): `CrossSectionDetail.tsx`
+- **Thin community `Community 2069`** (1 nodes): `waterSource.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1758`** (1 nodes): `TerrainSnapshot.tsx`
+- **Thin community `Community 2070`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1759`** (1 nodes): `derivations.test.ts`
+- **Thin community `Community 2071`** (1 nodes): `DomainFloatingToolbar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1760`** (1 nodes): `ActPlaceholderPage.tsx`
+- **Thin community `Community 2072`** (1 nodes): `MapStyleSwitcher.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1761`** (1 nodes): `ComponentsDebugPage.tsx`
+- **Thin community `Community 2073`** (1 nodes): `RelationshipsRail.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1762`** (1 nodes): `DiagnosePage.tsx`
+- **Thin community `Community 2074`** (1 nodes): `TerrainControls.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1763`** (1 nodes): `DiscoverPage.tsx`
+- **Thin community `Community 2075`** (1 nodes): `GPSTracker.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1764`** (1 nodes): `EthicsReferencePage.tsx`
+- **Thin community `Community 2076`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1765`** (1 nodes): `HomePage.tsx`
+- **Thin community `Community 2077`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1766`** (1 nodes): `OperatePage.tsx`
+- **Thin community `Community 2078`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1767`** (1 nodes): `PlanPlaceholderPage.tsx`
+- **Thin community `Community 2079`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1768`** (1 nodes): `ProjectsLandingPage.tsx`
+- **Thin community `Community 2080`** (1 nodes): `PhaseLoadDistributionCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1769`** (1 nodes): `PlanChecklistAside.tsx`
+- **Thin community `Community 2081`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1770`** (1 nodes): `BaseMapCard.tsx`
+- **Thin community `Community 2082`** (1 nodes): `PathFrequencyEditor.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1771`** (1 nodes): `PlanPhaseTabs.tsx`
+- **Thin community `Community 2083`** (1 nodes): `PermanenceScalesCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1772`** (1 nodes): `relationshipsArmedStore.ts`
+- **Thin community `Community 2084`** (1 nodes): `PublicPortalShell.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1773`** (1 nodes): `stampModeStore.ts`
+- **Thin community `Community 2085`** (1 nodes): `ServiceStewardshipFramingCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1774`** (1 nodes): `TemporalScrubSlider.tsx`
+- **Thin community `Community 2086`** (1 nodes): `InteractiveMapView.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1775`** (1 nodes): `temporalScrubStore.ts`
+- **Thin community `Community 2087`** (1 nodes): `NarrativeSections.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1776`** (1 nodes): `temporalScrubVisibilityStore.ts`
+- **Thin community `Community 2088`** (1 nodes): `StageRevealStory.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1777`** (1 nodes): `CriteriaForecastTab.tsx`
+- **Thin community `Community 2089`** (1 nodes): `ProjectDashboard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1778`** (1 nodes): `MachineryAccessFitCard.tsx`
+- **Thin community `Community 2090`** (1 nodes): `StepBoundary.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1779`** (1 nodes): `MachineryHousingFuelCard.tsx`
+- **Thin community `Community 2091`** (1 nodes): `types.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1780`** (1 nodes): `WaterNetworkCard.tsx`
+- **Thin community `Community 2092`** (1 nodes): `WizardNav.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1781`** (1 nodes): `homesteadGoalTree.ts`
+- **Thin community `Community 2093`** (1 nodes): `RegulatoryRiskNotesCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1782`** (1 nodes): `interventionCatalog.ts`
+- **Thin community `Community 2094`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1783`** (1 nodes): `planModulePalette.ts`
+- **Thin community `Community 2095`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1784`** (1 nodes): `planProjectTypeTemplates.ts`
+- **Thin community `Community 2096`** (1 nodes): `AccessEfficiencyCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1785`** (1 nodes): `conservation.ts`
+- **Thin community `Community 2097`** (1 nodes): `SafetyBufferRulesCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1786`** (1 nodes): `education.ts`
+- **Thin community `Community 2098`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1787`** (1 nodes): `homestead.ts`
+- **Thin community `Community 2099`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1788`** (1 nodes): `multiEnterprise.ts`
+- **Thin community `Community 2100`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1789`** (1 nodes): `regenerativeFarm.ts`
+- **Thin community `Community 2101`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1790`** (1 nodes): `retreat.ts`
+- **Thin community `Community 2102`** (1 nodes): `BuildOrderCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1791`** (1 nodes): `_shared.ts`
+- **Thin community `Community 2103`** (1 nodes): `StructureArchetypeAuditCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1792`** (1 nodes): `DraftReviewBar.tsx`
+- **Thin community `Community 2104`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1793`** (1 nodes): `inlineFormStore.ts`
+- **Thin community `Community 2105`** (1 nodes): `ExtractedPatternsCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1794`** (1 nodes): `observeLinkPopoverStore.ts`
+- **Thin community `Community 2106`** (1 nodes): `TemplateMarketplace.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1795`** (1 nodes): `utilityConflictStore.ts`
+- **Thin community `Community 2107`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1796`** (1 nodes): `PlanDesignElementHost.tsx`
+- **Thin community `Community 2108`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1797`** (1 nodes): `PlantSystemsDesignElementHost.tsx`
+- **Thin community `Community 2109`** (1 nodes): `CarbonByLandUseCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1798`** (1 nodes): `dimensionGeometry.test.ts`
+- **Thin community `Community 2110`** (1 nodes): `ServiceExpansionPreservationCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1799`** (1 nodes): `types.ts`
+- **Thin community `Community 2111`** (1 nodes): `ZoneAllocationSummaryReportCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1800`** (1 nodes): `regenerationForcing.test.ts`
+- **Thin community `Community 2112`** (1 nodes): `ZoneEcologyRollup.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1801`** (1 nodes): `rng.test.ts`
+- **Thin community `Community 2113`** (1 nodes): `ZoneSeasonalityRollup.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1802`** (1 nodes): `stampGeometry.test.ts`
+- **Thin community `Community 2114`** (1 nodes): `ZoneSiteSuitabilityCard.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1803`** (1 nodes): `archetypeCatalogParity.test.ts`
+- **Thin community `Community 2115`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1804`** (1 nodes): `types.ts`
+- **Thin community `Community 2116`** (1 nodes): `SectionScaffold.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1805`** (1 nodes): `DesignStatusChip.tsx`
+- **Thin community `Community 2117`** (1 nodes): `fuzzyMCDM.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1806`** (1 nodes): `builtEnvironmentTools.ts`
+- **Thin community `Community 2118`** (1 nodes): `effectiveAnchor.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1807`** (1 nodes): `index.ts`
+- **Thin community `Community 2119`** (1 nodes): `types.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1808`** (1 nodes): `index.ts`
+- **Thin community `Community 2120`** (1 nodes): `helpers.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1809`** (1 nodes): `StageShell.tsx`
+- **Thin community `Community 2121`** (1 nodes): `types.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1810`** (1 nodes): `vitest.config.ts`
+- **Thin community `Community 2122`** (1 nodes): `concentric.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1811`** (1 nodes): `index.ts`
+- **Thin community `Community 2123`** (1 nodes): `geo.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1812`** (1 nodes): `dataSources.ts`
+- **Thin community `Community 2124`** (1 nodes): `tilePrecache.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1813`** (1 nodes): `flags.ts`
+- **Thin community `Community 2125`** (1 nodes): `ReportSharePage.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1814`** (1 nodes): `system.ts`
+- **Thin community `Community 2126`** (1 nodes): `actHowChecksStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1815`** (1 nodes): `index.ts`
+- **Thin community `Community 2127`** (1 nodes): `actStructurePopoverStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1816`** (1 nodes): `catalog.ts`
+- **Thin community `Community 2128`** (1 nodes): `actualsStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1817`** (1 nodes): `index.ts`
+- **Thin community `Community 2129`** (1 nodes): `agribusinessStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1818`** (1 nodes): `types.ts`
+- **Thin community `Community 2130`** (1 nodes): `annotationDetailStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1819`** (1 nodes): `actTelemetry.schema.ts`
+- **Thin community `Community 2131`** (1 nodes): `annotationFormStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1820`** (1 nodes): `assessment.schema.ts`
+- **Thin community `Community 2132`** (1 nodes): `appropriateTechStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1821`** (1 nodes): `collaboration.schema.ts`
+- **Thin community `Community 2133`** (1 nodes): `authStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1822`** (1 nodes): `confidence.schema.ts`
+- **Thin community `Community 2134`** (1 nodes): `communityEventStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1823`** (1 nodes): `designFeature.schema.ts`
+- **Thin community `Community 2135`** (1 nodes): `compostInventoryStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1824`** (1 nodes): `elevation.schema.ts`
+- **Thin community `Community 2136`** (1 nodes): `conventionalCropStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1825`** (1 nodes): `export.schema.ts`
+- **Thin community `Community 2137`** (1 nodes): `customDrawSelectionStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1826`** (1 nodes): `file.schema.ts`
+- **Thin community `Community 2138`** (1 nodes): `designElementsStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1827`** (1 nodes): `layer.schema.ts`
+- **Thin community `Community 2139`** (1 nodes): `ecologicalNoteStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1828`** (1 nodes): `machineryItem.schema.ts`
+- **Thin community `Community 2140`** (1 nodes): `ecologyStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1829`** (1 nodes): `portal.schema.ts`
+- **Thin community `Community 2141`** (1 nodes): `enterpriseStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1830`** (1 nodes): `project.schema.ts`
+- **Thin community `Community 2142`** (1 nodes): `externalForcesStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1831`** (1 nodes): `regenerationEvent.schema.ts`
+- **Thin community `Community 2143`** (1 nodes): `fieldTaskStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1832`** (1 nodes): `section10.schema.ts`
+- **Thin community `Community 2144`** (1 nodes): `fieldworkStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1833`** (1 nodes): `section11.schema.ts`
+- **Thin community `Community 2145`** (1 nodes): `financialStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1834`** (1 nodes): `section12.schema.ts`
+- **Thin community `Community 2146`** (1 nodes): `flowConnectorStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1835`** (1 nodes): `section13.schema.ts`
+- **Thin community `Community 2147`** (1 nodes): `generatorDraftStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1836`** (1 nodes): `section14.schema.ts`
+- **Thin community `Community 2148`** (1 nodes): `harvestLogStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1837`** (1 nodes): `section15.schema.ts`
+- **Thin community `Community 2149`** (1 nodes): `homesteadStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1838`** (1 nodes): `section16.schema.ts`
+- **Thin community `Community 2150`** (1 nodes): `humanContextStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1839`** (1 nodes): `section17.schema.ts`
+- **Thin community `Community 2151`** (1 nodes): `landDesignStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1840`** (1 nodes): `section18.schema.ts`
+- **Thin community `Community 2152`** (1 nodes): `layeringLensStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1841`** (1 nodes): `section19.schema.ts`
+- **Thin community `Community 2153`** (1 nodes): `livestockStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1842`** (1 nodes): `section2.schema.ts`
+- **Thin community `Community 2154`** (1 nodes): `maintenanceLogStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1843`** (1 nodes): `section20.schema.ts`
+- **Thin community `Community 2155`** (1 nodes): `maintenanceStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1844`** (1 nodes): `section21.schema.ts`
+- **Thin community `Community 2156`** (1 nodes): `mapFocusStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1845`** (1 nodes): `section22.schema.ts`
+- **Thin community `Community 2157`** (1 nodes): `mapStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1846`** (1 nodes): `section23.schema.ts`
+- **Thin community `Community 2158`** (1 nodes): `matrixTogglesStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1847`** (1 nodes): `section24.schema.ts`
+- **Thin community `Community 2159`** (1 nodes): `monitoringTransectStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1848`** (1 nodes): `section25.schema.ts`
+- **Thin community `Community 2160`** (1 nodes): `networkStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1849`** (1 nodes): `section26.schema.ts`
+- **Thin community `Community 2161`** (1 nodes): `nurseryStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1850`** (1 nodes): `section27.schema.ts`
+- **Thin community `Community 2162`** (1 nodes): `observeHowChecksStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1851`** (1 nodes): `section28.schema.ts`
+- **Thin community `Community 2163`** (1 nodes): `pastureStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1852`** (1 nodes): `section29.schema.ts`
+- **Thin community `Community 2164`** (1 nodes): `pathStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1853`** (1 nodes): `section3.schema.ts`
+- **Thin community `Community 2165`** (1 nodes): `phaseStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1854`** (1 nodes): `section4.schema.ts`
+- **Thin community `Community 2166`** (1 nodes): `pilotPlotStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1855`** (1 nodes): `section5.schema.ts`
+- **Thin community `Community 2167`** (1 nodes): `planHowChecksStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1856`** (1 nodes): `section6.schema.ts`
+- **Thin community `Community 2168`** (1 nodes): `planProjectTypeChecklistStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1857`** (1 nodes): `section7.schema.ts`
+- **Thin community `Community 2169`** (1 nodes): `planVertexEditStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1858`** (1 nodes): `section8.schema.ts`
+- **Thin community `Community 2170`** (1 nodes): `polycultureStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1859`** (1 nodes): `section9.schema.ts`
+- **Thin community `Community 2171`** (1 nodes): `principleCheckStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1860`** (1 nodes): `spiritual.schema.ts`
+- **Thin community `Community 2172`** (1 nodes): `sectorStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1861`** (1 nodes): `template.schema.ts`
+- **Thin community `Community 2173`** (1 nodes): `setbackStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1862`** (1 nodes): `websocket.schema.ts`
+- **Thin community `Community 2174`** (1 nodes): `siteProfileStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1863`** (1 nodes): `index.ts`
+- **Thin community `Community 2175`** (1 nodes): `sitingWeightStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1864`** (1 nodes): `types.ts`
+- **Thin community `Community 2176`** (1 nodes): `soilSampleStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1865`** (1 nodes): `assessmentRules.ts`
+- **Thin community `Community 2177`** (1 nodes): `structurePlacementStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1866`** (1 nodes): `index.ts`
+- **Thin community `Community 2178`** (1 nodes): `successionStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1867`** (1 nodes): `index.ts`
+- **Thin community `Community 2179`** (1 nodes): `swotStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1868`** (1 nodes): `speciesData.ts`
+- **Thin community `Community 2180`** (1 nodes): `templateStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1869`** (1 nodes): `growthCurves.test.ts`
+- **Thin community `Community 2181`** (1 nodes): `topographyStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1870`** (1 nodes): `caseTransform.test.ts`
+- **Thin community `Community 2182`** (1 nodes): `utilityRunStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1871`** (1 nodes): `demand.test.ts`
+- **Thin community `Community 2183`** (1 nodes): `utilityStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1872`** (1 nodes): `pollinatorHabitatState.test.ts`
+- **Thin community `Community 2184`** (1 nodes): `versionStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1873`** (1 nodes): `relationships.test.ts`
+- **Thin community `Community 2185`** (1 nodes): `visionStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1874`** (1 nodes): `schemas.test.ts`
+- **Thin community `Community 2186`** (1 nodes): `waterSystemsStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1875`** (1 nodes): `statusGate.test.ts`
+- **Thin community `Community 2187`** (1 nodes): `wheelHoverStore.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1876`** (1 nodes): `nblm-ask.py`
+- **Thin community `Community 2188`** (1 nodes): `agribusinessStore.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1877`** (1 nodes): `Flow accumulation by area donut chart`
+- **Thin community `Community 2189`** (1 nodes): `relationshipsStore.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1878`** (1 nodes): `Jar soil texture test showing stratified sediment layers`
+- **Thin community `Community 2190`** (1 nodes): `spatialSampling.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 1879`** (1 nodes): `OBSERVE Vision Moodboard Grid`
+- **Thin community `Community 2191`** (1 nodes): `syncService.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2192`** (1 nodes): `uiStoreMigrate.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2193`** (1 nodes): `ogden-ui-components.d.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2194`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2195`** (1 nodes): `UpcomingEvents.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2196`** (1 nodes): `WeatherStrip.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2197`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2198`** (1 nodes): `beSchemaRegistry.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2199`** (1 nodes): `ActionList.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2200`** (1 nodes): `ActivityList.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2201`** (1 nodes): `BestUsesTable.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2202`** (1 nodes): `CategoryCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2203`** (1 nodes): `DecisionRail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2204`** (1 nodes): `DesignRulesGrid.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2205`** (1 nodes): `HomeHero.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2206`** (1 nodes): `MetricCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2207`** (1 nodes): `StageHero.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2208`** (1 nodes): `BuildRail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2209`** (1 nodes): `DesignRail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2210`** (1 nodes): `DiagnoseRail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2211`** (1 nodes): `DiagnoseCategoryDrawer.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2212`** (1 nodes): `V3LifecycleSidebar.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2213`** (1 nodes): `discoverStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2214`** (1 nodes): `mockCandidates.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2215`** (1 nodes): `mockProject.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2216`** (1 nodes): `ObserveReadyCue.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2217`** (1 nodes): `mapboxDrawStyles.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2218`** (1 nodes): `useMapToolStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2219`** (1 nodes): `siteIntelTemplate.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2220`** (1 nodes): `BuiltEnvironmentPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2221`** (1 nodes): `EarthWaterEcologyPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2222`** (1 nodes): `HumanContextPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2223`** (1 nodes): `MacroclimateHazardsPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2224`** (1 nodes): `SectorsZonesPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2225`** (1 nodes): `SwotSynthesisPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2226`** (1 nodes): `TopographyPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2227`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2228`** (1 nodes): `WaterSystemsSnapshot.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2229`** (1 nodes): `derivations.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2230`** (1 nodes): `HazardRiskMatrix.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2231`** (1 nodes): `SolarClimateDetail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2232`** (1 nodes): `CartographicDetail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2233`** (1 nodes): `CrossSectionDetail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2234`** (1 nodes): `TerrainSnapshot.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2235`** (1 nodes): `derivations.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2236`** (1 nodes): `ActPlaceholderPage.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2237`** (1 nodes): `ComponentsDebugPage.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2238`** (1 nodes): `DiagnosePage.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2239`** (1 nodes): `DiscoverPage.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2240`** (1 nodes): `EthicsReferencePage.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2241`** (1 nodes): `HomePage.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2242`** (1 nodes): `OperatePage.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2243`** (1 nodes): `PlanPlaceholderPage.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2244`** (1 nodes): `PlanChecklistAside.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2245`** (1 nodes): `BaseMapCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2246`** (1 nodes): `PlanPhaseTabs.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2247`** (1 nodes): `relationshipsArmedStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2248`** (1 nodes): `stampModeStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2249`** (1 nodes): `TemporalScrubSlider.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2250`** (1 nodes): `temporalScrubStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2251`** (1 nodes): `temporalScrubVisibilityStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2252`** (1 nodes): `CriteriaForecastTab.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2253`** (1 nodes): `MachineryAccessFitCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2254`** (1 nodes): `MachineryHousingFuelCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2255`** (1 nodes): `WaterNetworkCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2256`** (1 nodes): `homesteadGoalTree.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2257`** (1 nodes): `interventionCatalog.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2258`** (1 nodes): `planModulePalette.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2259`** (1 nodes): `planProjectTypeTemplates.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2260`** (1 nodes): `conservation.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2261`** (1 nodes): `education.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2262`** (1 nodes): `homestead.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2263`** (1 nodes): `multiEnterprise.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2264`** (1 nodes): `regenerativeFarm.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2265`** (1 nodes): `retreat.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2266`** (1 nodes): `_shared.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2267`** (1 nodes): `DraftReviewBar.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2268`** (1 nodes): `inlineFormStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2269`** (1 nodes): `observeLinkPopoverStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2270`** (1 nodes): `utilityConflictStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2271`** (1 nodes): `PlanDesignElementHost.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2272`** (1 nodes): `PlantSystemsDesignElementHost.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2273`** (1 nodes): `dimensionGeometry.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2274`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2275`** (1 nodes): `regenerationForcing.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2276`** (1 nodes): `rng.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2277`** (1 nodes): `stampGeometry.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2278`** (1 nodes): `archetypeCatalogParity.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2279`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2280`** (1 nodes): `DesignStatusChip.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2281`** (1 nodes): `builtEnvironmentTools.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2282`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2283`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2284`** (1 nodes): `StageShell.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2285`** (1 nodes): `vitest.config.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2286`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2287`** (1 nodes): `dataSources.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2288`** (1 nodes): `flags.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2289`** (1 nodes): `system.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2290`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2291`** (1 nodes): `catalog.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2292`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2293`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2294`** (1 nodes): `actTelemetry.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2295`** (1 nodes): `assessment.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2296`** (1 nodes): `collaboration.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2297`** (1 nodes): `confidence.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2298`** (1 nodes): `designFeature.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2299`** (1 nodes): `elevation.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2300`** (1 nodes): `export.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2301`** (1 nodes): `file.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2302`** (1 nodes): `layer.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2303`** (1 nodes): `machineryItem.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2304`** (1 nodes): `portal.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2305`** (1 nodes): `project.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2306`** (1 nodes): `regenerationEvent.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2307`** (1 nodes): `section10.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2308`** (1 nodes): `section11.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2309`** (1 nodes): `section12.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2310`** (1 nodes): `section13.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2311`** (1 nodes): `section14.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2312`** (1 nodes): `section15.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2313`** (1 nodes): `section16.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2314`** (1 nodes): `section17.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2315`** (1 nodes): `section18.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2316`** (1 nodes): `section19.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2317`** (1 nodes): `section2.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2318`** (1 nodes): `section20.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2319`** (1 nodes): `section21.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2320`** (1 nodes): `section22.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2321`** (1 nodes): `section23.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2322`** (1 nodes): `section24.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2323`** (1 nodes): `section25.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2324`** (1 nodes): `section26.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2325`** (1 nodes): `section27.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2326`** (1 nodes): `section28.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2327`** (1 nodes): `section29.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2328`** (1 nodes): `section3.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2329`** (1 nodes): `section4.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2330`** (1 nodes): `section5.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2331`** (1 nodes): `section6.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2332`** (1 nodes): `section7.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2333`** (1 nodes): `section8.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2334`** (1 nodes): `section9.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2335`** (1 nodes): `spiritual.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2336`** (1 nodes): `template.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2337`** (1 nodes): `websocket.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2338`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2339`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2340`** (1 nodes): `assessmentRules.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2341`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2342`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2343`** (1 nodes): `speciesData.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2344`** (1 nodes): `growthCurves.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2345`** (1 nodes): `caseTransform.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2346`** (1 nodes): `demand.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2347`** (1 nodes): `pollinatorHabitatState.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2348`** (1 nodes): `relationships.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2349`** (1 nodes): `schemas.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2350`** (1 nodes): `statusGate.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2351`** (1 nodes): `nblm-ask.py`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2352`** (1 nodes): `Flow accumulation by area donut chart`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2353`** (1 nodes): `Jar soil texture test showing stratified sediment layers`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2354`** (1 nodes): `OBSERVE Vision Moodboard Grid`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2355`** (1 nodes): `vitest.integration.config.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2356`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2357`** (1 nodes): `soilRegeneration.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2358`** (1 nodes): `boundary.pgtest.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2359`** (1 nodes): `regeneration-events.pgtest.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2360`** (1 nodes): `sentinel.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2361`** (1 nodes): `showcase-entry.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2362`** (1 nodes): `SessionExpiredBanner.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2363`** (1 nodes): `DetailsDrawer.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2364`** (1 nodes): `EvidenceSection.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2365`** (1 nodes): `OfflineBanner.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2366`** (1 nodes): `seedMtcRotationFixture.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2367`** (1 nodes): `PlanExecutionTrackerCard.draftBanner.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2368`** (1 nodes): `beneficialFunctionCatalog.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2369`** (1 nodes): `coverCropCatalog.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2370`** (1 nodes): `MonthBandPicker.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2371`** (1 nodes): `StewardshipProgramsCashflowCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2372`** (1 nodes): `regionLocality.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2373`** (1 nodes): `RotationAdherenceCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2374`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2375`** (1 nodes): `regenerationTimeline.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2376`** (1 nodes): `speciesData.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2377`** (1 nodes): `adoptedBasemapWater.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2378`** (1 nodes): `MapCoordinateReadout.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2379`** (1 nodes): `pickClickedFeature.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2380`** (1 nodes): `AllocationGauge.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2381`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2382`** (1 nodes): `WizardNav.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2383`** (1 nodes): `agroforestryCatalog.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2384`** (1 nodes): `treePlantingCatalog.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2385`** (1 nodes): `useNow.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2386`** (1 nodes): `permacultureLabels.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2387`** (1 nodes): `syncFlagWiring.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2388`** (1 nodes): `syncServiceTyped.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2389`** (1 nodes): `syncServiceTypedHydrate.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2390`** (1 nodes): `mdx.d.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2391`** (1 nodes): `router.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2392`** (1 nodes): `AttributionFooter.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2393`** (1 nodes): `MapThumbnail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2394`** (1 nodes): `MetricChart.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2395`** (1 nodes): `ProjectedChart.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2396`** (1 nodes): `TierChooser.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2397`** (1 nodes): `projectedTrajectories.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2398`** (1 nodes): `sceneComponents.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2399`** (1 nodes): `showcase.$tier.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2400`** (1 nodes): `showcase.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2401`** (1 nodes): `AttributionFooter.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2402`** (1 nodes): `covenant.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2403`** (1 nodes): `MapThumbnail.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2404`** (1 nodes): `MetricChart.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2405`** (1 nodes): `ProjectedChart.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2406`** (1 nodes): `SceneEngine.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2407`** (1 nodes): `ShowcaseMap.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2408`** (1 nodes): `objectiveSummaryStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2409`** (1 nodes): `placementSignalStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2410`** (1 nodes): `proofEventStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2411`** (1 nodes): `sessionExpiredStore.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2412`** (1 nodes): `sessionExpiredStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2413`** (1 nodes): `socialNodeDismissStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2414`** (1 nodes): `stageGateOverrideStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2415`** (1 nodes): `trueNorthStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2416`** (1 nodes): `workItemDraftStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2417`** (1 nodes): `connectivityStore.apiReachable.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2418`** (1 nodes): `socialNodeDismissStore.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2419`** (1 nodes): `workItemDraftStore.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2420`** (1 nodes): `StageGateOverlay.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2421`** (1 nodes): `ActSiteMapPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2422`** (1 nodes): `ActReadyCue.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2423`** (1 nodes): `actModuleGuidance.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2424`** (1 nodes): `actModulePalette.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2425`** (1 nodes): `ModuleDashboardsPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2426`** (1 nodes): `SiteMapPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2427`** (1 nodes): `compassTypes.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2428`** (1 nodes): `StageProgressionRail.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2429`** (1 nodes): `StageSpine.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2430`** (1 nodes): `compassGating.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2431`** (1 nodes): `moduleGuidance.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2432`** (1 nodes): `ReportStageGateOverlay.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2433`** (1 nodes): `StageGateOverlay.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2434`** (1 nodes): `GuildIntegrityCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2435`** (1 nodes): `GuildRingsCanvas.dragMath.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2436`** (1 nodes): `compostMethodSpec.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2437`** (1 nodes): `soilBiologyProfiles.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2438`** (1 nodes): `SoilFoodWebCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2439`** (1 nodes): `compostMethodSpec.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2440`** (1 nodes): `compostYieldMath.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2441`** (1 nodes): `socialNodesMath.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2442`** (1 nodes): `OpenPlanDecisionsPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2443`** (1 nodes): `PlanGapsPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2444`** (1 nodes): `PlanSiteMapPanel.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2445`** (1 nodes): `PlanReadyCue.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2446`** (1 nodes): `utilityPointTypes.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2447`** (1 nodes): `utilityPointTypes.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2448`** (1 nodes): `edgeVariantMath.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2449`** (1 nodes): `drilldownStrings.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2450`** (1 nodes): `HostUnionContextMenu.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2451`** (1 nodes): `HostUnionDrilldownCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2452`** (1 nodes): `silvopastureDrilldownStore.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2453`** (1 nodes): `HostUnionContextMenu.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2454`** (1 nodes): `HostUnionDrilldownCard.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2455`** (1 nodes): `memberDragMath.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2456`** (1 nodes): `silvopastureDrilldownStore.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2457`** (1 nodes): `tooltipStrings.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2458`** (1 nodes): `VisionQuestionCard.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2459`** (1 nodes): `VisionStageHeader.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2460`** (1 nodes): `VisionUpcomingQuestions.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2461`** (1 nodes): `visionBuilder.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2462`** (1 nodes): `FitGateSeverity.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2463`** (1 nodes): `objectiveStatus.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2464`** (1 nodes): `HeaderStageSpine.test.tsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2465`** (1 nodes): `universalDomain.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2466`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2467`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2468`** (1 nodes): `hashInputs.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2469`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2470`** (1 nodes): `types.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2471`** (1 nodes): `index.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2472`** (1 nodes): `clientErrorTelemetry.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2473`** (1 nodes): `costRange.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2474`** (1 nodes): `crewMember.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2475`** (1 nodes): `projectState.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2476`** (1 nodes): `proofEvent.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2477`** (1 nodes): `showcaseTelemetry.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2478`** (1 nodes): `successionMilestone.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2479`** (1 nodes): `universalDomain.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2480`** (1 nodes): `vegetationPatch.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2481`** (1 nodes): `visionProfile.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2482`** (1 nodes): `workItem.schema.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2483`** (1 nodes): `clientErrorTelemetry.schema.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2484`** (1 nodes): `geojsonGeometry.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2485`** (1 nodes): `projectState.schema.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2486`** (1 nodes): `successionMilestone.schema.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2487`** (1 nodes): `vegetationPatch.schema.test.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2488`** (1 nodes): `vitest.config.ts`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2489`** (1 nodes): `pre-push.ps1`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 2490`** (1 nodes): `snapshot-three-streams.test.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `panel.module.css .container (shared panel scroll container)` connect `Atlas Panel & Section UI` to `Design System & Accessibility`?**
+- **Why does `panel.module.css .container (shared panel scroll container)` connect `Atlas AI Panel` to `ADRs: Accessibility & Design Tokens`?**
   _High betweenness centrality (0.000) - this node is a cross-community bridge._
-- **Why does `OGDEN Atlas Design System Master File` connect `Design System & Accessibility` to `Atlas Panel & Section UI`?**
+- **Why does `OGDEN Atlas Design System Master File` connect `ADRs: Accessibility & Design Tokens` to `Atlas AI Panel`?**
   _High betweenness centrality (0.000) - this node is a cross-community bridge._
 - **What connects `Phase 2: Design Atlas`, `Phase 3: Collaboration + AI`, `Phase 4: Public + Portal` to the rest of the system?**
   _347 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Climate & Layer Data Fetching` be split into smaller, more focused modules?**
+- **Should `Layer Fetchers & Data Adapters` be split into smaller, more focused modules?**
   _Cohesion score 0.03 - nodes in this community are weakly interconnected._
-- **Should `Cesium KTX2 Transcoder (vendor)` be split into smaller, more focused modules?**
+- **Should `Vendored Bundle (transcoder)` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
-- **Should `Atlas Panel & Section UI` be split into smaller, more focused modules?**
+- **Should `Atlas AI Panel` be split into smaller, more focused modules?**
   _Cohesion score 0.02 - nodes in this community are weakly interconnected._
-- **Should `Cesium Engine Chunk (vendor)` be split into smaller, more focused modules?**
+- **Should `Vendored Bundle (BXMEEOCS)` be split into smaller, more focused modules?**
   _Cohesion score 0.04 - nodes in this community are weakly interconnected._

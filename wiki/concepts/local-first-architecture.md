@@ -68,6 +68,41 @@ capping the queue at the count of distinct pending entities. `flush()` reads a
 bounded `getBatch(FLUSH_BATCH=200)` cursor slice, `reconcile()` collapses any
 pre-existing runaway queue at `syncService.start()`, and exhausted ops are now
 dropped. See [ADR 2026-05-25](../decisions/2026-05-25-sync-queue-oom-coalescing-fix.md).
+### Project create is single-pathed + idempotent (2026-05-31)
+Project creation used to fire from two un-coordinated places: the wizard create
+sites (`WizardStep1Site.tsx`, `NewProjectPage.tsx`) called `api.projects.create()`
+inline, *and* `syncService.subscribeToProjects()` fired an un-awaited,
+non-idempotent `syncProjectCreate` on every added project -- a **double-create
+race** that could mint two server rows for one wizard project. All create now
+routes through one canonical action `syncProjectNow(localId): {ok, serverId?,
+error?}`: idempotent (`serverId` short-circuit + `isBuiltin` guard), race-free (a
+module-level `inFlightProjectSync` promise map dedupes concurrent calls), and
+awaitable so the wizard can `toast.error` on failure (while still navigating --
+local-first). A per-row "Sync now" button in `PortfolioProjectList` triggers it
+for any never-synced non-builtin project. See
+[ADR 2026-05-31 -- project-sync hardening](../decisions/2026-05-31-atlas-project-sync-hardening.md).
+
+> ✅ **Boundary-hydration gap (closed 2026-06-01):** server-synced projects arrive
+> with `hasParcelBoundary: true` but `parcelBoundaryGeojson: null` (the `GET /projects`
+> list/sync path omits geometry; only `GET /projects/:id` embeds it via `ST_AsGeoJSON`).
+> `hydrateProjectBoundaries()` (`syncService.ts`) now back-fills geometry for those
+> candidates via `api.projects.get(serverId)`, writing through `updateProject` under the
+> `isSyncing` guard so the subscription doesn't echo it back as a boundary edit. The
+> Portfolio Map (`PortfolioMapPage.tsx`) drives it from a memoized `pendingBoundaryKey`
+> effect that re-fires whenever the set of un-hydrated server-boundary projects changes
+> (covers projects that sync down *after* mount, not just the mount-time set); an
+> `inFlightBoundaryHydration` Set dedupes overlapping runs so each project is fetched at
+> most once. The "fall back to `metadata.centerLat/centerLng`" path was already native in
+> `projectCentroid`. Server-only projects (e.g. Halton Hills) thus become valid
+> flow/relationship endpoints. Landed in commit `5aa973a4`
+> (`feat(portfolio): hydrate parcel geometry for server-synced projects`).
+> *Verification caveat:* the hardened fix is typecheck-clean (the 2 boundary files have
+> zero `tsc` errors; the project-wide typecheck failure on 2026-06-01 was entirely
+> unrelated `sourceFeatureRef` observe-schema WIP) and the diff matches the approved plan,
+> but it was **not** live-verified with a screenshot — the working tree was too polluted
+> with unrelated half-migrated WIP to boot a trustworthy preview. Live confirmation of a
+> drawn flow/relationship line to Halton Hills remains a recommended next-session check.
+
 ### Sync queue circuit-breaker (2026-05-25)
 The executor circuit-breaker deferred above is now closed. `executeQueuedOp`
 routed create/update through the *swallowing* live-path handlers, so `flush()`

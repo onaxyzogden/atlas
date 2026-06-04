@@ -1,0 +1,137 @@
+### (A) FULL act-records tsc errors incl. 'has no call signatures' follow-on ###
+1:src/routes/act-records/index.ts(295,29): error TS2349: This expression is not callable.
+2:  Type 'TransactionSql<{}>' has no call signatures.
+3:src/routes/act-records/index.ts(308,35): error TS2349: This expression is not callable.
+4:  Type 'TransactionSql<{}>' has no call signatures.
+5:src/routes/act-records/index.ts(332,35): error TS2349: This expression is not callable.
+6:  Type 'TransactionSql<{}>' has no call signatures.
+7:src/routes/act-records/index.ts(353,15): error TS2349: This expression is not callable.
+8:  Type 'TransactionSql<{}>' has no call signatures.
+9:src/routes/act-records/index.ts(360,15): error TS2349: This expression is not callable.
+10:  Type 'TransactionSql<{}>' has no call signatures.
+
+### (B) db acquisition / imports / detectConflict / type augmentation ###
+1:import type { FastifyInstance } from 'fastify';
+2:import { z } from 'zod';
+3:import {
+98:export default async function actRecordRoutes(fastify: FastifyInstance) {
+
+### (C) exact lines 250-366 (clean from disk) ###
+250|   fastify.get<{ Params: { projectId: string } }>(
+251|     '/project/:projectId/conflicts',
+252|     { preHandler: [authenticate, resolveProjectRole] },
+253|     async (req) => {
+254|       const { projectId } = ParamsProjectIdConflicts.parse(req.params);
+255|       const rows = await db`
+256|         SELECT
+257|           sl.id                 AS sync_log_id,
+258|           fr.id                 AS failed_record_id,
+259|           sl.store_key          AS store_key,
+260|           sl.record_id          AS record_id,
+261|           sl.local_payload      AS local_payload,
+262|           sl.server_payload     AS server_payload,
+263|           sl.local_rev          AS local_rev,
+264|           sl.server_rev         AS server_rev,
+265|           sl.observed_at_local  AS observed_at_local,
+266|           sl.observed_at_server AS observed_at_server,
+267|           sl.detected_at        AS detected_at
+268|         FROM failed_records fr
+269|         JOIN sync_log sl ON sl.id = fr.sync_log_id
+270|         WHERE fr.project_id = ${projectId}
+271|           AND sl.resolution_status = 'escalated'
+272|         ORDER BY sl.detected_at DESC
+273|       `;
+274|       return { data: rows.map(parseConflictRow), meta: { total: rows.length }, error: null };
+275|     },
+276|   );
+277| 
+278|   // POST /project/:projectId/conflicts/:syncLogId/resolve — close an escalated
+279|   // conflict by the steward's choice (owner + designer only). keep_server is a
+280|   // no-op write (the server row already won the 409); keep_mine is the one
+281|   // sanctioned clobber of a newer server rev — the local payload is force-
+282|   // written as a NEW rev, durably attributed via resolved_by. Idempotent: an
+283|   // already-resolved conflict returns the current authoritative state without
+284|   // re-applying keep_mine (never double-bumps). Wrapped in a transaction so the
+285|   // record write, the sync_log close, and the failed_records delete are atomic.
+286|   fastify.post<{ Params: { projectId: string; syncLogId: string } }>(
+287|     '/project/:projectId/conflicts/:syncLogId/resolve',
+288|     { preHandler: [authenticate, resolveProjectRole, requireRole('owner', 'designer')] },
+289|     async (req, reply) => {
+290|       const { projectId, syncLogId } = ParamsResolveConflict.parse(req.params);
+291|       const { choice } = ResolveConflictInput.parse(req.body);
+292|       const userId = req.userId;
+293| 
+294|       const outcome = await db.begin(async (sql) => {
+295|         const [log] = await sql`
+296|           SELECT id, store_key, record_id, local_payload, observed_at_local,
+297|                  resolution_status
+298|           FROM sync_log
+299|           WHERE id = ${syncLogId} AND project_id = ${projectId}
+300|           FOR UPDATE
+301|         `;
+302|         if (!log) return { status: 'not_found' as const };
+303| 
+304|         const storeKey = log['store_key'] as string;
+305|         const recordId = log['record_id'] as string;
+306| 
+307|         const readAuthoritative = async (): Promise<Record<string, unknown> | null> => {
+308|           const [current] = await sql`
+309|             SELECT project_id, store_key, record_id, payload, schema_version,
+310|                    rev, observed_at, source_type, cycle_id, task_type,
+311|                    updated_by, updated_at
+312|             FROM synced_records
+313|             WHERE project_id = ${projectId} AND store_key = ${storeKey}
+314|               AND record_id = ${recordId}
+315|           `;
+316|           return current ?? null;
+317|         };
+318| 
+319|         // Idempotent: a re-resolve returns current state, never re-applies.
+320|         if (log['resolution_status'] === 'resolved') {
+321|           return {
+322|             status: 'ok' as const,
+323|             storeKey,
+324|             recordId,
+325|             authoritative: await readAuthoritative(),
+326|           };
+327|         }
+328| 
+329|         let authoritative: Record<string, unknown> | null;
+330|         if (choice === 'keep_mine') {
+331|           // Sanctioned override: force-write the local payload at rev + 1.
+332|           const [updated] = await sql`
+333|             UPDATE synced_records SET
+334|               payload     = ${sql.json(
+335|                 (log['local_payload'] ?? null) as Parameters<typeof sql.json>[0],
+336|               )}::jsonb,
+337|               rev         = rev + 1,
+338|               observed_at = ${(log['observed_at_local'] as Date | null) ?? null},
+339|               updated_by  = ${userId},
+340|               updated_at  = now()
+341|             WHERE project_id = ${projectId} AND store_key = ${storeKey}
+342|               AND record_id = ${recordId}
+343|             RETURNING project_id, store_key, record_id, payload, schema_version,
+344|                       rev, observed_at, source_type, cycle_id, task_type,
+345|                       updated_by, updated_at
+346|           `;
+347|           authoritative = updated ?? null;
+348|         } else {
+349|           // keep_server: the server row already won the 409; just re-read it.
+350|           authoritative = await readAuthoritative();
+351|         }
+352| 
+353|         await sql`
+354|           UPDATE sync_log SET
+355|             resolution_status = 'resolved',
+356|             resolved_at = now(),
+357|             resolved_by = ${userId}
+358|           WHERE id = ${syncLogId}
+359|         `;
+360|         await sql`DELETE FROM failed_records WHERE sync_log_id = ${syncLogId}`;
+361| 
+362|         return { status: 'ok' as const, storeKey, recordId, authoritative };
+363|       });
+364| 
+365|       if (outcome.status === 'not_found') {
+366|         reply.code(404);
+=== P42_DIAG_DONE ===

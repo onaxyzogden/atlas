@@ -178,7 +178,7 @@ export default function StratumSpineCircle({
       <div style={{ minWidth: 0 }}>
         <div
           style={{
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 700,
             color: status === 'locked' ? C.textTertiary : C.textPrimary,
             fontFamily: F.sans,
@@ -193,7 +193,7 @@ export default function StratumSpineCircle({
         </div>
         {status !== 'locked' && (
           <div
-            style={{ fontSize: 10, color: ring, marginTop: 3, fontFamily: F.mono }}
+            style={{ fontSize: 12, color: ring, marginTop: 3, fontFamily: F.mono }}
           >
             {done}/{total}
           </div>
