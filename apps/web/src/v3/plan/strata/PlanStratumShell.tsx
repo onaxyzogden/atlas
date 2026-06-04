@@ -7,7 +7,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
-import { Layers } from 'lucide-react';
+import { Archive, Layers } from 'lucide-react';
 import {
   PLAN_STRATA,
   computeAllObjectiveStatuses,
@@ -52,6 +52,7 @@ import PrimaryChangeModal from './PrimaryChangeModal.js';
 import SecondaryAddModal from './SecondaryAddModal.js';
 import SecondaryReopenModal from './SecondaryReopenModal.js';
 import SecondaryRemoveBlockedModal from './SecondaryRemoveBlockedModal.js';
+import PruneLedgerModal from './PruneLedgerModal.js';
 import ObserveGapBanner from './ObserveGapBanner.js';
 import CoOccurrenceVerdictBanner from './CoOccurrenceVerdictBanner.js';
 import ChronicVerdictBanner from './ChronicVerdictBanner.js';
@@ -506,6 +507,7 @@ export default function PlanStratumShell() {
   const [primarySetOpen, setPrimarySetOpen] = useState(false);
   const [primaryChangeOpen, setPrimaryChangeOpen] = useState(false);
   const [secondaryAddOpen, setSecondaryAddOpen] = useState(false);
+  const [pruneOpen, setPruneOpen] = useState(false);
 
   // Mid-project PRIMARY-type change (destructive — re-derives the catalogue).
   // Optionally clones the project under the OLD type first (with its progress)
@@ -836,6 +838,34 @@ export default function PlanStratumShell() {
           <div style={{ marginTop: 8 }}>
             <ModeToggle mode={planMode} onChange={handlePlanModeChange} />
           </div>
+
+          {/* Compact-ledger trigger (B3) - opens the steward-facing prune modal */}
+          <div style={{ marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={() => setPruneOpen(true)}
+              data-testid="compact-ledger-trigger"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 11px',
+                borderRadius: 999,
+                border: `1px solid ${C.border}`,
+                background: C.bg3,
+                color: C.textSecondary,
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                fontFamily: F.sans,
+              }}
+            >
+              <Archive size={12} aria-hidden />
+              <span>Compact ledger</span>
+            </button>
+          </div>
         </div>
 
         {/* Chronic structural verdict (heavier tier -- recurs across cycles) */}
@@ -1100,6 +1130,13 @@ export default function PlanStratumShell() {
           onNavigate={handleReopenNavigate}
           onContinue={handleReopenContinue}
           onDismiss={() => setReopenPayload(null)}
+        />
+      )}
+
+      {pruneOpen && (
+        <PruneLedgerModal
+          projectId={projectId}
+          onClose={() => setPruneOpen(false)}
         />
       )}
     </div>
