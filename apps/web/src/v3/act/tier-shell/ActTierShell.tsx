@@ -66,6 +66,8 @@ import ActFeatureClickHandler from '../layers/ActFeatureClickHandler.js';
 import ActStructurePopover from '../ActStructurePopover.js';
 import ActAsBuiltPopover from '../asBuilt/ActAsBuiltPopover.js';
 import { useActAsBuiltPopoverStore } from '../asBuilt/actAsBuiltPopoverStore.js';
+import SectorsEditorPanel from '../sectors/SectorsEditorPanel.js';
+import { useActSectorsEditorStore } from '../sectors/actSectorsEditorStore.js';
 import ActAsBuiltDrawHandler from '../asBuilt/ActAsBuiltDrawHandler.js';
 import ActFlowConnectorPopover from '../asBuilt/ActFlowConnectorPopover.js';
 import { useActFlowPopoverStore } from '../asBuilt/actFlowPopoverStore.js';
@@ -302,6 +304,7 @@ export default function ActTierShell() {
   // as-built form (panel variant) and hides the dashboard/objective toggle;
   // closing/saving clears `active` and reverts the rail.
   const asBuiltActive = useActAsBuiltPopoverStore((s) => s.active != null);
+  const sectorsEditorActive = useActSectorsEditorStore((s) => s.active);
   const [activeModule, setActiveModule] = useState<ActModule | null>(null);
 
   // Form-arm state: which category's tabbed form popup is open (local UI state,
@@ -591,7 +594,17 @@ export default function ActTierShell() {
                       projectId={id}
                       activeModule={activeModule}
                     />
-                    <SectorCompassOverlay projectId={id} map={map} />
+                    <SectorCompassOverlay
+                      projectId={id}
+                      map={map}
+                      onOpenEditor={() => {
+                        // Mutually-exclusive rail takeovers: clear any as-built
+                        // session before arming the sectors editor so the rail
+                        // never has two claimants.
+                        useActAsBuiltPopoverStore.getState().close();
+                        useActSectorsEditorStore.getState().open();
+                      }}
+                    />
                     <ActStructurePopover map={map} projectId={id} />
                     <ActAsBuiltDrawHandler map={map} />
                     <ActFlowConnectorPopover projectId={id} />
@@ -640,6 +653,14 @@ export default function ActTierShell() {
                 // store's `active` clears (Record/Cancel).
                 <div className={styles.rightBody}>
                   <ActAsBuiltPopover variant="panel" projectId={id} />
+                </div>
+              ) : sectorsEditorActive ? (
+                // Clicking the floating SectorCompass HUD takes the rail over
+                // with the sectors editor; the Dashboard/Objective toggle is
+                // hidden and reappears when the editor's Done clears `active`.
+                // (As-built keeps precedence above.)
+                <div className={styles.rightBody}>
+                  <SectorsEditorPanel projectId={id} />
                 </div>
               ) : (
                 <>
