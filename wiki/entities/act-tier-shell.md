@@ -1153,6 +1153,43 @@ earlier in the session. **This completes the standing Act-coverage task:** every
 objective across all types now has an Act tool to complete/record its work.
 Log: [[log/2026-06-03-olos-act-r2-s1-intent-capture-forms]].
 
+## Formal proof/verification path (OLOS fork, 2026-06-04)
+
+The lightweight completion path above (form-arm capture / `ObserveDataPoint`
+self-record) records **that** work happened but carries no structured proof and
+no separate-party verification. The 2026-06-03 Act coverage audit flagged a full
+formal layer (`olos_act_tasks` / `olos_proof_records` / `olos_verification_records`)
+already built in the API but not wired to the UI. The operator chose to **wire
+formal & replace lightweight** (multi-session) via a two-party model
+([[decisions/2026-06-04-olos-proof-verification-fork]]).
+
+The first slice (2026-06-04, [[log/2026-06-04-olos-proof-verification-slice]])
+wires it end-to-end for one task behind a **default-off** flag,
+`isOlosFormalProofEnabled()` (`apps/web/src/config/olosFlags.ts`; localStorage key
+`ogden-flag-olos-formal-proof` or `VITE_OLOS_FORMAL_PROOF_ENABLED`):
+
+- **Surface:** `apps/web/src/v3/olos/handoff/TaskProofPanel.tsx`, mounted **per
+  task inside `ActFeedbackLoop.tsx`** (the Act->upstream return path that already
+  lists synced ActTasks and resolves serverId + member roster). Flag off = the
+  loop is byte-identical and the lightweight path is untouched.
+- **Two-party model:** a submitter (owner/designer) captures `ProofRecord`s
+  (note/measurement/fileUri/...); a separate reviewer (owner/designer/reviewer)
+  signs off with a `VerificationRecord`. RBAC mirrors the API gates; both require
+  a serverId (synced capability).
+- **Two key invariants:** (1) proofs must be **server-saved before** a
+  verification can cite them (`proofRecordIds` is `uuid[]`; sign-off disabled
+  until >=1 proof has a UUID); (2) the verifications API **never auto-transitions**
+  the task, so sign-off owns an explicit **second write** — set ActTask status to
+  `verified-complete` (pass) / `needs-rework` (else) and push it (mirrors the
+  2026-05-29 assignment-substrate two-write pattern).
+- **serverId discipline:** `useTaskProofSync` + the proof/verification stores'
+  `pullForTask`/`pushOne` take serverId, normalise each record's `projectId` back
+  to local on write, and drop the local-id draft on create (the same fix
+  `actTaskStore` got on 2026-05-29).
+
+Roadmapped next: live e2e smoke (NOT YET RUN), then the multi-session
+`ObserveDataPoint` retirement migration.
+
 ## Notes
 
 - `ViewBDashboard` is preserved and still the tier-shell's dashboard-mode panel
