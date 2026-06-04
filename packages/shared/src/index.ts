@@ -257,6 +257,9 @@ export {
   STRATUM_OBSERVE_DOMAINS_DEFAULT,
 } from './relationships/objectiveObserveDomains.js';
 export {
+  resolveActObjectiveId,
+} from './relationships/actObjectiveTaskBridge.js';
+export {
   AS_BUILT_FEATURE_DOMAIN,
   domainForFeatureKind,
 } from './relationships/featureRefDomain.js';
