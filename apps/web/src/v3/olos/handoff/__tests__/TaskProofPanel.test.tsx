@@ -60,6 +60,11 @@ vi.mock('../../../../lib/apiClient.js', () => ({
   },
 }));
 
+const uploadProofFileMock = vi.fn();
+vi.mock('../uploadProofFile.js', () => ({
+  uploadProofFile: (...a: unknown[]) => uploadProofFileMock(...a),
+}));
+
 import TaskProofPanel from '../TaskProofPanel';
 import {
   useProofRecordStore,
@@ -116,6 +121,7 @@ beforeEach(() => {
   h.proofCreateCalls = [];
   h.verifyCreateCalls = [];
   h.taskUpdateCalls = [];
+  uploadProofFileMock.mockReset();
 });
 
 describe('TaskProofPanel - capture', () => {
@@ -309,6 +315,114 @@ describe('TaskProofPanel - verification (two-write)', () => {
         useActTaskStore.getState().getTask('local-1', 'uuid-task')?.status,
       ).toBe('needs-rework'),
     );
+  });
+});
+
+describe('TaskProofPanel - per-type affordances', () => {
+  it('captures an inspection proof with checklist items in details', async () => {
+    h.proofCreateResp = proof({ id: 'uuid-new', proofType: 'inspection' });
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'inspection' },
+    });
+    fireEvent.click(screen.getByText('Add check'));
+    fireEvent.change(screen.getByLabelText('Check 1 label'), {
+      target: { value: 'Swale holds water' },
+    });
+    fireEvent.change(screen.getByLabelText('Check 1 status'), {
+      target: { value: 'pass' },
+    });
+    fireEvent.click(screen.getByText('Capture proof'));
+
+    await waitFor(() => expect(h.proofCreateCalls).toHaveLength(1));
+    expect(h.proofCreateCalls[0]?.input.proofType).toBe('inspection');
+    expect(h.proofCreateCalls[0]?.input.details).toEqual({
+      kind: 'inspection',
+      items: [{ label: 'Swale holds water', status: 'pass' }],
+    });
+  });
+
+  it('captures a photo proof by uploading the picked file into fileUri', async () => {
+    uploadProofFileMock.mockResolvedValue('https://bucket/p.jpg');
+    h.proofCreateResp = proof({ id: 'uuid-new', proofType: 'photo' });
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'photo' },
+    });
+    const file = new File(['x'], 'p.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('Proof photo'), {
+      target: { files: [file] },
+    });
+    fireEvent.click(screen.getByText('Capture proof'));
+
+    await waitFor(() => expect(h.proofCreateCalls).toHaveLength(1));
+    expect(uploadProofFileMock).toHaveBeenCalledWith('srv-1', file);
+    expect(h.proofCreateCalls[0]?.input.proofType).toBe('photo');
+    expect(h.proofCreateCalls[0]?.input.fileUri).toBe('https://bucket/p.jpg');
+  });
+
+  it('still renders the generic note+URI fallback for a deferred type (document)', () => {
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-owner"
+        myRole="owner"
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Proof type'), {
+      target: { value: 'document' },
+    });
+    expect(screen.getByLabelText('Proof file URI')).not.toBeNull();
+    expect(screen.queryByText('Add check')).toBeNull();
+    expect(screen.queryByLabelText('Proof photo')).toBeNull();
+  });
+
+  it('renders nothing new when the flag-off path leaves canCapture false', () => {
+    const t = task();
+
+    render(
+      <TaskProofPanel
+        projectId="local-1"
+        task={t}
+        serverId="srv-1"
+        members={[OWNER]}
+        currentUserId="u-view"
+      />,
+    );
+
+    expect(screen.queryByText('Capture proof')).toBeNull();
+    expect(screen.queryByText('Add check')).toBeNull();
+    expect(screen.queryByLabelText('Proof photo')).toBeNull();
   });
 });
 

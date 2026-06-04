@@ -27,6 +27,8 @@ import {
   type ActTaskStatus,
   type ProjectMemberRecord,
   type ProjectRole,
+  type ProofDetails,
+  type ProofInspectionItem,
   type ProofType,
   type VerificationOutcome as VerificationOutcomeType,
   type VerificationRecord,
@@ -37,6 +39,7 @@ import {
   useActTaskStore,
 } from '../../../store/olos/index.js';
 import { useTaskProofSync } from '../../../hooks/useTaskProofSync.js';
+import { uploadProofFile } from './uploadProofFile.js';
 import css from './TaskProofPanel.module.css';
 
 interface Props {
@@ -135,12 +138,24 @@ export default function TaskProofPanel({
   const [fileUri, setFileUri] = useState('');
   const [measurementValue, setMeasurementValue] = useState('');
   const [measurementUnit, setMeasurementUnit] = useState('');
+  const [inspectionItems, setInspectionItems] = useState<ProofInspectionItem[]>(
+    [],
+  );
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   const onCapture = async () => {
     if (!serverId || busy) return;
     setBusy(true);
     try {
+      let resolvedFileUri = fileUri.trim() || undefined;
+      let details: ProofDetails | undefined;
+      if (proofType === 'photo' && photoFile) {
+        resolvedFileUri = await uploadProofFile(serverId, photoFile);
+      }
+      if (proofType === 'inspection') {
+        details = { kind: 'inspection', items: inspectionItems };
+      }
       const value =
         proofType === 'measurement' && measurementValue.trim() !== ''
           ? Number(measurementValue)
@@ -149,12 +164,13 @@ export default function TaskProofPanel({
         taskId: task.id,
         proofType,
         note: proofNote.trim() || undefined,
-        fileUri: fileUri.trim() || undefined,
+        fileUri: resolvedFileUri,
         measurementValue: Number.isFinite(value) ? value : undefined,
         measurementUnit:
           proofType === 'measurement' && measurementUnit.trim() !== ''
             ? measurementUnit.trim()
             : undefined,
+        details,
         submittedBy: currentUserId,
         verificationStatus: 'pending',
       });
@@ -163,6 +179,8 @@ export default function TaskProofPanel({
       setFileUri('');
       setMeasurementValue('');
       setMeasurementUnit('');
+      setInspectionItems([]);
+      setPhotoFile(null);
     } finally {
       setBusy(false);
     }
@@ -226,6 +244,13 @@ export default function TaskProofPanel({
                       p.measurementUnit ? ` ${p.measurementUnit}` : ''
                     }`
                   : ''}
+                {p.proofType === 'inspection' &&
+                p.details &&
+                p.details.kind === 'inspection'
+                  ? `: ${
+                      p.details.items.filter((i) => i.status === 'pass').length
+                    }/${p.details.items.length} pass`
+                  : ''}
               </span>
               <span className={css.taskStatus}>{p.verificationStatus}</span>
               {p.submittedBy ? (
@@ -287,6 +312,75 @@ export default function TaskProofPanel({
                 value={measurementUnit}
                 onChange={(e) => setMeasurementUnit(e.target.value)}
                 placeholder="Unit"
+              />
+            </div>
+          ) : proofType === 'inspection' ? (
+            <div className={css.inspection}>
+              {inspectionItems.map((item, i) => (
+                <div className={css.inspectionRow} key={i}>
+                  <input
+                    className={css.formInput}
+                    type="text"
+                    aria-label={`Check ${i + 1} label`}
+                    value={item.label}
+                    onChange={(e) =>
+                      setInspectionItems((rows) =>
+                        rows.map((r, j) =>
+                          j === i ? { ...r, label: e.target.value } : r,
+                        ),
+                      )
+                    }
+                    placeholder="Checklist item"
+                  />
+                  <select
+                    className={css.formSelect}
+                    aria-label={`Check ${i + 1} status`}
+                    value={item.status}
+                    onChange={(e) =>
+                      setInspectionItems((rows) =>
+                        rows.map((r, j) =>
+                          j === i
+                            ? {
+                                ...r,
+                                status: e.target
+                                  .value as ProofInspectionItem['status'],
+                              }
+                            : r,
+                        ),
+                      )
+                    }
+                  >
+                    <option value="pass">pass</option>
+                    <option value="fail">fail</option>
+                    <option value="na">n/a</option>
+                  </select>
+                </div>
+              ))}
+              <button
+                type="button"
+                className={css.btnSecondary}
+                onClick={() =>
+                  setInspectionItems((rows) => [
+                    ...rows,
+                    { label: '', status: 'pass' },
+                  ])
+                }
+              >
+                Add check
+              </button>
+            </div>
+          ) : proofType === 'photo' ? (
+            <div className={css.formRow}>
+              <label htmlFor={`proof-photo-${task.id}`}>Photo</label>
+              <input
+                id={`proof-photo-${task.id}`}
+                className={css.formInput}
+                type="file"
+                accept="image/*"
+                aria-label="Proof photo"
+                onChange={(e) =>
+                  setPhotoFile(e.target.files?.[0] ?? null)
+                }
               />
             </div>
           ) : (
