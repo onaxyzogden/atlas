@@ -439,8 +439,8 @@ function ReadOnlyDecisionGroupCard({
               padding: '10px 14px',
               background: C.bg3,
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              flexDirection: 'column',
+              gap: 8,
             }}
           >
             <span
@@ -453,6 +453,7 @@ function ReadOnlyDecisionGroupCard({
             >
               Full methodology available in Act
             </span>
+            {/* Full-width bento CTA — the primary affordance to continue in Act. */}
             <button
               type="button"
               data-testid="open-in-act-trigger"
@@ -463,15 +464,21 @@ function ReadOnlyDecisionGroupCard({
                 })
               }
               style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
                 margin: 0,
-                padding: 0,
-                border: 'none',
-                background: 'transparent',
-                font: 'inherit',
-                fontSize: 10,
+                padding: '10px 14px',
+                border: `1px solid ${CA('blue', 0.35)}`,
+                borderRadius: 8,
+                background: CA('blue', 0.1),
+                fontSize: 11,
                 color: C.blue,
                 fontFamily: F.sans,
                 fontWeight: 600,
+                letterSpacing: '0.01em',
                 cursor: 'pointer',
               }}
             >
