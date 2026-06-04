@@ -40,6 +40,60 @@ function ConfidenceDot({ level }: { level?: string }) {
   return <span style={{ width: 6, height: 6, borderRadius: 3, background: (level && colors[level]) || C.textTertiary, display: 'inline-block' }} />;
 }
 
+// --- OBSERVATION PIN (shared by PseudoMap + ObserveMap) -------------------------
+// One observation marker in absolute SVG user-space coords (px, py). PseudoMap
+// passes coords from the normalized [0,1] viewBox; ObserveMap passes screen px
+// from map.project(...). `pointerEvents: 'auto'` lets pins stay clickable when
+// the ObserveMap overlay container sets pointer-events: none (harmless in
+// PseudoMap, whose container has default pointer-events). Markup is identical to
+// the prior inline pin -- this is a DRY extraction, not a redesign.
+export function ObservationPin({
+  px,
+  py,
+  obs,
+  mapColor,
+  isActive,
+  isSelected,
+  onClick,
+}: {
+  px: number;
+  py: number;
+  obs: MockObservation;
+  mapColor?: string;
+  isActive: boolean;
+  isSelected: boolean;
+  onClick: (obs: MockObservation) => void;
+}) {
+  const isDivergence = obs.type === 'divergence';
+  return (
+    <g
+      style={{ cursor: 'pointer', opacity: isActive ? 1 : 0.12, transition: 'opacity 0.3s', pointerEvents: 'auto' }}
+      onClick={() => onClick(obs)}
+    >
+      {isSelected && (
+        <circle cx={px} cy={py} r={16} fill="none" stroke={mapColor} strokeWidth="1" opacity="0.5">
+          <animate attributeName="r" from="12" to="22" dur="1.5s" repeatCount="indefinite" />
+          <animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite" />
+        </circle>
+      )}
+      {isDivergence ? (
+        <polygon points={`${px},${py - 8} ${px + 7},${py + 4} ${px - 7},${py + 4}`} fill={C.amber} filter="url(#glow)" />
+      ) : (
+        <circle
+          cx={px}
+          cy={py}
+          r={isSelected ? 7 : 5}
+          fill={mapColor || C.textSecondary}
+          stroke={isSelected ? '#EDE9E0' : 'transparent'}
+          strokeWidth="1.5"
+          filter={isSelected ? 'url(#glow)' : 'none'}
+          style={{ transition: 'r 0.2s' }}
+        />
+      )}
+    </g>
+  );
+}
+
 // ─── PSEUDO MAP ───────────────────────────────────────────────────────────────
 export function PseudoMap({ activeLens, onObsClick, selectedObs }: {
   activeLens: string;
@@ -78,15 +132,17 @@ export function PseudoMap({ activeLens, onObsClick, selectedObs }: {
           const lens = lensById[obs.lens];
           const isActive = !activeLens || activeLens === 'all' || obs.lens === activeLens;
           const isSelected = selectedObs?.id === obs.id;
-          const isDivergence = obs.type === 'divergence';
-          const px = obs.x * 720, py = obs.y * 550;
           return (
-            <g key={obs.id} style={{ cursor: 'pointer', opacity: isActive ? 1 : 0.12, transition: 'opacity 0.3s' }} onClick={() => onObsClick(obs)}>
-              {isSelected && <circle cx={px} cy={py} r={16} fill="none" stroke={lens?.mapColor} strokeWidth="1" opacity="0.5"><animate attributeName="r" from="12" to="22" dur="1.5s" repeatCount="indefinite" /><animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite" /></circle>}
-              {isDivergence
-                ? <polygon points={`${px},${py - 8} ${px + 7},${py + 4} ${px - 7},${py + 4}`} fill={C.amber} filter="url(#glow)" />
-                : <circle cx={px} cy={py} r={isSelected ? 7 : 5} fill={lens?.mapColor || C.textSecondary} stroke={isSelected ? '#EDE9E0' : 'transparent'} strokeWidth="1.5" filter={isSelected ? 'url(#glow)' : 'none'} style={{ transition: 'r 0.2s' }} />}
-            </g>
+            <ObservationPin
+              key={obs.id}
+              px={obs.x * 720}
+              py={obs.y * 550}
+              obs={obs}
+              mapColor={lens?.mapColor}
+              isActive={isActive}
+              isSelected={isSelected}
+              onClick={onObsClick}
+            />
           );
         })}
       </svg>
