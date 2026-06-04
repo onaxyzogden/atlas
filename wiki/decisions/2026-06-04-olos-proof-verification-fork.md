@@ -225,3 +225,19 @@ hardcoding one theme.
 Retiring `recordDataPoint` for completion, flipping the flag default, per-type
 capture affordances, `task_verification` emission from the OLOS-workspace mount,
 and a live e2e smoke against native pg 5432.
+
+## Phase 2 - flip-readiness gate (2026-06-04)
+
+The `isOlosFormalProofEnabled()` default stays OFF. It may be flipped ONLY when
+every criterion below holds. The machine-checkable subset is asserted by
+`apps/web/src/v3/olos/handoff/__tests__/proofAffordanceCoverage.test.ts`; the
+remainder are human-gated.
+
+- [ ] (manual) e2e smoke PASSES on native pg 5432: capture -> verify -> Observe
+      round trip, AND flag-off byte-identical (Task 0 / P1.5).
+- [ ] (auto) every `ProofType` has a capture branch (bespoke or generic).
+- [ ] (auto) `ProofDetails` implemented discriminants round-trip.
+- [ ] (manual) the slice trio (measurement/inspection/photo) verified by hand
+      with a real ActTask, including a binary upload round trip.
+- [ ] (manual) OLOS-workspace and tier-shell render parity confirmed.
+- [ ] (manual) no open Sev-1 against the formal path.
