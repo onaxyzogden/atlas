@@ -9,6 +9,7 @@ import {
   DESIGN_TENSIONS,
   getActiveTensions,
   getTensionConcernObjectiveIds,
+  getTensionConcernsByStratum,
   type DesignTension,
 } from '../relationshipMatrix.js';
 import { resolveProjectObjectives } from '../../../relationships/resolveProjectObjectives.js';
@@ -173,6 +174,87 @@ describe('getTensionConcernObjectiveIds', () => {
     expect(getTensionConcernObjectiveIds(mappingAllAbsent, objectives)).toEqual([
       'x',
       'y',
+    ]);
+  });
+});
+
+describe('getTensionConcernsByStratum', () => {
+  it("groups a cross-stratum tension's concern ids by their objective stratum (tension-3)", () => {
+    // tension-3: conservation × silvopasture. Resolves at S4, but its authored
+    // concerns span S4 AND S5 (con-s5-fencing-exclusion, silv-s5-fencing).
+    const tension = DESIGN_TENSIONS.find((t) => t.id === 'tension-3')!;
+    expect(tension).toBeDefined();
+    const { objectives } = resolveProjectObjectives({
+      primaryTypeId: 'conservation',
+      secondaryTypeIds: ['silvopasture'],
+    });
+
+    const groups = getTensionConcernsByStratum(tension, objectives);
+    const byStratum = new Map(groups.map((g) => [g.stratumId, g.objectiveIds]));
+
+    // genuinely cross-stratum: concerns land in BOTH the resolution stratum (S4)
+    // and a second stratum (S5) — proving the grouping partitions across strata
+    expect(byStratum.has('s4-foundation-decisions')).toBe(true);
+    expect(byStratum.has('s5-system-design')).toBe(true);
+
+    // with conservation primary + silvopasture secondary, the S5 cross-stratum
+    // concern present in the resolved set is the conservation fencing-exclusion
+    // objective (silv-s5-fencing is a silvopasture *primary*-role id, absent
+    // here because silvopasture is layered as a secondary → silv-sec-* ids)
+    const s5 = byStratum.get('s5-system-design')!;
+    expect(s5).toContain('con-s5-fencing-exclusion');
+
+    // grouping is a pure partition of the underlying helper's output
+    const flat = groups.flatMap((g) => g.objectiveIds);
+    expect(flat.slice().sort()).toEqual(
+      getTensionConcernObjectiveIds(tension, objectives).slice().sort(),
+    );
+  });
+
+  it('preserves first-seen group order and inherits present-filter/de-dupe', () => {
+    const objectives = [
+      { id: 'a', stratumId: 's4-foundation-decisions' },
+      { id: 'b', stratumId: 's5-system-design' },
+      { id: 'c', stratumId: 's4-foundation-decisions' },
+    ] as unknown as PlanStratumObjective[];
+    const tension = {
+      id: 'fake',
+      typeA: 'wellness',
+      typeB: 'agritourism',
+      resolutionStratumId: 's4-foundation-decisions',
+      resolutionStratumLabel: 'S4',
+      description: 'x',
+      // duplicate 'a', an absent id, and ids out of stratum order
+      relatedObjectiveIds: ['a', 'b', 'a', 'absent', 'c'],
+    } as DesignTension;
+
+    const groups = getTensionConcernsByStratum(tension, objectives);
+    // first-seen group order: s4 (from 'a') then s5 (from 'b')
+    expect(groups.map((g) => g.stratumId)).toEqual([
+      's4-foundation-decisions',
+      's5-system-design',
+    ]);
+    // de-dupe ('a' once) + present-filter ('absent' dropped); 'c' joins s4 group
+    expect(groups[0]!.objectiveIds).toEqual(['a', 'c']);
+    expect(groups[1]!.objectiveIds).toEqual(['b']);
+  });
+
+  it('returns a single group when all concerns share one stratum', () => {
+    const objectives = [
+      { id: 'x', stratumId: 's5-system-design' },
+      { id: 'y', stratumId: 's5-system-design' },
+    ] as unknown as PlanStratumObjective[];
+    const tension = {
+      id: 'fake',
+      typeA: 'wellness',
+      typeB: 'agritourism',
+      resolutionStratumId: 's5-system-design',
+      resolutionStratumLabel: 'S5',
+      description: 'x',
+      relatedObjectiveIds: ['x', 'y'],
+    } as DesignTension;
+    expect(getTensionConcernsByStratum(tension, objectives)).toEqual([
+      { stratumId: 's5-system-design', objectiveIds: ['x', 'y'] },
     ]);
   });
 });

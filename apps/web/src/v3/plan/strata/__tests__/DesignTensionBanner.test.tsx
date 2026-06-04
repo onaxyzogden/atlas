@@ -135,6 +135,94 @@ describe('DesignTensionBanner', () => {
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
+  it('chips: renders "Also in {label} (n)" chips and calls onSelectTensionStratum on click', () => {
+    const onSelectTensionStratum = vi.fn();
+    render(
+      <DesignTensionBanner
+        tensions={[T1]}
+        expanded
+        onToggle={vi.fn()}
+        onSelectTension={vi.fn()}
+        tensionStrataHints={{
+          'tension-1': [
+            { stratumId: 's5-system-design', label: 'System Design', count: 2 },
+          ],
+        }}
+        onSelectTensionStratum={onSelectTensionStratum}
+      />,
+    );
+    const chip = screen.getByRole('button', {
+      name: `Show "${T1.description}" objectives in System Design`,
+    });
+    expect(chip.textContent).toBe('System Design (2)');
+    fireEvent.click(chip);
+    expect(onSelectTensionStratum).toHaveBeenCalledWith(
+      'tension-1',
+      's5-system-design',
+    );
+  });
+
+  it('chips: the chip button is a sibling of the row button, never nested inside it', () => {
+    render(
+      <DesignTensionBanner
+        tensions={[T1]}
+        expanded
+        onToggle={vi.fn()}
+        onSelectTension={vi.fn()}
+        tensionStrataHints={{
+          'tension-1': [
+            { stratumId: 's5-system-design', label: 'System Design', count: 2 },
+          ],
+        }}
+        onSelectTensionStratum={vi.fn()}
+      />,
+    );
+    const rowButton = screen.getByRole('button', {
+      name: `Show objectives for: ${T1.description}`,
+    });
+    const chip = screen.getByRole('button', {
+      name: `Show "${T1.description}" objectives in System Design`,
+    });
+    // a button must never be a descendant of another button (invalid HTML)
+    expect(rowButton.contains(chip)).toBe(false);
+  });
+
+  it('chips: none rendered when onSelectTensionStratum is omitted', () => {
+    render(
+      <DesignTensionBanner
+        tensions={[T1]}
+        expanded
+        onToggle={vi.fn()}
+        onSelectTension={vi.fn()}
+        tensionStrataHints={{
+          'tension-1': [
+            { stratumId: 's5-system-design', label: 'System Design', count: 2 },
+          ],
+        }}
+      />,
+    );
+    expect(screen.queryByText('Also in')).toBeNull();
+    expect(
+      screen.queryByRole('button', {
+        name: `Show "${T1.description}" objectives in System Design`,
+      }),
+    ).toBeNull();
+  });
+
+  it('chips: none rendered when the hint list for a tension is empty', () => {
+    render(
+      <DesignTensionBanner
+        tensions={[T1]}
+        expanded
+        onToggle={vi.fn()}
+        onSelectTension={vi.fn()}
+        tensionStrataHints={{ 'tension-1': [] }}
+        onSelectTensionStratum={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText('Also in')).toBeNull();
+  });
+
   it('applies the static highlight ring to tensions in highlightTensionIds', () => {
     render(
       <DesignTensionBanner

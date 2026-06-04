@@ -33,6 +33,20 @@ interface Props {
    * (back-compat for non-interactive consumers / tests).
    */
   onSelectTension?: (tensionId: string) => void;
+  /**
+   * Per-tension cross-stratum hints: the strata a tension's concerned
+   * objectives live in OTHER than its resolution stratum. Keyed by tension id.
+   * Rendered as clickable "Also in {Stratum} (n)" chips beneath the row.
+   */
+  tensionStrataHints?: Record<
+    string,
+    { stratumId: string; label: string; count: number }[]
+  >;
+  /**
+   * When provided (with hints), invoked on chip activation to navigate to that
+   * stratum and flash the tension's concerned cards there. Omitted → no chips.
+   */
+  onSelectTensionStratum?: (tensionId: string, stratumId: string) => void;
 }
 
 export default function DesignTensionBanner({
@@ -41,6 +55,8 @@ export default function DesignTensionBanner({
   highlightTensionIds,
   onToggle,
   onSelectTension,
+  tensionStrataHints,
+  onSelectTensionStratum,
 }: Props) {
   if (tensions.length === 0) return null;
   const count = tensions.length;
@@ -72,6 +88,9 @@ export default function DesignTensionBanner({
       {expanded && (
         <ul className={css.list}>
           {tensions.map((t) => {
+            const hints = onSelectTensionStratum
+              ? (tensionStrataHints?.[t.id] ?? [])
+              : [];
             const body = (
               <>
                 <p className={css.rowBody}>{t.description}</p>
@@ -105,6 +124,24 @@ export default function DesignTensionBanner({
                   </button>
                 ) : (
                   body
+                )}
+                {hints.length > 0 && (
+                  <div className={css.crossStratumHints}>
+                    <span className={css.hintsLabel}>Also in</span>
+                    {hints.map((h) => (
+                      <button
+                        key={h.stratumId}
+                        type="button"
+                        className={css.hintChip}
+                        onClick={() =>
+                          onSelectTensionStratum!(t.id, h.stratumId)
+                        }
+                        aria-label={`Show "${t.description}" objectives in ${h.label}`}
+                      >
+                        {h.label} ({h.count})
+                      </button>
+                    ))}
+                  </div>
                 )}
               </li>
             );

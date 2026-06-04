@@ -17,8 +17,10 @@ import {
   findProjectType,
   getPrimaryDomainForObjective,
   getTensionConcernObjectiveIds,
+  getTensionConcernsByStratum,
 } from '@ogden/shared';
 import type {
+  DesignTension,
   PlanStratum,
   PlanStratumObjective,
   ProjectTypeId,
@@ -337,15 +339,15 @@ export default function PlanStratumShell() {
     });
   };
 
-  // Plan Nav v1.1 §8 — a tension banner row was clicked. Resolve the authored
-  // objective mapping against THIS project's objective set, flash those cards,
-  // and navigate to the stratum where the tension resolves so they are on
-  // screen. The flash set persists for HIGHLIGHT_DURATION_MS regardless of
-  // which stratum is open, so related ids living in a second stratum still
-  // light up if the steward navigates there within the window.
-  const handleSelectTension = (tensionId: string) => {
-    const tension = activeTensions.find((t) => t.id === tensionId);
-    if (!tension) return;
+  // Plan Nav v1.1 §8 — (re-)arm the transient flash for a tension's concerned
+  // objective cards and navigate to a given stratum so they are on screen. The
+  // flash id set is the FULL concern set (it persists for HIGHLIGHT_DURATION_MS
+  // regardless of which stratum is open), but we navigate to a specific stratum
+  // — `resolutionStratumId` for a row click, or a cross-stratum chip's stratum.
+  const flashTensionAtStratum = (
+    tension: DesignTension,
+    stratumId: string,
+  ) => {
     const ids = getTensionConcernObjectiveIds(tension, objectives);
     if (tensionHighlightTimerRef.current !== null) {
       window.clearTimeout(tensionHighlightTimerRef.current);
@@ -355,9 +357,53 @@ export default function PlanStratumShell() {
       setTensionHighlightIds([]);
       tensionHighlightTimerRef.current = null;
     }, HIGHLIGHT_DURATION_MS);
-    const resolutionStratum = findPlanStratum(tension.resolutionStratumId);
-    if (resolutionStratum) navigateToStratum(resolutionStratum);
+    const target = findPlanStratum(stratumId);
+    if (target) navigateToStratum(target);
   };
+
+  // A tension banner row was clicked — flash the concern set and go to the
+  // stratum where the tension resolves.
+  const handleSelectTension = (tensionId: string) => {
+    const tension = activeTensions.find((t) => t.id === tensionId);
+    if (!tension) return;
+    flashTensionAtStratum(tension, tension.resolutionStratumId);
+  };
+
+  // An "Also in {Stratum}" chip was clicked — re-arm the flash (so the cards
+  // light up fresh even after a prior window expired) and navigate to that
+  // other stratum, where the tension's cross-stratum concerned cards live.
+  const handleSelectTensionStratum = (tensionId: string, stratumId: string) => {
+    const tension = activeTensions.find((t) => t.id === tensionId);
+    if (!tension) return;
+    flashTensionAtStratum(tension, stratumId);
+  };
+
+  // For each active tension, the strata its concerned objectives live in OTHER
+  // than the one the row navigates to (its `resolutionStratumId`). Surfaced as
+  // clickable "Also in {Stratum} (n)" chips in the banner so cross-stratum
+  // concerns (e.g. tension-3's `con-s5-fencing-exclusion` in S5) are reachable,
+  // not latent. Keyed by tension id; tensions with no cross-stratum concern are
+  // omitted.
+  const tensionStrataHints = useMemo<
+    Record<string, { stratumId: string; label: string; count: number }[]>
+  >(() => {
+    const map: Record<
+      string,
+      { stratumId: string; label: string; count: number }[]
+    > = {};
+    for (const tension of activeTensions) {
+      const groups = getTensionConcernsByStratum(tension, objectives);
+      const hints = groups
+        .filter((g) => g.stratumId !== tension.resolutionStratumId)
+        .map((g) => ({
+          stratumId: g.stratumId,
+          label: findPlanStratum(g.stratumId)?.title ?? g.stratumId,
+          count: g.objectiveIds.length,
+        }));
+      if (hints.length > 0) map[tension.id] = hints;
+    }
+    return map;
+  }, [activeTensions, objectives]);
 
   // Cross-protocol co-occurrence verdict (shell-level, cross-stratum). When >= 2
   // distinct protocols each hold an OPEN review flag in the same season:cycle
@@ -889,7 +935,9 @@ export default function PlanStratumShell() {
           projectId={projectId}
           tensions={activeTensions}
           activeStratumId={activeStratumId}
+          tensionStrataHints={tensionStrataHints}
           onSelectTension={handleSelectTension}
+          onSelectTensionStratum={handleSelectTensionStratum}
           onSelectObjective={handleSelectObjective}
           onObjectiveDivergenceClick={handleObjectiveDivergenceClick}
           onRestoreObjective={(obj) => undeferObjective(projectId, obj.id)}

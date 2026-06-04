@@ -540,3 +540,40 @@ export function getTensionConcernObjectiveIds(
     .filter((o) => o.stratumId === tension.resolutionStratumId)
     .map((o) => o.id);
 }
+
+/**
+ * The objective ids a tension concerns, grouped by the stratum each objective
+ * lives in. A tension's `relatedObjectiveIds` can span more than one stratum
+ * (e.g. tension-3 reconciles in S4 but also touches `con-s5-fencing-exclusion`
+ * in S5); grouping lets the UI navigate to — and flash — each stratum's
+ * concerned cards rather than only the single `resolutionStratumId`.
+ *
+ * Delegates concern resolution (present-filter + de-dupe + fallback) to
+ * `getTensionConcernObjectiveIds`, then buckets the result by each objective's
+ * `stratumId`. Group order is first-seen (mirroring the resolved id order);
+ * within a group, id order is preserved. Ids whose objective isn't found are
+ * already dropped upstream, so every returned id maps to a known stratum.
+ */
+export function getTensionConcernsByStratum(
+  tension: DesignTension,
+  objectives: readonly PlanStratumObjective[],
+): { stratumId: PlanStratumId; objectiveIds: string[] }[] {
+  const ids = getTensionConcernObjectiveIds(tension, objectives);
+  const stratumById = new Map<string, PlanStratumId>(
+    objectives.map((o) => [o.id, o.stratumId]),
+  );
+  const groups: { stratumId: PlanStratumId; objectiveIds: string[] }[] = [];
+  const groupIndex = new Map<PlanStratumId, number>();
+  for (const id of ids) {
+    const stratumId = stratumById.get(id);
+    if (stratumId === undefined) continue;
+    let idx = groupIndex.get(stratumId);
+    if (idx === undefined) {
+      idx = groups.length;
+      groupIndex.set(stratumId, idx);
+      groups.push({ stratumId, objectiveIds: [] });
+    }
+    groups[idx]!.objectiveIds.push(id);
+  }
+  return groups;
+}

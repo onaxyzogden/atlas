@@ -74,6 +74,22 @@ interface Props {
    * objective cards it concerns. Omitted → banner rows render as static text.
    */
   onSelectTension?: (tensionId: string) => void;
+  /**
+   * Plan Nav v1.1 §8 — per-tension cross-stratum hint map: the strata each
+   * tension's concerned objectives live in OTHER than its resolution stratum.
+   * Rendered as clickable "Also in {Stratum} (n)" chips under the banner row.
+   * Keyed by tension id; omitted/absent ids render no chips.
+   */
+  tensionStrataHints?: Record<
+    string,
+    { stratumId: string; label: string; count: number }[]
+  >;
+  /**
+   * Plan Nav v1.1 §8 — invoked when an "Also in {Stratum}" chip is clicked. The
+   * shell wires this to navigate to that stratum and (re-)flash the tension's
+   * concerned cards there. Omitted → no chips render.
+   */
+  onSelectTensionStratum?: (tensionId: string, stratumId: string) => void;
   onSelectObjective: (objective: PlanStratumObjective) => void;
   /**
    * Slice 4.4 — invoked when the divergence pill on an objective card is
@@ -123,6 +139,8 @@ export default function ObjectiveColumn({
   tensions,
   activeStratumId,
   onSelectTension,
+  tensionStrataHints,
+  onSelectTensionStratum,
   onSelectObjective,
   onObjectiveDivergenceClick,
   onRestoreObjective,
@@ -358,6 +376,8 @@ export default function ObjectiveColumn({
           highlightTensionIds={highlightTensionIds}
           onToggle={handleToggleTensions}
           onSelectTension={onSelectTension}
+          tensionStrataHints={tensionStrataHints}
+          onSelectTensionStratum={onSelectTensionStratum}
         />
       )}
 
