@@ -35,6 +35,7 @@ import {
   OFF_GRID_PRIMARY_OBJECTIVES,
   AGRITOURISM_PRIMARY_OBJECTIVES,
   ECOVILLAGE_PRIMARY_OBJECTIVES,
+  EDUCATION_PRIMARY_OBJECTIVES,
   allCatalogueObjectives,
   getObjectiveActTools,
 } from '@ogden/shared';
@@ -243,6 +244,26 @@ describe('Act tier-shell objective->tool coverage', () => {
     // onboarding / adaptive / exit band) still satisfies the ratchet -- only a
     // brand-new un-wired ev-* trips it.
     const missing = ECOVILLAGE_PRIMARY_OBJECTIVES.filter(
+      (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
+    ).map((o) => o.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('every education objective has an explicit override entry', () => {
+    // Education is the tenth per-type catalogue wired (audit remediation R1,
+    // 2026-06-03). It is primary-only (no standalone secondary layer, no patches)
+    // -- a primary-only ratchet over the 22 edu-* objectives. Before this its
+    // objectives fell through STRATUM_ACT_TOOLS_DEFAULT (the S2/S3 teaching-infra /
+    // learning-potential / access-safety / demo-baseline surveys and the S4/S5
+    // teaching-zone / demo-plot / amenity / kitchen design block surfaced the
+    // coarse access-utilities set instead of the structure / zoning / survey /
+    // safety families). Each is now explicit; an intentional [] (the whole S1
+    // decision band incl. the regulatory hard gate, the S4 program-delivery and
+    // food-hospitality strategies, the S6 evaluation / compliance / adaptive band,
+    // and the whole S7 launch / onboarding / financial band -- EDU-S7.6 being
+    // ordinary fee-for-service break-even budgeting, clean) still satisfies the
+    // ratchet -- only a brand-new un-wired edu-* trips it.
+    const missing = EDUCATION_PRIMARY_OBJECTIVES.filter(
       (o) => !(o.id in OBJECTIVE_ACT_TOOLS_OVERRIDE),
     ).map((o) => o.id);
     expect(missing).toEqual([]);

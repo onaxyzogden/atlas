@@ -1382,6 +1382,99 @@ export const OBJECTIVE_ACT_TOOLS_OVERRIDE: Readonly<
   // transfer, land reversion, dissolution, legal review -- a legal/financial
   // protocol, no spatial act. gap: all.
   'ev-s7-exit-succession': [],
+
+  // === EDUCATION (22 edu-* primary objectives) ===
+  // Before this, education objectives fell through STRATUM_ACT_TOOLS_DEFAULT and
+  // surfaced the access-utilities set for the S2/S3 site & demo surveys and
+  // generic access tools for the S4/S5 teaching-zone & demo-plot design block,
+  // instead of structure (buildings), zoning (zone), survey (soil/vegetation/
+  // crops) and safety (hazard-zone/fencing/path) families the checklists call
+  // for. Primary-only type (no standalone secondary layer, no patches).
+  // Amanah: EDU-S7.6 financial-viability is ordinary fee-for-service / break-
+  // even budgeting (course fees, grants) -- no riba/gharar -- and maps to [] as
+  // a financial decision, so no act surface engages a money instrument.
+  // 11 tool-bearing / 11 intentional [].
+
+  // S1 -- mission & target audience: who is served, learning outcomes, scope --
+  // a mission/audience decision, no spatial act. gap: all.
+  'edu-s1-mission-audience': [],
+  // S1 -- curriculum & program design: course structure, formats, progression --
+  // a curriculum decision. gap: all.
+  'edu-s1-curriculum-programs': [],
+  // S1 -- regulatory framework (HARD GATE): permits, insurance, safeguarding,
+  // accreditation -- a regulatory/compliance decision, no spatial act. gap: all.
+  'edu-s1-regulatory-framework': [],
+
+  // S2 -- teaching infrastructure & spaces: existing buildings usable for
+  // teaching (buildings), space for outdoor classrooms/zones (zone), circulation
+  // (path), condition notes (note). gap: condition admin.
+  'edu-s2-teaching-infrastructure': ['buildings', 'zone', 'path', 'note'],
+  // S2 -- learning potential of the land: teachable features -- soils (soil),
+  // water features (watercourse), habitat/planting (vegetation), demo crops
+  // (crops), interpretive notes (note). gap: narrative framing.
+  'edu-s2-learning-potential': ['soil', 'watercourse', 'vegetation', 'crops', 'note'],
+  // S2 -- surrounding landscape & vectors: neighbouring use (neighbour-pin),
+  // catchment context (catchment), hazards near learner areas (hazard-zone),
+  // context notes (note). gap: planning admin.
+  'edu-s2-landscape-vectors': ['neighbour-pin', 'catchment', 'hazard-zone', 'note'],
+
+  // S3 -- learner access & safety baseline: paths & routes (path), hazards
+  // (hazard-zone), parking/drop-off (parking), boundary safety (fencing),
+  // building access (buildings). gap: accessibility audit admin.
+  'edu-s3-learner-access-safety': ['path', 'hazard-zone', 'parking', 'fencing', 'buildings'],
+  // S3 -- demonstration baseline condition: starting soil (soil), existing demo
+  // plantings (crops), habitat baseline (vegetation), water supply to demos
+  // (water-lines). gap: baseline measurement admin.
+  'edu-s3-demo-baseline': ['soil', 'crops', 'vegetation', 'water-lines'],
+
+  // S4 -- teaching-zone allocation: which areas host which programs -- siting
+  // teaching buildings (buildings), zones (zone), circulation (path), demo beds
+  // (beds). gap: schedule/timetabling.
+  'edu-s4-teaching-zone-allocation': ['buildings', 'zone', 'path', 'beds'],
+  // S4 -- safety & risk framework (HARD GATE): hazard mapping (hazard-zone),
+  // barriers/exclusion (fencing), safe routes (path) -- the spatial half of the
+  // risk framework. gap: policy/procedure documents.
+  'edu-s4-safety-risk-framework': ['hazard-zone', 'fencing', 'path'],
+  // S4 -- program delivery model: cohort sizes, staffing, scheduling, online vs
+  // on-site -- a delivery-model decision. gap: all.
+  'edu-s4-program-delivery': [],
+  // S4 -- food & hospitality strategy: whether/how to provide food to learners
+  // -- a strategy decision (infra, if any, sited in S5). gap: all.
+  'edu-s4-food-hospitality': [],
+
+  // S5 -- teaching spaces design: classroom/shelter builds (buildings), defined
+  // teaching zones (zone). gap: interior fit-out.
+  'edu-s5-teaching-spaces': ['buildings', 'zone'],
+  // S5 -- demonstration plots & signage: demo beds (beds), demo crops (crops),
+  // interpretive trail (path), sign/label placement (note). gap: sign content.
+  'edu-s5-demo-plots-signage': ['beds', 'crops', 'path', 'note'],
+  // S5 -- learner amenity: welfare buildings -- toilets/shelter (buildings),
+  // water supply (water-lines), amenity zones (zone). gap: fixtures.
+  'edu-s5-learner-amenity': ['buildings', 'water-lines', 'zone'],
+  // S5 -- food & kitchen facilities (omit if no food service): teaching kitchen /
+  // serving building (buildings), storage (barns). gap: equipment.
+  'edu-s5-food-kitchen': ['buildings', 'barns'],
+
+  // S6 -- program evaluation & monitoring: feedback, outcomes, attendance -- a
+  // monitoring protocol, no spatial act. gap: all.
+  'edu-s6-program-evaluation': [],
+  // S6 -- external relations & compliance: partnerships, reporting, inspections
+  // -- an admin/compliance protocol. gap: all.
+  'edu-s6-external-relations-compliance': [],
+  // S6 -- adaptive management: review cadence, curriculum revision -- a review
+  // protocol decision. gap: all.
+  'edu-s6-adaptive-management': [],
+
+  // S7 -- program launch (HARD GATE): readiness, sequencing, first-cohort go/
+  // no-go -- a phasing decision. gap: all.
+  'edu-s7-program-launch': [],
+  // S7 -- instructor onboarding: hiring, training, safeguarding checks -- an HR
+  // protocol. gap: all.
+  'edu-s7-instructor-onboarding': [],
+  // S7 -- financial viability: fee-for-service / break-even budgeting (course
+  // fees, grants) -- a financial decision, clean (no riba/gharar; see Amanah
+  // note above). gap: all.
+  'edu-s7-financial-viability': [],
 };
 
 /**
