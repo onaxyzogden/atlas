@@ -171,6 +171,6 @@ export function templatesForEnterprises(
   const active = new Set(activeEnterprises);
   if (active.size === 0) return [];
   return STANDARD_PROTOCOL_TEMPLATES.filter((t) =>
-    t.enterpriseScope.some((e) => active.has(e)),
+    (t.enterpriseScope ?? []).some((e) => active.has(e)),
   );
 }

@@ -13,6 +13,8 @@
 // (9.1-9.5), the evaluation engine (7), and custom authoring (5).
 
 import { z } from 'zod';
+import { PlanStratumId } from '../plan/planStratumObjective.schema.js';
+import { ProjectTypeId } from '../plan/projectTypeTaxonomy.schema.js';
 
 /**
  * The four protocol types (Protocol Layer Spec 3). Each has a distinct
@@ -74,6 +76,23 @@ export const EnterpriseId = z.enum([
 export type EnterpriseId = z.infer<typeof EnterpriseId>;
 
 /**
+ * The provenance layer a protocol template comes from, mirroring the objective
+ * layer's `PlanObjectiveSource` (universal/primary/secondary). This is the
+ * scoping axis the per-type catalogue + `resolveProjectProtocols` use to compose
+ * a project's standing-protocol set:
+ * - universal: applies to EVERY project regardless of type.
+ * - primary:   contributed by the project's primary type catalogue.
+ * - secondary: contributed by a layered secondary type (additive or patch).
+ *
+ * ORTHOGONAL to `enterpriseScope`: enterprise scope gates the legacy
+ * animal/livestock catalogue (4.3); `source` drives the per-type composition.
+ * A template uses one axis or the other - the livestock catalogue carries
+ * `enterpriseScope`, the per-type catalogues carry `source` + `stratumId`.
+ */
+export const ProtocolSource = z.enum(['universal', 'primary', 'secondary']);
+export type ProtocolSource = z.infer<typeof ProtocolSource>;
+
+/**
  * A read-only standard protocol template from the §4.2 catalogue. These are
  * pre-authored proposals, not active protocols: at Tier 5 completion OLOS
  * pre-fills them from approved tier outputs and the steward confirms (4.1,
@@ -93,9 +112,28 @@ export const StandardProtocolTemplateSchema = z.object({
   type: ProtocolType,
   /**
    * Enterprises this template applies to (4.3). A template surfaces when the
-   * project's active enterprise set intersects this list.
+   * project's active enterprise set intersects this list. OPTIONAL: only the
+   * legacy animal/livestock catalogue carries it; the per-type catalogues scope
+   * via `source` + `sourceTypeId` instead and omit it.
    */
-  enterpriseScope: z.array(EnterpriseId).min(1),
+  enterpriseScope: z.array(EnterpriseId).min(1).optional(),
+  /**
+   * The stratum that authors this protocol (one of the 7 universal strata).
+   * This is what makes "a protocol for each stratum" addressable - the resolver
+   * sorts by stratum ordinal so a project's protocols read top-to-bottom S1..S7.
+   * OPTIONAL for back-compat: the legacy catalogue predates typed strata and
+   * carries the free-text `tierAuthored` label instead; per-type catalogue
+   * entries set this.
+   */
+  stratumId: PlanStratumId.optional(),
+  /**
+   * Provenance layer (universal/primary/secondary). Drives the per-type
+   * composition + sort. OPTIONAL for back-compat; the resolver treats an absent
+   * value as the universal layer (rank 0), mirroring resolveProjectObjectives.
+   */
+  source: ProtocolSource.optional(),
+  /** Which project type contributed this template, when source is primary/secondary. */
+  sourceTypeId: ProjectTypeId.optional(),
   /** The IF condition, verbatim from 4.2 (keeps [auto-filled] placeholders). */
   condition: z.string().min(1),
   /** The THEN response, verbatim from 4.2. */
@@ -123,10 +161,41 @@ export const StandardProtocolTemplateSchema = z.object({
    * absent value as RESPOND. Authoring surfaces set it explicitly going forward.
    */
   severityTier: SeverityTier.optional(),
+  /**
+   * Amanah caution surfaced verbatim alongside the protocol when its response
+   * touches a sales channel or advance commitment (e.g. CSA advance-purchase ->
+   * *bayʿ mā laysa ʿindak*). Display-only; never stripped or reworded. Absent on
+   * protocols with no ethical caveat.
+   */
+  scopeNotes: z.string().min(1).optional(),
 });
 export type StandardProtocolTemplate = z.infer<
   typeof StandardProtocolTemplateSchema
 >;
+
+/**
+ * A secondary-type modification of an existing protocol template, mirroring the
+ * objective layer's `PatchRecord`. When a secondary type is layered onto a
+ * primary, it may not only ADD protocols (additive) but also AMEND an existing
+ * universal/primary protocol - tightening its condition or extending its
+ * response for the combined system. The resolver concatenates amendments onto
+ * the target (never replaces) and skips a patch whose target is absent.
+ */
+export const ProtocolPatchRecordSchema = z.object({
+  /** Id of the protocol template this patch amends. */
+  targetTemplateId: z.string().min(1),
+  /** The secondary type responsible for this patch (provenance + attribution). */
+  secondaryTypeId: ProjectTypeId,
+  /** Text appended onto the target's condition (e.g. an extra clause). */
+  conditionAmendment: z.string().min(1).optional(),
+  /** Text appended onto the target's response. */
+  responseAmendment: z.string().min(1).optional(),
+  /** Amanah caution appended onto the target's scopeNotes, verbatim. */
+  scopeNote: z.string().min(1).optional(),
+  /** Spec/source reference for provenance tracking. */
+  ref: z.string().min(1).optional(),
+});
+export type ProtocolPatchRecord = z.infer<typeof ProtocolPatchRecordSchema>;
 
 /**
  * Safe accessor for a template's severity tier: any template without an
