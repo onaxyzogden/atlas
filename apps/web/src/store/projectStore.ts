@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import {
   ProjectType,
   getActiveTensions,
@@ -1096,6 +1097,14 @@ export const useProjectStore = create<ProjectState>()(
     }),
     {
       name: 'ogden-projects',
+      // Durable IndexedDB backend (Phase 1 pilot store). Moves the full
+      // projects[] off the ~5–10 MB localStorage origin cap onto IDB, where the
+      // offline write queue already lives. Rehydration is now ASYNC: the boot
+      // sequence in syncService.start() awaits hydration before attaching the
+      // write-through subscriptions (see awaitStoresHydrated), so the diff
+      // baseline is the hydrated project list — not an empty pre-hydration
+      // snapshot that would re-push every project as a create on boot.
+      storage: idbPersistStorage,
       version: 9,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;

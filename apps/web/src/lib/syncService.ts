@@ -92,6 +92,63 @@ let isSyncing = false;
 export function setSyncGuard(value: boolean) { isSyncing = value; }
 
 /**
+ * Structural shape of a zustand `persist` store, for hydration gating. Kept
+ * loose so any persisted store hook is assignable regardless of its state type.
+ */
+interface HydratableStore {
+  persist?: {
+    hasHydrated?: () => boolean;
+    onFinishHydration?: (cb: () => void) => () => void;
+  };
+}
+
+/**
+ * Resolve once every given store has finished (re)hydrating.
+ *
+ * Load-bearing for the IndexedDB backend (lib/indexedDBStorage.ts). With the
+ * synchronous localStorage backend `hasHydrated()` is already true at boot, so
+ * this is an immediate no-op. With async IDB, hydration resolves on a later
+ * microtask — and the write-through subscriptions seed their diff baseline at
+ * subscribe time. Attaching them BEFORE hydration would diff the (eventually)
+ * hydrated state against an EMPTY baseline and spuriously enqueue the entire
+ * project as creates on every boot. Awaiting hydration first makes the baseline
+ * the restored state, so a clean boot enqueues nothing.
+ *
+ * A per-store timeout backstops a stalled hydration so it can never hang sync
+ * startup — on timeout we proceed (degraded) rather than block the app forever.
+ */
+async function awaitStoresHydrated(
+  stores: HydratableStore[],
+  timeoutMs = 5000,
+): Promise<void> {
+  await Promise.all(
+    stores.map(
+      (s) =>
+        new Promise<void>((resolve) => {
+          const p = s.persist;
+          // No persist middleware, or already hydrated → nothing to wait for.
+          if (!p?.onFinishHydration || p.hasHydrated?.()) {
+            resolve();
+            return;
+          }
+          let settled = false;
+          const finish = () => {
+            if (settled) return;
+            settled = true;
+            try { unsub?.(); } catch { /* ignore */ }
+            resolve();
+          };
+          const unsub = p.onFinishHydration(finish);
+          // Guard the window between the hasHydrated() check above and the
+          // listener attaching: if hydration completed in between, finish now.
+          if (p.hasHydrated?.()) finish();
+          else setTimeout(finish, timeoutMs);
+        }),
+    ),
+  );
+}
+
+/**
  * In-flight project-create dedup. Keyed by local project id. Guarantees that the
  * store subscription, the boot catch-up, and any explicit `syncProjectNow` caller
  * can never fire two concurrent `POST /projects` for the same local project (the
@@ -2220,6 +2277,27 @@ export const syncService = {
     } catch (err) {
       console.warn('[SYNC] Queue reconcile failed:', err);
     }
+
+    // Gate: wait for persisted stores to (re)hydrate before attaching the
+    // write-through subscriptions below. Their diff baseline is seeded at
+    // subscribe time, so under the async IndexedDB backend an empty
+    // pre-hydration snapshot would re-push the whole project as creates on
+    // every boot. No-op under synchronous localStorage. See awaitStoresHydrated.
+    const gatedStores: HydratableStore[] = [
+      useProjectStore,
+      useZoneStore,
+      useBuiltEnvironmentStoreV2,
+      usePathStore,
+      useUtilityStore,
+    ];
+    if (FLAGS.SYNC_STATE_BLOBS) {
+      gatedStores.push(useVegetationStore, useSuccessionStore);
+      for (const desc of SYNCED_STORES) {
+        const handle = (desc as { store?: HydratableStore }).store;
+        if (handle) gatedStores.push(handle);
+      }
+    }
+    await awaitStoresHydrated(gatedStores);
 
     // Subscribe to store changes for write-through sync
     unsubscribers.push(subscribeToProjects());
