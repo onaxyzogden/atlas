@@ -28,6 +28,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type TransectMonitoringKind =
@@ -178,7 +179,7 @@ export const useMonitoringTransectStore = create<MonitoringTransectState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-monitoring-transects', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-monitoring-transects', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

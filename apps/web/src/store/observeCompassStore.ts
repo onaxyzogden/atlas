@@ -19,6 +19,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { UniversalDomain } from '@ogden/shared';
 import { migrateByProjectModuleKeys, type MergeFn } from '@ogden/shared';
 import type { ObserveModule } from '../v3/observe/types.js';
@@ -161,6 +162,8 @@ export const useObserveCompassStore = create<ObserveCompassState>()(
     }),
     {
       name: 'ogden-atlas-observe-compass',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted, version) => {
         if (version < 2) {

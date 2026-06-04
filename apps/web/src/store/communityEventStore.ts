@@ -9,6 +9,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type CommunityEventType = 'work_day' | 'meetup' | 'harvest_share' | 'tour';
 
@@ -40,7 +41,7 @@ export const useCommunityEventStore = create<CommunityEventState>()(
         set((s) => ({ events: s.events.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
       removeEvent: (id) => set((s) => ({ events: s.events.filter((e) => e.id !== id) })),
     }),
-    { name: 'ogden-act-community-events', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-community-events', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

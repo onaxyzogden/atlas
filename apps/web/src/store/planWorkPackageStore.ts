@@ -12,6 +12,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import {
   type PlanWorkPackage,
   type PlanWorkPackageStatus,
@@ -102,6 +103,8 @@ export const usePlanWorkPackageStore = create<PlanWorkPackageState>()(
     },
     {
       name: PERSIST_KEY,
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       partialize: (state) => ({ byProject: state.byProject }),
     },

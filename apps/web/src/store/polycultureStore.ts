@@ -11,6 +11,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 import { resolveSpeciesId } from '../data/plantCatalogAliases.js';
 
@@ -143,6 +144,8 @@ export const usePolycultureStore = create<PolycultureState>()(
     ),
     {
       name: 'ogden-polyculture',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 4,
       migrate: (persisted, version) => {
         const s = ((persisted as Partial<PolycultureState>) ?? {}) as Partial<PolycultureState>;

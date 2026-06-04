@@ -9,6 +9,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type PilotStatus = 'running' | 'success' | 'fail' | 'inconclusive';
 
@@ -44,7 +45,7 @@ export const usePilotPlotStore = create<PilotPlotState>()(
         set((s) => ({ pilots: s.pilots.map((p) => (p.id === id ? { ...p, ...patch } : p)) })),
       removePilot: (id) => set((s) => ({ pilots: s.pilots.filter((p) => p.id !== id) })),
     }),
-    { name: 'ogden-act-pilots', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-pilots', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type PropagationMethod = 'seed' | 'cutting' | 'division' | 'graft';
 export type GrowthStage = 'seed' | 'germinating' | 'seedling' | 'juvenile' | 'ready_to_plant';
@@ -116,7 +117,7 @@ export const useNurseryStore = create<NurseryState>()(
       deleteTransfer: (id) =>
         set((s) => ({ transfers: s.transfers.filter((t) => t.id !== id) })),
     }),
-    { name: 'ogden-nursery', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-nursery', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

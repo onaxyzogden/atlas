@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { CostRange, CostRegion, MissionWeights } from '../features/financial/engine/types.js';
 import type { SubstitutionMetaEntry } from '../v3/plan/cards/phasing-budgeting/materialSubstitutionMath.js';
 
@@ -79,6 +80,8 @@ export const useFinancialStore = create<FinancialState>()(
     }),
     {
       name: 'ogden-financial',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       // v1→v2: additive `substitutionMeta` field only. No data migration —
       // the passthrough preserves old keys and the default {} fills in the
       // new one on rehydrate of v1 state.

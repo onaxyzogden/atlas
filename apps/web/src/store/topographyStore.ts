@@ -13,6 +13,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type VerticalElementType = 'structure' | 'tree' | 'shrub' | 'swale' | 'pond';
@@ -259,6 +260,8 @@ export const useTopographyStore = create<TopographyState>()(
     }), { limit: 200 }),
     {
       name: 'ogden-topography',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted) => {
         const p = (persisted ?? {}) as Partial<TopographyState>;

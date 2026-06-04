@@ -24,6 +24,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export interface TaskActual {
   /** PhaseTask.id — the join key against `phaseStore.BuildPhase.tasks`. */
@@ -68,7 +69,7 @@ export const useActualsStore = create<ActualsState>()(
           return { byProject: { ...s.byProject, [projectId]: next } };
         }),
     }),
-    { name: 'ogden-act-actuals', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-actuals', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

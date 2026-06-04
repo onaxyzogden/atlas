@@ -12,6 +12,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { LocalProject } from './projectStore.js';
 
 export interface ProjectSnapshot {
@@ -96,6 +97,8 @@ export const useVersionStore = create<VersionState>()(
     }),
     {
       name: 'ogden-versions',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as never,
       // Limit storage size — strip large attachment data from snapshots

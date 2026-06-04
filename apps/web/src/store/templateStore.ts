@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { zone } from '../lib/tokens';
 
 export interface ZoneTemplate {
@@ -50,7 +51,7 @@ export const useTemplateStore = create<TemplateState>()(
       addTemplate: (template) => set((s) => ({ customTemplates: [...s.customTemplates, template] })),
       deleteTemplate: (id) => set((s) => ({ customTemplates: s.customTemplates.filter((t) => t.id !== id) })),
     }),
-    { name: 'ogden-templates', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-templates', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

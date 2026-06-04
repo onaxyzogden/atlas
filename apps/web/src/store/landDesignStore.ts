@@ -34,6 +34,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { DesignElement } from './designElementsStore.js';
 
 export interface LandDesignState {
@@ -104,6 +105,8 @@ export const useLandDesignStore = create<LandDesignState>()(
     }),
     {
       name: 'ogden-atlas-design-elements',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted, fromVersion) => {
         // v1 -> v2: backfill `view: 'current'` on every existing element so

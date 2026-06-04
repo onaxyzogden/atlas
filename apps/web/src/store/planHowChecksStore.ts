@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { migrateByProjectModuleKeys, type MergeFn } from '@ogden/shared';
 import type { PlanModule } from '../v3/plan/types.js';
 
@@ -101,6 +102,8 @@ export const usePlanHowChecksStore = create<PlanHowChecksState>()(
     }),
     {
       name: 'ogden-atlas-plan-how-checks',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persisted, version) => {
         if (version < 2) {

@@ -18,6 +18,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 /** Coarse texture vocabulary — aligned with USDA soil texture triangle
@@ -133,7 +134,7 @@ export const useSoilSampleStore = create<SoilSampleState>()(
       deleteSample: (id) =>
         set((s) => ({ samples: s.samples.filter((x) => x.id !== id) })),
     }), { limit: 200 }),
-    { name: 'ogden-soil-samples', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-soil-samples', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

@@ -11,6 +11,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type PastureKind = 'open-pasture' | 'paddock' | 'hayfield';
 
@@ -45,7 +46,7 @@ export const usePastureStore = create<PastureState>()(
       removePasture: (id) =>
         set((s) => ({ pastures: s.pastures.filter((p) => p.id !== id) })),
     }), { limit: 200 }),
-    { name: 'ogden-pastures', version: 1 },
+    { name: 'ogden-pastures', storage: idbPersistStorage, version: 1 },
   ),
 );
 

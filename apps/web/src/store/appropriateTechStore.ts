@@ -11,6 +11,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type AppropriateTechSystem =
   | 'water'
@@ -46,7 +47,7 @@ export const useAppropriateTechStore = create<AppropriateTechState>()(
         set((s) => ({ items: s.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) })),
       removeItem: (id) => set((s) => ({ items: s.items.filter((i) => i.id !== id) })),
     }),
-    { name: 'ogden-act-appropriate-tech', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-act-appropriate-tech', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

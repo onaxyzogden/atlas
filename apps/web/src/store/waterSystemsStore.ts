@@ -11,6 +11,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 // ── Earthworks (swales / drains / diversions) ───────────────────────────────
@@ -263,6 +264,8 @@ export const useWaterSystemsStore = create<WaterSystemsState>()(
     }), { limit: 200 }),
     {
       name: 'ogden-water-systems',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 3,
       migrate: (persisted) => {
         const p = (persisted ?? {}) as Partial<WaterSystemsState>;

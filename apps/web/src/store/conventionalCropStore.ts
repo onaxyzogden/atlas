@@ -10,6 +10,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type ConventionalCropKind =
   | 'annual-row'
@@ -77,7 +78,7 @@ export const useConventionalCropStore = create<ConventionalCropState>()(
       }),
       { limit: 200 },
     ),
-    { name: 'ogden-conventional-crops', version: 1 },
+    { name: 'ogden-conventional-crops', storage: idbPersistStorage, version: 1 },
   ),
 );
 

@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import type { TransitionYear } from '../features/financial/engine/transitionBudget.js';
 
 export interface ScenarioVariantConfig {
@@ -138,6 +139,8 @@ export const useScenarioStore = create<ScenarioState>()(
     }),
     {
       name: 'ogden-scenarios',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       migrate: (persistedState: unknown, fromVersion: number) => {
         const state = persistedState as { scenarios?: unknown[]; activeScenarioId?: string | null };

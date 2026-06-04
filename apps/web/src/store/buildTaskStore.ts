@@ -16,6 +16,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { rehydrateWithLogging } from "./persistRehydrate.js";
+import { idbPersistStorage } from "../lib/indexedDBStorage.js";
 import type { BuildTaskStatus } from "../v3/types.js";
 
 function key(projectId: string, taskId: string): string {
@@ -56,7 +57,7 @@ export const useBuildTaskStore = create<BuildTaskState>()(
           return { overrides: next };
         }),
     }),
-    { name: "ogden-build-tasks", version: 1 },
+    { name: "ogden-build-tasks", storage: idbPersistStorage, version: 1 },
   ),
 );
 

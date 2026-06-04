@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type FieldworkType = 'soil_sample' | 'water_issue' | 'structure_issue' | 'measurement' | 'annotation' | 'observation' | 'question' | 'issue';
 export type NoteType = 'observation' | 'question' | 'measurement' | 'issue';
@@ -102,7 +103,7 @@ export const useFieldworkStore = create<FieldworkState>()(
         pendingUploads: s.pendingUploads.filter((id) => id !== entryId),
       })),
     }),
-    { name: 'ogden-fieldwork', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-fieldwork', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

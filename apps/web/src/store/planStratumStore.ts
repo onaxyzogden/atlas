@@ -25,6 +25,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { remapId, remapTierId } from '@ogden/shared';
 
 const PERSIST_KEY = 'ogden-plan-tier-progress';
@@ -410,6 +411,8 @@ export const usePlanStratumProgressStore = create<PlanStratumProgressState>()(
     }),
     {
       name: PERSIST_KEY,
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 5,
       partialize: (state) => ({
         byProject: state.byProject,

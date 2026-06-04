@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -429,6 +430,8 @@ export const useVisionStore = create<VisionState>()(
     }),
     {
       name: 'ogden-vision',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 4,
       partialize: (state) => ({ visions: state.visions }),
       migrate: (persistedState: unknown, version: number) => {

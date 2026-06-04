@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { api } from '../lib/apiClient.js';
 import { syncQueue } from '../lib/syncQueue.js';
 import type { CommentRecord, CreateCommentInput } from '@ogden/shared';
@@ -182,6 +183,8 @@ export const useCommentStore = create<CommentState>()(
     }),
     {
       name: 'ogden-comments',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 2,
       // No-op migrate so legacy v1 state hydrates silently instead of
       // logging "couldn't be migrated" on every load. Schema bumps

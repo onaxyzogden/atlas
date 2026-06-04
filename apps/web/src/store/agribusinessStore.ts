@@ -17,6 +17,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type SlaughterKind = 'mobile' | 'on-farm' | 'shared' | 'contract';
@@ -178,6 +179,8 @@ export const useAgribusinessStore = create<AgribusinessState>()(
     ),
     {
       name: 'ogden-agribusiness',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       // v2 added the `sizingByProject` slice; missing-key zustand merge
       // leaves it `undefined` and consumers fall back to DEFAULT_SIZING,
       // so v1 → v2 migration is a no-op.

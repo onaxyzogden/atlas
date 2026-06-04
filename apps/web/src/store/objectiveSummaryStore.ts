@@ -14,6 +14,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type ObjectiveStage = 'plan' | 'observe' | 'act';
 
@@ -81,6 +82,8 @@ export const useObjectiveSummaryStore = create<ObjectiveSummaryState>()(
     }),
     {
       name: 'ogden-atlas-objective-summaries',
+      // Durable IndexedDB backend (Phase 1) — see indexedDBStorage.ts.
+      storage: idbPersistStorage,
       version: 1,
       migrate: (persisted) => persisted as ObjectiveSummaryState,
     },

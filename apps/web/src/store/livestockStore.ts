@@ -7,6 +7,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 import { temporal } from 'zundo';
 
 export type FenceType = 'electric' | 'post_wire' | 'post_rail' | 'woven_wire' | 'temporary' | 'none';
@@ -157,7 +158,7 @@ export const useLivestockStore = create<LivestockState>()(
     // Version retained at 1 — `fenceLines: []` is supplied by the initializer
     // and Zustand's default shallow merge fills it in for canvases hydrated
     // before this slice existed, so no migration step is needed.
-    { name: 'ogden-livestock', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-livestock', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

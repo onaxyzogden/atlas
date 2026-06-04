@@ -23,6 +23,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { rehydrateWithLogging } from './persistRehydrate.js';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type Compass8 =
   | 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
@@ -118,7 +119,7 @@ export const useSectorStore = create<SectorState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-sectors', version: 1, migrate: (persisted) => persisted as never },
+    { name: 'ogden-sectors', storage: idbPersistStorage, version: 1, migrate: (persisted) => persisted as never },
   ),
 );
 

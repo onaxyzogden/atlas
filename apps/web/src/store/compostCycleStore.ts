@@ -11,6 +11,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { idbPersistStorage } from '../lib/indexedDBStorage.js';
 
 export type CompostMethod = 'hot' | 'cold' | 'vermicompost' | 'compost_tea';
 export type CompostStatus = 'planned' | 'active' | 'cured';
@@ -89,6 +90,6 @@ export const useCompostCycleStore = create<CompostCycleState>()(
           return { byProject: next };
         }),
     }),
-    { name: 'ogden-compost-cycle', version: 1 },
+    { name: 'ogden-compost-cycle', storage: idbPersistStorage, version: 1 },
   ),
 );
