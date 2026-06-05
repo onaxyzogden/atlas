@@ -20,20 +20,24 @@ import styles from './ActOpsDashboard.module.css';
 
 interface Props {
   projectId: string | null;
+  /** Open the full weather forecast. In the tier-shell this swaps the right
+   *  rail to ActTierWeatherPanel; mounts without a target (e.g. map-first) omit
+   *  it and the weather buttons stay inert. */
+  onOpenWeather?: () => void;
 }
 
 function noop() {
-  /* dashboard cards open their own detail surfaces; no external open hook */
+  /* no external open hook supplied (e.g. map-first mount has no rail target) */
 }
 
-export default function ActOpsDashboard({ projectId }: Props) {
+export default function ActOpsDashboard({ projectId, onOpenWeather }: Props) {
   const triggered = useTriggeredProtocols(projectId);
   return (
     <div className={styles.dashboard}>
       {triggered.length > 0 && (
         <TriggeredProtocolsPanel projectId={projectId} activeModule={null} />
       )}
-      <WeatherStrip projectId={projectId} onOpen={noop} />
+      <WeatherStrip projectId={projectId} onOpen={onOpenWeather ?? noop} />
       <TodaysPriorities projectId={projectId} activeModule={null} />
       <AlertsPanel projectId={projectId} activeModule={null} />
       <UpcomingEvents projectId={projectId} />

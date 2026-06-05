@@ -101,6 +101,7 @@ import ProtocolMapMarkers from './ProtocolMapMarkers.js';
 import ActTierCategorizedToolsRail from './ActTierCategorizedToolsRail.js';
 import ActTierExecutionPanel from './ActTierExecutionPanel.js';
 import ActProtocolDetailPane from './ActProtocolDetailPane.js';
+import ActTierWeatherPanel from './ActTierWeatherPanel.js';
 import VisionFormsTabsModal from './VisionFormsTabsModal.js';
 import {
   ACT_TOOL_CATEGORIES,
@@ -330,6 +331,12 @@ export default function ActTierShell() {
   const [rightMode, setRightMode] = useState<RightMode>(
     objectiveId ? 'detail' : 'dashboard',
   );
+  // Weather drill-down: a sub-view of Dashboard mode. When true the right-rail
+  // dashboard branch shows ActTierWeatherPanel (full 7-day forecast) instead of
+  // the dashboard cards. Opened by the WeatherStrip buttons; closed by its back
+  // control, the Dashboard tab, or whenever the rail enters objective/protocol
+  // detail (see the reconcile effect below).
+  const [weatherOpen, setWeatherOpen] = useState(false);
   // Protocols mode: the clicked protocol whose detail shows in the right rail
   // (mirrors objective selection). URL-derived (?protocol=<templateId>), so it
   // survives reload and is deep-linkable. A stale id (protocol hidden by the
@@ -367,6 +374,13 @@ export default function ActTierShell() {
   useEffect(() => {
     setRightMode(objectiveId ? 'detail' : 'dashboard');
   }, [objectiveId]);
+
+  // The weather drill-down lives under Dashboard mode only; leaving for any
+  // detail view (objective or protocol) closes it so returning to Dashboard
+  // lands on the cards rather than re-opening the forecast.
+  useEffect(() => {
+    if (rightMode === 'detail') setWeatherOpen(false);
+  }, [rightMode]);
 
   const selectedStratum = useMemo(
     () => PLAN_STRATA.find((s) => s.id === selectedStratumId),
@@ -837,7 +851,10 @@ export default function ActTierShell() {
                       aria-selected={rightMode === 'dashboard'}
                       className={styles.rightToggleBtn}
                       data-active={rightMode === 'dashboard'}
-                      onClick={() => setRightMode('dashboard')}
+                      onClick={() => {
+                        setRightMode('dashboard');
+                        setWeatherOpen(false);
+                      }}
                     >
                       <LayoutDashboard size={14} aria-hidden="true" />
                       Dashboard
@@ -896,8 +913,16 @@ export default function ActTierShell() {
                         currentUserId={currentUserId}
                         myRole={myRole}
                       />
+                    ) : weatherOpen ? (
+                      <ActTierWeatherPanel
+                        project={project}
+                        onBack={() => setWeatherOpen(false)}
+                      />
                     ) : (
-                      <ActOpsDashboard projectId={id} />
+                      <ActOpsDashboard
+                        projectId={id}
+                        onOpenWeather={() => setWeatherOpen(true)}
+                      />
                     )}
                   </div>
                 </>
