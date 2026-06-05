@@ -152,6 +152,25 @@ trusted team).
   `lastSyncedAt` watermark to the newest *server* `updated_at` (clock-skew-immune).
   Gated behind `FEATURE_SYNC_STATE_BLOBS` (default OFF). See
   [[decisions/2026-06-04-olos-local-first-record-broadcast-reconnect-delta]].
+- **Phase 3 (commits `cf8f0c52`→`5a961da3`) — per-project watermark + olos record
+  rev-parity.** Closed Phase 2's two open threads. (A) `lastSyncedAt` went from a
+  single global scalar to a `Record<localProjectId, ISO>` map (`get/setLastSyncedAt`,
+  migrate drops the scalar + preserves `conflictedStores`); **all three client-clock
+  writes deleted** so the server-clock advance in `pullActRecordDelta` is the only
+  writer — fixing both the clock-skew clobber AND the global-scalar gap-skip (project
+  A's pull no longer advances past project B's last real sync). (B) The three `olos_*`
+  record domains (observations/proofs/verifications) got full rev-parity with the Act
+  path: migration 053 adds `rev BIGINT`; the routes do rev-gated update + 409
+  escalation + author-excluded broadcast + `changed-since`; three `typed-record`
+  descriptors register them; the storeKey-generic `applyIncomingRecord` and
+  `SyncConflictsPage` are reused verbatim. The one olos-specific seam is the
+  **server-assigns-uuid id-transition** (local `obs-`/`proof-`/`verify-` drafts rekey
+  to the server uuid), handled by a dedicated `executeOlosRecordOp`, plus an
+  **independent `${projectId}::olos` watermark sub-key** so the Act and olos
+  `changed-since` streams advance separately and neither skips the other's gap. olos
+  conflicts ALWAYS escalate (no `observed_at` auto-resolve tier). Same
+  `FEATURE_SYNC_STATE_BLOBS` gate (default OFF, flag-off byte-identical). See
+  [[decisions/2026-06-05-olos-watermark-and-record-rev-parity]].
 
 ## Sync Strategy (Planned — full coverage deferred to backlog)
 Extending `syncService` from the 4 covered slices to the full ~70-store v3
