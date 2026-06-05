@@ -18,6 +18,18 @@ import {
 } from '@ogden/shared';
 import { NotFoundError } from '../../lib/errors.js';
 import { logActivity } from '../../lib/activityLog.js';
+import {
+  OLOS_STORE_KEYS,
+  mapVerificationRow,
+  surfaceOlosConflict,
+  broadcastOlosUpsert,
+  toOlosDeltaItem,
+} from './recordSync.js';
+
+// ISO-8601 with offset; absent → full snapshot (epoch) at the call site.
+const ChangedSinceQuery = z.object({
+  since: z.string().datetime({ offset: true }).optional(),
+});
 
 const VerificationCreateInput = z.object({
   outcome: VerificationOutcome,
@@ -28,26 +40,17 @@ const VerificationCreateInput = z.object({
   verifiedAt: z.string().datetime().optional(),
 });
 
-const VerificationPatchInput = VerificationCreateInput.partial();
+// `baseRev` opts a write into the rev-gated sync path (stale → 409). Absent →
+// the legacy COALESCE update (non-sync callers) — back-compat, no rev bump.
+const VerificationPatchInput = VerificationCreateInput.partial().extend({
+  baseRev: z.number().int().nonnegative().optional(),
+});
 
 type Row = Record<string, unknown>;
 
-function mapRow(row: Row) {
-  return {
-    id: row.id as string,
-    projectId: row.project_id as string,
-    taskId: row.task_id as string,
-    verifierId: (row.verifier_id ?? null) as string | null,
-    outcome: row.outcome as string,
-    criteriaChecked: (row.criteria_checked ?? []) as unknown[],
-    notes: (row.notes ?? null) as string | null,
-    requiredReworkIds: (row.required_rework_ids ?? []) as string[],
-    proofRecordIds: (row.proof_record_ids ?? []) as string[],
-    verifiedAt: (row.verified_at as Date).toISOString(),
-    createdAt: (row.created_at as Date).toISOString(),
-    updatedAt: (row.updated_at as Date).toISOString(),
-  };
-}
+// Row → wire shape (incl. `rev`) lives in recordSync.ts so the conflict surface,
+// broadcast, and changed-since delta all share one mapper.
+const mapRow = mapVerificationRow;
 
 async function ensureTask(
   db: FastifyInstance['db'],
@@ -117,13 +120,15 @@ export default async function olosVerificationRoutes(
       const body = VerificationCreateInput.parse(req.body);
       await ensureTask(db, req.projectId, taskId);
 
+      // Fresh row → rev = 1 (DEFAULT 0 is the pre-sync sentinel for legacy
+      // backfilled rows only); a baseRev-0 first push then clears the 0 <= 0 gate.
       const [row] = await db`
         INSERT INTO olos_verification_records (
           project_id, task_id,
           verifier_id, outcome,
           criteria_checked, notes,
           required_rework_ids, proof_record_ids,
-          verified_at
+          verified_at, rev
         ) VALUES (
           ${req.projectId},
           ${taskId},
@@ -133,7 +138,8 @@ export default async function olosVerificationRoutes(
           ${body.notes ?? null},
           ${body.requiredReworkIds},
           ${body.proofRecordIds}::uuid[],
-          ${body.verifiedAt ?? new Date().toISOString()}
+          ${body.verifiedAt ?? new Date().toISOString()},
+          1
         )
         RETURNING *
       `;
@@ -147,8 +153,51 @@ export default async function olosVerificationRoutes(
         metadata: { taskId, outcome: body.outcome },
       });
 
+      const saved = mapRow(row as Row);
+      broadcastOlosUpsert(fastify, {
+        projectId: req.projectId,
+        storeKey: OLOS_STORE_KEYS.verification,
+        recordId: saved.id,
+        rev: saved.rev,
+        payload: saved,
+        userId: req.userId,
+      });
+
       reply.code(201);
-      return { data: mapRow(row as Row), meta: undefined, error: null };
+      return { data: saved, meta: undefined, error: null };
+    },
+  );
+
+  // GET /:id/olos/verifications/changed-since?since=<ISO> — project-scoped
+  // reconnect delta-pull source across ALL tasks (NOT nested under
+  // /tasks/:taskId), oldest first, as the storeKey-generic delta envelope.
+  fastify.get<{ Params: { id: string }; Querystring: { since?: string } }>(
+    '/:id/olos/verifications/changed-since',
+    {
+      preHandler: [
+        authenticate,
+        resolveProjectRole,
+        requireRole('owner', 'designer', 'reviewer', 'viewer'),
+      ],
+    },
+    async (req) => {
+      const since = ChangedSinceQuery.parse(req.query).since ?? '1970-01-01T00:00:00.000Z';
+      const rows = await db`
+        SELECT * FROM olos_verification_records
+        WHERE project_id = ${req.projectId} AND updated_at > ${since}
+        ORDER BY updated_at ASC
+      `;
+      return {
+        data: rows.map((row) =>
+          toOlosDeltaItem(
+            OLOS_STORE_KEYS.verification,
+            mapRow(row as Row),
+            (row.updated_at as Date).toISOString(),
+          ),
+        ),
+        meta: { total: rows.length },
+        error: null,
+      };
     },
   );
 
@@ -189,9 +238,9 @@ export default async function olosVerificationRoutes(
         requireRole('owner', 'designer', 'reviewer'),
       ],
     },
-    async (req) => {
+    async (req, reply) => {
       const { taskId, verificationId } = ParamsVerificationId.parse(req.params);
-      const body = VerificationPatchInput.parse(req.body);
+      const { baseRev, ...patch } = VerificationPatchInput.parse(req.body);
 
       const [existing] = await db`
         SELECT id FROM olos_verification_records
@@ -203,14 +252,70 @@ export default async function olosVerificationRoutes(
         throw new NotFoundError('VerificationRecord', verificationId);
       }
 
+      // Rev-gated sync write: bump rev only when the client is not behind the
+      // stored rev. A stale write matches 0 rows → surface the conflict (409).
+      if (baseRev !== undefined) {
+        const [updated] = await db`
+          UPDATE olos_verification_records SET
+            outcome             = COALESCE(${patch.outcome ?? null}, outcome),
+            criteria_checked    = COALESCE(${patch.criteriaChecked ? db.json(patch.criteriaChecked as never) : null}, criteria_checked),
+            notes               = ${patch.notes === undefined ? db`notes` : patch.notes ?? null},
+            required_rework_ids = COALESCE(${patch.requiredReworkIds ?? null}, required_rework_ids),
+            proof_record_ids    = COALESCE(${patch.proofRecordIds ?? null}::uuid[], proof_record_ids),
+            verified_at         = COALESCE(${patch.verifiedAt ?? null}, verified_at),
+            rev                 = rev + 1
+          WHERE id = ${verificationId} AND rev <= ${baseRev}
+          RETURNING *
+        `;
+
+        if (!updated) {
+          const [current] = await db`
+            SELECT * FROM olos_verification_records
+            WHERE id = ${verificationId} AND project_id = ${req.projectId}
+          `;
+          const server = current ? mapRow(current as Row) : null;
+          reply.code(409);
+          return surfaceOlosConflict(db, {
+            projectId: req.projectId,
+            storeKey: OLOS_STORE_KEYS.verification,
+            recordId: verificationId,
+            baseRev,
+            localPayload: patch as Record<string, unknown>,
+            serverRev: server?.rev ?? null,
+            serverPayload: server,
+            userId: req.userId,
+          });
+        }
+
+        await logActivity(db, {
+          projectId: req.projectId,
+          userId: req.userId,
+          action: 'olos_verification_updated',
+          entityType: 'olos_verification_record',
+          entityId: verificationId,
+        });
+
+        const saved = mapRow(updated as Row);
+        broadcastOlosUpsert(fastify, {
+          projectId: req.projectId,
+          storeKey: OLOS_STORE_KEYS.verification,
+          recordId: saved.id,
+          rev: saved.rev,
+          payload: saved,
+          userId: req.userId,
+        });
+        return { data: saved, meta: undefined, error: null };
+      }
+
+      // Legacy path (no baseRev) — unchanged COALESCE update, no rev bump.
       const [updated] = await db`
         UPDATE olos_verification_records SET
-          outcome             = COALESCE(${body.outcome ?? null}, outcome),
-          criteria_checked    = COALESCE(${body.criteriaChecked ? db.json(body.criteriaChecked as never) : null}, criteria_checked),
-          notes               = ${body.notes === undefined ? db`notes` : body.notes ?? null},
-          required_rework_ids = COALESCE(${body.requiredReworkIds ?? null}, required_rework_ids),
-          proof_record_ids    = COALESCE(${body.proofRecordIds ?? null}::uuid[], proof_record_ids),
-          verified_at         = COALESCE(${body.verifiedAt ?? null}, verified_at),
+          outcome             = COALESCE(${patch.outcome ?? null}, outcome),
+          criteria_checked    = COALESCE(${patch.criteriaChecked ? db.json(patch.criteriaChecked as never) : null}, criteria_checked),
+          notes               = ${patch.notes === undefined ? db`notes` : patch.notes ?? null},
+          required_rework_ids = COALESCE(${patch.requiredReworkIds ?? null}, required_rework_ids),
+          proof_record_ids    = COALESCE(${patch.proofRecordIds ?? null}::uuid[], proof_record_ids),
+          verified_at         = COALESCE(${patch.verifiedAt ?? null}, verified_at),
           updated_at          = now()
         WHERE id = ${verificationId}
         RETURNING *

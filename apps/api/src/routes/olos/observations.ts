@@ -17,6 +17,13 @@ import {
 } from '@ogden/shared';
 import { NotFoundError } from '../../lib/errors.js';
 import { logActivity } from '../../lib/activityLog.js';
+import {
+  OLOS_STORE_KEYS,
+  mapObservationRow,
+  surfaceOlosConflict,
+  broadcastOlosUpsert,
+  toOlosDeltaItem,
+} from './recordSync.js';
 
 const ParamsRecordId = z.object({
   id: z.string().uuid(),
@@ -26,6 +33,11 @@ const ParamsRecordId = z.object({
 const ListQuery = z.object({
   objectiveId: z.string().optional(),
   status: ObserveStatus.optional(),
+});
+
+// ISO-8601 with offset; absent → full snapshot (epoch) at the call site.
+const ChangedSinceQuery = z.object({
+  since: z.string().datetime({ offset: true }).optional(),
 });
 
 const ObservationCreateInput = z.object({
@@ -40,32 +52,17 @@ const ObservationCreateInput = z.object({
   recommendedNextReview: z.string().datetime().nullish(),
 });
 
-const ObservationPatchInput = ObservationCreateInput.partial();
+// `baseRev` opts a write into the rev-gated sync path (stale → 409). Absent →
+// the legacy COALESCE update (non-sync callers) — back-compat, no rev bump.
+const ObservationPatchInput = ObservationCreateInput.partial().extend({
+  baseRev: z.number().int().nonnegative().optional(),
+});
 
 type Row = Record<string, unknown>;
 
-function mapRow(row: Row) {
-  return {
-    id: row.id as string,
-    projectId: row.project_id as string,
-    objectiveId: row.objective_id as string,
-    status: row.status as string,
-    summary: row.summary as string,
-    constraints: row.constraints as string,
-    unknowns: row.unknowns as string,
-    flags: (row.flags ?? []) as string[],
-    evidenceRefs: (row.evidence_refs ?? []) as unknown[],
-    locationGeometry: row.location_geojson ?? null,
-    recordedBy: (row.recorded_by ?? null) as string | null,
-    recordedAt: (row.recorded_at as Date).toISOString(),
-    recommendedNextReview:
-      row.recommended_next_review instanceof Date
-        ? (row.recommended_next_review as Date).toISOString()
-        : null,
-    createdAt: (row.created_at as Date).toISOString(),
-    updatedAt: (row.updated_at as Date).toISOString(),
-  };
-}
+// Row → wire shape (incl. `rev`) lives in recordSync.ts so the conflict surface,
+// broadcast, and changed-since delta all share one mapper.
+const mapRow = mapObservationRow;
 
 export default async function olosObservationRoutes(fastify: FastifyInstance) {
   const { db, authenticate, resolveProjectRole, requireRole } = fastify;
@@ -115,12 +112,15 @@ export default async function olosObservationRoutes(fastify: FastifyInstance) {
         ? db`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(body.locationGeometry)}), 4326)`
         : db`NULL`;
 
+      // A freshly created row has been authoritatively written once → rev = 1
+      // (the column DEFAULT 0 is the pre-sync sentinel for legacy backfilled rows
+      // only). A baseRev-0 first push then satisfies the 0 <= 0 rev gate.
       const [row] = await db`
         INSERT INTO olos_observation_records (
           project_id, objective_id, status,
           summary, constraints, unknowns, flags,
           evidence_refs, location_geometry,
-          recorded_by, recommended_next_review
+          recorded_by, recommended_next_review, rev
         ) VALUES (
           ${req.projectId},
           ${body.objectiveId},
@@ -132,7 +132,8 @@ export default async function olosObservationRoutes(fastify: FastifyInstance) {
           ${db.json(body.evidenceRefs as never)},
           ${locationExpr},
           ${req.userId},
-          ${body.recommendedNextReview ?? null}
+          ${body.recommendedNextReview ?? null},
+          1
         )
         RETURNING *, ST_AsGeoJSON(location_geometry)::jsonb AS location_geojson
       `;
@@ -146,8 +147,53 @@ export default async function olosObservationRoutes(fastify: FastifyInstance) {
         metadata: { objectiveId: body.objectiveId, status: body.status },
       });
 
+      const saved = mapRow(row as Row);
+      broadcastOlosUpsert(fastify, {
+        projectId: req.projectId,
+        storeKey: OLOS_STORE_KEYS.observation,
+        recordId: saved.id,
+        rev: saved.rev,
+        payload: saved,
+        userId: req.userId,
+      });
+
       reply.code(201);
-      return { data: mapRow(row as Row), meta: undefined, error: null };
+      return { data: saved, meta: undefined, error: null };
+    },
+  );
+
+  // GET /:id/olos/observations/changed-since?since=<ISO> — reconnect delta-pull
+  // source: every observation whose updated_at is strictly after `since`, oldest
+  // first, as the storeKey-generic delta envelope pullOlosRecordDelta consumes.
+  // Static `changed-since` out-prioritises the `:recordId` param route.
+  fastify.get<{ Params: { id: string }; Querystring: { since?: string } }>(
+    '/:id/olos/observations/changed-since',
+    {
+      preHandler: [
+        authenticate,
+        resolveProjectRole,
+        requireRole('owner', 'designer', 'reviewer', 'viewer'),
+      ],
+    },
+    async (req) => {
+      const since = ChangedSinceQuery.parse(req.query).since ?? '1970-01-01T00:00:00.000Z';
+      const rows = await db`
+        SELECT r.*, ST_AsGeoJSON(r.location_geometry)::jsonb AS location_geojson
+        FROM olos_observation_records r
+        WHERE r.project_id = ${req.projectId} AND r.updated_at > ${since}
+        ORDER BY r.updated_at ASC
+      `;
+      return {
+        data: rows.map((row) =>
+          toOlosDeltaItem(
+            OLOS_STORE_KEYS.observation,
+            mapRow(row as Row),
+            (row.updated_at as Date).toISOString(),
+          ),
+        ),
+        meta: { total: rows.length },
+        error: null,
+      };
     },
   );
 
@@ -183,9 +229,9 @@ export default async function olosObservationRoutes(fastify: FastifyInstance) {
         requireRole('owner', 'designer'),
       ],
     },
-    async (req) => {
+    async (req, reply) => {
       const { recordId } = ParamsRecordId.parse(req.params);
-      const body = ObservationPatchInput.parse(req.body);
+      const { baseRev, ...patch } = ObservationPatchInput.parse(req.body);
 
       const [existing] = await db`
         SELECT id FROM olos_observation_records
@@ -194,22 +240,81 @@ export default async function olosObservationRoutes(fastify: FastifyInstance) {
       if (!existing) throw new NotFoundError('ObservationRecord', recordId);
 
       const locationPatch =
-        body.locationGeometry === undefined
+        patch.locationGeometry === undefined
           ? db`location_geometry`
-          : body.locationGeometry === null
+          : patch.locationGeometry === null
             ? db`NULL`
-            : db`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(body.locationGeometry)}), 4326)`;
+            : db`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(patch.locationGeometry)}), 4326)`;
 
+      // Rev-gated sync write: bump rev only when the client is not behind the
+      // stored rev. A stale write matches 0 rows → surface the conflict (409).
+      if (baseRev !== undefined) {
+        const [updated] = await db`
+          UPDATE olos_observation_records SET
+            status                  = COALESCE(${patch.status ?? null},      status),
+            summary                 = COALESCE(${patch.summary ?? null},     summary),
+            constraints             = COALESCE(${patch.constraints ?? null}, constraints),
+            unknowns                = COALESCE(${patch.unknowns ?? null},    unknowns),
+            flags                   = COALESCE(${patch.flags ?? null},       flags),
+            evidence_refs           = COALESCE(${patch.evidenceRefs ? db.json(patch.evidenceRefs as never) : null}, evidence_refs),
+            location_geometry       = ${locationPatch},
+            recommended_next_review = COALESCE(${patch.recommendedNextReview ?? null}, recommended_next_review),
+            rev                     = rev + 1
+          WHERE id = ${recordId} AND rev <= ${baseRev}
+          RETURNING *, ST_AsGeoJSON(location_geometry)::jsonb AS location_geojson
+        `;
+
+        if (!updated) {
+          const [current] = await db`
+            SELECT r.*, ST_AsGeoJSON(r.location_geometry)::jsonb AS location_geojson
+            FROM olos_observation_records r
+            WHERE r.id = ${recordId} AND r.project_id = ${req.projectId}
+          `;
+          const server = current ? mapRow(current as Row) : null;
+          reply.code(409);
+          return surfaceOlosConflict(db, {
+            projectId: req.projectId,
+            storeKey: OLOS_STORE_KEYS.observation,
+            recordId,
+            baseRev,
+            localPayload: patch as Record<string, unknown>,
+            serverRev: server?.rev ?? null,
+            serverPayload: server,
+            userId: req.userId,
+          });
+        }
+
+        await logActivity(db, {
+          projectId: req.projectId,
+          userId: req.userId,
+          action: 'olos_observation_updated',
+          entityType: 'olos_observation_record',
+          entityId: recordId,
+        });
+
+        const saved = mapRow(updated as Row);
+        broadcastOlosUpsert(fastify, {
+          projectId: req.projectId,
+          storeKey: OLOS_STORE_KEYS.observation,
+          recordId: saved.id,
+          rev: saved.rev,
+          payload: saved,
+          userId: req.userId,
+        });
+        return { data: saved, meta: undefined, error: null };
+      }
+
+      // Legacy path (no baseRev) — unchanged COALESCE update, no rev bump.
       const [updated] = await db`
         UPDATE olos_observation_records SET
-          status                  = COALESCE(${body.status ?? null},      status),
-          summary                 = COALESCE(${body.summary ?? null},     summary),
-          constraints             = COALESCE(${body.constraints ?? null}, constraints),
-          unknowns                = COALESCE(${body.unknowns ?? null},    unknowns),
-          flags                   = COALESCE(${body.flags ?? null},       flags),
-          evidence_refs           = COALESCE(${body.evidenceRefs ? db.json(body.evidenceRefs as never) : null}, evidence_refs),
+          status                  = COALESCE(${patch.status ?? null},      status),
+          summary                 = COALESCE(${patch.summary ?? null},     summary),
+          constraints             = COALESCE(${patch.constraints ?? null}, constraints),
+          unknowns                = COALESCE(${patch.unknowns ?? null},    unknowns),
+          flags                   = COALESCE(${patch.flags ?? null},       flags),
+          evidence_refs           = COALESCE(${patch.evidenceRefs ? db.json(patch.evidenceRefs as never) : null}, evidence_refs),
           location_geometry       = ${locationPatch},
-          recommended_next_review = COALESCE(${body.recommendedNextReview ?? null}, recommended_next_review),
+          recommended_next_review = COALESCE(${patch.recommendedNextReview ?? null}, recommended_next_review),
           updated_at              = now()
         WHERE id = ${recordId}
         RETURNING *, ST_AsGeoJSON(location_geometry)::jsonb AS location_geojson
