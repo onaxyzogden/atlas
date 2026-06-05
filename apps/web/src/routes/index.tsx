@@ -32,6 +32,9 @@ import ReportSharePage from '../pages/ReportSharePage.js';
 import ObserveShareViewerPage from '../pages/ObserveShareViewerPage.js';
 import LoginPage from '../pages/LoginPage.js';
 import RegisterPage from '../pages/RegisterPage.js';
+import VerifyEmailPage from '../pages/VerifyEmailPage.js';
+import ForgotPasswordPage from '../pages/ForgotPasswordPage.js';
+import ResetPasswordPage from '../pages/ResetPasswordPage.js';
 import OrganizationCreatePage from '../pages/OrganizationCreatePage.js';
 import { LandingPage } from '../features/landing/index.js';
 import V3ProjectLayout from '../v3/V3ProjectLayout.js';
@@ -860,6 +863,34 @@ const registerRoute = createRoute({
   },
 });
 
+// ─── Email verification + password reset (public, outside AppShell) ──────
+// Siblings of loginRoute under rootRoute (NOT appShellRoute) so the emailed
+// links resolve for signed-out visitors. Each reads an optional `?token=`.
+const tokenSearch = (
+  search: Record<string, unknown>,
+): { token?: string } =>
+  typeof search.token === 'string' && search.token ? { token: search.token } : {};
+
+const verifyEmailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/verify-email',
+  component: VerifyEmailPage,
+  validateSearch: tokenSearch,
+});
+
+const forgotPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/forgot-password',
+  component: ForgotPasswordPage,
+});
+
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/reset-password',
+  component: ResetPasswordPage,
+  validateSearch: tokenSearch,
+});
+
 // Phase 4.5 — /organizations/new prelude. Sibling-of-appShellRoute so it
 // renders without the authed app shell, but is itself auth-gated: the
 // component redirects to /register if no token is present. Search params
@@ -1027,6 +1058,9 @@ const routeTree = rootRoute.addChildren([
   landingRoute,
   loginRoute,
   registerRoute,
+  verifyEmailRoute,
+  forgotPasswordRoute,
+  resetPasswordRoute,
   organizationCreateRoute,
   portalRoute,
   reportShareRoute,

@@ -1,3 +1,8 @@
+# DISABLED 2026-06-05 — superseded by the Render Blueprint (render.yaml).
+# GitHub Pages ships ONLY the static SPA with no backend, so every relative
+# /api/v1/... call 404s and auth cannot work. Renamed to .yml.disabled (GitHub
+# ignores non-.yml files in this dir) rather than deleted, for reference.
+# To re-enable, rename back to deploy.yml — but the live deploy is Render.
 name: Deploy to GitHub Pages
 
 on:

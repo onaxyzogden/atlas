@@ -1,0 +1,57 @@
+# ── OGDEN Atlas — public front door (SPA + reverse proxy) for Render ───────
+#
+# Render has no cross-service shared volumes, so unlike the compose two-step
+# (web build → shared volume → nginx), this single image *bakes* the built SPA
+# into nginx:alpine. It serves the static app and reverse-proxies /api to the
+# private `atlas-api` service (see render-default.conf.template).
+#
+#   docker build -f infrastructure/Dockerfile.nginx \
+#     --build-arg VITE_MAPTILER_KEY=… --build-arg VITE_CESIUM_ION_TOKEN=… .
+
+# ── Base / deps ────────────────────────────────────────────────────────────
+FROM node:20-alpine AS base
+RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
+WORKDIR /app
+
+FROM base AS deps
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY packages/shared/package.json packages/shared/
+COPY apps/web/package.json apps/web/
+RUN pnpm install --frozen-lockfile --prod=false
+
+# ── Build the SPA ──────────────────────────────────────────────────────────
+# Vite inlines import.meta.env.VITE_* at build time, so the map keys must be
+# present as env during `vite build`.
+FROM deps AS build
+ARG VITE_MAPTILER_KEY
+ARG VITE_CESIUM_ION_TOKEN
+ENV VITE_MAPTILER_KEY=$VITE_MAPTILER_KEY
+ENV VITE_CESIUM_ION_TOKEN=$VITE_CESIUM_ION_TOKEN
+# Cesium/MapLibre bundling is memory-hungry; match the CI heap ceiling.
+ENV NODE_OPTIONS=--max-old-space-size=7168
+COPY packages/shared packages/shared
+COPY apps/web apps/web
+RUN pnpm --filter @ogden/shared build 2>/dev/null || true
+# Run `vite build` DIRECTLY (not the package `build` script) so we skip the
+# `postbuild` showcase prerender, which launches Playwright/Chromium and is not
+# installable in this slim image. The SPA is fully functional without the
+# marketing pre-render.
+RUN pnpm --filter @ogden/web exec vite build
+
+# ── Production nginx ───────────────────────────────────────────────────────
+FROM nginx:1.27-alpine AS production
+
+# Global http config (gzip, security headers, limit_req_zone=api).
+COPY infrastructure/nginx/nginx.conf /etc/nginx/nginx.conf
+
+# Site config as a template — the nginx entrypoint runs envsubst at start,
+# substituting ONLY ${PORT} (Render-injected), and writes the result to
+# /etc/nginx/conf.d/default.conf (overwriting the image's stock default).
+COPY infrastructure/nginx/render-default.conf.template /etc/nginx/templates/default.conf.template
+ENV NGINX_ENVSUBST_FILTER=PORT
+
+# Bake the built SPA in — no shared volume on Render.
+COPY --from=build /app/apps/web/dist /usr/share/nginx/html
+
+# Render injects PORT (default 10000); EXPOSE is documentation only.
+EXPOSE 10000

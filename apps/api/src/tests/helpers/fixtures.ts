@@ -24,6 +24,41 @@ export function userRow(overrides?: Record<string, unknown>) {
     id: TEST_USER_ID,
     email: TEST_EMAIL,
     display_name: 'Test User',
+    email_verified: true,
+    ...overrides,
+  };
+}
+
+export const TEST_TOKEN_ID = 'e0000000-0000-0000-0000-000000000001';
+
+/**
+ * Email-verification token row — shape matches the JOIN SELECT in
+ * /verify-email/confirm (token_id, user_id, expires_at, used_at, email,
+ * display_name). `expires_at` is a future Date by default; pass overrides for
+ * the expired / already-used cases.
+ */
+export function verificationTokenRow(overrides?: Record<string, unknown>) {
+  return {
+    token_id: TEST_TOKEN_ID,
+    user_id: TEST_USER_ID,
+    expires_at: new Date(Date.now() + 60 * 60 * 1000),
+    used_at: null,
+    email: TEST_EMAIL,
+    display_name: 'Test User',
+    ...overrides,
+  };
+}
+
+/**
+ * Password-reset token row — shape matches the SELECT in /reset-password
+ * (token_id, user_id, expires_at, used_at).
+ */
+export function resetTokenRow(overrides?: Record<string, unknown>) {
+  return {
+    token_id: TEST_TOKEN_ID,
+    user_id: TEST_USER_ID,
+    expires_at: new Date(Date.now() + 60 * 60 * 1000),
+    used_at: null,
     ...overrides,
   };
 }

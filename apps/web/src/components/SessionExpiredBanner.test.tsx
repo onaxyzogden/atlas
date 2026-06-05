@@ -12,7 +12,7 @@ describe('SessionExpiredBanner', () => {
     useSessionExpiredStore.setState({ isExpired: false });
     useAuthStore.setState({
       token: 'tok',
-      user: { id: 'u', email: 'a@b', displayName: null, defaultOrgId: 'org-1' },
+      user: { id: 'u', email: 'a@b', displayName: null, defaultOrgId: 'org-1', emailVerified: true },
       error: null,
     });
   });
