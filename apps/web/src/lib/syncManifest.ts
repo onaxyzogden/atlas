@@ -121,6 +121,7 @@ import { useActEvidenceStore } from '../store/actEvidenceStore.js';
 import { useReviewFlagStore } from '../store/reviewFlagStore.js';
 import { useProtocolStore } from '../store/protocolStore.js';
 import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
+import { useHabitatFeatureStore } from '../store/habitatFeatureStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -796,6 +797,7 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   blob('ogden-agribusiness', useAgribusinessStore, 'projectId-tagged', 2, agribusinessSelect, true),
   blob('ogden-monitoring-transects', useMonitoringTransectStore, 'projectId-tagged', 1, tagged('transects'), true),
   blob('ogden-ecological-notes', useEcologicalNoteStore, 'projectId-tagged', 1, tagged('notes'), true),
+  blob('ogden-habitat-features', useHabitatFeatureStore, 'projectId-tagged', 1, tagged('features'), true),
   blob('ogden-act-community-events', useCommunityEventStore, 'projectId-tagged', 1, tagged('events')),
   blob('ogden-comments', useCommentStore, 'projectId-tagged', 2, tagged('comments')),
   blob('ogden-act-maintenance', useMaintenanceStore, 'projectId-tagged', 1, tagged('tasks')),

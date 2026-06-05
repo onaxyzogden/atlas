@@ -11,9 +11,10 @@
     "preview": "vite preview",
     "lint": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
     "typecheck": "node --max-old-space-size=8192 ../../node_modules/typescript/bin/tsc --noEmit",
-    "test": "vitest run",
+    "check:react-resolution": "node scripts/check-react-resolution.mjs",
+    "test": "node scripts/check-react-resolution.mjs && vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "node scripts/check-react-resolution.mjs && vitest run --coverage",
     "gen:models": "node scripts/gen-generic-box-glb.mjs && node scripts/gen-structure-glbs.mjs && node scripts/gen-vegetation-glbs.mjs && node scripts/gen-earthworks-glbs.mjs",
     "anti-gis:snapshot": "tsx scripts/anti-gis-snapshot.ts"
   },

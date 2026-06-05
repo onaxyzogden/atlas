@@ -1,16 +1,16 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { createRequire } from 'node:module';
-import { dirname } from 'node:path';
 
-// Resolve the single hoisted react/react-dom copy via Node's resolver instead
-// of a hard-coded `../../node_modules` path. The relative path is correct in
-// the main tree but breaks in a git worktree (no local node_modules), which
-// silently collapses the whole suite to "0 tests".
-const req = createRequire(import.meta.url);
-const reactDir = dirname(req.resolve('react/package.json'));
-const reactDomDir = dirname(req.resolve('react-dom/package.json'));
+// Resolve the single hoisted react/react-dom via Node's directory walk
+// (anchored at apps/web) instead of a fixed `../../node_modules` path. The
+// walk finds `<repo>/node_modules/react` from both the main tree AND any
+// git worktree (worktrees live inside the repo but have no own node_modules),
+// so the dedupe pin below works everywhere without a per-worktree install.
+const requireFromWeb = createRequire(__dirname + '/');
+const reactDir = dirname(requireFromWeb.resolve('react/package.json'));
+const reactDomDir = dirname(requireFromWeb.resolve('react-dom/package.json'));
 
 export default defineConfig({
   plugins: [react()],
@@ -49,6 +49,8 @@ export default defineConfig({
     alias: {
       // Pin react/react-dom to the single hoisted copy (Vite matches `react`
       // exactly and `react/*`, but not `react-dom`, so jsx-runtime still works).
+      // Paths resolved above via Node module resolution so they hold in any
+      // git worktree, not just the main tree.
       react: reactDir,
       'react-dom': reactDomDir,
       // More-specific subpath aliases MUST come first — Vite tests prefix match in order.
