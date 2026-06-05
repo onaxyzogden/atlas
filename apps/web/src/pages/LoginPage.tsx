@@ -128,6 +128,16 @@ export default function LoginPage() {
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               minLength={mode === 'register' ? 8 : 1}
             />
+            {mode === 'login' && (
+              <button
+                type="button"
+                className={styles.hintLink}
+                style={{ alignSelf: 'flex-end', fontSize: 12 }}
+                onClick={() => navigate({ to: '/forgot-password' })}
+              >
+                Forgot password?
+              </button>
+            )}
           </div>
 
           {error && (

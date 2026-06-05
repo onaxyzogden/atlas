@@ -11,7 +11,7 @@ describe('sessionExpiredStore', () => {
     useSessionExpiredStore.setState({ isExpired: false });
     useAuthStore.setState({
       token: 'fake-token',
-      user: { id: 'u1', email: 'u@x', displayName: null, defaultOrgId: 'org-1' },
+      user: { id: 'u1', email: 'u@x', displayName: null, defaultOrgId: 'org-1', emailVerified: true },
       error: null,
     });
     setAuthToken('fake-token');

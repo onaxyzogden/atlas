@@ -103,7 +103,7 @@ beforeEach(() => {
     isLoading: false,
   });
   useAuthStore.setState({
-    user: { id: 'u-owner', email: 'o@x.co', displayName: 'Owner', defaultOrgId: 'org-1' },
+    user: { id: 'u-owner', email: 'o@x.co', displayName: 'Owner', defaultOrgId: 'org-1', emailVerified: true },
   });
 });
 
@@ -135,7 +135,7 @@ describe('ActFeedbackLoop - assignment', () => {
 
   it('a viewer sees no assignee picker', () => {
     useAuthStore.setState({
-      user: { id: 'u-viewer', email: 'v@x.co', displayName: 'V', defaultOrgId: 'org-1' },
+      user: { id: 'u-viewer', email: 'v@x.co', displayName: 'V', defaultOrgId: 'org-1', emailVerified: true },
     });
     useMemberStore.setState((s) => ({
       members: [...s.members, member('u-viewer', 'viewer', 'V')],
