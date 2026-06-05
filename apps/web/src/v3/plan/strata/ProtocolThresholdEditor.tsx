@@ -1,19 +1,24 @@
-// ActProtocolThresholdEditor — the Act tier-shell affordance for adjusting the
-// threshold parameters embedded in ONE standing protocol's trigger condition.
+// ProtocolThresholdEditor — the Plan-stage affordance for adjusting the threshold
+// parameters embedded in ONE standing protocol's trigger condition.
 //
 // A protocol condition is free-text prose carrying bracketed `[token]`
 // placeholders (e.g. "IF stored water falls below [reserve threshold]"). Those
 // tokens are the adjustable thresholds, but the legacy `buildProtocolOutputs`
 // path only fills the 5 S6 parameterGroup tokens, which never appear in the
-// resolved per-type catalogues the Act surface renders — so every Act condition
+// resolved per-type catalogues the protocol surfaces render — so every condition
 // shows a verbatim bracket with no way to set the steward's bound.
 //
-// This editor closes that gap with a per-(project, template, token) override:
-// it extracts every distinct `[token]` from the protocol's condition (via the
-// same pure `renderConditionSegments` split the card uses) and renders one input
-// per token, persisting each keystroke to `planStratumStore` so the displayed
-// IF/THEN (rendered through `useProtocolLibrary.outputsFor`) updates live. Reset
-// drops the template's overrides, returning every token to its verbatim bracket.
+// Plan is where a steward DESIGNS standing protocols, so this editor lives on the
+// Plan protocol detail surface (under each selected protocol's card in
+// ProtocolDetailColumn). It closes the gap with a per-(project, template, token)
+// override: it extracts every distinct `[token]` from the protocol's condition
+// (via the same pure `renderConditionSegments` split the card uses) and renders
+// one input per token, persisting each keystroke to `planStratumStore` so the
+// displayed IF/THEN (rendered through `useProtocolLibrary.outputsFor`) updates
+// live. Reset drops the template's overrides, returning every token to its
+// verbatim bracket. The values the steward sets here also render (read-only) in
+// the Act detail pane during execution, since the override slice is per-project
+// and shared across stages.
 //
 // NO FABRICATION: the stored value is exactly what the steward typed; a blank
 // field is omitted downstream by `buildProtocolOutputs`, so the bracket renders
@@ -24,9 +29,9 @@
 
 import { useMemo } from 'react';
 import type { StandardProtocolTemplate } from '@ogden/shared';
-import { renderConditionSegments } from '../../plan/spine/autoFill.js';
+import { renderConditionSegments } from '../spine/autoFill.js';
 import { usePlanStratumProgressStore } from '../../../store/planStratumStore.js';
-import { C, F, CA } from '../../plan/spine/tokens.js';
+import { C, F, CA } from '../spine/tokens.js';
 
 interface Props {
   projectId: string;
@@ -51,7 +56,7 @@ export function extractConditionTokens(condition: string): string[] {
   return tokens;
 }
 
-export default function ActProtocolThresholdEditor({ projectId, template }: Props) {
+export default function ProtocolThresholdEditor({ projectId, template }: Props) {
   const tokens = useMemo(
     () => extractConditionTokens(template.condition),
     [template.condition],
@@ -77,7 +82,7 @@ export default function ActProtocolThresholdEditor({ projectId, template }: Prop
 
   return (
     <section
-      data-testid="act-threshold-editor"
+      data-testid="protocol-threshold-editor"
       aria-label={`Adjust thresholds for ${template.name}`}
       style={{
         margin: '12px 0 4px',
@@ -112,7 +117,7 @@ export default function ActProtocolThresholdEditor({ projectId, template }: Prop
         {hasAnyValue && (
           <button
             type="button"
-            data-testid="act-threshold-reset"
+            data-testid="protocol-threshold-reset"
             onClick={() => clearProtocolTokenOverrides(projectId, template.id)}
             style={{
               background: 'transparent',
@@ -135,7 +140,7 @@ export default function ActProtocolThresholdEditor({ projectId, template }: Prop
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {tokens.map((token) => {
           const currentValue = overrides?.[token] ?? '';
-          const inputId = `act-threshold-${template.id}-${token}`;
+          const inputId = `protocol-threshold-${template.id}-${token}`;
           return (
             <div
               key={token}
@@ -168,7 +173,7 @@ export default function ActProtocolThresholdEditor({ projectId, template }: Prop
                   )
                 }
                 aria-label={`[${token}]`}
-                data-testid={`act-threshold-input-${token}`}
+                data-testid={`protocol-threshold-input-${token}`}
                 style={{
                   minWidth: 0,
                   height: 34,

@@ -1015,9 +1015,10 @@ export default function PlanStratumShell() {
       >
         {planMode === 'protocol' ? (
           <ProtocolDetailColumn
+            projectId={projectId}
             selectedTemplates={selectedTemplates}
             statusByTemplate={protocolLib.statusByTemplate}
-            outputs={protocolLib.outputs}
+            outputsFor={protocolLib.outputsFor}
           />
         ) : hasDetailPanel && activeObjective && activeStratum ? (
           <ObjectiveDetailPanel

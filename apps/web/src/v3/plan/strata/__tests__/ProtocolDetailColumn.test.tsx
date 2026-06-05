@@ -25,9 +25,10 @@ describe('ProtocolDetailColumn', () => {
   it('shows the empty state when nothing is selected', () => {
     render(
       <ProtocolDetailColumn
+        projectId="proj-detail-column"
         selectedTemplates={[]}
         statusByTemplate={{}}
-        outputs={{}}
+        outputsFor={() => ({})}
       />,
     );
     expect(screen.getByTestId('protocol-detail-empty')).toBeTruthy();
@@ -37,9 +38,10 @@ describe('ProtocolDetailColumn', () => {
   it('renders one card for a single selected template', () => {
     render(
       <ProtocolDetailColumn
+        projectId="proj-detail-column"
         selectedTemplates={[TEMPLATES[0]!]}
         statusByTemplate={{}}
-        outputs={{}}
+        outputsFor={() => ({})}
       />,
     );
     const cards = screen.getAllByTestId('protocol-template-card');
@@ -52,9 +54,10 @@ describe('ProtocolDetailColumn', () => {
     const picked = [TEMPLATES[0]!, TEMPLATES[1]!];
     render(
       <ProtocolDetailColumn
+        projectId="proj-detail-column"
         selectedTemplates={picked}
         statusByTemplate={{}}
-        outputs={{}}
+        outputsFor={() => ({})}
       />,
     );
     const cards = screen.getAllByTestId('protocol-template-card');

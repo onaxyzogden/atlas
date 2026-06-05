@@ -19,7 +19,6 @@ import '../../plan/spine/spine-theme.css';
 import ProtocolLibraryCard from '../../plan/strata/ProtocolLibraryCard.js';
 import { useProtocolLibrary } from '../../plan/strata/useProtocolLibrary.js';
 import { useProtocolStore } from '../../../store/protocolStore.js';
-import ActProtocolThresholdEditor from './ActProtocolThresholdEditor.js';
 
 interface Props {
   projectId: string;
@@ -121,16 +120,16 @@ export default function ActProtocolDetailPane({
       </div>
 
       <div style={{ padding: '16px 22px' }}>
+        {/* Card renders the IF/THEN with the steward's Plan-configured threshold
+            values substituted in (read-only here — thresholds are edited on the
+            Plan protocol detail surface, shared via the per-project override
+            slice that `outputsFor` merges). */}
         <ProtocolLibraryCard
           template={template}
           status={status}
           outputs={outputsFor(template.id)}
           emphasis="normal"
         />
-
-        {/* Threshold editor — adjust the protocol's `[token]` condition
-            thresholds (per-protocol, live-substituting into the card above). */}
-        <ActProtocolThresholdEditor projectId={projectId} template={template} />
 
         {/* Activation controls — wired straight to protocolStore (mirrors the
             §10.1 ProtocolApprovalOverlay handlers). */}
