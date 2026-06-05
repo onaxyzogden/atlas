@@ -43,7 +43,7 @@ export default function ActTierWeatherPanel({ project, onBack }: Props) {
         </button>
       </div>
       <div className={styles.body}>
-        <WeatherForecastCard project={project} onSwitchToMap={noop} />
+        <WeatherForecastCard project={project} onSwitchToMap={noop} railLayout />
       </div>
     </div>
   );

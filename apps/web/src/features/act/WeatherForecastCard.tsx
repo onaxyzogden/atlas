@@ -12,6 +12,11 @@
  * Empty/error states (loading / no-parcel / fallback) render in place of the
  * content blocks but keep the hero visible so the user knows what they're
  * looking at.
+ *
+ * `railLayout` (right-rail drill-down via ActTierWeatherPanel): drops the hero
+ * header — the panel provides its own "Dashboard" back-header — and floats the
+ * Farm signals section to the very top, above Current conditions. Default
+ * `false` preserves the full layout for the legacy ActModuleSlideUp mount.
  */
 
 import { useMemo } from 'react';
@@ -22,7 +27,15 @@ import { weatherCodeMeta, type ForecastDay, type ForecastHour } from '../../lib/
 import shared from '../../v3/_shared/stageCard/stageCard.module.css';
 import css from './WeatherForecastCard.module.css';
 
-interface Props { project: LocalProject; onSwitchToMap: () => void; }
+interface Props {
+  project: LocalProject;
+  onSwitchToMap: () => void;
+  /** Right-rail drill-down layout (ActTierWeatherPanel): drop the hero header
+   *  (the panel supplies its own "Dashboard" back-header) and float the Farm
+   *  signals section to the very top. Default `false` keeps the full layout for
+   *  the legacy ActModuleSlideUp mount. */
+  railLayout?: boolean;
+}
 
 interface FarmSignal {
   kind: 'frost' | 'rain' | 'spray' | 'heat';
@@ -159,7 +172,7 @@ function dailyBarRange(daily: ForecastDay[]): { min: number; max: number } {
   return { min, max };
 }
 
-export default function WeatherForecastCard({ project }: Props) {
+export default function WeatherForecastCard({ project, railLayout = false }: Props) {
   const { data, status } = useForecast(project.id);
 
   const next24 = useMemo(() => (data ? nextTwentyFourHours(data.hourly) : []), [data]);
@@ -172,16 +185,29 @@ export default function WeatherForecastCard({ project }: Props) {
     [data],
   );
 
+  const signalsSection = signals.length > 0 ? (
+    <section className={shared.section}>
+      <h2 className={shared.sectionTitle}>Farm signals</h2>
+      <div className={css.signalRow}>
+        {signals.map((s) => (
+          <SignalChip key={`${s.kind}-${s.label}`} signal={s} />
+        ))}
+      </div>
+    </section>
+  ) : null;
+
   return (
     <div className={shared.page}>
-      <header className={shared.hero} data-stage="act">
-        <span className={shared.heroTag}>Schedule · weather</span>
-        <h1 className={shared.title}>Weather forecast</h1>
-        <p className={shared.lede}>
-          Seven-day Open-Meteo forecast for {project.name}'s parcel centroid.
-          Hourly rainfall, wind, and frost signals to time field work.
-        </p>
-      </header>
+      {!railLayout && (
+        <header className={shared.hero} data-stage="act">
+          <span className={shared.heroTag}>Schedule · weather</span>
+          <h1 className={shared.title}>Weather forecast</h1>
+          <p className={shared.lede}>
+            Seven-day Open-Meteo forecast for {project.name}'s parcel centroid.
+            Hourly rainfall, wind, and frost signals to time field work.
+          </p>
+        </header>
+      )}
 
       {status === 'no-parcel' && (
         <section className={shared.section}>
@@ -210,6 +236,8 @@ export default function WeatherForecastCard({ project }: Props) {
 
       {status === 'live' && data && (
         <>
+          {railLayout && signalsSection}
+
           {data.current && (
             <section className={shared.section}>
               <h2 className={shared.sectionTitle}>Current conditions</h2>
@@ -239,16 +267,7 @@ export default function WeatherForecastCard({ project }: Props) {
             </section>
           )}
 
-          {signals.length > 0 && (
-            <section className={shared.section}>
-              <h2 className={shared.sectionTitle}>Farm signals</h2>
-              <div className={css.signalRow}>
-                {signals.map((s) => (
-                  <SignalChip key={`${s.kind}-${s.label}`} signal={s} />
-                ))}
-              </div>
-            </section>
-          )}
+          {!railLayout && signalsSection}
 
           <p className={css.attribution}>
             {data.source} · updated {formatRelativeFetchedAt(data.fetchedAt)}
