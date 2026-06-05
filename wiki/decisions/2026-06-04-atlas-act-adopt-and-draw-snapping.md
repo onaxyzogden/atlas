@@ -115,3 +115,35 @@ with foreign WIP, left untouched). Messages BOM-free UTF-8 via
 `Co-Authored-By: Claude Opus 4.8`. Branch fetched + divergence-checked (0 behind / ahead),
 **not pushed** ([[project-branch-rebase]]). Commit-on-verify
 ([[feedback-commit-immediately-on-rebased-branches]]).
+
+## Follow-up (2026-06-04): snap rolled out to all Plan line/polygon tools
+
+The Decision's closing note ("other line/polygon tools can opt in by passing the same two
+props") was acted on the same day. Commit `aecc6322` (`feat/atlas-permaculture`, **not
+pushed**) extends the opt-in `snap` + `getSnapTargets` wiring -- reusing the **same**
+shared `usePlanSnapTargets` source -- to every remaining Plan line/polygon draw path:
+
+- **8 dedicated tools:** FlowConnector, MonitoringTransect, PathLine, UtilityRun,
+  WaterSwale (lines); WaterCatchment, ZonePolygon, CropArea (polygons). Each gains a
+  `parcelBoundary?` prop, calls `usePlanSnapTargets`, and passes `snap: true` +
+  `getSnapTargets` into its existing `useMapboxDrawTool`; `PlanDrawHost` threads
+  `parcelBoundary` into each switch case.
+- **Design-element host path:** `useDesignElementDrawTool` now forwards optional
+  `snap` / `getSnapTargets` into its inner `useMapboxDrawTool` (pure pass-through, inert
+  for `draw_point` kinds); `PlanDesignElementHost` supplies `snap: true` +
+  `usePlanSnapTargets`. Covers all line/polygon element kinds in one place.
+- **Plan BE proposed-structures:** `BeV2ExistingTool` (shared observe-layer component)
+  gains optional `snap` / `getSnapTargets` props **driven from the host** -- `PlanDrawHost`
+  calls `usePlanSnapTargets` once near the top (before its early return, per rules of
+  hooks) and passes it into the `PLAN_BE_PREFIX` branch. `ObserveDrawHost` passes neither,
+  so Observe stays snap-off and no observe->plan import is introduced.
+
+Point tools never snap (no snap mode for `draw_point`); Observe/Act behaviour unchanged;
+default `snap=false` keeps every untouched caller byte-for-byte identical. No store/schema
+change, no new dependency, no deletion. **Verification:** `tsc --noEmit` EXIT=0; bounded
+vitest `snapDrawPoint` (5) + `actToolCoverage` (17) green; all 5 edited/related modules
+resolve + load in the live Vite bundle and the snap modes export as expected
+(`/@fs/` import proof -- `preview_screenshot` hangs on the WebGL map,
+[[project-screenshot-hang]]); live snap-mode engagement already proven on the identical
+shared hook in `9728c923`. One explicit-path commit (12 files), foreign WIP left untouched,
+**not pushed**.

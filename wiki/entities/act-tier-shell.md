@@ -33,6 +33,11 @@ show-everything tool strip with an objective-conditional, categorized rail
   vertical **dots navigator** (2026-05-31): an `IntersectionObserver` tracks the
   framed category and lights the matching dot; clicking a dot `scrollIntoView`s
   its category; native scrollbar hidden. Dots render only when >1 category.
+  **Category header row removed (2026-06-05):** the per-category collapsible
+  header (chevron + label + count badge) was dropped for all categories; the
+  tool grid renders unconditionally and tiles are unchanged. Collapse state +
+  toggle and the chevron imports are gone. Catalog `category.label`s remain
+  (still used for dots aria-labels). Commit `5f81657e` (not pushed).
 - `ActTierExecutionPanel.tsx` — RIGHT-rail objective-execution detail (header,
   % ready, checklist, Evidence, activity, record). Checklist items are bordered
   cards matching the Evidence cards (2026-05-31). The Evidence section is
@@ -183,6 +188,40 @@ by writing through the shared stores (one source of truth) and keeping
 `PlanDataLayers editable={false}` (add-only, no editing of Plan decisions). See
 [[decisions/2026-05-31-atlas-act-objective-tool-rail]].
 
+### Adopt-from-map on read-existing objectives + draw snap-to-line/vertex (2026-06-04)
+
+See [[decisions/2026-06-04-atlas-act-adopt-and-draw-snapping]] (commits `9d0ddae2`,
+`9728c923`, not pushed).
+
+- **Adopt-from-map (data-wiring only).** Because `ObserveDrawHost` is already mounted
+  here and both adopt `MapToolId`s dispatch in its switch, restoring adopt-from-map into
+  Act needed no new component: two catalogue entries (`adopt-building` arming
+  `observe.built-environment.adopt-basemap`; `adopt-water` arming
+  `observe.earth-water-ecology.adopt-water`) + the ids wired as the FIRST tool of the
+  read-existing objectives (9 building-reading + 15 water-reading across all 12 land
+  types' S2/S3) in `objectiveActTools.ts`. Adopt is a reading activity -> NOT on S4/S5
+  design objectives. Guarded green by `actToolCoverage.test.ts`.
+- **Draw snap-to-line/vertex.** `snapPoint.ts` gains an additive `snapDrawPoint`
+  (vertices beat edges within the 8 px radius; legacy `snapPoint` untouched). New
+  `observe/components/draw/snapDrawModes.ts` wraps stock line/polygon MapboxDraw modes and
+  rewrites `e.lngLat` on click/tap/mouse-move (mirrors the `clickDeleteDirectSelect`
+  custom-mode precedent). `useMapboxDrawTool` gains opt-in `snap?`/`getSnapTargets?`
+  (default false = unchanged; `draw_point` never snaps). New `usePlanSnapTargets`
+  assembles targets from livestock fences+paddocks, BE footprints+lines, and the parcel
+  boundary. `FenceLineTool`/`PaddockTool` enable it; `PlanDrawHost` threads
+  `parcelBoundary`. Other line/polygon tools opt in via the same two props.
+  **Rolled out same day (commit `aecc6322`, not pushed):** the opt-in now covers every
+  remaining Plan line/polygon path — the 8 dedicated tools (FlowConnector, MonitoringTransect,
+  PathLine, UtilityRun, WaterSwale, WaterCatchment, ZonePolygon, CropArea), the design-element
+  host (`useDesignElementDrawTool`/`PlanDesignElementHost`), and Plan BE proposed structures
+  (`BeV2ExistingTool`, snap driven from `PlanDrawHost` so Observe stays snap-off) — all reusing
+  the same shared `usePlanSnapTargets`.
+  **Deduped (commit `72aa79ed`, not pushed):** the 10 dedicated/livestock tools no longer call
+  `usePlanSnapTargets` themselves or take `parcelBoundary` — they consume a `getSnapTargets`
+  prop supplied by `PlanDrawHost`'s single instance (the same one driving the Plan-BE branch),
+  collapsing 10 duplicate hook calls into one. `PlanDesignElementHost` keeps its own call (it
+  still needs `parcelBoundary` for placement validation).
+
 ## API / arming flow
 
 1. User selects an objective (LEFT rail) -> URL `.../tier-shell/<objectiveId>`.
@@ -320,6 +359,357 @@ objectives -- 2026-06-02).
 ADR: [[decisions/2026-05-31-atlas-act-protocol-rail-plan-header]].
 Log: [[log/2026-05-31-act-protocol-rail-plan-header]].
 
+### Protocols rail: stratum scope + clickable cards + right-rail detail (2026-06-04)
+
+Made the Act Protocol surface symmetric with the Objective surface (commit
+`e15e04e9`, 9 files). Three coordinated changes, all back-compat (every new
+panel/card prop is `optional` -> the Plan rail and its tests are byte-identical):
+
+- **Stratum scope.** `ProtocolLayerPanel` gained optional `activeStratumId`;
+  when set (Act only) it maps `filterProtocolGroups(groups, activeStratumId)`
+  (the pure, tested helper in `useProtocolLibrary.ts`; `ProtocolTierGroup.stratumId`
+  already populated) instead of all 7 strata, and the header "N templates /
+  N triggered" counts derive from `visibleGroups`/`visibleTemplates` so they
+  match what renders. `ActTierShell` passes `selectedStratumId` (from
+  `resolveActStratumId`, never null). Plan Protocol Mode is unchanged.
+- **Clickable cards.** `ProtocolLibraryCard` gained optional `onSelect` +
+  `selected`: when `onSelect` is set the card becomes `role="button"`,
+  `tabIndex={0}`, fires on click + Enter/Space, gets `cursor:pointer`,
+  `data-selected`, and a `C.blue` selected border; inert (no role/data-selected)
+  otherwise. `ProtocolLayerPanel` threads `onSelectProtocol`/`selectedProtocolId`
+  to each card; `ActTierObjectiveRail` threads all three from shell to panel.
+- **Right-rail detail (Q2: "card + activation controls").** New
+  `ActProtocolDetailPane.tsx` renders the FULL `ProtocolLibraryCard`
+  (`emphasis="normal"`, not collapsed -> verbatim Amanah `scopeNotes` preserved,
+  testid `protocol-amanah-caution`) plus an activation control row wired to
+  `protocolStore` (`activateProtocol`/`deactivateProtocol`/`suspendProtocol`):
+  active|triggered -> Deactivate + Suspend; suspended -> Resume + Deactivate;
+  else -> Activate. Unknown templateId -> empty state. NO store change.
+  `ActTierShell` holds `selectedProtocolId` + `handleSelectProtocol` (toggle-off
+  on re-click), a contextual right tab labelled **"Protocols"** (`ShieldCheck`,
+  `disabled={!selectedProtocolId}`) in protocols mode vs the existing "Objective"
+  tab otherwise, and two effects: clear the selection + drop detail->dashboard on
+  stratum change, and reconcile `rightMode` on rail-mode change.
+
+**Q1 (triggered visibility) needed no code.** Strict left-rail stratum scoping
+hides nothing: triggered protocols still surface in the **Dashboard tab** via the
+unchanged, project-scoped (all-strata) `TriggeredProtocolsPanel` in
+`ActOpsDashboard`. That panel correctly returns `null` when zero protocols are
+status `'triggered'` (activation != triggered) -- an empty render is expected,
+not a scoping regression.
+
+tsc clean (8GB heap); 42 bounded vitest green
+(`ProtocolLayerPanel.act`/`ProtocolLibraryCard`/`ActProtocolDetailPane`/`ActTierObjectiveRail`,
+`--pool=forks --testTimeout=20000`). Live DOM proof on a compost project's Act
+tier shell: (a) only the selected stratum heading renders (S6 -> 9 templates);
+(b) card click opens the detail pane (full card + IF body + Activate) and flips
+the right tab to "Protocols", card `data-selected`; (c) Activate flips card
+`data-protocol-status` to `active` + control to Deactivate/Suspend; (d) switching
+spine stratum to S5 cleared the selection, removed the pane, and disabled the
+right "Protocols" tab; (e) Dashboard tab mounts (Alerts/Priorities/Events).
+Commit not pushed ([[project-branch-rebase]]). ADR
+[[decisions/2026-06-04-atlas-act-protocol-stratum-scope-detail]]; Log
+[[log/2026-06-04-atlas-act-protocol-stratum-scope-clickable-detail]].
+
+## Protocols rail: URL persistence + bulk activation (2026-06-04)
+
+Closes the two items the stratum-scope/detail slice above deferred:
+selection no longer survived a reload, and protocols could only be
+activated one at a time. Operator decisions (AskUserQuestion): persist via
+**URL search params** (no new store), bulk UX = **Both** (per-card
+multi-select + one-click "Activate all in stratum"), Amanah = **include
+with confirmation**.
+
+**Feature 1 -- URL-persisted selection + mode.** `railMode` /
+`selectedProtocolId` are now **derived** from `useSearch({strict:false})`
+(`?mode=protocols&protocol=<templateId>` on `v3ActTierShellStratumRoute`),
+not session-local `useState` -- single source of truth, deep-linkable,
+mirrors `ObserveLayout`'s `?section=` pattern. `validateSearch` coerces both
+keys (`mode` -> `'protocols'|undefined`, `protocol` -> non-empty string |
+`undefined`). `rightMode` stays local (the Dashboard-tab toggle is
+ephemeral, must not pollute the URL). **Load-bearing detail:** TanStack
+`navigate` REPLACES `search`, so every nav helper now passes `search`
+explicitly -- `handleSelectProtocol` (toggle-off preserved),
+`handleRailModeChange` (replaces `setRailMode`), `goToStratum` (preserves
+`mode`, **drops** `protocol` since a selection may belong to a now-hidden
+stratum), `goToObjective` (`search:{}`). The stratum-change hygiene effect
+dropped its `setSelectedProtocolId(null)` (no setter survives).
+
+**Feature 2 -- bulk activation.** New optional `bulkActivation?` prop on the
+shared `ProtocolLayerPanel` (Act-only; Plan rail + default Act rail
+byte-identical). Select-mode state (`selectMode`/`selectedIds`/`confirmOpen`/
+`pending`) lives **locally in the panel** (drives nothing outside it). A
+header toolbar (`protocol-bulk-toolbar`, gated on `isAct && bulkActivation`)
+offers a "Select" toggle then "Activate all (N)" / "Activate selected (M)".
+Eligible set = the visible `filterProtocolGroups`-scoped group with status
+!== `'active'`. New `protocolStore.activateProtocols(projectId, ids[])`
+batch action folds the internal `upsert` over the ids in **one `set`** (one
+re-render; empty-list no-op; **no persist version bump** -- record shape
+unchanged). Threaded shell -> `ActTierObjectiveRail` (`bulkActivation?`) ->
+panel; `ActTierShell` passes `bulkActivation` (operator chose Both).
+
+**Amanah -- include with confirmation.** New presentational
+`ProtocolBulkConfirmOverlay.tsx` (reuses `ProtocolApprovalOverlay`'s
+`role="dialog"`/`aria-modal`/backdrop-cancel shell) lists every
+Amanah-flagged protocol (`scopeNotes` truthy) with its **verbatim**
+`scopeNotes` (gold, matching the card's `protocol-amanah-caution`) before
+any flagged activation -- never collapsed or reworded
+([[feedback-csa-in-catalogues]], [[fiqh-csra-erased-2026-05-04]]). Confirm
+calls `activateProtocols` then exits select-mode; Cancel activates nothing.
+
+**Verified:** web `tsc` EXIT 0 (8GB heap); bounded `--pool=forks`
+([[feedback-vitest-bounded-runs]]) 28/28 -- incl. new
+`ProtocolLayerPanel.bulk.test.tsx` (6), `ProtocolBulkConfirmOverlay.test.tsx`,
+`protocolStore.activateProtocols` unit, and the untouched Plan/Act parity
+suites. **Live DOM proof** ([[project-screenshot-hang]]) on "Three Streams
+Farm" (regenerative_farm): entering Protocols mode set `?mode=protocols`; a
+card click set `&protocol=u-s6-yield-shortfall` + `data-selected`; **hard
+reload restored both**; stratum S6->S5 dropped `protocol`, kept
+`mode=protocols`; Select -> "Activate all (5)" -> confirm overlay -> Confirm
+wrote 5 active records to `protocolStore`. Commit `2f2012a0` ("feat(act):
+persist protocol selection in URL + bulk-activate stratum"), 9 files,
++774/-33, explicit pathspec (no foreign WIP), **not pushed**
+([[project-branch-rebase]]). ADR
+[[decisions/2026-06-04-atlas-act-protocol-url-persist-bulk-activate]]; Log
+[[log/2026-06-04-atlas-act-protocol-url-persist-bulk-activate]].
+
+## Protocols rail: bulk suspend / deactivate verbs (2026-06-04)
+
+Rounds out the bulk toolbar: it was activate-only; a steward can now bulk
+**suspend** and **deactivate** the visible stratum's protocols too. Operator
+decisions (AskUserQuestion): toolbar layout = **verb selector + Apply
+all/selected** (a segmented `[Activate / Suspend / Deactivate]` toggle picks
+the action; two buttons compute N/M against that verb's eligibility);
+confirmation = **all three confirm** (every bulk action shows the overlay; the
+Amanah verbatim-`scopeNotes` block renders for **activate only**).
+
+**Store -- two batch actions.** `protocolStore.suspendProtocols(projectId,
+ids[])` and `deactivateProtocols(projectId, ids[])`, mirroring
+`activateProtocols`: one `set()` each, empty-list no-op, **no persist bump**
+(record shape unchanged). `suspendProtocols` `.map`s **existing** matching
+records to `status:'suspended'` -- never creates a record (suspending an
+unactivated protocol is a no-op, same as the singular). `deactivateProtocols`
+`.filter`s out matching records (batch of the record-removing
+`deactivateProtocol`).
+
+**Overlay -- generalized to a verb.** `ProtocolBulkConfirmOverlay` gains an
+`action?: 'activate'|'suspend'|'deactivate'` prop (**default `'activate'`** --
+existing overlay tests untouched). `ACTION_META` keys per-verb title/subtitle/
+confirm-button styling: activate green (`C.green`+`CA('green',.16)`), suspend
+amber (`C.amber`+`CA('amber',.14)`), deactivate danger (`C.red` border+text on
+`transparent` -- `CA` has no `red` triplet, so no tint). The Amanah block is
+gated `action === 'activate' && flagged.length > 0`: suspend/deactivate
+disengage a protocol (the **safe direction**) and carry no fiqh risk, so they
+correctly omit it ([[feedback-csa-in-catalogues]],
+[[fiqh-csra-erased-2026-05-04]]).
+
+**Panel -- verb selector + per-verb eligibility.** New local
+`bulkAction` state (default `'activate'`); `BULK_VERBS` drives a segmented
+toggle (`protocol-bulk-verb-activate|suspend|deactivate`, `aria-pressed`). The
+`eligibleTemplates` memo now keys on the verb: **activate** = `status !==
+'active'`; **suspend** = `status === 'active' || 'triggered'`; **deactivate**
+= `status !== undefined`. The two activate buttons were renamed/​reframed to
+`protocol-bulk-apply-all` ("Apply to all (N)") / `protocol-bulk-apply-selected`
+("Apply to selected (M)"); `onConfirm` dispatches the matching batch action by
+`bulkAction`, then exits select-mode. Plan rail + default Act rail still
+byte-identical (`bulkEnabled` gate); single-protocol detail flow untouched.
+
+**Verified:** web `tsc` EXIT 0 (8GB heap); bounded `--pool=forks`
+([[feedback-vitest-bounded-runs]]) 76/76 -- new
+`protocolStore.bulkSuspendDeactivate` (9), extended
+`ProtocolBulkConfirmOverlay` (6, incl. Amanah-absent for suspend/deactivate
+even when `flagged` non-empty) + evolved `ProtocolLayerPanel.bulk` (8, new
+testids + suspend/deactivate verb flows), plus untouched parity suites.
+**Live DOM proof** ([[project-screenshot-hang]]) on MTC S6 (8 cards): the verb
+toggle drove per-verb eligibility (Activate=8 / Suspend=0 / Deactivate=0 with
+no records), then a full **activate -> suspend -> deactivate** lifecycle --
+Apply-all activated 8, Suspend recomputed to 8 and flipped all to
+`data-protocol-status="suspended"` (overlay showed **no** Amanah), Deactivate
+removed all 8 (status back to `none`); store left net-zero. `preview_screenshot`
+hung (transient -- dead API + open modal), DOM-asserted via `preview_eval`
+instead. Commit `35275a3c` ("feat(act): bulk suspend/deactivate verbs for
+Protocols toolbar"), 6 files, +453/-67, explicit pathspec (no foreign WIP),
+**not pushed** ([[project-branch-rebase]]). ADR
+[[decisions/2026-06-04-atlas-act-protocol-bulk-suspend-deactivate]]; Log
+[[log/2026-06-04-atlas-act-protocol-bulk-suspend-deactivate]].
+
+## Protocols rail: verb keyboard radiogroup + bulk-undo toast (2026-06-05)
+
+Closes the two affordances the bulk-suspend/deactivate slice explicitly
+deferred. Operator decisions (AskUserQuestion): undo surface = **toast with an
+Undo action** (extend the shared `Toast.tsx`, which had no action support);
+verb a11y = **upgrade to canonical `role="radiogroup"`/`role="radio"`/
+`aria-checked`** (replacing `role="group"`/`aria-pressed`), with arrow-key
+roving mirroring `Tabs.tsx`.
+
+**Toast -- optional action button.** `Toast.tsx` gains
+`interface ToastAction { label; onClick }`, an `action?` on `ToastItem`, a
+trailing `action?` arg on `add(type, message, duration?, action?)` (all existing
+`toast.*` calls back-compat), and one public helper `toast.action(type, msg,
+action, duration=8000)`. The button (`data-testid="toast-action"`) renders after
+the message; it **`e.stopPropagation()`** before running `onClick` then
+`dismiss(item.id)`, so the outer click-to-dismiss never double-fires.
+`useToastStore` is exported (additive, for test reset).
+
+**Store -- one uniform reverse primitive.**
+`protocolStore.restoreProtocolRecords(projectId, affectedTemplateIds[],
+priorRecords[])` reverses any verb in a single `set`: empty-list no-op, else
+remove **every** affected id for the project then re-append `priorRecords`.
+`affectedTemplateIds` is the **full applied set** (not just ids that had a
+record), so activate-of-new records are deleted on undo; `priorRecords` (the
+pre-mutation snapshot, full shape incl. `deferredUntil`/`lastLoggedAt`) restore
+prior status / re-insert removed records. No persist bump (shape unchanged).
+
+**Panel -- radiogroup + undo wiring.** The verb group div becomes
+`role="radiogroup"` with a `verbGroupRef` + `onVerbKeyDown`; each button gets
+`role="radio"`, `data-verb={key}`, `aria-checked={active}` (was `aria-pressed`),
+roving `tabIndex={active ? 0 : -1}`. `onVerbKeyDown` mirrors `Tabs.tsx`: query
+`button[role="radio"]`, find `document.activeElement`, ArrowRight/Down
+`(idx+1)%n`, ArrowLeft/Up `(idx-1+n)%n`, Home `[0]`, End `[n-1]` (wraps),
+`Escape` exits select-mode; on match `preventDefault(); next.focus();
+setBulkAction(next.dataset.verb)`. `onConfirm` snapshots `priorRecords` (filter
+`records` by project + applied ids) **before** dispatch, then after the batch
+action fires `toast.action('success', '{Verbpast} N protocol(s)', { label:
+'Undo', onClick: () => restoreProtocolRecords(projectId, ids, priorRecords) },
+8000)`. Undo offered for all three verbs (the primitive reverses each uniformly).
+Testids/`BULK_VERBS` unchanged; Plan rail + default Act rail byte-identical.
+
+**Verified:** web `tsc` EXIT 0 (8GB heap); bounded `--pool=forks`
+([[feedback-vitest-bounded-runs]]) green -- new `Toast` action-button (3) + new
+`protocolStore.restoreProtocolRecords` (7, incl. activate-of-new->delete,
+suspend/activate-of-suspended->prior status, deactivate->full-shape re-insert,
+empty no-op, project scoping, idempotent-twice) + evolved
+`ProtocolLayerPanel.bulk` (14 -- `aria-pressed`->`aria-checked` + radiogroup
+role, 5 keyboard cases, 1 undo round-trip). **Live DOM proof**
+([[project-screenshot-hang]]) on MTC S6 (8 cards): ArrowRight moved
+focus+`aria-checked`+roving `tabIndex` Activate->Suspend and recomputed
+`Apply to all (8)`->`(0)`; Activate `Apply to all (8)` -> confirm `Activate 8`
+-> 8 records created -> toast `"Activated 8 protocols [Undo]"` -> clicked Undo ->
+all 8 deleted, `mtcAfterUndo === mtcBefore` (store net-zero). `preview_screenshot`
+skipped (transient dead-API unmount cycling), DOM-asserted via `preview_eval`
+in one IIFE. Commit `ffb82bcf` ("feat(act-protocols): keyboard radiogroup +
+bulk-undo toast"), 6 files, +435/-9, explicit pathspec (foreign `apiClient.ts`/
+`syncManifest.ts` WIP unstaged), **not pushed** ([[project-branch-rebase]]). ADR
+[[decisions/2026-06-05-atlas-act-protocol-keyboard-bulk-undo]]; Log
+[[log/2026-06-05-atlas-act-protocol-keyboard-bulk-undo]].
+
+## Protocols rail: per-protocol threshold editor (2026-06-05)
+
+> **RELOCATED TO PLAN (2026-06-05, commit `769074f2`).** On operator correction
+> ("protocols are editable in **Plan**, not ACT"), the editing UI was moved off
+> the Act detail pane to the Plan protocol-detail surface
+> (`ProtocolDetailColumn`); the editor file moved
+> `act/tier-shell/ActProtocolThresholdEditor.tsx` ->
+> `plan/strata/ProtocolThresholdEditor.tsx` and its testids `act-threshold-*` ->
+> `protocol-threshold-*`. **Act now displays the Plan-set threshold values
+> read-only** -- `ActProtocolDetailPane` keeps `outputs={outputsFor(template.id)}`
+> on its card but no longer mounts the editor. The store slice (v6),
+> `outputsFor` merge, and `extractConditionTokens` are stage-agnostic and
+> unchanged. ADR
+> [[decisions/2026-06-05-atlas-protocol-threshold-editor-plan-relocation]]; Log
+> [[log/2026-06-05-atlas-protocol-threshold-editor-plan-relocation]]. The
+> description below documents the original (Act) build for history -- read it for
+> the store/hook/editor internals, which still hold; only the **mount surface**
+> moved to Plan.
+
+> **Plan protocol list: select/deselect-all toggle (2026-06-05, commit
+> `6cb15db6`).** The Plan Protocol-mode center list (`ProtocolColumn`, the
+> multi-select that drives the `ProtocolDetailColumn` stack) gained a single
+> **"Select all" / "Deselect all"** toggle in its header
+> (`protocol-select-all-toggle`, `aria-pressed`), mirroring the Act rail's "Apply
+> to all" but with no confirmation overlay (selection is non-destructive). It
+> selects or clears every visible (stratum-scoped) protocol in one click and is
+> hidden in the empty state. UI-only: `ProtocolColumn` gains an optional
+> `onToggleAll` prop + a locally-computed `allSelected`; `PlanStratumShell`
+> derives `visibleProtocolIds` + a functional-updater `toggleAllProtocols`. No
+> store/persist change. Log
+> [[log/2026-06-05-atlas-plan-protocol-select-all]] (no ADR).
+
+A standing protocol's trigger condition is free-text prose carrying bracketed
+`[token]` placeholders (e.g. `[reserve threshold]` in "IF stored water falls
+below [reserve threshold]"). Those tokens ARE the adjustable thresholds, but the
+Act surface had **no UI to set them**: `useProtocolLibrary` derived its
+substitution `outputs` solely from the legacy **S6 `s6-yield-flows`
+parameterGroup**, whose 5 tokens (`approved threshold`, `approved day limit`,
+`approved recovery target`, `configured window`, `emergency threshold`) **never
+intersect** the ~32 distinct tokens in the resolved per-type Act catalogues
+(`resolveProjectProtocols` -> `universal.ts` + per-type files). So every Act
+condition rendered a verbatim, uneditable bracket. (Widening the parameterGroup
+is blocked anyway -- `protocolOutputs.test.ts` has an orphan guard requiring
+every S6 param be used by a *legacy* template.) Triggering is manual (no eval
+engine; `autoFill.ts` only string-splits), so "adjust the parameters that
+trigger" means editing the **value substituted into the human-read condition**,
+not building a comparison engine.
+
+Operator decisions (AskUserQuestion): value scope = **per-protocol** (override
+keyed `(projectId, templateId, token)` so a shared token name holds a distinct
+value on each protocol); coverage = **full now** (a small additive persisted
+override slice so ANY `[token]` in ANY active protocol's condition is editable);
+edit UX = **inline live-persist** section in the Act protocol detail pane.
+
+**Store -- additive override slice (v5->v6).** `planStratumStore` gains
+`protocolTokenOverridesByProject: Record<projectId, Record<templateId,
+Record<token, string>>>` (with a frozen `EMPTY_TOKEN_OVERRIDES`), two actions
+`setProtocolTokenOverride(projectId, templateId, token, value)` /
+`clearProtocolTokenOverrides(projectId, templateId)`, and a stable
+`selectProjectProtocolOverrides(state, projectId)` selector (frozen-empty when
+absent). Migration bumps `version: 5 -> 6` with an additive backfill (`?? {}`),
+mirroring the v4->v5 `valuesByProject` step; `partialize` + `cloneForProject`
+extended. `discardObjectivesProgress` is objective-keyed and does NOT clear the
+template-keyed slice -- inert leftovers on project-type change are acceptable for
+v1 (documented in code).
+
+**Hook -- per-template merge.** `useProtocolLibrary` selects the project's
+override map with the stable selector and returns a memoised
+`outputsFor(templateId) = { ...outputs, ...(overrides[templateId] ?? {}) }`
+(memo deps `[outputs, protocolOverrides]`). The base `outputs` return is kept
+for back-compat; templates with no overrides return the **identical base ref**,
+so Plan-mode columns (still on base `outputs`) are byte-unaffected.
+
+**Editor + wiring.** New `ActProtocolThresholdEditor.tsx` (props
+`{ projectId, template }`) exports a pure `extractConditionTokens(condition)`
+(deduped, first-seen order via `renderConditionSegments(condition, {})`),
+returns `null` when the condition has no tokens, else renders one text input per
+distinct token (`act-threshold-input-${token}`, label/placeholder = `[${token}]`,
+gold filled border, per-keystroke `setProtocolTokenOverride`) under an "Adjust
+thresholds" header with a conditional `Reset` (`act-threshold-reset`, shown only
+when a value exists -> `clearProtocolTokenOverrides`) and a per-protocol scope
+footer hint. It subscribes inline via `s.protocolTokenOverridesByProject[pid]
+?.[tid]` (indexes, never derives -> no Zustand v5 loop).
+`ActProtocolDetailPane` destructures `outputsFor` and renders
+`<ProtocolLibraryCard outputs={outputsFor(template.id)} />` so the IF/THEN
+substitutes live, mounting the editor between the card and the activation-control
+row. `ProtocolLayerPanel` list cards likewise use `outputsFor(t.id)`.
+
+**Amanah.** Editing a numeric/interval threshold is the steward setting their
+own approved operating bound -- no riba/gharar/`bay' ma laysa 'indak` surface.
+The verbatim `scopeNotes` block stays rendered by `ProtocolLibraryCard`, outside
+this editor; no catalogue/schema/`buildProtocolOutputs` change (orphan guard
+intact).
+
+**Verified:** web `tsc` EXIT 0 (8GB heap; caught + fixed a real
+`template.title`->`template.name`); bounded `--pool=forks`
+([[feedback-vitest-bounded-runs]]) 19/19 -- new
+`planStratumStore.protocolOverrides` (12: set/clear round-trip, per-(project,
+template) isolation, empty-string verbatim, clear no-op same-ref, stable
+frozen-empty selector, no-touch-other-slices, clone deep-copy, v5->v6 migration
+backfill+preserve, v5-blob rehydrate) + `ActProtocolThresholdEditor` (7, via the
+FULL `ActProtocolDetailPane`: 3 `extractConditionTokens` units, one-input-per-
+token, no-editor-for-no-token, typing writes override + card substitutes live,
+Reset clears + card returns to bracket + reset control hides). **Live DOM proof**
+([[project-screenshot-hang]]) on MTC S5 `u-s5-water-store-low`: selecting the
+card mounted the editor; typing "20% of capacity" into
+`act-threshold-input-reserve threshold` substituted live into the card IF
+("stored water falls below 20% of capacity", gold) -- **screenshot confirmed**;
+Reset returned the verbatim `[reserve threshold]` and hid the control; store left
+net-zero. The no-token protocol `u-s3-flow-anomaly-reassess` mounted the pane but
+NO editor (correct). Commit `b79f8f50` ("feat(act): per-protocol threshold editor
+for Act-stage standing protocols"), 7 files, +759/-7, explicit pathspec (foreign
+`ActOpsDashboard`/`ActTierShell`/`ActTierWeatherPanel*`/`_tsc_review.txt`/wiki WIP
+unstaged), **not pushed** ([[project-branch-rebase]]). ADR
+[[decisions/2026-06-05-atlas-act-protocol-threshold-editor]]; Log
+[[log/2026-06-05-atlas-act-protocol-threshold-editor]].
+
 ## As-built deviation capture (2026-06-01)
 
 The tier shell now hosts the **Act side** of the closed-loop as-built deviation
@@ -410,6 +800,33 @@ existing features, it does not author geometry. No new component, no
 `MapToolbar` prop change, no CSS (`.dock` floats it bottom-left). Log:
 [[log/2026-06-04-atlas-act-floating-maptoolbar-restored]].
 
+## Floating PDF-export toolbar restored (2026-06-05)
+
+The Act tier-shell map now also carries the **floating "Export sheet" pill** --
+the Plan-stage `MapSheetExportControl` mounted verbatim (`a5c7da3f`). It opens a
+4-type picker (Master Plan / Base Map / Zone Map / Planting Plan), captures the
+live MapLibre canvas via `captureMapImage`, POSTs through `api.exports.generate`,
+and surfaces a "Download PDF" link -- identical to the Plan design canvas. No
+map-config change was needed: `DiagnoseMap` already sets
+`preserveDrawingBuffer: true` (what `captureMapImage` requires) and exposes the
+live `map` in its `{({ map }) => ...}` closure.
+
+Mount: one import + `<MapSheetExportControl map={map} projectId={id}
+anchor="top-right" />` as a sibling of `MapToolbar` inside the `DiagnoseMap`
+closure. The only shared-component change is an additive `anchor` prop
+(`"top-left" | "top-right"`, default `"top-left"`) that swaps the floating
+container's horizontal offset/alignment -- Act anchors **top-right** to clear the
+top-left `BaseMapCard` (bottom corners hold `MapToolbar` bottom-left and the
+`SectorCompass` overlay bottom-right). The default preserves Plan/DesignPage
+behavior exactly.
+
+**Known limitation (not a regression):** `api.exports.generate` requires a real
+server project UUID. The `mtc` seed-only demo project has **no `serverId`**, so
+generate returns `invalid input syntax for type uuid: "mtc"` -- the Plan control
+fails identically on `mtc`; it is a backend/demo-data constraint, not introduced
+by this mount. The UI restore (pill top-right, popover, capture->POST) is fully
+DOM-proven. Log: [[log/2026-06-05-act-tier-pdf-export-toolbar]].
+
 ## SectorCompass HUD -> right-rail sectors editor (2026-06-04)
 
 The floating `SectorCompassOverlay` HUD on the Act map became a **click target**
@@ -490,6 +907,67 @@ substantial foreign work; branch is rebased externally). Reinforces
 [[feedback-commit-immediately-on-rebased-branches]]: on this branch, commit the
 instant a slice verifies -- the window between verify and commit is where the sweep
 strikes.
+
+## Weather drill-down: forecast in the right rail (2026-06-05)
+
+The Dashboard-mode `WeatherStrip` (mounted by `ActOpsDashboard`) has two buttons
+-- the weather strip itself ("Open weather forecast") and the "7-day ->" link
+("Open full weather forecast") -- both calling its `onOpen` prop. In the
+tier-shell that prop was wired to a literal no-op (`onOpen={noop}`), so **both
+buttons were dead**. The legacy `ActOpsAside`/map-first path opens the forecast
+via a slide-up (`ActModuleSlideUp`), but the tier-shell mounts no slide-up. The
+operator asked for the forecast to load **in the same right sidebar**, not a
+modal/slide-up.
+
+Modeled as a drill-down **sub-view of Dashboard mode** (`rightMode` stays
+`'dashboard'`; the Dashboard tab stays active). A `weatherOpen` boolean in
+`ActTierShell` gates the dashboard branch between the cards and the forecast:
+
+- New `ActTierWeatherPanel.tsx` (+ `.module.css`) -- a back-header
+  (`ChevronLeft` + "Dashboard", aria-label "Back to dashboard") over the shared
+  `WeatherForecastCard` (Open-Meteo 7-day, reused verbatim; `onSwitchToMap` is a
+  no-op here -- no map-switch affordance in the rail).
+- `ActOpsDashboard.tsx` gained an optional `onOpenWeather?: () => void`, passed
+  to `WeatherStrip` as `onOpen={onOpenWeather ?? noop}`. The `noop` fallback is
+  kept so the **map-first mount** (`ActMapFirstLayout`, no right-rail target)
+  stays inert -- pre-existing, out of scope.
+- `ActTierShell.tsx`: `const [weatherOpen, setWeatherOpen] = useState(false)`;
+  the dashboard fallback branch now renders `weatherOpen ? <ActTierWeatherPanel
+  project onBack={() => setWeatherOpen(false)} /> : <ActOpsDashboard
+  onOpenWeather={() => setWeatherOpen(true)} />`. The Dashboard tab onClick also
+  clears it, and `useEffect(() => { if (rightMode === 'detail')
+  setWeatherOpen(false); }, [rightMode])` resets it whenever an
+  objective/protocol detail takes the rail -- so the forecast never reappears
+  unexpectedly.
+
+No change to `WeatherStrip.tsx` (its `onOpen` contract was already correct --
+only its mount was a no-op). Verified: tsc 0 for my files (the only tsc errors
+are untracked foreign WIP); bounded vitest `actToolCoverage` 17/17. Preview DOM
+proof on `/v3/project/mtc/act/tier-shell/stratum/s3-systems-reading`: strip
+click -> forecast in right rail (dashboard cards gone, back button + 7-day /
+Next 24 / Open-Meteo present); back -> cards return; "7-day ->" link -> forecast
+opens too; select objective then Dashboard tab -> cards (not forecast),
+confirming the reset effect. `preview_screenshot` hangs on the WebGL map,
+[[project-screenshot-hang]]. One explicit-path commit `a6c3b042` (not pushed).
+Log: [[log/2026-06-05-act-tier-weather-drilldown]].
+
+**Follow-up: rail-layout forecast (commit `043dd979`, not pushed).** Operator
+selected the forecast hero and asked to "remove header and move farm signals
+section to very top." Added a `railLayout?: boolean` prop to the shared
+`WeatherForecastCard`; `ActTierWeatherPanel` passes it. When set it (a) drops the
+`shared.hero` header — the panel already supplies the "Dashboard" back-header, so
+the "Weather forecast" title was redundant — and (b) floats the **Farm signals**
+section to the very top, above Current conditions (the section is extracted to a
+`signalsSection` const, rendered `{railLayout && signalsSection}` first or
+`{!railLayout && signalsSection}` in its original slot). Prop **defaults to
+false**, so the legacy `ActModuleSlideUp` mount keeps the full layout (hero +
+signals in original order) untouched. Verified: tsc 0 for my files; preview DOM
+proof — `_hero_` gone (`heroPresent:false`), first live section is Current
+conditions because the MTC window currently derives **zero** farm signals
+(`signalRowPresent:false`); the signals-first ordering is structural (code), not
+data-demonstrable until a frost/rain/spray/heat signal is active. Note: the
+earlier proof's "farm signals present" was matching the hero *lede* text ("frost
+signals to time field work"), now removed.
 
 ## Answer recap: typed read-only prefill of wizard/vision answers (2026-06-01)
 
