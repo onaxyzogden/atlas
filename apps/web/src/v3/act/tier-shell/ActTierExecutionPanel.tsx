@@ -38,6 +38,7 @@ import {
   deriveClimateContext,
   enterprisesForProjectTypes,
   templatesForEnterprises,
+  UNIVERSAL_PROTOCOL_TEMPLATES,
 } from '@ogden/shared';
 import {
   usePlanStratumProgressStore,
@@ -210,27 +211,27 @@ export default function ActTierExecutionPanel({
   // statusByTemplate (per-templateId lifecycle) + outputs (S6 token
   // substitution) come from the shared library hook; both are independent of
   // which template list is in hand.
-  const { statusByTemplate, outputs } = useProtocolLibrary(
+  const { statusByTemplate, outputs, outputsFor } = useProtocolLibrary(
     projectId,
     primaryTypeId,
     secondaryTypeIds,
   );
 
-  // Trigger Recognition candidates are the ENTERPRISE-scoped standard templates
-  // (the Act trigger feature's native source + FEEDS_TO_MODULE vocabulary).
-  // useProtocolLibrary.templates was repurposed to the per-type Plan catalogue
-  // (resolveProjectProtocols, 2026-06-04), which no longer carries the
-  // enterprise protocols (e.g. water-trough-inspection) nor their feed labels;
-  // sourcing triggers here keeps the Act path intact while leaving Plan
-  // Protocol Mode on its per-type catalogues. Memoised on the project-type
-  // identity via secondaryKey (stable primitive) so a fresh secondaryTypeIds
-  // array reference per render does not recompute.
+  // Trigger Recognition candidates: enterprise-scoped standard templates
+  // (the Act trigger feature's native source) PLUS the universal catalogue
+  // (which has no enterpriseScope and was excluded from templatesForEnterprises).
+  // Universal templates such as u-s5-infrastructure-failure carry feeds like
+  // 'Built Infrastructure' that map via FEEDS_TO_MODULE to Observe domains;
+  // they must be in this set for pickTrigger() to match them.
+  // Memoised on the project-type identity via secondaryKey (stable primitive).
   const secondaryKey = secondaryTypeIds.join(',');
   const triggerTemplates = useMemo<readonly StandardProtocolTemplate[]>(() => {
-    if (!primaryTypeId) return [];
-    return templatesForEnterprises(
-      enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds),
-    );
+    const enterprise = primaryTypeId
+      ? templatesForEnterprises(
+          enterprisesForProjectTypes(primaryTypeId, secondaryTypeIds),
+        )
+      : [];
+    return [...enterprise, ...UNIVERSAL_PROTOCOL_TEMPLATES];
     // secondaryTypeIds captured via secondaryKey (stable primitive).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [primaryTypeId, secondaryKey]);
@@ -730,7 +731,7 @@ export default function ActTierExecutionPanel({
           projectId={projectId}
           template={pendingTrigger}
           tier={resolveSeverityTier(pendingTrigger)}
-          outputs={outputs}
+          outputs={pendingTrigger ? outputsFor(pendingTrigger.id) : outputs}
           onResolve={resolveTrigger}
           onClose={() => setPendingTrigger(null)}
         />

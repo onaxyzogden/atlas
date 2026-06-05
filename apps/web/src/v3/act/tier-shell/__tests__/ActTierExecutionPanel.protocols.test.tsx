@@ -226,6 +226,68 @@ describe('ActTierExecutionPanel - Trigger Recognition', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// Built Infrastructure feed → 'built-infrastructure' module trigger path.
+//
+// u-s5-infrastructure-failure feeds ['Built Infrastructure']. After adding
+// 'Built Infrastructure' to FEEDS_TO_MODULE (protocolFeedsMap.ts), the trigger
+// recognition path must surface this protocol when proof is captured on an
+// objective whose primary Observe domain is 'built-infrastructure'.
+//
+// Fixture: the same silvopasture project; objective 's3-systems-baseline'
+// (primary domain 'built-infrastructure' after the objectiveObserveDomains.ts
+// override); template 'u-s5-infrastructure-failure' active.
+// ---------------------------------------------------------------------------
+
+describe('ActTierExecutionPanel - Built Infrastructure trigger path', () => {
+  const INFRA_OBJ = findPlanStratumObjective('s3-systems-baseline')!;
+  const INFRA_TEMPLATE_ID = 'u-s5-infrastructure-failure';
+
+  function satisfyInfraReadiness() {
+    const plan = usePlanStratumProgressStore.getState();
+    for (const item of INFRA_OBJ.checklist) {
+      plan.toggleItem(PROJECT_ID, INFRA_OBJ.id, item.id);
+    }
+    const ev = useActEvidenceStore.getState();
+    for (const d of getObjectiveEvidence(INFRA_OBJ).filter((x) => x.required)) {
+      if (d.kind === 'note') {
+        ev.updateNote(PROJECT_ID, INFRA_OBJ.id, d.id, 'Infrastructure notes.');
+        ev.saveNote(PROJECT_ID, INFRA_OBJ.id, d.id);
+      } else if (d.kind === 'confirm') {
+        ev.setConfirm(PROJECT_ID, INFRA_OBJ.id, d.id, true);
+      } else {
+        const target = d.target ?? 1;
+        for (let i = 0; i < target; i += 1) {
+          ev.addPhoto(PROJECT_ID, INFRA_OBJ.id, d.id, target);
+        }
+      }
+    }
+  }
+
+  beforeEach(() => {
+    resetAll();
+    seedProject();
+    useProtocolStore.getState().activateProtocol(PROJECT_ID, INFRA_TEMPLATE_ID);
+  });
+
+  it('surfaces Infrastructure Failure trigger sheet after recording an observation on built-infrastructure objective', () => {
+    satisfyInfraReadiness();
+    render(
+      <ActTierExecutionPanel
+        projectId={PROJECT_ID}
+        tier={undefined}
+        objective={INFRA_OBJ}
+        status="active"
+      />,
+    );
+
+    expect(screen.queryByTestId('trigger-recognition-sheet')).toBeNull();
+    fireEvent.click(screen.getByText('Record observation'));
+    expect(screen.getByTestId('trigger-recognition-sheet')).toBeTruthy();
+    expect(screen.getByText('Infrastructure Failure')).toBeTruthy();
+  });
+});
+
 describe('ActTierExecutionPanel - temporal bucket stamping', () => {
   it('centerLat present -> season + cycleNumber stamped on confirmed activation', () => {
     // Seed the project with a northern-hemisphere centerLat so deriveClimateContext
