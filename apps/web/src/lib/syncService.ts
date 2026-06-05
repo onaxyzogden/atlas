@@ -245,12 +245,19 @@ export async function resolveRecordConflict(
   if (!active || !serverId) {
     throw new Error('[SYNC] resolveRecordConflict: no active project with a serverId');
   }
-  const { data } = await api.actRecords.resolveConflict(serverId, item.syncLogId, { choice });
+  // Both domains share the sync_log/failed_records surface (so listConflicts
+  // returns them together), but the resolve write dispatches to a different
+  // table set: olos storeKeys go to the olos conflict route (which writes the
+  // olos_* table named by sync_log.store_key), Act storeKeys to act-records.
+  const { data } = isOlosRecordStoreKey(item.storeKey)
+    ? await api.olos.resolveConflict(serverId, item.syncLogId, { choice })
+    : await api.actRecords.resolveConflict(serverId, item.syncLogId, { choice });
   const desc = SYNCED_STORES.find((d) => d.storeKey === data.storeKey);
   // Converge via the existing tested apply path. `active` is a full LocalProject
-  // (narrowed non-undefined above), exactly what hydrateActRecords consumes at
-  // its other call site — no synthesized partial.
-  if (desc) await hydrateActRecords(active, [desc]);
+  // (narrowed non-undefined above), exactly what hydrateTypedRecords consumes at
+  // its other call site — no synthesized partial. The hydrate dispatches its row
+  // source by storeKey, so an olos descriptor converges from the olos snapshot.
+  if (desc) await hydrateTypedRecords(active, [desc]);
   await listRecordConflicts();
   return data;
 }
@@ -1150,8 +1157,9 @@ async function initialSync(): Promise<void> {
       if (FLAGS.SYNC_STATE_BLOBS) {
         await hydrateProjectStateBlobs(project);
         await hydrateTypedTables(project);
-        await hydrateActRecords(project);
-        await hydrateOlosRecords(project);
+        // One generalised hydrate now covers all 7 typed-record stores (4 Act +
+        // 3 olos); listTypedRecordRows dispatches the row source per storeKey.
+        await hydrateTypedRecords(project);
       }
     }
   } catch (err) {
@@ -1433,7 +1441,7 @@ export async function executeTypedRecordOp(op: QueuedOperation): Promise<void> {
   //    stay QUIET — no badge, no toast. We deliberately do NOT apply the server
   //    payload here: doing so in the flush path would re-enter the store
   //    subscriber and risk a push loop. Convergence to the server copy happens
-  //    on the next hydration (hydrateActRecords); Phase 4 owns immediate adopt.
+  //    on the next hydration (hydrateTypedRecords); Phase 4 owns immediate adopt.
   //  - `escalated` (or any unknown/legacy value): safety could not be proven
   //    (local strictly newer, or a timestamp missing). Surface it for a steward
   //    Keep-mine/Keep-server decision. This is the default, so a 409 from an
@@ -1665,6 +1673,29 @@ async function executeOlosRecordOp(op: QueuedOperation): Promise<void> {
 }
 
 /**
+ * Hydrate-time row source for a typed-record store, dispatched by storeKey: olos
+ * domains expose a project-scoped FULL snapshot via `changed-since` with no
+ * cursor (already in SyncedRecord shape, carrying rev); Act stores use the
+ * generic per-store list. Both yield SyncedRecord[] so `hydrateTypedRecords`
+ * stays storeKey-agnostic.
+ */
+async function listTypedRecordRows(
+  serverId: string,
+  storeKey: string,
+): Promise<SyncedRecord[]> {
+  if (storeKey === OLOS_RECORD_STORE_KEYS.observation) {
+    return ((await api.olos.observations.changedSince(serverId)).data ?? []) as SyncedRecord[];
+  }
+  if (storeKey === OLOS_RECORD_STORE_KEYS.proof) {
+    return ((await api.olos.proofs.changedSince(serverId)).data ?? []) as SyncedRecord[];
+  }
+  if (storeKey === OLOS_RECORD_STORE_KEYS.verification) {
+    return ((await api.olos.verifications.changedSince(serverId)).data ?? []) as SyncedRecord[];
+  }
+  return ((await api.actRecords.list(serverId, storeKey)).data ?? []) as SyncedRecord[];
+}
+
+/**
  * Last server `rev` we know for a (storeKey, project) blob, used as the next
  * push's `baseRev`. In-memory only for the Phase 2 push-only shadow;
  * Phase 4's conflict surface owns durable rev/conflict bookkeeping.
@@ -1881,20 +1912,27 @@ export async function hydrateTypedTables(
 }
 
 /**
- * Device-B restore for the `typed-record` class (the 4 Act stores). Pulls
- * every server record for each typed-record store and upserts it into the live
- * store via `applyRecordForProject`, recording each record's server `rev` as
- * the next push's baseRev. Per-record analogue of `hydrateProjectStateBlobs`,
- * with the same version-skew guard (a record saved by a newer client is
- * skipped, never downcast). Runs INSIDE `initialSync`'s `isSyncing` window so
- * the writes do not bounce back out through `subscribeTypedRecords`.
+ * Device-B restore for the `typed-record` class (the 4 Act stores + the 3 olos
+ * record domains). Pulls every server record for each typed-record store and
+ * upserts it into the live store via `applyRecordForProject`, recording each
+ * record's server `rev` as the next push's baseRev. Per-record analogue of
+ * `hydrateProjectStateBlobs`, with the same version-skew guard (a record saved
+ * by a newer client is skipped, never downcast). Runs INSIDE `initialSync`'s
+ * `isSyncing` window so the writes do not bounce back out through
+ * `subscribeTypedRecords`.
+ *
+ * The row source is dispatched per storeKey by `listTypedRecordRows` (olos
+ * domains expose a project-scoped full snapshot via changed-since; Act stores
+ * use the generic per-store list) so this one function converges any typed
+ * record — including the single-descriptor convergence `resolveRecordConflict`
+ * runs after an olos or Act conflict is resolved.
  *
  * Upsert-only: Phase 1 has no per-record delete on the wire, so a record
  * deleted on another device is reconciled in a later phase, never silently
  * dropped here. `descriptors` is injectable for tests; production passes
  * `SYNCED_STORES`.
  */
-export async function hydrateActRecords(
+export async function hydrateTypedRecords(
   project: LocalProject,
   descriptors: SyncedStoreDescriptor[] = SYNCED_STORES,
 ): Promise<void> {
@@ -1912,8 +1950,7 @@ export async function hydrateActRecords(
     const localVersion = d.schemaVersion ?? 1;
     let rows: SyncedRecord[];
     try {
-      const res = await api.actRecords.list(serverId, d.storeKey);
-      rows = (res.data ?? []) as SyncedRecord[];
+      rows = await listTypedRecordRows(serverId, d.storeKey);
     } catch (err) {
       console.warn(
         `[SYNC] typed-record hydrate list failed for "${d.storeKey}" / "${project.name}":`,
@@ -1971,7 +2008,7 @@ export async function hydrateActRecords(
  * the reconnect delta-pull) stay thin. Server-wins by rev: a message whose
  * `rev` is not strictly newer than the rev we already hold is dropped — this is
  * what makes the author's own broadcast echo and any out-of-order delivery a
- * no-op. Honours the same two guards as `hydrateActRecords`:
+ * no-op. Honours the same two guards as `hydrateTypedRecords`:
  *  - version-skew: a record saved by a newer client is skipped, never downcast;
  *  - §6 init-clobber: a record with a pending un-synced local push is never
  *    overwritten — its own queued push reconciles (or surfaces a 409).
@@ -2184,44 +2221,6 @@ export async function pullOlosRecordDelta(project: LocalProject): Promise<number
     );
   }
   return applied;
-}
-
-/**
- * Device-B restore for the three olos record domains (Phase 3B sibling to
- * `hydrateActRecords`). Pulls a FULL snapshot (`changed-since` with no cursor)
- * for each domain and applies it via `applyIncomingRecord`, which owns the
- * version-skew and §6 init-clobber guards. Does NOT advance the watermark — the
- * first reconnect delta-pull seeds it. Runs inside `initialSync`'s `isSyncing`
- * window; `applyIncomingRecord` save/restores `isSyncing` so it nests safely.
- */
-export async function hydrateOlosRecords(project: LocalProject): Promise<void> {
-  if (!project.serverId) return;
-  const serverId = project.serverId;
-  const fetchers = [
-    () => api.olos.observations.changedSince(serverId),
-    () => api.olos.proofs.changedSince(serverId),
-    () => api.olos.verifications.changedSince(serverId),
-  ];
-  for (const fetchDomain of fetchers) {
-    let rows: SyncedRecord[];
-    try {
-      const res = await fetchDomain();
-      rows = (res.data ?? []) as SyncedRecord[];
-    } catch (err) {
-      console.warn(`[SYNC] olos hydrate failed for "${project.name}":`, err);
-      continue;
-    }
-    for (const row of rows) {
-      await applyIncomingRecord(
-        row.storeKey,
-        project.id,
-        row.recordId,
-        row.rev,
-        row.schemaVersion,
-        row.payload,
-      );
-    }
-  }
 }
 
 /**

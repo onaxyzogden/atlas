@@ -106,6 +106,41 @@ describe('SyncConflictsPage', () => {
     await waitFor(() => expect(mockResolve).toHaveBeenCalledWith(item, 'keep_server'));
   });
 
+  it('reuses the same surface for an olos record conflict (Phase 3B, no new UI)', async () => {
+    // olos observation/proof/verification conflicts share the sync_log +
+    // failed_records surface, so they arrive through the SAME listConflicts and
+    // render with the SAME Keep-mine/Keep-server controls — only the storeKey
+    // differs. resolveRecordConflict (mocked here) dispatches the olos resolve
+    // route internally; the page stays storeKey-agnostic.
+    const olosItem = makeConflict({
+      storeKey: 'ogden-olos-observation-records',
+      recordId: 'obs-9c2f',
+      localPayload: { status: 'observed', note: 'my local observation' },
+      serverPayload: { status: 'observed', note: 'teammate observation' },
+    });
+    mockList.mockResolvedValue([olosItem]);
+    mockResolve.mockResolvedValue({
+      storeKey: olosItem.storeKey,
+      recordId: olosItem.recordId,
+      rev: 5,
+      payload: olosItem.serverPayload,
+      resolutionStatus: 'resolved',
+    });
+
+    render(<SyncConflictsPage />);
+    expect(await screen.findByText('ogden-olos-observation-records')).toBeTruthy();
+    expect(screen.getByText(/my local observation/)).toBeTruthy();
+    expect(screen.getByText(/teammate observation/)).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: /keep server/i }));
+    await waitFor(() =>
+      expect(mockResolve).toHaveBeenCalledWith(olosItem, 'keep_server'),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText('ogden-olos-observation-records')).toBeNull(),
+    );
+  });
+
   it('shows an error surface when listing conflicts fails', async () => {
     mockList.mockRejectedValue(new Error('network down'));
     render(<SyncConflictsPage />);
