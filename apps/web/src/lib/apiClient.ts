@@ -1262,12 +1262,24 @@ export const api = {
       update: (
         projectId: string,
         recordId: string,
-        patch: Partial<Omit<ObservationRecord, 'id' | 'projectId' | 'recordedAt'>>,
+        patch: Partial<Omit<ObservationRecord, 'id' | 'projectId' | 'recordedAt'>> & {
+          baseRev?: number;
+        },
       ) =>
         request<ObservationRecord>(
           'PATCH',
           `/api/v1/projects/${projectId}/olos/observations/${recordId}`,
           patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): every observation in the project changed
+      // since `sinceISO` (omit for a full snapshot), oldest-first by server
+      // `updated_at`. Apply-only on the client (server-wins by rev).
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/observations/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
         ),
       delete: (projectId: string, recordId: string) =>
         request<void>(
@@ -1443,12 +1455,23 @@ export const api = {
         projectId: string,
         taskId: string,
         proofId: string,
-        patch: Partial<Omit<ProofRecord, 'id' | 'projectId' | 'taskId'>>,
+        patch: Partial<Omit<ProofRecord, 'id' | 'projectId' | 'taskId'>> & {
+          baseRev?: number;
+        },
       ) =>
         request<ProofRecord>(
           'PATCH',
           `/api/v1/projects/${projectId}/olos/tasks/${taskId}/proofs/${proofId}`,
           patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): project-scoped (NOT task-scoped) so a
+      // device catches up every proof changed since `sinceISO` in one call.
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/proofs/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
         ),
       delete: (projectId: string, taskId: string, proofId: string) =>
         request<void>(
@@ -1483,12 +1506,23 @@ export const api = {
         projectId: string,
         taskId: string,
         verificationId: string,
-        patch: Partial<Omit<VerificationRecord, 'id' | 'projectId' | 'taskId'>>,
+        patch: Partial<Omit<VerificationRecord, 'id' | 'projectId' | 'taskId'>> & {
+          baseRev?: number;
+        },
       ) =>
         request<VerificationRecord>(
           'PATCH',
           `/api/v1/projects/${projectId}/olos/tasks/${taskId}/verifications/${verificationId}`,
           patch,
+        ),
+      // Reconnect delta-pull (Phase 3B): project-scoped catch-up of every
+      // verification changed since `sinceISO`, oldest-first by server updated_at.
+      changedSince: (projectId: string, sinceISO?: string) =>
+        request<SyncedRecord[]>(
+          'GET',
+          `/api/v1/projects/${projectId}/olos/verifications/changed-since${
+            sinceISO ? `?since=${encodeURIComponent(sinceISO)}` : ''
+          }`,
         ),
       delete: (projectId: string, taskId: string, verificationId: string) =>
         request<void>(
@@ -1587,6 +1621,24 @@ export const api = {
           `/api/v1/projects/${projectId}/olos/stewardship-routines/${recordId}`,
         ),
     },
+
+    // ── olos record conflict resolution (Phase 3B) ────────────────────────
+    // One generic route closes an escalated conflict for any of the three olos
+    // record domains; the server dispatches the keep_mine write to the table
+    // named by sync_log.store_key. Mirrors actRecords.resolveConflict, keyed on
+    // the olos `:id` project param. keep_server is a server-side read no-op.
+    resolveConflict: (
+      projectId: string,
+      syncLogId: string,
+      input: ResolveConflictInput,
+    ) =>
+      request<ResolveConflictResult>(
+        'POST',
+        `/api/v1/projects/${projectId}/olos/conflicts/${encodeURIComponent(
+          syncLogId,
+        )}/resolve`,
+        input,
+      ),
   },
 
   // ── Compost vertical (org-scoped Site / Pile / Reading; /api/v1/compost) ──

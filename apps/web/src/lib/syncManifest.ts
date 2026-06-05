@@ -114,6 +114,9 @@ import { useObserveDataPointStore } from '../store/observeDataPointStore.js';
 import { useObserveCycleStore } from '../store/observeCycleStore.js';
 import { usePresentationShareStore } from '../store/presentationShareStore.js';
 import { usePlanRevisionDismissalStore } from '../store/planRevisionDismissalStore.js';
+import { useObservationRecordStore } from '../store/olos/observationRecordStore.js';
+import { useProofRecordStore } from '../store/olos/proofRecordStore.js';
+import { useVerificationRecordStore } from '../store/olos/verificationRecordStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -539,6 +542,49 @@ function recordKeyedMap(cycleIdField?: string): RecordShape {
 }
 
 /**
+ * typed-record shape for a `byProject` KEYED-MAP store whose inner key is NOT
+ * the record's sync id — the olos observation store keys
+ * `byProject[pid][objectiveId]`, but the record's stable sync id is `value.id`
+ * (a server uuid, or a local `obs-…` draft id). recordId = `String(value.id)`
+ * so the wire/queue/conflict identity is the row id (matching the server's
+ * uuid PK), while the store stays keyed by `objectiveId` for O(1) workspace
+ * lookup.
+ *
+ * `applyRecord` reconciles by the record id: it replaces whichever inner entry
+ * already carries `.id === recordId` (the in-place update / local-draft→server
+ * rekey case, since the objective slot is stable), else inserts the incoming
+ * record under its own `objectiveId`. The local draft and its server copy share
+ * one `objectiveId` slot, so a rekey never leaves an orphan.
+ */
+function recordByInnerField(innerIdField: string): RecordShape {
+  return {
+    selectRecords: (state, pid) => {
+      const map = (state?.byProject?.[pid] as Record<string, any>) ?? {};
+      return Object.values(map)
+        .filter((value) => value != null && value.id != null)
+        .map((value) => ({
+          recordId: String(value.id),
+          record: value,
+          meta: extractRecordMeta(value),
+        }));
+    },
+    applyRecord: (store, pid, recordId, incoming) =>
+      store.setState((st: any) => {
+        const byProject = { ...((st?.byProject as any) ?? {}) };
+        const project = { ...((byProject[pid] as Record<string, any>) ?? {}) };
+        const existingKey = Object.keys(project).find(
+          (k) => String(project[k]?.id) === recordId,
+        );
+        const key =
+          existingKey ?? String((incoming as any)?.[innerIdField] ?? recordId);
+        project[key] = incoming;
+        byProject[pid] = project;
+        return { byProject };
+      }),
+  };
+}
+
+/**
  * typed-record registration helper — the per-record analogue of `blob()`.
  * `schemaVersion` MUST match the store's persist `version` so the hydrate-side
  * version-skew guard stays correct (e.g. field-actions is persist v3 after the
@@ -764,6 +810,24 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // event (capture, divergence, freshness change) arrives. A single
   // string per project fits byKey('byProject', null, '').
   blob('ogden-plan-revision-dismissals', usePlanRevisionDismissalStore, 'byProject', 1, byKey('byProject', null, '')),
+
+  // --- OLOS canonical record substrate (Phase 3B; full rev parity) ---
+  // The three olos record domains join the typed-record transport so they get
+  // real-time broadcast, reconnect delta-pull, and the 409 keep-mine/keep-server
+  // surface (mirroring the Act path). Unlike Act records (opaque synced_records
+  // blobs), the canonical data stays single-sourced in the olos_* tables with a
+  // server `rev` column (migration 053); the push flush in syncService routes
+  // these storeKeys to the domain REST endpoints rather than the generic
+  // synced_records PUT. All gated behind FLAGS.SYNC_STATE_BLOBS (default OFF).
+  //
+  // observation: byProject[pid][objectiveId], but the sync id is record.id (a
+  // server uuid / local `obs-…` draft) → recordByInnerField('objectiveId').
+  // schemaVersion 1 mirrors the store persist version AND OLOS_SCHEMA_VERSION.
+  record('ogden-olos-observation-records', useObservationRecordStore, 'byProject', 1, recordByInnerField('objectiveId')),
+  // proof / verification: byProject[pid][id] keyed by the record id directly →
+  // the existing recordKeyedMap() (recordId = inner key = row id).
+  record('ogden-olos-proof-records', useProofRecordStore, 'byProject', 1, recordKeyedMap()),
+  record('ogden-olos-verification-records', useVerificationRecordStore, 'byProject', 1, recordKeyedMap()),
 ];
 
 /**
