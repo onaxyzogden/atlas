@@ -117,6 +117,10 @@ import { usePlanRevisionDismissalStore } from '../store/planRevisionDismissalSto
 import { useObservationRecordStore } from '../store/olos/observationRecordStore.js';
 import { useProofRecordStore } from '../store/olos/proofRecordStore.js';
 import { useVerificationRecordStore } from '../store/olos/verificationRecordStore.js';
+import { useActEvidenceStore } from '../store/actEvidenceStore.js';
+import { useReviewFlagStore } from '../store/reviewFlagStore.js';
+import { useProtocolStore } from '../store/protocolStore.js';
+import { usePlanTensionBannerStore } from '../store/planTensionBannerStore.js';
 
 export type SyncClassification =
   | 'typed-design-feature'
@@ -402,6 +406,72 @@ const objectiveSummaryShape: BlobShape = {
         byStage[stage] = { ...((byStage[stage] as any) ?? {}), [pid]: inc[stage] };
       }
       return { byStage };
+    }),
+};
+
+/**
+ * act-evidence carries TWO byProject record maps (per-objective evidence
+ * capture + per-form vision text); both slices are owned by the same projectId.
+ * Same pattern as observationNeedsShape / planStratumShape.
+ */
+const actEvidenceShape: BlobShape = {
+  select: (s, pid) => ({
+    byProject: (s as any)?.byProject?.[pid] ?? {},
+    visionForms: (s as any)?.visionForms?.[pid] ?? {},
+  }),
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const inc = (incoming as any) ?? {};
+      return {
+        byProject: { ...((st?.byProject as any) ?? {}), [pid]: inc.byProject ?? {} },
+        visionForms: {
+          ...((st?.visionForms as any) ?? {}),
+          [pid]: inc.visionForms ?? {},
+        },
+      };
+    }),
+};
+
+/**
+ * protocols mixes TWO projectId-tagged arrays (lifecycle `records` + append-only
+ * `activations`) with TWO byProject maps (`expectationsByProject` +
+ * `instantiatedObjectiveIds`). Same mixed-shape pattern as agribusinessSelect:
+ * filter the tagged arrays to this project, pick this project's map rows, and
+ * restore each without disturbing other projects.
+ */
+const protocolShape: BlobShape = {
+  select: (s, pid) => {
+    const st = s as any;
+    const pick = (f: string) =>
+      Array.isArray(st?.[f]) ? st[f].filter((x: any) => x?.projectId === pid) : [];
+    return {
+      records: pick('records'),
+      activations: pick('activations'),
+      expectationsByProject: st?.expectationsByProject?.[pid] ?? {},
+      instantiatedObjectiveIds: st?.instantiatedObjectiveIds?.[pid] ?? [],
+    };
+  },
+  apply: (store, pid, incoming) =>
+    store.setState((st: any) => {
+      const inc = (incoming as any) ?? {};
+      const repl = (f: string) => {
+        const ex = Array.isArray(st?.[f]) ? st[f] : [];
+        const others = ex.filter((x: any) => x?.projectId !== pid);
+        const i = inc[f];
+        return others.concat(Array.isArray(i) ? i : []);
+      };
+      return {
+        records: repl('records'),
+        activations: repl('activations'),
+        expectationsByProject: {
+          ...((st?.expectationsByProject as any) ?? {}),
+          [pid]: inc.expectationsByProject ?? {},
+        },
+        instantiatedObjectiveIds: {
+          ...((st?.instantiatedObjectiveIds as any) ?? {}),
+          [pid]: inc.instantiatedObjectiveIds ?? [],
+        },
+      };
     }),
 };
 
@@ -828,6 +898,27 @@ export const SYNCED_STORES: SyncedStoreDescriptor[] = [
   // the existing recordKeyedMap() (recordId = inner key = row id).
   record('ogden-olos-proof-records', useProofRecordStore, 'byProject', 1, recordKeyedMap()),
   record('ogden-olos-verification-records', useVerificationRecordStore, 'byProject', 1, recordKeyedMap()),
+
+  // --- Act tier-shell evidence capture + Protocol/Review-flag substrate ---
+  // Per-objective evidence capture (photos/confirms/notes) + per-form vision
+  // text, two byProject maps owned by one project. No server table → opaque
+  // versioned-blob. v1 matches the persist version.
+  blob('ogden-act-evidence', useActEvidenceStore, 'byProject', 1, actEvidenceShape),
+  // ObjectiveReviewFlag records raised by the deviation engine, byProject
+  // Record<projectId, ObjectiveReviewFlag[]>. Records carry ids but have no
+  // dedicated typed-record transport (no server table/endpoint), so the
+  // generic byProject blob is the correct path. v1 matches the persist version.
+  blob('ogden-review-flags', useReviewFlagStore, 'byProject', 1, byKey('byProject', null, [])),
+  // Standing-protocol lifecycle: `records` + `activations` (projectId-tagged
+  // arrays) plus `expectationsByProject` + `instantiatedObjectiveIds` (byProject
+  // maps). Mixed shape (protocolShape), mirroring agribusiness. schemaVersion 4
+  // matches the store's persist version (v1→v4 additive slice migrations).
+  blob('ogden-protocols', useProtocolStore, 'projectId-tagged', 4, protocolShape),
+  // Plan design-tension banner collapsed/expanded preference, per project
+  // (collapsedByProject Record<projectId, boolean>). A per-project UI cursor
+  // like ogden-plan-revision-dismissals (also a synced versioned-blob); absent
+  // ⇒ collapsed (true) default, so empty = true. v1 matches the persist version.
+  blob('ogden-plan-tension-banner', usePlanTensionBannerStore, 'byProject', 1, byKey('collapsedByProject', null, true)),
 ];
 
 /**
